@@ -106,7 +106,18 @@ export default function RequestDetailsScreen({
   const [showEditDatePicker, setShowEditDatePicker] = useState(false);
   const [showEditTimePicker, setShowEditTimePicker] = useState(false);
   const [showEditEndTimePicker, setShowEditEndTimePicker] = useState(false);
+  const [showPurposePicker, setShowPurposePicker] = useState(false);
+  const [editSendWhatsApp, setEditSendWhatsApp] = useState(false);
+  const [editSendSMS, setEditSendSMS] = useState(false);
   const [editModalMode, setEditModalMode] = useState<"full" | "services-only">("full");
+
+  const PURPOSE_OPTIONS = [
+    { value: 'business_meeting', labelKey: 'visitor.businessMeeting' },
+    { value: 'interview', labelKey: 'visitor.interview' },
+    { value: 'delivery', labelKey: 'visitor.delivery' },
+    { value: 'maintenance', labelKey: 'visitor.maintenance' },
+    { value: 'general', labelKey: 'visitor.generalVisit' },
+  ];
 
   // Success modal states
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -363,6 +374,8 @@ export default function RequestDetailsScreen({
     setEditRequiresMeetingRoom(!!visitData.meetingRoom);
     setEditRequiresBuffet(!!visitData.buffet);
     setEditRequiresValet(visitData.parkingType === "valet");
+    setEditSendWhatsApp(false);
+    setEditSendSMS(false);
     setEditNotes("");
     setShowEditModal(true);
   };
@@ -1238,7 +1251,7 @@ export default function RequestDetailsScreen({
                   },
                 ]}
               >
-                {t("actions.edit")}
+                {t("common.edit")}
               </ThemedText>
             </Pressable>
             <Spacer width={Spacing.md} />
@@ -1261,7 +1274,7 @@ export default function RequestDetailsScreen({
                   },
                 ]}
               >
-                {t("actions.cancel")}
+                {t("common.cancel")}
               </ThemedText>
             </Pressable>
           </View>
@@ -1668,20 +1681,32 @@ export default function RequestDetailsScreen({
               >
                 {t("form.purpose")} *
               </ThemedText>
-              <TextInput
+              <Pressable
                 style={[
-                  styles.textInputField,
+                  styles.pickerButton,
                   {
                     backgroundColor: theme.surfaceSecondary,
                     borderColor: theme.border,
-                    color: theme.text,
                   },
                 ]}
-                value={editPurpose}
-                onChangeText={setEditPurpose}
-                placeholder={t("form.enterPurpose")}
-                placeholderTextColor={theme.textSecondary}
-              />
+                onPress={() => setShowPurposePicker(true)}
+              >
+                <DDIcon name="clipboard" size={16} variant="muted" />
+                <ThemedText
+                  style={[
+                    Typography.body,
+                    {
+                      marginStart: Spacing.sm,
+                      color: editPurpose ? theme.text : theme.textSecondary,
+                      fontSize: 14,
+                      flex: 1,
+                    },
+                  ]}
+                >
+                  {editPurpose || t("visitor.selectVisitType")}
+                </ThemedText>
+                <DDIcon name="chevron-down" size={16} variant="muted" />
+              </Pressable>
 
               {editModalMode === "full" ? (
                 <>
@@ -1695,30 +1720,6 @@ export default function RequestDetailsScreen({
                   >
                     {t("form.date")}
                   </ThemedText>
-                  {Platform.OS === "web" ? (
-                <TextInput
-                  style={[
-                    styles.textInputField,
-                    {
-                      backgroundColor: theme.surfaceSecondary,
-                      borderColor: theme.border,
-                      color: theme.text,
-                    },
-                  ]}
-                  value={editDate.toISOString().split("T")[0]}
-                  onChangeText={(text) => {
-                    const date = new Date(text);
-                    if (!isNaN(date.getTime())) {
-                      setEditDate(date);
-                    }
-                  }}
-                  placeholder="YYYY-MM-DD"
-                  placeholderTextColor={theme.textSecondary}
-                  // @ts-ignore - web-specific prop
-                  type="date"
-                />
-              ) : (
-                <>
                   <Pressable
                     style={[
                       styles.pickerButton,
@@ -1744,18 +1745,6 @@ export default function RequestDetailsScreen({
                     </ThemedText>
                   </Pressable>
 
-                  {showEditDatePicker && (
-                    <DateTimePicker
-                      value={editDate}
-                      mode="date"
-                      display={Platform.OS === "ios" ? "spinner" : "default"}
-                      onChange={handleEditDateChange}
-                      minimumDate={new Date()}
-                    />
-                  )}
-                </>
-              )}
-
               <Spacer height={Spacing.lg} />
 
               <ThemedText
@@ -1766,67 +1755,30 @@ export default function RequestDetailsScreen({
               >
                 {t("form.time")}
               </ThemedText>
-              {Platform.OS === "web" ? (
-                <TextInput
+              <Pressable
+                style={[
+                  styles.pickerButton,
+                  {
+                    backgroundColor: theme.surfaceSecondary,
+                    borderColor: theme.border,
+                  },
+                ]}
+                onPress={() => setShowEditTimePicker(true)}
+              >
+                <DDIcon name="clock" size={16} variant="muted" />
+                <ThemedText
                   style={[
-                    styles.textInputField,
+                    Typography.body,
                     {
-                      backgroundColor: theme.surfaceSecondary,
-                      borderColor: theme.border,
+                      marginStart: Spacing.sm,
                       color: theme.text,
+                      fontSize: 14,
                     },
                   ]}
-                  value={`${String(editTime.getHours()).padStart(2, "0")}:${String(editTime.getMinutes()).padStart(2, "0")}`}
-                  onChangeText={(text) => {
-                    const [hours, minutes] = text.split(":").map(Number);
-                    if (!isNaN(hours) && !isNaN(minutes)) {
-                      const newTime = new Date(editTime);
-                      newTime.setHours(hours, minutes);
-                      setEditTime(newTime);
-                    }
-                  }}
-                  placeholder="HH:MM"
-                  placeholderTextColor={theme.textSecondary}
-                  // @ts-ignore - web-specific prop
-                  type="time"
-                />
-              ) : (
-                <>
-                  <Pressable
-                    style={[
-                      styles.pickerButton,
-                      {
-                        backgroundColor: theme.surfaceSecondary,
-                        borderColor: theme.border,
-                      },
-                    ]}
-                    onPress={() => setShowEditTimePicker(true)}
-                  >
-                    <DDIcon name="clock" size={16} variant="muted" />
-                    <ThemedText
-                      style={[
-                        Typography.body,
-                        {
-                          marginStart: Spacing.sm,
-                          color: theme.text,
-                          fontSize: 14,
-                        },
-                      ]}
-                    >
-                      {formatDisplayTime(editTime)}
-                    </ThemedText>
-                  </Pressable>
-
-                  {showEditTimePicker && (
-                    <DateTimePicker
-                      value={editTime}
-                      mode="time"
-                      display={Platform.OS === "ios" ? "spinner" : "default"}
-                      onChange={handleEditTimeChange}
-                    />
-                  )}
-                </>
-              )}
+                >
+                  {formatDisplayTime(editTime)}
+                </ThemedText>
+              </Pressable>
 
               <Spacer height={Spacing.lg} />
 
@@ -1838,67 +1790,30 @@ export default function RequestDetailsScreen({
               >
                 {t("form.endTime")}
               </ThemedText>
-              {Platform.OS === "web" ? (
-                <TextInput
+              <Pressable
+                style={[
+                  styles.pickerButton,
+                  {
+                    backgroundColor: theme.surfaceSecondary,
+                    borderColor: theme.border,
+                  },
+                ]}
+                onPress={() => setShowEditEndTimePicker(true)}
+              >
+                <DDIcon name="clock" size={16} variant="muted" />
+                <ThemedText
                   style={[
-                    styles.textInputField,
+                    Typography.body,
                     {
-                      backgroundColor: theme.surfaceSecondary,
-                      borderColor: theme.border,
+                      marginStart: Spacing.sm,
                       color: theme.text,
+                      fontSize: 14,
                     },
                   ]}
-                  value={`${String(editEndTime.getHours()).padStart(2, "0")}:${String(editEndTime.getMinutes()).padStart(2, "0")}`}
-                  onChangeText={(text) => {
-                    const [hours, minutes] = text.split(":").map(Number);
-                    if (!isNaN(hours) && !isNaN(minutes)) {
-                      const newTime = new Date(editEndTime);
-                      newTime.setHours(hours, minutes);
-                      setEditEndTime(newTime);
-                    }
-                  }}
-                  placeholder="HH:MM"
-                  placeholderTextColor={theme.textSecondary}
-                  // @ts-ignore - web-specific prop
-                  type="time"
-                />
-              ) : (
-                <>
-                  <Pressable
-                    style={[
-                      styles.pickerButton,
-                      {
-                        backgroundColor: theme.surfaceSecondary,
-                        borderColor: theme.border,
-                      },
-                    ]}
-                    onPress={() => setShowEditEndTimePicker(true)}
-                  >
-                    <DDIcon name="clock" size={16} variant="muted" />
-                    <ThemedText
-                      style={[
-                        Typography.body,
-                        {
-                          marginStart: Spacing.sm,
-                          color: theme.text,
-                          fontSize: 14,
-                        },
-                      ]}
-                    >
-                      {formatDisplayTime(editEndTime)}
-                    </ThemedText>
-                  </Pressable>
-
-                  {showEditEndTimePicker && (
-                    <DateTimePicker
-                      value={editEndTime}
-                      mode="time"
-                      display={Platform.OS === "ios" ? "spinner" : "default"}
-                      onChange={handleEditEndTimeChange}
-                    />
-                  )}
-                </>
-              )}
+                >
+                  {formatDisplayTime(editEndTime)}
+                </ThemedText>
+              </Pressable>
 
               <Spacer height={Spacing.lg} />
 
@@ -2007,6 +1922,100 @@ export default function RequestDetailsScreen({
                 </View>
               </View>
 
+              <Spacer height={Spacing.xl} />
+
+              <ThemedText
+                style={[
+                  Typography.subtitle,
+                  {
+                    fontSize: 14,
+                    fontWeight: "600",
+                    color: theme.text,
+                    marginBottom: Spacing.md,
+                  },
+                ]}
+              >
+                {t("invitation.communicationChannels")}
+              </ThemedText>
+
+              <View style={styles.channelsContainer}>
+                <Pressable
+                  style={[
+                    styles.channelChip,
+                    {
+                      backgroundColor: theme.surface,
+                      borderColor: editSendWhatsApp ? theme.primary : theme.border,
+                    },
+                  ]}
+                  onPress={() => setEditSendWhatsApp(!editSendWhatsApp)}
+                >
+                  <View
+                    style={[
+                      styles.channelChipIcon,
+                      { backgroundColor: applyOpacity(theme.success, "15") },
+                    ]}
+                  >
+                    <DDIcon name="message-circle" size={16} variant="success" />
+                  </View>
+                  <ThemedText
+                    style={[
+                      Typography.bodySmall,
+                      { fontWeight: "500", marginStart: Spacing.xs },
+                    ]}
+                  >
+                    {t("services.whatsapp")}
+                  </ThemedText>
+                  {editSendWhatsApp ? (
+                    <View
+                      style={[
+                        styles.chipCheckmark,
+                        { backgroundColor: theme.primary },
+                      ]}
+                    >
+                      <DDIcon name="check" size={10} color={theme.buttonText} />
+                    </View>
+                  ) : null}
+                </Pressable>
+
+                <Pressable
+                  style={[
+                    styles.channelChip,
+                    {
+                      backgroundColor: theme.surface,
+                      borderColor: editSendSMS ? theme.primary : theme.border,
+                    },
+                  ]}
+                  onPress={() => setEditSendSMS(!editSendSMS)}
+                >
+                  <View
+                    style={[
+                      styles.channelChipIcon,
+                      { backgroundColor: applyOpacity(theme.info, "15") },
+                    ]}
+                  >
+                    <DDIcon name="smartphone" size={16} color={theme.info} />
+                  </View>
+                  <ThemedText
+                    style={[
+                      Typography.bodySmall,
+                      { fontWeight: "500", marginStart: Spacing.xs },
+                    ]}
+                  >
+                    {t("services.sms")}
+                  </ThemedText>
+                  {editSendSMS ? (
+                    <View
+                      style={[
+                        styles.chipCheckmark,
+                        { backgroundColor: theme.primary },
+                      ]}
+                    >
+                      <DDIcon name="check" size={10} color={theme.buttonText} />
+                    </View>
+                  ) : null}
+                </Pressable>
+              </View>
+
               <Spacer height={Spacing.lg} />
 
               <ThemedText
@@ -2062,6 +2071,124 @@ export default function RequestDetailsScreen({
                 {t("common.save")}
               </LoadingButton>
             </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Date/Time Picker Modals for Edit */}
+      <CalendarDatePicker
+        visible={showEditDatePicker}
+        onClose={() => setShowEditDatePicker(false)}
+        selectedDate={editDate}
+        onDateSelect={(date) => {
+          setEditDate(date);
+          setShowEditDatePicker(false);
+        }}
+        mode="single"
+        minimumDate={new Date()}
+      />
+
+      <TimePicker
+        visible={showEditTimePicker}
+        onClose={() => setShowEditTimePicker(false)}
+        selectedTime={editTime}
+        onTimeSelect={(time) => {
+          setEditTime(time);
+          setShowEditTimePicker(false);
+        }}
+        minuteInterval={5}
+      />
+
+      <TimePicker
+        visible={showEditEndTimePicker}
+        onClose={() => setShowEditEndTimePicker(false)}
+        selectedTime={editEndTime}
+        onTimeSelect={(time) => {
+          setEditEndTime(time);
+          setShowEditEndTimePicker(false);
+        }}
+        minuteInterval={5}
+      />
+
+      {/* Purpose Picker Modal */}
+      <Modal
+        visible={showPurposePicker}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowPurposePicker(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <Pressable
+            style={[styles.modalBackdrop, createModalOverlayStyle(theme, "50")]}
+            onPress={() => setShowPurposePicker(false)}
+          />
+          <View
+            style={[
+              styles.modalContent,
+              { backgroundColor: theme.surface, maxHeight: "60%" },
+            ]}
+          >
+            <View style={styles.modalHeader}>
+              <ThemedText
+                style={[
+                  Typography.subtitle,
+                  { fontSize: 18, fontWeight: "600", color: theme.text },
+                ]}
+              >
+                {t("visitor.selectVisitType")}
+              </ThemedText>
+              <Pressable onPress={() => setShowPurposePicker(false)}>
+                <DDIcon name="x" size={22} variant="muted" />
+              </Pressable>
+            </View>
+
+            <ScrollView style={{ marginTop: Spacing.md }}>
+              {PURPOSE_OPTIONS.map((option) => (
+                <Pressable
+                  key={option.value}
+                  style={[
+                    styles.purposePickerItem,
+                    {
+                      borderBottomColor: theme.border,
+                      backgroundColor:
+                        editPurpose === t(option.labelKey as any)
+                          ? applyOpacity(theme.primary, "10")
+                          : "transparent",
+                    },
+                  ]}
+                  onPress={() => {
+                    setEditPurpose(t(option.labelKey as any));
+                    setShowPurposePicker(false);
+                  }}
+                >
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <ThemedText
+                      style={[
+                        Typography.body,
+                        {
+                          color: theme.text,
+                          fontWeight:
+                            editPurpose === t(option.labelKey as any)
+                              ? "600"
+                              : "400",
+                        },
+                      ]}
+                    >
+                      {t(option.labelKey as any)}
+                    </ThemedText>
+                    {editPurpose === t(option.labelKey as any) ? (
+                      <DDIcon name="check" size={18} variant="primary" />
+                    ) : null}
+                  </View>
+                </Pressable>
+              ))}
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -2509,5 +2636,38 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 10,
     alignItems: "center",
+  },
+  channelsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: Spacing.sm,
+  },
+  channelChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+  },
+  channelChipIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  chipCheckmark: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    marginStart: Spacing.xs,
+  },
+  purposePickerItem: {
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    borderBottomWidth: 1,
   },
 });
