@@ -773,7 +773,7 @@ export default function RequestDetailsScreen({ navigation, route }: RequestDetai
         <>
           <View style={styles.actionButtonsRow}>
             <Pressable
-              style={[styles.actionButtonHalf, { backgroundColor: theme.secondary }]}
+              style={[styles.actionButtonHalf, { backgroundColor: theme.success }]}
               onPress={handleHostApprove}
               disabled={hostApproveMutation.isPending}
             >
