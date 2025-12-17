@@ -1,7 +1,16 @@
 import { RequestStatus } from '@/types/vms.types';
+import {
+  REQUEST_STATUS,
+  TASK_STATUS,
+  VALET_STATUS,
+  isStatusActive as isActiveFromConstants,
+  isStatusCompleted as isCompletedFromConstants,
+  isStatusCancelled as isCancelledFromConstants,
+} from '@/constants/requestConstants';
 
-export type TaskStatus = 'pending' | 'assigned' | 'in_progress' | 'completed' | 'cancelled';
+export type TaskStatus = typeof TASK_STATUS[keyof typeof TASK_STATUS];
 export type RoomStatus = 'available' | 'occupied' | 'reserved' | 'maintenance' | 'out_of_service';
+export type ValetStatus = typeof VALET_STATUS[keyof typeof VALET_STATUS];
 
 export interface StatusConfig {
   color: string;
@@ -9,32 +18,35 @@ export interface StatusConfig {
   labelKey: string;
 }
 
+const REQUEST_STATUS_CONFIGS: Record<string, StatusConfig> = {
+  [REQUEST_STATUS.DRAFT]: { color: 'muted', icon: 'file', labelKey: 'status.pending' },
+  [REQUEST_STATUS.PENDING_APPROVAL]: { color: 'warning', icon: 'clock', labelKey: 'status.pending' },
+  [REQUEST_STATUS.PENDING_HOST_APPROVAL]: { color: 'warning', icon: 'clock', labelKey: 'status.pendingHostApproval' },
+  [REQUEST_STATUS.APPROVED]: { color: 'success', icon: 'check-circle', labelKey: 'status.approved' },
+  [REQUEST_STATUS.REJECTED]: { color: 'error', icon: 'x-circle', labelKey: 'status.rejected' },
+  [REQUEST_STATUS.CANCELLED]: { color: 'error', icon: 'slash', labelKey: 'status.cancelled' },
+  [REQUEST_STATUS.AUTO_CANCELLED]: { color: 'error', icon: 'slash', labelKey: 'status.cancelled' },
+  [REQUEST_STATUS.VISITOR_PENDING]: { color: 'warning', icon: 'user', labelKey: 'invitation.awaitingResponse' },
+  [REQUEST_STATUS.VISITOR_ACCEPTED]: { color: 'success', icon: 'user-check', labelKey: 'invitation.visitorAccepted' },
+  [REQUEST_STATUS.VISITOR_REJECTED]: { color: 'error', icon: 'user-x', labelKey: 'invitation.visitorDeclined' },
+  [REQUEST_STATUS.CHECKED_IN]: { color: 'success', icon: 'log-in', labelKey: 'status.checkedIn' },
+  [REQUEST_STATUS.COMPLETED]: { color: 'muted', icon: 'check', labelKey: 'status.completed' },
+};
+
 export const getRequestStatusConfig = (status: RequestStatus | string): StatusConfig => {
-  const configs: Record<string, StatusConfig> = {
-    draft: { color: 'muted', icon: 'file', labelKey: 'status.pending' },
-    pending_approval: { color: 'warning', icon: 'clock', labelKey: 'status.pending' },
-    approved: { color: 'success', icon: 'check-circle', labelKey: 'status.approved' },
-    rejected: { color: 'error', icon: 'x-circle', labelKey: 'status.rejected' },
-    cancelled: { color: 'error', icon: 'slash', labelKey: 'status.cancelled' },
-    auto_cancelled: { color: 'error', icon: 'slash', labelKey: 'status.cancelled' },
-    visitor_pending: { color: 'warning', icon: 'user', labelKey: 'invitation.awaitingResponse' },
-    visitor_accepted: { color: 'success', icon: 'user-check', labelKey: 'invitation.visitorAccepted' },
-    visitor_rejected: { color: 'error', icon: 'user-x', labelKey: 'invitation.visitorDeclined' },
-    checked_in: { color: 'success', icon: 'log-in', labelKey: 'status.checkedIn' },
-    completed: { color: 'muted', icon: 'check', labelKey: 'status.completed' },
-  };
-  return configs[status] || { color: 'muted', icon: 'help-circle', labelKey: 'common.none' };
+  return REQUEST_STATUS_CONFIGS[status] || { color: 'muted', icon: 'help-circle', labelKey: 'common.none' };
+};
+
+const TASK_STATUS_CONFIGS: Record<TaskStatus, StatusConfig> = {
+  [TASK_STATUS.PENDING]: { color: 'warning', icon: 'clock', labelKey: 'status.pending' },
+  [TASK_STATUS.ASSIGNED]: { color: 'info', icon: 'user', labelKey: 'status.assigned' },
+  [TASK_STATUS.IN_PROGRESS]: { color: 'primary', icon: 'loader', labelKey: 'status.inProgress' },
+  [TASK_STATUS.COMPLETED]: { color: 'success', icon: 'check-circle', labelKey: 'status.completed' },
+  [TASK_STATUS.CANCELLED]: { color: 'error', icon: 'x-circle', labelKey: 'status.cancelled' },
 };
 
 export const getTaskStatusConfig = (status: TaskStatus): StatusConfig => {
-  const configs: Record<TaskStatus, StatusConfig> = {
-    pending: { color: 'warning', icon: 'clock', labelKey: 'status.pending' },
-    assigned: { color: 'info', icon: 'user', labelKey: 'status.assigned' },
-    in_progress: { color: 'primary', icon: 'loader', labelKey: 'status.inProgress' },
-    completed: { color: 'success', icon: 'check-circle', labelKey: 'status.completed' },
-    cancelled: { color: 'error', icon: 'x-circle', labelKey: 'status.cancelled' },
-  };
-  return configs[status] || { color: 'muted', icon: 'help-circle', labelKey: 'common.none' };
+  return TASK_STATUS_CONFIGS[status] || { color: 'muted', icon: 'help-circle', labelKey: 'common.none' };
 };
 
 export const getRoomStatusConfig = (status: RoomStatus): StatusConfig => {
@@ -58,17 +70,18 @@ export const getParkingStatusConfig = (status: string): StatusConfig => {
   return configs[status] || { color: 'muted', icon: 'help-circle', labelKey: 'common.none' };
 };
 
+const VALET_STATUS_CONFIGS: Record<string, StatusConfig> = {
+  [VALET_STATUS.PENDING]: { color: 'warning', icon: 'clock', labelKey: 'status.pending' },
+  [VALET_STATUS.ASSIGNED]: { color: 'info', icon: 'user', labelKey: 'status.assigned' },
+  [VALET_STATUS.PICKING_UP]: { color: 'primary', icon: 'truck', labelKey: 'valet.pickupVehicle' },
+  [VALET_STATUS.PARKED]: { color: 'success', icon: 'check-circle', labelKey: 'parking.parked' },
+  [VALET_STATUS.RETURNING]: { color: 'primary', icon: 'truck', labelKey: 'valet.returnVehicle' },
+  [VALET_STATUS.COMPLETED]: { color: 'success', icon: 'check-circle', labelKey: 'status.completed' },
+  [VALET_STATUS.CANCELLED]: { color: 'error', icon: 'x-circle', labelKey: 'status.cancelled' },
+};
+
 export const getValetTaskStatusConfig = (status: string): StatusConfig => {
-  const configs: Record<string, StatusConfig> = {
-    pending: { color: 'warning', icon: 'clock', labelKey: 'status.pending' },
-    assigned: { color: 'info', icon: 'user', labelKey: 'status.assigned' },
-    picking_up: { color: 'primary', icon: 'truck', labelKey: 'valet.pickupVehicle' },
-    parked: { color: 'success', icon: 'check-circle', labelKey: 'parking.parked' },
-    returning: { color: 'primary', icon: 'truck', labelKey: 'valet.returnVehicle' },
-    completed: { color: 'success', icon: 'check-circle', labelKey: 'status.completed' },
-    cancelled: { color: 'error', icon: 'x-circle', labelKey: 'status.cancelled' },
-  };
-  return configs[status] || { color: 'muted', icon: 'help-circle', labelKey: 'common.none' };
+  return VALET_STATUS_CONFIGS[status] || { color: 'muted', icon: 'help-circle', labelKey: 'common.none' };
 };
 
 export const getBuffetTaskStatusConfig = (status: string): StatusConfig => {
@@ -82,14 +95,8 @@ export const getBuffetTaskStatusConfig = (status: string): StatusConfig => {
   return configs[status] || { color: 'muted', icon: 'help-circle', labelKey: 'common.none' };
 };
 
-export const isRequestActive = (status: RequestStatus | string): boolean => {
-  return ['pending_approval', 'approved', 'visitor_accepted', 'checked_in'].includes(status);
-};
+export const isRequestActive = isActiveFromConstants;
 
-export const isRequestCompleted = (status: RequestStatus | string): boolean => {
-  return ['completed'].includes(status);
-};
+export const isRequestCompleted = isCompletedFromConstants;
 
-export const isRequestCancelled = (status: RequestStatus | string): boolean => {
-  return ['cancelled', 'auto_cancelled', 'rejected', 'visitor_rejected'].includes(status);
-};
+export const isRequestCancelled = isCancelledFromConstants;

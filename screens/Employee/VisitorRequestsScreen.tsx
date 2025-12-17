@@ -9,6 +9,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
+import { REQUEST_STATUS, UPCOMING_STATUSES, CANCELLED_STATUSES } from "@/constants/requestConstants";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
@@ -743,18 +744,18 @@ export default function VisitorRequestsScreen({ navigation: navProp, userRole = 
       case 'upcoming':
         filtered = requests.filter(request => {
           const visitDate = new Date(request.visitDate);
-          return visitDate >= today && (['approved', 'visitor_accepted', 'pending_approval'].includes(request.status));
+          return visitDate >= today && (UPCOMING_STATUSES as readonly string[]).includes(request.status);
         });
         break;
       case 'waiting':
         filtered = requests.filter(request => {
-          return request.status === 'visitor_pending';
+          return request.status === REQUEST_STATUS.VISITOR_PENDING;
         });
         break;
       case 'past':
         filtered = requests.filter(request => {
           const visitDate = new Date(request.visitDate);
-          return visitDate < today || ['completed', 'cancelled', 'auto_cancelled', 'rejected', 'visitor_rejected'].includes(request.status);
+          return visitDate < today || request.status === REQUEST_STATUS.COMPLETED || (CANCELLED_STATUSES as readonly string[]).includes(request.status);
         });
         break;
       case 'walkin':

@@ -33,6 +33,7 @@ import {
 } from "@/components/VisitTimeline";
 import Spacer from "@/components/Spacer";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
+import { REQUEST_STATUS } from "@/constants/requestConstants";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
@@ -1166,7 +1167,7 @@ export default function RequestDetailsScreen({
       <Spacer height={Spacing.xl} />
 
       {/* Walk-in request: Show Approve/Reject buttons */}
-      {request.isWalkIn && request.status === "pending_host_approval" ? (
+      {request.isWalkIn && request.status === REQUEST_STATUS.PENDING_HOST_APPROVAL ? (
         <>
           <ApprovalActionGroup
             onApprove={handleHostApprove}
@@ -1182,9 +1183,9 @@ export default function RequestDetailsScreen({
 
       {/* Non-walk-in request: Show Edit, Reschedule, Cancel buttons */}
       {!request.isWalkIn &&
-      (request.status === "pending_approval" ||
-        request.status === "approved" ||
-        request.status === "visitor_accepted") ? (
+      (request.status === REQUEST_STATUS.PENDING_APPROVAL ||
+        request.status === REQUEST_STATUS.APPROVED ||
+        request.status === REQUEST_STATUS.VISITOR_ACCEPTED) ? (
         <>
           <Pressable
             style={[

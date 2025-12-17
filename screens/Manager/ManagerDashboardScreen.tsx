@@ -27,42 +27,7 @@ import type { PendingApprovalDto } from "@/types/api.types";
 import { applyOpacity } from "@/utils/statusStyles";
 import type { ManagerDashboardScreenProps } from "@/types/managerNavigation.types";
 import type { Theme } from "@/types/theme.types";
-
-const mapPendingApprovalToVisitorRequest = (approval: PendingApprovalDto): VisitorRequest => {
-  return {
-    id: approval.id,
-    employeeId: '',
-    employeeName: approval.employeeName,
-    employeeDepartment: approval.employeeDepartment,
-    visitor: {
-      id: approval.visitor.id,
-      fullName: approval.visitor.fullName,
-      email: approval.visitor.email,
-      phone: approval.visitor.phone,
-      company: approval.visitor.company,
-    },
-    visitDate: approval.visitDate,
-    visitTime: approval.visitTime,
-    duration: approval.duration,
-    purpose: approval.purpose,
-    status: 'pending_approval',
-    communicationChannels: ['email'],
-    parkingType: approval.hasParking ? 'auto' : 'none',
-    parkingSlot: approval.hasParking ? { id: 'auto', location: 'SKBC_basement', slotNumber: 'TBD' } : undefined,
-    meetingRoom: approval.hasMeetingRoom ? { id: 'auto', name: 'TBD', capacity: 10, floor: '1', timeSlot: approval.visitTime } : undefined,
-    buffet: approval.hasBuffet ? { id: 'auto', mealType: 'lunch', location: 'Main Buffet' } : undefined,
-    valet: approval.hasValet ? { id: 'auto', pickupTime: approval.visitTime, returnTime: '', status: 'pending' } : undefined,
-    qrCode: undefined,
-    approval: {
-      requiresApproval: true,
-      autoApproved: false,
-    },
-    reminders: {},
-    createdAt: approval.createdAt,
-    updatedAt: approval.createdAt,
-    isWalkIn: approval.isWalkIn,
-  };
-};
+import { mapPendingApprovalToVisitorRequest } from "@/services/utils/requestMappers";
 
 const LAYOUT = {
   cardPadding: Spacing.lg,

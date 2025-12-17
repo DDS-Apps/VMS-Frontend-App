@@ -66,6 +66,57 @@ export const REQUEST_STATUS_VALUES: readonly RequestStatus[] = [
   'auto_cancelled',
 ] as const;
 
+export const REQUEST_STATUS = {
+  DRAFT: 'draft' as RequestStatus,
+  PENDING_APPROVAL: 'pending_approval' as RequestStatus,
+  PENDING_HOST_APPROVAL: 'pending_host_approval' as RequestStatus,
+  APPROVED: 'approved' as RequestStatus,
+  REJECTED: 'rejected' as RequestStatus,
+  VISITOR_PENDING: 'visitor_pending' as RequestStatus,
+  VISITOR_ACCEPTED: 'visitor_accepted' as RequestStatus,
+  VISITOR_REJECTED: 'visitor_rejected' as RequestStatus,
+  CHECKED_IN: 'checked_in' as RequestStatus,
+  COMPLETED: 'completed' as RequestStatus,
+  CANCELLED: 'cancelled' as RequestStatus,
+  AUTO_CANCELLED: 'auto_cancelled' as RequestStatus,
+} as const;
+
+export const ACTIVE_STATUSES: readonly RequestStatus[] = [
+  REQUEST_STATUS.PENDING_APPROVAL,
+  REQUEST_STATUS.APPROVED,
+  REQUEST_STATUS.VISITOR_ACCEPTED,
+  REQUEST_STATUS.CHECKED_IN,
+] as const;
+
+export const COMPLETED_STATUSES: readonly RequestStatus[] = [
+  REQUEST_STATUS.COMPLETED,
+] as const;
+
+export const CANCELLED_STATUSES: readonly RequestStatus[] = [
+  REQUEST_STATUS.CANCELLED,
+  REQUEST_STATUS.AUTO_CANCELLED,
+  REQUEST_STATUS.REJECTED,
+  REQUEST_STATUS.VISITOR_REJECTED,
+] as const;
+
+export const UPCOMING_STATUSES: readonly RequestStatus[] = [
+  REQUEST_STATUS.APPROVED,
+  REQUEST_STATUS.VISITOR_ACCEPTED,
+  REQUEST_STATUS.PENDING_APPROVAL,
+] as const;
+
+export const isStatusActive = (status: RequestStatus | string): boolean => {
+  return (ACTIVE_STATUSES as readonly string[]).includes(status);
+};
+
+export const isStatusCompleted = (status: RequestStatus | string): boolean => {
+  return (COMPLETED_STATUSES as readonly string[]).includes(status);
+};
+
+export const isStatusCancelled = (status: RequestStatus | string): boolean => {
+  return (CANCELLED_STATUSES as readonly string[]).includes(status);
+};
+
 export const resolveStatus = (apiStatus: string): RequestStatus => {
   return API_STATUS_MAP[apiStatus] || (apiStatus as RequestStatus) || 'pending_approval';
 };
@@ -123,3 +174,69 @@ export const DEFAULT_BUFFET = {
   mealType: DEFAULT_MEAL_TYPE,
   location: DEFAULT_BUFFET_LOCATION,
 } as const;
+
+export const VISITOR_STATUS = {
+  PENDING: 'pending' as const,
+  EXPECTED: 'expected' as const,
+  CHECKED_IN: 'checked_in' as const,
+  COMPLETED: 'completed' as const,
+} as const;
+
+export const VALET_STATUS = {
+  PENDING: 'pending' as const,
+  ASSIGNED: 'assigned' as const,
+  PICKING_UP: 'picking_up' as const,
+  PARKED: 'parked' as const,
+  RETURNING: 'returning' as const,
+  COMPLETED: 'completed' as const,
+  CANCELLED: 'cancelled' as const,
+} as const;
+
+export const TASK_STATUS = {
+  PENDING: 'pending' as const,
+  ASSIGNED: 'assigned' as const,
+  IN_PROGRESS: 'in_progress' as const,
+  COMPLETED: 'completed' as const,
+  CANCELLED: 'cancelled' as const,
+} as const;
+
+export const LATER_STAGE_STATUSES: readonly string[] = [
+  REQUEST_STATUS.APPROVED,
+  REQUEST_STATUS.VISITOR_ACCEPTED,
+  REQUEST_STATUS.CHECKED_IN,
+  REQUEST_STATUS.COMPLETED,
+  'accepted',
+  'checked_out',
+  'awaiting_visitor',
+  'pending_visitor',
+] as const;
+
+export const VISITOR_ACCEPTED_STATUSES: readonly string[] = [
+  'accepted',
+  REQUEST_STATUS.VISITOR_ACCEPTED,
+  REQUEST_STATUS.CHECKED_IN,
+  'checked_out',
+  REQUEST_STATUS.COMPLETED,
+] as const;
+
+export const VISITOR_DECLINED_STATUSES: readonly string[] = [
+  REQUEST_STATUS.REJECTED,
+  REQUEST_STATUS.VISITOR_REJECTED,
+] as const;
+
+export const AWAITING_VISITOR_STATUSES: readonly string[] = [
+  REQUEST_STATUS.APPROVED,
+  'pending_visitor',
+  'awaiting_visitor',
+] as const;
+
+export const CHECKED_IN_STATUSES: readonly string[] = [
+  REQUEST_STATUS.CHECKED_IN,
+  'checked_out',
+  REQUEST_STATUS.COMPLETED,
+] as const;
+
+export const COMPLETED_REQUEST_STATUSES: readonly string[] = [
+  'checked_out',
+  REQUEST_STATUS.COMPLETED,
+] as const;

@@ -5,6 +5,14 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
+import {
+  LATER_STAGE_STATUSES,
+  VISITOR_ACCEPTED_STATUSES,
+  VISITOR_DECLINED_STATUSES,
+  AWAITING_VISITOR_STATUSES,
+  CHECKED_IN_STATUSES,
+  COMPLETED_REQUEST_STATUSES,
+} from "@/constants/requestConstants";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
@@ -154,8 +162,7 @@ export function useVisitTimelineSteps(data: VisitTimelineData): TimelineStep[] {
     icon: 'check-circle',
   });
 
-  const laterStageStatuses = ['approved', 'visitor_accepted', 'accepted', 'checked_in', 'checked_out', 'completed', 'awaiting_visitor', 'pending_visitor'];
-  const isAtLaterStage = laterStageStatuses.includes(data.status);
+  const isAtLaterStage = LATER_STAGE_STATUSES.includes(data.status);
 
   if (data.approval) {
     if (data.approval.rejectedAt) {
@@ -199,11 +206,7 @@ export function useVisitTimelineSteps(data: VisitTimelineData): TimelineStep[] {
     return steps;
   }
 
-  const visitorAcceptedStatuses = ['accepted', 'visitor_accepted', 'checked_in', 'checked_out', 'completed'];
-  const visitorDeclinedStatuses = ['rejected', 'visitor_rejected'];
-  const awaitingVisitorStatuses = ['approved', 'pending_visitor', 'awaiting_visitor'];
-
-  if (visitorDeclinedStatuses.includes(data.status)) {
+  if (VISITOR_DECLINED_STATUSES.includes(data.status)) {
     steps.push({
       id: 'visitor_response',
       label: t('timeline.visitorDeclined'),
@@ -212,7 +215,7 @@ export function useVisitTimelineSteps(data: VisitTimelineData): TimelineStep[] {
       icon: 'x-circle',
     });
     return steps;
-  } else if (visitorAcceptedStatuses.includes(data.status) || data.acceptedAt) {
+  } else if (VISITOR_ACCEPTED_STATUSES.includes(data.status) || data.acceptedAt) {
     steps.push({
       id: 'visitor_response',
       label: t('timeline.visitorAccepted'),
@@ -220,7 +223,7 @@ export function useVisitTimelineSteps(data: VisitTimelineData): TimelineStep[] {
       status: 'completed',
       icon: 'user-check',
     });
-  } else if (awaitingVisitorStatuses.includes(data.status)) {
+  } else if (AWAITING_VISITOR_STATUSES.includes(data.status)) {
     steps.push({
       id: 'visitor_response',
       label: t('timeline.awaitingVisitor'),
@@ -230,8 +233,7 @@ export function useVisitTimelineSteps(data: VisitTimelineData): TimelineStep[] {
     return steps;
   }
 
-  const checkedInStatuses = ['checked_in', 'checked_out', 'completed'];
-  if (checkedInStatuses.includes(data.status) || data.checkedInAt) {
+  if (CHECKED_IN_STATUSES.includes(data.status) || data.checkedInAt) {
     steps.push({
       id: 'checked_in',
       label: t('timeline.visitorCheckedIn'),
@@ -248,8 +250,7 @@ export function useVisitTimelineSteps(data: VisitTimelineData): TimelineStep[] {
     });
   }
 
-  const completedStatuses = ['checked_out', 'completed'];
-  if (completedStatuses.includes(data.status) || data.completedAt) {
+  if (COMPLETED_REQUEST_STATUSES.includes(data.status) || data.completedAt) {
     steps.push({
       id: 'completed',
       label: t('timeline.visitCompleted'),

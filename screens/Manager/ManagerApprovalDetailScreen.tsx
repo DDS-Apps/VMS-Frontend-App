@@ -11,6 +11,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
+import { REQUEST_STATUS } from "@/constants/requestConstants";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
@@ -206,11 +207,11 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
     let statusIcon: IconName = 'clock';
     let statusText = t('status.pending');
 
-    if (request.status === 'approved') {
+    if (request.status === REQUEST_STATUS.APPROVED) {
       statusColor = theme.success;
       statusIcon = 'check-circle';
       statusText = t('status.approved');
-    } else if (request.status === 'rejected') {
+    } else if (request.status === REQUEST_STATUS.REJECTED) {
       statusColor = theme.error;
       statusIcon = 'x-circle';
       statusText = t('status.rejected');
@@ -458,7 +459,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
         <Spacer height={100} />
       </ScreenScrollView>
 
-      {request.status === 'pending_approval' && (
+      {request.status === REQUEST_STATUS.PENDING_APPROVAL && (
         <View style={[styles.actionBar, { backgroundColor: theme.background, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.lg }]}>
           <ApprovalActionGroup
             onApprove={handleApprove}
@@ -471,7 +472,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
         </View>
       )}
 
-      {(request.status === 'approved' || request.status === 'visitor_accepted') && (
+      {(request.status === REQUEST_STATUS.APPROVED || request.status === REQUEST_STATUS.VISITOR_ACCEPTED) && (
         <View style={[styles.actionBar, { backgroundColor: theme.background, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.lg }]}>
           <LoadingButton
             onPress={() => setShowCancelModal(true)}
