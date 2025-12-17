@@ -83,13 +83,6 @@ export default function RequestDetailsScreen({
   const [showEditModal, setShowEditModal] = useState(false);
   const [showHostRejectModal, setShowHostRejectModal] = useState(false);
   const [hostRejectReason, setHostRejectReason] = useState("");
-  const [showServiceSelectionModal, setShowServiceSelectionModal] =
-    useState(false);
-  const [serviceRequiresParking, setServiceRequiresParking] = useState(false);
-  const [serviceRequiresValet, setServiceRequiresValet] = useState(false);
-  const [serviceRequiresMeetingRoom, setServiceRequiresMeetingRoom] =
-    useState(false);
-  const [serviceRequiresBuffet, setServiceRequiresBuffet] = useState(false);
 
   const [editPurpose, setEditPurpose] = useState("");
   const [editDate, setEditDate] = useState(new Date());
@@ -112,6 +105,7 @@ export default function RequestDetailsScreen({
   const [editSendWhatsApp, setEditSendWhatsApp] = useState(false);
   const [editSendSMS, setEditSendSMS] = useState(false);
   const [editModalMode, setEditModalMode] = useState<"full" | "services-only">("full");
+  const [isApprovalFlow, setIsApprovalFlow] = useState(false);
 
   const PURPOSE_OPTIONS = [
     { value: 'business_meeting', labelKey: 'visitor.businessMeeting' },
@@ -271,14 +265,17 @@ export default function RequestDetailsScreen({
       { id: requestId },
       {
         onSuccess: () => {
-          // Approval successful, now open service selection modal
+          // Approval successful, now open edit modal in services-only mode for service selection
           if (visitData) {
-            setServiceRequiresParking(visitData.parkingType !== "none");
-            setServiceRequiresValet(visitData.parkingType === "valet");
-            setServiceRequiresMeetingRoom(!!visitData.meetingRoom);
-            setServiceRequiresBuffet(!!visitData.buffet);
+            setEditPurpose(visitData.purpose || "");
+            setEditRequiresParking(visitData.parkingType !== "none");
+            setEditRequiresValet(visitData.parkingType === "valet");
+            setEditRequiresMeetingRoom(!!visitData.meetingRoom);
+            setEditRequiresBuffet(!!visitData.buffet);
           }
-          setShowServiceSelectionModal(true);
+          setIsApprovalFlow(true);
+          setEditModalMode("services-only");
+          setShowEditModal(true);
         },
         onError: (error) => {
           Alert.alert(t("errors.somethingWentWrong"), error.message);
@@ -287,38 +284,6 @@ export default function RequestDetailsScreen({
     );
   };
 
-  const handleServiceSelectionApprove = () => {
-    const payload = {
-      needsParking: serviceRequiresParking,
-      needsValet: serviceRequiresValet,
-      needsMeetingRoom: serviceRequiresMeetingRoom,
-      needsBuffet: serviceRequiresBuffet,
-    };
-
-    console.log(
-      "[RequestDetails] Submitting service selection with payload:",
-      JSON.stringify(payload, null, 2),
-    );
-
-    updateMutation.mutate(
-      { id: requestId, data: payload },
-      {
-        onSuccess: () => {
-          console.log("[RequestDetails] Service selection update successful");
-          setShowServiceSelectionModal(false);
-          setSuccessMessage(t("notifications.walkInApproved"));
-          setShowSuccessModal(true);
-        },
-        onError: (error) => {
-          console.log(
-            "[RequestDetails] Service selection update failed:",
-            error.message,
-          );
-          Alert.alert(t("errors.somethingWentWrong"), error.message);
-        },
-      },
-    );
-  };
 
   const handleHostReject = () => {
     if (!hostRejectReason.trim()) {
@@ -380,6 +345,7 @@ export default function RequestDetailsScreen({
   const openEditModal = (mode: "full" | "services-only" = "full") => {
     if (!visitData) return;
 
+    setIsApprovalFlow(false);
     setEditModalMode(mode);
     setEditPurpose(visitData.purpose || "");
     const visitDate = visitData.visitDate ? new Date(visitData.visitDate) : new Date();
@@ -402,6 +368,11 @@ export default function RequestDetailsScreen({
     setEditSendSMS(false);
     setEditNotes("");
     setShowEditModal(true);
+  };
+
+  const closeEditModal = () => {
+    setShowEditModal(false);
+    setIsApprovalFlow(false);
   };
   
   const parseDurationToMs = (duration: string): number => {
@@ -524,8 +495,9 @@ export default function RequestDetailsScreen({
         onSuccess: () => {
           console.log("[RequestDetails] Edit successful");
           setShowEditModal(false);
-          setSuccessMessage(t("notifications.visitUpdated"));
+          setSuccessMessage(isApprovalFlow ? t("notifications.walkInApproved") : t("notifications.visitUpdated"));
           setShowSuccessModal(true);
+          setIsApprovalFlow(false);
         },
         onError: (error) => {
           console.log("[RequestDetails] Edit failed:", error.message);
@@ -1483,197 +1455,16 @@ export default function RequestDetailsScreen({
         </View>
       </Modal>
 
-      {/* Service Selection Modal for Walk-in Approval */}
-      <Modal
-        visible={showServiceSelectionModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowServiceSelectionModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <Pressable
-            style={[styles.modalBackdrop, createModalOverlayStyle(theme, "50")]}
-            onPress={() => setShowServiceSelectionModal(false)}
-          />
-          <View
-            style={[styles.modalContent, { backgroundColor: theme.surface }]}
-          >
-            <View style={styles.modalHeader}>
-              <ThemedText
-                style={[
-                  Typography.subtitle,
-                  { fontSize: 18, fontWeight: "600", color: theme.text },
-                ]}
-              >
-                {t("services.additionalServices")}
-              </ThemedText>
-              <Pressable onPress={() => setShowServiceSelectionModal(false)}>
-                <DDIcon name="x" size={22} variant="muted" />
-              </Pressable>
-            </View>
-
-            <Spacer height={Spacing.lg} />
-
-            <ThemedText
-              style={[
-                Typography.body,
-                { color: theme.textSecondary, fontSize: 14 },
-              ]}
-            >
-              {t("services.selectServicesForVisitor")}
-            </ThemedText>
-
-            <Spacer height={Spacing.xl} />
-
-            <View
-              style={[styles.serviceToggleRow, { borderColor: theme.border }]}
-            >
-              <View style={styles.serviceToggleLabel}>
-                <DDIcon name="map-pin" size={18} variant="muted" />
-                <ThemedText
-                  style={[
-                    Typography.body,
-                    {
-                      marginStart: Spacing.sm,
-                      color: theme.text,
-                      fontSize: 14,
-                    },
-                  ]}
-                >
-                  {t("services.parking")}
-                </ThemedText>
-              </View>
-              <Switch
-                value={serviceRequiresParking}
-                onValueChange={setServiceRequiresParking}
-                trackColor={{ false: theme.border, true: theme.primary }}
-                thumbColor={theme.buttonText}
-              />
-            </View>
-
-            <View
-              style={[styles.serviceToggleRow, { borderColor: theme.border }]}
-            >
-              <View style={styles.serviceToggleLabel}>
-                <DDIcon name="truck" size={18} variant="muted" />
-                <ThemedText
-                  style={[
-                    Typography.body,
-                    {
-                      marginStart: Spacing.sm,
-                      color: theme.text,
-                      fontSize: 14,
-                    },
-                  ]}
-                >
-                  {t("services.valet")}
-                </ThemedText>
-              </View>
-              <Switch
-                value={serviceRequiresValet}
-                onValueChange={setServiceRequiresValet}
-                trackColor={{ false: theme.border, true: theme.primary }}
-                thumbColor={theme.buttonText}
-              />
-            </View>
-
-            <View
-              style={[styles.serviceToggleRow, { borderColor: theme.border }]}
-            >
-              <View style={styles.serviceToggleLabel}>
-                <DDIcon name="home" size={18} variant="muted" />
-                <ThemedText
-                  style={[
-                    Typography.body,
-                    {
-                      marginStart: Spacing.sm,
-                      color: theme.text,
-                      fontSize: 14,
-                    },
-                  ]}
-                >
-                  {t("services.meetingRoom")}
-                </ThemedText>
-              </View>
-              <Switch
-                value={serviceRequiresMeetingRoom}
-                onValueChange={setServiceRequiresMeetingRoom}
-                trackColor={{ false: theme.border, true: theme.primary }}
-                thumbColor={theme.buttonText}
-              />
-            </View>
-
-            <View
-              style={[styles.serviceToggleRow, { borderColor: theme.border }]}
-            >
-              <View style={styles.serviceToggleLabel}>
-                <DDIcon name="coffee" size={18} variant="muted" />
-                <ThemedText
-                  style={[
-                    Typography.body,
-                    {
-                      marginStart: Spacing.sm,
-                      color: theme.text,
-                      fontSize: 14,
-                    },
-                  ]}
-                >
-                  {t("buffet.buffetService")}
-                </ThemedText>
-              </View>
-              <Switch
-                value={serviceRequiresBuffet}
-                onValueChange={setServiceRequiresBuffet}
-                trackColor={{ false: theme.border, true: theme.primary }}
-                thumbColor={theme.buttonText}
-              />
-            </View>
-
-            <Spacer height={Spacing.xl} />
-
-            <View style={styles.modalActions}>
-              <LoadingButton
-                onPress={() => setShowServiceSelectionModal(false)}
-                variant="secondary"
-                size="medium"
-                style={{ flex: 1 }}
-              >
-                {t("common.cancel")}
-              </LoadingButton>
-
-              <Spacer width={12} />
-
-              <LoadingButton
-                onPress={handleServiceSelectionApprove}
-                loading={
-                  updateMutation.isPending || hostApproveMutation.isPending
-                }
-                disabled={
-                  updateMutation.isPending || hostApproveMutation.isPending
-                }
-                variant="success"
-                size="medium"
-                icon="check"
-                loadingText={t("common.approving")}
-                style={{ flex: 1 }}
-              >
-                {t("actions.approve")}
-              </LoadingButton>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
       <Modal
         visible={showEditModal}
         transparent
         animationType="fade"
-        onRequestClose={() => setShowEditModal(false)}
+        onRequestClose={closeEditModal}
       >
         <View style={styles.modalOverlay}>
           <Pressable
             style={[styles.modalBackdrop, createModalOverlayStyle(theme, "50")]}
-            onPress={() => setShowEditModal(false)}
+            onPress={closeEditModal}
           />
           <View
             style={[
@@ -1688,11 +1479,13 @@ export default function RequestDetailsScreen({
                   { fontSize: 18, fontWeight: "600", color: theme.text },
                 ]}
               >
-                {editModalMode === "services-only"
+                {isApprovalFlow
+                  ? t("services.additionalServices")
+                  : editModalMode === "services-only"
                   ? t("actions.editServices")
                   : t("actions.editRequest")}
               </ThemedText>
-              <Pressable onPress={() => setShowEditModal(false)}>
+              <Pressable onPress={closeEditModal}>
                 <DDIcon name="x" size={22} variant="muted" />
               </Pressable>
             </View>
@@ -2131,7 +1924,7 @@ export default function RequestDetailsScreen({
 
             <View style={styles.modalActions}>
               <LoadingButton
-                onPress={() => setShowEditModal(false)}
+                onPress={closeEditModal}
                 variant="secondary"
                 size="medium"
                 style={{ flex: 1 }}
@@ -2145,12 +1938,13 @@ export default function RequestDetailsScreen({
                 onPress={handleEditConfirm}
                 loading={updateMutation.isPending}
                 disabled={updateMutation.isPending}
-                variant="primary"
+                variant={isApprovalFlow ? "success" : "primary"}
                 size="medium"
-                loadingText={t("common.saving")}
+                icon={isApprovalFlow ? "check" : undefined}
+                loadingText={isApprovalFlow ? t("common.approving") : t("common.saving")}
                 style={{ flex: 1 }}
               >
-                {t("common.save")}
+                {isApprovalFlow ? t("actions.approve") : t("common.save")}
               </LoadingButton>
             </View>
           </View>
