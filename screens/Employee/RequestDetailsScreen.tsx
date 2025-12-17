@@ -84,6 +84,7 @@ export default function RequestDetailsScreen({
   const [showServiceSelectionModal, setShowServiceSelectionModal] =
     useState(false);
   const [serviceRequiresParking, setServiceRequiresParking] = useState(false);
+  const [serviceRequiresValet, setServiceRequiresValet] = useState(false);
   const [serviceRequiresMeetingRoom, setServiceRequiresMeetingRoom] =
     useState(false);
   const [serviceRequiresBuffet, setServiceRequiresBuffet] = useState(false);
@@ -233,6 +234,7 @@ export default function RequestDetailsScreen({
           // Approval successful, now open service selection modal
           if (visitData) {
             setServiceRequiresParking(visitData.parkingType !== "none");
+            setServiceRequiresValet(visitData.parkingType === "valet");
             setServiceRequiresMeetingRoom(!!visitData.meetingRoom);
             setServiceRequiresBuffet(!!visitData.buffet);
           }
@@ -248,6 +250,7 @@ export default function RequestDetailsScreen({
   const handleServiceSelectionApprove = () => {
     const payload = {
       needsParking: serviceRequiresParking,
+      needsValet: serviceRequiresValet,
       needsMeetingRoom: serviceRequiresMeetingRoom,
       needsBuffet: serviceRequiresBuffet,
     };
@@ -1495,6 +1498,32 @@ export default function RequestDetailsScreen({
               <Switch
                 value={serviceRequiresParking}
                 onValueChange={setServiceRequiresParking}
+                trackColor={{ false: theme.border, true: theme.primary }}
+                thumbColor={theme.buttonText}
+              />
+            </View>
+
+            <View
+              style={[styles.serviceToggleRow, { borderColor: theme.border }]}
+            >
+              <View style={styles.serviceToggleLabel}>
+                <DDIcon name="truck" size={18} variant="muted" />
+                <ThemedText
+                  style={[
+                    Typography.body,
+                    {
+                      marginStart: Spacing.sm,
+                      color: theme.text,
+                      fontSize: 14,
+                    },
+                  ]}
+                >
+                  {t("services.valet")}
+                </ThemedText>
+              </View>
+              <Switch
+                value={serviceRequiresValet}
+                onValueChange={setServiceRequiresValet}
                 trackColor={{ false: theme.border, true: theme.primary }}
                 thumbColor={theme.buttonText}
               />
