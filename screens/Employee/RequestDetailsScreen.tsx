@@ -71,7 +71,7 @@ const mapVisitDetailsToVisitorRequest = (visit: VisitDetailsDto): VisitorRequest
     duration: visit.duration || '1 hour',
     endTime: visit.endTime,
     purpose: visit.purpose || '',
-    status: statusMap[visit.status] || 'pending_approval',
+    status: statusMap[visit.status] || (visit.status as RequestStatus) || 'pending_approval',
     communicationChannels: (visit.communicationChannels || ['email']) as ('email' | 'sms' | 'whatsapp' | 'qr_code')[],
     parkingType: (visit.parkingType || 'none') as ParkingType,
     parkingSlot: (hasValidData(visit.parkingAllocation) || hasValidData(visit.parkingSlot)) ? {

@@ -57,7 +57,7 @@ const mapVisitToVisitorRequest = (visit: VisitListItemDto): VisitorRequest => {
     visitTime: visit.visitTime || '',
     duration: '1 hour',
     purpose: visit.purpose || '',
-    status: statusMap[visit.status] || 'pending_approval',
+    status: statusMap[visit.status] || (visit.status as RequestStatus) || 'pending_approval',
     communicationChannels: ['email'],
     parkingType: visit.hasParking ? 'auto' : 'none',
     parkingSlot: visit.hasParking ? { id: 'auto', location: 'SKBC_basement', slotNumber: 'TBD' } : undefined,
