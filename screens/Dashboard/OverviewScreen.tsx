@@ -12,126 +12,15 @@ import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
-import { UserRole, VisitorRequest, RequestStatus } from "@/types/vms.types";
+import { UserRole, VisitorRequest } from "@/types/vms.types";
 import { SkeletonDashboard, VisitorRequestCard } from "@/components/shared";
 import { useVisitsQuery, usePendingApprovalsQuery, useAwaitingVisitorQuery, usePendingHostWalkInsQuery } from "@/hooks/queries/useApprovalQueries";
-import { mapPendingHostWalkInToVisitorRequest } from "@/hooks/queries/useApprovalQueries";
-import type { VisitListItemDto, AwaitingVisitorDto, PendingApprovalDto } from "@/types/api.types";
-
-const statusMap: Record<string, RequestStatus> = {
-  pending: 'pending_approval',
-  pending_approval: 'pending_approval',
-  pending_host_approval: 'pending_host_approval',
-  approved: 'approved',
-  rejected: 'rejected',
-  checked_in: 'checked_in',
-  checked_out: 'completed',
-  cancelled: 'cancelled',
-  expired: 'auto_cancelled',
-  awaiting_visitor: 'visitor_pending',
-  visitor_pending: 'visitor_pending',
-  visitor_accepted: 'visitor_accepted',
-  visitor_rejected: 'visitor_rejected',
-  completed: 'completed',
-};
-
-const mapVisitToVisitorRequest = (visit: VisitListItemDto): VisitorRequest => {
-  return {
-    id: visit.id,
-    employeeId: '',
-    employeeName: visit.employeeName || 'Unknown Host',
-    employeeDepartment: undefined,
-    visitor: {
-      id: '',
-      fullName: visit.visitor?.fullName || 'Unknown Visitor',
-      email: visit.visitor?.email || '',
-      phone: visit.visitor?.phone || '',
-      company: visit.visitor?.company,
-    },
-    visitDate: visit.visitDate,
-    visitTime: visit.visitTime || '',
-    duration: '1 hour',
-    purpose: visit.purpose || '',
-    status: statusMap[visit.status] || (visit.status as RequestStatus) || 'pending_approval',
-    communicationChannels: ['email'],
-    parkingType: visit.hasParking ? 'auto' : 'none',
-    meetingRoom: visit.hasMeetingRoom ? { id: 'auto', name: 'TBD', capacity: 10, floor: '1', timeSlot: visit.visitTime || '' } : undefined,
-    buffet: visit.hasBuffet ? { id: 'auto', mealType: 'lunch', location: 'Main Buffet' } : undefined,
-    valet: visit.hasValet ? { id: 'auto', pickupTime: visit.visitTime || '', returnTime: '', status: 'pending' } : undefined,
-    approval: {
-      requiresApproval: true,
-      approvedAt: visit.approvedAt,
-    },
-    reminders: {},
-    createdAt: visit.createdAt,
-    updatedAt: visit.approvedAt || visit.createdAt,
-    isWalkIn: visit.isWalkIn,
-  };
-};
-
-const mapAwaitingToVisitorRequest = (awaiting: AwaitingVisitorDto): VisitorRequest => {
-  return {
-    id: awaiting.id,
-    employeeId: '',
-    employeeName: awaiting.employeeName || 'Unknown Host',
-    employeeDepartment: undefined,
-    visitor: {
-      id: awaiting.visitor?.id || '',
-      fullName: awaiting.visitor?.fullName || 'Unknown Visitor',
-      email: awaiting.visitor?.email || '',
-      phone: awaiting.visitor?.phone || '',
-      company: awaiting.visitor?.company,
-    },
-    visitDate: awaiting.visitDate,
-    visitTime: awaiting.visitTime || '',
-    duration: '1 hour',
-    purpose: '',
-    status: statusMap[awaiting.status] || 'visitor_pending',
-    communicationChannels: ['email'],
-    parkingType: 'none',
-    approval: {
-      requiresApproval: true,
-      approvedAt: awaiting.approvedAt,
-    },
-    reminders: {},
-    createdAt: awaiting.approvedAt,
-    updatedAt: awaiting.approvedAt,
-    isWalkIn: false,
-  };
-};
-
-const mapPendingApprovalToVisitorRequest = (item: PendingApprovalDto): VisitorRequest => {
-  return {
-    id: item.id,
-    employeeId: '',
-    employeeName: item.employeeName || 'Unknown Host',
-    employeeDepartment: item.employeeDepartment,
-    visitor: {
-      id: item.visitor?.id || '',
-      fullName: item.visitor?.fullName || 'Unknown Visitor',
-      email: item.visitor?.email || '',
-      phone: item.visitor?.phone || '',
-      company: item.visitor?.company,
-    },
-    visitDate: item.visitDate,
-    visitTime: item.visitTime || '',
-    duration: item.duration || '1 hour',
-    purpose: item.purpose || '',
-    status: 'pending_approval' as RequestStatus,
-    communicationChannels: ['email'],
-    parkingType: item.hasParking ? 'auto' : 'none',
-    meetingRoom: item.hasMeetingRoom ? { id: 'auto', name: 'TBD', capacity: 10, floor: '1', timeSlot: item.visitTime || '' } : undefined,
-    buffet: item.hasBuffet ? { id: 'auto', mealType: 'lunch', location: 'Main Buffet' } : undefined,
-    valet: item.hasValet ? { id: 'auto', pickupTime: item.visitTime || '', returnTime: '', status: 'pending' } : undefined,
-    approval: {
-      requiresApproval: true,
-    },
-    reminders: {},
-    createdAt: item.createdAt,
-    updatedAt: item.createdAt,
-    isWalkIn: item.isWalkIn,
-  };
-};
+import {
+  mapVisitListItemToVisitorRequest,
+  mapAwaitingVisitorToVisitorRequest,
+  mapPendingApprovalToVisitorRequest,
+  mapPendingHostWalkInToVisitorRequest,
+} from "@/services/utils/requestMappers";
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -216,7 +105,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
   );
 
   const visitorRequests = useMemo(() => {
-    return visitsData?.data?.map(mapVisitToVisitorRequest) || [];
+    return visitsData?.data?.map(mapVisitListItemToVisitorRequest) || [];
   }, [visitsData]);
 
   const pendingApprovals = useMemo(() => {
@@ -224,7 +113,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
   }, [pendingData]);
 
   const awaitingVisitorAcceptance = useMemo(() => {
-    return awaitingData?.data?.map(mapAwaitingToVisitorRequest) || [];
+    return awaitingData?.data?.map(mapAwaitingVisitorToVisitorRequest) || [];
   }, [awaitingData]);
 
   const walkInVisitors = useMemo(() => {

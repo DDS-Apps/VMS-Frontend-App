@@ -16,96 +16,10 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
 import { useVisitDetailsQuery, useApproveVisitMutation, useRejectVisitMutation, useCancelVisitMutation } from "@/hooks/queries/useApprovalQueries";
 import { VisitorRequest } from "@/types/vms.types";
-import type { VisitDetailsDto } from "@/types/api.types";
 import { applyOpacity, createModalOverlayStyle } from "@/utils/statusStyles";
 import { ManagerApprovalDetailScreenProps } from "@/types/managerNavigation.types";
 import { Theme } from "@/types/theme.types";
-import { ParkingLocation } from "@/types/vms.types";
-
-const isEmptyObject = (obj: any): boolean => {
-  return obj && typeof obj === 'object' && Object.keys(obj).length === 0;
-};
-
-const hasValidData = (obj: any): boolean => {
-  if (!obj || typeof obj !== 'object') return false;
-  if (Object.keys(obj).length === 0) return false;
-  return true;
-};
-
-const mapVisitDetailsToVisitorRequest = (visit: VisitDetailsDto): VisitorRequest & { parkingPending?: boolean; meetingRoomPending?: boolean } => {
-  const statusMap: Record<string, VisitorRequest['status']> = {
-    pending: 'pending_approval',
-    pending_approval: 'pending_approval',
-    pending_host_approval: 'pending_host_approval',
-    approved: 'approved',
-    rejected: 'rejected',
-    checked_in: 'checked_in',
-    checked_out: 'completed',
-    cancelled: 'cancelled',
-    expired: 'auto_cancelled',
-    awaiting_visitor: 'visitor_pending',
-    visitor_pending: 'visitor_pending',
-    visitor_accepted: 'visitor_accepted',
-    visitor_rejected: 'visitor_rejected',
-  };
-  
-  return {
-    id: visit.id,
-    employeeId: visit.employeeId,
-    employeeName: visit.employeeName || 'Unknown',
-    employeeDepartment: visit.employeeDepartment,
-    visitor: {
-      id: visit.visitor?.id || 'unknown',
-      fullName: visit.visitor?.fullName || 'Unknown Visitor',
-      email: visit.visitor?.email || '',
-      phone: visit.visitor?.phone || '',
-      company: visit.visitor?.company,
-    },
-    visitDate: visit.visitDate || new Date().toISOString().split('T')[0],
-    visitTime: visit.visitTime || '09:00',
-    duration: visit.duration || '1 hour',
-    endTime: visit.endTime,
-    purpose: visit.purpose || '',
-    status: statusMap[visit.status] || (visit.status as RequestStatus) || 'pending_approval',
-    communicationChannels: (visit.communicationChannels || ['email']) as ('email' | 'sms' | 'whatsapp' | 'qr_code')[],
-    parkingType: (hasValidData(visit.parkingAllocation) || hasValidData(visit.parkingSlot)) ? 'auto' : 'none',
-    parkingSlot: (hasValidData(visit.parkingAllocation) || hasValidData(visit.parkingSlot)) ? { 
-      id: visit.parkingAllocation?.id || visit.parkingSlot?.id || '', 
-      location: ((visit.parkingAllocation?.location || visit.parkingSlot?.location)?.toLowerCase() === 'skbc_basement' ? 'skbc_basement' : (visit.parkingAllocation?.location || visit.parkingSlot?.location || '')) as ParkingLocation,
-      slotNumber: visit.parkingAllocation?.spotNumber || visit.parkingSlot?.slotNumber || '',
-      floor: visit.parkingAllocation?.floor || visit.parkingSlot?.floor,
-      status: visit.parkingAllocation?.status,
-    } : undefined,
-    parkingPending: (isEmptyObject(visit.parkingAllocation) || isEmptyObject(visit.parkingSlot)) && !hasValidData(visit.parkingAllocation) && !hasValidData(visit.parkingSlot),
-    meetingRoom: (hasValidData(visit.meetingBooking) || hasValidData(visit.meetingRoom)) ? { 
-      id: visit.meetingBooking?.roomId || visit.meetingRoom?.id || '', 
-      name: visit.meetingBooking?.roomName || visit.meetingRoom?.name || '', 
-      capacity: visit.meetingRoom?.capacity || 10, 
-      floor: visit.meetingRoom?.floor || '1', 
-      timeSlot: visit.meetingBooking ? `${visit.meetingBooking.startTime} - ${visit.meetingBooking.endTime}` : (visit.meetingRoom?.timeSlot || visit.visitTime || '')
-    } : undefined,
-    meetingRoomPending: (isEmptyObject(visit.meetingBooking) || isEmptyObject(visit.meetingRoom)) && !hasValidData(visit.meetingBooking) && !hasValidData(visit.meetingRoom),
-    buffet: visit.buffet ? { 
-      id: visit.buffet.id, 
-      mealType: (visit.buffet.mealType as 'breakfast' | 'lunch' | 'dinner' | 'snacks') || 'lunch',
-      location: visit.buffet.location 
-    } : undefined,
-    valet: undefined,
-    qrCode: visit.qrCode,
-    approval: {
-      requiresApproval: visit.approval?.requiresApproval ?? true,
-      autoApproved: visit.approval?.autoApproved ?? false,
-      managerId: visit.approval?.managerId,
-      managerName: visit.approval?.managerName,
-      approvedAt: visit.approval?.approvedAt,
-      rejectedAt: visit.approval?.rejectedAt,
-      rejectionReason: visit.approval?.rejectionReason,
-    },
-    reminders: visit.reminders || {},
-    createdAt: visit.createdAt,
-    updatedAt: visit.updatedAt,
-  };
-};
+import { mapVisitDetailsToVisitorRequest } from "@/services/utils/requestMappers";
 
 const LAYOUT = {
   cardPadding: Spacing.lg,

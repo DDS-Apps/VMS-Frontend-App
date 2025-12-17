@@ -16,66 +16,14 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { VisitorRequest } from "@/types/vms.types";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@/contexts/AuthContext";
-import { useInfiniteVisitsQuery, usePendingHostWalkInsQuery, mapPendingHostWalkInToVisitorRequest } from "@/hooks/queries/useApprovalQueries";
+import { useInfiniteVisitsQuery, usePendingHostWalkInsQuery } from "@/hooks/queries/useApprovalQueries";
 import { ListLoadingFooter } from "@/components/shared";
-import type { VisitListItemDto, PendingHostWalkInDto } from "@/types/api.types";
+import type { VisitListItemDto } from "@/types/api.types";
 import { getStatusConfig as getStatusStyle, applyOpacity, StatusConfig } from "@/utils/statusStyles";
 import type { Theme } from "@/types/theme.types";
 import type { EmployeeStackParamList } from "@/types/employeeNavigation.types";
 import type { ManagerStackParamList } from "@/types/managerNavigation.types";
-
-const mapVisitToVisitorRequest = (visit: VisitListItemDto): VisitorRequest => {
-  const statusMap: Record<string, VisitorRequest['status']> = {
-    pending: 'pending_approval',
-    pending_approval: 'pending_approval',
-    pending_host_approval: 'pending_host_approval',
-    approved: 'approved',
-    rejected: 'rejected',
-    checked_in: 'checked_in',
-    checked_out: 'completed',
-    cancelled: 'cancelled',
-    expired: 'auto_cancelled',
-    awaiting_visitor: 'visitor_pending',
-    visitor_pending: 'visitor_pending',
-    visitor_accepted: 'visitor_accepted',
-    visitor_rejected: 'visitor_rejected',
-  };
-  
-  return {
-    id: visit.id,
-    employeeId: '',
-    employeeName: visit.employeeName || 'Unknown Host',
-    employeeDepartment: undefined,
-    visitor: {
-      id: '',
-      fullName: visit.visitor?.fullName || 'Unknown Visitor',
-      email: visit.visitor?.email || '',
-      phone: visit.visitor?.phone || '',
-      company: visit.visitor?.company,
-    },
-    visitDate: visit.visitDate,
-    visitTime: visit.visitTime || '',
-    duration: '1 hour',
-    purpose: visit.purpose || '',
-    status: statusMap[visit.status] || (visit.status as RequestStatus) || 'pending_approval',
-    communicationChannels: ['email'],
-    parkingType: visit.hasParking ? 'auto' : 'none',
-    parkingSlot: visit.hasParking ? { id: 'auto', location: 'SKBC_basement', slotNumber: 'TBD' } : undefined,
-    meetingRoom: visit.hasMeetingRoom ? { id: 'auto', name: 'TBD', capacity: 10, floor: '1', timeSlot: visit.visitTime || '' } : undefined,
-    buffet: visit.hasBuffet ? { id: 'auto', mealType: 'lunch', location: 'Main Buffet' } : undefined,
-    valet: visit.hasValet ? { id: 'auto', pickupTime: visit.visitTime || '', returnTime: '', status: 'pending' } : undefined,
-    qrCode: undefined,
-    approval: {
-      requiresApproval: true,
-      autoApproved: false,
-      approvedAt: visit.approvedAt,
-    },
-    reminders: {},
-    createdAt: visit.createdAt || new Date().toISOString(),
-    updatedAt: visit.createdAt || new Date().toISOString(),
-    isWalkIn: visit.isWalkIn,
-  };
-};
+import { mapVisitListItemToVisitorRequest, mapPendingHostWalkInToVisitorRequest } from "@/services/utils/requestMappers";
 
 
 // Unified Layout Tokens
@@ -740,7 +688,7 @@ export default function VisitorRequestsScreen({ navigation: navProp, userRole = 
       return pendingHostWalkInsData.data.map(mapPendingHostWalkInToVisitorRequest);
     }
     if (!visitsData?.pages) return [];
-    return visitsData.pages.flatMap(page => page.data.map(mapVisitToVisitorRequest));
+    return visitsData.pages.flatMap(page => page.data.map(mapVisitListItemToVisitorRequest));
   }, [isWalkInTab, visitsData?.pages, pendingHostWalkInsData?.data]);
 
   const handleLoadMore = useCallback(() => {
