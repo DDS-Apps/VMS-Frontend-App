@@ -465,8 +465,8 @@ export default function RequestDetailsScreen({
       needsValet: editRequiresValet,
     };
 
-    // Only include schedule fields in full mode (not for walk-in visitors)
     if (editModalMode === "full") {
+      // Full mode: use the edited date/time values
       payload.visitDate = formatDateForApi(editDate);
       payload.visitTime = formatTimeForApi(editTime);
       
@@ -482,6 +482,12 @@ export default function RequestDetailsScreen({
       if (minutes > 0) isoDuration += `${minutes}M`;
       if (hours === 0 && minutes === 0) isoDuration = "PT0M";
       payload.duration = isoDuration;
+    } else if (editModalMode === "services-only" && visitData) {
+      // Services-only mode (walk-in): include existing schedule fields from visitData
+      // Backend requires these fields even when only updating services
+      payload.visitDate = visitData.visitDate || formatDateForApi(new Date());
+      payload.visitTime = visitData.visitTime || formatTimeForApi(new Date());
+      payload.duration = visitData.duration || "PT1H";
     }
 
     console.log(
