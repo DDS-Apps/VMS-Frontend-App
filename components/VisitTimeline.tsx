@@ -164,8 +164,11 @@ export function useVisitTimelineSteps(data: VisitTimelineData): TimelineStep[] {
 
   const isAtLaterStage = LATER_STAGE_STATUSES.includes(data.status);
 
+  // Check if request was rejected (with or without timestamp)
+  const isRejectedStatus = data.status === 'rejected';
+  
   if (data.approval) {
-    if (data.approval.rejectedAt) {
+    if (data.approval.rejectedAt || isRejectedStatus) {
       steps.push({
         id: 'approval',
         label: t('timeline.rejected'),
