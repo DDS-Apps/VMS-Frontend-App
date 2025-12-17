@@ -7,6 +7,7 @@ import { TimePicker } from "@/components/TimePicker";
 import { DDIcon, type IconName } from "@/components/DDIcon";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { LoadingButton } from "@/components/shared/LoadingButton";
+import { ApprovalActionGroup } from "@/components/shared/ApprovalActionGroup";
 import { SkeletonCard } from "@/components/shared/Skeleton";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -771,35 +772,14 @@ export default function RequestDetailsScreen({ navigation, route }: RequestDetai
       {/* Walk-in request: Show Approve/Reject buttons */}
       {request.isWalkIn && request.status === 'pending_approval' ? (
         <>
-          <View style={styles.actionButtonsRow}>
-            <Pressable
-              style={[styles.actionButtonHalf, { backgroundColor: theme.success }]}
-              onPress={handleHostApprove}
-              disabled={hostApproveMutation.isPending}
-            >
-              {hostApproveMutation.isPending ? (
-                <ActivityIndicator size="small" color={theme.buttonText} />
-              ) : (
-                <>
-                  <DDIcon name="check" size={18} color={theme.buttonText} />
-                  <ThemedText style={[Typography.body, { color: theme.buttonText, marginStart: Spacing.sm, fontWeight: '600', fontSize: 14 }]}>
-                    {t('actions.approve')}
-                  </ThemedText>
-                </>
-              )}
-            </Pressable>
-            <Spacer width={Spacing.md} />
-            <Pressable
-              style={[styles.actionButtonHalf, { borderColor: theme.error, backgroundColor: theme.surface }]}
-              onPress={() => setShowHostRejectModal(true)}
-              disabled={hostRejectMutation.isPending}
-            >
-              <DDIcon name="x" size={18} variant="danger" />
-              <ThemedText style={[Typography.body, { color: theme.error, marginStart: Spacing.sm, fontWeight: '600', fontSize: 14 }]}>
-                {t('actions.reject')}
-              </ThemedText>
-            </Pressable>
-          </View>
+          <ApprovalActionGroup
+            onApprove={handleHostApprove}
+            onReject={() => setShowHostRejectModal(true)}
+            approveLoading={hostApproveMutation.isPending}
+            rejectLoading={hostRejectMutation.isPending}
+            size="medium"
+            showIcons={true}
+          />
           <Spacer height={Spacing.xl} />
         </>
       ) : null}
