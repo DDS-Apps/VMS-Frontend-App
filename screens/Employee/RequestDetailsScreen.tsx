@@ -1198,31 +1198,56 @@ export default function RequestDetailsScreen({
         </>
       ) : null}
 
-      {/* Walk-in request approved: Show Edit Services button */}
+      {/* Walk-in request approved: Show Edit Services and Cancel buttons */}
       {request.isWalkIn && (request.status === REQUEST_STATUS.APPROVED || request.status === REQUEST_STATUS.CHECKED_IN) ? (
         <>
-          <Pressable
-            style={[
-              styles.actionButtonFull,
-              { backgroundColor: theme.primary },
-            ]}
-            onPress={() => openEditModal("services-only")}
-          >
-            <DDIcon name="settings" size={18} color={theme.buttonText} />
-            <ThemedText
+          <View style={styles.actionButtonsRow}>
+            <Pressable
               style={[
-                Typography.body,
-                {
-                  color: theme.buttonText,
-                  marginStart: Spacing.sm,
-                  fontWeight: "600",
-                  fontSize: 14,
-                },
+                styles.actionButtonHalf,
+                { backgroundColor: theme.primary },
               ]}
+              onPress={() => openEditModal("services-only")}
             >
-              {t("actions.editServices")}
-            </ThemedText>
-          </Pressable>
+              <DDIcon name="settings" size={18} color={theme.buttonText} />
+              <ThemedText
+                style={[
+                  Typography.body,
+                  {
+                    color: theme.buttonText,
+                    marginStart: Spacing.sm,
+                    fontWeight: "600",
+                    fontSize: 14,
+                  },
+                ]}
+              >
+                {t("actions.editServices")}
+              </ThemedText>
+            </Pressable>
+            <Spacer width={Spacing.md} />
+            <Pressable
+              style={[
+                styles.actionButtonHalf,
+                { borderColor: theme.error, backgroundColor: theme.surface },
+              ]}
+              onPress={() => setShowCancelModal(true)}
+            >
+              <DDIcon name="x" size={18} variant="danger" />
+              <ThemedText
+                style={[
+                  Typography.body,
+                  {
+                    color: theme.error,
+                    marginStart: Spacing.sm,
+                    fontWeight: "600",
+                    fontSize: 14,
+                  },
+                ]}
+              >
+                {t("common.cancel")}
+              </ThemedText>
+            </Pressable>
+          </View>
           <Spacer height={Spacing.xl} />
         </>
       ) : null}
