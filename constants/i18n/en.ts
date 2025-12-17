@@ -340,6 +340,7 @@ export const en: TranslationKeys = {
     valet: 'Valet',
     needsValet: 'Needs Valet',
     additionalServices: 'Additional Services',
+    selectServicesForVisitor: 'Select services for the visitor before approving',
     communication: 'Communication',
     sendWhatsApp: 'Send WhatsApp',
     sendSMS: 'Send SMS',

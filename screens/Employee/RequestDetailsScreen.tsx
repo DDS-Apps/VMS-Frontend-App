@@ -154,6 +154,10 @@ export default function RequestDetailsScreen({ navigation, route }: RequestDetai
   const [showEditModal, setShowEditModal] = useState(false);
   const [showHostRejectModal, setShowHostRejectModal] = useState(false);
   const [hostRejectReason, setHostRejectReason] = useState('');
+  const [showServiceSelectionModal, setShowServiceSelectionModal] = useState(false);
+  const [serviceRequiresParking, setServiceRequiresParking] = useState(false);
+  const [serviceRequiresMeetingRoom, setServiceRequiresMeetingRoom] = useState(false);
+  const [serviceRequiresBuffet, setServiceRequiresBuffet] = useState(false);
   const [rescheduleDate, setRescheduleDate] = useState(new Date());
   const [rescheduleTime, setRescheduleTime] = useState(new Date());
   const [rescheduleDuration, setRescheduleDuration] = useState<string | undefined>(undefined);
@@ -278,6 +282,50 @@ export default function RequestDetailsScreen({ navigation, route }: RequestDetai
           setShowSuccessModal(true);
         },
         onError: (error) => {
+          Alert.alert(t('errors.somethingWentWrong'), error.message);
+        },
+      }
+    );
+  };
+
+  const openServiceSelectionModal = () => {
+    if (!visitData) return;
+    setServiceRequiresParking(visitData.parkingType !== 'none');
+    setServiceRequiresMeetingRoom(!!visitData.meetingRoom);
+    setServiceRequiresBuffet(!!visitData.buffet);
+    setShowServiceSelectionModal(true);
+  };
+
+  const handleServiceSelectionApprove = () => {
+    const payload = {
+      needsParking: serviceRequiresParking,
+      needsMeetingRoom: serviceRequiresMeetingRoom,
+      needsBuffet: serviceRequiresBuffet,
+    };
+
+    console.log('[RequestDetails] Submitting service selection with payload:', JSON.stringify(payload, null, 2));
+
+    updateMutation.mutate(
+      { id: requestId, data: payload },
+      {
+        onSuccess: () => {
+          console.log('[RequestDetails] Service selection update successful, now approving...');
+          hostApproveMutation.mutate(
+            { id: requestId },
+            {
+              onSuccess: () => {
+                setShowServiceSelectionModal(false);
+                setSuccessMessage(t('notifications.walkInApproved'));
+                setShowSuccessModal(true);
+              },
+              onError: (error) => {
+                Alert.alert(t('errors.somethingWentWrong'), error.message);
+              },
+            }
+          );
+        },
+        onError: (error) => {
+          console.log('[RequestDetails] Service selection update failed:', error.message);
           Alert.alert(t('errors.somethingWentWrong'), error.message);
         },
       }
@@ -773,9 +821,9 @@ export default function RequestDetailsScreen({ navigation, route }: RequestDetai
       {request.isWalkIn && request.status === 'pending_approval' ? (
         <>
           <ApprovalActionGroup
-            onApprove={handleHostApprove}
+            onApprove={openServiceSelectionModal}
             onReject={() => setShowHostRejectModal(true)}
-            approveLoading={hostApproveMutation.isPending}
+            approveLoading={false}
             rejectLoading={hostRejectMutation.isPending}
             size="medium"
             showIcons={true}
@@ -949,6 +997,112 @@ export default function RequestDetailsScreen({ navigation, route }: RequestDetai
                 style={{ flex: 1 }}
               >
                 {t('actions.reject')}
+              </LoadingButton>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Service Selection Modal for Walk-in Approval */}
+      <Modal
+        visible={showServiceSelectionModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowServiceSelectionModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <Pressable 
+            style={[styles.modalBackdrop, createModalOverlayStyle(theme, '50')]}
+            onPress={() => setShowServiceSelectionModal(false)}
+          />
+          <View style={[styles.modalContent, { backgroundColor: theme.surface }]}>
+            <View style={styles.modalHeader}>
+              <ThemedText style={[Typography.subtitle, { fontSize: 18, fontWeight: '600', color: theme.text }]}>
+                {t('services.additionalServices')}
+              </ThemedText>
+              <Pressable onPress={() => setShowServiceSelectionModal(false)}>
+                <DDIcon name="x" size={22} variant="muted" />
+              </Pressable>
+            </View>
+
+            <Spacer height={Spacing.lg} />
+
+            <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14 }]}>
+              {t('services.selectServicesForVisitor')}
+            </ThemedText>
+
+            <Spacer height={Spacing.xl} />
+
+            <View style={[styles.serviceToggleRow, { borderColor: theme.border }]}>
+              <View style={styles.serviceToggleLabel}>
+                <DDIcon name="map-pin" size={18} variant="muted" />
+                <ThemedText style={[Typography.body, { marginStart: Spacing.sm, color: theme.text, fontSize: 14 }]}>
+                  {t('services.parking')}
+                </ThemedText>
+              </View>
+              <Switch
+                value={serviceRequiresParking}
+                onValueChange={setServiceRequiresParking}
+                trackColor={{ false: theme.border, true: theme.primary }}
+                thumbColor={theme.buttonText}
+              />
+            </View>
+
+            <View style={[styles.serviceToggleRow, { borderColor: theme.border }]}>
+              <View style={styles.serviceToggleLabel}>
+                <DDIcon name="home" size={18} variant="muted" />
+                <ThemedText style={[Typography.body, { marginStart: Spacing.sm, color: theme.text, fontSize: 14 }]}>
+                  {t('services.meetingRoom')}
+                </ThemedText>
+              </View>
+              <Switch
+                value={serviceRequiresMeetingRoom}
+                onValueChange={setServiceRequiresMeetingRoom}
+                trackColor={{ false: theme.border, true: theme.primary }}
+                thumbColor={theme.buttonText}
+              />
+            </View>
+
+            <View style={[styles.serviceToggleRow, { borderColor: theme.border }]}>
+              <View style={styles.serviceToggleLabel}>
+                <DDIcon name="coffee" size={18} variant="muted" />
+                <ThemedText style={[Typography.body, { marginStart: Spacing.sm, color: theme.text, fontSize: 14 }]}>
+                  {t('buffet.buffetService')}
+                </ThemedText>
+              </View>
+              <Switch
+                value={serviceRequiresBuffet}
+                onValueChange={setServiceRequiresBuffet}
+                trackColor={{ false: theme.border, true: theme.primary }}
+                thumbColor={theme.buttonText}
+              />
+            </View>
+
+            <Spacer height={Spacing.xl} />
+
+            <View style={styles.modalActions}>
+              <LoadingButton
+                onPress={() => setShowServiceSelectionModal(false)}
+                variant="secondary"
+                size="medium"
+                style={{ flex: 1 }}
+              >
+                {t('common.cancel')}
+              </LoadingButton>
+
+              <Spacer width={12} />
+
+              <LoadingButton
+                onPress={handleServiceSelectionApprove}
+                loading={updateMutation.isPending || hostApproveMutation.isPending}
+                disabled={updateMutation.isPending || hostApproveMutation.isPending}
+                variant="success"
+                size="medium"
+                icon="check"
+                loadingText={t('common.approving')}
+                style={{ flex: 1 }}
+              >
+                {t('actions.approve')}
               </LoadingButton>
             </View>
           </View>

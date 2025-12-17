@@ -340,6 +340,7 @@ export interface TranslationKeys {
     valet: string;
     needsValet: string;
     additionalServices: string;
+    selectServicesForVisitor: string;
     communication: string;
     sendWhatsApp: string;
     sendSMS: string;

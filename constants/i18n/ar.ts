@@ -340,6 +340,7 @@ export const ar: TranslationKeys = {
     valet: 'خدمة صف السيارات',
     needsValet: 'يحتاج خدمة صف السيارات',
     additionalServices: 'خدمات إضافية',
+    selectServicesForVisitor: 'اختر الخدمات للزائر قبل الموافقة',
     communication: 'التواصل',
     sendWhatsApp: 'إرسال واتساب',
     sendSMS: 'إرسال رسالة نصية',
