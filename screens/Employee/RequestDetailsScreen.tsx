@@ -44,183 +44,18 @@ import {
   useHostApproveVisitMutation,
   useHostRejectVisitMutation,
 } from "@/hooks/queries/useApprovalQueries";
-import {
-  VisitorRequest,
-  ParkingType,
-  ParkingLocation,
-} from "@/types/vms.types";
-import type { VisitDetailsDto } from "@/types/api.types";
+import { VisitorRequest } from "@/types/vms.types";
 import {
   getStatusConfig as getStatusStyle,
   applyOpacity,
   createModalOverlayStyle,
 } from "@/utils/statusStyles";
 import { RequestDetailsScreenProps } from "@/types/employeeNavigation.types";
-
-const isEmptyObject = (obj: any): boolean => {
-  return obj && typeof obj === "object" && Object.keys(obj).length === 0;
-};
-
-const hasValidData = (obj: any): boolean => {
-  if (!obj || typeof obj !== "object") return false;
-  if (Object.keys(obj).length === 0) return false;
-  return true;
-};
-
-const mapVisitDetailsToVisitorRequest = (
-  visit: VisitDetailsDto,
-): VisitorRequest & {
-  parkingPending?: boolean;
-  meetingRoomPending?: boolean;
-} => {
-  const statusMap: Record<string, VisitorRequest["status"]> = {
-    pending: "pending_approval",
-    pending_approval: "pending_approval",
-    pending_host_approval: "pending_host_approval",
-    approved: "approved",
-    accepted: "visitor_accepted",
-    rejected: "visitor_rejected",
-    expired: "auto_cancelled",
-    checked_in: "checked_in",
-    checked_out: "completed",
-    cancelled: "cancelled",
-    completed: "completed",
-    awaiting_visitor: "visitor_pending",
-    visitor_pending: "visitor_pending",
-    visitor_accepted: "visitor_accepted",
-    visitor_rejected: "visitor_rejected",
-  };
-
-  return {
-    id: visit.id,
-    employeeId: visit.employeeId,
-    employeeName: visit.employeeName,
-    employeeDepartment: visit.employeeDepartment,
-    visitor: {
-      id: visit.visitor.id,
-      fullName: visit.visitor.fullName,
-      email: visit.visitor.email || "",
-      phone: visit.visitor.phone || "",
-      company: visit.visitor.company,
-    },
-    visitDate: visit.visitDate,
-    visitTime: visit.visitTime,
-    duration: visit.duration || "1 hour",
-    endTime: visit.endTime,
-    purpose: visit.purpose || "",
-    status:
-      statusMap[visit.status] ||
-      (visit.status as RequestStatus) ||
-      "pending_approval",
-    communicationChannels: (visit.communicationChannels || ["email"]) as (
-      | "email"
-      | "sms"
-      | "whatsapp"
-      | "qr_code"
-    )[],
-    parkingType: (visit.parkingType || "none") as ParkingType,
-    parkingSlot:
-      hasValidData(visit.parkingAllocation) || hasValidData(visit.parkingSlot)
-        ? {
-            id: visit.parkingAllocation?.id || visit.parkingSlot?.id || "",
-            location: ((
-              visit.parkingAllocation?.location || visit.parkingSlot?.location
-            )?.toLowerCase() === "skbc_basement"
-              ? "skbc_basement"
-              : visit.parkingAllocation?.location ||
-                visit.parkingSlot?.location ||
-                "") as ParkingLocation,
-            slotNumber:
-              visit.parkingAllocation?.spotNumber ||
-              visit.parkingSlot?.slotNumber ||
-              "",
-            floor: visit.parkingAllocation?.floor || visit.parkingSlot?.floor,
-            status: visit.parkingAllocation?.status,
-          }
-        : undefined,
-    parkingPending:
-      (isEmptyObject(visit.parkingAllocation) ||
-        isEmptyObject(visit.parkingSlot)) &&
-      !hasValidData(visit.parkingAllocation) &&
-      !hasValidData(visit.parkingSlot),
-    meetingRoom:
-      hasValidData(visit.meetingBooking) || hasValidData(visit.meetingRoom)
-        ? {
-            id: visit.meetingBooking?.roomId || visit.meetingRoom?.id || "",
-            name:
-              visit.meetingBooking?.roomName || visit.meetingRoom?.name || "",
-            capacity: visit.meetingRoom?.capacity || 10,
-            floor: visit.meetingRoom?.floor || "1",
-            timeSlot: visit.meetingBooking
-              ? `${visit.meetingBooking.startTime} - ${visit.meetingBooking.endTime}`
-              : visit.meetingRoom?.timeSlot || "",
-          }
-        : undefined,
-    meetingRoomPending:
-      (isEmptyObject(visit.meetingBooking) ||
-        isEmptyObject(visit.meetingRoom)) &&
-      !hasValidData(visit.meetingBooking) &&
-      !hasValidData(visit.meetingRoom),
-    buffet: visit.buffet
-      ? {
-          id: visit.buffet.id,
-          mealType: visit.buffet.mealType as
-            | "breakfast"
-            | "lunch"
-            | "dinner"
-            | "snacks",
-          location: visit.buffet.location,
-        }
-      : undefined,
-    valet: undefined,
-    qrCode: visit.qrCode,
-    approval: {
-      requiresApproval: visit.approval.requiresApproval,
-      autoApproved: visit.approval.autoApproved,
-      managerId: visit.approval.managerId,
-      managerName: visit.approval.managerName,
-      approvedAt: visit.approval.approvedAt,
-      rejectedAt: visit.approval.rejectedAt,
-      rejectionReason: visit.approval.rejectionReason,
-      managerComment: visit.approval.managerComment,
-    },
-    reminders: visit.reminders
-      ? {
-          firstReminderAt: visit.reminders.firstReminderAt,
-          secondReminderAt: visit.reminders.secondReminderAt,
-          autoCancelAt: visit.reminders.autoCancelAt,
-          firstReminderSent: visit.reminders.firstReminderSent,
-          secondReminderSent: visit.reminders.secondReminderSent,
-        }
-      : {},
-    createdAt: visit.createdAt,
-    updatedAt: visit.updatedAt,
-    isWalkIn: visit.isWalkIn ?? false,
-  };
-};
-
-const calculateDuration = (startTime: string, endTime: string): string => {
-  const start = new Date(startTime);
-  const end = new Date(endTime);
-  const diffMs = end.getTime() - start.getTime();
-  const diffHours = diffMs / (1000 * 60 * 60);
-
-  if (diffHours <= 0.5) return "30 minutes";
-  if (diffHours <= 1) return "1 hour";
-  if (diffHours <= 1.5) return "1.5 hours";
-  if (diffHours <= 2) return "2 hours";
-  if (diffHours <= 3) return "3 hours";
-  return "4 hours";
-};
-
-const getDurationOptions = (t: (key: string) => string) => [
-  { label: t("durations.thirtyMinutes"), value: "30 minutes" },
-  { label: t("durations.oneHour"), value: "1 hour" },
-  { label: t("durations.oneAndHalfHours"), value: "1.5 hours" },
-  { label: t("durations.twoHours"), value: "2 hours" },
-  { label: t("durations.threeHours"), value: "3 hours" },
-  { label: t("durations.fourHours"), value: "4 hours" },
-];
+import {
+  mapVisitDetailsToVisitorRequest,
+  calculateDuration,
+  getDurationOptions,
+} from "@/services/utils/requestMappers";
 
 export default function RequestDetailsScreen({
   navigation,
