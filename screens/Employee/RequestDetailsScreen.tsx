@@ -248,17 +248,9 @@ export default function RequestDetailsScreen({
   };
 
   const handleServiceSelectionApprove = () => {
-    // Determine parkingType based on selections
-    // valet takes precedence over regular parking
-    let parkingType: 'none' | 'auto' | 'valet' = 'none';
-    if (serviceRequiresValet) {
-      parkingType = 'valet';
-    } else if (serviceRequiresParking) {
-      parkingType = 'auto';
-    }
-
     const payload = {
-      parkingType,
+      needsParking: serviceRequiresParking,
+      needsValet: serviceRequiresValet,
       needsMeetingRoom: serviceRequiresMeetingRoom,
       needsBuffet: serviceRequiresBuffet,
     };
