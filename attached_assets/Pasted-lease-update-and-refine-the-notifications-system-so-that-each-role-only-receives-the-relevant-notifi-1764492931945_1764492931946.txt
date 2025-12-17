@@ -1,0 +1,98 @@
+lease update and refine the notifications system so that each role only receives the relevant notifications for their specific responsibilities.
+Currently, all roles see the same notifications (e.g., Buffet Admin receiving visitor-related ones), so this update should filter and tailor them properly.
+
+🧩 Notifications by Role
+🧑‍💼 Employee
+
+Receive notifications for:
+
+Request status updates → Approved, Rejected, Canceled, Completed.
+
+Manager comments or modifications on their request.
+
+Visitor check-in notification (if they’re the host).
+
+Exclude: Buffet, valet, or general admin notifications.
+
+👨‍🏫 Manager
+
+Receive notifications for:
+
+New visitor requests pending their approval from employees.
+
+Updates or modifications made by employees to approved requests.
+
+Visitor arrivals for approved requests.
+
+Their own requests → Managers can also create visitor requests (these are auto-approved but still pending visitor approval).
+They should receive:
+
+Visitor acceptance or rejection updates.
+
+Reminders for upcoming visitor arrivals.
+
+Exclude: Buffet, valet, or unrelated system notifications.
+
+🧍‍♀️ Receptionist
+
+Receive notifications for:
+
+New visitors expected today.
+
+Check-in and check-out confirmations.
+
+Walk-in registrations and their approval status.
+
+Requests canceled or edited (so records remain updated).
+
+Exclude: All approvals, buffet, and valet updates.
+
+🍽️ Buffet Admin
+
+Receive notifications for:
+
+New buffet service requests created or assigned.
+
+Buffet services scheduled within the next 2 hours.
+
+Completed buffet service confirmations.
+
+Staff duty or shift updates.
+
+Exclude: Visitor approvals, valet, and unrelated notifications.
+
+🚗 Valet Admin / Valet Staff
+
+Receive notifications for:
+
+Vehicle service requests created, scheduled, or canceled.
+
+Upcoming arrivals that require valet handling.
+
+Completed valet services.
+
+Exclude: Visitor, buffet, or building updates.
+
+🏢 Building Admin / Security
+
+Receive notifications for:
+
+Visitor access updates (Expected, Checked-In, Checked-Out).
+
+Security alerts or visitor gate passes.
+
+Exclude: Buffet, valet, and approval workflow notifications.
+
+✅ Implementation Details
+
+Each notification must include:
+
+A short title (e.g., New Buffet Request Received, Visitor Checked In).
+
+A brief description with timestamp and source role.
+
+Filtering logic so each role only sees notifications relevant to their actions.
+
+The bell icon count and notifications list should reflect this filtering in real time.
+
+Test across iOS, Android, and Web to ensure the same UI and correct data sync for all roles.

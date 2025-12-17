@@ -1,0 +1,108 @@
+lease make the Walk-In Registration under the Receptionist role fully functional and aligned with the overall app flow and design.
+🧩 Functional Requirements:
+1. Visit Type Selection:
+
+
+When the receptionist clicks “Register Walk-In,” show the Type of Visit screen first (same layout and visit options as the Employee role).
+
+
+Once a type is selected, navigate to the Walk-In Registration Form.
+
+
+The selected type should automatically fill the Purpose of Visit field (still editable).
+
+
+2. Walk-In Registration Form Functionality:
+
+
+All fields must be functional and validated:
+
+
+Full Name (required)
+
+
+Phone Number (required)
+
+
+Company (optional)
+
+
+Host Name / Employee (required dropdown list of employees)
+
+
+Purpose of Visit (auto-filled but editable)
+
+
+Date & Time — use the same modern date picker from the Security role.
+
+
+
+
+When submitting, the request must save correctly and trigger backend updates.
+
+
+3. Request Flow Logic:
+
+
+Upon submission:
+
+
+The request status should be set to “Pending for Approval.”
+
+
+Notifications should be sent to:
+
+
+The Employee (host) for review.
+
+
+The Manager for final approval.
+
+
+
+
+The receptionist should see the new entry reflected immediately in:
+
+
+Dashboard (“Today’s Visitors”)
+
+
+All Visitors screen
+
+
+Today’s List screen
+
+
+
+
+
+
+4. Status Updates:
+
+
+Once approved by the employee/manager, the status should update to “Approved.”
+
+
+If rejected, update to “Rejected.”
+
+
+The receptionist should also have visibility of these updates in real time.
+
+
+5. UI/UX Enhancements:
+
+
+Ensure the design matches the overall Receptionist interface (same colors, rounded fields, spacing, and button styling).
+
+
+Keep the form minimal and clean — matching the Employee form design.
+
+
+The “Register Walk-In Visitor” button should match the app’s global button style.
+
+
+Ensure it works properly on mobile and web.
+
+
+Goal:
+Make the Walk-In Registration process fully functional — from type selection to submission, approval, and live reflection in dashboards — while maintaining consistent UI/UX across all screens and roles.

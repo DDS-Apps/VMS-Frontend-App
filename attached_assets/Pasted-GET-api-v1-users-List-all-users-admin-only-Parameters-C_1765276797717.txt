@@ -1,0 +1,136 @@
+GET
+/api/v1/users
+List all users (admin only)
+
+
+Parameters
+Cancel
+Name	Description
+sortOrder
+string
+(query)
+Sort order (asc/desc)
+
+sortOrder
+sortBy
+string
+(query)
+Sort field (name, role, department, createdAt)
+
+sortBy
+search
+string
+(query)
+Search by name or email
+
+search
+status
+string
+(query)
+Filter by status (active/inactive)
+
+status
+department
+string
+(query)
+Filter by department
+
+department
+role
+string
+(query)
+Filter by role
+
+role
+limit
+number
+(query)
+Items per page (default: 20, max: 100)
+
+2
+page
+number
+(query)
+Page number (default: 1)
+
+page
+Execute
+Clear
+Responses
+Curl
+
+curl -X 'GET' \
+  'https://nest-js-backend-app-aftab--aftabahmed22.replit.app/api/v1/users?limit=2' \
+  -H 'accept: */*' \
+  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIwNkVGRTExMy05M0QyLUYwMTEtQTU4Qi0wMDE1NUQwN0ExMkIiLCJlbWFpbCI6ImFkbWluQGV4YW1wbGUuY29tIiwicm9sZSI6ImJ1aWxkaW5nX2FkbWluIiwiaWF0IjoxNzY1Mjc2NzM0LCJleHAiOjE3NjUzNjMxMzR9.A3Uz1Hr5ldxHzxzNjEEtX7G2QFAWoVCAI0-UefOEl88'
+Request URL
+https://nest-js-backend-app-aftab--aftabahmed22.replit.app/api/v1/users?limit=2
+Server response
+Code	Details
+200	
+Response body
+Download
+{
+  "data": [
+    {
+      "id": "D3AADF8C-9AD2-F011-A58B-00155D07A12B",
+      "email": "new.user@dallah.com",
+      "name": "New User",
+      "role": "employee",
+      "department": "Marketing",
+      "phoneNumber": "+966 50 111 2222",
+      "status": "active",
+      "autoApproval": false,
+      "source": "app_created",
+      "managerId": "07EFE113-93D2-F011-A58B-00155D07A12B",
+      "managerName": "John Manager",
+      "createdAt": "2025-12-06T03:56:08.866Z",
+      "updatedAt": "2025-12-06T03:56:08.866Z"
+    },
+    {
+      "id": "06EFE113-93D2-F011-A58B-00155D07A12B",
+      "email": "admin@example.com",
+      "name": "System Administrator",
+      "role": "building_admin",
+      "department": "Administration",
+      "phoneNumber": "+966500000001",
+      "status": "active",
+      "autoApproval": true,
+      "source": "app_created",
+      "managerId": null,
+      "managerName": null,
+      "createdAt": "2025-12-06T03:02:39.396Z",
+      "updatedAt": "2025-12-09T02:38:54.260Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": "2",
+    "total": 9,
+    "totalPages": 5
+  }
+}
+Response headers
+ access-control-allow-credentials: true 
+ access-control-allow-origin: * 
+ content-length: 824 
+ content-type: application/json; charset=utf-8 
+ date: Tue,09 Dec 2025 10:39:31 GMT 
+ etag: W/"338-B5VJMwT3wPcGXCw+JE5j6ids+Hw" 
+ server: Google Frontend 
+ strict-transport-security: max-age=63072000; includeSubDomains 
+ via: 1.1 google 
+ x-cloud-trace-context: e540ddce542ad3b3f922cb880f4e6e49;o=1 
+ x-powered-by: Express 
+Responses
+Code	Description	Links
+200	
+Users list retrieved with pagination
+
+No links
+401	
+Unauthorized
+
+No links
+403	
+Forbidden - requires building_admin role

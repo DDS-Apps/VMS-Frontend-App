@@ -1,0 +1,95 @@
+GET
+/api/v1/visits/{id}
+Get visitor request details
+
+
+Get detailed information about a specific visitor request.
+
+Parameters
+Try it out
+Name	Description
+id *
+string
+(path)
+Request ID
+
+id
+Responses
+Code	Description	Links
+200	
+Visitor request details
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "id": "REQ_001",
+  "employeeId": "user_002",
+  "employeeName": "Sarah Johnson",
+  "employeeDepartment": "Marketing",
+  "visitor": {
+    "id": "VIS_1701619200_xyz789",
+    "fullName": "John Smith",
+    "email": "john.smith@techcorp.com",
+    "phone": "+1 555 123 4567",
+    "company": "TechCorp Inc"
+  },
+  "visitDate": "2025-12-10",
+  "visitTime": "10:00 AM",
+  "duration": "2 hours",
+  "endTime": "12:00 PM",
+  "purpose": "Business Meeting",
+  "status": "approved",
+  "communicationChannels": [
+    "email",
+    "whatsapp",
+    "qr_code"
+  ],
+  "parkingType": "auto",
+  "parkingSlot": {
+    "id": "ps_002",
+    "slotNumber": "B1-002",
+    "location": "skbc_basement",
+    "floor": "B1"
+  },
+  "meetingRoom": {
+    "id": "room_001",
+    "name": "Majlis Al-Shura",
+    "floor": "3rd Floor",
+    "capacity": 12,
+    "timeSlot": "10:00 AM - 12:00 PM"
+  },
+  "buffet": {
+    "id": "buffet_001",
+    "mealType": "lunch",
+    "location": "Executive Dining Room"
+  },
+  "approval": {
+    "requiresApproval": true,
+    "autoApproved": false,
+    "managerId": "user_001",
+    "managerName": "Ahmed Al-Rashid",
+    "approvedAt": "2025-12-03T11:00:00Z",
+    "managerComment": "Approved for VIP treatment"
+  },
+  "reminders": {
+    "firstReminderAt": "2025-12-10T06:00:00Z",
+    "secondReminderAt": "2025-12-10T04:00:00Z",
+    "autoCancelAt": "2025-12-10T03:00:00Z",
+    "firstReminderSent": false,
+    "secondReminderSent": false
+  },
+  "qrCode": "QR_REQ_001_visitor",
+  "createdAt": "2025-12-03T10:00:00Z",
+  "updatedAt": "2025-12-03T11:00:00Z"
+}
+No links
+401	
+Unauthorized
+
+No links
+404	
+Request not found

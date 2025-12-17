@@ -1,0 +1,147 @@
+import React from "react";
+import { View, StyleSheet, I18nManager } from "react-native";
+import { ThemedText } from "@/components/ThemedText";
+import { DDIcon, IconName } from "@/components/DDIcon";
+import { useTheme } from "@/hooks/useTheme";
+import { useTranslation } from "@/hooks/useTranslation";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { applyOpacity } from "@/utils/statusStyles";
+import { Spacing, BorderRadius } from "@/constants/theme";
+
+interface StatusBadgeProps {
+  label: string;
+  variant?: 'success' | 'warning' | 'error' | 'info' | 'muted' | 'primary';
+  icon?: IconName;
+  size?: 'sm' | 'md';
+}
+
+export const StatusBadge = ({ 
+  label, 
+  variant = 'muted', 
+  icon,
+  size = 'md' 
+}: StatusBadgeProps) => {
+  const { theme } = useTheme();
+  const { isRTL } = useLanguage();
+  
+  const getColor = () => {
+    switch (variant) {
+      case 'success': return theme.success;
+      case 'warning': return theme.warning;
+      case 'error': return theme.error;
+      case 'info': return theme.info;
+      case 'primary': return theme.primary;
+      default: return theme.textSecondary;
+    }
+  };
+  
+  const color = getColor();
+  const isSmall = size === 'sm';
+  
+  return (
+    <View style={[
+      styles.badge,
+      { 
+        backgroundColor: applyOpacity(color, '15'),
+        paddingHorizontal: isSmall ? Spacing.sm : Spacing.md,
+        paddingVertical: isSmall ? Spacing.xs / 2 : Spacing.xs,
+      }
+    ]}>
+      {icon ? (
+        <DDIcon 
+          name={icon} 
+          size={isSmall ? 12 : 14} 
+          color={color} 
+        />
+      ) : null}
+      <ThemedText style={[
+        styles.text, 
+        { 
+          color,
+          fontSize: isSmall ? 11 : 12,
+          marginStart: icon ? Spacing.xs : 0,
+        }
+      ]}>
+        {label}
+      </ThemedText>
+    </View>
+  );
+};
+
+interface WalkInBadgeProps {
+  size?: 'sm' | 'md';
+  label?: string;
+}
+
+export const WalkInBadge = ({ size = 'md', label }: WalkInBadgeProps) => {
+  const { theme } = useTheme();
+  const { t } = useTranslation();
+  const isSmall = size === 'sm';
+  
+  return (
+    <View style={[
+      styles.walkInBadge, 
+      { 
+        backgroundColor: applyOpacity(theme.warning, '20'),
+        paddingHorizontal: isSmall ? Spacing.sm : Spacing.md,
+        paddingVertical: isSmall ? 2 : 4,
+      }
+    ]}>
+      <ThemedText style={[
+        styles.walkInText, 
+        { 
+          color: theme.warning,
+          fontSize: isSmall ? 10 : 11,
+        }
+      ]}>
+        {label || t('common.walkIn')}
+      </ThemedText>
+    </View>
+  );
+};
+
+interface StatusAccentProps {
+  color: string;
+  width?: number;
+}
+
+export const StatusAccent = ({ color, width = 4 }: StatusAccentProps) => {
+  const isRTL = I18nManager.isRTL;
+  return (
+    <View style={[
+      styles.accent, 
+      { 
+        backgroundColor: color, 
+        width,
+        ...(isRTL ? { left: 'auto', right: 0 } : { left: 0, right: 'auto' }),
+      }
+    ]} />
+  );
+};
+
+const styles = StyleSheet.create({
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: BorderRadius.full,
+  },
+  text: {
+    fontWeight: '600' as const,
+  },
+  walkInBadge: {
+    borderRadius: BorderRadius.sm,
+    alignSelf: 'flex-start',
+  },
+  walkInText: {
+    fontWeight: '700' as const,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  accent: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    borderTopStartRadius: BorderRadius.md,
+    borderBottomStartRadius: BorderRadius.md,
+  },
+});

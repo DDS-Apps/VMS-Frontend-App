@@ -1,0 +1,51 @@
+## 4. Employee (Staff Initiator)
+
+```text
+You are working in the existing SKBC VMS React Native app (iOS, Android, Web) with a Staff (Employee) role and a shared data layer.
+
+Goal: Extend the Staff experience to cover employee self-valet requests and richer visit lifecycle management.
+
+Tasks:
+
+1) Employee Self-Valet (“Park My Car”) Screen
+- Add a new screen accessible from Staff home (e.g., “My Valet Requests” or “Park My Car”):
+  - Simple form for the employee’s own car: plate number, brand/model, color, drop-off location (default SKBC), and desired return time.
+  - On submit, create a valet task in the shared data layer linked to the employee (not to a visitor).
+- No approval is needed for these tasks.
+
+2) My Valet Requests / History
+- On the same or a separate screen, show:
+  - A list of the employee’s valet tasks (today + recent history).
+  - Status: requested, driver assigned, parked, ready for pickup, completed.
+- Reuse existing valet task data structures where possible.
+
+3) Visit Reschedule Flow
+- Extend VisitDetail for Staff:
+  - Add a “Reschedule” action allowing change of date/time (and optionally duration).
+  - When rescheduled:
+    - Update the visit record in the shared data layer.
+    - Flag that meeting room/parking/buffet/valet allocations may need recalculation (you can simulate this by recomputing derived fields).
+    - Append a log entry to the internal event log.
+
+4) Visit Cancel Flow
+- Extend VisitDetail for Staff:
+  - Add a “Cancel Visit” action.
+  - On cancel:
+    - Mark the visit as canceled in the data layer.
+    - Mark associated parking/buffet/valet tasks as canceled or inactive.
+    - Append an event log entry for cancellation (no real notifications yet).
+
+5) “Waiting on Visitor Acceptance” Filter
+- On Staff request list:
+  - Add a filter or tab to show visits:
+    - Approved by manager (if required),
+    - Sent to visitor,
+    - But not yet accepted/rejected by the visitor.
+- This filter should use the existing visit + visitor-decision fields in the data layer.
+
+Do not change:
+- Core Staff navigation structure.
+- Existing request creation logic beyond adding reschedule/cancel and self-valet flows.
+```
+
+---

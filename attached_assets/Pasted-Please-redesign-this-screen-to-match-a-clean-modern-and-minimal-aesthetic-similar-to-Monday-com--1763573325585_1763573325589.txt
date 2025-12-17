@@ -1,0 +1,107 @@
+Please redesign this screen to match a clean, modern, and minimal aesthetic similar to Monday.com — while keeping our app’s existing color scheme.
+
+🎨 Overall Layout
+
+Use less shadow and less rounded corners — go for flat, clean cards with soft borders (#E8E8E8).
+
+Reduce the vertical spacing between cards.
+
+Add consistent left/right margins so all cards are perfectly centered.
+
+Use consistent background color (#FFFFFF) across the screen with no grey sections.
+
+Each card should have:
+
+Flat border
+
+Subtle hover effect (light grey tint)
+
+Uniform padding (16px inside all cards)
+
+🟠 Header (Status Banner)
+
+Replace the full-width yellow box with a thin accent bar on the left instead.
+Example:
+
+⏱️  Pending Your Approval  
+Request ID: req_001
+
+
+Keep text left-aligned, not centered.
+
+Use smaller font size and grey subtitle for Request ID.
+
+Make the orange icon smaller and use a thin outline style.
+
+👤 Visitor Information
+
+Make the initials badge (MC) small and clean (40px max).
+
+Name bold, company in soft grey below it.
+
+Keep email and phone inline (📧, 📞) with lighter icons and thin font.
+
+Remove the card border and use a light bottom divider line.
+
+📅 Request Details
+
+Merge all details into a compact two-column layout for better balance:
+
+Requested by: Sarah Johnson (Marketing)
+Visit Date: Nov 20, 2025 • 10:00 AM • 2h
+Requested on: Nov 18, 12:30 PM
+Purpose: Product demo and partnership discussion
+
+
+Use light grey for labels, dark grey for values.
+
+Keep consistent line height — remove extra white space between rows.
+
+🧩 Requested Services
+
+Simplify visual hierarchy — no big icons or colored badges.
+
+Use minimal row layout with icon + bold title + grey subtitle:
+
+🏢 Meeting Room — Executive Boardroom, 3rd Floor  
+🅿️ Parking — SKBC Basement, Slot B-12  
+🍽️ Buffet — VIP Dining Hall (Lunch)
+
+
+Make icons thin outline style and small (16–18px).
+
+✅ Action Buttons
+
+Use modern floating buttons pinned to bottom with spacing from screen edges.
+
+Both buttons should be flat with rounded corners (radius 8px):
+
+Reject: White background, red border, red text.
+
+Approve: Solid green, white text.
+
+Add interaction feedback:
+
+Approve → small success toast “✅ Request approved successfully.”
+
+Reject → modal pops up with title “Add a rejection reason (optional)” (with Submit / Cancel).
+
+🪄 Typography
+
+Use one consistent font weight across labels and body (400).
+
+Only bold for section titles and names.
+
+Use soft grey for subtitles (#757575).
+
+Increase line spacing slightly for airy, readable layout.
+
+📱 Final Touch
+
+Add subtle entrance animations (cards fade up).
+
+Ensure the top of each card aligns cleanly (no uneven padding).
+
+Maintain a clean vertical rhythm — every card should have the same visual spacing.
+
+Result should feel light, airy, and balanced, not blocky.

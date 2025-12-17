@@ -1,0 +1,91 @@
+GET
+/api/v1/approvals/pending-host
+Get walk-in requests pending host approval
+
+
+Retrieves all walk-in visitor requests that are waiting for the logged-in user (as host) to approve or reject.
+
+Parameters
+Cancel
+Name	Description
+search
+string
+(query)
+Search by visitor name or company
+
+search
+limit
+number
+(query)
+Items per page (max 100)
+
+1
+page
+number
+(query)
+Page number (1-based)
+
+1
+Execute
+Clear
+Responses
+Curl
+
+curl -X 'GET' \
+  'https://vms-backend-folio3.replit.app/api/v1/approvals/pending-host?limit=1&page=1' \
+  -H 'accept: */*' \
+  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIwOEVGRTExMy05M0QyLUYwMTEtQTU4Qi0wMDE1NUQwN0ExMkIiLCJlbWFpbCI6ImVtcGxveWVlMUBleGFtcGxlLmNvbSIsInJvbGUiOiJlbXBsb3llZSIsImlhdCI6MTc2NTg4OTUwNCwiZXhwIjoxNzY1OTc1OTA0fQ.1OUtPa9zQ63kw9Dwq09KYz9aIJE2wJcJqdPKZNmd35Y'
+Request URL
+https://vms-backend-folio3.replit.app/api/v1/approvals/pending-host?limit=1&page=1
+Server response
+Code	Details
+200	
+Response body
+Download
+{
+  "data": [
+    {
+      "id": "4E5A7823-7DDA-F011-A58B-00155D07A12B",
+      "visitor": {
+        "id": "C2DE0F56-59DA-F011-A58B-00155D07A12B",
+        "fullName": "Req without services",
+        "email": "ahsn@ac.com",
+        "phone": "+966 45 645 6456"
+      },
+      "visitDate": "2025-12-16",
+      "visitTime": "12:45 PM",
+      "duration": "1 hour",
+      "purpose": "General Visit",
+      "isWalkIn": true,
+      "createdAt": "2025-12-16T04:45:45.933Z"
+    }
+  ],
+  "pagination": {
+    "page": "1",
+    "limit": "1",
+    "total": 3,
+    "totalPages": 3
+  }
+}
+Response headers
+ access-control-allow-credentials: true 
+ access-control-allow-origin: * 
+ content-length: 407 
+ content-type: application/json; charset=utf-8 
+ date: Tue,16 Dec 2025 12:58:40 GMT 
+ etag: W/"197-CjCub5sMdTJ18gtwvyJ2DAGqS2c" 
+ server: Google Frontend 
+ strict-transport-security: max-age=63072000; includeSubDomains 
+ via: 1.1 google 
+ x-cloud-trace-context: 2242dd38dea54289805ae15f430ed17b 
+ x-powered-by: Express 
+Responses
+Code	Description	Links
+200	
+List of walk-in requests pending host approval
+
+No links
+401	
+Unauthorized
+
+No links

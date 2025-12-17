@@ -1,0 +1,72 @@
+Enhance the Buffet Admin - All Requests screen to match the visual consistency and functionality of the Employee role’s “My Requests” screen, while keeping the UI minimal, clean, and consistent with the rest of the app.
+
+🎨 Design & Layout Requirements
+
+Consistent UI/UX
+
+Match colors, typography, and card spacing with the Employee role.
+
+Keep the same pastel color tones for status tags (Pending, In Progress, Completed).
+
+Add a subtle shadow and uniform border radius for all cards.
+
+Use the same floating orange “+” button for new buffet-related actions.
+
+Dual View Options
+
+Include toggle buttons for Card View 🟧 and List View ⬜ (same icons and logic as Employee role).
+
+Ensure both views use the same data and update dynamically when switched.
+
+The List View should be horizontal scrollable, like the Employee role’s version.
+
+Card View Layout
+Each buffet request card should include:
+
+Visitor/Requester name and Host name (same typography as Employee view).
+
+Location: Buffet or Dining Room.
+
+Date & Time: Displayed with the same calendar and clock icons.
+
+Status: “Pending,” “In Progress,” “Completed” — colored badges consistent across the app.
+
+Buttons:
+
+View Details → opens the detailed request page.
+
+Complete → updates the request status in real time.
+
+Cards should support swipe actions (left/right) in mobile for quick status change or delete.
+
+List View Layout
+
+Show columns: Name, Host, Location, Date/Time, Status.
+
+Align font and spacing with Employee role’s list view.
+
+Add subtle separators and responsive scaling for mobile and web.
+
+⚙️ Functionality
+
+The Complete button updates the buffet request status to “Completed.”
+
+The View Details button navigates to the request details screen.
+
+Switching between list and card views should maintain state and filters.
+
+Add filters at the top:
+
+Status (All, Pending, In Progress, Completed)
+
+Date range (use the same date picker as the Security role).
+
+Ensure sorting and filtering are functional.
+
+🧭 Additional Notes
+
+The Buffet Admin dashboard should continue to show only summarized metrics (Total Requests, In Progress, Completed).
+
+Keep responsiveness and alignment consistent across iOS, Android, and Web.
+
+All changes must use the same component system as other roles (shared icon set, typography, and spacing).

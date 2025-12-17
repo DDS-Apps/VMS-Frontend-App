@@ -1,0 +1,602 @@
+import React, { useState, useEffect } from "react";
+import { View, StyleSheet, Pressable, ScrollView, Platform, Dimensions } from "react-native";
+import { Image } from "expo-image";
+import { DDIcon, IconName } from "@/components/DDIcon";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ThemedText } from "@/components/ThemedText";
+import { ThemedView } from "@/components/ThemedView";
+import Spacer from "@/components/Spacer";
+import SidebarGroup from "@/components/SidebarGroup";
+import { Colors, Spacing, BorderRadius, Typography } from "@/constants/theme";
+import { useTheme } from "@/hooks/useTheme";
+import { useTranslation } from "@/hooks/useTranslation";
+import { UserRole } from "@/types/vms.types";
+
+interface MenuItem {
+  id: string;
+  labelKey: string;
+  icon: IconName;
+  screen?: string;
+  params?: Record<string, unknown>;
+}
+
+interface MenuGroup {
+  id: string;
+  labelKey: string;
+  icon: IconName;
+  items: MenuItem[];
+  badgeKey?: string;
+}
+
+interface SidebarProps {
+  userRole: UserRole;
+  userName: string;
+  userPhotoUrl?: string | null;
+  currentScreen: string;
+  onNavigate: (screen: string, params?: Record<string, unknown>) => void;
+  onLogout: () => void;
+  onToggleDarkMode: () => void;
+  isDarkMode: boolean;
+  isOpen: boolean;
+  onClose: () => void;
+  pendingApprovalsCount?: number;
+  todaysVisitorsCount?: number;
+}
+
+const getMenuGroups = (role: UserRole): { groups: MenuGroup[]; standalone: MenuItem[] } => {
+  const result: { groups: MenuGroup[]; standalone: MenuItem[] } = {
+    groups: [],
+    standalone: [],
+  };
+
+  if (role === 'employee') {
+    result.standalone = [
+      { id: 'dashboard', labelKey: 'navigation.dashboard', icon: 'grid', screen: 'Dashboard' },
+    ];
+    result.groups = [
+      {
+        id: 'visits',
+        labelKey: 'sidebar.visitsRequests',
+        icon: 'users',
+        items: [
+          { id: 'new_request', labelKey: 'navigation.newRequest', icon: 'user-plus', screen: 'VisitTypeSelection' },
+          { id: 'visitor_requests', labelKey: 'navigation.myRequests', icon: 'list', screen: 'VisitorRequests' },
+        ],
+      },
+      {
+        id: 'services',
+        labelKey: 'sidebar.services',
+        icon: 'truck',
+        items: [
+          { id: 'my_valet_requests', labelKey: 'navigation.parkMyCar', icon: 'truck', screen: 'MyValetRequests' },
+        ],
+      },
+    ];
+  } else if (role === 'manager') {
+    result.standalone = [
+      { id: 'dashboard', labelKey: 'navigation.dashboard', icon: 'grid', screen: 'Dashboard' },
+    ];
+    result.groups = [
+      {
+        id: 'visits',
+        labelKey: 'sidebar.visitsRequests',
+        icon: 'users',
+        items: [
+          { id: 'new_request', labelKey: 'navigation.newRequest', icon: 'user-plus', screen: 'VisitTypeSelection' },
+          { id: 'visitor_requests', labelKey: 'navigation.myRequests', icon: 'list', screen: 'VisitorRequests' },
+          { id: 'pending_approvals', labelKey: 'navigation.pendingApprovals', icon: 'check-circle', screen: 'PendingApprovals' },
+        ],
+        badgeKey: 'pendingApprovals',
+      },
+    ];
+  } else if (role === 'receptionist') {
+    result.standalone = [
+      { id: 'dashboard', labelKey: 'navigation.dashboard', icon: 'grid', screen: 'ReceptionistDashboard' },
+    ];
+    result.groups = [
+      {
+        id: 'visitors',
+        labelKey: 'sidebar.visitors',
+        icon: 'users',
+        badgeKey: 'todaysVisitors',
+        items: [
+          { id: 'todays_visitors', labelKey: 'navigation.todaysVisitors', icon: 'clock', screen: 'AllVisitorsToday' },
+          { id: 'all_visitors', labelKey: 'navigation.allVisitors', icon: 'users', screen: 'AllVisitors' },
+          { id: 'walk_in_visitors', labelKey: 'navigation.walkInVisitors', icon: 'user-check', screen: 'WalkInVisitors' },
+        ],
+      },
+      {
+        id: 'registration',
+        labelKey: 'sidebar.registration',
+        icon: 'user-plus',
+        items: [
+          { id: 'walk_in', labelKey: 'navigation.walkInRegistration', icon: 'user-plus', screen: 'WalkInRegistration' },
+        ],
+      },
+    ];
+  } else if (role === 'security') {
+    result.standalone = [];
+    result.groups = [
+      {
+        id: 'operations',
+        labelKey: 'sidebar.operations',
+        icon: 'shield',
+        items: [
+          { id: 'check_in', labelKey: 'navigation.visitorVerification', icon: 'shield', screen: 'CheckIn' },
+        ],
+      },
+      {
+        id: 'logs',
+        labelKey: 'sidebar.logs',
+        icon: 'activity',
+        items: [
+          { id: 'gate_events', labelKey: 'security.gateEventsLog', icon: 'activity', screen: 'GateEventsLog' },
+        ],
+      },
+    ];
+  } else if (role === 'valet_driver') {
+    result.standalone = [
+      { id: 'my_tasks', labelKey: 'navigation.myTasks', icon: 'list', screen: 'DriverTasks' },
+    ];
+    result.groups = [];
+  } else if (role === 'buffet_staff') {
+    result.standalone = [
+      { id: 'buffet_board', labelKey: 'navigation.buffetBoard', icon: 'clipboard', screen: 'BuffetBoard' },
+    ];
+    result.groups = [];
+  } else if (role === 'buffet_admin') {
+    result.standalone = [
+      { id: 'dashboard', labelKey: 'navigation.dashboard', icon: 'grid', screen: 'BuffetAdminDashboard' },
+    ];
+    result.groups = [
+      {
+        id: 'requests',
+        labelKey: 'sidebar.requests',
+        icon: 'clipboard',
+        items: [
+          { id: 'buffet_requests', labelKey: 'navigation.buffetRequests', icon: 'list', screen: 'BuffetAllRequests' },
+        ],
+      },
+      {
+        id: 'management',
+        labelKey: 'sidebar.management',
+        icon: 'settings',
+        items: [
+          { id: 'buffet_staff', labelKey: 'navigation.staffManagement', icon: 'users', screen: 'BuffetStaff' },
+          { id: 'buffet_locations', labelKey: 'navigation.locations', icon: 'map-pin', screen: 'BuffetLocations' },
+        ],
+      },
+    ];
+  } else if (role === 'valet_admin') {
+    result.standalone = [
+      { id: 'dashboard', labelKey: 'navigation.dashboard', icon: 'grid', screen: 'ValetAdminDashboard' },
+    ];
+    result.groups = [
+      {
+        id: 'operations',
+        labelKey: 'sidebar.operations',
+        icon: 'truck',
+        items: [
+          { id: 'valet_requests', labelKey: 'navigation.allRequests', icon: 'list', screen: 'ValetAllRequests' },
+        ],
+      },
+      {
+        id: 'management',
+        labelKey: 'sidebar.management',
+        icon: 'settings',
+        items: [
+          { id: 'valet_drivers', labelKey: 'navigation.drivers', icon: 'users', screen: 'ValetDrivers' },
+          { id: 'valet_parking', labelKey: 'navigation.parkingSlots', icon: 'map-pin', screen: 'ValetParking' },
+        ],
+      },
+    ];
+  } else if (role === 'building_admin') {
+    result.standalone = [
+      { id: 'dashboard', labelKey: 'navigation.controlCenter', icon: 'grid', screen: 'BuildingAdminDashboard' },
+    ];
+    result.groups = [
+      {
+        id: 'requests',
+        labelKey: 'sidebar.visitsRequests',
+        icon: 'file-text',
+        items: [
+          { id: 'all_requests', labelKey: 'navigation.allRequests', icon: 'file-text', screen: 'AllRequests' },
+        ],
+      },
+      {
+        id: 'meetings',
+        labelKey: 'sidebar.meetings',
+        icon: 'calendar',
+        items: [
+          { id: 'meeting_catalog', labelKey: 'navigation.meetingRoomCatalog', icon: 'home', screen: 'MeetingRoomCatalog' },
+          { id: 'meeting_calendar', labelKey: 'navigation.meetingCalendar', icon: 'calendar', screen: 'MeetingCalendar' },
+          { id: 'meeting_ops', labelKey: 'navigation.meetingOperations', icon: 'monitor', screen: 'MeetingOperations' },
+        ],
+      },
+      {
+        id: 'parking_valet',
+        labelKey: 'sidebar.parkingValet',
+        icon: 'truck',
+        items: [
+          { id: 'parking_assignment', labelKey: 'navigation.employeeParkingAssignment', icon: 'truck', screen: 'EmployeeParkingAssignment' },
+          { id: 'parking_occupancy', labelKey: 'navigation.parkingOccupancy', icon: 'pie-chart', screen: 'ParkingOccupancy' },
+          { id: 'valet_oversight', labelKey: 'navigation.valetOversight', icon: 'navigation', screen: 'ValetOversight' },
+          { id: 'valet_zones', labelKey: 'navigation.valetZones', icon: 'map', screen: 'ValetZones' },
+        ],
+      },
+      {
+        id: 'services_admin',
+        labelKey: 'sidebar.servicesAdmin',
+        icon: 'coffee',
+        items: [
+          { id: 'buffet_oversight', labelKey: 'navigation.buffetOversight', icon: 'coffee', screen: 'BuffetOversight' },
+          { id: 'all_locations', labelKey: 'navigation.locations', icon: 'map-pin', screen: 'AllLocations' },
+        ],
+      },
+      {
+        id: 'users_config',
+        labelKey: 'sidebar.usersConfig',
+        icon: 'users',
+        items: [
+          { id: 'users_roles', labelKey: 'navigation.manageUsers', icon: 'users', screen: 'UsersRoles' },
+          { id: 'notification_templates', labelKey: 'navigation.notificationTemplates', icon: 'mail', screen: 'NotificationTemplates' },
+          { id: 'biometric_settings', labelKey: 'navigation.biometricSettings', icon: 'lock', screen: 'BiometricSettings' },
+          { id: 'reminder_rules', labelKey: 'navigation.reminderRules', icon: 'clock', screen: 'ReminderRules' },
+        ],
+      },
+      {
+        id: 'reports_logs',
+        labelKey: 'sidebar.reportsLogs',
+        icon: 'trending-up',
+        items: [
+          { id: 'global_analytics', labelKey: 'navigation.globalAnalytics', icon: 'trending-up', screen: 'GlobalAnalytics' },
+          { id: 'system_event_log', labelKey: 'admin.systemEventLog', icon: 'file-text', screen: 'SystemEventLog' },
+          { id: 'reminder_schedule', labelKey: 'admin.reminderSchedule', icon: 'clock', screen: 'ReminderSchedule' },
+        ],
+      },
+      {
+        id: 'system',
+        labelKey: 'sidebar.system',
+        icon: 'settings',
+        items: [
+          { id: 'integrations', labelKey: 'navigation.integrationsHealth', icon: 'link', screen: 'IntegrationsStatus' },
+          { id: 'system_rules', labelKey: 'navigation.systemSettings', icon: 'settings', screen: 'SystemRules' },
+        ],
+      },
+    ];
+  } else {
+    result.standalone = [
+      { id: 'dashboard', labelKey: 'navigation.dashboard', icon: 'grid', screen: 'Dashboard' },
+    ];
+    result.groups = [];
+  }
+
+  return result;
+};
+
+export default function Sidebar({
+  userRole,
+  userName,
+  userPhotoUrl,
+  currentScreen,
+  onNavigate,
+  onLogout,
+  onToggleDarkMode,
+  isDarkMode,
+  isOpen,
+  onClose,
+  pendingApprovalsCount = 0,
+  todaysVisitorsCount = 0,
+}: SidebarProps) {
+  const { theme } = useTheme();
+  const { t } = useTranslation();
+  const { groups, standalone } = getMenuGroups(userRole);
+  const { width } = Dimensions.get('window');
+  const isLargeScreen = width >= 768;
+  const insets = useSafeAreaInsets();
+
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => {
+    const initial = new Set<string>();
+    groups.forEach(group => {
+      const hasActiveItem = group.items.some(item => item.screen === currentScreen);
+      if (hasActiveItem) {
+        initial.add(group.id);
+      }
+    });
+    if (initial.size === 0 && groups.length > 0) {
+      initial.add(groups[0].id);
+    }
+    return initial;
+  });
+
+  useEffect(() => {
+    groups.forEach(group => {
+      const hasActiveItem = group.items.some(item => item.screen === currentScreen);
+      if (hasActiveItem && !expandedGroups.has(group.id)) {
+        setExpandedGroups(prev => new Set(prev).add(group.id));
+      }
+    });
+  }, [currentScreen, groups]);
+
+  const handleGroupToggle = (groupId: string) => {
+    setExpandedGroups(prev => {
+      const next = new Set(prev);
+      if (next.has(groupId)) {
+        next.delete(groupId);
+      } else {
+        if (!isLargeScreen) {
+          next.clear();
+        }
+        next.add(groupId);
+      }
+      return next;
+    });
+  };
+
+  const getBadgeCount = (badgeKey?: string): number | undefined => {
+    if (!badgeKey) return undefined;
+    if (badgeKey === 'pendingApprovals') return pendingApprovalsCount;
+    if (badgeKey === 'todaysVisitors') return todaysVisitorsCount;
+    return undefined;
+  };
+
+  const handleItemPress = (screen?: string, params?: Record<string, unknown>) => {
+    onNavigate(screen || 'Dashboard', params);
+    if (!isLargeScreen) {
+      setTimeout(() => {
+        onClose();
+      }, 100);
+    }
+  };
+
+  const renderMenuItem = (item: MenuItem) => {
+    const isActive = currentScreen === item.screen;
+    
+    return (
+      <Pressable
+        key={item.id}
+        style={({ pressed }) => [
+          styles.menuItem,
+          isActive && [styles.menuItemActive, { backgroundColor: theme.sidebarActive }],
+          pressed && { opacity: 0.7 },
+        ]}
+        onPress={() => handleItemPress(item.screen, item.params)}
+      >
+        <DDIcon
+          name={item.icon}
+          size={18}
+          color={isActive ? theme.primary : theme.sidebarTextMuted}
+          directionAware={item.icon === 'log-in' || item.icon === 'log-out'}
+        />
+        <ThemedText
+          style={[
+            styles.menuText,
+            isActive && { color: theme.primary, fontWeight: '600' },
+            !isActive && { color: theme.sidebarText },
+          ]}
+        >
+          {t(item.labelKey)}
+        </ThemedText>
+      </Pressable>
+    );
+  };
+
+  const renderStandaloneItem = (item: MenuItem) => {
+    const isActive = currentScreen === item.screen;
+    
+    return (
+      <Pressable
+        key={item.id}
+        style={({ pressed }) => [
+          styles.standaloneItem,
+          isActive && [styles.menuItemActive, { backgroundColor: theme.sidebarActive }],
+          pressed && { opacity: 0.7 },
+        ]}
+        onPress={() => handleItemPress(item.screen, item.params)}
+      >
+        <DDIcon
+          name={item.icon}
+          size={20}
+          color={isActive ? theme.primary : theme.sidebarTextMuted}
+        />
+        <ThemedText
+          style={[
+            styles.standaloneText,
+            isActive && { color: theme.primary, fontWeight: '600' },
+            !isActive && { color: theme.sidebarText },
+          ]}
+        >
+          {t(item.labelKey)}
+        </ThemedText>
+      </Pressable>
+    );
+  };
+
+  const notificationsItem: MenuItem = { 
+    id: 'notifications', 
+    labelKey: 'navigation.notifications', 
+    icon: 'bell', 
+    screen: 'Notifications' 
+  };
+  
+  const settingsItem: MenuItem = { 
+    id: 'settings', 
+    labelKey: 'navigation.settings', 
+    icon: 'settings', 
+    screen: 'Settings' 
+  };
+
+  return (
+    <ThemedView style={[
+      styles.sidebar, 
+      { 
+        backgroundColor: theme.sidebarBg, 
+        borderRightColor: theme.border,
+        paddingTop: insets.top + Spacing.lg,
+      },
+    ]}>
+      <Pressable 
+        style={({ pressed }) => [styles.profileHeader, pressed && { opacity: 0.7 }]}
+        onPress={() => handleItemPress('Dashboard')}
+      >
+        {userPhotoUrl ? (
+          <Image
+            source={{ uri: userPhotoUrl }}
+            style={styles.profileAvatar}
+            contentFit="cover"
+          />
+        ) : (
+          <View style={[styles.profileAvatar, { backgroundColor: theme.primary }]}>
+            <ThemedText style={[Typography.title, { color: Colors.light.buttonText, fontWeight: '600', fontSize: 20 }]}>
+              {userName.split(' ').map(n => n[0]).join('')}
+            </ThemedText>
+          </View>
+        )}
+        <View style={{ marginStart: Spacing.md, flex: 1 }}>
+          <ThemedText style={[Typography.body, { fontWeight: '600', color: theme.sidebarText }]} numberOfLines={1}>
+            {userName}
+          </ThemedText>
+          <ThemedText style={[Typography.caption, { color: theme.sidebarTextMuted, textTransform: 'capitalize' }]}>
+            {userRole.replace('_', ' ')}
+          </ThemedText>
+        </View>
+        <DDIcon name="chevron-right" size={18} color={theme.sidebarTextMuted} />
+      </Pressable>
+
+      <Spacer height={Spacing.xl} />
+
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {standalone.map(renderStandaloneItem)}
+
+        {standalone.length > 0 && groups.length > 0 ? (
+          <View style={[styles.divider, { backgroundColor: theme.border }]} />
+        ) : null}
+
+        {groups.map(group => (
+          <SidebarGroup
+            key={group.id}
+            title={t(group.labelKey)}
+            icon={group.icon}
+            isExpanded={expandedGroups.has(group.id)}
+            onToggle={() => handleGroupToggle(group.id)}
+            badge={getBadgeCount(group.badgeKey)}
+          >
+            {group.items.map(renderMenuItem)}
+          </SidebarGroup>
+        ))}
+
+        <View style={[styles.divider, { backgroundColor: theme.border }]} />
+
+        {renderStandaloneItem(notificationsItem)}
+        {renderStandaloneItem(settingsItem)}
+      </ScrollView>
+
+      <View style={[styles.footer, { borderTopColor: theme.border }]}>
+        <View style={styles.footerActions}>
+          <Pressable 
+            onPress={onToggleDarkMode} 
+            style={({ pressed }) => [
+              styles.footerButton,
+              { backgroundColor: theme.surfaceSecondary, opacity: pressed ? 0.7 : 1 }
+            ]}
+          >
+            <DDIcon
+              name={isDarkMode ? 'sun' : 'moon'}
+              size={20}
+              color={theme.sidebarTextMuted}
+            />
+          </Pressable>
+          <Pressable 
+            onPress={onLogout} 
+            style={({ pressed }) => [
+              styles.footerButton,
+              { backgroundColor: theme.surfaceSecondary, opacity: pressed ? 0.7 : 1 }
+            ]}
+          >
+            <DDIcon
+              name="log-out"
+              size={20}
+              color={theme.error}
+              directionAware
+            />
+          </Pressable>
+        </View>
+      </View>
+    </ThemedView>
+  );
+}
+
+const styles = StyleSheet.create({
+  sidebar: {
+    width: '100%',
+    height: '100%',
+    borderRightWidth: 1,
+    paddingBottom: Spacing.lg,
+  },
+  profileHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+  },
+  profileAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: BorderRadius.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  scrollView: {
+    flex: 1,
+    paddingHorizontal: Spacing.md,
+  },
+  divider: {
+    height: 1,
+    marginVertical: Spacing.md,
+    marginHorizontal: Spacing.sm,
+  },
+  standaloneItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.sm,
+    marginBottom: Spacing.xs,
+  },
+  standaloneText: {
+    marginStart: Spacing.md,
+    fontSize: 15,
+    fontWeight: '500',
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: Spacing.sm + 2,
+    paddingHorizontal: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+    marginBottom: 2,
+  },
+  menuItemActive: {
+    backgroundColor: 'transparent',
+  },
+  menuText: {
+    marginStart: Spacing.md,
+    fontSize: 14,
+  },
+  footer: {
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.lg,
+    borderTopWidth: 1,
+  },
+  footerActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    gap: Spacing.sm,
+  },
+  footerButton: {
+    width: 40,
+    height: 40,
+    borderRadius: BorderRadius.sm,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});

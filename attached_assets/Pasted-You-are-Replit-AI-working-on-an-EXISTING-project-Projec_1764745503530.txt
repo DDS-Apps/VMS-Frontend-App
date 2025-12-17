@@ -1,0 +1,180 @@
+You are Replit AI working on an EXISTING project:
+
+Project:
+- SKBC Visitor Management System (SKBC VMS)
+- Frontend: React Native (iOS, Android, React Native Web)
+- Backend: NestJS (TypeScript), MS SQL Server
+- Shared in-app data layer on the frontend (used for prototypes)
+- Roles: Employee (Staff), Manager/Approver, Receptionist, Security, Buffet Admin, Buffet Staff, Valet Admin, Valet Driver, Building Admin/System Admin, Visitor (external invite)
+
+Goal:
+Create ONE detailed API documentation file in Markdown, matching our existing modules and screens, so backend implementation can follow it.
+
+File to create:
+- `docs/SKBC_VMS_API_SPEC.md` (if `docs/` does not exist, create it)
+
+General requirements for the API spec:
+- Use REST-style endpoints under `/api/v1/...`
+- Group endpoints by **module/domain**, aligned with our screens:
+  - Auth & User Management
+  - Staff (Employee Initiator) – Visitor Requests
+  - Manager / Approver
+  - Receptionist
+  - Security
+  - Meeting Rooms / Ammam
+  - Parking & Valet (System-level)
+  - Valet Admin
+  - Valet Driver
+  - Buffet Admin
+  - Buffet Staff
+  - Visitor (external invite)
+  - Notifications & Reminders
+  - Admin / Building Admin (System Rules, Settings, Integrations)
+- For each module, derive APIs from our existing screens and flows in the codebase and docs (request lists, details, actions like approve/reject, check-in/out, allocate parking, assign valet tasks, buffet tasks, etc.).
+
+For EACH endpoint, document at least:
+- HTTP method: GET / POST / PUT / PATCH / DELETE
+- URL path (e.g., `/api/v1/visits`, `/api/v1/visits/:id/approve`)
+- Short description (what it does, which roles use it)
+- Authentication / authorization (which roles can call it)
+- Path params (name, type, description)
+- Query params (name, type, description)
+- Request body schema (in JSON-like form)
+- Response body schema (success case)
+- Typical HTTP status codes (200, 201, 400, 401, 403, 404, 409, 422, 500) and what they mean for this endpoint
+- Example request JSON and example response JSON (keep them concise but realistic)
+
+Also include ENTITY & DATA MODEL sections:
+- Define core entities and their fields as TypeScript-style interfaces (or simple schema tables), including:
+  - User (roles, manager relationship, valet driver flag, buffet staff flag, building admin, etc.)
+  - Visit / VisitorRequest (single/group/recurring, flags: meeting room, parking, buffet, valet, selected channels)
+  - Visitor (external person)
+  - MeetingRoom
+  - ParkingSpot
+  - ParkingAllocation
+  - ValetTask (for visitors + for employee self-valet)
+  - BuffetRequest / BuffetTask
+  - Notification (in-app + outbound metadata)
+  - SystemRules (reminder timings, office hours, parking priority rules)
+  - IntegrationStatus (Outlook, Oracle HCM, Speed Gate, WhatsApp/SMS/Email)
+- Show relationships between entities (e.g., one visit has many visitors, one visit may have one meeting room, one visit may create zero/one parking allocation, zero/one valet task, zero/one buffet request, etc.).
+
+Important flows to cover with API endpoints:
+
+1) Auth & Users
+- Login (including future biometric support)
+- Refresh token
+- Get current user profile
+- List users (admin)
+- Create/update user (admin)
+- Assign roles to users
+
+2) Staff – Visitor Requests
+- Create visitor request (single/group/recurring)
+- List “my requests”
+- Get request details
+- Update request (reschedule)
+- Cancel request
+- Filter: requests waiting on manager approval
+- Filter: requests waiting on visitor acceptance
+
+3) Manager / Approver
+- List requests needing approval
+- Approve / reject request
+- Bulk approve/reject
+- List approved requests waiting on visitor acceptance
+- Handle walk-in approval requests (from Reception)
+
+4) Receptionist
+- List today’s visitors
+- Search visitors
+- Register walk-in visitor (create request + link to host)
+- View visitor detail
+- Mark visitor as checked-in / checked-out (via desk)
+- “Today’s meetings by room” view (API-side: list visits grouped by meeting room)
+- Mark communication exception/manual override
+
+5) Security
+- Look up visit/visitor by QR code / ID
+- Check-in/check-out via gate
+- Get “today’s visitors” summary for security (expected/checked-in/left)
+- Gate events log (list scans, allow/deny)
+
+6) Meeting Rooms / Ammam
+- CRUD meeting rooms (admin)
+- List rooms (for selection & auto-assignment)
+- Get room detail + upcoming bookings
+- Assign room to a visit (initial or reassign)
+- Mark room out-of-service / active
+- Get “today’s meetings” for Ammam (operations view)
+
+7) Parking & Valet – System Level
+- CRUD parking spots (bays, floors, types)
+- Set parking allocation rules / priority (SKBC → Red Sea Mall → Valet → None)
+- Get parking utilization stats (current + history)
+
+8) Employee Self-Valet
+- Create self-valet task (for employee’s own car)
+- List “my valet tasks” for employee
+- Get self-valet task detail
+
+9) Valet Admin
+- List all valet tasks (for visitors + staff)
+- Assign/reassign tasks to drivers
+- Get driver load summary (tasks per driver)
+- Manage valet zones/locations (Red Sea Mall, SKBC valet area, etc.)
+
+10) Valet Driver
+- List tasks for current driver
+- Update task status (accept/reject, start, parked, ready, completed)
+- Get task detail
+
+11) Buffet Admin & Staff
+- Create buffet requests from visit (usually triggered automatically in backend)
+- List buffet requests (admin)
+- Get buffet request detail
+- Update buffet request status (new, preparing, ready, served, completed)
+- Manage buffet locations
+- Manage buffet staff on duty
+- Get buffet load summary per location
+
+12) Visitor (External)
+- Get invite details by token
+- Accept invite
+- Reject invite
+- Handle expired/auto-cancelled invites (read-only state)
+- Handle invalid invite tokens (error state)
+- Surface parking/valet info fields in response
+
+13) Notifications & Reminders
+- Admin: configure notification templates per event and channel
+- Admin: configure reminder timings & working hours (system rules)
+- Get notifications for current user (in-app inbox)
+- Mark notification as read
+- List system-wide event log entries (admin)
+- Get reminder schedule preview for invites (upcoming reminder jobs, computed)
+
+14) Admin / Building Admin – Settings & Integrations
+- CRUD system rules (office hours, parking buffers, reminder timings)
+- Get/set integration status for Outlook, Oracle HCM, Speed Gate, WhatsApp/SMS/Email
+- Get analytics/KPIs summary (visits per day, no-shows, parking utilization, valet tasks, buffet events)
+
+Formatting requirements for `SKBC_VMS_API_SPEC.md`:
+- Use clear Markdown headings:
+  - `# SKBC VMS API Specification`
+  - `## Entities & Data Model`
+  - `## Module: Staff (Employee Initiator)`
+  - `## Module: Manager / Approver`
+  - etc.
+- For endpoints, use a consistent structure, for example:
+
+  ### GET /api/v1/visits
+  - Description
+  - Roles
+  - Query Params
+  - Response schema
+  - Example response
+
+- Make the document detailed enough that backend developers can implement the APIs directly from this spec with minimal questions.
+
+Do NOT write any implementation code; only create and fill the `docs/SKBC_VMS_API_SPEC.md` file with this documentation.

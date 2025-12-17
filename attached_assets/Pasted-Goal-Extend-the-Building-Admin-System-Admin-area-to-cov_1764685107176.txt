@@ -1,0 +1,79 @@
+Goal: Extend the Building Admin / System Admin area to cover all missing configuration and ops views:
+
+1) Meeting Room Catalog & Setup
+- Create a Meeting Room Catalog screen for Building Admin/System Admin that allows:
+  - Listing all meeting rooms with: name, floor, capacity, features, active/inactive.
+  - Adding/editing/deactivating rooms.
+- Use the shared data layer (in-memory for now) to store meeting room entities.
+
+2) Meeting Room Calendar / Schedule
+- Create a Meeting Room Schedule view:
+  - Day/week view of bookings across rooms, based on existing visit/meeting data.
+  - Ability to filter by room, date, and floor.
+- This is read-only for now; it should read from the same data used for visitor requests + meeting room flag.
+
+3) Ammam / Meeting Operations View
+- Create an Ammam/Meeting Operations screen:
+  - Focus on “today’s meetings”: room, time, host, visitors, status.
+  - Highlight conflicts or unassigned rooms (if any).
+- It can reuse the same data as the schedule view but in a list/table optimized for day-of operations.
+
+4) Employee Parking Assignment
+- Extend admin parking configuration with:
+  - A view to map employees → parking bays.
+  - At minimum: list of employees, list of bays, simple assignment UI.
+  - Store assignments in the shared data layer (no real Oracle HCM integration yet).
+
+5) Parking Occupancy & Availability Dashboard
+- Add a Parking Overview/Occupancy screen for Building Admin:
+  - Summaries for: total bays, bays assigned to employees, bays freed because employees are off, bays used by visitors, free bays.
+  - Use existing visit + parking allocation data to compute counts.
+
+6) Valet Zones / Locations Setup
+- Extend parking/valet settings with:
+  - Valet zones (e.g., SKBC basement, Red Sea Mall, other locations).
+  - Each zone: name, type, capacity, priority order.
+- Store in the shared data layer and ensure parking allocation logic can reference these zones later.
+
+7) Notification Templates & Channels Configuration
+- Create an Admin “Communication Settings” screen:
+  - For each event type (request approved, parking assigned, valet assigned, buffet request created, visitor auto-cancel, etc.), allow toggling channels: QR (link + code), WhatsApp, SMS, Email.
+  - Provide a simple template editor for subject/body with placeholder tokens (host name, visitor name, meeting time, parking info, room name).
+- This is configuration-only; no real sending yet.
+
+8) Reminder Rules & Auto-Cancel Settings
+- Extend System Rules (or create a sub-screen) to configure:
+  - First reminder delay (default 2 working hours).
+  - Second reminder delay (default +2 hours).
+  - Auto-cancel delay after second reminder (default 1 hour).
+  - Working hours / office start time, used when meetings are after office hours.
+- Store these values in the shared data layer; you only need to reflect them in UI and simulated scheduling logic, not real cron jobs.
+
+9) Integrations Health & Status
+- Create an Integrations Status screen for System Admin:
+  - Entries for Outlook/Exchange, Oracle HCM, Speed Gate API, WhatsApp/SMS gateway, Email gateway.
+  - For now, mock fields: status (OK/Degraded/Down), last sync time, last error message.
+- No real external calls; this is a monitoring stub for the prototype.
+
+10) Biometric Auth Settings
+- Extend System Admin or global Settings:
+  - Configuration flags for “Biometric login allowed” (global) and per-role if needed.
+  - Show read-only info about whether the current device supports biometrics (can be mocked).
+- Do NOT implement actual biometric auth here, only expose the settings and UI.
+
+11) Global Analytics / KPIs
+- Add an Analytics or Overview screen for admins that summarizes:
+  - Visits per day (last 7/30 days).
+  - No-show rate (invited vs checked-in).
+  - Parking utilization rate.
+  - Valet tasks per day.
+  - Buffet events per day.
+- Use the existing in-app data layer to compute and display basic charts or metric cards.
+
+Implementation notes:
+- Reuse the DALLAH DIGITAL theme (colors, typography, spacing).
+- Use existing base components where possible (buttons, cards, lists).
+- Keep everything mobile-first but ensure layouts remain usable on web.
+```
+
+---

@@ -1,0 +1,104 @@
+e need to enhance the Buffet Staff role screen to make it consistent with the overall app design (same look and structure as the Security Role).
+The goal is to show all buffet requests assigned to buffet staff for the day, in a simple and efficient layout.
+
+🎯 Main Purpose
+
+Enable buffet staff to clearly view all buffet requests for the day, know which ones are assigned to them, track progress, and update statuses (Pending → Preparing → Ready → Served).
+
+🧩 UI / UX Requirements
+🖥️ Header Section
+
+Title: “Buffet Schedule”
+
+Subtitle: “X Buffet Tasks Today”
+
+Add a date picker icon (same as in the Security Role screen).
+
+When clicked, it should open the same compact calendar pop-up for selecting a single day or a date range.
+
+Add a search bar (wider and clean) with placeholder:
+
+“Search by visitor, company, or location…”
+
+🧭 Filter Tabs
+
+Keep the segmented tabs consistent with the app’s look:
+
+All
+
+Pending
+
+Preparing
+
+Ready
+
+Served
+
+Canceled
+
+Each tab should show a count next to it (e.g., “Pending (3)”).
+
+📋 Buffet Request Card
+
+Use the same visual layout and button consistency as the Employee and Security Role cards.
+
+Each card should include only the necessary data:
+
+Section	Details
+Visitor Name & Company	e.g., “James Anderson – Global Tech Inc.”
+Guest Count	e.g., “4 guests”
+Date & Time	e.g., “Nov 25 – 12:30 PM”
+Location	e.g., “Executive Dining Room”
+Assigned Staff	e.g., “Assigned to: Chef Mohammed”
+Status Button	Button (e.g., “Start Preparing”, “Mark as Ready”, “Served”) — all same size and design as check-in/out buttons
+⚙️ Functional Features
+
+Status Workflow
+
+Buffet staff can update the status directly from the card:
+
+Pending → Preparing → Ready → Served
+
+Status change should update instantly in the Buffet Admin dashboard.
+
+Auto Refresh / Sync
+
+The screen should automatically refresh when a buffet request is added, reassigned, or updated.
+
+Notifications
+
+Show only notifications relevant to buffet staff:
+
+New buffet tasks assigned to them.
+
+Updates or cancellations of their assigned tasks.
+
+Reminder 30 minutes before serving time.
+
+UI Consistency
+
+Match the color scheme, fonts, button design, and spacing of the Receptionist and Security roles.
+
+The screen must be fully responsive and functional on both mobile and web.
+
+🧠 Optional Enhancements
+
+Add a subtle status color tag (e.g., orange = Pending, yellow = Preparing, green = Ready, gray = Served).
+
+Allow sorting by time (ascending/descending).
+
+Add a small “Filter by Assigned Staff” dropdown if multiple staff share the same screen.
+
+✅ Summary
+
+The Buffet Staff screen should:
+
+Follow the Security Role structure and design.
+
+Include a date picker and search bar for filtering.
+
+Display buffet requests with essential info only (visitor, company, guests, date/time, location, assigned staff).
+
+Have functional, consistent status buttons.
+
+Work smoothly across all devices with real-time updates.

@@ -1,0 +1,1443 @@
+import React, { useState, useMemo, useCallback } from "react";
+import { View, StyleSheet, Pressable, TextInput, ScrollView, Modal, FlatList, Alert } from "react-native";
+import { useFocusEffect } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BlurView } from 'expo-blur';
+import { DDIcon } from "@/components/DDIcon";
+import { useScreenInsets } from "@/hooks/useScreenInsets";
+import { ThemedText } from "@/components/ThemedText";
+import { ThemedView } from "@/components/ThemedView";
+import Spacer from "@/components/Spacer";
+import { ServiceIcons, SelectionCheckbox, StatusAccent, WalkInBadge, SkeletonDashboard, LoadingSpinner, ApprovalActionGroup } from "@/components/shared";
+import { Spacing, BorderRadius, Typography } from "@/constants/theme";
+import { useTheme } from "@/hooks/useTheme";
+import { useTranslation } from "@/hooks/useTranslation";
+import { useFormatters } from "@/hooks/useFormatters";
+import { 
+  useInfinitePendingApprovalsQuery,
+  useApproveVisitMutation,
+  useRejectVisitMutation,
+  useBulkApproveRequestsMutation,
+  useBulkRejectRequestsMutation,
+} from "@/hooks/queries/useApprovalQueries";
+import { ListLoadingFooter } from "@/components/shared";
+import { useAuth } from "@/contexts/AuthContext";
+import { VisitorRequest } from "@/types/vms.types";
+import type { PendingApprovalDto } from "@/types/api.types";
+import { applyOpacity } from "@/utils/statusStyles";
+import type { ManagerDashboardScreenProps } from "@/types/managerNavigation.types";
+import type { Theme } from "@/types/theme.types";
+
+const mapPendingApprovalToVisitorRequest = (approval: PendingApprovalDto): VisitorRequest => {
+  return {
+    id: approval.id,
+    employeeId: '',
+    employeeName: approval.employeeName,
+    employeeDepartment: approval.employeeDepartment,
+    visitor: {
+      id: approval.visitor.id,
+      fullName: approval.visitor.fullName,
+      email: approval.visitor.email,
+      phone: approval.visitor.phone,
+      company: approval.visitor.company,
+    },
+    visitDate: approval.visitDate,
+    visitTime: approval.visitTime,
+    duration: approval.duration,
+    purpose: approval.purpose,
+    status: 'pending_approval',
+    communicationChannels: ['email'],
+    parkingType: approval.hasParking ? 'auto' : 'none',
+    parkingSlot: approval.hasParking ? { id: 'auto', location: 'SKBC_basement', slotNumber: 'TBD' } : undefined,
+    meetingRoom: approval.hasMeetingRoom ? { id: 'auto', name: 'TBD', capacity: 10, floor: '1', timeSlot: approval.visitTime } : undefined,
+    buffet: approval.hasBuffet ? { id: 'auto', mealType: 'lunch', location: 'Main Buffet' } : undefined,
+    valet: approval.hasValet ? { id: 'auto', pickupTime: approval.visitTime, returnTime: '', status: 'pending' } : undefined,
+    qrCode: undefined,
+    approval: {
+      requiresApproval: true,
+      autoApproved: false,
+    },
+    reminders: {},
+    createdAt: approval.createdAt,
+    updatedAt: approval.createdAt,
+    isWalkIn: approval.isWalkIn,
+  };
+};
+
+const LAYOUT = {
+  cardPadding: Spacing.lg,
+  cardRadius: BorderRadius.md,
+  sectionSpacing: Spacing.xxl,
+  contentGap: Spacing.md,
+  statusBorderWidth: 3,
+  tableRowHeight: 110,
+  tableFixedColumnWidth: 160,
+  tableScrollColumnWidth: 240,
+};
+
+
+const DateTimeDisplay = ({ date, time, duration, theme, compact = false, fmtDate }: { date: string; time: string; duration?: string; theme: Theme; compact?: boolean; fmtDate: (d: Date | string) => string }) => {
+  return (
+    <View style={styles.dateTimeRow}>
+      <DDIcon name="calendar" size={compact ? 13 : 14} variant="muted" />
+      <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
+        {fmtDate(date)}
+      </ThemedText>
+      <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
+      <DDIcon name="clock" size={compact ? 13 : 14} variant="muted" />
+      <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
+        {time}
+      </ThemedText>
+      {duration ? (
+        <>
+          <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
+          <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
+            {duration}
+          </ThemedText>
+        </>
+      ) : null}
+    </View>
+  );
+};
+
+const SectionHeader = ({ 
+  viewMode, 
+  onViewModeChange,
+  isSelectionMode,
+  onToggleSelectionMode,
+  theme,
+  t
+}: { 
+  viewMode: 'card' | 'list'; 
+  onViewModeChange: (mode: 'card' | 'list') => void;
+  isSelectionMode: boolean;
+  onToggleSelectionMode: () => void;
+  theme: Theme;
+  t: (key: string) => string;
+}) => (
+  <View style={styles.header}>
+    <View>
+      <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600' }]}>
+        {t('navigation.pendingApprovals')}
+      </ThemedText>
+      <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 12 }]}>
+        {t('dashboard.requestsAwaitingApproval')}
+      </ThemedText>
+    </View>
+    <View style={styles.headerActions}>
+      <Pressable
+        onPress={onToggleSelectionMode}
+        style={[
+          styles.selectButton,
+          { 
+            backgroundColor: isSelectionMode ? theme.primary : theme.surfaceSecondary,
+            borderColor: isSelectionMode ? theme.primary : theme.border,
+          }
+        ]}
+      >
+        <ThemedText 
+          style={[
+            styles.selectButtonText, 
+            { color: isSelectionMode ? theme.buttonText : theme.text }
+          ]}
+        >
+          {isSelectionMode ? t('bulkActions.cancelSelection') : t('bulkActions.selectMode')}
+        </ThemedText>
+      </Pressable>
+      <Spacer width={Spacing.sm} />
+      <View style={styles.viewModeToggle}>
+        <Pressable
+          onPress={() => onViewModeChange('card')}
+          style={[
+            styles.toggleButton,
+            { backgroundColor: viewMode === 'card' ? theme.primary : 'transparent' }
+          ]}
+        >
+          <DDIcon 
+            name="grid" 
+            size={18} 
+            color={viewMode === 'card' ? theme.buttonText : theme.textSecondary} 
+          />
+        </Pressable>
+        <Pressable
+          onPress={() => onViewModeChange('list')}
+          style={[
+            styles.toggleButton,
+            { backgroundColor: viewMode === 'list' ? theme.primary : 'transparent' }
+          ]}
+        >
+          <DDIcon 
+            name="list" 
+            size={18} 
+            color={viewMode === 'list' ? theme.buttonText : theme.textSecondary} 
+          />
+        </Pressable>
+      </View>
+    </View>
+  </View>
+);
+
+const SelectAllBar = ({
+  allSelected,
+  onToggleAll,
+  theme,
+  t
+}: {
+  allSelected: boolean;
+  onToggleAll: () => void;
+  theme: Theme;
+  t: (key: string) => string;
+}) => (
+  <View style={[styles.selectAllBar, { backgroundColor: theme.surfaceSecondary }]}>
+    <Pressable onPress={onToggleAll} style={styles.selectAllButton}>
+      <SelectionCheckbox isSelected={allSelected} onToggle={onToggleAll} />
+      <Spacer width={Spacing.sm} />
+      <ThemedText style={[Typography.body, { color: theme.text }]}>
+        {allSelected ? t('bulkActions.deselectAll') : t('bulkActions.selectAll')}
+      </ThemedText>
+    </Pressable>
+  </View>
+);
+
+const BulkActionBar = ({
+  selectedCount,
+  onApprove,
+  onReject,
+  theme,
+  t,
+  bottomInset,
+  isProcessing = false,
+  processingAction
+}: {
+  selectedCount: number;
+  onApprove: () => void;
+  onReject: () => void;
+  theme: Theme;
+  t: (key: string) => string;
+  bottomInset: number;
+  isProcessing?: boolean;
+  processingAction?: 'approve' | 'reject' | null;
+}) => (
+  <View 
+    style={[
+      styles.bulkActionBar,
+      { 
+        bottom: bottomInset + Spacing.md,
+        backgroundColor: theme.surface,
+        borderColor: theme.border,
+      }
+    ]}
+  >
+    <View style={styles.bulkActionContent}>
+      <ThemedText style={[Typography.body, { fontWeight: '600', color: theme.text }]}>
+        {isProcessing ? t('common.processing') : `${selectedCount} ${t('bulkActions.selected')}`}
+      </ThemedText>
+      <View style={styles.bulkActionButtons}>
+        <Pressable
+          style={[styles.bulkRejectButton, { borderColor: theme.error, opacity: isProcessing ? 0.6 : 1 }]}
+          onPress={onReject}
+          disabled={isProcessing}
+        >
+          {isProcessing && processingAction === 'reject' ? (
+            <LoadingSpinner size="small" color={theme.error} inline />
+          ) : (
+            <DDIcon name="x" size={16} color={theme.error} />
+          )}
+          <Spacer width={6} />
+          <ThemedText style={[styles.bulkButtonText, { color: theme.error }]}>
+            {t('actions.reject')}
+          </ThemedText>
+        </Pressable>
+        <Spacer width={Spacing.sm} />
+        <Pressable
+          style={[styles.bulkApproveButton, { backgroundColor: theme.success, opacity: isProcessing ? 0.6 : 1 }]}
+          onPress={onApprove}
+          disabled={isProcessing}
+        >
+          {isProcessing && processingAction === 'approve' ? (
+            <LoadingSpinner size="small" color={theme.buttonText} inline />
+          ) : (
+            <DDIcon name="check" size={16} color={theme.buttonText} />
+          )}
+          <Spacer width={6} />
+          <ThemedText style={[styles.bulkButtonText, { color: theme.buttonText }]}>
+            {t('actions.approve')}
+          </ThemedText>
+        </Pressable>
+      </View>
+    </View>
+  </View>
+);
+
+const ApprovalTableRow = React.memo(({ 
+  request, 
+  onApprove,
+  onReject,
+  onViewDetails,
+  onLongPress,
+  isSelectionMode,
+  isSelected,
+  onToggleSelection,
+  theme,
+  isProcessing,
+  t,
+  fmtDate
+}: { 
+  request: VisitorRequest; 
+  onApprove: () => void;
+  onReject: () => void;
+  onViewDetails: () => void;
+  onLongPress: () => void;
+  isSelectionMode: boolean;
+  isSelected: boolean;
+  onToggleSelection: () => void;
+  theme: Theme;
+  isProcessing: boolean;
+  t: (key: string) => string;
+  fmtDate: (d: Date | string) => string;
+}) => {
+  return (
+    <Pressable onLongPress={onLongPress}>
+      <ThemedView style={[styles.tableRow, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <StatusAccent color={theme.primary} />
+        
+        {isSelectionMode ? (
+          <View style={styles.tableCheckboxColumn}>
+            <SelectionCheckbox isSelected={isSelected} onToggle={onToggleSelection} />
+          </View>
+        ) : null}
+        
+        <View style={[styles.fixedColumn, { width: isSelectionMode ? LAYOUT.tableFixedColumnWidth - 40 : LAYOUT.tableFixedColumnWidth }]}>
+          <View style={styles.fixedColumnContent}>
+            <View style={{ flex: 1 }}>
+              <View style={styles.nameWithBadge}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, flex: 1 }]} numberOfLines={2}>
+                  {request.visitor.fullName}
+                </ThemedText>
+                {request.isWalkIn ? <WalkInBadge /> : null}
+              </View>
+              <Spacer height={6} />
+              <DateTimeDisplay 
+                date={request.visitDate} 
+                time={request.visitTime} 
+                theme={theme} 
+                compact 
+                fmtDate={fmtDate}
+              />
+            </View>
+          </View>
+        </View>
+
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={true}
+          style={styles.scrollableColumns}
+          contentContainerStyle={styles.scrollableColumnsContent}
+          persistentScrollbar={true}
+        >
+          <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
+            <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
+              {t('form.company').toUpperCase()}
+            </ThemedText>
+            <Spacer height={10} />
+            <ThemedText style={[styles.columnValue, { fontSize: 15 }]} numberOfLines={2}>
+              {request.visitor.company || '-'}
+            </ThemedText>
+          </View>
+
+          <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
+            <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
+              {t('dashboard.requestedBy').toUpperCase()}
+            </ThemedText>
+            <Spacer height={10} />
+            <ThemedText style={[styles.columnValue, { fontSize: 15 }]} numberOfLines={2}>
+              {request.employeeName}
+            </ThemedText>
+          </View>
+
+          <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
+            <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
+              {t('form.purpose').toUpperCase()}
+            </ThemedText>
+            <Spacer height={10} />
+            <ThemedText style={[styles.columnValue, { fontSize: 15 }]} numberOfLines={3}>
+              {request.purpose}
+            </ThemedText>
+          </View>
+
+          <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
+            <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
+              {t('services.additionalServices').toUpperCase()}
+            </ThemedText>
+            <Spacer height={10} />
+            <ServiceIcons parkingSlot={request.parkingSlot} meetingRoom={request.meetingRoom} buffet={request.buffet} valet={request.valet} size={16} />
+          </View>
+
+          {!isSelectionMode ? (
+            <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
+              <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
+                {t('common.actions').toUpperCase()}
+              </ThemedText>
+              <Spacer height={10} />
+              <View style={styles.actionsRow}>
+                <Pressable
+                  style={[styles.actionButton, styles.rejectActionButton, { borderColor: theme.error }]}
+                  onPress={onReject}
+                  disabled={isProcessing}
+                >
+                  <DDIcon name="x" size={16} color={theme.error} />
+                </Pressable>
+                <Spacer width={Spacing.sm} />
+                <Pressable
+                  style={[styles.actionButton, styles.approveActionButton, { backgroundColor: theme.success }]}
+                  onPress={onApprove}
+                  disabled={isProcessing}
+                >
+                  <DDIcon name="check" size={16} color={theme.buttonText} />
+                </Pressable>
+                <Spacer width={Spacing.sm} />
+                <Pressable
+                  style={[styles.actionButton, styles.detailsActionButton, { borderColor: theme.border }]}
+                  onPress={onViewDetails}
+                >
+                  <DDIcon name="eye" size={16} variant="muted" />
+                </Pressable>
+              </View>
+            </View>
+          ) : null}
+        </ScrollView>
+      </ThemedView>
+    </Pressable>
+  );
+});
+
+const ApprovalCard = React.memo(({ 
+  request, 
+  onApprove,
+  onReject,
+  onViewDetails,
+  onLongPress,
+  isSelectionMode,
+  isSelected,
+  onToggleSelection,
+  theme,
+  isProcessing,
+  t,
+  fmtDate
+}: { 
+  request: VisitorRequest; 
+  onApprove: () => void;
+  onReject: () => void;
+  onViewDetails: () => void;
+  onLongPress: () => void;
+  isSelectionMode: boolean;
+  isSelected: boolean;
+  onToggleSelection: () => void;
+  theme: Theme;
+  isProcessing: boolean;
+  t: (key: string) => string;
+  fmtDate: (d: Date | string) => string;
+}) => {
+  return (
+    <Pressable onLongPress={onLongPress}>
+      <ThemedView style={[styles.requestCard, { backgroundColor: theme.surface }]}>
+        <StatusAccent color={theme.primary} />
+        
+        {isSelectionMode ? (
+          <View style={styles.cardCheckboxContainer}>
+            <SelectionCheckbox isSelected={isSelected} onToggle={onToggleSelection} />
+          </View>
+        ) : null}
+        
+        <Pressable onPress={isSelectionMode ? onToggleSelection : onViewDetails} style={{ flex: 1 }}>
+          <View style={styles.cardHeader}>
+            <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
+              <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
+                {request.visitor.fullName.split(' ').map(n => n[0]).join('')}
+              </ThemedText>
+            </View>
+            <View style={styles.nameSection}>
+              <View style={styles.nameWithBadgeCard}>
+                <ThemedText style={[styles.visitorName, { color: theme.text }]}>{request.visitor.fullName}</ThemedText>
+                {request.isWalkIn ? <WalkInBadge /> : null}
+              </View>
+              {request.visitor.company ? (
+                <ThemedText style={[styles.companyText, { color: theme.textSecondary }]}>{request.visitor.company}</ThemedText>
+              ) : null}
+            </View>
+          </View>
+
+          <Spacer height={Spacing.md} />
+
+          <DateTimeDisplay 
+            date={request.visitDate} 
+            time={request.visitTime} 
+            duration={request.duration}
+            theme={theme}
+            fmtDate={fmtDate}
+          />
+
+          <Spacer height={Spacing.sm} />
+
+          <View style={styles.employeeRow}>
+            <DDIcon name="user" size={12} variant="muted" />
+            <ThemedText style={[styles.employeeLabel, { color: theme.textSecondary }]}>{t('dashboard.requestedBy')}</ThemedText>
+            <ThemedText style={[styles.employeeName, { color: theme.text }]}>{request.employeeName}</ThemedText>
+          </View>
+
+          <Spacer height={Spacing.md} />
+
+          <ServiceIcons parkingSlot={request.parkingSlot} meetingRoom={request.meetingRoom} buffet={request.buffet} valet={request.valet} size={14} />
+        </Pressable>
+
+        {!isSelectionMode ? (
+          <>
+            <Spacer height={Spacing.md} />
+            <ApprovalActionGroup
+              onApprove={onApprove}
+              onReject={onReject}
+              disabled={isProcessing}
+              size="medium"
+            />
+          </>
+        ) : null}
+      </ThemedView>
+    </Pressable>
+  );
+});
+
+const RejectRequestModal = ({
+  visible,
+  onClose,
+  onSubmit,
+  theme,
+  isProcessing,
+  isBulk,
+  t
+}: {
+  visible: boolean;
+  onClose: () => void;
+  onSubmit: (reason: string) => void;
+  theme: Theme;
+  isProcessing: boolean;
+  isBulk?: boolean;
+  t: (key: string) => string;
+}) => {
+  const [rejectionReason, setRejectionReason] = useState('');
+
+  const handleSubmit = () => {
+    onSubmit(rejectionReason);
+    setRejectionReason('');
+  };
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={() => !isProcessing && onClose()}
+      statusBarTranslucent
+    >
+      <View style={styles.modalOverlay}>
+        <Pressable 
+          style={[styles.modalBackdrop, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]}
+          onPress={() => !isProcessing && onClose()}
+        />
+        <View style={styles.modalContainer}>
+          <ThemedView style={[styles.modalContent, { backgroundColor: theme.surface }]}>
+            <Pressable 
+              onPress={() => !isProcessing && onClose()}
+              style={styles.closeButton}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <DDIcon name="x" size={20} variant="muted" />
+            </Pressable>
+
+            <View style={styles.modalIconWrapper}>
+              <View style={[styles.modalIconContainer, { backgroundColor: applyOpacity(theme.warning, '15') }]}>
+                <DDIcon name="alert-triangle" size={22} color={theme.warning} />
+              </View>
+            </View>
+
+            <Spacer height={Spacing.lg} />
+
+            <ThemedText style={[Typography.subtitle, { fontSize: 18, fontWeight: '600', textAlign: 'center' }]}>
+              {isBulk ? t('bulkActions.rejectSelected') : t('actions.reject')}
+            </ThemedText>
+
+            <Spacer height={Spacing.sm} />
+
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 13, lineHeight: 20, textAlign: 'center' }]}>
+              {t('form.enterNotes')} ({t('form.optional').toLowerCase()})
+            </ThemedText>
+
+            <Spacer height={Spacing.xl} />
+
+            <TextInput
+              style={[
+                styles.reasonInput,
+                { 
+                  borderColor: theme.border,
+                  backgroundColor: theme.background,
+                  color: theme.text
+                }
+              ]}
+              placeholder={t('form.enterNotes')}
+              placeholderTextColor={theme.textSecondary}
+              value={rejectionReason}
+              onChangeText={setRejectionReason}
+              multiline
+              numberOfLines={4}
+              textAlignVertical="top"
+              editable={!isProcessing}
+            />
+
+            <Spacer height={Spacing.xl} />
+
+            <View style={styles.modalActions}>
+              <Pressable
+                style={[
+                  styles.modalCancelButton,
+                  { 
+                    backgroundColor: 'transparent',
+                    borderWidth: 1.5,
+                    borderColor: theme.border,
+                    opacity: isProcessing ? 0.5 : 1
+                  }
+                ]}
+                onPress={onClose}
+                disabled={isProcessing}
+              >
+                <ThemedText style={[styles.cancelButtonText, { color: theme.text, fontWeight: '600' }]}>
+                  {t('common.cancel')}
+                </ThemedText>
+              </Pressable>
+
+              <Spacer width={Spacing.md} />
+
+              <Pressable
+                style={[
+                  styles.modalSubmitButton,
+                  { 
+                    backgroundColor: isProcessing ? theme.textSecondary : theme.warning,
+                    opacity: isProcessing ? 0.7 : 1
+                  }
+                ]}
+                onPress={handleSubmit}
+                disabled={isProcessing}
+              >
+                {isProcessing ? <DDIcon name="loader" size={18} color={theme.buttonText} /> : null}
+                <ThemedText style={[styles.submitButtonText, { color: theme.buttonText, fontWeight: '600', marginStart: isProcessing ? 8 : 0 }]}>
+                  {isProcessing ? t('common.loading') : t('common.confirm')}
+                </ThemedText>
+              </Pressable>
+            </View>
+          </ThemedView>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
+export default function ManagerDashboardScreen({ navigation }: ManagerDashboardScreenProps) {
+  const { theme } = useTheme();
+  const { t } = useTranslation();
+  const { formatDate } = useFormatters();
+  const insets = useSafeAreaInsets();
+  const { paddingTop, paddingBottom } = useScreenInsets();
+  const { user } = useAuth();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [activeRequestId, setActiveRequestId] = useState<string | null>(null);
+  const [isBulkReject, setIsBulkReject] = useState(false);
+
+  const { 
+    data: pendingApprovalsData, 
+    isLoading: isLoadingPending, 
+    isFetching: isFetchingPending,
+    error: pendingError, 
+    refetch: refetchPending,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfinitePendingApprovalsQuery();
+
+  // Refetch data when screen gains focus to show latest status
+  useFocusEffect(
+    useCallback(() => {
+      refetchPending();
+    }, [refetchPending])
+  );
+  
+  const approveMutation = useApproveVisitMutation();
+  const rejectMutation = useRejectVisitMutation();
+  const bulkApproveMutation = useBulkApproveRequestsMutation();
+  const bulkRejectMutation = useBulkRejectRequestsMutation();
+
+  const isProcessing = approveMutation.isPending || rejectMutation.isPending || bulkApproveMutation.isPending || bulkRejectMutation.isPending;
+  const isBulkProcessing = bulkApproveMutation.isPending || bulkRejectMutation.isPending;
+  const bulkProcessingAction: 'approve' | 'reject' | null = bulkApproveMutation.isPending ? 'approve' : bulkRejectMutation.isPending ? 'reject' : null;
+  const isLoading = isLoadingPending;
+  const isFetching = isFetchingPending;
+
+  const pendingApprovals = useMemo(() => {
+    if (!pendingApprovalsData?.pages) return [];
+    return pendingApprovalsData.pages.flatMap(page => page.data.map(mapPendingApprovalToVisitorRequest));
+  }, [pendingApprovalsData?.pages]);
+
+  const handleLoadMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  const filteredRequests = pendingApprovals.filter(request =>
+    request.visitor.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    request.employeeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (request.visitor.company && request.visitor.company.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
+  const allSelected = filteredRequests.length > 0 && filteredRequests.every(r => selectedIds.has(r.id));
+
+  const toggleSelectionMode = () => {
+    if (isSelectionMode) {
+      setSelectedIds(new Set());
+    }
+    setIsSelectionMode(!isSelectionMode);
+  };
+
+  const toggleSelection = (id: string) => {
+    const newSelected = new Set(selectedIds);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedIds(newSelected);
+  };
+
+  const toggleSelectAll = () => {
+    if (allSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredRequests.map(r => r.id)));
+    }
+  };
+
+  const handleLongPress = (id: string) => {
+    if (!isSelectionMode) {
+      setIsSelectionMode(true);
+      setSelectedIds(new Set([id]));
+    }
+  };
+
+  const handleApprove = (requestId: string) => {
+    if (isProcessing) return;
+    approveMutation.mutate(
+      { id: requestId, payload: {} },
+      {
+        onError: (error) => {
+          Alert.alert(t('errors.somethingWentWrong'), error.message);
+        },
+      }
+    );
+  };
+
+  const handleReject = (requestId: string) => {
+    if (isProcessing) return;
+    setActiveRequestId(requestId);
+    setIsBulkReject(false);
+    setShowRejectModal(true);
+  };
+
+  const handleBulkApprove = () => {
+    if (selectedIds.size === 0 || isBulkProcessing) return;
+    
+    bulkApproveMutation.mutate(
+      { ids: Array.from(selectedIds) },
+      {
+        onSuccess: () => {
+          setIsSelectionMode(false);
+          setSelectedIds(new Set());
+        },
+        onError: (error) => {
+          Alert.alert(t('errors.somethingWentWrong'), error.message);
+        },
+      }
+    );
+  };
+
+  const handleBulkReject = () => {
+    if (selectedIds.size === 0 || isBulkProcessing) return;
+    setIsBulkReject(true);
+    setShowRejectModal(true);
+  };
+
+  const handleRejectSubmit = (reason: string) => {
+    const rejectReason = reason.trim() || 'No reason provided';
+    
+    if (isBulkReject) {
+      bulkRejectMutation.mutate(
+        { ids: Array.from(selectedIds), reason: rejectReason },
+        {
+          onSuccess: () => {
+            setIsSelectionMode(false);
+            setSelectedIds(new Set());
+            setShowRejectModal(false);
+            setIsBulkReject(false);
+          },
+          onError: (error) => {
+            Alert.alert(t('errors.somethingWentWrong'), error.message);
+          },
+        }
+      );
+    } else if (activeRequestId) {
+      rejectMutation.mutate(
+        { id: activeRequestId, payload: { reason: rejectReason } },
+        {
+          onSuccess: () => {
+            setShowRejectModal(false);
+            setActiveRequestId(null);
+          },
+          onError: (error) => {
+            Alert.alert(t('errors.somethingWentWrong'), error.message);
+          },
+        }
+      );
+    }
+  };
+
+  const handleViewDetails = (requestId: string) => {
+    navigation.navigate('ManagerApprovalDetail', { requestId });
+  };
+
+  const renderStickyHeader = () => (
+    <View style={[styles.stickyHeader, { backgroundColor: theme.backgroundRoot }]}>
+      <SectionHeader 
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        isSelectionMode={isSelectionMode}
+        onToggleSelectionMode={toggleSelectionMode}
+        theme={theme}
+        t={t}
+      />
+
+      <Spacer height={Spacing.lg} />
+
+      <View style={[styles.searchBar, { backgroundColor: theme.surfaceSecondary, borderColor: theme.border }]}>
+        <DDIcon name="search" size={20} variant="muted" />
+        <TextInput
+          style={[styles.searchInput, { color: theme.text }]}
+          placeholder={t('common.search')}
+          placeholderTextColor={theme.textSecondary}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+        {searchQuery ? (
+          <Pressable onPress={() => setSearchQuery('')}>
+            <DDIcon name="x-circle" size={18} variant="muted" />
+          </Pressable>
+        ) : null}
+      </View>
+
+      {isSelectionMode && filteredRequests.length > 0 ? (
+        <>
+          <Spacer height={Spacing.md} />
+          <SelectAllBar
+            allSelected={allSelected}
+            onToggleAll={toggleSelectAll}
+            theme={theme}
+            t={t}
+          />
+        </>
+      ) : null}
+
+      <Spacer height={Spacing.lg} />
+    </View>
+  );
+
+  const renderListHeader = () => (
+    <Spacer height={Spacing.md} />
+  );
+
+  const renderEmptyState = () => (
+    <ThemedView style={[styles.emptyState, { backgroundColor: theme.surface }]}>
+      <DDIcon name="check-circle" size={48} variant="success" />
+      <Spacer height={Spacing.md} />
+      <ThemedText style={[Typography.bodyLarge, { fontWeight: '600' }]}>
+        {t('common.done')}!
+      </ThemedText>
+      <ThemedText style={[Typography.body, { color: theme.textSecondary, textAlign: 'center' }]}>
+        {searchQuery ? t('common.noResults') : t('dashboard.noPendingApprovals')}
+      </ThemedText>
+    </ThemedView>
+  );
+
+  if (isLoading || isFetching) {
+    return (
+      <View style={[styles.screenContainer, { backgroundColor: theme.backgroundRoot, paddingTop, paddingHorizontal: Spacing.xl }]}>
+        <SkeletonDashboard cards={4} />
+      </View>
+    );
+  }
+
+  if (viewMode === 'list') {
+    return (
+      <View style={[styles.screenContainer, { backgroundColor: theme.backgroundRoot }]}>
+        <View style={[styles.stickyHeaderContainer, { paddingTop }]}>
+          {renderStickyHeader()}
+        </View>
+        
+        <FlatList
+          data={filteredRequests}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <ApprovalTableRow 
+              request={item}
+              onApprove={() => handleApprove(item.id)}
+              onReject={() => handleReject(item.id)}
+              onViewDetails={() => handleViewDetails(item.id)}
+              onLongPress={() => handleLongPress(item.id)}
+              isSelectionMode={isSelectionMode}
+              isSelected={selectedIds.has(item.id)}
+              onToggleSelection={() => toggleSelection(item.id)}
+              theme={theme}
+              isProcessing={isProcessing}
+              t={t}
+              fmtDate={formatDate}
+            />
+          )}
+          ListHeaderComponent={renderListHeader()}
+          ListEmptyComponent={renderEmptyState()}
+          ListFooterComponent={<ListLoadingFooter isLoading={isFetchingNextPage} />}
+          ItemSeparatorComponent={() => <Spacer height={Spacing.md} />}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.5}
+          contentContainerStyle={{ 
+            paddingHorizontal: Spacing.md,
+            paddingBottom: paddingBottom + (selectedIds.size > 0 ? 80 : 0),
+          }}
+          showsVerticalScrollIndicator={true}
+        />
+
+        {selectedIds.size > 0 ? (
+          <BulkActionBar
+            selectedCount={selectedIds.size}
+            onApprove={handleBulkApprove}
+            onReject={handleBulkReject}
+            theme={theme}
+            t={t}
+            bottomInset={insets.bottom}
+            isProcessing={isBulkProcessing}
+            processingAction={bulkProcessingAction}
+          />
+        ) : null}
+
+        <RejectRequestModal
+          visible={showRejectModal}
+          onClose={() => {
+            setShowRejectModal(false);
+            setActiveRequestId(null);
+            setIsBulkReject(false);
+          }}
+          onSubmit={handleRejectSubmit}
+          theme={theme}
+          isProcessing={isProcessing}
+          isBulk={isBulkReject}
+          t={t}
+        />
+      </View>
+    );
+  }
+
+  return (
+    <View style={[styles.screenContainer, { backgroundColor: theme.backgroundRoot }]}>
+      <View style={[styles.stickyHeaderContainer, { paddingTop }]}>
+        {renderStickyHeader()}
+      </View>
+      
+      <FlatList
+        data={filteredRequests}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <ApprovalCard
+            request={item}
+            onApprove={() => handleApprove(item.id)}
+            onReject={() => handleReject(item.id)}
+            onViewDetails={() => handleViewDetails(item.id)}
+            onLongPress={() => handleLongPress(item.id)}
+            isSelectionMode={isSelectionMode}
+            isSelected={selectedIds.has(item.id)}
+            onToggleSelection={() => toggleSelection(item.id)}
+            theme={theme}
+            isProcessing={isProcessing}
+            t={t}
+            fmtDate={formatDate}
+          />
+        )}
+        ListHeaderComponent={renderListHeader()}
+        ListEmptyComponent={renderEmptyState()}
+        ListFooterComponent={<ListLoadingFooter isLoading={isFetchingNextPage} />}
+        ItemSeparatorComponent={() => <Spacer height={LAYOUT.contentGap} />}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}
+        style={styles.scrollableContent}
+        contentContainerStyle={{
+          paddingHorizontal: Spacing.xl,
+          paddingBottom: paddingBottom + (selectedIds.size > 0 ? 80 : 0),
+        }}
+        showsVerticalScrollIndicator={true}
+      />
+
+      {selectedIds.size > 0 ? (
+        <BulkActionBar
+          selectedCount={selectedIds.size}
+          onApprove={handleBulkApprove}
+          onReject={handleBulkReject}
+          theme={theme}
+          t={t}
+          bottomInset={insets.bottom}
+          isProcessing={isBulkProcessing}
+          processingAction={bulkProcessingAction}
+        />
+      ) : null}
+
+      <RejectRequestModal
+        visible={showRejectModal}
+        onClose={() => {
+          setShowRejectModal(false);
+          setActiveRequestId(null);
+          setIsBulkReject(false);
+        }}
+        onSubmit={handleRejectSubmit}
+        theme={theme}
+        isProcessing={isProcessing}
+        isBulk={isBulkReject}
+        t={t}
+      />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  screenContainer: {
+    flex: 1,
+  },
+  stickyHeaderContainer: {
+    paddingHorizontal: Spacing.xl,
+  },
+  stickyHeader: {
+  },
+  scrollableContent: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  selectButton: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+  },
+  selectButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  viewModeToggle: {
+    flexDirection: 'row',
+    gap: Spacing.xs,
+  },
+  toggleButton: {
+    width: 38,
+    height: 38,
+    borderRadius: BorderRadius.sm,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  selectAllBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+  },
+  selectAllButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  walkInBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.full,
+    marginStart: Spacing.sm,
+  },
+  walkInBadgeText: {
+    fontSize: 10,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+  },
+
+  nameWithBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+  },
+  nameWithBadgeCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+  },
+
+  bulkActionBar: {
+    position: 'absolute',
+    start: Spacing.md,
+    end: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  bulkActionContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: Spacing.md,
+  },
+  bulkActionButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  bulkRejectButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1.5,
+  },
+  bulkApproveButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+  },
+  bulkButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+
+  tableCheckboxColumn: {
+    paddingHorizontal: Spacing.sm,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cardCheckboxContainer: {
+    position: 'absolute',
+    top: Spacing.md,
+    end: Spacing.md,
+    zIndex: 10,
+  },
+
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.md,
+    height: 48,
+    borderWidth: 1,
+  },
+  searchInput: {
+    flex: 1,
+    marginStart: Spacing.sm,
+    fontSize: 15,
+    fontFamily: 'Inter_400Regular',
+  },
+
+  statusAccent: {
+    position: 'absolute',
+    start: 0,
+    top: 0,
+    bottom: 0,
+    width: LAYOUT.statusBorderWidth,
+  },
+  servicesRow: {
+    flexDirection: 'row',
+    gap: Spacing.xs,
+    flexWrap: 'wrap',
+  },
+  servicePill: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dateTimeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  dateTimeText: {
+    fontSize: 13,
+  },
+  separator: {
+    fontSize: 13,
+  },
+
+  tableRow: {
+    flexDirection: 'row',
+    height: LAYOUT.tableRowHeight,
+    borderRadius: LAYOUT.cardRadius,
+    borderWidth: 1,
+    overflow: 'hidden',
+    position: 'relative',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  fixedColumn: {
+    padding: Spacing.md,
+    borderEndWidth: 1,
+    borderEndColor: 'rgba(0,0,0,0.05)',
+  },
+  fixedColumnContent: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  scrollableColumns: {
+    flex: 1,
+  },
+  scrollableColumnsContent: {
+    paddingEnd: Spacing.md,
+  },
+  tableColumn: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    justifyContent: 'center',
+  },
+  columnHeader: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+  },
+  columnValue: {
+    fontSize: 14,
+  },
+  actionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  actionButton: {
+    width: 36,
+    height: 36,
+    borderRadius: BorderRadius.sm,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  rejectActionButton: {
+    borderWidth: 1.5,
+    backgroundColor: 'transparent',
+  },
+  approveActionButton: {
+    borderWidth: 0,
+  },
+  detailsActionButton: {
+    borderWidth: 1,
+    backgroundColor: 'transparent',
+  },
+
+  requestCard: {
+    borderRadius: LAYOUT.cardRadius,
+    padding: LAYOUT.cardPadding,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 1,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  avatar: {
+    width: 44,
+    height: 44,
+    borderRadius: LAYOUT.cardRadius - 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarText: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  nameSection: {
+    flex: 1,
+    marginStart: Spacing.md,
+  },
+  visitorName: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  companyText: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  employeeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  employeeLabel: {
+    fontSize: 11,
+  },
+  employeeName: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  cardActions: {
+    flexDirection: 'row',
+  },
+  cardRejectButton: {
+    flex: 1,
+    height: 44,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1.5,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 6,
+  },
+  cardRejectText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  cardApproveButton: {
+    flex: 1,
+    height: 44,
+    borderRadius: BorderRadius.md,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 6,
+  },
+  cardApproveText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalBackdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  modalContainer: {
+    width: '100%',
+    paddingHorizontal: Spacing.xl,
+    maxWidth: 440,
+    alignItems: 'center',
+  },
+  modalContent: {
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.xxl,
+    paddingTop: Spacing.lg,
+    width: '100%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 16,
+    elevation: 8,
+    position: 'relative',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: Spacing.lg,
+    padding: Spacing.xs,
+    borderRadius: BorderRadius.sm,
+    zIndex: 10,
+  },
+  modalIconWrapper: {
+    alignItems: 'center',
+    marginTop: Spacing.lg,
+  },
+  modalIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: BorderRadius.full,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  reasonInput: {
+    borderWidth: 1,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.lg,
+    minHeight: 110,
+    fontSize: 14,
+    fontFamily: 'Inter_400Regular',
+    lineHeight: 21,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    width: '100%',
+  },
+  modalCancelButton: {
+    flex: 1,
+    height: 48,
+    borderRadius: BorderRadius.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    fontSize: 14,
+  },
+  modalSubmitButton: {
+    flex: 1,
+    height: 48,
+    borderRadius: BorderRadius.md,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  submitButtonText: {
+    fontSize: 14,
+  },
+
+  emptyState: {
+    padding: Spacing.xl * 2,
+    borderRadius: BorderRadius.lg,
+    alignItems: 'center',
+  },
+});

@@ -1,0 +1,71 @@
+## 9. Visitor (External)
+
+```text
+You are working in the existing SKBC VMS React Native/Web app with an external Visitor invite view.
+
+Goal: Improve the visitor invite experience to handle expired/invalid links and clearly show parking/valet expectations.
+
+Tasks:
+
+1) Expired / Auto-Cancel Invite State
+- Extend the VisitorInvite screen:
+  - Detect when the associated visit is in an auto-cancelled/expired status.
+  - Show a distinct state: “This invitation has expired or has been cancelled” with explanation.
+  - Hide accept/reject actions in this state.
+
+2) Invalid / Unknown Invite Token State
+- Handle the case where the invite link token or ID does not map to any visit:
+  - Show a friendly error page: “We couldn’t find this invitation. It may be invalid or expired.”
+  - Provide a suggestion: contact host or reception.
+
+3) Clear Parking / Valet Expectation Text
+- On valid invites:
+  - Based on visit parking allocation:
+    - Show one of: “Parking available at SKBC basement”, “Valet service available”, or “Parking is not available – please self-park elsewhere.”
+  - Keep the language visitor-friendly and concise.
+
+Notes:
+- All logic should rely on the existing shared data layer; no external system calls.
+- Ensure this works well in web (most visitors will open the invite on mobile browsers).
+```
+
+---
+
+## 10. Notifications & Reminders (User-Level & System-Level)
+
+```text
+You are working in the existing SKBC VMS React Native app (iOS, Android, Web) with an internal notifications module and System Rules.
+
+Goal: Extend notifications and reminders to include user-level preferences and better system-wide visibility.
+
+Tasks:
+
+1) Per-User Notification Preferences
+- Extend the existing Settings screen:
+  - For each internal role, expose preferences such as:
+    - Enable/disable push notifications (future).
+    - Email summaries (daily/weekly) – configuration only.
+    - Optional toggles for particular event types (e.g., “request updates”, “buffet tasks”, “valet tasks”).
+- Store these preferences in the shared data layer per user.
+
+2) System-Wide Event Log
+- Implement a SystemEventLog screen for Admin:
+  - Show chronological events such as:
+    - Visit created, approved, rejected, canceled.
+    - Visitor accepted/rejected/expired.
+    - Parking/valet/buffet tasks created or updated.
+  - This should read from the same log source already used internally (extend it if needed).
+
+3) Reminder Scheduler Visualization
+- Add a simple ReminderSchedule view for System Admin:
+  - List upcoming reminder events computed from:
+    - Visitor invitations and system reminder rules (first reminder, second reminder, auto-cancel).
+  - Each entry: visit ID, visitor, host, next reminder type, planned time.
+- This is still in-app simulation; no real background jobs.
+
+Notes:
+- Do not implement real push/email sending; focus on configuration, logging, and visibility.
+- Keep screens minimal yet clear enough for an admin to validate times and rules.
+```
+
+---

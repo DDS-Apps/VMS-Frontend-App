@@ -1,0 +1,370 @@
+import React, { useMemo } from "react";
+import { View, StyleSheet, ActivityIndicator } from "react-native";
+import { ScreenScrollView } from "@/components/ScreenScrollView";
+import { ThemedText } from "@/components/ThemedText";
+import { ThemedView } from "@/components/ThemedView";
+import Spacer from "@/components/Spacer";
+import { Spacing, BorderRadius, Typography } from "@/constants/theme";
+import { useTheme } from "@/hooks/useTheme";
+import { useTranslation } from "@/hooks/useTranslation";
+import { DDIcon, IconName } from "@/components/DDIcon";
+import { applyOpacity } from "@/utils/statusStyles";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useBuffetAdminStaffQuery } from "@/hooks/queries/useBuffetQueries";
+import type { BuffetAdminStaffDto } from "@/types/api.types";
+
+interface KPICardProps {
+  title: string;
+  value: string;
+  icon: string;
+  iconBgColor: string;
+  iconColor: string;
+  cardBgColor: string;
+}
+
+function KPICard({ title, value, icon, iconBgColor, iconColor, cardBgColor }: KPICardProps) {
+  const { theme } = useTheme();
+  
+  return (
+    <View style={[styles.kpiCard, { backgroundColor: cardBgColor, borderWidth: 1, borderColor: applyOpacity(iconColor, '15') }]}>
+      <View style={[styles.kpiIconContainer, { backgroundColor: iconBgColor }]}>
+        <DDIcon name={icon as IconName} size={24} color={iconColor} />
+      </View>
+
+      <Spacer height={Spacing.md} />
+
+      <ThemedText style={[styles.kpiValue, { color: theme.text }]}>
+        {value}
+      </ThemedText>
+
+      <Spacer height={Spacing.xs} />
+
+      <ThemedText style={[styles.kpiLabel, { color: theme.textSecondary }]}>
+        {title}
+      </ThemedText>
+    </View>
+  );
+}
+
+export default function BuffetAdminStaffScreen() {
+  const { theme } = useTheme();
+  const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
+  
+  const { data: staffResponse, isLoading, isFetching } = useBuffetAdminStaffQuery();
+
+  const staff = useMemo(() => {
+    const responseData = staffResponse?.data as { data?: BuffetAdminStaffDto[] } | BuffetAdminStaffDto[] | undefined;
+    return Array.isArray(responseData) ? responseData : (Array.isArray((responseData as { data?: BuffetAdminStaffDto[] })?.data) ? (responseData as { data: BuffetAdminStaffDto[] }).data : []);
+  }, [staffResponse]);
+
+  const stats = useMemo(() => {
+    const onDuty = staff.filter(s => s.status === 'on_duty').length;
+    const offDuty = staff.filter(s => s.status === 'off_duty').length;
+    return {
+      total: staff.length,
+      onDuty,
+      offDuty,
+    };
+  }, [staff]);
+
+  const scrollContentStyle = {
+    paddingHorizontal: Spacing.lg,
+    paddingTop: insets.top + Spacing.xl,
+    paddingBottom: insets.bottom + Spacing.xl + 80
+  };
+
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case 'Chef':
+        return theme.primary;
+      case 'Coordinator':
+        return theme.info;
+      case 'Server':
+        return theme.success;
+      case 'Kitchen Staff':
+        return theme.warning;
+      default:
+        return theme.textSecondary;
+    }
+  };
+
+  const getRoleIcon = (role: string) => {
+    switch (role) {
+      case 'Chef':
+        return 'award';
+      case 'Coordinator':
+        return 'clipboard';
+      case 'Server':
+        return 'coffee';
+      case 'Kitchen Staff':
+        return 'tool';
+      default:
+        return 'user';
+    }
+  };
+
+  const renderStaffCard = (item: BuffetAdminStaffDto) => {
+    const isOnDuty = item.status === 'on_duty';
+    const initials = item.name.split(' ').map(n => n[0]).join('').slice(0, 2);
+    const roleColor = getRoleColor(item.role);
+    
+    return (
+      <View 
+        key={item.id}
+        style={[
+          styles.staffCard,
+          { 
+            backgroundColor: theme.surface,
+            borderStartColor: isOnDuty ? theme.success : theme.textSecondary,
+          },
+        ]}
+      >
+        <View style={styles.cardHeader}>
+          <View style={[styles.avatar, { backgroundColor: applyOpacity(roleColor, '12') }]}>
+            <ThemedText style={[styles.avatarText, { color: roleColor }]}>
+              {initials}
+            </ThemedText>
+          </View>
+          <View style={styles.headerInfo}>
+            <ThemedText style={[styles.staffName, { color: theme.text }]} numberOfLines={1}>
+              {item.name}
+            </ThemedText>
+            <View style={styles.roleRow}>
+              <View style={[styles.roleBadge, { backgroundColor: applyOpacity(roleColor, '15') }]}>
+                <DDIcon name={getRoleIcon(item.role) as IconName} size={12} color={roleColor} />
+                <ThemedText style={[styles.roleText, { color: roleColor }]}>
+                  {item.role}
+                </ThemedText>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        <Spacer height={Spacing.md} />
+
+        <View style={styles.metaRow}>
+          <DDIcon name="briefcase" size={14} color={theme.textSecondary} />
+          <ThemedText style={[styles.metaText, { color: theme.textSecondary }]}>
+            {item.currentTasks} {t('dashboard.activeTasks')}
+          </ThemedText>
+        </View>
+
+        <Spacer height={Spacing.md} />
+
+        <View style={styles.cardFooter}>
+          <View style={styles.statusContainer}>
+            <View 
+              style={[
+                styles.statusIndicator, 
+                { backgroundColor: isOnDuty ? theme.success : theme.textSecondary }
+              ]} 
+            />
+            <ThemedText style={[styles.statusLabel, { color: isOnDuty ? theme.success : theme.textSecondary }]}>
+              {isOnDuty ? t('dashboard.onDuty') : t('status.inactive')}
+            </ThemedText>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  if (isLoading || isFetching) {
+    return (
+      <View style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
+        <ActivityIndicator size="large" color={theme.primary} />
+      </View>
+    );
+  }
+
+  return (
+    <ScreenScrollView contentContainerStyle={scrollContentStyle}>
+      <View style={styles.kpiRow}>
+        <KPICard 
+          title={t('dashboard.totalStaff')} 
+          value={String(stats.total)} 
+          icon="users" 
+          iconBgColor={applyOpacity(theme.primary, '20')}
+          iconColor={theme.primary}
+          cardBgColor={applyOpacity(theme.primary, '06')}
+        />
+        <KPICard 
+          title={t('dashboard.onDuty')} 
+          value={String(stats.onDuty)} 
+          icon="user-check" 
+          iconBgColor={applyOpacity(theme.success, '20')}
+          iconColor={theme.success}
+          cardBgColor={applyOpacity(theme.success, '06')}
+        />
+        <KPICard 
+          title={t('status.inactive')} 
+          value={String(stats.offDuty)} 
+          icon="user-x" 
+          iconBgColor={applyOpacity(theme.textSecondary, '20')}
+          iconColor={theme.textSecondary}
+          cardBgColor={applyOpacity(theme.textSecondary, '06')}
+        />
+      </View>
+
+      <Spacer height={Spacing.xl} />
+
+      <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
+        {t('navigation.staffManagement')}
+      </ThemedText>
+
+      <Spacer height={Spacing.md} />
+
+      {staff.length > 0 ? (
+        <View style={styles.staffList}>
+          {staff.map((member) => renderStaffCard(member))}
+        </View>
+      ) : (
+        <ThemedView style={[styles.emptyState, { backgroundColor: theme.surface }]}>
+          <DDIcon name="users" size={32} variant="muted" />
+          <Spacer height={Spacing.sm} />
+          <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
+            {t('common.noData')}
+          </ThemedText>
+        </ThemedView>
+      )}
+
+      <Spacer height={Spacing.xl} />
+    </ScreenScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  kpiRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: Spacing.sm,
+  },
+  kpiCard: {
+    flex: 1,
+    paddingVertical: Spacing.lg,
+    paddingHorizontal: Spacing.sm,
+    borderRadius: 16,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3,
+  },
+  kpiIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  kpiValue: {
+    fontSize: 28,
+    fontWeight: '700',
+    letterSpacing: -0.5,
+  },
+  kpiLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  staffList: {
+    gap: Spacing.md,
+  },
+  staffCard: {
+    borderRadius: 12,
+    borderStartWidth: 4,
+    padding: Spacing.lg,
+    backgroundColor: '#FFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  avatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  headerInfo: {
+    marginStart: Spacing.md,
+    flex: 1,
+  },
+  staffName: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  roleRow: {
+    flexDirection: 'row',
+    marginTop: 4,
+  },
+  roleBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+    gap: 4,
+  },
+  roleText: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  metaText: {
+    fontSize: 13,
+    marginStart: 6,
+    flex: 1,
+  },
+  cardFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: Spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.06)',
+  },
+  statusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  statusIndicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginEnd: 6,
+  },
+  statusLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  emptyState: {
+    padding: Spacing.xl,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});

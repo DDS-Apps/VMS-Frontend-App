@@ -1,0 +1,14 @@
+Error: A navigator cannot contain multiple 'Screen' components with the same name (found duplicate screen named 'Settings')
+
+Stack Trace:
+Error: A navigator cannot contain multiple 'Screen' components with the same name (found duplicate screen named 'Settings')
+    at https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&transform.reactCompiler=true&unstable_transformProfile=hermes-stable:150720:15
+    at Array.reduce (<anonymous>)
+    at useNavigationBuilder (https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&transform.reactCompiler=true&unstable_transformProfile=hermes-stable:150718:34)
+    at NativeStackNavigator (https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&transform.reactCompiler=true&unstable_transformProfile=hermes-stable:154849:57)
+    at react-stack-bottom-frame (https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&transform.reactCompiler=true&unstable_transformProfile=hermes-stable:17840:20)
+    at renderWithHooks (https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&transform.reactCompiler=true&unstable_transformProfile=hermes-stable:8050:22)
+    at updateFunctionComponent (https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&transform.reactCompiler=true&unstable_transformProfile=hermes-stable:9743:19)
+    at beginWork (https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&transform.reactCompiler=true&unstable_transformProfile=hermes-stable:10329:18)
+    at runWithFiberInDEV (https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&transform.reactCompiler=true&unstable_transformProfile=hermes-stable:5822:70)
+    at performUnitOfWork (https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&transform.reactCompiler=true&unstable_transformProfile=hermes-stable:12402:95)

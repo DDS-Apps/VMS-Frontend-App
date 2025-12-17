@@ -1,0 +1,82 @@
+General Design & Style
+
+Apply the same UI, color scheme, font, and spacing used for the Employee Role.
+
+Use the same modern minimalist design and component layout (cards, icons, buttons, typography).
+
+All pages should use the same rounded cards, thin colored lines, and consistent padding as in the Employee Role.
+
+Keep our current orange and neutral color palette — do not change brand colors.
+
+Use the same animations and transitions (sidebar, buttons, popups, etc.).
+
+🏠 Dashboard (Manager Role)
+
+Replace the current “Active Drivers / Pending Tasks / Completed / Avg Wait” dashboard.
+
+Implement the same structure as the Employee Dashboard:
+
+“Hello, [Name]” header with today’s date below it.
+
+Four statistic cards: Total Visitors, Today’s Visitors, Checked In, This Week.
+
+“Upcoming Visitors” section (shows only Approved).
+
+“Recent Visitor Requests” section (shows recent Pending/Rejected/Approved requests).
+
+Cards should have equal width, be center-aligned, and use the same colored icons and thin left lines based on status.
+
+👥 Visitor Requests Screen
+
+Same structure and tabs as Employee Role: Upcoming, Past, All.
+
+Each card uses the same grey rounded design and icon set.
+
+“More Details” should expand inside the same card (not a new section).
+
+Include service icons and status tags aligned to the right.
+
+Use consistent padding and text sizes.
+
+📩 Pending Approvals (New Screen for Managers Only)
+
+Add a new screen “Pending Approvals” in the sidebar (visible only to managers).
+
+This screen lists employee visitor requests awaiting manager approval.
+
+Each card follows the same visual design as the visitor request cards.
+
+Include Approve and Reject buttons:
+
+On Approve → show popup “✅ Request approved successfully.”
+
+On Reject → show popup/modal with optional comment field for rejection reason.
+
+Clicking on a card opens full request details (same layout as the details screen).
+
+🔔 Notifications Screen
+
+Keep the same layout and colors as Employee Role notifications (thin orange line on the left, status icon color-coded, and clean spacing).
+
+⚙️ Settings Screen
+
+Apply the same Employee layout:
+
+Profile card at the top.
+
+App Preferences section (dark mode toggle, language selector).
+
+Notifications section (enable/disable switches).
+
+Keep the same spacing, colors, and switch design.
+
+📱 General Behavior
+
+Ensure all click actions, popups, and navigation animations behave like in the Employee Role.
+
+Manager requests are auto-approved (skip internal approval).
+
+Only visitor acceptance can cause a pending state for the manager’s own requests.
+
+Goal:
+Make the Manager Role identical to the Employee Role in all UI, UX, and interactions, while adding the Pending Approvals workflow and maintaining manager-specific approval logic.

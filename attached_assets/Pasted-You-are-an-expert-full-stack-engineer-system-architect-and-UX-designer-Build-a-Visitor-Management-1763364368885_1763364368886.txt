@@ -1,0 +1,112 @@
+You are an expert full-stack engineer, system architect, and UX designer. Build a Visitor Management System (VMS) for an enterprise environment. The system allows employees to request visitor access, with optional parking, meeting rooms, valet, and buffet services. It supports automation, real-time notifications, and seamless integrations.
+
+Goals:
+
+Modern, responsive, mobile-first web app.
+
+Intuitive UX for all roles.
+
+Modular, scalable, and ready for future expansion (multi-org support).
+
+Implement robust role-based permissions.
+
+User Roles:
+
+Employee (Initiator) – submits visitor requests.
+
+Building Admin – manages parking, valet areas.
+
+Buffet Admin – handles buffet staff and locations.
+
+Valet Admin – assigns drivers, tracks tasks.
+
+Security Staff – verifies and logs entry.
+
+Core Features:
+
+Request Form: Visitor details, optional meeting room, parking, buffet.
+
+Auto-approval logic (for now; configurable manager approvals later).
+
+Notifications via Email, SMS, WhatsApp, QR Code.
+
+Visitor Acceptance Flow:
+
+Visitor receives invite → accepts/rejects → reminders (2h, 4h) → cancel after 1h.
+
+After-hours reminder logic (start 11 AM next business day).
+
+Entry Process:
+
+Parking QR scan → direct parking or valet assistance.
+
+Walk-in visitors: pre-registered (QR) or receptionist entry.
+
+On-the-spot registration triggers notification to employee.
+
+Valet Service:
+
+Balances driver workload.
+
+Drivers can accept/reject.
+
+Manager notified of rejections.
+
+Reminders for pickup/return.
+
+Parking Algorithm:
+
+Priority: SKBC basement → Valet → Red Sea Mall.
+
+Uses Oracle HCM integration for employee vacation status.
+
+Auto-assigns slots based on duration + 15 min buffer.
+
+Integrations: Outlook Calendar (meeting scheduling), WhatsApp Business API, Oracle HCM, existing VMS analytics.
+
+
+Design Guidelines:
+
+Clean, modern interface using company brand colors (e.g., orange + dark green).
+
+Card-based layout for requests and status tracking.
+
+Dashboard for admins showing KPIs & real-time visitor flow.
+
+Clear CTAs (“Request Access”, “Approve”, “Assign Driver”).
+
+Accessibility & responsive design.
+
+Deliverables:
+
+ER diagram and API schema for all modules.
+
+Component-based UI (Login, Dashboard, Visitor Form, Parking View, Valet Panel, Notifications Center).
+
+Notification templates (Email/SMS/WhatsApp).
+
+Flow diagrams (Visitor Lifecycle, Valet Assignment, Parking Allocation).
+
+Deployment configuration (Docker / Replit environment).
+
+Stretch Goals:
+
+Real-time QR validation at gates.
+
+Power BI-style analytics dashboard (visitor trends, resource utilization).
+
+Multilingual support (English/Arabic).
+
+Generate a modular codebase and design system that aligns with these requirements.
+Always explain reasoning, component choices, and workflow logic.
+Output should include:
+
+Backend models and APIs
+
+Frontend UI components
+
+Integration stubs
+
+Database schema
+
+Flowcharts (if possible)

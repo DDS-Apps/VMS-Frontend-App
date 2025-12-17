@@ -1,0 +1,314 @@
+You are working on an EXISTING Expo React Native codebase that targets:
+- iOS
+- Android
+- React Native Web
+
+This codebase is already structured with:
+- TypeScript in strict mode
+- Centralized theme module (e.g. constants/theme.ts or an equivalent theme file)
+- Shared UI components in components/
+- Role-based screens in screens/ (Employee, Manager, Receptionist, BuildingAdmin, ValetAdmin, Security, BuffetAdmin, etc.)
+- Typed navigation param lists in types/*Navigation.types.ts
+- Shared domain types in types/ (index.ts, vms.types.ts, etc.)
+- Services + repositories in services/ and domain/interfaces (mock + future API)
+- Utility helpers in utils/
+- Path alias "@/*" configured in TS + Babel
+
+VERY IMPORTANT CONSTRAINTS:
+- Do NOT scaffold a new app.
+- Do NOT change business logic or user flows.
+- Do NOT change navigation structure or route names.
+- Do NOT change repository/service interfaces or business/data logic.
+- Do NOT remove or break the current mock data behavior.
+- Respect existing coding standards:
+  - No new `any` in TypeScript.
+  - Use "@/*" imports for cross-folder modules.
+  - Use typed navigation props (no `navigation: any`).
+- Your changes must be incremental, styling-focused, and backward compatible.
+
+Your main job: REFINE, UNIFY, and OPTIMIZE the styling and UI behavior to match the
+DALLAH DIGITAL brand theme and make the app smooth on all platforms.
+
+==================================================
+CONTEXT
+==================================================
+Product: DALLAH DIGITAL – Information Technology
+Languages: English (LTR) + Arabic (RTL)
+Platforms: iOS, Android, Web (React Native Web)
+Visual direction: clean, modern, minimal, rounded, digital/tech.
+
+The app already exists. Screens and components are implemented, but:
+- Styling is inconsistent (mixed inline styles, hard-coded colors, different patterns).
+- Icons are inconsistent (multiple icon packs, custom SVGs, different sizes/colors).
+- Fonts are not unified across iOS, Android, and Web.
+- On Android, some screens have jerky / janky scrolling behavior.
+- Web has slightly different spacing and typography than mobile.
+
+Your tasks:
+1) Centralize the BRAND THEME (colors, typography, spacing, radii) in the existing theme module.
+2) Use a SINGLE FONT SYSTEM and a SINGLE ICON SYSTEM that works on iOS, Android, and Web.
+3) Make the UI visually consistent across platforms while respecting each platform’s native behavior.
+4) Fix scrolling performance issues, especially on Android.
+5) Apply all of this WITHOUT breaking navigation, business logic, or repository/service structure.
+
+==================================================
+BRAND THEME – TOKENS
+==================================================
+
+COLORS (no hard-coded hex in components; use theme tokens):
+
+Core brand:
+- brandBlue:   #307BF2  // main CTAs, primary buttons, links, highlights
+- brandTeal:   #12E1D5  // secondary accent, highlights, badges, progress
+- brandNavy:   #041A3A  // primary text on light surfaces, headers, icons
+- softTeal:    #E4FCF9  // subtle accent backgrounds for cards/info
+
+Neutrals:
+- grey900:     #526178  // secondary text, muted icons
+- grey300:     #C7CCD3  // borders, dividers, input outlines
+- grey200:     #DFE2E6  // card borders, subtle surfaces, hover
+- grey50:      #F5F7FA  // page / app background
+- white:       #FFFFFF  // surfaces, cards, modals, inputs
+
+Status:
+- success:     #1BBE7A
+- warning:     #FFA000
+- error:       #E53935
+- info:        brandBlue
+
+Gradient (for rare hero/CTA use):
+- gradientBrand: linear-gradient(135deg, #12E1D5 0%, #307BF2 100%)
+
+Implementation notes:
+- Add these tokens into the central theme module (e.g. constants/theme.ts), under `Colors` or equivalent, instead of hard-coding hex values in components.
+- If existing color names differ, map or extend them rather than removing them abruptly; preserve backwards compatibility where possible.
+
+==================================================
+TYPOGRAPHY – SINGLE FONT SYSTEM
+==================================================
+
+Use ONE font system that works across iOS, Android, and Web.
+
+Primary UI fonts:
+- latinUI: "Inter"
+- arabicUI: "Noto Sans Arabic"
+
+Optional display fonts (mainly for big marketing/hero headings, not mandatory in core app):
+- latinDisplay: "Poppins"
+- arabicDisplay: "Tajawal"
+
+Type scale (use as tokens; numbers are px-like values used directly in RN):
+- h1: 40–48, weight 600
+- h2: 32,    weight 600
+- h3: 24,    weight 600
+- bodyL: 18, weight 400
+- body: 16,  weight 400 (default)
+- caption: 13–14, weight 400
+
+Line-height:
+- Titles ~1.2, body ~1.4–1.5.
+
+FONT TASKS:
+- Detect how fonts are currently loaded (Expo font loading, web fonts, etc.).
+- Configure a SINGLE shared font loading strategy so the SAME font families are used on:
+  - iOS
+  - Android
+  - Web (via CSS/web font loading)
+- In the theme module, create typography tokens (e.g., `Typography` or `textVariants`) so components can request `h1`, `body`, `caption` without re-declaring styles.
+- Ensure font usage is locale-aware: English uses latinUI, Arabic uses arabicUI, ideally via a locale-aware text component.
+
+==================================================
+LAYOUT / SPACING / RADII
+==================================================
+
+Spacing scale:
+- spacing: [4, 8, 12, 16, 24, 32, 48]
+
+Radii:
+- radiusCard: 16
+- radiusPill: 999  // pill-shaped buttons and chips
+- radiusSmall: 8
+
+Surfaces:
+- App/screen background: grey50
+- Cards/modals: white with 1px border grey200/grey300 and subtle shadow
+- App bar: brandNavy with white text/icons, accents in brandBlue/brandTeal
+
+Implementation notes:
+- Add spacing and radii to the existing theme tokens (e.g. Spacing, BorderRadius) instead of creating new, duplicated structures.
+- Refactor components to consume these tokens (no magic numbers for padding/margins/borderRadius when a token exists).
+
+==================================================
+ICONS – SINGLE ICON SYSTEM
+==================================================
+
+Currently icons are inconsistent. Fix this by:
+- Choosing ONE icon library that works for iOS, Android, and Web (e.g., a React Native vector icon library that supports RN Web).
+- Using or creating a `DDIcon` (or equivalent) component in components/ that:
+  - Wraps the chosen icon library.
+  - Accepts props: `name`, `size`, `color`, `variant` (e.g. "primary", "muted", "danger").
+  - Reads default `size` and `color` from the theme (e.g., `theme.icon.sizes` and `theme.colors`).
+- Replacing direct usages of raw icon imports (multiple libs / inline SVG) with the single icon wrapper component, unless a truly custom illustration is needed.
+- Ensuring icon direction is RTL-aware (e.g., left/right arrows flip when `isRTL` is true).
+
+If a `DDIcon` or similar wrapper already exists:
+- Extend it to support the DALLAH DIGITAL theme tokens and RTL behavior instead of introducing a competing component.
+
+==================================================
+PLATFORM-SPECIFIC BEHAVIOR
+==================================================
+
+The visual identity must be consistent, but behavior should feel native:
+
+iOS:
+- Respect iOS navigation patterns and gestures (do not change navigation structure).
+- Use smooth, inertia-based scrolling and bounce where appropriate (don’t disable it unless necessary).
+- Ensure header heights, hit areas, and spacing feel natural for iOS.
+
+Android:
+- Use ripple feedback where suitable (or an equivalent high-performance press feedback).
+- Avoid heavy shadows and effects that cause jank on Android GPUs.
+- Ensure back behavior respects Android expectations (do not change navigation code, only view-level behavior).
+- Fix jerky scroll (details below).
+
+Web:
+- Use the same theme tokens (colors, fonts, spacing) as mobile.
+- Align interactions with web standards:
+  - Hover states for buttons/links.
+  - Focus outlines for keyboard navigation.
+  - Reasonable max-widths for content (avoid extremely wide paragraphs).
+- Ensure typography and spacing scale nicely on larger screens.
+
+==================================================
+ANDROID SCROLL PERFORMANCE – FIX JERKY SCROLL
+==================================================
+
+On Android some screens scroll in a janky / jerky way. You must identify and fix the root causes WITHOUT altering business logic.
+
+Tasks:
+- Find all main scrollable areas (ScrollView, FlatList, SectionList, nested scrolls).
+- For lists:
+  - Prefer `FlatList` or `SectionList` with proper `keyExtractor`.
+  - Use virtualization options (`windowSize`, `initialNumToRender`, `maxToRenderPerBatch`) to keep performance high.
+  - Avoid expensive inline functions/closures in `renderItem` (use `useCallback` / memoization where needed).
+  - Avoid heavy layout calculations inside `renderItem` or `onScroll`.
+- For ScrollView-based screens:
+  - Avoid nesting multiple ScrollViews where not needed.
+  - Move heavy synchronous work (data processing, big JSON parsing) outside of scroll handlers.
+- Simplify styles that can cause performance issues:
+  - Limit very large shadows, gradients, and overdraw on Android.
+  - Optimize large images (dimensions, caching).
+- Verify that after changes, scrolling is smooth and stable on Android WITHOUT breaking iOS or Web behavior.
+
+==================================================
+BILINGUAL / RTL SUPPORT
+==================================================
+
+The app must work well in both English and Arabic.
+
+Tasks:
+- Detect how localization is currently implemented (i18n utils, existing hooks, etc.).
+- Ensure:
+  - `I18nManager` or an equivalent direction setting is used for Arabic (RTL).
+  - Layout uses logical paddings (`paddingStart`, `paddingEnd`, etc.) where suitable instead of hard-coded left/right.
+  - Text aligns appropriately (e.g., left for English, right for Arabic).
+  - Directional icons and chevrons flip in RTL (use `isRTL` and the icon wrapper to handle this).
+- Typography selection must be locale-aware (latin vs arabic fonts).
+
+==================================================
+THEME IMPLEMENTATION & MIGRATION
+==================================================
+
+1) THEME DISCOVERY & CREATION
+- Scan the repo for existing theme / color / style files.
+- Extend or update the central theme module (e.g., constants/theme.ts) to export:
+  - colors (tokens above),
+  - typography (sizes, weights, font families),
+  - spacing,
+  - radii,
+  - icon sizes,
+  - any existing elevation helpers.
+
+- Use the existing ThemeProvider / theme context if present; do NOT introduce a second parallel theme system. If missing, add a single ThemeProvider that:
+  - Exposes the theme via React Context.
+  - Provides `locale` and `isRTL` so components can adapt.
+
+2) BASE THEMED COMPONENTS
+
+If base themed components already exist (e.g., ThemedView, ThemedText, Button, DDIcon, ScreenScrollView, ScreenFlatList, etc.):
+- Refine and extend them to use the DALLAH DIGITAL theme tokens and font system.
+- Do NOT create duplicate copies of existing base components.
+
+If something is missing, create lightweight wrappers in components/:
+
+- `DDText` (or extend existing ThemedText):
+  - Props: `variant` (`h1`, `h2`, `h3`, `body`, `bodyL`, `caption`), `color`, etc.
+  - Uses theme typography and colors.
+  - Picks latinUI vs arabicUI based on locale.
+
+- `DDButton` (or extend existing button component):
+  - Variants: `primary`, `secondary`, `ghost`.
+  - Uses brandBlue/white etc. for styling.
+  - Handles disabled/loading states with good contrast.
+  - Uses pill radius by default for primary.
+
+- `DDCard`:
+  - Uses theme card background, border, radius, and spacing.
+
+- `DDIcon`:
+  - Wraps the single chosen icon library as described above.
+
+- `DDAppBar`:
+  - Uses brandNavy background, white text, Dallah theme typography.
+  - Handles RTL alignment and icon direction.
+
+3) MIGRATION OF EXISTING SCREENS
+
+- Search for hard-coded colors, font sizes, spacing, radii, shadows in screens/ and components/.
+- Systematically replace them with theme tokens (colors, Typography, Spacing, BorderRadius).
+- Replace raw `Text`, `TouchableOpacity`, `Pressable`, `View` etc. with the base themed components where appropriate, WITHOUT changing:
+  - navigation,
+  - business logic,
+  - data fetching/repositories.
+
+- Keep layout structure and flows the same; only unify styling and behavior.
+
+4) WEB-SPECIFIC ADJUSTMENTS
+
+- Ensure the RN Web entry / global styles apply:
+  - global font families (Inter + Noto Sans Arabic),
+  - page background color (grey50),
+  - base font size and body color (brandNavy / grey900).
+- Adjust any web-only overrides that conflict with the global theme or break consistency.
+
+==================================================
+CODING STANDARDS TO RESPECT
+==================================================
+
+- Do NOT introduce new `any` types. Use existing domain types from "@/types" and "@/types/vms.types".
+- For any new or edited screens, use typed navigation props from "@/types/*Navigation.types.ts".
+- Use "@/*" imports for cross-folder modules (no long "../.." chains).
+- Keep formatting consistent with the existing ESLint + Prettier configuration.
+- Do not modify services/domain/repository interfaces except for adding optional style-related helpers if absolutely necessary (and then keep them type-safe).
+
+==================================================
+DELIVERABLES
+==================================================
+
+- Updated central theme module containing:
+  - DALLAH DIGITAL colors, typography, spacing, radii, icon sizes, and related tokens.
+- A single font system wired to iOS, Android, and Web.
+- A single icon system wrapped by a shared icon component (e.g., DDIcon).
+- Base themed components (updated or newly added) using the DALLAH DIGITAL theme.
+- Refactored screens using these tokens and components (no scattered hard-coded styles).
+- Smoother scrolling on Android (no jerky/janky behavior), with iOS and Web still working correctly.
+- Optional short summary (in comments or markdown) describing:
+  - The theme structure.
+  - The components created/modified.
+  - Any remaining TODOs for full migration.
+
+IMPORTANT:
+- Do NOT break existing navigation or business logic.
+- Do NOT alter repositories/services beyond what is necessary for styling hooks.
+- Keep changes incremental, well-structured, and easy to maintain.
+- After changes, the app should look and feel like ONE coherent DALLAH DIGITAL product on iOS, Android, and Web, with consistent branding, fonts, icons, and smooth interactions.

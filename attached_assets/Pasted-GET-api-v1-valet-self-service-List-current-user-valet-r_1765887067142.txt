@@ -1,0 +1,110 @@
+GET
+/api/v1/valet/self-service
+List current user valet requests
+
+
+Get all valet requests for the current authenticated user
+
+Parameters
+Cancel
+Name	Description
+endDate
+string
+(query)
+Filter to date (ISO 8601 format)
+
+2025-12-31
+startDate
+string
+(query)
+Filter from date (ISO 8601 format)
+
+2025-12-01
+status
+string
+(query)
+Filter by status (e.g., pending, in_progress, completed)
+
+pending
+Execute
+Clear
+Responses
+Curl
+
+curl -X 'GET' \
+  'https://vms-backend-folio3.replit.app/api/v1/valet/self-service?endDate=2025-12-31&startDate=2025-12-01&status=pending' \
+  -H 'accept: application/json'
+Request URL
+https://vms-backend-folio3.replit.app/api/v1/valet/self-service?endDate=2025-12-31&startDate=2025-12-01&status=pending
+Server response
+Code	Details
+401	
+Error: response status is 401
+
+Response body
+Download
+{
+  "success": false,
+  "message": "Authorization header is required",
+  "error": "Unauthorized",
+  "statusCode": 401,
+  "timestamp": "2025-12-16T12:09:12.467Z",
+  "path": "/api/v1/valet/self-service?endDate=2025-12-31&startDate=2025-12-01&status=pending"
+}
+Response headers
+ access-control-allow-credentials: true 
+ access-control-allow-origin: * 
+ content-length: 232 
+ content-type: application/json; charset=utf-8 
+ date: Tue,16 Dec 2025 12:09:12 GMT 
+ etag: W/"e8-uIQ3wcn+o8a2io9yq6xkAfSJhUE" 
+ server: Google Frontend 
+ strict-transport-security: max-age=63072000; includeSubDomains 
+ via: 1.1 google 
+ x-cloud-trace-context: 7f7cb176a49d7a492c7d454b45e0ae22 
+ x-powered-by: Express 
+Responses
+Code	Description	Links
+200	
+List of self-valet requests
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "data": [
+    {
+      "id": "emp_valet_001",
+      "vehicleInfo": {
+        "make": "Honda",
+        "model": "Accord",
+        "color": "White",
+        "plateNumber": "SAR 1234"
+      },
+      "dropOffLocation": "SKBC Main Entrance",
+      "requestedReturnTime": "5:00 PM",
+      "valet": {
+        "id": "emp_val_001",
+        "pickupTime": "8:30 AM",
+        "returnTime": "5:00 PM",
+        "status": "pending",
+        "driver": {
+          "id": "driver_001",
+          "name": "Mohammed Saleh",
+          "phone": "+966-50-234-5678"
+        }
+      },
+      "createdAt": "2025-12-03T08:30:00Z"
+    }
+  ]
+}
+No links
+401	
+Unauthorized
+
+No links
+403	
+Forbidden - insufficient role

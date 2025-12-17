@@ -1,0 +1,99 @@
+GET
+/api/v1/invites/{token}
+Get invitation details and redirect
+
+Verifies the invitation using the unique token and redirects to the visitor portal. Use format=json query parameter to get JSON response instead of redirect. This is a public endpoint that does not require authentication.
+
+Parameters
+Cancel
+Name	Description
+format
+(query)
+Set to "json" to return JSON instead of redirecting
+
+json
+token *
+(path)
+The unique invitation token sent to the visitor
+
+bb9d92d038b8effcfd5f0a708438f0af4b7f7ad3441e5d44df180c4fbd4b69cd
+Execute
+Clear
+Responses
+Curl
+
+curl -X 'GET' \
+  'https://vms-backend-folio3.replit.app/api/v1/invites/bb9d92d038b8effcfd5f0a708438f0af4b7f7ad3441e5d44df180c4fbd4b69cd?format=json' \
+  -H 'accept: */*'
+Request URL
+https://vms-backend-folio3.replit.app/api/v1/invites/bb9d92d038b8effcfd5f0a708438f0af4b7f7ad3441e5d44df180c4fbd4b69cd?format=json
+Server response
+Code	Details
+200	
+Response body
+Download
+{
+  "success": true,
+  "message": "Invitation details retrieved successfully",
+  "data": {
+    "id": "5E5E5BA8-93DA-F011-A58B-00155D07A12B",
+    "status": "approved",
+    "hostName": "John Manager",
+    "hostDepartment": "Operations",
+    "visitDate": "2025-12-17",
+    "visitTime": "8:25 AM",
+    "duration": "PT1H",
+    "purpose": "Business",
+    "location": {
+      "building": "Main Building",
+      "address": "King Abdullah Road, Jeddah"
+    },
+    "meetingRoom": {
+      "name": "Collaboration Space",
+      "floor": "2nd Floor"
+    },
+    "parkingInfo": {
+      "type": "auto",
+      "location": "SKBC Basement",
+      "slotNumber": "B1-002"
+    },
+    "valetInfo": null,
+    "visitorDecision": null,
+    "canAccept": true,
+    "canReject": true,
+    "expiresAt": ""
+  },
+  "timestamp": "2025-12-16T15:40:09.920Z"
+}
+Response headers
+ access-control-allow-credentials: true 
+ access-control-allow-origin: * 
+ cache-control: private 
+ content-length: 636 
+ content-type: application/json; charset=utf-8 
+ date: Tue,16 Dec 2025 15:40:09 GMT 
+ etag: W/"27c-Zg7OQG8tG+xfDFBomzJT9ZNUXgQ" 
+ expires: Tue,16 Dec 2025 15:40:09 GMT 
+ server: Google Frontend 
+ strict-transport-security: max-age=63072000; includeSubDomains 
+ via: 1.1 google 
+ x-cloud-trace-context: 30c841e3c07a22dc5138e4b78cd8f452;o=1 
+ x-powered-by: Express 
+Responses
+Code	Description	Links
+200	
+Invitation details retrieved successfully (when format=json)
+
+No links
+302	
+Redirects to visitor portal after verification
+
+No links
+404	
+Invitation not found
+
+No links
+410	
+Invitation has expired or been cancelled
+
+No links

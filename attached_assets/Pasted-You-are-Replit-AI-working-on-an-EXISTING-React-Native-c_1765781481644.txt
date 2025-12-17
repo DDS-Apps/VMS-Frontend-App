@@ -1,0 +1,173 @@
+You are Replit AI working on an EXISTING React Native codebase:
+
+Project:
+- SKBC Visitor Management System (SKBC VMS)
+- Frontend: React Native (iOS, Android, React Native Web)
+- We want to use **Expo** as the unified tooling layer for:
+  - Web app (React Native Web)
+  - iOS app
+  - Android app
+- The project already exists; DO NOT scaffold a brand new app or wipe existing code.
+
+High-level goal:
+- Create a **clean, predictable development + publishing flow** using Expo.
+- In Replit:
+  - **Development**: pressing “Run” should start the **web app preview** (for quick testing).
+  - **Publishing**: there should be clear scripts to build/publish:
+    - Web bundle
+    - iOS app
+    - Android app
+- At the repo root (`/`), running the project should default to **web** (since Replit shows a web preview), while still supporting mobile builds via Expo.
+
+==================================================
+1) EXPO SETUP & CONFIG
+==================================================
+
+1.1) Detect or initialize Expo config
+
+- Check if the project already uses Expo (`app.json`, `app.config.js` or `app.config.ts`).
+- If Expo is already present:
+  - Reuse and **update** the config to support iOS, Android, and Web for SKBC VMS.
+- If Expo is NOT present:
+  - Add Expo in a **non-destructive** way:
+    - Install required dependencies: expo, expo-cli (or npx expo), react-native-web, expo-router (if applicable), etc., based on current RN version.
+    - Create `app.config.(js|ts)` that:
+      - Defines app name, slug, version, bundle identifiers, package names.
+      - Enables `web` support.
+      - Uses env/config variables cleanly.
+- Ensure the config supports:
+  - `ios` + `android` + `web` platforms.
+  - Correct `scheme` for deep linking (e.g., `skbcvms` for SSO callback).
+
+1.2) Web entry point
+
+- Confirm that Expo is configured for React Native Web:
+  - `expo` supports web bundling.
+  - Web entry uses the standard Expo/React Native Web entry (e.g., `index.web.js` or Expo defaults).
+
+==================================================
+2) PACKAGE SCRIPTS – DEV & PUBLISH FLOWS
+==================================================
+
+2.1) Development scripts
+
+In the **root `package.json`**, define/ensure the following scripts (names can be adjusted if there is an existing convention, but keep the semantics):
+
+- `"dev:web"`:
+  - Starts Expo dev server **with web** bound to `$PORT` for Replit, for example:
+    - `expo start --web --port $PORT`
+  - Goal: When Replit runs the project, this is the command that should execute, so the web preview works.
+
+- `"dev:all"`:
+  - Starts the Expo dev server in standard mode:
+    - `expo start`
+  - This mode allows using the QR code / Expo Go / dev clients for **iOS and Android**, and still supports web if opened manually.
+
+2.2) Build & publish scripts
+
+Add scripts for building/publishing:
+
+- `"build:web"`:
+  - Use the appropriate Expo web build/export command:
+    - For newer Expo: something like `expo export:web` or `expo export --platform web` (choose based on SDK version).
+  - Output a static web build suitable for deployment.
+
+- `"build:ios"`:
+  - Use EAS build if the project is configured for that:
+    - `eas build --platform ios --profile production`
+  - Or `expo build:ios` if using classic builds (but prefer EAS if possible).
+
+- `"build:android"`:
+  - `eas build --platform android --profile production`
+
+- `"publish:all"`:
+  - A meta-script that:
+    - Runs web build
+    - Triggers iOS & Android builds (either sequentially or via EAS commands).
+  - For example:
+    - `"publish:all": "npm run build:web && eas build --platform ios --profile production && eas build --platform android --profile production"`
+
+If EAS is not yet configured, add a minimal `eas.json` with `development`, `preview`, and `production` profiles and wire the scripts accordingly.
+
+==================================================
+3) REPLIT INTEGRATION (.replit / NIX / RUN CONFIG)
+==================================================
+
+3.1) Root run command
+
+- Update `.replit` (or equivalent Replit config) so that:
+  - The **Run** button executes:
+    - `npm run dev:web`
+  - This ensures:
+    - Replit’s web preview always shows the **web version** of the SKBC VMS app.
+    - The dev server binds to `$PORT` (the Replit-assigned port) so the preview works.
+
+3.2) Environment & ports
+
+- Ensure Expo dev server for web:
+  - Respects `$PORT`.
+  - Uses `0.0.0.0` as the host so Replit can proxy it.
+- Document any required environment variables for running:
+  - e.g., `EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0` if necessary.
+  - Any API base URL overrides for dev vs prod.
+
+3.3) Mobile dev experience in Replit
+
+- Keep `"dev:all": "expo start"` available so a developer can:
+  - Open a shell and run `npm run dev:all`
+  - Scan QR code with Expo Go on an actual device or run simulator/emulator locally.
+- Ensure the README/dev docs explain the difference:
+  - `npm run dev:web` → Replit web preview.
+  - `npm run dev:all` → full Expo devtools for mobile + web.
+
+==================================================
+4) SMALL DOC: HOW TO RUN & PUBLISH
+==================================================
+
+Create or update a `docs/running-and-publishing.md` (or similar) explaining:
+
+- **Development (Replit)**:
+  - “Click Run in Replit → web app starts at /”
+  - Under the hood: `npm run dev:web` using `expo start --web`.
+- **Development (local)**:
+  - `npm install`
+  - `npm run dev:all`
+  - Then:
+    - Press `w` for web.
+    - Use Expo Go / simulators for iOS & Android.
+
+- **Publishing / Builds**:
+  - Web:
+    - `npm run build:web`
+    - Deploy `dist` / `web-build` folder to hosting (Netlify, S3, etc.).
+  - Mobile:
+    - `npm run build:ios`
+    - `npm run build:android`
+    - Use EAS dashboard / artifacts as usual to distribute to App Store / Play Store.
+  - All:
+    - `npm run publish:all` (explain that this runs web build + EAS builds).
+
+==================================================
+5) SAFETY & NON-DESTRUCTIVE CHANGES
+==================================================
+
+- DO NOT remove existing app code, screens, or navigation.
+- Only:
+  - Add/adjust Expo config.
+  - Add/update `package.json` scripts.
+  - Add/update `.replit` run config.
+  - Add/update docs.
+- If there are existing scripts (`start`, `android`, `ios`, etc.), keep them but align them with the Expo-based flow where possible.
+
+==================================================
+DELIVERABLES
+==================================================
+
+After your changes, we should have:
+
+1. Working Expo setup that supports iOS, Android, and Web.
+2. Root `package.json` with:
+   - `dev:web`, `dev:all`, `build:web`, `build:ios`, `build:android`, `publish:all` (or equivalent).
+3. `.replit` configured so “Run” starts the **web app via Expo** using `$PORT`.
+4. Optional `eas.json` with profiles wired to build scripts.
+5. A short markdown doc explaining dev & publishing flows for SKBC VMS.
