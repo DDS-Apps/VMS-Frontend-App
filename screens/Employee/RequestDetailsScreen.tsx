@@ -1993,101 +1993,106 @@ export default function RequestDetailsScreen({
                 </View>
               ) : null}
 
-              <Spacer height={Spacing.xl} />
+              {/* Communication Channels - Hide for walk-in requests */}
+              {!request?.isWalkIn ? (
+                <>
+                  <Spacer height={Spacing.xl} />
 
-              <ThemedText
-                style={[
-                  Typography.subtitle,
-                  {
-                    fontSize: 14,
-                    fontWeight: "600",
-                    color: theme.text,
-                    marginBottom: Spacing.md,
-                  },
-                ]}
-              >
-                {t("invitation.communicationChannels")}
-              </ThemedText>
-
-              <View style={styles.channelsContainer}>
-                <Pressable
-                  style={[
-                    styles.channelChip,
-                    {
-                      backgroundColor: theme.surface,
-                      borderColor: editSendWhatsApp ? theme.primary : theme.border,
-                    },
-                  ]}
-                  onPress={() => setEditSendWhatsApp(!editSendWhatsApp)}
-                >
-                  <View
-                    style={[
-                      styles.channelChipIcon,
-                      { backgroundColor: applyOpacity(theme.success, "15") },
-                    ]}
-                  >
-                    <DDIcon name="message-circle" size={16} variant="success" />
-                  </View>
                   <ThemedText
                     style={[
-                      Typography.bodySmall,
-                      { fontWeight: "500", marginStart: Spacing.xs },
+                      Typography.subtitle,
+                      {
+                        fontSize: 14,
+                        fontWeight: "600",
+                        color: theme.text,
+                        marginBottom: Spacing.md,
+                      },
                     ]}
                   >
-                    {t("services.whatsapp")}
+                    {t("invitation.communicationChannels")}
                   </ThemedText>
-                  {editSendWhatsApp ? (
-                    <View
-                      style={[
-                        styles.chipCheckmark,
-                        { backgroundColor: theme.primary },
-                      ]}
-                    >
-                      <DDIcon name="check" size={10} color={theme.buttonText} />
-                    </View>
-                  ) : null}
-                </Pressable>
 
-                <Pressable
-                  style={[
-                    styles.channelChip,
-                    {
-                      backgroundColor: theme.surface,
-                      borderColor: editSendSMS ? theme.primary : theme.border,
-                    },
-                  ]}
-                  onPress={() => setEditSendSMS(!editSendSMS)}
-                >
-                  <View
-                    style={[
-                      styles.channelChipIcon,
-                      { backgroundColor: applyOpacity(theme.info, "15") },
-                    ]}
-                  >
-                    <DDIcon name="smartphone" size={16} color={theme.info} />
+                  <View style={styles.channelsContainer}>
+                    <Pressable
+                      style={[
+                        styles.channelChip,
+                        {
+                          backgroundColor: theme.surface,
+                          borderColor: editSendWhatsApp ? theme.primary : theme.border,
+                        },
+                      ]}
+                      onPress={() => setEditSendWhatsApp(!editSendWhatsApp)}
+                    >
+                      <View
+                        style={[
+                          styles.channelChipIcon,
+                          { backgroundColor: applyOpacity(theme.success, "15") },
+                        ]}
+                      >
+                        <DDIcon name="message-circle" size={16} variant="success" />
+                      </View>
+                      <ThemedText
+                        style={[
+                          Typography.bodySmall,
+                          { fontWeight: "500", marginStart: Spacing.xs },
+                        ]}
+                      >
+                        {t("services.whatsapp")}
+                      </ThemedText>
+                      {editSendWhatsApp ? (
+                        <View
+                          style={[
+                            styles.chipCheckmark,
+                            { backgroundColor: theme.primary },
+                          ]}
+                        >
+                          <DDIcon name="check" size={10} color={theme.buttonText} />
+                        </View>
+                      ) : null}
+                    </Pressable>
+
+                    <Pressable
+                      style={[
+                        styles.channelChip,
+                        {
+                          backgroundColor: theme.surface,
+                          borderColor: editSendSMS ? theme.primary : theme.border,
+                        },
+                      ]}
+                      onPress={() => setEditSendSMS(!editSendSMS)}
+                    >
+                      <View
+                        style={[
+                          styles.channelChipIcon,
+                          { backgroundColor: applyOpacity(theme.info, "15") },
+                        ]}
+                      >
+                        <DDIcon name="smartphone" size={16} color={theme.info} />
+                      </View>
+                      <ThemedText
+                        style={[
+                          Typography.bodySmall,
+                          { fontWeight: "500", marginStart: Spacing.xs },
+                        ]}
+                      >
+                        {t("services.sms")}
+                      </ThemedText>
+                      {editSendSMS ? (
+                        <View
+                          style={[
+                            styles.chipCheckmark,
+                            { backgroundColor: theme.primary },
+                          ]}
+                        >
+                          <DDIcon name="check" size={10} color={theme.buttonText} />
+                        </View>
+                      ) : null}
+                    </Pressable>
                   </View>
-                  <ThemedText
-                    style={[
-                      Typography.bodySmall,
-                      { fontWeight: "500", marginStart: Spacing.xs },
-                    ]}
-                  >
-                    {t("services.sms")}
-                  </ThemedText>
-                  {editSendSMS ? (
-                    <View
-                      style={[
-                        styles.chipCheckmark,
-                        { backgroundColor: theme.primary },
-                      ]}
-                    >
-                      <DDIcon name="check" size={10} color={theme.buttonText} />
-                    </View>
-                  ) : null}
-                </Pressable>
-              </View>
 
-              <Spacer height={Spacing.lg} />
+                  <Spacer height={Spacing.lg} />
+                </>
+              ) : null}
 
               <ThemedText
                 style={[
