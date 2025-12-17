@@ -100,6 +100,7 @@ export default function RequestDetailsScreen({
   const [showEditDatePicker, setShowEditDatePicker] = useState(false);
   const [showEditTimePicker, setShowEditTimePicker] = useState(false);
   const [showEditDurationPicker, setShowEditDurationPicker] = useState(false);
+  const [editModalMode, setEditModalMode] = useState<"full" | "services-only">("full");
 
   // Success modal states
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -335,9 +336,10 @@ export default function RequestDetailsScreen({
     }
   };
 
-  const openEditModal = () => {
+  const openEditModal = (mode: "full" | "services-only" = "full") => {
     if (!visitData) return;
 
+    setEditModalMode(mode);
     setEditPurpose(visitData.purpose || "");
     setEditDate(
       visitData.visitDate ? new Date(visitData.visitDate) : new Date(),
@@ -379,10 +381,7 @@ export default function RequestDetailsScreen({
   };
 
   const handleEditConfirm = () => {
-    const payload = {
-      visitDate: formatDateForApi(editDate),
-      visitTime: formatTimeForApi(editTime),
-      duration: editDuration,
+    const payload: Record<string, unknown> = {
       purpose: editPurpose,
       needsParking: editRequiresParking,
       needsMeetingRoom: editRequiresMeetingRoom,
@@ -390,8 +389,15 @@ export default function RequestDetailsScreen({
       needsValet: editRequiresValet,
     };
 
+    // Only include schedule fields in full mode (not for walk-in visitors)
+    if (editModalMode === "full") {
+      payload.visitDate = formatDateForApi(editDate);
+      payload.visitTime = formatTimeForApi(editTime);
+      payload.duration = editDuration;
+    }
+
     console.log(
-      "[RequestDetails] Submitting edit with payload:",
+      "[RequestDetails] Submitting edit with payload (mode: " + editModalMode + "):",
       JSON.stringify(payload, null, 2),
     );
 
@@ -1088,9 +1094,32 @@ export default function RequestDetailsScreen({
 
       <Spacer height={Spacing.xl} />
 
-      {/* Walk-in request: Show Approve/Reject buttons */}
+      {/* Walk-in request: Show Edit Services and Approve/Reject buttons */}
       {request.isWalkIn && request.status === REQUEST_STATUS.PENDING_HOST_APPROVAL ? (
         <>
+          <Pressable
+            style={[
+              styles.actionButtonFull,
+              { backgroundColor: theme.primary },
+            ]}
+            onPress={() => openEditModal("services-only")}
+          >
+            <DDIcon name="settings" size={18} color={theme.buttonText} />
+            <ThemedText
+              style={[
+                Typography.body,
+                {
+                  color: theme.buttonText,
+                  marginStart: Spacing.sm,
+                  fontWeight: "600",
+                  fontSize: 14,
+                },
+              ]}
+            >
+              {t("actions.editServices")}
+            </ThemedText>
+          </Pressable>
+          <Spacer height={Spacing.md} />
           <ApprovalActionGroup
             onApprove={handleHostApprove}
             onReject={() => setShowHostRejectModal(true)}
@@ -1114,7 +1143,7 @@ export default function RequestDetailsScreen({
               styles.actionButtonFull,
               { backgroundColor: theme.primary },
             ]}
-            onPress={openEditModal}
+            onPress={() => openEditModal("full")}
           >
             <DDIcon name="edit-2" size={18} color={theme.buttonText} />
             <ThemedText
@@ -1138,7 +1167,7 @@ export default function RequestDetailsScreen({
                 styles.actionButtonHalf,
                 { borderColor: theme.primary, backgroundColor: theme.surface },
               ]}
-              onPress={openEditModal}
+              onPress={() => openEditModal("full")}
             >
               <DDIcon name="calendar" size={18} color={theme.primary} />
               <ThemedText
@@ -1559,7 +1588,9 @@ export default function RequestDetailsScreen({
                   { fontSize: 18, fontWeight: "600", color: theme.text },
                 ]}
               >
-                {t("actions.editRequest")}
+                {editModalMode === "services-only"
+                  ? t("actions.editServices")
+                  : t("actions.editRequest")}
               </ThemedText>
               <Pressable onPress={() => setShowEditModal(false)}>
                 <DDIcon name="x" size={22} variant="muted" />
@@ -1595,17 +1626,19 @@ export default function RequestDetailsScreen({
                 placeholderTextColor={theme.textSecondary}
               />
 
-              <Spacer height={Spacing.lg} />
+              {editModalMode === "full" ? (
+                <>
+                  <Spacer height={Spacing.lg} />
 
-              <ThemedText
-                style={[
-                  Typography.caption,
-                  { color: theme.textSecondary, fontSize: 12, marginBottom: 8 },
-                ]}
-              >
-                {t("form.date")}
-              </ThemedText>
-              {Platform.OS === "web" ? (
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      { color: theme.textSecondary, fontSize: 12, marginBottom: 8 },
+                    ]}
+                  >
+                    {t("form.date")}
+                  </ThemedText>
+                  {Platform.OS === "web" ? (
                 <TextInput
                   style={[
                     styles.textInputField,
@@ -1825,6 +1858,8 @@ export default function RequestDetailsScreen({
                   ))}
                 </View>
               )}
+                </>
+              ) : null}
 
               <Spacer height={Spacing.xl} />
 

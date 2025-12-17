@@ -389,6 +389,7 @@ export const ar: TranslationKeys = {
     checkOut: 'تسجيل خروج',
     viewDetails: 'عرض التفاصيل',
     editRequest: 'تعديل الطلب',
+    editServices: 'تعديل الخدمات',
     deleteRequest: 'حذف الطلب',
     sendReminder: 'إرسال تذكير',
     resendInvitation: 'إعادة إرسال الدعوة',

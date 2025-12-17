@@ -389,6 +389,7 @@ export interface TranslationKeys {
     checkOut: string;
     viewDetails: string;
     editRequest: string;
+    editServices: string;
     deleteRequest: string;
     sendReminder: string;
     resendInvitation: string;
