@@ -1211,8 +1211,23 @@ export default function RequestDetailsScreen({
 
       <Spacer height={Spacing.xl} />
 
-      {/* Walk-in request: Show Edit Services and Approve/Reject buttons */}
+      {/* Walk-in request pending: Show only Approve/Reject buttons (no Edit Services until approved) */}
       {request.isWalkIn && request.status === REQUEST_STATUS.PENDING_HOST_APPROVAL ? (
+        <>
+          <ApprovalActionGroup
+            onApprove={handleHostApprove}
+            onReject={() => setShowHostRejectModal(true)}
+            approveLoading={hostApproveMutation.isPending}
+            rejectLoading={hostRejectMutation.isPending}
+            size="medium"
+            showIcons={true}
+          />
+          <Spacer height={Spacing.xl} />
+        </>
+      ) : null}
+
+      {/* Walk-in request approved: Show Edit Services button */}
+      {request.isWalkIn && (request.status === REQUEST_STATUS.APPROVED || request.status === REQUEST_STATUS.CHECKED_IN) ? (
         <>
           <Pressable
             style={[
@@ -1236,15 +1251,6 @@ export default function RequestDetailsScreen({
               {t("actions.editServices")}
             </ThemedText>
           </Pressable>
-          <Spacer height={Spacing.md} />
-          <ApprovalActionGroup
-            onApprove={handleHostApprove}
-            onReject={() => setShowHostRejectModal(true)}
-            approveLoading={hostApproveMutation.isPending}
-            rejectLoading={hostRejectMutation.isPending}
-            size="medium"
-            showIcons={true}
-          />
           <Spacer height={Spacing.xl} />
         </>
       ) : null}
