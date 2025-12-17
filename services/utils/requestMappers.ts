@@ -1,23 +1,16 @@
-import type { VisitorRequest, RequestStatus, ParkingType, ParkingLocation } from '@/types/vms.types';
-import type { VisitDetailsDto, VisitListItemDto, AwaitingVisitorDto, PendingApprovalDto, PendingHostWalkInDto } from '@/types/api.types';
+import type { VisitorRequest, ParkingType, RequestStatus } from '@/types/vms.types';
+import type { VisitDetailsDto, VisitListItemDto, AwaitingVisitorDto, PendingApprovalDto, PendingHostWalkInDto, BuffetMealType } from '@/types/api.types';
+import {
+  API_STATUS_MAP,
+  resolveStatus,
+  normalizeParkingLocation,
+  DEFAULT_COMMUNICATION_CHANNELS,
+  DEFAULT_MEAL_TYPE,
+  DEFAULT_DURATION,
+  DURATION_OPTIONS,
+} from '@/constants/requestConstants';
 
-export const API_STATUS_MAP: Record<string, RequestStatus> = {
-  pending: 'pending_approval',
-  pending_approval: 'pending_approval',
-  pending_host_approval: 'pending_host_approval',
-  approved: 'approved',
-  rejected: 'rejected',
-  checked_in: 'checked_in',
-  checked_out: 'completed',
-  cancelled: 'cancelled',
-  expired: 'auto_cancelled',
-  awaiting_visitor: 'visitor_pending',
-  visitor_pending: 'visitor_pending',
-  visitor_accepted: 'visitor_accepted',
-  visitor_rejected: 'visitor_rejected',
-  completed: 'completed',
-  accepted: 'visitor_accepted',
-};
+export { API_STATUS_MAP, resolveStatus, normalizeParkingLocation };
 
 export const isEmptyObject = (obj: any): boolean => {
   return obj && typeof obj === 'object' && Object.keys(obj).length === 0;
@@ -27,15 +20,6 @@ export const hasValidData = (obj: any): boolean => {
   if (!obj || typeof obj !== 'object') return false;
   if (Object.keys(obj).length === 0) return false;
   return true;
-};
-
-export const resolveStatus = (apiStatus: string): RequestStatus => {
-  return API_STATUS_MAP[apiStatus] || (apiStatus as RequestStatus) || 'pending_approval';
-};
-
-export const normalizeParkingLocation = (location: string | undefined): ParkingLocation => {
-  if (!location) return '' as ParkingLocation;
-  return (location.toLowerCase() === 'skbc_basement' ? 'skbc_basement' : location) as ParkingLocation;
 };
 
 export type VisitorRequestWithPending = VisitorRequest & {
@@ -58,11 +42,11 @@ export const mapVisitDetailsToVisitorRequest = (visit: VisitDetailsDto): Visitor
     },
     visitDate: visit.visitDate || new Date().toISOString().split('T')[0],
     visitTime: visit.visitTime || '09:00',
-    duration: visit.duration || '1 hour',
+    duration: visit.duration || DEFAULT_DURATION,
     endTime: visit.endTime,
     purpose: visit.purpose || '',
     status: resolveStatus(visit.status),
-    communicationChannels: (visit.communicationChannels || ['email']) as ('email' | 'sms' | 'whatsapp' | 'qr_code')[],
+    communicationChannels: (visit.communicationChannels || DEFAULT_COMMUNICATION_CHANNELS) as ('email' | 'sms' | 'whatsapp' | 'qr_code')[],
     parkingType: (visit.parkingType || (hasValidData(visit.parkingAllocation) || hasValidData(visit.parkingSlot) ? 'auto' : 'none')) as ParkingType,
     parkingSlot: (hasValidData(visit.parkingAllocation) || hasValidData(visit.parkingSlot)) ? {
       id: visit.parkingAllocation?.id || visit.parkingSlot?.id || '',
@@ -86,7 +70,7 @@ export const mapVisitDetailsToVisitorRequest = (visit: VisitDetailsDto): Visitor
       !hasValidData(visit.meetingBooking) && !hasValidData(visit.meetingRoom),
     buffet: visit.buffet ? {
       id: visit.buffet.id,
-      mealType: (visit.buffet.mealType as 'breakfast' | 'lunch' | 'dinner' | 'snacks') || 'lunch',
+      mealType: (visit.buffet.mealType as BuffetMealType) || DEFAULT_MEAL_TYPE,
       location: visit.buffet.location,
     } : undefined,
     valet: undefined,
@@ -133,14 +117,14 @@ export const mapVisitListItemToVisitorRequest = (visit: VisitListItemDto): Visit
     },
     visitDate: visit.visitDate,
     visitTime: visit.visitTime || '',
-    duration: '1 hour',
+    duration: DEFAULT_DURATION,
     purpose: visit.purpose || '',
     status: resolveStatus(visit.status),
-    communicationChannels: ['email'],
+    communicationChannels: DEFAULT_COMMUNICATION_CHANNELS,
     parkingType: visit.hasParking ? 'auto' : 'none',
-    parkingSlot: visit.hasParking ? { id: 'auto', location: 'SKBC_basement', slotNumber: 'TBD' } : undefined,
+    parkingSlot: visit.hasParking ? { id: 'auto', location: normalizeParkingLocation('skbc_basement'), slotNumber: 'TBD' } : undefined,
     meetingRoom: visit.hasMeetingRoom ? { id: 'auto', name: 'TBD', capacity: 10, floor: '1', timeSlot: visit.visitTime || '' } : undefined,
-    buffet: visit.hasBuffet ? { id: 'auto', mealType: 'lunch', location: 'Main Buffet' } : undefined,
+    buffet: visit.hasBuffet ? { id: 'auto', mealType: DEFAULT_MEAL_TYPE, location: 'Main Buffet' } : undefined,
     valet: visit.hasValet ? { id: 'auto', pickupTime: visit.visitTime || '', returnTime: '', status: 'pending' } : undefined,
     qrCode: undefined,
     approval: {
@@ -170,10 +154,10 @@ export const mapAwaitingVisitorToVisitorRequest = (awaiting: AwaitingVisitorDto)
     },
     visitDate: awaiting.visitDate,
     visitTime: awaiting.visitTime || '',
-    duration: '1 hour',
+    duration: DEFAULT_DURATION,
     purpose: '',
     status: resolveStatus(awaiting.status),
-    communicationChannels: ['email'],
+    communicationChannels: DEFAULT_COMMUNICATION_CHANNELS,
     parkingType: 'none',
     approval: {
       requiresApproval: true,
@@ -201,13 +185,13 @@ export const mapPendingApprovalToVisitorRequest = (item: PendingApprovalDto): Vi
     },
     visitDate: item.visitDate,
     visitTime: item.visitTime || '',
-    duration: item.duration || '1 hour',
+    duration: item.duration || DEFAULT_DURATION,
     purpose: item.purpose || '',
-    status: 'pending_approval' as RequestStatus,
-    communicationChannels: ['email'],
+    status: API_STATUS_MAP.pending_approval,
+    communicationChannels: DEFAULT_COMMUNICATION_CHANNELS,
     parkingType: item.hasParking ? 'auto' : 'none',
     meetingRoom: item.hasMeetingRoom ? { id: 'auto', name: 'TBD', capacity: 10, floor: '1', timeSlot: item.visitTime || '' } : undefined,
-    buffet: item.hasBuffet ? { id: 'auto', mealType: 'lunch', location: 'Main Buffet' } : undefined,
+    buffet: item.hasBuffet ? { id: 'auto', mealType: DEFAULT_MEAL_TYPE, location: 'Main Buffet' } : undefined,
     valet: item.hasValet ? { id: 'auto', pickupTime: item.visitTime || '', returnTime: '', status: 'pending' } : undefined,
     approval: {
       requiresApproval: true,
@@ -235,10 +219,10 @@ export const mapPendingHostWalkInToVisitorRequest = (item: PendingHostWalkInDto)
     },
     visitDate: item.visitDate,
     visitTime: item.visitTime || '',
-    duration: item.duration || '1 hour',
+    duration: item.duration || DEFAULT_DURATION,
     purpose: item.purpose || '',
-    status: 'pending_host_approval' as RequestStatus,
-    communicationChannels: ['email'],
+    status: API_STATUS_MAP.pending_host_approval,
+    communicationChannels: DEFAULT_COMMUNICATION_CHANNELS,
     parkingType: 'none',
     approval: {
       requiresApproval: true,
@@ -255,21 +239,19 @@ export const calculateDuration = (startTime: string, endTime: string): string =>
   const start = new Date(startTime);
   const end = new Date(endTime);
   const diffMs = end.getTime() - start.getTime();
-  const diffHours = diffMs / (1000 * 60 * 60);
+  const diffMinutes = diffMs / (1000 * 60);
 
-  if (diffHours <= 0.5) return '30 minutes';
-  if (diffHours <= 1) return '1 hour';
-  if (diffHours <= 1.5) return '1.5 hours';
-  if (diffHours <= 2) return '2 hours';
-  if (diffHours <= 3) return '3 hours';
-  return '4 hours';
+  for (const opt of DURATION_OPTIONS) {
+    if (diffMinutes <= opt.minutes) return opt.value;
+  }
+  return DURATION_OPTIONS[DURATION_OPTIONS.length - 1].value;
 };
 
 export const getDurationOptions = (t: (key: string) => string) => [
-  { label: t('durations.thirtyMinutes'), value: '30 minutes' },
-  { label: t('durations.oneHour'), value: '1 hour' },
-  { label: t('durations.oneAndHalfHours'), value: '1.5 hours' },
-  { label: t('durations.twoHours'), value: '2 hours' },
-  { label: t('durations.threeHours'), value: '3 hours' },
-  { label: t('durations.fourHours'), value: '4 hours' },
+  { label: t('durations.thirtyMinutes'), value: DURATION_OPTIONS[0].value },
+  { label: t('durations.oneHour'), value: DURATION_OPTIONS[1].value },
+  { label: t('durations.oneAndHalfHours'), value: DURATION_OPTIONS[2].value },
+  { label: t('durations.twoHours'), value: DURATION_OPTIONS[3].value },
+  { label: t('durations.threeHours'), value: DURATION_OPTIONS[4].value },
+  { label: t('durations.fourHours'), value: DURATION_OPTIONS[5].value },
 ];
