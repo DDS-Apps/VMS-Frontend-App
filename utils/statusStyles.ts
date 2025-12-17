@@ -37,6 +37,8 @@ export const getStatusTranslationKey = (status: string): string => {
   switch (status.toLowerCase()) {
     case 'pending_approval':
       return 'status.pendingApproval';
+    case 'pending_host_approval':
+      return 'status.pendingHostApproval';
     case 'approved':
       return 'status.approved';
     case 'visitor_accepted':
@@ -90,6 +92,7 @@ export const getStatusConfig = (theme: Theme, status: string, t?: (key: string) 
 
   switch (status.toLowerCase()) {
     case 'pending_approval':
+    case 'pending_host_approval':
       return {
         bg: applyOpacity(StatusColors.warning, '15'),
         text: StatusColors.warning,

@@ -36,6 +36,7 @@ const mapVisitDetailsToVisitorRequest = (visit: VisitDetailsDto): VisitorRequest
   const statusMap: Record<string, VisitorRequest['status']> = {
     pending: 'pending_approval',
     pending_approval: 'pending_approval',
+    pending_host_approval: 'pending_host_approval',
     approved: 'approved',
     rejected: 'rejected',
     checked_in: 'checked_in',

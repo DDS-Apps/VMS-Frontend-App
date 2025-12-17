@@ -2,7 +2,8 @@ export type UserRole = 'employee' | 'manager' | 'building_admin' | 'buffet_admin
 
 export type RequestStatus = 
   | 'draft' 
-  | 'pending_approval' 
+  | 'pending_approval'
+  | 'pending_host_approval'
   | 'approved' 
   | 'rejected' 
   | 'visitor_pending'

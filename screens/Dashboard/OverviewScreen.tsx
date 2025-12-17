@@ -21,6 +21,7 @@ import type { VisitListItemDto, AwaitingVisitorDto, PendingApprovalDto } from "@
 const statusMap: Record<string, RequestStatus> = {
   pending: 'pending_approval',
   pending_approval: 'pending_approval',
+  pending_host_approval: 'pending_host_approval',
   approved: 'approved',
   rejected: 'rejected',
   checked_in: 'checked_in',

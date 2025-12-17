@@ -352,6 +352,7 @@ export interface TranslationKeys {
   status: {
     pending: string;
     pendingApproval: string;
+    pendingHostApproval: string;
     approved: string;
     rejected: string;
     cancelled: string;

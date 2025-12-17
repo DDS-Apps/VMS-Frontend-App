@@ -352,6 +352,7 @@ export const ar: TranslationKeys = {
   status: {
     pending: 'قيد الانتظار',
     pendingApproval: 'بانتظار الموافقة',
+    pendingHostApproval: 'بانتظار موافقة المضيف',
     approved: 'موافق عليه',
     rejected: 'مرفوض',
     cancelled: 'ملغى',

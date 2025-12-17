@@ -352,6 +352,7 @@ export const en: TranslationKeys = {
   status: {
     pending: 'Pending',
     pendingApproval: 'Pending Approval',
+    pendingHostApproval: 'Pending Host Approval',
     approved: 'Approved',
     rejected: 'Rejected',
     cancelled: 'Cancelled',
