@@ -8,6 +8,10 @@ import {
   DEFAULT_MEAL_TYPE,
   DEFAULT_DURATION,
   DURATION_OPTIONS,
+  DEFAULT_PARKING_SLOT,
+  DEFAULT_MEETING_ROOM,
+  DEFAULT_BUFFET,
+  DEFAULT_VALET,
 } from '@/constants/requestConstants';
 
 export { API_STATUS_MAP, resolveStatus, normalizeParkingLocation };
@@ -60,8 +64,8 @@ export const mapVisitDetailsToVisitorRequest = (visit: VisitDetailsDto): Visitor
     meetingRoom: (hasValidData(visit.meetingBooking) || hasValidData(visit.meetingRoom)) ? {
       id: visit.meetingBooking?.roomId || visit.meetingRoom?.id || '',
       name: visit.meetingBooking?.roomName || visit.meetingRoom?.name || '',
-      capacity: visit.meetingRoom?.capacity || 10,
-      floor: visit.meetingRoom?.floor || '1',
+      capacity: visit.meetingRoom?.capacity || DEFAULT_MEETING_ROOM.capacity,
+      floor: visit.meetingRoom?.floor || DEFAULT_MEETING_ROOM.floor,
       timeSlot: visit.meetingBooking
         ? `${visit.meetingBooking.startTime} - ${visit.meetingBooking.endTime}`
         : (visit.meetingRoom?.timeSlot || visit.visitTime || ''),
@@ -122,10 +126,10 @@ export const mapVisitListItemToVisitorRequest = (visit: VisitListItemDto): Visit
     status: resolveStatus(visit.status),
     communicationChannels: DEFAULT_COMMUNICATION_CHANNELS,
     parkingType: visit.hasParking ? 'auto' : 'none',
-    parkingSlot: visit.hasParking ? { id: 'auto', location: normalizeParkingLocation('skbc_basement'), slotNumber: 'TBD' } : undefined,
-    meetingRoom: visit.hasMeetingRoom ? { id: 'auto', name: 'TBD', capacity: 10, floor: '1', timeSlot: visit.visitTime || '' } : undefined,
-    buffet: visit.hasBuffet ? { id: 'auto', mealType: DEFAULT_MEAL_TYPE, location: 'Main Buffet' } : undefined,
-    valet: visit.hasValet ? { id: 'auto', pickupTime: visit.visitTime || '', returnTime: '', status: 'pending' } : undefined,
+    parkingSlot: visit.hasParking ? { ...DEFAULT_PARKING_SLOT } : undefined,
+    meetingRoom: visit.hasMeetingRoom ? { ...DEFAULT_MEETING_ROOM, timeSlot: visit.visitTime || '' } : undefined,
+    buffet: visit.hasBuffet ? { ...DEFAULT_BUFFET } : undefined,
+    valet: visit.hasValet ? { ...DEFAULT_VALET, pickupTime: visit.visitTime || '' } : undefined,
     qrCode: undefined,
     approval: {
       requiresApproval: true,
@@ -190,9 +194,9 @@ export const mapPendingApprovalToVisitorRequest = (item: PendingApprovalDto): Vi
     status: API_STATUS_MAP.pending_approval,
     communicationChannels: DEFAULT_COMMUNICATION_CHANNELS,
     parkingType: item.hasParking ? 'auto' : 'none',
-    meetingRoom: item.hasMeetingRoom ? { id: 'auto', name: 'TBD', capacity: 10, floor: '1', timeSlot: item.visitTime || '' } : undefined,
-    buffet: item.hasBuffet ? { id: 'auto', mealType: DEFAULT_MEAL_TYPE, location: 'Main Buffet' } : undefined,
-    valet: item.hasValet ? { id: 'auto', pickupTime: item.visitTime || '', returnTime: '', status: 'pending' } : undefined,
+    meetingRoom: item.hasMeetingRoom ? { ...DEFAULT_MEETING_ROOM, timeSlot: item.visitTime || '' } : undefined,
+    buffet: item.hasBuffet ? { ...DEFAULT_BUFFET } : undefined,
+    valet: item.hasValet ? { ...DEFAULT_VALET, pickupTime: item.visitTime || '' } : undefined,
     approval: {
       requiresApproval: true,
       approvedAt: undefined,

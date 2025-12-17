@@ -90,3 +90,36 @@ export const DURATION_OPTIONS = [
   { value: '3 hours', minutes: 180 },
   { value: '4 hours', minutes: 240 },
 ] as const;
+
+export const PLACEHOLDER_ID = 'auto';
+export const PLACEHOLDER_SLOT_NUMBER = 'TBD';
+export const PLACEHOLDER_ROOM_NAME = 'TBD';
+
+export const DEFAULT_PARKING_LOCATION: ParkingLocation = 'skbc_basement';
+export const DEFAULT_BUFFET_LOCATION = 'Main Buffet';
+
+export const DEFAULT_MEETING_ROOM = {
+  id: PLACEHOLDER_ID,
+  name: PLACEHOLDER_ROOM_NAME,
+  capacity: 10,
+  floor: '1',
+} as const;
+
+export const DEFAULT_VALET = {
+  id: PLACEHOLDER_ID,
+  pickupTime: '',
+  returnTime: '',
+  status: 'pending' as const,
+} as const;
+
+export const DEFAULT_PARKING_SLOT = {
+  id: PLACEHOLDER_ID,
+  location: DEFAULT_PARKING_LOCATION,
+  slotNumber: PLACEHOLDER_SLOT_NUMBER,
+} as const;
+
+export const DEFAULT_BUFFET = {
+  id: PLACEHOLDER_ID,
+  mealType: DEFAULT_MEAL_TYPE,
+  location: DEFAULT_BUFFET_LOCATION,
+} as const;
