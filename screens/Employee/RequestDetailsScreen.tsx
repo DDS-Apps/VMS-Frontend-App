@@ -278,22 +278,19 @@ export default function RequestDetailsScreen({ navigation, route }: RequestDetai
       { id: requestId },
       {
         onSuccess: () => {
-          setSuccessMessage(t('notifications.walkInApproved'));
-          setShowSuccessModal(true);
+          // Approval successful, now open service selection modal
+          if (visitData) {
+            setServiceRequiresParking(visitData.parkingType !== 'none');
+            setServiceRequiresMeetingRoom(!!visitData.meetingRoom);
+            setServiceRequiresBuffet(!!visitData.buffet);
+          }
+          setShowServiceSelectionModal(true);
         },
         onError: (error) => {
           Alert.alert(t('errors.somethingWentWrong'), error.message);
         },
       }
     );
-  };
-
-  const openServiceSelectionModal = () => {
-    if (!visitData) return;
-    setServiceRequiresParking(visitData.parkingType !== 'none');
-    setServiceRequiresMeetingRoom(!!visitData.meetingRoom);
-    setServiceRequiresBuffet(!!visitData.buffet);
-    setShowServiceSelectionModal(true);
   };
 
   const handleServiceSelectionApprove = () => {
@@ -309,20 +306,10 @@ export default function RequestDetailsScreen({ navigation, route }: RequestDetai
       { id: requestId, data: payload },
       {
         onSuccess: () => {
-          console.log('[RequestDetails] Service selection update successful, now approving...');
-          hostApproveMutation.mutate(
-            { id: requestId },
-            {
-              onSuccess: () => {
-                setShowServiceSelectionModal(false);
-                setSuccessMessage(t('notifications.walkInApproved'));
-                setShowSuccessModal(true);
-              },
-              onError: (error) => {
-                Alert.alert(t('errors.somethingWentWrong'), error.message);
-              },
-            }
-          );
+          console.log('[RequestDetails] Service selection update successful');
+          setShowServiceSelectionModal(false);
+          setSuccessMessage(t('notifications.walkInApproved'));
+          setShowSuccessModal(true);
         },
         onError: (error) => {
           console.log('[RequestDetails] Service selection update failed:', error.message);
@@ -821,9 +808,9 @@ export default function RequestDetailsScreen({ navigation, route }: RequestDetai
       {request.isWalkIn && request.status === 'pending_approval' ? (
         <>
           <ApprovalActionGroup
-            onApprove={openServiceSelectionModal}
+            onApprove={handleHostApprove}
             onReject={() => setShowHostRejectModal(true)}
-            approveLoading={false}
+            approveLoading={hostApproveMutation.isPending}
             rejectLoading={hostRejectMutation.isPending}
             size="medium"
             showIcons={true}
