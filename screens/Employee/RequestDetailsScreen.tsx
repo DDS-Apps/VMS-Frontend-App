@@ -46,6 +46,8 @@ import {
   useHostApproveVisitMutation,
   useHostRejectVisitMutation,
 } from "@/hooks/queries/useApprovalQueries";
+import { useRoomAvailabilityQuery } from "@/hooks/queries/useMeetingRoomQueries";
+import type { RoomAvailabilityParams } from "@/types/api.types";
 import { VisitorRequest } from "@/types/vms.types";
 import {
   getStatusConfig as getStatusStyle,
@@ -136,6 +138,35 @@ export default function RequestDetailsScreen({
   const updateMutation = useUpdateVisitMutation();
   const hostApproveMutation = useHostApproveVisitMutation();
   const hostRejectMutation = useHostRejectVisitMutation();
+
+  // Room availability check for edit modal
+  const formatDateForApi = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const formatTimeForQuery = (time: Date): string => {
+    const hours = String(time.getHours()).padStart(2, '0');
+    const minutes = String(time.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
+  };
+
+  const editRoomAvailabilityParams: RoomAvailabilityParams | null = 
+    showEditModal && editRequiresMeetingRoom && editDate && editTime && editEndTime
+      ? {
+          date: formatDateForApi(editDate),
+          startTime: formatTimeForQuery(editTime),
+          endTime: formatTimeForQuery(editEndTime),
+        }
+      : null;
+
+  const { data: editRoomAvailability, isLoading: isLoadingEditRooms } = 
+    useRoomAvailabilityQuery(editRoomAvailabilityParams);
+  
+  const isEditRoomAvailable = editRoomAvailability?.available === true;
+  const hasCheckedEditAvailability = editRoomAvailability !== undefined && !isLoadingEditRooms;
 
   const request = useMemo(() => {
     if (!visitData) return null;
@@ -308,13 +339,6 @@ export default function RequestDetailsScreen({
         },
       },
     );
-  };
-
-  const formatDateForApi = (date: Date): string => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
   };
 
   const formatTimeForApi = (time: Date): string => {
@@ -1922,6 +1946,53 @@ export default function RequestDetailsScreen({
                 </View>
               </View>
 
+              {/* Meeting Room Availability Badge */}
+              {editRequiresMeetingRoom ? (
+                <View style={{ marginTop: Spacing.md }}>
+                  {hasCheckedEditAvailability ? (
+                    <View 
+                      style={[
+                        styles.availabilityBadge, 
+                        { 
+                          backgroundColor: isEditRoomAvailable 
+                            ? applyOpacity(theme.success, '15') 
+                            : applyOpacity(theme.error, '15'),
+                          borderColor: isEditRoomAvailable ? theme.success : theme.error,
+                        }
+                      ]}
+                    >
+                      <DDIcon 
+                        name={isEditRoomAvailable ? "check-circle" : "alert-circle"} 
+                        size={16} 
+                        color={isEditRoomAvailable ? theme.success : theme.error} 
+                      />
+                      <ThemedText 
+                        style={[
+                          Typography.bodySmall, 
+                          { 
+                            color: isEditRoomAvailable ? theme.success : theme.error,
+                            marginStart: Spacing.xs,
+                            fontWeight: '500'
+                          }
+                        ]}
+                      >
+                        {isEditRoomAvailable 
+                          ? t('form.meetingRoomAvailable')
+                          : t('errors.noRoomsAvailableForTime')
+                        }
+                      </ThemedText>
+                    </View>
+                  ) : isLoadingEditRooms ? (
+                    <View style={[styles.availabilityBadge, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                      <ActivityIndicator size="small" color={theme.primary} style={{ marginEnd: Spacing.xs }} />
+                      <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
+                        {t('common.checkingAvailability')}...
+                      </ThemedText>
+                    </View>
+                  ) : null}
+                </View>
+              ) : null}
+
               <Spacer height={Spacing.xl} />
 
               <ThemedText
@@ -2669,5 +2740,13 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.lg,
     borderBottomWidth: 1,
+  },
+  availabilityBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
   },
 });
