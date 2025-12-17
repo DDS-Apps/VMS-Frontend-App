@@ -77,7 +77,6 @@ export default function RequestDetailsScreen({
   const insets = useSafeAreaInsets();
   const { requestId } = route.params;
   const [showCancelModal, setShowCancelModal] = useState(false);
-  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showHostRejectModal, setShowHostRejectModal] = useState(false);
   const [hostRejectReason, setHostRejectReason] = useState("");
@@ -88,14 +87,6 @@ export default function RequestDetailsScreen({
   const [serviceRequiresMeetingRoom, setServiceRequiresMeetingRoom] =
     useState(false);
   const [serviceRequiresBuffet, setServiceRequiresBuffet] = useState(false);
-  const [rescheduleDate, setRescheduleDate] = useState(new Date());
-  const [rescheduleTime, setRescheduleTime] = useState(new Date());
-  const [rescheduleDuration, setRescheduleDuration] = useState<
-    string | undefined
-  >(undefined);
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showTimePicker, setShowTimePicker] = useState(false);
-  const [showDurationPicker, setShowDurationPicker] = useState(false);
 
   const [editPurpose, setEditPurpose] = useState("");
   const [editDate, setEditDate] = useState(new Date());
@@ -301,14 +292,6 @@ export default function RequestDetailsScreen({
     );
   };
 
-  const openRescheduleModal = () => {
-    const now = new Date();
-    setRescheduleDate(now);
-    setRescheduleTime(now);
-    setRescheduleDuration(request?.duration);
-    setShowRescheduleModal(true);
-  };
-
   const formatDateForApi = (date: Date): string => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -333,37 +316,6 @@ export default function RequestDetailsScreen({
     return formatTime(time);
   };
 
-  const handleRescheduleConfirm = () => {
-    if (!request) return;
-
-    const payload = {
-      visitDate: formatDateForApi(rescheduleDate),
-      visitTime: formatTimeForApi(rescheduleTime),
-      duration: rescheduleDuration || request.duration,
-    };
-
-    console.log(
-      "[RequestDetails] Submitting reschedule with payload:",
-      JSON.stringify(payload, null, 2),
-    );
-
-    updateMutation.mutate(
-      { id: requestId, data: payload },
-      {
-        onSuccess: () => {
-          console.log("[RequestDetails] Reschedule successful");
-          setShowRescheduleModal(false);
-          setSuccessMessage(t("notifications.visitUpdated"));
-          setShowSuccessModal(true);
-        },
-        onError: (error) => {
-          console.log("[RequestDetails] Reschedule failed:", error.message);
-          Alert.alert(t("errors.somethingWentWrong"), error.message);
-        },
-      },
-    );
-  };
-
   const getDurationHours = (duration: string): number => {
     switch (duration) {
       case "30 minutes":
@@ -381,38 +333,6 @@ export default function RequestDetailsScreen({
       default:
         return 1;
     }
-  };
-
-  const handleDateChange = (
-    event: DateTimePickerEvent,
-    selectedDate?: Date,
-  ) => {
-    if (Platform.OS === "android") {
-      setShowDatePicker(false);
-    }
-    if (selectedDate) {
-      setRescheduleDate(selectedDate);
-    }
-  };
-
-  const handleTimeChange = (
-    event: DateTimePickerEvent,
-    selectedTime?: Date,
-  ) => {
-    if (Platform.OS === "android") {
-      setShowTimePicker(false);
-    }
-    if (selectedTime) {
-      setRescheduleTime(selectedTime);
-    }
-  };
-
-  const handleRescheduleDateSelect = (date: Date) => {
-    setRescheduleDate(date);
-  };
-
-  const handleRescheduleTimeSelect = (time: Date) => {
-    setRescheduleTime(time);
   };
 
   const openEditModal = () => {
@@ -464,11 +384,10 @@ export default function RequestDetailsScreen({
       visitTime: formatTimeForApi(editTime),
       duration: editDuration,
       purpose: editPurpose,
-      requiresParking: editRequiresParking,
-      requiresMeetingRoom: editRequiresMeetingRoom,
-      requiresBuffet: editRequiresBuffet,
-      requiresValet: editRequiresValet,
-      notes: editNotes || undefined,
+      needsParking: editRequiresParking,
+      needsMeetingRoom: editRequiresMeetingRoom,
+      needsBuffet: editRequiresBuffet,
+      needsValet: editRequiresValet,
     };
 
     console.log(
@@ -1219,7 +1138,7 @@ export default function RequestDetailsScreen({
                 styles.actionButtonHalf,
                 { borderColor: theme.primary, backgroundColor: theme.surface },
               ]}
-              onPress={openRescheduleModal}
+              onPress={openEditModal}
             >
               <DDIcon name="calendar" size={18} color={theme.primary} />
               <ThemedText
@@ -1617,252 +1536,6 @@ export default function RequestDetailsScreen({
       </Modal>
 
       <Modal
-        visible={showRescheduleModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowRescheduleModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <Pressable
-            style={[styles.modalBackdrop, createModalOverlayStyle(theme, "50")]}
-            onPress={() => setShowRescheduleModal(false)}
-          />
-          <View
-            style={[styles.modalContent, { backgroundColor: theme.surface }]}
-          >
-            <View style={styles.modalHeader}>
-              <ThemedText
-                style={[
-                  Typography.subtitle,
-                  { fontSize: 18, fontWeight: "600", color: theme.text },
-                ]}
-              >
-                {t("actions.rescheduleVisit")}
-              </ThemedText>
-              <Pressable onPress={() => setShowRescheduleModal(false)}>
-                <DDIcon name="x" size={22} variant="muted" />
-              </Pressable>
-            </View>
-
-            <Spacer height={Spacing.lg} />
-
-            <ThemedText
-              style={[
-                Typography.body,
-                { color: theme.textSecondary, fontSize: 14 },
-              ]}
-            >
-              {t("actions.selectNewDateTime")}
-            </ThemedText>
-
-            <Spacer height={Spacing.md} />
-
-            <ThemedView
-              style={[
-                styles.currentScheduleBox,
-                {
-                  backgroundColor: theme.surfaceSecondary,
-                  borderColor: theme.border,
-                },
-              ]}
-            >
-              <ThemedText
-                style={[
-                  Typography.caption,
-                  { color: theme.textSecondary, fontSize: 11, marginBottom: 4 },
-                ]}
-              >
-                {t("actions.currentSchedule")}
-              </ThemedText>
-              <ThemedText
-                style={[
-                  Typography.body,
-                  { color: theme.text, fontWeight: "600", fontSize: 14 },
-                ]}
-              >
-                {request?.visitDate} {t("time.at")} {request?.visitTime}
-              </ThemedText>
-            </ThemedView>
-
-            <Spacer height={Spacing.xl} />
-
-            <ThemedText
-              style={[
-                Typography.caption,
-                { color: theme.textSecondary, fontSize: 12, marginBottom: 8 },
-              ]}
-            >
-              {t("actions.newDate")}
-            </ThemedText>
-            <Pressable
-              style={[
-                styles.pickerButton,
-                {
-                  backgroundColor: theme.surfaceSecondary,
-                  borderColor: theme.border,
-                },
-              ]}
-              onPress={() => setShowDatePicker(true)}
-            >
-              <DDIcon name="calendar" size={16} variant="muted" />
-              <ThemedText
-                style={[
-                  Typography.body,
-                  { marginStart: Spacing.sm, color: theme.text, fontSize: 14 },
-                ]}
-              >
-                {formatDisplayDate(rescheduleDate)}
-              </ThemedText>
-            </Pressable>
-
-            <Spacer height={Spacing.lg} />
-
-            <ThemedText
-              style={[
-                Typography.caption,
-                { color: theme.textSecondary, fontSize: 12, marginBottom: 8 },
-              ]}
-            >
-              {t("actions.newTime")}
-            </ThemedText>
-            <Pressable
-              style={[
-                styles.pickerButton,
-                {
-                  backgroundColor: theme.surfaceSecondary,
-                  borderColor: theme.border,
-                },
-              ]}
-              onPress={() => setShowTimePicker(true)}
-            >
-              <DDIcon name="clock" size={16} variant="muted" />
-              <ThemedText
-                style={[
-                  Typography.body,
-                  { marginStart: Spacing.sm, color: theme.text, fontSize: 14 },
-                ]}
-              >
-                {formatDisplayTime(rescheduleTime)}
-              </ThemedText>
-            </Pressable>
-
-            <Spacer height={Spacing.lg} />
-
-            <ThemedText
-              style={[
-                Typography.caption,
-                { color: theme.textSecondary, fontSize: 12, marginBottom: 8 },
-              ]}
-            >
-              {t("actions.newDuration")} ({t("form.optional")})
-            </ThemedText>
-            <Pressable
-              style={[
-                styles.pickerButton,
-                {
-                  backgroundColor: theme.surfaceSecondary,
-                  borderColor: theme.border,
-                },
-              ]}
-              onPress={() => setShowDurationPicker(!showDurationPicker)}
-            >
-              <DDIcon name="clock" size={16} variant="muted" />
-              <ThemedText
-                style={[
-                  Typography.body,
-                  {
-                    marginStart: Spacing.sm,
-                    color: theme.text,
-                    fontSize: 14,
-                    flex: 1,
-                  },
-                ]}
-              >
-                {rescheduleDuration || t("form.selectDuration")}
-              </ThemedText>
-              <DDIcon
-                name={showDurationPicker ? "chevron-up" : "chevron-down"}
-                size={16}
-                variant="muted"
-              />
-            </Pressable>
-
-            {showDurationPicker && (
-              <View
-                style={[
-                  styles.durationDropdown,
-                  {
-                    backgroundColor: theme.surfaceSecondary,
-                    borderColor: theme.border,
-                  },
-                ]}
-              >
-                {getDurationOptions(t).map((option) => (
-                  <Pressable
-                    key={option.value}
-                    style={[
-                      styles.durationOption,
-                      rescheduleDuration === option.value && {
-                        backgroundColor: applyOpacity(theme.primary, "10"),
-                      },
-                    ]}
-                    onPress={() => {
-                      setRescheduleDuration(option.value);
-                      setShowDurationPicker(false);
-                    }}
-                  >
-                    <ThemedText
-                      style={[
-                        Typography.body,
-                        {
-                          color:
-                            rescheduleDuration === option.value
-                              ? theme.primary
-                              : theme.text,
-                          fontSize: 14,
-                          fontWeight:
-                            rescheduleDuration === option.value ? "600" : "400",
-                        },
-                      ]}
-                    >
-                      {option.label}
-                    </ThemedText>
-                  </Pressable>
-                ))}
-              </View>
-            )}
-
-            <Spacer height={Spacing.xl} />
-
-            <View style={styles.modalActions}>
-              <LoadingButton
-                onPress={() => setShowRescheduleModal(false)}
-                variant="secondary"
-                size="medium"
-                style={{ flex: 1 }}
-              >
-                {t("common.cancel")}
-              </LoadingButton>
-
-              <Spacer width={12} />
-
-              <LoadingButton
-                onPress={handleRescheduleConfirm}
-                loading={updateMutation.isPending}
-                disabled={updateMutation.isPending}
-                variant="primary"
-                size="medium"
-                loadingText={t("common.saving")}
-                style={{ flex: 1 }}
-              >
-                {t("actions.confirmReschedule")}
-              </LoadingButton>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      <Modal
         visible={showEditModal}
         transparent
         animationType="fade"
@@ -1932,39 +1605,65 @@ export default function RequestDetailsScreen({
               >
                 {t("form.date")}
               </ThemedText>
-              <Pressable
-                style={[
-                  styles.pickerButton,
-                  {
-                    backgroundColor: theme.surfaceSecondary,
-                    borderColor: theme.border,
-                  },
-                ]}
-                onPress={() => setShowEditDatePicker(true)}
-              >
-                <DDIcon name="calendar" size={16} variant="muted" />
-                <ThemedText
+              {Platform.OS === "web" ? (
+                <TextInput
                   style={[
-                    Typography.body,
+                    styles.textInputField,
                     {
-                      marginStart: Spacing.sm,
+                      backgroundColor: theme.surfaceSecondary,
+                      borderColor: theme.border,
                       color: theme.text,
-                      fontSize: 14,
                     },
                   ]}
-                >
-                  {formatDisplayDate(editDate)}
-                </ThemedText>
-              </Pressable>
-
-              {showEditDatePicker && (
-                <DateTimePicker
-                  value={editDate}
-                  mode="date"
-                  display={Platform.OS === "ios" ? "spinner" : "default"}
-                  onChange={handleEditDateChange}
-                  minimumDate={new Date()}
+                  value={editDate.toISOString().split("T")[0]}
+                  onChangeText={(text) => {
+                    const date = new Date(text);
+                    if (!isNaN(date.getTime())) {
+                      setEditDate(date);
+                    }
+                  }}
+                  placeholder="YYYY-MM-DD"
+                  placeholderTextColor={theme.textSecondary}
+                  // @ts-ignore - web-specific prop
+                  type="date"
                 />
+              ) : (
+                <>
+                  <Pressable
+                    style={[
+                      styles.pickerButton,
+                      {
+                        backgroundColor: theme.surfaceSecondary,
+                        borderColor: theme.border,
+                      },
+                    ]}
+                    onPress={() => setShowEditDatePicker(true)}
+                  >
+                    <DDIcon name="calendar" size={16} variant="muted" />
+                    <ThemedText
+                      style={[
+                        Typography.body,
+                        {
+                          marginStart: Spacing.sm,
+                          color: theme.text,
+                          fontSize: 14,
+                        },
+                      ]}
+                    >
+                      {formatDisplayDate(editDate)}
+                    </ThemedText>
+                  </Pressable>
+
+                  {showEditDatePicker && (
+                    <DateTimePicker
+                      value={editDate}
+                      mode="date"
+                      display={Platform.OS === "ios" ? "spinner" : "default"}
+                      onChange={handleEditDateChange}
+                      minimumDate={new Date()}
+                    />
+                  )}
+                </>
               )}
 
               <Spacer height={Spacing.lg} />
@@ -1977,38 +1676,66 @@ export default function RequestDetailsScreen({
               >
                 {t("form.time")}
               </ThemedText>
-              <Pressable
-                style={[
-                  styles.pickerButton,
-                  {
-                    backgroundColor: theme.surfaceSecondary,
-                    borderColor: theme.border,
-                  },
-                ]}
-                onPress={() => setShowEditTimePicker(true)}
-              >
-                <DDIcon name="clock" size={16} variant="muted" />
-                <ThemedText
+              {Platform.OS === "web" ? (
+                <TextInput
                   style={[
-                    Typography.body,
+                    styles.textInputField,
                     {
-                      marginStart: Spacing.sm,
+                      backgroundColor: theme.surfaceSecondary,
+                      borderColor: theme.border,
                       color: theme.text,
-                      fontSize: 14,
                     },
                   ]}
-                >
-                  {formatDisplayTime(editTime)}
-                </ThemedText>
-              </Pressable>
-
-              {showEditTimePicker && (
-                <DateTimePicker
-                  value={editTime}
-                  mode="time"
-                  display={Platform.OS === "ios" ? "spinner" : "default"}
-                  onChange={handleEditTimeChange}
+                  value={`${String(editTime.getHours()).padStart(2, "0")}:${String(editTime.getMinutes()).padStart(2, "0")}`}
+                  onChangeText={(text) => {
+                    const [hours, minutes] = text.split(":").map(Number);
+                    if (!isNaN(hours) && !isNaN(minutes)) {
+                      const newTime = new Date(editTime);
+                      newTime.setHours(hours, minutes);
+                      setEditTime(newTime);
+                    }
+                  }}
+                  placeholder="HH:MM"
+                  placeholderTextColor={theme.textSecondary}
+                  // @ts-ignore - web-specific prop
+                  type="time"
                 />
+              ) : (
+                <>
+                  <Pressable
+                    style={[
+                      styles.pickerButton,
+                      {
+                        backgroundColor: theme.surfaceSecondary,
+                        borderColor: theme.border,
+                      },
+                    ]}
+                    onPress={() => setShowEditTimePicker(true)}
+                  >
+                    <DDIcon name="clock" size={16} variant="muted" />
+                    <ThemedText
+                      style={[
+                        Typography.body,
+                        {
+                          marginStart: Spacing.sm,
+                          color: theme.text,
+                          fontSize: 14,
+                        },
+                      ]}
+                    >
+                      {formatDisplayTime(editTime)}
+                    </ThemedText>
+                  </Pressable>
+
+                  {showEditTimePicker && (
+                    <DateTimePicker
+                      value={editTime}
+                      mode="time"
+                      display={Platform.OS === "ios" ? "spinner" : "default"}
+                      onChange={handleEditTimeChange}
+                    />
+                  )}
+                </>
               )}
 
               <Spacer height={Spacing.lg} />
@@ -2356,22 +2083,6 @@ export default function RequestDetailsScreen({
         </Pressable>
       </Modal>
 
-      <CalendarDatePicker
-        visible={showDatePicker}
-        onClose={() => setShowDatePicker(false)}
-        selectedDate={rescheduleDate}
-        onDateSelect={handleRescheduleDateSelect}
-        mode="single"
-        minimumDate={new Date()}
-      />
-
-      <TimePicker
-        visible={showTimePicker}
-        onClose={() => setShowTimePicker(false)}
-        selectedTime={rescheduleTime}
-        onTimeSelect={handleRescheduleTimeSelect}
-        minuteInterval={5}
-      />
     </ScreenScrollView>
   );
 }
