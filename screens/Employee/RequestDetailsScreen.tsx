@@ -19,6 +19,7 @@ import DateTimePicker, {
 import { CalendarDatePicker } from "@/components/CalendarDatePicker";
 import { TimePicker } from "@/components/TimePicker";
 import { DDIcon, type IconName } from "@/components/DDIcon";
+import { SelectableCard, CardGridStyles } from "@/components/SelectableCard";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { LoadingButton } from "@/components/shared/LoadingButton";
 import { ApprovalActionGroup } from "@/components/shared/ApprovalActionGroup";
@@ -97,9 +98,14 @@ export default function RequestDetailsScreen({
   const [editRequiresBuffet, setEditRequiresBuffet] = useState(false);
   const [editRequiresValet, setEditRequiresValet] = useState(false);
   const [editNotes, setEditNotes] = useState("");
+  const [editEndTime, setEditEndTime] = useState<Date>(() => {
+    const endTime = new Date();
+    endTime.setHours(endTime.getHours() + 1);
+    return endTime;
+  });
   const [showEditDatePicker, setShowEditDatePicker] = useState(false);
   const [showEditTimePicker, setShowEditTimePicker] = useState(false);
-  const [showEditDurationPicker, setShowEditDurationPicker] = useState(false);
+  const [showEditEndTimePicker, setShowEditEndTimePicker] = useState(false);
   const [editModalMode, setEditModalMode] = useState<"full" | "services-only">("full");
 
   // Success modal states
@@ -341,19 +347,69 @@ export default function RequestDetailsScreen({
 
     setEditModalMode(mode);
     setEditPurpose(visitData.purpose || "");
-    setEditDate(
-      visitData.visitDate ? new Date(visitData.visitDate) : new Date(),
-    );
-    setEditTime(
-      parseTimeString(visitData.visitTime || "", visitData.visitDate),
-    );
-    setEditDuration(parseISODuration(request?.duration || "1 hour"));
+    const visitDate = visitData.visitDate ? new Date(visitData.visitDate) : new Date();
+    setEditDate(visitDate);
+    const startTime = parseTimeString(visitData.visitTime || "", visitData.visitDate);
+    setEditTime(startTime);
+    
+    // Calculate end time from duration - use raw ISO duration from API, not localized string
+    const rawDuration = visitData.duration || "PT1H";
+    const durationMs = parseDurationToMs(rawDuration);
+    const endTime = new Date(startTime.getTime() + durationMs);
+    setEditEndTime(endTime);
+    setEditDuration(parseISODuration(rawDuration));
+    
     setEditRequiresParking(visitData.parkingType !== "none");
     setEditRequiresMeetingRoom(!!visitData.meetingRoom);
     setEditRequiresBuffet(!!visitData.buffet);
     setEditRequiresValet(visitData.parkingType === "valet");
     setEditNotes("");
     setShowEditModal(true);
+  };
+  
+  const parseDurationToMs = (duration: string): number => {
+    // Parse ISO 8601 duration (e.g., "PT1H30M") or display string (e.g., "1 hour")
+    if (duration.startsWith("PT")) {
+      const hoursMatch = duration.match(/(\d+)H/);
+      const minutesMatch = duration.match(/(\d+)M/);
+      const hours = hoursMatch ? parseInt(hoursMatch[1]) : 0;
+      const minutes = minutesMatch ? parseInt(minutesMatch[1]) : 0;
+      return (hours * 60 + minutes) * 60 * 1000;
+    }
+    // Fallback for display strings
+    if (duration.includes("hour")) {
+      const hours = parseFloat(duration) || 1;
+      return hours * 60 * 60 * 1000;
+    }
+    if (duration.includes("minute")) {
+      const minutes = parseFloat(duration) || 30;
+      return minutes * 60 * 1000;
+    }
+    return 60 * 60 * 1000; // Default 1 hour
+  };
+  
+  const calculateEditDuration = (): string => {
+    const startMs = editTime.getTime();
+    const endMs = editEndTime.getTime();
+    const diffMs = endMs - startMs;
+    
+    if (diffMs <= 0) return "--";
+    
+    const diffMinutes = Math.round(diffMs / (1000 * 60));
+    const hours = Math.floor(diffMinutes / 60);
+    const minutes = diffMinutes % 60;
+    
+    if (hours === 0) {
+      return `${toLocalNumerals(String(minutes))} ${t("time.min")}`;
+    } else if (minutes === 0) {
+      return `${toLocalNumerals(String(hours))} ${hours === 1 ? t("time.hour") : t("time.hours")}`;
+    } else {
+      return `${toLocalNumerals(String(hours))}${t("time.hourShort")} ${toLocalNumerals(String(minutes))}${t("time.minShort")}`;
+    }
+  };
+  
+  const isEditEndTimeBeforeStartTime = (): boolean => {
+    return editEndTime.getTime() <= editTime.getTime();
   };
 
   const handleEditDateChange = (
@@ -380,6 +436,18 @@ export default function RequestDetailsScreen({
     }
   };
 
+  const handleEditEndTimeChange = (
+    event: DateTimePickerEvent,
+    selectedTime?: Date,
+  ) => {
+    if (Platform.OS === "android") {
+      setShowEditEndTimePicker(false);
+    }
+    if (selectedTime) {
+      setEditEndTime(selectedTime);
+    }
+  };
+
   const handleEditConfirm = () => {
     const payload: Record<string, unknown> = {
       purpose: editPurpose,
@@ -393,7 +461,19 @@ export default function RequestDetailsScreen({
     if (editModalMode === "full") {
       payload.visitDate = formatDateForApi(editDate);
       payload.visitTime = formatTimeForApi(editTime);
-      payload.duration = editDuration;
+      
+      // Calculate ISO-8601 duration from start and end times
+      const startMs = editTime.getTime();
+      const endMs = editEndTime.getTime();
+      const diffMs = endMs - startMs;
+      const diffMinutes = Math.max(0, Math.round(diffMs / (1000 * 60)));
+      const hours = Math.floor(diffMinutes / 60);
+      const minutes = diffMinutes % 60;
+      let isoDuration = "PT";
+      if (hours > 0) isoDuration += `${hours}H`;
+      if (minutes > 0) isoDuration += `${minutes}M`;
+      if (hours === 0 && minutes === 0) isoDuration = "PT0M";
+      payload.duration = isoDuration;
     }
 
     console.log(
@@ -1132,56 +1212,33 @@ export default function RequestDetailsScreen({
         </>
       ) : null}
 
-      {/* Non-walk-in request: Show Edit, Reschedule, Cancel buttons */}
+      {/* Non-walk-in request: Show Edit and Cancel buttons side by side */}
       {!request.isWalkIn &&
       (request.status === REQUEST_STATUS.PENDING_APPROVAL ||
         request.status === REQUEST_STATUS.APPROVED ||
         request.status === REQUEST_STATUS.VISITOR_ACCEPTED) ? (
         <>
-          <Pressable
-            style={[
-              styles.actionButtonFull,
-              { backgroundColor: theme.primary },
-            ]}
-            onPress={() => openEditModal("full")}
-          >
-            <DDIcon name="edit-2" size={18} color={theme.buttonText} />
-            <ThemedText
-              style={[
-                Typography.body,
-                {
-                  color: theme.buttonText,
-                  marginStart: Spacing.sm,
-                  fontWeight: "600",
-                  fontSize: 14,
-                },
-              ]}
-            >
-              {t("actions.editRequest")}
-            </ThemedText>
-          </Pressable>
-          <Spacer height={Spacing.md} />
           <View style={styles.actionButtonsRow}>
             <Pressable
               style={[
                 styles.actionButtonHalf,
-                { borderColor: theme.primary, backgroundColor: theme.surface },
+                { backgroundColor: theme.primary },
               ]}
               onPress={() => openEditModal("full")}
             >
-              <DDIcon name="calendar" size={18} color={theme.primary} />
+              <DDIcon name="edit-2" size={18} color={theme.buttonText} />
               <ThemedText
                 style={[
                   Typography.body,
                   {
-                    color: theme.primary,
+                    color: theme.buttonText,
                     marginStart: Spacing.sm,
                     fontWeight: "600",
                     fontSize: 14,
                   },
                 ]}
               >
-                {t("actions.reschedule")}
+                {t("actions.edit")}
               </ThemedText>
             </Pressable>
             <Spacer width={Spacing.md} />
@@ -1779,19 +1836,89 @@ export default function RequestDetailsScreen({
                   { color: theme.textSecondary, fontSize: 12, marginBottom: 8 },
                 ]}
               >
+                {t("form.endTime")}
+              </ThemedText>
+              {Platform.OS === "web" ? (
+                <TextInput
+                  style={[
+                    styles.textInputField,
+                    {
+                      backgroundColor: theme.surfaceSecondary,
+                      borderColor: theme.border,
+                      color: theme.text,
+                    },
+                  ]}
+                  value={`${String(editEndTime.getHours()).padStart(2, "0")}:${String(editEndTime.getMinutes()).padStart(2, "0")}`}
+                  onChangeText={(text) => {
+                    const [hours, minutes] = text.split(":").map(Number);
+                    if (!isNaN(hours) && !isNaN(minutes)) {
+                      const newTime = new Date(editEndTime);
+                      newTime.setHours(hours, minutes);
+                      setEditEndTime(newTime);
+                    }
+                  }}
+                  placeholder="HH:MM"
+                  placeholderTextColor={theme.textSecondary}
+                  // @ts-ignore - web-specific prop
+                  type="time"
+                />
+              ) : (
+                <>
+                  <Pressable
+                    style={[
+                      styles.pickerButton,
+                      {
+                        backgroundColor: theme.surfaceSecondary,
+                        borderColor: theme.border,
+                      },
+                    ]}
+                    onPress={() => setShowEditEndTimePicker(true)}
+                  >
+                    <DDIcon name="clock" size={16} variant="muted" />
+                    <ThemedText
+                      style={[
+                        Typography.body,
+                        {
+                          marginStart: Spacing.sm,
+                          color: theme.text,
+                          fontSize: 14,
+                        },
+                      ]}
+                    >
+                      {formatDisplayTime(editEndTime)}
+                    </ThemedText>
+                  </Pressable>
+
+                  {showEditEndTimePicker && (
+                    <DateTimePicker
+                      value={editEndTime}
+                      mode="time"
+                      display={Platform.OS === "ios" ? "spinner" : "default"}
+                      onChange={handleEditEndTimeChange}
+                    />
+                  )}
+                </>
+              )}
+
+              <Spacer height={Spacing.lg} />
+
+              <ThemedText
+                style={[
+                  Typography.caption,
+                  { color: theme.textSecondary, fontSize: 12, marginBottom: 8 },
+                ]}
+              >
                 {t("form.duration")}
               </ThemedText>
-              <Pressable
+              <View
                 style={[
                   styles.pickerButton,
                   {
-                    backgroundColor: theme.surfaceSecondary,
+                    backgroundColor: theme.surface,
                     borderColor: theme.border,
+                    opacity: 0.7,
                   },
                 ]}
-                onPress={() =>
-                  setShowEditDurationPicker(!showEditDurationPicker)
-                }
               >
                 <DDIcon name="clock" size={16} variant="muted" />
                 <ThemedText
@@ -1799,65 +1926,24 @@ export default function RequestDetailsScreen({
                     Typography.body,
                     {
                       marginStart: Spacing.sm,
-                      color: theme.text,
+                      color: isEditEndTimeBeforeStartTime() ? theme.error : theme.textSecondary,
                       fontSize: 14,
                       flex: 1,
                     },
                   ]}
                 >
-                  {editDuration}
+                  {calculateEditDuration()}
                 </ThemedText>
-                <DDIcon
-                  name={showEditDurationPicker ? "chevron-up" : "chevron-down"}
-                  size={16}
-                  variant="muted"
-                />
-              </Pressable>
-
-              {showEditDurationPicker && (
-                <View
-                  style={[
-                    styles.durationDropdown,
-                    {
-                      backgroundColor: theme.surfaceSecondary,
-                      borderColor: theme.border,
-                    },
-                  ]}
-                >
-                  {getDurationOptions(t).map((option) => (
-                    <Pressable
-                      key={option.value}
-                      style={[
-                        styles.durationOption,
-                        editDuration === option.value && {
-                          backgroundColor: applyOpacity(theme.primary, "10"),
-                        },
-                      ]}
-                      onPress={() => {
-                        setEditDuration(option.value);
-                        setShowEditDurationPicker(false);
-                      }}
-                    >
-                      <ThemedText
-                        style={[
-                          Typography.body,
-                          {
-                            color:
-                              editDuration === option.value
-                                ? theme.primary
-                                : theme.text,
-                            fontSize: 14,
-                            fontWeight:
-                              editDuration === option.value ? "600" : "400",
-                          },
-                        ]}
-                      >
-                        {option.label}
-                      </ThemedText>
-                    </Pressable>
-                  ))}
-                </View>
-              )}
+                <DDIcon name="lock" size={16} variant="muted" />
+              </View>
+              <ThemedText
+                style={[
+                  Typography.caption,
+                  { color: theme.textSecondary, marginTop: Spacing.xs, fontSize: 11 },
+                ]}
+              >
+                {t("form.calculatedAutomatically")}
+              </ThemedText>
                 </>
               ) : null}
 
@@ -1874,111 +1960,51 @@ export default function RequestDetailsScreen({
                   },
                 ]}
               >
-                {t("services.additionalServices")}
+                {t("services.optionalServices")}
               </ThemedText>
 
-              <View
-                style={[styles.serviceToggleRow, { borderColor: theme.border }]}
-              >
-                <View style={styles.serviceToggleLabel}>
-                  <DDIcon name="map-pin" size={18} variant="muted" />
-                  <ThemedText
-                    style={[
-                      Typography.body,
-                      {
-                        marginStart: Spacing.sm,
-                        color: theme.text,
-                        fontSize: 14,
-                      },
-                    ]}
+              <View style={CardGridStyles.grid}>
+                <View style={CardGridStyles.cardWrapper3Col}>
+                  <SelectableCard
+                    onPress={() => setEditRequiresMeetingRoom(!editRequiresMeetingRoom)}
+                    selected={editRequiresMeetingRoom}
                   >
-                    {t("services.parking")}
-                  </ThemedText>
+                    <View style={[styles.compactServiceIcon, { backgroundColor: applyOpacity(theme.cardIcon, "15") }]}>
+                      <DDIcon name="users" size={20} color={theme.cardIcon} />
+                    </View>
+                    <ThemedText style={[Typography.caption, { fontWeight: "600", marginTop: Spacing.xs, textAlign: "center", color: theme.text, fontSize: 11 }]}>
+                      {t("services.meetingRoom")}
+                    </ThemedText>
+                  </SelectableCard>
                 </View>
-                <Switch
-                  value={editRequiresParking}
-                  onValueChange={setEditRequiresParking}
-                  trackColor={{ false: theme.border, true: theme.primary }}
-                  thumbColor={theme.buttonText}
-                />
-              </View>
 
-              <View
-                style={[styles.serviceToggleRow, { borderColor: theme.border }]}
-              >
-                <View style={styles.serviceToggleLabel}>
-                  <DDIcon name="home" size={18} variant="muted" />
-                  <ThemedText
-                    style={[
-                      Typography.body,
-                      {
-                        marginStart: Spacing.sm,
-                        color: theme.text,
-                        fontSize: 14,
-                      },
-                    ]}
+                <View style={CardGridStyles.cardWrapper3Col}>
+                  <SelectableCard
+                    onPress={() => setEditRequiresParking(!editRequiresParking)}
+                    selected={editRequiresParking}
                   >
-                    {t("services.meetingRoom")}
-                  </ThemedText>
+                    <View style={[styles.compactServiceIcon, { backgroundColor: applyOpacity(theme.cardIcon, "15") }]}>
+                      <DDIcon name="map-pin" size={20} color={theme.cardIcon} />
+                    </View>
+                    <ThemedText style={[Typography.caption, { fontWeight: "600", marginTop: Spacing.xs, textAlign: "center", color: theme.text, fontSize: 11 }]}>
+                      {t("parking.parking")}
+                    </ThemedText>
+                  </SelectableCard>
                 </View>
-                <Switch
-                  value={editRequiresMeetingRoom}
-                  onValueChange={setEditRequiresMeetingRoom}
-                  trackColor={{ false: theme.border, true: theme.primary }}
-                  thumbColor={theme.buttonText}
-                />
-              </View>
 
-              <View
-                style={[styles.serviceToggleRow, { borderColor: theme.border }]}
-              >
-                <View style={styles.serviceToggleLabel}>
-                  <DDIcon name="coffee" size={18} variant="muted" />
-                  <ThemedText
-                    style={[
-                      Typography.body,
-                      {
-                        marginStart: Spacing.sm,
-                        color: theme.text,
-                        fontSize: 14,
-                      },
-                    ]}
+                <View style={CardGridStyles.cardWrapper3Col}>
+                  <SelectableCard
+                    onPress={() => setEditRequiresBuffet(!editRequiresBuffet)}
+                    selected={editRequiresBuffet}
                   >
-                    {t("buffet.buffetService")}
-                  </ThemedText>
+                    <View style={[styles.compactServiceIcon, { backgroundColor: applyOpacity(theme.cardIcon, "15") }]}>
+                      <DDIcon name="coffee" size={20} color={theme.cardIcon} />
+                    </View>
+                    <ThemedText style={[Typography.caption, { fontWeight: "600", marginTop: Spacing.xs, textAlign: "center", color: theme.text, fontSize: 11 }]}>
+                      {t("buffet.buffet")}
+                    </ThemedText>
+                  </SelectableCard>
                 </View>
-                <Switch
-                  value={editRequiresBuffet}
-                  onValueChange={setEditRequiresBuffet}
-                  trackColor={{ false: theme.border, true: theme.primary }}
-                  thumbColor={theme.buttonText}
-                />
-              </View>
-
-              <View
-                style={[styles.serviceToggleRow, { borderColor: theme.border }]}
-              >
-                <View style={styles.serviceToggleLabel}>
-                  <DDIcon name="truck" size={18} variant="muted" />
-                  <ThemedText
-                    style={[
-                      Typography.body,
-                      {
-                        marginStart: Spacing.sm,
-                        color: theme.text,
-                        fontSize: 14,
-                      },
-                    ]}
-                  >
-                    {t("valet.valetService")}
-                  </ThemedText>
-                </View>
-                <Switch
-                  value={editRequiresValet}
-                  onValueChange={setEditRequiresValet}
-                  trackColor={{ false: theme.border, true: theme.primary }}
-                  thumbColor={theme.buttonText}
-                />
               </View>
 
               <Spacer height={Spacing.lg} />
@@ -2441,6 +2467,13 @@ const styles = StyleSheet.create({
   serviceToggleLabel: {
     flexDirection: "row",
     alignItems: "center",
+  },
+  compactServiceIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
   },
   buttonLoadingContent: {
     flexDirection: "row",
