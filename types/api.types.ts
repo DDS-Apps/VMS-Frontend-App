@@ -1451,8 +1451,7 @@ export interface UpdateVisitPayload {
   duration?: string;
   endTime?: string;
   purpose?: string;
-  needsParking?: boolean;
-  needsValet?: boolean;
+  parkingType?: 'none' | 'auto' | 'valet';
   needsBuffet?: boolean;
   needsMeetingRoom?: boolean;
   communicationChannels?: ('email' | 'sms' | 'whatsapp' | 'qr_code')[];
