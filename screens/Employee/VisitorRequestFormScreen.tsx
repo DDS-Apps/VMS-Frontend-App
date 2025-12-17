@@ -43,6 +43,14 @@ const ID_TYPE_OPTIONS: { value: VisitorIdType; labelKey: string }[] = [
   { value: 'other', labelKey: 'common.other' },
 ];
 
+const PURPOSE_OPTIONS = [
+  { value: 'business_meeting', labelKey: 'visitor.businessMeeting' },
+  { value: 'interview', labelKey: 'visitor.interview' },
+  { value: 'delivery', labelKey: 'visitor.delivery' },
+  { value: 'maintenance', labelKey: 'visitor.maintenance' },
+  { value: 'general', labelKey: 'visitor.generalVisit' },
+];
+
 export default function VisitorRequestFormScreen({ navigation, route, asManager, asReceptionist, isWalkIn }: VisitorRequestFormScreenPropsExtended) {
   const { theme, isDark } = useTheme();
   const { t } = useTranslation();
@@ -94,6 +102,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
   const [idType, setIdType] = useState<VisitorIdType>('national_id');
   const [idNumber, setIdNumber] = useState('');
   const [showIdTypePicker, setShowIdTypePicker] = useState(false);
+  const [showPurposePicker, setShowPurposePicker] = useState(false);
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -929,16 +938,22 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
               {t('form.purpose').toUpperCase()}
             </ThemedText>
             <Spacer height={Spacing.xs} />
-            <TextInput
-              style={[styles.textArea, { backgroundColor: theme.background, borderColor: theme.border, color: theme.text, textAlign: isRTL ? 'right' : 'left', writingDirection: isRTL ? 'rtl' : 'ltr' }]}
-              placeholder={t('form.purposePlaceholder')}
-              placeholderTextColor={theme.textSecondary}
-              value={purpose}
-              onChangeText={setPurpose}
-              multiline
-              numberOfLines={4}
-              textAlignVertical="top"
-            />
+            <Pressable 
+              style={[
+                styles.iconInputButton, 
+                { 
+                  backgroundColor: theme.background, 
+                  borderColor: theme.border
+                }
+              ]}
+              onPress={() => setShowPurposePicker(true)}
+            >
+              <DDIcon name="clipboard" size={20} variant="muted" />
+              <ThemedText style={[Typography.body, { color: theme.text, marginStart: Spacing.md, flex: 1 }]}>
+                {purpose || t('form.selectPurpose')}
+              </ThemedText>
+              <DDIcon name="chevron-down" size={20} variant="muted" />
+            </Pressable>
           </ThemedView>
         </>
       )}
@@ -1267,6 +1282,62 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                     </ThemedText>
                   </View>
                   {idType === option.value ? (
+                    <DDIcon name="check-circle" size={24} variant="primary" />
+                  ) : null}
+                </Pressable>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Purpose Picker Modal */}
+      <Modal
+        visible={showPurposePicker}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowPurposePicker(false)}
+      >
+        <View style={styles.iosModalContainer}>
+          <Pressable 
+            style={[styles.iosModalBackdrop, createModalOverlayStyle(theme, '50')]}
+            onPress={() => setShowPurposePicker(false)}
+          />
+          <View style={[styles.employeePickerModal, { backgroundColor: theme.surface }]}>
+            <View style={[styles.iosPickerHeader, { borderBottomColor: theme.border }]}>
+              <View style={{ width: 60 }} />
+              <ThemedText style={[Typography.subtitle]}>{t('visitor.selectVisitType')}</ThemedText>
+              <Pressable 
+                onPress={() => setShowPurposePicker(false)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                style={{ width: 60, alignItems: 'flex-end' }}
+              >
+                <DDIcon name="x" size={24} variant="muted" />
+              </Pressable>
+            </View>
+            <ScrollView style={{ maxHeight: 300 }}>
+              {PURPOSE_OPTIONS.map((option) => (
+                <Pressable
+                  key={option.value}
+                  style={[
+                    styles.employeeOption,
+                    { borderBottomColor: theme.border },
+                    purpose === t(option.labelKey as any) && { backgroundColor: applyOpacity(theme.primary, '10') }
+                  ]}
+                  onPress={() => {
+                    setPurpose(t(option.labelKey as any));
+                    setShowPurposePicker(false);
+                  }}
+                >
+                  <View style={[styles.employeeAvatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
+                    <DDIcon name="clipboard" size={20} color={theme.primary} />
+                  </View>
+                  <View style={{ flex: 1, marginStart: Spacing.md }}>
+                    <ThemedText style={[Typography.body, { fontWeight: '500' }]}>
+                      {t(option.labelKey as any)}
+                    </ThemedText>
+                  </View>
+                  {purpose === t(option.labelKey as any) ? (
                     <DDIcon name="check-circle" size={24} variant="primary" />
                   ) : null}
                 </Pressable>
