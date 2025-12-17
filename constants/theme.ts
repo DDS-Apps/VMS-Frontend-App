@@ -24,7 +24,7 @@ export const NeutralColors = {
 
 // Status Colors
 export const StatusColors = {
-  success: "#1BBE7A",
+  success: "#22C55E", // Pure green for Approve/Accept buttons
   warning: "#FFA000",
   error: "#E53935",
   info: "#307BF2", // Uses brandBlue
@@ -111,7 +111,7 @@ export const Colors = {
     // Soft backgrounds for cards/badges
     softTeal: BrandColors.softTeal,
     softBlue: "#EBF4FF",
-    softSuccess: "#E6F9F0",
+    softSuccess: "#DCFCE7", // Light green background
     softWarning: "#FFF7E6",
     softError: "#FEECEB",
   },
@@ -135,7 +135,7 @@ export const Colors = {
     borderLight: "#3A5a7a",
 
     // Status
-    success: "#34D399",
+    success: "#4ADE80", // Pure green for Approve/Accept buttons
     warning: "#FBBF24",
     error: "#F87171",
     info: BrandColors.brandTeal,
