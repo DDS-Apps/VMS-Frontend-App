@@ -218,8 +218,10 @@ const getMenuGroups = (role: UserRole): { groups: MenuGroup[]; standalone: MenuI
         labelKey: 'sidebar.parking',
         icon: 'truck',
         items: [
+          { id: 'parking_spots', labelKey: 'navigation.parkingSpots', icon: 'map-pin', screen: 'ParkingSpots' },
           { id: 'parking_assignment', labelKey: 'navigation.employeeParkingAssignment', icon: 'truck', screen: 'EmployeeParkingAssignment' },
           { id: 'parking_occupancy', labelKey: 'navigation.parkingOccupancy', icon: 'pie-chart', screen: 'ParkingOccupancy' },
+          { id: 'parking_priority_rules', labelKey: 'navigation.priorityRules', icon: 'sliders', screen: 'ParkingPriorityRules' },
         ],
       },
       {

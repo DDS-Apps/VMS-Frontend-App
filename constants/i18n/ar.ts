@@ -207,6 +207,8 @@ export const ar: TranslationKeys = {
     valetZones: 'مناطق صف السيارات',
     employeeParkingAssignment: 'تخصيص المواقف',
     parkingOccupancy: 'إشغال المواقف',
+    parkingSpots: 'مواقف السيارات',
+    priorityRules: 'قواعد الأولوية',
     notificationTemplates: 'قوالب الإشعارات',
     biometricSettings: 'إعدادات البيومترية',
     reminderRules: 'قواعد التذكير',
@@ -829,6 +831,7 @@ export const ar: TranslationKeys = {
     autoAllocationEnabled: 'تم تفعيل التخصيص التلقائي',
     autoAllocationDisabled: 'تم إلغاء التخصيص التلقائي',
     priorityRulesInfo: 'تحدد قواعد الأولوية الترتيب الذي يتم به ملء مواقع المواقف. عندما يصل الموقع إلى الحد الأقصى للإشغال، ينتقل النظام إلى الأولوية التالية.',
+    cannotDeleteOccupied: 'لا يمكن حذف موقف السيارة أثناء استخدامه.',
   },
   valet: {
     valetService: 'خدمة صف السيارات',

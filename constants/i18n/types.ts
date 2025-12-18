@@ -207,6 +207,8 @@ export interface TranslationKeys {
     valetZones: string;
     employeeParkingAssignment: string;
     parkingOccupancy: string;
+    parkingSpots: string;
+    priorityRules: string;
     notificationTemplates: string;
     biometricSettings: string;
     reminderRules: string;
@@ -829,6 +831,7 @@ export interface TranslationKeys {
     autoAllocationEnabled: string;
     autoAllocationDisabled: string;
     priorityRulesInfo: string;
+    cannotDeleteOccupied: string;
   };
   valet: {
     valetService: string;

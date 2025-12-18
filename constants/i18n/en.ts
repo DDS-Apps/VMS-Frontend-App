@@ -207,6 +207,8 @@ export const en: TranslationKeys = {
     valetZones: 'Valet Zones',
     employeeParkingAssignment: 'Parking Assignment',
     parkingOccupancy: 'Parking Occupancy',
+    parkingSpots: 'Parking Spots',
+    priorityRules: 'Priority Rules',
     notificationTemplates: 'Notification Templates',
     biometricSettings: 'Biometric Settings',
     reminderRules: 'Reminder Rules',
@@ -829,6 +831,7 @@ export const en: TranslationKeys = {
     autoAllocationEnabled: 'Auto allocation has been enabled',
     autoAllocationDisabled: 'Auto allocation has been disabled',
     priorityRulesInfo: 'Priority rules determine the order in which parking locations are filled. When a location reaches its max occupancy threshold, the system moves to the next priority.',
+    cannotDeleteOccupied: 'Cannot delete parking spot while it is occupied.',
   },
   valet: {
     valetService: 'Valet Service',

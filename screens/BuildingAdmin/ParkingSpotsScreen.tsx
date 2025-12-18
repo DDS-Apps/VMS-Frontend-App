@@ -1,6 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { View, StyleSheet, Pressable, Modal, Alert, ScrollView, KeyboardAvoidingView, Platform, Switch } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import React, { useState, useMemo, useCallback } from 'react';
+import { View, StyleSheet, Pressable, Modal, Alert, ScrollView, KeyboardAvoidingView, Platform, Switch, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScreenScrollView } from '@/components/ScreenScrollView';
 import { SearchInput } from '@/components/SearchInput';
@@ -15,17 +14,17 @@ import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
 import { applyOpacity } from '@/utils/statusStyles';
 import {
-  getParkingSpots,
-  addParkingSpot,
-  updateParkingSpot,
-  toggleSpotActive,
-  deleteParkingSpot,
-  ParkingSpot,
+  useParkingSpotsQuery,
+  useCreateParkingSpotMutation,
+  useUpdateParkingSpotMutation,
+  useDeleteParkingSpotMutation,
+} from '@/hooks/queries/useParkingSpotsQueries';
+import type {
+  ParkingSpotDto,
   ParkingSpotType,
-  ParkingLocationId,
-  getLocationLabel,
-  getSpotTypeLabel,
-} from '@/services/mock/parkingManagementState';
+  ParkingSpotStatus,
+  ParkingLocation,
+} from '@/types/parkingSpots.types';
 
 interface KPICardProps {
   title: string;
@@ -56,48 +55,67 @@ function KPICard({ title, value, icon, iconBgColor, iconColor, cardBgColor }: KP
   );
 }
 
-type LocationFilter = ParkingLocationId | 'all';
+type LocationFilter = ParkingLocation | 'all';
 type TypeFilter = ParkingSpotType | 'all';
 type StatusFilter = 'all' | 'active' | 'inactive';
 
-const LOCATIONS: ParkingLocationId[] = ['skbc_basement', 'red_sea_mall', 'valet_zone'];
+const LOCATIONS: ParkingLocation[] = ['skbc_basement', 'red_sea_mall', 'valet_zone'];
 const SPOT_TYPES: ParkingSpotType[] = ['visitor', 'employee', 'valet', 'reserved'];
+
+function getLocationLabel(location: ParkingLocation): string {
+  switch (location) {
+    case 'skbc_basement': return 'SKBC Basement';
+    case 'red_sea_mall': return 'Red Sea Mall';
+    case 'valet_zone': return 'Valet Zone';
+    default: return location;
+  }
+}
+
+function getSpotTypeLabel(type: ParkingSpotType): string {
+  switch (type) {
+    case 'visitor': return 'Visitor';
+    case 'employee': return 'Employee';
+    case 'valet': return 'Valet';
+    case 'reserved': return 'Reserved';
+    default: return type;
+  }
+}
 
 export default function ParkingSpotsScreen() {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   
-  const [spots, setSpots] = useState<ParkingSpot[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [locationFilter, setLocationFilter] = useState<LocationFilter>('all');
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   
   const [showModal, setShowModal] = useState(false);
-  const [editingSpot, setEditingSpot] = useState<ParkingSpot | null>(null);
+  const [editingSpot, setEditingSpot] = useState<ParkingSpotDto | null>(null);
   const [formData, setFormData] = useState({
     spotNumber: '',
-    location: 'skbc_basement' as ParkingLocationId,
+    location: 'skbc_basement' as ParkingLocation,
     level: '',
-    type: 'visitor' as ParkingSpotType,
+    spotType: 'visitor' as ParkingSpotType,
   });
+
+  const { data: spotsResponse, isLoading, refetch } = useParkingSpotsQuery({
+    limit: 100,
+    page: 1,
+  });
+
+  const createMutation = useCreateParkingSpotMutation();
+  const updateMutation = useUpdateParkingSpotMutation();
+  const deleteMutation = useDeleteParkingSpotMutation();
+
+  const spots = spotsResponse?.data ?? [];
 
   const scrollContentStyle = {
     paddingHorizontal: Spacing.lg,
     paddingTop: insets.top + Spacing.xl,
     paddingBottom: insets.bottom + Spacing.xl + 80
   };
-
-  const refreshState = React.useCallback(() => {
-    setSpots(getParkingSpots());
-  }, []);
-
-  useFocusEffect(
-    React.useCallback(() => {
-      refreshState();
-    }, [refreshState])
-  );
 
   const stats = useMemo(() => {
     const total = spots.length;
@@ -112,13 +130,14 @@ export default function ParkingSpotsScreen() {
         if (searchQuery) {
           const query = searchQuery.toLowerCase();
           return spot.spotNumber.toLowerCase().includes(query) ||
+                 spot.vehiclePlate?.toLowerCase().includes(query) ||
                  spot.id.toLowerCase().includes(query);
         }
         return true;
       })
       .filter(spot => {
         if (locationFilter !== 'all' && spot.location !== locationFilter) return false;
-        if (typeFilter !== 'all' && spot.type !== typeFilter) return false;
+        if (typeFilter !== 'all' && spot.spotType !== typeFilter) return false;
         if (statusFilter === 'active' && !spot.isActive) return false;
         if (statusFilter === 'inactive' && spot.isActive) return false;
         return true;
@@ -131,55 +150,73 @@ export default function ParkingSpotsScreen() {
       spotNumber: '',
       location: 'skbc_basement',
       level: '',
-      type: 'visitor',
+      spotType: 'visitor',
     });
     setShowModal(true);
   };
 
-  const handleEditSpot = (spot: ParkingSpot) => {
+  const handleEditSpot = (spot: ParkingSpotDto) => {
     setEditingSpot(spot);
     setFormData({
       spotNumber: spot.spotNumber,
       location: spot.location,
       level: spot.level,
-      type: spot.type,
+      spotType: spot.spotType,
     });
     setShowModal(true);
   };
 
-  const handleSaveSpot = () => {
+  const handleSaveSpot = useCallback(async () => {
     if (!formData.spotNumber || !formData.level) {
       Alert.alert(t('common.error'), t('form.fieldRequired'));
       return;
     }
 
-    if (editingSpot) {
-      updateParkingSpot(editingSpot.id, {
-        spotNumber: formData.spotNumber,
-        location: formData.location,
-        level: formData.level,
-        type: formData.type,
-      });
-    } else {
-      addParkingSpot({
-        spotNumber: formData.spotNumber,
-        location: formData.location,
-        level: formData.level,
-        type: formData.type,
-        isActive: true,
-        status: 'available',
-      });
+    try {
+      if (editingSpot) {
+        await updateMutation.mutateAsync({
+          id: editingSpot.id,
+          data: {
+            spotNumber: formData.spotNumber,
+            location: formData.location,
+            level: formData.level,
+            spotType: formData.spotType,
+          },
+        });
+      } else {
+        await createMutation.mutateAsync({
+          spotNumber: formData.spotNumber,
+          location: formData.location,
+          level: formData.level,
+          spotType: formData.spotType,
+          isActive: true,
+        });
+      }
+      setShowModal(false);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : t('common.error');
+      Alert.alert(t('common.error'), errorMessage);
     }
-    refreshState();
-    setShowModal(false);
-  };
+  }, [formData, editingSpot, createMutation, updateMutation, t]);
 
-  const handleToggleActive = (spotId: string) => {
-    toggleSpotActive(spotId);
-    refreshState();
-  };
+  const handleToggleActive = useCallback(async (spot: ParkingSpotDto) => {
+    try {
+      await updateMutation.mutateAsync({
+        id: spot.id,
+        data: { isActive: !spot.isActive },
+      });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : t('common.error');
+      Alert.alert(t('common.error'), errorMessage);
+    }
+  }, [updateMutation, t]);
 
-  const handleDeleteSpot = (spot: ParkingSpot) => {
+  const handleDeleteSpot = useCallback((spot: ParkingSpotDto) => {
+    if (spot.status === 'occupied') {
+      Alert.alert(t('common.error'), t('parking.cannotDeleteOccupied'));
+      return;
+    }
+
     Alert.alert(
       t('common.delete'),
       `${t('common.confirm')} ${spot.spotNumber}?`,
@@ -188,14 +225,18 @@ export default function ParkingSpotsScreen() {
         {
           text: t('common.delete'),
           style: 'destructive',
-          onPress: () => {
-            deleteParkingSpot(spot.id);
-            refreshState();
+          onPress: async () => {
+            try {
+              await deleteMutation.mutateAsync(spot.id);
+            } catch (error: unknown) {
+              const errorMessage = error instanceof Error ? error.message : t('common.error');
+              Alert.alert(t('common.error'), errorMessage);
+            }
           },
         },
       ]
     );
-  };
+  }, [deleteMutation, t]);
 
   const getTypeColor = (type: ParkingSpotType) => {
     switch (type) {
@@ -207,7 +248,7 @@ export default function ParkingSpotsScreen() {
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: ParkingSpotStatus) => {
     switch (status) {
       case 'available': return theme.success;
       case 'occupied': return theme.warning;
@@ -217,7 +258,7 @@ export default function ParkingSpotsScreen() {
     }
   };
 
-  const getStatusLabel = (status: string) => {
+  const getStatusLabel = (status: ParkingSpotStatus) => {
     switch (status) {
       case 'available': return t('status.available');
       case 'occupied': return t('status.occupied');
@@ -240,8 +281,8 @@ export default function ParkingSpotsScreen() {
     };
   };
 
-  const renderSpotCard = (spot: ParkingSpot) => {
-    const typeColor = getTypeColor(spot.type);
+  const renderSpotCard = (spot: ParkingSpotDto) => {
+    const typeColor = getTypeColor(spot.spotType);
     const statusColor = getStatusColor(spot.status);
     
     return (
@@ -267,7 +308,7 @@ export default function ParkingSpotsScreen() {
             <View style={styles.badgeRow}>
               <View style={[styles.typeBadge, { backgroundColor: applyOpacity(typeColor, '15') }]}>
                 <ThemedText style={[styles.typeBadgeText, { color: typeColor }]}>
-                  {getSpotTypeLabel(spot.type)}
+                  {getSpotTypeLabel(spot.spotType)}
                 </ThemedText>
               </View>
               <View style={[styles.statusBadge, { backgroundColor: applyOpacity(statusColor, '15') }]}>
@@ -305,13 +346,13 @@ export default function ParkingSpotsScreen() {
           </ThemedText>
         </View>
 
-        {spot.assignedTo ? (
+        {spot.assignedEmployeeName ? (
           <>
             <Spacer height={Spacing.xs} />
             <View style={styles.metaRow}>
               <DDIcon name="user" size={14} color={theme.textSecondary} />
               <ThemedText style={[styles.metaText, { color: theme.textSecondary }]}>
-                {spot.assignedTo}
+                {spot.assignedEmployeeName}
               </ThemedText>
             </View>
           </>
@@ -338,7 +379,7 @@ export default function ParkingSpotsScreen() {
             </ThemedText>
             <Switch
               value={spot.isActive}
-              onValueChange={() => handleToggleActive(spot.id)}
+              onValueChange={() => handleToggleActive(spot)}
               trackColor={{ false: theme.border, true: applyOpacity(theme.success, '40') }}
               thumbColor={spot.isActive ? theme.success : theme.textSecondary}
               ios_backgroundColor={theme.border}
@@ -364,7 +405,7 @@ export default function ParkingSpotsScreen() {
     );
   };
 
-  const renderLocationOption = (loc: ParkingLocationId) => {
+  const renderLocationOption = (loc: ParkingLocation) => {
     const isSelected = formData.location === loc;
     return (
       <Pressable
@@ -387,7 +428,7 @@ export default function ParkingSpotsScreen() {
   };
 
   const renderTypeOption = (type: ParkingSpotType) => {
-    const isSelected = formData.type === type;
+    const isSelected = formData.spotType === type;
     const typeColor = getTypeColor(type);
     return (
       <Pressable
@@ -400,7 +441,7 @@ export default function ParkingSpotsScreen() {
             borderWidth: isSelected ? 2 : 1,
           }
         ]}
-        onPress={() => setFormData(prev => ({ ...prev, type }))}
+        onPress={() => setFormData(prev => ({ ...prev, spotType: type }))}
       >
         <ThemedText style={[styles.optionText, { color: isSelected ? typeColor : theme.text }]}>
           {getSpotTypeLabel(type)}
@@ -408,6 +449,18 @@ export default function ParkingSpotsScreen() {
       </Pressable>
     );
   };
+
+  const isSaving = createMutation.isPending || updateMutation.isPending;
+
+  if (isLoading) {
+    return (
+      <View style={[styles.loadingContainer, { paddingTop: insets.top + Spacing.xl }]}>
+        <ActivityIndicator size="large" color={theme.primary} />
+        <Spacer height={Spacing.md} />
+        <ThemedText style={{ color: theme.textSecondary }}>{t('common.loading')}</ThemedText>
+      </View>
+    );
+  }
 
   return (
     <>
@@ -657,6 +710,7 @@ export default function ParkingSpotsScreen() {
                 size="medium"
                 fullWidth={false}
                 style={{ flex: 1 }}
+                disabled={isSaving}
               >
                 {t('common.cancel')}
               </LoadingButton>
@@ -667,6 +721,7 @@ export default function ParkingSpotsScreen() {
                 size="medium"
                 fullWidth={false}
                 style={{ flex: 1 }}
+                loading={isSaving}
               >
                 {editingSpot ? t('common.save') : t('common.add')}
               </LoadingButton>
@@ -679,6 +734,11 @@ export default function ParkingSpotsScreen() {
 }
 
 const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   kpiRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -889,21 +949,6 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.lg,
     borderTopWidth: 1,
     borderTopColor: 'rgba(0,0,0,0.06)',
-  },
-  cancelButton: {
-    flex: 1,
-    height: 50,
-    borderRadius: BorderRadius.sm,
-    borderWidth: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  saveButton: {
-    flex: 1,
-    height: 50,
-    borderRadius: BorderRadius.sm,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   optionsGrid: {
     flexDirection: 'row',
