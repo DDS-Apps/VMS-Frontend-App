@@ -12,6 +12,7 @@ import { SkeletonList } from "@/components/shared/Skeleton";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useFormatters } from "@/hooks/useFormatters";
 import { useMyValetRequestsQuery } from "@/hooks/queries/useValetSelfServiceQueries";
 import { applyOpacity } from "@/utils/statusStyles";
 import type { MyValetRequestsScreenProps } from "@/types/employeeNavigation.types";
@@ -100,11 +101,15 @@ const StatusAccent = ({ color }: { color: string }) => (
 const ValetRequestCard = React.memo(({ 
   request, 
   theme, 
-  onPress
+  onPress,
+  formatTime,
+  formatDateLocale
 }: { 
   request: SelfValetRequestDto; 
   theme: Theme;
   onPress: () => void;
+  formatTime: (date: Date) => string;
+  formatDateLocale: (date: Date, format: 'short' | 'medium' | 'long') => string;
 }) => {
   const status = request.valet?.status || 'pending';
   const statusConfig = getValetStatusConfig(theme, status);
@@ -115,14 +120,13 @@ const ValetRequestCard = React.memo(({
     if (d.toDateString() === today.toDateString()) {
       return 'Today';
     }
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return formatDateLocale(d, 'short');
   };
 
-  const formatTime = (dateString: string) => {
+  const formatTimeStr = (dateString: string) => {
     const d = new Date(dateString);
-    return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    return formatTime(d);
   };
-  // Note: Using inline formatter here as this is inside a memoized component outside main function
 
   return (
     <Pressable onPress={onPress}>
@@ -191,7 +195,7 @@ const ValetRequestCard = React.memo(({
           <View style={styles.taskFooterRow}>
             <DDIcon name="calendar" size={12} variant="muted" />
             <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 4, fontSize: 11 }]}>
-              {formatDate(request.createdAt)} at {formatTime(request.createdAt)}
+              {formatDate(request.createdAt)} at {formatTimeStr(request.createdAt)}
             </ThemedText>
           </View>
         </View>
@@ -210,6 +214,7 @@ const FILTER_OPTIONS: { key: StatusFilter; label: string }[] = [
 export default function MyValetRequestsScreen({ navigation }: MyValetRequestsScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { formatTime, formatDate: formatDateLocale } = useFormatters();
   const insets = useSafeAreaInsets();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -393,6 +398,8 @@ export default function MyValetRequestsScreen({ navigation }: MyValetRequestsScr
                 request={request}
                 theme={theme}
                 onPress={() => handleRequestPress(request.id)}
+                formatTime={formatTime}
+                formatDateLocale={formatDateLocale}
               />
               <Spacer height={Spacing.md} />
             </React.Fragment>

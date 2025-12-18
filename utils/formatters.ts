@@ -29,16 +29,36 @@ export const formatTime = (date: Date, locale: LocaleCode = 'en-US'): string => 
 export const formatTimeFromString = (timeString: string, locale: LocaleCode = 'en-US'): string => {
   if (!timeString) return '';
   
-  if (timeString.includes('AM') || timeString.includes('PM')) {
-    return timeString;
-  }
+  const upperStr = timeString.toUpperCase();
+  const hasAMPM = upperStr.includes('AM') || upperStr.includes('PM');
   
   if (timeString.includes(':') && !timeString.includes('T')) {
-    const [hours, minutes] = timeString.split(':');
-    const hour = parseInt(hours, 10);
-    const period = hour >= 12 ? 'PM' : 'AM';
-    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-    return `${displayHour}:${minutes} ${period}`;
+    if (hasAMPM) {
+      const isPM = upperStr.includes('PM');
+      const timePart = timeString.replace(/\s*(AM|PM)\s*/i, '');
+      const [hoursStr, minutesStr] = timePart.split(':');
+      let hour = parseInt(hoursStr, 10);
+      const min = parseInt(minutesStr, 10);
+      
+      if (!isNaN(hour) && !isNaN(min)) {
+        if (isPM && hour !== 12) hour += 12;
+        if (!isPM && hour === 12) hour = 0;
+        
+        const tempDate = new Date();
+        tempDate.setHours(hour, min, 0, 0);
+        return formatTime(tempDate, locale);
+      }
+    } else {
+      const [hours, minutes] = timeString.split(':');
+      const hour = parseInt(hours, 10);
+      const min = parseInt(minutes, 10);
+      
+      if (!isNaN(hour) && !isNaN(min)) {
+        const tempDate = new Date();
+        tempDate.setHours(hour, min, 0, 0);
+        return formatTime(tempDate, locale);
+      }
+    }
   }
   
   const date = new Date(timeString);

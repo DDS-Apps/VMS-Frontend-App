@@ -10,6 +10,7 @@ import Spacer from "@/components/Spacer";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useFormatters } from "@/hooks/useFormatters";
 import { useCreateSelfValetRequestMutation } from "@/hooks/queries/useValetSelfServiceQueries";
 import { applyOpacity, createModalOverlayStyle } from "@/utils/statusStyles";
 import { TimePicker } from "@/components/TimePicker";
@@ -86,6 +87,7 @@ const ColorChip = ({
 export default function ParkMyCarScreen({ navigation }: ParkMyCarScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { formatTime } = useFormatters();
   const insets = useSafeAreaInsets();
   const createMutation = useCreateSelfValetRequestMutation();
 
@@ -157,9 +159,6 @@ export default function ParkMyCarScreen({ navigation }: ParkMyCarScreenProps) {
     });
   };
 
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-  };
 
   const handleTimeSelect = (time: Date) => {
     setReturnTime(time);

@@ -9,6 +9,7 @@ import { SkeletonList } from "@/components/shared/Skeleton";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useFormatters } from "@/hooks/useFormatters";
 import { DDIcon } from "@/components/DDIcon";
 import { applyOpacity } from "@/utils/statusStyles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -67,6 +68,7 @@ export default function ValetRequestDetailsScreen({ route }: ValetRequestDetails
   const { requestId } = route.params;
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { formatTime: formatTimeUtil } = useFormatters();
   const insets = useSafeAreaInsets();
 
   const { data: response, isLoading, isError, refetch, isRefetching } = useMyValetRequestDetailQuery(requestId);
@@ -141,9 +143,8 @@ export default function ValetRequestDetailsScreen({ route }: ValetRequestDetails
 
   const formatTime = (dateString: string) => {
     const d = new Date(dateString);
-    return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    return formatTimeUtil(d);
   };
-  // Note: Already using 12-hour format with AM/PM
 
   return (
     <ThemedView style={styles.container}>
