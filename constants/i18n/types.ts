@@ -836,6 +836,7 @@ export interface TranslationKeys {
     autoAllocationDisabled: string;
     priorityRulesInfo: string;
     cannotDeleteOccupied: string;
+    spotDeleted: string;
   };
   valet: {
     valetService: string;

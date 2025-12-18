@@ -836,6 +836,7 @@ export const en: TranslationKeys = {
     autoAllocationDisabled: 'Auto allocation has been disabled',
     priorityRulesInfo: 'Priority rules determine the order in which parking locations are filled. When a location reaches its max occupancy threshold, the system moves to the next priority.',
     cannotDeleteOccupied: 'Cannot delete parking spot while it is occupied.',
+    spotDeleted: 'Parking spot deleted successfully.',
   },
   valet: {
     valetService: 'Valet Service',

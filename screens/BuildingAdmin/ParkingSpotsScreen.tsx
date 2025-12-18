@@ -94,6 +94,7 @@ export default function ParkingSpotsScreen() {
   const [showModal, setShowModal] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [editingSpot, setEditingSpot] = useState<ParkingSpotDto | null>(null);
+  const [deletingSpotId, setDeletingSpotId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     spotNumber: '',
     location: 'skbc_basement' as ParkingLocation,
@@ -241,11 +242,15 @@ export default function ParkingSpotsScreen() {
           text: t('common.delete'),
           style: 'destructive',
           onPress: async () => {
+            setDeletingSpotId(spot.id);
             try {
               await deleteMutation.mutateAsync(spot.id);
+              Alert.alert(t('common.success'), t('parking.spotDeleted'));
             } catch (error: unknown) {
               const errorMessage = error instanceof Error ? error.message : t('common.error');
               Alert.alert(t('common.error'), errorMessage);
+            } finally {
+              setDeletingSpotId(null);
             }
           },
         },
@@ -299,6 +304,7 @@ export default function ParkingSpotsScreen() {
   const renderSpotCard = (spot: ParkingSpotDto) => {
     const typeColor = getTypeColor(spot.spotType);
     const statusColor = getStatusColor(spot.status);
+    const isDeleting = deletingSpotId === spot.id;
     
     return (
       <View 
@@ -308,7 +314,7 @@ export default function ParkingSpotsScreen() {
           { 
             backgroundColor: theme.surface,
             borderStartColor: spot.isActive ? typeColor : theme.textSecondary,
-            opacity: spot.isActive ? 1 : 0.7,
+            opacity: isDeleting ? 0.5 : (spot.isActive ? 1 : 0.7),
           },
         ]}
       >
@@ -334,13 +340,26 @@ export default function ParkingSpotsScreen() {
               </View>
             </View>
           </View>
-          {!spot.isActive ? (
-            <View style={[styles.inactiveBadge, { backgroundColor: applyOpacity(theme.error, '15') }]}>
-              <ThemedText style={[styles.inactiveBadgeText, { color: theme.error }]}>
-                {t('common.inactive')}
-              </ThemedText>
-            </View>
-          ) : null}
+          <View style={styles.headerActions}>
+            <Pressable
+              style={[styles.headerActionButton, { backgroundColor: applyOpacity(theme.primary, '15') }]}
+              onPress={() => handleEditSpot(spot)}
+              disabled={isDeleting}
+            >
+              <DDIcon name="edit-2" size={16} color={theme.primary} />
+            </Pressable>
+            <Pressable
+              style={[styles.headerActionButton, { backgroundColor: applyOpacity(theme.error, '15') }]}
+              onPress={() => handleDeleteSpot(spot)}
+              disabled={isDeleting}
+            >
+              {isDeleting ? (
+                <ActivityIndicator size="small" color={theme.error} />
+              ) : (
+                <DDIcon name="trash-2" size={16} color={theme.error} />
+              )}
+            </Pressable>
+          </View>
         </View>
 
         <Spacer height={Spacing.md} />
@@ -398,22 +417,8 @@ export default function ParkingSpotsScreen() {
               trackColor={{ false: theme.border, true: applyOpacity(theme.success, '40') }}
               thumbColor={spot.isActive ? theme.success : theme.textSecondary}
               ios_backgroundColor={theme.border}
+              disabled={isDeleting}
             />
-          </View>
-
-          <View style={styles.cardActions}>
-            <Pressable
-              style={[styles.actionButton, { backgroundColor: applyOpacity(theme.primary, '15') }]}
-              onPress={() => handleEditSpot(spot)}
-            >
-              <DDIcon name="edit-2" size={16} color={theme.primary} />
-            </Pressable>
-            <Pressable
-              style={[styles.actionButton, { backgroundColor: applyOpacity(theme.error, '15') }]}
-              onPress={() => handleDeleteSpot(spot)}
-            >
-              <DDIcon name="trash-2" size={16} color={theme.error} />
-            </Pressable>
           </View>
         </View>
       </View>
@@ -1004,6 +1009,18 @@ const styles = StyleSheet.create({
   inactiveBadgeText: {
     fontSize: 10,
     fontWeight: '600',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: Spacing.xs,
+    marginStart: 'auto',
+  },
+  headerActionButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   metaRow: {
     flexDirection: 'row',

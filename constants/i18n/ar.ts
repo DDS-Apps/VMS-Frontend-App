@@ -836,6 +836,7 @@ export const ar: TranslationKeys = {
     autoAllocationDisabled: 'تم إلغاء التخصيص التلقائي',
     priorityRulesInfo: 'تحدد قواعد الأولوية الترتيب الذي يتم به ملء مواقع المواقف. عندما يصل الموقع إلى الحد الأقصى للإشغال، ينتقل النظام إلى الأولوية التالية.',
     cannotDeleteOccupied: 'لا يمكن حذف موقف السيارة أثناء استخدامه.',
+    spotDeleted: 'تم حذف موقف السيارات بنجاح.',
   },
   valet: {
     valetService: 'خدمة صف السيارات',
