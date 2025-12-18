@@ -12,6 +12,7 @@ import {
   Animated,
   ActivityIndicator,
 } from "react-native";
+import QRCode from "react-native-qrcode-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import DateTimePicker, {
   DateTimePickerEvent,
@@ -1151,9 +1152,18 @@ export default function RequestDetailsScreen({
             },
           ]}
         >
-          <View style={[styles.qrPlaceholder, { borderColor: theme.border }]}>
-            <DDIcon name="maximize" size={80} color={theme.border} />
-          </View>
+          {request.qrCode ? (
+            <QRCode
+              value={request.qrCode}
+              size={150}
+              backgroundColor={theme.surfaceSecondary}
+              color={theme.text}
+            />
+          ) : (
+            <View style={[styles.qrPlaceholder, { borderColor: theme.border }]}>
+              <DDIcon name="maximize" size={80} color={theme.border} />
+            </View>
+          )}
         </View>
 
         <Spacer height={Spacing.md} />
