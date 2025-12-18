@@ -180,16 +180,16 @@ const getMenuGroups = (role: UserRole): { groups: MenuGroup[]; standalone: MenuI
           { id: 'valet_requests', labelKey: 'navigation.allRequests', icon: 'list', screen: 'ValetAllRequests' },
         ],
       },
-      // HIDDEN per user request - Management section with Parking Slots
-      // {
-      //   id: 'management',
-      //   labelKey: 'sidebar.management',
-      //   icon: 'settings',
-      //   items: [
-      //     { id: 'valet_drivers', labelKey: 'navigation.drivers', icon: 'users', screen: 'ValetDrivers' },
-      //     { id: 'valet_parking', labelKey: 'navigation.parkingSlots', icon: 'map-pin', screen: 'ValetParking' },
-      //   ],
-      // },
+      {
+        id: 'management',
+        labelKey: 'sidebar.management',
+        icon: 'settings',
+        items: [
+          { id: 'valet_drivers', labelKey: 'navigation.drivers', icon: 'users', screen: 'ValetDrivers' },
+          // HIDDEN per user request - Parking Slots
+          // { id: 'valet_parking', labelKey: 'navigation.parkingSlots', icon: 'map-pin', screen: 'ValetParking' },
+        ],
+      },
     ];
   } else if (role === 'building_admin') {
     result.standalone = [];
