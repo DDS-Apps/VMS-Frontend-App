@@ -105,6 +105,8 @@ export const apiConfig = {
       allocationCheckIn: (id: string) => `/api/v1/parking/allocations/${id}/check-in`,
       allocationCheckOut: (id: string) => `/api/v1/parking/allocations/${id}/check-out`,
       allocationRelease: (id: string) => `/api/v1/parking/allocations/${id}/release`,
+      spots: "/api/v1/parking/spots",
+      spotById: (id: string) => `/api/v1/parking/spots/${id}`,
     },
     meetingRooms: {
       base: "/api/v1/meeting-rooms",
