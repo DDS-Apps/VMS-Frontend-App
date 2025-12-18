@@ -244,9 +244,18 @@ export default function MyValetRequestsScreen({ navigation }: MyValetRequestsScr
     if (Array.isArray(response)) {
       requests = response;
       console.log('[MyValetRequestsScreen] Response is array, length:', response.length);
-    } else if (typeof response === 'object' && 'data' in response && Array.isArray((response as SelfValetRequestsResponse).data)) {
-      requests = (response as SelfValetRequestsResponse).data;
-      console.log('[MyValetRequestsScreen] Extracted data array, length:', requests.length);
+    } else if (typeof response === 'object' && 'data' in response) {
+      const responseData = (response as SelfValetRequestsResponse).data;
+      // Handle nested data structure: { data: { data: [...] } }
+      if (Array.isArray(responseData)) {
+        requests = responseData;
+        console.log('[MyValetRequestsScreen] Extracted data array, length:', requests.length);
+      } else if (typeof responseData === 'object' && responseData !== null && 'data' in responseData && Array.isArray((responseData as { data: SelfValetRequestDto[] }).data)) {
+        requests = (responseData as { data: SelfValetRequestDto[] }).data;
+        console.log('[MyValetRequestsScreen] Extracted nested data.data array, length:', requests.length);
+      } else {
+        console.warn('[MyValetRequestsScreen] Unexpected data structure:', JSON.stringify(responseData));
+      }
     } else {
       console.warn('[MyValetRequestsScreen] Unexpected response structure:', JSON.stringify(response));
     }
