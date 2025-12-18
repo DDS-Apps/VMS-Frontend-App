@@ -207,9 +207,10 @@ const getMenuGroups = (role: UserRole): { groups: MenuGroup[]; standalone: MenuI
         icon: 'users',
         items: [
           { id: 'users_roles', labelKey: 'navigation.manageUsers', icon: 'users', screen: 'UsersRoles' },
-          { id: 'notification_templates', labelKey: 'navigation.notificationTemplates', icon: 'mail', screen: 'NotificationTemplates' },
-          { id: 'biometric_settings', labelKey: 'navigation.biometricSettings', icon: 'lock', screen: 'BiometricSettings' },
-          { id: 'reminder_rules', labelKey: 'navigation.reminderRules', icon: 'clock', screen: 'ReminderRules' },
+          // HIDDEN per user request
+          // { id: 'notification_templates', labelKey: 'navigation.notificationTemplates', icon: 'mail', screen: 'NotificationTemplates' },
+          // { id: 'biometric_settings', labelKey: 'navigation.biometricSettings', icon: 'lock', screen: 'BiometricSettings' },
+          // { id: 'reminder_rules', labelKey: 'navigation.reminderRules', icon: 'clock', screen: 'ReminderRules' },
         ],
       },
       // HIDDEN SECTIONS - functionality preserved, menu items hidden per user request
