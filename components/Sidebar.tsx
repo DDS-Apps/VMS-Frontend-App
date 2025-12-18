@@ -88,6 +88,14 @@ const getMenuGroups = (role: UserRole): { groups: MenuGroup[]; standalone: MenuI
         ],
         badgeKey: 'pendingApprovals',
       },
+      {
+        id: 'services',
+        labelKey: 'sidebar.services',
+        icon: 'truck',
+        items: [
+          { id: 'my_valet_requests', labelKey: 'navigation.parkMyCar', icon: 'truck', screen: 'MyValetRequests' },
+        ],
+      },
     ];
   } else if (role === 'receptionist') {
     result.standalone = [
