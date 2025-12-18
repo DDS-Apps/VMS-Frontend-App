@@ -19,12 +19,24 @@ export const formatDate = (date: Date, locale: LocaleCode = 'en-US', format: Dat
 };
 
 export const formatTime = (date: Date, locale: LocaleCode = 'en-US'): string => {
-  const timeStr = date.toLocaleTimeString(locale, {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  });
-  return timeStr.replace(/^0(\d)/, '$1');
+  let hours = date.getHours();
+  const minutes = date.getMinutes();
+  const period = hours >= 12 ? 'PM' : 'AM';
+  
+  hours = hours % 12;
+  if (hours === 0) hours = 12;
+  
+  const minuteStr = minutes.toString().padStart(2, '0');
+  
+  if (locale === 'ar-SA') {
+    const arabicNumerals = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+    const arabicHours = hours.toString().split('').map(d => arabicNumerals[parseInt(d)]).join('');
+    const arabicMinutes = minuteStr.split('').map(d => arabicNumerals[parseInt(d)]).join('');
+    const arabicPeriod = period === 'AM' ? 'ص' : 'م';
+    return `${arabicHours}:${arabicMinutes} ${arabicPeriod}`;
+  }
+  
+  return `${hours}:${minuteStr} ${period}`;
 };
 
 export const formatTimeFromString = (timeString: string, locale: LocaleCode = 'en-US'): string => {
