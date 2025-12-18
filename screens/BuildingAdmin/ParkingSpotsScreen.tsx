@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { View, StyleSheet, Pressable, Modal, Alert, ScrollView, KeyboardAvoidingView, Platform, Switch, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScreenScrollView } from '@/components/ScreenScrollView';
@@ -95,6 +95,10 @@ export default function ParkingSpotsScreen() {
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [editingSpot, setEditingSpot] = useState<ParkingSpotDto | null>(null);
   const [deletingSpotId, setDeletingSpotId] = useState<string | null>(null);
+  const [spotToDelete, setSpotToDelete] = useState<ParkingSpotDto | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [formData, setFormData] = useState({
     spotNumber: '',
     location: 'skbc_basement' as ParkingLocation,
@@ -182,9 +186,25 @@ export default function ParkingSpotsScreen() {
     setShowModal(true);
   };
 
+  useEffect(() => {
+    return () => {
+      if (toastTimeoutRef.current) {
+        clearTimeout(toastTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const showToast = useCallback((message: string, type: 'success' | 'error') => {
+    if (toastTimeoutRef.current) {
+      clearTimeout(toastTimeoutRef.current);
+    }
+    setToast({ message, type });
+    toastTimeoutRef.current = setTimeout(() => setToast(null), 3000);
+  }, []);
+
   const handleSaveSpot = useCallback(async () => {
     if (!formData.spotNumber || !formData.level) {
-      Alert.alert(t('common.error'), t('form.fieldRequired'));
+      showToast(t('form.fieldRequired'), 'error');
       return;
     }
 
@@ -199,6 +219,7 @@ export default function ParkingSpotsScreen() {
             spotType: formData.spotType,
           },
         });
+        showToast(t('parking.spotUpdated'), 'success');
       } else {
         await createMutation.mutateAsync({
           spotNumber: formData.spotNumber,
@@ -207,13 +228,14 @@ export default function ParkingSpotsScreen() {
           spotType: formData.spotType,
           isActive: true,
         });
+        showToast(t('parking.spotCreated'), 'success');
       }
       setShowModal(false);
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : t('common.error');
-      Alert.alert(t('common.error'), errorMessage);
+      showToast(errorMessage, 'error');
     }
-  }, [formData, editingSpot, createMutation, updateMutation, t]);
+  }, [formData, editingSpot, createMutation, updateMutation, t, showToast]);
 
   const handleToggleActive = useCallback(async (spot: ParkingSpotDto) => {
     try {
@@ -221,42 +243,47 @@ export default function ParkingSpotsScreen() {
         id: spot.id,
         data: { isActive: !spot.isActive },
       });
+      showToast(
+        spot.isActive ? t('parking.spotDeactivated') : t('parking.spotActivated'),
+        'success'
+      );
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : t('common.error');
-      Alert.alert(t('common.error'), errorMessage);
+      showToast(errorMessage, 'error');
     }
-  }, [updateMutation, t]);
+  }, [updateMutation, t, showToast]);
 
   const handleDeleteSpot = useCallback((spot: ParkingSpotDto) => {
     if (spot.status === 'occupied') {
-      Alert.alert(t('common.error'), t('parking.cannotDeleteOccupied'));
+      showToast(t('parking.cannotDeleteOccupied'), 'error');
       return;
     }
+    setSpotToDelete(spot);
+    setShowDeleteConfirm(true);
+  }, [t, showToast]);
 
-    Alert.alert(
-      t('common.delete'),
-      `${t('common.confirm')} ${spot.spotNumber}?`,
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('common.delete'),
-          style: 'destructive',
-          onPress: async () => {
-            setDeletingSpotId(spot.id);
-            try {
-              await deleteMutation.mutateAsync(spot.id);
-              Alert.alert(t('common.success'), t('parking.spotDeleted'));
-            } catch (error: unknown) {
-              const errorMessage = error instanceof Error ? error.message : t('common.error');
-              Alert.alert(t('common.error'), errorMessage);
-            } finally {
-              setDeletingSpotId(null);
-            }
-          },
-        },
-      ]
-    );
-  }, [deleteMutation, t]);
+  const confirmDelete = useCallback(async () => {
+    if (!spotToDelete) return;
+    
+    setShowDeleteConfirm(false);
+    setDeletingSpotId(spotToDelete.id);
+    
+    try {
+      await deleteMutation.mutateAsync(spotToDelete.id);
+      showToast(t('parking.spotDeleted'), 'success');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : t('common.error');
+      showToast(errorMessage, 'error');
+    } finally {
+      setDeletingSpotId(null);
+      setSpotToDelete(null);
+    }
+  }, [spotToDelete, deleteMutation, t, showToast]);
+
+  const cancelDelete = useCallback(() => {
+    setShowDeleteConfirm(false);
+    setSpotToDelete(null);
+  }, []);
 
   const getTypeColor = (type: ParkingSpotType) => {
     switch (type) {
@@ -883,6 +910,71 @@ export default function ParkingSpotsScreen() {
           </Pressable>
         </Pressable>
       </Modal>
+
+      <Modal
+        visible={showDeleteConfirm}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={cancelDelete}
+      >
+        <Pressable style={styles.deleteModalOverlay} onPress={cancelDelete}>
+          <View style={[styles.deleteModalContent, { backgroundColor: theme.background }]}>
+            <View style={[styles.deleteIconContainer, { backgroundColor: applyOpacity(theme.error, '15') }]}>
+              <DDIcon name="trash-2" size={32} color={theme.error} />
+            </View>
+            <Spacer height={Spacing.md} />
+            <ThemedText style={[Typography.h3, { fontWeight: '600', textAlign: 'center' }]}>
+              {t('common.delete')}
+            </ThemedText>
+            <Spacer height={Spacing.sm} />
+            <ThemedText style={[Typography.body, { color: theme.textSecondary, textAlign: 'center' }]}>
+              {t('parking.confirmDelete')} {spotToDelete?.spotNumber}?
+            </ThemedText>
+            <Spacer height={Spacing.xl} />
+            <View style={styles.deleteModalButtons}>
+              <LoadingButton
+                onPress={cancelDelete}
+                variant="secondary"
+                size="medium"
+                fullWidth={false}
+                style={{ flex: 1 }}
+              >
+                {t('common.cancel')}
+              </LoadingButton>
+              <View style={{ width: Spacing.md }} />
+              <LoadingButton
+                onPress={confirmDelete}
+                variant="primary"
+                size="medium"
+                fullWidth={false}
+                style={{ flex: 1, backgroundColor: theme.error }}
+                loading={deleteMutation.isPending}
+              >
+                {t('common.delete')}
+              </LoadingButton>
+            </View>
+          </View>
+        </Pressable>
+      </Modal>
+
+      {toast ? (
+        <View 
+          style={[
+            styles.toast, 
+            { 
+              backgroundColor: toast.type === 'success' ? theme.success : theme.error,
+              bottom: insets.bottom + Spacing.xl + 80,
+            }
+          ]}
+        >
+          <DDIcon 
+            name={toast.type === 'success' ? 'check-circle' : 'alert-circle'} 
+            size={20} 
+            color="#FFFFFF" 
+          />
+          <ThemedText style={styles.toastText}>{toast.message}</ThemedText>
+        </View>
+      ) : null}
     </>
   );
 }
@@ -1228,5 +1320,52 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.lg,
     borderTopWidth: 1,
     borderTopColor: 'rgba(0,0,0,0.06)',
+  },
+  deleteModalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    paddingHorizontal: Spacing.lg,
+  },
+  deleteModalContent: {
+    width: '100%',
+    maxWidth: 340,
+    borderRadius: 20,
+    padding: Spacing.xl,
+    alignItems: 'center',
+  },
+  deleteIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  deleteModalButtons: {
+    flexDirection: 'row',
+    width: '100%',
+  },
+  toast: {
+    position: 'absolute',
+    left: Spacing.lg,
+    right: Spacing.lg,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  toastText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '500',
+    flex: 1,
   },
 });

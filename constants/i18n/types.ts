@@ -837,6 +837,11 @@ export interface TranslationKeys {
     priorityRulesInfo: string;
     cannotDeleteOccupied: string;
     spotDeleted: string;
+    spotUpdated: string;
+    spotCreated: string;
+    spotActivated: string;
+    spotDeactivated: string;
+    confirmDelete: string;
   };
   valet: {
     valetService: string;

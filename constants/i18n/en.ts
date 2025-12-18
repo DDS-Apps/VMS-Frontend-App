@@ -837,6 +837,11 @@ export const en: TranslationKeys = {
     priorityRulesInfo: 'Priority rules determine the order in which parking locations are filled. When a location reaches its max occupancy threshold, the system moves to the next priority.',
     cannotDeleteOccupied: 'Cannot delete parking spot while it is occupied.',
     spotDeleted: 'Parking spot deleted successfully.',
+    spotUpdated: 'Parking spot updated successfully.',
+    spotCreated: 'Parking spot created successfully.',
+    spotActivated: 'Parking spot activated.',
+    spotDeactivated: 'Parking spot deactivated.',
+    confirmDelete: 'Are you sure you want to delete',
   },
   valet: {
     valetService: 'Valet Service',

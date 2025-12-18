@@ -837,6 +837,11 @@ export const ar: TranslationKeys = {
     priorityRulesInfo: 'تحدد قواعد الأولوية الترتيب الذي يتم به ملء مواقع المواقف. عندما يصل الموقع إلى الحد الأقصى للإشغال، ينتقل النظام إلى الأولوية التالية.',
     cannotDeleteOccupied: 'لا يمكن حذف موقف السيارة أثناء استخدامه.',
     spotDeleted: 'تم حذف موقف السيارات بنجاح.',
+    spotUpdated: 'تم تحديث موقف السيارات بنجاح.',
+    spotCreated: 'تم إنشاء موقف السيارات بنجاح.',
+    spotActivated: 'تم تفعيل موقف السيارات.',
+    spotDeactivated: 'تم إلغاء تفعيل موقف السيارات.',
+    confirmDelete: 'هل أنت متأكد من حذف',
   },
   valet: {
     valetService: 'خدمة صف السيارات',
