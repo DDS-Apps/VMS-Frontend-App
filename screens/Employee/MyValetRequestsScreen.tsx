@@ -232,18 +232,23 @@ export default function MyValetRequestsScreen({ navigation }: MyValetRequestsScr
     // Safely extract requests array from various possible API response shapes
     let requests: SelfValetRequestDto[] = [];
     
+    console.log('[MyValetRequestsScreen] Raw response type:', typeof response);
     console.log('[MyValetRequestsScreen] Raw response:', JSON.stringify(response, null, 2));
+    console.log('[MyValetRequestsScreen] isLoading:', isLoading, 'isError:', isError);
     
-    if (response) {
-      if (Array.isArray(response)) {
-        requests = response;
-        console.log('[MyValetRequestsScreen] Response is array, length:', response.length);
-      } else if (typeof response === 'object' && 'data' in response && Array.isArray((response as SelfValetRequestsResponse).data)) {
-        requests = (response as SelfValetRequestsResponse).data;
-        console.log('[MyValetRequestsScreen] Extracted data array, length:', requests.length);
-      } else {
-        console.warn('[MyValetRequestsScreen] Unexpected response structure:', JSON.stringify(response));
-      }
+    if (!response) {
+      console.log('[MyValetRequestsScreen] Response is undefined/null');
+      return [];
+    }
+    
+    if (Array.isArray(response)) {
+      requests = response;
+      console.log('[MyValetRequestsScreen] Response is array, length:', response.length);
+    } else if (typeof response === 'object' && 'data' in response && Array.isArray((response as SelfValetRequestsResponse).data)) {
+      requests = (response as SelfValetRequestsResponse).data;
+      console.log('[MyValetRequestsScreen] Extracted data array, length:', requests.length);
+    } else {
+      console.warn('[MyValetRequestsScreen] Unexpected response structure:', JSON.stringify(response));
     }
     
     console.log('[MyValetRequestsScreen] Requests before filter:', requests.length);
