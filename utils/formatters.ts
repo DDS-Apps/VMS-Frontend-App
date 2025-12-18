@@ -148,6 +148,20 @@ export const formatDateShortMonth = (date: Date, locale: LocaleCode = 'en-US'): 
   return `${month} ${day}, ${year}`;
 };
 
+export const formatTimeRange = (timeRange: string, locale: LocaleCode = 'en-US'): string => {
+  if (!timeRange) return '';
+  
+  const parts = timeRange.split(/\s*[-–]\s*/);
+  if (parts.length !== 2) {
+    return formatTimeFromString(timeRange, locale);
+  }
+  
+  const startTime = formatTimeFromString(parts[0].trim(), locale);
+  const endTime = formatTimeFromString(parts[1].trim(), locale);
+  
+  return `${startTime} - ${endTime}`;
+};
+
 export const parseTimeString = (timeStr: string, dateStr?: string): Date => {
   const now = new Date();
   

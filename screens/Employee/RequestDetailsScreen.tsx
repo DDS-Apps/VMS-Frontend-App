@@ -72,6 +72,7 @@ export default function RequestDetailsScreen({
     formatDateShort,
     formatTime,
     formatDateTime: fmtDateTime,
+    formatTimeRange,
     toLocalNumerals,
     parseISODuration,
     parseTimeString,
@@ -945,7 +946,7 @@ export default function RequestDetailsScreen({
                     { color: theme.textSecondary, fontSize: 12 },
                   ]}
                 >
-                  {request.meetingRoom.timeSlot}
+                  {formatTimeRange(request.meetingRoom.timeSlot)}
                 </ThemedText>
               </>
             ) : (request as any).meetingRoomPending ? (
