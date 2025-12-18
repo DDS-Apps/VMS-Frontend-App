@@ -67,6 +67,7 @@ function mapUserDtoToDisplayUser(dto: UserDto): DisplayUser {
 }
 
 const ALL_ROLES: UserRole[] = [
+  'visitor',
   'employee',
   'manager',
   'receptionist',
@@ -76,7 +77,6 @@ const ALL_ROLES: UserRole[] = [
   'buffet_staff',
   'valet_admin',
   'valet_driver',
-  'visitor',
 ];
 
 type SortOption = 'name' | 'role' | 'department';
