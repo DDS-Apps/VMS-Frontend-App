@@ -231,7 +231,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                     {t('actions.checkIn')} {t('visitor.visitTime')}
                   </ThemedText>
                   <ThemedText style={[Typography.body, { fontWeight: '500', color: theme.success }]}>
-                    {visitor.checkInTime}
+                    {formatTimeFromString(visitor.checkInTime)}
                   </ThemedText>
                 </View>
               </View>
@@ -249,7 +249,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                     {t('actions.checkOut')} {t('visitor.visitTime')}
                   </ThemedText>
                   <ThemedText style={[Typography.body, { fontWeight: '500', color: theme.textSecondary }]}>
-                    {visitor.checkOutTime}
+                    {formatTimeFromString(visitor.checkOutTime)}
                   </ThemedText>
                 </View>
               </View>

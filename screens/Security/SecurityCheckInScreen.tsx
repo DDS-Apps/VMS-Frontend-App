@@ -341,7 +341,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
                 <View style={[styles.timestampChip, { backgroundColor: applyOpacity(theme.success, '10') }]}>
                   <DDIcon name="log-in" size={12} color={theme.success} />
                   <ThemedText style={[styles.timestampText, { color: theme.success }]}>
-                    {t('actions.checkIn')}: {visitor.checkInTime}
+                    {t('actions.checkIn')}: {formatTimeFromString(visitor.checkInTime)}
                   </ThemedText>
                 </View>
               ) : null}
@@ -350,7 +350,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
                 <View style={[styles.timestampChip, { backgroundColor: applyOpacity(theme.textSecondary, '10') }]}>
                   <DDIcon name="log-out" size={12} color={theme.textSecondary} />
                   <ThemedText style={[styles.timestampText, { color: theme.textSecondary }]}>
-                    {t('actions.checkOut')}: {visitor.checkOutTime}
+                    {t('actions.checkOut')}: {formatTimeFromString(visitor.checkOutTime)}
                   </ThemedText>
                 </View>
               ) : null}
