@@ -27,7 +27,7 @@ const getWeekdays = (t: (key: string) => string) => [
 export default function MeetingCalendarScreen() {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { formatDate: fmtDate } = useFormatters();
+  const { formatDate: fmtDate, localeCode } = useFormatters();
   const insets = useSafeAreaInsets();
 
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -221,7 +221,7 @@ export default function MeetingCalendarScreen() {
 
       <View style={styles.selectedDateHeader}>
         <ThemedText style={[Typography.subtitle, { fontWeight: "600" }]}>
-          {selectedDate.toLocaleDateString("en", { weekday: "long", month: "short", day: "numeric" })}
+          {selectedDate.toLocaleDateString(localeCode, { weekday: "long", month: "short", day: "numeric" })}
         </ThemedText>
         <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
           {selectedDateBookings.length} {t("admin.bookings").toLowerCase()}

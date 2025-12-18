@@ -68,7 +68,7 @@ export default function ValetRequestDetailsScreen({ route }: ValetRequestDetails
   const { requestId } = route.params;
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { formatTime: formatTimeUtil } = useFormatters();
+  const { formatTime: formatTimeUtil, formatDate: fmtDateLong } = useFormatters();
   const insets = useSafeAreaInsets();
 
   const { data: response, isLoading, isError, refetch, isRefetching } = useMyValetRequestDetailQuery(requestId);
@@ -138,7 +138,7 @@ export default function ValetRequestDetailsScreen({ route }: ValetRequestDetails
 
   const formatDate = (dateString: string) => {
     const d = new Date(dateString);
-    return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+    return fmtDateLong(d, 'long');
   };
 
   const formatTime = (dateString: string) => {

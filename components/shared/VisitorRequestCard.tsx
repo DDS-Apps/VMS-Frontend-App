@@ -30,7 +30,7 @@ export function VisitorRequestCard({
 }: VisitorRequestCardProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { formatDateShort, toLocalNumerals } = useFormatters();
+  const { formatDateShort, formatTimeFromString, toLocalNumerals } = useFormatters();
   const { isRTL } = useLanguage();
 
   const statusConfig = getStatusStyle(theme, request.status, t);
@@ -42,7 +42,7 @@ export function VisitorRequestCard({
   };
 
   const formatTime = (timeString: string): string => {
-    return toLocalNumerals(timeString);
+    return formatTimeFromString(timeString);
   };
 
   const formatDuration = (durationStr: string): string => {

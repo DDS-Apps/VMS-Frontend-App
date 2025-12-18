@@ -13,6 +13,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useToast } from '@/contexts/ToastContext';
 import { useUserQuery, useDeleteUserMutation } from '@/hooks/queries/useUserQueries';
+import { useFormatters } from '@/hooks/useFormatters';
 import { UserRole } from '@/types/vms.types';
 
 type RootStackParamList = {
@@ -26,6 +27,7 @@ type UserDetailNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 export default function UserDetailScreen() {
   const { theme } = useTheme();
   const { t, isRTL } = useTranslation();
+  const { formatDate: fmtDate } = useFormatters();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<UserDetailNavigationProp>();
   const route = useRoute<UserDetailRouteProp>();
@@ -80,11 +82,7 @@ export default function UserDetailScreen() {
   const formatDate = (dateString: string) => {
     try {
       const date = new Date(dateString);
-      return date.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      });
+      return fmtDate(date, 'medium');
     } catch {
       return dateString;
     }

@@ -193,7 +193,7 @@ interface VisitorInviteScreenProps {
 export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { formatDate: fmtDate, formatTimeFromString } = useFormatters();
+  const { formatDate: fmtDate, formatTimeFromString, formatDateTime } = useFormatters();
   const insets = useSafeAreaInsets();
   const token = route?.params?.token || route?.params?.visitId;
   
@@ -282,14 +282,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
 
   const formatDecisionDate = (dateString: string): string => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    });
+    return formatDateTime(date);
   };
 
   const getParkingExpectationText = (invite: PublicInviteDto): string => {

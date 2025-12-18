@@ -120,7 +120,7 @@ const VisitorAvatar = ({ name, theme, size = 44 }: { name: string; theme: Theme;
 
 // Shared: Date/Time Display Component
 const DateTimeDisplay = ({ date, time, duration, theme, compact = false }: { date: string; time: string; duration?: string; theme: Theme; compact?: boolean }) => {
-  const { formatDateShort, toLocalNumerals } = useFormatters();
+  const { formatDateShort, toLocalNumerals, formatTimeFromString } = useFormatters();
   const { t } = useTranslation();
   const { isRTL } = useLanguage();
 
@@ -155,7 +155,7 @@ const DateTimeDisplay = ({ date, time, duration, theme, compact = false }: { dat
       <View style={[styles.dateTimeRight, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <DDIcon name="clock" size={compact ? 13 : 14} variant="muted" />
         <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
-          {toLocalNumerals(time)}
+          {formatTimeFromString(time)}
         </ThemedText>
         {duration ? (
           <>

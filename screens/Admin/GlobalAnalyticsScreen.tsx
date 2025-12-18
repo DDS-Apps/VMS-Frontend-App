@@ -8,6 +8,7 @@ import { DDIcon } from "@/components/DDIcon";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useFormatters } from "@/hooks/useFormatters";
 import {
   AdminKPIMetric,
   VisitsAnalytics,
@@ -26,6 +27,7 @@ const HORIZONTAL_PADDING = Spacing.md;
 export default function GlobalAnalyticsScreen() {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { localeCode } = useFormatters();
   const insets = useSafeAreaInsets();
 
   const [kpis, setKpis] = useState<AdminKPIMetric[]>([]);
@@ -199,7 +201,7 @@ export default function GlobalAnalyticsScreen() {
                     />
                   </View>
                   <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 4, fontSize: 10 }]}>
-                    {new Date(day.date).toLocaleDateString("en", { weekday: "short" }).substring(0, 2)}
+                    {new Date(day.date).toLocaleDateString(localeCode, { weekday: "short" }).substring(0, 2)}
                   </ThemedText>
                 </View>
               ))}
@@ -234,7 +236,7 @@ export default function GlobalAnalyticsScreen() {
                     />
                   </View>
                   <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 4, fontSize: 10 }]}>
-                    {new Date(day.date).toLocaleDateString("en", { weekday: "short" }).substring(0, 2)}
+                    {new Date(day.date).toLocaleDateString(localeCode, { weekday: "short" }).substring(0, 2)}
                   </ThemedText>
                 </View>
               ))}

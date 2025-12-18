@@ -41,7 +41,7 @@ const LAYOUT = {
 };
 
 
-const DateTimeDisplay = ({ date, time, duration, theme, compact = false, fmtDate }: { date: string; time: string; duration?: string; theme: Theme; compact?: boolean; fmtDate: (d: Date | string) => string }) => {
+const DateTimeDisplay = ({ date, time, duration, theme, compact = false, fmtDate, fmtTime }: { date: string; time: string; duration?: string; theme: Theme; compact?: boolean; fmtDate: (d: Date | string) => string; fmtTime: (t: string) => string }) => {
   return (
     <View style={styles.dateTimeRow}>
       <DDIcon name="calendar" size={compact ? 13 : 14} variant="muted" />
@@ -51,7 +51,7 @@ const DateTimeDisplay = ({ date, time, duration, theme, compact = false, fmtDate
       <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
       <DDIcon name="clock" size={compact ? 13 : 14} variant="muted" />
       <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
-        {time}
+        {fmtTime(time)}
       </ThemedText>
       {duration ? (
         <>
@@ -246,7 +246,8 @@ const ApprovalTableRow = React.memo(({
   theme,
   isProcessing,
   t,
-  fmtDate
+  fmtDate,
+  fmtTime
 }: { 
   request: VisitorRequest; 
   onApprove: () => void;
@@ -260,6 +261,7 @@ const ApprovalTableRow = React.memo(({
   isProcessing: boolean;
   t: (key: string) => string;
   fmtDate: (d: Date | string) => string;
+  fmtTime: (t: string) => string;
 }) => {
   return (
     <Pressable onLongPress={onLongPress}>
@@ -288,6 +290,7 @@ const ApprovalTableRow = React.memo(({
                 theme={theme} 
                 compact 
                 fmtDate={fmtDate}
+                fmtTime={fmtTime}
               />
             </View>
           </View>
@@ -388,7 +391,8 @@ const ApprovalCard = React.memo(({
   theme,
   isProcessing,
   t,
-  fmtDate
+  fmtDate,
+  fmtTime
 }: { 
   request: VisitorRequest; 
   onApprove: () => void;
@@ -402,6 +406,7 @@ const ApprovalCard = React.memo(({
   isProcessing: boolean;
   t: (key: string) => string;
   fmtDate: (d: Date | string) => string;
+  fmtTime: (t: string) => string;
 }) => {
   return (
     <Pressable onLongPress={onLongPress}>
@@ -440,6 +445,7 @@ const ApprovalCard = React.memo(({
             duration={request.duration}
             theme={theme}
             fmtDate={fmtDate}
+            fmtTime={fmtTime}
           />
 
           <Spacer height={Spacing.sm} />
@@ -607,7 +613,7 @@ const RejectRequestModal = ({
 export default function ManagerDashboardScreen({ navigation }: ManagerDashboardScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { formatDate } = useFormatters();
+  const { formatDate, formatTimeFromString } = useFormatters();
   const insets = useSafeAreaInsets();
   const { paddingTop, paddingBottom } = useScreenInsets();
   const { user } = useAuth();
@@ -873,6 +879,7 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
               isProcessing={isProcessing}
               t={t}
               fmtDate={formatDate}
+              fmtTime={formatTimeFromString}
             />
           )}
           ListHeaderComponent={renderListHeader()}
@@ -941,6 +948,7 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
             isProcessing={isProcessing}
             t={t}
             fmtDate={formatDate}
+            fmtTime={formatTimeFromString}
           />
         )}
         ListHeaderComponent={renderListHeader()}
