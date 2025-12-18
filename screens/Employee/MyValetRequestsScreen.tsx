@@ -231,22 +231,35 @@ export default function MyValetRequestsScreen({ navigation }: MyValetRequestsScr
   const filteredRequests = useMemo(() => {
     // Safely extract requests array from various possible API response shapes
     let requests: SelfValetRequestDto[] = [];
+    
+    console.log('[MyValetRequestsScreen] Raw response:', JSON.stringify(response, null, 2));
+    
     if (response) {
       if (Array.isArray(response)) {
         requests = response;
+        console.log('[MyValetRequestsScreen] Response is array, length:', response.length);
       } else if (typeof response === 'object' && 'data' in response && Array.isArray((response as SelfValetRequestsResponse).data)) {
         requests = (response as SelfValetRequestsResponse).data;
+        console.log('[MyValetRequestsScreen] Extracted data array, length:', requests.length);
       } else {
         console.warn('[MyValetRequestsScreen] Unexpected response structure:', JSON.stringify(response));
       }
     }
     
-    return requests
+    console.log('[MyValetRequestsScreen] Requests before filter:', requests.length);
+    if (requests.length > 0) {
+      console.log('[MyValetRequestsScreen] First request sample:', JSON.stringify(requests[0], null, 2));
+    }
+    
+    const filtered = requests
       .filter(request => {
-        if (!request?.vehicleInfo) return false;
-        const plateNumber = (request.vehicleInfo.plateNumber || '').toLowerCase();
-        const make = (request.vehicleInfo.make || '').toLowerCase();
-        const model = (request.vehicleInfo.model || '').toLowerCase();
+        // Allow all requests through if no search query
+        if (!searchQuery.trim()) return true;
+        
+        // For search, check vehicleInfo fields if available
+        const plateNumber = (request.vehicleInfo?.plateNumber || '').toLowerCase();
+        const make = (request.vehicleInfo?.make || '').toLowerCase();
+        const model = (request.vehicleInfo?.model || '').toLowerCase();
         const query = searchQuery.toLowerCase();
         return plateNumber.includes(query) || make.includes(query) || model.includes(query);
       })
@@ -257,6 +270,10 @@ export default function MyValetRequestsScreen({ navigation }: MyValetRequestsScr
         return status === statusFilter;
       })
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    
+    console.log('[MyValetRequestsScreen] Requests after filter:', filtered.length);
+    
+    return filtered;
   }, [response, searchQuery, statusFilter]);
 
   const scrollContentStyle = {
