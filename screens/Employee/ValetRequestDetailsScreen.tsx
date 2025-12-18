@@ -1,0 +1,363 @@
+import React from "react";
+import { View, StyleSheet, RefreshControl } from "react-native";
+import { ScreenScrollView } from "@/components/ScreenScrollView";
+import { ThemedText } from "@/components/ThemedText";
+import { ThemedView } from "@/components/ThemedView";
+import { Card } from "@/components/Card";
+import Spacer from "@/components/Spacer";
+import { SkeletonList } from "@/components/shared/Skeleton";
+import { Spacing, BorderRadius, Typography } from "@/constants/theme";
+import { useTheme } from "@/hooks/useTheme";
+import { useTranslation } from "@/hooks/useTranslation";
+import { DDIcon } from "@/components/DDIcon";
+import { applyOpacity } from "@/utils/statusStyles";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useMyValetRequestDetailQuery } from "@/hooks/queries/useValetSelfServiceQueries";
+import type { ValetRequestDetailsScreenProps } from "@/types/employeeNavigation.types";
+import type { Theme } from "@/types/theme.types";
+import type { SelfValetRequestDto } from "@/types/api.types";
+
+function getStatusColor(status: string, theme: Theme) {
+  switch (status) {
+    case 'pending':
+      return theme.primary;
+    case 'assigned':
+      return theme.warning;
+    case 'in_progress':
+      return theme.info;
+    case 'completed':
+      return theme.success;
+    case 'cancelled':
+      return theme.error;
+    default:
+      return theme.textSecondary;
+  }
+}
+
+function getStatusLabel(status: string): string {
+  switch (status) {
+    case 'pending':
+      return 'Pending';
+    case 'assigned':
+      return 'Assigned';
+    case 'in_progress':
+      return 'In Progress';
+    case 'completed':
+      return 'Completed';
+    case 'cancelled':
+      return 'Cancelled';
+    default:
+      return status;
+  }
+}
+
+const InfoRow = ({ icon, label, value, theme }: { icon: string; label: string; value: string; theme: Theme }) => (
+  <View style={styles.infoRow}>
+    <View style={[styles.infoIconContainer, { backgroundColor: applyOpacity(theme.primary, '10') }]}>
+      <DDIcon name={icon as any} size={16} color={theme.primary} />
+    </View>
+    <View style={styles.infoContent}>
+      <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>{label}</ThemedText>
+      <ThemedText style={[Typography.body, { color: theme.text }]}>{value}</ThemedText>
+    </View>
+  </View>
+);
+
+export default function ValetRequestDetailsScreen({ route }: ValetRequestDetailsScreenProps) {
+  const { requestId } = route.params;
+  const { theme } = useTheme();
+  const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
+
+  const { data: response, isLoading, isError, refetch, isRefetching } = useMyValetRequestDetailQuery(requestId);
+
+  const scrollContentStyle = {
+    paddingHorizontal: Spacing.lg,
+    paddingTop: insets.top + Spacing.xl,
+    paddingBottom: insets.bottom + Spacing.xl + 80
+  };
+
+  if (isLoading) {
+    return (
+      <View style={[styles.loadingContainer, { paddingTop: insets.top + Spacing.lg, paddingHorizontal: Spacing.lg }]}>
+        <SkeletonList count={3} />
+      </View>
+    );
+  }
+
+  if (isError || !response) {
+    return (
+      <ThemedView style={styles.container}>
+        <View style={[styles.errorContainer, { paddingTop: insets.top + Spacing.xl }]}>
+          <DDIcon name="alert-triangle" size={48} variant="muted" />
+          <Spacer height={Spacing.md} />
+          <ThemedText style={[Typography.body, { color: theme.textSecondary, textAlign: 'center' }]}>
+            {t('common.loadError')}
+          </ThemedText>
+        </View>
+      </ThemedView>
+    );
+  }
+
+  // Handle nested data structure
+  let request: SelfValetRequestDto | null = null;
+  if (response && typeof response === 'object') {
+    if ('data' in response && response.data) {
+      const data = response.data as any;
+      if ('data' in data) {
+        request = data.data;
+      } else {
+        request = data;
+      }
+    } else if ('id' in response) {
+      request = response as SelfValetRequestDto;
+    }
+  }
+
+  if (!request) {
+    return (
+      <ThemedView style={styles.container}>
+        <View style={[styles.errorContainer, { paddingTop: insets.top + Spacing.xl }]}>
+          <DDIcon name="alert-triangle" size={48} variant="muted" />
+          <Spacer height={Spacing.md} />
+          <ThemedText style={[Typography.body, { color: theme.textSecondary, textAlign: 'center' }]}>
+            Request not found
+          </ThemedText>
+        </View>
+      </ThemedView>
+    );
+  }
+
+  const status = request.valet?.status || 'pending';
+  const statusColor = getStatusColor(status, theme);
+  const statusLabel = getStatusLabel(status);
+
+  const formatDate = (dateString: string) => {
+    const d = new Date(dateString);
+    return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
+  const formatTime = (dateString: string) => {
+    const d = new Date(dateString);
+    return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+  };
+
+  return (
+    <ThemedView style={styles.container}>
+      <ScreenScrollView
+        contentContainerStyle={scrollContentStyle}
+        refreshControl={
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.primary} />
+        }
+      >
+        <Card style={styles.headerCard}>
+          <View style={styles.statusContainer}>
+            <View style={[styles.statusBadge, { backgroundColor: applyOpacity(statusColor, '15'), borderColor: applyOpacity(statusColor, '30') }]}>
+              <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
+              <ThemedText style={[Typography.bodySmall, { color: statusColor, fontWeight: '600' }]}>
+                {statusLabel}
+              </ThemedText>
+            </View>
+          </View>
+          
+          <Spacer height={Spacing.lg} />
+          
+          <View style={styles.vehicleInfo}>
+            <DDIcon name="truck" size={24} color={theme.primary} />
+            <View style={styles.vehicleDetails}>
+              <ThemedText style={[Typography.h3, { color: theme.text }]}>
+                {request.vehicleInfo?.make} {request.vehicleInfo?.model}
+              </ThemedText>
+              <ThemedText style={[Typography.body, { color: theme.textSecondary }]}>
+                {request.vehicleInfo?.plateNumber} - {request.vehicleInfo?.color}
+              </ThemedText>
+            </View>
+          </View>
+        </Card>
+
+        <Spacer height={Spacing.lg} />
+
+        <ThemedText style={[Typography.h3, { color: theme.text, marginBottom: Spacing.md }]}>
+          Request Details
+        </ThemedText>
+
+        <Card style={styles.detailsCard}>
+          <InfoRow 
+            icon="map-pin" 
+            label="Drop-off Location" 
+            value={request.dropOffLocation} 
+            theme={theme} 
+          />
+          <View style={[styles.divider, { backgroundColor: theme.border }]} />
+          <InfoRow 
+            icon="clock" 
+            label="Requested Return Time" 
+            value={request.requestedReturnTime} 
+            theme={theme} 
+          />
+          <View style={[styles.divider, { backgroundColor: theme.border }]} />
+          <InfoRow 
+            icon="calendar" 
+            label="Created" 
+            value={`${formatDate(request.createdAt)} at ${formatTime(request.createdAt)}`} 
+            theme={theme} 
+          />
+          {request.notes ? (
+            <>
+              <View style={[styles.divider, { backgroundColor: theme.border }]} />
+              <InfoRow 
+                icon="file-text" 
+                label="Notes" 
+                value={request.notes} 
+                theme={theme} 
+              />
+            </>
+          ) : null}
+        </Card>
+
+        {request.valet?.driver ? (
+          <>
+            <Spacer height={Spacing.lg} />
+            <ThemedText style={[Typography.h3, { color: theme.text, marginBottom: Spacing.md }]}>
+              Assigned Driver
+            </ThemedText>
+            <Card style={styles.driverCard}>
+              <View style={styles.driverInfo}>
+                <View style={[styles.driverAvatar, { backgroundColor: applyOpacity(theme.success, '15') }]}>
+                  <DDIcon name="user" size={20} color={theme.success} />
+                </View>
+                <View style={styles.driverDetails}>
+                  <ThemedText style={[Typography.body, { color: theme.text, fontWeight: '600' }]}>
+                    {request.valet.driver.name}
+                  </ThemedText>
+                  {request.valet.driver.phone ? (
+                    <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
+                      {request.valet.driver.phone}
+                    </ThemedText>
+                  ) : null}
+                </View>
+              </View>
+            </Card>
+          </>
+        ) : null}
+
+        {request.valet?.pickupTime || request.valet?.returnTime ? (
+          <>
+            <Spacer height={Spacing.lg} />
+            <ThemedText style={[Typography.h3, { color: theme.text, marginBottom: Spacing.md }]}>
+              Timeline
+            </ThemedText>
+            <Card style={styles.timelineCard}>
+              {request.valet.pickupTime ? (
+                <InfoRow 
+                  icon="log-in" 
+                  label="Pickup Time" 
+                  value={request.valet.pickupTime} 
+                  theme={theme} 
+                />
+              ) : null}
+              {request.valet.pickupTime && request.valet.returnTime ? (
+                <View style={[styles.divider, { backgroundColor: theme.border }]} />
+              ) : null}
+              {request.valet.returnTime ? (
+                <InfoRow 
+                  icon="log-out" 
+                  label="Return Time" 
+                  value={request.valet.returnTime} 
+                  theme={theme} 
+                />
+              ) : null}
+            </Card>
+          </>
+        ) : null}
+      </ScreenScrollView>
+    </ThemedView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+  },
+  headerCard: {
+    padding: Spacing.lg,
+  },
+  statusContainer: {
+    alignItems: 'flex-start',
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginEnd: Spacing.sm,
+  },
+  vehicleInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  vehicleDetails: {
+    marginStart: Spacing.md,
+    flex: 1,
+  },
+  detailsCard: {
+    padding: Spacing.lg,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: Spacing.sm,
+  },
+  infoIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  infoContent: {
+    marginStart: Spacing.md,
+    flex: 1,
+  },
+  divider: {
+    height: 1,
+    marginVertical: Spacing.sm,
+  },
+  driverCard: {
+    padding: Spacing.lg,
+  },
+  driverInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  driverAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  driverDetails: {
+    marginStart: Spacing.md,
+    flex: 1,
+  },
+  timelineCard: {
+    padding: Spacing.lg,
+  },
+});

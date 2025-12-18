@@ -229,48 +229,26 @@ export default function MyValetRequestsScreen({ navigation }: MyValetRequestsScr
   }, [isError, error, t]);
 
   const filteredRequests = useMemo(() => {
-    // Safely extract requests array from various possible API response shapes
     let requests: SelfValetRequestDto[] = [];
     
-    console.log('[MyValetRequestsScreen] Raw response type:', typeof response);
-    console.log('[MyValetRequestsScreen] Raw response:', JSON.stringify(response, null, 2));
-    console.log('[MyValetRequestsScreen] isLoading:', isLoading, 'isError:', isError);
-    
     if (!response) {
-      console.log('[MyValetRequestsScreen] Response is undefined/null');
       return [];
     }
     
     if (Array.isArray(response)) {
       requests = response;
-      console.log('[MyValetRequestsScreen] Response is array, length:', response.length);
     } else if (typeof response === 'object' && 'data' in response) {
       const responseData = (response as SelfValetRequestsResponse).data;
-      // Handle nested data structure: { data: { data: [...] } }
       if (Array.isArray(responseData)) {
         requests = responseData;
-        console.log('[MyValetRequestsScreen] Extracted data array, length:', requests.length);
       } else if (typeof responseData === 'object' && responseData !== null && 'data' in responseData && Array.isArray((responseData as { data: SelfValetRequestDto[] }).data)) {
         requests = (responseData as { data: SelfValetRequestDto[] }).data;
-        console.log('[MyValetRequestsScreen] Extracted nested data.data array, length:', requests.length);
-      } else {
-        console.warn('[MyValetRequestsScreen] Unexpected data structure:', JSON.stringify(responseData));
       }
-    } else {
-      console.warn('[MyValetRequestsScreen] Unexpected response structure:', JSON.stringify(response));
     }
     
-    console.log('[MyValetRequestsScreen] Requests before filter:', requests.length);
-    if (requests.length > 0) {
-      console.log('[MyValetRequestsScreen] First request sample:', JSON.stringify(requests[0], null, 2));
-    }
-    
-    const filtered = requests
+    return requests
       .filter(request => {
-        // Allow all requests through if no search query
         if (!searchQuery.trim()) return true;
-        
-        // For search, check vehicleInfo fields if available
         const plateNumber = (request.vehicleInfo?.plateNumber || '').toLowerCase();
         const make = (request.vehicleInfo?.make || '').toLowerCase();
         const model = (request.vehicleInfo?.model || '').toLowerCase();
@@ -284,10 +262,6 @@ export default function MyValetRequestsScreen({ navigation }: MyValetRequestsScr
         return status === statusFilter;
       })
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    
-    console.log('[MyValetRequestsScreen] Requests after filter:', filtered.length);
-    
-    return filtered;
   }, [response, searchQuery, statusFilter]);
 
   const scrollContentStyle = {

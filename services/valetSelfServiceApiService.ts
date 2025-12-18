@@ -24,10 +24,7 @@ export const valetSelfServiceApiService = {
   list: async (params?: ListSelfValetRequestsParams): Promise<SelfValetRequestsResponse> => {
     const queryString = params ? buildQueryString(params as unknown as Record<string, unknown>) : '';
     const url = `${valetSelfService.base}${queryString}`;
-    console.log('[valetSelfServiceApiService.list] Fetching from:', url);
-    const response = await get<SelfValetRequestsResponse>(url);
-    console.log('[valetSelfServiceApiService.list] Raw response:', JSON.stringify(response, null, 2));
-    return response;
+    return get<SelfValetRequestsResponse>(url);
   },
 
   getById: (id: string): Promise<SelfValetRequestDto> => {
