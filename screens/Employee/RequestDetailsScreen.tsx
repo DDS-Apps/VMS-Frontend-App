@@ -1201,7 +1201,7 @@ export default function RequestDetailsScreen({
 
       <Spacer height={Spacing.xl} />
 
-      {/* Walk-in request pending: Show only Approve/Reject buttons (no Edit Services until approved) */}
+      {/* Walk-in request pending: Show Approve/Reject buttons */}
       {request.isWalkIn && request.status === REQUEST_STATUS.PENDING_HOST_APPROVAL ? (
         <>
           <ApprovalActionGroup
@@ -1216,8 +1216,11 @@ export default function RequestDetailsScreen({
         </>
       ) : null}
 
-      {/* Walk-in request approved: Show Edit Services and Cancel buttons */}
-      {request.isWalkIn && (request.status === REQUEST_STATUS.APPROVED || request.status === REQUEST_STATUS.CHECKED_IN) ? (
+      {/* Show Edit and Cancel buttons - hidden only for specific statuses */}
+      {request.status !== REQUEST_STATUS.PENDING_HOST_APPROVAL &&
+       request.status !== REQUEST_STATUS.COMPLETED &&
+       request.status !== REQUEST_STATUS.CANCELLED &&
+       request.status !== REQUEST_STATUS.REJECTED ? (
         <>
           <View style={styles.actionButtonsRow}>
             <Pressable
@@ -1225,9 +1228,9 @@ export default function RequestDetailsScreen({
                 styles.actionButtonHalf,
                 { backgroundColor: theme.primary },
               ]}
-              onPress={() => openEditModal("services-only")}
+              onPress={() => openEditModal(request.isWalkIn ? "services-only" : "full")}
             >
-              <DDIcon name="settings" size={18} color={theme.buttonText} />
+              <DDIcon name={request.isWalkIn ? "settings" : "edit-2"} size={18} color={theme.buttonText} />
               <ThemedText
                 style={[
                   Typography.body,
@@ -1239,64 +1242,7 @@ export default function RequestDetailsScreen({
                   },
                 ]}
               >
-                {t("actions.editServices")}
-              </ThemedText>
-            </Pressable>
-            <Spacer width={Spacing.md} />
-            <Pressable
-              style={[
-                styles.actionButtonHalf,
-                { borderColor: theme.error, backgroundColor: theme.surface },
-              ]}
-              onPress={() => setShowCancelModal(true)}
-            >
-              <DDIcon name="x" size={18} variant="danger" />
-              <ThemedText
-                style={[
-                  Typography.body,
-                  {
-                    color: theme.error,
-                    marginStart: Spacing.sm,
-                    fontWeight: "600",
-                    fontSize: 14,
-                  },
-                ]}
-              >
-                {t("common.cancel")}
-              </ThemedText>
-            </Pressable>
-          </View>
-          <Spacer height={Spacing.xl} />
-        </>
-      ) : null}
-
-      {/* Non-walk-in request: Show Edit and Cancel buttons side by side */}
-      {!request.isWalkIn &&
-      (request.status === REQUEST_STATUS.PENDING_APPROVAL ||
-        request.status === REQUEST_STATUS.APPROVED ||
-        request.status === REQUEST_STATUS.VISITOR_ACCEPTED) ? (
-        <>
-          <View style={styles.actionButtonsRow}>
-            <Pressable
-              style={[
-                styles.actionButtonHalf,
-                { backgroundColor: theme.primary },
-              ]}
-              onPress={() => openEditModal("full")}
-            >
-              <DDIcon name="edit-2" size={18} color={theme.buttonText} />
-              <ThemedText
-                style={[
-                  Typography.body,
-                  {
-                    color: theme.buttonText,
-                    marginStart: Spacing.sm,
-                    fontWeight: "600",
-                    fontSize: 14,
-                  },
-                ]}
-              >
-                {t("common.edit")}
+                {request.isWalkIn ? t("actions.editServices") : t("common.edit")}
               </ThemedText>
             </Pressable>
             <Spacer width={Spacing.md} />
