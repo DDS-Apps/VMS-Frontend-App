@@ -73,6 +73,10 @@ export interface TranslationKeys {
     loadError: string;
     comingSoon: string;
     notRequested: string;
+    filters: string;
+    reset: string;
+    apply: string;
+    clear: string;
   };
   bulkActions: {
     selectMode: string;

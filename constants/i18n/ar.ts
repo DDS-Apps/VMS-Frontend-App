@@ -73,6 +73,10 @@ export const ar: TranslationKeys = {
     loadError: 'فشل تحميل البيانات. يرجى المحاولة مرة أخرى.',
     comingSoon: 'قريباً',
     notRequested: 'غير مطلوب',
+    filters: 'التصفية',
+    reset: 'إعادة تعيين',
+    apply: 'تطبيق',
+    clear: 'مسح',
   },
   bulkActions: {
     selectMode: 'تحديد',

@@ -153,8 +153,12 @@ export async function put<T, D = unknown>(url: string, data?: D): Promise<T> {
   return response.data;
 }
 
-export async function del<T>(url: string): Promise<T> {
+export async function del<T>(url: string): Promise<T | undefined> {
   const response = await httpClient.delete<T>(url);
+  // Handle HTTP 204 No Content responses (empty body)
+  if (response.status === 204 || !response.data) {
+    return undefined as T;
+  }
   return response.data;
 }
 

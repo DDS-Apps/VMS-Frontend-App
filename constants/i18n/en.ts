@@ -73,6 +73,10 @@ export const en: TranslationKeys = {
     loadError: 'Failed to load data. Please try again.',
     comingSoon: 'Coming Soon',
     notRequested: 'Not Requested',
+    filters: 'Filters',
+    reset: 'Reset',
+    apply: 'Apply',
+    clear: 'Clear',
   },
   bulkActions: {
     selectMode: 'Select',

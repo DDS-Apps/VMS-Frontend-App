@@ -92,6 +92,7 @@ export default function ParkingSpotsScreen() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   
   const [showModal, setShowModal] = useState(false);
+  const [showFilterModal, setShowFilterModal] = useState(false);
   const [editingSpot, setEditingSpot] = useState<ParkingSpotDto | null>(null);
   const [formData, setFormData] = useState({
     spotNumber: '',
@@ -99,6 +100,20 @@ export default function ParkingSpotsScreen() {
     level: '',
     spotType: 'visitor' as ParkingSpotType,
   });
+
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (locationFilter !== 'all') count++;
+    if (typeFilter !== 'all') count++;
+    if (statusFilter !== 'all') count++;
+    return count;
+  }, [locationFilter, typeFilter, statusFilter]);
+
+  const handleResetFilters = useCallback(() => {
+    setLocationFilter('all');
+    setTypeFilter('all');
+    setStatusFilter('all');
+  }, []);
 
   const { data: spotsResponse, isLoading, refetch } = useParkingSpotsQuery({
     limit: 100,
@@ -494,121 +509,91 @@ export default function ParkingSpotsScreen() {
 
         <Spacer height={Spacing.xl} />
 
-        <SearchInput
-          placeholder={t('parking.searchSpots')}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
+        <View style={styles.searchFilterRow}>
+          <View style={styles.searchInputWrapper}>
+            <SearchInput
+              placeholder={t('parking.searchSpots')}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+          </View>
+          <Pressable
+            style={[
+              styles.filterButton,
+              { 
+                backgroundColor: activeFilterCount > 0 ? applyOpacity(theme.primary, '15') : theme.surface,
+                borderColor: activeFilterCount > 0 ? theme.primary : theme.border,
+              }
+            ]}
+            onPress={() => setShowFilterModal(true)}
+          >
+            <DDIcon 
+              name="sliders" 
+              size={20} 
+              color={activeFilterCount > 0 ? theme.primary : theme.textSecondary} 
+            />
+            {activeFilterCount > 0 ? (
+              <View style={[styles.filterBadge, { backgroundColor: theme.primary }]}>
+                <ThemedText style={styles.filterBadgeText}>{activeFilterCount}</ThemedText>
+              </View>
+            ) : null}
+          </Pressable>
+        </View>
+
+        {activeFilterCount > 0 ? (
+          <>
+            <Spacer height={Spacing.sm} />
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.activeFiltersRow}
+            >
+              {locationFilter !== 'all' ? (
+                <Pressable
+                  style={[styles.activeFilterChip, { backgroundColor: applyOpacity(theme.primary, '15') }]}
+                  onPress={() => setLocationFilter('all')}
+                >
+                  <ThemedText style={[styles.activeFilterChipText, { color: theme.primary }]}>
+                    {getLocationLabel(locationFilter)}
+                  </ThemedText>
+                  <DDIcon name="x" size={14} color={theme.primary} />
+                </Pressable>
+              ) : null}
+              {typeFilter !== 'all' ? (
+                <Pressable
+                  style={[styles.activeFilterChip, { backgroundColor: applyOpacity(getTypeColor(typeFilter), '15') }]}
+                  onPress={() => setTypeFilter('all')}
+                >
+                  <ThemedText style={[styles.activeFilterChipText, { color: getTypeColor(typeFilter) }]}>
+                    {getSpotTypeLabel(typeFilter)}
+                  </ThemedText>
+                  <DDIcon name="x" size={14} color={getTypeColor(typeFilter)} />
+                </Pressable>
+              ) : null}
+              {statusFilter !== 'all' ? (
+                <Pressable
+                  style={[styles.activeFilterChip, { backgroundColor: applyOpacity(statusFilter === 'active' ? theme.success : theme.error, '15') }]}
+                  onPress={() => setStatusFilter('all')}
+                >
+                  <ThemedText style={[styles.activeFilterChipText, { color: statusFilter === 'active' ? theme.success : theme.error }]}>
+                    {statusFilter === 'active' ? t('common.active') : t('common.inactive')}
+                  </ThemedText>
+                  <DDIcon name="x" size={14} color={statusFilter === 'active' ? theme.success : theme.error} />
+                </Pressable>
+              ) : null}
+              <Pressable
+                style={[styles.clearFiltersChip, { borderColor: theme.border }]}
+                onPress={handleResetFilters}
+              >
+                <ThemedText style={[styles.clearFiltersText, { color: theme.textSecondary }]}>
+                  {t('common.clear')}
+                </ThemedText>
+              </Pressable>
+            </ScrollView>
+          </>
+        ) : null}
 
         <Spacer height={Spacing.lg} />
-
-        <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginBottom: Spacing.xs }]}>
-          {t('parking.location').toUpperCase()}
-        </ThemedText>
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filtersContainer}
-        >
-          <Pressable
-            style={[
-              styles.filterPill,
-              { backgroundColor: getFilterPillColors(locationFilter === 'all').bg }
-            ]}
-            onPress={() => setLocationFilter('all')}
-          >
-            <ThemedText style={[styles.filterPillText, { color: getFilterPillColors(locationFilter === 'all').text }]}>
-              {t('common.all')}
-            </ThemedText>
-          </Pressable>
-          {LOCATIONS.map(loc => (
-            <Pressable
-              key={loc}
-              style={[
-                styles.filterPill,
-                { backgroundColor: getFilterPillColors(locationFilter === loc).bg }
-              ]}
-              onPress={() => setLocationFilter(loc)}
-            >
-              <ThemedText style={[styles.filterPillText, { color: getFilterPillColors(locationFilter === loc).text }]}>
-                {getLocationLabel(loc)}
-              </ThemedText>
-            </Pressable>
-          ))}
-        </ScrollView>
-
-        <Spacer height={Spacing.md} />
-
-        <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginBottom: Spacing.xs }]}>
-          {t('parking.type').toUpperCase()}
-        </ThemedText>
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filtersContainer}
-        >
-          <Pressable
-            style={[
-              styles.filterPill,
-              { backgroundColor: getFilterPillColors(typeFilter === 'all').bg }
-            ]}
-            onPress={() => setTypeFilter('all')}
-          >
-            <ThemedText style={[styles.filterPillText, { color: getFilterPillColors(typeFilter === 'all').text }]}>
-              {t('common.all')}
-            </ThemedText>
-          </Pressable>
-          {SPOT_TYPES.map(type => {
-            const typeColor = getTypeColor(type);
-            const isActive = typeFilter === type;
-            return (
-              <Pressable
-                key={type}
-                style={[
-                  styles.filterPill,
-                  { backgroundColor: getFilterPillColors(isActive, typeColor).bg }
-                ]}
-                onPress={() => setTypeFilter(type)}
-              >
-                <ThemedText style={[styles.filterPillText, { color: getFilterPillColors(isActive, typeColor).text }]}>
-                  {getSpotTypeLabel(type)}
-                </ThemedText>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
-
-        <Spacer height={Spacing.md} />
-
-        <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginBottom: Spacing.xs }]}>
-          {t('common.status').toUpperCase()}
-        </ThemedText>
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filtersContainer}
-        >
-          {(['all', 'active', 'inactive'] as StatusFilter[]).map(status => {
-            const isActive = statusFilter === status;
-            const color = status === 'active' ? theme.success : status === 'inactive' ? theme.error : theme.primary;
-            return (
-              <Pressable
-                key={status}
-                style={[
-                  styles.filterPill,
-                  { backgroundColor: getFilterPillColors(isActive, color).bg }
-                ]}
-                onPress={() => setStatusFilter(status)}
-              >
-                <ThemedText style={[styles.filterPillText, { color: getFilterPillColors(isActive, color).text }]}>
-                  {status === 'all' ? t('common.all') : status === 'active' ? t('common.active') : t('common.inactive')}
-                </ThemedText>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
-
-        <Spacer height={Spacing.xl} />
 
         <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
           {t('parking.spotsDirectory')} ({filteredSpots.length})
@@ -728,6 +713,170 @@ export default function ParkingSpotsScreen() {
             </View>
           </View>
         </KeyboardAvoidingView>
+      </Modal>
+
+      <Modal
+        visible={showFilterModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowFilterModal(false)}
+      >
+        <Pressable style={styles.filterModalOverlay} onPress={() => setShowFilterModal(false)}>
+          <Pressable 
+            style={[styles.filterModalContent, { backgroundColor: theme.background }]}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <View style={[styles.modalHandle, { backgroundColor: theme.border }]} />
+            
+            <View style={styles.modalHeader}>
+              <ThemedText style={[Typography.h3, { fontWeight: '600' }]}>
+                {t('common.filters')}
+              </ThemedText>
+              <Pressable onPress={() => setShowFilterModal(false)}>
+                <DDIcon name="x" size={24} variant="muted" />
+              </Pressable>
+            </View>
+
+            <View style={styles.filterModalBody}>
+              <ThemedText style={[Typography.label, { color: theme.textSecondary, marginBottom: Spacing.sm }]}>
+                {t('parking.location')}
+              </ThemedText>
+              <View style={styles.filterOptionsGrid}>
+                <Pressable
+                  style={[
+                    styles.filterOption,
+                    { 
+                      backgroundColor: locationFilter === 'all' ? applyOpacity(theme.primary, '15') : theme.surfaceSecondary,
+                      borderColor: locationFilter === 'all' ? theme.primary : theme.border,
+                      borderWidth: locationFilter === 'all' ? 2 : 1,
+                    }
+                  ]}
+                  onPress={() => setLocationFilter('all')}
+                >
+                  <ThemedText style={[styles.filterOptionText, { color: locationFilter === 'all' ? theme.primary : theme.text }]}>
+                    {t('common.all')}
+                  </ThemedText>
+                </Pressable>
+                {LOCATIONS.map(loc => (
+                  <Pressable
+                    key={loc}
+                    style={[
+                      styles.filterOption,
+                      { 
+                        backgroundColor: locationFilter === loc ? applyOpacity(theme.primary, '15') : theme.surfaceSecondary,
+                        borderColor: locationFilter === loc ? theme.primary : theme.border,
+                        borderWidth: locationFilter === loc ? 2 : 1,
+                      }
+                    ]}
+                    onPress={() => setLocationFilter(loc)}
+                  >
+                    <ThemedText style={[styles.filterOptionText, { color: locationFilter === loc ? theme.primary : theme.text }]}>
+                      {getLocationLabel(loc)}
+                    </ThemedText>
+                  </Pressable>
+                ))}
+              </View>
+
+              <Spacer height={Spacing.lg} />
+
+              <ThemedText style={[Typography.label, { color: theme.textSecondary, marginBottom: Spacing.sm }]}>
+                {t('parking.type')}
+              </ThemedText>
+              <View style={styles.filterOptionsGrid}>
+                <Pressable
+                  style={[
+                    styles.filterOption,
+                    { 
+                      backgroundColor: typeFilter === 'all' ? applyOpacity(theme.primary, '15') : theme.surfaceSecondary,
+                      borderColor: typeFilter === 'all' ? theme.primary : theme.border,
+                      borderWidth: typeFilter === 'all' ? 2 : 1,
+                    }
+                  ]}
+                  onPress={() => setTypeFilter('all')}
+                >
+                  <ThemedText style={[styles.filterOptionText, { color: typeFilter === 'all' ? theme.primary : theme.text }]}>
+                    {t('common.all')}
+                  </ThemedText>
+                </Pressable>
+                {SPOT_TYPES.map(type => {
+                  const typeColor = getTypeColor(type);
+                  return (
+                    <Pressable
+                      key={type}
+                      style={[
+                        styles.filterOption,
+                        { 
+                          backgroundColor: typeFilter === type ? applyOpacity(typeColor, '15') : theme.surfaceSecondary,
+                          borderColor: typeFilter === type ? typeColor : theme.border,
+                          borderWidth: typeFilter === type ? 2 : 1,
+                        }
+                      ]}
+                      onPress={() => setTypeFilter(type)}
+                    >
+                      <ThemedText style={[styles.filterOptionText, { color: typeFilter === type ? typeColor : theme.text }]}>
+                        {getSpotTypeLabel(type)}
+                      </ThemedText>
+                    </Pressable>
+                  );
+                })}
+              </View>
+
+              <Spacer height={Spacing.lg} />
+
+              <ThemedText style={[Typography.label, { color: theme.textSecondary, marginBottom: Spacing.sm }]}>
+                {t('common.status')}
+              </ThemedText>
+              <View style={styles.filterOptionsGrid}>
+                {(['all', 'active', 'inactive'] as StatusFilter[]).map(status => {
+                  const isActive = statusFilter === status;
+                  const color = status === 'active' ? theme.success : status === 'inactive' ? theme.error : theme.primary;
+                  return (
+                    <Pressable
+                      key={status}
+                      style={[
+                        styles.filterOption,
+                        { 
+                          backgroundColor: isActive ? applyOpacity(color, '15') : theme.surfaceSecondary,
+                          borderColor: isActive ? color : theme.border,
+                          borderWidth: isActive ? 2 : 1,
+                        }
+                      ]}
+                      onPress={() => setStatusFilter(status)}
+                    >
+                      <ThemedText style={[styles.filterOptionText, { color: isActive ? color : theme.text }]}>
+                        {status === 'all' ? t('common.all') : status === 'active' ? t('common.active') : t('common.inactive')}
+                      </ThemedText>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+
+            <View style={[styles.filterModalFooter, { paddingBottom: insets.bottom + Spacing.md }]}>
+              <LoadingButton
+                onPress={() => {
+                  handleResetFilters();
+                }}
+                variant="secondary"
+                size="medium"
+                fullWidth={false}
+                style={{ flex: 1 }}
+              >
+                {t('common.reset')}
+              </LoadingButton>
+              <View style={{ width: Spacing.md }} />
+              <LoadingButton
+                onPress={() => setShowFilterModal(false)}
+                variant="primary"
+                size="medium"
+                fullWidth={false}
+                style={{ flex: 1 }}
+              >
+                {t('common.apply')}
+              </LoadingButton>
+            </View>
+          </Pressable>
+        </Pressable>
       </Modal>
     </>
   );
@@ -965,5 +1114,102 @@ const styles = StyleSheet.create({
   optionText: {
     fontSize: 13,
     fontWeight: '500',
+  },
+  searchFilterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  searchInputWrapper: {
+    flex: 1,
+  },
+  filterButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  filterBadge: {
+    position: 'absolute',
+    top: 4,
+    end: 4,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  filterBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  activeFiltersRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    paddingEnd: Spacing.sm,
+  },
+  activeFilterChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingStart: Spacing.md,
+    paddingEnd: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.full,
+    gap: Spacing.xs,
+  },
+  activeFilterChipText: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  clearFiltersChip: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+  },
+  clearFiltersText: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  filterModalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  filterModalContent: {
+    borderTopStartRadius: 24,
+    borderTopEndRadius: 24,
+    maxHeight: '70%',
+  },
+  filterModalBody: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+  },
+  filterOptionsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+  },
+  filterOption: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+    minWidth: 80,
+    alignItems: 'center',
+  },
+  filterOptionText: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  filterModalFooter: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.lg,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.06)',
   },
 });
