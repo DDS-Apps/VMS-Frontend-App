@@ -465,6 +465,7 @@ export default function LoginScreen({
                   {t("auth.rememberMe")}
                 </ThemedText>
               </Pressable>
+{/* Forgot password hidden per user request
               <Pressable onPress={onForgotPassword}>
                 <ThemedText
                   style={[Typography.bodySmall, { color: theme.primary }]}
@@ -472,6 +473,7 @@ export default function LoginScreen({
                   {t("auth.forgotPassword")}
                 </ThemedText>
               </Pressable>
+*/}
             </View>
 
             <Spacer height={Spacing.xl} />
