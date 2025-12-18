@@ -93,7 +93,9 @@ export interface TranslationKeys {
     logs: string;
     management: string;
     meetings: string;
+    parking: string;
     parkingValet: string;
+    valet: string;
     servicesAdmin: string;
     usersConfig: string;
     reportsLogs: string;

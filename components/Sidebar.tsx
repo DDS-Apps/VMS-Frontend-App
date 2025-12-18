@@ -214,12 +214,19 @@ const getMenuGroups = (role: UserRole): { groups: MenuGroup[]; standalone: MenuI
         ],
       },
       {
-        id: 'parking_valet',
-        labelKey: 'sidebar.parkingValet',
+        id: 'parking',
+        labelKey: 'sidebar.parking',
         icon: 'truck',
         items: [
           { id: 'parking_assignment', labelKey: 'navigation.employeeParkingAssignment', icon: 'truck', screen: 'EmployeeParkingAssignment' },
           { id: 'parking_occupancy', labelKey: 'navigation.parkingOccupancy', icon: 'pie-chart', screen: 'ParkingOccupancy' },
+        ],
+      },
+      {
+        id: 'valet',
+        labelKey: 'sidebar.valet',
+        icon: 'navigation',
+        items: [
           { id: 'valet_oversight', labelKey: 'navigation.valetOversight', icon: 'navigation', screen: 'ValetOversight' },
           { id: 'valet_zones', labelKey: 'navigation.valetZones', icon: 'map', screen: 'ValetZones' },
         ],
