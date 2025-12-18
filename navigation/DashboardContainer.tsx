@@ -354,6 +354,27 @@ export default function DashboardContainer({ userRole, userName, userPhotoUrl, a
                 </ScreenWrapper>
               )}
             </Stack.Screen>
+            <Stack.Screen name="ParkMyCar">
+              {(props) => (
+                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager}>
+                  <ParkMyCarScreen {...props} />
+                </ScreenWrapper>
+              )}
+            </Stack.Screen>
+            <Stack.Screen name="MyValetRequests">
+              {(props) => (
+                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager}>
+                  <MyValetRequestsScreen {...props} />
+                </ScreenWrapper>
+              )}
+            </Stack.Screen>
+            <Stack.Screen name="ValetRequestDetails">
+              {(props) => (
+                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager}>
+                  <EmployeeValetRequestDetailsScreen {...props} />
+                </ScreenWrapper>
+              )}
+            </Stack.Screen>
           </>
         )}
         {userRole === 'security' && (
