@@ -193,7 +193,7 @@ interface VisitorInviteScreenProps {
 export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { formatDate: fmtDate } = useFormatters();
+  const { formatDate: fmtDate, formatTimeFromString } = useFormatters();
   const insets = useSafeAreaInsets();
   const token = route?.params?.token || route?.params?.visitId;
   
@@ -254,14 +254,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
   };
 
   const formatTime = (timeString: string) => {
-    if (timeString.includes('AM') || timeString.includes('PM')) {
-      return timeString;
-    }
-    const [hours, minutes] = timeString.split(':');
-    const hour = parseInt(hours, 10);
-    const period = hour >= 12 ? 'PM' : 'AM';
-    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-    return `${displayHour}:${minutes} ${period}`;
+    return formatTimeFromString(timeString);
   };
 
   // Format ISO 8601 duration (PT1H, PT30M, PT1H30M) to readable format

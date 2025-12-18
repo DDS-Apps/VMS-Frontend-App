@@ -3,6 +3,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import {
   formatDate as baseFmtDate,
   formatTime as baseFmtTime,
+  formatTimeFromString as baseFmtTimeFromString,
   formatDateTime as baseFmtDateTime,
   formatNumber as baseFmtNumber,
   formatCurrency as baseFmtCurrency,
@@ -28,6 +29,7 @@ export function useFormatters() {
       return baseFmtDateShort(d, localeCode);
     },
     formatTime: (date: Date) => baseFmtTime(date, localeCode),
+    formatTimeFromString: (timeString: string) => baseFmtTimeFromString(timeString, localeCode),
     formatDateTime: (date: Date) => baseFmtDateTime(date, localeCode),
     formatNumber: (num: number) => baseFmtNumber(num, localeCode),
     formatCurrency: (amount: number, currency?: string) => baseFmtCurrency(amount, currency, localeCode),

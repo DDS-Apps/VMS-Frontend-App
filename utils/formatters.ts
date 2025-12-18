@@ -20,9 +20,33 @@ export const formatDate = (date: Date, locale: LocaleCode = 'en-US', format: Dat
 
 export const formatTime = (date: Date, locale: LocaleCode = 'en-US'): string => {
   return date.toLocaleTimeString(locale, {
-    hour: '2-digit',
+    hour: 'numeric',
     minute: '2-digit',
+    hour12: true,
   });
+};
+
+export const formatTimeFromString = (timeString: string, locale: LocaleCode = 'en-US'): string => {
+  if (!timeString) return '';
+  
+  if (timeString.includes('AM') || timeString.includes('PM')) {
+    return timeString;
+  }
+  
+  if (timeString.includes(':') && !timeString.includes('T')) {
+    const [hours, minutes] = timeString.split(':');
+    const hour = parseInt(hours, 10);
+    const period = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    return `${displayHour}:${minutes} ${period}`;
+  }
+  
+  const date = new Date(timeString);
+  if (!isNaN(date.getTime())) {
+    return formatTime(date, locale);
+  }
+  
+  return timeString;
 };
 
 export const formatDateTime = (date: Date, locale: LocaleCode = 'en-US'): string => {

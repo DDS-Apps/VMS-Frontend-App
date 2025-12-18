@@ -143,6 +143,7 @@ export default function ValetRequestDetailsScreen({ route }: ValetRequestDetails
     const d = new Date(dateString);
     return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
   };
+  // Note: Already using 12-hour format with AM/PM
 
   return (
     <ThemedView style={styles.container}>

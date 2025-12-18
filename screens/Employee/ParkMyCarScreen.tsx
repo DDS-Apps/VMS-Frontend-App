@@ -158,12 +158,7 @@ export default function ParkMyCarScreen({ navigation }: ParkMyCarScreenProps) {
   };
 
   const formatTime = (date: Date) => {
-    let hours = date.getHours();
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    hours = hours % 12;
-    hours = hours ? hours : 12;
-    return `${hours}:${minutes} ${ampm}`;
+    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
   };
 
   const handleTimeSelect = (time: Date) => {

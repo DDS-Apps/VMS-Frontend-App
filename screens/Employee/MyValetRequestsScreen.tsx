@@ -122,6 +122,7 @@ const ValetRequestCard = React.memo(({
     const d = new Date(dateString);
     return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
   };
+  // Note: Using inline formatter here as this is inside a memoized component outside main function
 
   return (
     <Pressable onPress={onPress}>
