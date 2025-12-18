@@ -85,47 +85,49 @@ export default function ValetRequestDetailsScreen({ route }: ValetRequestDetails
     );
   }
 
-  if (isError || !response) {
-    return (
-      <ThemedView style={styles.container}>
-        <View style={[styles.errorContainer, { paddingTop: insets.top + Spacing.xl }]}>
-          <DDIcon name="alert-triangle" size={48} variant="muted" />
-          <Spacer height={Spacing.md} />
-          <ThemedText style={[Typography.body, { color: theme.textSecondary, textAlign: 'center' }]}>
-            {t('common.loadError')}
-          </ThemedText>
-        </View>
-      </ThemedView>
-    );
-  }
-
-  // Handle nested data structure
-  let request: SelfValetRequestDto | null = null;
-  if (response && typeof response === 'object') {
-    if ('data' in response && response.data) {
-      const data = response.data as any;
-      if ('data' in data) {
-        request = data.data;
-      } else {
-        request = data;
-      }
-    } else if ('id' in response) {
-      request = response as SelfValetRequestDto;
+  // Extract request from response - handle various API response formats
+  // The httpClient.get() returns response.data, and the API wraps everything in { success, message, data: {...} }
+  // So we might receive { data: SelfValetRequestDto } or directly SelfValetRequestDto
+  const request: SelfValetRequestDto | null = React.useMemo(() => {
+    if (!response) return null;
+    
+    // Case 1: Direct DTO (has 'id' and 'vehicleInfo')
+    if ('id' in response && 'vehicleInfo' in response) {
+      return response as SelfValetRequestDto;
     }
-  }
+    
+    // Case 2: Wrapped in { data: DTO }
+    if ('data' in response && (response as any).data) {
+      const innerData = (response as any).data;
+      // Case 2a: Double wrapped { data: { data: DTO } }
+      if ('data' in innerData && innerData.data) {
+        return innerData.data as SelfValetRequestDto;
+      }
+      // Case 2b: Single wrapped { data: DTO }
+      if ('id' in innerData) {
+        return innerData as SelfValetRequestDto;
+      }
+    }
+    
+    return null;
+  }, [response]);
 
-  if (!request) {
+  if (isError || (!isLoading && !request)) {
     return (
       <ThemedView style={styles.container}>
         <View style={[styles.errorContainer, { paddingTop: insets.top + Spacing.xl }]}>
           <DDIcon name="alert-triangle" size={48} variant="muted" />
           <Spacer height={Spacing.md} />
           <ThemedText style={[Typography.body, { color: theme.textSecondary, textAlign: 'center' }]}>
-            Request not found
+            {isError ? t('common.loadError') : 'Request not found'}
           </ThemedText>
         </View>
       </ThemedView>
     );
+  }
+  
+  if (!request) {
+    return null;
   }
 
   const status = request.valet?.status || 'pending';
