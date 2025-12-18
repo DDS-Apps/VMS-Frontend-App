@@ -498,17 +498,18 @@ export default function Sidebar({
 
         {renderStandaloneItem(notificationsItem)}
         {renderStandaloneItem(settingsItem)}
-      </ScrollView>
 
-      <View style={[styles.footer, { borderTopColor: theme.border }]}>
         <View style={styles.appInfo}>
-          <ThemedText style={[styles.appName, { color: theme.sidebarText }]}>
+          <ThemedText style={[styles.appName, { color: theme.sidebarTextMuted }]}>
             {t('common.brandName')} {t('common.appName')}
           </ThemedText>
           <ThemedText style={[styles.appVersion, { color: theme.sidebarTextMuted }]}>
             v1.0.0
           </ThemedText>
         </View>
+      </ScrollView>
+
+      <View style={[styles.footer, { borderTopColor: theme.border }]}>
         <View style={styles.footerActions}>
           <Pressable 
             onPress={onToggleDarkMode} 
@@ -617,14 +618,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   appInfo: {
-    marginBottom: Spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.lg,
+    marginTop: Spacing.sm,
   },
   appName: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 12,
+    fontWeight: '500',
   },
   appVersion: {
-    fontSize: 11,
-    marginTop: 2,
+    fontSize: 12,
+    marginStart: Spacing.xs,
   },
 });
