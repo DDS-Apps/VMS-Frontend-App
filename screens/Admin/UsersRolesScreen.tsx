@@ -67,7 +67,6 @@ function mapUserDtoToDisplayUser(dto: UserDto): DisplayUser {
 }
 
 const ALL_ROLES: UserRole[] = [
-  'visitor',
   'employee',
   'manager',
   'receptionist',
