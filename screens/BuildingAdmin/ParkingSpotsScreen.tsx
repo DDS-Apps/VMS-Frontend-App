@@ -120,7 +120,7 @@ export default function ParkingSpotsScreen() {
     setStatusFilter('all');
   }, []);
 
-  const { data: spotsResponse, isLoading, refetch } = useParkingSpotsQuery({
+  const { data: spotsResponse, isLoading, isFetching, refetch } = useParkingSpotsQuery({
     limit: 100,
     page: 1,
   });
@@ -499,7 +499,7 @@ export default function ParkingSpotsScreen() {
 
   const isSaving = createMutation.isPending || updateMutation.isPending;
 
-  if (isLoading) {
+  if (isLoading || isFetching) {
     return (
       <View style={[styles.loadingContainer, { paddingTop: insets.top + Spacing.xl }]}>
         <ActivityIndicator size="large" color={theme.primary} />
