@@ -498,16 +498,16 @@ export default function Sidebar({
 
         {renderStandaloneItem(notificationsItem)}
         {renderStandaloneItem(settingsItem)}
-
-        <View style={styles.appInfo}>
-          <ThemedText style={[styles.appName, { color: theme.sidebarTextMuted }]}>
-            {t('common.brandName')} {t('common.appName')}
-          </ThemedText>
-          <ThemedText style={[styles.appVersion, { color: theme.sidebarTextMuted }]}>
-            v1.0.0
-          </ThemedText>
-        </View>
       </ScrollView>
+
+      <View style={styles.appInfo}>
+        <ThemedText style={[styles.appName, { color: theme.sidebarTextMuted }]}>
+          {t('common.brandName')} {t('common.appName')}
+        </ThemedText>
+        <ThemedText style={[styles.appVersion, { color: theme.sidebarTextMuted }]}>
+          v1.0.0
+        </ThemedText>
+      </View>
 
       <View style={[styles.footer, { borderTopColor: theme.border }]}>
         <View style={styles.footerActions}>
@@ -620,9 +620,8 @@ const styles = StyleSheet.create({
   appInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.lg,
-    marginTop: Spacing.sm,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
   },
   appName: {
     fontSize: 12,
