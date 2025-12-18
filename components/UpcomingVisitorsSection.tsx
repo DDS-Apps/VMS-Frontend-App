@@ -32,7 +32,7 @@ const getInitials = (name: string): string => {
 const UpcomingVisitorCard: React.FC<UpcomingVisitorCardProps> = ({ request, onPress }) => {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { formatDate, toLocalNumerals } = useFormatters();
+  const { formatDate, toLocalNumerals, formatTimeFromString } = useFormatters();
   const { isRTL } = useLanguage();
   const initials = getInitials(request.visitor.fullName);
   const statusConfig = getStatusStyle(theme, request.status, t);
@@ -89,7 +89,7 @@ const UpcomingVisitorCard: React.FC<UpcomingVisitorCardProps> = ({ request, onPr
               <ThemedText style={styles.separator}>•</ThemedText>
               <DDIcon name="clock" size={13} variant="muted" />
               <ThemedText style={styles.dateTimeText}>
-                {toLocalNumerals(request.visitTime)}
+                {formatTimeFromString(request.visitTime)}
               </ThemedText>
               <ThemedText style={styles.separator}>•</ThemedText>
               <ThemedText style={styles.dateTimeText}>

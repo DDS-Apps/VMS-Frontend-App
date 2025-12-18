@@ -7,6 +7,7 @@ import Spacer from "@/components/Spacer";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useFormatters } from "@/hooks/useFormatters";
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { applyOpacity, getStatusConfig } from "@/utils/statusStyles";
 import type { StatusConfig } from "@/types/theme.types";
@@ -121,6 +122,7 @@ function QuickActionButton({ icon, label, iconBgColor, iconColor, onPress }: Qui
 export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDashboardScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { formatTimeFromString } = useFormatters();
   const insets = useSafeAreaInsets();
   const { showSuccess, showError } = useToast();
 
@@ -398,7 +400,7 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
         <View style={styles.metaRow}>
           <DDIcon name="clock" size={14} color={theme.textSecondary} />
           <ThemedText style={[styles.metaText, { color: theme.textSecondary }]}>
-            {item.visitTime}
+            {formatTimeFromString(item.visitTime)}
           </ThemedText>
           <View style={styles.metaDot} />
           <DDIcon name="users" size={14} color={theme.textSecondary} />

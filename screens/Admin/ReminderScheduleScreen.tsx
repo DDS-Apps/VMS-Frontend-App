@@ -8,6 +8,7 @@ import Spacer from "@/components/Spacer";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useFormatters } from "@/hooks/useFormatters";
 import { getVisitorRequests } from "@/services/mock/visitorRequestState";
 import { VisitorRequest } from "@/types/vms.types";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -93,6 +94,7 @@ type ReminderFilter = 'all' | 'upcoming' | 'first_reminder' | 'second_reminder' 
 export default function ReminderScheduleScreen() {
   const { theme } = useTheme();
   const { t, isRTL } = useTranslation();
+  const { formatTimeFromString } = useFormatters();
   const insets = useSafeAreaInsets();
   const [reminders, setReminders] = useState<ScheduledReminder[]>([]);
   const [filter, setFilter] = useState<ReminderFilter>('upcoming');
@@ -233,7 +235,7 @@ export default function ReminderScheduleScreen() {
             <View style={styles.detailItem}>
               <DDIcon name="calendar" size={12} color={theme.textSecondary} />
               <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
-                {item.visitDate} {item.visitTime}
+                {item.visitDate} {formatTimeFromString(item.visitTime)}
               </ThemedText>
             </View>
           </View>

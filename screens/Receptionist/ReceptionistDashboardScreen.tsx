@@ -86,7 +86,7 @@ function QuickActionButton({ icon, label, iconBgColor, iconColor, onPress }: Qui
 export default function ReceptionistDashboardScreen({ navigation }: ReceptionistDashboardScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { formatTime } = useFormatters();
+  const { formatTime, formatTimeFromString } = useFormatters();
   const insets = useSafeAreaInsets();
   const [expandedRooms, setExpandedRooms] = useState<Set<string>>(new Set());
 
@@ -252,7 +252,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
         <View style={styles.visitorMetaRow}>
           <DDIcon name="clock" size={14} color={theme.textSecondary} />
           <ThemedText style={[styles.visitorMetaText, { color: theme.textSecondary }]}>
-            {item.visitTime}
+            {formatTimeFromString(item.visitTime)}
           </ThemedText>
           <View style={styles.metaDot} />
           <DDIcon name="user" size={14} color={theme.textSecondary} />

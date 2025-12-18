@@ -23,7 +23,7 @@ type StatusFilter = 'all' | 'pending' | 'checked_in' | 'completed';
 export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { formatTime } = useFormatters();
+  const { formatTime, formatTimeFromString } = useFormatters();
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -211,7 +211,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
               <View style={styles.detailItem}>
                 <DDIcon name="clock" size={12} variant="muted" />
                 <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
-                  {item.visitTime}
+                  {formatTimeFromString(item.visitTime)}
                 </ThemedText>
               </View>
               <View style={styles.detailItem}>

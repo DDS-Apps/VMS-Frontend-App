@@ -23,7 +23,7 @@ type DateFilter = 'all' | 'today' | 'this_week';
 export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { formatTime } = useFormatters();
+  const { formatTime, formatTimeFromString } = useFormatters();
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
   const [dateFilter, setDateFilter] = useState<DateFilter>('today');
@@ -223,7 +223,7 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
               <View style={styles.detailItem}>
                 <DDIcon name="clock" size={12} variant="muted" />
                 <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
-                  {item.visitTime}
+                  {formatTimeFromString(item.visitTime)}
                 </ThemedText>
               </View>
               <View style={styles.detailItem}>
@@ -313,7 +313,7 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
               <View style={styles.detailItem}>
                 <DDIcon name="clock" size={12} variant="muted" />
                 <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
-                  {item.visitTime}
+                  {formatTimeFromString(item.visitTime)}
                 </ThemedText>
               </View>
               <View style={styles.detailItem}>

@@ -12,6 +12,7 @@ import { CalendarDatePicker } from "@/components/CalendarDatePicker";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useFormatters } from "@/hooks/useFormatters";
 import { applyOpacity } from "@/utils/statusStyles";
 import {
   getExpectedVisitors,
@@ -30,6 +31,7 @@ interface DateRange {
 export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { formatTimeFromString } = useFormatters();
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
   const [visitors, setVisitors] = useState<SecurityVisitor[]>([]);
@@ -331,7 +333,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
               <View style={[styles.timestampChip, { backgroundColor: applyOpacity(theme.primary, '10') }]}>
                 <DDIcon name="clock" size={12} color={theme.primary} />
                 <ThemedText style={[styles.timestampText, { color: theme.primary }]}>
-                  {visitor.visitTime}
+                  {formatTimeFromString(visitor.visitTime)}
                 </ThemedText>
               </View>
               

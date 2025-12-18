@@ -88,7 +88,7 @@ const SectionHeader = ({ title, theme }: { title: string; theme: Theme }) => (
 export default function ManagerApprovalDetailScreen({ navigation, route }: ManagerApprovalDetailScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { formatDateTime: fmtDateTime, formatDateShort, parseISODuration } = useFormatters();
+  const { formatDateTime: fmtDateTime, formatDateShort, parseISODuration, formatTimeFromString } = useFormatters();
   const insets = useSafeAreaInsets();
   const { requestId } = route.params;
   const [showRejectModal, setShowRejectModal] = useState(false);
@@ -313,7 +313,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
               {t('visitor.visitDate')} & {t('visitor.visitTime')}
             </ThemedText>
             <ThemedText style={[styles.detailValue]}>
-              {formatDateShort(request.visitDate)} • {request.visitTime}
+              {formatDateShort(request.visitDate)} • {formatTimeFromString(request.visitTime)}
             </ThemedText>
           </View>
 

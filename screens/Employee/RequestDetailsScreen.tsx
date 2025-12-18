@@ -75,6 +75,7 @@ export default function RequestDetailsScreen({
     toLocalNumerals,
     parseISODuration,
     parseTimeString,
+    formatTimeFromString,
   } = useFormatters();
   const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
@@ -822,7 +823,7 @@ export default function RequestDetailsScreen({
             ]}
           >
             {formatDateShort(request.visitDate)} {t("time.at")}{" "}
-            {request.visitTime}
+            {formatTimeFromString(request.visitTime)}
           </ThemedText>
         </View>
 

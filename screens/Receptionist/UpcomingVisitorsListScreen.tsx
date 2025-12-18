@@ -10,6 +10,7 @@ import Spacer from "@/components/Spacer";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useFormatters } from "@/hooks/useFormatters";
 import { DDIcon } from "@/components/DDIcon";
 import { applyOpacity } from "@/utils/statusStyles";
 import { useTodayVisitorsQuery } from "@/hooks/queries/useReceptionQueries";
@@ -18,6 +19,7 @@ import type { TodayVisitorDto } from "@/types";
 export default function UpcomingVisitorsListScreen() {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { formatTimeFromString } = useFormatters();
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -122,7 +124,7 @@ export default function UpcomingVisitorsListScreen() {
           <View style={styles.dateTimeRow}>
             <DDIcon name="clock" size={13} variant="muted" />
             <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
-              {item.visitTime}
+              {formatTimeFromString(item.visitTime)}
             </ThemedText>
             <ThemedText style={[styles.separator, { color: theme.border }]}>-</ThemedText>
             <DDIcon name="user" size={13} variant="muted" />

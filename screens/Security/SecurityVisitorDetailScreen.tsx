@@ -17,7 +17,7 @@ import type { SecurityVisitorDetailScreenProps } from "@/types/securityNavigatio
 export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDetailScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { formatDate, formatTime, toLocalNumerals } = useFormatters();
+  const { formatDate, formatTime, toLocalNumerals, formatTimeFromString } = useFormatters();
   const insets = useSafeAreaInsets();
   const { visitor }: { visitor: SecurityVisitor } = route.params;
 
@@ -81,7 +81,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
               {t('visitor.visitTime')}
             </ThemedText>
             <ThemedText style={[Typography.body, { fontWeight: '500' }]}>
-              {visitor.visitTime}
+              {formatTimeFromString(visitor.visitTime)}
             </ThemedText>
           </View>
         </View>
