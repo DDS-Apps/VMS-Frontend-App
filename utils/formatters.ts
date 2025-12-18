@@ -19,11 +19,12 @@ export const formatDate = (date: Date, locale: LocaleCode = 'en-US', format: Dat
 };
 
 export const formatTime = (date: Date, locale: LocaleCode = 'en-US'): string => {
-  return date.toLocaleTimeString(locale, {
+  const timeStr = date.toLocaleTimeString(locale, {
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,
   });
+  return timeStr.replace(/^0(\d)/, '$1');
 };
 
 export const formatTimeFromString = (timeString: string, locale: LocaleCode = 'en-US'): string => {
