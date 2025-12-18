@@ -501,6 +501,14 @@ export default function Sidebar({
       </ScrollView>
 
       <View style={[styles.footer, { borderTopColor: theme.border }]}>
+        <View style={styles.appInfo}>
+          <ThemedText style={[styles.appName, { color: theme.sidebarText }]}>
+            {t('common.brandName')} {t('common.appName')}
+          </ThemedText>
+          <ThemedText style={[styles.appVersion, { color: theme.sidebarTextMuted }]}>
+            v1.0.0
+          </ThemedText>
+        </View>
         <View style={styles.footerActions}>
           <Pressable 
             onPress={onToggleDarkMode} 
@@ -607,5 +615,16 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.sm,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  appInfo: {
+    marginBottom: Spacing.md,
+  },
+  appName: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  appVersion: {
+    fontSize: 11,
+    marginTop: 2,
   },
 });

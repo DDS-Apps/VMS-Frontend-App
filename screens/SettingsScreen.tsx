@@ -251,47 +251,7 @@ export default function SettingsScreen({
 
       </ThemedView>
 
-      {/* Email Notifications and Event Notifications sections hidden per user request */}
-
-      <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
-        <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
-          {t('settings.about')}
-        </ThemedText>
-
-        <Spacer height={Spacing.md} />
-
-        <View style={styles.aboutItem}>
-          <ThemedText style={[Typography.body, { color: theme.textSecondary }]}>
-            {t('settings.appName')}
-          </ThemedText>
-          <ThemedText style={[Typography.body, { fontWeight: '600', color: theme.text }]}>
-            {t('common.brandName')} {t('common.appName')}
-          </ThemedText>
-        </View>
-
-        <View style={[styles.sectionDivider, { backgroundColor: theme.surfaceSecondary }]} />
-
-        <View style={styles.aboutItem}>
-          <ThemedText style={[Typography.body, { color: theme.textSecondary }]}>
-            {t('settings.version')}
-          </ThemedText>
-          <ThemedText style={[Typography.body, { fontWeight: '600', color: theme.text }]}>
-            {appVersion}
-          </ThemedText>
-        </View>
-
-        <Spacer height={Spacing.md} />
-
-        <View style={styles.brandingContainer}>
-          <View style={[styles.brandBadge, { backgroundColor: theme.primary }]}>
-            <ThemedText style={[Typography.caption, { color: theme.buttonText, fontWeight: '600' }]}>
-              {t('settings.companyName')}
-            </ThemedText>
-          </View>
-        </View>
-      </ThemedView>
-
-      <Spacer height={Spacing.xl} />
+      {/* Email Notifications, Event Notifications, and About sections hidden - app info shown in sidebar */}
 
       {onLogout ? (
         <Pressable
