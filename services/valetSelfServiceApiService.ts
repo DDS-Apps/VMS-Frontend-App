@@ -21,9 +21,13 @@ function buildQueryString(params: Record<string, unknown>): string {
 }
 
 export const valetSelfServiceApiService = {
-  list: (params?: ListSelfValetRequestsParams): Promise<SelfValetRequestsResponse> => {
+  list: async (params?: ListSelfValetRequestsParams): Promise<SelfValetRequestsResponse> => {
     const queryString = params ? buildQueryString(params as unknown as Record<string, unknown>) : '';
-    return get<SelfValetRequestsResponse>(`${valetSelfService.base}${queryString}`);
+    const url = `${valetSelfService.base}${queryString}`;
+    console.log('[valetSelfServiceApiService.list] Fetching from:', url);
+    const response = await get<SelfValetRequestsResponse>(url);
+    console.log('[valetSelfServiceApiService.list] Raw response:', JSON.stringify(response, null, 2));
+    return response;
   },
 
   getById: (id: string): Promise<SelfValetRequestDto> => {
