@@ -390,6 +390,7 @@ export interface TranslationKeys {
     preparing: string;
     ready: string;
     served: string;
+    selectStatus: string;
   };
   actions: {
     approve: string;

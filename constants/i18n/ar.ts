@@ -390,6 +390,7 @@ export const ar: TranslationKeys = {
     visitorAccepted: 'قبول الزائر',
     visitorRejected: 'رفض الزائر',
     autoCancelled: 'إلغاء تلقائي',
+    selectStatus: 'اختر الحالة',
   },
   actions: {
     approve: 'موافقة',

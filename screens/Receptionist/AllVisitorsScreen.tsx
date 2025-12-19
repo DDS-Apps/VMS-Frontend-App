@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import { View, StyleSheet, Pressable, GestureResponderEvent, Alert, Switch } from "react-native";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { View, StyleSheet, Pressable, GestureResponderEvent, Alert, Switch, FlatList, ActivityIndicator, Modal, Platform } from "react-native";
 import type { AllVisitorsScreenProps } from "@/types/receptionistNavigation.types";
 import { SkeletonList } from "@/components/shared/Skeleton";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { SearchInput } from "@/components/SearchInput";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -15,7 +14,7 @@ import { useFormatters } from "@/hooks/useFormatters";
 import { DDIcon } from "@/components/DDIcon";
 import { VisitorActionButton } from "@/components/VisitorActionButton";
 import { applyOpacity } from "@/utils/statusStyles";
-import { useVisitsQuery, useVisitDetailsQuery } from "@/hooks/queries/useApprovalQueries";
+import { useInfiniteVisitsQuery } from "@/hooks/queries/useApprovalQueries";
 import { useReceptionCheckInMutation, useReceptionCheckOutMutation } from "@/hooks/queries/useReceptionQueries";
 import type { VisitListParams, VisitListItemDto } from "@/types";
 
@@ -62,6 +61,8 @@ function mapStatusToApi(status: StatusFilter): string | undefined {
   }
 }
 
+const PAGE_SIZE = 20;
+
 export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
@@ -73,6 +74,8 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
   const [dateFilter, setDateFilter] = useState<DateFilter>('today');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [walkInOnly, setWalkInOnly] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showStatusPicker, setShowStatusPicker] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -81,16 +84,27 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  const queryParams: VisitListParams = {
+  const queryParams: Omit<VisitListParams, 'page'> = useMemo(() => ({
     ...getDateRange(dateFilter),
     status: mapStatusToApi(statusFilter),
     search: debouncedSearch || undefined,
     isWalkIn: walkInOnly || undefined,
     myRequestsOnly: false,
-    limit: 50,
-  };
+    limit: PAGE_SIZE,
+  }), [dateFilter, statusFilter, debouncedSearch, walkInOnly]);
 
-  const { data: visitsResponse, isLoading, isFetching, isError, error } = useVisitsQuery(queryParams);
+  const { 
+    data, 
+    isLoading, 
+    isFetching,
+    isFetchingNextPage,
+    isError, 
+    error,
+    fetchNextPage,
+    hasNextPage,
+    refetch,
+  } = useInfiniteVisitsQuery(queryParams);
+
   const checkInMutation = useReceptionCheckInMutation();
   const checkOutMutation = useReceptionCheckOutMutation();
 
@@ -108,14 +122,12 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
     { key: 'completed', label: t('status.completed') },
   ];
 
-  const scrollContentStyle = {
-    paddingHorizontal: Spacing.lg,
-    paddingTop: insets.top + Spacing.lg,
-    paddingBottom: insets.bottom + Spacing.xl
-  };
+  const visitors = useMemo(() => {
+    if (!data?.pages) return [];
+    return data.pages.flatMap(page => page.data);
+  }, [data]);
 
-  const visitors = visitsResponse?.data ?? [];
-  const totalCount = visitsResponse?.pagination?.total ?? visitors.length;
+  const totalCount = data?.pages?.[0]?.pagination?.total ?? visitors.length;
 
   const hasShownError = useRef(false);
 
@@ -129,27 +141,7 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
     }
   }, [isError, error, t]);
 
-  if (isLoading) {
-    return (
-      <View style={[styles.loadingContainer, { paddingTop: insets.top + Spacing.lg, paddingHorizontal: Spacing.lg }]}>
-        <SkeletonList count={5} />
-      </View>
-    );
-  }
-
-  if (isError) {
-    return (
-      <View style={[styles.loadingContainer, { paddingTop: insets.top + Spacing.lg, paddingHorizontal: Spacing.lg, justifyContent: 'center', alignItems: 'center' }]}>
-        <DDIcon name="alert-triangle" size={48} variant="muted" />
-        <Spacer height={Spacing.md} />
-        <ThemedText style={[Typography.body, { color: theme.textSecondary, textAlign: 'center' }]}>
-          {t('common.loadError')}
-        </ThemedText>
-      </View>
-    );
-  }
-
-  const handleCheckIn = (visitorId: string, visitorName: string, event: GestureResponderEvent) => {
+  const handleCheckIn = useCallback((visitorId: string, visitorName: string, event: GestureResponderEvent) => {
     event.stopPropagation();
     
     checkInMutation.mutate(
@@ -168,9 +160,9 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
         }
       }
     );
-  };
+  }, [checkInMutation, formatTime, navigation, t]);
 
-  const handleCheckOut = (visitorId: string, visitorName: string, event: GestureResponderEvent) => {
+  const handleCheckOut = useCallback((visitorId: string, visitorName: string, event: GestureResponderEvent) => {
     event.stopPropagation();
     
     checkOutMutation.mutate(
@@ -189,9 +181,9 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
         }
       }
     );
-  };
+  }, [checkOutMutation, formatTime, navigation, t]);
 
-  const getStatusConfig = (status: string) => {
+  const getStatusConfig = useCallback((status: string) => {
     switch (status) {
       case 'checked_in':
         return { label: t('status.checkedIn'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: theme.success };
@@ -209,13 +201,29 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
       default:
         return { label: t('visitor.expectedVisitors'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: theme.warning };
     }
-  };
+  }, [t, theme]);
 
-  const handleVisitorPress = (visitor: VisitListItemDto) => {
+  const handleVisitorPress = useCallback((visitor: VisitListItemDto) => {
     navigation.navigate('VisitorDetail', { visitId: visitor.id });
+  }, [navigation]);
+
+  const handleEndReached = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  const getSelectedDateLabel = () => {
+    const option = DATE_FILTER_OPTIONS.find(o => o.key === dateFilter);
+    return option?.label || t('common.all');
   };
 
-  const renderVisitorCard = (item: VisitListItemDto) => {
+  const getSelectedStatusLabel = () => {
+    const option = STATUS_FILTER_OPTIONS.find(o => o.key === statusFilter);
+    return option?.label || t('common.all');
+  };
+
+  const renderVisitorCard = useCallback(({ item }: { item: VisitListItemDto }) => {
     const statusConfig = getStatusConfig(item.status);
     const visitorName = item.visitor.fullName;
     const initials = visitorName.split(' ').map(n => n[0]).join('').substring(0, 2);
@@ -224,7 +232,6 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
     
     return (
       <Pressable 
-        key={item.id} 
         onPress={() => handleVisitorPress(item)}
         style={({ pressed }) => [pressed && { opacity: 0.95 }]}
       >
@@ -320,10 +327,80 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
         </ThemedView>
       </Pressable>
     );
-  };
+  }, [getStatusConfig, handleVisitorPress, handleCheckIn, handleCheckOut, theme, formatTimeFromString]);
 
-  return (
-    <ScreenScrollView contentContainerStyle={scrollContentStyle}>
+  const renderFooter = useCallback(() => {
+    if (!isFetchingNextPage) return null;
+    return (
+      <View style={styles.footerLoader}>
+        <ActivityIndicator size="small" color={theme.primary} />
+        <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: Spacing.sm }]}>
+          {t('common.loading')}...
+        </ThemedText>
+      </View>
+    );
+  }, [isFetchingNextPage, theme, t]);
+
+  const renderEmpty = useCallback(() => {
+    if (isLoading) return null;
+    return (
+      <View style={styles.emptyState}>
+        <DDIcon name="users" size={40} variant="muted" />
+        <Spacer height={Spacing.sm} />
+        <ThemedText style={[Typography.body, { color: theme.textSecondary, textAlign: 'center' }]}>
+          {t('common.noResults')}
+        </ThemedText>
+      </View>
+    );
+  }, [isLoading, theme, t]);
+
+  const renderPickerModal = (
+    visible: boolean,
+    onClose: () => void,
+    options: { key: string; label: string }[],
+    selectedKey: string,
+    onSelect: (key: string) => void,
+    title: string
+  ) => (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <Pressable style={styles.modalOverlay} onPress={onClose}>
+        <View style={[styles.pickerModal, { backgroundColor: theme.surface }]}>
+          <ThemedText style={[Typography.subtitle, { marginBottom: Spacing.md }]}>{title}</ThemedText>
+          {options.map((option) => (
+            <Pressable
+              key={option.key}
+              style={[
+                styles.pickerOption,
+                selectedKey === option.key && { backgroundColor: applyOpacity(theme.primary, '15') }
+              ]}
+              onPress={() => {
+                onSelect(option.key as any);
+                onClose();
+              }}
+            >
+              <ThemedText style={[
+                Typography.body,
+                { color: selectedKey === option.key ? theme.primary : theme.text }
+              ]}>
+                {option.label}
+              </ThemedText>
+              {selectedKey === option.key ? (
+                <DDIcon name="check" size={18} color={theme.primary} />
+              ) : null}
+            </Pressable>
+          ))}
+        </View>
+      </Pressable>
+    </Modal>
+  );
+
+  const ListHeader = useMemo(() => (
+    <View>
       <ThemedText style={[Typography.title, { fontSize: 22, fontWeight: '700' }]}>
         {t('navigation.allVisitors')}
       </ThemedText>
@@ -332,7 +409,7 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
       
       <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
         {totalCount} {totalCount === 1 ? 'visitor' : 'visitors'} found
-        {isFetching ? ' ...' : ''}
+        {isFetching && !isFetchingNextPage ? ' ...' : ''}
       </ThemedText>
 
       <Spacer height={Spacing.lg} />
@@ -345,139 +422,144 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
 
       <Spacer height={Spacing.md} />
 
-      <View style={[styles.segmentedControl, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-        {DATE_FILTER_OPTIONS.map((option, index) => {
-          const isActive = dateFilter === option.key;
-          const isFirst = index === 0;
-          const isLast = index === DATE_FILTER_OPTIONS.length - 1;
-          
-          return (
-            <Pressable
-              key={option.key}
-              style={[
-                styles.segmentButton,
-                isActive && { backgroundColor: theme.primary },
-                isFirst && styles.segmentFirst,
-                isLast && styles.segmentLast,
-              ]}
-              onPress={() => setDateFilter(option.key)}
-            >
-              <ThemedText style={[
-                styles.segmentText,
-                { color: isActive ? '#FFFFFF' : theme.text }
-              ]}>
-                {option.label}
-              </ThemedText>
-            </Pressable>
-          );
-        })}
-      </View>
-
-      <Spacer height={Spacing.sm} />
-
-      <View style={[styles.segmentedControl, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-        {STATUS_FILTER_OPTIONS.map((option, index) => {
-          const isActive = statusFilter === option.key;
-          const isFirst = index === 0;
-          const isLast = index === STATUS_FILTER_OPTIONS.length - 1;
-          
-          return (
-            <Pressable
-              key={option.key}
-              style={[
-                styles.segmentButton,
-                isActive && { backgroundColor: theme.primary },
-                isFirst && styles.segmentFirst,
-                isLast && styles.segmentLast,
-              ]}
-              onPress={() => setStatusFilter(option.key)}
-            >
-              <ThemedText style={[
-                styles.segmentText,
-                { color: isActive ? '#FFFFFF' : theme.text }
-              ]}>
-                {option.label}
-              </ThemedText>
-            </Pressable>
-          );
-        })}
-      </View>
-
-      <Spacer height={Spacing.sm} />
-
-      <View style={[styles.toggleRow, { backgroundColor: theme.surface, borderRadius: BorderRadius.md }]}>
-        <View style={styles.toggleLabel}>
-          <DDIcon name="user-plus" size={16} variant="muted" />
-          <ThemedText style={[Typography.body, { marginStart: Spacing.sm }]}>
-            {t('reception.walkInOnly')}
+      <View style={styles.filtersRow}>
+        <Pressable
+          style={[styles.filterDropdown, { backgroundColor: theme.surface, borderColor: theme.border }]}
+          onPress={() => setShowDatePicker(true)}
+        >
+          <DDIcon name="calendar" size={14} variant="muted" />
+          <ThemedText style={[styles.filterDropdownText, { color: theme.text }]} numberOfLines={1}>
+            {getSelectedDateLabel()}
           </ThemedText>
-        </View>
-        <Switch
-          value={walkInOnly}
-          onValueChange={setWalkInOnly}
-          trackColor={{ false: theme.border, true: applyOpacity(theme.primary, '50') }}
-          thumbColor={walkInOnly ? theme.primary : theme.surface}
-        />
+          <DDIcon name="chevron-down" size={14} variant="muted" />
+        </Pressable>
+
+        <Pressable
+          style={[styles.filterDropdown, { backgroundColor: theme.surface, borderColor: theme.border }]}
+          onPress={() => setShowStatusPicker(true)}
+        >
+          <DDIcon name="filter" size={14} variant="muted" />
+          <ThemedText style={[styles.filterDropdownText, { color: theme.text }]} numberOfLines={1}>
+            {getSelectedStatusLabel()}
+          </ThemedText>
+          <DDIcon name="chevron-down" size={14} variant="muted" />
+        </Pressable>
+
+        <Pressable
+          style={[
+            styles.walkInToggle,
+            { 
+              backgroundColor: walkInOnly ? applyOpacity(theme.primary, '15') : theme.surface,
+              borderColor: walkInOnly ? theme.primary : theme.border
+            }
+          ]}
+          onPress={() => setWalkInOnly(!walkInOnly)}
+        >
+          <DDIcon name="user-plus" size={14} color={walkInOnly ? theme.primary : theme.textSecondary} />
+        </Pressable>
       </View>
 
-      <Spacer height={Spacing.lg} />
+      <Spacer height={Spacing.md} />
+    </View>
+  ), [t, theme, totalCount, isFetching, isFetchingNextPage, searchQuery, walkInOnly, getSelectedDateLabel, getSelectedStatusLabel]);
 
-      {visitors.length > 0 ? (
-        <View style={styles.cardList}>
-          {visitors.map((visitor) => renderVisitorCard(visitor))}
-        </View>
-      ) : (
-        <View style={styles.emptyState}>
-          <DDIcon name="users" size={40} variant="muted" />
-          <Spacer height={Spacing.sm} />
-          <ThemedText style={[Typography.body, { color: theme.textSecondary, textAlign: 'center' }]}>
-            {t('common.noResults')}
-          </ThemedText>
-        </View>
+  if (isLoading) {
+    return (
+      <View style={[styles.loadingContainer, { paddingTop: insets.top + Spacing.lg, paddingHorizontal: Spacing.lg, backgroundColor: theme.background }]}>
+        <SkeletonList count={5} />
+      </View>
+    );
+  }
+
+  if (isError) {
+    return (
+      <View style={[styles.loadingContainer, { paddingTop: insets.top + Spacing.lg, paddingHorizontal: Spacing.lg, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.background }]}>
+        <DDIcon name="alert-triangle" size={48} variant="muted" />
+        <Spacer height={Spacing.md} />
+        <ThemedText style={[Typography.body, { color: theme.textSecondary, textAlign: 'center' }]}>
+          {t('common.loadError')}
+        </ThemedText>
+        <Spacer height={Spacing.md} />
+        <Pressable
+          style={[styles.retryButton, { backgroundColor: theme.primary }]}
+          onPress={() => refetch()}
+        >
+          <ThemedText style={{ color: '#FFFFFF', fontWeight: '600' }}>{t('common.retry')}</ThemedText>
+        </Pressable>
+      </View>
+    );
+  }
+
+  return (
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <FlatList
+        data={visitors}
+        renderItem={renderVisitorCard}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={{
+          paddingHorizontal: Spacing.lg,
+          paddingTop: insets.top + Spacing.lg,
+          paddingBottom: insets.bottom + Spacing.xl,
+        }}
+        ItemSeparatorComponent={() => <Spacer height={Spacing.sm} />}
+        ListHeaderComponent={ListHeader}
+        ListFooterComponent={renderFooter}
+        ListEmptyComponent={renderEmpty}
+        onEndReached={handleEndReached}
+        onEndReachedThreshold={0.3}
+        showsVerticalScrollIndicator={false}
+      />
+
+      {renderPickerModal(
+        showDatePicker,
+        () => setShowDatePicker(false),
+        DATE_FILTER_OPTIONS,
+        dateFilter,
+        (key) => setDateFilter(key as DateFilter),
+        t('time.selectDate')
       )}
-    </ScreenScrollView>
+
+      {renderPickerModal(
+        showStatusPicker,
+        () => setShowStatusPicker(false),
+        STATUS_FILTER_OPTIONS,
+        statusFilter,
+        (key) => setStatusFilter(key as StatusFilter),
+        t('status.selectStatus')
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  segmentedControl: {
-    flexDirection: 'row',
-    borderRadius: BorderRadius.lg,
-    borderWidth: 1,
-    overflow: 'hidden',
-    height: 36,
-  },
-  segmentButton: {
+  container: {
     flex: 1,
+  },
+  filtersRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  filterDropdown: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    gap: Spacing.xs,
+  },
+  filterDropdownText: {
+    flex: 1,
+    fontSize: 13,
+  },
+  walkInToggle: {
+    width: 40,
+    height: 40,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: Spacing.xs,
-  },
-  segmentFirst: {
-    borderTopStartRadius: BorderRadius.lg - 1,
-    borderBottomStartRadius: BorderRadius.lg - 1,
-  },
-  segmentLast: {
-    borderTopEndRadius: BorderRadius.lg - 1,
-    borderBottomEndRadius: BorderRadius.lg - 1,
-  },
-  segmentText: {
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  toggleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-  },
-  toggleLabel: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  cardList: {
-    gap: Spacing.sm,
   },
   visitorCard: {
     borderRadius: BorderRadius.lg,
@@ -576,5 +658,37 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
+  },
+  footerLoader: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: Spacing.lg,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Spacing.xl,
+  },
+  pickerModal: {
+    width: '100%',
+    maxWidth: 320,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+  },
+  pickerOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.sm,
+    borderRadius: BorderRadius.md,
+  },
+  retryButton: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
   },
 });

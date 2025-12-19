@@ -390,6 +390,7 @@ export const en: TranslationKeys = {
     visitorAccepted: 'Visitor Accepted',
     visitorRejected: 'Visitor Rejected',
     autoCancelled: 'Auto-Cancelled',
+    selectStatus: 'Select Status',
   },
   actions: {
     approve: 'Approve',
