@@ -110,7 +110,6 @@ const getMenuGroups = (role: UserRole): { groups: MenuGroup[]; standalone: MenuI
         items: [
           { id: 'todays_visitors', labelKey: 'navigation.todaysVisitors', icon: 'clock', screen: 'AllVisitorsToday' },
           { id: 'all_visitors', labelKey: 'navigation.allVisitors', icon: 'users', screen: 'AllVisitors' },
-          { id: 'walk_in_visitors', labelKey: 'navigation.walkInVisitors', icon: 'user-check', screen: 'WalkInVisitors' },
         ],
       },
       {
