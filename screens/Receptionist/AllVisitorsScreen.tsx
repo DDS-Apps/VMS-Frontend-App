@@ -281,6 +281,14 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
                   {item.employeeName}
                 </ThemedText>
               </View>
+              {item.purpose ? (
+                <View style={styles.detailItem}>
+                  <DDIcon name="briefcase" size={12} variant="muted" />
+                  <ThemedText style={[styles.detailText, { color: theme.textSecondary }]} numberOfLines={1}>
+                    {item.purpose}
+                  </ThemedText>
+                </View>
+              ) : null}
             </View>
 
             <View style={styles.cardFooter}>
