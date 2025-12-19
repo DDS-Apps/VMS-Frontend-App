@@ -31,6 +31,7 @@ export interface AuthUser {
   thumbnailUrl?: string | null;
   createdAt?: string;
   lastLogin?: string;
+  isSSOUser?: boolean;
 }
 
 interface AuthState {
@@ -195,8 +196,16 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
           setRefreshToken(tokens.refreshToken);
 
           try {
+            const storedUserJson = await AsyncStorage.getItem(AUTH_STORAGE_KEY);
+            const storedUser = storedUserJson ? JSON.parse(storedUserJson) : null;
+            
             const userDto = await authService.getCurrentUser();
             const user = mapUserDtoToAuthUser(userDto);
+            
+            if (storedUser?.isSSOUser) {
+              user.isSSOUser = true;
+            }
+            
             setState({
               user,
               isLoading: false,
@@ -303,6 +312,7 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
 
       const userDto = await authService.getCurrentUser();
       const user = mapUserDtoToAuthUser(userDto);
+      user.isSSOUser = true;
       await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
 
       setState({
@@ -335,11 +345,16 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
     try {
       const userDto = await authService.getCurrentUser();
       const user = mapUserDtoToAuthUser(userDto);
+      
+      if (state.user?.isSSOUser) {
+        user.isSSOUser = true;
+      }
+      
       setState((prev) => ({ ...prev, user }));
       await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
     } catch (error) {
     }
-  }, [state.isAuthenticated]);
+  }, [state.isAuthenticated, state.user?.isSSOUser]);
 
   const clearError = useCallback(() => {
     setState((prev) => ({ ...prev, error: null }));

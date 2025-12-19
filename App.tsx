@@ -169,7 +169,8 @@ function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
       userRole={userRole} 
       userName={userName}
       userPhotoUrl={userPhotoUrl}
-      onLogout={handleLogout} 
+      onLogout={handleLogout}
+      isSSOUser={user.isSSOUser}
     />
   );
 }

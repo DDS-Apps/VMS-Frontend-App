@@ -36,6 +36,7 @@ interface DashboardLayoutProps {
   canGoBack?: boolean;
   onGoBack?: () => void;
   unreadNotificationCount?: number;
+  isSSOUser?: boolean;
 }
 
 export default function DashboardLayout({
@@ -52,6 +53,7 @@ export default function DashboardLayout({
   canGoBack = false,
   onGoBack,
   unreadNotificationCount = 0,
+  isSSOUser = false,
 }: DashboardLayoutProps) {
   const { theme, isDark, toggleTheme } = useTheme();
   const { locale, setLocale } = useLanguage();
@@ -364,18 +366,20 @@ export default function DashboardLayout({
                 </ThemedText>
               </Pressable>
               
-              <Pressable 
-                style={({ pressed }) => [styles.dropdownItem, { opacity: pressed ? 0.6 : 1 }]}
-                onPress={() => {
-                  setProfileMenuVisible(false);
-                  onNavigate('ChangePassword');
-                }}
-              >
-                <DDIcon name="lock" size={20} variant="muted" />
-                <ThemedText style={[Typography.body, { marginStart: Spacing.md }]}>
-                  {t('settings.changePassword')}
-                </ThemedText>
-              </Pressable>
+              {!isSSOUser ? (
+                <Pressable 
+                  style={({ pressed }) => [styles.dropdownItem, { opacity: pressed ? 0.6 : 1 }]}
+                  onPress={() => {
+                    setProfileMenuVisible(false);
+                    onNavigate('ChangePassword');
+                  }}
+                >
+                  <DDIcon name="lock" size={20} variant="muted" />
+                  <ThemedText style={[Typography.body, { marginStart: Spacing.md }]}>
+                    {t('settings.changePassword')}
+                  </ThemedText>
+                </Pressable>
+              ) : null}
               
               <View style={[styles.dropdownDivider, { backgroundColor: theme.border }]} />
               
