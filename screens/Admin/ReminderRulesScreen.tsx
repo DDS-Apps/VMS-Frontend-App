@@ -65,6 +65,52 @@ const dateToTimeString = (date: Date): string => {
   return `${hours}:${minutes}`;
 };
 
+const WebTimePicker = ({ 
+  value, 
+  onChange, 
+  theme 
+}: { 
+  value: string; 
+  onChange: (time24: string) => void; 
+  theme: any;
+}) => {
+  return (
+    <View style={[webTimePickerStyles.container, { backgroundColor: theme.background, borderColor: theme.border }]}>
+      <View style={{ marginEnd: Spacing.sm }}>
+        <DDIcon name="clock" size={18} color={theme.primary} />
+      </View>
+      <input
+        type="time"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        style={{
+          flex: 1,
+          border: "none",
+          outline: "none",
+          backgroundColor: "transparent",
+          color: theme.text,
+          fontSize: 16,
+          fontFamily: "inherit",
+          padding: 0,
+          cursor: "pointer",
+        }}
+      />
+    </View>
+  );
+};
+
+const webTimePickerStyles = StyleSheet.create({
+  container: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderWidth: 1,
+    borderRadius: BorderRadius.md,
+    minHeight: 48,
+  },
+});
+
 export default function ReminderRulesScreen() {
   const { theme, isDark } = useTheme();
   const { t } = useTranslation();
@@ -77,8 +123,6 @@ export default function ReminderRulesScreen() {
   const [showEndTimePicker, setShowEndTimePicker] = useState(false);
   const [tempStartTime, setTempStartTime] = useState<Date | null>(null);
   const [tempEndTime, setTempEndTime] = useState<Date | null>(null);
-  const [webStartTimeInput, setWebStartTimeInput] = useState("");
-  const [webEndTimeInput, setWebEndTimeInput] = useState("");
 
   const { data: rules, isLoading, isError, error, refetch } = useReminderRulesQuery();
   const updateMutation = useUpdateReminderRulesMutation();
@@ -87,8 +131,6 @@ export default function ReminderRulesScreen() {
     if (rules) {
       setLocalRules(rules);
       setHasChanges(false);
-      setWebStartTimeInput(convert24To12Hour(rules.officeStartTime));
-      setWebEndTimeInput(convert24To12Hour(rules.officeEndTime));
     }
   }, [rules]);
 
@@ -406,17 +448,10 @@ export default function ReminderRulesScreen() {
                 {t("admin.officeStartTime")}
               </ThemedText>
               {Platform.OS === "web" ? (
-                <StyledInput
-                  value={webStartTimeInput}
-                  onChangeText={setWebStartTimeInput}
-                  onBlur={() => {
-                    if (webStartTimeInput.match(/^\d{1,2}:\d{2}\s*(AM|PM)$/i)) {
-                      handleUpdate({ officeStartTime: convert12To24Hour(webStartTimeInput) });
-                    } else {
-                      setWebStartTimeInput(convert24To12Hour(localRules.officeStartTime));
-                    }
-                  }}
-                  placeholder="9:00 AM"
+                <WebTimePicker
+                  value={localRules.officeStartTime}
+                  onChange={(time24) => handleUpdate({ officeStartTime: time24 })}
+                  theme={theme}
                 />
               ) : (
                 <>
@@ -474,17 +509,10 @@ export default function ReminderRulesScreen() {
                 {t("admin.officeEndTime")}
               </ThemedText>
               {Platform.OS === "web" ? (
-                <StyledInput
-                  value={webEndTimeInput}
-                  onChangeText={setWebEndTimeInput}
-                  onBlur={() => {
-                    if (webEndTimeInput.match(/^\d{1,2}:\d{2}\s*(AM|PM)$/i)) {
-                      handleUpdate({ officeEndTime: convert12To24Hour(webEndTimeInput) });
-                    } else {
-                      setWebEndTimeInput(convert24To12Hour(localRules.officeEndTime));
-                    }
-                  }}
-                  placeholder="6:00 PM"
+                <WebTimePicker
+                  value={localRules.officeEndTime}
+                  onChange={(time24) => handleUpdate({ officeEndTime: time24 })}
+                  theme={theme}
                 />
               ) : (
                 <>
