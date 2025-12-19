@@ -209,6 +209,7 @@ export const apiConfig = {
       walkIn: "/api/v1/reception/walk-in",
       communicationOverride: "/api/v1/reception/communication-override",
       visits: "/api/v1/reception/visits",
+      requests: "/api/v1/reception/requests",
     },
     admin: {
       base: "/api/v1/admin",
