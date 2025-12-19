@@ -5,13 +5,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { KeyboardProviderWrapper } from "@/components/KeyboardProviderWrapper";
 import { StatusBar } from "expo-status-bar";
-import {
-  useFonts,
-  Inter_400Regular,
-  Inter_500Medium,
-  Inter_600SemiBold,
-  Inter_700Bold,
-} from '@expo-google-fonts/inter';
+import { useFonts } from 'expo-font';
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { LanguageProvider } from "@/contexts/LanguageContext";
@@ -185,16 +179,13 @@ export default function App() {
   const isWeb = Platform.OS === 'web';
   const [fontTimeout, setFontTimeout] = useState(false);
 
-  // On web, skip custom font loading to prevent Chrome freezing due to 500 errors
-  // System fonts will be used instead (Inter is commonly available on modern systems)
-  const [fontsLoaded, fontError] = useFonts(
-    isWeb ? {} : {
-      Inter_400Regular,
-      Inter_500Medium,
-      Inter_600SemiBold,
-      Inter_700Bold,
-    }
-  );
+  // Load fonts from local assets to avoid proxy issues on web
+  const [fontsLoaded, fontError] = useFonts({
+    'Inter_400Regular': require('./assets/fonts/Inter_400Regular.ttf'),
+    'Inter_500Medium': require('./assets/fonts/Inter_500Medium.ttf'),
+    'Inter_600SemiBold': require('./assets/fonts/Inter_600SemiBold.ttf'),
+    'Inter_700Bold': require('./assets/fonts/Inter_700Bold.ttf'),
+  });
 
   useEffect(() => {
     if (fontError) {
@@ -204,13 +195,7 @@ export default function App() {
   }, [fontError]);
 
   useEffect(() => {
-    // On web, we skip custom fonts so proceed immediately
-    if (isWeb) {
-      setFontTimeout(true);
-      return;
-    }
-    
-    // On mobile, give fonts time to load
+    // Give fonts time to load, with timeout fallback
     const timer = setTimeout(() => {
       if (!fontsLoaded && !fontError) {
         console.warn('[App] Font loading timeout - proceeding without custom fonts');
@@ -218,7 +203,7 @@ export default function App() {
       }
     }, 5000);
     return () => clearTimeout(timer);
-  }, [fontsLoaded, fontError, isWeb]);
+  }, [fontsLoaded, fontError]);
 
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
