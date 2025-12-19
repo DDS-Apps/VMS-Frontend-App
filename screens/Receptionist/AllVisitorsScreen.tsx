@@ -19,7 +19,7 @@ import { useReceptionCheckInMutation, useReceptionCheckOutMutation } from "@/hoo
 import type { VisitListParams, VisitListItemDto } from "@/types";
 
 type DateFilter = 'all' | 'today' | 'this_week' | 'this_month';
-type StatusFilter = 'all' | 'expected' | 'checked_in' | 'completed';
+type StatusFilter = 'all' | 'pending_approval' | 'approved' | 'checked_in' | 'auto_cancelled' | 'rejected' | 'cancelled' | 'completed';
 
 function getDateRange(filter: DateFilter): { startDate?: string; endDate?: string } {
   const today = new Date();
@@ -49,16 +49,8 @@ function getDateRange(filter: DateFilter): { startDate?: string; endDate?: strin
 }
 
 function mapStatusToApi(status: StatusFilter): string | undefined {
-  switch (status) {
-    case 'expected':
-      return 'approved,pending_approval';
-    case 'checked_in':
-      return 'checked_in';
-    case 'completed':
-      return 'completed,checked_out';
-    default:
-      return undefined;
-  }
+  if (status === 'all') return undefined;
+  return status;
 }
 
 const PAGE_SIZE = 20;
@@ -74,6 +66,8 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
   const [dateFilter, setDateFilter] = useState<DateFilter>('today');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [walkInOnly, setWalkInOnly] = useState(false);
+  const [awaitingVisitorOnly, setAwaitingVisitorOnly] = useState(false);
+  const [pendingApprovalOnly, setPendingApprovalOnly] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showStatusPicker, setShowStatusPicker] = useState(false);
 
@@ -89,9 +83,11 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
     status: mapStatusToApi(statusFilter),
     search: debouncedSearch || undefined,
     isWalkIn: walkInOnly || undefined,
+    awaitingVisitor: awaitingVisitorOnly || undefined,
+    pendingApproval: pendingApprovalOnly || undefined,
     myRequestsOnly: false,
     limit: PAGE_SIZE,
-  }), [dateFilter, statusFilter, debouncedSearch, walkInOnly]);
+  }), [dateFilter, statusFilter, debouncedSearch, walkInOnly, awaitingVisitorOnly, pendingApprovalOnly]);
 
   const { 
     data, 
@@ -117,8 +113,12 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
 
   const STATUS_FILTER_OPTIONS: { key: StatusFilter; label: string }[] = [
     { key: 'all', label: t('common.all') },
-    { key: 'expected', label: t('visitor.expectedVisitors') },
+    { key: 'pending_approval', label: t('status.pendingApproval') },
+    { key: 'approved', label: t('status.approved') },
     { key: 'checked_in', label: t('status.checkedIn') },
+    { key: 'auto_cancelled', label: t('status.autoCancelled') },
+    { key: 'rejected', label: t('status.rejected') },
+    { key: 'cancelled', label: t('status.cancelled') },
     { key: 'completed', label: t('status.completed') },
   ];
 
@@ -465,11 +465,37 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
         >
           <DDIcon name="user-plus" size={14} color={walkInOnly ? theme.primary : theme.textSecondary} />
         </Pressable>
+
+        <Pressable
+          style={[
+            styles.walkInToggle,
+            { 
+              backgroundColor: awaitingVisitorOnly ? applyOpacity(theme.warning, '15') : theme.surface,
+              borderColor: awaitingVisitorOnly ? theme.warning : theme.border
+            }
+          ]}
+          onPress={() => setAwaitingVisitorOnly(!awaitingVisitorOnly)}
+        >
+          <DDIcon name="clock" size={14} color={awaitingVisitorOnly ? theme.warning : theme.textSecondary} />
+        </Pressable>
+
+        <Pressable
+          style={[
+            styles.walkInToggle,
+            { 
+              backgroundColor: pendingApprovalOnly ? applyOpacity(theme.info, '15') : theme.surface,
+              borderColor: pendingApprovalOnly ? theme.info : theme.border
+            }
+          ]}
+          onPress={() => setPendingApprovalOnly(!pendingApprovalOnly)}
+        >
+          <DDIcon name="check-circle" size={14} color={pendingApprovalOnly ? theme.info : theme.textSecondary} />
+        </Pressable>
       </View>
 
       <Spacer height={Spacing.md} />
     </View>
-  ), [t, theme, totalCount, isFetching, isFetchingNextPage, searchQuery, walkInOnly, getSelectedDateLabel, getSelectedStatusLabel]);
+  ), [t, theme, totalCount, isFetching, isFetchingNextPage, searchQuery, walkInOnly, awaitingVisitorOnly, pendingApprovalOnly, getSelectedDateLabel, getSelectedStatusLabel]);
 
   if (isLoading) {
     return (
@@ -545,6 +571,7 @@ const styles = StyleSheet.create({
   },
   filtersRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: Spacing.sm,
   },
   filterDropdown: {
