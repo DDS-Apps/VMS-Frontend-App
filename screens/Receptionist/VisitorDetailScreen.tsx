@@ -23,11 +23,13 @@ interface LegacyVisitor {
   company: string;
   time: string;
   host: string;
+  hostDepartment?: string;
   status: 'pending' | 'checked_in' | 'completed';
   isWalkIn: boolean;
   phone: string;
   parking?: string;
   valet?: string;
+  meetingRoom?: { name: string; floor?: string };
   origin: 'scheduled' | 'walk_in';
   scheduledFor: string;
   createdAt: string;
@@ -212,10 +214,27 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
               {t('reception.hostName')}
             </ThemedText>
             <ThemedText style={[Typography.body, { fontWeight: '500' }]}>
-              {visitor.host}
+              {visitor.host}{visitor.hostDepartment ? ` - ${visitor.hostDepartment}` : ''}
             </ThemedText>
           </View>
         </View>
+
+        {visitor.meetingRoom && (
+          <>
+            <View style={[styles.divider, { backgroundColor: theme.border }]} />
+            <View style={styles.infoRow}>
+              <DDIcon name="home" size={18} variant="muted" />
+              <View style={{ flex: 1, marginStart: Spacing.md }}>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 11 }]}>
+                  {t('meeting.meetingRoom')}
+                </ThemedText>
+                <ThemedText style={[Typography.body, { fontWeight: '500' }]}>
+                  {visitor.meetingRoom.name}{visitor.meetingRoom.floor ? ` (${visitor.meetingRoom.floor})` : ''}
+                </ThemedText>
+              </View>
+            </View>
+          </>
+        )}
 
         {visitor.isWalkIn && (
           <>

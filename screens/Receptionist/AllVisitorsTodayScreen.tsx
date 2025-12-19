@@ -16,9 +16,9 @@ import { DDIcon } from "@/components/DDIcon";
 import { VisitorActionButton } from "@/components/VisitorActionButton";
 import { applyOpacity } from "@/utils/statusStyles";
 import { useTodayVisitorsQuery, useReceptionCheckInMutation, useReceptionCheckOutMutation } from "@/hooks/queries/useReceptionQueries";
-import type { TodayVisitorDto } from "@/types";
+import type { TodayVisitorDto, ListReceptionTodayParams } from "@/types";
 
-type StatusFilter = 'all' | 'pending' | 'checked_in' | 'completed';
+type StatusFilter = 'all' | 'expected' | 'checked_in' | 'completed';
 
 export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayScreenProps) {
   const { theme } = useTheme();
@@ -28,7 +28,11 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
-  const { data: todayResponse, isLoading, isFetching, isError, error } = useTodayVisitorsQuery();
+  const queryParams: ListReceptionTodayParams | undefined = statusFilter !== 'all' 
+    ? { status: statusFilter } 
+    : undefined;
+
+  const { data: todayResponse, isLoading, isFetching, isError, error } = useTodayVisitorsQuery(queryParams);
   const checkInMutation = useReceptionCheckInMutation();
   const checkOutMutation = useReceptionCheckOutMutation();
 
@@ -49,7 +53,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
 
   const FILTER_OPTIONS: { key: StatusFilter; label: string }[] = [
     { key: 'all', label: t('common.all') },
-    { key: 'pending', label: t('visitor.expectedVisitors') },
+    { key: 'expected', label: t('visitor.expectedVisitors') },
     { key: 'checked_in', label: t('status.checkedIn') },
     { key: 'completed', label: t('status.checkedOut') },
   ];
@@ -61,20 +65,16 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
   };
 
   const filteredVisitors = useMemo(() => {
-    return todaysVisitors
-      .filter(visitor => {
-        const name = visitor.visitor.fullName.toLowerCase();
-        const phone = visitor.visitor.phone ?? '';
-        const company = (visitor.visitor.company ?? '').toLowerCase();
-        const query = searchQuery.toLowerCase();
-        return name.includes(query) || phone.includes(searchQuery) || company.includes(query);
-      })
-      .filter(visitor => {
-        if (statusFilter === 'all') return true;
-        if (statusFilter === 'pending') return visitor.status === 'pending' || visitor.status === 'expected';
-        return visitor.status === statusFilter;
-      });
-  }, [todaysVisitors, searchQuery, statusFilter]);
+    if (!searchQuery.trim()) return todaysVisitors;
+    
+    return todaysVisitors.filter(visitor => {
+      const name = visitor.visitor.fullName.toLowerCase();
+      const phone = visitor.visitor.phone ?? '';
+      const company = (visitor.visitor.company ?? '').toLowerCase();
+      const query = searchQuery.toLowerCase();
+      return name.includes(query) || phone.includes(searchQuery) || company.includes(query);
+    });
+  }, [todaysVisitors, searchQuery]);
 
   if (isLoading || isFetching) {
     return (
@@ -157,10 +157,12 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
       company: visitor.visitor.company ?? '',
       time: visitor.visitTime,
       host: visitor.hostName,
+      hostDepartment: visitor.hostDepartment,
       status: (visitor.status === 'expected' ? 'pending' : visitor.status) as 'pending' | 'checked_in' | 'completed',
       isWalkIn: false,
       phone: visitor.visitor.phone ?? '',
       parking: visitor.parkingSlot?.slotNumber,
+      meetingRoom: visitor.meetingRoom ? { name: visitor.meetingRoom.name, floor: visitor.meetingRoom.floor } : undefined,
       origin: 'scheduled' as const,
       scheduledFor: today,
       createdAt: today,
