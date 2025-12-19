@@ -659,6 +659,7 @@ export interface TranslationKeys {
     fullDay: string;
     at: string;
     dateAndTime: string;
+    selectDate: string;
     justNow: string;
     minutesAgo: string;
     hoursAgo: string;

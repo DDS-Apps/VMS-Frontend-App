@@ -659,6 +659,7 @@ export const en: TranslationKeys = {
     fullDay: 'Full day',
     at: 'at',
     dateAndTime: 'Date & Time',
+    selectDate: 'Select Date',
     justNow: 'Just now',
     minutesAgo: '{{count}}m ago',
     hoursAgo: '{{count}}h ago',

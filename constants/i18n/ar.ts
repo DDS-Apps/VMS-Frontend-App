@@ -659,6 +659,7 @@ export const ar: TranslationKeys = {
     fullDay: 'يوم كامل',
     at: 'في',
     dateAndTime: 'التاريخ والوقت',
+    selectDate: 'اختر التاريخ',
     justNow: 'الآن',
     minutesAgo: 'منذ {{count}} دقيقة',
     hoursAgo: 'منذ {{count}} ساعة',
