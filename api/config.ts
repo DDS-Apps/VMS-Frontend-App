@@ -221,6 +221,7 @@ export const apiConfig = {
       notifications: {
         send: "/api/v1/admin/notifications/send",
       },
+      reminderRules: "/api/v1/admin/reminder-rules",
     },
   },
 };

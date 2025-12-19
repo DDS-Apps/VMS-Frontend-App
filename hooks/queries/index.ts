@@ -14,3 +14,4 @@ export * from './useSecurityQueries';
 export * from './useEmployeeParkingQueries';
 export * from './useAnalyticsQueries';
 export * from './usePublicInviteQueries';
+export * from './useAdminQueries';

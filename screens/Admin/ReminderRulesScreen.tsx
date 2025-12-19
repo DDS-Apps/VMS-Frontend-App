@@ -1,6 +1,5 @@
-import React, { useState, useCallback } from "react";
-import { View, StyleSheet, Pressable, ScrollView, Switch } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
+import React, { useState, useEffect } from "react";
+import { View, StyleSheet, Pressable, ScrollView, Switch, ActivityIndicator, Alert, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -11,7 +10,7 @@ import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { ReminderRules } from "@/types/vms.types";
-import { getReminderRules, updateReminderRules } from "@/services/mock/systemAdminState";
+import { useReminderRulesQuery, useUpdateReminderRulesMutation } from "@/hooks/queries/useAdminQueries";
 
 const HORIZONTAL_PADDING = Spacing.md;
 
@@ -25,42 +24,87 @@ const DAYS = [
   { id: 6, name: "saturday" },
 ];
 
+const convert24To12Hour = (time24: string): string => {
+  if (!time24) return "";
+  const [hoursStr, minutes] = time24.split(":");
+  let hours = parseInt(hoursStr, 10);
+  if (isNaN(hours)) return time24;
+  const period = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12;
+  if (hours === 0) hours = 12;
+  return `${hours}:${minutes} ${period}`;
+};
+
+const convert12To24Hour = (time12: string): string => {
+  if (!time12) return "";
+  const match = time12.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (!match) return time12;
+  let hours = parseInt(match[1], 10);
+  const minutes = match[2];
+  const period = match[3].toUpperCase();
+  if (period === "PM" && hours !== 12) hours += 12;
+  if (period === "AM" && hours === 12) hours = 0;
+  return `${hours.toString().padStart(2, "0")}:${minutes}`;
+};
+
 export default function ReminderRulesScreen() {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
 
-  const [rules, setRules] = useState<ReminderRules | null>(null);
+  const [localRules, setLocalRules] = useState<ReminderRules | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
+  const [notification, setNotification] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
-  useFocusEffect(
-    useCallback(() => {
-      loadRules();
-    }, [])
-  );
+  const { data: rules, isLoading, isError, error, refetch } = useReminderRulesQuery();
+  const updateMutation = useUpdateReminderRulesMutation();
 
-  const loadRules = () => {
-    setRules(getReminderRules());
-    setHasChanges(false);
-  };
+  useEffect(() => {
+    if (rules) {
+      setLocalRules(rules);
+      setHasChanges(false);
+    }
+  }, [rules]);
+
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => setNotification(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [notification]);
 
   const handleUpdate = (updates: Partial<ReminderRules>) => {
-    if (!rules) return;
-    setRules({ ...rules, ...updates });
+    if (!localRules) return;
+    setLocalRules({ ...localRules, ...updates });
     setHasChanges(true);
   };
 
-  const handleSave = () => {
-    if (!rules) return;
-    updateReminderRules(rules);
-    setHasChanges(false);
+  const handleSave = async () => {
+    if (!localRules) return;
+
+    try {
+      await updateMutation.mutateAsync({
+        firstReminderDelayMinutes: localRules.firstReminderDelayMinutes,
+        secondReminderDelayMinutes: localRules.secondReminderDelayMinutes,
+        autoCancelDelayMinutes: localRules.autoCancelDelayMinutes,
+        officeStartTime: localRules.officeStartTime,
+        officeEndTime: localRules.officeEndTime,
+        workingDays: localRules.workingDays,
+        isActive: localRules.isActive,
+      });
+      setHasChanges(false);
+      setNotification({ type: "success", message: t("common.savedSuccessfully") });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : t("common.errorOccurred");
+      setNotification({ type: "error", message: errorMessage });
+    }
   };
 
   const handleToggleDay = (dayId: number) => {
-    if (!rules) return;
-    const newDays = rules.workingDays.includes(dayId)
-      ? rules.workingDays.filter((d) => d !== dayId)
-      : [...rules.workingDays, dayId].sort();
+    if (!localRules) return;
+    const newDays = localRules.workingDays.includes(dayId)
+      ? localRules.workingDays.filter((d) => d !== dayId)
+      : [...localRules.workingDays, dayId].sort();
     handleUpdate({ workingDays: newDays });
   };
 
@@ -77,7 +121,41 @@ export default function ReminderRulesScreen() {
     return `${minutes}m`;
   };
 
-  if (!rules) {
+  if (isLoading) {
+    return (
+      <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={theme.primary} />
+          <ThemedText style={[Typography.body, { marginTop: Spacing.md, color: theme.textSecondary }]}>
+            {t("common.loading")}
+          </ThemedText>
+        </View>
+      </ThemedView>
+    );
+  }
+
+  if (isError) {
+    return (
+      <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
+        <View style={styles.loadingContainer}>
+          <DDIcon name="alert-circle" size={48} color={theme.error} />
+          <ThemedText style={[Typography.body, { marginTop: Spacing.md, color: theme.error, textAlign: "center" }]}>
+            {error?.message || t("common.errorOccurred")}
+          </ThemedText>
+          <Pressable
+            style={[styles.retryButton, { backgroundColor: theme.primary }]}
+            onPress={() => refetch()}
+          >
+            <ThemedText style={[Typography.body, { color: theme.buttonText }]}>
+              {t("common.retry")}
+            </ThemedText>
+          </Pressable>
+        </View>
+      </ThemedView>
+    );
+  }
+
+  if (!localRules) {
     return (
       <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
         <View style={styles.loadingContainer}>
@@ -89,6 +167,36 @@ export default function ReminderRulesScreen() {
 
   return (
     <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
+      {notification ? (
+        <View
+          style={[
+            styles.notification,
+            {
+              backgroundColor: notification.type === "success" ? theme.success + "20" : theme.error + "20",
+              borderColor: notification.type === "success" ? theme.success : theme.error,
+            },
+          ]}
+        >
+          <DDIcon
+            name={notification.type === "success" ? "check-circle" : "alert-circle"}
+            size={20}
+            color={notification.type === "success" ? theme.success : theme.error}
+          />
+          <ThemedText
+            style={[
+              Typography.body,
+              {
+                color: notification.type === "success" ? theme.success : theme.error,
+                marginStart: Spacing.sm,
+                flex: 1,
+              },
+            ]}
+          >
+            {notification.message}
+          </ThemedText>
+        </View>
+      ) : null}
+
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <ThemedText style={[Typography.h2, { fontWeight: "700" }]}>
@@ -106,17 +214,17 @@ export default function ReminderRulesScreen() {
             </View>
             <View style={styles.sectionInfo}>
               <ThemedText style={[Typography.subtitle, { fontWeight: "600" }]}>
-                System Active
+                {t("admin.systemActive")}
               </ThemedText>
               <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2 }]}>
-                Enable automated reminders and auto-cancel
+                {t("admin.enableAutomatedReminders")}
               </ThemedText>
             </View>
             <Switch
-              value={rules.isActive}
+              value={localRules.isActive}
               onValueChange={(value) => handleUpdate({ isActive: value })}
               trackColor={{ false: theme.border, true: theme.primary + "80" }}
-              thumbColor={rules.isActive ? theme.primary : theme.textSecondary}
+              thumbColor={localRules.isActive ? theme.primary : theme.textSecondary}
             />
           </View>
         </View>
@@ -140,13 +248,13 @@ export default function ReminderRulesScreen() {
             </View>
             <View style={styles.ruleInput}>
               <StyledInput
-                value={rules.firstReminderDelayMinutes.toString()}
+                value={localRules.firstReminderDelayMinutes.toString()}
                 onChangeText={(text) => handleUpdate({ firstReminderDelayMinutes: parseInt(text) || 0 })}
                 keyboardType="number-pad"
                 placeholder="120"
               />
               <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 4 }]}>
-                {formatMinutesToDisplay(rules.firstReminderDelayMinutes)} after office hours start
+                {formatMinutesToDisplay(localRules.firstReminderDelayMinutes)} {t("admin.afterOfficeHoursStart")}
               </ThemedText>
             </View>
           </View>
@@ -162,13 +270,13 @@ export default function ReminderRulesScreen() {
             </View>
             <View style={styles.ruleInput}>
               <StyledInput
-                value={rules.secondReminderDelayMinutes.toString()}
+                value={localRules.secondReminderDelayMinutes.toString()}
                 onChangeText={(text) => handleUpdate({ secondReminderDelayMinutes: parseInt(text) || 0 })}
                 keyboardType="number-pad"
                 placeholder="240"
               />
               <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 4 }]}>
-                {formatMinutesToDisplay(rules.secondReminderDelayMinutes)} after first reminder
+                {formatMinutesToDisplay(localRules.secondReminderDelayMinutes)} {t("admin.afterFirstReminder")}
               </ThemedText>
             </View>
           </View>
@@ -184,13 +292,13 @@ export default function ReminderRulesScreen() {
             </View>
             <View style={styles.ruleInput}>
               <StyledInput
-                value={rules.autoCancelDelayMinutes.toString()}
+                value={localRules.autoCancelDelayMinutes.toString()}
                 onChangeText={(text) => handleUpdate({ autoCancelDelayMinutes: parseInt(text) || 0 })}
                 keyboardType="number-pad"
                 placeholder="60"
               />
               <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 4 }]}>
-                {formatMinutesToDisplay(rules.autoCancelDelayMinutes)} after second reminder
+                {formatMinutesToDisplay(localRules.autoCancelDelayMinutes)} {t("admin.afterSecondReminder")}
               </ThemedText>
             </View>
           </View>
@@ -210,9 +318,15 @@ export default function ReminderRulesScreen() {
                 {t("admin.officeStartTime")}
               </ThemedText>
               <StyledInput
-                value={rules.officeStartTime}
-                onChangeText={(text) => handleUpdate({ officeStartTime: text })}
-                placeholder="08:00"
+                value={convert24To12Hour(localRules.officeStartTime)}
+                onChangeText={(text) => {
+                  if (text.match(/^\d{1,2}:\d{2}\s*(AM|PM)$/i)) {
+                    handleUpdate({ officeStartTime: convert12To24Hour(text) });
+                  } else {
+                    handleUpdate({ officeStartTime: text });
+                  }
+                }}
+                placeholder="9:00 AM"
               />
             </View>
             <View style={styles.timeField}>
@@ -220,9 +334,15 @@ export default function ReminderRulesScreen() {
                 {t("admin.officeEndTime")}
               </ThemedText>
               <StyledInput
-                value={rules.officeEndTime}
-                onChangeText={(text) => handleUpdate({ officeEndTime: text })}
-                placeholder="17:00"
+                value={convert24To12Hour(localRules.officeEndTime)}
+                onChangeText={(text) => {
+                  if (text.match(/^\d{1,2}:\d{2}\s*(AM|PM)$/i)) {
+                    handleUpdate({ officeEndTime: convert12To24Hour(text) });
+                  } else {
+                    handleUpdate({ officeEndTime: text });
+                  }
+                }}
+                placeholder="6:00 PM"
               />
             </View>
           </View>
@@ -243,8 +363,8 @@ export default function ReminderRulesScreen() {
                 style={[
                   styles.dayButton,
                   {
-                    backgroundColor: rules.workingDays.includes(day.id) ? theme.primary : theme.surface,
-                    borderColor: rules.workingDays.includes(day.id) ? theme.primary : theme.border,
+                    backgroundColor: localRules.workingDays.includes(day.id) ? theme.primary : theme.surface,
+                    borderColor: localRules.workingDays.includes(day.id) ? theme.primary : theme.border,
                   },
                 ]}
                 onPress={() => handleToggleDay(day.id)}
@@ -253,7 +373,7 @@ export default function ReminderRulesScreen() {
                   style={[
                     Typography.caption,
                     {
-                      color: rules.workingDays.includes(day.id) ? theme.buttonText : theme.text,
+                      color: localRules.workingDays.includes(day.id) ? theme.buttonText : theme.text,
                       fontWeight: "500",
                     },
                   ]}
@@ -268,6 +388,7 @@ export default function ReminderRulesScreen() {
         {hasChanges ? (
           <LoadingButton
             onPress={handleSave}
+            loading={updateMutation.isPending}
             variant="primary"
             size="medium"
             icon="save"
@@ -294,6 +415,22 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    padding: Spacing.xl,
+  },
+  retryButton: {
+    marginTop: Spacing.lg,
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
+  },
+  notification: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginHorizontal: HORIZONTAL_PADDING,
+    marginTop: Spacing.sm,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
   },
   header: {
     marginBottom: Spacing.lg,
@@ -324,13 +461,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     padding: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(0,0,0,0.05)",
+    paddingBottom: Spacing.sm,
   },
   ruleCard: {
-    padding: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(0,0,0,0.05)",
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
   },
   ruleHeader: {
     flexDirection: "row",
@@ -344,11 +479,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  ruleInput: {},
+  ruleInput: {
+    marginStart: 36,
+  },
   timeInputs: {
     flexDirection: "row",
+    paddingHorizontal: Spacing.md,
+    paddingBottom: Spacing.md,
     gap: Spacing.md,
-    padding: Spacing.md,
   },
   timeField: {
     flex: 1,
@@ -356,23 +494,16 @@ const styles = StyleSheet.create({
   daysGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
+    paddingHorizontal: Spacing.md,
+    paddingBottom: Spacing.md,
     gap: Spacing.sm,
-    padding: Spacing.md,
   },
   dayButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1,
-  },
-  saveButton: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: Spacing.md,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
     borderRadius: BorderRadius.md,
-    marginTop: Spacing.md,
+    borderWidth: 1,
+    minWidth: 44,
+    alignItems: "center",
   },
 });

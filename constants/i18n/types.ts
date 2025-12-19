@@ -77,6 +77,8 @@ export interface TranslationKeys {
     reset: string;
     apply: string;
     clear: string;
+    savedSuccessfully: string;
+    errorOccurred: string;
   };
   bulkActions: {
     selectMode: string;
@@ -1036,6 +1038,11 @@ export interface TranslationKeys {
     officeStartTime: string;
     officeEndTime: string;
     workingDays: string;
+    systemActive: string;
+    enableAutomatedReminders: string;
+    afterOfficeHoursStart: string;
+    afterFirstReminder: string;
+    afterSecondReminder: string;
     minutes: string;
     hours: string;
     integrationsHealth: string;
