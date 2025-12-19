@@ -185,12 +185,16 @@ export default function App() {
   const isWeb = Platform.OS === 'web';
   const [fontTimeout, setFontTimeout] = useState(false);
 
-  const [fontsLoaded, fontError] = useFonts({
-    Inter_400Regular,
-    Inter_500Medium,
-    Inter_600SemiBold,
-    Inter_700Bold,
-  });
+  // On web, skip custom font loading to prevent Chrome freezing due to 500 errors
+  // System fonts will be used instead (Inter is commonly available on modern systems)
+  const [fontsLoaded, fontError] = useFonts(
+    isWeb ? {} : {
+      Inter_400Regular,
+      Inter_500Medium,
+      Inter_600SemiBold,
+      Inter_700Bold,
+    }
+  );
 
   useEffect(() => {
     if (fontError) {
@@ -200,6 +204,13 @@ export default function App() {
   }, [fontError]);
 
   useEffect(() => {
+    // On web, we skip custom fonts so proceed immediately
+    if (isWeb) {
+      setFontTimeout(true);
+      return;
+    }
+    
+    // On mobile, give fonts time to load
     const timer = setTimeout(() => {
       if (!fontsLoaded && !fontError) {
         console.warn('[App] Font loading timeout - proceeding without custom fonts');
@@ -207,7 +218,7 @@ export default function App() {
       }
     }, 5000);
     return () => clearTimeout(timer);
-  }, [fontsLoaded, fontError]);
+  }, [fontsLoaded, fontError, isWeb]);
 
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
