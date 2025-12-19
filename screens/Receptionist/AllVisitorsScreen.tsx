@@ -49,8 +49,14 @@ function getDateRange(filter: DateFilter): { startDate?: string; endDate?: strin
 }
 
 function mapStatusToApi(status: StatusFilter): string | undefined {
-  if (status === 'all') return undefined;
-  return status;
+  switch (status) {
+    case 'all':
+      return undefined;
+    case 'completed':
+      return 'completed,checked_out';
+    default:
+      return status;
+  }
 }
 
 const PAGE_SIZE = 20;
