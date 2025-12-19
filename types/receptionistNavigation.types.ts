@@ -9,7 +9,7 @@ export type ReceptionistStackParamList = {
   WalkInVisitors: undefined;
   AllVisitorsToday: undefined;
   UpcomingVisitorsList: undefined;
-  VisitorDetail: { visitor: TodaysVisitor };
+  VisitorDetail: { visitor?: TodaysVisitor; visitId?: string };
   CheckInOutConfirmation: { 
     action: 'check_in' | 'check_out'; 
     visitorName: string; 

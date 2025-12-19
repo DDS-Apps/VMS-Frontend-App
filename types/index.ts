@@ -152,4 +152,9 @@ export {
   type AdminUserDto,
   type AdminUserListParams,
   type AdminUserPaginatedResponse,
+  // Visit List Types
+  type VisitListParams,
+  type VisitListItemDto,
+  type VisitListResponse,
+  type VisitDetailsDto,
 } from './api.types';

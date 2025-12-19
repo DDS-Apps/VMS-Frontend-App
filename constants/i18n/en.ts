@@ -738,6 +738,7 @@ export const en: TranslationKeys = {
   reception: {
     welcomeDesk: 'Welcome Desk',
     walkInVisitor: 'Walk-in Visitor',
+    walkInOnly: 'Walk-in Only',
     registerWalkIn: 'Register Walk-in',
     searchVisitor: 'Search Visitor',
     verifyVisitor: 'Verify Visitor',

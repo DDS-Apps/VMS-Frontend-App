@@ -738,6 +738,7 @@ export interface TranslationKeys {
   reception: {
     welcomeDesk: string;
     walkInVisitor: string;
+    walkInOnly: string;
     registerWalkIn: string;
     searchVisitor: string;
     verifyVisitor: string;

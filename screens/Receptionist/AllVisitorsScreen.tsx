@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useEffect, useRef } from "react";
-import { View, StyleSheet, Pressable, GestureResponderEvent, Alert } from "react-native";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { View, StyleSheet, Pressable, GestureResponderEvent, Alert, Switch } from "react-native";
 import type { AllVisitorsScreenProps } from "@/types/receptionistNavigation.types";
 import { SkeletonList } from "@/components/shared/Skeleton";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -15,34 +15,97 @@ import { useFormatters } from "@/hooks/useFormatters";
 import { DDIcon } from "@/components/DDIcon";
 import { VisitorActionButton } from "@/components/VisitorActionButton";
 import { applyOpacity } from "@/utils/statusStyles";
-import { useSearchVisitorsQuery, useTodayVisitorsQuery, useReceptionCheckInMutation, useReceptionCheckOutMutation } from "@/hooks/queries/useReceptionQueries";
-import type { TodayVisitorDto, SearchVisitorDto } from "@/types";
+import { useVisitsQuery, useVisitDetailsQuery } from "@/hooks/queries/useApprovalQueries";
+import { useReceptionCheckInMutation, useReceptionCheckOutMutation } from "@/hooks/queries/useReceptionQueries";
+import type { VisitListParams, VisitListItemDto } from "@/types";
 
-type DateFilter = 'all' | 'today' | 'this_week';
+type DateFilter = 'all' | 'today' | 'this_week' | 'this_month';
+type StatusFilter = 'all' | 'expected' | 'checked_in' | 'completed';
+
+function getDateRange(filter: DateFilter): { startDate?: string; endDate?: string } {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const formatDate = (d: Date) => d.toISOString().split('T')[0];
+  
+  switch (filter) {
+    case 'today':
+      const todayStr = formatDate(today);
+      return { startDate: todayStr, endDate: todayStr };
+    case 'this_week': {
+      const dayOfWeek = today.getDay();
+      const startOfWeek = new Date(today);
+      startOfWeek.setDate(today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1));
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 6);
+      return { startDate: formatDate(startOfWeek), endDate: formatDate(endOfWeek) };
+    }
+    case 'this_month': {
+      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+      return { startDate: formatDate(startOfMonth), endDate: formatDate(endOfMonth) };
+    }
+    default:
+      return {};
+  }
+}
+
+function mapStatusToApi(status: StatusFilter): string | undefined {
+  switch (status) {
+    case 'expected':
+      return 'approved,pending_approval';
+    case 'checked_in':
+      return 'checked_in';
+    case 'completed':
+      return 'completed,checked_out';
+    default:
+      return undefined;
+  }
+}
 
 export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { formatTime, formatTimeFromString } = useFormatters();
   const insets = useSafeAreaInsets();
+  
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [dateFilter, setDateFilter] = useState<DateFilter>('today');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [walkInOnly, setWalkInOnly] = useState(false);
 
-  const { data: todayResponse, isLoading: isTodayLoading, isFetching: isTodayFetching, isError: isTodayError, error: todayError } = useTodayVisitorsQuery();
-  const { data: searchResponse, isLoading: isSearchLoading, isFetching: isSearchFetching, isError: isSearchError, error: searchError } = useSearchVisitorsQuery(
-    { q: searchQuery, limit: 50 },
-    { enabled: searchQuery.length >= 2 }
-  );
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const queryParams: VisitListParams = {
+    ...getDateRange(dateFilter),
+    status: mapStatusToApi(statusFilter),
+    search: debouncedSearch || undefined,
+    isWalkIn: walkInOnly || undefined,
+    myRequestsOnly: false,
+    limit: 50,
+  };
+
+  const { data: visitsResponse, isLoading, isFetching, isError, error } = useVisitsQuery(queryParams);
   const checkInMutation = useReceptionCheckInMutation();
   const checkOutMutation = useReceptionCheckOutMutation();
 
-  const isLoading = searchQuery.length >= 2 ? isSearchLoading : isTodayLoading;
-  const isFetching = searchQuery.length >= 2 ? isSearchFetching : isTodayFetching;
-
-  const FILTER_OPTIONS: { key: DateFilter; label: string }[] = [
+  const DATE_FILTER_OPTIONS: { key: DateFilter; label: string }[] = [
     { key: 'all', label: t('common.all') },
     { key: 'today', label: t('time.today') },
     { key: 'this_week', label: t('time.thisWeek') },
+    { key: 'this_month', label: t('time.thisMonth') },
+  ];
+
+  const STATUS_FILTER_OPTIONS: { key: StatusFilter; label: string }[] = [
+    { key: 'all', label: t('common.all') },
+    { key: 'expected', label: t('visitor.expectedVisitors') },
+    { key: 'checked_in', label: t('status.checkedIn') },
+    { key: 'completed', label: t('status.completed') },
   ];
 
   const scrollContentStyle = {
@@ -51,44 +114,22 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
     paddingBottom: insets.bottom + Spacing.xl
   };
 
-  const todaysVisitors = todayResponse?.data ?? [];
-
-  const queryError = searchQuery.length >= 2 ? searchError : todayError;
-  const hasError = searchQuery.length >= 2 ? isSearchError : isTodayError;
+  const visitors = visitsResponse?.data ?? [];
+  const totalCount = visitsResponse?.pagination?.total ?? visitors.length;
 
   const hasShownError = useRef(false);
 
   useEffect(() => {
-    if (hasError && queryError && !hasShownError.current) {
+    if (isError && error && !hasShownError.current) {
       hasShownError.current = true;
-      Alert.alert(t('common.error'), queryError?.message || t('common.loadError'));
+      Alert.alert(t('common.error'), (error as Error)?.message || t('common.loadError'));
     }
-    if (!hasError) {
+    if (!isError) {
       hasShownError.current = false;
     }
-  }, [hasError, queryError, t]);
+  }, [isError, error, t]);
 
-  const filteredVisitors = useMemo(() => {
-    if (searchQuery.length >= 2 && searchResponse?.data) {
-      return searchResponse.data;
-    }
-    
-    return todaysVisitors
-      .filter(visitor => {
-        const name = visitor.visitor.fullName.toLowerCase();
-        const phone = visitor.visitor.phone ?? '';
-        const company = (visitor.visitor.company ?? '').toLowerCase();
-        const query = searchQuery.toLowerCase();
-        return name.includes(query) || phone.includes(searchQuery) || company.includes(query);
-      })
-      .filter((visitor) => {
-        if (dateFilter === 'all') return true;
-        if (dateFilter === 'today') return true;
-        return true;
-      });
-  }, [todaysVisitors, searchResponse, searchQuery, dateFilter]);
-
-  if (isLoading || isFetching) {
+  if (isLoading) {
     return (
       <View style={[styles.loadingContainer, { paddingTop: insets.top + Spacing.lg, paddingHorizontal: Spacing.lg }]}>
         <SkeletonList count={5} />
@@ -96,7 +137,7 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
     );
   }
 
-  if (hasError) {
+  if (isError) {
     return (
       <View style={[styles.loadingContainer, { paddingTop: insets.top + Spacing.lg, paddingHorizontal: Spacing.lg, justifyContent: 'center', alignItems: 'center' }]}>
         <DDIcon name="alert-triangle" size={48} variant="muted" />
@@ -122,8 +163,8 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
             time: currentTime
           });
         },
-        onError: (error) => {
-          Alert.alert(t('common.error'), error.message || t('errors.checkInFailed'));
+        onError: (err) => {
+          Alert.alert(t('common.error'), err.message || t('errors.checkInFailed'));
         }
       }
     );
@@ -143,8 +184,8 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
             time: currentTime
           });
         },
-        onError: (error) => {
-          Alert.alert(t('common.error'), error.message || t('errors.checkOutFailed'));
+        onError: (err) => {
+          Alert.alert(t('common.error'), err.message || t('errors.checkOutFailed'));
         }
       }
     );
@@ -155,120 +196,31 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
       case 'checked_in':
         return { label: t('status.checkedIn'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: theme.success };
       case 'completed':
+      case 'checked_out':
         return { label: t('status.checkedOut'), bg: applyOpacity(theme.textSecondary, '15'), text: theme.textSecondary, border: theme.textSecondary };
+      case 'pending_approval':
+        return { label: t('status.pendingApproval'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: theme.warning };
+      case 'approved':
+        return { label: t('visitor.expectedVisitors'), bg: applyOpacity(theme.info, '15'), text: theme.info, border: theme.info };
+      case 'rejected':
+        return { label: t('status.rejected'), bg: applyOpacity(theme.error, '15'), text: theme.error, border: theme.error };
+      case 'cancelled':
+        return { label: t('status.cancelled'), bg: applyOpacity(theme.textSecondary, '15'), text: theme.textSecondary, border: theme.textSecondary };
       default:
         return { label: t('visitor.expectedVisitors'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: theme.warning };
     }
   };
 
-  const handleVisitorPress = (visitor: TodayVisitorDto | SearchVisitorDto) => {
-    const today = new Date().toISOString().split('T')[0];
-    const legacyVisitor = {
-      id: visitor.id,
-      name: visitor.visitor.fullName,
-      company: visitor.visitor.company ?? '',
-      time: visitor.visitTime,
-      host: visitor.hostName,
-      status: (visitor.status === 'expected' ? 'pending' : visitor.status) as 'pending' | 'checked_in' | 'completed',
-      isWalkIn: false,
-      phone: '',
-      origin: 'scheduled' as const,
-      scheduledFor: 'visitDate' in visitor ? visitor.visitDate : today,
-      createdAt: today,
-    };
-    navigation.navigate('VisitorDetail', { visitor: legacyVisitor });
+  const handleVisitorPress = (visitor: VisitListItemDto) => {
+    navigation.navigate('VisitorDetail', { visitId: visitor.id });
   };
 
-  const renderTodayVisitorCard = (item: TodayVisitorDto) => {
+  const renderVisitorCard = (item: VisitListItemDto) => {
     const statusConfig = getStatusConfig(item.status);
     const visitorName = item.visitor.fullName;
-    const initials = visitorName.split(' ').map(n => n[0]).join('');
-    const showCheckIn = item.status === 'pending' || item.status === 'expected';
+    const initials = visitorName.split(' ').map(n => n[0]).join('').substring(0, 2);
+    const showCheckIn = item.status === 'approved' || item.status === 'pending_approval';
     const showCheckOut = item.status === 'checked_in';
-    
-    return (
-      <Pressable 
-        key={item.id} 
-        onPress={() => handleVisitorPress(item)}
-        style={({ pressed }) => [pressed && { opacity: 0.95 }]}
-      >
-        <ThemedView style={[styles.visitorCard, { backgroundColor: theme.surface }]}>
-          <View style={[styles.statusBorderLine, { backgroundColor: statusConfig.border }]} />
-          
-          <View style={styles.cardContent}>
-            <View style={styles.cardHeader}>
-              <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
-                <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
-                  {initials}
-                </ThemedText>
-              </View>
-              
-              <View style={styles.nameSection}>
-                <ThemedText style={[styles.visitorName, { color: theme.text }]} numberOfLines={1}>
-                  {visitorName}
-                </ThemedText>
-                <ThemedText style={[styles.companyText, { color: theme.textSecondary }]} numberOfLines={1}>
-                  {item.visitor.company ?? ''}
-                </ThemedText>
-              </View>
-
-              <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg }]}>
-                <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
-                  {statusConfig.label}
-                </ThemedText>
-              </View>
-            </View>
-
-            <View style={styles.detailsRow}>
-              <View style={styles.detailItem}>
-                <DDIcon name="clock" size={12} variant="muted" />
-                <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
-                  {formatTimeFromString(item.visitTime)}
-                </ThemedText>
-              </View>
-              <View style={styles.detailItem}>
-                <DDIcon name="user" size={12} variant="muted" />
-                <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
-                  {t('reception.hostName')}: {item.hostName}
-                </ThemedText>
-              </View>
-            </View>
-
-            <View style={styles.cardFooter}>
-              <View style={styles.servicesRow}>
-                {item.parkingSlot ? (
-                  <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '15') }]}>
-                    <DDIcon name="map-pin" size={12} color={theme.info} />
-                  </View>
-                ) : null}
-                </View>
-
-              <View style={styles.actionButtons}>
-                {showCheckIn ? (
-                  <VisitorActionButton 
-                    type="check_in" 
-                    onPress={(e) => handleCheckIn(item.id, visitorName, e)} 
-                  />
-                ) : showCheckOut ? (
-                  <VisitorActionButton 
-                    type="check_out" 
-                    onPress={(e) => handleCheckOut(item.id, visitorName, e)} 
-                  />
-                ) : (
-                  <VisitorActionButton type="completed" />
-                )}
-              </View>
-            </View>
-          </View>
-        </ThemedView>
-      </Pressable>
-    );
-  };
-
-  const renderSearchResultCard = (item: SearchVisitorDto) => {
-    const statusConfig = getStatusConfig(item.status);
-    const visitorName = item.visitor.fullName;
-    const initials = visitorName.split(' ').map(n => n[0]).join('');
     
     return (
       <Pressable 
@@ -318,9 +270,50 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
               </View>
               <View style={styles.detailItem}>
                 <DDIcon name="user" size={12} variant="muted" />
-                <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
-                  {item.hostName}
+                <ThemedText style={[styles.detailText, { color: theme.textSecondary }]} numberOfLines={1}>
+                  {item.employeeName}
                 </ThemedText>
+              </View>
+            </View>
+
+            <View style={styles.cardFooter}>
+              <View style={styles.servicesRow}>
+                {item.isWalkIn ? (
+                  <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.warning, '15') }]}>
+                    <DDIcon name="user-plus" size={12} color={theme.warning} />
+                  </View>
+                ) : null}
+                {item.hasParking ? (
+                  <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '15') }]}>
+                    <DDIcon name="map-pin" size={12} color={theme.info} />
+                  </View>
+                ) : null}
+                {item.hasMeetingRoom ? (
+                  <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
+                    <DDIcon name="home" size={12} color={theme.primary} />
+                  </View>
+                ) : null}
+                {item.hasBuffet ? (
+                  <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.success, '15') }]}>
+                    <DDIcon name="coffee" size={12} color={theme.success} />
+                  </View>
+                ) : null}
+              </View>
+
+              <View style={styles.actionButtons}>
+                {showCheckIn ? (
+                  <VisitorActionButton 
+                    type="check_in" 
+                    onPress={(e) => handleCheckIn(item.id, visitorName, e)} 
+                  />
+                ) : showCheckOut ? (
+                  <VisitorActionButton 
+                    type="check_out" 
+                    onPress={(e) => handleCheckOut(item.id, visitorName, e)} 
+                  />
+                ) : (
+                  <VisitorActionButton type="completed" />
+                )}
               </View>
             </View>
           </View>
@@ -328,8 +321,6 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
       </Pressable>
     );
   };
-
-  const isSearchResult = searchQuery.length >= 2 && searchResponse?.data;
 
   return (
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
@@ -340,7 +331,8 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
       <Spacer height={4} />
       
       <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
-        {filteredVisitors.length} {filteredVisitors.length === 1 ? 'visitor' : 'visitors'} found
+        {totalCount} {totalCount === 1 ? 'visitor' : 'visitors'} found
+        {isFetching ? ' ...' : ''}
       </ThemedText>
 
       <Spacer height={Spacing.lg} />
@@ -353,44 +345,86 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
 
       <Spacer height={Spacing.md} />
 
-      {!isSearchResult ? (
-        <View style={[styles.segmentedControl, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          {FILTER_OPTIONS.map((option, index) => {
-            const isActive = dateFilter === option.key;
-            const isFirst = index === 0;
-            const isLast = index === FILTER_OPTIONS.length - 1;
-            
-            return (
-              <Pressable
-                key={option.key}
-                style={[
-                  styles.segmentButton,
-                  isActive && { backgroundColor: theme.primary },
-                  isFirst && styles.segmentFirst,
-                  isLast && styles.segmentLast,
-                ]}
-                onPress={() => setDateFilter(option.key)}
-              >
-                <ThemedText style={[
-                  styles.segmentText,
-                  { color: isActive ? '#FFFFFF' : theme.text }
-                ]}>
-                  {option.label}
-                </ThemedText>
-              </Pressable>
-            );
-          })}
+      <View style={[styles.segmentedControl, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        {DATE_FILTER_OPTIONS.map((option, index) => {
+          const isActive = dateFilter === option.key;
+          const isFirst = index === 0;
+          const isLast = index === DATE_FILTER_OPTIONS.length - 1;
+          
+          return (
+            <Pressable
+              key={option.key}
+              style={[
+                styles.segmentButton,
+                isActive && { backgroundColor: theme.primary },
+                isFirst && styles.segmentFirst,
+                isLast && styles.segmentLast,
+              ]}
+              onPress={() => setDateFilter(option.key)}
+            >
+              <ThemedText style={[
+                styles.segmentText,
+                { color: isActive ? '#FFFFFF' : theme.text }
+              ]}>
+                {option.label}
+              </ThemedText>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      <Spacer height={Spacing.sm} />
+
+      <View style={[styles.segmentedControl, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        {STATUS_FILTER_OPTIONS.map((option, index) => {
+          const isActive = statusFilter === option.key;
+          const isFirst = index === 0;
+          const isLast = index === STATUS_FILTER_OPTIONS.length - 1;
+          
+          return (
+            <Pressable
+              key={option.key}
+              style={[
+                styles.segmentButton,
+                isActive && { backgroundColor: theme.primary },
+                isFirst && styles.segmentFirst,
+                isLast && styles.segmentLast,
+              ]}
+              onPress={() => setStatusFilter(option.key)}
+            >
+              <ThemedText style={[
+                styles.segmentText,
+                { color: isActive ? '#FFFFFF' : theme.text }
+              ]}>
+                {option.label}
+              </ThemedText>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      <Spacer height={Spacing.sm} />
+
+      <View style={[styles.toggleRow, { backgroundColor: theme.surface, borderRadius: BorderRadius.md }]}>
+        <View style={styles.toggleLabel}>
+          <DDIcon name="user-plus" size={16} variant="muted" />
+          <ThemedText style={[Typography.body, { marginStart: Spacing.sm }]}>
+            {t('reception.walkInOnly')}
+          </ThemedText>
         </View>
-      ) : null}
+        <Switch
+          value={walkInOnly}
+          onValueChange={setWalkInOnly}
+          trackColor={{ false: theme.border, true: applyOpacity(theme.primary, '50') }}
+          thumbColor={walkInOnly ? theme.primary : theme.surface}
+        />
+      </View>
 
       <Spacer height={Spacing.lg} />
 
-      {filteredVisitors.length > 0 ? (
+      {visitors.length > 0 ? (
         <View style={styles.cardList}>
-          {isSearchResult
-            ? (filteredVisitors as SearchVisitorDto[]).map((visitor) => renderSearchResultCard(visitor))
-            : (filteredVisitors as TodayVisitorDto[]).map((visitor) => renderTodayVisitorCard(visitor))
-          }
+          {visitors.map((visitor) => renderVisitorCard(visitor))}
         </View>
       ) : (
         <View style={styles.emptyState}>
@@ -428,8 +462,19 @@ const styles = StyleSheet.create({
     borderBottomEndRadius: BorderRadius.lg - 1,
   },
   segmentText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
+  },
+  toggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+  },
+  toggleLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   cardList: {
     gap: Spacing.sm,

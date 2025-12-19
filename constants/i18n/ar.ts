@@ -738,6 +738,7 @@ export const ar: TranslationKeys = {
   reception: {
     welcomeDesk: 'مكتب الاستقبال',
     walkInVisitor: 'زائر بدون موعد',
+    walkInOnly: 'زوار بدون موعد فقط',
     registerWalkIn: 'تسجيل زائر بدون موعد',
     searchVisitor: 'البحث عن زائر',
     verifyVisitor: 'التحقق من الزائر',

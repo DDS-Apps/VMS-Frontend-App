@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, StyleSheet, Pressable, Modal, TextInput, Alert, ScrollView } from "react-native";
+import { View, StyleSheet, Pressable, Modal, TextInput, Alert, ScrollView, ActivityIndicator } from "react-native";
 import type { VisitorDetailScreenProps } from "@/types/receptionistNavigation.types";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DDIcon, type IconName } from "@/components/DDIcon";
@@ -16,6 +16,7 @@ import { applyOpacity } from "@/utils/statusStyles";
 import type { VisitorExceptionType } from "@/services/mock/receptionistVisitorState";
 import { VisitorActionButton } from "@/components/VisitorActionButton";
 import { useReceptionCheckInMutation, useReceptionCheckOutMutation } from "@/hooks/queries/useReceptionQueries";
+import { useVisitDetailsQuery } from "@/hooks/queries/useApprovalQueries";
 
 interface LegacyVisitor {
   id: string;
@@ -41,7 +42,29 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
   const { formatTime, toLocalNumerals } = useFormatters();
   const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
-  const { visitor } = route.params as { visitor: LegacyVisitor };
+  
+  const { visitor: legacyVisitor, visitId } = route.params as { visitor?: LegacyVisitor; visitId?: string };
+  
+  const { data: visitDetails, isLoading, isError } = useVisitDetailsQuery(visitId ?? '', !!visitId);
+  
+  const visitor: LegacyVisitor | null = legacyVisitor ?? (visitDetails ? {
+    id: visitDetails.id,
+    name: visitDetails.visitor.fullName,
+    company: visitDetails.visitor.company ?? '',
+    time: visitDetails.visitTime,
+    host: visitDetails.employeeName,
+    hostDepartment: visitDetails.employeeDepartment,
+    status: (visitDetails.status === 'approved' || visitDetails.status === 'pending_approval' ? 'pending' : visitDetails.status) as 'pending' | 'checked_in' | 'completed',
+    isWalkIn: visitDetails.isWalkIn ?? false,
+    phone: visitDetails.visitor.phone ?? '',
+    parking: visitDetails.parkingSlot?.slotNumber,
+    valet: visitDetails.parkingAllocation?.status,
+    meetingRoom: visitDetails.meetingRoom ? { name: visitDetails.meetingRoom.name, floor: visitDetails.meetingRoom.floor } : undefined,
+    origin: visitDetails.isWalkIn ? 'walk_in' : 'scheduled',
+    scheduledFor: visitDetails.visitDate,
+    createdAt: visitDetails.createdAt,
+  } : null);
+  
   const checkInMutation = useReceptionCheckInMutation();
   const checkOutMutation = useReceptionCheckOutMutation();
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -56,6 +79,30 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
     paddingTop: insets.top + Spacing.xl,
     paddingBottom: insets.bottom + Spacing.xl
   };
+
+  if (isLoading) {
+    return (
+      <View style={[styles.loadingContainer, { paddingTop: insets.top + Spacing.xl }]}>
+        <ActivityIndicator size="large" color={theme.primary} />
+        <Spacer height={Spacing.md} />
+        <ThemedText style={[Typography.body, { color: theme.textSecondary }]}>
+          {t('common.loading')}
+        </ThemedText>
+      </View>
+    );
+  }
+
+  if (isError || !visitor) {
+    return (
+      <View style={[styles.loadingContainer, { paddingTop: insets.top + Spacing.xl }]}>
+        <DDIcon name="alert-triangle" size={48} variant="muted" />
+        <Spacer height={Spacing.md} />
+        <ThemedText style={[Typography.body, { color: theme.textSecondary, textAlign: 'center' }]}>
+          {t('common.loadError')}
+        </ThemedText>
+      </View>
+    );
+  }
 
   const getStatusConfig = (status: string): { label: string; bg: string; text: string; icon: IconName } => {
     switch (status) {
@@ -721,6 +768,11 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 48,
     borderRadius: BorderRadius.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
