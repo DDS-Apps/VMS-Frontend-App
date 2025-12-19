@@ -109,6 +109,13 @@ export function useAzureAuth(): UseAzureAuthReturn {
       console.log('[AzureAuth] Auth session result type:', result.type);
 
       if (result.type === 'success' && result.url) {
+        if (!result.url.startsWith(redirectUri.split('?')[0])) {
+          console.log('[AzureAuth] Callback URL does not match expected redirect URI');
+          setErrorType('auth_failed');
+          setIsLoading(false);
+          return { accessToken: '', errorType: 'auth_failed' };
+        }
+
         const parsedResponse = parseAuthResponseUrl(result.url);
 
         if (parsedResponse.error) {

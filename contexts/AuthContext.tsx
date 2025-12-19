@@ -290,12 +290,16 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
     setState((prev) => ({ ...prev, error: null }));
 
     try {
-      setAccessToken(tokens.accessToken);
-      if (tokens.refreshToken) {
-        setRefreshToken(tokens.refreshToken);
+      if (!tokens.accessToken) {
+        throw new Error('No access token provided');
       }
 
-      await persistTokens(tokens.accessToken, tokens.refreshToken || '', tokens.expiresIn);
+      setAccessToken(tokens.accessToken);
+      
+      const refreshTokenValue = tokens.refreshToken || tokens.accessToken;
+      setRefreshToken(refreshTokenValue);
+
+      await persistTokens(tokens.accessToken, refreshTokenValue, tokens.expiresIn);
 
       const userDto = await authService.getCurrentUser();
       const user = mapUserDtoToAuthUser(userDto);
