@@ -1,25 +1,23 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import * as WebBrowser from 'expo-web-browser';
 import * as AuthSession from 'expo-auth-session';
-import { Platform } from 'react-native';
-import Constants from 'expo-constants';
+import * as Linking from 'expo-linking';
+import { apiConfig } from '@/api/config';
 
 WebBrowser.maybeCompleteAuthSession();
 
-const AZURE_TENANT_ID = 'common';
-const AZURE_CLIENT_ID = process.env.EXPO_PUBLIC_AZURE_CLIENT_ID || '';
-
-const discovery: AuthSession.DiscoveryDocument = {
-  authorizationEndpoint: `https://login.microsoftonline.com/${AZURE_TENANT_ID}/oauth2/v2.0/authorize`,
-  tokenEndpoint: `https://login.microsoftonline.com/${AZURE_TENANT_ID}/oauth2/v2.0/token`,
-  revocationEndpoint: `https://login.microsoftonline.com/${AZURE_TENANT_ID}/oauth2/v2.0/logout`,
-};
-
 export type AzureErrorType = 'not_configured' | 'no_token' | 'auth_failed' | 'cancelled' | null;
 
-interface AzureAuthResult {
+interface MicrosoftAuthResult {
   accessToken: string;
-  idToken?: string;
+  refreshToken?: string;
+  expiresIn?: number;
+  user?: {
+    id: string;
+    email: string;
+    name: string;
+    role: string;
+  };
   errorType?: AzureErrorType;
 }
 
@@ -27,44 +25,64 @@ interface UseAzureAuthReturn {
   isLoading: boolean;
   errorType: AzureErrorType;
   isConfigured: boolean;
-  promptAsync: () => Promise<AzureAuthResult | null>;
+  promptAsync: () => Promise<MicrosoftAuthResult | null>;
   clearError: () => void;
+}
+
+function parseAuthResponseUrl(url: string): { 
+  accessToken?: string; 
+  refreshToken?: string; 
+  expiresIn?: number; 
+  error?: string;
+} {
+  try {
+    const parsed = Linking.parse(url);
+    const queryParams = parsed.queryParams || {};
+    
+    const hashPart = url.includes('#') ? url.split('#')[1] : '';
+    const hashParams: Record<string, string> = {};
+    if (hashPart) {
+      hashPart.split('&').forEach(pair => {
+        const [key, value] = pair.split('=');
+        if (key && value) {
+          hashParams[decodeURIComponent(key)] = decodeURIComponent(value);
+        }
+      });
+    }
+    
+    const accessToken = (queryParams.access_token as string) || 
+                        (queryParams.token as string) || 
+                        hashParams.access_token || 
+                        hashParams.token;
+    const refreshToken = (queryParams.refresh_token as string) || hashParams.refresh_token;
+    const expiresInStr = (queryParams.expires_in as string) || hashParams.expires_in;
+    const error = (queryParams.error as string) || hashParams.error;
+    
+    return {
+      accessToken,
+      refreshToken,
+      expiresIn: expiresInStr ? parseInt(expiresInStr, 10) : undefined,
+      error,
+    };
+  } catch (err) {
+    console.error('[AzureAuth] Error parsing auth response URL:', err);
+    return {};
+  }
 }
 
 export function useAzureAuth(): UseAzureAuthReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [errorType, setErrorType] = useState<AzureErrorType>(null);
   
-  const isConfigured = Boolean(AZURE_CLIENT_ID);
+  const isConfigured = Boolean(apiConfig.baseUrl);
 
   const redirectUri = AuthSession.makeRedirectUri({
     scheme: 'dallahvms',
-    path: 'auth',
+    path: 'auth/callback',
   });
 
-  const [request, response, promptAsyncInternal] = AuthSession.useAuthRequest(
-    {
-      clientId: AZURE_CLIENT_ID || 'placeholder',
-      scopes: ['openid', 'profile', 'email', 'User.Read'],
-      redirectUri,
-      responseType: AuthSession.ResponseType.Token,
-      prompt: AuthSession.Prompt.SelectAccount,
-      extraParams: {
-        nonce: Math.random().toString(36).substring(2),
-      },
-    },
-    discovery
-  );
-
-  useEffect(() => {
-    if (response?.type === 'error') {
-      setErrorType('auth_failed');
-      setIsLoading(false);
-    }
-  }, [response]);
-
-  const promptAsync = useCallback(async (): Promise<AzureAuthResult | null> => {
-    if (!AZURE_CLIENT_ID) {
+  const promptAsync = useCallback(async (): Promise<MicrosoftAuthResult | null> => {
+    if (!apiConfig.baseUrl) {
       setErrorType('not_configured');
       return { accessToken: '', errorType: 'not_configured' };
     }
@@ -73,39 +91,64 @@ export function useAzureAuth(): UseAzureAuthReturn {
     setErrorType(null);
 
     try {
-      const result = await promptAsyncInternal();
+      const microsoftLoginUrl = `${apiConfig.baseUrl}${apiConfig.endpoints.auth.microsoftLogin}?redirect_uri=${encodeURIComponent(redirectUri)}`;
+      
+      console.log('[AzureAuth] Starting Microsoft login flow');
+      console.log('[AzureAuth] Redirect URI:', redirectUri);
+      console.log('[AzureAuth] Login URL:', microsoftLoginUrl);
 
-      if (result?.type === 'success') {
-        const { access_token, id_token } = result.params;
-        
-        if (!access_token) {
+      const result = await WebBrowser.openAuthSessionAsync(
+        microsoftLoginUrl,
+        redirectUri,
+        {
+          showInRecents: true,
+          preferEphemeralSession: true,
+        }
+      );
+
+      console.log('[AzureAuth] Auth session result type:', result.type);
+
+      if (result.type === 'success' && result.url) {
+        const parsedResponse = parseAuthResponseUrl(result.url);
+
+        if (parsedResponse.error) {
+          console.log('[AzureAuth] Error from callback:', parsedResponse.error);
+          setErrorType('auth_failed');
+          setIsLoading(false);
+          return { accessToken: '', errorType: 'auth_failed' };
+        }
+
+        if (!parsedResponse.accessToken) {
+          console.log('[AzureAuth] No access token received in response');
           setErrorType('no_token');
           setIsLoading(false);
           return { accessToken: '', errorType: 'no_token' };
         }
 
+        console.log('[AzureAuth] Successfully received token');
         setIsLoading(false);
         return {
-          accessToken: access_token,
-          idToken: id_token,
+          accessToken: parsedResponse.accessToken,
+          refreshToken: parsedResponse.refreshToken,
+          expiresIn: parsedResponse.expiresIn,
         };
-      } else if (result?.type === 'cancel' || result?.type === 'dismiss') {
+      } else if (result.type === 'cancel' || result.type === 'dismiss') {
+        console.log('[AzureAuth] Auth cancelled by user');
         setIsLoading(false);
         return { accessToken: '', errorType: 'cancelled' };
-      } else if (result?.type === 'error') {
+      } else {
+        console.log('[AzureAuth] Auth failed with type:', result.type);
         setErrorType('auth_failed');
         setIsLoading(false);
         return { accessToken: '', errorType: 'auth_failed' };
       }
-
-      setIsLoading(false);
-      return null;
     } catch (err) {
+      console.error('[AzureAuth] Error during auth:', err);
       setErrorType('auth_failed');
       setIsLoading(false);
       return { accessToken: '', errorType: 'auth_failed' };
     }
-  }, [promptAsyncInternal]);
+  }, [redirectUri]);
 
   const clearError = useCallback(() => {
     setErrorType(null);

@@ -12,10 +12,13 @@ export const apiConfig = {
     healthDb: "/api/health/db",
     auth: {
       base: "/api/v1/auth",
+      health: "/api/v1/auth/health",
       config: "/api/v1/auth/config",
       login: "/api/v1/auth/login",
       azureLogin: "/api/v1/auth/azure/login",
       azureCallback: "/api/v1/auth/azure/callback",
+      microsoftLogin: "/auth/microsoft/login",
+      microsoftCallback: "/auth/microsoft/callback",
       refresh: "/api/v1/auth/refresh",
       logout: "/api/v1/auth/logout",
       password: "/api/v1/auth/password",
