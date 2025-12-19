@@ -40,9 +40,16 @@ interface AuthState {
   error: string | null;
 }
 
+interface SSOTokens {
+  accessToken: string;
+  refreshToken?: string;
+  expiresIn?: number;
+}
+
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<AuthTokenResponse>;
   azureLogin: (azureToken: string) => Promise<AuthTokenResponse>;
+  ssoLogin: (tokens: SSOTokens) => Promise<AuthUser>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   clearError: () => void;
@@ -279,6 +286,41 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
     }
   }, [handleTokenResponse]);
 
+  const ssoLogin = useCallback(async (tokens: SSOTokens): Promise<AuthUser> => {
+    setState((prev) => ({ ...prev, error: null }));
+
+    try {
+      setAccessToken(tokens.accessToken);
+      if (tokens.refreshToken) {
+        setRefreshToken(tokens.refreshToken);
+      }
+
+      await persistTokens(tokens.accessToken, tokens.refreshToken || '', tokens.expiresIn);
+
+      const userDto = await authService.getCurrentUser();
+      const user = mapUserDtoToAuthUser(userDto);
+      await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
+
+      setState({
+        user,
+        isLoading: false,
+        isAuthenticated: true,
+        error: null,
+      });
+
+      return user;
+    } catch (error) {
+      clearTokens();
+      await AsyncStorage.multiRemove([AUTH_STORAGE_KEY, TOKEN_STORAGE_KEY]);
+      const errorMessage = error instanceof Error ? error.message : 'SSO login failed';
+      setState((prev) => ({
+        ...prev,
+        error: errorMessage,
+      }));
+      throw error;
+    }
+  }, [persistTokens]);
+
   const logout = useCallback(async () => {
     await handleLogout();
   }, [handleLogout]);
@@ -303,6 +345,7 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
     ...state,
     login,
     azureLogin,
+    ssoLogin,
     logout,
     refreshUser,
     clearError,

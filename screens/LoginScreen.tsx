@@ -44,7 +44,7 @@ export default function LoginScreen({
   const insets = useSafeAreaInsets();
   const {
     login,
-    azureLogin,
+    ssoLogin,
     isLoading: authLoading,
     error: authError,
   } = useAuth();
@@ -226,8 +226,12 @@ export default function LoginScreen({
         return;
       }
 
-      const response = await azureLogin(result.accessToken);
-      const userRole = (response.user?.role as UserRole) || "employee";
+      const user = await ssoLogin({
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
+        expiresIn: result.expiresIn,
+      });
+      const userRole = (user.role as UserRole) || "employee";
       onLoginSuccess?.(userRole);
     } catch (error) {
       const errorMessage = getErrorMessage(error, true);
