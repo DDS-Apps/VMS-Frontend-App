@@ -14,7 +14,7 @@ import { useFormatters } from "@/hooks/useFormatters";
 import { DDIcon } from "@/components/DDIcon";
 import { VisitorActionButton } from "@/components/VisitorActionButton";
 import { applyOpacity } from "@/utils/statusStyles";
-import { useInfiniteVisitsQuery } from "@/hooks/queries/useApprovalQueries";
+import { useInfiniteReceptionRequestsQuery } from "@/hooks/queries/useApprovalQueries";
 import { useReceptionCheckInMutation, useReceptionCheckOutMutation } from "@/hooks/queries/useReceptionQueries";
 import type { VisitListParams, VisitListItemDto } from "@/types";
 
@@ -103,7 +103,7 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
     fetchNextPage,
     hasNextPage,
     refetch,
-  } = useInfiniteVisitsQuery(queryParams);
+  } = useInfiniteReceptionRequestsQuery(queryParams);
 
   const checkInMutation = useReceptionCheckInMutation();
   const checkOutMutation = useReceptionCheckOutMutation();
