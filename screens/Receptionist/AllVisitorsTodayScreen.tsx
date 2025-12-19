@@ -33,6 +33,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
   const checkOutMutation = useReceptionCheckOutMutation();
 
   const todaysVisitors = todayResponse?.data ?? [];
+  const summary = todayResponse?.summary ?? { expected: 0, checkedIn: 0, completed: 0, pending: 0 };
 
   const hasShownError = useRef(false);
 
@@ -216,10 +217,29 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
               </View>
               <View style={styles.detailItem}>
                 <DDIcon name="user" size={12} variant="muted" />
-                <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
-                  {t('reception.hostName')}: {item.hostName}
+                <ThemedText style={[styles.detailText, { color: theme.textSecondary }]} numberOfLines={1}>
+                  {item.hostName}{item.hostDepartment ? ` - ${item.hostDepartment}` : ''}
                 </ThemedText>
               </View>
+            </View>
+
+            <View style={styles.detailsRow}>
+              {item.visitor.phone ? (
+                <View style={styles.detailItem}>
+                  <DDIcon name="phone" size={12} variant="muted" />
+                  <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
+                    {item.visitor.phone}
+                  </ThemedText>
+                </View>
+              ) : null}
+              {item.meetingRoom ? (
+                <View style={styles.detailItem}>
+                  <DDIcon name="home" size={12} variant="muted" />
+                  <ThemedText style={[styles.detailText, { color: theme.textSecondary }]} numberOfLines={1}>
+                    {item.meetingRoom.name}{item.meetingRoom.floor ? ` (${item.meetingRoom.floor})` : ''}
+                  </ThemedText>
+                </View>
+              ) : null}
             </View>
 
             <View style={styles.cardFooter}>
@@ -227,6 +247,9 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
                 {item.parkingSlot ? (
                   <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '15') }]}>
                     <DDIcon name="map-pin" size={12} color={theme.info} />
+                    <ThemedText style={[styles.servicePillText, { color: theme.info }]}>
+                      {item.parkingSlot.slotNumber}
+                    </ThemedText>
                   </View>
                 ) : null}
               </View>
@@ -253,6 +276,16 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
     );
   };
 
+  const renderSummaryCard = (label: string, count: number, color: string, icon: string) => (
+    <View style={[styles.summaryCard, { backgroundColor: theme.surface }]}>
+      <View style={[styles.summaryIconContainer, { backgroundColor: applyOpacity(color, '15') }]}>
+        <DDIcon name={icon as any} size={16} color={color} />
+      </View>
+      <ThemedText style={[styles.summaryCount, { color: theme.text }]}>{count}</ThemedText>
+      <ThemedText style={[styles.summaryLabel, { color: theme.textSecondary }]} numberOfLines={1}>{label}</ThemedText>
+    </View>
+  );
+
   return (
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
       <ThemedText style={[Typography.title, { fontSize: 22, fontWeight: '700' }]}>
@@ -264,6 +297,14 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
       <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
         {todaysVisitors.length} {t('dashboard.expectedToday').toLowerCase()}
       </ThemedText>
+
+      <Spacer height={Spacing.md} />
+
+      <View style={styles.summaryRow}>
+        {renderSummaryCard(t('visitor.expectedVisitors'), summary.expected, theme.warning, 'clock')}
+        {renderSummaryCard(t('status.checkedIn'), summary.checkedIn, theme.success, 'log-in')}
+        {renderSummaryCard(t('status.checkedOut'), summary.completed, theme.textSecondary, 'log-out')}
+      </View>
 
       <Spacer height={Spacing.lg} />
 
@@ -323,6 +364,34 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
 }
 
 const styles = StyleSheet.create({
+  summaryRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  summaryCard: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.sm,
+    borderRadius: BorderRadius.lg,
+  },
+  summaryIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: Spacing.xs,
+  },
+  summaryCount: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  summaryLabel: {
+    fontSize: 10,
+    textAlign: 'center',
+    marginTop: 2,
+  },
   segmentedControl: {
     flexDirection: 'row',
     borderRadius: BorderRadius.lg,
@@ -430,11 +499,16 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
   },
   servicePill: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    justifyContent: 'center',
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.full,
+  },
+  servicePillText: {
+    fontSize: 11,
+    fontWeight: '600',
   },
   actionButtons: {
     flexDirection: 'row',
