@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, Pressable, ScrollView, Switch, ActivityIndicator, Alert, Platform } from "react-native";
+import { View, StyleSheet, Pressable, ScrollView, Switch, ActivityIndicator, Alert, Platform, Modal } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { DDIcon } from "@/components/DDIcon";
@@ -47,14 +48,37 @@ const convert12To24Hour = (time12: string): string => {
   return `${hours.toString().padStart(2, "0")}:${minutes}`;
 };
 
+const timeStringToDate = (time24: string): Date => {
+  const date = new Date();
+  if (!time24) {
+    date.setHours(9, 0, 0, 0);
+    return date;
+  }
+  const [hours, minutes] = time24.split(":").map(Number);
+  date.setHours(hours || 0, minutes || 0, 0, 0);
+  return date;
+};
+
+const dateToTimeString = (date: Date): string => {
+  const hours = date.getHours().toString().padStart(2, "0");
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+  return `${hours}:${minutes}`;
+};
+
 export default function ReminderRulesScreen() {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
 
   const [localRules, setLocalRules] = useState<ReminderRules | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
   const [notification, setNotification] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [showStartTimePicker, setShowStartTimePicker] = useState(false);
+  const [showEndTimePicker, setShowEndTimePicker] = useState(false);
+  const [tempStartTime, setTempStartTime] = useState<Date | null>(null);
+  const [tempEndTime, setTempEndTime] = useState<Date | null>(null);
+  const [webStartTimeInput, setWebStartTimeInput] = useState("");
+  const [webEndTimeInput, setWebEndTimeInput] = useState("");
 
   const { data: rules, isLoading, isError, error, refetch } = useReminderRulesQuery();
   const updateMutation = useUpdateReminderRulesMutation();
@@ -63,6 +87,8 @@ export default function ReminderRulesScreen() {
     if (rules) {
       setLocalRules(rules);
       setHasChanges(false);
+      setWebStartTimeInput(convert24To12Hour(rules.officeStartTime));
+      setWebEndTimeInput(convert24To12Hour(rules.officeEndTime));
     }
   }, [rules]);
 
@@ -98,6 +124,68 @@ export default function ReminderRulesScreen() {
       const errorMessage = err instanceof Error ? err.message : t("common.errorOccurred");
       setNotification({ type: "error", message: errorMessage });
     }
+  };
+
+  const openStartTimePicker = () => {
+    if (localRules) {
+      setTempStartTime(timeStringToDate(localRules.officeStartTime));
+    }
+    setShowStartTimePicker(true);
+  };
+
+  const openEndTimePicker = () => {
+    if (localRules) {
+      setTempEndTime(timeStringToDate(localRules.officeEndTime));
+    }
+    setShowEndTimePicker(true);
+  };
+
+  const handleStartTimeChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
+    if (Platform.OS === "android") {
+      setShowStartTimePicker(false);
+      if (event.type === "set" && selectedDate) {
+        handleUpdate({ officeStartTime: dateToTimeString(selectedDate) });
+      }
+    } else if (Platform.OS === "ios" && selectedDate) {
+      setTempStartTime(selectedDate);
+    }
+  };
+
+  const handleEndTimeChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
+    if (Platform.OS === "android") {
+      setShowEndTimePicker(false);
+      if (event.type === "set" && selectedDate) {
+        handleUpdate({ officeEndTime: dateToTimeString(selectedDate) });
+      }
+    } else if (Platform.OS === "ios" && selectedDate) {
+      setTempEndTime(selectedDate);
+    }
+  };
+
+  const confirmStartTime = () => {
+    if (tempStartTime) {
+      handleUpdate({ officeStartTime: dateToTimeString(tempStartTime) });
+    }
+    setShowStartTimePicker(false);
+    setTempStartTime(null);
+  };
+
+  const confirmEndTime = () => {
+    if (tempEndTime) {
+      handleUpdate({ officeEndTime: dateToTimeString(tempEndTime) });
+    }
+    setShowEndTimePicker(false);
+    setTempEndTime(null);
+  };
+
+  const cancelStartTimePicker = () => {
+    setShowStartTimePicker(false);
+    setTempStartTime(null);
+  };
+
+  const cancelEndTimePicker = () => {
+    setShowEndTimePicker(false);
+    setTempEndTime(null);
   };
 
   const handleToggleDay = (dayId: number) => {
@@ -317,33 +405,137 @@ export default function ReminderRulesScreen() {
               <ThemedText style={[Typography.label, { marginBottom: Spacing.sm }]}>
                 {t("admin.officeStartTime")}
               </ThemedText>
-              <StyledInput
-                value={convert24To12Hour(localRules.officeStartTime)}
-                onChangeText={(text) => {
-                  if (text.match(/^\d{1,2}:\d{2}\s*(AM|PM)$/i)) {
-                    handleUpdate({ officeStartTime: convert12To24Hour(text) });
-                  } else {
-                    handleUpdate({ officeStartTime: text });
-                  }
-                }}
-                placeholder="9:00 AM"
-              />
+              {Platform.OS === "web" ? (
+                <StyledInput
+                  value={webStartTimeInput}
+                  onChangeText={setWebStartTimeInput}
+                  onBlur={() => {
+                    if (webStartTimeInput.match(/^\d{1,2}:\d{2}\s*(AM|PM)$/i)) {
+                      handleUpdate({ officeStartTime: convert12To24Hour(webStartTimeInput) });
+                    } else {
+                      setWebStartTimeInput(convert24To12Hour(localRules.officeStartTime));
+                    }
+                  }}
+                  placeholder="9:00 AM"
+                />
+              ) : (
+                <>
+                  <Pressable
+                    style={[styles.timeButton, { backgroundColor: theme.background, borderColor: theme.border }]}
+                    onPress={openStartTimePicker}
+                  >
+                    <View style={{ marginEnd: Spacing.sm }}>
+                      <DDIcon name="clock" size={18} color={theme.primary} />
+                    </View>
+                    <ThemedText style={[Typography.body, { flex: 1 }]}>
+                      {convert24To12Hour(localRules.officeStartTime)}
+                    </ThemedText>
+                    <DDIcon name="chevron-down" size={18} color={theme.textSecondary} />
+                  </Pressable>
+                  {showStartTimePicker ? (
+                    Platform.OS === "ios" ? (
+                      <Modal transparent animationType="slide" visible={showStartTimePicker}>
+                        <View style={styles.pickerModalOverlay}>
+                          <View style={[styles.pickerModalContent, { backgroundColor: theme.surface }]}>
+                            <View style={[styles.pickerModalHeader, { borderBottomColor: theme.border }]}>
+                              <Pressable onPress={cancelStartTimePicker}>
+                                <ThemedText style={[Typography.body, { color: theme.error }]}>{t("common.cancel")}</ThemedText>
+                              </Pressable>
+                              <ThemedText style={[Typography.subtitle, { fontWeight: "600" }]}>{t("admin.officeStartTime")}</ThemedText>
+                              <Pressable onPress={confirmStartTime}>
+                                <ThemedText style={[Typography.body, { color: theme.primary, fontWeight: "600" }]}>{t("common.done")}</ThemedText>
+                              </Pressable>
+                            </View>
+                            <DateTimePicker
+                              value={tempStartTime || timeStringToDate(localRules.officeStartTime)}
+                              mode="time"
+                              display="spinner"
+                              onChange={handleStartTimeChange}
+                              themeVariant={isDark ? "dark" : "light"}
+                            />
+                          </View>
+                        </View>
+                      </Modal>
+                    ) : (
+                      <DateTimePicker
+                        value={timeStringToDate(localRules.officeStartTime)}
+                        mode="time"
+                        is24Hour={false}
+                        display="default"
+                        onChange={handleStartTimeChange}
+                      />
+                    )
+                  ) : null}
+                </>
+              )}
             </View>
             <View style={styles.timeField}>
               <ThemedText style={[Typography.label, { marginBottom: Spacing.sm }]}>
                 {t("admin.officeEndTime")}
               </ThemedText>
-              <StyledInput
-                value={convert24To12Hour(localRules.officeEndTime)}
-                onChangeText={(text) => {
-                  if (text.match(/^\d{1,2}:\d{2}\s*(AM|PM)$/i)) {
-                    handleUpdate({ officeEndTime: convert12To24Hour(text) });
-                  } else {
-                    handleUpdate({ officeEndTime: text });
-                  }
-                }}
-                placeholder="6:00 PM"
-              />
+              {Platform.OS === "web" ? (
+                <StyledInput
+                  value={webEndTimeInput}
+                  onChangeText={setWebEndTimeInput}
+                  onBlur={() => {
+                    if (webEndTimeInput.match(/^\d{1,2}:\d{2}\s*(AM|PM)$/i)) {
+                      handleUpdate({ officeEndTime: convert12To24Hour(webEndTimeInput) });
+                    } else {
+                      setWebEndTimeInput(convert24To12Hour(localRules.officeEndTime));
+                    }
+                  }}
+                  placeholder="6:00 PM"
+                />
+              ) : (
+                <>
+                  <Pressable
+                    style={[styles.timeButton, { backgroundColor: theme.background, borderColor: theme.border }]}
+                    onPress={openEndTimePicker}
+                  >
+                    <View style={{ marginEnd: Spacing.sm }}>
+                      <DDIcon name="clock" size={18} color={theme.primary} />
+                    </View>
+                    <ThemedText style={[Typography.body, { flex: 1 }]}>
+                      {convert24To12Hour(localRules.officeEndTime)}
+                    </ThemedText>
+                    <DDIcon name="chevron-down" size={18} color={theme.textSecondary} />
+                  </Pressable>
+                  {showEndTimePicker ? (
+                    Platform.OS === "ios" ? (
+                      <Modal transparent animationType="slide" visible={showEndTimePicker}>
+                        <View style={styles.pickerModalOverlay}>
+                          <View style={[styles.pickerModalContent, { backgroundColor: theme.surface }]}>
+                            <View style={[styles.pickerModalHeader, { borderBottomColor: theme.border }]}>
+                              <Pressable onPress={cancelEndTimePicker}>
+                                <ThemedText style={[Typography.body, { color: theme.error }]}>{t("common.cancel")}</ThemedText>
+                              </Pressable>
+                              <ThemedText style={[Typography.subtitle, { fontWeight: "600" }]}>{t("admin.officeEndTime")}</ThemedText>
+                              <Pressable onPress={confirmEndTime}>
+                                <ThemedText style={[Typography.body, { color: theme.primary, fontWeight: "600" }]}>{t("common.done")}</ThemedText>
+                              </Pressable>
+                            </View>
+                            <DateTimePicker
+                              value={tempEndTime || timeStringToDate(localRules.officeEndTime)}
+                              mode="time"
+                              display="spinner"
+                              onChange={handleEndTimeChange}
+                              themeVariant={isDark ? "dark" : "light"}
+                            />
+                          </View>
+                        </View>
+                      </Modal>
+                    ) : (
+                      <DateTimePicker
+                        value={timeStringToDate(localRules.officeEndTime)}
+                        mode="time"
+                        is24Hour={false}
+                        display="default"
+                        onChange={handleEndTimeChange}
+                      />
+                    )
+                  ) : null}
+                </>
+              )}
             </View>
           </View>
         </View>
@@ -490,6 +682,31 @@ const styles = StyleSheet.create({
   },
   timeField: {
     flex: 1,
+  },
+  timeButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+  },
+  pickerModalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "flex-end",
+  },
+  pickerModalContent: {
+    borderTopLeftRadius: BorderRadius.xl,
+    borderTopRightRadius: BorderRadius.xl,
+    paddingBottom: Spacing.xl,
+  },
+  pickerModalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: Spacing.md,
+    borderBottomWidth: 1,
   },
   daysGrid: {
     flexDirection: "row",
