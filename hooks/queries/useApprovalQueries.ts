@@ -80,6 +80,7 @@ export const requestKeys = {
   pendingHostWalkIns: (params?: PendingHostWalkInListParams) => [...requestKeys.all, 'pending-host-walk-ins', params] as const,
   visits: (params?: VisitListParams) => [...requestKeys.all, 'visits', params] as const,
   visitDetail: (id: string) => [...requestKeys.all, 'visit-detail', id] as const,
+  receptionRequests: (params?: VisitListParams) => [...requestKeys.all, 'reception-requests', params] as const,
 };
 
 export function useRequestsQuery(params?: ListRequestsParams) {
@@ -264,6 +265,22 @@ export function useInfiniteVisitsQuery(params?: Omit<VisitListParams, 'page'>, e
     queryKey: [...requestKeys.visits(params), 'infinite'] as const,
     queryFn: async ({ pageParam = 1 }) => {
       return requestApiService.listVisits({ ...params, page: pageParam, limit: params?.limit || DEFAULT_PAGE_SIZE });
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      const { page, totalPages } = lastPage.pagination;
+      return page < totalPages ? page + 1 : undefined;
+    },
+    staleTime: 30 * 1000,
+    enabled,
+  });
+}
+
+export function useInfiniteReceptionRequestsQuery(params?: Omit<VisitListParams, 'page'>, enabled = true) {
+  return useInfiniteQuery({
+    queryKey: [...requestKeys.receptionRequests(params), 'infinite'] as const,
+    queryFn: async ({ pageParam = 1 }) => {
+      return requestApiService.listReceptionRequests({ ...params, page: pageParam, limit: params?.limit || DEFAULT_PAGE_SIZE });
     },
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {

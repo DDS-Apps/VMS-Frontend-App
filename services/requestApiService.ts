@@ -35,7 +35,7 @@ import type {
   HostRejectResponse,
 } from '@/types/api.types';
 
-const { requests, approvals, visits } = apiConfig.endpoints;
+const { requests, approvals, visits, reception } = apiConfig.endpoints;
 
 export interface ListRequestsParams {
   page?: number;
@@ -121,6 +121,11 @@ export const requestApiService = {
   listVisits: (params?: VisitListParams): Promise<VisitListResponse> => {
     const queryString = params ? buildQueryString(params as unknown as Record<string, unknown>) : '';
     return get<VisitListResponse>(`${visits.base}${queryString}`);
+  },
+
+  listReceptionRequests: (params?: VisitListParams): Promise<VisitListResponse> => {
+    const queryString = params ? buildQueryString(params as unknown as Record<string, unknown>) : '';
+    return get<VisitListResponse>(`${reception.requests}${queryString}`);
   },
 
   createVisit: async (data: CreateVisitPayload): Promise<CreateVisitResponse> => {
