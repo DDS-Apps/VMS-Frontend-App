@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, StyleSheet, Pressable, I18nManager, useWindowDimensions, Image, Modal, Switch } from "react-native";
+import { View, StyleSheet, Pressable, I18nManager, useWindowDimensions, Image, Modal, Switch, Platform } from "react-native";
 import { GestureDetector, Gesture } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, {
@@ -140,8 +140,10 @@ export default function DashboardLayout({
     ? { left: -(width - EDGE_SWIPE_THRESHOLD), right: 0, top: 0, bottom: 0 }
     : { left: 0, right: -(width - EDGE_SWIPE_THRESHOLD), top: 0, bottom: 0 };
 
+  const isWeb = Platform.OS === 'web';
+  
   const edgeSwipeGesture = Gesture.Pan()
-    .enabled(!isLargeScreen && !sidebarOpen && !canGoBack)
+    .enabled(!isWeb && !isLargeScreen && !sidebarOpen && !canGoBack)
     .hitSlop(edgeHitSlop)
     .activeOffsetX(isRTL ? [-30, 0] : [0, 30])
     .failOffsetY([-20, 20])
@@ -178,7 +180,7 @@ export default function DashboardLayout({
     });
 
   const sidebarSwipeGesture = Gesture.Pan()
-    .enabled(!isLargeScreen && sidebarOpen)
+    .enabled(!isWeb && !isLargeScreen && sidebarOpen)
     .minDistance(30)
     .onUpdate((event) => {
       if (isRTL) {
