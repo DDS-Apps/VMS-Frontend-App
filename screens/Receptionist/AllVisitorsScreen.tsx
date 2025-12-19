@@ -459,43 +459,66 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
           <DDIcon name="chevron-down" size={14} variant="muted" />
         </Pressable>
 
+      </View>
+
+      <Spacer height={Spacing.sm} />
+
+      <View style={styles.filtersRow}>
         <Pressable
           style={[
-            styles.walkInToggle,
+            styles.filterChip,
             { 
-              backgroundColor: walkInOnly ? applyOpacity(theme.primary, '15') : theme.surface,
-              borderColor: walkInOnly ? theme.primary : theme.border
+              backgroundColor: walkInOnly ? applyOpacity(theme.warning, '15') : theme.surface,
+              borderColor: walkInOnly ? theme.warning : theme.border
             }
           ]}
           onPress={() => setWalkInOnly(!walkInOnly)}
+          accessibilityLabel={t('common.walkIn')}
+          accessibilityRole="button"
+          accessibilityState={{ selected: walkInOnly }}
         >
-          <DDIcon name="user-plus" size={14} color={walkInOnly ? theme.primary : theme.textSecondary} />
+          <DDIcon name="user-plus" size={12} color={walkInOnly ? theme.warning : theme.textSecondary} />
+          <ThemedText style={[styles.filterChipText, { color: walkInOnly ? theme.warning : theme.textSecondary }]}>
+            {t('common.walkIn')}
+          </ThemedText>
         </Pressable>
 
         <Pressable
           style={[
-            styles.walkInToggle,
+            styles.filterChip,
             { 
-              backgroundColor: awaitingVisitorOnly ? applyOpacity(theme.warning, '15') : theme.surface,
-              borderColor: awaitingVisitorOnly ? theme.warning : theme.border
+              backgroundColor: awaitingVisitorOnly ? applyOpacity(theme.info, '15') : theme.surface,
+              borderColor: awaitingVisitorOnly ? theme.info : theme.border
             }
           ]}
           onPress={() => setAwaitingVisitorOnly(!awaitingVisitorOnly)}
+          accessibilityLabel={t('filters.awaitingVisitor')}
+          accessibilityRole="button"
+          accessibilityState={{ selected: awaitingVisitorOnly }}
         >
-          <DDIcon name="clock" size={14} color={awaitingVisitorOnly ? theme.warning : theme.textSecondary} />
+          <DDIcon name="clock" size={12} color={awaitingVisitorOnly ? theme.info : theme.textSecondary} />
+          <ThemedText style={[styles.filterChipText, { color: awaitingVisitorOnly ? theme.info : theme.textSecondary }]}>
+            {t('filters.awaitingVisitor')}
+          </ThemedText>
         </Pressable>
 
         <Pressable
           style={[
-            styles.walkInToggle,
+            styles.filterChip,
             { 
-              backgroundColor: pendingApprovalOnly ? applyOpacity(theme.info, '15') : theme.surface,
-              borderColor: pendingApprovalOnly ? theme.info : theme.border
+              backgroundColor: pendingApprovalOnly ? applyOpacity(theme.primary, '15') : theme.surface,
+              borderColor: pendingApprovalOnly ? theme.primary : theme.border
             }
           ]}
           onPress={() => setPendingApprovalOnly(!pendingApprovalOnly)}
+          accessibilityLabel={t('filters.pendingApproval')}
+          accessibilityRole="button"
+          accessibilityState={{ selected: pendingApprovalOnly }}
         >
-          <DDIcon name="check-circle" size={14} color={pendingApprovalOnly ? theme.info : theme.textSecondary} />
+          <DDIcon name="check-circle" size={12} color={pendingApprovalOnly ? theme.primary : theme.textSecondary} />
+          <ThemedText style={[styles.filterChipText, { color: pendingApprovalOnly ? theme.primary : theme.textSecondary }]}>
+            {t('filters.pendingApproval')}
+          </ThemedText>
         </Pressable>
       </View>
 
@@ -594,13 +617,18 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 13,
   },
-  walkInToggle: {
-    width: 40,
-    height: 40,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    justifyContent: 'center',
+  filterChip: {
+    flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    gap: Spacing.xs,
+  },
+  filterChipText: {
+    fontSize: 12,
+    fontWeight: '600' as const,
   },
   visitorCard: {
     borderRadius: BorderRadius.lg,
