@@ -492,7 +492,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
           {/* Buffet */}
           <View style={styles.serviceRow}>
             <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(request.buffet ? theme.warning : theme.textSecondary, '20') }]}>
-              <DDIcon name="coffee" size={18} color={request.buffet ? theme.warning : theme.textSecondary} />
+              <DDIcon name="disc" size={18} color={request.buffet ? theme.warning : theme.textSecondary} />
             </View>
             <View style={[styles.serviceInfo, { flex: 1 }]}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>

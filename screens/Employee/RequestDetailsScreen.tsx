@@ -1213,7 +1213,7 @@ export default function RequestDetailsScreen({
             ]}
           >
             <DDIcon
-              name="coffee"
+              name="disc"
               size={18}
               color={(request.buffet || (request as any).buffetPending) ? theme.warning : theme.textSecondary}
             />
@@ -1973,7 +1973,7 @@ export default function RequestDetailsScreen({
                     selected={editRequiresBuffet}
                   >
                     <View style={[styles.compactServiceIcon, { backgroundColor: applyOpacity(theme.cardIcon, "15") }]}>
-                      <DDIcon name="coffee" size={20} color={theme.cardIcon} />
+                      <DDIcon name="disc" size={20} color={theme.cardIcon} />
                     </View>
                     <ThemedText style={[Typography.caption, { fontWeight: "600", marginTop: Spacing.xs, textAlign: "center", color: theme.text, fontSize: 11 }]}>
                       {t("buffet.buffet")}
