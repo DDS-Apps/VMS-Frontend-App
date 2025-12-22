@@ -996,10 +996,10 @@ export default function RequestDetailsScreen({
               <ThemedText
                 style={[
                   Typography.caption,
-                  { color: theme.warning, fontSize: 12, marginTop: 2 },
+                  { color: request.status === REQUEST_STATUS.REJECTED || request.status === REQUEST_STATUS.CANCELLED ? theme.error : theme.warning, fontSize: 12, marginTop: 2 },
                 ]}
               >
-                {t("status.pending")}
+                {request.status === REQUEST_STATUS.REJECTED || request.status === REQUEST_STATUS.CANCELLED ? t("status.cancelled") : t("status.pending")}
               </ThemedText>
             ) : (
               <ThemedText
@@ -1069,10 +1069,10 @@ export default function RequestDetailsScreen({
               <ThemedText
                 style={[
                   Typography.caption,
-                  { color: theme.warning, fontSize: 12, marginTop: 2 },
+                  { color: request.status === REQUEST_STATUS.REJECTED || request.status === REQUEST_STATUS.CANCELLED ? theme.error : theme.warning, fontSize: 12, marginTop: 2 },
                 ]}
               >
-                {t("status.pending")}
+                {request.status === REQUEST_STATUS.REJECTED || request.status === REQUEST_STATUS.CANCELLED ? t("status.cancelled") : t("status.pending")}
               </ThemedText>
             ) : (
               <ThemedText
@@ -1140,10 +1140,10 @@ export default function RequestDetailsScreen({
               <ThemedText
                 style={[
                   Typography.caption,
-                  { color: theme.warning, fontSize: 12, marginTop: 2 },
+                  { color: request.status === REQUEST_STATUS.REJECTED || request.status === REQUEST_STATUS.CANCELLED ? theme.error : theme.warning, fontSize: 12, marginTop: 2 },
                 ]}
               >
-                {t("status.pending")}
+                {request.status === REQUEST_STATUS.REJECTED || request.status === REQUEST_STATUS.CANCELLED ? t("status.cancelled") : t("status.pending")}
               </ThemedText>
             ) : (
               <ThemedText
