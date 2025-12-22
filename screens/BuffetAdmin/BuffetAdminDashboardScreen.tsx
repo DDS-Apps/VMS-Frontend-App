@@ -476,7 +476,7 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
         <KPICard 
           title={t('time.today')} 
           value={String(stats.total)} 
-          icon="coffee" 
+          icon="disc" 
           iconBgColor={applyOpacity(theme.primary, '20')}
           iconColor={theme.primary}
           cardBgColor={applyOpacity(theme.primary, '06')}
@@ -572,7 +572,7 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
         </View>
       ) : (
         <ThemedView style={[styles.emptyState, { backgroundColor: theme.surface }]}>
-          <DDIcon name="coffee" size={32} variant="muted" />
+          <DDIcon name="disc" size={32} variant="muted" />
           <Spacer height={Spacing.sm} />
           <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
             {t('common.noData')}

@@ -214,7 +214,7 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
         <KPICard 
           title={t('buffet.buffetService')} 
           value={String(stats.ongoingBuffets)} 
-          icon="coffee" 
+          icon="disc" 
           iconBgColor={applyOpacity('#FF6B35', '20')}
           iconColor="#FF6B35"
           cardBgColor={applyOpacity('#FF6B35', '06')}
@@ -285,7 +285,7 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
       >
         <StaffCard
           title={t('dashboard.buffetStaff')}
-          icon="coffee"
+          icon="disc"
           total={staffOverview.buffetStaff.total}
           details={[
             { label: t('dashboard.onDuty'), value: staffOverview.buffetStaff.onDuty, color: theme.success },

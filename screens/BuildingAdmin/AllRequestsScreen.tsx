@@ -71,7 +71,7 @@ function RequestCard({ request, onPress, onApprove, onCancel, theme, t }: Reques
               <DDIcon 
                 name={
                   request.type === 'visitor' ? 'user' : 
-                  request.type === 'buffet' ? 'coffee' : 
+                  request.type === 'buffet' ? 'disc' : 
                   request.type === 'valet' ? 'navigation' : 'user-plus'
                 } 
                 size={12} 
@@ -184,7 +184,7 @@ export default function AllRequestsScreen() {
   const typeFilters: { id: RequestFilter; label: string; icon: IconName }[] = [
     { id: 'all', label: t('common.all'), icon: 'layers' },
     { id: 'visitor', label: t('visitor.expectedVisitors'), icon: 'users' },
-    { id: 'buffet', label: t('services.buffet'), icon: 'coffee' },
+    { id: 'buffet', label: t('services.buffet'), icon: 'disc' },
     { id: 'valet', label: t('services.valet'), icon: 'navigation' },
   ];
 

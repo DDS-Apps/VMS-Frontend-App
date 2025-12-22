@@ -184,7 +184,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
       ]
     : userRole === 'buffet_admin'
     ? [
-        { title: t('dashboard.totalVisitors'), value: '4', subtitle: `0 ${t('dashboard.upcomingVisitors').toLowerCase()}`, icon: 'coffee', iconColor: theme.primary, backgroundColor: theme.primary },
+        { title: t('dashboard.totalVisitors'), value: '4', subtitle: `0 ${t('dashboard.upcomingVisitors').toLowerCase()}`, icon: 'disc', iconColor: theme.primary, backgroundColor: theme.primary },
         { title: t('dashboard.buffetLocations'), value: '6', subtitle: `6 ${t('dashboard.activeLocations')}`, icon: 'map', iconColor: theme.info, backgroundColor: theme.info },
         { title: t('dashboard.buffetStaff'), value: '0', subtitle: `0 ${t('dashboard.onDuty')}`, icon: 'users', iconColor: theme.secondary, backgroundColor: theme.secondary },
         { title: t('notifications.title'), value: '0', subtitle: t('dashboard.unreadAlerts'), icon: 'bell', iconColor: theme.chartPurple, backgroundColor: theme.chartPurple },

@@ -693,7 +693,7 @@ export const getAdminKPIs = (): AdminKPIMetric[] => [
   { id: 'kpi_002', name: 'Check-In Rate', value: 87, unit: '%', trend: 'up', trendValue: 5, comparisonPeriod: 'vs last week', icon: 'log-in', color: '#12E1D5' },
   { id: 'kpi_003', name: 'Parking Utilization', value: 72, unit: '%', trend: 'stable', comparisonPeriod: 'vs average', icon: 'truck', color: '#F59E0B' },
   { id: 'kpi_004', name: 'Valet Tasks', value: 18, trend: 'down', trendValue: -3, comparisonPeriod: 'vs yesterday', icon: 'navigation', color: '#8B5CF6' },
-  { id: 'kpi_005', name: 'Buffet Events', value: 5, trend: 'up', trendValue: 2, comparisonPeriod: 'vs yesterday', icon: 'coffee', color: '#EF4444' },
+  { id: 'kpi_005', name: 'Buffet Events', value: 5, trend: 'up', trendValue: 2, comparisonPeriod: 'vs yesterday', icon: 'disc', color: '#EF4444' },
   { id: 'kpi_006', name: 'No-Show Rate', value: 13, unit: '%', trend: 'down', trendValue: -2, comparisonPeriod: 'vs last week', icon: 'user-x', color: '#6B7280' },
 ];
 

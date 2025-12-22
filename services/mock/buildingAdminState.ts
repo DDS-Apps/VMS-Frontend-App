@@ -242,7 +242,7 @@ export const getRecentActivity = (): RecentActivity[] => {
       action: r.status === 'completed' ? 'Buffet Completed' : r.status === 'in_progress' ? 'Buffet Started' : 'New Buffet Request',
       description: `${r.visitorName} at ${r.location}`,
       time: getRelativeTime(r.createdAt),
-      icon: 'coffee',
+      icon: 'disc',
     });
   });
 
@@ -351,7 +351,7 @@ export const getLocationsSummary = () => {
 export const getSystemNotificationFilters = () => [
   { id: 'all', label: 'All', icon: 'bell' },
   { id: 'visitor', label: 'Visitors', icon: 'users' },
-  { id: 'buffet', label: 'Buffet', icon: 'coffee' },
+  { id: 'buffet', label: 'Buffet', icon: 'disc' },
   { id: 'valet', label: 'Valet', icon: 'navigation' },
   { id: 'security', label: 'Security', icon: 'shield' },
   { id: 'user', label: 'Users', icon: 'user-plus' },

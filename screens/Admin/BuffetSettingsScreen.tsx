@@ -215,7 +215,7 @@ export default function BuffetSettingsScreen() {
 
           {locations.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <DDIcon name="coffee" variant="muted" size={48} />
+              <DDIcon name="disc" variant="muted" size={48} />
               <Spacer height={Spacing.md} />
               <ThemedText style={[Typography.body, { color: theme.textSecondary, textAlign: 'center' }]}>
                 {t('common.noResults')}

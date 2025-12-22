@@ -70,7 +70,7 @@ const ServiceIcons = ({ request, theme, size = 16 }: { request: VisitorRequest; 
     )}
     {request.buffet && (
       <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.warning, '20'), width: size * 2, height: size * 2, borderRadius: size }]}>
-        <DDIcon name="coffee" size={size} variant="warning" />
+        <DDIcon name="disc" size={size} variant="warning" />
       </View>
     )}
     {request.valet && (

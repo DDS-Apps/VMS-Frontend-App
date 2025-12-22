@@ -190,9 +190,9 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
       case 'dinner':
         return 'moon';
       case 'snacks':
-        return 'coffee';
+        return 'disc';
       default:
-        return 'coffee';
+        return 'disc';
     }
   };
 

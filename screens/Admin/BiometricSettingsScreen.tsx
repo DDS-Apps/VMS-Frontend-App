@@ -19,7 +19,7 @@ const ROLES: { id: UserRole; icon: string }[] = [
   { id: "employee", icon: "user" },
   { id: "security", icon: "shield" },
   { id: "receptionist", icon: "clipboard" },
-  { id: "buffet_admin", icon: "coffee" },
+  { id: "buffet_admin", icon: "disc" },
   { id: "valet_admin", icon: "truck" },
 ];
 

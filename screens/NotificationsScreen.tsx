@@ -84,7 +84,7 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
       case 'walk_in_registered': return { icon: 'user-plus', color: theme.info };
       case 'walk_in_approved': return { icon: 'check-circle', color: theme.success };
       case 'expected_today': return { icon: 'calendar', color: theme.primary };
-      case 'buffet_new_request': return { icon: 'coffee', color: theme.primary };
+      case 'buffet_new_request': return { icon: 'disc', color: theme.primary };
       case 'buffet_scheduled': return { icon: 'clock', color: theme.info };
       case 'buffet_completed': return { icon: 'check-circle', color: theme.success };
       case 'buffet_staff_update': return { icon: 'users', color: theme.secondary };

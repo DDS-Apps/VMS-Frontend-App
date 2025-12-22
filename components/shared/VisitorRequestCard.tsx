@@ -191,7 +191,7 @@ export function VisitorRequestCard({
         ) : null}
         {request.buffet ? (
           <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.warning, '20') }]}>
-            <DDIcon name="coffee" size={14} color={theme.warning} />
+            <DDIcon name="disc" size={14} color={theme.warning} />
           </View>
         ) : null}
         {request.valet ? (

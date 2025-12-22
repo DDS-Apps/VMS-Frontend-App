@@ -96,7 +96,7 @@ export default function BuffetAdminStaffScreen() {
       case 'Coordinator':
         return 'clipboard';
       case 'Server':
-        return 'coffee';
+        return 'disc';
       case 'Kitchen Staff':
         return 'tool';
       default:

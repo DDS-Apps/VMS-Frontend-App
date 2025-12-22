@@ -61,7 +61,7 @@ const getDashboardData = (
           {
             label: t('dashboard.todaysSummary'),
             value: "24",
-            icon: "coffee",
+            icon: "disc",
             color: theme.warning,
             trend: "+3",
           },

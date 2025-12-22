@@ -509,7 +509,7 @@ export default function BuffetBoardScreen() {
           </View>
         ) : (
           <View style={styles.emptyState}>
-            <DDIcon name="coffee" size={48} variant="muted" />
+            <DDIcon name="disc" size={48} variant="muted" />
             <Spacer height={Spacing.md} />
             <ThemedText style={[Typography.subtitle, { color: theme.textSecondary, textAlign: 'center', fontWeight: '500' }]}>
               {t('common.noResults')}

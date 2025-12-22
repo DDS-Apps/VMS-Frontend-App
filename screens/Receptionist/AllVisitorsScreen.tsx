@@ -316,7 +316,7 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
                 ) : null}
                 {item.hasBuffet ? (
                   <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.success, '15') }]}>
-                    <DDIcon name="coffee" size={12} color={theme.success} />
+                    <DDIcon name="disc" size={12} color={theme.success} />
                   </View>
                 ) : null}
               </View>
