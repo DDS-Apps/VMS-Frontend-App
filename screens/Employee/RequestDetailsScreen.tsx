@@ -851,14 +851,24 @@ export default function RequestDetailsScreen({
       <Spacer height={Spacing.lg} />
 
       <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
-        <ThemedText
-          style={[
-            Typography.subtitle,
-            { fontSize: 16, fontWeight: "600", color: theme.text },
-          ]}
-        >
-          {t("visitor.visitDetails")}
-        </ThemedText>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <ThemedText
+            style={[
+              Typography.subtitle,
+              { fontSize: 16, fontWeight: "600", color: theme.text },
+            ]}
+          >
+            {t("visitor.visitDetails")}
+          </ThemedText>
+          {request.isWalkIn ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: applyOpacity(theme.warning, '15'), paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: BorderRadius.sm }}>
+              <DDIcon name="user-check" size={14} color={theme.warning} />
+              <ThemedText style={[Typography.caption, { color: theme.warning, fontWeight: '600', marginStart: Spacing.xs, fontSize: 11 }]}>
+                {t("receptionist.walkInVisitor")}
+              </ThemedText>
+            </View>
+          ) : null}
+        </View>
         <Spacer height={Spacing.xl} />
 
         <View style={styles.detailRowNew}>
@@ -1780,15 +1790,15 @@ export default function RequestDetailsScreen({
                   </SelectableCard>
                 </View>
 
-                <View style={CardGridStyles.cardWrapper3Col}>
+                <View style={[CardGridStyles.cardWrapper3Col, request.isWalkIn && { opacity: 0.5 }]}>
                   <SelectableCard
-                    onPress={() => setEditRequiresParking(!editRequiresParking)}
-                    selected={editRequiresParking}
+                    onPress={() => !request.isWalkIn && setEditRequiresParking(!editRequiresParking)}
+                    selected={request.isWalkIn ? false : editRequiresParking}
                   >
                     <View style={[styles.compactServiceIcon, { backgroundColor: applyOpacity(theme.cardIcon, "15") }]}>
-                      <DDIcon name="map-pin" size={20} color={theme.cardIcon} />
+                      <DDIcon name="map-pin" size={20} color={request.isWalkIn ? theme.textSecondary : theme.cardIcon} />
                     </View>
-                    <ThemedText style={[Typography.caption, { fontWeight: "600", marginTop: Spacing.xs, textAlign: "center", color: theme.text, fontSize: 11 }]}>
+                    <ThemedText style={[Typography.caption, { fontWeight: "600", marginTop: Spacing.xs, textAlign: "center", color: request.isWalkIn ? theme.textSecondary : theme.text, fontSize: 11 }]}>
                       {t("parking.parking")}
                     </ThemedText>
                   </SelectableCard>

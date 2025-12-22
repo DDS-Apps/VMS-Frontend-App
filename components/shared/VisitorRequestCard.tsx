@@ -122,6 +122,14 @@ export function VisitorRequestCard({
               {request.visitor.company}
             </ThemedText>
           ) : null}
+          {request.isWalkIn ? (
+            <View style={[styles.walkInBadge, { backgroundColor: applyOpacity(theme.warning, '15') }]}>
+              <DDIcon name="user-check" size={10} color={theme.warning} />
+              <ThemedText style={[styles.walkInText, { color: theme.warning }]}>
+                {t('receptionist.walkInVisitor')}
+              </ThemedText>
+            </View>
+          ) : null}
         </View>
       </View>
 
@@ -306,6 +314,20 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: 10,
+    fontWeight: '600',
+  },
+  walkInBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.xs,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.xs,
+    marginTop: 4,
+    alignSelf: 'flex-start',
+    gap: 3,
+  },
+  walkInText: {
+    fontSize: 9,
     fontWeight: '600',
   },
 });
