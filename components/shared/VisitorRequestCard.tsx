@@ -122,11 +122,6 @@ export function VisitorRequestCard({
               {request.visitor.company}
             </ThemedText>
           ) : null}
-          {request.isWalkIn ? (
-            <View style={[styles.walkInIconContainer, { backgroundColor: applyOpacity(theme.warning, '15') }]}>
-              <DDIcon name="user-check" size={12} color={theme.warning} />
-            </View>
-          ) : null}
         </View>
       </View>
 
@@ -144,6 +139,11 @@ export function VisitorRequestCard({
               <ThemedText style={[styles.employeeLabel, { color: theme.textSecondary }]}>
                 ({request.employeeDepartment})
               </ThemedText>
+            ) : null}
+            {request.isWalkIn ? (
+              <View style={[styles.walkInIconContainer, { backgroundColor: applyOpacity(theme.warning, '15'), marginStart: Spacing.xs }]}>
+                <DDIcon name="user-check" size={12} color={theme.warning} />
+              </View>
             ) : null}
           </View>
         </>
@@ -314,11 +314,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   walkInIconContainer: {
-    width: 22,
-    height: 22,
+    width: 20,
+    height: 20,
     borderRadius: BorderRadius.full,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 4,
   },
 });
