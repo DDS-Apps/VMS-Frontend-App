@@ -973,7 +973,16 @@ export default function RequestDetailsScreen({
             >
               {t("services.meetingRoom")}
             </ThemedText>
-            {request.meetingRoom ? (
+            {(request.meetingRoom || (request as any).meetingRoomPending) && (request.status === REQUEST_STATUS.REJECTED || request.status === REQUEST_STATUS.CANCELLED) ? (
+              <ThemedText
+                style={[
+                  Typography.caption,
+                  { color: theme.error, fontSize: 12, marginTop: 2 },
+                ]}
+              >
+                {t("status.cancelled")}
+              </ThemedText>
+            ) : request.meetingRoom ? (
               <>
                 <ThemedText
                   style={[
@@ -996,10 +1005,10 @@ export default function RequestDetailsScreen({
               <ThemedText
                 style={[
                   Typography.caption,
-                  { color: request.status === REQUEST_STATUS.REJECTED || request.status === REQUEST_STATUS.CANCELLED ? theme.error : theme.warning, fontSize: 12, marginTop: 2 },
+                  { color: theme.warning, fontSize: 12, marginTop: 2 },
                 ]}
               >
-                {request.status === REQUEST_STATUS.REJECTED || request.status === REQUEST_STATUS.CANCELLED ? t("status.cancelled") : t("status.pending")}
+                {t("status.pending")}
               </ThemedText>
             ) : (
               <ThemedText
@@ -1052,7 +1061,16 @@ export default function RequestDetailsScreen({
             >
               {t("services.parking")}
             </ThemedText>
-            {request.parkingSlot ? (
+            {(request.parkingSlot || (request as any).parkingPending) && (request.status === REQUEST_STATUS.REJECTED || request.status === REQUEST_STATUS.CANCELLED) ? (
+              <ThemedText
+                style={[
+                  Typography.caption,
+                  { color: theme.error, fontSize: 12, marginTop: 2 },
+                ]}
+              >
+                {t("status.cancelled")}
+              </ThemedText>
+            ) : request.parkingSlot ? (
               <ThemedText
                 style={[
                   Typography.caption,
@@ -1069,10 +1087,10 @@ export default function RequestDetailsScreen({
               <ThemedText
                 style={[
                   Typography.caption,
-                  { color: request.status === REQUEST_STATUS.REJECTED || request.status === REQUEST_STATUS.CANCELLED ? theme.error : theme.warning, fontSize: 12, marginTop: 2 },
+                  { color: theme.warning, fontSize: 12, marginTop: 2 },
                 ]}
               >
-                {request.status === REQUEST_STATUS.REJECTED || request.status === REQUEST_STATUS.CANCELLED ? t("status.cancelled") : t("status.pending")}
+                {t("status.pending")}
               </ThemedText>
             ) : (
               <ThemedText
@@ -1125,7 +1143,16 @@ export default function RequestDetailsScreen({
             >
               {t("buffet.buffetService")}
             </ThemedText>
-            {request.buffet && request.buffet.mealType ? (
+            {request.buffet && (request.status === REQUEST_STATUS.REJECTED || request.status === REQUEST_STATUS.CANCELLED) ? (
+              <ThemedText
+                style={[
+                  Typography.caption,
+                  { color: theme.error, fontSize: 12, marginTop: 2 },
+                ]}
+              >
+                {t("status.cancelled")}
+              </ThemedText>
+            ) : request.buffet && request.buffet.mealType ? (
               <ThemedText
                 style={[
                   Typography.caption,
@@ -1140,10 +1167,10 @@ export default function RequestDetailsScreen({
               <ThemedText
                 style={[
                   Typography.caption,
-                  { color: request.status === REQUEST_STATUS.REJECTED || request.status === REQUEST_STATUS.CANCELLED ? theme.error : theme.warning, fontSize: 12, marginTop: 2 },
+                  { color: theme.warning, fontSize: 12, marginTop: 2 },
                 ]}
               >
-                {request.status === REQUEST_STATUS.REJECTED || request.status === REQUEST_STATUS.CANCELLED ? t("status.cancelled") : t("status.pending")}
+                {t("status.pending")}
               </ThemedText>
             ) : (
               <ThemedText
