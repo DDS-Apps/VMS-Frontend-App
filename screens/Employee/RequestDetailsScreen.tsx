@@ -864,7 +864,7 @@ export default function RequestDetailsScreen({
             <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: applyOpacity(theme.warning, '15'), paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: BorderRadius.sm }}>
               <DDIcon name="user-check" size={14} color={theme.warning} />
               <ThemedText style={[Typography.caption, { color: theme.warning, fontWeight: '600', marginStart: Spacing.xs, fontSize: 11 }]}>
-                {t("receptionist.walkInVisitor")}
+                {t("reception.walkInVisitor")}
               </ThemedText>
             </View>
           ) : null}

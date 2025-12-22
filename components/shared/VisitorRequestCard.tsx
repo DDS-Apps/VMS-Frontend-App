@@ -123,11 +123,8 @@ export function VisitorRequestCard({
             </ThemedText>
           ) : null}
           {request.isWalkIn ? (
-            <View style={[styles.walkInBadge, { backgroundColor: applyOpacity(theme.warning, '15') }]}>
-              <DDIcon name="user-check" size={10} color={theme.warning} />
-              <ThemedText style={[styles.walkInText, { color: theme.warning }]}>
-                {t('receptionist.walkInVisitor')}
-              </ThemedText>
+            <View style={[styles.walkInIconContainer, { backgroundColor: applyOpacity(theme.warning, '15') }]}>
+              <DDIcon name="user-check" size={12} color={theme.warning} />
             </View>
           ) : null}
         </View>
@@ -316,18 +313,12 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '600',
   },
-  walkInBadge: {
-    flexDirection: 'row',
+  walkInIconContainer: {
+    width: 22,
+    height: 22,
+    borderRadius: BorderRadius.full,
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: Spacing.xs,
-    paddingVertical: 2,
-    borderRadius: BorderRadius.xs,
     marginTop: 4,
-    alignSelf: 'flex-start',
-    gap: 3,
-  },
-  walkInText: {
-    fontSize: 9,
-    fontWeight: '600',
   },
 });
