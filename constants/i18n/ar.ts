@@ -359,6 +359,7 @@ export const ar: TranslationKeys = {
     optionalServices: 'خدمات اختيارية',
     whatsapp: 'واتساب',
     sms: 'رسالة نصية',
+    email: 'البريد الإلكتروني',
   },
   status: {
     pending: 'قيد الانتظار',

@@ -359,6 +359,7 @@ export const en: TranslationKeys = {
     optionalServices: 'Optional Services',
     whatsapp: 'WhatsApp',
     sms: 'SMS',
+    email: 'Email',
   },
   status: {
     pending: 'Pending',

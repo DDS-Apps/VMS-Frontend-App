@@ -359,6 +359,7 @@ export interface TranslationKeys {
     optionalServices: string;
     whatsapp: string;
     sms: string;
+    email: string;
   };
   status: {
     pending: string;

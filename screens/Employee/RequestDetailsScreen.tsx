@@ -376,6 +376,10 @@ export default function RequestDetailsScreen({
     
     // Pre-select communication channels from existing request data (normalize to lowercase for comparison)
     const channels = (visitData.communicationChannels || []).map(c => c.toLowerCase());
+    console.log('[openEditModal] visitData.communicationChannels:', visitData.communicationChannels);
+    console.log('[openEditModal] Normalized channels:', channels);
+    console.log('[openEditModal] includes whatsapp:', channels.includes('whatsapp'));
+    console.log('[openEditModal] includes sms:', channels.includes('sms'));
     setEditSendWhatsApp(channels.includes('whatsapp'));
     setEditSendSMS(channels.includes('sms'));
     
