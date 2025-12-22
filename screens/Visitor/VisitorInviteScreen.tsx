@@ -241,13 +241,13 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
     setRejectReason('');
   }, []);
 
-  const rejectModalTranslations = {
+  const rejectModalTranslations = React.useMemo(() => ({
     title: t('visitor.declineInvitation'),
     subtitle: t('visitor.optionalReason'),
     placeholder: t('visitor.reasonPlaceholder'),
     cancel: t('actions.cancel'),
     confirm: t('actions.confirm'),
-  };
+  }), [t]);
 
   const formatVisitDate = (dateString: string) => {
     return formatDateShort(new Date(dateString));
