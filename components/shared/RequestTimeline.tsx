@@ -378,6 +378,7 @@ function buildStandardTimeline(
 
   const isAtLaterStage = LATER_STAGE_STATUSES.includes(data.status);
   const isRejectedStatus = data.status === 'rejected';
+  const isPendingApproval = data.status === 'pending_approval';
 
   if (data.approval) {
     if (data.approval.rejectedAt || isRejectedStatus) {
@@ -389,7 +390,8 @@ function buildStandardTimeline(
         icon: 'x-circle',
       });
       return steps;
-    } else if (data.approval.approvedAt || isAtLaterStage) {
+    } else if (!isPendingApproval && (data.approval.approvedAt || isAtLaterStage)) {
+      // Only show as approved if status has progressed beyond pending_approval
       steps.push({
         id: 'approval',
         label: data.approval.autoApproved
@@ -399,7 +401,7 @@ function buildStandardTimeline(
         status: 'completed',
         icon: 'thumbs-up',
       });
-    } else if (data.approval.requiresApproval) {
+    } else if (data.approval.requiresApproval || isPendingApproval) {
       const approvalStep: TimelineStep = {
         id: 'approval',
         label: t('timeline.pendingApproval'),
