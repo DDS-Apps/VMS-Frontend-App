@@ -29,6 +29,7 @@ export const hasValidData = (obj: any): boolean => {
 export type VisitorRequestWithPending = VisitorRequest & {
   parkingPending?: boolean;
   meetingRoomPending?: boolean;
+  buffetPending?: boolean;
 };
 
 export const mapVisitDetailsToVisitorRequest = (visit: VisitDetailsDto): VisitorRequestWithPending => {
@@ -73,12 +74,13 @@ export const mapVisitDetailsToVisitorRequest = (visit: VisitDetailsDto): Visitor
     } : undefined,
     meetingRoomPending: (isEmptyObject(visit.meetingBooking) || isEmptyObject(visit.meetingRoom)) &&
       !hasValidData(visit.meetingBooking) && !hasValidData(visit.meetingRoom),
-    buffet: visit.buffet ? {
-      id: visit.buffet.id,
-      mealType: (visit.buffet.mealType as BuffetMealType) || DEFAULT_MEAL_TYPE,
-      location: visit.buffet.location,
-      status: visit.buffet.status,
+    buffet: hasValidData(visit.buffet) ? {
+      id: visit.buffet!.id,
+      mealType: (visit.buffet!.mealType as BuffetMealType) || DEFAULT_MEAL_TYPE,
+      location: visit.buffet!.location,
+      status: (visit.buffet as any)?.status,
     } : undefined,
+    buffetPending: isEmptyObject(visit.buffet) && !hasValidData(visit.buffet),
     valet: undefined,
     qrCode: visit.qrCode,
     approval: {

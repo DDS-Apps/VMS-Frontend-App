@@ -1152,7 +1152,7 @@ export default function RequestDetailsScreen({
               styles.serviceIcon,
               {
                 backgroundColor: applyOpacity(
-                  request.buffet ? theme.warning : theme.textSecondary,
+                  (request.buffet || (request as any).buffetPending) ? theme.warning : theme.textSecondary,
                   "15",
                 ),
               },
@@ -1161,7 +1161,7 @@ export default function RequestDetailsScreen({
             <DDIcon
               name="coffee"
               size={18}
-              color={request.buffet ? theme.warning : theme.textSecondary}
+              color={(request.buffet || (request as any).buffetPending) ? theme.warning : theme.textSecondary}
             />
           </View>
           <View style={{ flex: 1, marginStart: Spacing.md }}>
@@ -1173,7 +1173,7 @@ export default function RequestDetailsScreen({
             >
               {t("buffet.buffetService")}
             </ThemedText>
-            {request.buffet && (request.status === REQUEST_STATUS.REJECTED || request.status === REQUEST_STATUS.CANCELLED) ? (
+            {(request.buffet || (request as any).buffetPending) && (request.status === REQUEST_STATUS.REJECTED || request.status === REQUEST_STATUS.CANCELLED) ? (
               <ThemedText
                 style={[
                   Typography.caption,
@@ -1193,7 +1193,7 @@ export default function RequestDetailsScreen({
                 {request.buffet.mealType.charAt(0).toUpperCase() +
                   request.buffet.mealType.slice(1)}
               </ThemedText>
-            ) : request.buffet ? (
+            ) : (request as any).buffetPending ? (
               <ThemedText
                 style={[
                   Typography.caption,
