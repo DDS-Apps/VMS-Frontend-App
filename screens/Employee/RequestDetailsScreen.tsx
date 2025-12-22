@@ -276,6 +276,11 @@ export default function RequestDetailsScreen({
             setEditRequiresValet(visitData.parkingType === "valet");
             setEditRequiresMeetingRoom(!!visitData.meetingRoom);
             setEditRequiresBuffet(!!visitData.buffet);
+            
+            // Initialize communication channels from existing request data
+            const channels = (visitData.communicationChannels || []).map(c => c.toLowerCase());
+            setEditSendWhatsApp(channels.includes('whatsapp'));
+            setEditSendSMS(channels.includes('sms'));
           }
           setIsApprovalFlow(true);
           setEditModalMode("services-only");
@@ -368,8 +373,12 @@ export default function RequestDetailsScreen({
     setEditRequiresMeetingRoom(!!visitData.meetingRoom);
     setEditRequiresBuffet(!!visitData.buffet);
     setEditRequiresValet(visitData.parkingType === "valet");
-    setEditSendWhatsApp(false);
-    setEditSendSMS(false);
+    
+    // Pre-select communication channels from existing request data (normalize to lowercase for comparison)
+    const channels = (visitData.communicationChannels || []).map(c => c.toLowerCase());
+    setEditSendWhatsApp(channels.includes('whatsapp'));
+    setEditSendSMS(channels.includes('sms'));
+    
     setEditNotes("");
     setShowEditModal(true);
   };
@@ -461,12 +470,18 @@ export default function RequestDetailsScreen({
   };
 
   const handleEditConfirm = () => {
+    // Build communication channels array - always include email and qr_code
+    const communicationChannels: ('email' | 'sms' | 'whatsapp' | 'qr_code')[] = ['email', 'qr_code'];
+    if (editSendSMS) communicationChannels.push('sms');
+    if (editSendWhatsApp) communicationChannels.push('whatsapp');
+
     const payload: Record<string, unknown> = {
       purpose: editPurpose,
       needsParking: editRequiresParking,
       needsMeetingRoom: editRequiresMeetingRoom,
       needsBuffet: editRequiresBuffet,
       needsValet: editRequiresValet,
+      communicationChannels,
     };
 
     if (editModalMode === "full") {
@@ -1899,6 +1914,42 @@ export default function RequestDetailsScreen({
                         </View>
                       ) : null}
                     </Pressable>
+
+                    <View
+                      style={[
+                        styles.channelChip,
+                        {
+                          backgroundColor: theme.surface,
+                          borderColor: theme.primary,
+                          opacity: 0.8,
+                        },
+                      ]}
+                    >
+                      <View
+                        style={[
+                          styles.channelChipIcon,
+                          { backgroundColor: applyOpacity(theme.warning, "15") },
+                        ]}
+                      >
+                        <DDIcon name="mail" size={16} color={theme.warning} />
+                      </View>
+                      <ThemedText
+                        style={[
+                          Typography.bodySmall,
+                          { fontWeight: "500", marginStart: Spacing.xs },
+                        ]}
+                      >
+                        {t("services.email")}
+                      </ThemedText>
+                      <View
+                        style={[
+                          styles.chipCheckmark,
+                          { backgroundColor: theme.primary },
+                        ]}
+                      >
+                        <DDIcon name="check" size={10} color={theme.buttonText} />
+                      </View>
+                    </View>
                   </View>
 
                   <Spacer height={Spacing.lg} />

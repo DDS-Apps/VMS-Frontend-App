@@ -458,7 +458,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
         return;
       }
 
-      // Handle regular visit request
+      // Handle regular visit request - always include email and qr_code
       const communicationChannels: ('email' | 'sms' | 'whatsapp' | 'qr_code')[] = ['email', 'qr_code'];
       if (sendSMS) communicationChannels.push('sms');
       if (sendWhatsApp) communicationChannels.push('whatsapp');
@@ -1097,6 +1097,20 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
             </View>
           )}
         </Pressable>
+
+        <View
+          style={[styles.channelChip, { backgroundColor: theme.surface, borderColor: theme.primary, opacity: 0.8 }]}
+        >
+          <View style={[styles.channelChipIcon, { backgroundColor: theme.warning + '15' }]}>
+            <DDIcon name="mail" size={16} color={theme.warning} />
+          </View>
+          <ThemedText style={[Typography.bodySmall, { fontWeight: '500', marginStart: Spacing.xs }]}>
+            {t('services.email')}
+          </ThemedText>
+          <View style={[styles.chipCheckmark, { backgroundColor: theme.primary }]}>
+            <DDIcon name="check" size={10} color={theme.buttonText} />
+          </View>
+        </View>
       </View>
 
       <Spacer height={Spacing.xl} />
