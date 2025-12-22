@@ -339,6 +339,7 @@ export const ar: TranslationKeys = {
     readOnly: 'للقراءة فقط',
     reason: 'السبب',
     enterReason: 'أدخل السبب',
+    building: 'المبنى',
   },
   services: {
     meetingRoom: 'غرفة اجتماعات',

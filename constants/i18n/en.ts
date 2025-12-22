@@ -339,6 +339,7 @@ export const en: TranslationKeys = {
     readOnly: 'Read only',
     reason: 'Reason',
     enterReason: 'Enter reason',
+    building: 'Building',
   },
   services: {
     meetingRoom: 'Meeting Room',

@@ -339,6 +339,7 @@ export interface TranslationKeys {
     readOnly: string;
     reason: string;
     enterReason: string;
+    building: string;
   };
   services: {
     meetingRoom: string;

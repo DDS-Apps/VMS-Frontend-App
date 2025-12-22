@@ -193,7 +193,7 @@ interface VisitorInviteScreenProps {
 export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { formatDate: fmtDate, formatTimeFromString, formatDateTime } = useFormatters();
+  const { formatDate: fmtDate, formatDateShort, formatTimeFromString, formatDateTime } = useFormatters();
   const insets = useSafeAreaInsets();
   const token = route?.params?.token || route?.params?.visitId;
   
@@ -249,12 +249,58 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
     confirm: t('actions.confirm'),
   };
 
-  const formatDate = (dateString: string) => {
-    return fmtDate(new Date(dateString), 'long');
+  const formatVisitDate = (dateString: string) => {
+    return formatDateShort(new Date(dateString));
   };
 
-  const formatTime = (timeString: string) => {
-    return formatTimeFromString(timeString);
+  const formatVisitTime = (timeString: string) => {
+    if (!timeString) return '';
+    let timeStr = String(timeString).trim();
+    
+    // If already has AM/PM, use formatter directly
+    if (/\d{1,2}:\d{2}\s*(AM|PM)/i.test(timeStr)) {
+      return formatTimeFromString(timeStr);
+    }
+    
+    // Handle full ISO timestamp (e.g., "2025-12-22T13:25:00Z" or "2025-12-22T13:25:00+03:00")
+    if (timeStr.includes('T')) {
+      try {
+        const date = new Date(timeStr);
+        if (!isNaN(date.getTime())) {
+          let hours = date.getHours();
+          const minutes = date.getMinutes().toString().padStart(2, '0');
+          const period = hours >= 12 ? 'PM' : 'AM';
+          hours = hours % 12 || 12;
+          return `${hours}:${minutes} ${period}`;
+        }
+      } catch {
+        // Fall through to other parsing
+      }
+    }
+    
+    // Strip timezone offset if present (e.g., "13:25:00+03:00" or "13:25:00Z")
+    timeStr = timeStr.replace(/[+-]\d{2}:\d{2}$/, '').replace(/Z$/, '');
+    
+    // Strip fractional seconds if present (e.g., "13:25:00.000" -> "13:25:00")
+    timeStr = timeStr.replace(/\.\d+$/, '');
+    
+    // Strip seconds if present (convert HH:MM:SS to HH:MM)
+    const matchWithSeconds = timeStr.match(/^(\d{1,2}):(\d{2}):\d{2}$/);
+    if (matchWithSeconds) {
+      timeStr = `${matchWithSeconds[1]}:${matchWithSeconds[2]}`;
+    }
+    
+    // If 24-hour format like "13:25" or "14:25"
+    const match24 = timeStr.match(/^(\d{1,2}):(\d{2})$/);
+    if (match24) {
+      const hours = parseInt(match24[1], 10);
+      const minutes = match24[2];
+      const period = hours >= 12 ? 'PM' : 'AM';
+      const hours12 = hours % 12 || 12;
+      return `${hours12}:${minutes} ${period}`;
+    }
+    
+    return formatTimeFromString(timeStr);
   };
 
   // Format ISO 8601 duration (PT1H, PT30M, PT1H30M) to readable format
@@ -522,8 +568,8 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
               <InfoRow 
                 icon="calendar" 
                 label={t('form.date')} 
-                value={formatDate(invite.visitDate)}
-                subValue={formatTime(getVisitTime(invite))}
+                value={formatVisitDate(invite.visitDate)}
+                subValue={formatVisitTime(getVisitTime(invite))}
               />
             </GlassCard>
             <Spacer height={Spacing.xl} />
@@ -571,7 +617,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
           <Spacer height={Spacing.sm} />
           <ThemedText style={styles.statusDescription}>
             {finalStatus === 'accepted'
-              ? `${t('invitation.scheduledFor')} ${formatDate(invite.visitDate)}`
+              ? `${t('invitation.scheduledFor')} ${formatVisitDate(invite.visitDate)}`
               : decisionReason ? decisionReason : t('visitor.invitationDeclined')
             }
           </ThemedText>
@@ -627,8 +673,8 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
               <InfoRow 
                 icon="calendar" 
                 label={t('form.date')} 
-                value={formatDate(invite.visitDate)}
-                subValue={`${formatTime(getVisitTime(invite))}${invite.duration ? ` (${formatDuration(invite.duration)})` : ''}`}
+                value={formatVisitDate(invite.visitDate)}
+                subValue={`${formatVisitTime(getVisitTime(invite))}${invite.duration ? ` (${formatDuration(invite.duration)})` : ''}`}
               />
               
               {invite.meetingRoom ? (
@@ -731,8 +777,8 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
         <InfoRow 
           icon="calendar" 
           label={`${t('form.date')} & ${t('form.time')}`} 
-          value={formatDate(invite.visitDate)}
-          subValue={`${formatTime(getVisitTime(invite))}${invite.duration ? ` (${formatDuration(invite.duration)})` : ''}`}
+          value={formatVisitDate(invite.visitDate)}
+          subValue={`${formatVisitTime(getVisitTime(invite))}${invite.duration ? ` (${formatDuration(invite.duration)})` : ''}`}
         />
         
         <View style={styles.infoDivider} />
