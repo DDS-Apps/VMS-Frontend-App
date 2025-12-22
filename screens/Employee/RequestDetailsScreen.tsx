@@ -29,10 +29,11 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { ParkingSection } from "@/components/ParkingSection";
 import {
-  VisitTimeline,
-  useVisitTimelineSteps,
-  type VisitTimelineData,
-} from "@/components/VisitTimeline";
+  RequestTimeline,
+  useTimelineSteps,
+  type TimelineData,
+  type TimelineActionCallbacks,
+} from "@/components/shared/RequestTimeline";
 import Spacer from "@/components/Spacer";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { REQUEST_STATUS } from "@/constants/requestConstants";
@@ -518,7 +519,7 @@ export default function RequestDetailsScreen({
 
   const statusConfig = getStatusStyle(theme, request.status, t);
 
-  const timelineData: VisitTimelineData = {
+  const timelineData: TimelineData = {
     createdAt: request.createdAt,
     status: request.status,
     approval: {
@@ -526,13 +527,35 @@ export default function RequestDetailsScreen({
       autoApproved: request.approval.autoApproved ?? false,
       approvedAt: request.approval.approvedAt,
       rejectedAt: request.approval.rejectedAt,
+      rejectionReason: request.approval.rejectionReason,
     },
+    hostApproval: request.hostApproval ? {
+      required: true,
+      approvedAt: request.hostApproval.approvedAt,
+      rejectedAt: request.hostApproval.rejectedAt,
+    } : undefined,
     acceptedAt: request.acceptedAt,
     checkedInAt: request.checkedInAt,
+    checkedOutAt: request.checkedOutAt,
     completedAt: request.completedAt,
     cancelledAt: request.cancelledAt,
   };
-  const timelineSteps = useVisitTimelineSteps(timelineData);
+
+  const timelineActionCallbacks: TimelineActionCallbacks | undefined = 
+    request.status === 'pending_host_approval' ? {
+      onAccept: handleHostApprove,
+      onReject: () => setShowHostRejectModal(true),
+      isAcceptLoading: hostApproveMutation.isPending,
+      isRejectLoading: hostRejectMutation.isPending,
+    } : undefined;
+
+  const timelineSteps = useTimelineSteps({
+    data: timelineData,
+    role: 'employee',
+    flowType: 'standard',
+    actions: timelineActionCallbacks,
+    showActions: request.status === 'pending_host_approval',
+  });
 
   return (
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
@@ -1123,7 +1146,7 @@ export default function RequestDetailsScreen({
       </ThemedView>
       <Spacer height={Spacing.lg} />
 
-      <VisitTimeline steps={timelineSteps} />
+      <RequestTimeline steps={timelineSteps} />
 
       <Spacer height={Spacing.lg} />
 

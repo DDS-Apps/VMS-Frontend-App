@@ -429,6 +429,8 @@ export interface TranslationKeys {
     confirm: string;
     accept: string;
     decline: string;
+    verifyAndCheckIn: string;
+    recordExit: string;
   };
   notifications: {
     title: string;
@@ -1230,14 +1232,24 @@ export interface TranslationKeys {
     autoApproved: string;
     managerApproved: string;
     pendingApproval: string;
+    pendingHostApproval: string;
+    hostApproved: string;
+    hostRejected: string;
     rejected: string;
     visitorAccepted: string;
     visitorDeclined: string;
     awaitingVisitor: string;
     visitorCheckedIn: string;
+    visitorCheckedOut: string;
     visitCompleted: string;
     cancelled: string;
     rescheduled: string;
+    visitorScheduled: string;
+    walkInArrived: string;
+    visitorArrived: string;
+    identityVerified: string;
+    entryGranted: string;
+    exitRecorded: string;
   };
   toast: {
     errorTitle: string;

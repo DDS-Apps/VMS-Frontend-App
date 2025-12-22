@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { View, StyleSheet, Pressable, Modal, TextInput, Alert, ScrollView, ActivityIndicator } from "react-native";
 import type { VisitorDetailScreenProps } from "@/types/receptionistNavigation.types";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -7,6 +7,12 @@ import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
+import {
+  RequestTimeline,
+  useTimelineSteps,
+  type TimelineData,
+  type TimelineActionCallbacks,
+} from "@/components/shared/RequestTimeline";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -194,6 +200,40 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
 
   const statusConfig = getStatusConfig(visitor.status);
 
+  const timelineData: TimelineData = useMemo(() => ({
+    createdAt: visitor.createdAt,
+    status: visitor.status,
+    checkedInAt: visitDetails?.checkedInAt,
+    checkedOutAt: visitDetails?.checkedOutAt,
+    completedAt: visitDetails?.completedAt,
+    cancelledAt: visitDetails?.cancelledAt,
+    isWalkIn: visitor.isWalkIn,
+  }), [visitor, visitDetails]);
+
+  const timelineActions: TimelineActionCallbacks | undefined = useMemo(() => {
+    if (visitor.status === 'pending') {
+      return {
+        onCheckIn: handleCheckIn,
+        isCheckInLoading: checkInMutation.isPending,
+      };
+    }
+    if (visitor.status === 'checked_in') {
+      return {
+        onCheckOut: handleCheckOut,
+        isCheckOutLoading: checkOutMutation.isPending,
+      };
+    }
+    return undefined;
+  }, [visitor.status, checkInMutation.isPending, checkOutMutation.isPending]);
+
+  const timelineSteps = useTimelineSteps({
+    data: timelineData,
+    role: 'receptionist',
+    flowType: 'receptionist_checkin',
+    actions: timelineActions,
+    showActions: false,
+  });
+
   return (
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
       <View style={styles.header}>
@@ -347,6 +387,9 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
           <Spacer height={Spacing.lg} />
         </>
       )}
+
+      <RequestTimeline steps={timelineSteps} />
+      <Spacer height={Spacing.lg} />
 
       {visitor.status === 'pending' && (
         <>
