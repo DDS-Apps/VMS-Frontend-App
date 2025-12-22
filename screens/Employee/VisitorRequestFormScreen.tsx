@@ -911,22 +911,6 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
               {t('form.calculatedAutomatically')}
             </ThemedText>
 
-            <Spacer height={Spacing.lg} />
-
-            <ThemedText style={[Typography.label, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-              {t('form.purpose').toUpperCase()}
-            </ThemedText>
-            <Spacer height={Spacing.xs} />
-            <TextInput
-              style={[styles.textArea, { backgroundColor: theme.background, borderColor: theme.border, color: theme.text, textAlign: isRTL ? 'right' : 'left', writingDirection: isRTL ? 'rtl' : 'ltr' }]}
-              placeholder={t('form.purposePlaceholder')}
-              placeholderTextColor={theme.textSecondary}
-              value={purpose}
-              onChangeText={setPurpose}
-              multiline
-              numberOfLines={4}
-              textAlignVertical="top"
-            />
           </ThemedView>
         </>
       ) : (
