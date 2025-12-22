@@ -580,8 +580,8 @@ export default function RequestDetailsScreen({
   const getServiceStatusVariant = (status?: string): 'success' | 'warning' | 'error' | 'info' | 'muted' => {
     if (!status) return 'muted';
     const lowerStatus = status.toLowerCase();
-    if (['active', 'scheduled', 'allocated', 'confirmed', 'in_progress'].includes(lowerStatus)) return 'success';
-    if (['pending', 'awaiting'].includes(lowerStatus)) return 'warning';
+    if (['active', 'scheduled', 'allocated', 'confirmed', 'in_progress', 'ready', 'served'].includes(lowerStatus)) return 'success';
+    if (['pending', 'awaiting', 'preparing'].includes(lowerStatus)) return 'warning';
     if (['cancelled', 'expired', 'no_show', 'released'].includes(lowerStatus)) return 'error';
     if (['completed', 'checked_out', 'checked_in'].includes(lowerStatus)) return 'info';
     return 'muted';
