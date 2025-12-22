@@ -493,7 +493,7 @@ const SectionHeader = ({
 
   const tabs: TabType[] = userRole === 'manager' 
     ? ['all', 'pending', 'awaiting', 'walkin']
-    : ['upcoming', 'waiting', 'past', 'all', 'walkin'];
+    : ['all', 'upcoming', 'waiting', 'past', 'walkin'];
 
   return (
   <>
@@ -604,11 +604,11 @@ export default function VisitorRequestsScreen({ navigation: navProp, userRole = 
   const isManager = userRole === 'manager';
   
   const validManagerTabs: ManagerTab[] = ['all', 'pending', 'awaiting', 'walkin'];
-  const validEmployeeTabs: EmployeeTab[] = ['upcoming', 'waiting', 'past', 'all', 'walkin'];
+  const validEmployeeTabs: EmployeeTab[] = ['all', 'upcoming', 'waiting', 'past', 'walkin'];
   const isValidManagerTab = (tab: string): tab is ManagerTab => validManagerTabs.includes(tab as ManagerTab);
   const isValidEmployeeTab = (tab: string): tab is EmployeeTab => validEmployeeTabs.includes(tab as EmployeeTab);
   
-  const defaultTab: TabType = isManager ? 'all' : 'upcoming';
+  const defaultTab: TabType = isManager ? 'all' : 'all';
   const getInitialTab = (): TabType | undefined => {
     const paramTab = routeParams?.initialTab;
     if (!paramTab) return undefined;
