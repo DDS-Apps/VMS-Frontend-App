@@ -209,6 +209,7 @@ export const LATER_STAGE_STATUSES: readonly string[] = [
   'checked_out',
   'awaiting_visitor',
   'pending_visitor',
+  'visitor_pending',
 ] as const;
 
 export const VISITOR_ACCEPTED_STATUSES: readonly string[] = [
@@ -228,6 +229,7 @@ export const AWAITING_VISITOR_STATUSES: readonly string[] = [
   REQUEST_STATUS.APPROVED,
   'pending_visitor',
   'awaiting_visitor',
+  'visitor_pending',
 ] as const;
 
 export const CHECKED_IN_STATUSES: readonly string[] = [
