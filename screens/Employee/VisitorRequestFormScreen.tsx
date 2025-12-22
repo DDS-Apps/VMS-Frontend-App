@@ -771,6 +771,28 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                 </ThemedText>
               </>
             ) : null}
+
+            <Spacer height={Spacing.lg} />
+            <ThemedText style={[Typography.label, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+              {t('form.purpose').toUpperCase()}
+            </ThemedText>
+            <Spacer height={Spacing.xs} />
+            <Pressable 
+              style={[
+                styles.iconInputButton, 
+                { 
+                  backgroundColor: theme.background, 
+                  borderColor: theme.border
+                }
+              ]}
+              onPress={() => setShowPurposePicker(true)}
+            >
+              <DDIcon name="clipboard" size={20} variant="muted" />
+              <ThemedText style={[Typography.body, { color: theme.text, marginStart: Spacing.md, flex: 1 }]}>
+                {purpose || t('form.selectPurpose')}
+              </ThemedText>
+              <DDIcon name="chevron-down" size={20} variant="muted" />
+            </Pressable>
           </>
         ) : null}
       </ThemedView>
@@ -913,34 +935,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
 
           </ThemedView>
         </>
-      ) : (
-        <>
-          <Spacer height={Spacing.lg} />
-
-          <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
-            <ThemedText style={[Typography.label, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-              {t('form.purpose').toUpperCase()}
-            </ThemedText>
-            <Spacer height={Spacing.xs} />
-            <Pressable 
-              style={[
-                styles.iconInputButton, 
-                { 
-                  backgroundColor: theme.background, 
-                  borderColor: theme.border
-                }
-              ]}
-              onPress={() => setShowPurposePicker(true)}
-            >
-              <DDIcon name="clipboard" size={20} variant="muted" />
-              <ThemedText style={[Typography.body, { color: theme.text, marginStart: Spacing.md, flex: 1 }]}>
-                {purpose || t('form.selectPurpose')}
-              </ThemedText>
-              <DDIcon name="chevron-down" size={20} variant="muted" />
-            </Pressable>
-          </ThemedView>
-        </>
-      )}
+      ) : null}
 
       {!asReceptionist && !isWalkIn ? (
         <>
