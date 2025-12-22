@@ -35,6 +35,7 @@ export interface MeetingRoom {
   capacity: number;
   floor: string;
   timeSlot: string;
+  status?: string;
 }
 
 export interface ParkingSlot {
@@ -50,6 +51,7 @@ export interface BuffetService {
   mealType: 'breakfast' | 'lunch' | 'dinner' | 'snacks';
   location: string;
   dietaryPreferences?: string[];
+  status?: string;
 }
 
 export interface ValetDriver {

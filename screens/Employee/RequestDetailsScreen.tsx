@@ -25,6 +25,7 @@ import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { LoadingButton } from "@/components/shared/LoadingButton";
 import { ApprovalActionGroup } from "@/components/shared/ApprovalActionGroup";
 import { SkeletonCard } from "@/components/shared/Skeleton";
+import { StatusBadge } from "@/components/shared/StatusBadge";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { ParkingSection } from "@/components/ParkingSection";
@@ -576,6 +577,21 @@ export default function RequestDetailsScreen({
     showActions: request.status === 'pending_host_approval',
   });
 
+  const getServiceStatusVariant = (status?: string): 'success' | 'warning' | 'error' | 'info' | 'muted' => {
+    if (!status) return 'muted';
+    const lowerStatus = status.toLowerCase();
+    if (['active', 'scheduled', 'allocated', 'confirmed', 'in_progress'].includes(lowerStatus)) return 'success';
+    if (['pending', 'awaiting'].includes(lowerStatus)) return 'warning';
+    if (['cancelled', 'expired', 'no_show', 'released'].includes(lowerStatus)) return 'error';
+    if (['completed', 'checked_out', 'checked_in'].includes(lowerStatus)) return 'info';
+    return 'muted';
+  };
+
+  const formatServiceStatus = (status?: string): string => {
+    if (!status) return '';
+    return status.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
+  };
+
   return (
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
       {/* Header with Status Badge */}
@@ -1026,6 +1042,13 @@ export default function RequestDetailsScreen({
               </ThemedText>
             )}
           </View>
+          {request.meetingRoom?.status ? (
+            <StatusBadge
+              label={formatServiceStatus(request.meetingRoom.status)}
+              variant={getServiceStatusVariant(request.meetingRoom.status)}
+              size="sm"
+            />
+          ) : null}
         </View>
         <Spacer height={Spacing.md} />
 
@@ -1108,6 +1131,13 @@ export default function RequestDetailsScreen({
               </ThemedText>
             )}
           </View>
+          {request.parkingSlot?.status ? (
+            <StatusBadge
+              label={formatServiceStatus(request.parkingSlot.status)}
+              variant={getServiceStatusVariant(request.parkingSlot.status)}
+              size="sm"
+            />
+          ) : null}
         </View>
         <Spacer height={Spacing.md} />
 
@@ -1188,6 +1218,13 @@ export default function RequestDetailsScreen({
               </ThemedText>
             )}
           </View>
+          {request.buffet?.status ? (
+            <StatusBadge
+              label={formatServiceStatus(request.buffet.status)}
+              variant={getServiceStatusVariant(request.buffet.status)}
+              size="sm"
+            />
+          ) : null}
         </View>
       </ThemedView>
       <Spacer height={Spacing.lg} />

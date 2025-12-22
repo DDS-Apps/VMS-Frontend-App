@@ -69,6 +69,7 @@ export const mapVisitDetailsToVisitorRequest = (visit: VisitDetailsDto): Visitor
       timeSlot: visit.meetingBooking
         ? `${visit.meetingBooking.startTime} - ${visit.meetingBooking.endTime}`
         : (visit.meetingRoom?.timeSlot || visit.visitTime || ''),
+      status: visit.meetingBooking?.status,
     } : undefined,
     meetingRoomPending: (isEmptyObject(visit.meetingBooking) || isEmptyObject(visit.meetingRoom)) &&
       !hasValidData(visit.meetingBooking) && !hasValidData(visit.meetingRoom),
@@ -76,6 +77,7 @@ export const mapVisitDetailsToVisitorRequest = (visit: VisitDetailsDto): Visitor
       id: visit.buffet.id,
       mealType: (visit.buffet.mealType as BuffetMealType) || DEFAULT_MEAL_TYPE,
       location: visit.buffet.location,
+      status: visit.buffet.status,
     } : undefined,
     valet: undefined,
     qrCode: visit.qrCode,
