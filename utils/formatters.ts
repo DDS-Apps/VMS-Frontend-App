@@ -83,7 +83,7 @@ export const formatTimeFromString = (timeString: string, locale: LocaleCode = 'e
 };
 
 export const formatDateTime = (date: Date, locale: LocaleCode = 'en-US'): string => {
-  return `${formatDate(date, locale)} ${formatTime(date, locale)}`;
+  return `${formatDateShortMonth(date, locale)} \u2022 ${formatTime(date, locale)}`;
 };
 
 export const formatCurrency = (amount: number, currency: string = 'USD', locale: LocaleCode = 'en-US'): string => {
