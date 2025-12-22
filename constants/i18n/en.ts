@@ -428,6 +428,8 @@ export const en: TranslationKeys = {
     confirmReschedule: 'Reschedule',
     rejectWalkIn: 'Reject Walk-In',
     rejectWalkInMessage: 'Please provide a reason for rejecting this walk-in visitor request.',
+    rejectRequest: 'Reject Request',
+    rejectRequestMessage: 'Please provide a reason for rejecting this visitor request.',
     confirm: 'Confirm',
     accept: 'Accept',
     decline: 'Decline',

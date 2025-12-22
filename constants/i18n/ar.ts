@@ -428,6 +428,8 @@ export const ar: TranslationKeys = {
     confirmReschedule: 'إعادة جدولة',
     rejectWalkIn: 'رفض الزائر',
     rejectWalkInMessage: 'يرجى تقديم سبب لرفض طلب الزائر هذا.',
+    rejectRequest: 'رفض الطلب',
+    rejectRequestMessage: 'يرجى تقديم سبب لرفض طلب الزيارة هذا.',
     confirm: 'تأكيد',
     accept: 'قبول',
     decline: 'رفض',

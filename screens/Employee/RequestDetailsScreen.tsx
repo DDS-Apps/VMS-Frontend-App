@@ -48,6 +48,8 @@ import {
   useUpdateVisitMutation,
   useHostApproveVisitMutation,
   useHostRejectVisitMutation,
+  useApproveVisitMutation,
+  useRejectVisitMutation,
 } from "@/hooks/queries/useApprovalQueries";
 import { useRoomAvailabilityQuery } from "@/hooks/queries/useMeetingRoomQueries";
 import type { RoomAvailabilityParams } from "@/types/api.types";
@@ -88,6 +90,8 @@ export default function RequestDetailsScreen({
   const [showEditModal, setShowEditModal] = useState(false);
   const [showHostRejectModal, setShowHostRejectModal] = useState(false);
   const [hostRejectReason, setHostRejectReason] = useState("");
+  const [showManagerRejectModal, setShowManagerRejectModal] = useState(false);
+  const [managerRejectReason, setManagerRejectReason] = useState("");
 
   const [editPurpose, setEditPurpose] = useState("");
   const [editDate, setEditDate] = useState(new Date());
@@ -137,6 +141,8 @@ export default function RequestDetailsScreen({
   const updateMutation = useUpdateVisitMutation();
   const hostApproveMutation = useHostApproveVisitMutation();
   const hostRejectMutation = useHostRejectVisitMutation();
+  const managerApproveMutation = useApproveVisitMutation();
+  const managerRejectMutation = useRejectVisitMutation();
 
   // Room availability check for edit modal
   const formatDateForApi = (date: Date): string => {
@@ -182,7 +188,9 @@ export default function RequestDetailsScreen({
     cancelMutation.isPending ||
     updateMutation.isPending ||
     hostApproveMutation.isPending ||
-    hostRejectMutation.isPending;
+    hostRejectMutation.isPending ||
+    managerApproveMutation.isPending ||
+    managerRejectMutation.isPending;
 
   // Success modal animation effect
   useEffect(() => {
@@ -307,6 +315,42 @@ export default function RequestDetailsScreen({
           setShowHostRejectModal(false);
           setHostRejectReason("");
           setSuccessMessage(t("notifications.walkInRejected"));
+          setShowSuccessModal(true);
+        },
+        onError: (error) => {
+          Alert.alert(t("errors.somethingWentWrong"), error.message);
+        },
+      },
+    );
+  };
+
+  const handleManagerApprove = () => {
+    managerApproveMutation.mutate(
+      { id: requestId, payload: {} },
+      {
+        onSuccess: () => {
+          setSuccessMessage(t("notifications.requestApproved"));
+          setShowSuccessModal(true);
+        },
+        onError: (error) => {
+          Alert.alert(t("errors.somethingWentWrong"), error.message);
+        },
+      },
+    );
+  };
+
+  const handleManagerReject = () => {
+    if (!managerRejectReason.trim()) {
+      Alert.alert(t("errors.validation"), t("errors.reasonRequired"));
+      return;
+    }
+    managerRejectMutation.mutate(
+      { id: requestId, payload: { reason: managerRejectReason.trim() } },
+      {
+        onSuccess: () => {
+          setShowManagerRejectModal(false);
+          setManagerRejectReason("");
+          setSuccessMessage(t("notifications.requestRejected"));
           setShowSuccessModal(true);
         },
         onError: (error) => {
@@ -1301,8 +1345,24 @@ export default function RequestDetailsScreen({
         </>
       ) : null}
 
+      {/* Manager approval pending: Show Accept/Reject buttons */}
+      {request.status === REQUEST_STATUS.PENDING_APPROVAL ? (
+        <>
+          <ApprovalActionGroup
+            onApprove={handleManagerApprove}
+            onReject={() => setShowManagerRejectModal(true)}
+            approveLoading={managerApproveMutation.isPending}
+            rejectLoading={managerRejectMutation.isPending}
+            size="medium"
+            showIcons={true}
+          />
+          <Spacer height={Spacing.xl} />
+        </>
+      ) : null}
+
       {/* Show Edit and Cancel buttons - hidden only for specific statuses */}
       {request.status !== REQUEST_STATUS.PENDING_HOST_APPROVAL &&
+       request.status !== REQUEST_STATUS.PENDING_APPROVAL &&
        request.status !== REQUEST_STATUS.COMPLETED &&
        request.status !== REQUEST_STATUS.CANCELLED &&
        request.status !== REQUEST_STATUS.REJECTED ? (
@@ -1516,6 +1576,109 @@ export default function RequestDetailsScreen({
                 loading={hostRejectMutation.isPending}
                 disabled={
                   hostRejectMutation.isPending || !hostRejectReason.trim()
+                }
+                variant="danger"
+                size="medium"
+                loadingText={t("common.loading")}
+                style={{ flex: 1 }}
+              >
+                {t("actions.reject")}
+              </LoadingButton>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Manager Reject Modal */}
+      <Modal
+        visible={showManagerRejectModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowManagerRejectModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <Pressable
+            style={[styles.modalBackdrop, createModalOverlayStyle(theme, "50")]}
+            onPress={() => setShowManagerRejectModal(false)}
+          />
+          <View
+            style={[styles.modalContent, { backgroundColor: theme.surface }]}
+          >
+            <View style={styles.modalHeader}>
+              <ThemedText
+                style={[
+                  Typography.subtitle,
+                  { fontSize: 18, fontWeight: "600", color: theme.text },
+                ]}
+              >
+                {t("actions.rejectRequest")}
+              </ThemedText>
+              <Pressable onPress={() => setShowManagerRejectModal(false)}>
+                <DDIcon name="x" size={22} variant="muted" />
+              </Pressable>
+            </View>
+
+            <Spacer height={20} />
+
+            <ThemedText
+              style={[
+                Typography.body,
+                { color: theme.textSecondary, fontSize: 14, lineHeight: 20 },
+              ]}
+            >
+              {t("actions.rejectRequestMessage")}
+            </ThemedText>
+
+            <Spacer height={Spacing.lg} />
+
+            <ThemedText
+              style={[
+                Typography.caption,
+                { color: theme.textSecondary, fontSize: 12, marginBottom: 8 },
+              ]}
+            >
+              {t("form.reason")} *
+            </ThemedText>
+            <TextInput
+              style={[
+                styles.textAreaField,
+                {
+                  backgroundColor: theme.surfaceSecondary,
+                  borderColor: theme.border,
+                  color: theme.text,
+                },
+              ]}
+              value={managerRejectReason}
+              onChangeText={setManagerRejectReason}
+              placeholder={t("form.enterReason")}
+              placeholderTextColor={theme.textSecondary}
+              multiline
+              numberOfLines={3}
+              textAlignVertical="top"
+            />
+
+            <Spacer height={24} />
+
+            <View style={styles.modalActions}>
+              <LoadingButton
+                onPress={() => {
+                  setShowManagerRejectModal(false);
+                  setManagerRejectReason("");
+                }}
+                variant="secondary"
+                size="medium"
+                style={{ flex: 1 }}
+              >
+                {t("common.cancel")}
+              </LoadingButton>
+
+              <Spacer width={12} />
+
+              <LoadingButton
+                onPress={handleManagerReject}
+                loading={managerRejectMutation.isPending}
+                disabled={
+                  managerRejectMutation.isPending || !managerRejectReason.trim()
                 }
                 variant="danger"
                 size="medium"
