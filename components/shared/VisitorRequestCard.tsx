@@ -117,11 +117,18 @@ export function VisitorRequestCard({
               </ThemedText>
             </View>
           </View>
-          {request.visitor.company ? (
-            <ThemedText style={[styles.companyText, { color: theme.textSecondary }]}>
-              {request.visitor.company}
-            </ThemedText>
-          ) : null}
+          <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center' }}>
+            {request.visitor.company ? (
+              <ThemedText style={[styles.companyText, { color: theme.textSecondary }]}>
+                {request.visitor.company}
+              </ThemedText>
+            ) : null}
+            {request.isWalkIn ? (
+              <View style={[styles.walkInIconContainer, { backgroundColor: applyOpacity(theme.warning, '15'), marginStart: Spacing.xs }]}>
+                <DDIcon name="user-check" size={12} color={theme.warning} />
+              </View>
+            ) : null}
+          </View>
         </View>
       </View>
 
@@ -139,11 +146,6 @@ export function VisitorRequestCard({
               <ThemedText style={[styles.employeeLabel, { color: theme.textSecondary }]}>
                 ({request.employeeDepartment})
               </ThemedText>
-            ) : null}
-            {request.isWalkIn ? (
-              <View style={[styles.walkInIconContainer, { backgroundColor: applyOpacity(theme.warning, '15'), marginStart: Spacing.xs }]}>
-                <DDIcon name="user-check" size={12} color={theme.warning} />
-              </View>
             ) : null}
           </View>
         </>
