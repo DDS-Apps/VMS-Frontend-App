@@ -118,7 +118,7 @@ const UpcomingVisitorCard: React.FC<UpcomingVisitorCardProps> = ({ request, onPr
               )}
               {request.buffet && (
                 <View style={[styles.servicePillNew, { backgroundColor: theme.warning + '20' }]}>
-                  <DDIcon name="disc" size={14} color={theme.warning} />
+                  <DDIcon name="cloche" size={14} color={theme.warning} />
                 </View>
               )}
               </View>

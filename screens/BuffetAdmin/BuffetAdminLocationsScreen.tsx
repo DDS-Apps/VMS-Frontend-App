@@ -224,7 +224,7 @@ export default function BuffetAdminLocationsScreen() {
 
           <View style={styles.statItem}>
             <View style={[styles.statIconBg, { backgroundColor: applyOpacity(theme.warning, '12') }]}>
-              <DDIcon name="disc" size={16} color={theme.warning} />
+              <DDIcon name="cloche" size={16} color={theme.warning} />
             </View>
             <View style={styles.statInfo}>
               <ThemedText style={[styles.statValue, { color: theme.text }]}>

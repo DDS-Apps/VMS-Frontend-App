@@ -572,7 +572,7 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
         </View>
       ) : (
         <ThemedView style={[styles.emptyState, { backgroundColor: theme.surface }]}>
-          <DDIcon name="disc" size={32} variant="muted" />
+          <DDIcon name="cloche" size={32} variant="muted" />
           <Spacer height={Spacing.sm} />
           <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
             {t('common.noData')}

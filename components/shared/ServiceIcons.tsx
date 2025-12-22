@@ -61,7 +61,7 @@ export const ServiceIcons = ({
             borderRadius: size 
           }
         ]}>
-          <DDIcon name="disc" size={size} variant="warning" />
+          <DDIcon name="cloche" size={size} variant="warning" />
         </View>
       ) : null}
       {!!valet ? (
