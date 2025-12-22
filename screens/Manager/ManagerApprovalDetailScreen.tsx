@@ -7,9 +7,11 @@ import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { SkeletonCard } from "@/components/shared/Skeleton";
 import { LoadingButton } from "@/components/shared/LoadingButton";
 import { ApprovalActionGroup } from "@/components/shared/ApprovalActionGroup";
+import { StatusBadge } from "@/components/shared/StatusBadge";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { REQUEST_STATUS } from "@/constants/requestConstants";
 import { useTheme } from "@/hooks/useTheme";
@@ -89,8 +91,25 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { formatDateTime: fmtDateTime, formatDateShort, parseISODuration, formatTimeFromString } = useFormatters();
+  const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   const { requestId } = route.params;
+
+  // Helper function for consistent service status colors
+  const getServiceStatusVariant = (status?: string): 'success' | 'warning' | 'error' | 'info' | 'muted' => {
+    if (!status) return 'muted';
+    const lowerStatus = status.toLowerCase();
+    if (['active', 'scheduled', 'allocated', 'confirmed', 'in_progress', 'ready', 'served'].includes(lowerStatus)) return 'success';
+    if (['pending', 'awaiting', 'preparing'].includes(lowerStatus)) return 'warning';
+    if (['cancelled', 'expired', 'no_show', 'released'].includes(lowerStatus)) return 'error';
+    if (['completed', 'checked_out', 'checked_in'].includes(lowerStatus)) return 'info';
+    return 'muted';
+  };
+
+  const formatServiceStatus = (status?: string): string => {
+    if (!status) return '';
+    return status.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
+  };
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
@@ -265,9 +284,20 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
                 {request.visitor.fullName}
               </ThemedText>
               {request.visitor.company ? (
-                <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 4 }]}>
-                  {request.visitor.company}
-                </ThemedText>
+                <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', marginTop: 4 }}>
+                  <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
+                    {request.visitor.company}
+                  </ThemedText>
+                  {request.isWalkIn ? (
+                    <View style={{ marginStart: Spacing.sm }}>
+                      <DDIcon name="user-check" size={14} color={theme.warning} />
+                    </View>
+                  ) : null}
+                </View>
+              ) : request.isWalkIn ? (
+                <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', marginTop: 4 }}>
+                  <DDIcon name="user-check" size={14} color={theme.warning} />
+                </View>
               ) : null}
             </View>
           </View>
@@ -358,14 +388,24 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
         <Spacer height={Spacing.md} />
 
         <ThemedView style={[styles.card, { backgroundColor: theme.surface }]}>
+          {/* Meeting Room */}
           <View style={styles.serviceRow}>
             <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(request.meetingRoom ? theme.secondary : theme.textSecondary, '20') }]}>
               <DDIcon name="briefcase" size={18} color={request.meetingRoom ? theme.secondary : theme.textSecondary} />
             </View>
-            <View style={styles.serviceInfo}>
-              <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
-                {t('services.meetingRoom')}
-              </ThemedText>
+            <View style={[styles.serviceInfo, { flex: 1 }]}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+                  {t('services.meetingRoom')}
+                </ThemedText>
+                {request.meetingRoom?.status ? (
+                  <StatusBadge
+                    label={formatServiceStatus(request.meetingRoom.status)}
+                    variant={getServiceStatusVariant(request.meetingRoom.status)}
+                    size="sm"
+                  />
+                ) : null}
+              </View>
               {request.meetingRoom ? (
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
                   {request.meetingRoom.name}, {request.meetingRoom.floor}
@@ -383,14 +423,24 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
           </View>
           <Spacer height={Spacing.lg} />
 
+          {/* Parking */}
           <View style={styles.serviceRow}>
             <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(request.parkingSlot ? theme.info : theme.textSecondary, '20') }]}>
               <DDIcon name="map-pin" size={18} color={request.parkingSlot ? theme.info : theme.textSecondary} />
             </View>
-            <View style={styles.serviceInfo}>
-              <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
-                {t('services.parking')}
-              </ThemedText>
+            <View style={[styles.serviceInfo, { flex: 1 }]}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+                  {t('services.parking')}
+                </ThemedText>
+                {request.parkingSlot?.status ? (
+                  <StatusBadge
+                    label={formatServiceStatus(request.parkingSlot.status)}
+                    variant={getServiceStatusVariant(request.parkingSlot.status)}
+                    size="sm"
+                  />
+                ) : null}
+              </View>
               {request.parkingSlot ? (
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
                   {request.parkingSlot.location === 'SKBC_basement' || request.parkingSlot.location === 'skbc_basement' ? 'SKBC Basement' : request.parkingSlot.location}, {t('parking.slotNumber')} {request.parkingSlot.slotNumber}
@@ -408,14 +458,24 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
           </View>
           <Spacer height={Spacing.lg} />
 
+          {/* Valet */}
           <View style={styles.serviceRow}>
             <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(request.valet ? theme.primary : theme.textSecondary, '20') }]}>
               <DDIcon name="truck" size={18} color={request.valet ? theme.primary : theme.textSecondary} />
             </View>
-            <View style={styles.serviceInfo}>
-              <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
-                {t('services.valet')}
-              </ThemedText>
+            <View style={[styles.serviceInfo, { flex: 1 }]}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+                  {t('services.valet')}
+                </ThemedText>
+                {request.valet?.status ? (
+                  <StatusBadge
+                    label={formatServiceStatus(request.valet.status)}
+                    variant={getServiceStatusVariant(request.valet.status)}
+                    size="sm"
+                  />
+                ) : null}
+              </View>
               {request.valet ? (
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
                   {request.valet.driver ? `${t('navigation.drivers')}: ${request.valet.driver.name}` : t('status.pending')}
@@ -429,14 +489,24 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
           </View>
           <Spacer height={Spacing.lg} />
 
+          {/* Buffet */}
           <View style={styles.serviceRow}>
             <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(request.buffet ? theme.warning : theme.textSecondary, '20') }]}>
               <DDIcon name="coffee" size={18} color={request.buffet ? theme.warning : theme.textSecondary} />
             </View>
-            <View style={styles.serviceInfo}>
-              <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
-                {t('services.buffet')}
-              </ThemedText>
+            <View style={[styles.serviceInfo, { flex: 1 }]}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+                  {t('services.buffet')}
+                </ThemedText>
+                {request.buffet?.status ? (
+                  <StatusBadge
+                    label={formatServiceStatus(request.buffet.status)}
+                    variant={getServiceStatusVariant(request.buffet.status)}
+                    size="sm"
+                  />
+                ) : null}
+              </View>
               {request.buffet && request.buffet.mealType ? (
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
                   {request.buffet.location} ({request.buffet.mealType.charAt(0).toUpperCase() + request.buffet.mealType.slice(1)})
