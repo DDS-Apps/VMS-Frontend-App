@@ -1208,37 +1208,6 @@ export default function RequestDetailsScreen({
           )}
         </View>
 
-        <Spacer height={Spacing.md} />
-
-        <ThemedText
-          style={[
-            Typography.caption,
-            { color: theme.textSecondary, textAlign: "center", fontSize: 12 },
-          ]}
-        >
-          {t("invitation.shareQrCodeDescription")}
-        </ThemedText>
-
-        <Spacer height={Spacing.xl} />
-
-        <Pressable
-          style={[styles.shareButtonNew, { backgroundColor: theme.primary }]}
-        >
-          <DDIcon name="share-2" size={18} color={theme.buttonText} />
-          <ThemedText
-            style={[
-              Typography.body,
-              {
-                color: theme.buttonText,
-                marginStart: Spacing.sm,
-                fontWeight: "600",
-                fontSize: 14,
-              },
-            ]}
-          >
-            {t("invitation.shareQrCode")}
-          </ThemedText>
-        </Pressable>
       </ThemedView>
 
       <Spacer height={Spacing.xl} />
