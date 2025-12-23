@@ -178,6 +178,18 @@ export default function RequestDetailsScreen({
     return mapVisitDetailsToVisitorRequest(visitData);
   }, [visitData]);
 
+  const isTerminalStatus = useMemo(() => {
+    if (!request) return false;
+    const terminalStatuses = [
+      REQUEST_STATUS.COMPLETED,
+      REQUEST_STATUS.CANCELLED,
+      REQUEST_STATUS.REJECTED,
+      REQUEST_STATUS.VISITOR_REJECTED,
+      REQUEST_STATUS.AUTO_CANCELLED,
+    ];
+    return terminalStatuses.includes(request.status as any);
+  }, [request]);
+
   const scrollContentStyle = {
     paddingHorizontal: Spacing.xl,
     paddingTop: insets.top + Spacing.xl,
@@ -262,6 +274,7 @@ export default function RequestDetailsScreen({
   };
 
   const handleCancelRequest = () => {
+    if (isTerminalStatus) return;
     cancelMutation.mutate(requestId, {
       onSuccess: () => {
         setShowCancelModal(false);
@@ -397,7 +410,7 @@ export default function RequestDetailsScreen({
   };
 
   const openEditModal = (mode: "full" | "services-only" = "full") => {
-    if (!visitData) return;
+    if (!visitData || isTerminalStatus) return;
 
     setIsApprovalFlow(false);
     setEditModalMode(mode);
@@ -1360,12 +1373,14 @@ export default function RequestDetailsScreen({
         </>
       ) : null}
 
-      {/* Show Edit and Cancel buttons - hidden only for specific statuses */}
+      {/* Show Edit and Cancel buttons - hidden for terminal statuses */}
       {request.status !== REQUEST_STATUS.PENDING_HOST_APPROVAL &&
        request.status !== REQUEST_STATUS.PENDING_APPROVAL &&
        request.status !== REQUEST_STATUS.COMPLETED &&
        request.status !== REQUEST_STATUS.CANCELLED &&
-       request.status !== REQUEST_STATUS.REJECTED ? (
+       request.status !== REQUEST_STATUS.REJECTED &&
+       request.status !== REQUEST_STATUS.VISITOR_REJECTED &&
+       request.status !== REQUEST_STATUS.AUTO_CANCELLED ? (
         <>
           <View style={styles.actionButtonsRow}>
             <Pressable
