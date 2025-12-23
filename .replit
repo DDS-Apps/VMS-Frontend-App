@@ -98,4 +98,4 @@ value = "0"
 [userenv]
 
 [userenv.shared]
-EXPO_PUBLIC_VMS_API_BASE_URL = "https://vms-backend-folio3.replit.app/api"
+EXPO_PUBLIC_VMS_API_BASE_URL = "https://b4ba7f88-2197-4a63-950a-28e79dda3bbd-00-2mahxxjomcww2.worf.replit.dev/api"
