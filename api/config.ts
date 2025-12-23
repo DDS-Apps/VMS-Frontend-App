@@ -1,8 +1,11 @@
 import Constants from "expo-constants";
 
-const API_BASE_URL =
+const RAW_API_BASE_URL =
   Constants.expoConfig?.extra?.apiBaseUrl ||
-  process.env.EXPO_PUBLIC_VMS_API_BASE_URL;
+  process.env.EXPO_PUBLIC_VMS_API_BASE_URL || '';
+
+// Normalize: remove trailing /api or /api/ to avoid duplicate paths
+const API_BASE_URL = RAW_API_BASE_URL.replace(/\/api\/?$/, '');
 
 export const apiConfig = {
   baseUrl: API_BASE_URL,
