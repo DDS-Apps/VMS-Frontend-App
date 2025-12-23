@@ -289,14 +289,49 @@ export default function AllRequestsScreen() {
     { id: 'valet', label: t('services.valet'), icon: 'navigation' },
   ];
 
-  const statusFilters: { id: StatusFilter; label: string }[] = [
-    { id: 'all', label: t('common.all') },
-    { id: 'pending', label: t('status.pending') },
-    { id: 'approved', label: t('status.approved') },
-    { id: 'in_progress', label: t('status.inProgress') },
-    { id: 'completed', label: t('status.completed') },
-    { id: 'cancelled', label: t('status.cancelled') },
-  ];
+  const getStatusFiltersForType = useCallback((type: RequestFilter): { id: StatusFilter; label: string }[] => {
+    const baseFilters: { id: StatusFilter; label: string }[] = [
+      { id: 'all', label: t('common.all') },
+      { id: 'pending', label: t('status.pending') },
+    ];
+
+    switch (type) {
+      case 'visitor':
+        return [
+          ...baseFilters,
+          { id: 'approved', label: t('status.approved') },
+          { id: 'in_progress', label: t('status.checkedIn') },
+          { id: 'completed', label: t('status.checkedOut') },
+          { id: 'rejected', label: t('status.rejected') },
+        ];
+      case 'buffet':
+        return [
+          ...baseFilters,
+          { id: 'approved', label: t('status.confirmed') },
+          { id: 'in_progress', label: t('status.preparing') },
+          { id: 'completed', label: t('status.delivered') },
+          { id: 'cancelled', label: t('status.cancelled') },
+        ];
+      case 'valet':
+        return [
+          ...baseFilters,
+          { id: 'approved', label: t('status.assigned') },
+          { id: 'in_progress', label: t('status.inProgress') },
+          { id: 'completed', label: t('status.completed') },
+          { id: 'cancelled', label: t('status.cancelled') },
+        ];
+      default:
+        return [
+          ...baseFilters,
+          { id: 'approved', label: t('status.approved') },
+          { id: 'in_progress', label: t('status.inProgress') },
+          { id: 'completed', label: t('status.completed') },
+          { id: 'cancelled', label: t('status.cancelled') },
+        ];
+    }
+  }, [t]);
+
+  const statusFilters = useMemo(() => getStatusFiltersForType(typeFilter), [getStatusFiltersForType, typeFilter]);
 
   const handleStatPress = (filter: StatusFilter) => {
     setStatusFilter(statusFilter === filter ? 'all' : filter);

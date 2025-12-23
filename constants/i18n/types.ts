@@ -393,6 +393,8 @@ export interface TranslationKeys {
     preparing: string;
     ready: string;
     served: string;
+    confirmed: string;
+    delivered: string;
     selectStatus: string;
   };
   actions: {

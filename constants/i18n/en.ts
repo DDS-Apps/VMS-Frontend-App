@@ -374,6 +374,8 @@ export const en: TranslationKeys = {
     preparing: 'Preparing',
     ready: 'Ready',
     served: 'Served',
+    confirmed: 'Confirmed',
+    delivered: 'Delivered',
     scheduled: 'Scheduled',
     checkedIn: 'Checked In',
     checkedOut: 'Checked Out',

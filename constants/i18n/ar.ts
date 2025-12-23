@@ -374,6 +374,8 @@ export const ar: TranslationKeys = {
     preparing: 'قيد التحضير',
     ready: 'جاهز',
     served: 'تم التقديم',
+    confirmed: 'مؤكد',
+    delivered: 'تم التوصيل',
     scheduled: 'مجدول',
     checkedIn: 'تم التسجيل',
     checkedOut: 'تم الخروج',
