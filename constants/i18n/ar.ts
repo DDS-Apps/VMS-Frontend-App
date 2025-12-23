@@ -716,6 +716,7 @@ export const ar: TranslationKeys = {
     noRoomsAvailableForTime: 'لا توجد غرفة اجتماعات متاحة لهذا الوقت. الرجاء اختيار وقت مختلف.',
     pastTimeNotAllowed: 'لا يمكن اختيار وقت في الماضي',
     endTimeBeforeStartTime: 'وقت الانتهاء يجب أن يكون بعد وقت البدء',
+    endTimeMustBeLater: 'وقت الانتهاء يجب أن يكون بعد الوقت الحالي',
     connectionError: 'خطأ في الاتصال',
     serverUnavailable: 'تعذر الاتصال بالخادم. يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.',
   },

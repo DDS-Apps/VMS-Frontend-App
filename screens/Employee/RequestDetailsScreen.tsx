@@ -304,6 +304,13 @@ export default function RequestDetailsScreen({
             const channels = (visitData.communicationChannels || []).map(c => c.toLowerCase());
             setEditSendWhatsApp(channels.includes('whatsapp'));
             setEditSendSMS(channels.includes('sms'));
+            
+            // For walk-in approval, set end time to current time + 1 hour
+            if (visitData.isWalkIn) {
+              const now = new Date();
+              const defaultEndTime = new Date(now.getTime() + 60 * 60 * 1000); // 1 hour from now
+              setEditEndTime(defaultEndTime);
+            }
           }
           setIsApprovalFlow(true);
           setEditModalMode("services-only");
@@ -495,6 +502,30 @@ export default function RequestDetailsScreen({
   const isEditEndTimeBeforeStartTime = (): boolean => {
     return editEndTime.getTime() <= editTime.getTime();
   };
+  
+  const isWalkInEndTimeBeforeNow = (): boolean => {
+    return editEndTime.getTime() <= new Date().getTime();
+  };
+  
+  const calculateWalkInDuration = (): string => {
+    const now = new Date();
+    const endMs = editEndTime.getTime();
+    const diffMs = endMs - now.getTime();
+    
+    if (diffMs <= 0) return "--";
+    
+    const diffMinutes = Math.round(diffMs / (1000 * 60));
+    const hours = Math.floor(diffMinutes / 60);
+    const minutes = diffMinutes % 60;
+    
+    if (hours === 0) {
+      return `${toLocalNumerals(String(minutes))} ${t("time.min")}`;
+    } else if (minutes === 0) {
+      return `${toLocalNumerals(String(hours))} ${hours === 1 ? t("time.hour") : t("time.hours")}`;
+    } else {
+      return `${toLocalNumerals(String(hours))}${t("time.hourShort")} ${toLocalNumerals(String(minutes))}${t("time.minShort")}`;
+    }
+  };
 
   const handleEditDateChange = (
     event: DateTimePickerEvent,
@@ -565,11 +596,36 @@ export default function RequestDetailsScreen({
       if (hours === 0 && minutes === 0) isoDuration = "PT0M";
       payload.duration = isoDuration;
     } else if (editModalMode === "services-only" && visitData) {
-      // Services-only mode (walk-in): include existing schedule fields from visitData
-      // Backend requires these fields even when only updating services
-      payload.visitDate = visitData.visitDate || formatDateForApi(new Date());
-      payload.visitTime = visitData.visitTime || formatTimeForApi(new Date());
-      payload.duration = visitData.duration || "PT1H";
+      // Services-only mode
+      if (isApprovalFlow && visitData.isWalkIn) {
+        // Walk-in approval: validate end time is after current time
+        if (isWalkInEndTimeBeforeNow()) {
+          Alert.alert(t("errors.validation"), t("errors.endTimeMustBeLater"));
+          return;
+        }
+        
+        // Use current time as start time for walk-in
+        const now = new Date();
+        payload.visitDate = formatDateForApi(now);
+        payload.visitTime = formatTimeForApi(now);
+        
+        // Calculate duration from now to selected end time
+        const endMs = editEndTime.getTime();
+        const diffMs = endMs - now.getTime();
+        const diffMinutes = Math.max(0, Math.round(diffMs / (1000 * 60)));
+        const hours = Math.floor(diffMinutes / 60);
+        const minutes = diffMinutes % 60;
+        let isoDuration = "PT";
+        if (hours > 0) isoDuration += `${hours}H`;
+        if (minutes > 0) isoDuration += `${minutes}M`;
+        if (hours === 0 && minutes === 0) isoDuration = "PT0M";
+        payload.duration = isoDuration;
+      } else {
+        // Non-walk-in services-only edit: use existing schedule fields
+        payload.visitDate = visitData.visitDate || formatDateForApi(new Date());
+        payload.visitTime = visitData.visitTime || formatTimeForApi(new Date());
+        payload.duration = visitData.duration || "PT1H";
+      }
     }
 
     console.log(
@@ -1783,6 +1839,66 @@ export default function RequestDetailsScreen({
                 </ThemedText>
                 <DDIcon name="chevron-down" size={16} variant="muted" />
               </Pressable>
+
+              {/* Walk-in approval: End Time picker (mandatory) */}
+              {isApprovalFlow && visitData?.isWalkIn ? (
+                <>
+                  <Spacer height={Spacing.lg} />
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      { color: theme.textSecondary, fontSize: 12, marginBottom: 8 },
+                    ]}
+                  >
+                    {t("form.endTime")} *
+                  </ThemedText>
+                  <Pressable
+                    style={[
+                      styles.pickerButton,
+                      {
+                        backgroundColor: theme.surfaceSecondary,
+                        borderColor: isWalkInEndTimeBeforeNow() ? theme.error : theme.border,
+                      },
+                    ]}
+                    onPress={() => setShowEditEndTimePicker(true)}
+                  >
+                    <DDIcon name="clock" size={16} color={isWalkInEndTimeBeforeNow() ? theme.error : theme.textSecondary} />
+                    <ThemedText
+                      style={[
+                        Typography.body,
+                        {
+                          marginStart: Spacing.sm,
+                          color: isWalkInEndTimeBeforeNow() ? theme.error : theme.text,
+                          fontSize: 14,
+                          flex: 1,
+                        },
+                      ]}
+                    >
+                      {formatDisplayTime(editEndTime)}
+                    </ThemedText>
+                    <DDIcon name="chevron-down" size={16} variant="muted" />
+                  </Pressable>
+                  {isWalkInEndTimeBeforeNow() ? (
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.error, marginTop: Spacing.xs, fontSize: 11 },
+                      ]}
+                    >
+                      {t("errors.endTimeMustBeLater")}
+                    </ThemedText>
+                  ) : (
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.textSecondary, marginTop: Spacing.xs, fontSize: 11 },
+                      ]}
+                    >
+                      {t("form.duration")}: {calculateWalkInDuration()}
+                    </ThemedText>
+                  )}
+                </>
+              ) : null}
 
               {editModalMode === "full" ? (
                 <>

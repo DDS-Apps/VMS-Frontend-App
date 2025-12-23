@@ -716,6 +716,7 @@ export const en: TranslationKeys = {
     noRoomsAvailableForTime: 'No meeting room available for this time. Please select a different time.',
     pastTimeNotAllowed: 'Cannot select a time in the past',
     endTimeBeforeStartTime: 'End time must be after start time',
+    endTimeMustBeLater: 'End time must be later than current time',
     connectionError: 'Connection Error',
     serverUnavailable: 'Unable to connect to server. Please check your internet connection and try again.',
   },

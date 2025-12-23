@@ -716,6 +716,7 @@ export interface TranslationKeys {
     noRoomsAvailableForTime: string;
     pastTimeNotAllowed: string;
     endTimeBeforeStartTime: string;
+    endTimeMustBeLater: string;
     connectionError: string;
     serverUnavailable: string;
   };
