@@ -769,6 +769,27 @@ export default function DashboardContainer({ userRole, userName, userPhotoUrl, a
                 </ScreenWrapper>
               )}
             </Stack.Screen>
+            <Stack.Screen name="ManagerApprovalDetail">
+              {(props) => (
+                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
+                  <ManagerApprovalDetailScreen {...props} />
+                </ScreenWrapper>
+              )}
+            </Stack.Screen>
+            <Stack.Screen name="BuffetRequestDetails">
+              {(props) => (
+                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
+                  <BuffetRequestDetailsScreen {...props} />
+                </ScreenWrapper>
+              )}
+            </Stack.Screen>
+            <Stack.Screen name="ValetTaskDetail">
+              {(props) => (
+                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
+                  <ValetTaskDetailScreen {...props} />
+                </ScreenWrapper>
+              )}
+            </Stack.Screen>
           </>
         )}
         {userRole === 'valet_driver' && (

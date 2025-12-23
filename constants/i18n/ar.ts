@@ -1292,6 +1292,8 @@ export const ar: TranslationKeys = {
   requests: {
     tryDifferentFilters: 'جرب تعديل الفلاتر لرؤية المزيد من النتائج',
     selectDate: 'اختر التاريخ',
+    viewOnlyMode: 'هذا الطلب للعرض فقط. المعلومات التفصيلية متاحة لطلبات الزوار.',
+    noAccessToData: 'ليس لديك صلاحية للوصول إلى هذه البيانات. تواصل مع مسؤول النظام للحصول على الصلاحية.',
   },
   approvals: {
     confirmApprove: 'هل أنت متأكد من الموافقة على هذا الطلب؟',

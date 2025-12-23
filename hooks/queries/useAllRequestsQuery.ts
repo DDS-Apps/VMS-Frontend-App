@@ -13,8 +13,8 @@ import type {
 } from '@/types/api.types';
 import type { UserRole } from '@/types/vms.types';
 
-const ROLES_WITH_BUFFET_ACCESS: UserRole[] = ['buffet_admin'];
-const ROLES_WITH_VALET_ACCESS: UserRole[] = ['valet_admin'];
+const ROLES_WITH_BUFFET_ACCESS: UserRole[] = ['buffet_admin', 'building_admin'];
+const ROLES_WITH_VALET_ACCESS: UserRole[] = ['valet_admin', 'building_admin'];
 
 export type UnifiedRequestType = 'visitor' | 'buffet' | 'valet';
 export type UnifiedStatus = 'pending' | 'approved' | 'in_progress' | 'completed' | 'cancelled' | 'rejected';

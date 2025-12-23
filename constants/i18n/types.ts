@@ -1292,6 +1292,8 @@ export interface TranslationKeys {
   requests: {
     tryDifferentFilters: string;
     selectDate: string;
+    viewOnlyMode: string;
+    noAccessToData: string;
   };
   approvals: {
     confirmApprove: string;

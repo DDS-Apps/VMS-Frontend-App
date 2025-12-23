@@ -1292,6 +1292,8 @@ export const en: TranslationKeys = {
   requests: {
     tryDifferentFilters: 'Try adjusting your filters to see more results',
     selectDate: 'Select Date',
+    viewOnlyMode: 'This request is view-only. Detailed information is available for visitor requests.',
+    noAccessToData: 'You do not have access to view this data. Contact your administrator for access.',
   },
   approvals: {
     confirmApprove: 'Are you sure you want to approve this request?',
