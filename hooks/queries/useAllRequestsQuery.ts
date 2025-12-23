@@ -2,6 +2,7 @@ import { useQueries } from '@tanstack/react-query';
 import { requestApiService } from '@/services/requestApiService';
 import { buffetApiService } from '@/services/buffetApiService';
 import { valetApiService } from '@/services/valetApiService';
+import { useAuth } from '@/contexts/AuthContext';
 import type { 
   VisitListItemDto, 
   VisitListParams,
@@ -10,6 +11,10 @@ import type {
   ValetTaskDto,
   ListValetTasksParams,
 } from '@/types/api.types';
+import type { UserRole } from '@/types/vms.types';
+
+const ROLES_WITH_BUFFET_ACCESS: UserRole[] = ['buffet_admin'];
+const ROLES_WITH_VALET_ACCESS: UserRole[] = ['valet_admin'];
 
 export type UnifiedRequestType = 'visitor' | 'buffet' | 'valet';
 export type UnifiedStatus = 'pending' | 'approved' | 'in_progress' | 'completed' | 'cancelled' | 'rejected';
@@ -182,7 +187,12 @@ export interface AllRequestsFilters {
 }
 
 export function useAllRequestsQuery(filters: AllRequestsFilters = {}) {
+  const { user } = useAuth();
   const { type = 'all', status = 'all', startDate, endDate } = filters;
+  const userRole = user?.role;
+
+  const hasBuffetAccess = userRole ? ROLES_WITH_BUFFET_ACCESS.includes(userRole) : false;
+  const hasValetAccess = userRole ? ROLES_WITH_VALET_ACCESS.includes(userRole) : false;
 
   const visitParams: VisitListParams = {
     limit: 100,
@@ -199,8 +209,8 @@ export function useAllRequestsQuery(filters: AllRequestsFilters = {}) {
   };
 
   const shouldFetchVisits = type === 'all' || type === 'visitor';
-  const shouldFetchBuffet = type === 'all' || type === 'buffet';
-  const shouldFetchValet = type === 'all' || type === 'valet';
+  const shouldFetchBuffet = (type === 'all' || type === 'buffet') && hasBuffetAccess;
+  const shouldFetchValet = (type === 'all' || type === 'valet') && hasValetAccess;
 
   const results = useQueries({
     queries: [
@@ -209,18 +219,21 @@ export function useAllRequestsQuery(filters: AllRequestsFilters = {}) {
         queryFn: () => requestApiService.listVisits(visitParams),
         enabled: shouldFetchVisits,
         staleTime: 30 * 1000,
+        retry: false,
       },
       {
         queryKey: ['all-requests', 'buffet-admin-tasks', buffetParams],
         queryFn: () => buffetApiService.getBuffetAdminTasks(buffetParams),
         enabled: shouldFetchBuffet,
         staleTime: 30 * 1000,
+        retry: false,
       },
       {
         queryKey: ['all-requests', 'valet-admin-tasks', valetParams],
         queryFn: () => valetApiService.listTasks(valetParams),
         enabled: shouldFetchValet,
         staleTime: 30 * 1000,
+        retry: false,
       },
     ],
   });

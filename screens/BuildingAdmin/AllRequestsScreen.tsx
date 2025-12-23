@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { View, StyleSheet, Pressable, ScrollView, RefreshControl, ActivityIndicator, Modal, TextInput, Alert, Platform } from 'react-native';
 import { DDIcon, IconName } from '@/components/DDIcon';
 import { ScreenScrollView } from '@/components/ScreenScrollView';
@@ -12,6 +12,7 @@ import { Spacing, BorderRadius, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useFormatters } from '@/hooks/useFormatters';
+import { useAuth } from '@/contexts/AuthContext';
 import { applyOpacity } from '@/utils/statusStyles';
 import { 
   useAllRequestsQuery,
@@ -26,6 +27,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import type { Theme } from '@/types/theme.types';
 import type { VisitListItemDto, BuffetAdminTaskDto, ValetTaskDto } from '@/types/api.types';
 import { BuffetRequestStatus, ValetAssignmentStatus } from '@/types/api.types';
+import type { UserRole } from '@/types/vms.types';
 
 const LAYOUT = {
   cardPadding: Spacing.lg,
@@ -240,13 +242,21 @@ function LoadingSkeleton({ theme }: { theme: Theme }) {
   );
 }
 
+const ROLES_WITH_BUFFET_ACCESS: UserRole[] = ['buffet_admin'];
+const ROLES_WITH_VALET_ACCESS: UserRole[] = ['valet_admin'];
+
 export default function AllRequestsScreen() {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { formatDate, formatTimeFromString } = useFormatters();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
+  const userRole = user?.role;
   
-  const [typeFilter, setTypeFilter] = useState<RequestFilter>('all');
+  const hasBuffetAccess = userRole ? ROLES_WITH_BUFFET_ACCESS.includes(userRole) : false;
+  const hasValetAccess = userRole ? ROLES_WITH_VALET_ACCESS.includes(userRole) : false;
+  
+  const [typeFilter, setTypeFilter] = useState<RequestFilter>('visitor');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -282,12 +292,25 @@ export default function AllRequestsScreen() {
     queryClient.invalidateQueries({ queryKey: ['pending-approvals'] });
   }, [queryClient]);
 
-  const typeFilters: { id: RequestFilter; label: string; icon: IconName }[] = [
-    { id: 'all', label: t('common.all'), icon: 'layers' },
-    { id: 'visitor', label: t('visitor.expectedVisitors'), icon: 'users' },
-    { id: 'buffet', label: t('services.buffet'), icon: 'cloche' },
-    { id: 'valet', label: t('services.valet'), icon: 'navigation' },
-  ];
+  const typeFilters = useMemo(() => {
+    const filters: { id: RequestFilter; label: string; icon: IconName }[] = [
+      { id: 'visitor', label: t('visitor.expectedVisitors'), icon: 'users' },
+    ];
+    if (hasBuffetAccess) {
+      filters.push({ id: 'buffet', label: t('services.buffet'), icon: 'cloche' });
+    }
+    if (hasValetAccess) {
+      filters.push({ id: 'valet', label: t('services.valet'), icon: 'navigation' });
+    }
+    return filters;
+  }, [t, hasBuffetAccess, hasValetAccess]);
+
+  useEffect(() => {
+    const validFilterIds = typeFilters.map(f => f.id);
+    if (!validFilterIds.includes(typeFilter)) {
+      setTypeFilter(validFilterIds[0] || 'visitor');
+    }
+  }, [typeFilters, typeFilter]);
 
   const getStatusFiltersForType = useCallback((type: RequestFilter): { id: StatusFilter; label: string }[] => {
     const baseFilters: { id: StatusFilter; label: string }[] = [
