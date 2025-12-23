@@ -342,6 +342,7 @@ export const ar: TranslationKeys = {
     building: 'المبنى',
   },
   services: {
+    visitor: 'زائر',
     meetingRoom: 'غرفة اجتماعات',
     needsMeetingRoom: 'يحتاج غرفة اجتماعات',
     parking: 'موقف سيارات',
@@ -1285,5 +1286,18 @@ export const ar: TranslationKeys = {
     details: 'تفاصيل الطلب',
     status: 'حالة الطلب',
     history: 'سجل الطلب',
+  },
+  requests: {
+    tryDifferentFilters: 'جرب تعديل الفلاتر لرؤية المزيد من النتائج',
+    selectDate: 'اختر التاريخ',
+  },
+  approvals: {
+    confirmApprove: 'هل أنت متأكد من الموافقة على هذا الطلب؟',
+    enterRejectReason: 'يرجى تقديم سبب الرفض.',
+    rejectReasonPlaceholder: 'أدخل سبب الرفض...',
+    approved: 'تمت الموافقة على الطلب.',
+    rejected: 'تم رفض الطلب.',
+    approvalSuccess: 'تمت الموافقة على الطلب بنجاح.',
+    rejectionSuccess: 'تم رفض الطلب بنجاح.',
   },
 };

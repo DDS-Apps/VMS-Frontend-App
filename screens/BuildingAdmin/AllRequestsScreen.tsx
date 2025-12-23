@@ -1,21 +1,31 @@
-import React, { useState, useCallback } from 'react';
-import { View, StyleSheet, Pressable, ScrollView, Modal } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import React, { useState, useCallback, useMemo } from 'react';
+import { View, StyleSheet, Pressable, ScrollView, RefreshControl, ActivityIndicator, Modal, TextInput, Alert, Platform } from 'react-native';
 import { DDIcon, IconName } from '@/components/DDIcon';
 import { ScreenScrollView } from '@/components/ScreenScrollView';
 import { SearchInput } from '@/components/SearchInput';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import Spacer from '@/components/Spacer';
+import { EmptyState } from '@/components/shared/EmptyState';
+import { CalendarDatePicker } from '@/components/CalendarDatePicker';
 import { Spacing, BorderRadius, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useFormatters } from '@/hooks/useFormatters';
 import { applyOpacity } from '@/utils/statusStyles';
 import { 
-  getAllRequests,
-  RequestSummary,
-} from '@/services/mock/buildingAdminState';
+  useAllRequestsQuery,
+  type UnifiedRequest,
+  type UnifiedRequestType,
+  type UnifiedStatus,
+} from '@/hooks/queries/useAllRequestsQuery';
+import { useApproveVisitMutation, useRejectVisitMutation } from '@/hooks/queries/useApprovalQueries';
+import { useUpdateBuffetRequestMutation } from '@/hooks/queries/useBuffetQueries';
+import { useUpdateValetAssignmentMutation } from '@/hooks/queries/useValetQueries';
+import { useQueryClient } from '@tanstack/react-query';
 import type { Theme } from '@/types/theme.types';
+import type { InvitationDto, BuffetRequestDto, ValetAssignmentDto } from '@/types/api.types';
+import { BuffetRequestStatus, ValetAssignmentStatus } from '@/types/api.types';
 
 const LAYOUT = {
   cardPadding: Spacing.lg,
@@ -23,42 +33,96 @@ const LAYOUT = {
   contentGap: Spacing.md,
 };
 
-type RequestFilter = 'all' | 'visitor' | 'buffet' | 'valet';
-type StatusFilter = 'all' | 'pending' | 'approved' | 'in_progress' | 'completed' | 'cancelled';
+type RequestFilter = UnifiedRequestType | 'all';
+type StatusFilter = UnifiedStatus | 'all';
 
-const getTypeColor = (type: RequestSummary['type'], theme: Theme) => {
+const getTypeIcon = (type: UnifiedRequestType): IconName => {
+  switch (type) {
+    case 'visitor': return 'users';
+    case 'buffet': return 'cloche';
+    case 'valet': return 'navigation';
+    default: return 'layers';
+  }
+};
+
+const getTypeColor = (type: UnifiedRequestType, theme: Theme) => {
   switch (type) {
     case 'visitor': return theme.primary;
     case 'buffet': return '#FF6B35';
     case 'valet': return '#6366F1';
-    case 'walk_in': return theme.info;
     default: return theme.textSecondary;
   }
 };
 
-const getStatusColor = (status: string, theme: Theme) => {
-  if (status === 'approved' || status === 'completed') return theme.success;
-  if (status === 'pending' || status === 'pending_approval' || status === 'in_progress') return theme.warning;
-  if (status === 'rejected' || status === 'cancelled') return theme.error;
-  return theme.textSecondary;
+const getStatusColor = (status: UnifiedStatus, theme: Theme) => {
+  switch (status) {
+    case 'approved': return theme.success;
+    case 'completed': return theme.success;
+    case 'pending': return theme.warning;
+    case 'in_progress': return theme.info;
+    case 'rejected': return theme.error;
+    case 'cancelled': return theme.error;
+    default: return theme.textSecondary;
+  }
 };
 
-const formatStatus = (status: string) => {
-  return status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+const getStatusLabel = (status: UnifiedStatus, t: (key: string) => string) => {
+  switch (status) {
+    case 'pending': return t('status.pending');
+    case 'approved': return t('status.approved');
+    case 'in_progress': return t('status.inProgress');
+    case 'completed': return t('status.completed');
+    case 'cancelled': return t('status.cancelled');
+    case 'rejected': return t('status.rejected');
+    default: return status;
+  }
 };
 
-interface RequestCardProps {
-  request: RequestSummary;
+interface StatCardProps {
+  value: number;
+  label: string;
+  color: string;
+  isActive: boolean;
   onPress: () => void;
-  onApprove?: () => void;
-  onCancel?: () => void;
   theme: Theme;
-  t: (key: string) => string;
 }
 
-function RequestCard({ request, onPress, onApprove, onCancel, theme, t }: RequestCardProps) {
+function StatCard({ value, label, color, isActive, onPress, theme }: StatCardProps) {
+  return (
+    <Pressable 
+      onPress={onPress}
+      style={[
+        styles.statCard, 
+        { 
+          backgroundColor: isActive ? applyOpacity(color, '20') : applyOpacity(color, '08'),
+          borderWidth: isActive ? 2 : 0,
+          borderColor: isActive ? color : 'transparent',
+        }
+      ]}
+    >
+      <ThemedText style={[styles.statValue, { color }]}>{value}</ThemedText>
+      <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]} numberOfLines={1}>
+        {label}
+      </ThemedText>
+    </Pressable>
+  );
+}
+
+interface RequestCardProps {
+  request: UnifiedRequest;
+  onPress: () => void;
+  onApprove?: () => void;
+  onReject?: () => void;
+  theme: Theme;
+  t: (key: string) => string;
+  formatDate: (date: string | Date) => string;
+  formatTimeFromString: (time: string) => string;
+}
+
+function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDate, formatTimeFromString }: RequestCardProps) {
   const typeColor = getTypeColor(request.type, theme);
   const statusColor = getStatusColor(request.status, theme);
+  const typeIcon = getTypeIcon(request.type);
 
   return (
     <Pressable onPress={onPress}>
@@ -68,22 +132,15 @@ function RequestCard({ request, onPress, onApprove, onCancel, theme, t }: Reques
         <View style={styles.cardContent}>
           <View style={styles.cardHeader}>
             <View style={[styles.typeBadge, { backgroundColor: applyOpacity(typeColor, '12') }]}>
-              <DDIcon 
-                name={
-                  request.type === 'visitor' ? 'user' : 
-                  request.type === 'buffet' ? 'disc' : 
-                  request.type === 'valet' ? 'navigation' : 'user-plus'
-                } 
-                size={12} 
-                color={typeColor} 
-              />
+              <DDIcon name={typeIcon} size={12} color={typeColor} />
               <ThemedText style={[styles.typeBadgeText, { color: typeColor }]}>
-                {request.type.charAt(0).toUpperCase() + request.type.slice(1)}
+                {request.type === 'visitor' ? t('services.visitor') : 
+                 request.type === 'buffet' ? t('services.buffet') : t('services.valet')}
               </ThemedText>
             </View>
             <View style={[styles.statusBadge, { backgroundColor: applyOpacity(statusColor, '12'), borderColor: statusColor }]}>
               <ThemedText style={[styles.statusText, { color: statusColor }]}>
-                {formatStatus(request.status)}
+                {getStatusLabel(request.status, t)}
               </ThemedText>
             </View>
           </View>
@@ -103,13 +160,13 @@ function RequestCard({ request, onPress, onApprove, onCancel, theme, t }: Reques
             <View style={styles.detailItem}>
               <DDIcon name="calendar" size={14} variant="muted" />
               <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
-                {request.date}
+                {formatDate(request.date)}
               </ThemedText>
             </View>
             <View style={styles.detailItem}>
               <DDIcon name="clock" size={14} variant="muted" />
               <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
-                {request.time}
+                {formatTimeFromString(request.time)}
               </ThemedText>
             </View>
           </View>
@@ -132,29 +189,29 @@ function RequestCard({ request, onPress, onApprove, onCancel, theme, t }: Reques
               <View style={styles.actionsRow}>
                 {request.canApprove ? (
                   <Pressable
-                    style={[styles.actionButton, { backgroundColor: applyOpacity(theme.success, '12') }]}
+                    style={[styles.approveButton, { backgroundColor: '#22C55E' }]}
                     onPress={(e) => {
                       e.stopPropagation();
                       onApprove?.();
                     }}
                   >
-                    <DDIcon name="check" size={14} color={theme.success} />
-                    <ThemedText style={[styles.actionButtonText, { color: theme.success }]}>
+                    <DDIcon name="check" size={14} color="#FFFFFF" />
+                    <ThemedText style={[styles.actionButtonText, { color: '#FFFFFF' }]}>
                       {t('actions.approve')}
                     </ThemedText>
                   </Pressable>
                 ) : null}
                 {request.canCancel ? (
                   <Pressable
-                    style={[styles.actionButton, { backgroundColor: applyOpacity(theme.error, '12') }]}
+                    style={[styles.rejectButton, { borderColor: theme.error }]}
                     onPress={(e) => {
                       e.stopPropagation();
-                      onCancel?.();
+                      onReject?.();
                     }}
                   >
                     <DDIcon name="x" size={14} color={theme.error} />
                     <ThemedText style={[styles.actionButtonText, { color: theme.error }]}>
-                      {t('common.cancel')}
+                      {t('actions.reject')}
                     </ThemedText>
                   </Pressable>
                 ) : null}
@@ -167,24 +224,67 @@ function RequestCard({ request, onPress, onApprove, onCancel, theme, t }: Reques
   );
 }
 
+function LoadingSkeleton({ theme }: { theme: Theme }) {
+  return (
+    <View style={styles.paddedContent}>
+      {[1, 2, 3].map((i) => (
+        <View key={i} style={[styles.skeletonCard, { backgroundColor: theme.surface }]}>
+          <View style={[styles.skeletonLine, { backgroundColor: applyOpacity(theme.textSecondary, '20'), width: '40%' }]} />
+          <Spacer height={Spacing.md} />
+          <View style={[styles.skeletonLine, { backgroundColor: applyOpacity(theme.textSecondary, '20'), width: '70%' }]} />
+          <Spacer height={Spacing.sm} />
+          <View style={[styles.skeletonLine, { backgroundColor: applyOpacity(theme.textSecondary, '20'), width: '50%' }]} />
+        </View>
+      ))}
+    </View>
+  );
+}
+
 export default function AllRequestsScreen() {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const [requests, setRequests] = useState<RequestSummary[]>([]);
+  const { formatDate, formatTimeFromString } = useFormatters();
+  const queryClient = useQueryClient();
+  
   const [typeFilter, setTypeFilter] = useState<RequestFilter>('all');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
+  const [selectedRequest, setSelectedRequest] = useState<UnifiedRequest | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
 
-  useFocusEffect(
-    useCallback(() => {
-      setRequests(getAllRequests());
-    }, [])
-  );
+  const filters = useMemo(() => ({
+    type: typeFilter,
+    status: statusFilter,
+    searchQuery,
+    startDate: selectedDate ? selectedDate.toISOString().split('T')[0] : undefined,
+  }), [typeFilter, statusFilter, searchQuery, selectedDate]);
+
+  const { data: requests, stats, isLoading, isFetching, isError, refetch } = useAllRequestsQuery(filters);
+  
+  const approveVisitMutation = useApproveVisitMutation();
+  const rejectVisitMutation = useRejectVisitMutation();
+  const updateBuffetMutation = useUpdateBuffetRequestMutation();
+  const updateValetMutation = useUpdateValetAssignmentMutation();
+
+  const handleRefresh = useCallback(() => {
+    refetch();
+  }, [refetch]);
+
+  const invalidateAllQueries = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['all-requests'] });
+    queryClient.invalidateQueries({ queryKey: ['invitations'] });
+    queryClient.invalidateQueries({ queryKey: ['buffet-requests'] });
+    queryClient.invalidateQueries({ queryKey: ['valet-assignments'] });
+  }, [queryClient]);
 
   const typeFilters: { id: RequestFilter; label: string; icon: IconName }[] = [
     { id: 'all', label: t('common.all'), icon: 'layers' },
     { id: 'visitor', label: t('visitor.expectedVisitors'), icon: 'users' },
-    { id: 'buffet', label: t('services.buffet'), icon: 'disc' },
+    { id: 'buffet', label: t('services.buffet'), icon: 'cloche' },
     { id: 'valet', label: t('services.valet'), icon: 'navigation' },
   ];
 
@@ -197,37 +297,155 @@ export default function AllRequestsScreen() {
     { id: 'cancelled', label: t('status.cancelled') },
   ];
 
-  const filteredRequests = requests.filter(r => {
-    if (typeFilter !== 'all' && r.type !== typeFilter) return false;
-    if (statusFilter !== 'all') {
-      if (statusFilter === 'pending' && r.status !== 'pending' && r.status !== 'pending_approval') return false;
-      if (statusFilter !== 'pending' && !r.status.includes(statusFilter)) return false;
-    }
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      return r.visitorName.toLowerCase().includes(query) || 
-             r.hostName.toLowerCase().includes(query);
-    }
-    return true;
-  });
-
-  const handleApprove = (request: RequestSummary) => {
-    console.log('Approve request:', request.id);
+  const handleStatPress = (filter: StatusFilter) => {
+    setStatusFilter(statusFilter === filter ? 'all' : filter);
   };
 
-  const handleCancel = (request: RequestSummary) => {
-    console.log('Cancel request:', request.id);
+  const handleApprove = useCallback(async (request: UnifiedRequest) => {
+    const confirmApprove = () => {
+      setActionLoading(true);
+      
+      if (request.type === 'visitor') {
+        const invitation = request.originalData as InvitationDto;
+        approveVisitMutation.mutate(
+          { id: invitation.id },
+          {
+            onSuccess: () => {
+              invalidateAllQueries();
+              setActionLoading(false);
+            },
+            onError: () => {
+              setActionLoading(false);
+            },
+          }
+        );
+      } else if (request.type === 'buffet') {
+        const buffet = request.originalData as BuffetRequestDto;
+        updateBuffetMutation.mutate(
+          { id: buffet.id, data: { status: BuffetRequestStatus.CONFIRMED } },
+          {
+            onSuccess: () => {
+              invalidateAllQueries();
+              setActionLoading(false);
+            },
+            onError: () => {
+              setActionLoading(false);
+            },
+          }
+        );
+      } else if (request.type === 'valet') {
+        const valet = request.originalData as ValetAssignmentDto;
+        updateValetMutation.mutate(
+          { id: valet.id, data: { status: ValetAssignmentStatus.ACCEPTED } },
+          {
+            onSuccess: () => {
+              invalidateAllQueries();
+              setActionLoading(false);
+            },
+            onError: () => {
+              setActionLoading(false);
+            },
+          }
+        );
+      }
+    };
+
+    if (Platform.OS === 'web') {
+      if (window.confirm(t('approvals.confirmApprove'))) {
+        confirmApprove();
+      }
+    } else {
+      Alert.alert(
+        t('actions.approve'),
+        t('approvals.confirmApprove'),
+        [
+          { text: t('common.cancel'), style: 'cancel' },
+          { text: t('actions.approve'), style: 'default', onPress: confirmApprove },
+        ]
+      );
+    }
+  }, [approveVisitMutation, updateBuffetMutation, updateValetMutation, invalidateAllQueries, t]);
+
+  const handleReject = useCallback((request: UnifiedRequest) => {
+    setSelectedRequest(request);
+    setRejectReason('');
+    setShowRejectModal(true);
+  }, []);
+
+  const confirmReject = useCallback(() => {
+    if (!selectedRequest || !rejectReason.trim()) return;
+    
+    setActionLoading(true);
+    
+    if (selectedRequest.type === 'visitor') {
+      const invitation = selectedRequest.originalData as InvitationDto;
+      rejectVisitMutation.mutate(
+        { id: invitation.id, payload: { reason: rejectReason } },
+        {
+          onSuccess: () => {
+            invalidateAllQueries();
+            setShowRejectModal(false);
+            setSelectedRequest(null);
+            setActionLoading(false);
+          },
+          onError: () => {
+            setActionLoading(false);
+          },
+        }
+      );
+    } else if (selectedRequest.type === 'buffet') {
+      const buffet = selectedRequest.originalData as BuffetRequestDto;
+      updateBuffetMutation.mutate(
+        { id: buffet.id, data: { status: BuffetRequestStatus.CANCELLED } },
+        {
+          onSuccess: () => {
+            invalidateAllQueries();
+            setShowRejectModal(false);
+            setSelectedRequest(null);
+            setActionLoading(false);
+          },
+          onError: () => {
+            setActionLoading(false);
+          },
+        }
+      );
+    } else if (selectedRequest.type === 'valet') {
+      const valet = selectedRequest.originalData as ValetAssignmentDto;
+      updateValetMutation.mutate(
+        { id: valet.id, data: { status: ValetAssignmentStatus.CANCELLED } },
+        {
+          onSuccess: () => {
+            invalidateAllQueries();
+            setShowRejectModal(false);
+            setSelectedRequest(null);
+            setActionLoading(false);
+          },
+          onError: () => {
+            setActionLoading(false);
+          },
+        }
+      );
+    }
+  }, [selectedRequest, rejectReason, rejectVisitMutation, updateBuffetMutation, updateValetMutation, invalidateAllQueries]);
+
+  const handleCardPress = (request: UnifiedRequest) => {
+    console.log('View details:', request.id, request.type);
   };
 
-  const stats = {
-    total: requests.length,
-    pending: requests.filter(r => r.status === 'pending' || r.status === 'pending_approval').length,
-    approved: requests.filter(r => r.status === 'approved').length,
-    completed: requests.filter(r => r.status === 'completed').length,
+  const clearDateFilter = () => {
+    setSelectedDate(null);
   };
 
   return (
-    <ScreenScrollView>
+    <ScreenScrollView
+      refreshControl={
+        <RefreshControl
+          refreshing={isFetching && !isLoading}
+          onRefresh={handleRefresh}
+          tintColor={theme.primary}
+        />
+      }
+    >
       <View style={styles.paddedContent}>
         <ThemedText style={Typography.title}>{t('navigation.allRequests')}</ThemedText>
         <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
@@ -237,31 +455,83 @@ export default function AllRequestsScreen() {
         <Spacer height={Spacing.lg} />
 
         <View style={styles.statsRow}>
-          <View style={[styles.statCard, { backgroundColor: applyOpacity(theme.primary, '08') }]}>
-            <ThemedText style={[styles.statValue, { color: theme.primary }]}>{stats.total}</ThemedText>
-            <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>{t('common.all')}</ThemedText>
-          </View>
-          <View style={[styles.statCard, { backgroundColor: applyOpacity(theme.warning, '08') }]}>
-            <ThemedText style={[styles.statValue, { color: theme.warning }]}>{stats.pending}</ThemedText>
-            <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>{t('status.pending')}</ThemedText>
-          </View>
-          <View style={[styles.statCard, { backgroundColor: applyOpacity(theme.success, '08') }]}>
-            <ThemedText style={[styles.statValue, { color: theme.success }]}>{stats.approved}</ThemedText>
-            <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>{t('status.approved')}</ThemedText>
-          </View>
-          <View style={[styles.statCard, { backgroundColor: applyOpacity(theme.info, '08') }]}>
-            <ThemedText style={[styles.statValue, { color: theme.info }]}>{stats.completed}</ThemedText>
-            <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>{t('common.done')}</ThemedText>
-          </View>
+          <StatCard
+            value={stats.total}
+            label={t('common.all')}
+            color={theme.primary}
+            isActive={statusFilter === 'all'}
+            onPress={() => handleStatPress('all')}
+            theme={theme}
+          />
+          <StatCard
+            value={stats.pending}
+            label={t('status.pending')}
+            color={theme.warning}
+            isActive={statusFilter === 'pending'}
+            onPress={() => handleStatPress('pending')}
+            theme={theme}
+          />
+          <StatCard
+            value={stats.approved}
+            label={t('status.approved')}
+            color={theme.success}
+            isActive={statusFilter === 'approved'}
+            onPress={() => handleStatPress('approved')}
+            theme={theme}
+          />
+          <StatCard
+            value={stats.completed}
+            label={t('common.done')}
+            color={theme.info}
+            isActive={statusFilter === 'completed'}
+            onPress={() => handleStatPress('completed')}
+            theme={theme}
+          />
         </View>
 
         <Spacer height={Spacing.lg} />
 
-        <SearchInput
-          placeholder={t('common.search')}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
+        <View style={styles.searchRow}>
+          <View style={styles.searchInputWrapper}>
+            <SearchInput
+              placeholder={t('common.search')}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+          </View>
+          <Pressable 
+            style={[
+              styles.dateFilterButton, 
+              { 
+                backgroundColor: selectedDate ? applyOpacity(theme.primary, '12') : theme.surface,
+                borderColor: selectedDate ? theme.primary : theme.border,
+              }
+            ]}
+            onPress={() => setShowDatePicker(true)}
+          >
+            <DDIcon 
+              name="calendar" 
+              size={18} 
+              color={selectedDate ? theme.primary : theme.textSecondary} 
+            />
+          </Pressable>
+        </View>
+
+        {selectedDate ? (
+          <>
+            <Spacer height={Spacing.sm} />
+            <Pressable 
+              style={[styles.dateChip, { backgroundColor: applyOpacity(theme.primary, '12') }]}
+              onPress={clearDateFilter}
+            >
+              <DDIcon name="calendar" size={14} color={theme.primary} />
+              <ThemedText style={[styles.dateChipText, { color: theme.primary }]}>
+                {formatDate(selectedDate.toISOString())}
+              </ThemedText>
+              <DDIcon name="x" size={14} color={theme.primary} />
+            </Pressable>
+          </>
+        ) : null}
       </View>
 
       <Spacer height={Spacing.md} />
@@ -335,42 +605,145 @@ export default function AllRequestsScreen() {
 
       <Spacer height={Spacing.lg} />
 
-      <View style={styles.paddedContent}>
-        <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
-          {t('dashboard.showingXofY').replace('{{shown}}', String(filteredRequests.length)).replace('{{total}}', String(requests.length))}
-        </ThemedText>
-
-        <Spacer height={Spacing.md} />
-
-        {filteredRequests.length > 0 ? (
-          filteredRequests.map(request => (
-            <View key={request.id}>
-              <RequestCard
-                request={request}
-                onPress={() => console.log('View details:', request.id)}
-                onApprove={() => handleApprove(request)}
-                onCancel={() => handleCancel(request)}
-                theme={theme}
-                t={t}
-              />
-              <Spacer height={LAYOUT.contentGap} />
-            </View>
-          ))
-        ) : (
-          <ThemedView style={[styles.emptyState, { backgroundColor: theme.surface }]}>
-            <DDIcon name="inbox" size={48} variant="muted" />
-            <Spacer height={Spacing.md} />
-            <ThemedText style={[Typography.body, { color: theme.textSecondary }]}>
-              {t('common.noResults')}
+      {isLoading ? (
+        <LoadingSkeleton theme={theme} />
+      ) : isError ? (
+        <View style={styles.paddedContent}>
+          <EmptyState
+            icon="alert-circle"
+            title={t('errors.somethingWentWrong')}
+            message={t('errors.tryAgain')}
+          />
+          <Spacer height={Spacing.md} />
+          <Pressable
+            style={[styles.retryButton, { backgroundColor: theme.primary }]}
+            onPress={handleRefresh}
+          >
+            <ThemedText style={[styles.retryButtonText, { color: theme.buttonText }]}>
+              {t('actions.retry')}
             </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
-              {t('common.filter')}
+          </Pressable>
+        </View>
+      ) : (
+        <View style={styles.paddedContent}>
+          <View style={styles.resultsSummary}>
+            <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
+              {t('dashboard.showingXofY')
+                .replace('{{shown}}', String(requests.length))
+                .replace('{{total}}', String(stats.total))}
             </ThemedText>
-          </ThemedView>
-        )}
-      </View>
+            {isFetching ? (
+              <ActivityIndicator size="small" color={theme.primary} />
+            ) : null}
+          </View>
+
+          <Spacer height={Spacing.md} />
+
+          {requests.length > 0 ? (
+            requests.map(request => (
+              <View key={`${request.type}-${request.id}`}>
+                <RequestCard
+                  request={request}
+                  onPress={() => handleCardPress(request)}
+                  onApprove={() => handleApprove(request)}
+                  onReject={() => handleReject(request)}
+                  theme={theme}
+                  t={t}
+                  formatDate={formatDate}
+                  formatTimeFromString={formatTimeFromString}
+                />
+                <Spacer height={LAYOUT.contentGap} />
+              </View>
+            ))
+          ) : (
+            <EmptyState
+              icon="inbox"
+              title={t('common.noResults')}
+              message={t('requests.tryDifferentFilters')}
+            />
+          )}
+        </View>
+      )}
 
       <Spacer height={Spacing.xxl} />
+
+      <CalendarDatePicker
+        visible={showDatePicker}
+        onClose={() => setShowDatePicker(false)}
+        selectedDate={selectedDate || new Date()}
+        onDateSelect={(date) => {
+          setSelectedDate(date);
+          setShowDatePicker(false);
+        }}
+      />
+
+      <Modal
+        visible={showRejectModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowRejectModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContainer, { backgroundColor: theme.surface }]}>
+            <ThemedText style={[Typography.subtitle, { marginBottom: Spacing.md }]}>
+              {t('actions.reject')}
+            </ThemedText>
+            <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginBottom: Spacing.lg }]}>
+              {t('approvals.enterRejectReason')}
+            </ThemedText>
+            <TextInput
+              style={[
+                styles.reasonInput,
+                { 
+                  backgroundColor: theme.background,
+                  borderColor: theme.border,
+                  color: theme.text,
+                }
+              ]}
+              value={rejectReason}
+              onChangeText={setRejectReason}
+              placeholder={t('approvals.rejectReasonPlaceholder')}
+              placeholderTextColor={theme.textSecondary}
+              multiline
+              numberOfLines={3}
+              textAlignVertical="top"
+            />
+            <View style={styles.modalActions}>
+              <Pressable
+                style={[styles.modalButton, { backgroundColor: applyOpacity(theme.error, '12') }]}
+                onPress={() => {
+                  setShowRejectModal(false);
+                  setSelectedRequest(null);
+                }}
+                disabled={actionLoading}
+              >
+                <ThemedText style={[styles.modalButtonText, { color: theme.textSecondary }]}>
+                  {t('common.cancel')}
+                </ThemedText>
+              </Pressable>
+              <Pressable
+                style={[
+                  styles.modalButton, 
+                  { 
+                    backgroundColor: theme.error,
+                    opacity: !rejectReason.trim() || actionLoading ? 0.5 : 1,
+                  }
+                ]}
+                onPress={confirmReject}
+                disabled={!rejectReason.trim() || actionLoading}
+              >
+                {actionLoading ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <ThemedText style={[styles.modalButtonText, { color: '#FFFFFF' }]}>
+                    {t('actions.reject')}
+                  </ThemedText>
+                )}
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScreenScrollView>
   );
 }
@@ -397,6 +770,35 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '500',
     marginTop: 2,
+  },
+  searchRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    alignItems: 'center',
+  },
+  searchInputWrapper: {
+    flex: 1,
+  },
+  dateFilterButton: {
+    width: 44,
+    height: 44,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dateChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.full,
+    gap: Spacing.xs,
+  },
+  dateChipText: {
+    fontSize: 13,
+    fontWeight: '500',
   },
   filtersRow: {
     flexDirection: 'row',
@@ -430,6 +832,11 @@ const styles = StyleSheet.create({
   statusChipText: {
     fontSize: 12,
     fontWeight: '500',
+  },
+  resultsSummary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   requestCard: {
     borderRadius: LAYOUT.cardRadius,
@@ -496,7 +903,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: Spacing.sm,
   },
-  actionButton: {
+  approveButton: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.md,
@@ -504,14 +911,75 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
     gap: 4,
   },
+  rejectButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    gap: 4,
+    backgroundColor: 'transparent',
+  },
   actionButtonText: {
     fontSize: 13,
     fontWeight: '600',
   },
-  emptyState: {
-    padding: Spacing.xl * 2,
-    borderRadius: LAYOUT.cardRadius,
+  skeletonCard: {
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.md,
+  },
+  skeletonLine: {
+    height: 16,
+    borderRadius: BorderRadius.sm,
+  },
+  retryButton: {
     alignItems: 'center',
     justifyContent: 'center',
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.xl,
+    borderRadius: BorderRadius.md,
+    alignSelf: 'center',
+  },
+  retryButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Spacing.lg,
+  },
+  modalContainer: {
+    width: '100%',
+    maxWidth: 400,
+    padding: Spacing.xl,
+    borderRadius: BorderRadius.lg,
+  },
+  reasonInput: {
+    borderWidth: 1,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    minHeight: 100,
+    fontSize: 14,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+    marginTop: Spacing.lg,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

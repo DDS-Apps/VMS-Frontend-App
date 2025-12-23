@@ -342,6 +342,7 @@ export const en: TranslationKeys = {
     building: 'Building',
   },
   services: {
+    visitor: 'Visitor',
     meetingRoom: 'Meeting Room',
     needsMeetingRoom: 'Needs Meeting Room',
     parking: 'Parking',
@@ -1285,5 +1286,18 @@ export const en: TranslationKeys = {
     details: 'Request Details',
     status: 'Request Status',
     history: 'Request History',
+  },
+  requests: {
+    tryDifferentFilters: 'Try adjusting your filters to see more results',
+    selectDate: 'Select Date',
+  },
+  approvals: {
+    confirmApprove: 'Are you sure you want to approve this request?',
+    enterRejectReason: 'Please provide a reason for rejection.',
+    rejectReasonPlaceholder: 'Enter rejection reason...',
+    approved: 'Request has been approved.',
+    rejected: 'Request has been rejected.',
+    approvalSuccess: 'Request approved successfully.',
+    rejectionSuccess: 'Request rejected successfully.',
   },
 };

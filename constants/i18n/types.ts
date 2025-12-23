@@ -342,6 +342,7 @@ export interface TranslationKeys {
     building: string;
   };
   services: {
+    visitor: string;
     meetingRoom: string;
     needsMeetingRoom: string;
     parking: string;
@@ -433,6 +434,8 @@ export interface TranslationKeys {
     decline: string;
     verifyAndCheckIn: string;
     recordExit: string;
+    rejectRequest: string;
+    rejectRequestMessage: string;
   };
   notifications: {
     title: string;
@@ -1283,6 +1286,19 @@ export interface TranslationKeys {
     details: string;
     status: string;
     history: string;
+  };
+  requests: {
+    tryDifferentFilters: string;
+    selectDate: string;
+  };
+  approvals: {
+    confirmApprove: string;
+    enterRejectReason: string;
+    rejectReasonPlaceholder: string;
+    approved: string;
+    rejected: string;
+    approvalSuccess: string;
+    rejectionSuccess: string;
   };
 }
 
