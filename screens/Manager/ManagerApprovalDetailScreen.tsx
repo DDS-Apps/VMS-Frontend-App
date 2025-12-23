@@ -18,6 +18,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
 import { useVisitDetailsQuery, useApproveVisitMutation, useRejectVisitMutation, useCancelVisitMutation } from "@/hooks/queries/useApprovalQueries";
+import { useAuth } from "@/contexts/AuthContext";
 import { VisitorRequest } from "@/types/vms.types";
 import { applyOpacity, createModalOverlayStyle } from "@/utils/statusStyles";
 import { ManagerApprovalDetailScreenProps } from "@/types/managerNavigation.types";
@@ -94,6 +95,8 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
   const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   const { requestId } = route.params;
+  const { user } = useAuth();
+  const isReadOnlyRole = user?.role === 'building_admin';
 
   // Helper function for consistent service status colors
   const getServiceStatusVariant = (status?: string): 'success' | 'warning' | 'error' | 'info' | 'muted' => {
@@ -170,6 +173,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
   };
 
   const handleApprove = () => {
+    if (isReadOnlyRole) return;
     approveMutation.mutate(
       { id: requestId, payload: {} },
       {
@@ -187,6 +191,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
   };
 
   const handleReject = () => {
+    if (isReadOnlyRole) return;
     const reason = rejectionReason.trim() || 'No reason provided';
     rejectMutation.mutate(
       { id: requestId, payload: { reason } },
@@ -207,6 +212,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
   };
 
   const handleCancel = () => {
+    if (isReadOnlyRole) return;
     cancelMutation.mutate(requestId, {
       onSuccess: () => {
         setShowCancelModal(false);
@@ -529,7 +535,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
         <Spacer height={100} />
       </ScreenScrollView>
 
-      {request.status === REQUEST_STATUS.PENDING_APPROVAL && (
+      {!isReadOnlyRole && request.status === REQUEST_STATUS.PENDING_APPROVAL && (
         <View style={[styles.actionBar, { backgroundColor: theme.background, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.lg }]}>
           <ApprovalActionGroup
             onApprove={handleApprove}
@@ -542,7 +548,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
         </View>
       )}
 
-      {(request.status === REQUEST_STATUS.APPROVED || request.status === REQUEST_STATUS.VISITOR_ACCEPTED) && (
+      {!isReadOnlyRole && (request.status === REQUEST_STATUS.APPROVED || request.status === REQUEST_STATUS.VISITOR_ACCEPTED) && (
         <View style={[styles.actionBar, { backgroundColor: theme.background, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.lg }]}>
           <LoadingButton
             onPress={() => setShowCancelModal(true)}

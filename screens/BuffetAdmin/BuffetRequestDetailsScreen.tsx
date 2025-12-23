@@ -21,6 +21,7 @@ import {
 } from "@/hooks/queries/useBuffetQueries";
 import type { BuffetAdminTaskDto, BuffetAdminStaffDto } from "@/types/api.types";
 import type { BuffetRequestDetailsScreenProps } from "@/types/buffetAdminNavigation.types";
+import { useAuth } from "@/contexts/AuthContext";
 
 type BuffetRequest = BuffetAdminTaskDto & {
   timeSlot: string;
@@ -59,6 +60,8 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { showSuccess, showError } = useToast();
+  const { user } = useAuth();
+  const isReadOnlyRole = user?.role === 'building_admin';
   const initialRequest = route.params.request;
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [assigningStaffId, setAssigningStaffId] = useState<string | null>(null);
@@ -114,6 +117,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
   };
 
   const handleAssignStaff = (staff: StaffDisplayItem) => {
+    if (isReadOnlyRole) return;
     setAssigningStaffId(staff.id);
     assignTaskMutation.mutate(
       { id: request.id, data: { staffId: staff.id } },
@@ -212,6 +216,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
   };
 
   const handleAdvanceStatus = () => {
+    if (isReadOnlyRole) return;
     const statusFlow = ['pending', 'in_progress', 'completed'] as const;
     const currentIndex = statusFlow.indexOf(request.status as any);
     if (currentIndex >= 0 && currentIndex < statusFlow.length - 1) {
@@ -257,7 +262,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
   }
 
   const initials = request.visitorName.split(' ').map(n => n[0]).join('');
-  const showActions = request.status !== 'completed' && request.status !== 'cancelled';
+  const showActions = !isReadOnlyRole && request.status !== 'completed' && request.status !== 'cancelled';
 
   return (
     <>

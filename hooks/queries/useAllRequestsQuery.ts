@@ -262,7 +262,13 @@ export function useAllRequestsQuery(filters: AllRequestsFilters = {}) {
     allRequests.push(...valetTasks.map(mapValetToUnified));
   }
 
-  let filteredRequests = allRequests;
+  const isReadOnlyRole = userRole === 'building_admin';
+  
+  const processedRequests = isReadOnlyRole 
+    ? allRequests.map(r => ({ ...r, canApprove: false, canCancel: false }))
+    : allRequests;
+
+  let filteredRequests = processedRequests;
 
   if (status !== 'all') {
     filteredRequests = filteredRequests.filter(r => r.status === status);
@@ -302,7 +308,7 @@ export function useAllRequestsQuery(filters: AllRequestsFilters = {}) {
 
   return {
     data: filteredRequests,
-    allData: allRequests,
+    allData: processedRequests,
     stats,
     isLoading,
     isFetching,

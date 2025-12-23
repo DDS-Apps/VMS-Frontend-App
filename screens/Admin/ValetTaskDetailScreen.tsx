@@ -19,6 +19,7 @@ import {
   ValetTask,
 } from '@/services/mock/valetMockData';
 import type { ValetService, ValetDriver } from '@/types/vms.types';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ValetTaskDetailScreenProps {
   taskId: string;
@@ -42,6 +43,8 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
   const { theme } = useTheme();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const { user } = useAuth();
+  const isReadOnlyRole = user?.role === 'building_admin';
   const [task, setTask] = useState<ValetTask | null>(null);
   const [showDriverPicker, setShowDriverPicker] = useState(false);
   const [showStatusPicker, setShowStatusPicker] = useState(false);
@@ -62,6 +65,7 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
   }
 
   const handleAssignDriver = (driverId: string) => {
+    if (isReadOnlyRole) return;
     const updatedTask = assignDriverToTask(taskId, driverId);
     if (updatedTask) {
       setTask({...updatedTask});
@@ -70,6 +74,7 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
   };
 
   const handleUpdateStatus = (status: ValetService['status']) => {
+    if (isReadOnlyRole) return;
     const updatedTask = updateTaskStatus(taskId, status);
     if (updatedTask) {
       setTask({...updatedTask});
@@ -223,38 +228,70 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
             {t('status.pending')}
           </ThemedText>
 
-          <Pressable
-            onPress={() => setShowStatusPicker(true)}
-            style={({ pressed }) => [
-              styles.statusButton,
-              {
-                backgroundColor: `${currentStatusOption?.color}15`,
-                borderColor: currentStatusOption?.color,
-                opacity: pressed ? 0.7 : 1,
-              },
-            ]}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-              <DDIcon
-                name={currentStatusOption?.icon as IconName}
-                size={20}
-                color={currentStatusOption?.color}
-              />
-              <ThemedText
-                style={[
-                  Typography.body,
-                  {
-                    color: currentStatusOption?.color,
-                    fontWeight: '600',
-                    marginStart: Spacing.md,
-                  },
-                ]}
-              >
-                {currentStatusOption?.label}
-              </ThemedText>
+          {isReadOnlyRole ? (
+            <View
+              style={[
+                styles.statusButton,
+                {
+                  backgroundColor: `${currentStatusOption?.color}15`,
+                  borderColor: currentStatusOption?.color,
+                },
+              ]}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                <DDIcon
+                  name={currentStatusOption?.icon as IconName}
+                  size={20}
+                  color={currentStatusOption?.color}
+                />
+                <ThemedText
+                  style={[
+                    Typography.body,
+                    {
+                      color: currentStatusOption?.color,
+                      fontWeight: '600',
+                      marginStart: Spacing.md,
+                    },
+                  ]}
+                >
+                  {currentStatusOption?.label}
+                </ThemedText>
+              </View>
             </View>
-            <DDIcon name="chevron-down" size={20} color={currentStatusOption?.color} directionAware />
-          </Pressable>
+          ) : (
+            <Pressable
+              onPress={() => setShowStatusPicker(true)}
+              style={({ pressed }) => [
+                styles.statusButton,
+                {
+                  backgroundColor: `${currentStatusOption?.color}15`,
+                  borderColor: currentStatusOption?.color,
+                  opacity: pressed ? 0.7 : 1,
+                },
+              ]}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                <DDIcon
+                  name={currentStatusOption?.icon as IconName}
+                  size={20}
+                  color={currentStatusOption?.color}
+                />
+                <ThemedText
+                  style={[
+                    Typography.body,
+                    {
+                      color: currentStatusOption?.color,
+                      fontWeight: '600',
+                      marginStart: Spacing.md,
+                    },
+                  ]}
+                >
+                  {currentStatusOption?.label}
+                </ThemedText>
+              </View>
+              <DDIcon name="chevron-down" size={20} color={currentStatusOption?.color} directionAware />
+            </Pressable>
+          )}
         </ThemedView>
 
         <Spacer height={Spacing.lg} />
@@ -299,17 +336,25 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
                   </ThemedText>
                 </View>
               </View>
-              <Pressable
-                onPress={() => setShowDriverPicker(true)}
-                style={({ pressed }) => [
-                  styles.changeButton,
-                  { backgroundColor: theme.surface, borderColor: theme.border, opacity: pressed ? 0.7 : 1 },
-                ]}
-              >
-                <ThemedText style={[Typography.caption, { color: theme.primary, fontWeight: '600' }]}>
-                  {t('common.edit')}
-                </ThemedText>
-              </Pressable>
+              {!isReadOnlyRole && (
+                <Pressable
+                  onPress={() => setShowDriverPicker(true)}
+                  style={({ pressed }) => [
+                    styles.changeButton,
+                    { backgroundColor: theme.surface, borderColor: theme.border, opacity: pressed ? 0.7 : 1 },
+                  ]}
+                >
+                  <ThemedText style={[Typography.caption, { color: theme.primary, fontWeight: '600' }]}>
+                    {t('common.edit')}
+                  </ThemedText>
+                </Pressable>
+              )}
+            </View>
+          ) : isReadOnlyRole ? (
+            <View style={[styles.driverCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <ThemedText style={[Typography.body, { color: theme.textSecondary }]}>
+                {t('common.noData')}
+              </ThemedText>
             </View>
           ) : (
             <Pressable

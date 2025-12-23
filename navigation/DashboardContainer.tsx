@@ -203,7 +203,7 @@ export default function DashboardContainer({ userRole, userName, userPhotoUrl, a
     if (userRole === 'buffet_staff') return 'BuffetBoard';
     if (userRole === 'buffet_admin') return 'BuffetAdminDashboard';
     if (userRole === 'valet_admin') return 'ValetAdminDashboard';
-    if (userRole === 'building_admin') return 'BuildingAdminDashboard';
+    if (userRole === 'building_admin') return 'AllRequests';
     if (userRole === 'security') return 'CheckIn';
     return 'Dashboard';
   };
