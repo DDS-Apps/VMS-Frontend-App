@@ -1,7 +1,10 @@
 export type LocaleCode = 'ar-SA' | 'en-US';
 export type DateFormat = 'short' | 'medium' | 'long';
 
-export const formatDate = (date: Date, locale: LocaleCode = 'en-US', format: DateFormat = 'medium'): string => {
+// Default server timezone
+const DEFAULT_TIMEZONE = 'Asia/Riyadh';
+
+export const formatDate = (date: Date, locale: LocaleCode = 'en-US', format: DateFormat = 'medium', timezone?: string): string => {
   const options: Intl.DateTimeFormatOptions = {
     day: 'numeric',
     month: format === 'short' ? 'short' : 'long',
@@ -15,10 +18,51 @@ export const formatDate = (date: Date, locale: LocaleCode = 'en-US', format: Dat
     options.weekday = 'long';
   }
   
-  return date.toLocaleDateString(locale, options);
+  // Add timezone if provided
+  if (timezone) {
+    options.timeZone = timezone;
+  }
+  
+  try {
+    return date.toLocaleDateString(locale, options);
+  } catch (error) {
+    // Fallback without timezone if invalid
+    delete options.timeZone;
+    return date.toLocaleDateString(locale, options);
+  }
 };
 
-export const formatTime = (date: Date, locale: LocaleCode = 'en-US'): string => {
+export const formatTime = (date: Date, locale: LocaleCode = 'en-US', timezone?: string): string => {
+  try {
+    // Use Intl.DateTimeFormat with timezone for accurate timezone conversion
+    if (timezone) {
+      const formatter = new Intl.DateTimeFormat(locale, {
+        timeZone: timezone,
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+      });
+      
+      const parts = formatter.formatToParts(date);
+      const hourPart = parts.find(p => p.type === 'hour')?.value || '12';
+      const minutePart = parts.find(p => p.type === 'minute')?.value || '00';
+      const periodPart = parts.find(p => p.type === 'dayPeriod')?.value || 'AM';
+      
+      if (locale === 'ar-SA') {
+        const arabicNumerals = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+        const arabicHours = hourPart.split('').map(d => /\d/.test(d) ? arabicNumerals[parseInt(d)] : d).join('');
+        const arabicMinutes = minutePart.split('').map(d => /\d/.test(d) ? arabicNumerals[parseInt(d)] : d).join('');
+        const arabicPeriod = periodPart.toLowerCase().includes('am') ? 'ص' : 'م';
+        return `${arabicHours}:${arabicMinutes} ${arabicPeriod}`;
+      }
+      
+      return `${hourPart}:${minutePart} ${periodPart.toUpperCase()}`;
+    }
+  } catch (error) {
+    // Fall through to default implementation
+  }
+  
+  // Default implementation without timezone
   let hours = date.getHours();
   const minutes = date.getMinutes();
   const period = hours >= 12 ? 'PM' : 'AM';
@@ -39,7 +83,7 @@ export const formatTime = (date: Date, locale: LocaleCode = 'en-US'): string => 
   return `${hours}:${minuteStr} ${period}`;
 };
 
-export const formatTimeFromString = (timeString: string, locale: LocaleCode = 'en-US'): string => {
+export const formatTimeFromString = (timeString: string, locale: LocaleCode = 'en-US', timezone?: string): string => {
   if (!timeString) return '';
   
   const upperStr = timeString.toUpperCase();
@@ -59,7 +103,7 @@ export const formatTimeFromString = (timeString: string, locale: LocaleCode = 'e
         
         const tempDate = new Date();
         tempDate.setHours(hour, min, 0, 0);
-        return formatTime(tempDate, locale);
+        return formatTime(tempDate, locale, timezone);
       }
     } else {
       const [hours, minutes] = timeString.split(':');
@@ -69,21 +113,21 @@ export const formatTimeFromString = (timeString: string, locale: LocaleCode = 'e
       if (!isNaN(hour) && !isNaN(min)) {
         const tempDate = new Date();
         tempDate.setHours(hour, min, 0, 0);
-        return formatTime(tempDate, locale);
+        return formatTime(tempDate, locale, timezone);
       }
     }
   }
   
   const date = new Date(timeString);
   if (!isNaN(date.getTime())) {
-    return formatTime(date, locale);
+    return formatTime(date, locale, timezone);
   }
   
   return timeString;
 };
 
-export const formatDateTime = (date: Date, locale: LocaleCode = 'en-US'): string => {
-  return `${formatDateShortMonth(date, locale)} \u2022 ${formatTime(date, locale)}`;
+export const formatDateTime = (date: Date, locale: LocaleCode = 'en-US', timezone?: string): string => {
+  return `${formatDateShortMonth(date, locale, timezone)} \u2022 ${formatTime(date, locale, timezone)}`;
 };
 
 export const formatCurrency = (amount: number, currency: string = 'USD', locale: LocaleCode = 'en-US'): string => {
@@ -154,23 +198,35 @@ export const parseISODuration = (isoDuration: string): string => {
   return `${hourPart} ${minutePart}`;
 };
 
-export const formatDateShortMonth = (date: Date, locale: LocaleCode = 'en-US'): string => {
-  const day = date.getDate();
-  const month = date.toLocaleDateString(locale, { month: 'short' });
-  const year = date.getFullYear();
-  return `${month} ${day}, ${year}`;
+export const formatDateShortMonth = (date: Date, locale: LocaleCode = 'en-US', timezone?: string): string => {
+  try {
+    const options: Intl.DateTimeFormatOptions = { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
+    };
+    if (timezone) {
+      options.timeZone = timezone;
+    }
+    return date.toLocaleDateString(locale, options);
+  } catch (error) {
+    const day = date.getDate();
+    const month = date.toLocaleDateString(locale, { month: 'short' });
+    const year = date.getFullYear();
+    return `${month} ${day}, ${year}`;
+  }
 };
 
-export const formatTimeRange = (timeRange: string, locale: LocaleCode = 'en-US'): string => {
+export const formatTimeRange = (timeRange: string, locale: LocaleCode = 'en-US', timezone?: string): string => {
   if (!timeRange) return '';
   
   const parts = timeRange.split(/\s*[-–]\s*/);
   if (parts.length !== 2) {
-    return formatTimeFromString(timeRange, locale);
+    return formatTimeFromString(timeRange, locale, timezone);
   }
   
-  const startTime = formatTimeFromString(parts[0].trim(), locale);
-  const endTime = formatTimeFromString(parts[1].trim(), locale);
+  const startTime = formatTimeFromString(parts[0].trim(), locale, timezone);
+  const endTime = formatTimeFromString(parts[1].trim(), locale, timezone);
   
   return `${startTime} - ${endTime}`;
 };

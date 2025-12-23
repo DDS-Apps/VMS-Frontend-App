@@ -8,6 +8,7 @@ import { DDIcon } from "@/components/DDIcon";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useServerTimezone } from "@/hooks/useServerTimezone";
 import { IntegrationHealth, IntegrationStatus } from "@/types/vms.types";
 import { getIntegrations } from "@/services/mock/systemAdminState";
 import { formatTimestamp as formatTimestampUtil } from "@/services/utils/dateTimeUtils";
@@ -26,6 +27,7 @@ const INTEGRATION_ICONS: Record<string, string> = {
 export default function IntegrationsStatusScreen() {
   const { theme } = useTheme();
   const { t, isRTL } = useTranslation();
+  const { serverTimezone } = useServerTimezone();
   const insets = useSafeAreaInsets();
 
   const [integrations, setIntegrations] = useState<IntegrationHealth[]>([]);
@@ -90,7 +92,7 @@ export default function IntegrationsStatusScreen() {
 
   const formatTimestamp = (isoString?: string): string => {
     if (!isoString) return t('common.none');
-    const result = formatTimestampUtil(isoString, isRTL);
+    const result = formatTimestampUtil(isoString, isRTL, serverTimezone);
     
     if (result.diffMins < 1) return t('time.justNow');
     if (result.diffMins < 60) return t('time.minutesAgo', { count: result.diffMins });

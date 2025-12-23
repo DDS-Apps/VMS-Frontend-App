@@ -11,6 +11,7 @@ import Spacer from "@/components/Spacer";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useServerTimezone } from "@/hooks/useServerTimezone";
 import { applyOpacity } from "@/utils/statusStyles";
 import { formatTimestamp as formatTimestampUtil } from "@/services/utils/dateTimeUtils";
 import {
@@ -30,6 +31,7 @@ type ResultFilter = 'all' | GateEventResult;
 export default function GateEventsLogScreen({ navigation }: GateEventsLogScreenProps) {
   const { theme } = useTheme();
   const { t, isRTL } = useTranslation();
+  const { serverTimezone } = useServerTimezone();
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
   const [events, setEvents] = useState<GateEvent[]>([]);
@@ -131,7 +133,7 @@ export default function GateEventsLogScreen({ navigation }: GateEventsLogScreenP
   };
 
   const formatTimestamp = (isoString: string): { date: string; time: string } => {
-    const result = formatTimestampUtil(isoString, isRTL);
+    const result = formatTimestampUtil(isoString, isRTL, serverTimezone);
 
     let dateStr: string;
     if (result.isToday) {

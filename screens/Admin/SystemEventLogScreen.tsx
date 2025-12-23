@@ -8,6 +8,7 @@ import Spacer from "@/components/Spacer";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useServerTimezone } from "@/hooks/useServerTimezone";
 import { VisitEventLog, getAllEventLogs } from "@/services/mock/visitorRequestState";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { formatTimestamp as formatTimestampUtil } from "@/services/utils/dateTimeUtils";
@@ -63,6 +64,7 @@ const getEventColor = (eventType: VisitEventLog['eventType'], theme: ReturnType<
 export default function SystemEventLogScreen() {
   const { theme } = useTheme();
   const { t, isRTL } = useTranslation();
+  const { serverTimezone } = useServerTimezone();
   const insets = useSafeAreaInsets();
   const [events, setEvents] = useState<VisitEventLog[]>([]);
   const [filter, setFilter] = useState<EventTypeFilter>('all');
@@ -93,7 +95,7 @@ export default function SystemEventLogScreen() {
         (filter === 'approved' && (e.eventType === 'approved' || e.eventType === 'visitor_accepted')));
 
   const formatTimestamp = (timestamp: string): string => {
-    const result = formatTimestampUtil(timestamp, isRTL);
+    const result = formatTimestampUtil(timestamp, isRTL, serverTimezone);
     
     if (result.diffMins < 1) return t('time.justNow');
     if (result.diffMins < 60) return t('time.minutesAgo', { count: result.diffMins });

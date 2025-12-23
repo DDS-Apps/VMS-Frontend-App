@@ -3,13 +3,14 @@ export interface DateTimeFormatOptions {
   includeYear?: boolean;
   includeWeekday?: boolean;
   includeTime?: boolean;
+  timezone?: string;
 }
 
 export const formatDate = (
   dateInput: string | Date,
   options: DateTimeFormatOptions = {}
 ): string => {
-  const { isRTL = false, includeYear = false, includeWeekday = false } = options;
+  const { isRTL = false, includeYear = false, includeWeekday = false, timezone } = options;
   const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
   
   if (isNaN(date.getTime())) {
@@ -29,12 +30,22 @@ export const formatDate = (
     formatOptions.weekday = 'short';
   }
 
-  return date.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', formatOptions);
+  if (timezone) {
+    formatOptions.timeZone = timezone;
+  }
+
+  try {
+    return date.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', formatOptions);
+  } catch (error) {
+    delete formatOptions.timeZone;
+    return date.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', formatOptions);
+  }
 };
 
 export const formatFullDate = (
   dateInput: string | Date,
-  isRTL: boolean = false
+  isRTL: boolean = false,
+  timezone?: string
 ): string => {
   const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
   
@@ -42,17 +53,29 @@ export const formatFullDate = (
     return '';
   }
 
-  return date.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
+  const options: Intl.DateTimeFormatOptions = {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
     day: 'numeric',
-  });
+  };
+
+  if (timezone) {
+    options.timeZone = timezone;
+  }
+
+  try {
+    return date.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', options);
+  } catch (error) {
+    delete options.timeZone;
+    return date.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', options);
+  }
 };
 
 export const formatTime = (
   timeInput: string | Date,
-  isRTL: boolean = false
+  isRTL: boolean = false,
+  timezone?: string
 ): string => {
   if (typeof timeInput === 'string') {
     if (timeInput.includes('AM') || timeInput.includes('PM')) {
@@ -67,20 +90,38 @@ export const formatTime = (
     }
     const date = new Date(timeInput);
     if (!isNaN(date.getTime())) {
-      return date.toLocaleTimeString(isRTL ? 'ar-SA' : 'en-US', {
+      const options: Intl.DateTimeFormatOptions = {
         hour: '2-digit',
         minute: '2-digit',
         hour12: true,
-      });
+      };
+      if (timezone) {
+        options.timeZone = timezone;
+      }
+      try {
+        return date.toLocaleTimeString(isRTL ? 'ar-SA' : 'en-US', options);
+      } catch (error) {
+        delete options.timeZone;
+        return date.toLocaleTimeString(isRTL ? 'ar-SA' : 'en-US', options);
+      }
     }
     return timeInput;
   }
   
-  return timeInput.toLocaleTimeString(isRTL ? 'ar-SA' : 'en-US', {
+  const options: Intl.DateTimeFormatOptions = {
     hour: '2-digit',
     minute: '2-digit',
     hour12: true,
-  });
+  };
+  if (timezone) {
+    options.timeZone = timezone;
+  }
+  try {
+    return timeInput.toLocaleTimeString(isRTL ? 'ar-SA' : 'en-US', options);
+  } catch (error) {
+    delete options.timeZone;
+    return timeInput.toLocaleTimeString(isRTL ? 'ar-SA' : 'en-US', options);
+  }
 };
 
 export interface TimestampResult {
@@ -96,7 +137,8 @@ export interface TimestampResult {
 
 export const formatTimestamp = (
   isoString: string,
-  isRTL: boolean = false
+  isRTL: boolean = false,
+  timezone?: string
 ): TimestampResult => {
   const date = new Date(isoString);
   
@@ -116,8 +158,8 @@ export const formatTimestamp = (
   yesterday.setDate(yesterday.getDate() - 1);
   const isYesterday = date.toDateString() === yesterday.toDateString();
 
-  const dateStr = formatDate(date, { isRTL });
-  const timeStr = formatTime(date, isRTL);
+  const dateStr = formatDate(date, { isRTL, timezone });
+  const timeStr = formatTime(date, isRTL, timezone);
 
   return { 
     date: dateStr, 
