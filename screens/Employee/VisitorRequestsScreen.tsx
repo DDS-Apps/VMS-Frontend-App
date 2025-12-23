@@ -720,7 +720,7 @@ export default function VisitorRequestsScreen({ navigation: navProp, userRole = 
           onPress={() => refetch()}
         >
           <ThemedText style={{ color: theme.buttonText, fontWeight: '600' }}>
-            {t('actions.retry')}
+            {t('common.retry')}
           </ThemedText>
         </Pressable>
       </View>

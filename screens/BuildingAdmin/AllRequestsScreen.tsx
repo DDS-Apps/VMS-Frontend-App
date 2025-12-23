@@ -667,7 +667,7 @@ export default function AllRequestsScreen() {
             onPress={handleRefresh}
           >
             <ThemedText style={[styles.retryButtonText, { color: theme.buttonText }]}>
-              {t('actions.retry')}
+              {t('common.retry')}
             </ThemedText>
           </Pressable>
         </View>

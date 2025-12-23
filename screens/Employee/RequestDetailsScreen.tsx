@@ -249,7 +249,7 @@ export default function RequestDetailsScreen({
           ]}
         >
           <ThemedText style={{ color: theme.buttonText, fontWeight: "600" }}>
-            {t("actions.retry")}
+            {t("common.retry")}
           </ThemedText>
         </Pressable>
       </ScreenScrollView>
