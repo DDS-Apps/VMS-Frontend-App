@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { View, StyleSheet, Pressable, TextInput, Modal, Animated, Alert } from "react-native";
+import { View, StyleSheet, Pressable, TextInput, Modal, Animated, Alert, Platform } from "react-native";
+import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DDIcon, IconName } from "@/components/DDIcon";
@@ -17,7 +18,7 @@ import { REQUEST_STATUS } from "@/constants/requestConstants";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
-import { useVisitDetailsQuery, useApproveVisitMutation, useRejectVisitMutation, useCancelVisitMutation } from "@/hooks/queries/useApprovalQueries";
+import { useVisitDetailsQuery, useApproveVisitMutation, useRejectVisitMutation, useCancelVisitMutation, useUpdateVisitMutation } from "@/hooks/queries/useApprovalQueries";
 import { useAuth } from "@/contexts/AuthContext";
 import { VisitorRequest } from "@/types/vms.types";
 import { applyOpacity, createModalOverlayStyle } from "@/utils/statusStyles";
@@ -115,7 +116,15 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
   };
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showWalkInApprovalModal, setShowWalkInApprovalModal] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
+  const [walkInEndTime, setWalkInEndTime] = useState<Date>(() => {
+    const endTime = new Date();
+    endTime.setHours(endTime.getHours() + 1);
+    return endTime;
+  });
+  const [approvalStartTime, setApprovalStartTime] = useState<Date | null>(null);
+  const [showEndTimePicker, setShowEndTimePicker] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error'; visible: boolean }>({
     message: '',
     type: 'success',
@@ -126,6 +135,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
   const approveMutation = useApproveVisitMutation();
   const rejectMutation = useRejectVisitMutation();
   const cancelMutation = useCancelVisitMutation();
+  const updateMutation = useUpdateVisitMutation();
 
   // Refetch data when screen gains focus to show latest status
   useFocusEffect(
@@ -139,7 +149,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
     return mapVisitDetailsToVisitorRequest(visitData);
   }, [visitData]);
 
-  const isProcessing = approveMutation.isPending || rejectMutation.isPending || cancelMutation.isPending;
+  const isProcessing = approveMutation.isPending || rejectMutation.isPending || cancelMutation.isPending || updateMutation.isPending;
 
   if (isLoading || isFetching) {
     return (
@@ -172,8 +182,45 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
     }, 2600);
   };
 
+  const formatTimeForApi = (time: Date): string => {
+    const hours = time.getHours();
+    const minutes = time.getMinutes();
+    const period = hours >= 12 ? "PM" : "AM";
+    const hour12 = hours % 12 || 12;
+    const minuteStr = String(minutes).padStart(2, "0");
+    return `${hour12}:${minuteStr} ${period}`;
+  };
+
+  const formatDateForApi = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const formatDisplayTime = (date: Date): string => {
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const period = hours >= 12 ? "PM" : "AM";
+    const hour12 = hours % 12 || 12;
+    const minuteStr = String(minutes).padStart(2, "0");
+    return `${hour12}:${minuteStr} ${period}`;
+  };
+
   const handleApprove = () => {
     if (isReadOnlyRole) return;
+    
+    // For walk-in requests, show the end time modal
+    if (visitData?.isWalkIn) {
+      const approvalTime = new Date();
+      setApprovalStartTime(approvalTime);
+      const defaultEndTime = new Date(approvalTime.getTime() + 60 * 60 * 1000);
+      setWalkInEndTime(defaultEndTime);
+      setShowWalkInApprovalModal(true);
+      return;
+    }
+    
+    // For regular requests, approve directly
     approveMutation.mutate(
       { id: requestId, payload: {} },
       {
@@ -188,6 +235,74 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
         },
       }
     );
+  };
+
+  const handleWalkInApprovalSubmit = () => {
+    if (isReadOnlyRole) return;
+    
+    // Validate end time is after current time
+    if (walkInEndTime.getTime() <= new Date().getTime()) {
+      Alert.alert(t("errors.validation"), t("errors.endTimeMustBeLater"));
+      return;
+    }
+    
+    // Use the captured approval start time (or fallback to now)
+    const startTime = approvalStartTime || new Date();
+    
+    // Calculate duration from approval start time to selected end time
+    const diffMs = walkInEndTime.getTime() - startTime.getTime();
+    const diffMinutes = Math.max(0, Math.round(diffMs / (1000 * 60)));
+    const hours = Math.floor(diffMinutes / 60);
+    const minutes = diffMinutes % 60;
+    let isoDuration = "PT";
+    if (hours > 0) isoDuration += `${hours}H`;
+    if (minutes > 0) isoDuration += `${minutes}M`;
+    if (hours === 0 && minutes === 0) isoDuration = "PT0M";
+    
+    const payload = {
+      visitDate: formatDateForApi(startTime),
+      visitTime: formatTimeForApi(startTime),
+      endTime: formatTimeForApi(walkInEndTime),
+      duration: isoDuration,
+    };
+    
+    // First approve the request
+    approveMutation.mutate(
+      { id: requestId, payload: {} },
+      {
+        onSuccess: () => {
+          // Then update with the time details
+          updateMutation.mutate(
+            { id: requestId, data: payload },
+            {
+              onSuccess: () => {
+                setShowWalkInApprovalModal(false);
+                setApprovalStartTime(null);
+                showToast(t('notifications.walkInApproved'), 'success');
+                setTimeout(() => {
+                  navigation.goBack();
+                }, 1000);
+              },
+              onError: (error) => {
+                showToast(t('errors.somethingWentWrong'), 'error');
+              },
+            }
+          );
+        },
+        onError: (error) => {
+          showToast(t('errors.somethingWentWrong'), 'error');
+        },
+      }
+    );
+  };
+
+  const handleEndTimeChange = (event: DateTimePickerEvent, selectedTime?: Date) => {
+    if (Platform.OS === "android") {
+      setShowEndTimePicker(false);
+    }
+    if (selectedTime) {
+      setWalkInEndTime(selectedTime);
+    }
   };
 
   const handleReject = () => {
@@ -724,6 +839,115 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
                   style={styles.modalActionButton}
                 >
                   {t('common.confirm')}
+                </LoadingButton>
+              </View>
+            </ThemedView>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={showWalkInApprovalModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => !isProcessing && setShowWalkInApprovalModal(false)}
+        statusBarTranslucent
+      >
+        <View style={styles.modalOverlay}>
+          <Pressable 
+            style={[styles.modalBackdrop, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]}
+            onPress={() => !isProcessing && setShowWalkInApprovalModal(false)}
+          />
+          <View style={styles.modalContainer}>
+            <ThemedView style={[styles.modalContent, { backgroundColor: theme.surface }]}>
+              <Pressable 
+                onPress={() => !isProcessing && setShowWalkInApprovalModal(false)}
+                style={styles.closeButton}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <DDIcon name="x" size={20} variant="muted" />
+              </Pressable>
+
+              <View style={styles.modalIconWrapper}>
+                <View style={[styles.modalIconContainer, { backgroundColor: applyOpacity(theme.success, '15') }]}>
+                  <DDIcon name="check-circle" size={22} color={theme.success} />
+                </View>
+              </View>
+
+              <Spacer height={Spacing.lg} />
+
+              <ThemedText style={[Typography.subtitle, { fontSize: 18, fontWeight: '600', textAlign: 'center' }]}>
+                {t('actions.approve')} {t('visitor.walkIn')}
+              </ThemedText>
+
+              <Spacer height={Spacing.sm} />
+
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 13, lineHeight: 20, textAlign: 'center' }]}>
+                {t('visitor.selectEndTime')}
+              </ThemedText>
+
+              <Spacer height={Spacing.xl} />
+
+              <View style={{ width: '100%' }}>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginBottom: Spacing.xs }]}>
+                  {t('form.endTime')} *
+                </ThemedText>
+                <Pressable
+                  onPress={() => setShowEndTimePicker(true)}
+                  style={[
+                    styles.reasonInput,
+                    {
+                      borderColor: theme.border,
+                      backgroundColor: theme.background,
+                      paddingVertical: Spacing.md,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }
+                  ]}
+                >
+                  <ThemedText style={{ color: theme.text }}>
+                    {formatDisplayTime(walkInEndTime)}
+                  </ThemedText>
+                  <DDIcon name="clock" size={18} variant="muted" />
+                </Pressable>
+              </View>
+
+              {showEndTimePicker && (
+                <DateTimePicker
+                  value={walkInEndTime}
+                  mode="time"
+                  is24Hour={false}
+                  display={Platform.OS === "ios" ? "spinner" : "default"}
+                  onChange={handleEndTimeChange}
+                />
+              )}
+
+              <Spacer height={Spacing.xl} />
+
+              <View style={styles.modalActions}>
+                <LoadingButton
+                  onPress={() => setShowWalkInApprovalModal(false)}
+                  disabled={isProcessing}
+                  variant="secondary"
+                  size="medium"
+                  style={styles.modalActionButton}
+                >
+                  {t('common.cancel')}
+                </LoadingButton>
+
+                <Spacer width={Spacing.md} />
+
+                <LoadingButton
+                  onPress={handleWalkInApprovalSubmit}
+                  loading={approveMutation.isPending || updateMutation.isPending}
+                  disabled={isProcessing}
+                  variant="success"
+                  size="medium"
+                  loadingText={t('common.approving')}
+                  style={styles.modalActionButton}
+                >
+                  {t('actions.approve')}
                 </LoadingButton>
               </View>
             </ThemedView>

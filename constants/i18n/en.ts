@@ -289,6 +289,8 @@ export const en: TranslationKeys = {
     nationalId: 'National ID',
     passport: 'Passport',
     driverLicense: "Driver's License",
+    selectEndTime: 'Please select an end time for this visit',
+    walkIn: 'Walk-In',
   },
   form: {
     fullName: 'Full Name',

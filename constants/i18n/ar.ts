@@ -289,6 +289,8 @@ export const ar: TranslationKeys = {
     nationalId: 'الهوية الوطنية',
     passport: 'جواز السفر',
     driverLicense: 'رخصة القيادة',
+    selectEndTime: 'يرجى تحديد وقت انتهاء لهذه الزيارة',
+    walkIn: 'زائر بدون موعد',
   },
   form: {
     fullName: 'الاسم الكامل',

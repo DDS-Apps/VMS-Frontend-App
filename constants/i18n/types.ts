@@ -289,6 +289,8 @@ export interface TranslationKeys {
     nationalId: string;
     passport: string;
     driverLicense: string;
+    selectEndTime: string;
+    walkIn: string;
   };
   form: {
     fullName: string;

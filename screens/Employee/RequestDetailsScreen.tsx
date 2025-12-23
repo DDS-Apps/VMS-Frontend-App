@@ -116,6 +116,7 @@ export default function RequestDetailsScreen({
   const [editSendSMS, setEditSendSMS] = useState(false);
   const [editModalMode, setEditModalMode] = useState<"full" | "services-only">("full");
   const [isApprovalFlow, setIsApprovalFlow] = useState(false);
+  const [approvalStartTime, setApprovalStartTime] = useState<Date | null>(null);
 
   const PURPOSE_OPTIONS = [
     { value: 'business_meeting', labelKey: 'visitor.businessMeeting' },
@@ -288,6 +289,9 @@ export default function RequestDetailsScreen({
   };
 
   const handleHostApprove = () => {
+    // Capture approval start time NOW for walk-in requests
+    const approvalTime = new Date();
+    
     hostApproveMutation.mutate(
       { id: requestId },
       {
@@ -305,10 +309,10 @@ export default function RequestDetailsScreen({
             setEditSendWhatsApp(channels.includes('whatsapp'));
             setEditSendSMS(channels.includes('sms'));
             
-            // For walk-in approval, set end time to current time + 1 hour
+            // For walk-in approval: store approval start time and set default end time to 1 hour later
             if (visitData.isWalkIn) {
-              const now = new Date();
-              const defaultEndTime = new Date(now.getTime() + 60 * 60 * 1000); // 1 hour from now
+              setApprovalStartTime(approvalTime);
+              const defaultEndTime = new Date(approvalTime.getTime() + 60 * 60 * 1000); // 1 hour from approval time
               setEditEndTime(defaultEndTime);
             }
           }
@@ -604,14 +608,17 @@ export default function RequestDetailsScreen({
           return;
         }
         
-        // Use current time as start time for walk-in
-        const now = new Date();
-        payload.visitDate = formatDateForApi(now);
-        payload.visitTime = formatTimeForApi(now);
+        // Use the captured approval start time (or fallback to now)
+        const startTime = approvalStartTime || new Date();
+        payload.visitDate = formatDateForApi(startTime);
+        payload.visitTime = formatTimeForApi(startTime);
         
-        // Calculate duration from now to selected end time
+        // Add end time to payload (format as HH:mm AM/PM)
+        payload.endTime = formatTimeForApi(editEndTime);
+        
+        // Calculate duration from approval start time to selected end time
         const endMs = editEndTime.getTime();
-        const diffMs = endMs - now.getTime();
+        const diffMs = endMs - startTime.getTime();
         const diffMinutes = Math.max(0, Math.round(diffMs / (1000 * 60)));
         const hours = Math.floor(diffMinutes / 60);
         const minutes = diffMinutes % 60;
@@ -620,6 +627,9 @@ export default function RequestDetailsScreen({
         if (minutes > 0) isoDuration += `${minutes}M`;
         if (hours === 0 && minutes === 0) isoDuration = "PT0M";
         payload.duration = isoDuration;
+        
+        // Clear approvalStartTime after use
+        setApprovalStartTime(null);
       } else {
         // Non-walk-in services-only edit: use existing schedule fields
         payload.visitDate = visitData.visitDate || formatDateForApi(new Date());
