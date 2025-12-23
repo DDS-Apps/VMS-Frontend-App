@@ -1251,6 +1251,7 @@ export const en: TranslationKeys = {
     visitorCheckedOut: 'Visitor Checked Out',
     visitCompleted: 'Visit Completed',
     cancelled: 'Request Cancelled',
+    autoCancelled: 'Auto-Cancelled',
     rescheduled: 'Visit Rescheduled',
     visitorScheduled: 'Visitor Scheduled',
     walkInArrived: 'Walk-in Arrived',

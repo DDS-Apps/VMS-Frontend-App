@@ -1251,6 +1251,7 @@ export interface TranslationKeys {
     visitorCheckedOut: string;
     visitCompleted: string;
     cancelled: string;
+    autoCancelled: string;
     rescheduled: string;
     visitorScheduled: string;
     walkInArrived: string;

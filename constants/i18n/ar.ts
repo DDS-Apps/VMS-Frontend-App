@@ -1251,6 +1251,7 @@ export const ar: TranslationKeys = {
     visitorCheckedOut: 'تسجيل خروج الزائر',
     visitCompleted: 'اكتملت الزيارة',
     cancelled: 'تم إلغاء الطلب',
+    autoCancelled: 'إلغاء تلقائي',
     rescheduled: 'تمت إعادة جدولة الزيارة',
     visitorScheduled: 'تمت جدولة الزائر',
     walkInArrived: 'وصول زائر بدون موعد',
