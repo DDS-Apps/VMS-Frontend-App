@@ -68,6 +68,7 @@ import {
 import {
   toServerDateString,
   toServerTimeString,
+  toServerTime24String,
   calculateServerDuration,
 } from "@/services/utils/dateTimeUtils";
 import { useServerTimezone } from "@/hooks/useServerTimezone";
@@ -159,9 +160,7 @@ export default function RequestDetailsScreen({
   };
 
   const formatTimeForQuery = (time: Date): string => {
-    const hours = String(time.getHours()).padStart(2, '0');
-    const minutes = String(time.getMinutes()).padStart(2, '0');
-    return `${hours}:${minutes}`;
+    return toServerTime24String(time, serverTimezone);
   };
 
   const editRoomAvailabilityParams: RoomAvailabilityParams | null = 

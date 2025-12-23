@@ -384,6 +384,33 @@ export const getServerDateParts = (
 };
 
 /**
+ * Convert a local Date to a 24-hour time string in server timezone (HH:mm format)
+ * Used for room availability queries which expect 24-hour format
+ * @param date - Local Date object
+ * @param timezone - Server timezone
+ * @returns Time string in HH:mm format for the server timezone
+ */
+export const toServerTime24String = (
+  date: Date,
+  timezone: string = DEFAULT_SERVER_TIMEZONE
+): string => {
+  try {
+    const formatter = new Intl.DateTimeFormat('en-GB', {
+      timeZone: timezone,
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+    return formatter.format(date);
+  } catch (error) {
+    // Fallback to local formatting
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
+  }
+};
+
+/**
  * Calculate ISO 8601 duration between two dates in server timezone
  * @param startDate - Start Date object
  * @param endDate - End Date object

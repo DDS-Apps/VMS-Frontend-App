@@ -24,6 +24,13 @@ import { applyOpacity, createModalOverlayStyle } from "@/utils/statusStyles";
 import { CalendarDatePicker } from "@/components/CalendarDatePicker";
 import { TimePicker } from "@/components/TimePicker";
 import type { VisitorRequestFormScreenProps } from "@/types/employeeNavigation.types";
+import {
+  toServerDateString,
+  toServerTimeString,
+  toServerTime24String,
+  calculateServerDuration,
+} from "@/services/utils/dateTimeUtils";
+import { useServerTimezone } from "@/hooks/useServerTimezone";
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -58,6 +65,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
   const { formatDate: fmtDate, formatTime: fmtTime, toLocalNumerals } = useFormatters();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
+  const serverTimezone = useServerTimezone();
   const createVisitMutation = useCreateVisitMutation();
   const walkInMutation = useRegisterWalkInMutation();
   const { data: usersData, isLoading: isLoadingUsers } = useUsersQuery(
@@ -113,16 +121,11 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
 
   const formatDateForApi = (date: Date): string => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    return toServerDateString(date, serverTimezone);
   };
 
   const formatTimeForQuery = (time: Date): string => {
-    const hours = String(time.getHours()).padStart(2, '0');
-    const minutes = String(time.getMinutes()).padStart(2, '0');
-    return `${hours}:${minutes}`;
+    return toServerTime24String(time, serverTimezone);
   };
 
   const roomAvailabilityParams: RoomAvailabilityParams | null = needsMeetingRoom && selectedDate && selectedTime && selectedEndTime
@@ -264,10 +267,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
   };
 
   const formatDate = (date: Date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    return toServerDateString(date, serverTimezone);
   };
 
   const formatTime = (date: Date) => {
@@ -275,9 +275,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
   };
 
   const formatTimeForApi = (date: Date): string => {
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    return `${hours}:${minutes}`;
+    return toServerTimeString(date, serverTimezone);
   };
 
   const handleDateSelect = (date: Date) => {
@@ -463,17 +461,8 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
       if (sendSMS) communicationChannels.push('sms');
       if (sendWhatsApp) communicationChannels.push('whatsapp');
 
-      // Calculate ISO-8601 duration (e.g., "PT1H30M")
-      const startMs = selectedTime.getTime();
-      const endMs = selectedEndTime.getTime();
-      const diffMs = endMs - startMs;
-      const diffMinutes = Math.max(0, Math.round(diffMs / (1000 * 60)));
-      const hours = Math.floor(diffMinutes / 60);
-      const minutes = diffMinutes % 60;
-      let isoDuration = 'PT';
-      if (hours > 0) isoDuration += `${hours}H`;
-      if (minutes > 0) isoDuration += `${minutes}M`;
-      if (hours === 0 && minutes === 0) isoDuration = 'PT0M';
+      // Calculate ISO-8601 duration using timezone utility
+      const isoDuration = calculateServerDuration(selectedTime, selectedEndTime, serverTimezone);
 
       const payload: CreateVisitPayload = {
         hostId: asReceptionist ? selectedEmployeeId : user.id,
