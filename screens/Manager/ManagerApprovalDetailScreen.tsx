@@ -163,6 +163,11 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
     return mapVisitDetailsToVisitorRequest(visitData);
   }, [visitData]);
 
+  // Check if the logged-in manager is the host of this walk-in
+  // If manager IS the host: Receptionist created this for the manager → Manager can add services
+  // If manager is NOT the host: Employee created this walk-in → Manager can only approve/reject
+  const isManagerTheHost = visitData?.employeeId === user?.id;
+
   const isProcessing = approveMutation.isPending || rejectMutation.isPending || cancelMutation.isPending || updateMutation.isPending;
 
   if (isLoading || isFetching) {
@@ -265,15 +270,23 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
     // Calculate duration from approval start time to selected end time using timezone utility
     const isoDuration = calculateServerDuration(startTime, walkInEndTime, serverTimezone);
     
-    const payload = {
+    // Build payload based on whether manager is the host
+    // If manager IS the host: can edit services
+    // If manager is NOT the host: preserve existing services from employee's submission
+    const payload: Record<string, any> = {
       visitDate: formatDateForApi(startTime),
       visitTime: formatTimeForApi(startTime),
       endTime: formatTimeForApi(walkInEndTime),
       duration: isoDuration,
-      needsMeetingRoom: walkInRequiresMeetingRoom,
-      needsParking: walkInRequiresParking,
-      needsBuffet: walkInRequiresBuffet,
     };
+    
+    if (isManagerTheHost) {
+      // Manager is the host - can modify services
+      payload.needsMeetingRoom = walkInRequiresMeetingRoom;
+      payload.needsParking = walkInRequiresParking;
+      payload.needsBuffet = walkInRequiresBuffet;
+    }
+    // If not the host, don't include service fields - preserve existing services
     
     // First approve the request
     approveMutation.mutate(
@@ -936,58 +949,61 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
                 />
               )}
 
-              <Spacer height={Spacing.xl} />
-
-              {/* Additional Services Section */}
-              <View style={{ width: '100%' }}>
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginBottom: Spacing.md }]}>
-                  {t('services.additionalServices')}
-                </ThemedText>
-                
-                <View style={CardGridStyles.grid}>
-                  <View style={CardGridStyles.cardWrapper3Col}>
-                    <SelectableCard
-                      onPress={() => setWalkInRequiresMeetingRoom(!walkInRequiresMeetingRoom)}
-                      selected={walkInRequiresMeetingRoom}
-                    >
-                      <View style={[styles.compactServiceIcon, { backgroundColor: applyOpacity(theme.cardIcon, "15") }]}>
-                        <DDIcon name="users" size={20} color={theme.cardIcon} />
+              {/* Additional Services Section - Only show when Manager is the host */}
+              {isManagerTheHost ? (
+                <>
+                  <Spacer height={Spacing.xl} />
+                  <View style={{ width: '100%' }}>
+                    <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginBottom: Spacing.md }]}>
+                      {t('services.additionalServices')}
+                    </ThemedText>
+                    
+                    <View style={CardGridStyles.grid}>
+                      <View style={CardGridStyles.cardWrapper3Col}>
+                        <SelectableCard
+                          onPress={() => setWalkInRequiresMeetingRoom(!walkInRequiresMeetingRoom)}
+                          selected={walkInRequiresMeetingRoom}
+                        >
+                          <View style={[styles.compactServiceIcon, { backgroundColor: applyOpacity(theme.cardIcon, "15") }]}>
+                            <DDIcon name="users" size={20} color={theme.cardIcon} />
+                          </View>
+                          <ThemedText style={[Typography.caption, { fontWeight: "600", marginTop: Spacing.xs, textAlign: "center", color: theme.text, fontSize: 11 }]}>
+                            {t("services.meetingRoom")}
+                          </ThemedText>
+                        </SelectableCard>
                       </View>
-                      <ThemedText style={[Typography.caption, { fontWeight: "600", marginTop: Spacing.xs, textAlign: "center", color: theme.text, fontSize: 11 }]}>
-                        {t("services.meetingRoom")}
-                      </ThemedText>
-                    </SelectableCard>
-                  </View>
 
-                  <View style={[CardGridStyles.cardWrapper3Col, { opacity: 0.5 }]}>
-                    <SelectableCard
-                      onPress={() => {}}
-                      selected={false}
-                    >
-                      <View style={[styles.compactServiceIcon, { backgroundColor: applyOpacity(theme.textSecondary, "15") }]}>
-                        <DDIcon name="map-pin" size={20} color={theme.textSecondary} />
+                      <View style={[CardGridStyles.cardWrapper3Col, { opacity: 0.5 }]}>
+                        <SelectableCard
+                          onPress={() => {}}
+                          selected={false}
+                        >
+                          <View style={[styles.compactServiceIcon, { backgroundColor: applyOpacity(theme.textSecondary, "15") }]}>
+                            <DDIcon name="map-pin" size={20} color={theme.textSecondary} />
+                          </View>
+                          <ThemedText style={[Typography.caption, { fontWeight: "600", marginTop: Spacing.xs, textAlign: "center", color: theme.textSecondary, fontSize: 11 }]}>
+                            {t("parking.parking")}
+                          </ThemedText>
+                        </SelectableCard>
                       </View>
-                      <ThemedText style={[Typography.caption, { fontWeight: "600", marginTop: Spacing.xs, textAlign: "center", color: theme.textSecondary, fontSize: 11 }]}>
-                        {t("parking.parking")}
-                      </ThemedText>
-                    </SelectableCard>
-                  </View>
 
-                  <View style={CardGridStyles.cardWrapper3Col}>
-                    <SelectableCard
-                      onPress={() => setWalkInRequiresBuffet(!walkInRequiresBuffet)}
-                      selected={walkInRequiresBuffet}
-                    >
-                      <View style={[styles.compactServiceIcon, { backgroundColor: applyOpacity(theme.cardIcon, "15") }]}>
-                        <DDIcon name="cloche" size={20} color={theme.cardIcon} />
+                      <View style={CardGridStyles.cardWrapper3Col}>
+                        <SelectableCard
+                          onPress={() => setWalkInRequiresBuffet(!walkInRequiresBuffet)}
+                          selected={walkInRequiresBuffet}
+                        >
+                          <View style={[styles.compactServiceIcon, { backgroundColor: applyOpacity(theme.cardIcon, "15") }]}>
+                            <DDIcon name="cloche" size={20} color={theme.cardIcon} />
+                          </View>
+                          <ThemedText style={[Typography.caption, { fontWeight: "600", marginTop: Spacing.xs, textAlign: "center", color: theme.text, fontSize: 11 }]}>
+                            {t("buffet.buffet")}
+                          </ThemedText>
+                        </SelectableCard>
                       </View>
-                      <ThemedText style={[Typography.caption, { fontWeight: "600", marginTop: Spacing.xs, textAlign: "center", color: theme.text, fontSize: 11 }]}>
-                        {t("buffet.buffet")}
-                      </ThemedText>
-                    </SelectableCard>
+                    </View>
                   </View>
-                </View>
-              </View>
+                </>
+              ) : null}
 
               <Spacer height={Spacing.xl} />
 
