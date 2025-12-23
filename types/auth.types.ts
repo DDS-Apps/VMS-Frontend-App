@@ -33,6 +33,7 @@ export interface AuthUserDto {
   lastLogin?: string;
   photoUrl?: string | null;
   thumbnailUrl?: string | null;
+  timezone?: string;
 }
 
 export interface AuthTokenResponse {
@@ -46,6 +47,7 @@ export interface AuthTokenResponse {
     role: string;
     department?: string;
     autoApproval?: boolean;
+    timezone?: string;
   };
 }
 

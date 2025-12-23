@@ -65,6 +65,12 @@ import {
   calculateDuration,
   getDurationOptions,
 } from "@/services/utils/requestMappers";
+import {
+  toServerDateString,
+  toServerTimeString,
+  calculateServerDuration,
+} from "@/services/utils/dateTimeUtils";
+import { useServerTimezone } from "@/hooks/useServerTimezone";
 
 export default function RequestDetailsScreen({
   navigation,
@@ -73,6 +79,7 @@ export default function RequestDetailsScreen({
 }: RequestDetailsScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const serverTimezone = useServerTimezone();
   const {
     formatDate,
     formatDateShort,
@@ -146,12 +153,9 @@ export default function RequestDetailsScreen({
   const managerApproveMutation = useApproveVisitMutation();
   const managerRejectMutation = useRejectVisitMutation();
 
-  // Room availability check for edit modal
+  // Room availability check for edit modal - use server timezone
   const formatDateForApi = (date: Date): string => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    return toServerDateString(date, serverTimezone);
   };
 
   const formatTimeForQuery = (time: Date): string => {
@@ -386,12 +390,7 @@ export default function RequestDetailsScreen({
   };
 
   const formatTimeForApi = (time: Date): string => {
-    const hours = time.getHours();
-    const minutes = time.getMinutes();
-    const period = hours >= 12 ? "PM" : "AM";
-    const hour12 = hours % 12 || 12;
-    const minuteStr = String(minutes).padStart(2, "0");
-    return `${hour12}:${minuteStr} ${period}`;
+    return toServerTimeString(time, serverTimezone);
   };
 
   const formatDisplayDate = (date: Date): string => {
@@ -616,17 +615,8 @@ export default function RequestDetailsScreen({
         // Add end time to payload (format as HH:mm AM/PM)
         payload.endTime = formatTimeForApi(editEndTime);
         
-        // Calculate duration from approval start time to selected end time
-        const endMs = editEndTime.getTime();
-        const diffMs = endMs - startTime.getTime();
-        const diffMinutes = Math.max(0, Math.round(diffMs / (1000 * 60)));
-        const hours = Math.floor(diffMinutes / 60);
-        const minutes = diffMinutes % 60;
-        let isoDuration = "PT";
-        if (hours > 0) isoDuration += `${hours}H`;
-        if (minutes > 0) isoDuration += `${minutes}M`;
-        if (hours === 0 && minutes === 0) isoDuration = "PT0M";
-        payload.duration = isoDuration;
+        // Calculate duration from approval start time to selected end time using timezone utility
+        payload.duration = calculateServerDuration(startTime, editEndTime, serverTimezone);
         
         // Clear approvalStartTime after use
         setApprovalStartTime(null);

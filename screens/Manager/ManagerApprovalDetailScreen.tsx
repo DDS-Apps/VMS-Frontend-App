@@ -26,6 +26,12 @@ import { applyOpacity, createModalOverlayStyle } from "@/utils/statusStyles";
 import { ManagerApprovalDetailScreenProps } from "@/types/managerNavigation.types";
 import { Theme } from "@/types/theme.types";
 import { mapVisitDetailsToVisitorRequest } from "@/services/utils/requestMappers";
+import {
+  toServerDateString,
+  toServerTimeString,
+  calculateServerDuration,
+} from "@/services/utils/dateTimeUtils";
+import { useServerTimezone } from "@/hooks/useServerTimezone";
 
 const LAYOUT = {
   cardPadding: Spacing.lg,
@@ -99,6 +105,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
   const { requestId } = route.params;
   const { user } = useAuth();
   const isReadOnlyRole = user?.role === 'building_admin';
+  const serverTimezone = useServerTimezone();
 
   // Helper function for consistent service status colors
   const getServiceStatusVariant = (status?: string): 'success' | 'warning' | 'error' | 'info' | 'muted' => {
@@ -190,19 +197,11 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
   };
 
   const formatTimeForApi = (time: Date): string => {
-    const hours = time.getHours();
-    const minutes = time.getMinutes();
-    const period = hours >= 12 ? "PM" : "AM";
-    const hour12 = hours % 12 || 12;
-    const minuteStr = String(minutes).padStart(2, "0");
-    return `${hour12}:${minuteStr} ${period}`;
+    return toServerTimeString(time, serverTimezone);
   };
 
   const formatDateForApi = (date: Date): string => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    return toServerDateString(date, serverTimezone);
   };
 
   const formatDisplayTime = (date: Date): string => {
@@ -263,15 +262,8 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
     // Use the captured approval start time (or fallback to now)
     const startTime = approvalStartTime || new Date();
     
-    // Calculate duration from approval start time to selected end time
-    const diffMs = walkInEndTime.getTime() - startTime.getTime();
-    const diffMinutes = Math.max(0, Math.round(diffMs / (1000 * 60)));
-    const hours = Math.floor(diffMinutes / 60);
-    const minutes = diffMinutes % 60;
-    let isoDuration = "PT";
-    if (hours > 0) isoDuration += `${hours}H`;
-    if (minutes > 0) isoDuration += `${minutes}M`;
-    if (hours === 0 && minutes === 0) isoDuration = "PT0M";
+    // Calculate duration from approval start time to selected end time using timezone utility
+    const isoDuration = calculateServerDuration(startTime, walkInEndTime, serverTimezone);
     
     const payload = {
       visitDate: formatDateForApi(startTime),

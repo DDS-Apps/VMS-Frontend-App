@@ -32,6 +32,7 @@ export interface AuthUser {
   createdAt?: string;
   lastLogin?: string;
   isSSOUser?: boolean;
+  timezone?: string;
 }
 
 interface AuthState {
@@ -148,6 +149,7 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
       thumbnailUrl: userDto.thumbnailUrl,
       createdAt: userDto.createdAt,
       lastLogin: userDto.lastLogin,
+      timezone: userDto.timezone,
     };
   };
 
@@ -159,6 +161,7 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
       role: mapRoleToUserRole(loginUser.role),
       autoApproval: loginUser.autoApproval,
       department: loginUser.department,
+      timezone: loginUser.timezone,
     };
   };
 
