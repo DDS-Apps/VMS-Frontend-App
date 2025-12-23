@@ -64,7 +64,7 @@ const getEventColor = (eventType: VisitEventLog['eventType'], theme: ReturnType<
 export default function SystemEventLogScreen() {
   const { theme } = useTheme();
   const { t, isRTL } = useTranslation();
-  const { serverTimezone } = useServerTimezone();
+  const serverTimezone = useServerTimezone();
   const insets = useSafeAreaInsets();
   const [events, setEvents] = useState<VisitEventLog[]>([]);
   const [filter, setFilter] = useState<EventTypeFilter>('all');

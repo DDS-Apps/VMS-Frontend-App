@@ -96,7 +96,7 @@ export default function ReminderScheduleScreen() {
   const { theme } = useTheme();
   const { t, isRTL } = useTranslation();
   const { formatTimeFromString } = useFormatters();
-  const { serverTimezone } = useServerTimezone();
+  const serverTimezone = useServerTimezone();
   const insets = useSafeAreaInsets();
   const [reminders, setReminders] = useState<ScheduledReminder[]>([]);
   const [filter, setFilter] = useState<ReminderFilter>('upcoming');

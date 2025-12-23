@@ -31,7 +31,7 @@ type ResultFilter = 'all' | GateEventResult;
 export default function GateEventsLogScreen({ navigation }: GateEventsLogScreenProps) {
   const { theme } = useTheme();
   const { t, isRTL } = useTranslation();
-  const { serverTimezone } = useServerTimezone();
+  const serverTimezone = useServerTimezone();
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
   const [events, setEvents] = useState<GateEvent[]>([]);

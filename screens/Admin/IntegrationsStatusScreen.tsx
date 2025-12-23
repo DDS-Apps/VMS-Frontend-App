@@ -27,7 +27,7 @@ const INTEGRATION_ICONS: Record<string, string> = {
 export default function IntegrationsStatusScreen() {
   const { theme } = useTheme();
   const { t, isRTL } = useTranslation();
-  const { serverTimezone } = useServerTimezone();
+  const serverTimezone = useServerTimezone();
   const insets = useSafeAreaInsets();
 
   const [integrations, setIntegrations] = useState<IntegrationHealth[]>([]);
