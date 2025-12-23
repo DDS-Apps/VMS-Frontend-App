@@ -11,6 +11,8 @@ import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
+import { useServerTimezone } from "@/hooks/useServerTimezone";
+import { toServerTimeString } from "@/services/utils/dateTimeUtils";
 import { useCreateSelfValetRequestMutation } from "@/hooks/queries/useValetSelfServiceQueries";
 import { applyOpacity, createModalOverlayStyle } from "@/utils/statusStyles";
 import { TimePicker } from "@/components/TimePicker";
@@ -89,6 +91,7 @@ export default function ParkMyCarScreen({ navigation }: ParkMyCarScreenProps) {
   const { t } = useTranslation();
   const { formatTime } = useFormatters();
   const insets = useSafeAreaInsets();
+  const serverTimezone = useServerTimezone();
   const createMutation = useCreateSelfValetRequestMutation();
 
   const scrollContentStyle = {
@@ -224,7 +227,7 @@ export default function ParkMyCarScreen({ navigation }: ParkMyCarScreenProps) {
           plateNumber: plateNumber.trim().toUpperCase(),
         },
         dropOffLocation,
-        requestedReturnTime: formatTime(returnTime),
+        requestedReturnTime: toServerTimeString(returnTime, serverTimezone),
         notes: notes.trim() || undefined,
       });
 
