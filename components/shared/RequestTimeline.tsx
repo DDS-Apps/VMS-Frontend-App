@@ -376,6 +376,29 @@ function buildStandardTimeline(
     icon: 'check-circle',
   });
 
+  // CRITICAL: Check for terminal statuses FIRST before any approval flow logic
+  // This ensures cancelled/auto_cancelled requests show properly even if approval.requiresApproval is true
+  if (data.cancelledAt || data.status === 'cancelled') {
+    steps.push({
+      id: 'cancelled',
+      label: t('timeline.cancelled'),
+      timestamp: data.cancelledAt,
+      status: 'error',
+      icon: 'x-circle',
+    });
+    return steps;
+  }
+
+  if (data.status === 'auto_cancelled') {
+    steps.push({
+      id: 'auto_cancelled',
+      label: t('timeline.autoCancelled'),
+      status: 'error',
+      icon: 'x-circle',
+    });
+    return steps;
+  }
+
   const isAtLaterStage = LATER_STAGE_STATUSES.includes(data.status);
   const isRejectedStatus = data.status === 'rejected';
   const isPendingApproval = data.status === 'pending_approval';
@@ -485,30 +508,7 @@ function buildStandardTimeline(
     }
   }
 
-  // Check for cancelled status (with or without timestamp)
-  if (data.cancelledAt || data.status === 'cancelled') {
-    steps.push({
-      id: 'cancelled',
-      label: t('timeline.cancelled'),
-      timestamp: data.cancelledAt,
-      status: 'error',
-      icon: 'x-circle',
-    });
-    return steps;
-  }
-
-  // Check for auto_cancelled status
-  if (data.status === 'auto_cancelled') {
-    steps.push({
-      id: 'auto_cancelled',
-      label: t('timeline.autoCancelled'),
-      status: 'error',
-      icon: 'x-circle',
-    });
-    return steps;
-  }
-
-  // Check for host_reject status (with or without timestamp)
+  // Check for host_reject status (with or without timestamp) - only if not already handled above
   if (data.status === 'host_reject' && !data.hostApproval?.rejectedAt) {
     steps.push({
       id: 'host_approval',
