@@ -41,7 +41,9 @@ export type VisitorRequestFormScreenProps = NativeStackScreenProps<
 export type RequestDetailsScreenProps = NativeStackScreenProps<
   EmployeeStackParamList,
   "RequestDetails"
->;
+> & {
+  userRole?: 'employee' | 'manager' | 'receptionist' | 'security' | 'admin' | 'buffet_admin' | 'valet_admin' | 'valet_driver' | 'building_admin';
+};
 
 export type MyValetRequestsScreenProps = NativeStackScreenProps<
   EmployeeStackParamList,

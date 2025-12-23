@@ -233,7 +233,7 @@ export default function DashboardContainer({ userRole, userName, userPhotoUrl, a
         <Stack.Screen name="RequestDetails">
           {(props) => (
             <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager} isSSOUser={isSSOUser}>
-              <RequestDetailsScreen {...props} />
+              <RequestDetailsScreen {...props} userRole={effectiveRole} />
             </ScreenWrapper>
           )}
         </Stack.Screen>

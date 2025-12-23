@@ -69,6 +69,7 @@ import {
 export default function RequestDetailsScreen({
   navigation,
   route,
+  userRole = 'employee',
 }: RequestDetailsScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
@@ -1358,8 +1359,8 @@ export default function RequestDetailsScreen({
         </>
       ) : null}
 
-      {/* Manager approval pending: Show Accept/Reject buttons */}
-      {request.status === REQUEST_STATUS.PENDING_APPROVAL ? (
+      {/* Manager approval pending: Show Accept/Reject buttons - only for managers */}
+      {request.status === REQUEST_STATUS.PENDING_APPROVAL && userRole === 'manager' ? (
         <>
           <ApprovalActionGroup
             onApprove={handleManagerApprove}
@@ -1373,9 +1374,9 @@ export default function RequestDetailsScreen({
         </>
       ) : null}
 
-      {/* Show Edit and Cancel buttons - hidden for terminal statuses */}
+      {/* Show Edit and Cancel buttons - hidden for terminal statuses and for managers on pending_approval */}
       {request.status !== REQUEST_STATUS.PENDING_HOST_APPROVAL &&
-       request.status !== REQUEST_STATUS.PENDING_APPROVAL &&
+       !(request.status === REQUEST_STATUS.PENDING_APPROVAL && userRole === 'manager') &&
        request.status !== REQUEST_STATUS.COMPLETED &&
        request.status !== REQUEST_STATUS.CANCELLED &&
        request.status !== REQUEST_STATUS.REJECTED &&

@@ -55,9 +55,10 @@ function DashboardStack({ userRole }: { userRole: UserRole }) {
         />
         <Stack.Screen
           name="RequestDetails"
-          component={RequestDetailsScreen}
           options={{ headerTitle: "Request Details" }}
-        />
+        >
+          {(props) => <RequestDetailsScreen {...props} userRole="employee" />}
+        </Stack.Screen>
         <Stack.Screen
           name="ParkMyCar"
           component={ParkMyCarScreen}
