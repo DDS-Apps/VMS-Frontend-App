@@ -12,6 +12,7 @@ import { StatusBadge } from "@/components/shared/StatusBadge";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
+import { SelectableCard, CardGridStyles } from "@/components/SelectableCard";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { REQUEST_STATUS } from "@/constants/requestConstants";
@@ -125,6 +126,12 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
   });
   const [approvalStartTime, setApprovalStartTime] = useState<Date | null>(null);
   const [showEndTimePicker, setShowEndTimePicker] = useState(false);
+  
+  // Walk-in approval services state
+  const [walkInRequiresMeetingRoom, setWalkInRequiresMeetingRoom] = useState(false);
+  const [walkInRequiresParking, setWalkInRequiresParking] = useState(false);
+  const [walkInRequiresBuffet, setWalkInRequiresBuffet] = useState(false);
+  
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error'; visible: boolean }>({
     message: '',
     type: 'success',
@@ -210,12 +217,19 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
   const handleApprove = () => {
     if (isReadOnlyRole) return;
     
-    // For walk-in requests, show the end time modal
+    // For walk-in requests, show the end time modal with service selection
     if (visitData?.isWalkIn) {
       const approvalTime = new Date();
       setApprovalStartTime(approvalTime);
       const defaultEndTime = new Date(approvalTime.getTime() + 60 * 60 * 1000);
       setWalkInEndTime(defaultEndTime);
+      
+      // Initialize services from existing visit data
+      // For walk-ins, parking is always disabled (same as Employee flow)
+      setWalkInRequiresMeetingRoom(!!visitData.meetingRoom);
+      setWalkInRequiresParking(false); // Parking disabled for walk-ins
+      setWalkInRequiresBuffet(!!visitData.buffet);
+      
       setShowWalkInApprovalModal(true);
       return;
     }
@@ -264,6 +278,9 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
       visitTime: formatTimeForApi(startTime),
       endTime: formatTimeForApi(walkInEndTime),
       duration: isoDuration,
+      needsMeetingRoom: walkInRequiresMeetingRoom,
+      needsParking: walkInRequiresParking,
+      needsBuffet: walkInRequiresBuffet,
     };
     
     // First approve the request
@@ -278,6 +295,10 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
               onSuccess: () => {
                 setShowWalkInApprovalModal(false);
                 setApprovalStartTime(null);
+                // Reset service states
+                setWalkInRequiresMeetingRoom(false);
+                setWalkInRequiresParking(false);
+                setWalkInRequiresBuffet(false);
                 showToast(t('notifications.walkInApproved'), 'success');
                 setTimeout(() => {
                   navigation.goBack();
@@ -925,6 +946,59 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
               <Spacer height={Spacing.xl} />
 
+              {/* Additional Services Section */}
+              <View style={{ width: '100%' }}>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginBottom: Spacing.md }]}>
+                  {t('services.additionalServices')}
+                </ThemedText>
+                
+                <View style={CardGridStyles.grid}>
+                  <View style={CardGridStyles.cardWrapper3Col}>
+                    <SelectableCard
+                      onPress={() => setWalkInRequiresMeetingRoom(!walkInRequiresMeetingRoom)}
+                      selected={walkInRequiresMeetingRoom}
+                    >
+                      <View style={[styles.compactServiceIcon, { backgroundColor: applyOpacity(theme.cardIcon, "15") }]}>
+                        <DDIcon name="users" size={20} color={theme.cardIcon} />
+                      </View>
+                      <ThemedText style={[Typography.caption, { fontWeight: "600", marginTop: Spacing.xs, textAlign: "center", color: theme.text, fontSize: 11 }]}>
+                        {t("services.meetingRoom")}
+                      </ThemedText>
+                    </SelectableCard>
+                  </View>
+
+                  <View style={[CardGridStyles.cardWrapper3Col, { opacity: 0.5 }]}>
+                    <SelectableCard
+                      onPress={() => {}}
+                      selected={false}
+                    >
+                      <View style={[styles.compactServiceIcon, { backgroundColor: applyOpacity(theme.textSecondary, "15") }]}>
+                        <DDIcon name="map-pin" size={20} color={theme.textSecondary} />
+                      </View>
+                      <ThemedText style={[Typography.caption, { fontWeight: "600", marginTop: Spacing.xs, textAlign: "center", color: theme.textSecondary, fontSize: 11 }]}>
+                        {t("parking.parking")}
+                      </ThemedText>
+                    </SelectableCard>
+                  </View>
+
+                  <View style={CardGridStyles.cardWrapper3Col}>
+                    <SelectableCard
+                      onPress={() => setWalkInRequiresBuffet(!walkInRequiresBuffet)}
+                      selected={walkInRequiresBuffet}
+                    >
+                      <View style={[styles.compactServiceIcon, { backgroundColor: applyOpacity(theme.cardIcon, "15") }]}>
+                        <DDIcon name="cloche" size={20} color={theme.cardIcon} />
+                      </View>
+                      <ThemedText style={[Typography.caption, { fontWeight: "600", marginTop: Spacing.xs, textAlign: "center", color: theme.text, fontSize: 11 }]}>
+                        {t("buffet.buffet")}
+                      </ThemedText>
+                    </SelectableCard>
+                  </View>
+                </View>
+              </View>
+
+              <Spacer height={Spacing.xl} />
+
               <View style={styles.modalActions}>
                 <LoadingButton
                   onPress={() => setShowWalkInApprovalModal(false)}
@@ -1051,6 +1125,13 @@ const styles = StyleSheet.create({
   serviceInfo: {
     flex: 1,
     marginStart: Spacing.md,
+  },
+  compactServiceIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: BorderRadius.sm,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
   actionBar: {
