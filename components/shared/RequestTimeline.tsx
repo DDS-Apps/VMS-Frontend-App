@@ -485,11 +485,34 @@ function buildStandardTimeline(
     }
   }
 
-  if (data.cancelledAt) {
+  // Check for cancelled status (with or without timestamp)
+  if (data.cancelledAt || data.status === 'cancelled') {
     steps.push({
       id: 'cancelled',
       label: t('timeline.cancelled'),
       timestamp: data.cancelledAt,
+      status: 'error',
+      icon: 'x-circle',
+    });
+    return steps;
+  }
+
+  // Check for auto_cancelled status
+  if (data.status === 'auto_cancelled') {
+    steps.push({
+      id: 'auto_cancelled',
+      label: t('timeline.autoCancelled'),
+      status: 'error',
+      icon: 'x-circle',
+    });
+    return steps;
+  }
+
+  // Check for host_reject status (with or without timestamp)
+  if (data.status === 'host_reject' && !data.hostApproval?.rejectedAt) {
+    steps.push({
+      id: 'host_approval',
+      label: t('timeline.hostRejected'),
       status: 'error',
       icon: 'x-circle',
     });
@@ -612,10 +635,11 @@ function buildReceptionistTimeline(
     });
   }
 
-  if (data.cancelledAt) {
+  // Check for cancelled status (with or without timestamp)
+  if (data.cancelledAt || data.status === 'cancelled' || data.status === 'auto_cancelled') {
     steps.push({
       id: 'cancelled',
-      label: t('timeline.cancelled'),
+      label: data.status === 'auto_cancelled' ? t('timeline.autoCancelled') : t('timeline.cancelled'),
       timestamp: data.cancelledAt,
       status: 'error',
       icon: 'x-circle',
@@ -705,11 +729,47 @@ function buildManagerApprovalTimeline(
     icon: 'send',
   });
 
-  if (data.approval?.rejectedAt) {
+  // Check for rejected status (with or without timestamp)
+  if (data.approval?.rejectedAt || data.status === 'rejected') {
     steps.push({
       id: 'approval',
       label: t('timeline.rejected'),
-      timestamp: data.approval.rejectedAt,
+      timestamp: data.approval?.rejectedAt,
+      status: 'error',
+      icon: 'x-circle',
+    });
+    return steps;
+  }
+
+  // Check for cancelled status in manager timeline
+  if (data.cancelledAt || data.status === 'cancelled' || data.status === 'auto_cancelled') {
+    steps.push({
+      id: 'cancelled',
+      label: data.status === 'auto_cancelled' ? t('timeline.autoCancelled') : t('timeline.cancelled'),
+      timestamp: data.cancelledAt,
+      status: 'error',
+      icon: 'x-circle',
+    });
+    return steps;
+  }
+
+  // Check for host rejection status (with or without timestamp)
+  if (data.hostApproval?.rejectedAt || data.status === 'host_reject') {
+    steps.push({
+      id: 'host_approval',
+      label: t('timeline.hostRejected'),
+      timestamp: data.hostApproval?.rejectedAt,
+      status: 'error',
+      icon: 'x-circle',
+    });
+    return steps;
+  }
+
+  // Check for visitor rejection status
+  if (data.status === 'visitor_rejected') {
+    steps.push({
+      id: 'visitor_response',
+      label: t('timeline.visitorDeclined'),
       status: 'error',
       icon: 'x-circle',
     });
@@ -780,6 +840,18 @@ function buildSecurityTimeline(
     status: 'completed',
     icon: 'user',
   });
+
+  // Check for cancelled status in security timeline
+  if (data.cancelledAt || data.status === 'cancelled' || data.status === 'auto_cancelled') {
+    steps.push({
+      id: 'cancelled',
+      label: data.status === 'auto_cancelled' ? t('timeline.autoCancelled') : t('timeline.cancelled'),
+      timestamp: data.cancelledAt,
+      status: 'error',
+      icon: 'x-circle',
+    });
+    return steps;
+  }
 
   if (data.checkedInAt) {
     steps.push({
