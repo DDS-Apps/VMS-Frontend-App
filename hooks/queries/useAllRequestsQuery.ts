@@ -1,18 +1,15 @@
 import { useQueries } from '@tanstack/react-query';
-import { invitationApiService, type ListInvitationsParams } from '@/services/invitationApiService';
-import { buffetApiService, type ListBuffetRequestsParams } from '@/services/buffetApiService';
-import { valetApiService, type ListValetAssignmentsParams } from '@/services/valetApiService';
+import { requestApiService } from '@/services/requestApiService';
+import { buffetApiService } from '@/services/buffetApiService';
+import { valetApiService } from '@/services/valetApiService';
 import type { 
-  InvitationDto, 
-  BuffetRequestDto, 
-  ValetAssignmentDto,
+  VisitListItemDto, 
+  VisitListParams,
+  BuffetAdminTaskDto,
+  ListBuffetAdminTasksParams,
+  ValetTaskDto,
+  ListValetTasksParams,
 } from '@/types/api.types';
-import { 
-  InvitationStatus, 
-  BuffetRequestStatus, 
-  ValetAssignmentStatus,
-} from '@/types/api.types';
-import type { PaginatedResponse } from '@/types';
 
 export type UnifiedRequestType = 'visitor' | 'buffet' | 'valet';
 export type UnifiedStatus = 'pending' | 'approved' | 'in_progress' | 'completed' | 'cancelled' | 'rejected';
@@ -26,133 +23,153 @@ export interface UnifiedRequest {
   time: string;
   status: UnifiedStatus;
   location?: string;
-  originalData: InvitationDto | BuffetRequestDto | ValetAssignmentDto;
+  originalData: VisitListItemDto | BuffetAdminTaskDto | ValetTaskDto;
   canApprove: boolean;
   canCancel: boolean;
   createdAt: string;
+  purpose?: string;
+  company?: string;
+  mealType?: string;
+  guestCount?: number;
+  vehicleInfo?: ValetTaskDto['vehicleInfo'];
 }
 
-function normalizeInvitationStatus(status: InvitationStatus): UnifiedStatus {
-  switch (status) {
-    case InvitationStatus.PENDING:
+function normalizeVisitStatus(status: string): UnifiedStatus {
+  const statusLower = status.toLowerCase();
+  switch (statusLower) {
+    case 'pending':
+    case 'pending_approval':
+    case 'pending_host_approval':
       return 'pending';
-    case InvitationStatus.ACCEPTED:
+    case 'approved':
+    case 'confirmed':
+    case 'accepted':
       return 'approved';
-    case InvitationStatus.CHECKED_IN:
+    case 'checked_in':
+    case 'in_progress':
       return 'in_progress';
-    case InvitationStatus.CHECKED_OUT:
+    case 'checked_out':
+    case 'completed':
       return 'completed';
-    case InvitationStatus.CANCELLED:
+    case 'cancelled':
       return 'cancelled';
-    case InvitationStatus.REJECTED:
-    case InvitationStatus.EXPIRED:
+    case 'rejected':
+    case 'expired':
       return 'rejected';
     default:
       return 'pending';
   }
 }
 
-function normalizeBuffetStatus(status: BuffetRequestStatus): UnifiedStatus {
-  switch (status) {
-    case BuffetRequestStatus.PENDING:
+function normalizeBuffetStatus(status: string): UnifiedStatus {
+  const statusLower = status.toLowerCase();
+  switch (statusLower) {
+    case 'pending':
+    case 'pending_assignment':
       return 'pending';
-    case BuffetRequestStatus.CONFIRMED:
+    case 'assigned':
+    case 'confirmed':
       return 'approved';
-    case BuffetRequestStatus.PREPARING:
-    case BuffetRequestStatus.READY:
+    case 'preparing':
+    case 'ready':
+    case 'in_progress':
       return 'in_progress';
-    case BuffetRequestStatus.DELIVERED:
+    case 'delivered':
+    case 'completed':
+    case 'served':
       return 'completed';
-    case BuffetRequestStatus.CANCELLED:
+    case 'cancelled':
       return 'cancelled';
     default:
       return 'pending';
   }
 }
 
-function normalizeValetStatus(status: ValetAssignmentStatus): UnifiedStatus {
-  switch (status) {
-    case ValetAssignmentStatus.PENDING:
+function normalizeValetStatus(status?: string): UnifiedStatus {
+  if (!status) return 'pending';
+  const statusLower = status.toLowerCase();
+  switch (statusLower) {
+    case 'pending':
+    case 'unassigned':
       return 'pending';
-    case ValetAssignmentStatus.ACCEPTED:
+    case 'assigned':
+    case 'accepted':
       return 'approved';
-    case ValetAssignmentStatus.IN_PROGRESS:
+    case 'in_progress':
+    case 'picking_up':
+    case 'parking':
       return 'in_progress';
-    case ValetAssignmentStatus.COMPLETED:
+    case 'completed':
+    case 'parked':
       return 'completed';
-    case ValetAssignmentStatus.CANCELLED:
+    case 'cancelled':
       return 'cancelled';
-    case ValetAssignmentStatus.REJECTED:
+    case 'rejected':
       return 'rejected';
     default:
       return 'pending';
   }
 }
 
-function getVisitorName(visitor?: { firstName?: string; lastName?: string; email?: string }): string {
-  if (!visitor) return 'Unknown Visitor';
-  const fullName = [visitor.firstName, visitor.lastName].filter(Boolean).join(' ').trim();
-  return fullName || visitor.email || 'Unknown Visitor';
-}
-
-function getUserName(user?: { name?: string; firstName?: string; lastName?: string; email?: string }): string {
-  if (!user) return 'Unknown';
-  if (user.name) return user.name;
-  const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ').trim();
-  return fullName || user.email || 'Unknown';
-}
-
-function mapInvitationToUnified(invitation: InvitationDto): UnifiedRequest {
-  const normalizedStatus = normalizeInvitationStatus(invitation.status);
+function mapVisitToUnified(visit: VisitListItemDto): UnifiedRequest {
+  const normalizedStatus = normalizeVisitStatus(visit.status);
   return {
-    id: invitation.id,
+    id: visit.id,
     type: 'visitor',
-    visitorName: getVisitorName(invitation.visitor),
-    hostName: getUserName(invitation.host),
-    date: invitation.visitDate,
-    time: invitation.startTime,
+    visitorName: visit.visitor?.fullName || 'Unknown Visitor',
+    hostName: visit.employeeName || 'Unknown Host',
+    date: visit.visitDate,
+    time: visit.visitTime,
     status: normalizedStatus,
-    location: invitation.notes,
-    originalData: invitation,
+    location: visit.purpose,
+    originalData: visit,
     canApprove: normalizedStatus === 'pending',
     canCancel: normalizedStatus === 'pending' || normalizedStatus === 'approved',
-    createdAt: invitation.createdAt,
+    createdAt: visit.createdAt,
+    purpose: visit.purpose,
+    company: visit.visitor?.company,
   };
 }
 
-function mapBuffetToUnified(buffet: BuffetRequestDto): UnifiedRequest {
+function mapBuffetToUnified(buffet: BuffetAdminTaskDto): UnifiedRequest {
   const normalizedStatus = normalizeBuffetStatus(buffet.status);
   return {
     id: buffet.id,
     type: 'buffet',
-    visitorName: getVisitorName(buffet.invitation?.visitor) || getUserName(buffet.requestedBy) || 'Buffet Request',
-    hostName: getUserName(buffet.requestedBy),
-    date: buffet.scheduledTime.split('T')[0],
-    time: buffet.scheduledTime,
+    visitorName: buffet.visitorName || 'Unknown',
+    hostName: buffet.hostName || 'Unknown Host',
+    date: buffet.visitDate,
+    time: buffet.visitTime,
     status: normalizedStatus,
-    location: buffet.buffetLocation?.name,
+    location: buffet.location,
     originalData: buffet,
     canApprove: normalizedStatus === 'pending',
     canCancel: normalizedStatus === 'pending' || normalizedStatus === 'approved',
-    createdAt: buffet.createdAt,
+    createdAt: buffet.createdAt || buffet.visitDate,
+    mealType: buffet.mealType,
+    guestCount: buffet.guestCount,
+    company: buffet.company,
   };
 }
 
-function mapValetToUnified(valet: ValetAssignmentDto): UnifiedRequest {
-  const normalizedStatus = normalizeValetStatus(valet.status);
+function mapValetToUnified(valet: ValetTaskDto): UnifiedRequest {
+  const normalizedStatus = normalizeValetStatus(valet.valet?.status);
+  const visitorName = valet.visitorName || valet.employeeName || 'Valet Request';
   return {
     id: valet.id,
     type: 'valet',
-    visitorName: getVisitorName(valet.invitation?.visitor) || getUserName(valet.requestedBy) || 'Valet Request',
-    hostName: getUserName(valet.requestedBy),
-    date: valet.pickupTime?.split('T')[0] || valet.createdAt.split('T')[0],
-    time: valet.pickupTime || valet.createdAt,
+    visitorName,
+    hostName: valet.hostName || valet.employeeName || 'Unknown',
+    date: valet.visitDate,
+    time: valet.pickupTime || '',
     status: normalizedStatus,
-    location: valet.parkedAtLocation,
+    location: valet.location || valet.dropOffLocation,
     originalData: valet,
     canApprove: normalizedStatus === 'pending',
     canCancel: normalizedStatus === 'pending' || normalizedStatus === 'approved',
-    createdAt: valet.createdAt,
+    createdAt: valet.visitDate,
+    vehicleInfo: valet.vehicleInfo,
+    company: valet.visitorCompany,
   };
 }
 
@@ -167,48 +184,48 @@ export interface AllRequestsFilters {
 export function useAllRequestsQuery(filters: AllRequestsFilters = {}) {
   const { type = 'all', status = 'all', startDate, endDate } = filters;
 
-  const invitationParams: ListInvitationsParams = {
+  const visitParams: VisitListParams = {
     limit: 100,
     startDate,
     endDate,
   };
 
-  const buffetParams: ListBuffetRequestsParams = {
-    limit: 100,
+  const buffetParams: ListBuffetAdminTasksParams = {
+    date: startDate,
   };
 
-  const valetParams: ListValetAssignmentsParams = {
-    limit: 100,
+  const valetParams: ListValetTasksParams = {
+    date: startDate,
   };
 
-  const shouldFetchInvitations = type === 'all' || type === 'visitor';
+  const shouldFetchVisits = type === 'all' || type === 'visitor';
   const shouldFetchBuffet = type === 'all' || type === 'buffet';
   const shouldFetchValet = type === 'all' || type === 'valet';
 
   const results = useQueries({
     queries: [
       {
-        queryKey: ['all-requests', 'invitations', invitationParams],
-        queryFn: () => invitationApiService.list(invitationParams),
-        enabled: shouldFetchInvitations,
+        queryKey: ['all-requests', 'visits', visitParams],
+        queryFn: () => requestApiService.listVisits(visitParams),
+        enabled: shouldFetchVisits,
         staleTime: 30 * 1000,
       },
       {
-        queryKey: ['all-requests', 'buffet', buffetParams],
-        queryFn: () => buffetApiService.listRequests(buffetParams),
+        queryKey: ['all-requests', 'buffet-admin-tasks', buffetParams],
+        queryFn: () => buffetApiService.getBuffetAdminTasks(buffetParams),
         enabled: shouldFetchBuffet,
         staleTime: 30 * 1000,
       },
       {
-        queryKey: ['all-requests', 'valet', valetParams],
-        queryFn: () => valetApiService.listAssignments(valetParams),
+        queryKey: ['all-requests', 'valet-admin-tasks', valetParams],
+        queryFn: () => valetApiService.listTasks(valetParams),
         enabled: shouldFetchValet,
         staleTime: 30 * 1000,
       },
     ],
   });
 
-  const [invitationsResult, buffetResult, valetResult] = results;
+  const [visitsResult, buffetResult, valetResult] = results;
 
   const isLoading = results.some(r => r.isLoading);
   const isFetching = results.some(r => r.isFetching);
@@ -217,19 +234,19 @@ export function useAllRequestsQuery(filters: AllRequestsFilters = {}) {
 
   const allRequests: UnifiedRequest[] = [];
 
-  if (shouldFetchInvitations && invitationsResult.data) {
-    const invitations = (invitationsResult.data as PaginatedResponse<InvitationDto>).data || [];
-    allRequests.push(...invitations.map(mapInvitationToUnified));
+  if (shouldFetchVisits && visitsResult.data) {
+    const visits = visitsResult.data.data || [];
+    allRequests.push(...visits.map(mapVisitToUnified));
   }
 
   if (shouldFetchBuffet && buffetResult.data) {
-    const buffetRequests = (buffetResult.data as PaginatedResponse<BuffetRequestDto>).data || [];
-    allRequests.push(...buffetRequests.map(mapBuffetToUnified));
+    const buffetTasks = buffetResult.data.data || [];
+    allRequests.push(...buffetTasks.map(mapBuffetToUnified));
   }
 
   if (shouldFetchValet && valetResult.data) {
-    const valetAssignments = (valetResult.data as PaginatedResponse<ValetAssignmentDto>).data || [];
-    allRequests.push(...valetAssignments.map(mapValetToUnified));
+    const valetTasks = valetResult.data.data || [];
+    allRequests.push(...valetTasks.map(mapValetToUnified));
   }
 
   let filteredRequests = allRequests;
@@ -243,7 +260,8 @@ export function useAllRequestsQuery(filters: AllRequestsFilters = {}) {
     filteredRequests = filteredRequests.filter(r => 
       r.visitorName.toLowerCase().includes(query) ||
       r.hostName.toLowerCase().includes(query) ||
-      (r.location && r.location.toLowerCase().includes(query))
+      (r.location && r.location.toLowerCase().includes(query)) ||
+      (r.company && r.company.toLowerCase().includes(query))
     );
   }
 
@@ -283,7 +301,7 @@ export function useAllRequestsQuery(filters: AllRequestsFilters = {}) {
 
 export const allRequestsKeys = {
   all: ['all-requests'] as const,
-  invitations: (params?: ListInvitationsParams) => [...allRequestsKeys.all, 'invitations', params] as const,
-  buffet: (params?: ListBuffetRequestsParams) => [...allRequestsKeys.all, 'buffet', params] as const,
-  valet: (params?: ListValetAssignmentsParams) => [...allRequestsKeys.all, 'valet', params] as const,
+  visits: (params?: VisitListParams) => [...allRequestsKeys.all, 'visits', params] as const,
+  buffet: (params?: ListBuffetAdminTasksParams) => [...allRequestsKeys.all, 'buffet-admin-tasks', params] as const,
+  valet: (params?: ListValetTasksParams) => [...allRequestsKeys.all, 'valet-admin-tasks', params] as const,
 };

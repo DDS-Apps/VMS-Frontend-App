@@ -24,7 +24,7 @@ import { useUpdateBuffetRequestMutation } from '@/hooks/queries/useBuffetQueries
 import { useUpdateValetAssignmentMutation } from '@/hooks/queries/useValetQueries';
 import { useQueryClient } from '@tanstack/react-query';
 import type { Theme } from '@/types/theme.types';
-import type { InvitationDto, BuffetRequestDto, ValetAssignmentDto } from '@/types/api.types';
+import type { VisitListItemDto, BuffetAdminTaskDto, ValetTaskDto } from '@/types/api.types';
 import { BuffetRequestStatus, ValetAssignmentStatus } from '@/types/api.types';
 
 const LAYOUT = {
@@ -276,9 +276,10 @@ export default function AllRequestsScreen() {
 
   const invalidateAllQueries = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['all-requests'] });
-    queryClient.invalidateQueries({ queryKey: ['invitations'] });
-    queryClient.invalidateQueries({ queryKey: ['buffet-requests'] });
-    queryClient.invalidateQueries({ queryKey: ['valet-assignments'] });
+    queryClient.invalidateQueries({ queryKey: ['visits'] });
+    queryClient.invalidateQueries({ queryKey: ['buffet-admin-tasks'] });
+    queryClient.invalidateQueries({ queryKey: ['valet-admin-tasks'] });
+    queryClient.invalidateQueries({ queryKey: ['pending-approvals'] });
   }, [queryClient]);
 
   const typeFilters: { id: RequestFilter; label: string; icon: IconName }[] = [
@@ -306,9 +307,8 @@ export default function AllRequestsScreen() {
       setActionLoading(true);
       
       if (request.type === 'visitor') {
-        const invitation = request.originalData as InvitationDto;
         approveVisitMutation.mutate(
-          { id: invitation.id },
+          { id: request.id },
           {
             onSuccess: () => {
               invalidateAllQueries();
@@ -320,9 +320,8 @@ export default function AllRequestsScreen() {
           }
         );
       } else if (request.type === 'buffet') {
-        const buffet = request.originalData as BuffetRequestDto;
         updateBuffetMutation.mutate(
-          { id: buffet.id, data: { status: BuffetRequestStatus.CONFIRMED } },
+          { id: request.id, data: { status: BuffetRequestStatus.CONFIRMED } },
           {
             onSuccess: () => {
               invalidateAllQueries();
@@ -334,9 +333,8 @@ export default function AllRequestsScreen() {
           }
         );
       } else if (request.type === 'valet') {
-        const valet = request.originalData as ValetAssignmentDto;
         updateValetMutation.mutate(
-          { id: valet.id, data: { status: ValetAssignmentStatus.ACCEPTED } },
+          { id: request.id, data: { status: ValetAssignmentStatus.ACCEPTED } },
           {
             onSuccess: () => {
               invalidateAllQueries();
@@ -378,9 +376,8 @@ export default function AllRequestsScreen() {
     setActionLoading(true);
     
     if (selectedRequest.type === 'visitor') {
-      const invitation = selectedRequest.originalData as InvitationDto;
       rejectVisitMutation.mutate(
-        { id: invitation.id, payload: { reason: rejectReason } },
+        { id: selectedRequest.id, payload: { reason: rejectReason } },
         {
           onSuccess: () => {
             invalidateAllQueries();
@@ -394,9 +391,8 @@ export default function AllRequestsScreen() {
         }
       );
     } else if (selectedRequest.type === 'buffet') {
-      const buffet = selectedRequest.originalData as BuffetRequestDto;
       updateBuffetMutation.mutate(
-        { id: buffet.id, data: { status: BuffetRequestStatus.CANCELLED } },
+        { id: selectedRequest.id, data: { status: BuffetRequestStatus.CANCELLED } },
         {
           onSuccess: () => {
             invalidateAllQueries();
@@ -410,9 +406,8 @@ export default function AllRequestsScreen() {
         }
       );
     } else if (selectedRequest.type === 'valet') {
-      const valet = selectedRequest.originalData as ValetAssignmentDto;
       updateValetMutation.mutate(
-        { id: valet.id, data: { status: ValetAssignmentStatus.CANCELLED } },
+        { id: selectedRequest.id, data: { status: ValetAssignmentStatus.CANCELLED } },
         {
           onSuccess: () => {
             invalidateAllQueries();
