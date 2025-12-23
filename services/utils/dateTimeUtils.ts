@@ -476,3 +476,228 @@ export const calculateServerDuration = (
   
   return isoDuration;
 };
+
+// ===== PICKER TIMEZONE CONVERSION =====
+// These functions handle the conversion between DateTimePicker values (device local)
+// and server timezone values. The goal is to make the user's selection be interpreted
+// as the server timezone, not their device timezone.
+
+/**
+ * Get the offset in milliseconds between device timezone and server timezone
+ * @param date - Reference date (for DST calculations)
+ * @param serverTimezone - Server timezone string
+ * @returns Offset in milliseconds (positive means server is ahead of device)
+ */
+export const getTimezoneOffset = (
+  date: Date,
+  serverTimezone: string = DEFAULT_SERVER_TIMEZONE
+): number => {
+  try {
+    const deviceOffset = date.getTimezoneOffset() * 60 * 1000;
+    
+    const serverFormatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: serverTimezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    });
+    
+    const parts = serverFormatter.formatToParts(date);
+    const getPart = (type: string) => {
+      const part = parts.find(p => p.type === type);
+      return part ? parseInt(part.value, 10) : 0;
+    };
+    
+    const serverDate = new Date(
+      getPart('year'),
+      getPart('month') - 1,
+      getPart('day'),
+      getPart('hour'),
+      getPart('minute'),
+      getPart('second')
+    );
+    
+    const serverOffset = -(serverDate.getTime() - date.getTime() - deviceOffset);
+    
+    return serverOffset;
+  } catch (error) {
+    return 0;
+  }
+};
+
+/**
+ * Convert a picker Date (device local time) to server timezone Date
+ * 
+ * When user picks "3:00 PM" on their device, this creates a Date that when
+ * formatted in server timezone will show "3:00 PM".
+ * 
+ * The key insight: we want to find a UTC timestamp T such that when T is
+ * formatted in serverTimezone, it shows the same wall-clock time as what
+ * the picker shows in device local time.
+ * 
+ * @param pickerDate - Date from DateTimePicker (device local time)
+ * @param serverTimezone - Server timezone string
+ * @returns Date that represents the same wall-clock time in server timezone
+ */
+export const convertPickerToServerDate = (
+  pickerDate: Date,
+  serverTimezone: string = DEFAULT_SERVER_TIMEZONE
+): Date => {
+  try {
+    const year = pickerDate.getFullYear();
+    const month = pickerDate.getMonth() + 1;
+    const day = pickerDate.getDate();
+    const hours = pickerDate.getHours();
+    const minutes = pickerDate.getMinutes();
+    
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    const dateStr = `${year}-${pad(month)}-${pad(day)}T${pad(hours)}:${pad(minutes)}:00`;
+    
+    const tempDate = new Date(dateStr);
+    if (isNaN(tempDate.getTime())) {
+      return pickerDate;
+    }
+    
+    const deviceOffsetMs = tempDate.getTimezoneOffset() * 60 * 1000;
+    
+    const utcDate = new Date(tempDate.getTime() + deviceOffsetMs);
+    
+    const serverFormatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: serverTimezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+    const parts = serverFormatter.formatToParts(utcDate);
+    const getPart = (type: string) => {
+      const part = parts.find(p => p.type === type);
+      return part ? parseInt(part.value, 10) : 0;
+    };
+    
+    const serverHour = getPart('hour');
+    const serverMinute = getPart('minute');
+    const serverDay = getPart('day');
+    
+    const hourDiff = hours - serverHour;
+    const minuteDiff = minutes - serverMinute;
+    let dayDiff = day - serverDay;
+    
+    if (dayDiff > 15) dayDiff = dayDiff - 31;
+    else if (dayDiff < -15) dayDiff = dayDiff + 31;
+    
+    const adjustMs = ((dayDiff * 24 + hourDiff) * 60 + minuteDiff) * 60 * 1000;
+    
+    return new Date(utcDate.getTime() + adjustMs);
+  } catch (error) {
+    return pickerDate;
+  }
+};
+
+/**
+ * Convert a server timezone Date to a picker Date (device local time)
+ * 
+ * When we have a Date representing "3:00 PM" in server timezone, this creates
+ * a Date that will show "3:00 PM" on the device's DateTimePicker.
+ * 
+ * @param serverDate - Date representing time in server timezone
+ * @param serverTimezone - Server timezone string
+ * @returns Date suitable for DateTimePicker that shows same wall-clock time
+ */
+export const convertServerDateToPicker = (
+  serverDate: Date,
+  serverTimezone: string = DEFAULT_SERVER_TIMEZONE
+): Date => {
+  try {
+    const parts = getServerDateParts(serverDate, serverTimezone);
+    
+    return new Date(
+      parts.year,
+      parts.month - 1,
+      parts.day,
+      parts.hours,
+      parts.minutes,
+      0
+    );
+  } catch (error) {
+    return serverDate;
+  }
+};
+
+/**
+ * Create a Date for a specific time in server timezone
+ * 
+ * @param year - Year
+ * @param month - Month (1-12)
+ * @param day - Day of month
+ * @param hours - Hours (0-23)
+ * @param minutes - Minutes (0-59)
+ * @param serverTimezone - Server timezone string
+ * @returns Date representing that time in server timezone
+ */
+export const createServerDate = (
+  year: number,
+  month: number,
+  day: number,
+  hours: number = 0,
+  minutes: number = 0,
+  serverTimezone: string = DEFAULT_SERVER_TIMEZONE
+): Date => {
+  const pickerDate = new Date(year, month - 1, day, hours, minutes, 0);
+  return convertPickerToServerDate(pickerDate, serverTimezone);
+};
+
+/**
+ * Parse a date string (YYYY-MM-DD) and time string (h:mm AM/PM or HH:mm)
+ * as server timezone and return appropriate Date
+ * 
+ * @param dateStr - Date string in YYYY-MM-DD format
+ * @param timeStr - Time string in h:mm AM/PM or HH:mm format
+ * @param serverTimezone - Server timezone string
+ * @returns Date representing that datetime in server timezone
+ */
+export const parseServerDateTimeStrings = (
+  dateStr: string,
+  timeStr: string,
+  serverTimezone: string = DEFAULT_SERVER_TIMEZONE
+): Date => {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  
+  let hours = 0;
+  let minutes = 0;
+  
+  if (timeStr.includes('AM') || timeStr.includes('PM')) {
+    const isPM = timeStr.includes('PM');
+    const timePart = timeStr.replace(/\s*(AM|PM)/i, '');
+    const [h, m] = timePart.split(':').map(Number);
+    hours = h;
+    if (isPM && hours !== 12) hours += 12;
+    if (!isPM && hours === 12) hours = 0;
+    minutes = m || 0;
+  } else if (timeStr.includes(':')) {
+    const [h, m] = timeStr.split(':').map(Number);
+    hours = h;
+    minutes = m || 0;
+  }
+  
+  return createServerDate(year, month, day, hours, minutes, serverTimezone);
+};
+
+/**
+ * Get the current date/time in server timezone as a Date object
+ * that can be used with DateTimePicker
+ * 
+ * @param serverTimezone - Server timezone string
+ * @returns Date showing current time in server timezone
+ */
+export const getServerNowForPicker = (
+  serverTimezone: string = DEFAULT_SERVER_TIMEZONE
+): Date => {
+  return convertServerDateToPicker(new Date(), serverTimezone);
+};

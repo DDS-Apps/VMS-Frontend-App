@@ -26,12 +26,8 @@ import { applyOpacity, createModalOverlayStyle } from "@/utils/statusStyles";
 import { ManagerApprovalDetailScreenProps } from "@/types/managerNavigation.types";
 import { Theme } from "@/types/theme.types";
 import { mapVisitDetailsToVisitorRequest } from "@/services/utils/requestMappers";
-import {
-  toServerDateString,
-  toServerTimeString,
-  calculateServerDuration,
-} from "@/services/utils/dateTimeUtils";
-import { useServerTimezone } from "@/hooks/useServerTimezone";
+import { calculateServerDuration } from "@/services/utils/dateTimeUtils";
+import { useServerDateTime } from "@/hooks/useServerDateTime";
 
 const LAYOUT = {
   cardPadding: Spacing.lg,
@@ -105,7 +101,12 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
   const { requestId } = route.params;
   const { user } = useAuth();
   const isReadOnlyRole = user?.role === 'building_admin';
-  const serverTimezone = useServerTimezone();
+  const { 
+    serverTimezone, 
+    toServerDate, 
+    formatDateForApi: formatDateToApi, 
+    formatTimeForApi: formatTimeToApi 
+  } = useServerDateTime();
 
   // Helper function for consistent service status colors
   const getServiceStatusVariant = (status?: string): 'success' | 'warning' | 'error' | 'info' | 'muted' => {
@@ -127,9 +128,8 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
   const [showWalkInApprovalModal, setShowWalkInApprovalModal] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
   const [walkInEndTime, setWalkInEndTime] = useState<Date>(() => {
-    const endTime = new Date();
-    endTime.setHours(endTime.getHours() + 1);
-    return endTime;
+    const now = new Date();
+    return new Date(now.getTime() + 60 * 60 * 1000);
   });
   const [approvalStartTime, setApprovalStartTime] = useState<Date | null>(null);
   const [showEndTimePicker, setShowEndTimePicker] = useState(false);
@@ -201,12 +201,14 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
     }, 2600);
   };
 
-  const formatTimeForApi = (time: Date): string => {
-    return toServerTimeString(time, serverTimezone);
+  const formatTimeForApiLocal = (time: Date): string => {
+    const serverTime = toServerDate(time);
+    return formatTimeToApi(serverTime);
   };
 
-  const formatDateForApi = (date: Date): string => {
-    return toServerDateString(date, serverTimezone);
+  const formatDateForApiLocal = (date: Date): string => {
+    const serverDate = toServerDate(date);
+    return formatDateToApi(serverDate);
   };
 
   const formatDisplayTime = (date: Date): string => {
@@ -274,9 +276,9 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
     // If manager IS the host: can edit services
     // If manager is NOT the host: preserve existing services from employee's submission
     const payload: Record<string, any> = {
-      visitDate: formatDateForApi(startTime),
-      visitTime: formatTimeForApi(startTime),
-      endTime: formatTimeForApi(walkInEndTime),
+      visitDate: formatDateForApiLocal(startTime),
+      visitTime: formatTimeForApiLocal(startTime),
+      endTime: formatTimeForApiLocal(walkInEndTime),
       duration: isoDuration,
     };
     

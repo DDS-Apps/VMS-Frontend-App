@@ -24,13 +24,8 @@ import { applyOpacity, createModalOverlayStyle } from "@/utils/statusStyles";
 import { CalendarDatePicker } from "@/components/CalendarDatePicker";
 import { TimePicker } from "@/components/TimePicker";
 import type { VisitorRequestFormScreenProps } from "@/types/employeeNavigation.types";
-import {
-  toServerDateString,
-  toServerTimeString,
-  toServerTime24String,
-  calculateServerDuration,
-} from "@/services/utils/dateTimeUtils";
-import { useServerTimezone } from "@/hooks/useServerTimezone";
+import { calculateServerDuration } from "@/services/utils/dateTimeUtils";
+import { useServerDateTime } from "@/hooks/useServerDateTime";
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -65,7 +60,14 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
   const { formatDate: fmtDate, formatTime: fmtTime, toLocalNumerals } = useFormatters();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
-  const serverTimezone = useServerTimezone();
+  const { 
+    serverTimezone, 
+    toServerDate, 
+    formatDateForApi: formatDateToApi, 
+    formatTimeForApi: formatTimeToApi,
+    formatTime24ForApi,
+    getNowForPicker 
+  } = useServerDateTime();
   const createVisitMutation = useCreateVisitMutation();
   const walkInMutation = useRegisterWalkInMutation();
   const { data: usersData, isLoading: isLoadingUsers } = useUsersQuery(
@@ -83,12 +85,11 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [company, setCompany] = useState('');
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [selectedTime, setSelectedTime] = useState<Date>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
+  const [selectedTime, setSelectedTime] = useState<Date>(() => new Date());
   const [selectedEndTime, setSelectedEndTime] = useState<Date>(() => {
-    const endTime = new Date();
-    endTime.setHours(endTime.getHours() + 1);
-    return endTime;
+    const now = new Date();
+    return new Date(now.getTime() + 60 * 60 * 1000);
   });
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
@@ -120,17 +121,19 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
 
-  const formatDateForApi = (date: Date): string => {
-    return toServerDateString(date, serverTimezone);
+  const formatDateForApiLocal = (date: Date): string => {
+    const serverDate = toServerDate(date);
+    return formatDateToApi(serverDate);
   };
 
   const formatTimeForQuery = (time: Date): string => {
-    return toServerTime24String(time, serverTimezone);
+    const serverTime = toServerDate(time);
+    return formatTime24ForApi(serverTime);
   };
 
   const roomAvailabilityParams: RoomAvailabilityParams | null = needsMeetingRoom && selectedDate && selectedTime && selectedEndTime
     ? {
-        date: formatDateForApi(selectedDate),
+        date: formatDateForApiLocal(selectedDate),
         startTime: formatTimeForQuery(selectedTime),
         endTime: formatTimeForQuery(selectedEndTime),
       }
@@ -267,7 +270,8 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
   };
 
   const formatDate = (date: Date) => {
-    return toServerDateString(date, serverTimezone);
+    const serverDate = toServerDate(date);
+    return formatDateToApi(serverDate);
   };
 
   const formatTime = (date: Date) => {
@@ -275,7 +279,8 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
   };
 
   const formatTimeForApi = (date: Date): string => {
-    return toServerTimeString(date, serverTimezone);
+    const serverTime = toServerDate(date);
+    return formatTimeToApi(serverTime);
   };
 
   const handleDateSelect = (date: Date) => {

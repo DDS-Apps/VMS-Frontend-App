@@ -65,13 +65,8 @@ import {
   calculateDuration,
   getDurationOptions,
 } from "@/services/utils/requestMappers";
-import {
-  toServerDateString,
-  toServerTimeString,
-  toServerTime24String,
-  calculateServerDuration,
-} from "@/services/utils/dateTimeUtils";
-import { useServerTimezone } from "@/hooks/useServerTimezone";
+import { calculateServerDuration } from "@/services/utils/dateTimeUtils";
+import { useServerDateTime } from "@/hooks/useServerDateTime";
 
 export default function RequestDetailsScreen({
   navigation,
@@ -80,7 +75,13 @@ export default function RequestDetailsScreen({
 }: RequestDetailsScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const serverTimezone = useServerTimezone();
+  const { 
+    serverTimezone, 
+    toServerDate, 
+    formatDateForApi: formatDateToApi, 
+    formatTimeForApi: formatTimeToApi,
+    formatTime24ForApi 
+  } = useServerDateTime();
   const {
     formatDate,
     formatDateShort,
@@ -112,9 +113,8 @@ export default function RequestDetailsScreen({
   const [editRequiresValet, setEditRequiresValet] = useState(false);
   const [editNotes, setEditNotes] = useState("");
   const [editEndTime, setEditEndTime] = useState<Date>(() => {
-    const endTime = new Date();
-    endTime.setHours(endTime.getHours() + 1);
-    return endTime;
+    const now = new Date();
+    return new Date(now.getTime() + 60 * 60 * 1000);
   });
   const [showEditDatePicker, setShowEditDatePicker] = useState(false);
   const [showEditTimePicker, setShowEditTimePicker] = useState(false);
@@ -155,18 +155,20 @@ export default function RequestDetailsScreen({
   const managerRejectMutation = useRejectVisitMutation();
 
   // Room availability check for edit modal - use server timezone
-  const formatDateForApi = (date: Date): string => {
-    return toServerDateString(date, serverTimezone);
+  const formatDateForApiLocal = (date: Date): string => {
+    const serverDate = toServerDate(date);
+    return formatDateToApi(serverDate);
   };
 
   const formatTimeForQuery = (time: Date): string => {
-    return toServerTime24String(time, serverTimezone);
+    const serverTime = toServerDate(time);
+    return formatTime24ForApi(serverTime);
   };
 
   const editRoomAvailabilityParams: RoomAvailabilityParams | null = 
     showEditModal && editRequiresMeetingRoom && editDate && editTime && editEndTime
       ? {
-          date: formatDateForApi(editDate),
+          date: formatDateForApiLocal(editDate),
           startTime: formatTimeForQuery(editTime),
           endTime: formatTimeForQuery(editEndTime),
         }
@@ -388,8 +390,9 @@ export default function RequestDetailsScreen({
     );
   };
 
-  const formatTimeForApi = (time: Date): string => {
-    return toServerTimeString(time, serverTimezone);
+  const formatTimeForApiLocal = (time: Date): string => {
+    const serverTime = toServerDate(time);
+    return formatTimeToApi(serverTime);
   };
 
   const formatDisplayDate = (date: Date): string => {
@@ -582,8 +585,8 @@ export default function RequestDetailsScreen({
 
     if (editModalMode === "full") {
       // Full mode: use the edited date/time values
-      payload.visitDate = formatDateForApi(editDate);
-      payload.visitTime = formatTimeForApi(editTime);
+      payload.visitDate = formatDateForApiLocal(editDate);
+      payload.visitTime = formatTimeForApiLocal(editTime);
       
       // Calculate ISO-8601 duration from start and end times
       const startMs = editTime.getTime();
@@ -608,11 +611,11 @@ export default function RequestDetailsScreen({
         
         // Use the captured approval start time (or fallback to now)
         const startTime = approvalStartTime || new Date();
-        payload.visitDate = formatDateForApi(startTime);
-        payload.visitTime = formatTimeForApi(startTime);
+        payload.visitDate = formatDateForApiLocal(startTime);
+        payload.visitTime = formatTimeForApiLocal(startTime);
         
         // Add end time to payload (format as HH:mm AM/PM)
-        payload.endTime = formatTimeForApi(editEndTime);
+        payload.endTime = formatTimeForApiLocal(editEndTime);
         
         // Calculate duration from approval start time to selected end time using timezone utility
         payload.duration = calculateServerDuration(startTime, editEndTime, serverTimezone);
@@ -621,8 +624,8 @@ export default function RequestDetailsScreen({
         setApprovalStartTime(null);
       } else {
         // Non-walk-in services-only edit: use existing schedule fields
-        payload.visitDate = visitData.visitDate || formatDateForApi(new Date());
-        payload.visitTime = visitData.visitTime || formatTimeForApi(new Date());
+        payload.visitDate = visitData.visitDate || formatDateForApiLocal(new Date());
+        payload.visitTime = visitData.visitTime || formatTimeForApiLocal(new Date());
         payload.duration = visitData.duration || "PT1H";
       }
     }
