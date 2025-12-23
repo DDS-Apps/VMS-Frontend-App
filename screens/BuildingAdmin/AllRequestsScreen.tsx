@@ -462,12 +462,16 @@ export default function AllRequestsScreen() {
   const navigation = useNavigation<NavigationProp<any>>();
   
   const handleCardPress = (request: UnifiedRequest) => {
+    if (!request.id) {
+      console.warn('Cannot navigate: request ID is undefined');
+      return;
+    }
     switch (request.type) {
       case 'visitor':
-        navigation.navigate('ManagerApprovalDetail', { visitId: request.id });
+        navigation.navigate('ManagerApprovalDetail', { requestId: request.id });
         break;
       case 'buffet':
-        navigation.navigate('BuffetRequestDetails', { requestId: request.id });
+        navigation.navigate('BuffetRequestDetails', { request: request.originalData });
         break;
       case 'valet':
         navigation.navigate('ValetTaskDetail', { taskId: request.id });
