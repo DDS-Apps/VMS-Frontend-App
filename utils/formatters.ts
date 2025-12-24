@@ -217,20 +217,27 @@ export const formatDateShortMonth = (date: Date, locale: LocaleCode = 'en-US', t
   }
 };
 
+const extractTimeFromIso = (isoString: string): string => {
+  const match = isoString.match(/T(\d{2}):(\d{2})/);
+  if (match) {
+    const hours = parseInt(match[1], 10);
+    const minutes = parseInt(match[2], 10);
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12;
+    return `${displayHours}:${String(minutes).padStart(2, '0')} ${period}`;
+  }
+  return isoString;
+};
+
 export const formatTimeRange = (timeRange: string, locale: LocaleCode = 'en-US', timezone?: string): string => {
   if (!timeRange) return '';
   
   // Check if this is an ISO timestamp range (e.g., "2024-01-01T12:00:00.000Z - 2024-01-01T13:00:00.000Z")
-  const isoRangeMatch = timeRange.match(/^(.+?T[\d:]+(?:\.\d+)?Z?)\s*[-–]\s*(.+?T[\d:]+(?:\.\d+)?Z?)$/);
+  const isoRangeMatch = timeRange.match(/^(.+?T[\d:]+(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?)\s*[-–]\s*(.+?T[\d:]+(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?)$/);
   if (isoRangeMatch) {
-    const startDate = new Date(isoRangeMatch[1].trim());
-    const endDate = new Date(isoRangeMatch[2].trim());
-    
-    if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
-      const startFormatted = formatTime(startDate, locale, timezone);
-      const endFormatted = formatTime(endDate, locale, timezone);
-      return `${startFormatted} - ${endFormatted}`;
-    }
+    const startFormatted = extractTimeFromIso(isoRangeMatch[1].trim());
+    const endFormatted = extractTimeFromIso(isoRangeMatch[2].trim());
+    return `${startFormatted} - ${endFormatted}`;
   }
   
   // For simple time ranges like "9:00 AM - 10:00 AM" or "09:00 - 10:00"
