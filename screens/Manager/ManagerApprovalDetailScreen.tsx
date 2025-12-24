@@ -95,7 +95,7 @@ const SectionHeader = ({ title, theme }: { title: string; theme: Theme }) => (
 export default function ManagerApprovalDetailScreen({ navigation, route }: ManagerApprovalDetailScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { formatDateTime: fmtDateTime, formatDateShort, parseISODuration, formatTimeFromString } = useFormatters();
+  const { formatDateTime: fmtDateTime, formatDateShort, parseISODuration, formatTimeFromString, formatTimeRange } = useFormatters();
   const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   const { requestId } = route.params;
@@ -549,9 +549,16 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
                 ) : null}
               </View>
               {request.meetingRoom ? (
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
-                  {request.meetingRoom.name}, {request.meetingRoom.floor}
-                </ThemedText>
+                <>
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+                    {request.meetingRoom.name} - {request.meetingRoom.floor}
+                  </ThemedText>
+                  {request.meetingRoom.timeSlot ? (
+                    <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12 }]}>
+                      {formatTimeRange(request.meetingRoom.timeSlot)}
+                    </ThemedText>
+                  ) : null}
+                </>
               ) : (request as any).meetingRoomPending ? (
                 <ThemedText style={[Typography.caption, { color: theme.warning, marginTop: 2, fontSize: 13 }]}>
                   {t('status.pending')}

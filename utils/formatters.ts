@@ -220,6 +220,20 @@ export const formatDateShortMonth = (date: Date, locale: LocaleCode = 'en-US', t
 export const formatTimeRange = (timeRange: string, locale: LocaleCode = 'en-US', timezone?: string): string => {
   if (!timeRange) return '';
   
+  // Check if this is an ISO timestamp range (e.g., "2024-01-01T12:00:00.000Z - 2024-01-01T13:00:00.000Z")
+  const isoRangeMatch = timeRange.match(/^(.+?T[\d:]+(?:\.\d+)?Z?)\s*[-–]\s*(.+?T[\d:]+(?:\.\d+)?Z?)$/);
+  if (isoRangeMatch) {
+    const startDate = new Date(isoRangeMatch[1].trim());
+    const endDate = new Date(isoRangeMatch[2].trim());
+    
+    if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+      const startFormatted = formatTime(startDate, locale, timezone);
+      const endFormatted = formatTime(endDate, locale, timezone);
+      return `${startFormatted} - ${endFormatted}`;
+    }
+  }
+  
+  // For simple time ranges like "9:00 AM - 10:00 AM" or "09:00 - 10:00"
   const parts = timeRange.split(/\s*[-–]\s*/);
   if (parts.length !== 2) {
     return formatTimeFromString(timeRange, locale, timezone);
