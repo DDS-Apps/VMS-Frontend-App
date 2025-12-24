@@ -26,6 +26,21 @@ export const hasValidData = (obj: any): boolean => {
   return true;
 };
 
+const formatIsoTimeAsDisplayed = (isoString: string): string => {
+  if (!isoString) return '';
+  try {
+    const date = new Date(isoString);
+    if (isNaN(date.getTime())) return isoString;
+    const hours = date.getUTCHours();
+    const minutes = date.getUTCMinutes();
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12;
+    return `${displayHours}:${String(minutes).padStart(2, '0')} ${period}`;
+  } catch {
+    return isoString;
+  }
+};
+
 export type VisitorRequestWithPending = VisitorRequest & {
   parkingPending?: boolean;
   meetingRoomPending?: boolean;
@@ -67,10 +82,8 @@ export const mapVisitDetailsToVisitorRequest = (visit: VisitDetailsDto): Visitor
       name: visit.meetingBooking?.roomName || visit.meetingRoom?.name || '',
       capacity: visit.meetingRoom?.capacity || DEFAULT_MEETING_ROOM.capacity,
       floor: visit.meetingRoom?.floor || DEFAULT_MEETING_ROOM.floor,
-      // Prioritize meetingBooking ISO timestamps as they are properly formatted
-      // meetingRoom.timeSlot from API may contain malformed JavaScript Date strings
       timeSlot: (visit.meetingBooking?.startTime && visit.meetingBooking?.endTime)
-        ? `${visit.meetingBooking.startTime} - ${visit.meetingBooking.endTime}`
+        ? `${formatIsoTimeAsDisplayed(visit.meetingBooking.startTime)} - ${formatIsoTimeAsDisplayed(visit.meetingBooking.endTime)}`
         : visit.meetingRoom?.timeSlot 
         || visit.visitTime 
         || '',
