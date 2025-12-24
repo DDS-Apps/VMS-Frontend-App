@@ -80,7 +80,8 @@ export default function RequestDetailsScreen({
     formatTimeForApi,
     formatTime24ForApi,
     formatDateForDisplay,
-    formatTimeForDisplay
+    formatTimeForDisplay,
+    parseDateTime,
   } = useServerDateTime();
   const {
     formatDate,
@@ -426,16 +427,40 @@ export default function RequestDetailsScreen({
     setIsApprovalFlow(false);
     setEditModalMode(mode);
     setEditPurpose(visitData.purpose || "");
-    const visitDate = visitData.visitDate ? new Date(visitData.visitDate) : new Date();
+    const visitDateStr = visitData.visitDate || formatDateForApi(new Date());
+    const visitDate = new Date(visitDateStr);
     setEditDate(visitDate);
-    const startTime = parseTimeString(visitData.visitTime || "", visitData.visitDate);
+    const visitTimeStr = visitData.visitTime || formatTimeForApi(new Date());
+    const startTime = parseDateTime(visitDateStr, visitTimeStr);
     setEditTime(startTime);
     
-    // Calculate end time from duration - parse API duration (supports both ISO and human-readable formats)
+    // For walk-ins, use the stored end time if available; otherwise calculate from duration
+    if (visitData.isWalkIn && visitData.endTime) {
+      // Try to parse endTime - it could be "HH:MM", "HH:MM AM/PM", or ISO format
+      let endTime: Date;
+      if (visitData.endTime.includes('T') || visitData.endTime.includes('Z')) {
+        // ISO format - parse directly
+        endTime = new Date(visitData.endTime);
+        if (isNaN(endTime.getTime())) {
+          // Invalid ISO, fall back to duration calculation
+          const rawDuration = visitData.duration || "1 hour";
+          const durationMs = parseDurationToMs(rawDuration);
+          endTime = new Date(startTime.getTime() + durationMs);
+        }
+      } else {
+        // Time string format - use parseDateTime for consistency
+        endTime = parseDateTime(visitDateStr, visitData.endTime);
+      }
+      setEditEndTime(endTime);
+    } else {
+      // Calculate end time from duration - parse API duration (supports both ISO and human-readable formats)
+      const rawDuration = visitData.duration || "1 hour";
+      const durationMs = parseDurationToMs(rawDuration);
+      const endTime = new Date(startTime.getTime() + durationMs);
+      setEditEndTime(endTime);
+    }
+    
     const rawDuration = visitData.duration || "1 hour";
-    const durationMs = parseDurationToMs(rawDuration);
-    const endTime = new Date(startTime.getTime() + durationMs);
-    setEditEndTime(endTime);
     setEditDuration(parseISODuration(rawDuration));
     
     setEditRequiresParking(visitData.parkingType !== "none");
@@ -611,6 +636,25 @@ export default function RequestDetailsScreen({
         
         // Clear approvalStartTime after use
         setApprovalStartTime(null);
+      } else if (visitData.isWalkIn) {
+        // Walk-in edit (not approval flow): validate end time is after current time
+        if (isWalkInEndTimeBeforeNow()) {
+          Alert.alert(t("errors.validation"), t("errors.endTimeMustBeLater"));
+          return;
+        }
+        
+        // Use existing visit date and time
+        const existingVisitDate = visitData.visitDate || formatDateForApiLocal(new Date());
+        const existingVisitTime = visitData.visitTime || formatTimeForApiLocal(new Date());
+        payload.visitDate = existingVisitDate;
+        payload.visitTime = existingVisitTime;
+        
+        // Add updated end time to payload
+        payload.endTime = formatTimeForApiLocal(editEndTime);
+        
+        // Calculate duration from existing start time to new end time using parseDateTime for consistency
+        const existingStartTime = parseDateTime(existingVisitDate, existingVisitTime);
+        payload.duration = calculateServerDuration(existingStartTime, editEndTime);
       } else {
         // Non-walk-in services-only edit: use existing schedule fields
         payload.visitDate = visitData.visitDate || formatDateForApiLocal(new Date());
@@ -1831,8 +1875,8 @@ export default function RequestDetailsScreen({
                 <DDIcon name="chevron-down" size={16} variant="muted" />
               </Pressable>
 
-              {/* Walk-in approval: End Time picker (mandatory) */}
-              {isApprovalFlow && visitData?.isWalkIn ? (
+              {/* Walk-in: End Time picker (only in services-only mode, not full mode which has its own End Time) */}
+              {visitData?.isWalkIn && editModalMode === "services-only" ? (
                 <>
                   <Spacer height={Spacing.lg} />
                   <ThemedText
