@@ -240,7 +240,13 @@ export const formatTimeRange = (timeRange: string, locale: LocaleCode = 'en-US',
     return `${startFormatted} - ${endFormatted}`;
   }
   
-  // For simple time ranges like "9:00 AM - 10:00 AM" or "09:00 - 10:00"
+  // If already a formatted AM/PM time range, return as-is to avoid timezone re-conversion
+  const ampmRangeMatch = timeRange.match(/^\d{1,2}:\d{2}\s*(?:AM|PM)\s*[-–]\s*\d{1,2}:\d{2}\s*(?:AM|PM)$/i);
+  if (ampmRangeMatch) {
+    return timeRange;
+  }
+  
+  // For simple time ranges like "09:00 - 10:00" (24-hour format without AM/PM)
   const parts = timeRange.split(/\s*[-–]\s*/);
   if (parts.length !== 2) {
     return formatTimeFromString(timeRange, locale, timezone);
