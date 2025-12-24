@@ -57,7 +57,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
   const { theme, isDark } = useTheme();
   const { t } = useTranslation();
   const { isRTL } = useLanguage();
-  const { formatDate: fmtDate, formatTime: fmtTime, toLocalNumerals } = useFormatters();
+  const { toLocalNumerals } = useFormatters();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const { 
@@ -261,23 +261,35 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
     }
   };
 
-  const formatCalendarDate = (date: Date): string => {
+  // Display formatter for picker values - uses device local time (what user selected)
+  const formatPickerDate = (date: Date): string => {
     const today = new Date();
     if (date.toDateString() === today.toDateString()) {
       return t('time.today');
     }
-    return fmtDate(date, 'short');
+    // Use device local formatting for picker display
+    return date.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
+      month: 'short',
+      day: 'numeric',
+    });
   };
 
+  // Display formatter for picker time values - uses device local time
+  const formatPickerTime = (date: Date): string => {
+    return date.toLocaleTimeString(isRTL ? 'ar-SA' : 'en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  };
+
+  // API formatter - converts to server timezone for submission
   const formatDate = (date: Date) => {
     const serverDate = toServerDate(date);
     return formatDateToApi(serverDate);
   };
 
-  const formatTime = (date: Date) => {
-    return fmtTime(date);
-  };
-
+  // API formatter - converts to server timezone for submission
   const formatTimeForApi = (date: Date): string => {
     const serverTime = toServerDate(date);
     return formatTimeToApi(serverTime);
@@ -826,7 +838,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
             >
               <DDIcon name="calendar" size={20} variant="primary" />
               <ThemedText style={[Typography.body, { color: theme.text, marginStart: Spacing.md, flex: 1 }]}>
-                {formatCalendarDate(selectedDate)}
+                {formatPickerDate(selectedDate)}
               </ThemedText>
               <DDIcon name="chevron-down" size={20} variant="muted" />
             </Pressable>
@@ -857,7 +869,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
             >
               <DDIcon name="clock" size={20} variant="primary" />
               <ThemedText style={[Typography.body, { color: theme.text, marginStart: Spacing.md, flex: 1 }]}>
-                {formatTime(selectedTime)}
+                {formatPickerTime(selectedTime)}
               </ThemedText>
               <DDIcon name="chevron-down" size={20} variant="muted" />
             </Pressable>
@@ -888,7 +900,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
             >
               <DDIcon name="clock" size={20} variant="primary" />
               <ThemedText style={[Typography.body, { color: theme.text, marginStart: Spacing.md, flex: 1 }]}>
-                {formatTime(selectedEndTime)}
+                {formatPickerTime(selectedEndTime)}
               </ThemedText>
               <DDIcon name="chevron-down" size={20} variant="muted" />
             </Pressable>

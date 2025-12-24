@@ -395,12 +395,20 @@ export default function RequestDetailsScreen({
     return formatTimeToApi(serverTime);
   };
 
+  // Display formatters for picker values - use device local time (what user selected)
   const formatDisplayDate = (date: Date): string => {
-    return formatDate(date);
+    return date.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
+      month: 'short',
+      day: 'numeric',
+    });
   };
 
   const formatDisplayTime = (time: Date): string => {
-    return formatTime(time);
+    return time.toLocaleTimeString(isRTL ? 'ar-SA' : 'en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
   };
 
   const getDurationHours = (duration: string): number => {

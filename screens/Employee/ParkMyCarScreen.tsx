@@ -10,7 +10,6 @@ import Spacer from "@/components/Spacer";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
-import { useFormatters } from "@/hooks/useFormatters";
 import { useServerDateTime } from "@/hooks/useServerDateTime";
 import { useCreateSelfValetRequestMutation } from "@/hooks/queries/useValetSelfServiceQueries";
 import { applyOpacity, createModalOverlayStyle } from "@/utils/statusStyles";
@@ -88,9 +87,17 @@ const ColorChip = ({
 export default function ParkMyCarScreen({ navigation }: ParkMyCarScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { formatTime } = useFormatters();
   const insets = useSafeAreaInsets();
-  const { serverTimezone, toServerDate, formatTimeForApi } = useServerDateTime();
+  const { toServerDate, formatTimeForApi } = useServerDateTime();
+  
+  // Display formatter for picker values - uses device local time
+  const formatPickerTime = (date: Date): string => {
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  };
   const createMutation = useCreateSelfValetRequestMutation();
 
   const scrollContentStyle = {
@@ -432,7 +439,7 @@ export default function ParkMyCarScreen({ navigation }: ParkMyCarScreenProps) {
             >
               <DDIcon name="clock" size={20} variant="muted" />
               <ThemedText style={[Typography.body, { flex: 1, marginStart: Spacing.sm }]}>
-                {formatTime(returnTime)}
+                {formatPickerTime(returnTime)}
               </ThemedText>
               <DDIcon name="chevron-down" size={20} variant="muted" />
             </Pressable>
