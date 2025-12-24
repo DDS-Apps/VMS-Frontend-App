@@ -468,8 +468,8 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
       if (sendSMS) communicationChannels.push('sms');
       if (sendWhatsApp) communicationChannels.push('whatsapp');
 
-      // Calculate ISO-8601 duration using timezone utility
-      const isoDuration = calculateServerDuration(selectedTime, selectedEndTime);
+      // Calculate human-readable duration using timezone utility
+      const duration = calculateServerDuration(selectedTime, selectedEndTime);
 
       const payload: CreateVisitPayload = {
         hostId: asReceptionist ? selectedEmployeeId : user.id,
@@ -482,7 +482,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
         visitDate: formatDate(selectedDate),
         visitTime: formatTimeForApi(selectedTime),
         endTime: formatTimeForApi(selectedEndTime),
-        duration: isoDuration,
+        duration: duration,
         purpose: purpose.trim() || 'General visit',
         communicationChannels,
         needsParking: asReceptionist ? false : needsParking,

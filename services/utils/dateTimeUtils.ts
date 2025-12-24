@@ -453,11 +453,11 @@ export const toServerTime24String = (
 };
 
 /**
- * Calculate ISO 8601 duration between two dates in server timezone
+ * Calculate human-readable duration between two dates
  * @param startDate - Start Date object
  * @param endDate - End Date object
- * @param timezone - Server timezone
- * @returns ISO 8601 duration string (e.g., "PT1H30M")
+ * @param timezone - Server timezone (unused, kept for API compatibility)
+ * @returns Human-readable duration string (e.g., "2 hours 10 minutes")
  */
 export const calculateServerDuration = (
   startDate: Date,
@@ -469,12 +469,18 @@ export const calculateServerDuration = (
   const hours = Math.floor(diffMinutes / 60);
   const minutes = diffMinutes % 60;
   
-  let isoDuration = "PT";
-  if (hours > 0) isoDuration += `${hours}H`;
-  if (minutes > 0) isoDuration += `${minutes}M`;
-  if (hours === 0 && minutes === 0) isoDuration = "PT0M";
+  const parts: string[] = [];
+  if (hours > 0) {
+    parts.push(`${hours} ${hours === 1 ? 'hour' : 'hours'}`);
+  }
+  if (minutes > 0) {
+    parts.push(`${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`);
+  }
+  if (parts.length === 0) {
+    return '0 minutes';
+  }
   
-  return isoDuration;
+  return parts.join(' ');
 };
 
 // ===== PICKER TIMEZONE CONVERSION =====

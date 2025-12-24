@@ -431,8 +431,8 @@ export default function RequestDetailsScreen({
     const startTime = parseTimeString(visitData.visitTime || "", visitData.visitDate);
     setEditTime(startTime);
     
-    // Calculate end time from duration - use raw ISO duration from API, not localized string
-    const rawDuration = visitData.duration || "PT1H";
+    // Calculate end time from duration - parse API duration (supports both ISO and human-readable formats)
+    const rawDuration = visitData.duration || "1 hour";
     const durationMs = parseDurationToMs(rawDuration);
     const endTime = new Date(startTime.getTime() + durationMs);
     setEditEndTime(endTime);
@@ -462,7 +462,7 @@ export default function RequestDetailsScreen({
   };
   
   const parseDurationToMs = (duration: string): number => {
-    // Parse ISO 8601 duration (e.g., "PT1H30M") or display string (e.g., "1 hour")
+    // Parse ISO 8601 duration (e.g., "PT1H30M")
     if (duration.startsWith("PT")) {
       const hoursMatch = duration.match(/(\d+)H/);
       const minutesMatch = duration.match(/(\d+)M/);
@@ -470,16 +470,17 @@ export default function RequestDetailsScreen({
       const minutes = minutesMatch ? parseInt(minutesMatch[1]) : 0;
       return (hours * 60 + minutes) * 60 * 1000;
     }
-    // Fallback for display strings
-    if (duration.includes("hour")) {
-      const hours = parseFloat(duration) || 1;
-      return hours * 60 * 60 * 1000;
+    // Parse human-readable format (e.g., "2 hours 10 minutes", "1hour", "30 minutes", "1h 30m")
+    let totalMs = 0;
+    const hoursMatch = duration.match(/(\d+)\s*(?:hours?|h\b)/i);
+    const minutesMatch = duration.match(/(\d+)\s*(?:minutes?|mins?|m\b)/i);
+    if (hoursMatch) {
+      totalMs += parseInt(hoursMatch[1]) * 60 * 60 * 1000;
     }
-    if (duration.includes("minute")) {
-      const minutes = parseFloat(duration) || 30;
-      return minutes * 60 * 1000;
+    if (minutesMatch) {
+      totalMs += parseInt(minutesMatch[1]) * 60 * 1000;
     }
-    return 60 * 60 * 1000; // Default 1 hour
+    return totalMs > 0 ? totalMs : 60 * 60 * 1000; // Default 1 hour if parsing fails
   };
   
   const calculateEditDuration = (): string => {
@@ -586,18 +587,8 @@ export default function RequestDetailsScreen({
       payload.visitDate = formatDateForApiLocal(editDate);
       payload.visitTime = formatTimeForApiLocal(editTime);
       
-      // Calculate ISO-8601 duration from start and end times
-      const startMs = editTime.getTime();
-      const endMs = editEndTime.getTime();
-      const diffMs = endMs - startMs;
-      const diffMinutes = Math.max(0, Math.round(diffMs / (1000 * 60)));
-      const hours = Math.floor(diffMinutes / 60);
-      const minutes = diffMinutes % 60;
-      let isoDuration = "PT";
-      if (hours > 0) isoDuration += `${hours}H`;
-      if (minutes > 0) isoDuration += `${minutes}M`;
-      if (hours === 0 && minutes === 0) isoDuration = "PT0M";
-      payload.duration = isoDuration;
+      // Calculate human-readable duration from start and end times
+      payload.duration = calculateServerDuration(editTime, editEndTime);
     } else if (editModalMode === "services-only" && visitData) {
       // Services-only mode
       if (isApprovalFlow && visitData.isWalkIn) {
@@ -624,7 +615,7 @@ export default function RequestDetailsScreen({
         // Non-walk-in services-only edit: use existing schedule fields
         payload.visitDate = visitData.visitDate || formatDateForApiLocal(new Date());
         payload.visitTime = visitData.visitTime || formatTimeForApiLocal(new Date());
-        payload.duration = visitData.duration || "PT1H";
+        payload.duration = visitData.duration || "1 hour";
       }
     }
 
@@ -663,14 +654,14 @@ export default function RequestDetailsScreen({
       rejectedAt: request.approval.rejectedAt,
       rejectionReason: request.approval.rejectionReason,
     },
-    hostApproval: request.hostApproval ? {
+    hostApproval: (request as any).hostApproval ? {
       required: true,
-      approvedAt: request.hostApproval.approvedAt,
-      rejectedAt: request.hostApproval.rejectedAt,
+      approvedAt: (request as any).hostApproval.approvedAt,
+      rejectedAt: (request as any).hostApproval.rejectedAt,
     } : undefined,
     acceptedAt: request.acceptedAt,
     checkedInAt: request.checkedInAt,
-    checkedOutAt: request.checkedOutAt,
+    checkedOutAt: (request as any).checkedOutAt,
     completedAt: request.completedAt,
     cancelledAt: request.cancelledAt,
   };
