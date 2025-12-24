@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useServerTimezone } from '@/hooks/useServerTimezone';
 import {
   formatDate as baseFmtDate,
   formatTime as baseFmtTime,
@@ -20,21 +19,20 @@ import {
 
 export function useFormatters() {
   const { localeCode, isRTL } = useLanguage();
-  const serverTimezone = useServerTimezone();
 
   return useMemo(() => ({
     formatDate: (date: Date | string, format: DateFormat = 'medium') => {
       const d = typeof date === 'string' ? new Date(date) : date;
-      return baseFmtDate(d, localeCode, format, serverTimezone);
+      return baseFmtDate(d, localeCode, format);
     },
     formatDateShort: (date: Date | string) => {
       const d = typeof date === 'string' ? new Date(date) : date;
-      return baseFmtDateShort(d, localeCode, serverTimezone);
+      return baseFmtDateShort(d, localeCode);
     },
-    formatTime: (date: Date) => baseFmtTime(date, localeCode, serverTimezone),
-    formatTimeFromString: (timeString: string) => baseFmtTimeFromString(timeString, localeCode, serverTimezone),
-    formatTimeRange: (timeRange: string) => baseFmtTimeRange(timeRange, localeCode, serverTimezone),
-    formatDateTime: (date: Date) => baseFmtDateTime(date, localeCode, serverTimezone),
+    formatTime: (date: Date) => baseFmtTime(date, localeCode),
+    formatTimeFromString: (timeString: string) => baseFmtTimeFromString(timeString, localeCode),
+    formatTimeRange: (timeRange: string) => baseFmtTimeRange(timeRange, localeCode),
+    formatDateTime: (date: Date) => baseFmtDateTime(date, localeCode),
     formatNumber: (num: number) => baseFmtNumber(num, localeCode),
     formatCurrency: (amount: number, currency?: string) => baseFmtCurrency(amount, currency, localeCode),
     formatLocalNumber: (num: number) => formatNumberWithDigits(num, isRTL),
@@ -43,8 +41,7 @@ export function useFormatters() {
     parseTimeString: baseParseTime,
     localeCode,
     isRTL,
-    serverTimezone,
-  }), [localeCode, isRTL, serverTimezone]);
+  }), [localeCode, isRTL]);
 }
 
 export default useFormatters;

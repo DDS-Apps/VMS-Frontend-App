@@ -9,7 +9,6 @@ import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
-import { useServerTimezone } from "@/hooks/useServerTimezone";
 import { MeetingBooking } from "@/types/vms.types";
 import { getMeetingBookings, getMeetingRooms } from "@/services/mock/systemAdminState";
 
@@ -29,7 +28,6 @@ export default function MeetingCalendarScreen() {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { formatDate: fmtDate, localeCode } = useFormatters();
-  const serverTimezone = useServerTimezone();
   const insets = useSafeAreaInsets();
 
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -223,7 +221,7 @@ export default function MeetingCalendarScreen() {
 
       <View style={styles.selectedDateHeader}>
         <ThemedText style={[Typography.subtitle, { fontWeight: "600" }]}>
-          {selectedDate.toLocaleDateString(localeCode, { weekday: "long", month: "short", day: "numeric", timeZone: serverTimezone })}
+          {selectedDate.toLocaleDateString(localeCode, { weekday: "long", month: "short", day: "numeric" })}
         </ThemedText>
         <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
           {selectedDateBookings.length} {t("admin.bookings").toLowerCase()}

@@ -9,7 +9,6 @@ import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
-import { useServerTimezone } from "@/hooks/useServerTimezone";
 import { getVisitorRequests } from "@/services/mock/visitorRequestState";
 import { VisitorRequest } from "@/types/vms.types";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -96,7 +95,6 @@ export default function ReminderScheduleScreen() {
   const { theme } = useTheme();
   const { t, isRTL } = useTranslation();
   const { formatTimeFromString } = useFormatters();
-  const serverTimezone = useServerTimezone();
   const insets = useSafeAreaInsets();
   const [reminders, setReminders] = useState<ScheduledReminder[]>([]);
   const [filter, setFilter] = useState<ReminderFilter>('upcoming');
@@ -190,7 +188,7 @@ export default function ReminderScheduleScreen() {
   };
 
   const formatDate = (date: Date): string => {
-    return formatFullDate(date, isRTL, serverTimezone);
+    return formatFullDate(date, isRTL);
   };
 
   const renderReminderItem: ListRenderItem<ScheduledReminder> = ({ item }) => {

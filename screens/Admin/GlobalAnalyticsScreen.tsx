@@ -9,7 +9,6 @@ import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
-import { useServerTimezone } from "@/hooks/useServerTimezone";
 import {
   AdminKPIMetric,
   VisitsAnalytics,
@@ -29,7 +28,6 @@ export default function GlobalAnalyticsScreen() {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { localeCode } = useFormatters();
-  const serverTimezone = useServerTimezone();
   const insets = useSafeAreaInsets();
 
   const [kpis, setKpis] = useState<AdminKPIMetric[]>([]);
@@ -203,7 +201,7 @@ export default function GlobalAnalyticsScreen() {
                     />
                   </View>
                   <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 4, fontSize: 10 }]}>
-                    {new Date(day.date).toLocaleDateString(localeCode, { weekday: "short", timeZone: serverTimezone }).substring(0, 2)}
+                    {new Date(day.date).toLocaleDateString(localeCode, { weekday: "short" }).substring(0, 2)}
                   </ThemedText>
                 </View>
               ))}
@@ -238,7 +236,7 @@ export default function GlobalAnalyticsScreen() {
                     />
                   </View>
                   <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 4, fontSize: 10 }]}>
-                    {new Date(day.date).toLocaleDateString(localeCode, { weekday: "short", timeZone: serverTimezone }).substring(0, 2)}
+                    {new Date(day.date).toLocaleDateString(localeCode, { weekday: "short" }).substring(0, 2)}
                   </ThemedText>
                 </View>
               ))}
