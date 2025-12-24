@@ -217,8 +217,9 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
   const handleApprove = () => {
     if (isReadOnlyRole) return;
     
-    // For walk-in requests, show the end time modal with service selection
-    if (visitData?.isWalkIn) {
+    // For walk-in requests where manager IS the host, show the end time modal with service selection
+    // If manager is NOT the host, the employee already configured end time/services, so just approve directly
+    if (visitData?.isWalkIn && isManagerTheHost) {
       const approvalTime = new Date();
       setApprovalStartTime(approvalTime);
       const defaultEndTime = new Date(approvalTime.getTime() + 60 * 60 * 1000);
@@ -235,7 +236,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
       return;
     }
     
-    // For regular requests, approve directly
+    // For regular requests OR walk-ins where manager is NOT the host, approve directly
     approveMutation.mutate(
       { id: requestId, payload: {} },
       {
