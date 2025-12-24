@@ -88,16 +88,7 @@ export default function ParkMyCarScreen({ navigation }: ParkMyCarScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { toServerDate, formatTimeForApi } = useServerDateTime();
-  
-  // Display formatter for picker values - uses device local time
-  const formatPickerTime = (date: Date): string => {
-    return date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    });
-  };
+  const { toServerDate, formatTimeForApi, formatTimeForDisplay, getTimezoneLabel } = useServerDateTime();
   const createMutation = useCreateSelfValetRequestMutation();
 
   const scrollContentStyle = {
@@ -426,9 +417,14 @@ export default function ParkMyCarScreen({ navigation }: ParkMyCarScreenProps) {
 
             <Spacer height={Spacing.lg} />
 
-            <ThemedText style={[Typography.label, { color: theme.textSecondary }]}>
-              REQUESTED RETURN TIME
-            </ThemedText>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <ThemedText style={[Typography.label, { color: theme.textSecondary }]}>
+                REQUESTED RETURN TIME
+              </ThemedText>
+              <ThemedText style={[Typography.caption, { color: theme.primary }]}>
+                {getTimezoneLabel()}
+              </ThemedText>
+            </View>
             <Spacer height={Spacing.xs} />
             <Pressable
               style={[
@@ -439,7 +435,7 @@ export default function ParkMyCarScreen({ navigation }: ParkMyCarScreenProps) {
             >
               <DDIcon name="clock" size={20} variant="muted" />
               <ThemedText style={[Typography.body, { flex: 1, marginStart: Spacing.sm }]}>
-                {formatPickerTime(returnTime)}
+                {formatTimeForDisplay(returnTime)}
               </ThemedText>
               <DDIcon name="chevron-down" size={20} variant="muted" />
             </Pressable>

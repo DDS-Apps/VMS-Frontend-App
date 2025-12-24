@@ -66,6 +66,9 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
     formatDateForApi: formatDateToApi, 
     formatTimeForApi: formatTimeToApi,
     formatTime24ForApi,
+    formatDateForDisplay,
+    formatTimeForDisplay,
+    getTimezoneLabel,
     getNowForPicker 
   } = useServerDateTime();
   const createVisitMutation = useCreateVisitMutation();
@@ -261,26 +264,20 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
     }
   };
 
-  // Display formatter for picker values - uses device local time (what user selected)
+  // Display formatter for picker values - uses server timezone from API
   const formatPickerDate = (date: Date): string => {
-    const today = new Date();
-    if (date.toDateString() === today.toDateString()) {
+    // Check if today using server timezone comparison
+    const todayStr = formatDateForDisplay(new Date(), isRTL);
+    const dateStr = formatDateForDisplay(date, isRTL);
+    if (todayStr === dateStr) {
       return t('time.today');
     }
-    // Use device local formatting for picker display
-    return date.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
-      month: 'short',
-      day: 'numeric',
-    });
+    return dateStr;
   };
 
-  // Display formatter for picker time values - uses device local time
+  // Display formatter for picker time values - uses server timezone from API
   const formatPickerTime = (date: Date): string => {
-    return date.toLocaleTimeString(isRTL ? 'ar-SA' : 'en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    });
+    return formatTimeForDisplay(date, isRTL);
   };
 
   // API formatter - converts to server timezone for submission
@@ -853,9 +850,14 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
 
             <Spacer height={Spacing.lg} />
 
-            <ThemedText style={[Typography.label, { color: theme.textSecondary }]}>
-              {t('form.visitTime')} *
-            </ThemedText>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <ThemedText style={[Typography.label, { color: theme.textSecondary }]}>
+                {t('form.visitTime')} *
+              </ThemedText>
+              <ThemedText style={[Typography.caption, { color: theme.primary }]}>
+                {getTimezoneLabel()}
+              </ThemedText>
+            </View>
             <Spacer height={Spacing.xs} />
             <Pressable 
               style={[
@@ -884,9 +886,14 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
 
             <Spacer height={Spacing.lg} />
 
-            <ThemedText style={[Typography.label, { color: theme.textSecondary }]}>
-              {t('form.endTime')} *
-            </ThemedText>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <ThemedText style={[Typography.label, { color: theme.textSecondary }]}>
+                {t('form.endTime')} *
+              </ThemedText>
+              <ThemedText style={[Typography.caption, { color: theme.primary }]}>
+                {getTimezoneLabel()}
+              </ThemedText>
+            </View>
             <Spacer height={Spacing.xs} />
             <Pressable 
               style={[

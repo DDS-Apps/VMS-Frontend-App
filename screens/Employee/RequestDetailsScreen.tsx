@@ -80,7 +80,10 @@ export default function RequestDetailsScreen({
     toServerDate, 
     formatDateForApi: formatDateToApi, 
     formatTimeForApi: formatTimeToApi,
-    formatTime24ForApi 
+    formatTime24ForApi,
+    formatDateForDisplay,
+    formatTimeForDisplay,
+    getTimezoneLabel 
   } = useServerDateTime();
   const {
     formatDate,
@@ -395,20 +398,13 @@ export default function RequestDetailsScreen({
     return formatTimeToApi(serverTime);
   };
 
-  // Display formatters for picker values - use device local time (what user selected)
+  // Display formatters for picker values - use server timezone from API
   const formatDisplayDate = (date: Date): string => {
-    return date.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
-      month: 'short',
-      day: 'numeric',
-    });
+    return formatDateForDisplay(date, isRTL);
   };
 
   const formatDisplayTime = (time: Date): string => {
-    return time.toLocaleTimeString(isRTL ? 'ar-SA' : 'en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    });
+    return formatTimeForDisplay(time, isRTL);
   };
 
   const getDurationHours = (duration: string): number => {

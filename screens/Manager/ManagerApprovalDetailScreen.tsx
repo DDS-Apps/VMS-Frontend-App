@@ -105,7 +105,9 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
     serverTimezone, 
     toServerDate, 
     formatDateForApi: formatDateToApi, 
-    formatTimeForApi: formatTimeToApi 
+    formatTimeForApi: formatTimeToApi,
+    formatTimeForDisplay,
+    getTimezoneLabel 
   } = useServerDateTime();
 
   // Helper function for consistent service status colors
@@ -211,13 +213,9 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
     return formatDateToApi(serverDate);
   };
 
+  // Display formatter for picker values - uses server timezone from API
   const formatDisplayTime = (date: Date): string => {
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-    const period = hours >= 12 ? "PM" : "AM";
-    const hour12 = hours % 12 || 12;
-    const minuteStr = String(minutes).padStart(2, "0");
-    return `${hour12}:${minuteStr} ${period}`;
+    return formatTimeForDisplay(date, isRTL);
   };
 
   const handleApprove = () => {
