@@ -76,10 +76,8 @@ export default function RequestDetailsScreen({
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { 
-    serverTimezone, 
-    toServerDate, 
-    formatDateForApi: formatDateToApi, 
-    formatTimeForApi: formatTimeToApi,
+    formatDateForApi, 
+    formatTimeForApi,
     formatTime24ForApi,
     formatDateForDisplay,
     formatTimeForDisplay
@@ -156,15 +154,13 @@ export default function RequestDetailsScreen({
   const managerApproveMutation = useApproveVisitMutation();
   const managerRejectMutation = useRejectVisitMutation();
 
-  // Room availability check for edit modal - use server timezone
+  // Room availability check for edit modal
   const formatDateForApiLocal = (date: Date): string => {
-    const serverDate = toServerDate(date);
-    return formatDateToApi(serverDate);
+    return formatDateForApi(date);
   };
 
   const formatTimeForQuery = (time: Date): string => {
-    const serverTime = toServerDate(time);
-    return formatTime24ForApi(serverTime);
+    return formatTime24ForApi(time);
   };
 
   const editRoomAvailabilityParams: RoomAvailabilityParams | null = 
@@ -393,8 +389,7 @@ export default function RequestDetailsScreen({
   };
 
   const formatTimeForApiLocal = (time: Date): string => {
-    const serverTime = toServerDate(time);
-    return formatTimeToApi(serverTime);
+    return formatTimeForApi(time);
   };
 
   // Display formatters for picker values - use server timezone from API
@@ -621,7 +616,7 @@ export default function RequestDetailsScreen({
         payload.endTime = formatTimeForApiLocal(editEndTime);
         
         // Calculate duration from approval start time to selected end time using timezone utility
-        payload.duration = calculateServerDuration(startTime, editEndTime, serverTimezone);
+        payload.duration = calculateServerDuration(startTime, editEndTime);
         
         // Clear approvalStartTime after use
         setApprovalStartTime(null);

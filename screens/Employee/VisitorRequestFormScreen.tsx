@@ -61,10 +61,8 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const { 
-    serverTimezone, 
-    toServerDate, 
-    formatDateForApi: formatDateToApi, 
-    formatTimeForApi: formatTimeToApi,
+    formatDateForApi, 
+    formatTimeForApi,
     formatTime24ForApi,
     formatDateForDisplay,
     formatTimeForDisplay,
@@ -124,13 +122,11 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
 
   const formatDateForApiLocal = (date: Date): string => {
-    const serverDate = toServerDate(date);
-    return formatDateToApi(serverDate);
+    return formatDateForApi(date);
   };
 
   const formatTimeForQuery = (time: Date): string => {
-    const serverTime = toServerDate(time);
-    return formatTime24ForApi(serverTime);
+    return formatTime24ForApi(time);
   };
 
   const roomAvailabilityParams: RoomAvailabilityParams | null = needsMeetingRoom && selectedDate && selectedTime && selectedEndTime
@@ -279,16 +275,14 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
     return formatTimeForDisplay(date, isRTL);
   };
 
-  // API formatter - converts to server timezone for submission
+  // API formatter - formats device-local date for submission
   const formatDate = (date: Date) => {
-    const serverDate = toServerDate(date);
-    return formatDateToApi(serverDate);
+    return formatDateForApi(date);
   };
 
-  // API formatter - converts to server timezone for submission
-  const formatTimeForApi = (date: Date): string => {
-    const serverTime = toServerDate(date);
-    return formatTimeToApi(serverTime);
+  // API formatter - formats device-local time for submission
+  const formatTimeForApiLocal = (date: Date): string => {
+    return formatTimeForApi(date);
   };
 
   const handleDateSelect = (date: Date) => {
@@ -475,7 +469,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
       if (sendWhatsApp) communicationChannels.push('whatsapp');
 
       // Calculate ISO-8601 duration using timezone utility
-      const isoDuration = calculateServerDuration(selectedTime, selectedEndTime, serverTimezone);
+      const isoDuration = calculateServerDuration(selectedTime, selectedEndTime);
 
       const payload: CreateVisitPayload = {
         hostId: asReceptionist ? selectedEmployeeId : user.id,

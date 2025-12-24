@@ -88,7 +88,7 @@ export default function ParkMyCarScreen({ navigation }: ParkMyCarScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { toServerDate, formatTimeForApi, formatTimeForDisplay } = useServerDateTime();
+  const { formatTimeForApi, formatTimeForDisplay } = useServerDateTime();
   const createMutation = useCreateSelfValetRequestMutation();
 
   const scrollContentStyle = {
@@ -224,7 +224,7 @@ export default function ParkMyCarScreen({ navigation }: ParkMyCarScreenProps) {
           plateNumber: plateNumber.trim().toUpperCase(),
         },
         dropOffLocation,
-        requestedReturnTime: formatTimeForApi(toServerDate(returnTime)),
+        requestedReturnTime: formatTimeForApi(returnTime),
         notes: notes.trim() || undefined,
       });
 

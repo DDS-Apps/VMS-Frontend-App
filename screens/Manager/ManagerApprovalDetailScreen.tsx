@@ -102,10 +102,8 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
   const { user } = useAuth();
   const isReadOnlyRole = user?.role === 'building_admin';
   const { 
-    serverTimezone, 
-    toServerDate, 
-    formatDateForApi: formatDateToApi, 
-    formatTimeForApi: formatTimeToApi,
+    formatDateForApi, 
+    formatTimeForApi,
     formatTimeForDisplay
   } = useServerDateTime();
 
@@ -203,13 +201,11 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
   };
 
   const formatTimeForApiLocal = (time: Date): string => {
-    const serverTime = toServerDate(time);
-    return formatTimeToApi(serverTime);
+    return formatTimeForApi(time);
   };
 
   const formatDateForApiLocal = (date: Date): string => {
-    const serverDate = toServerDate(date);
-    return formatDateToApi(serverDate);
+    return formatDateForApi(date);
   };
 
   // Display formatter for picker values - uses server timezone from API
@@ -267,7 +263,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
     const startTime = approvalStartTime || new Date();
     
     // Calculate duration from approval start time to selected end time using timezone utility
-    const isoDuration = calculateServerDuration(startTime, walkInEndTime, serverTimezone);
+    const isoDuration = calculateServerDuration(startTime, walkInEndTime);
     
     // Build payload based on whether manager is the host
     // If manager IS the host: can edit services

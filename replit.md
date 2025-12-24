@@ -39,7 +39,7 @@ The VMS app adheres to a Clean Architecture pattern, dividing the application in
 -   **Internationalization (i18n):** Bilingual support for English (LTR) and Arabic (RTL) across all 40+ screens using type-safe translation keys, a `LanguageContext`, and `useTranslation` hook.
 -   **Shared Components:** Reusable UI components including `ServiceIcons`, `SelectionCheckbox`, `StatusBadge`, and `EmptyState`.
 -   **Utility Services:** Centralized utility functions for `dateTimeUtils`, `statusUtils`, and `reminderUtils` supporting RTL locales and i18n.
--   **Timezone Architecture:** Date/time displays use device local time for user familiarity. API submissions convert device-local times to server timezone (from login API response) before sending. Timezone conversion is handled server-side for storage and business logic. This approach avoids confusion from native pickers that can only show device local time.
+-   **Timezone Architecture:** All date/time displays and API submissions use device-local time. The client performs no timezone conversion - it sends raw device-local dates and times to the server. The server is responsible for all timezone normalization and conversion. This approach avoids confusion since native mobile date/time pickers can only display device-local time and cannot be configured for a different timezone.
 
 **Features:**
 -   **Authentication & Access:** Login, password management, Edit Profile.
