@@ -55,13 +55,13 @@ export const ServiceIcons = ({
         <View style={[
           styles.pill, 
           { 
-            backgroundColor: applyOpacity(theme.warning, '20'), 
+            backgroundColor: applyOpacity(theme.secondary, '20'), 
             width: iconContainerSize, 
             height: iconContainerSize, 
             borderRadius: size 
           }
         ]}>
-          <DDIcon name="cloche" size={size} variant="warning" />
+          <DDIcon name="cloche" size={size} color={theme.secondary} />
         </View>
       ) : null}
       {!!valet ? (

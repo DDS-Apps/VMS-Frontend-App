@@ -1129,7 +1129,7 @@ export default function RequestDetailsScreen({
                     { color: theme.textSecondary, fontSize: 12 },
                   ]}
                 >
-                  {formatTimeRange(request.meetingRoom.timeSlot)}
+                  {formatDateShort(request.visitDate)} • {formatTimeRange(request.meetingRoom.timeSlot)}
                 </ThemedText>
               </>
             ) : (request as any).meetingRoomPending ? (
@@ -1267,7 +1267,7 @@ export default function RequestDetailsScreen({
               styles.serviceIcon,
               {
                 backgroundColor: applyOpacity(
-                  (request.buffet || (request as any).buffetPending) ? theme.warning : theme.textSecondary,
+                  (request.buffet || (request as any).buffetPending) ? theme.secondary : theme.textSecondary,
                   "15",
                 ),
               },
@@ -1276,7 +1276,7 @@ export default function RequestDetailsScreen({
             <DDIcon
               name="cloche"
               size={18}
-              color={(request.buffet || (request as any).buffetPending) ? theme.warning : theme.textSecondary}
+              color={(request.buffet || (request as any).buffetPending) ? theme.secondary : theme.textSecondary}
             />
           </View>
           <View style={{ flex: 1, marginStart: Spacing.md }}>

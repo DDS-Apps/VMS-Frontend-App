@@ -555,7 +555,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
                   </ThemedText>
                   {request.meetingRoom.timeSlot ? (
                     <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12 }]}>
-                      {formatTimeRange(request.meetingRoom.timeSlot)}
+                      {formatDateShort(request.visitDate)} • {formatTimeRange(request.meetingRoom.timeSlot)}
                     </ThemedText>
                   ) : null}
                 </>
@@ -640,8 +640,8 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
           {/* Buffet */}
           <View style={styles.serviceRow}>
-            <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(request.buffet ? theme.warning : theme.textSecondary, '20') }]}>
-              <DDIcon name="cloche" size={18} color={request.buffet ? theme.warning : theme.textSecondary} />
+            <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(request.buffet ? theme.secondary : theme.textSecondary, '20') }]}>
+              <DDIcon name="cloche" size={18} color={request.buffet ? theme.secondary : theme.textSecondary} />
             </View>
             <View style={[styles.serviceInfo, { flex: 1 }]}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
