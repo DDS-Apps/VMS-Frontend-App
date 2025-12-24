@@ -39,7 +39,7 @@ The VMS app adheres to a Clean Architecture pattern, dividing the application in
 -   **Internationalization (i18n):** Bilingual support for English (LTR) and Arabic (RTL) across all 40+ screens using type-safe translation keys, a `LanguageContext`, and `useTranslation` hook.
 -   **Shared Components:** Reusable UI components including `ServiceIcons`, `SelectionCheckbox`, `StatusBadge`, and `EmptyState`.
 -   **Utility Services:** Centralized utility functions for `dateTimeUtils`, `statusUtils`, and `reminderUtils` supporting RTL locales and i18n.
--   **Timezone Architecture:** All date/time displays and API submissions use server timezone (from login API response). Display formatters use `Intl.DateTimeFormat` with `timeZone` option to show server TZ. Timezone labels (e.g., "Riyadh Time") are shown next to time picker fields. Note: Native React Native date/time pickers always display in device local time - this is a platform limitation. The displayed time shows server timezone, and API submissions correctly convert to server timezone.
+-   **Timezone Architecture:** Date/time displays use device local time for user familiarity. API submissions convert device-local times to server timezone (from login API response) before sending. Timezone conversion is handled server-side for storage and business logic. This approach avoids confusion from native pickers that can only show device local time.
 
 **Features:**
 -   **Authentication & Access:** Login, password management, Edit Profile.

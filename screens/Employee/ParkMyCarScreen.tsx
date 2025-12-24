@@ -88,7 +88,7 @@ export default function ParkMyCarScreen({ navigation }: ParkMyCarScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { toServerDate, formatTimeForApi, formatTimeForDisplay, getTimezoneLabel } = useServerDateTime();
+  const { toServerDate, formatTimeForApi, formatTimeForDisplay } = useServerDateTime();
   const createMutation = useCreateSelfValetRequestMutation();
 
   const scrollContentStyle = {
@@ -417,14 +417,9 @@ export default function ParkMyCarScreen({ navigation }: ParkMyCarScreenProps) {
 
             <Spacer height={Spacing.lg} />
 
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-              <ThemedText style={[Typography.label, { color: theme.textSecondary }]}>
-                REQUESTED RETURN TIME
-              </ThemedText>
-              <ThemedText style={[Typography.caption, { color: theme.primary }]}>
-                {getTimezoneLabel()}
-              </ThemedText>
-            </View>
+            <ThemedText style={[Typography.label, { color: theme.textSecondary }]}>
+              REQUESTED RETURN TIME
+            </ThemedText>
             <Spacer height={Spacing.xs} />
             <Pressable
               style={[

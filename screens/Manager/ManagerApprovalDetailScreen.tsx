@@ -106,8 +106,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
     toServerDate, 
     formatDateForApi: formatDateToApi, 
     formatTimeForApi: formatTimeToApi,
-    formatTimeForDisplay,
-    getTimezoneLabel 
+    formatTimeForDisplay
   } = useServerDateTime();
 
   // Helper function for consistent service status colors

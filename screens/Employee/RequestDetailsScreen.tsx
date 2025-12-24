@@ -82,8 +82,7 @@ export default function RequestDetailsScreen({
     formatTimeForApi: formatTimeToApi,
     formatTime24ForApi,
     formatDateForDisplay,
-    formatTimeForDisplay,
-    getTimezoneLabel 
+    formatTimeForDisplay
   } = useServerDateTime();
   const {
     formatDate,

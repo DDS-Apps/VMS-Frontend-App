@@ -68,7 +68,6 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
     formatTime24ForApi,
     formatDateForDisplay,
     formatTimeForDisplay,
-    getTimezoneLabel,
     getNowForPicker 
   } = useServerDateTime();
   const createVisitMutation = useCreateVisitMutation();
@@ -850,14 +849,9 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
 
             <Spacer height={Spacing.lg} />
 
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-              <ThemedText style={[Typography.label, { color: theme.textSecondary }]}>
-                {t('form.visitTime')} *
-              </ThemedText>
-              <ThemedText style={[Typography.caption, { color: theme.primary }]}>
-                {getTimezoneLabel()}
-              </ThemedText>
-            </View>
+            <ThemedText style={[Typography.label, { color: theme.textSecondary }]}>
+              {t('form.visitTime')} *
+            </ThemedText>
             <Spacer height={Spacing.xs} />
             <Pressable 
               style={[
@@ -886,14 +880,9 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
 
             <Spacer height={Spacing.lg} />
 
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-              <ThemedText style={[Typography.label, { color: theme.textSecondary }]}>
-                {t('form.endTime')} *
-              </ThemedText>
-              <ThemedText style={[Typography.caption, { color: theme.primary }]}>
-                {getTimezoneLabel()}
-              </ThemedText>
-            </View>
+            <ThemedText style={[Typography.label, { color: theme.textSecondary }]}>
+              {t('form.endTime')} *
+            </ThemedText>
             <Spacer height={Spacing.xs} />
             <Pressable 
               style={[
