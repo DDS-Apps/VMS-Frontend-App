@@ -67,9 +67,12 @@ export const mapVisitDetailsToVisitorRequest = (visit: VisitDetailsDto): Visitor
       name: visit.meetingBooking?.roomName || visit.meetingRoom?.name || '',
       capacity: visit.meetingRoom?.capacity || DEFAULT_MEETING_ROOM.capacity,
       floor: visit.meetingRoom?.floor || DEFAULT_MEETING_ROOM.floor,
-      timeSlot: visit.meetingBooking
-        ? `${visit.meetingBooking.startTime} - ${visit.meetingBooking.endTime}`
-        : (visit.meetingRoom?.timeSlot || visit.visitTime || ''),
+      // Prioritize meetingRoom.timeSlot (already formatted in local time) over meetingBooking ISO timestamps
+      // meetingBooking times are in UTC and would need timezone conversion, so prefer the pre-formatted timeSlot
+      timeSlot: visit.meetingRoom?.timeSlot 
+        || (visit.meetingBooking ? `${visit.meetingBooking.startTime} - ${visit.meetingBooking.endTime}` : '')
+        || visit.visitTime 
+        || '',
       status: visit.meetingBooking?.status,
     } : undefined,
     meetingRoomPending: (isEmptyObject(visit.meetingBooking) || isEmptyObject(visit.meetingRoom)) &&
