@@ -135,6 +135,10 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
   const [approvalStartTime, setApprovalStartTime] = useState<Date | null>(null);
   const [showEndTimePicker, setShowEndTimePicker] = useState(false);
   
+  // Inline end time editing state (for approved walk-ins)
+  const [showInlineEndTimePicker, setShowInlineEndTimePicker] = useState(false);
+  const [inlineEndTime, setInlineEndTime] = useState<Date | null>(null);
+  
   // Walk-in approval services state
   const [walkInRequiresMeetingRoom, setWalkInRequiresMeetingRoom] = useState(false);
   const [walkInRequiresParking, setWalkInRequiresParking] = useState(false);
@@ -394,6 +398,64 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
     }
   };
 
+  // Handler for inline end time editing (approved walk-ins)
+  const handleInlineEndTimeChange = (event: DateTimePickerEvent, selectedTime?: Date) => {
+    if (Platform.OS === "android") {
+      setShowInlineEndTimePicker(false);
+    }
+    if (selectedTime) {
+      setInlineEndTime(selectedTime);
+    }
+  };
+
+  // Save inline end time to API
+  const handleSaveInlineEndTime = () => {
+    if (!inlineEndTime || !visitData) return;
+    
+    const payload = {
+      endTime: formatTimeForApi(inlineEndTime),
+    };
+
+    updateMutation.mutate(
+      { id: requestId, data: payload },
+      {
+        onSuccess: () => {
+          setInlineEndTime(null);
+          setShowInlineEndTimePicker(false);
+          showToast(t('notifications.visitUpdated'), 'success');
+          refetch();
+        },
+        onError: () => {
+          setShowInlineEndTimePicker(false);
+          showToast(t('errors.somethingWentWrong'), 'error');
+        },
+      }
+    );
+  };
+
+  // Cancel inline end time editing
+  const handleCancelInlineEndTime = () => {
+    setInlineEndTime(null);
+    setShowInlineEndTimePicker(false);
+  };
+
+  // Initialize inline end time from visit data for editing
+  const handleStartInlineEndTimeEdit = () => {
+    if (visitData?.visitDate && visitData?.endTime) {
+      const parsedEndTime = parseDateTime(visitData.visitDate, visitData.endTime);
+      if (!isNaN(parsedEndTime.getTime())) {
+        setInlineEndTime(parsedEndTime);
+      } else {
+        // Default to 1 hour from now if no valid end time
+        setInlineEndTime(new Date(Date.now() + 60 * 60 * 1000));
+      }
+    } else {
+      // Default to 1 hour from now
+      setInlineEndTime(new Date(Date.now() + 60 * 60 * 1000));
+    }
+    setShowInlineEndTimePicker(true);
+  };
+
   const handleReject = () => {
     if (isReadOnlyRole) return;
     const reason = rejectionReason.trim() || 'No reason provided';
@@ -567,6 +629,48 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
               {parseISODuration(request.duration)}
             </ThemedText>
           </View>
+
+          {/* End Time - Inline editable for walk-ins */}
+          {request.isWalkIn ? (
+            <>
+              <Spacer height={Spacing.md} />
+              <View style={styles.detailRow}>
+                <ThemedText style={[styles.detailLabel, { color: theme.textSecondary }]}>
+                  {t('form.endTime')}
+                </ThemedText>
+                {inlineEndTime !== null ? (
+                  <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.sm }}>
+                    <Pressable
+                      onPress={() => setShowInlineEndTimePicker(true)}
+                      style={[styles.inlineTimeButton, { backgroundColor: applyOpacity(theme.primary, '10'), borderColor: theme.primary }]}
+                    >
+                      <DDIcon name="clock" size={14} color={theme.primary} />
+                      <ThemedText style={[Typography.body, { color: theme.primary, fontWeight: '600', marginStart: 4 }]}>
+                        {formatTimeForDisplay(inlineEndTime)}
+                      </ThemedText>
+                    </Pressable>
+                    <Pressable onPress={handleSaveInlineEndTime} disabled={updateMutation.isPending}>
+                      <DDIcon name="check" size={20} color={theme.success} />
+                    </Pressable>
+                    <Pressable onPress={handleCancelInlineEndTime}>
+                      <DDIcon name="x" size={20} color={theme.error} />
+                    </Pressable>
+                  </View>
+                ) : (
+                  <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.sm }}>
+                    <ThemedText style={[styles.detailValue, { color: request.endTime ? theme.text : theme.warning }]}>
+                      {request.endTime ? formatTimeFromString(request.endTime) : t('common.notRequested')}
+                    </ThemedText>
+                    {!isReadOnlyRole && isManagerTheHost && (request.status === REQUEST_STATUS.APPROVED || request.status === REQUEST_STATUS.VISITOR_ACCEPTED) ? (
+                      <Pressable onPress={handleStartInlineEndTimeEdit} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                        <DDIcon name="edit-2" size={16} color={theme.primary} />
+                      </Pressable>
+                    ) : null}
+                  </View>
+                )}
+              </View>
+            </>
+          ) : null}
 
           <Spacer height={Spacing.md} />
 
@@ -1137,6 +1241,17 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
         </View>
       </Modal>
 
+      {/* Inline End Time Picker for approved walk-ins */}
+      {showInlineEndTimePicker && inlineEndTime && (
+        <DateTimePicker
+          value={inlineEndTime}
+          mode="time"
+          is24Hour={false}
+          display={Platform.OS === "ios" ? "spinner" : "default"}
+          onChange={handleInlineEndTimeChange}
+        />
+      )}
+
       <Toast message={toast.message} type={toast.type} visible={toast.visible} />
     </>
   );
@@ -1217,6 +1332,14 @@ const styles = StyleSheet.create({
   },
   detailValue: {
     fontSize: 14,
+  },
+  inlineTimeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: 8,
+    borderWidth: 1,
   },
 
   serviceRow: {
