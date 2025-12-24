@@ -61,7 +61,9 @@ export const mapVisitDetailsToVisitorRequest = (visit: VisitDetailsDto): Visitor
       company: visit.visitor?.company,
     },
     visitDate: visit.visitDate || new Date().toISOString().split('T')[0],
-    visitTime: visit.visitTime || '09:00',
+    visitTime: visit.visitTime 
+      || (visit.meetingBooking?.startTime ? formatIsoTimeAsDisplayed(visit.meetingBooking.startTime) : '')
+      || '09:00',
     duration: visit.duration || DEFAULT_DURATION,
     endTime: visit.endTime,
     purpose: visit.purpose || '',
