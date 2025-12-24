@@ -504,7 +504,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
           <View style={styles.detailRow}>
             <ThemedText style={[styles.detailLabel, { color: theme.textSecondary }]}>
-              {t('form.date')}
+              {t('form.requestDateTime')}
             </ThemedText>
             <ThemedText style={[styles.detailValue]}>
               {formatDateTime(request.createdAt)}

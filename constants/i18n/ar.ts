@@ -308,6 +308,7 @@ export const ar: TranslationKeys = {
     company: 'الشركة',
     companyPlaceholder: 'أدخل اسم الشركة',
     date: 'التاريخ',
+    requestDateTime: 'تاريخ ووقت الطلب',
     time: 'الوقت',
     duration: 'المدة',
     durationPlaceholder: 'اختر المدة',

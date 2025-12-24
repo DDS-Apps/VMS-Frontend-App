@@ -308,6 +308,7 @@ export const en: TranslationKeys = {
     company: 'Company',
     companyPlaceholder: 'Enter company name',
     date: 'Date',
+    requestDateTime: 'Request Date Time',
     time: 'Time',
     duration: 'Duration',
     durationPlaceholder: 'Select duration',

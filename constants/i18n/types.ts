@@ -308,6 +308,7 @@ export interface TranslationKeys {
     company: string;
     companyPlaceholder: string;
     date: string;
+    requestDateTime: string;
     time: string;
     duration: string;
     durationPlaceholder: string;
