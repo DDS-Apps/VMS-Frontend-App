@@ -409,6 +409,7 @@ export const ar: TranslationKeys = {
     viewDetails: 'عرض التفاصيل',
     editRequest: 'تعديل الطلب',
     editServices: 'تعديل الخدمات',
+    editServicesDescription: 'تحديث وقت الانتهاء والخدمات الاختيارية لهذه الزيارة',
     deleteRequest: 'حذف الطلب',
     sendReminder: 'إرسال تذكير',
     resendInvitation: 'إعادة إرسال الدعوة',

@@ -125,6 +125,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showWalkInApprovalModal, setShowWalkInApprovalModal] = useState(false);
+  const [isWalkInEditMode, setIsWalkInEditMode] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
   const [walkInEndTime, setWalkInEndTime] = useState<Date>(() => {
     const now = new Date();
@@ -229,6 +230,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
       setWalkInRequiresParking(false); // Parking disabled for walk-ins
       setWalkInRequiresBuffet(!!visitData.buffet);
       
+      setIsWalkInEditMode(false);
       setShowWalkInApprovalModal(true);
       return;
     }
@@ -248,6 +250,45 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
         },
       }
     );
+  };
+
+  // Handler to open the walk-in services modal in edit mode (for already approved walk-ins)
+  const handleEditWalkInServices = () => {
+    if (isReadOnlyRole || !visitData?.isWalkIn) return;
+    
+    // Initialize with existing data from the visit - preserve original start time
+    const now = new Date();
+    
+    // Parse existing start time from visit data, fallback to now if not available
+    let existingStartTime = now;
+    if (visitData.visitDate && visitData.visitTime) {
+      const parsedStart = new Date(`${visitData.visitDate}T${visitData.visitTime}`);
+      if (!isNaN(parsedStart.getTime())) {
+        existingStartTime = parsedStart;
+      }
+    }
+    setApprovalStartTime(existingStartTime);
+    
+    // Set end time from existing visit data or default to 1 hour from start
+    if (visitData.endTime) {
+      // Parse existing end time
+      const existingEndTime = new Date(visitData.endTime);
+      if (!isNaN(existingEndTime.getTime())) {
+        setWalkInEndTime(existingEndTime);
+      } else {
+        setWalkInEndTime(new Date(existingStartTime.getTime() + 60 * 60 * 1000));
+      }
+    } else {
+      setWalkInEndTime(new Date(existingStartTime.getTime() + 60 * 60 * 1000));
+    }
+    
+    // Initialize services from existing visit data
+    setWalkInRequiresMeetingRoom(!!visitData.meetingRoom);
+    setWalkInRequiresParking(false); // Parking disabled for walk-ins
+    setWalkInRequiresBuffet(!!visitData.buffet);
+    
+    setIsWalkInEditMode(true);
+    setShowWalkInApprovalModal(true);
   };
 
   const handleWalkInApprovalSubmit = () => {
@@ -283,38 +324,63 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
     }
     // If not the host, don't include service fields - preserve existing services
     
-    // First approve the request
-    approveMutation.mutate(
-      { id: requestId, payload: {} },
-      {
-        onSuccess: () => {
-          // Then update with the time details
-          updateMutation.mutate(
-            { id: requestId, data: payload },
-            {
-              onSuccess: () => {
-                setShowWalkInApprovalModal(false);
-                setApprovalStartTime(null);
-                // Reset service states
-                setWalkInRequiresMeetingRoom(false);
-                setWalkInRequiresParking(false);
-                setWalkInRequiresBuffet(false);
-                showToast(t('notifications.walkInApproved'), 'success');
-                setTimeout(() => {
-                  navigation.goBack();
-                }, 1000);
-              },
-              onError: (error) => {
-                showToast(t('errors.somethingWentWrong'), 'error');
-              },
-            }
-          );
-        },
-        onError: (error) => {
-          showToast(t('errors.somethingWentWrong'), 'error');
-        },
-      }
-    );
+    // Handle based on mode: edit mode vs approval mode
+    if (isWalkInEditMode) {
+      // Edit mode: Just update the visit, no need to approve again
+      updateMutation.mutate(
+        { id: requestId, data: payload },
+        {
+          onSuccess: () => {
+            setShowWalkInApprovalModal(false);
+            setApprovalStartTime(null);
+            setIsWalkInEditMode(false);
+            // Reset service states
+            setWalkInRequiresMeetingRoom(false);
+            setWalkInRequiresParking(false);
+            setWalkInRequiresBuffet(false);
+            showToast(t('notifications.visitUpdated'), 'success');
+            refetch();
+          },
+          onError: (error) => {
+            showToast(t('errors.somethingWentWrong'), 'error');
+          },
+        }
+      );
+    } else {
+      // Approval mode: First approve the request, then update with the time details
+      approveMutation.mutate(
+        { id: requestId, payload: {} },
+        {
+          onSuccess: () => {
+            // Then update with the time details
+            updateMutation.mutate(
+              { id: requestId, data: payload },
+              {
+                onSuccess: () => {
+                  setShowWalkInApprovalModal(false);
+                  setApprovalStartTime(null);
+                  setIsWalkInEditMode(false);
+                  // Reset service states
+                  setWalkInRequiresMeetingRoom(false);
+                  setWalkInRequiresParking(false);
+                  setWalkInRequiresBuffet(false);
+                  showToast(t('notifications.walkInApproved'), 'success');
+                  setTimeout(() => {
+                    navigation.goBack();
+                  }, 1000);
+                },
+                onError: (error) => {
+                  showToast(t('errors.somethingWentWrong'), 'error');
+                },
+              }
+            );
+          },
+          onError: (error) => {
+            showToast(t('errors.somethingWentWrong'), 'error');
+          },
+        }
+      );
+    }
   };
 
   const handleEndTimeChange = (event: DateTimePickerEvent, selectedTime?: Date) => {
@@ -693,19 +759,49 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
       {!isReadOnlyRole && (request.status === REQUEST_STATUS.APPROVED || request.status === REQUEST_STATUS.VISITOR_ACCEPTED) && (
         <View style={[styles.actionBar, { backgroundColor: theme.background, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.lg }]}>
-          <LoadingButton
-            onPress={() => setShowCancelModal(true)}
-            loading={cancelMutation.isPending}
-            disabled={isProcessing}
-            variant="danger"
-            size="large"
-            icon="x"
-            iconPosition="left"
-            loadingText={t('common.loading')}
-            fullWidth
-          >
-            {t('actions.cancelRequest')}
-          </LoadingButton>
+          {request.isWalkIn && isManagerTheHost ? (
+            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', gap: Spacing.md }}>
+              <LoadingButton
+                onPress={handleEditWalkInServices}
+                loading={false}
+                disabled={isProcessing}
+                variant="primary"
+                size="large"
+                icon="settings"
+                iconPosition="left"
+                style={{ flex: 1 }}
+              >
+                {t('actions.editServices')}
+              </LoadingButton>
+              <LoadingButton
+                onPress={() => setShowCancelModal(true)}
+                loading={cancelMutation.isPending}
+                disabled={isProcessing}
+                variant="danger"
+                size="large"
+                icon="x"
+                iconPosition="left"
+                loadingText={t('common.loading')}
+                style={{ flex: 1 }}
+              >
+                {t('common.cancel')}
+              </LoadingButton>
+            </View>
+          ) : (
+            <LoadingButton
+              onPress={() => setShowCancelModal(true)}
+              loading={cancelMutation.isPending}
+              disabled={isProcessing}
+              variant="danger"
+              size="large"
+              icon="x"
+              iconPosition="left"
+              loadingText={t('common.loading')}
+              fullWidth
+            >
+              {t('actions.cancelRequest')}
+            </LoadingButton>
+          )}
         </View>
       )}
 
@@ -897,21 +993,21 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
               </Pressable>
 
               <View style={styles.modalIconWrapper}>
-                <View style={[styles.modalIconContainer, { backgroundColor: applyOpacity(theme.success, '15') }]}>
-                  <DDIcon name="check-circle" size={22} color={theme.success} />
+                <View style={[styles.modalIconContainer, { backgroundColor: applyOpacity(isWalkInEditMode ? theme.primary : theme.success, '15') }]}>
+                  <DDIcon name={isWalkInEditMode ? "settings" : "check-circle"} size={22} color={isWalkInEditMode ? theme.primary : theme.success} />
                 </View>
               </View>
 
               <Spacer height={Spacing.lg} />
 
               <ThemedText style={[Typography.subtitle, { fontSize: 18, fontWeight: '600', textAlign: 'center' }]}>
-                {t('actions.approve')} {t('visitor.walkIn')}
+                {isWalkInEditMode ? t('services.additionalServices') : `${t('actions.approve')} ${t('visitor.walkIn')}`}
               </ThemedText>
 
               <Spacer height={Spacing.sm} />
 
               <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 13, lineHeight: 20, textAlign: 'center' }]}>
-                {t('visitor.selectEndTime')}
+                {isWalkInEditMode ? t('actions.editServicesDescription') : t('visitor.selectEndTime')}
               </ThemedText>
 
               <Spacer height={Spacing.xl} />
@@ -1026,12 +1122,12 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
                   onPress={handleWalkInApprovalSubmit}
                   loading={approveMutation.isPending || updateMutation.isPending}
                   disabled={isProcessing}
-                  variant="success"
+                  variant={isWalkInEditMode ? "primary" : "success"}
                   size="medium"
-                  loadingText={t('common.approving')}
+                  loadingText={isWalkInEditMode ? t('common.saving') : t('common.approving')}
                   style={styles.modalActionButton}
                 >
-                  {t('actions.approve')}
+                  {isWalkInEditMode ? t('common.save') : t('actions.approve')}
                 </LoadingButton>
               </View>
             </ThemedView>

@@ -409,6 +409,7 @@ export const en: TranslationKeys = {
     viewDetails: 'View Details',
     editRequest: 'Edit Request',
     editServices: 'Edit Services',
+    editServicesDescription: 'Update end time and optional services for this visit',
     deleteRequest: 'Delete Request',
     sendReminder: 'Send Reminder',
     resendInvitation: 'Resend Invitation',
