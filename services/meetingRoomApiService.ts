@@ -99,7 +99,9 @@ export const meetingRoomApiService = {
     if (params.minCapacity) {
       query.set('minCapacity', String(params.minCapacity));
     }
-    return get<RoomAvailabilityResponse>(`${visits.roomsAvailability}?${query.toString()}`);
+    const url = `${visits.roomsAvailability}?${query.toString()}`;
+    console.log('[RoomAvailability API]', { params, url, currentTime: new Date().toLocaleTimeString() });
+    return get<RoomAvailabilityResponse>(url);
   },
 };
 

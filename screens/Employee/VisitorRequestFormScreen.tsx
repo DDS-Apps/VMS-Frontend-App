@@ -136,6 +136,18 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
         endTime: formatTimeForQuery(selectedEndTime),
       }
     : null;
+  
+  if (roomAvailabilityParams) {
+    console.log('[RoomAvailability Debug]', {
+      selectedDate: selectedDate?.toISOString(),
+      selectedTime: selectedTime?.toISOString(),
+      selectedEndTime: selectedEndTime?.toISOString(),
+      formattedDate: roomAvailabilityParams.date,
+      formattedStartTime: roomAvailabilityParams.startTime,
+      formattedEndTime: roomAvailabilityParams.endTime,
+      currentLocalTime: new Date().toLocaleTimeString(),
+    });
+  }
 
   const { data: roomAvailability, isLoading: isLoadingRooms } = useRoomAvailabilityQuery(roomAvailabilityParams);
   
