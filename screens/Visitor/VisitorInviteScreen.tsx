@@ -1,4 +1,4 @@
-import React, { useState, useCallback, memo } from "react";
+import React, { useState, useCallback, useRef, memo } from "react";
 import { View, StyleSheet, Pressable, Modal, TextInput, ScrollView, Image } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import QRCode from 'react-native-qrcode-svg';
@@ -199,6 +199,8 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
   
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
+  const rejectReasonRef = useRef(rejectReason);
+  rejectReasonRef.current = rejectReason;
   const [actionCompleted, setActionCompleted] = useState<'accepted' | 'rejected' | null>(null);
   const [responseQrCode, setResponseQrCode] = useState<string | null>(null);
 
@@ -225,8 +227,9 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
 
   const handleReject = useCallback(async () => {
     try {
+      const reason = rejectReasonRef.current;
       await rejectMutation.mutateAsync(
-        rejectReason ? { reason: rejectReason } : undefined
+        reason ? { reason } : undefined
       );
       setActionCompleted('rejected');
       setShowRejectModal(false);
@@ -234,7 +237,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
     } catch (err) {
       console.error('Reject failed:', err);
     }
-  }, [rejectReason, rejectMutation]);
+  }, [rejectMutation]);
 
   const handleCancelReject = useCallback(() => {
     setShowRejectModal(false);
