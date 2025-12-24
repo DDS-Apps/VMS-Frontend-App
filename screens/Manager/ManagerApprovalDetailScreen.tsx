@@ -812,8 +812,8 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
           {/* Buffet */}
           <View style={styles.serviceRow}>
-            <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(request.buffet ? theme.secondary : theme.textSecondary, '20') }]}>
-              <DDIcon name="cloche" size={18} color={request.buffet ? theme.secondary : theme.textSecondary} />
+            <View style={[styles.serviceIcon, { backgroundColor: applyOpacity((request.buffet || (request as any).buffetPending) ? theme.secondary : theme.textSecondary, '20') }]}>
+              <DDIcon name="cloche" size={18} color={(request.buffet || (request as any).buffetPending) ? theme.secondary : theme.textSecondary} />
             </View>
             <View style={[styles.serviceInfo, { flex: 1 }]}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -832,7 +832,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
                   {request.buffet.location} ({request.buffet.mealType.charAt(0).toUpperCase() + request.buffet.mealType.slice(1)})
                 </ThemedText>
-              ) : request.buffet ? (
+              ) : (request as any).buffetPending ? (
                 <ThemedText style={[Typography.caption, { color: theme.warning, marginTop: 2, fontSize: 13 }]}>
                   {t('status.pending')}
                 </ThemedText>

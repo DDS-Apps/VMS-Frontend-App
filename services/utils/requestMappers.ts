@@ -67,10 +67,11 @@ export const mapVisitDetailsToVisitorRequest = (visit: VisitDetailsDto): Visitor
       name: visit.meetingBooking?.roomName || visit.meetingRoom?.name || '',
       capacity: visit.meetingRoom?.capacity || DEFAULT_MEETING_ROOM.capacity,
       floor: visit.meetingRoom?.floor || DEFAULT_MEETING_ROOM.floor,
-      // Prioritize meetingRoom.timeSlot (already formatted in local time) over meetingBooking ISO timestamps
-      // meetingBooking times are in UTC and would need timezone conversion, so prefer the pre-formatted timeSlot
-      timeSlot: visit.meetingRoom?.timeSlot 
-        || (visit.meetingBooking ? `${visit.meetingBooking.startTime} - ${visit.meetingBooking.endTime}` : '')
+      // Prioritize meetingBooking ISO timestamps as they are properly formatted
+      // meetingRoom.timeSlot from API may contain malformed JavaScript Date strings
+      timeSlot: (visit.meetingBooking?.startTime && visit.meetingBooking?.endTime)
+        ? `${visit.meetingBooking.startTime} - ${visit.meetingBooking.endTime}`
+        : visit.meetingRoom?.timeSlot 
         || visit.visitTime 
         || '',
       status: visit.meetingBooking?.status,
