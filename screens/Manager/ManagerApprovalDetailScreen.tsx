@@ -104,7 +104,8 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
   const { 
     formatDateForApi, 
     formatTimeForApi,
-    formatTimeForDisplay
+    formatTimeForDisplay,
+    parseDateTime
   } = useServerDateTime();
 
   // Helper function for consistent service status colors
@@ -260,10 +261,10 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
     // Initialize with existing data from the visit - preserve original start time
     const now = new Date();
     
-    // Parse existing start time from visit data, fallback to now if not available
+    // Parse existing start time from visit data using proper 12-hour format parser
     let existingStartTime = now;
     if (visitData.visitDate && visitData.visitTime) {
-      const parsedStart = new Date(`${visitData.visitDate}T${visitData.visitTime}`);
+      const parsedStart = parseDateTime(visitData.visitDate, visitData.visitTime);
       if (!isNaN(parsedStart.getTime())) {
         existingStartTime = parsedStart;
       }
@@ -271,11 +272,11 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
     setApprovalStartTime(existingStartTime);
     
     // Set end time from existing visit data or default to 1 hour from start
-    if (visitData.endTime) {
-      // Parse existing end time
-      const existingEndTime = new Date(visitData.endTime);
-      if (!isNaN(existingEndTime.getTime())) {
-        setWalkInEndTime(existingEndTime);
+    if (visitData.endTime && visitData.visitDate) {
+      // Parse existing end time using the same date and the end time string
+      const parsedEndTime = parseDateTime(visitData.visitDate, visitData.endTime);
+      if (!isNaN(parsedEndTime.getTime())) {
+        setWalkInEndTime(parsedEndTime);
       } else {
         setWalkInEndTime(new Date(existingStartTime.getTime() + 60 * 60 * 1000));
       }
