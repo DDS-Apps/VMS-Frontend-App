@@ -217,6 +217,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
 
   const handleAdvanceStatus = () => {
     if (isReadOnlyRole) return;
+    if (request.status === 'in_progress' && !request.assignedStaffId) return;
     const statusFlow = ['pending', 'in_progress', 'completed'] as const;
     const currentIndex = statusFlow.indexOf(request.status as any);
     if (currentIndex >= 0 && currentIndex < statusFlow.length - 1) {
@@ -436,17 +437,19 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
 
           <View style={styles.actionsRow}>
             {getNextStatusAction() ? (
-              <LoadingButton
-                variant="success"
-                size="medium"
-                icon={getNextStatusAction()!.icon as any}
-                loading={updateStatusMutation.isPending}
-                loadingText={t('common.loading')}
-                onPress={handleAdvanceStatus}
-                style={styles.actionButtonNew}
-              >
-                {getNextStatusAction()!.label}
-              </LoadingButton>
+              request.status === 'in_progress' && !request.assignedStaffId ? null : (
+                <LoadingButton
+                  variant="success"
+                  size="medium"
+                  icon={getNextStatusAction()!.icon as any}
+                  loading={updateStatusMutation.isPending}
+                  loadingText={t('common.loading')}
+                  onPress={handleAdvanceStatus}
+                  style={styles.actionButtonNew}
+                >
+                  {getNextStatusAction()!.label}
+                </LoadingButton>
+              )
             ) : null}
           </View>
         </>
