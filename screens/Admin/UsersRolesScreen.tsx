@@ -305,7 +305,11 @@ export default function UsersRolesScreen() {
   };
 
   const handleDeleteUser = (userId: string) => {
-    if (bulkMode) return;
+    console.log('[handleDeleteUser] Triggered for user ID:', userId);
+    if (bulkMode) {
+      console.log('[handleDeleteUser] Bulk mode active, returning');
+      return;
+    }
     Alert.alert(
       t('common.delete'),
       t('common.confirm'),
@@ -315,10 +319,13 @@ export default function UsersRolesScreen() {
           text: t('common.delete'),
           style: 'destructive',
           onPress: async () => {
+            console.log('[handleDeleteUser] User confirmed delete for ID:', userId);
             try {
               await deleteMutation.mutateAsync(userId);
+              console.log('[handleDeleteUser] Delete successful for ID:', userId);
               showSuccess(t('toast.successTitle'), t('toast.userDeleted'));
             } catch (err: unknown) {
+              console.error('[handleDeleteUser] Delete failed:', err);
               const errorMessage = err instanceof Error ? err.message : t('toast.unknownError');
               showError(t('toast.errorTitle'), errorMessage);
             }
