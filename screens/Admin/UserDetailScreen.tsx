@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, Pressable, ActivityIndicator, Alert } from 'react-native';
+import { View, StyleSheet, Pressable, ActivityIndicator, Alert, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -55,28 +55,37 @@ export default function UserDetailScreen() {
     return roleLabels[roleKey] || role;
   };
 
-  const handleDelete = () => {
-    Alert.alert(
-      t('common.delete'),
-      t('common.confirm'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('common.delete'),
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteMutation.mutateAsync(userId);
-              showSuccess(t('toast.successTitle'), t('toast.userDeleted'));
-              navigation.goBack();
-            } catch (err: unknown) {
-              const errorMessage = err instanceof Error ? err.message : t('toast.unknownError');
-              showError(t('toast.errorTitle'), errorMessage);
-            }
+  const handleDelete = async () => {
+    const performDelete = async () => {
+      try {
+        await deleteMutation.mutateAsync(userId);
+        showSuccess(t('toast.successTitle'), t('toast.userDeleted'));
+        navigation.goBack();
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : t('toast.unknownError');
+        showError(t('toast.errorTitle'), errorMessage);
+      }
+    };
+
+    if (Platform.OS === 'web') {
+      const confirmed = window.confirm(`${t('common.delete')}\n\n${t('common.confirm')}`);
+      if (confirmed) {
+        await performDelete();
+      }
+    } else {
+      Alert.alert(
+        t('common.delete'),
+        t('common.confirm'),
+        [
+          { text: t('common.cancel'), style: 'cancel' },
+          {
+            text: t('common.delete'),
+            style: 'destructive',
+            onPress: performDelete,
           },
-        },
-      ]
-    );
+        ]
+      );
+    }
   };
 
   const formatDate = (dateString: string) => {
