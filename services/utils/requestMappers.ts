@@ -110,8 +110,8 @@ export const mapVisitDetailsToVisitorRequest = (visit: VisitDetailsDto): Visitor
       managerId: visit.approval?.managerId,
       managerName: visit.approval?.managerName,
       approvedAt: visit.approval?.approvedAt,
-      rejectedAt: visit.approval?.rejectedAt,
-      rejectionReason: visit.approval?.rejectionReason,
+      rejectedAt: visit.rejection?.rejectedAt || visit.approval?.rejectedAt,
+      rejectionReason: visit.rejection?.reason || visit.approval?.rejectionReason,
       managerComment: visit.approval?.managerComment,
     },
     reminders: visit.reminders ? {

@@ -1412,6 +1412,11 @@ export interface VisitDetailsReminders {
   secondReminderSent?: boolean;
 }
 
+export interface VisitDetailsRejection {
+  rejectedAt: string;
+  reason: string;
+}
+
 export interface VisitDetailsDto {
   id: string;
   employeeId: string;
@@ -1438,6 +1443,7 @@ export interface VisitDetailsDto {
   meetingBooking?: VisitDetailsMeetingBooking;
   buffet?: VisitDetailsBuffet;
   approval: VisitDetailsApproval;
+  rejection?: VisitDetailsRejection;
   reminders?: VisitDetailsReminders;
   qrCode?: string;
   isWalkIn?: boolean;

@@ -551,6 +551,27 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
         {renderStatusHeader()}
 
+        {request.status === REQUEST_STATUS.REJECTED && request.approval.rejectionReason ? (
+          <>
+            <Spacer height={Spacing.lg} />
+            <ThemedView style={[styles.card, { backgroundColor: applyOpacity(theme.error, '08') }]}>
+              <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'flex-start', gap: Spacing.sm }}>
+                <View style={{ marginTop: 2 }}>
+                  <DDIcon name="message-circle" size={18} color={theme.error} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <ThemedText style={[Typography.bodySmall, { color: theme.error, fontWeight: '600', marginBottom: 4 }]}>
+                    {t('form.reason')}
+                  </ThemedText>
+                  <ThemedText style={[Typography.body, { color: theme.text, lineHeight: 22 }]}>
+                    {request.approval.rejectionReason}
+                  </ThemedText>
+                </View>
+              </View>
+            </ThemedView>
+          </>
+        ) : null}
+
         <Spacer height={LAYOUT.sectionSpacing} />
 
         <SectionHeader title={t('visitor.visitorDetails')} theme={theme} />
