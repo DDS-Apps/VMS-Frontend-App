@@ -123,6 +123,7 @@ export const mapVisitDetailsToVisitorRequest = (visit: VisitDetailsDto): Visitor
     } : {},
     createdAt: visit.createdAt,
     updatedAt: visit.updatedAt,
+    timezone: visit.timezone,
     isWalkIn: visit.isWalkIn ?? false,
     notes: visit.notes,
     acceptedAt: (visit as any).acceptedAt,

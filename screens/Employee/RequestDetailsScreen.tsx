@@ -275,9 +275,9 @@ export default function RequestDetailsScreen({
     );
   }
 
-  const formatDateTimeLocal = (isoString: string) => {
+  const formatDateTimeLocal = (isoString: string, timezone?: string) => {
     const date = new Date(isoString);
-    return fmtDateTime(date);
+    return fmtDateTime(date, timezone);
   };
 
   const handleCancelRequest = () => {

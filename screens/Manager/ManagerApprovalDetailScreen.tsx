@@ -207,8 +207,8 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
     );
   }
 
-  const formatDateTime = (isoString: string) => {
-    return fmtDateTime(new Date(isoString));
+  const formatDateTime = (isoString: string, timezone?: string) => {
+    return fmtDateTime(new Date(isoString), timezone);
   };
 
   const showToast = (message: string, type: 'success' | 'error') => {
@@ -712,7 +712,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
               {t('form.requestDateTime')}
             </ThemedText>
             <ThemedText style={[styles.detailValue]}>
-              {formatDateTime(request.createdAt)}
+              {formatDateTime(request.createdAt, request.timezone)}
             </ThemedText>
           </View>
 

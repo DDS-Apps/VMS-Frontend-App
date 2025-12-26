@@ -34,9 +34,9 @@ export function useFormatters() {
     formatTimeFromString: (timeString: string) => baseFmtTimeFromString(timeString, localeCode),
     formatTimeRange: (timeRange: string) => baseFmtTimeRange(timeRange, localeCode),
     formatVisitTimeRange: (visitTime: string, endTime?: string) => baseFmtVisitTimeRange(visitTime, endTime, localeCode),
-    formatDateTime: (date: Date | string) => {
+    formatDateTime: (date: Date | string, timezone?: string) => {
       const d = typeof date === 'string' ? new Date(date) : date;
-      return baseFmtDateTime(d, localeCode);
+      return baseFmtDateTime(d, localeCode, timezone);
     },
     formatNumber: (num: number) => baseFmtNumber(num, localeCode),
     formatCurrency: (amount: number, currency?: string) => baseFmtCurrency(amount, currency, localeCode),

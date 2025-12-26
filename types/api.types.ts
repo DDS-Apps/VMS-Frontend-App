@@ -1450,6 +1450,7 @@ export interface VisitDetailsDto {
   notes?: string;
   createdAt: string;
   updatedAt: string;
+  timezone?: string;
 }
 
 export interface UpdateVisitPayload {

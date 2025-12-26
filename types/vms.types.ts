@@ -117,6 +117,7 @@ export interface VisitorRequest {
   };
   createdAt: string;
   updatedAt: string;
+  timezone?: string;
   acceptedAt?: string;
   checkedInAt?: string;
   completedAt?: string;
