@@ -7,8 +7,13 @@ const RAW_API_BASE_URL =
 // Normalize: remove trailing /api or /api/ to avoid duplicate paths
 const API_BASE_URL = RAW_API_BASE_URL.replace(/\/api\/?$/, '');
 
+const MICROSOFT_AUTH_BASE_URL =
+  Constants.expoConfig?.extra?.microsoftAuthUrl ||
+  process.env.EXPO_PUBLIC_MICROSOFT_AUTH_URL || '';
+
 export const apiConfig = {
   baseUrl: API_BASE_URL,
+  microsoftAuthUrl: MICROSOFT_AUTH_BASE_URL,
   timeout: 30000,
   endpoints: {
     health: "/api/health",

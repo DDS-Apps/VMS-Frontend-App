@@ -74,7 +74,8 @@ export function useAzureAuth(): UseAzureAuthReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [errorType, setErrorType] = useState<AzureErrorType>(null);
   
-  const isConfigured = Boolean(apiConfig.baseUrl);
+  const microsoftAuthBaseUrl = apiConfig.microsoftAuthUrl;
+  const isConfigured = Boolean(microsoftAuthBaseUrl);
 
   const redirectUri = AuthSession.makeRedirectUri({
     scheme: 'dallahvms',
@@ -82,7 +83,7 @@ export function useAzureAuth(): UseAzureAuthReturn {
   });
 
   const promptAsync = useCallback(async (): Promise<MicrosoftAuthResult | null> => {
-    if (!apiConfig.baseUrl) {
+    if (!microsoftAuthBaseUrl) {
       setErrorType('not_configured');
       return { accessToken: '', errorType: 'not_configured' };
     }
@@ -91,7 +92,7 @@ export function useAzureAuth(): UseAzureAuthReturn {
     setErrorType(null);
 
     try {
-      const microsoftLoginUrl = `${apiConfig.baseUrl}${apiConfig.endpoints.auth.microsoftLogin}?redirect_uri=${encodeURIComponent(redirectUri)}`;
+      const microsoftLoginUrl = `${microsoftAuthBaseUrl}${apiConfig.endpoints.auth.microsoftLogin}?redirect_uri=${encodeURIComponent(redirectUri)}`;
       
       console.log('[AzureAuth] Starting Microsoft login flow');
       console.log('[AzureAuth] Redirect URI:', redirectUri);
@@ -155,7 +156,7 @@ export function useAzureAuth(): UseAzureAuthReturn {
       setIsLoading(false);
       return { accessToken: '', errorType: 'auth_failed' };
     }
-  }, [redirectUri]);
+  }, [redirectUri, microsoftAuthBaseUrl]);
 
   const clearError = useCallback(() => {
     setErrorType(null);
