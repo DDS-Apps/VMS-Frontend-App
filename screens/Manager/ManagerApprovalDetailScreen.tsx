@@ -850,14 +850,14 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
       {!isReadOnlyRole && request.status === REQUEST_STATUS.PENDING_APPROVAL && (
         <View style={[styles.actionBar, { backgroundColor: theme.background, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.lg }]}>
           {isVisitExpired ? (
-            <View style={{ alignItems: 'center', paddingVertical: Spacing.md }}>
-              <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.sm, marginBottom: Spacing.sm }}>
+            <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: Spacing.lg, paddingHorizontal: Spacing.xl }}>
+              <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, marginBottom: Spacing.sm }}>
                 <DDIcon name="alert-circle" size={20} color={theme.warning} />
-                <ThemedText style={[Typography.body, { color: theme.warning, fontWeight: '600' }]}>
+                <ThemedText style={[Typography.body, { color: theme.warning, fontWeight: '600', textAlign: 'center' }]}>
                   {t('status.visitExpired')}
                 </ThemedText>
               </View>
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: 'center' }]}>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: 'center', lineHeight: 18 }]}>
                 {t('errors.visitDatePassed')}
               </ThemedText>
             </View>
