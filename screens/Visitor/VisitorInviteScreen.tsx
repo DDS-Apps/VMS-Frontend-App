@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, memo } from "react";
+import React, { useState, useCallback, useRef, memo, useEffect } from "react";
 import { View, StyleSheet, Pressable, Modal, TextInput, ScrollView, Image } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import QRCode from 'react-native-qrcode-svg';
@@ -30,13 +30,11 @@ const PageColors = {
   buttonPrimary: BrandColors.brandBlue,
 };
 
-// Reject Modal Component - extracted to prevent re-renders during typing
+// Reject Modal Component - manages its own local state to prevent cursor issues
 interface RejectModalProps {
   visible: boolean;
-  reason: string;
-  onReasonChange: (text: string) => void;
   onCancel: () => void;
-  onConfirm: () => void;
+  onConfirm: (reason: string) => void;
   isLoading: boolean;
   translations: {
     title: string;
@@ -49,19 +47,34 @@ interface RejectModalProps {
 
 const RejectModal = memo(function RejectModal({
   visible,
-  reason,
-  onReasonChange,
   onCancel,
   onConfirm,
   isLoading,
   translations,
 }: RejectModalProps) {
+  const [localReason, setLocalReason] = useState('');
+
+  useEffect(() => {
+    if (!visible) {
+      setLocalReason('');
+    }
+  }, [visible]);
+
+  const handleConfirm = useCallback(() => {
+    onConfirm(localReason);
+  }, [onConfirm, localReason]);
+
+  const handleCancel = useCallback(() => {
+    setLocalReason('');
+    onCancel();
+  }, [onCancel]);
+
   return (
     <Modal
       visible={visible}
       transparent
       animationType="fade"
-      onRequestClose={onCancel}
+      onRequestClose={handleCancel}
     >
       <View style={modalStyles.overlay}>
         <View style={modalStyles.content}>
@@ -75,8 +88,8 @@ const RejectModal = memo(function RejectModal({
             style={modalStyles.input}
             placeholder={translations.placeholder}
             placeholderTextColor={PageColors.textMuted}
-            value={reason}
-            onChangeText={onReasonChange}
+            value={localReason}
+            onChangeText={setLocalReason}
             multiline
             numberOfLines={3}
             textAlignVertical="top"
@@ -84,13 +97,13 @@ const RejectModal = memo(function RejectModal({
           <View style={modalStyles.buttons}>
             <Pressable
               style={[modalStyles.button, modalStyles.cancelButton]}
-              onPress={onCancel}
+              onPress={handleCancel}
             >
               <ThemedText style={modalStyles.cancelText}>{translations.cancel}</ThemedText>
             </Pressable>
             <Pressable
               style={[modalStyles.button, modalStyles.confirmButton]}
-              onPress={onConfirm}
+              onPress={handleConfirm}
               disabled={isLoading}
             >
               {isLoading ? (
@@ -198,9 +211,6 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
   const token = route?.params?.token || route?.params?.visitId;
   
   const [showRejectModal, setShowRejectModal] = useState(false);
-  const [rejectReason, setRejectReason] = useState('');
-  const rejectReasonRef = useRef(rejectReason);
-  rejectReasonRef.current = rejectReason;
   const [actionCompleted, setActionCompleted] = useState<'accepted' | 'rejected' | null>(null);
   const [responseQrCode, setResponseQrCode] = useState<string | null>(null);
 
@@ -225,15 +235,13 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
     }
   };
 
-  const handleReject = useCallback(async () => {
+  const handleReject = useCallback(async (reason: string) => {
     try {
-      const reason = rejectReasonRef.current;
       await rejectMutation.mutateAsync(
         reason ? { reason } : undefined
       );
       setActionCompleted('rejected');
       setShowRejectModal(false);
-      setRejectReason('');
     } catch (err) {
       console.error('Reject failed:', err);
     }
@@ -241,7 +249,6 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
 
   const handleCancelReject = useCallback(() => {
     setShowRejectModal(false);
-    setRejectReason('');
   }, []);
 
   const rejectModalTranslations = React.useMemo(() => ({
@@ -883,8 +890,6 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
       {/* Reject Modal */}
       <RejectModal
         visible={showRejectModal}
-        reason={rejectReason}
-        onReasonChange={setRejectReason}
         onCancel={handleCancelReject}
         onConfirm={handleReject}
         isLoading={rejectMutation.isPending}
