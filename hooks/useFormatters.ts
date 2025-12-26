@@ -5,6 +5,7 @@ import {
   formatTime as baseFmtTime,
   formatTimeFromString as baseFmtTimeFromString,
   formatTimeRange as baseFmtTimeRange,
+  formatVisitTimeRange as baseFmtVisitTimeRange,
   formatDateTime as baseFmtDateTime,
   formatNumber as baseFmtNumber,
   formatCurrency as baseFmtCurrency,
@@ -32,7 +33,11 @@ export function useFormatters() {
     formatTime: (date: Date) => baseFmtTime(date, localeCode),
     formatTimeFromString: (timeString: string) => baseFmtTimeFromString(timeString, localeCode),
     formatTimeRange: (timeRange: string) => baseFmtTimeRange(timeRange, localeCode),
-    formatDateTime: (date: Date) => baseFmtDateTime(date, localeCode),
+    formatVisitTimeRange: (visitTime: string, endTime?: string) => baseFmtVisitTimeRange(visitTime, endTime, localeCode),
+    formatDateTime: (date: Date | string) => {
+      const d = typeof date === 'string' ? new Date(date) : date;
+      return baseFmtDateTime(d, localeCode);
+    },
     formatNumber: (num: number) => baseFmtNumber(num, localeCode),
     formatCurrency: (amount: number, currency?: string) => baseFmtCurrency(amount, currency, localeCode),
     formatLocalNumber: (num: number) => formatNumberWithDigits(num, isRTL),

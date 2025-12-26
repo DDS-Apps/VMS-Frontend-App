@@ -127,6 +127,9 @@ export const formatTimeFromString = (timeString: string, locale: LocaleCode = 'e
 };
 
 export const formatDateTime = (date: Date, locale: LocaleCode = 'en-US', timezone?: string): string => {
+  if (!date || isNaN(date.getTime())) {
+    return '';
+  }
   return `${formatDateShortMonth(date, locale, timezone)} \u2022 ${formatTime(date, locale, timezone)}`;
 };
 
@@ -217,26 +220,57 @@ export const formatDateShortMonth = (date: Date, locale: LocaleCode = 'en-US', t
   }
 };
 
-const extractTimeFromIso = (isoString: string): string => {
+const extractTimeFromIso = (isoString: string, locale: LocaleCode = 'en-US'): string => {
   const match = isoString.match(/T(\d{2}):(\d{2})/);
   if (match) {
     const hours = parseInt(match[1], 10);
     const minutes = parseInt(match[2], 10);
-    const period = hours >= 12 ? 'PM' : 'AM';
-    const displayHours = hours % 12 || 12;
-    return `${displayHours}:${String(minutes).padStart(2, '0')} ${period}`;
+    // Route through formatTime for locale awareness
+    const tempDate = new Date();
+    tempDate.setHours(hours, minutes, 0, 0);
+    return formatTime(tempDate, locale);
   }
   return isoString;
+};
+
+// Extract time from ugly Date.toString() format like "Wed Dec 24 2025 14:07:00 GMT+0000 (Coordinated Universal Time)"
+const extractTimeFromDateString = (dateStr: string, locale: LocaleCode = 'en-US'): string | null => {
+  // Match pattern like "Wed Dec 24 2025 14:07:00 GMT" or similar
+  const match = dateStr.match(/\w+\s+\w+\s+\d+\s+\d+\s+(\d{2}):(\d{2}):\d{2}/);
+  if (match) {
+    const hours = parseInt(match[1], 10);
+    const minutes = parseInt(match[2], 10);
+    // Route through formatTime for locale awareness
+    const tempDate = new Date();
+    tempDate.setHours(hours, minutes, 0, 0);
+    return formatTime(tempDate, locale);
+  }
+  return null;
 };
 
 export const formatTimeRange = (timeRange: string, locale: LocaleCode = 'en-US', timezone?: string): string => {
   if (!timeRange) return '';
   
+  // Check for ugly Date.toString() range format like "Wed Dec 24 2025 14:07:00 GMT+0000 ... - Wed Dec 24 2025 15:07:00 GMT+0000 ..."
+  if (timeRange.includes('GMT') && timeRange.match(/\w{3}\s+\w{3}\s+\d+\s+\d+/)) {
+    const parts = timeRange.split(/\s*[-–]\s*/);
+    if (parts.length === 2) {
+      const startTime = extractTimeFromDateString(parts[0].trim(), locale);
+      const endTime = extractTimeFromDateString(parts[1].trim(), locale);
+      if (startTime && endTime) {
+        return `${startTime} - ${endTime}`;
+      }
+    }
+    // Single ugly date string
+    const singleTime = extractTimeFromDateString(timeRange, locale);
+    if (singleTime) return singleTime;
+  }
+  
   // Check if this is an ISO timestamp range (e.g., "2024-01-01T12:00:00.000Z - 2024-01-01T13:00:00.000Z")
   const isoRangeMatch = timeRange.match(/^(.+?T[\d:]+(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?)\s*[-–]\s*(.+?T[\d:]+(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?)$/);
   if (isoRangeMatch) {
-    const startFormatted = extractTimeFromIso(isoRangeMatch[1].trim());
-    const endFormatted = extractTimeFromIso(isoRangeMatch[2].trim());
+    const startFormatted = extractTimeFromIso(isoRangeMatch[1].trim(), locale);
+    const endFormatted = extractTimeFromIso(isoRangeMatch[2].trim(), locale);
     return `${startFormatted} - ${endFormatted}`;
   }
   
@@ -256,6 +290,19 @@ export const formatTimeRange = (timeRange: string, locale: LocaleCode = 'en-US',
   const endTime = formatTimeFromString(parts[1].trim(), locale, timezone);
   
   return `${startTime} - ${endTime}`;
+};
+
+export const formatVisitTimeRange = (
+  visitTime: string,
+  endTime?: string,
+  locale: LocaleCode = 'en-US'
+): string => {
+  const formattedStart = formatTimeFromString(visitTime, locale);
+  if (endTime) {
+    const formattedEnd = formatTimeFromString(endTime, locale);
+    return `${formattedStart} - ${formattedEnd}`;
+  }
+  return formattedStart;
 };
 
 export const parseTimeString = (timeStr: string, dateStr?: string): Date => {

@@ -95,7 +95,7 @@ const SectionHeader = ({ title, theme }: { title: string; theme: Theme }) => (
 export default function ManagerApprovalDetailScreen({ navigation, route }: ManagerApprovalDetailScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { formatDateTime: fmtDateTime, formatDateShort, parseISODuration, formatTimeFromString, formatTimeRange } = useFormatters();
+  const { formatDateTime: fmtDateTime, formatDateShort, parseISODuration, formatTimeFromString, formatTimeRange, formatVisitTimeRange } = useFormatters();
   const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   const { requestId } = route.params;
@@ -648,7 +648,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
               {t('visitor.visitDate')} & {t('visitor.visitTime')}
             </ThemedText>
             <ThemedText style={[styles.detailValue]}>
-              {formatDateShort(request.visitDate)} • {formatTimeFromString(request.visitTime)}
+              {formatDateShort(request.visitDate)} • {formatVisitTimeRange(request.visitTime, request.endTime)}
             </ThemedText>
           </View>
 
@@ -774,11 +774,9 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
                   <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
                     {request.meetingRoom.name} - {request.meetingRoom.floor}
                   </ThemedText>
-                  {request.meetingRoom.timeSlot ? (
-                    <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12 }]}>
-                      {formatDateShort(request.visitDate)} • {formatTimeRange(request.meetingRoom.timeSlot)}
-                    </ThemedText>
-                  ) : null}
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12 }]}>
+                    {formatDateShort(request.visitDate)} • {formatVisitTimeRange(request.visitTime, request.endTime)}
+                  </ThemedText>
                 </>
               ) : (request as any).meetingRoomPending ? (
                 <ThemedText style={[Typography.caption, { color: theme.warning, marginTop: 2, fontSize: 13 }]}>

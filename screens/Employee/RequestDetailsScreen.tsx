@@ -89,6 +89,7 @@ export default function RequestDetailsScreen({
     formatTime,
     formatDateTime: fmtDateTime,
     formatTimeRange,
+    formatVisitTimeRange,
     toLocalNumerals,
     parseISODuration,
     parseTimeString,
@@ -1083,8 +1084,7 @@ export default function RequestDetailsScreen({
               { fontWeight: "600", color: theme.text, flex: 1, fontSize: 14 },
             ]}
           >
-            {formatDateShort(request.visitDate)} {t("time.at")}{" "}
-            {formatTimeFromString(request.visitTime)}
+            {formatDateShort(request.visitDate)} • {formatVisitTimeRange(request.visitTime, request.endTime)}
           </ThemedText>
         </View>
 
@@ -1215,7 +1215,7 @@ export default function RequestDetailsScreen({
                     { color: theme.textSecondary, fontSize: 12 },
                   ]}
                 >
-                  {formatDateShort(request.visitDate)} • {formatTimeRange(request.meetingRoom.timeSlot)}
+                  {formatDateShort(request.visitDate)} • {formatVisitTimeRange(request.visitTime, request.endTime)}
                 </ThemedText>
               </>
             ) : (request as any).meetingRoomPending ? (
