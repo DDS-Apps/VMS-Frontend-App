@@ -49,7 +49,6 @@ export const apiConfig = {
       base: "/api/v1/users",
       me: "/api/v1/users/me",
       mePhoto: "/api/v1/users/me/photo",
-      managers: "/api/v1/users/managers",
       onVacation: "/api/v1/users/on-vacation",
       byId: (id: string) => `/api/v1/users/${id}`,
       byRole: (role: string) => `/api/v1/users/by-role/${role}`,

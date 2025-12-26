@@ -21,7 +21,6 @@ export const userKeys = {
   detail: (id: string) => [...userKeys.details(), id] as const,
   adminDetails: () => [...userKeys.all, 'admin-detail'] as const,
   adminDetail: (id: string) => [...userKeys.adminDetails(), id] as const,
-  managers: () => [...userKeys.all, 'managers'] as const,
   onVacation: () => [...userKeys.all, 'on-vacation'] as const,
   byRole: (role: UserRole) => [...userKeys.all, 'by-role', role] as const,
   team: (managerId: string) => [...userKeys.all, 'team', managerId] as const,
@@ -59,13 +58,6 @@ export function useUserQuery(id: string, enabled = true) {
     queryKey: userKeys.detail(id),
     queryFn: () => userApiService.getById(id),
     enabled: enabled && !!id,
-  });
-}
-
-export function useManagersQuery() {
-  return useQuery<UserDto[]>({
-    queryKey: userKeys.managers(),
-    queryFn: () => userApiService.getManagers(),
   });
 }
 

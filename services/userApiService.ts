@@ -67,10 +67,6 @@ export const userApiService = {
     return del<void>(users.byId(id));
   },
 
-  getManagers: (): Promise<UserDto[]> => {
-    return get<UserDto[]>(users.managers);
-  },
-
   getOnVacation: (): Promise<UserDto[]> => {
     return get<UserDto[]>(users.onVacation);
   },

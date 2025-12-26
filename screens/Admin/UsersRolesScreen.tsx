@@ -18,7 +18,7 @@ import {
   useCreateUserMutation, 
   useUpdateUserMutation, 
   useDeleteUserMutation,
-  useManagersQuery,
+  useUsersByRoleQuery,
 } from '@/hooks/queries/useUserQueries';
 import type { UserDto, CreateUserDto, UpdateUserDto, UserRole as ApiUserRole } from '@/types/api.types';
 import { UserRole } from '@/types/vms.types';
@@ -164,7 +164,7 @@ export default function UsersRolesScreen() {
   const updateMutation = useUpdateUserMutation();
   const deleteMutation = useDeleteUserMutation();
   
-  const { data: managers = [] } = useManagersQuery();
+  const { data: managers = [] } = useUsersByRoleQuery('manager');
 
   const users: DisplayUser[] = useMemo(() => {
     if (!usersResponse?.data) return [];
