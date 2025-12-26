@@ -42,8 +42,10 @@ export default function BuffetBoardScreen() {
     return `${year}-${month}-${day}`;
   };
 
+  const hasDateRange = dateRange.startDate && dateRange.endDate;
+
   const queryParams = {
-    date: formatDateForApi(selectedDate),
+    date: hasDateRange ? undefined : formatDateForApi(selectedDate),
     status: statusFilter !== 'all' ? statusFilter : undefined,
   };
 
@@ -57,7 +59,20 @@ export default function BuffetBoardScreen() {
 
   const updateStatusMutation = useUpdateBuffetTaskStatusMutation();
 
-  const tasks = tasksResponse?.data || [];
+  const allTasks = tasksResponse?.data || [];
+
+  const isDateInRange = useCallback((visitDateStr: string) => {
+    if (hasDateRange && dateRange.startDate && dateRange.endDate) {
+      const startDateStr = formatDateForApi(dateRange.startDate);
+      const endDateStr = formatDateForApi(dateRange.endDate);
+      return visitDateStr >= startDateStr && visitDateStr <= endDateStr;
+    }
+    return visitDateStr === formatDateForApi(selectedDate);
+  }, [hasDateRange, dateRange.startDate, dateRange.endDate, selectedDate]);
+
+  const tasks = hasDateRange 
+    ? allTasks.filter(task => isDateInRange(task.visitDate))
+    : allTasks;
 
   const FILTER_OPTIONS: { key: StatusFilter; label: string }[] = [
     { key: 'all', label: t('common.all') },
