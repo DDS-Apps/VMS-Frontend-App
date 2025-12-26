@@ -436,15 +436,17 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
                 </ThemedText>
               </Pressable>
 
-              <Pressable
-                style={[styles.completeButton, { backgroundColor: theme.success }]}
-                onPress={(e) => handleMarkComplete(item.id, e)}
-              >
-                <DDIcon name="check" size={14} color="#FFFFFF" />
-                <ThemedText style={styles.completeButtonText}>
-                  {t('actions.markAsComplete')}
-                </ThemedText>
-              </Pressable>
+              {item.assignedToId ? (
+                <Pressable
+                  style={[styles.completeButton, { backgroundColor: theme.success }]}
+                  onPress={(e) => handleMarkComplete(item.id, e)}
+                >
+                  <DDIcon name="check" size={14} color="#FFFFFF" />
+                  <ThemedText style={styles.completeButtonText}>
+                    {t('actions.markAsComplete')}
+                  </ThemedText>
+                </Pressable>
+              ) : null}
             </>
           ) : (
             <View style={[styles.completedBadge, { backgroundColor: applyOpacity(theme.success, '15') }]}>

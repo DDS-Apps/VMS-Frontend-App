@@ -404,17 +404,19 @@ const BuffetRequestCard = React.memo(({
                     {request.assignedStaff ? t('buffet.reassign') : t('actions.assign')}
                   </ThemedText>
                 </Pressable>
-                <LoadingButton
-                  variant="success"
-                  size="small"
-                  icon="check"
-                  loading={isCompleting}
-                  onPress={onComplete}
-                  fullWidth={false}
-                  style={styles.cardLoadingButton}
-                >
-                  {t('actions.markAsComplete')}
-                </LoadingButton>
+                {request.assignedStaffId ? (
+                  <LoadingButton
+                    variant="success"
+                    size="small"
+                    icon="check"
+                    loading={isCompleting}
+                    onPress={onComplete}
+                    fullWidth={false}
+                    style={styles.cardLoadingButton}
+                  >
+                    {t('actions.markAsComplete')}
+                  </LoadingButton>
+                ) : null}
               </View>
             </>
           ) : null}
@@ -564,17 +566,19 @@ const BuffetRequestTableRow = React.memo(({
                     {request.assignedStaff ? t('buffet.reassign') : t('actions.assign')}
                   </ThemedText>
                 </Pressable>
-                <LoadingButton
-                  variant="success"
-                  size="small"
-                  icon="check"
-                  loading={isCompleting}
-                  onPress={onComplete}
-                  fullWidth={false}
-                  style={styles.tableLoadingButton}
-                >
-                  {t('status.completed')}
-                </LoadingButton>
+                {request.assignedStaffId ? (
+                  <LoadingButton
+                    variant="success"
+                    size="small"
+                    icon="check"
+                    loading={isCompleting}
+                    onPress={onComplete}
+                    fullWidth={false}
+                    style={styles.tableLoadingButton}
+                  >
+                    {t('status.completed')}
+                  </LoadingButton>
+                ) : null}
               </View>
             </View>
           ) : null}
