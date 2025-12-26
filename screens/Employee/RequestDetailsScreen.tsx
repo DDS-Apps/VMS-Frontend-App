@@ -211,6 +211,77 @@ export default function RequestDetailsScreen({
     managerApproveMutation.isPending ||
     managerRejectMutation.isPending;
 
+  const timelineData: TimelineData = useMemo(() => ({
+    createdAt: request?.createdAt || '',
+    status: request?.status || '',
+    approval: {
+      requiresApproval: request?.approval?.requiresApproval ?? false,
+      autoApproved: request?.approval?.autoApproved ?? false,
+      approvedAt: request?.approval?.approvedAt,
+      rejectedAt: request?.approval?.rejectedAt,
+      rejectionReason: request?.approval?.rejectionReason,
+    },
+    hostApproval: (request as any)?.hostApproval ? {
+      required: true,
+      approvedAt: (request as any).hostApproval.approvedAt,
+      rejectedAt: (request as any).hostApproval.rejectedAt,
+    } : undefined,
+    acceptedAt: request?.acceptedAt,
+    checkedInAt: request?.checkedInAt,
+    checkedOutAt: (request as any)?.checkedOutAt,
+    completedAt: request?.completedAt,
+    cancelledAt: request?.cancelledAt,
+  }), [request]);
+
+  const handleHostApproveForTimeline = () => {
+    const approvalTime = new Date();
+    hostApproveMutation.mutate(
+      { id: requestId },
+      {
+        onSuccess: () => {
+          if (visitData) {
+            setEditPurpose(visitData.purpose || "");
+            setEditRequiresParking(visitData.parkingType !== "none");
+            setEditRequiresValet(visitData.parkingType === "valet");
+            setEditRequiresMeetingRoom(!!visitData.meetingRoom);
+            setEditRequiresBuffet(!!visitData.buffet);
+            const channels = (visitData.communicationChannels || []).map(c => c.toLowerCase());
+            setEditSendWhatsApp(channels.includes('whatsapp'));
+            setEditSendSMS(channels.includes('sms'));
+            if (visitData.isWalkIn) {
+              setApprovalStartTime(approvalTime);
+              const defaultEndTime = new Date(approvalTime.getTime() + 60 * 60 * 1000);
+              setEditEndTime(defaultEndTime);
+            }
+          }
+          setIsApprovalFlow(true);
+          setEditModalMode("services-only");
+          setShowEditModal(true);
+          refetch();
+        },
+        onError: (error: any) => {
+          Alert.alert(t("errors.somethingWentWrong"), error.message);
+        },
+      }
+    );
+  };
+
+  const timelineActionCallbacks: TimelineActionCallbacks | undefined = 
+    request?.status === 'pending_host_approval' ? {
+      onAccept: handleHostApproveForTimeline,
+      onReject: () => setShowHostRejectModal(true),
+      isAcceptLoading: hostApproveMutation.isPending,
+      isRejectLoading: hostRejectMutation.isPending,
+    } : undefined;
+
+  const timelineSteps = useTimelineSteps({
+    data: timelineData,
+    role: 'employee',
+    flowType: 'standard',
+    actions: timelineActionCallbacks,
+    showActions: request?.status === 'pending_host_approval',
+  });
+
   // Success modal animation effect
   useEffect(() => {
     if (showSuccessModal) {
@@ -694,44 +765,6 @@ export default function RequestDetailsScreen({
   };
 
   const statusConfig = getStatusStyle(theme, request.status, t);
-
-  const timelineData: TimelineData = {
-    createdAt: request.createdAt,
-    status: request.status,
-    approval: {
-      requiresApproval: request.approval.requiresApproval,
-      autoApproved: request.approval.autoApproved ?? false,
-      approvedAt: request.approval.approvedAt,
-      rejectedAt: request.approval.rejectedAt,
-      rejectionReason: request.approval.rejectionReason,
-    },
-    hostApproval: (request as any).hostApproval ? {
-      required: true,
-      approvedAt: (request as any).hostApproval.approvedAt,
-      rejectedAt: (request as any).hostApproval.rejectedAt,
-    } : undefined,
-    acceptedAt: request.acceptedAt,
-    checkedInAt: request.checkedInAt,
-    checkedOutAt: (request as any).checkedOutAt,
-    completedAt: request.completedAt,
-    cancelledAt: request.cancelledAt,
-  };
-
-  const timelineActionCallbacks: TimelineActionCallbacks | undefined = 
-    request.status === 'pending_host_approval' ? {
-      onAccept: handleHostApprove,
-      onReject: () => setShowHostRejectModal(true),
-      isAcceptLoading: hostApproveMutation.isPending,
-      isRejectLoading: hostRejectMutation.isPending,
-    } : undefined;
-
-  const timelineSteps = useTimelineSteps({
-    data: timelineData,
-    role: 'employee',
-    flowType: 'standard',
-    actions: timelineActionCallbacks,
-    showActions: request.status === 'pending_host_approval',
-  });
 
   const getServiceStatusVariant = (status?: string): 'success' | 'warning' | 'error' | 'info' | 'muted' => {
     if (!status) return 'muted';
