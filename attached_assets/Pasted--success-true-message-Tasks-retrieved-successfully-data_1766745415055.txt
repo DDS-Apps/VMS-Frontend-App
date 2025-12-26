@@ -1,0 +1,87 @@
+{
+    "success": true,
+    "message": "Tasks retrieved successfully",
+    "data": {
+        "data": [
+            {
+                "id": "25BD6257-ACE1-F011-A58B-00155D07A12B",
+                "visitorName": "moiz",
+                "company": "folio3",
+                "hostName": "Muzzy Android ",
+                "visitDate": "2025-12-26",
+                "visitTime": "12:00 PM",
+                "mealType": "snacks",
+                "guestCount": 1,
+                "location": "Main Pantry",
+                "status": "cancelled",
+                "notes": null
+            },
+            {
+                "id": "D1A32000-ACE1-F011-A58B-00155D07A12B",
+                "visitorName": "bilal",
+                "company": "ggf",
+                "hostName": "Muzzy Android ",
+                "visitDate": "2025-12-26",
+                "visitTime": "12:00 PM",
+                "mealType": "snacks",
+                "guestCount": 1,
+                "location": "Main Pantry",
+                "status": "cancelled",
+                "notes": null
+            },
+            {
+                "id": "90B2AC75-E8E0-F011-A58B-00155D07A12B",
+                "visitorName": "lady",
+                "company": "Folio333",
+                "hostName": "Employee QA 1",
+                "visitDate": "2025-12-26",
+                "visitTime": "12:00 PM",
+                "mealType": "snacks",
+                "guestCount": 1,
+                "location": "Main Pantry",
+                "status": "cancelled",
+                "notes": null
+            },
+            {
+                "id": "195B2EF0-DEE0-F011-A58B-00155D07A12B",
+                "visitorName": "Vendor",
+                "company": "Hs",
+                "hostName": "Sarah Employee",
+                "visitDate": "2025-12-26",
+                "visitTime": "12:00 PM",
+                "mealType": "snacks",
+                "guestCount": 1,
+                "location": "Main Pantry",
+                "status": "cancelled",
+                "notes": null
+            },
+            {
+                "id": "687563C0-DDE0-F011-A58B-00155D07A12B",
+                "visitorName": "Ahsan Meeting",
+                "company": "Meeting",
+                "hostName": "John Manager",
+                "visitDate": "2025-12-26",
+                "visitTime": "12:00 PM",
+                "mealType": "snacks",
+                "guestCount": 1,
+                "location": "Main Pantry",
+                "status": "cancelled",
+                "notes": null
+            },
+            {
+                "id": "8495DF26-97E0-F011-A58B-00155D07A12B",
+                "visitorName": "ahsanshafiq+1@folio3.com",
+                "company": "ahsanshafiq+1@folio3.com",
+                "hostName": "John Manager",
+                "visitDate": "2025-12-26",
+                "visitTime": "12:00 PM",
+                "mealType": "snacks",
+                "guestCount": 1,
+                "location": "Main Pantry",
+                "status": "in_progress",
+                "notes": null
+            }
+        ]
+    },
+    "timestamp": "2025-12-26T10:36:28.762Z"
+}
