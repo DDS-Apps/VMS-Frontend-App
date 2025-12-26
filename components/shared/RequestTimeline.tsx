@@ -15,7 +15,6 @@ import {
 } from "@/constants/requestConstants";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
-import { useFormatters } from "@/hooks/useFormatters";
 
 export type TimelineStepStatus = 'completed' | 'current' | 'pending' | 'error';
 
@@ -67,7 +66,6 @@ export function RequestTimeline({
 }: RequestTimelineProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { formatDateTime } = useFormatters();
 
   const getStepColor = (status: TimelineStepStatus) => {
     switch (status) {
@@ -225,16 +223,6 @@ export function RequestTimeline({
               >
                 {step.label}
               </ThemedText>
-              {step.timestamp ? (
-                <ThemedText
-                  style={[
-                    Typography.caption,
-                    { color: theme.textSecondary, marginTop: 2 },
-                  ]}
-                >
-                  {formatDateTime(new Date(step.timestamp))}
-                </ThemedText>
-              ) : null}
 
               {hasActions ? (
                 <View style={styles.actionsContainer}>
