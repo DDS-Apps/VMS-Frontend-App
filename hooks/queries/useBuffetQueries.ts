@@ -15,7 +15,9 @@ import type {
   BuffetAdminTaskDto,
   ListBuffetAdminTasksParams,
   AssignBuffetTaskDto,
+  AssignBuffetTaskResponseDto,
   UpdateBuffetAdminTaskStatusDto,
+  UpdateBuffetAdminTaskStatusResponseDto,
   BuffetAdminLocationDto,
   BuffetAdminStaffDto,
   BuffetLoadSummaryDto,
@@ -197,7 +199,7 @@ export function useHandleBuffetRequestMutation() {
 // ========== Buffet Staff Queries ==========
 
 export function useMyBuffetTasksQuery(params?: ListBuffetStaffTasksParams, enabled = true) {
-  return useQuery<{ data: BuffetStaffTaskDto[] }>({
+  return useQuery<BuffetStaffTaskDto[]>({
     queryKey: buffetKeys.myTasks(params),
     queryFn: () => buffetApiService.getMyBuffetTasks(params),
     enabled,
@@ -245,7 +247,7 @@ export function useBuffetAdminTaskQuery(id: string, enabled = true) {
 export function useAssignBuffetTaskMutation() {
   const queryClient = useQueryClient();
 
-  return useMutation<BuffetAdminTaskDto, Error, { id: string; data: AssignBuffetTaskDto }>({
+  return useMutation<AssignBuffetTaskResponseDto, Error, { id: string; data: AssignBuffetTaskDto }>({
     mutationFn: ({ id, data }) => buffetApiService.assignBuffetTask(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -260,7 +262,7 @@ export function useAssignBuffetTaskMutation() {
 export function useUpdateBuffetAdminTaskStatusMutation() {
   const queryClient = useQueryClient();
 
-  return useMutation<BuffetAdminTaskDto, Error, { id: string; data: UpdateBuffetAdminTaskStatusDto }>({
+  return useMutation<UpdateBuffetAdminTaskStatusResponseDto, Error, { id: string; data: UpdateBuffetAdminTaskStatusDto }>({
     mutationFn: ({ id, data }) => buffetApiService.updateBuffetAdminTaskStatus(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({

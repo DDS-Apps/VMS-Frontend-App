@@ -59,11 +59,7 @@ export default function BuffetBoardScreen() {
 
   const updateStatusMutation = useUpdateBuffetTaskStatusMutation();
 
-  const allTasks: BuffetStaffTaskDto[] = Array.isArray(tasksResponse?.data) 
-    ? tasksResponse.data 
-    : Array.isArray(tasksResponse) 
-      ? tasksResponse 
-      : [];
+  const allTasks: BuffetStaffTaskDto[] = tasksResponse || [];
 
   const isDateInRange = useCallback((visitDateStr: string) => {
     if (hasDateRange && dateRange.startDate && dateRange.endDate) {

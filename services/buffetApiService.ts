@@ -109,9 +109,23 @@ export const buffetApiService = {
   },
 
   // Buffet Staff endpoints
-  getMyBuffetTasks: (params?: ListBuffetStaffTasksParams): Promise<{ data: BuffetStaffTaskDto[] }> => {
+  getMyBuffetTasks: async (params?: ListBuffetStaffTasksParams): Promise<BuffetStaffTaskDto[]> => {
     const queryString = params ? buildQueryString(params as unknown as Record<string, unknown>) : '';
-    return get<{ data: BuffetStaffTaskDto[] }>(`${buffetStaff.myTasks}${queryString}`);
+    const response = await get<{ success?: boolean; message?: string; data?: { data?: BuffetStaffTaskDto[] } | BuffetStaffTaskDto[] } | BuffetStaffTaskDto[]>(`${buffetStaff.myTasks}${queryString}`);
+    
+    if (Array.isArray(response)) {
+      return response;
+    }
+    if (Array.isArray(response?.data)) {
+      if ('data' in response.data && Array.isArray((response.data as { data: BuffetStaffTaskDto[] }).data)) {
+        return (response.data as { data: BuffetStaffTaskDto[] }).data;
+      }
+      return response.data as BuffetStaffTaskDto[];
+    }
+    if (response?.data && typeof response.data === 'object' && 'data' in response.data) {
+      return (response.data as { data: BuffetStaffTaskDto[] }).data || [];
+    }
+    return [];
   },
 
   updateBuffetTaskStatus: (
