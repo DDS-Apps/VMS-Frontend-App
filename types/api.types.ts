@@ -803,7 +803,7 @@ export interface UpdateBuffetStaffTaskStatusResponseDto {
 }
 
 // Buffet Admin Task types
-export type BuffetAdminTaskStatus = 'pending' | 'in_progress' | 'completed' | 'cancelled';
+export type BuffetAdminTaskStatus = 'pending' | 'preparing' | 'ready' | 'served' | 'completed' | 'cancelled';
 
 export interface BuffetAdminTaskDto {
   id: string;

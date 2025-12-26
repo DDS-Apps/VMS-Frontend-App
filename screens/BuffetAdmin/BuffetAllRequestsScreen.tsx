@@ -176,7 +176,7 @@ const StatsCards = ({ totalRequests, inProgress, completed, theme, t }: { totalR
   </View>
 );
 
-type StatusFilter = 'all' | 'pending' | 'in_progress' | 'completed';
+type StatusFilter = 'all' | 'pending' | 'preparing' | 'ready' | 'served' | 'completed';
 
 const getFilterPillColors = (filterKey: StatusFilter, isActive: boolean, theme: Theme) => {
   if (!isActive) {
@@ -196,12 +196,26 @@ const getFilterPillColors = (filterKey: StatusFilter, isActive: boolean, theme: 
         countBg: applyOpacity(theme.primary, '25'),
         countText: theme.primary,
       };
-    case 'in_progress':
+    case 'preparing':
       return {
         bg: applyOpacity(theme.warning, '15'),
         text: theme.warning,
         countBg: applyOpacity(theme.warning, '25'),
         countText: theme.warning,
+      };
+    case 'ready':
+      return {
+        bg: applyOpacity('#10B981', '15'),
+        text: '#10B981',
+        countBg: applyOpacity('#10B981', '25'),
+        countText: '#10B981',
+      };
+    case 'served':
+      return {
+        bg: applyOpacity(theme.success, '15'),
+        text: theme.success,
+        countBg: applyOpacity(theme.success, '25'),
+        countText: theme.success,
       };
     case 'completed':
       return {
@@ -240,7 +254,9 @@ const SectionHeader = ({
   const filterOptions: { key: StatusFilter; label: string }[] = [
     { key: 'all', label: t('common.all') },
     { key: 'pending', label: t('status.pending') },
-    { key: 'in_progress', label: t('status.inProgress') },
+    { key: 'preparing', label: t('buffet.preparing') },
+    { key: 'ready', label: t('buffet.ready') },
+    { key: 'served', label: t('buffet.served') },
     { key: 'completed', label: t('status.completed') },
   ];
 
@@ -662,9 +678,20 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
     const tasks = Array.isArray(responseData) ? responseData : (Array.isArray((responseData as { data?: BuffetAdminTaskDto[] })?.data) ? (responseData as { data: BuffetAdminTaskDto[] }).data : []);
     const mapped = tasks.map(mapTaskToRequest);
     return [...mapped].sort((a, b) => {
-      if (a.status === 'completed' && b.status !== 'completed') return 1;
-      if (a.status !== 'completed' && b.status === 'completed') return -1;
-      return parseTimeSlot(a.timeSlot) - parseTimeSlot(b.timeSlot);
+      const statusOrder: Record<string, number> = { 
+        pending: 0, 
+        preparing: 1, 
+        ready: 2, 
+        served: 3, 
+        completed: 4, 
+        cancelled: 5 
+      };
+      const statusA = statusOrder[a.status] ?? 99;
+      const statusB = statusOrder[b.status] ?? 99;
+      if (statusA !== statusB) return statusA - statusB;
+      const dateA = new Date(a.visitDate + 'T' + (a.timeSlot?.replace(/\s*(AM|PM)/i, '') || '00:00')).getTime();
+      const dateB = new Date(b.visitDate + 'T' + (b.timeSlot?.replace(/\s*(AM|PM)/i, '') || '00:00')).getTime();
+      return dateB - dateA;
     });
   }, [tasksData]);
 
@@ -675,7 +702,7 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
   }, [staffData]);
 
   const handleViewDetails = (request: BuffetRequest) => {
-    navigation.navigate('BuffetRequestDetails', { request });
+    navigation.navigate('BuffetRequestDetails', { request: request as any });
   };
 
   const handleOpenAssignModal = (request: BuffetRequest, event?: GestureResponderEvent) => {
@@ -736,13 +763,15 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
     : requests.filter(r => r.status === filterStatus);
 
   const totalRequests = requests.length;
-  const inProgressCount = requests.filter(r => r.status === 'in_progress' || r.status === 'pending').length;
+  const activeCount = requests.filter(r => ['pending', 'preparing', 'ready', 'served'].includes(r.status)).length;
   const completedCount = requests.filter(r => r.status === 'completed').length;
 
   const statusCounts: Record<StatusFilter, number> = {
     all: requests.length,
     pending: requests.filter(r => r.status === 'pending').length,
-    in_progress: requests.filter(r => r.status === 'in_progress').length,
+    preparing: requests.filter(r => r.status === 'preparing').length,
+    ready: requests.filter(r => r.status === 'ready').length,
+    served: requests.filter(r => r.status === 'served').length,
     completed: requests.filter(r => r.status === 'completed').length,
   };
 
@@ -887,7 +916,7 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
               <View style={styles.paddedContent}>
                 <StatsCards 
                   totalRequests={totalRequests} 
-                  inProgress={inProgressCount} 
+                  inProgress={activeCount} 
                   completed={completedCount} 
                   theme={theme}
                   t={t}
@@ -925,7 +954,7 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
         <View style={styles.paddedContent}>
           <StatsCards 
             totalRequests={totalRequests} 
-            inProgress={inProgressCount} 
+            inProgress={activeCount} 
             completed={completedCount} 
             theme={theme}
             t={t}

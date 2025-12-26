@@ -19,7 +19,7 @@ import {
   useUpdateBuffetAdminTaskStatusMutation,
   useAssignBuffetTaskMutation,
 } from "@/hooks/queries/useBuffetQueries";
-import type { BuffetAdminTaskDto, BuffetAdminStaffDto } from "@/types/api.types";
+import type { BuffetAdminTaskDto, BuffetAdminStaffDto, BuffetAdminTaskStatus } from "@/types/api.types";
 import type { BuffetRequestDetailsScreenProps } from "@/types/buffetAdminNavigation.types";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -78,30 +78,32 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
         return mapTaskToRequest(actualTask as BuffetAdminTaskDto);
       }
     }
-    if (initialRequest && 'visitorName' in initialRequest) {
-      return mapTaskToRequest(initialRequest as BuffetAdminTaskDto);
+    if (initialRequest && 'visitorName' in initialRequest && 'visitTime' in initialRequest) {
+      return mapTaskToRequest(initialRequest as unknown as BuffetAdminTaskDto);
     }
+    const id = (initialRequest as { id?: string })?.id || '';
     return {
-      id: initialRequest?.id || '',
+      id,
       requestId: '',
       visitorName: 'Unknown',
       company: '',
       hostName: '',
       visitDate: '',
       visitTime: '',
-      mealType: 'lunch',
+      mealType: 'lunch' as const,
       guestCount: 0,
       location: '',
-      status: 'pending',
-      assignedToId: null,
-      notes: null,
+      status: 'pending' as const,
+      assignedToId: undefined,
+      assignedTo: undefined,
+      notes: undefined,
       createdAt: '',
       updatedAt: '',
       timeSlot: '',
       assignedStaff: undefined,
       assignedStaffId: undefined,
       meetingRoom: '',
-    } as BuffetRequest;
+    };
   }, [taskData, initialRequest]);
 
   const availableStaff = useMemo(() => {
@@ -147,8 +149,6 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
     switch (status) {
       case 'pending':
         return t('status.pending');
-      case 'in_progress':
-        return t('status.inProgress');
       case 'preparing':
         return t('buffet.preparing');
       case 'ready':
@@ -168,18 +168,16 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
     switch (status) {
       case 'pending':
         return theme.primary;
-      case 'in_progress':
-        return theme.warning;
       case 'preparing':
         return theme.warning;
       case 'ready':
-        return theme.info;
+        return '#10B981';
       case 'served':
         return theme.success;
       case 'completed':
         return theme.success;
       case 'cancelled':
-        return theme.error;
+        return theme.textSecondary;
       default:
         return theme.textSecondary;
     }
@@ -215,40 +213,56 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
     }
   };
 
+  const getNextStatus = (currentStatus: string): string | null => {
+    switch (currentStatus) {
+      case 'pending':
+        return 'preparing';
+      case 'preparing':
+        return 'ready';
+      case 'ready':
+        return 'served';
+      case 'served':
+        return 'completed';
+      default:
+        return null;
+    }
+  };
+
   const handleAdvanceStatus = () => {
     if (isReadOnlyRole) return;
-    if (request.status === 'in_progress' && !request.assignedStaffId) return;
-    const statusFlow = ['pending', 'in_progress', 'completed'] as const;
-    const currentIndex = statusFlow.indexOf(request.status as any);
-    if (currentIndex >= 0 && currentIndex < statusFlow.length - 1) {
-      const nextStatus = statusFlow[currentIndex + 1];
-      updateStatusMutation.mutate(
-        { id: request.id, data: { status: nextStatus } },
-        {
-          onSuccess: () => {
-            refetchTask();
-            if (nextStatus === 'completed') {
-              showSuccess(t('status.completed'), t('common.success'));
-              navigation.goBack();
-            } else {
-              showSuccess(getStatusLabel(nextStatus), t('common.success'));
-            }
-          },
-          onError: (error: any) => {
-            const errorMessage = error?.response?.data?.message || t('common.errorOccurred');
-            showError(errorMessage, t('common.error'));
-          },
-        }
-      );
-    }
+    const nextStatus = getNextStatus(request.status);
+    if (!nextStatus) return;
+    
+    updateStatusMutation.mutate(
+      { id: request.id, data: { status: nextStatus as BuffetAdminTaskStatus } },
+      {
+        onSuccess: () => {
+          refetchTask();
+          if (nextStatus === 'completed') {
+            showSuccess(t('status.completed'), t('common.success'));
+            navigation.goBack();
+          } else {
+            showSuccess(getStatusLabel(nextStatus), t('common.success'));
+          }
+        },
+        onError: (error: any) => {
+          const errorMessage = error?.response?.data?.message || t('common.errorOccurred');
+          showError(errorMessage, t('common.error'));
+        },
+      }
+    );
   };
 
   const getNextStatusAction = () => {
     switch (request.status) {
       case 'pending':
-        return { label: t('status.inProgress'), icon: 'play' };
-      case 'in_progress':
-        return { label: t('actions.markAsComplete'), icon: 'check' };
+        return { label: t('buffet.startPreparing'), icon: 'play', color: theme.warning };
+      case 'preparing':
+        return { label: t('buffet.markReady'), icon: 'check', color: '#10B981' };
+      case 'ready':
+        return { label: t('buffet.markServed'), icon: 'coffee', color: theme.success };
+      case 'served':
+        return { label: t('actions.markAsComplete'), icon: 'check-circle', color: theme.success };
       default:
         return null;
     }
@@ -437,19 +451,17 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
 
           <View style={styles.actionsRow}>
             {getNextStatusAction() ? (
-              request.status === 'in_progress' && !request.assignedStaffId ? null : (
-                <LoadingButton
-                  variant="success"
-                  size="medium"
-                  icon={getNextStatusAction()!.icon as any}
-                  loading={updateStatusMutation.isPending}
-                  loadingText={t('common.loading')}
-                  onPress={handleAdvanceStatus}
-                  style={styles.actionButtonNew}
-                >
-                  {getNextStatusAction()!.label}
-                </LoadingButton>
-              )
+              <LoadingButton
+                variant="success"
+                size="medium"
+                icon={getNextStatusAction()!.icon as any}
+                loading={updateStatusMutation.isPending}
+                loadingText={t('common.loading')}
+                onPress={handleAdvanceStatus}
+                style={styles.actionButtonNew}
+              >
+                {getNextStatusAction()!.label}
+              </LoadingButton>
             ) : null}
           </View>
         </>

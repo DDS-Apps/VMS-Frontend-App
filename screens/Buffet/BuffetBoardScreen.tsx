@@ -122,7 +122,9 @@ export default function BuffetBoardScreen() {
       if (statusOrder[a.status] !== statusOrder[b.status]) {
         return statusOrder[a.status] - statusOrder[b.status];
       }
-      return parseTimeToMinutes(a.visitTime) - parseTimeToMinutes(b.visitTime);
+      const dateA = new Date(a.visitDate + 'T' + (a.visitTime || '00:00')).getTime();
+      const dateB = new Date(b.visitDate + 'T' + (b.visitTime || '00:00')).getTime();
+      return dateB - dateA;
     });
 
   const getStatusConfig = (status: BuffetStaffTaskStatus) => {

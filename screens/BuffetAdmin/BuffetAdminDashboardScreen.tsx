@@ -163,9 +163,20 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
     const responseData = tasksResponse?.data as { data?: BuffetAdminTaskDto[] } | BuffetAdminTaskDto[] | undefined;
     const tasks = Array.isArray(responseData) ? responseData : (Array.isArray((responseData as { data?: BuffetAdminTaskDto[] })?.data) ? (responseData as { data: BuffetAdminTaskDto[] }).data : []);
     return [...tasks].sort((a, b) => {
-      if (a.status === 'completed' && b.status !== 'completed') return 1;
-      if (a.status !== 'completed' && b.status === 'completed') return -1;
-      return parseTimeSlot(a.visitTime) - parseTimeSlot(b.visitTime);
+      const statusOrder: Record<string, number> = { 
+        pending: 0, 
+        preparing: 1, 
+        ready: 2, 
+        served: 3, 
+        completed: 4, 
+        cancelled: 5 
+      };
+      const statusA = statusOrder[a.status] ?? 99;
+      const statusB = statusOrder[b.status] ?? 99;
+      if (statusA !== statusB) return statusA - statusB;
+      const dateA = new Date(a.visitDate + 'T' + (a.visitTime?.replace(/\s*(AM|PM)/i, '') || '00:00')).getTime();
+      const dateB = new Date(b.visitDate + 'T' + (b.visitTime?.replace(/\s*(AM|PM)/i, '') || '00:00')).getTime();
+      return dateB - dateA;
     });
   }, [tasksResponse]);
 
