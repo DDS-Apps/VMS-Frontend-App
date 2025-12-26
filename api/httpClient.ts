@@ -154,12 +154,19 @@ export async function put<T, D = unknown>(url: string, data?: D): Promise<T> {
 }
 
 export async function del<T>(url: string): Promise<T | undefined> {
-  const response = await httpClient.delete<T>(url);
-  // Handle HTTP 204 No Content responses explicitly
-  if (response.status === 204) {
-    return undefined as T;
+  console.log('[httpClient.del] Making DELETE request to:', url);
+  try {
+    const response = await httpClient.delete<T>(url);
+    console.log('[httpClient.del] Response status:', response.status);
+    // Handle HTTP 204 No Content responses explicitly
+    if (response.status === 204) {
+      return undefined as T;
+    }
+    return response.data;
+  } catch (error) {
+    console.error('[httpClient.del] Request failed:', error);
+    throw error;
   }
-  return response.data;
 }
 
 export default httpClient;

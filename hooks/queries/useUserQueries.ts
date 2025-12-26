@@ -121,12 +121,19 @@ export function useDeleteUserMutation() {
   const queryClient = useQueryClient();
 
   return useMutation<void, Error, string>({
-    mutationFn: (id) => userApiService.delete(id),
+    mutationFn: (id) => {
+      console.log('[useDeleteUserMutation] Deleting user with ID:', id);
+      return userApiService.delete(id);
+    },
     onSuccess: (_, id) => {
+      console.log('[useDeleteUserMutation] Successfully deleted user:', id);
       queryClient.removeQueries({ queryKey: userKeys.detail(id) });
       queryClient.removeQueries({ queryKey: userKeys.adminDetail(id) });
       queryClient.invalidateQueries({ queryKey: userKeys.lists() });
       queryClient.invalidateQueries({ queryKey: userKeys.adminLists() });
+    },
+    onError: (error, id) => {
+      console.error('[useDeleteUserMutation] Failed to delete user:', id, error);
     },
   });
 }
