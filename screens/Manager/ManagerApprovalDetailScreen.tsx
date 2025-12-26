@@ -632,10 +632,11 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
         <Spacer height={Spacing.md} />
 
         <ThemedView style={[styles.card, { backgroundColor: theme.surface }]}>
-          <View style={styles.detailRow}>
+          <View style={styles.detailRowStacked}>
             <ThemedText style={[styles.detailLabel, { color: theme.textSecondary }]}>
               {t('dashboard.requestedBy')}
             </ThemedText>
+            <Spacer height={4} />
             <ThemedText style={[styles.detailValue]}>
               {request.employeeName}{request.employeeDepartment ? ` (${request.employeeDepartment})` : ''}
             </ThemedText>
@@ -643,10 +644,11 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
           <Spacer height={Spacing.md} />
 
-          <View style={styles.detailRow}>
+          <View style={styles.detailRowStacked}>
             <ThemedText style={[styles.detailLabel, { color: theme.textSecondary }]}>
               {t('visitor.visitDate')} & {t('visitor.visitTime')}
             </ThemedText>
+            <Spacer height={4} />
             <ThemedText style={[styles.detailValue]}>
               {formatDateShort(request.visitDate)} • {formatVisitTimeRange(request.visitTime, request.endTime)}
             </ThemedText>
@@ -654,10 +656,11 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
           <Spacer height={Spacing.md} />
 
-          <View style={styles.detailRow}>
+          <View style={styles.detailRowStacked}>
             <ThemedText style={[styles.detailLabel, { color: theme.textSecondary }]}>
               {t('form.duration')}
             </ThemedText>
+            <Spacer height={4} />
             <ThemedText style={[styles.detailValue]}>
               {parseISODuration(request.duration)}
             </ThemedText>
@@ -707,10 +710,11 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
           <Spacer height={Spacing.md} />
 
-          <View style={styles.detailRow}>
+          <View style={styles.detailRowStacked}>
             <ThemedText style={[styles.detailLabel, { color: theme.textSecondary }]}>
               {t('form.requestDateTime')}
             </ThemedText>
+            <Spacer height={4} />
             <ThemedText style={[styles.detailValue]}>
               {formatDateTime(request.createdAt, request.timezone)}
             </ThemedText>
@@ -718,11 +722,11 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
           <Spacer height={Spacing.md} />
 
-          <View style={[styles.detailRow, { flexDirection: 'column', alignItems: 'flex-start' }]}>
+          <View style={styles.detailRowStacked}>
             <ThemedText style={[styles.detailLabel, { color: theme.textSecondary }]}>
               {t('form.purpose')}
             </ThemedText>
-            <Spacer height={6} />
+            <Spacer height={4} />
             <ThemedText style={[styles.detailValue, { lineHeight: 22 }]}>
               {request.purpose}
             </ThemedText>
@@ -732,11 +736,11 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
           {request.isWalkIn && request.notes ? (
             <>
               <Spacer height={Spacing.md} />
-              <View style={[styles.detailRow, { flexDirection: 'column', alignItems: 'flex-start' }]}>
+              <View style={styles.detailRowStacked}>
                 <ThemedText style={[styles.detailLabel, { color: theme.textSecondary }]}>
                   {t('form.notes')}
                 </ThemedText>
-                <Spacer height={6} />
+                <Spacer height={4} />
                 <ThemedText style={[styles.detailValue, { lineHeight: 22 }]}>
                   {request.notes}
                 </ThemedText>
@@ -1355,6 +1359,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  detailRowStacked: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
   },
   detailLabel: {
     fontSize: 13,

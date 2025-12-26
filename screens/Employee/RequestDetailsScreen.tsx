@@ -1063,25 +1063,27 @@ export default function RequestDetailsScreen({
         </View>
         <Spacer height={Spacing.xl} />
 
-        <View style={styles.detailRowNew}>
-          <DDIcon name="calendar" size={16} variant="muted" />
+        <View style={styles.detailRowStacked}>
+          <View style={styles.detailRowNew}>
+            <DDIcon name="calendar" size={16} variant="muted" />
+            <ThemedText
+              style={[
+                Typography.body,
+                {
+                  color: theme.textSecondary,
+                  marginStart: Spacing.md,
+                  fontSize: 13,
+                },
+              ]}
+            >
+              {t("time.dateAndTime")}
+            </ThemedText>
+          </View>
+          <Spacer height={4} />
           <ThemedText
             style={[
               Typography.body,
-              {
-                color: theme.textSecondary,
-                marginStart: Spacing.md,
-                fontSize: 13,
-                minWidth: 90,
-              },
-            ]}
-          >
-            {t("time.dateAndTime")}
-          </ThemedText>
-          <ThemedText
-            style={[
-              Typography.body,
-              { fontWeight: "600", color: theme.text, flex: 1, fontSize: 14 },
+              { fontWeight: "600", color: theme.text, fontSize: 14 },
             ]}
           >
             {formatDateShort(request.visitDate)} • {formatVisitTimeRange(request.visitTime, request.endTime)}
@@ -1090,25 +1092,27 @@ export default function RequestDetailsScreen({
 
         <Spacer height={Spacing.lg} />
 
-        <View style={styles.detailRowNew}>
-          <DDIcon name="clock" size={16} variant="muted" />
+        <View style={styles.detailRowStacked}>
+          <View style={styles.detailRowNew}>
+            <DDIcon name="clock" size={16} variant="muted" />
+            <ThemedText
+              style={[
+                Typography.body,
+                {
+                  color: theme.textSecondary,
+                  marginStart: Spacing.md,
+                  fontSize: 13,
+                },
+              ]}
+            >
+              {t("form.duration")}
+            </ThemedText>
+          </View>
+          <Spacer height={4} />
           <ThemedText
             style={[
               Typography.body,
-              {
-                color: theme.textSecondary,
-                marginStart: Spacing.md,
-                fontSize: 13,
-                minWidth: 90,
-              },
-            ]}
-          >
-            {t("form.duration")}
-          </ThemedText>
-          <ThemedText
-            style={[
-              Typography.body,
-              { fontWeight: "600", color: theme.text, flex: 1, fontSize: 14 },
+              { fontWeight: "600", color: theme.text, fontSize: 14 },
             ]}
           >
             {parseISODuration(request.duration)}
@@ -1117,25 +1121,27 @@ export default function RequestDetailsScreen({
 
         <Spacer height={Spacing.lg} />
 
-        <View style={styles.detailRowNew}>
-          <DDIcon name="briefcase" size={16} variant="muted" />
+        <View style={styles.detailRowStacked}>
+          <View style={styles.detailRowNew}>
+            <DDIcon name="briefcase" size={16} variant="muted" />
+            <ThemedText
+              style={[
+                Typography.body,
+                {
+                  color: theme.textSecondary,
+                  marginStart: Spacing.md,
+                  fontSize: 13,
+                },
+              ]}
+            >
+              {t("form.purpose")}
+            </ThemedText>
+          </View>
+          <Spacer height={4} />
           <ThemedText
             style={[
               Typography.body,
-              {
-                color: theme.textSecondary,
-                marginStart: Spacing.md,
-                fontSize: 13,
-                minWidth: 90,
-              },
-            ]}
-          >
-            {t("form.purpose")}
-          </ThemedText>
-          <ThemedText
-            style={[
-              Typography.body,
-              { color: theme.text, flex: 1, fontSize: 14 },
+              { color: theme.text, fontSize: 14, lineHeight: 22 },
             ]}
           >
             {request.purpose}
@@ -2715,6 +2721,10 @@ const styles = StyleSheet.create({
   detailRowNew: {
     flexDirection: "row",
     alignItems: "center",
+  },
+  detailRowStacked: {
+    flexDirection: "column",
+    alignItems: "flex-start",
   },
   serviceItem: {
     flexDirection: "row",
