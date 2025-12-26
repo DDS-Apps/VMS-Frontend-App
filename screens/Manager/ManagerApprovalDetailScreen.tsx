@@ -632,38 +632,50 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
         <Spacer height={Spacing.md} />
 
         <ThemedView style={[styles.card, { backgroundColor: theme.surface }]}>
-          <View style={styles.detailRowStacked}>
-            <ThemedText style={[styles.detailLabel, { color: theme.textSecondary }]}>
-              {t('dashboard.requestedBy')}
-            </ThemedText>
-            <Spacer height={4} />
-            <ThemedText style={[styles.detailValue]}>
-              {request.employeeName}{request.employeeDepartment ? ` (${request.employeeDepartment})` : ''}
-            </ThemedText>
+          <View style={styles.serviceRow}>
+            <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '20') }]}>
+              <DDIcon name="user" size={18} color={theme.textSecondary} />
+            </View>
+            <View style={styles.serviceInfo}>
+              <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+                {t('dashboard.requestedBy')}
+              </ThemedText>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+                {request.employeeName}{request.employeeDepartment ? ` (${request.employeeDepartment})` : ''}
+              </ThemedText>
+            </View>
           </View>
 
-          <Spacer height={Spacing.md} />
+          <Spacer height={Spacing.lg} />
 
-          <View style={styles.detailRowStacked}>
-            <ThemedText style={[styles.detailLabel, { color: theme.textSecondary }]}>
-              {t('visitor.visitDate')} & {t('visitor.visitTime')}
-            </ThemedText>
-            <Spacer height={4} />
-            <ThemedText style={[styles.detailValue]}>
-              {formatDateShort(request.visitDate)} • {formatVisitTimeRange(request.visitTime, request.endTime)}
-            </ThemedText>
+          <View style={styles.serviceRow}>
+            <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.primary, '20') }]}>
+              <DDIcon name="calendar" size={18} color={theme.primary} />
+            </View>
+            <View style={styles.serviceInfo}>
+              <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+                {t('visitor.visitDate')} & {t('visitor.visitTime')}
+              </ThemedText>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+                {formatDateShort(request.visitDate)} • {formatVisitTimeRange(request.visitTime, request.endTime)}
+              </ThemedText>
+            </View>
           </View>
 
-          <Spacer height={Spacing.md} />
+          <Spacer height={Spacing.lg} />
 
-          <View style={styles.detailRowStacked}>
-            <ThemedText style={[styles.detailLabel, { color: theme.textSecondary }]}>
-              {t('form.duration')}
-            </ThemedText>
-            <Spacer height={4} />
-            <ThemedText style={[styles.detailValue]}>
-              {parseISODuration(request.duration)}
-            </ThemedText>
+          <View style={styles.serviceRow}>
+            <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.info, '20') }]}>
+              <DDIcon name="clock" size={18} color={theme.info} />
+            </View>
+            <View style={styles.serviceInfo}>
+              <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+                {t('form.duration')}
+              </ThemedText>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+                {parseISODuration(request.duration)}
+              </ThemedText>
+            </View>
           </View>
 
           {/* End Time - Inline editable for walk-ins */}
@@ -708,30 +720,38 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
             </>
           ) : null}
 
-          <Spacer height={Spacing.md} />
+          <Spacer height={Spacing.lg} />
 
-          <View style={styles.detailRowStacked}>
-            <ThemedText style={[styles.detailLabel, { color: theme.textSecondary }]}>
-              {t('form.purpose')}
-            </ThemedText>
-            <Spacer height={4} />
-            <ThemedText style={[styles.detailValue, { lineHeight: 22 }]}>
-              {request.purpose}
-            </ThemedText>
+          <View style={styles.serviceRow}>
+            <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.secondary, '20') }]}>
+              <DDIcon name="file-text" size={18} color={theme.secondary} />
+            </View>
+            <View style={styles.serviceInfo}>
+              <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+                {t('form.purpose')}
+              </ThemedText>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, lineHeight: 20 }]}>
+                {request.purpose}
+              </ThemedText>
+            </View>
           </View>
 
           {/* Walk-in Notes */}
           {request.isWalkIn && request.notes ? (
             <>
-              <Spacer height={Spacing.md} />
-              <View style={styles.detailRowStacked}>
-                <ThemedText style={[styles.detailLabel, { color: theme.textSecondary }]}>
-                  {t('form.notes')}
-                </ThemedText>
-                <Spacer height={4} />
-                <ThemedText style={[styles.detailValue, { lineHeight: 22 }]}>
-                  {request.notes}
-                </ThemedText>
+              <Spacer height={Spacing.lg} />
+              <View style={styles.serviceRow}>
+                <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.warning, '20') }]}>
+                  <DDIcon name="edit-3" size={18} color={theme.warning} />
+                </View>
+                <View style={styles.serviceInfo}>
+                  <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+                    {t('form.notes')}
+                  </ThemedText>
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, lineHeight: 20 }]}>
+                    {request.notes}
+                  </ThemedText>
+                </View>
               </View>
             </>
           ) : null}
