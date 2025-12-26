@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { View, StyleSheet, Pressable, Modal, Alert, ScrollView, KeyboardAvoidingView, Platform, Switch, SectionList, FlatList, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, Pressable, Modal, ScrollView, KeyboardAvoidingView, Platform, Switch, SectionList, FlatList, ActivityIndicator } from 'react-native';
+import { ConfirmationModal } from '@/components/shared/ConfirmationModal';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { StyledInput } from '@/components/StyledInput';
@@ -129,6 +130,9 @@ export default function UsersRolesScreen() {
   const [bulkMode, setBulkMode] = useState(false);
   const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(new Set());
   
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<string | null>(null);
+  
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -164,7 +168,7 @@ export default function UsersRolesScreen() {
   const updateMutation = useUpdateUserMutation();
   const deleteMutation = useDeleteUserMutation();
   
-  const { data: managers = [] } = useUsersByRoleQuery('manager');
+  const { data: managers = [] } = useUsersByRoleQuery('manager' as ApiUserRole);
 
   const users: DisplayUser[] = useMemo(() => {
     if (!usersResponse?.data) return [];
@@ -215,6 +219,7 @@ export default function UsersRolesScreen() {
     setFormData({
       name: user.name,
       email: user.email,
+      password: '',
       role: user.role,
       department: user.department || '',
       phoneNumber: user.phoneNumber || '',
@@ -260,12 +265,12 @@ export default function UsersRolesScreen() {
 
   const handleSaveUser = async () => {
     if (!formData.name || !formData.email || !formData.role) {
-      Alert.alert(t('common.error'), t('form.fieldRequired'));
+      showError(t('common.error'), t('form.fieldRequired'));
       return;
     }
 
     if (formData.phoneNumber && !validatePhone(formData.phoneNumber)) {
-      Alert.alert(t('common.error'), t('errors.invalidPhone'));
+      showError(t('common.error'), t('errors.invalidPhone'));
       return;
     }
 
@@ -304,45 +309,27 @@ export default function UsersRolesScreen() {
     }
   };
 
-  const handleDeleteUser = async (userId: string) => {
-    console.log('[handleDeleteUser] Triggered for user ID:', userId);
-    if (bulkMode) {
-      console.log('[handleDeleteUser] Bulk mode active, returning');
-      return;
-    }
-    
-    const performDelete = async () => {
-      console.log('[handleDeleteUser] User confirmed delete for ID:', userId);
-      try {
-        await deleteMutation.mutateAsync(userId);
-        console.log('[handleDeleteUser] Delete successful for ID:', userId);
-        showSuccess(t('toast.successTitle'), t('toast.userDeleted'));
-      } catch (err: unknown) {
-        console.error('[handleDeleteUser] Delete failed:', err);
-        const errorMessage = err instanceof Error ? err.message : t('toast.unknownError');
-        showError(t('toast.errorTitle'), errorMessage);
-      }
-    };
+  const handleDeleteUser = (userId: string) => {
+    if (bulkMode) return;
+    setUserToDelete(userId);
+    setDeleteModalVisible(true);
+  };
 
-    if (Platform.OS === 'web') {
-      const confirmed = window.confirm(`${t('common.delete')}\n\n${t('common.confirm')}`);
-      if (confirmed) {
-        await performDelete();
-      }
-    } else {
-      Alert.alert(
-        t('common.delete'),
-        t('common.confirm'),
-        [
-          { text: t('common.cancel'), style: 'cancel' },
-          {
-            text: t('common.delete'),
-            style: 'destructive',
-            onPress: performDelete,
-          },
-        ]
-      );
-    }
+  const handleConfirmDelete = async () => {
+    if (!userToDelete) return;
+    await deleteMutation.mutateAsync(userToDelete);
+  };
+
+  const handleDeleteSuccess = () => {
+    setDeleteModalVisible(false);
+    setUserToDelete(null);
+    showSuccess(t('toast.successTitle'), t('toast.userDeleted'));
+    refetch();
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteModalVisible(false);
+    setUserToDelete(null);
   };
 
   const toggleUserSelection = (userId: string) => {
@@ -1471,6 +1458,19 @@ export default function UsersRolesScreen() {
           </View>
         </KeyboardAvoidingView>
       </Modal>
+
+      <ConfirmationModal
+        visible={deleteModalVisible}
+        title={t('common.delete')}
+        description={t('common.confirm')}
+        confirmLabel={t('common.delete')}
+        cancelLabel={t('common.cancel')}
+        tone="danger"
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+        onSuccess={handleDeleteSuccess}
+        successMessage={t('toast.userDeleted')}
+      />
     </ThemedView>
   );
 }

@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, StyleSheet, Pressable, ActivityIndicator, Alert, Platform } from 'react-native';
+import React, { useState } from 'react';
+import { View, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -8,6 +8,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import Spacer from '@/components/Spacer';
 import { ScreenScrollView } from '@/components/ScreenScrollView';
+import { ConfirmationModal } from '@/components/shared/ConfirmationModal';
 import { Spacing, BorderRadius, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -37,6 +38,8 @@ export default function UserDetailScreen() {
 
   const { data: user, isLoading, isFetching, isError, error, refetch } = useUserQuery(userId);
   const deleteMutation = useDeleteUserMutation();
+  
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
 
   const getRoleLabel = (role: string) => {
     const roleKey = role.toLowerCase() as UserRole;
@@ -55,37 +58,22 @@ export default function UserDetailScreen() {
     return roleLabels[roleKey] || role;
   };
 
-  const handleDelete = async () => {
-    const performDelete = async () => {
-      try {
-        await deleteMutation.mutateAsync(userId);
-        showSuccess(t('toast.successTitle'), t('toast.userDeleted'));
-        navigation.goBack();
-      } catch (err: unknown) {
-        const errorMessage = err instanceof Error ? err.message : t('toast.unknownError');
-        showError(t('toast.errorTitle'), errorMessage);
-      }
-    };
+  const handleDelete = () => {
+    setDeleteModalVisible(true);
+  };
 
-    if (Platform.OS === 'web') {
-      const confirmed = window.confirm(`${t('common.delete')}\n\n${t('common.confirm')}`);
-      if (confirmed) {
-        await performDelete();
-      }
-    } else {
-      Alert.alert(
-        t('common.delete'),
-        t('common.confirm'),
-        [
-          { text: t('common.cancel'), style: 'cancel' },
-          {
-            text: t('common.delete'),
-            style: 'destructive',
-            onPress: performDelete,
-          },
-        ]
-      );
-    }
+  const handleConfirmDelete = async () => {
+    await deleteMutation.mutateAsync(userId);
+  };
+
+  const handleDeleteSuccess = () => {
+    setDeleteModalVisible(false);
+    showSuccess(t('toast.successTitle'), t('toast.userDeleted'));
+    navigation.goBack();
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteModalVisible(false);
   };
 
   const formatDate = (dateString: string) => {
@@ -335,6 +323,19 @@ export default function UserDetailScreen() {
 
         <Spacer height={Spacing.xl} />
       </View>
+
+      <ConfirmationModal
+        visible={deleteModalVisible}
+        title={t('common.delete')}
+        description={t('common.confirm')}
+        confirmLabel={t('common.delete')}
+        cancelLabel={t('common.cancel')}
+        tone="danger"
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+        onSuccess={handleDeleteSuccess}
+        successMessage={t('toast.userDeleted')}
+      />
     </ScreenScrollView>
   );
 }
