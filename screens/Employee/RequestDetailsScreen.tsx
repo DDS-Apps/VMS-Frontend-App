@@ -674,7 +674,13 @@ export default function RequestDetailsScreen({
         onSuccess: () => {
           console.log("[RequestDetails] Edit successful");
           setShowEditModal(false);
-          setSuccessMessage(isApprovalFlow ? t("notifications.walkInApproved") : t("notifications.visitUpdated"));
+          let message = t("notifications.visitUpdated");
+          if (isApprovalFlow) {
+            message = request.approval.requiresApproval
+              ? t("notifications.walkInForwardedToManager")
+              : t("notifications.walkInApproved");
+          }
+          setSuccessMessage(message);
           setShowSuccessModal(true);
           setIsApprovalFlow(false);
         },

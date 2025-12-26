@@ -458,6 +458,7 @@ export const ar: TranslationKeys = {
     visitorCheckedOut: 'تم تسجيل خروج الزائر',
     reminderSent: 'تم إرسال التذكير بنجاح',
     walkInApproved: 'تمت الموافقة على طلب الزائر بنجاح.',
+    walkInForwardedToManager: 'تم قبول طلب الزائر. تم إحالته للمدير للموافقة النهائية.',
     walkInRejected: 'تم رفض طلب الزائر.',
     visitUpdated: 'تم تحديث الزيارة بنجاح',
     push: 'إشعارات الدفع',

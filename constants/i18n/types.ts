@@ -458,6 +458,7 @@ export interface TranslationKeys {
     visitorCheckedOut: string;
     reminderSent: string;
     walkInApproved: string;
+    walkInForwardedToManager: string;
     walkInRejected: string;
     visitUpdated: string;
     push: string;

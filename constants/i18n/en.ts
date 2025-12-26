@@ -458,6 +458,7 @@ export const en: TranslationKeys = {
     visitorCheckedOut: 'Visitor checked out',
     reminderSent: 'Reminder sent successfully',
     walkInApproved: 'Walk-in request approved successfully.',
+    walkInForwardedToManager: 'Walk-in request accepted. Forwarded to manager for final approval.',
     walkInRejected: 'Walk-in request has been rejected.',
     visitUpdated: 'Visit updated successfully',
     push: 'Push Notifications',
