@@ -343,46 +343,24 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
 
       <Spacer height={Spacing.lg} />
 
-      {(visitor.parking || visitor.valet) && (
+      {visitor.parking && (
         <>
           <ThemedView style={[styles.card, { backgroundColor: theme.surface }]}>
             <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginBottom: Spacing.md }]}>
               {t('services.additionalServices')}
             </ThemedText>
 
-            {visitor.parking && (
-              <>
-                <View style={styles.infoRow}>
-                  <DDIcon name="map-pin" size={18} color={theme.info} />
-                  <View style={{ flex: 1, marginStart: Spacing.md }}>
-                    <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 11 }]}>
-                      {t('services.parking')}
-                    </ThemedText>
-                    <ThemedText style={[Typography.body, { fontWeight: '500' }]}>
-                      {visitor.parking}
-                    </ThemedText>
-                  </View>
-                </View>
-              </>
-            )}
-
-            {visitor.valet && visitor.parking && (
-              <View style={[styles.divider, { backgroundColor: theme.border }]} />
-            )}
-
-            {visitor.valet && (
-              <View style={styles.infoRow}>
-                <DDIcon name="truck" size={18} variant="primary" />
-                <View style={{ flex: 1, marginStart: Spacing.md }}>
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 11 }]}>
-                    {t('services.valet')}
-                  </ThemedText>
-                  <ThemedText style={[Typography.body, { fontWeight: '500' }]}>
-                    {visitor.valet}
-                  </ThemedText>
-                </View>
+            <View style={styles.infoRow}>
+              <DDIcon name="map-pin" size={18} color={theme.info} />
+              <View style={{ flex: 1, marginStart: Spacing.md }}>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 11 }]}>
+                  {t('services.parking')}
+                </ThemedText>
+                <ThemedText style={[Typography.body, { fontWeight: '500' }]}>
+                  {visitor.parking}
+                </ThemedText>
               </View>
-            )}
+            </View>
           </ThemedView>
           <Spacer height={Spacing.lg} />
         </>

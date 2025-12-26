@@ -791,37 +791,6 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
           </View>
           <Spacer height={Spacing.lg} />
 
-          {/* Valet */}
-          <View style={styles.serviceRow}>
-            <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(request.valet ? theme.primary : theme.textSecondary, '20') }]}>
-              <DDIcon name="truck" size={18} color={request.valet ? theme.primary : theme.textSecondary} />
-            </View>
-            <View style={[styles.serviceInfo, { flex: 1 }]}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
-                  {t('services.valet')}
-                </ThemedText>
-                {request.valet?.status ? (
-                  <StatusBadge
-                    label={formatServiceStatus(request.valet.status)}
-                    variant={getServiceStatusVariant(request.valet.status)}
-                    size="sm"
-                  />
-                ) : null}
-              </View>
-              {request.valet ? (
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
-                  {request.valet.driver ? `${t('navigation.drivers')}: ${request.valet.driver.name}` : t('status.pending')}
-                </ThemedText>
-              ) : (
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, fontStyle: 'italic' }]}>
-                  {t('common.notRequested')}
-                </ThemedText>
-              )}
-            </View>
-          </View>
-          <Spacer height={Spacing.lg} />
-
           {/* Buffet */}
           <View style={styles.serviceRow}>
             <View style={[styles.serviceIcon, { backgroundColor: applyOpacity((request.buffet || (request as any).buffetPending) ? theme.secondary : theme.textSecondary, '20') }]}>
