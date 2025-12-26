@@ -124,6 +124,7 @@ export const mapVisitDetailsToVisitorRequest = (visit: VisitDetailsDto): Visitor
     createdAt: visit.createdAt,
     updatedAt: visit.updatedAt,
     isWalkIn: visit.isWalkIn ?? false,
+    notes: visit.notes,
     acceptedAt: (visit as any).acceptedAt,
     checkedInAt: (visit as any).checkedInAt,
     completedAt: (visit as any).completedAt,

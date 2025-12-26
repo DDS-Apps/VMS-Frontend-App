@@ -920,6 +920,42 @@ export default function RequestDetailsScreen({
         </>
       ) : null}
 
+      {/* Walk-in Notes */}
+      {request.isWalkIn && request.notes ? (
+        <>
+          <ThemedView
+            style={[styles.cardNew, { backgroundColor: theme.surface }]}
+          >
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <DDIcon name="file-text" size={16} color={theme.info} />
+              <ThemedText
+                style={[
+                  Typography.subtitle,
+                  {
+                    marginStart: Spacing.sm,
+                    fontSize: 14,
+                    fontWeight: "600",
+                    color: theme.text,
+                  },
+                ]}
+              >
+                {t("form.notes")}
+              </ThemedText>
+            </View>
+            <Spacer height={Spacing.sm} />
+            <ThemedText
+              style={[
+                Typography.body,
+                { color: theme.textSecondary, fontSize: 14, lineHeight: 20 },
+              ]}
+            >
+              {request.notes}
+            </ThemedText>
+          </ThemedView>
+          <Spacer height={Spacing.lg} />
+        </>
+      ) : null}
+
       <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
         <View style={{ alignItems: "center" }}>
           <View

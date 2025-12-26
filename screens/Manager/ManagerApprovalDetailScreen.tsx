@@ -706,6 +706,22 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
               {request.purpose}
             </ThemedText>
           </View>
+
+          {/* Walk-in Notes */}
+          {request.isWalkIn && request.notes ? (
+            <>
+              <Spacer height={Spacing.md} />
+              <View style={[styles.detailRow, { flexDirection: 'column', alignItems: 'flex-start' }]}>
+                <ThemedText style={[styles.detailLabel, { color: theme.textSecondary }]}>
+                  {t('form.notes')}
+                </ThemedText>
+                <Spacer height={6} />
+                <ThemedText style={[styles.detailValue, { lineHeight: 22 }]}>
+                  {request.notes}
+                </ThemedText>
+              </View>
+            </>
+          ) : null}
         </ThemedView>
 
         <Spacer height={LAYOUT.sectionSpacing} />

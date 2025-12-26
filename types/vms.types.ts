@@ -125,6 +125,7 @@ export interface VisitorRequest {
   cancelledAt?: string;
   isWalkIn?: boolean;
   needsResourceReallocation?: boolean;
+  notes?: string;
 }
 
 export interface DashboardStats {

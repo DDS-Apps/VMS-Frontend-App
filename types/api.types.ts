@@ -1441,6 +1441,7 @@ export interface VisitDetailsDto {
   reminders?: VisitDetailsReminders;
   qrCode?: string;
   isWalkIn?: boolean;
+  notes?: string;
   createdAt: string;
   updatedAt: string;
 }
