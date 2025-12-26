@@ -80,6 +80,7 @@ const Stack = createNativeStackNavigator();
 interface DashboardContainerProps {
   userRole: UserRole;
   userName: string;
+  userEmail?: string;
   userPhotoUrl?: string | null;
   asManager?: boolean;
   onLogout: () => void;
@@ -194,7 +195,7 @@ function ScreenWrapperInner({ children, userRole, userName, userPhotoUrl, onLogo
 
 const ScreenWrapper = React.memo(ScreenWrapperInner);
 
-export default function DashboardContainer({ userRole, userName, userPhotoUrl, asManager, onLogout, isSSOUser }: DashboardContainerProps) {
+export default function DashboardContainer({ userRole, userName, userEmail, userPhotoUrl, asManager, onLogout, isSSOUser }: DashboardContainerProps) {
   const effectiveRole = asManager ? 'manager' : userRole;
   
   const getInitialRouteName = () => {
@@ -240,7 +241,7 @@ export default function DashboardContainer({ userRole, userName, userPhotoUrl, a
         <Stack.Screen name="Settings">
           {() => (
             <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager} isSSOUser={isSSOUser}>
-              <SettingsScreen userRole={effectiveRole} userName={userName} onLogout={onLogout} />
+              <SettingsScreen userRole={effectiveRole} userName={userName} userEmail={userEmail} onLogout={onLogout} />
             </ScreenWrapper>
           )}
         </Stack.Screen>

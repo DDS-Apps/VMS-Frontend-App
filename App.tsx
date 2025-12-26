@@ -168,6 +168,7 @@ function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
     <DashboardContainer 
       userRole={userRole} 
       userName={userName}
+      userEmail={user.email}
       userPhotoUrl={userPhotoUrl}
       onLogout={handleLogout}
       isSSOUser={user.isSSOUser}

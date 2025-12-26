@@ -29,13 +29,15 @@ import {
 interface SettingsScreenProps {
   userRole?: UserRole;
   userName?: string;
+  userEmail?: string;
   userId?: string;
   onLogout?: () => void;
 }
 
 export default function SettingsScreen({ 
   userRole = 'employee', 
-  userName = 'User', 
+  userName = 'User',
+  userEmail,
   userId = 'user_default',
   onLogout 
 }: SettingsScreenProps) {
@@ -134,9 +136,11 @@ export default function SettingsScreen({
               {getRoleLabel(userRole)}
             </ThemedText>
             <Spacer height={2} />
-            <ThemedText style={[styles.userEmail, { color: theme.textSecondary }]}>
-              user@dallah-digital.com
-            </ThemedText>
+            {userEmail ? (
+              <ThemedText style={[styles.userEmail, { color: theme.textSecondary }]}>
+                {userEmail}
+              </ThemedText>
+            ) : null}
           </View>
         </View>
 
