@@ -712,18 +712,6 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
           <View style={styles.detailRowStacked}>
             <ThemedText style={[styles.detailLabel, { color: theme.textSecondary }]}>
-              {t('form.requestDateTime')}
-            </ThemedText>
-            <Spacer height={4} />
-            <ThemedText style={[styles.detailValue]}>
-              {formatDateTime(request.createdAt, request.timezone)}
-            </ThemedText>
-          </View>
-
-          <Spacer height={Spacing.md} />
-
-          <View style={styles.detailRowStacked}>
-            <ThemedText style={[styles.detailLabel, { color: theme.textSecondary }]}>
               {t('form.purpose')}
             </ThemedText>
             <Spacer height={4} />
