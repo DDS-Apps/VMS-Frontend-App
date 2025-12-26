@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, Pressable, ScrollView } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import React, { useState, useCallback } from 'react';
+import { View, StyleSheet, Pressable, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScreenScrollView } from '@/components/ScreenScrollView';
 import { SearchInput } from '@/components/SearchInput';
@@ -14,14 +13,10 @@ import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useFormatters } from '@/hooks/useFormatters';
 import { applyOpacity } from '@/utils/statusStyles';
-import {
-  getRequestsByStaffId,
-  updateBuffetRequestStatus,
-  getCurrentStaff,
-  BuffetRequest,
-} from '@/services/mock/buffetAdminState';
+import { useMyBuffetTasksQuery, useUpdateBuffetTaskStatusMutation } from '@/hooks/queries/useBuffetQueries';
+import type { BuffetStaffTaskDto, BuffetStaffTaskStatus } from '@/types/api.types';
 
-type StatusFilter = 'all' | 'pending' | 'in_progress' | 'completed' | 'cancelled';
+type StatusFilter = 'all' | BuffetStaffTaskStatus;
 
 interface DateRange {
   startDate: Date | null;
@@ -31,21 +26,45 @@ interface DateRange {
 export default function BuffetBoardScreen() {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { formatDate } = useFormatters();
+  const { formatDate: formatDateUtil } = useFormatters();
   const insets = useSafeAreaInsets();
-  const [tasks, setTasks] = useState<BuffetRequest[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [dateRange, setDateRange] = useState<DateRange>({ startDate: null, endDate: null });
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [updatingTaskId, setUpdatingTaskId] = useState<string | null>(null);
-  const [currentStaffInfo, setCurrentStaffInfo] = useState<{ id: string | null; name: string | null }>({ id: null, name: null });
+
+  const formatDateForApi = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const queryParams = {
+    date: formatDateForApi(selectedDate),
+    status: statusFilter !== 'all' ? statusFilter : undefined,
+  };
+
+  const { 
+    data: tasksResponse, 
+    isLoading, 
+    isError, 
+    refetch,
+    isRefetching 
+  } = useMyBuffetTasksQuery(queryParams);
+
+  const updateStatusMutation = useUpdateBuffetTaskStatusMutation();
+
+  const tasks = tasksResponse?.data || [];
 
   const FILTER_OPTIONS: { key: StatusFilter; label: string }[] = [
     { key: 'all', label: t('common.all') },
     { key: 'pending', label: t('status.pending') },
-    { key: 'in_progress', label: t('status.inProgress') },
+    { key: 'preparing', label: t('buffet.preparing') },
+    { key: 'ready', label: t('buffet.ready') },
+    { key: 'served', label: t('buffet.served') },
     { key: 'completed', label: t('status.completed') },
     { key: 'cancelled', label: t('status.cancelled') },
   ];
@@ -54,31 +73,6 @@ export default function BuffetBoardScreen() {
     paddingHorizontal: Spacing.lg,
     paddingTop: insets.top + Spacing.lg,
     paddingBottom: insets.bottom + Spacing.xl
-  };
-
-  useFocusEffect(
-    React.useCallback(() => {
-      loadTasks();
-    }, [])
-  );
-
-  const loadTasks = () => {
-    const staff = getCurrentStaff();
-    setCurrentStaffInfo(staff);
-    
-    if (staff.id) {
-      const staffTasks = getRequestsByStaffId(staff.id);
-      setTasks(staffTasks);
-    } else {
-      setTasks([]);
-    }
-  };
-
-  const formatDateForFilter = (date: Date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
   };
 
   const parseTimeToMinutes = (timeStr: string): number => {
@@ -95,38 +89,28 @@ export default function BuffetBoardScreen() {
     return hours * 60 + minutes;
   };
 
-  const isDateInRange = (visitDateStr: string) => {
-    if (dateRange.startDate && dateRange.endDate) {
-      const startDateStr = formatDateForFilter(dateRange.startDate);
-      const endDateStr = formatDateForFilter(dateRange.endDate);
-      return visitDateStr >= startDateStr && visitDateStr <= endDateStr;
-    }
-    return visitDateStr === formatDateForFilter(selectedDate);
-  };
-
-  const dateFilteredTasks = tasks.filter(task => {
-    return isDateInRange(task.visitDate);
-  });
-
-  const filteredTasks = dateFilteredTasks
+  const filteredTasks = tasks
     .filter(task =>
       task.visitorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       task.hostName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       task.location.toLowerCase().includes(searchQuery.toLowerCase())
     )
-    .filter(task => {
-      if (statusFilter === 'all') return true;
-      return task.status === statusFilter;
-    })
     .sort((a, b) => {
-      const statusOrder = { pending: 0, in_progress: 1, completed: 2, cancelled: 3 };
+      const statusOrder: Record<BuffetStaffTaskStatus, number> = { 
+        pending: 0, 
+        preparing: 1, 
+        ready: 2, 
+        served: 3, 
+        completed: 4, 
+        cancelled: 5 
+      };
       if (statusOrder[a.status] !== statusOrder[b.status]) {
         return statusOrder[a.status] - statusOrder[b.status];
       }
-      return parseTimeToMinutes(a.timeSlot) - parseTimeToMinutes(b.timeSlot);
+      return parseTimeToMinutes(a.visitTime) - parseTimeToMinutes(b.visitTime);
     });
 
-  const getStatusConfig = (status: BuffetRequest['status']) => {
+  const getStatusConfig = (status: BuffetStaffTaskStatus) => {
     switch (status) {
       case 'pending':
         return { 
@@ -135,12 +119,26 @@ export default function BuffetBoardScreen() {
           label: t('status.pending'),
           borderColor: theme.primary 
         };
-      case 'in_progress':
+      case 'preparing':
         return { 
           color: theme.warning, 
           bgColor: applyOpacity(theme.warning, '12'), 
-          label: t('status.inProgress'),
+          label: t('buffet.preparing'),
           borderColor: theme.warning 
+        };
+      case 'ready':
+        return { 
+          color: '#10B981',
+          bgColor: applyOpacity('#10B981', '12'), 
+          label: t('buffet.ready'),
+          borderColor: '#10B981'
+        };
+      case 'served':
+        return { 
+          color: theme.success, 
+          bgColor: applyOpacity(theme.success, '12'), 
+          label: t('buffet.served'),
+          borderColor: theme.success 
         };
       case 'completed':
         return { 
@@ -166,27 +164,45 @@ export default function BuffetBoardScreen() {
     }
   };
 
-  const getNextStatus = (currentStatus: BuffetRequest['status']): BuffetRequest['status'] | null => {
+  const getNextStatus = (currentStatus: BuffetStaffTaskStatus): BuffetStaffTaskStatus | null => {
     switch (currentStatus) {
       case 'pending':
-        return 'in_progress';
-      case 'in_progress':
+        return 'preparing';
+      case 'preparing':
+        return 'ready';
+      case 'ready':
+        return 'served';
+      case 'served':
         return 'completed';
       default:
         return null;
     }
   };
 
-  const getActionButtonConfig = (status: BuffetRequest['status']) => {
+  const getActionButtonConfig = (status: BuffetStaffTaskStatus) => {
     switch (status) {
       case 'pending':
         return { 
-          label: t('actions.startTask'), 
+          label: t('buffet.startPreparing'), 
           icon: 'play',
           color: theme.warning,
           bgColor: applyOpacity(theme.warning, '15')
         };
-      case 'in_progress':
+      case 'preparing':
+        return { 
+          label: t('buffet.markReady'), 
+          icon: 'check',
+          color: '#10B981',
+          bgColor: applyOpacity('#10B981', '15')
+        };
+      case 'ready':
+        return { 
+          label: t('buffet.markServed'), 
+          icon: 'coffee',
+          color: theme.success,
+          bgColor: applyOpacity(theme.success, '15')
+        };
+      case 'served':
         return { 
           label: t('actions.markAsComplete'), 
           icon: 'check-circle',
@@ -198,14 +214,24 @@ export default function BuffetBoardScreen() {
     }
   };
 
-  const handleStatusUpdate = (taskId: string, newStatus: BuffetRequest['status']) => {
+  const handleStatusUpdate = useCallback((taskId: string, newStatus: BuffetStaffTaskStatus) => {
     setUpdatingTaskId(taskId);
-    setTimeout(() => {
-      updateBuffetRequestStatus(taskId, newStatus);
-      loadTasks();
-      setUpdatingTaskId(null);
-    }, 300);
-  };
+    updateStatusMutation.mutate(
+      { 
+        taskId, 
+        data: { status: newStatus } 
+      },
+      {
+        onSuccess: () => {
+          setUpdatingTaskId(null);
+          refetch();
+        },
+        onError: () => {
+          setUpdatingTaskId(null);
+        }
+      }
+    );
+  }, [updateStatusMutation, refetch]);
 
   const formatDisplayDate = () => {
     const today = new Date();
@@ -244,11 +270,13 @@ export default function BuffetBoardScreen() {
 
   const getStatusCounts = () => {
     const counts: Record<StatusFilter, number> = {
-      all: dateFilteredTasks.length,
-      pending: dateFilteredTasks.filter(t => t.status === 'pending').length,
-      in_progress: dateFilteredTasks.filter(t => t.status === 'in_progress').length,
-      completed: dateFilteredTasks.filter(t => t.status === 'completed').length,
-      cancelled: dateFilteredTasks.filter(t => t.status === 'cancelled').length,
+      all: tasks.length,
+      pending: tasks.filter(t => t.status === 'pending').length,
+      preparing: tasks.filter(t => t.status === 'preparing').length,
+      ready: tasks.filter(t => t.status === 'ready').length,
+      served: tasks.filter(t => t.status === 'served').length,
+      completed: tasks.filter(t => t.status === 'completed').length,
+      cancelled: tasks.filter(t => t.status === 'cancelled').length,
     };
     return counts;
   };
@@ -273,13 +301,21 @@ export default function BuffetBoardScreen() {
           countBg: applyOpacity(theme.primary, '25'),
           countText: theme.primary,
         };
-      case 'in_progress':
+      case 'preparing':
         return {
           bg: applyOpacity(theme.warning, '15'),
           text: theme.warning,
           countBg: applyOpacity(theme.warning, '25'),
           countText: theme.warning,
         };
+      case 'ready':
+        return {
+          bg: applyOpacity('#10B981', '15'),
+          text: '#10B981',
+          countBg: applyOpacity('#10B981', '25'),
+          countText: '#10B981',
+        };
+      case 'served':
       case 'completed':
         return {
           bg: applyOpacity(theme.success, '15'),
@@ -316,7 +352,7 @@ export default function BuffetBoardScreen() {
     }
   };
 
-  const renderTaskCard = (task: BuffetRequest) => {
+  const renderTaskCard = (task: BuffetStaffTaskDto) => {
     const statusConfig = getStatusConfig(task.status);
     const actionConfig = getActionButtonConfig(task.status);
     const nextStatus = getNextStatus(task.status);
@@ -338,6 +374,11 @@ export default function BuffetBoardScreen() {
                 <ThemedText style={[Typography.body, { fontWeight: '600' }]}>
                   {task.visitorName}
                 </ThemedText>
+                {task.company ? (
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
+                    {task.company}
+                  </ThemedText>
+                ) : null}
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
                   {t('reception.hostName')}: {task.hostName}
                 </ThemedText>
@@ -362,14 +403,14 @@ export default function BuffetBoardScreen() {
               <View style={styles.infoRow}>
                 <DDIcon name="calendar" size={14} variant="muted" />
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6 }]}>
-                  {formatDate(task.visitDate, 'short')}
+                  {formatDateUtil(task.visitDate, 'short')}
                 </ThemedText>
                 <View style={styles.dotSeparator}>
                   <ThemedText style={{ color: theme.textSecondary }}>-</ThemedText>
                 </View>
                 <DDIcon name="clock" size={14} variant="muted" />
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 4 }]}>
-                  {task.timeSlot}
+                  {task.visitTime}
                 </ThemedText>
               </View>
 
@@ -379,6 +420,33 @@ export default function BuffetBoardScreen() {
                   {task.location}
                 </ThemedText>
               </View>
+
+              {task.mealType ? (
+                <View style={styles.infoRow}>
+                  <DDIcon name="coffee" size={14} variant="muted" />
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6 }]}>
+                    {task.mealType.charAt(0).toUpperCase() + task.mealType.slice(1)}
+                  </ThemedText>
+                </View>
+              ) : null}
+
+              {task.dietaryRequirements && task.dietaryRequirements.length > 0 ? (
+                <View style={styles.infoRow}>
+                  <DDIcon name="alert-circle" size={14} variant="muted" />
+                  <ThemedText style={[Typography.caption, { color: theme.warning, marginStart: 6 }]}>
+                    {task.dietaryRequirements.join(', ')}
+                  </ThemedText>
+                </View>
+              ) : null}
+
+              {task.notes ? (
+                <View style={styles.infoRow}>
+                  <DDIcon name="file-text" size={14} variant="muted" />
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6 }]}>
+                    {task.notes}
+                  </ThemedText>
+                </View>
+              ) : null}
             </View>
 
             {actionConfig && nextStatus ? (
@@ -393,7 +461,11 @@ export default function BuffetBoardScreen() {
                   onPress={() => handleStatusUpdate(task.id, nextStatus)}
                   disabled={isUpdating}
                 >
-                  <DDIcon name={actionConfig.icon as IconName} size={16} color={actionConfig.color} />
+                  {isUpdating ? (
+                    <ActivityIndicator size="small" color={actionConfig.color} />
+                  ) : (
+                    <DDIcon name={actionConfig.icon as IconName} size={16} color={actionConfig.color} />
+                  )}
                   <ThemedText style={[styles.actionButtonText, { color: actionConfig.color }]}>
                     {isUpdating ? t('common.loading') : actionConfig.label}
                   </ThemedText>
@@ -406,19 +478,36 @@ export default function BuffetBoardScreen() {
     );
   };
 
-  if (!currentStaffInfo.id) {
+  if (isLoading) {
+    return (
+      <View style={[styles.centerContainer, { backgroundColor: theme.background }]}>
+        <ActivityIndicator size="large" color={theme.primary} />
+        <Spacer height={Spacing.md} />
+        <ThemedText style={[Typography.body, { color: theme.textSecondary }]}>
+          {t('common.loading')}
+        </ThemedText>
+      </View>
+    );
+  }
+
+  if (isError) {
     return (
       <ScreenScrollView contentContainerStyle={scrollContentStyle}>
         <View style={styles.emptyState}>
           <DDIcon name="alert-circle" size={48} variant="muted" />
           <Spacer height={Spacing.md} />
           <ThemedText style={[Typography.subtitle, { color: theme.textSecondary, textAlign: 'center', fontWeight: '500' }]}>
-            {t('auth.login')}
+            {t('errors.generic')}
           </ThemedText>
-          <Spacer height={4} />
-          <ThemedText style={[Typography.body, { color: theme.textSecondary, textAlign: 'center', opacity: 0.7 }]}>
-            {t('errors.unauthorized')}
-          </ThemedText>
+          <Spacer height={Spacing.md} />
+          <Pressable
+            style={[styles.retryButton, { backgroundColor: theme.primary }]}
+            onPress={() => refetch()}
+          >
+            <ThemedText style={[styles.retryButtonText, { color: '#FFFFFF' }]}>
+              {t('common.retry')}
+            </ThemedText>
+          </Pressable>
         </View>
       </ScreenScrollView>
     );
@@ -426,15 +515,18 @@ export default function BuffetBoardScreen() {
 
   return (
     <>
-      <ScreenScrollView contentContainerStyle={scrollContentStyle}>
+      <ScreenScrollView 
+        contentContainerStyle={scrollContentStyle}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefetching}
+            onRefresh={refetch}
+            tintColor={theme.primary}
+          />
+        }
+      >
         <ThemedText style={[Typography.title, { fontSize: 24, fontWeight: '600' }]}>
           {t('navigation.myTasks')}
-        </ThemedText>
-        
-        <Spacer height={Spacing.xs} />
-        
-        <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
-          {t('roles.buffetStaff')}: {currentStaffInfo.name}
         </ThemedText>
         
         <Spacer height={Spacing.md} />
@@ -444,7 +536,7 @@ export default function BuffetBoardScreen() {
             {formatDisplayDate()}
           </ThemedText>
           <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
-            {dateFilteredTasks.length} {t('navigation.myTasks').toLowerCase()}
+            {tasks.length} {t('navigation.myTasks').toLowerCase()}
           </ThemedText>
         </View>
 
@@ -538,6 +630,11 @@ export default function BuffetBoardScreen() {
 }
 
 const styles = StyleSheet.create({
+  centerContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   dateDisplayRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -653,5 +750,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: Spacing.xxl * 2,
+  },
+  retryButton: {
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: BorderRadius.md,
+  },
+  retryButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    fontFamily: 'Inter_600SemiBold',
   },
 });
