@@ -175,6 +175,18 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
   const isProcessing = approveMutation.isPending || rejectMutation.isPending || cancelMutation.isPending || updateMutation.isPending;
 
+  // Check if the visit date/time has passed - disable approval actions for expired visits
+  const isVisitExpired = useMemo(() => {
+    if (!visitData?.visitDate || !visitData?.visitTime) return false;
+    try {
+      const visitDateTime = parseDateTime(visitData.visitDate, visitData.visitTime);
+      if (isNaN(visitDateTime.getTime())) return false;
+      return visitDateTime < new Date();
+    } catch {
+      return false;
+    }
+  }, [visitData?.visitDate, visitData?.visitTime, parseDateTime]);
+
   if (isLoading || isFetching) {
     return (
       <ScreenScrollView contentContainerStyle={{ paddingHorizontal: Spacing.xl }}>
@@ -220,7 +232,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
   };
 
   const handleApprove = () => {
-    if (isReadOnlyRole) return;
+    if (isReadOnlyRole || isVisitExpired) return;
     
     // For walk-in requests where manager IS the host, show the end time modal with service selection
     // If manager is NOT the host, the employee already configured end time/services, so just approve directly
@@ -457,7 +469,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
   };
 
   const handleReject = () => {
-    if (isReadOnlyRole) return;
+    if (isReadOnlyRole || isVisitExpired) return;
     const reason = rejectionReason.trim() || 'No reason provided';
     rejectMutation.mutate(
       { id: requestId, payload: { reason } },
@@ -852,14 +864,28 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
       {!isReadOnlyRole && request.status === REQUEST_STATUS.PENDING_APPROVAL && (
         <View style={[styles.actionBar, { backgroundColor: theme.background, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.lg }]}>
-          <ApprovalActionGroup
-            onApprove={handleApprove}
-            onReject={() => setShowRejectModal(true)}
-            approveLoading={approveMutation.isPending}
-            rejectLoading={false}
-            disabled={isProcessing}
-            size="large"
-          />
+          {isVisitExpired ? (
+            <View style={{ alignItems: 'center', paddingVertical: Spacing.md }}>
+              <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.sm, marginBottom: Spacing.sm }}>
+                <DDIcon name="alert-circle" size={20} color={theme.warning} />
+                <ThemedText style={[Typography.body, { color: theme.warning, fontWeight: '600' }]}>
+                  {t('status.visitExpired')}
+                </ThemedText>
+              </View>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: 'center' }]}>
+                {t('errors.visitDatePassed')}
+              </ThemedText>
+            </View>
+          ) : (
+            <ApprovalActionGroup
+              onApprove={handleApprove}
+              onReject={() => setShowRejectModal(true)}
+              approveLoading={approveMutation.isPending}
+              rejectLoading={false}
+              disabled={isProcessing}
+              size="large"
+            />
+          )}
         </View>
       )}
 

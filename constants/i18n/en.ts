@@ -399,6 +399,7 @@ export const en: TranslationKeys = {
     visitorRejected: 'Visitor Rejected',
     autoCancelled: 'Auto-Cancelled',
     selectStatus: 'Select Status',
+    visitExpired: 'Visit Expired',
   },
   actions: {
     approve: 'Approve',
@@ -724,6 +725,7 @@ export const en: TranslationKeys = {
     endTimeMustBeLater: 'End time must be later than current time',
     connectionError: 'Connection Error',
     serverUnavailable: 'Unable to connect to server. Please check your internet connection and try again.',
+    visitDatePassed: 'The visit date and time has already passed. Actions are no longer available.',
   },
   splash: {
     checkingConnection: 'Checking connection...',

@@ -399,6 +399,7 @@ export interface TranslationKeys {
     confirmed: string;
     delivered: string;
     selectStatus: string;
+    visitExpired: string;
   };
   actions: {
     approve: string;
@@ -724,6 +725,7 @@ export interface TranslationKeys {
     endTimeMustBeLater: string;
     connectionError: string;
     serverUnavailable: string;
+    visitDatePassed: string;
   };
   splash: {
     checkingConnection: string;

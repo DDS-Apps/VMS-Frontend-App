@@ -399,6 +399,7 @@ export const ar: TranslationKeys = {
     visitorRejected: 'رفض الزائر',
     autoCancelled: 'إلغاء تلقائي',
     selectStatus: 'اختر الحالة',
+    visitExpired: 'انتهت صلاحية الزيارة',
   },
   actions: {
     approve: 'موافقة',
@@ -724,6 +725,7 @@ export const ar: TranslationKeys = {
     endTimeMustBeLater: 'وقت الانتهاء يجب أن يكون بعد الوقت الحالي',
     connectionError: 'خطأ في الاتصال',
     serverUnavailable: 'تعذر الاتصال بالخادم. يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.',
+    visitDatePassed: 'تاريخ ووقت الزيارة قد مضى. لم تعد الإجراءات متاحة.',
   },
   splash: {
     checkingConnection: 'جاري التحقق من الاتصال...',
