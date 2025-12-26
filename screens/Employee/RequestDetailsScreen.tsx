@@ -1096,89 +1096,50 @@ export default function RequestDetailsScreen({
         </View>
         <Spacer height={Spacing.xl} />
 
-        <View style={styles.detailRowStacked}>
-          <View style={styles.detailRowNew}>
-            <DDIcon name="calendar" size={16} variant="muted" />
-            <ThemedText
-              style={[
-                Typography.body,
-                {
-                  color: theme.textSecondary,
-                  marginStart: Spacing.md,
-                  fontSize: 13,
-                },
-              ]}
-            >
+        <View style={styles.serviceRowNew}>
+          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+            <DDIcon name="calendar" size={18} color={theme.text} />
+          </View>
+          <View style={{ flex: 1, marginStart: Spacing.md }}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
               {t("time.dateAndTime")}
             </ThemedText>
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+              {formatDateShort(request.visitDate)} • {formatVisitTimeRange(request.visitTime, request.endTime)}
+            </ThemedText>
           </View>
-          <Spacer height={4} />
-          <ThemedText
-            style={[
-              Typography.body,
-              { fontWeight: "600", color: theme.text, fontSize: 14 },
-            ]}
-          >
-            {formatDateShort(request.visitDate)} • {formatVisitTimeRange(request.visitTime, request.endTime)}
-          </ThemedText>
         </View>
 
         <Spacer height={Spacing.lg} />
 
-        <View style={styles.detailRowStacked}>
-          <View style={styles.detailRowNew}>
-            <DDIcon name="clock" size={16} variant="muted" />
-            <ThemedText
-              style={[
-                Typography.body,
-                {
-                  color: theme.textSecondary,
-                  marginStart: Spacing.md,
-                  fontSize: 13,
-                },
-              ]}
-            >
+        <View style={styles.serviceRowNew}>
+          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+            <DDIcon name="clock" size={18} color={theme.text} />
+          </View>
+          <View style={{ flex: 1, marginStart: Spacing.md }}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
               {t("form.duration")}
             </ThemedText>
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+              {parseISODuration(request.duration)}
+            </ThemedText>
           </View>
-          <Spacer height={4} />
-          <ThemedText
-            style={[
-              Typography.body,
-              { fontWeight: "600", color: theme.text, fontSize: 14 },
-            ]}
-          >
-            {parseISODuration(request.duration)}
-          </ThemedText>
         </View>
 
         <Spacer height={Spacing.lg} />
 
-        <View style={styles.detailRowStacked}>
-          <View style={styles.detailRowNew}>
-            <DDIcon name="briefcase" size={16} variant="muted" />
-            <ThemedText
-              style={[
-                Typography.body,
-                {
-                  color: theme.textSecondary,
-                  marginStart: Spacing.md,
-                  fontSize: 13,
-                },
-              ]}
-            >
+        <View style={styles.serviceRowNew}>
+          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+            <DDIcon name="briefcase" size={18} color={theme.text} />
+          </View>
+          <View style={{ flex: 1, marginStart: Spacing.md }}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
               {t("form.purpose")}
             </ThemedText>
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, lineHeight: 20 }]}>
+              {request.purpose}
+            </ThemedText>
           </View>
-          <Spacer height={4} />
-          <ThemedText
-            style={[
-              Typography.body,
-              { color: theme.text, fontSize: 14, lineHeight: 22 },
-            ]}
-          >
-            {request.purpose}
-          </ThemedText>
         </View>
       </ThemedView>
 
@@ -2770,6 +2731,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: Spacing.md,
     borderRadius: 8,
+  },
+  serviceRowNew: {
+    flexDirection: "row",
+    alignItems: "flex-start",
   },
   serviceIcon: {
     width: 40,
