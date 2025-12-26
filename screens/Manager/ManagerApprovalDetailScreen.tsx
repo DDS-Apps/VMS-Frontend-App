@@ -633,8 +633,8 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
         <ThemedView style={[styles.card, { backgroundColor: theme.surface }]}>
           <View style={styles.serviceRow}>
-            <View style={[styles.serviceIcon, { backgroundColor: theme.softTeal }]}>
-              <DDIcon name="user" size={18} color={theme.secondary} />
+            <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+              <DDIcon name="user" size={18} color={theme.text} />
             </View>
             <View style={styles.serviceInfo}>
               <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
@@ -649,8 +649,8 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
           <Spacer height={Spacing.lg} />
 
           <View style={styles.serviceRow}>
-            <View style={[styles.serviceIcon, { backgroundColor: theme.softTeal }]}>
-              <DDIcon name="calendar" size={18} color={theme.secondary} />
+            <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+              <DDIcon name="calendar" size={18} color={theme.text} />
             </View>
             <View style={styles.serviceInfo}>
               <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
@@ -665,8 +665,8 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
           <Spacer height={Spacing.lg} />
 
           <View style={styles.serviceRow}>
-            <View style={[styles.serviceIcon, { backgroundColor: theme.softTeal }]}>
-              <DDIcon name="clock" size={18} color={theme.secondary} />
+            <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+              <DDIcon name="clock" size={18} color={theme.text} />
             </View>
             <View style={styles.serviceInfo}>
               <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
@@ -723,8 +723,8 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
           <Spacer height={Spacing.lg} />
 
           <View style={styles.serviceRow}>
-            <View style={[styles.serviceIcon, { backgroundColor: theme.softTeal }]}>
-              <DDIcon name="file-text" size={18} color={theme.secondary} />
+            <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+              <DDIcon name="file-text" size={18} color={theme.text} />
             </View>
             <View style={styles.serviceInfo}>
               <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
@@ -741,8 +741,8 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
             <>
               <Spacer height={Spacing.lg} />
               <View style={styles.serviceRow}>
-                <View style={[styles.serviceIcon, { backgroundColor: theme.softTeal }]}>
-                  <DDIcon name="edit-3" size={18} color={theme.secondary} />
+                <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                  <DDIcon name="edit-3" size={18} color={theme.text} />
                 </View>
                 <View style={styles.serviceInfo}>
                   <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
