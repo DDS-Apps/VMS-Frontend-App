@@ -168,7 +168,8 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
   const checkHealth = useCallback(async (): Promise<boolean> => {
     try {
       const response = await authService.checkHealth();
-      const status = response.data?.status || (response as any).status;
+      const status = (response as { data?: { status?: string }; status?: string }).data?.status 
+        || (response as { status?: string }).status;
       return status === 'ok' || status === 'healthy';
     } catch (error) {
       return false;
