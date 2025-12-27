@@ -368,6 +368,7 @@ function buildStandardTimeline(
   const requiresApproval = data.approval?.requiresApproval || isPendingApproval;
   const isApproved = data.approval?.approvedAt || (!isPendingApproval && isAtLaterStage);
 
+
   // Track if we've hit a terminal/current step - all subsequent steps should be pending
   let reachedTerminalOrCurrent = false;
 
@@ -381,7 +382,9 @@ function buildStandardTimeline(
   });
 
   // ============ Step 2: Manager Approval ============
-  if (requiresApproval || data.approval) {
+  // Only show approval step if approval is actually required or was processed
+  const shouldShowApprovalStep = requiresApproval || isRejected || isApproved || data.approval?.approvedAt || data.approval?.rejectedAt;
+  if (shouldShowApprovalStep) {
     if (isRejected) {
       // Rejected by manager
       steps.push({
