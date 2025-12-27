@@ -1,6 +1,5 @@
 import { useState, useCallback } from 'react';
 import * as WebBrowser from 'expo-web-browser';
-import * as AuthSession from 'expo-auth-session';
 import * as Linking from 'expo-linking';
 import { apiConfig } from '@/api/config';
 
@@ -77,11 +76,6 @@ export function useAzureAuth(): UseAzureAuthReturn {
   const microsoftAuthBaseUrl = apiConfig.microsoftAuthUrl;
   const isConfigured = Boolean(microsoftAuthBaseUrl);
 
-  const redirectUri = AuthSession.makeRedirectUri({
-    scheme: 'dallahvms',
-    path: 'auth/callback',
-  });
-
   const promptAsync = useCallback(async (): Promise<MicrosoftAuthResult | null> => {
     if (!microsoftAuthBaseUrl) {
       setErrorType('not_configured');
@@ -92,15 +86,17 @@ export function useAzureAuth(): UseAzureAuthReturn {
     setErrorType(null);
 
     try {
-      const microsoftLoginUrl = `${microsoftAuthBaseUrl}${apiConfig.endpoints.auth.microsoftLogin}?redirect_uri=${encodeURIComponent(redirectUri)}`;
+      const microsoftLoginUrl = `${microsoftAuthBaseUrl}${apiConfig.endpoints.auth.microsoftLogin}`;
+      
+      const backendCallbackUrl = `${microsoftAuthBaseUrl}${apiConfig.endpoints.auth.microsoftCallback}`;
       
       console.log('[AzureAuth] Starting Microsoft login flow');
-      console.log('[AzureAuth] Redirect URI:', redirectUri);
       console.log('[AzureAuth] Login URL:', microsoftLoginUrl);
+      console.log('[AzureAuth] Backend callback URL:', backendCallbackUrl);
 
       const result = await WebBrowser.openAuthSessionAsync(
         microsoftLoginUrl,
-        redirectUri,
+        backendCallbackUrl,
         {
           showInRecents: true,
           preferEphemeralSession: true,
@@ -108,15 +104,9 @@ export function useAzureAuth(): UseAzureAuthReturn {
       );
 
       console.log('[AzureAuth] Auth session result type:', result.type);
+      console.log('[AzureAuth] Result URL:', result.type === 'success' ? result.url : 'N/A');
 
       if (result.type === 'success' && result.url) {
-        if (!result.url.startsWith(redirectUri.split('?')[0])) {
-          console.log('[AzureAuth] Callback URL does not match expected redirect URI');
-          setErrorType('auth_failed');
-          setIsLoading(false);
-          return { accessToken: '', errorType: 'auth_failed' };
-        }
-
         const parsedResponse = parseAuthResponseUrl(result.url);
 
         if (parsedResponse.error) {
@@ -128,6 +118,7 @@ export function useAzureAuth(): UseAzureAuthReturn {
 
         if (!parsedResponse.accessToken) {
           console.log('[AzureAuth] No access token received in response');
+          console.log('[AzureAuth] Full URL for debugging:', result.url);
           setErrorType('no_token');
           setIsLoading(false);
           return { accessToken: '', errorType: 'no_token' };
@@ -156,7 +147,7 @@ export function useAzureAuth(): UseAzureAuthReturn {
       setIsLoading(false);
       return { accessToken: '', errorType: 'auth_failed' };
     }
-  }, [redirectUri, microsoftAuthBaseUrl]);
+  }, [microsoftAuthBaseUrl]);
 
   const clearError = useCallback(() => {
     setErrorType(null);
