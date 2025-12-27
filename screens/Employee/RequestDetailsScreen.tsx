@@ -185,6 +185,37 @@ export default function RequestDetailsScreen({
     return mapVisitDetailsToVisitorRequest(visitData);
   }, [visitData]);
 
+  // Check if the visit date/time has passed - disable approval actions for expired visits
+  // Uses mapped request object for consistency with display data
+  const isVisitExpired = useMemo(() => {
+    if (!request?.visitDate) return false;
+    
+    try {
+      const now = new Date();
+      
+      // First try: parse with visitTime if available
+      if (request.visitTime) {
+        const visitDateTime = parseDateTime(request.visitDate, request.visitTime);
+        if (!isNaN(visitDateTime.getTime()) && visitDateTime < now) {
+          return true;
+        }
+      }
+      
+      // Fallback: check if the visit date (end of day) has passed
+      const [year, month, day] = request.visitDate.split('-').map(Number);
+      if (year && month && day) {
+        const visitDateEndOfDay = new Date(year, month - 1, day, 23, 59, 59);
+        if (visitDateEndOfDay < now) {
+          return true;
+        }
+      }
+      
+      return false;
+    } catch {
+      return false;
+    }
+  }, [request?.visitDate, request?.visitTime, parseDateTime]);
+
   const isTerminalStatus = useMemo(() => {
     if (!request) return false;
     const terminalStatuses = [
@@ -1494,17 +1525,31 @@ export default function RequestDetailsScreen({
 
       {/* Manager approval pending: Show Accept/Reject buttons - only for managers */}
       {request.status === REQUEST_STATUS.PENDING_APPROVAL && userRole === 'manager' ? (
-        <>
-          <ApprovalActionGroup
-            onApprove={handleManagerApprove}
-            onReject={() => setShowManagerRejectModal(true)}
-            approveLoading={managerApproveMutation.isPending}
-            rejectLoading={managerRejectMutation.isPending}
-            size="medium"
-            showIcons={true}
-          />
-          <Spacer height={Spacing.xl} />
-        </>
+        isVisitExpired ? (
+          <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: Spacing.sm, paddingHorizontal: Spacing.md }}>
+            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.xs }}>
+              <DDIcon name="alert-circle" size={16} color={theme.warning} />
+              <ThemedText style={[Typography.caption, { color: theme.warning, fontWeight: '600', textAlign: 'center' }]}>
+                {t('status.visitExpired')}
+              </ThemedText>
+            </View>
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: 'center', marginTop: 2, fontSize: 12 }]}>
+              {t('errors.visitDatePassed')}
+            </ThemedText>
+          </View>
+        ) : (
+          <>
+            <ApprovalActionGroup
+              onApprove={handleManagerApprove}
+              onReject={() => setShowManagerRejectModal(true)}
+              approveLoading={managerApproveMutation.isPending}
+              rejectLoading={managerRejectMutation.isPending}
+              size="medium"
+              showIcons={true}
+            />
+            <Spacer height={Spacing.xl} />
+          </>
+        )
       ) : null}
 
       {/* Show Edit and Cancel buttons - hidden for terminal statuses and for managers on pending_approval */}
