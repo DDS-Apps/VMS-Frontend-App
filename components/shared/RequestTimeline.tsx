@@ -356,6 +356,10 @@ function buildStandardTimeline(
 ): TimelineStep[] {
   const steps: TimelineStep[] = [];
 
+  // Track if we've hit a "current" step - all steps after should be pending
+  let reachedCurrentStep = false;
+
+  // Step 1: Request Submitted (always completed)
   steps.push({
     id: 'submitted',
     label: t('timeline.requestSubmitted'),
@@ -364,8 +368,7 @@ function buildStandardTimeline(
     icon: 'check-circle',
   });
 
-  // CRITICAL: Check for terminal statuses FIRST before any approval flow logic
-  // This ensures cancelled/auto_cancelled requests show properly even if approval.requiresApproval is true
+  // TERMINAL STATES: Only return early for error/cancelled states
   if (data.cancelledAt || data.status === 'cancelled') {
     steps.push({
       id: 'cancelled',
@@ -391,6 +394,7 @@ function buildStandardTimeline(
   const isRejectedStatus = data.status === 'rejected';
   const isPendingApproval = data.status === 'pending_approval';
 
+  // Step 2: Manager Approval
   if (data.approval) {
     if (data.approval.rejectedAt || isRejectedStatus) {
       steps.push({
@@ -400,9 +404,8 @@ function buildStandardTimeline(
         status: 'error',
         icon: 'x-circle',
       });
-      return steps;
+      return steps; // Terminal state - stop here
     } else if (!isPendingApproval && (data.approval.approvedAt || isAtLaterStage)) {
-      // Only show as approved if status has progressed beyond pending_approval
       steps.push({
         id: 'approval',
         label: data.approval.autoApproved
@@ -441,10 +444,12 @@ function buildStandardTimeline(
       }
 
       steps.push(approvalStep);
-      return steps;
+      reachedCurrentStep = true;
+      // Continue to show remaining steps as pending
     }
   }
 
+  // Handle host approval if required (separate from visitor acceptance)
   if (data.hostApproval?.required) {
     if (data.hostApproval.rejectedAt) {
       steps.push({
@@ -454,7 +459,7 @@ function buildStandardTimeline(
         status: 'error',
         icon: 'x-circle',
       });
-      return steps;
+      return steps; // Terminal state
     } else if (data.hostApproval.approvedAt) {
       steps.push({
         id: 'host_approval',
@@ -463,7 +468,7 @@ function buildStandardTimeline(
         status: 'completed',
         icon: 'user-check',
       });
-    } else {
+    } else if (!reachedCurrentStep) {
       const hostStep: TimelineStep = {
         id: 'host_approval',
         label: t('timeline.pendingHostApproval'),
@@ -492,11 +497,18 @@ function buildStandardTimeline(
       }
 
       steps.push(hostStep);
-      return steps;
+      reachedCurrentStep = true;
+    } else {
+      steps.push({
+        id: 'host_approval',
+        label: t('timeline.pendingHostApproval'),
+        status: 'pending',
+        icon: 'clock',
+      });
     }
   }
 
-  // Check for host_reject status (with or without timestamp) - only if not already handled above
+  // Check for host_reject status
   if (data.status === 'host_reject' && !data.hostApproval?.rejectedAt) {
     steps.push({
       id: 'host_approval',
@@ -504,9 +516,10 @@ function buildStandardTimeline(
       status: 'error',
       icon: 'x-circle',
     });
-    return steps;
+    return steps; // Terminal state
   }
 
+  // Step 3: Visitor Accepted
   if (VISITOR_DECLINED_STATUSES.includes(data.status)) {
     steps.push({
       id: 'visitor_response',
@@ -515,7 +528,7 @@ function buildStandardTimeline(
       status: 'error',
       icon: 'x-circle',
     });
-    return steps;
+    return steps; // Terminal state
   } else if (VISITOR_ACCEPTED_STATUSES.includes(data.status) || data.acceptedAt) {
     steps.push({
       id: 'visitor_response',
@@ -524,16 +537,25 @@ function buildStandardTimeline(
       status: 'completed',
       icon: 'user-check',
     });
-  } else if (AWAITING_VISITOR_STATUSES.includes(data.status)) {
+  } else if (!reachedCurrentStep && AWAITING_VISITOR_STATUSES.includes(data.status)) {
     steps.push({
       id: 'visitor_response',
       label: t('timeline.awaitingVisitor'),
       status: 'current',
       icon: 'clock',
     });
-    return steps;
+    reachedCurrentStep = true;
+  } else {
+    // Show as pending if we haven't reached this step yet
+    steps.push({
+      id: 'visitor_response',
+      label: t('timeline.visitorAccepted'),
+      status: 'pending',
+      icon: 'user-check',
+    });
   }
 
+  // Step 4: Visitor Checked In
   if (CHECKED_IN_STATUSES.includes(data.status) || data.checkedInAt) {
     steps.push({
       id: 'checked_in',
@@ -542,27 +564,31 @@ function buildStandardTimeline(
       status: 'completed',
       icon: 'log-in',
     });
-  } else {
+  } else if (!reachedCurrentStep && showActions && (role === 'receptionist' || role === 'security') && actions?.onCheckIn) {
     const checkInStep: TimelineStep = {
       id: 'checked_in',
       label: t('timeline.visitorCheckedIn'),
-      status: 'pending',
+      status: 'current',
       icon: 'log-in',
-    };
-
-    if (showActions && (role === 'receptionist' || role === 'security') && actions?.onCheckIn) {
-      checkInStep.status = 'current';
-      checkInStep.actions = [{
+      actions: [{
         type: 'check_in',
         label: t('actions.checkIn'),
         onPress: actions.onCheckIn,
         isLoading: actions.isCheckInLoading,
-      }];
-    }
-
+      }],
+    };
     steps.push(checkInStep);
+    reachedCurrentStep = true;
+  } else {
+    steps.push({
+      id: 'checked_in',
+      label: t('timeline.visitorCheckedIn'),
+      status: 'pending',
+      icon: 'log-in',
+    });
   }
 
+  // Step 5: Visit Completed
   if (COMPLETED_REQUEST_STATUSES.includes(data.status) || data.completedAt || data.checkedOutAt) {
     steps.push({
       id: 'completed',
@@ -571,25 +597,27 @@ function buildStandardTimeline(
       status: 'completed',
       icon: 'check-circle',
     });
-  } else {
+  } else if (!reachedCurrentStep && showActions && data.checkedInAt && (role === 'receptionist' || role === 'security') && actions?.onCheckOut) {
     const completeStep: TimelineStep = {
       id: 'completed',
       label: t('timeline.visitCompleted'),
-      status: 'pending',
+      status: 'current',
       icon: 'check-circle',
-    };
-
-    if (showActions && data.checkedInAt && (role === 'receptionist' || role === 'security') && actions?.onCheckOut) {
-      completeStep.status = 'current';
-      completeStep.actions = [{
+      actions: [{
         type: 'check_out',
         label: t('actions.checkOut'),
         onPress: actions.onCheckOut,
         isLoading: actions.isCheckOutLoading,
-      }];
-    }
-
+      }],
+    };
     steps.push(completeStep);
+  } else {
+    steps.push({
+      id: 'completed',
+      label: t('timeline.visitCompleted'),
+      status: 'pending',
+      icon: 'check-circle',
+    });
   }
 
   return steps;
