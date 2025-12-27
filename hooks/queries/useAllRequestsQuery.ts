@@ -248,17 +248,20 @@ export function useAllRequestsQuery(filters: AllRequestsFilters = {}) {
   const allRequests: UnifiedRequest[] = [];
 
   if (shouldFetchVisits && visitsResult.data) {
-    const visits = visitsResult.data.data || [];
+    const rawVisits = visitsResult.data?.data;
+    const visits = Array.isArray(rawVisits) ? rawVisits : [];
     allRequests.push(...visits.map(mapVisitToUnified));
   }
 
   if (shouldFetchBuffet && buffetResult.data) {
-    const buffetTasks = buffetResult.data.data || [];
+    const rawBuffetTasks = buffetResult.data?.data;
+    const buffetTasks = Array.isArray(rawBuffetTasks) ? rawBuffetTasks : [];
     allRequests.push(...buffetTasks.map(mapBuffetToUnified));
   }
 
   if (shouldFetchValet && valetResult.data) {
-    const valetTasks = valetResult.data.data || [];
+    const rawValetTasks = valetResult.data?.data;
+    const valetTasks = Array.isArray(rawValetTasks) ? rawValetTasks : [];
     allRequests.push(...valetTasks.map(mapValetToUnified));
   }
 
