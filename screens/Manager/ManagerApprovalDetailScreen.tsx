@@ -177,11 +177,30 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
   // Check if the visit date/time has passed - disable approval actions for expired visits
   const isVisitExpired = useMemo(() => {
-    if (!visitData?.visitDate || !visitData?.visitTime) return false;
+    if (!visitData?.visitDate) return false;
+    
     try {
-      const visitDateTime = parseDateTime(visitData.visitDate, visitData.visitTime);
-      if (isNaN(visitDateTime.getTime())) return false;
-      return visitDateTime < new Date();
+      const now = new Date();
+      
+      // First try: parse with visitTime if available
+      if (visitData.visitTime) {
+        const visitDateTime = parseDateTime(visitData.visitDate, visitData.visitTime);
+        if (!isNaN(visitDateTime.getTime()) && visitDateTime < now) {
+          return true;
+        }
+      }
+      
+      // Fallback: check if the visit date (end of day) has passed
+      const [year, month, day] = visitData.visitDate.split('-').map(Number);
+      if (year && month && day) {
+        // End of visit day (23:59:59)
+        const visitDateEndOfDay = new Date(year, month - 1, day, 23, 59, 59);
+        if (visitDateEndOfDay < now) {
+          return true;
+        }
+      }
+      
+      return false;
     } catch {
       return false;
     }
