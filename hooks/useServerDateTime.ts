@@ -66,22 +66,33 @@ export function useServerDateTime(): ServerDateTime {
     // Parse date: YYYY-MM-DD
     const [year, month, day] = dateStr.split('-').map(Number);
     
-    // Parse time: "HH:MM AM/PM" or "HH:MM"
+    // Parse time: "HH:MM AM/PM", "HH:MM", "HH:MM:SS", or ISO datetime
     let hours = 0;
     let minutes = 0;
     
     if (timeStr) {
-      const timeMatch = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
-      if (timeMatch) {
-        hours = parseInt(timeMatch[1], 10);
-        minutes = parseInt(timeMatch[2], 10);
-        const period = timeMatch[3];
-        
-        if (period) {
-          if (period.toUpperCase() === 'PM' && hours !== 12) {
-            hours += 12;
-          } else if (period.toUpperCase() === 'AM' && hours === 12) {
-            hours = 0;
+      // Check if timeStr is a full ISO datetime (e.g., "2025-12-27T17:09:00.000Z")
+      if (timeStr.includes('T')) {
+        const isoDate = new Date(timeStr);
+        if (!isNaN(isoDate.getTime())) {
+          // Extract hours and minutes from the ISO date (in local timezone)
+          hours = isoDate.getHours();
+          minutes = isoDate.getMinutes();
+        }
+      } else {
+        // Parse time formats: "HH:MM AM/PM", "HH:MM", "HH:MM:SS"
+        const timeMatch = timeStr.match(/(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)?/i);
+        if (timeMatch) {
+          hours = parseInt(timeMatch[1], 10);
+          minutes = parseInt(timeMatch[2], 10);
+          const period = timeMatch[3];
+          
+          if (period) {
+            if (period.toUpperCase() === 'PM' && hours !== 12) {
+              hours += 12;
+            } else if (period.toUpperCase() === 'AM' && hours === 12) {
+              hours = 0;
+            }
           }
         }
       }

@@ -175,18 +175,86 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
   const isProcessing = approveMutation.isPending || rejectMutation.isPending || cancelMutation.isPending || updateMutation.isPending;
 
+  // Helper to parse duration string to milliseconds (supports various formats)
+  const parseDurationToMs = (duration: string): number => {
+    if (!duration) return 60 * 60 * 1000; // default 1 hour
+    
+    const durationStr = String(duration).trim();
+    
+    // Handle "Full Day" or similar
+    if (/full\s*day/i.test(durationStr)) {
+      return 24 * 60 * 60 * 1000;
+    }
+    
+    // Parse ISO 8601 duration (e.g., "PT1H30M", "PT24H", "P1D")
+    if (durationStr.startsWith("P")) {
+      let totalMs = 0;
+      const daysMatch = durationStr.match(/(\d+)D/i);
+      const hoursMatch = durationStr.match(/(\d+)H/i);
+      const minutesMatch = durationStr.match(/(\d+)M(?!O)/i); // M but not MO (month)
+      if (daysMatch) totalMs += parseInt(daysMatch[1]) * 24 * 60 * 60 * 1000;
+      if (hoursMatch) totalMs += parseInt(hoursMatch[1]) * 60 * 60 * 1000;
+      if (minutesMatch) totalMs += parseInt(minutesMatch[1]) * 60 * 1000;
+      return totalMs > 0 ? totalMs : 60 * 60 * 1000;
+    }
+    
+    // Parse human-readable format (e.g., "2 hours 10 minutes", "1.5 hours", "1 day", "30 minutes")
+    let totalMs = 0;
+    const daysMatch = durationStr.match(/(\d+(?:\.\d+)?)\s*days?/i);
+    const hoursMatch = durationStr.match(/(\d+(?:\.\d+)?)\s*(?:hours?|h\b)/i);
+    const minutesMatch = durationStr.match(/(\d+)\s*(?:minutes?|mins?|m\b)/i);
+    
+    if (daysMatch) totalMs += parseFloat(daysMatch[1]) * 24 * 60 * 60 * 1000;
+    if (hoursMatch) totalMs += parseFloat(hoursMatch[1]) * 60 * 60 * 1000;
+    if (minutesMatch) totalMs += parseInt(minutesMatch[1]) * 60 * 1000;
+    
+    return totalMs > 0 ? totalMs : 60 * 60 * 1000; // Default 1 hour if parsing fails
+  };
+
   // Check if the visit date/time has passed - disable approval actions for expired visits
+  // A visit is only expired when the END time has passed, not the start time
   const isVisitExpired = useMemo(() => {
     if (!visitData?.visitDate) return false;
     
     try {
       const now = new Date();
       
-      // First try: parse with visitTime if available
-      if (visitData.visitTime) {
-        const visitDateTime = parseDateTime(visitData.visitDate, visitData.visitTime);
-        if (!isNaN(visitDateTime.getTime()) && visitDateTime < now) {
-          return true;
+      console.log('[isVisitExpired] Checking expiration:', {
+        visitDate: visitData.visitDate,
+        visitTime: visitData.visitTime,
+        endTime: visitData.endTime,
+        duration: visitData.duration,
+        now: now.toISOString(),
+      });
+      
+      // Priority 1: Check end time if available (endTime field)
+      const endTimeStr = visitData.endTime;
+      if (endTimeStr && visitData.visitDate) {
+        const visitEndDateTime = parseDateTime(visitData.visitDate, endTimeStr);
+        console.log('[isVisitExpired] Priority 1 - endTime parsed:', {
+          endTimeStr,
+          visitEndDateTime: visitEndDateTime.toISOString(),
+          isValid: !isNaN(visitEndDateTime.getTime()),
+          isExpired: visitEndDateTime < now,
+        });
+        if (!isNaN(visitEndDateTime.getTime())) {
+          return visitEndDateTime < now;
+        }
+      }
+      
+      // Priority 2: Calculate end time from start time + duration
+      if (visitData.visitTime && visitData.duration) {
+        const startDateTime = parseDateTime(visitData.visitDate, visitData.visitTime);
+        if (!isNaN(startDateTime.getTime())) {
+          const durationMs = parseDurationToMs(visitData.duration);
+          const calculatedEndTime = new Date(startDateTime.getTime() + durationMs);
+          console.log('[isVisitExpired] Priority 2 - calculated end time:', {
+            startDateTime: startDateTime.toISOString(),
+            durationMs,
+            calculatedEndTime: calculatedEndTime.toISOString(),
+            isExpired: calculatedEndTime < now,
+          });
+          return calculatedEndTime < now;
         }
       }
       
@@ -195,16 +263,21 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
       if (year && month && day) {
         // End of visit day (23:59:59)
         const visitDateEndOfDay = new Date(year, month - 1, day, 23, 59, 59);
+        console.log('[isVisitExpired] Fallback - end of day:', {
+          visitDateEndOfDay: visitDateEndOfDay.toISOString(),
+          isExpired: visitDateEndOfDay < now,
+        });
         if (visitDateEndOfDay < now) {
           return true;
         }
       }
       
       return false;
-    } catch {
+    } catch (err) {
+      console.log('[isVisitExpired] Error:', err);
       return false;
     }
-  }, [visitData?.visitDate, visitData?.visitTime, parseDateTime]);
+  }, [visitData?.visitDate, visitData?.visitTime, visitData?.endTime, visitData?.duration, parseDateTime]);
 
   if (isLoading || isFetching) {
     return (

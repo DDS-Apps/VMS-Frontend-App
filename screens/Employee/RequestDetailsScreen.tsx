@@ -185,19 +185,67 @@ export default function RequestDetailsScreen({
     return mapVisitDetailsToVisitorRequest(visitData);
   }, [visitData]);
 
+  // Helper to parse duration string to milliseconds for expiration check (supports various formats)
+  const parseDurationToMsForExpiry = (duration: string): number => {
+    if (!duration) return 60 * 60 * 1000; // default 1 hour
+    
+    const durationStr = String(duration).trim();
+    
+    // Handle "Full Day" or similar
+    if (/full\s*day/i.test(durationStr)) {
+      return 24 * 60 * 60 * 1000;
+    }
+    
+    // Parse ISO 8601 duration (e.g., "PT1H30M", "PT24H", "P1D")
+    if (durationStr.startsWith("P")) {
+      let totalMs = 0;
+      const daysMatch = durationStr.match(/(\d+)D/i);
+      const hoursMatch = durationStr.match(/(\d+)H/i);
+      const minutesMatch = durationStr.match(/(\d+)M(?!O)/i); // M but not MO (month)
+      if (daysMatch) totalMs += parseInt(daysMatch[1]) * 24 * 60 * 60 * 1000;
+      if (hoursMatch) totalMs += parseInt(hoursMatch[1]) * 60 * 60 * 1000;
+      if (minutesMatch) totalMs += parseInt(minutesMatch[1]) * 60 * 1000;
+      return totalMs > 0 ? totalMs : 60 * 60 * 1000;
+    }
+    
+    // Parse human-readable format (e.g., "2 hours 10 minutes", "1.5 hours", "1 day", "30 minutes")
+    let totalMs = 0;
+    const daysMatch = durationStr.match(/(\d+(?:\.\d+)?)\s*days?/i);
+    const hoursMatch = durationStr.match(/(\d+(?:\.\d+)?)\s*(?:hours?|h\b)/i);
+    const minutesMatch = durationStr.match(/(\d+)\s*(?:minutes?|mins?|m\b)/i);
+    
+    if (daysMatch) totalMs += parseFloat(daysMatch[1]) * 24 * 60 * 60 * 1000;
+    if (hoursMatch) totalMs += parseFloat(hoursMatch[1]) * 60 * 60 * 1000;
+    if (minutesMatch) totalMs += parseInt(minutesMatch[1]) * 60 * 1000;
+    
+    return totalMs > 0 ? totalMs : 60 * 60 * 1000; // Default 1 hour if parsing fails
+  };
+
   // Check if the visit date/time has passed - disable approval actions for expired visits
   // Uses mapped request object for consistency with display data
+  // A visit is only expired when the END time has passed, not the start time
   const isVisitExpired = useMemo(() => {
     if (!request?.visitDate) return false;
     
     try {
       const now = new Date();
       
-      // First try: parse with visitTime if available
-      if (request.visitTime) {
-        const visitDateTime = parseDateTime(request.visitDate, request.visitTime);
-        if (!isNaN(visitDateTime.getTime()) && visitDateTime < now) {
-          return true;
+      // Priority 1: Check end time if available (endTime field)
+      const endTimeStr = request.endTime;
+      if (endTimeStr && request.visitDate) {
+        const visitEndDateTime = parseDateTime(request.visitDate, endTimeStr);
+        if (!isNaN(visitEndDateTime.getTime())) {
+          return visitEndDateTime < now;
+        }
+      }
+      
+      // Priority 2: Calculate end time from start time + duration
+      if (request.visitTime && request.duration) {
+        const startDateTime = parseDateTime(request.visitDate, request.visitTime);
+        if (!isNaN(startDateTime.getTime())) {
+          const durationMs = parseDurationToMsForExpiry(request.duration);
+          const calculatedEndTime = new Date(startDateTime.getTime() + durationMs);
+          return calculatedEndTime < now;
         }
       }
       
@@ -214,7 +262,7 @@ export default function RequestDetailsScreen({
     } catch {
       return false;
     }
-  }, [request?.visitDate, request?.visitTime, parseDateTime]);
+  }, [request?.visitDate, request?.visitTime, request?.endTime, request?.duration, parseDateTime]);
 
   const isTerminalStatus = useMemo(() => {
     if (!request) return false;
