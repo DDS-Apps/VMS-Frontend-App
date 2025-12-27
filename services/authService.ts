@@ -87,8 +87,9 @@ export const authService = {
     return response.data;
   },
 
-  deletePhoto: (): Promise<PhotoDeleteResponse> => {
-    return del<PhotoDeleteResponse>(users.mePhoto);
+  deletePhoto: async (): Promise<PhotoDeleteResponse> => {
+    const result = await del<PhotoDeleteResponse>(users.mePhoto);
+    return result as PhotoDeleteResponse;
   },
 
   changePassword: (payload: ChangePasswordPayload): Promise<{ message: string }> => {
