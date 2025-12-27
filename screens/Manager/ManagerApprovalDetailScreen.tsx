@@ -490,11 +490,14 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
   const handleReject = () => {
     if (isReadOnlyRole || isVisitExpired) return;
     const reason = rejectionReason.trim() || 'No reason provided';
+    
+    // Close modal immediately to prevent re-opening during loading
+    setShowRejectModal(false);
+    
     rejectMutation.mutate(
       { id: requestId, payload: { reason } },
       {
         onSuccess: () => {
-          setShowRejectModal(false);
           setRejectionReason('');
           showToast(t('notifications.requestRejected'), 'success');
           setTimeout(() => {

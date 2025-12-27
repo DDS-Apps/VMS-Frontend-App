@@ -122,6 +122,9 @@ export default function UserDetailScreen() {
   const userLastName = (user as any).name?.split(' ').slice(1).join(' ') || user.lastName || '';
   const userPhone = (user as any).phoneNumber || user.phone || '';
   const source = user.azureAdId ? 'microsoft_ad' : 'app_created';
+  
+  // Check user active status from both isActive boolean and status string
+  const isUserActive = user.isActive === true || user.status === 'active';
 
   return (
     <ScreenScrollView>
@@ -146,14 +149,14 @@ export default function UserDetailScreen() {
                 {getRoleLabel(user.role)}
               </ThemedText>
             </View>
-            <View style={[styles.statusBadge, { backgroundColor: user.isActive ? theme.success + '20' : theme.error + '20' }]}>
+            <View style={[styles.statusBadge, { backgroundColor: isUserActive ? theme.success + '20' : theme.error + '20' }]}>
               <DDIcon 
-                name={user.isActive ? 'check-circle' : 'x-circle'} 
+                name={isUserActive ? 'check-circle' : 'x-circle'} 
                 size={12} 
-                color={user.isActive ? theme.success : theme.error} 
+                color={isUserActive ? theme.success : theme.error} 
               />
-              <ThemedText style={[Typography.caption, { color: user.isActive ? theme.success : theme.error, fontWeight: '600', marginStart: 4 }]}>
-                {user.isActive ? t('common.active') : t('common.inactive')}
+              <ThemedText style={[Typography.caption, { color: isUserActive ? theme.success : theme.error, fontWeight: '600', marginStart: 4 }]}>
+                {isUserActive ? t('common.active') : t('common.inactive')}
               </ThemedText>
             </View>
           </View>
