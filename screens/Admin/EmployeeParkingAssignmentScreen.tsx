@@ -218,7 +218,7 @@ export default function EmployeeParkingAssignmentScreen() {
             <ThemedText style={[Typography.label, { marginBottom: Spacing.sm }]}>
               {t("admin.selectEmployee")}
             </ThemedText>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.selectionScroll}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.selectionScroll} nestedScrollEnabled={true}>
               {unassignedEmployees.slice(0, 10).map((emp) => (
                 <Pressable
                   key={emp.id}

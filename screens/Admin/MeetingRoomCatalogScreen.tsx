@@ -246,6 +246,7 @@ export default function MeetingRoomCatalogScreen() {
       horizontal
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.tabsContainer}
+      nestedScrollEnabled={true}
     >
       {(["all", "active", "inactive", "maintenance"] as const).map((status) => (
         <Pressable

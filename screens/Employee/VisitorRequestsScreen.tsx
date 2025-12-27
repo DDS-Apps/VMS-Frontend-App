@@ -217,6 +217,7 @@ const VisitorRequestTableRow = React.memo(({
           style={styles.scrollableColumns}
           contentContainerStyle={styles.scrollableContent}
           persistentScrollbar={true}
+          nestedScrollEnabled={true}
         >
           {/* Company Column */}
           <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>

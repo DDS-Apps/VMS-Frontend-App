@@ -582,6 +582,7 @@ export default function BuffetBoardScreen() {
           horizontal 
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.filtersContainer}
+          nestedScrollEnabled={true}
         >
           {FILTER_OPTIONS.map((option) => {
             const isActive = statusFilter === option.key;

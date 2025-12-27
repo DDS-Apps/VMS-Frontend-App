@@ -579,6 +579,7 @@ export default function ParkingSpotsScreen() {
               horizontal 
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.activeFiltersRow}
+              nestedScrollEnabled={true}
             >
               {locationFilter !== 'all' ? (
                 <Pressable

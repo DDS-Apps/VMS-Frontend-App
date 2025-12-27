@@ -282,6 +282,7 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
         horizontal 
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.staffScrollContent}
+        nestedScrollEnabled={true}
       >
         <StaffCard
           title={t('dashboard.buffetStaff')}

@@ -300,6 +300,7 @@ export default function ReminderScheduleScreen() {
           keyExtractor={(item) => item.key}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.filterList}
+          nestedScrollEnabled={true}
           renderItem={({ item }) => (
             <Pressable
               style={[

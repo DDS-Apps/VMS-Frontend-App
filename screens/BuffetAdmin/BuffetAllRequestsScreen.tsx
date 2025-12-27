@@ -531,6 +531,7 @@ const BuffetRequestTableRow = React.memo(({
           style={styles.scrollableColumns}
           contentContainerStyle={styles.scrollableContent}
           persistentScrollbar={true}
+          nestedScrollEnabled={true}
         >
           <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
             <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>

@@ -1311,6 +1311,7 @@ export default function UsersRolesScreen() {
                 showsHorizontalScrollIndicator={false}
                 style={{ marginBottom: Spacing.md }}
                 contentContainerStyle={{ paddingEnd: Spacing.xl }}
+                nestedScrollEnabled={true}
               >
                 {ALL_ROLES.map((role) => (
                   <Pressable
@@ -1367,6 +1368,7 @@ export default function UsersRolesScreen() {
                 showsHorizontalScrollIndicator={false}
                 style={{ marginBottom: Spacing.md }}
                 contentContainerStyle={{ paddingEnd: Spacing.xl }}
+                nestedScrollEnabled={true}
               >
                 <Pressable
                   style={[

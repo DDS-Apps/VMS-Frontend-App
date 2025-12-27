@@ -171,7 +171,7 @@ export default function NotificationTemplatesScreen() {
           <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
             {t("admin.placeholders")}:
           </ThemedText>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.placeholdersList}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.placeholdersList} nestedScrollEnabled={true}>
             {template.placeholders.map((placeholder) => (
               <View key={placeholder} style={[styles.placeholderChip, { backgroundColor: theme.info + "15" }]}>
                 <ThemedText style={[Typography.caption, { color: theme.info }]}>

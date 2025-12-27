@@ -185,7 +185,7 @@ export default function BuffetSettingsScreen() {
                   <View style={[styles.infoRow, { marginTop: Spacing.sm }]}>
                     <DDIcon name="check-circle" variant="muted" size={16} />
                     <View style={{ flex: 1, marginStart: Spacing.sm }}>
-                      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                      <ScrollView horizontal showsHorizontalScrollIndicator={false} nestedScrollEnabled={true}>
                         <View style={styles.amenitiesContainer}>
                           {location.amenities.map((amenity, idx) => (
                             <View

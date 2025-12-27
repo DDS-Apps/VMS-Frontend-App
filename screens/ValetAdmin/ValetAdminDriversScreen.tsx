@@ -327,6 +327,7 @@ export default function ValetAdminDriversScreen() {
         horizontal 
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.filtersContainer}
+        nestedScrollEnabled={true}
       >
         {getFilterOptions(t).map((option) => {
           const isActive = statusFilter === option.key;
