@@ -282,6 +282,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                 contentContainerStyle={styles.carouselContainer}
                 snapToInterval={cardWidth + Spacing.md}
                 decelerationRate="fast"
+                nestedScrollEnabled={true}
               >
                 {upcomingThisWeek.map((request, index) => (
                   <VisitorRequestCard
@@ -346,6 +347,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                 contentContainerStyle={styles.carouselContainer}
                 snapToInterval={cardWidth + Spacing.md}
                 decelerationRate="fast"
+                nestedScrollEnabled={true}
               >
                 {recentRequests.map((request, index) => (
                   <VisitorRequestCard
@@ -408,6 +410,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                 contentContainerStyle={styles.carouselContainer}
                 snapToInterval={cardWidth + Spacing.md}
                 decelerationRate="fast"
+                nestedScrollEnabled={true}
               >
                 {pendingApprovals.slice(0, 5).map((request, index) => (
                   <VisitorRequestCard
@@ -475,6 +478,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                 contentContainerStyle={styles.carouselContainer}
                 snapToInterval={cardWidth + Spacing.md}
                 decelerationRate="fast"
+                nestedScrollEnabled={true}
               >
                 {awaitingVisitorAcceptance.slice(0, 5).map((request, index) => (
                   <VisitorRequestCard
@@ -539,6 +543,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                 contentContainerStyle={styles.carouselContainer}
                 snapToInterval={cardWidth + Spacing.md}
                 decelerationRate="fast"
+                nestedScrollEnabled={true}
               >
                 {walkInVisitors.slice(0, 5).map((request, index) => (
                   <VisitorRequestCard
