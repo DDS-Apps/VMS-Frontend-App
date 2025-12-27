@@ -705,42 +705,40 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
                 <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
                   <DDIcon name="log-out" size={18} color={theme.text} />
                 </View>
-                <View style={[styles.serviceInfo, { flex: 1 }]}>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
-                      {t('form.endTime')}
-                    </ThemedText>
-                    {inlineEndTime !== null ? (
-                      <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.sm }}>
-                        <Pressable
-                          onPress={() => setShowInlineEndTimePicker(true)}
-                          style={[styles.inlineTimeButton, { backgroundColor: applyOpacity(theme.primary, '10'), borderColor: theme.primary }]}
-                        >
-                          <DDIcon name="clock" size={14} color={theme.primary} />
-                          <ThemedText style={[Typography.body, { color: theme.primary, fontWeight: '600', marginStart: 4 }]}>
-                            {formatTimeForDisplay(inlineEndTime)}
-                          </ThemedText>
-                        </Pressable>
-                        <Pressable onPress={handleSaveInlineEndTime} disabled={updateMutation.isPending}>
-                          <DDIcon name="check" size={20} color={theme.success} />
-                        </Pressable>
-                        <Pressable onPress={handleCancelInlineEndTime}>
-                          <DDIcon name="x" size={20} color={theme.error} />
-                        </Pressable>
-                      </View>
-                    ) : (
-                      <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.sm }}>
-                        <ThemedText style={[Typography.caption, { color: request.endTime ? theme.textSecondary : theme.warning, fontSize: 13 }]}>
-                          {request.endTime ? formatTimeFromString(request.endTime) : t('common.notRequested')}
+                <View style={styles.serviceInfo}>
+                  <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+                    {t('form.endTime')}
+                  </ThemedText>
+                  {inlineEndTime !== null ? (
+                    <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.sm, marginTop: 2 }}>
+                      <Pressable
+                        onPress={() => setShowInlineEndTimePicker(true)}
+                        style={[styles.inlineTimeButton, { backgroundColor: applyOpacity(theme.primary, '10'), borderColor: theme.primary }]}
+                      >
+                        <DDIcon name="clock" size={14} color={theme.primary} />
+                        <ThemedText style={[Typography.body, { color: theme.primary, fontWeight: '600', marginStart: 4 }]}>
+                          {formatTimeForDisplay(inlineEndTime)}
                         </ThemedText>
-                        {!isReadOnlyRole && isManagerTheHost && (request.status === REQUEST_STATUS.APPROVED || request.status === REQUEST_STATUS.VISITOR_ACCEPTED) ? (
-                          <Pressable onPress={handleStartInlineEndTimeEdit} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                            <DDIcon name="edit-2" size={16} color={theme.primary} />
-                          </Pressable>
-                        ) : null}
-                      </View>
-                    )}
-                  </View>
+                      </Pressable>
+                      <Pressable onPress={handleSaveInlineEndTime} disabled={updateMutation.isPending}>
+                        <DDIcon name="check" size={20} color={theme.success} />
+                      </Pressable>
+                      <Pressable onPress={handleCancelInlineEndTime}>
+                        <DDIcon name="x" size={20} color={theme.error} />
+                      </Pressable>
+                    </View>
+                  ) : (
+                    <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.sm, marginTop: 2 }}>
+                      <ThemedText style={[Typography.caption, { color: request.endTime ? theme.textSecondary : theme.warning, fontSize: 13 }]}>
+                        {request.endTime ? formatTimeFromString(request.endTime) : t('common.notRequested')}
+                      </ThemedText>
+                      {!isReadOnlyRole && isManagerTheHost && (request.status === REQUEST_STATUS.APPROVED || request.status === REQUEST_STATUS.VISITOR_ACCEPTED) ? (
+                        <Pressable onPress={handleStartInlineEndTimeEdit} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                          <DDIcon name="edit-2" size={16} color={theme.primary} />
+                        </Pressable>
+                      ) : null}
+                    </View>
+                  )}
                 </View>
               </View>
             </>
