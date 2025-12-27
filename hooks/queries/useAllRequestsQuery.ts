@@ -247,22 +247,33 @@ export function useAllRequestsQuery(filters: AllRequestsFilters = {}) {
 
   const allRequests: UnifiedRequest[] = [];
 
+  // Helper to extract array from nested API response structures
+  const extractArray = <T>(data: unknown): T[] => {
+    if (Array.isArray(data)) return data;
+    if (data && typeof data === 'object' && 'data' in data) {
+      const nested = (data as { data: unknown }).data;
+      if (Array.isArray(nested)) return nested;
+      if (nested && typeof nested === 'object' && 'data' in nested) {
+        const deepNested = (nested as { data: unknown }).data;
+        if (Array.isArray(deepNested)) return deepNested;
+      }
+    }
+    return [];
+  };
+
   if (shouldFetchVisits && visitsResult.data) {
-    const rawVisits = visitsResult.data?.data;
-    const visits = Array.isArray(rawVisits) ? rawVisits : [];
-    allRequests.push(...visits.map(mapVisitToUnified));
+    const rawVisits = extractArray<VisitListItemDto>(visitsResult.data);
+    allRequests.push(...rawVisits.map(mapVisitToUnified));
   }
 
   if (shouldFetchBuffet && buffetResult.data) {
-    const rawBuffetTasks = buffetResult.data?.data;
-    const buffetTasks = Array.isArray(rawBuffetTasks) ? rawBuffetTasks : [];
-    allRequests.push(...buffetTasks.map(mapBuffetToUnified));
+    const rawBuffetTasks = extractArray<BuffetAdminTaskDto>(buffetResult.data);
+    allRequests.push(...rawBuffetTasks.map(mapBuffetToUnified));
   }
 
   if (shouldFetchValet && valetResult.data) {
-    const rawValetTasks = valetResult.data?.data;
-    const valetTasks = Array.isArray(rawValetTasks) ? rawValetTasks : [];
-    allRequests.push(...valetTasks.map(mapValetToUnified));
+    const rawValetTasks = extractArray<ValetTaskDto>(valetResult.data);
+    allRequests.push(...rawValetTasks.map(mapValetToUnified));
   }
 
   const isReadOnlyRole = userRole === 'building_admin';
