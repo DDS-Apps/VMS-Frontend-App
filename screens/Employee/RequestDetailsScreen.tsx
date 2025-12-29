@@ -1077,17 +1077,18 @@ export default function RequestDetailsScreen({
             {request.visitor.company}
           </ThemedText>
 
-          <Spacer height={Spacing.md} />
+          <Spacer height={Spacing.sm} />
 
           <View
-            style={[
-              styles.statusBadgeNew,
-              {
-                backgroundColor: statusConfig.bg,
-                borderColor: statusConfig.border,
-                borderWidth: StyleSheet.hairlineWidth,
-              },
-            ]}
+            style={{
+              alignSelf: 'center',
+              backgroundColor: statusConfig.bg,
+              borderColor: statusConfig.border,
+              borderWidth: StyleSheet.hairlineWidth,
+              paddingHorizontal: Spacing.md,
+              paddingVertical: 6,
+              borderRadius: BorderRadius.full,
+            }}
           >
             <ThemedText
               style={[
