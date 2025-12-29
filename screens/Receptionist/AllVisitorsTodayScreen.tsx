@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
-import { View, StyleSheet, Pressable, GestureResponderEvent, Alert } from "react-native";
+import { View, StyleSheet, Pressable, GestureResponderEvent, Alert, ScrollView } from "react-native";
 import type { AllVisitorsTodayScreenProps } from "@/types/receptionistNavigation.types";
 import { SkeletonList } from "@/components/shared/Skeleton";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -318,33 +318,43 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
 
       <Spacer height={Spacing.md} />
 
-      <View style={[styles.segmentedControl, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-        {FILTER_OPTIONS.map((option, index) => {
-          const isActive = statusFilter === option.key;
-          const isFirst = index === 0;
-          const isLast = index === FILTER_OPTIONS.length - 1;
-          
-          return (
-            <Pressable
-              key={option.key}
-              style={[
-                styles.segmentButton,
-                isActive && { backgroundColor: theme.primary },
-                isFirst && styles.segmentFirst,
-                isLast && styles.segmentLast,
-              ]}
-              onPress={() => setStatusFilter(option.key)}
-            >
-              <ThemedText style={[
-                styles.segmentText,
-                { color: isActive ? '#FFFFFF' : theme.text }
-              ]}>
-                {option.label}
-              </ThemedText>
-            </Pressable>
-          );
-        })}
-      </View>
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.filterScrollContent}
+        nestedScrollEnabled={true}
+      >
+        <View style={[styles.segmentedControl, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          {FILTER_OPTIONS.map((option, index) => {
+            const isActive = statusFilter === option.key;
+            const isFirst = index === 0;
+            const isLast = index === FILTER_OPTIONS.length - 1;
+            
+            return (
+              <Pressable
+                key={option.key}
+                style={[
+                  styles.segmentButton,
+                  isActive && { backgroundColor: theme.primary },
+                  isFirst && styles.segmentFirst,
+                  isLast && styles.segmentLast,
+                ]}
+                onPress={() => setStatusFilter(option.key)}
+              >
+                <ThemedText 
+                  style={[
+                    styles.segmentText,
+                    { color: isActive ? '#FFFFFF' : theme.text }
+                  ]}
+                  numberOfLines={1}
+                >
+                  {option.label}
+                </ThemedText>
+              </Pressable>
+            );
+          })}
+        </View>
+      </ScrollView>
 
       <Spacer height={Spacing.lg} />
 
@@ -394,6 +404,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 2,
   },
+  filterScrollContent: {
+    alignItems: 'flex-start',
+  },
   segmentedControl: {
     flexDirection: 'row',
     borderRadius: BorderRadius.lg,
@@ -402,10 +415,9 @@ const styles = StyleSheet.create({
     height: 36,
   },
   segmentButton: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: Spacing.xs,
+    paddingHorizontal: Spacing.lg,
   },
   segmentFirst: {
     borderTopStartRadius: BorderRadius.lg - 1,
