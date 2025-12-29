@@ -617,6 +617,7 @@ export const en: TranslationKeys = {
     last7Days: 'Last 7 days',
     walkIns: 'Walk-Ins',
     registeredToday: 'Registered today',
+    pending: 'Pending',
     pendingAwaiting: 'Pending',
     awaitingArrival: 'Awaiting arrival',
     myVisit: 'My Visit',

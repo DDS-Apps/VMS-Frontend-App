@@ -617,6 +617,7 @@ export interface TranslationKeys {
     last7Days: string;
     walkIns: string;
     registeredToday: string;
+    pending: string;
     pendingAwaiting: string;
     awaitingArrival: string;
     myVisit: string;

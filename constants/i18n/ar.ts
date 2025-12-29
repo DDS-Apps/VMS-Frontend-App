@@ -617,6 +617,7 @@ export const ar: TranslationKeys = {
     last7Days: 'آخر 7 أيام',
     walkIns: 'بدون موعد',
     registeredToday: 'مسجل اليوم',
+    pending: 'قيد الانتظار',
     pendingAwaiting: 'معلق',
     awaitingArrival: 'في انتظار الوصول',
     myVisit: 'زيارتي',
