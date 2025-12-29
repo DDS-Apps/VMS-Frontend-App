@@ -34,7 +34,7 @@ function KPICard({ title, value, icon, iconBgColor, iconColor, cardBgColor, subt
   const { theme } = useTheme();
   
   return (
-    <View style={[styles.kpiCard, { backgroundColor: cardBgColor, borderWidth: 1, borderColor: applyOpacity(iconColor, '15') }]}>
+    <View style={[styles.kpiCard, { backgroundColor: cardBgColor, borderWidth: StyleSheet.hairlineWidth, borderColor: applyOpacity(iconColor, '15') }]}>
       <View style={[styles.kpiIconContainer, { backgroundColor: iconBgColor }]}>
         <DDIcon name={icon as IconName} size={28} color={iconColor} />
       </View>

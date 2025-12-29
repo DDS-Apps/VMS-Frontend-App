@@ -873,7 +873,7 @@ const styles = StyleSheet.create({
   listItem: {
     padding: Spacing.md,
     borderRadius: BorderRadius.md,
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
   },
   listItemMain: {
     flexDirection: 'row',

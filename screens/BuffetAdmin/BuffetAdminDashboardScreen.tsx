@@ -72,7 +72,7 @@ function KPICard({ title, value, icon, iconBgColor, iconColor, cardBgColor }: KP
   const { theme } = useTheme();
   
   return (
-    <View style={[styles.kpiCard, { backgroundColor: cardBgColor, borderWidth: 1, borderColor: applyOpacity(iconColor, '15') }]}>
+    <View style={[styles.kpiCard, { backgroundColor: cardBgColor, borderWidth: StyleSheet.hairlineWidth, borderColor: applyOpacity(iconColor, '15') }]}>
       <View style={[styles.kpiIconContainer, { backgroundColor: iconBgColor }]}>
         <DDIcon name={icon as IconName} size={28} color={iconColor} />
       </View>
@@ -385,7 +385,7 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
               <ThemedText style={[styles.visitorName, { color: theme.text, flex: 1 }]} numberOfLines={1}>
                 {item.visitorName}
               </ThemedText>
-              <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: 1 }]}>
+              <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: StyleSheet.hairlineWidth }]}>
                 <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
                   {statusConfig.label}
                 </ThemedText>
@@ -768,7 +768,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 20,
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
     gap: 4,
   },
   viewDetailsText: {
@@ -883,7 +883,7 @@ const styles = StyleSheet.create({
     marginTop: Spacing.md,
     padding: Spacing.md,
     borderRadius: BorderRadius.md,
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
     alignItems: 'center',
   },
 });
