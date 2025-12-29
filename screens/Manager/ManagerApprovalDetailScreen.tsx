@@ -1257,6 +1257,47 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
               <Spacer height={Spacing.xl} />
 
+              {/* Disabled Start Time Field */}
+              <View style={{ width: '100%' }}>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginBottom: Spacing.xs }]}>
+                  {t('form.startTime')}
+                </ThemedText>
+                <View
+                  style={{
+                    borderWidth: 1,
+                    borderRadius: BorderRadius.md,
+                    borderColor: theme.border,
+                    backgroundColor: applyOpacity(theme.surfaceSecondary, '50'),
+                    paddingVertical: Spacing.md,
+                    paddingHorizontal: Spacing.lg,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    opacity: 0.7,
+                  }}
+                >
+                  <DDIcon name="clock" size={16} variant="muted" />
+                  <ThemedText
+                    style={[
+                      Typography.body,
+                      {
+                        marginStart: Spacing.sm,
+                        color: theme.textSecondary,
+                        fontSize: 14,
+                        flex: 1,
+                      },
+                    ]}
+                  >
+                    {formatDisplayTime(approvalStartTime || new Date())}
+                  </ThemedText>
+                  <DDIcon name="lock" size={14} variant="muted" />
+                </View>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: Spacing.xs, fontSize: 11 }]}>
+                  {t('form.startTimeReadOnly')}
+                </ThemedText>
+              </View>
+
+              <Spacer height={Spacing.lg} />
+
               <View style={{ width: '100%' }}>
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginBottom: Spacing.xs }]}>
                   {t('form.endTime')} *
