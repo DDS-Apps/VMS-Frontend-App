@@ -862,38 +862,6 @@ export default function RequestDetailsScreen({
 
   return (
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
-      {/* Header with Status Badge */}
-      <View style={styles.headerRow}>
-        <ThemedText
-          style={[
-            Typography.caption,
-            { color: theme.textSecondary, fontSize: 12 },
-          ]}
-        >
-          {t("visitor.requestId")}: {request.id}
-        </ThemedText>
-        <View
-          style={[
-            styles.statusBadgeNew,
-            {
-              backgroundColor: statusConfig.bg,
-              borderColor: statusConfig.border,
-              borderWidth: 1,
-            },
-          ]}
-        >
-          <ThemedText
-            style={[
-              Typography.caption,
-              { color: statusConfig.text, fontWeight: "600", fontSize: 10 },
-            ]}
-          >
-            {statusConfig.label}
-          </ThemedText>
-        </View>
-      </View>
-
-      <Spacer height={Spacing.xl} />
 
       {/* Rejection/Decline Reason */}
       {request.approval.rejectedAt && request.approval.rejectionReason ? (
@@ -1108,6 +1076,28 @@ export default function RequestDetailsScreen({
           >
             {request.visitor.company}
           </ThemedText>
+
+          <Spacer height={Spacing.md} />
+
+          <View
+            style={[
+              styles.statusBadgeNew,
+              {
+                backgroundColor: statusConfig.bg,
+                borderColor: statusConfig.border,
+                borderWidth: StyleSheet.hairlineWidth,
+              },
+            ]}
+          >
+            <ThemedText
+              style={[
+                Typography.caption,
+                { color: statusConfig.text, fontWeight: "600", fontSize: 12 },
+              ]}
+            >
+              {statusConfig.label}
+            </ThemedText>
+          </View>
         </View>
 
         <Spacer height={Spacing.xl} />

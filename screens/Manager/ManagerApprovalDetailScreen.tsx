@@ -624,9 +624,6 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
             <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 16 }]}>
               {statusText}
             </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 12 }]}>
-              ID: {request.id}
-            </ThemedText>
           </View>
         </View>
       </ThemedView>
