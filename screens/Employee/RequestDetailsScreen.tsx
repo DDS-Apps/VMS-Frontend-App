@@ -2001,9 +2001,56 @@ export default function RequestDetailsScreen({
                 <DDIcon name="chevron-down" size={16} variant="muted" />
               </Pressable>
 
-              {/* Walk-in: End Time picker (only in services-only mode, not full mode which has its own End Time) */}
+              {/* Walk-in: Start Time (disabled/read-only) and End Time picker (only in services-only mode) */}
               {visitData?.isWalkIn && editModalMode === "services-only" ? (
                 <>
+                  <Spacer height={Spacing.lg} />
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      { color: theme.textSecondary, fontSize: 12, marginBottom: 8 },
+                    ]}
+                  >
+                    {t("form.startTime")}
+                  </ThemedText>
+                  <View
+                    style={[
+                      styles.pickerButton,
+                      {
+                        backgroundColor: applyOpacity(theme.surfaceSecondary, '50'),
+                        borderColor: theme.border,
+                        opacity: 0.7,
+                      },
+                    ]}
+                  >
+                    <DDIcon name="clock" size={16} variant="muted" />
+                    <ThemedText
+                      style={[
+                        Typography.body,
+                        {
+                          marginStart: Spacing.sm,
+                          color: theme.textSecondary,
+                          fontSize: 14,
+                          flex: 1,
+                        },
+                      ]}
+                    >
+                      {isApprovalFlow && approvalStartTime 
+                        ? formatDisplayTime(approvalStartTime)
+                        : formatDisplayTime(editTime)
+                      }
+                    </ThemedText>
+                    <DDIcon name="lock" size={14} variant="muted" />
+                  </View>
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      { color: theme.textSecondary, marginTop: Spacing.xs, fontSize: 11 },
+                    ]}
+                  >
+                    {t("form.startTimeReadOnly")}
+                  </ThemedText>
+
                   <Spacer height={Spacing.lg} />
                   <ThemedText
                     style={[

@@ -320,7 +320,9 @@ export interface TranslationKeys {
     meetingRoomAvailable: string;
     visitDate: string;
     visitTime: string;
+    startTime: string;
     endTime: string;
+    startTimeReadOnly: string;
     calculatedAutomatically: string;
     notes: string;
     additionalNotes: string;
