@@ -85,7 +85,7 @@ const RejectModal = memo(function RejectModal({
             {translations.subtitle}
           </ThemedText>
           <TextInput
-            style={modalStyles.input}
+            style={[modalStyles.input, isLoading && { opacity: 0.6 }]}
             placeholder={translations.placeholder}
             placeholderTextColor={PageColors.textMuted}
             value={localReason}
@@ -93,16 +93,18 @@ const RejectModal = memo(function RejectModal({
             multiline
             numberOfLines={3}
             textAlignVertical="top"
+            editable={!isLoading}
           />
           <View style={modalStyles.buttons}>
             <Pressable
-              style={[modalStyles.button, modalStyles.cancelButton]}
+              style={[modalStyles.button, modalStyles.cancelButton, isLoading && { opacity: 0.6 }]}
               onPress={handleCancel}
+              disabled={isLoading}
             >
               <ThemedText style={modalStyles.cancelText}>{translations.cancel}</ThemedText>
             </Pressable>
             <Pressable
-              style={[modalStyles.button, modalStyles.confirmButton]}
+              style={[modalStyles.button, modalStyles.confirmButton, isLoading && { opacity: 0.8 }]}
               onPress={handleConfirm}
               disabled={isLoading}
             >
@@ -213,10 +215,19 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [actionCompleted, setActionCompleted] = useState<'accepted' | 'rejected' | null>(null);
   const [responseQrCode, setResponseQrCode] = useState<string | null>(null);
+  const [apiResponseMessage, setApiResponseMessage] = useState<string | null>(null);
+  const inviteSnapshotRef = React.useRef<PublicInviteDto | null>(null);
 
   const { data: invite, isLoading, isFetching, error, isError } = usePublicInviteQuery(token);
   const acceptMutation = useAcceptInviteMutation(token || '');
   const rejectMutation = useRejectInviteMutation(token || '');
+
+  // Always keep invite snapshot updated so we have data during refetch
+  React.useEffect(() => {
+    if (invite) {
+      inviteSnapshotRef.current = invite;
+    }
+  }, [invite]);
 
   const scrollContentStyle = {
     paddingHorizontal: Spacing.xl,
@@ -226,6 +237,8 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
   };
 
   const handleAccept = async () => {
+    // Store snapshot before action
+    if (invite) inviteSnapshotRef.current = invite;
     try {
       const response = await acceptMutation.mutateAsync(undefined);
       setResponseQrCode(response.qrCode || null);
@@ -236,16 +249,20 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
   };
 
   const handleReject = useCallback(async (reason: string) => {
+    // Store snapshot before action
+    if (invite) inviteSnapshotRef.current = invite;
     try {
-      await rejectMutation.mutateAsync(
+      const response = await rejectMutation.mutateAsync(
         reason ? { reason } : undefined
       );
+      // Store API response message for display
+      setApiResponseMessage(response?.message || null);
       setActionCompleted('rejected');
       setShowRejectModal(false);
     } catch (err) {
       console.error('Reject failed:', err);
     }
-  }, [rejectMutation]);
+  }, [rejectMutation, invite]);
 
   const handleCancelReject = useCallback(() => {
     setShowRejectModal(false);
@@ -461,6 +478,81 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
       </View>
     </View>
   );
+
+  // If action was completed (accept/reject), show success immediately without waiting for refetch
+  // Use the snapshot to ensure we have data even if refetch causes invite to be undefined
+  const displayInvite = invite || inviteSnapshotRef.current;
+  if (actionCompleted && displayInvite) {
+    const qrCodeValue = responseQrCode || displayInvite.qrCode;
+    
+    return (
+      <ScrollView style={styles.scrollContainer} contentContainerStyle={scrollContentStyle}>
+        <ContentWrapper>
+          <BrandingHeader />
+          
+          <View style={styles.resultContainer}>
+            <View style={[
+              styles.statusIconContainer,
+              { backgroundColor: actionCompleted === 'accepted' ? PageColors.success + '20' : PageColors.error + '20' }
+            ]}>
+              <DDIcon 
+                name={actionCompleted === 'accepted' ? 'check-circle' : 'x-circle'} 
+                size={64} 
+                color={actionCompleted === 'accepted' ? PageColors.success : PageColors.error}
+              />
+            </View>
+            <Spacer height={Spacing.xl} />
+            <ThemedText style={styles.statusTitle}>
+              {actionCompleted === 'accepted' ? t('visitor.invitationAccepted') : t('visitor.invitationDeclined')}
+            </ThemedText>
+            <Spacer height={Spacing.sm} />
+            <ThemedText style={styles.statusDescription}>
+              {actionCompleted === 'accepted'
+                ? `${t('invitation.scheduledFor')} ${formatVisitDate(displayInvite.visitDate)}`
+                : apiResponseMessage || t('visitorInvite.hostNotified')
+              }
+            </ThemedText>
+          </View>
+
+          {actionCompleted === 'accepted' && qrCodeValue ? (
+            <>
+              <GlassCard style={styles.qrCardContainer}>
+                <ThemedText style={styles.qrCardTitle}>{t('invitation.accessCode')}</ThemedText>
+                <Spacer height={Spacing.lg} />
+                <View style={styles.qrCodeWrapper}>
+                  <QRCode
+                    value={qrCodeValue}
+                    size={180}
+                    backgroundColor="#FFFFFF"
+                    color="#000000"
+                  />
+                </View>
+                <Spacer height={Spacing.lg} />
+                <ThemedText style={styles.qrCardSubtitle}>{t('invitation.showAtReception')}</ThemedText>
+              </GlassCard>
+              <Spacer height={Spacing.xl} />
+            </>
+          ) : null}
+
+          <GlassCard>
+            <InfoRow 
+              icon="user" 
+              label={t('reception.hostName')} 
+              value={getHostFullName(displayInvite)}
+              subValue={getHostDepartment(displayInvite) || undefined}
+            />
+            <View style={styles.infoDivider} />
+            <InfoRow 
+              icon="calendar" 
+              label={t('form.date')} 
+              value={formatVisitDate(displayInvite.visitDate)}
+              subValue={formatVisitTime(getVisitTime(displayInvite))}
+            />
+          </GlassCard>
+        </ContentWrapper>
+      </ScrollView>
+    );
+  }
 
   if (isLoading || isFetching) {
     return (

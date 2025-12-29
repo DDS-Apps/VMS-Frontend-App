@@ -1189,6 +1189,7 @@ export const en: TranslationKeys = {
     hours: 'hours',
     minute: 'minute',
     minutes: 'minutes',
+    hostNotified: 'The host has been notified of your decision.',
   },
   calendar: {
     chooseDate: 'Choose a Date',

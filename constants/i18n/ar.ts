@@ -1189,6 +1189,7 @@ export const ar: TranslationKeys = {
     hours: 'ساعات',
     minute: 'دقيقة',
     minutes: 'دقائق',
+    hostNotified: 'تم إبلاغ المضيف بقرارك.',
   },
   calendar: {
     chooseDate: 'اختر تاريخ',

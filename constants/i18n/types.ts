@@ -1189,6 +1189,7 @@ export interface TranslationKeys {
     hours: string;
     minute: string;
     minutes: string;
+    hostNotified: string;
   };
   calendar: {
     chooseDate: string;
