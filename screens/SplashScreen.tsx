@@ -22,9 +22,7 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [isRetrying, setIsRetrying] = useState(false);
 
-  const logoSource = isRTL
-    ? require("@/assets/images/logo-arabic.png")
-    : require("@/assets/images/dallah-logo.png");
+  const logoSource = require("@/assets/images/dallah-logo.png");
 
   const performHealthCheck = async (): Promise<boolean> => {
     // Skip health check on web - proceed directly to login
