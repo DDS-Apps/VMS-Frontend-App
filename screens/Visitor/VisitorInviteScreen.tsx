@@ -567,7 +567,11 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
     );
   }
 
-  if (isLoading || isFetching) {
+  // Don't show loading screen when modal is open or mutation is pending
+  // This prevents the modal from unmounting and losing its state
+  const shouldShowLoadingScreen = (isLoading || isFetching) && !showRejectModal && !rejectMutation.isPending && !acceptMutation.isPending;
+  
+  if (shouldShowLoadingScreen) {
     return (
       <ScrollView style={styles.scrollContainer} contentContainerStyle={scrollContentStyle}>
         <ContentWrapper>
