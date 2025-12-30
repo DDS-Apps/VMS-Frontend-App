@@ -3,6 +3,7 @@ import { View, StyleSheet, Pressable, ViewStyle } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { DDIcon } from "@/components/DDIcon";
 import Spacer from "@/components/Spacer";
+import { WalkInBadge } from "@/components/shared/StatusBadge";
 import { Spacing, BorderRadius } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -117,15 +118,15 @@ export function VisitorRequestCard({
               </ThemedText>
             </View>
           </View>
-          <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center' }}>
+          <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.xs }}>
             {request.visitor.company ? (
               <ThemedText style={[styles.companyText, { color: theme.textSecondary }]}>
                 {request.visitor.company}
               </ThemedText>
             ) : null}
             {request.isWalkIn ? (
-              <View style={[styles.walkInIconContainer, { backgroundColor: applyOpacity(theme.warning, '15'), marginStart: Spacing.xs }]}>
-                <DDIcon name="user-check" size={12} color={theme.warning} />
+              <View style={{ alignSelf: 'center' }}>
+                <WalkInBadge size="sm" />
               </View>
             ) : null}
           </View>
@@ -314,12 +315,5 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 10,
     fontWeight: '600',
-  },
-  walkInIconContainer: {
-    width: 20,
-    height: 20,
-    borderRadius: BorderRadius.full,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });
