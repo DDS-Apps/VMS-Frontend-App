@@ -441,7 +441,7 @@ export default function Sidebar({
       { 
         backgroundColor: theme.sidebarBg, 
         borderRightColor: theme.border,
-        paddingTop: insets.top + Spacing.lg,
+        paddingTop: insets.top + Spacing.sm,
       },
     ]}>
       <Pressable 
