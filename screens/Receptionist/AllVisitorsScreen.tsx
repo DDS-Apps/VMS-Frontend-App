@@ -257,7 +257,7 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
                   {visitorName}
                 </ThemedText>
                 <View style={styles.companyRow}>
-                  <ThemedText style={[styles.companyText, { color: theme.textSecondary, flex: 1 }]} numberOfLines={1}>
+                  <ThemedText style={[styles.companyText, { color: theme.textSecondary, flexShrink: 1 }]} numberOfLines={1}>
                     {item.visitor.company ?? ''}
                   </ThemedText>
                   {item.isWalkIn ? <WalkInBadge size="sm" /> : null}
