@@ -115,16 +115,16 @@ export function useAzureAuth(): UseAzureAuthReturn {
     setErrorType(null);
 
     try {
-      const microsoftLoginUrl = `${microsoftAuthBaseUrl}${apiConfig.endpoints.auth.microsoftLogin}`;
-      const backendCallbackUrl = `${microsoftAuthBaseUrl}${apiConfig.endpoints.auth.microsoftCallback}`;
+      const appRedirectUrl = getAppRedirectUrl();
+      const microsoftLoginUrl = `${microsoftAuthBaseUrl}${apiConfig.endpoints.auth.microsoftLogin}?platform=mobile&redirect_uri=${encodeURIComponent(appRedirectUrl)}`;
       
       console.log('[AzureAuth] Starting Microsoft login flow');
       console.log('[AzureAuth] Login URL:', microsoftLoginUrl);
-      console.log('[AzureAuth] Backend callback URL:', backendCallbackUrl);
+      console.log('[AzureAuth] App redirect URL:', appRedirectUrl);
 
       const result = await WebBrowser.openAuthSessionAsync(
         microsoftLoginUrl,
-        backendCallbackUrl,
+        appRedirectUrl,
         {
           showInRecents: true,
           preferEphemeralSession: true,
