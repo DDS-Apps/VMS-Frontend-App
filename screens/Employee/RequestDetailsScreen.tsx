@@ -897,17 +897,17 @@ export default function RequestDetailsScreen({
             style={[
               styles.alertBox,
               {
-                backgroundColor: applyOpacity(theme.warning, "10"),
-                borderStartColor: theme.warning,
+                backgroundColor: applyOpacity(theme.error, "10"),
+                borderStartColor: theme.error,
                 borderStartWidth: 4,
               },
             ]}
           >
-            <DDIcon name="user-x" size={16} variant="warning" />
+            <DDIcon name="user-x" size={16} variant="danger" />
             <ThemedText
               style={[
                 Typography.bodySmall,
-                { marginStart: Spacing.sm, flex: 1, color: theme.warning },
+                { marginStart: Spacing.sm, flex: 1, color: theme.error },
               ]}
             >
               {t("visitor.visitorDeclineReason")}: {request.visitorDecision.reason}

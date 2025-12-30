@@ -667,13 +667,13 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
         {request.visitorDecision && !request.visitorDecision.accepted && request.visitorDecision.reason ? (
           <>
             <Spacer height={Spacing.lg} />
-            <ThemedView style={[styles.card, { backgroundColor: applyOpacity(theme.warning, '08') }]}>
+            <ThemedView style={[styles.card, { backgroundColor: applyOpacity(theme.error, '08') }]}>
               <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'flex-start', gap: Spacing.sm }}>
                 <View style={{ marginTop: 2 }}>
-                  <DDIcon name="user-x" size={18} color={theme.warning} />
+                  <DDIcon name="user-x" size={18} color={theme.error} />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <ThemedText style={[Typography.bodySmall, { color: theme.warning, fontWeight: '600', marginBottom: 4 }]}>
+                  <ThemedText style={[Typography.bodySmall, { color: theme.error, fontWeight: '600', marginBottom: 4 }]}>
                     {t('visitor.visitorDeclineReason')}
                   </ThemedText>
                   <ThemedText style={[Typography.body, { color: theme.text, lineHeight: 22 }]}>
