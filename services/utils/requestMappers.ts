@@ -126,6 +126,11 @@ export const mapVisitDetailsToVisitorRequest = (visit: VisitDetailsDto): Visitor
     timezone: visit.timezone,
     isWalkIn: visit.isWalkIn ?? false,
     notes: visit.notes,
+    visitorDecision: visit.visitorDecision ? {
+      accepted: visit.visitorDecision.accepted,
+      decidedAt: visit.visitorDecision.decidedAt,
+      reason: visit.visitorDecision.reason,
+    } : undefined,
     acceptedAt: (visit as any).acceptedAt,
     checkedInAt: (visit as any).checkedInAt,
     completedAt: (visit as any).completedAt,

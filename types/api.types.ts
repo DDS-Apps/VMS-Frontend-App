@@ -1448,6 +1448,11 @@ export interface VisitDetailsDto {
   qrCode?: string;
   isWalkIn?: boolean;
   notes?: string;
+  visitorDecision?: {
+    accepted: boolean;
+    reason?: string;
+    decidedAt: string;
+  };
   createdAt: string;
   updatedAt: string;
   timezone?: string;
