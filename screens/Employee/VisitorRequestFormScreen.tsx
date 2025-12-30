@@ -181,7 +181,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
     ]).start(() => {
       setShowSuccessModal(false);
       if (isWalkIn) {
-        navigation.navigate('WalkInVisitors' as never);
+        navigation.navigate('AllVisitors' as never);
       } else {
         navigation.navigate('Dashboard' as never);
       }
