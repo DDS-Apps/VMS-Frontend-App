@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { Platform } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import Constants from 'expo-constants';
@@ -116,7 +117,8 @@ export function useAzureAuth(): UseAzureAuthReturn {
 
     try {
       const appRedirectUrl = getAppRedirectUrl();
-      const microsoftLoginUrl = `${microsoftAuthBaseUrl}${apiConfig.endpoints.auth.microsoftLogin}?platform=mobile`;
+      const platformParam = Platform.OS === 'web' ? 'web' : 'mobile';
+      const microsoftLoginUrl = `${microsoftAuthBaseUrl}${apiConfig.endpoints.auth.microsoftLogin}?platform=${platformParam}`;
       
       console.log('[AzureAuth] Starting Microsoft login flow');
       console.log('[AzureAuth] Login URL:', microsoftLoginUrl);
