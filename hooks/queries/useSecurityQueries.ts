@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient, UseQueryOptions } from '@tanstack/react-query';
-import { securityApiService } from '@/services/securityApiService';
+import { securityApiService, SecurityVisitorsParams, SecurityVisitorsResponse } from '@/services/securityApiService';
 import type {
   SecurityVisitorDto,
   SecuritySummary,
@@ -17,6 +17,8 @@ import { ApiError } from '@/api/errors';
 
 export const securityKeys = {
   all: ['security'] as const,
+  visitors: () => [...securityKeys.all, 'visitors'] as const,
+  visitorsList: (params?: SecurityVisitorsParams) => [...securityKeys.visitors(), 'list', params] as const,
   today: () => [...securityKeys.all, 'today'] as const,
   todayList: (params?: ListSecurityTodayParams) => [...securityKeys.today(), 'list', params] as const,
   todaySummary: () => [...securityKeys.today(), 'summary'] as const,
@@ -28,6 +30,19 @@ export const securityKeys = {
   blacklistCheck: (params: { email?: string; phone?: string; idNumber?: string }) =>
     [...securityKeys.all, 'blacklist-check', params] as const,
 };
+
+export function useSecurityVisitorsQuery(
+  params?: SecurityVisitorsParams,
+  options?: Omit<UseQueryOptions<SecurityVisitorsResponse, ApiError>, 'queryKey' | 'queryFn'>
+) {
+  return useQuery<SecurityVisitorsResponse, ApiError>({
+    queryKey: securityKeys.visitorsList(params),
+    queryFn: () => securityApiService.getVisitors(params),
+    staleTime: 30 * 1000,
+    refetchInterval: 60 * 1000,
+    ...options,
+  });
+}
 
 export function useSecurityTodayVisitorsQuery(
   params?: ListSecurityTodayParams,

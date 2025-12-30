@@ -13,7 +13,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
 import { applyOpacity } from "@/utils/statusStyles";
-import { useSecurityTodayVisitorsQuery } from "@/hooks/queries/useSecurityQueries";
+import { useSecurityVisitorsQuery } from "@/hooks/queries/useSecurityQueries";
 import type { SecurityVisitorDto } from "@/types";
 import type { SecurityCheckInScreenProps } from "@/types/securityNavigation.types";
 
@@ -101,12 +101,36 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
   const [dateRange, setDateRange] = useState<DateRange>({ startDate: null, endDate: null });
   const [showDatePicker, setShowDatePicker] = useState(false);
 
-  const { data: apiVisitors, isLoading, isError, refetch } = useSecurityTodayVisitorsQuery();
+  const queryParams = useMemo(() => {
+    const formatDate = (date: Date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    if (dateRange.startDate && dateRange.endDate) {
+      return {
+        startDate: formatDate(dateRange.startDate),
+        endDate: formatDate(dateRange.endDate),
+        limit: 100,
+      };
+    }
+    
+    const dateStr = formatDate(selectedDate);
+    return {
+      startDate: dateStr,
+      endDate: dateStr,
+      limit: 100,
+    };
+  }, [selectedDate, dateRange]);
+
+  const { data: apiResponse, isLoading, isError, refetch } = useSecurityVisitorsQuery(queryParams);
 
   const visitors = useMemo(() => {
-    if (!apiVisitors) return [];
-    return apiVisitors.map(mapApiToSecurityVisitor);
-  }, [apiVisitors]);
+    if (!apiResponse?.data) return [];
+    return apiResponse.data.map(mapApiToSecurityVisitor);
+  }, [apiResponse]);
 
   const FILTER_OPTIONS: { key: StatusFilter; label: string }[] = [
     { key: 'all', label: t('common.all') },

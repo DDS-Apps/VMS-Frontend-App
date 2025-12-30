@@ -1,7 +1,6 @@
 import { get, post } from '@/api/httpClient';
 import { apiConfig } from '@/api/config';
 import type {
-  VisitStatus,
   PaginatedResponse,
   SecurityVisitorDto,
   SecuritySummary,
@@ -13,9 +12,12 @@ import type {
   GateCheckOutDto,
   ListSecurityTodayParams,
   ListGateLogsParams,
+  VisitListItemDto,
+  VisitListResponse,
+  VisitDetailsDto,
 } from '@/types';
 
-const { security, visitors } = apiConfig.endpoints;
+const { security, visitors, visits } = apiConfig.endpoints;
 
 function buildQueryString(params: Record<string, unknown>): string {
   const query = new URLSearchParams();
@@ -28,14 +30,117 @@ function buildQueryString(params: Record<string, unknown>): string {
   return queryString ? `?${queryString}` : '';
 }
 
+function mapVisitToSecurityVisitor(visit: VisitListItemDto): SecurityVisitorDto {
+  return {
+    id: visit.id,
+    visitorName: visit.visitor.fullName,
+    visitorEmail: visit.visitor.email || '',
+    visitorPhone: visit.visitor.phone,
+    visitorCompany: visit.visitor.company,
+    hostId: '',
+    hostName: visit.employeeName,
+    purpose: visit.purpose,
+    scheduledDate: visit.visitDate,
+    scheduledTime: visit.visitTime,
+    status: visit.status as SecurityVisitorDto['status'],
+    isBlacklisted: false,
+    parkingAssigned: visit.hasParking || false,
+  };
+}
+
+function mapVisitDetailsToSecurityVisitor(visit: VisitDetailsDto): SecurityVisitorDto {
+  return {
+    id: visit.id,
+    visitorName: visit.visitor?.fullName || '',
+    visitorEmail: visit.visitor?.email || '',
+    visitorPhone: visit.visitor?.phone,
+    visitorCompany: visit.visitor?.company,
+    hostId: visit.employeeId || '',
+    hostName: visit.employeeName || '',
+    hostDepartment: visit.employeeDepartment,
+    purpose: visit.purpose || '',
+    scheduledDate: visit.visitDate,
+    scheduledTime: visit.visitTime,
+    status: visit.status as SecurityVisitorDto['status'],
+    isBlacklisted: false,
+    parkingAssigned: !!visit.parkingAllocation,
+    parkingSpot: visit.parkingAllocation?.spotNumber,
+    qrCode: visit.qrCode,
+  };
+}
+
+export interface SecurityVisitorsParams {
+  startDate?: string;
+  endDate?: string;
+  status?: string;
+  search?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface SecurityVisitorsResponse {
+  data: SecurityVisitorDto[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
 export const securityApiService = {
-  getTodayVisitors: (params?: ListSecurityTodayParams): Promise<SecurityVisitorDto[]> => {
-    const queryString = params ? buildQueryString(params as Record<string, unknown>) : '';
-    return get<SecurityVisitorDto[]>(`${security.today}${queryString}`);
+  getVisitors: async (params?: SecurityVisitorsParams): Promise<SecurityVisitorsResponse> => {
+    const queryParams: Record<string, unknown> = {
+      myRequestsOnly: false,
+      ...params,
+    };
+    const queryString = buildQueryString(queryParams);
+    const response = await get<VisitListResponse>(`${visits.base}${queryString}`);
+    
+    return {
+      data: response.data.map(mapVisitToSecurityVisitor),
+      pagination: response.pagination,
+    };
   },
 
-  getTodaySummary: (): Promise<SecuritySummary> => {
-    return get<SecuritySummary>(security.todaySummary);
+  getTodayVisitors: async (params?: ListSecurityTodayParams): Promise<SecurityVisitorDto[]> => {
+    const today = new Date().toISOString().split('T')[0];
+    const queryParams: Record<string, unknown> = {
+      startDate: today,
+      endDate: today,
+      myRequestsOnly: false,
+      limit: 100,
+      ...params,
+    };
+    const queryString = buildQueryString(queryParams);
+    const response = await get<VisitListResponse>(`${visits.base}${queryString}`);
+    
+    return response.data.map(mapVisitToSecurityVisitor);
+  },
+
+  getTodaySummary: async (): Promise<SecuritySummary> => {
+    const today = new Date().toISOString().split('T')[0];
+    const queryString = buildQueryString({
+      startDate: today,
+      endDate: today,
+      myRequestsOnly: false,
+      limit: 500,
+    });
+    const response = await get<VisitListResponse>(`${visits.base}${queryString}`);
+    
+    const statuses = response.data.map(v => v.status);
+    const expectedStatuses = ['approved', 'checked_in', 'checked_out'];
+    const expectedToday = statuses.filter(s => expectedStatuses.includes(s)).length;
+    const checkedIn = statuses.filter(s => s === 'checked_in').length;
+    const checkedOut = statuses.filter(s => s === 'checked_out').length;
+    
+    return {
+      expectedToday,
+      checkedIn,
+      checkedOut,
+      currentlyOnSite: checkedIn,
+      blockedEntries: 0,
+    };
   },
 
   getAlerts: (): Promise<SecurityAlert[]> => {
@@ -72,12 +177,24 @@ export const securityApiService = {
     return get<BlacklistCheckResult>(`${visitors.check}${queryString}`);
   },
 
-  getVisitorDetails: (visitId: string): Promise<SecurityVisitorDto> => {
-    return get<SecurityVisitorDto>(`${security.visits}/${visitId}`);
+  getVisitorDetails: async (visitId: string): Promise<SecurityVisitorDto> => {
+    const response = await get<VisitDetailsDto>(visits.byId(visitId));
+    return mapVisitDetailsToSecurityVisitor(response);
   },
 
-  getOnSiteVisitors: (): Promise<SecurityVisitorDto[]> => {
-    return get<SecurityVisitorDto[]>(`${security.today}?status=checked_in`);
+  getOnSiteVisitors: async (): Promise<SecurityVisitorDto[]> => {
+    const today = new Date().toISOString().split('T')[0];
+    const queryParams: Record<string, unknown> = {
+      startDate: today,
+      endDate: today,
+      status: 'checked_in',
+      myRequestsOnly: false,
+      limit: 100,
+    };
+    const queryString = buildQueryString(queryParams);
+    const response = await get<VisitListResponse>(`${visits.base}${queryString}`);
+    
+    return response.data.map(mapVisitToSecurityVisitor);
   },
 };
 
