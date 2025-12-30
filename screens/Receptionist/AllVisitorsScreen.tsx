@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { View, StyleSheet, Pressable, GestureResponderEvent, Alert, Switch, FlatList, ActivityIndicator, Modal, Platform } from "react-native";
 import type { AllVisitorsScreenProps } from "@/types/receptionistNavigation.types";
-import { SkeletonList } from "@/components/shared/Skeleton";
+import { SkeletonList, WalkInBadge } from "@/components/shared";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SearchInput } from "@/components/SearchInput";
 import { ThemedText } from "@/components/ThemedText";
@@ -256,9 +256,12 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
                 <ThemedText style={[styles.visitorName, { color: theme.text }]} numberOfLines={1}>
                   {visitorName}
                 </ThemedText>
-                <ThemedText style={[styles.companyText, { color: theme.textSecondary }]} numberOfLines={1}>
-                  {item.visitor.company ?? ''}
-                </ThemedText>
+                <View style={styles.companyRow}>
+                  <ThemedText style={[styles.companyText, { color: theme.textSecondary, flex: 1 }]} numberOfLines={1}>
+                    {item.visitor.company ?? ''}
+                  </ThemedText>
+                  {item.isWalkIn ? <WalkInBadge size="sm" /> : null}
+                </View>
               </View>
 
               <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg }]}>
@@ -299,11 +302,6 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
 
             <View style={styles.cardFooter}>
               <View style={styles.servicesRow}>
-                {item.isWalkIn ? (
-                  <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.warning, '15') }]}>
-                    <DDIcon name="user-plus" size={12} color={theme.warning} />
-                  </View>
-                ) : null}
                 {item.hasParking ? (
                   <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '15') }]}>
                     <DDIcon name="map-pin" size={12} color={theme.info} />
@@ -673,7 +671,12 @@ const styles = StyleSheet.create({
   },
   companyText: {
     fontSize: 11,
+  },
+  companyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginTop: 1,
+    gap: Spacing.sm,
   },
   statusBadge: {
     paddingHorizontal: Spacing.sm,
