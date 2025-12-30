@@ -8,7 +8,7 @@ import { useScreenInsets } from "@/hooks/useScreenInsets";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
-import { ServiceIcons, SelectionCheckbox, StatusAccent, WalkInBadge, SkeletonDashboard, LoadingSpinner, ApprovalActionGroup } from "@/components/shared";
+import { ServiceIcons, SelectionCheckbox, StatusAccent, WalkInBadge, SkeletonDashboard, LoadingSpinner, ApprovalActionGroup, LoadingButton } from "@/components/shared";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -483,17 +483,21 @@ const RejectRequestModal = ({
   onClose,
   onSubmit,
   theme,
+  isDark,
   isProcessing,
   isBulk,
-  t
+  t,
+  insets
 }: {
   visible: boolean;
   onClose: () => void;
   onSubmit: (reason: string) => void;
   theme: Theme;
+  isDark: boolean;
   isProcessing: boolean;
   isBulk?: boolean;
   t: (key: string) => string;
+  insets: { bottom: number };
 }) => {
   const [rejectionReason, setRejectionReason] = useState('');
 
@@ -502,44 +506,66 @@ const RejectRequestModal = ({
     setRejectionReason('');
   };
 
+  const handleCancel = () => {
+    if (isProcessing) return;
+    setRejectionReason('');
+    onClose();
+  };
+
   return (
     <Modal
       visible={visible}
       transparent
       animationType="fade"
-      onRequestClose={() => !isProcessing && onClose()}
+      onRequestClose={handleCancel}
       statusBarTranslucent
     >
-      <View style={styles.modalOverlay}>
-        <Pressable 
-          style={[styles.modalBackdrop, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]}
-          onPress={() => !isProcessing && onClose()}
+      <Pressable 
+        style={styles.modalOverlay} 
+        onPress={!isProcessing ? handleCancel : undefined}
+      >
+        <BlurView
+          intensity={isDark ? 40 : 60}
+          tint={isDark ? "dark" : "light"}
+          style={StyleSheet.absoluteFill}
         />
-        <View style={styles.modalContainer}>
-          <ThemedView style={[styles.modalContent, { backgroundColor: theme.surface }]}>
+        <Pressable 
+          style={[
+            styles.rejectModalContainer,
+            { 
+              backgroundColor: theme.surface,
+              borderColor: theme.border,
+              marginHorizontal: Spacing.lg,
+              marginBottom: insets.bottom,
+            }
+          ]}
+          onPress={(e) => e.stopPropagation()}
+        >
+          <ThemedView style={styles.rejectModalContent}>
             <Pressable 
-              onPress={() => !isProcessing && onClose()}
-              style={styles.closeButton}
+              onPress={handleCancel}
+              style={styles.rejectModalCloseButton}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              disabled={isProcessing}
             >
               <DDIcon name="x" size={20} variant="muted" />
             </Pressable>
 
-            <View style={styles.modalIconWrapper}>
-              <View style={[styles.modalIconContainer, { backgroundColor: applyOpacity(theme.warning, '15') }]}>
-                <DDIcon name="alert-triangle" size={22} color={theme.warning} />
+            <View style={styles.rejectModalIconContainer}>
+              <View style={[styles.rejectModalIcon, { backgroundColor: applyOpacity(theme.warning, '15') }]}>
+                <DDIcon name="alert-triangle" size={28} color={theme.warning} />
               </View>
             </View>
 
             <Spacer height={Spacing.lg} />
 
-            <ThemedText style={[Typography.subtitle, { fontSize: 18, fontWeight: '600', textAlign: 'center' }]}>
+            <ThemedText style={[Typography.h3, { textAlign: 'center' }]}>
               {isBulk ? t('bulkActions.rejectSelected') : t('actions.reject')}
             </ThemedText>
 
             <Spacer height={Spacing.sm} />
 
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 13, lineHeight: 20, textAlign: 'center' }]}>
+            <ThemedText style={[Typography.body, { color: theme.textSecondary, textAlign: 'center' }]}>
               {t('form.enterNotes')} ({t('form.optional').toLowerCase()})
             </ThemedText>
 
@@ -566,53 +592,38 @@ const RejectRequestModal = ({
 
             <Spacer height={Spacing.xl} />
 
-            <View style={styles.modalActions}>
-              <Pressable
-                style={[
-                  styles.modalCancelButton,
-                  { 
-                    backgroundColor: 'transparent',
-                    borderWidth: 1.5,
-                    borderColor: theme.border,
-                    opacity: isProcessing ? 0.5 : 1
-                  }
-                ]}
-                onPress={onClose}
+            <View style={styles.rejectModalActions}>
+              <LoadingButton
+                onPress={handleCancel}
+                variant="outline"
+                size="medium"
+                fullWidth={false}
                 disabled={isProcessing}
+                style={{ flex: 1, marginEnd: Spacing.sm }}
               >
-                <ThemedText style={[styles.cancelButtonText, { color: theme.text, fontWeight: '600' }]}>
-                  {t('common.cancel')}
-                </ThemedText>
-              </Pressable>
-
-              <Spacer width={Spacing.md} />
-
-              <Pressable
-                style={[
-                  styles.modalSubmitButton,
-                  { 
-                    backgroundColor: isProcessing ? theme.textSecondary : theme.warning,
-                    opacity: isProcessing ? 0.7 : 1
-                  }
-                ]}
+                {t('common.cancel')}
+              </LoadingButton>
+              <LoadingButton
                 onPress={handleSubmit}
+                variant="primary"
+                size="medium"
+                fullWidth={false}
+                loading={isProcessing}
                 disabled={isProcessing}
+                style={{ flex: 1, backgroundColor: theme.warning }}
               >
-                {isProcessing ? <DDIcon name="loader" size={18} color={theme.buttonText} /> : null}
-                <ThemedText style={[styles.submitButtonText, { color: theme.buttonText, fontWeight: '600', marginStart: isProcessing ? 8 : 0 }]}>
-                  {isProcessing ? t('common.loading') : t('common.confirm')}
-                </ThemedText>
-              </Pressable>
+                {t('common.confirm')}
+              </LoadingButton>
             </View>
           </ThemedView>
-        </View>
-      </View>
+        </Pressable>
+      </Pressable>
     </Modal>
   );
 };
 
 export default function ManagerDashboardScreen({ navigation }: ManagerDashboardScreenProps) {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
   const { t } = useTranslation();
   const { formatDate, formatTimeFromString } = useFormatters();
   const insets = useSafeAreaInsets();
@@ -918,9 +929,11 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
           }}
           onSubmit={handleRejectSubmit}
           theme={theme}
+          isDark={isDark}
           isProcessing={isProcessing}
           isBulk={isBulkReject}
           t={t}
+          insets={insets}
         />
       </View>
     );
@@ -988,9 +1001,11 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
         }}
         onSubmit={handleRejectSubmit}
         theme={theme}
+        isDark={isDark}
         isProcessing={isProcessing}
         isBulk={isBulkReject}
         t={t}
+        insets={insets}
       />
     </View>
   );
@@ -1412,6 +1427,41 @@ const styles = StyleSheet.create({
   emptyState: {
     padding: Spacing.xl * 2,
     borderRadius: BorderRadius.lg,
+    alignItems: 'center',
+  },
+  rejectModalContainer: {
+    borderRadius: BorderRadius.xl,
+    borderWidth: 1,
+    maxWidth: 400,
+    width: '100%',
+    marginHorizontal: Spacing.lg,
+    padding: Spacing.xl,
+    overflow: 'hidden',
+  },
+  rejectModalCloseButton: {
+    position: 'absolute',
+    top: Spacing.md,
+    left: Spacing.md,
+    padding: Spacing.xs,
+    borderRadius: BorderRadius.sm,
+    zIndex: 10,
+  },
+  rejectModalIconContainer: {
+    alignItems: 'center',
+    marginTop: Spacing.lg,
+  },
+  rejectModalIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  rejectModalActions: {
+    flexDirection: 'row',
+    width: '100%',
+  },
+  rejectModalContent: {
     alignItems: 'center',
   },
 });
