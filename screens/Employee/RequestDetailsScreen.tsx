@@ -278,7 +278,7 @@ export default function RequestDetailsScreen({
 
   const scrollContentStyle = {
     paddingHorizontal: Spacing.xl,
-    paddingTop: insets.top + Spacing.xl,
+    paddingTop: Spacing.lg,
     paddingBottom: insets.bottom + Spacing.xl,
   };
 

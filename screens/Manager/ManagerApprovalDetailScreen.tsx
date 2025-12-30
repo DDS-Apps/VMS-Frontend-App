@@ -637,9 +637,9 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
       <ScreenScrollView 
         contentContainerStyle={{
           paddingHorizontal: Spacing.xl,
+          paddingTop: Spacing.lg,
         }}
       >
-        <Spacer height={Spacing.xl} />
 
         {renderStatusHeader()}
 
