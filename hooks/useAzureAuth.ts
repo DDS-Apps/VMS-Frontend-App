@@ -116,7 +116,7 @@ export function useAzureAuth(): UseAzureAuthReturn {
 
     try {
       const appRedirectUrl = getAppRedirectUrl();
-      const microsoftLoginUrl = `${microsoftAuthBaseUrl}${apiConfig.endpoints.auth.microsoftLogin}?platform=mobile&redirect_uri=${encodeURIComponent(appRedirectUrl)}`;
+      const microsoftLoginUrl = `${microsoftAuthBaseUrl}${apiConfig.endpoints.auth.microsoftLogin}?platform=mobile`;
       
       console.log('[AzureAuth] Starting Microsoft login flow');
       console.log('[AzureAuth] Login URL:', microsoftLoginUrl);
