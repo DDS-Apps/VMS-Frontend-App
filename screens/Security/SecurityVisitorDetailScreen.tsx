@@ -1,5 +1,5 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, ActivityIndicator } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
@@ -11,15 +11,17 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
 import { applyOpacity } from "@/utils/statusStyles";
-import { SecurityVisitor } from "@/services/mock/securityVisitorState";
+import { useSecurityVisitorQuery } from "@/hooks/queries/useSecurityQueries";
 import type { SecurityVisitorDetailScreenProps } from "@/types/securityNavigation.types";
 
 export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDetailScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { formatDate, formatTime, toLocalNumerals, formatTimeFromString } = useFormatters();
+  const { formatDate, formatTimeFromString } = useFormatters();
   const insets = useSafeAreaInsets();
-  const { visitor }: { visitor: SecurityVisitor } = route.params;
+  const { visitorId } = route.params;
+
+  const { data: visitorData, isLoading, isError } = useSecurityVisitorQuery(visitorId);
 
   const scrollContentStyle = {
     paddingHorizontal: Spacing.xl,
@@ -30,8 +32,10 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
   const getStatusConfig = (status: string): { label: string; bg: string; text: string; icon: IconName } => {
     switch (status) {
       case 'checked_in':
+      case 'on_site':
         return { label: t('status.checkedIn'), bg: applyOpacity(theme.success, '15'), text: theme.success, icon: 'check-circle' };
       case 'checked_out':
+      case 'completed':
         return { label: t('status.checkedOut'), bg: applyOpacity(theme.textSecondary, '15'), text: theme.textSecondary, icon: 'log-out' };
       case 'cancelled':
         return { label: t('status.cancelled'), bg: applyOpacity(theme.error, '15'), text: theme.error, icon: 'x-circle' };
@@ -40,23 +44,48 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
     }
   };
 
-  const statusConfig = getStatusConfig(visitor.status);
+  if (isLoading) {
+    return (
+      <ScreenScrollView contentContainerStyle={[scrollContentStyle, { flex: 1, justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={theme.primary} />
+        <Spacer height={Spacing.md} />
+        <ThemedText style={[Typography.body, { color: theme.textSecondary }]}>
+          {t('common.loading')}
+        </ThemedText>
+      </ScreenScrollView>
+    );
+  }
+
+  if (isError || !visitorData) {
+    return (
+      <ScreenScrollView contentContainerStyle={[scrollContentStyle, { flex: 1, justifyContent: 'center', alignItems: 'center' }]}>
+        <DDIcon name="alert-circle" size={48} color={theme.error} />
+        <Spacer height={Spacing.md} />
+        <ThemedText style={[Typography.body, { color: theme.error, textAlign: 'center' }]}>
+          {t('errors.failedToLoadData')}
+        </ThemedText>
+      </ScreenScrollView>
+    );
+  }
+
+  const statusConfig = getStatusConfig(visitorData.status);
+  const hasParking = visitorData.parkingAssigned || false;
 
   return (
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
       <View style={styles.header}>
         <View style={[styles.largeAvatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
           <ThemedText style={[styles.largeAvatarText, { color: theme.primary }]}>
-            {visitor.name.split(' ').map(n => n[0]).join('')}
+            {visitorData.visitorName.split(' ').map(n => n[0]).join('')}
           </ThemedText>
         </View>
         <Spacer height={Spacing.lg} />
         <ThemedText style={[Typography.title, { fontSize: 24, fontWeight: '600', textAlign: 'center' }]}>
-          {visitor.name}
+          {visitorData.visitorName}
         </ThemedText>
         <Spacer height={Spacing.xs} />
         <ThemedText style={[Typography.body, { color: theme.textSecondary, textAlign: 'center' }]}>
-          {visitor.company}
+          {visitorData.visitorCompany || ''}
         </ThemedText>
         <Spacer height={Spacing.md} />
         <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg }]}>
@@ -81,7 +110,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
               {t('visitor.visitTime')}
             </ThemedText>
             <ThemedText style={[Typography.body, { fontWeight: '500' }]}>
-              {formatTimeFromString(visitor.visitTime)}
+              {formatTimeFromString(visitorData.scheduledTime)}
             </ThemedText>
           </View>
         </View>
@@ -95,7 +124,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
               {t('visitor.visitDate')}
             </ThemedText>
             <ThemedText style={[Typography.body, { fontWeight: '500' }]}>
-              {formatDate(new Date(visitor.visitDate), 'long')}
+              {formatDate(new Date(visitorData.scheduledDate), 'long')}
             </ThemedText>
           </View>
         </View>
@@ -109,25 +138,27 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
               {t('reception.hostName')}
             </ThemedText>
             <ThemedText style={[Typography.body, { fontWeight: '500' }]}>
-              {visitor.host}
+              {visitorData.hostName}
             </ThemedText>
+            {visitorData.hostDepartment ? (
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
+                {visitorData.hostDepartment}
+              </ThemedText>
+            ) : null}
           </View>
         </View>
 
-        {visitor.meetingRoom ? (
+        {visitorData.purpose ? (
           <>
             <View style={[styles.divider, { backgroundColor: theme.border }]} />
             <View style={styles.infoRow}>
-              <DDIcon name="home" size={18} variant="muted" />
+              <DDIcon name="briefcase" size={18} variant="muted" />
               <View style={{ flex: 1, marginStart: Spacing.md }}>
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 11 }]}>
-                  {t('admin.meetingRooms')}
+                  {t('form.purpose')}
                 </ThemedText>
                 <ThemedText style={[Typography.body, { fontWeight: '500' }]}>
-                  {visitor.meetingRoom.roomName}
-                </ThemedText>
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
-                  {visitor.meetingRoom.floor} - {visitor.meetingRoom.timeSlot}
+                  {visitorData.purpose}
                 </ThemedText>
               </View>
             </View>
@@ -146,21 +177,16 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
           <DDIcon 
             name="map-pin" 
             size={18} 
-            color={visitor.parking.hasParking ? theme.primary : theme.textSecondary} 
+            color={hasParking ? theme.primary : theme.textSecondary} 
           />
           <View style={{ flex: 1, marginStart: Spacing.md }}>
             <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 11 }]}>
               {t('security.parkingStatus')}
             </ThemedText>
-            {visitor.parking.hasParking ? (
-              <>
-                <ThemedText style={[Typography.body, { fontWeight: '500', color: theme.primary }]}>
-                  {visitor.parking.slotNumber}
-                </ThemedText>
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
-                  {visitor.parking.location} - {visitor.parking.floor}
-                </ThemedText>
-              </>
+            {hasParking ? (
+              <ThemedText style={[Typography.body, { fontWeight: '500', color: theme.primary }]}>
+                {visitorData.parkingSpot || t('security.parkingAssigned')}
+              </ThemedText>
             ) : (
               <View style={[styles.noBadge, { backgroundColor: applyOpacity(theme.textSecondary, '12') }]}>
                 <DDIcon name="x-circle" size={12} color={theme.textSecondary} />
@@ -178,43 +204,23 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
           <DDIcon 
             name="truck" 
             size={18} 
-            color={visitor.valet.hasValet ? theme.accent : theme.textSecondary} 
+            color={theme.textSecondary} 
           />
           <View style={{ flex: 1, marginStart: Spacing.md }}>
             <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 11 }]}>
               {t('security.valetStatus')}
             </ThemedText>
-            {visitor.valet.hasValet ? (
-              <>
-                <ThemedText style={[Typography.body, { fontWeight: '500', color: theme.accent }]}>
-                  {t('security.valetService')}
-                </ThemedText>
-                {visitor.valet.driverName ? (
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
-                    {t('valet.driver')}: {visitor.valet.driverName}
-                  </ThemedText>
-                ) : null}
-                {visitor.valet.status ? (
-                  <View style={[styles.valetStatusBadge, { backgroundColor: applyOpacity(theme.accent, '12') }]}>
-                    <ThemedText style={[Typography.caption, { color: theme.accent, fontWeight: '500' }]}>
-                      {visitor.valet.status.replace('_', ' ').toUpperCase()}
-                    </ThemedText>
-                  </View>
-                ) : null}
-              </>
-            ) : (
-              <View style={[styles.noBadge, { backgroundColor: applyOpacity(theme.textSecondary, '12') }]}>
-                <DDIcon name="x-circle" size={12} color={theme.textSecondary} />
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontWeight: '500' }]}>
-                  {t('security.noValet')}
-                </ThemedText>
-              </View>
-            )}
+            <View style={[styles.noBadge, { backgroundColor: applyOpacity(theme.textSecondary, '12') }]}>
+              <DDIcon name="x-circle" size={12} color={theme.textSecondary} />
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontWeight: '500' }]}>
+                {t('security.noValet')}
+              </ThemedText>
+            </View>
           </View>
         </View>
       </ThemedView>
 
-      {(visitor.checkInTime || visitor.checkOutTime) ? (
+      {(visitorData.checkInTime || visitorData.checkOutTime) ? (
         <>
           <Spacer height={Spacing.lg} />
 
@@ -223,7 +229,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
               {t('actions.checkIn')} / {t('actions.checkOut')}
             </ThemedText>
 
-            {visitor.checkInTime ? (
+            {visitorData.checkInTime ? (
               <View style={styles.infoRow}>
                 <DDIcon name="log-in" size={18} color={theme.success} />
                 <View style={{ flex: 1, marginStart: Spacing.md }}>
@@ -231,17 +237,17 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                     {t('actions.checkIn')} {t('visitor.visitTime')}
                   </ThemedText>
                   <ThemedText style={[Typography.body, { fontWeight: '500', color: theme.success }]}>
-                    {formatTimeFromString(visitor.checkInTime)}
+                    {formatTimeFromString(visitorData.checkInTime)}
                   </ThemedText>
                 </View>
               </View>
             ) : null}
 
-            {visitor.checkInTime && visitor.checkOutTime ? (
+            {visitorData.checkInTime && visitorData.checkOutTime ? (
               <View style={[styles.divider, { backgroundColor: theme.border }]} />
             ) : null}
 
-            {visitor.checkOutTime ? (
+            {visitorData.checkOutTime ? (
               <View style={styles.infoRow}>
                 <DDIcon name="log-out" size={18} variant="muted" />
                 <View style={{ flex: 1, marginStart: Spacing.md }}>
@@ -249,7 +255,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                     {t('actions.checkOut')} {t('visitor.visitTime')}
                   </ThemedText>
                   <ThemedText style={[Typography.body, { fontWeight: '500', color: theme.textSecondary }]}>
-                    {formatTimeFromString(visitor.checkOutTime)}
+                    {formatTimeFromString(visitorData.checkOutTime)}
                   </ThemedText>
                 </View>
               </View>
@@ -258,20 +264,20 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
         </>
       ) : null}
 
-      {visitor.status === 'cancelled' && visitor.cancelReason ? (
+      {visitorData.notes ? (
         <>
           <Spacer height={Spacing.lg} />
 
-          <ThemedView style={[styles.card, { backgroundColor: applyOpacity(theme.error, '08') }]}>
-            <View style={styles.cancelledHeader}>
-              <DDIcon name="x-circle" size={18} color={theme.error} />
-              <ThemedText style={[Typography.subtitle, { fontWeight: '600', color: theme.error, marginStart: Spacing.sm }]}>
-                {t('status.cancelled')}
+          <ThemedView style={[styles.card, { backgroundColor: theme.surface }]}>
+            <View style={styles.notesHeader}>
+              <DDIcon name="file-text" size={18} variant="muted" />
+              <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginStart: Spacing.sm }]}>
+                {t('form.notes')}
               </ThemedText>
             </View>
             <Spacer height={Spacing.sm} />
-            <ThemedText style={[Typography.body, { color: theme.error }]}>
-              {visitor.cancelReason}
+            <ThemedText style={[Typography.body, { color: theme.textSecondary }]}>
+              {visitorData.notes}
             </ThemedText>
           </ThemedView>
         </>
@@ -325,14 +331,7 @@ const styles = StyleSheet.create({
     gap: 4,
     marginTop: 2,
   },
-  valetStatusBadge: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    borderRadius: BorderRadius.md,
-    marginTop: Spacing.xs,
-  },
-  cancelledHeader: {
+  notesHeader: {
     flexDirection: 'row',
     alignItems: 'center',
   },

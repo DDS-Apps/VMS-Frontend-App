@@ -1,6 +1,5 @@
-import React, { useState } from "react";
-import { View, StyleSheet, Pressable, ScrollView } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
+import React, { useState, useMemo } from "react";
+import { View, StyleSheet, Pressable, ScrollView, ActivityIndicator } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DDIcon } from "@/components/DDIcon";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
@@ -14,12 +13,75 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
 import { applyOpacity } from "@/utils/statusStyles";
-import {
-  getExpectedVisitors,
-  SecurityVisitor,
-  SecurityVisitorStatus,
-} from "@/services/mock/securityVisitorState";
+import { useSecurityTodayVisitorsQuery } from "@/hooks/queries/useSecurityQueries";
+import type { SecurityVisitorDto } from "@/types";
 import type { SecurityCheckInScreenProps } from "@/types/securityNavigation.types";
+
+type SecurityVisitorStatus = 'expected' | 'checked_in' | 'checked_out' | 'cancelled';
+
+interface SecurityVisitor {
+  id: string;
+  name: string;
+  company: string;
+  visitDate: string;
+  visitTime: string;
+  host: string;
+  status: SecurityVisitorStatus;
+  checkInTime?: string;
+  checkOutTime?: string;
+  parking: {
+    hasParking: boolean;
+    slotNumber?: string;
+    location?: string;
+    floor?: string;
+  };
+  valet: {
+    hasValet: boolean;
+    driverName?: string;
+    status?: string;
+  };
+  meetingRoom?: {
+    roomName: string;
+    floor: string;
+    timeSlot: string;
+  };
+}
+
+const mapApiToSecurityVisitor = (dto: SecurityVisitorDto): SecurityVisitor => {
+  const mapStatus = (status: string): SecurityVisitorStatus => {
+    switch (status) {
+      case 'checked_in':
+      case 'on_site':
+        return 'checked_in';
+      case 'checked_out':
+      case 'completed':
+        return 'checked_out';
+      case 'cancelled':
+        return 'cancelled';
+      default:
+        return 'expected';
+    }
+  };
+
+  return {
+    id: dto.id,
+    name: dto.visitorName,
+    company: dto.visitorCompany || '',
+    visitDate: dto.scheduledDate,
+    visitTime: dto.scheduledTime,
+    host: dto.hostName,
+    status: mapStatus(dto.status),
+    checkInTime: dto.checkInTime,
+    checkOutTime: dto.checkOutTime,
+    parking: {
+      hasParking: dto.parkingAssigned || false,
+      slotNumber: dto.parkingSpot,
+    },
+    valet: {
+      hasValet: false,
+    },
+  };
+};
 
 type StatusFilter = 'all' | SecurityVisitorStatus;
 
@@ -34,11 +96,17 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
   const { formatTimeFromString } = useFormatters();
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
-  const [visitors, setVisitors] = useState<SecurityVisitor[]>([]);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [dateRange, setDateRange] = useState<DateRange>({ startDate: null, endDate: null });
   const [showDatePicker, setShowDatePicker] = useState(false);
+
+  const { data: apiVisitors, isLoading, isError, refetch } = useSecurityTodayVisitorsQuery();
+
+  const visitors = useMemo(() => {
+    if (!apiVisitors) return [];
+    return apiVisitors.map(mapApiToSecurityVisitor);
+  }, [apiVisitors]);
 
   const FILTER_OPTIONS: { key: StatusFilter; label: string }[] = [
     { key: 'all', label: t('common.all') },
@@ -53,12 +121,6 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
     paddingTop: insets.top + Spacing.lg,
     paddingBottom: insets.bottom + Spacing.xl
   };
-
-  useFocusEffect(
-    React.useCallback(() => {
-      setVisitors(getExpectedVisitors());
-    }, [])
-  );
 
   const formatDateForFilter = (date: Date) => {
     const year = date.getFullYear();
@@ -259,7 +321,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
     return (
       <Pressable 
         key={visitor.id}
-        onPress={() => navigation.navigate('SecurityVisitorDetail', { visitor })}
+        onPress={() => navigation.navigate('SecurityVisitorDetail', { visitorId: visitor.id })}
       >
         <ThemedView 
           style={[

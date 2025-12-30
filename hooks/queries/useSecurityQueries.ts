@@ -9,16 +9,16 @@ import type {
   BlacklistCheckResult,
   GateCheckInDto,
   GateCheckOutDto,
-  ListTodayParams,
+  ListSecurityTodayParams,
   ListGateLogsParams,
   PaginatedResponse,
-} from '@/services/securityApiService';
+} from '@/types';
 import { ApiError } from '@/api/errors';
 
 export const securityKeys = {
   all: ['security'] as const,
   today: () => [...securityKeys.all, 'today'] as const,
-  todayList: (params?: ListTodayParams) => [...securityKeys.today(), 'list', params] as const,
+  todayList: (params?: ListSecurityTodayParams) => [...securityKeys.today(), 'list', params] as const,
   todaySummary: () => [...securityKeys.today(), 'summary'] as const,
   alerts: () => [...securityKeys.all, 'alerts'] as const,
   gateLogs: () => [...securityKeys.all, 'gate-logs'] as const,
@@ -30,7 +30,7 @@ export const securityKeys = {
 };
 
 export function useSecurityTodayVisitorsQuery(
-  params?: ListTodayParams,
+  params?: ListSecurityTodayParams,
   options?: Omit<UseQueryOptions<SecurityVisitorDto[], ApiError>, 'queryKey' | 'queryFn'>
 ) {
   return useQuery<SecurityVisitorDto[], ApiError>({
