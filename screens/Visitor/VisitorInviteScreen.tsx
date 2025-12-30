@@ -1065,6 +1065,7 @@ const styles = StyleSheet.create({
   },
   heroTitle: {
     fontSize: 28,
+    lineHeight: 36,
     fontWeight: '700',
     color: PageColors.textPrimary,
     textAlign: 'center',
@@ -1100,6 +1101,7 @@ const styles = StyleSheet.create({
   },
   avatarText: {
     fontSize: 24,
+    lineHeight: 32,
     fontWeight: '700',
     color: PageColors.background,
   },

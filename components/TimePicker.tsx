@@ -501,11 +501,13 @@ const styles = StyleSheet.create({
   },
   timeDigitText: {
     fontSize: 32,
+    lineHeight: 40,
     fontWeight: '700',
     fontVariant: ['tabular-nums'],
   },
   timeSeparator: {
     fontSize: 32,
+    lineHeight: 40,
     fontWeight: '700',
   },
   periodToggle: {

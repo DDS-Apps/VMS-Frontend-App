@@ -594,19 +594,19 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                   <View style={{ alignItems: 'center' }}>
                     <DDIcon name="calendar" size={24} color={theme.primary} />
                     <Spacer height={Spacing.xs} />
-                    <ThemedText style={[Typography.display, { fontSize: 28, fontWeight: '600' }]}>2</ThemedText>
+                    <ThemedText style={[Typography.display, { fontSize: 28, lineHeight: 36, fontWeight: '600' }]}>2</ThemedText>
                     <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>{t('time.today')}</ThemedText>
                   </View>
                   <View style={{ alignItems: 'center' }}>
                     <DDIcon name="clock" size={24} color={theme.info} />
                     <Spacer height={Spacing.xs} />
-                    <ThemedText style={[Typography.display, { fontSize: 28, fontWeight: '600' }]}>1</ThemedText>
+                    <ThemedText style={[Typography.display, { fontSize: 28, lineHeight: 36, fontWeight: '600' }]}>1</ThemedText>
                     <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>{t('time.tomorrow')}</ThemedText>
                   </View>
                   <View style={{ alignItems: 'center' }}>
                     <DDIcon name="trending-up" size={24} color={theme.success} />
                     <Spacer height={Spacing.xs} />
-                    <ThemedText style={[Typography.display, { fontSize: 28, fontWeight: '600' }]}>1</ThemedText>
+                    <ThemedText style={[Typography.display, { fontSize: 28, lineHeight: 36, fontWeight: '600' }]}>1</ThemedText>
                     <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>{t('dashboard.next7Days')}</ThemedText>
                   </View>
                 </View>
@@ -634,19 +634,19 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                   <View style={{ alignItems: 'center' }}>
                     <DDIcon name="users" size={24} color={theme.primary} />
                     <Spacer height={Spacing.xs} />
-                    <ThemedText style={[Typography.display, { fontSize: 28, fontWeight: '600' }]}>12</ThemedText>
+                    <ThemedText style={[Typography.display, { fontSize: 28, lineHeight: 36, fontWeight: '600' }]}>12</ThemedText>
                     <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>{t('dashboard.totalStaff')}</ThemedText>
                   </View>
                   <View style={{ alignItems: 'center' }}>
                     <DDIcon name="user-check" size={24} color={theme.success} />
                     <Spacer height={Spacing.xs} />
-                    <ThemedText style={[Typography.display, { fontSize: 28, fontWeight: '600' }]}>8</ThemedText>
+                    <ThemedText style={[Typography.display, { fontSize: 28, lineHeight: 36, fontWeight: '600' }]}>8</ThemedText>
                     <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>{t('dashboard.active')}</ThemedText>
                   </View>
                   <View style={{ alignItems: 'center' }}>
                     <DDIcon name="briefcase" size={24} color={theme.info} />
                     <Spacer height={Spacing.xs} />
-                    <ThemedText style={[Typography.display, { fontSize: 28, fontWeight: '600' }]}>6</ThemedText>
+                    <ThemedText style={[Typography.display, { fontSize: 28, lineHeight: 36, fontWeight: '600' }]}>6</ThemedText>
                     <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>{t('dashboard.onDuty')}</ThemedText>
                   </View>
                 </View>
@@ -763,6 +763,7 @@ const styles = StyleSheet.create({
   },
   kpiValue: {
     fontSize: 28,
+    lineHeight: 36,
     fontWeight: '700',
     letterSpacing: -0.5,
   },

@@ -370,6 +370,7 @@ const styles = StyleSheet.create({
   },
   avatarText: {
     fontSize: 28,
+    lineHeight: 36,
     fontWeight: '700',
   },
   badgeRow: {

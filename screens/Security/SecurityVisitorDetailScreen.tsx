@@ -299,6 +299,7 @@ const styles = StyleSheet.create({
   },
   largeAvatarText: {
     fontSize: 32,
+    lineHeight: 40,
     fontWeight: '700',
   },
   statusBadge: {

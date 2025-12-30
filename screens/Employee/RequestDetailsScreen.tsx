@@ -1048,7 +1048,7 @@ export default function RequestDetailsScreen({
             <ThemedText
               style={[
                 styles.avatarText,
-                { color: theme.primary, fontSize: 32, fontWeight: "700" },
+                { color: theme.primary, fontSize: 32, lineHeight: 40, fontWeight: "700" },
               ]}
             >
               {request.visitor.fullName
@@ -2828,6 +2828,7 @@ const styles = StyleSheet.create({
   },
   avatarText: {
     fontSize: 28,
+    lineHeight: 36,
     fontWeight: "600",
   },
   infoRow: {

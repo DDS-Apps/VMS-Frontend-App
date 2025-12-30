@@ -309,24 +309,28 @@ export const Typography = {
   // Legacy aliases for backwards compatibility
   display: {
     fontSize: 32,
+    lineHeight: 40,
     fontWeight: "700" as const,
     fontFamily: FontFamily.latinBold,
     letterSpacing: 0.4,
   },
   title: {
     fontSize: 24,
+    lineHeight: 32,
     fontWeight: "600" as const,
     fontFamily: FontFamily.latinSemiBold,
     letterSpacing: 0.3,
   },
   subtitle: {
     fontSize: 20,
+    lineHeight: 28,
     fontWeight: "600" as const,
     fontFamily: FontFamily.latinSemiBold,
     letterSpacing: 0.3,
   },
   bodyLarge: {
     fontSize: 18,
+    lineHeight: 26,
     fontWeight: "400" as const,
     fontFamily: FontFamily.latinRegular,
     letterSpacing: 0.3,

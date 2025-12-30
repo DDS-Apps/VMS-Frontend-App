@@ -140,7 +140,7 @@ const StatsCards = ({ totalRequests, inProgress, completed, theme, t }: { totalR
         <DDIcon name="clipboard" size={24} variant="primary" />
       </View>
       <Spacer height={Spacing.sm} />
-      <ThemedText style={[Typography.title, { fontSize: 32 }]}>
+      <ThemedText style={[Typography.title, { fontSize: 32, lineHeight: 40 }]}>
         {totalRequests}
       </ThemedText>
       <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: 'center' }]}>
@@ -153,7 +153,7 @@ const StatsCards = ({ totalRequests, inProgress, completed, theme, t }: { totalR
         <DDIcon name="loader" size={24} variant="warning" />
       </View>
       <Spacer height={Spacing.sm} />
-      <ThemedText style={[Typography.title, { fontSize: 32 }]}>
+      <ThemedText style={[Typography.title, { fontSize: 32, lineHeight: 40 }]}>
         {inProgress}
       </ThemedText>
       <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: 'center' }]}>
@@ -166,7 +166,7 @@ const StatsCards = ({ totalRequests, inProgress, completed, theme, t }: { totalR
         <DDIcon name="check-circle" size={24} variant="success" />
       </View>
       <Spacer height={Spacing.sm} />
-      <ThemedText style={[Typography.title, { fontSize: 32 }]}>
+      <ThemedText style={[Typography.title, { fontSize: 32, lineHeight: 40 }]}>
         {completed}
       </ThemedText>
       <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: 'center' }]}>

@@ -464,6 +464,7 @@ const styles = StyleSheet.create({
   },
   kpiValue: {
     fontSize: 28,
+    lineHeight: 36,
     fontWeight: '700',
     letterSpacing: -0.5,
   },

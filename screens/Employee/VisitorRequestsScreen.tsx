@@ -435,7 +435,7 @@ const StatsCards = ({ totalVisitors, todaysVisitors, theme, t }: { totalVisitors
         <DDIcon name="users" size={24} color={theme.info} />
       </View>
       <Spacer height={Spacing.md} />
-      <ThemedText style={[Typography.title, { fontSize: 28, fontWeight: '700' }]}>
+      <ThemedText style={[Typography.title, { fontSize: 28, lineHeight: 36, fontWeight: '700' }]}>
         {totalVisitors}
       </ThemedText>
       <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: 'center', marginTop: 4 }]}>
@@ -448,7 +448,7 @@ const StatsCards = ({ totalVisitors, todaysVisitors, theme, t }: { totalVisitors
         <DDIcon name="calendar" size={24} color={theme.success} />
       </View>
       <Spacer height={Spacing.md} />
-      <ThemedText style={[Typography.title, { fontSize: 28, fontWeight: '700' }]}>
+      <ThemedText style={[Typography.title, { fontSize: 28, lineHeight: 36, fontWeight: '700' }]}>
         {todaysVisitors}
       </ThemedText>
       <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: 'center', marginTop: 4 }]}>

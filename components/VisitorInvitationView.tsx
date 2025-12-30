@@ -81,7 +81,7 @@ export function VisitorInvitationView({
           <ThemedText
             style={[
               Typography.title,
-              { fontWeight: '700', textAlign: 'center', fontSize: 28 },
+              { fontWeight: '700', textAlign: 'center', fontSize: 28, lineHeight: 36 },
             ]}
           >
             {decision === 'accepted' ? t('visitor.invitationAccepted') : t('visitor.invitationDeclined')}
@@ -120,7 +120,7 @@ export function VisitorInvitationView({
             { backgroundColor: theme.surface, borderColor: theme.border },
           ]}
         >
-          <ThemedText style={[Typography.title, { fontWeight: '700', fontSize: 28 }]}>
+          <ThemedText style={[Typography.title, { fontWeight: '700', fontSize: 28, lineHeight: 36 }]}>
             {t('invitation.title')}
           </ThemedText>
           <Spacer height={Spacing.sm} />
