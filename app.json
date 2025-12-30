@@ -26,6 +26,14 @@
       "predictiveBackGestureEnabled": false,
       "package": "com.dallah.vms"
     },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.dallah.vms",
+      "appleTeamId": "SNJM77V43A",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
     "web": {
       "output": "single",
       "favicon": "./assets/images/favicon.png"

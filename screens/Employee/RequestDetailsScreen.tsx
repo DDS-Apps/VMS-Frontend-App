@@ -903,14 +903,14 @@ export default function RequestDetailsScreen({
               },
             ]}
           >
-            <DDIcon name="info" size={16} variant="warning" />
+            <DDIcon name="user-x" size={16} variant="warning" />
             <ThemedText
               style={[
                 Typography.bodySmall,
                 { marginStart: Spacing.sm, flex: 1, color: theme.warning },
               ]}
             >
-              {t("visitor.visitorReason")}: {request.visitorDecision.reason}
+              {t("visitor.visitorDeclineReason")}: {request.visitorDecision.reason}
             </ThemedText>
           </ThemedView>
           <Spacer height={Spacing.lg} />

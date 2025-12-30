@@ -271,6 +271,7 @@ export const en: TranslationKeys = {
     timeline: 'Timeline',
     visitDetails: 'Visit Details',
     visitorReason: 'Reason for Visit',
+    visitorDeclineReason: 'Visitor Decline Reason',
     acceptInvitation: 'Accept Invitation',
     declineInvitation: 'Decline Invitation',
     optionalNotes: 'Add any notes for your host (optional)',

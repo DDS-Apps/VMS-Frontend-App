@@ -271,6 +271,7 @@ export interface TranslationKeys {
     timeline: string;
     visitDetails: string;
     visitorReason: string;
+    visitorDeclineReason: string;
     acceptInvitation: string;
     declineInvitation: string;
     optionalNotes: string;

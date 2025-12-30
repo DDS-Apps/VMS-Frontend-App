@@ -271,6 +271,7 @@ export const ar: TranslationKeys = {
     timeline: 'الجدول الزمني',
     visitDetails: 'تفاصيل الزيارة',
     visitorReason: 'سبب الزيارة',
+    visitorDeclineReason: 'سبب رفض الزائر',
     acceptInvitation: 'قبول الدعوة',
     declineInvitation: 'رفض الدعوة',
     optionalNotes: 'أضف أي ملاحظات للمضيف (اختياري)',
