@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
+import Constants from 'expo-constants';
 import { apiConfig } from '@/api/config';
 
 WebBrowser.maybeCompleteAuthSession();
@@ -32,6 +33,12 @@ function parseAuthResponseUrl(url: string): {
   accessToken?: string; 
   refreshToken?: string; 
   expiresIn?: number; 
+  user?: {
+    id: string;
+    email: string;
+    name: string;
+    role: string;
+  };
   error?: string;
 } {
   try {
@@ -57,16 +64,38 @@ function parseAuthResponseUrl(url: string): {
     const expiresInStr = (queryParams.expires_in as string) || hashParams.expires_in;
     const error = (queryParams.error as string) || hashParams.error;
     
+    let user: { id: string; email: string; name: string; role: string; } | undefined;
+    const userId = (queryParams.user_id as string) || hashParams.user_id;
+    const userEmail = (queryParams.user_email as string) || hashParams.user_email;
+    const userName = (queryParams.user_name as string) || hashParams.user_name;
+    const userRole = (queryParams.user_role as string) || hashParams.user_role;
+    
+    if (userId && userEmail) {
+      user = {
+        id: userId,
+        email: userEmail,
+        name: userName || '',
+        role: userRole || '',
+      };
+    }
+    
     return {
       accessToken,
       refreshToken,
       expiresIn: expiresInStr ? parseInt(expiresInStr, 10) : undefined,
+      user,
       error,
     };
   } catch (err) {
     console.error('[AzureAuth] Error parsing auth response URL:', err);
     return {};
   }
+}
+
+function getAppRedirectUrl(): string {
+  const schemeConfig = Constants.expoConfig?.scheme;
+  const scheme = Array.isArray(schemeConfig) ? schemeConfig[0] : (schemeConfig || 'dallah-vms');
+  return Linking.createURL('auth/callback', { scheme });
 }
 
 export function useAzureAuth(): UseAzureAuthReturn {
@@ -86,17 +115,17 @@ export function useAzureAuth(): UseAzureAuthReturn {
     setErrorType(null);
 
     try {
-      const microsoftLoginUrl = `${microsoftAuthBaseUrl}${apiConfig.endpoints.auth.microsoftLogin}`;
+      const appRedirectUrl = getAppRedirectUrl();
       
-      const backendCallbackUrl = `${microsoftAuthBaseUrl}${apiConfig.endpoints.auth.microsoftCallback}`;
+      const microsoftLoginUrl = `${microsoftAuthBaseUrl}${apiConfig.endpoints.auth.microsoftLogin}?redirect_uri=${encodeURIComponent(appRedirectUrl)}`;
       
       console.log('[AzureAuth] Starting Microsoft login flow');
       console.log('[AzureAuth] Login URL:', microsoftLoginUrl);
-      console.log('[AzureAuth] Backend callback URL:', backendCallbackUrl);
+      console.log('[AzureAuth] App redirect URL:', appRedirectUrl);
 
       const result = await WebBrowser.openAuthSessionAsync(
         microsoftLoginUrl,
-        backendCallbackUrl,
+        appRedirectUrl,
         {
           showInRecents: true,
           preferEphemeralSession: true,
@@ -130,6 +159,7 @@ export function useAzureAuth(): UseAzureAuthReturn {
           accessToken: parsedResponse.accessToken,
           refreshToken: parsedResponse.refreshToken,
           expiresIn: parsedResponse.expiresIn,
+          user: parsedResponse.user,
         };
       } else if (result.type === 'cancel' || result.type === 'dismiss') {
         console.log('[AzureAuth] Auth cancelled by user');
