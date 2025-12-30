@@ -741,7 +741,17 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
         <Spacer height={LAYOUT.sectionSpacing} />
 
-        <SectionHeader title={t('visitor.visitorRequest')} theme={theme} />
+        <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <SectionHeader title={t('visitor.visitorRequest')} theme={theme} />
+          {request.isWalkIn ? (
+            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', backgroundColor: applyOpacity(theme.warning, '15'), paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: BorderRadius.sm }}>
+              <DDIcon name="user-check" size={14} color={theme.warning} />
+              <ThemedText style={[Typography.caption, { color: theme.warning, fontWeight: '600', marginStart: Spacing.xs, fontSize: 11 }]}>
+                {t('reception.walkInVisitor')}
+              </ThemedText>
+            </View>
+          ) : null}
+        </View>
         <Spacer height={Spacing.md} />
 
         <ThemedView style={[styles.card, { backgroundColor: theme.surface }]}>
