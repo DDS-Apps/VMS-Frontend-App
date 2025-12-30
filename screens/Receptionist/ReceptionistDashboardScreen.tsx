@@ -14,7 +14,7 @@ import { applyOpacity } from "@/utils/statusStyles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTodayVisitorsQuery, useRoomsTodayQuery, useReceptionCheckInMutation, useReceptionCheckOutMutation } from "@/hooks/queries/useReceptionQueries";
 import type { TodayVisitorDto, RoomStatusDto } from "@/types";
-import { SkeletonDashboard } from "@/components/shared/Skeleton";
+import { SkeletonDashboard, WalkInBadge } from "@/components/shared";
 import type { ReceptionistDashboardScreenProps } from "@/types/receptionistNavigation.types";
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -241,9 +241,12 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
             <ThemedText style={[styles.visitorName, { color: theme.text }]} numberOfLines={1}>
               {visitorName}
             </ThemedText>
-            <ThemedText style={[styles.visitorCompany, { color: theme.textSecondary }]} numberOfLines={1}>
-              {item.visitor.company ?? ''}
-            </ThemedText>
+            <View style={styles.companyRow}>
+              <ThemedText style={[styles.visitorCompany, { color: theme.textSecondary, flex: 1 }]} numberOfLines={1}>
+                {item.visitor.company ?? ''}
+              </ThemedText>
+              {item.isWalkIn ? <WalkInBadge size="sm" /> : null}
+            </View>
           </View>
         </View>
 
@@ -658,7 +661,12 @@ const styles = StyleSheet.create({
   },
   visitorCompany: {
     fontSize: 13,
+  },
+  companyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginTop: 2,
+    gap: Spacing.sm,
   },
   visitorMetaRow: {
     flexDirection: 'row',

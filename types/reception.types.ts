@@ -56,6 +56,7 @@ export interface TodayVisitorDto {
   meetingRoom?: MeetingRoomSlot;
   parkingSlot?: ParkingSlotInfo;
   qrCode?: string;
+  isWalkIn?: boolean;
 }
 
 export interface TodaySummary {
