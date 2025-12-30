@@ -423,6 +423,66 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
     );
   };
 
+  const renderContent = () => {
+    if (isLoading) {
+      return (
+        <View style={styles.loadingState}>
+          <ActivityIndicator size="large" color={theme.primary} />
+          <Spacer height={Spacing.md} />
+          <ThemedText style={[Typography.body, { color: theme.textSecondary }]}>
+            {t('common.loading')}
+          </ThemedText>
+        </View>
+      );
+    }
+
+    if (isError) {
+      return (
+        <View style={styles.errorState}>
+          <DDIcon name="alert-circle" size={48} color={theme.error} />
+          <Spacer height={Spacing.md} />
+          <ThemedText style={[Typography.body, { color: theme.error, textAlign: 'center' }]}>
+            {t('errors.failedToLoadData')}
+          </ThemedText>
+          <Spacer height={Spacing.lg} />
+          <Pressable
+            style={[styles.retryButton, { backgroundColor: theme.primary }]}
+            onPress={() => refetch()}
+          >
+            <ThemedText style={[Typography.body, { color: '#FFFFFF', fontWeight: '600' }]}>
+              {t('common.retry')}
+            </ThemedText>
+          </Pressable>
+        </View>
+      );
+    }
+
+    if (filteredVisitors.length > 0) {
+      return (
+        <View style={styles.cardList}>
+          {filteredVisitors.map(renderVisitorCard)}
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.emptyState}>
+        <DDIcon name="users" size={48} variant="muted" />
+        <Spacer height={Spacing.md} />
+        <ThemedText style={[Typography.subtitle, { color: theme.textSecondary, textAlign: 'center', fontWeight: '500' }]}>
+          {t('security.visitorNotFound')}
+        </ThemedText>
+        <Spacer height={4} />
+        <ThemedText style={[Typography.body, { color: theme.textSecondary, textAlign: 'center', opacity: 0.7 }]}>
+          {searchQuery 
+            ? t('common.noResults')
+            : t('common.noData')
+          }
+        </ThemedText>
+      </View>
+    );
+  };
+
   return (
     <>
       <ScreenScrollView contentContainerStyle={scrollContentStyle}>
@@ -497,26 +557,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
 
         <Spacer height={Spacing.xl} />
 
-        {filteredVisitors.length > 0 ? (
-          <View style={styles.cardList}>
-            {filteredVisitors.map(renderVisitorCard)}
-          </View>
-        ) : (
-          <View style={styles.emptyState}>
-            <DDIcon name="users" size={48} variant="muted" />
-            <Spacer height={Spacing.md} />
-            <ThemedText style={[Typography.subtitle, { color: theme.textSecondary, textAlign: 'center', fontWeight: '500' }]}>
-              {t('security.visitorNotFound')}
-            </ThemedText>
-            <Spacer height={4} />
-            <ThemedText style={[Typography.body, { color: theme.textSecondary, textAlign: 'center', opacity: 0.7 }]}>
-              {searchQuery 
-                ? t('common.noResults')
-                : t('common.noData')
-              }
-            </ThemedText>
-          </View>
-        )}
+        {renderContent()}
       </ScreenScrollView>
 
       <CalendarDatePicker
@@ -673,5 +714,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: Spacing.xxl * 2,
+  },
+  loadingState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.xxl * 2,
+  },
+  errorState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.xxl * 2,
+  },
+  retryButton: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
   },
 });

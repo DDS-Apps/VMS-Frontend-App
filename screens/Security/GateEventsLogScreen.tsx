@@ -28,6 +28,10 @@ export default function GateEventsLogScreen({ navigation }: GateEventsLogScreenP
   const [searchQuery, setSearchQuery] = useState('');
   const [resultFilter, setResultFilter] = useState<ResultFilter>('all');
 
+  const { data: allLogsResponse } = useSecurityGateLogsQuery({
+    limit: 100,
+  });
+
   const { data: gateLogsResponse, isLoading, isError, refetch } = useSecurityGateLogsQuery({
     result: resultFilter === 'all' ? undefined : resultFilter,
     limit: 100,
@@ -38,6 +42,11 @@ export default function GateEventsLogScreen({ navigation }: GateEventsLogScreenP
     paddingTop: insets.top + Spacing.lg,
     paddingBottom: insets.bottom + Spacing.xl
   };
+
+  const allEvents = useMemo(() => {
+    if (!allLogsResponse?.data) return [];
+    return allLogsResponse.data;
+  }, [allLogsResponse]);
 
   const events = useMemo(() => {
     if (!gateLogsResponse?.data) return [];
@@ -54,14 +63,14 @@ export default function GateEventsLogScreen({ navigation }: GateEventsLogScreenP
   }, [events, searchQuery]);
 
   const eventCounts = useMemo(() => {
-    const allowed = events.filter(e => e.result === 'allowed').length;
-    const denied = events.filter(e => e.result === 'denied').length;
+    const allowed = allEvents.filter(e => e.result === 'allowed').length;
+    const denied = allEvents.filter(e => e.result === 'denied').length;
     return {
-      total: events.length,
+      total: allEvents.length,
       allowed,
       denied,
     };
-  }, [events]);
+  }, [allEvents]);
 
   const FILTER_OPTIONS: { key: ResultFilter; label: string }[] = [
     { key: 'all', label: t('common.all') },
