@@ -196,9 +196,14 @@ const VisitorRequestTableRow = React.memo(({
         <View style={[styles.fixedColumn, { width: LAYOUT.tableFixedColumnWidth }]}>
           <View style={styles.fixedColumnContent}>
             <View style={{ flex: 1 }}>
-              <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]} numberOfLines={2}>
-                {request.visitor.fullName}
-              </ThemedText>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, flexShrink: 1 }]} numberOfLines={2}>
+                  {request.visitor.fullName}
+                </ThemedText>
+                {request.isWalkIn ? (
+                  <DDIcon name="user-check" size={14} color={theme.warning} />
+                ) : null}
+              </View>
               <Spacer height={6} />
               <DateTimeDisplay 
                 date={request.visitDate} 
@@ -327,9 +332,14 @@ const VisitorRequestCard = React.memo(({
             
             <View style={styles.cardNameSection}>
               <View style={styles.nameWithBadgeRow}>
-                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 16, flex: 1 }]} numberOfLines={1}>
-                  {request.visitor.fullName}
-                </ThemedText>
+                <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, gap: 6 }}>
+                  <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 16, flexShrink: 1 }]} numberOfLines={1}>
+                    {request.visitor.fullName}
+                  </ThemedText>
+                  {request.isWalkIn ? (
+                    <DDIcon name="user-check" size={14} color={theme.warning} />
+                  ) : null}
+                </View>
                 <StatusBadge statusConfig={statusConfig} />
               </View>
               {request.visitor.company ? (
