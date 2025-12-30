@@ -1626,4 +1626,14 @@ export interface PublicInviteResponseDto {
   message: string;
   status: string;
   qrCode?: string;
+  data?: {
+    id?: string;
+    status?: string;
+    message?: string;
+    visitorDecision?: {
+      accepted: boolean;
+      decidedAt: string;
+      reason?: string;
+    };
+  };
 }

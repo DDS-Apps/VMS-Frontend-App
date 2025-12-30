@@ -53,28 +53,34 @@ const RejectModal = memo(function RejectModal({
   translations,
 }: RejectModalProps) {
   const [localReason, setLocalReason] = useState('');
+  const wasLoadingRef = React.useRef(false);
 
+  // Only reset localReason when modal closes AND we're not in loading state
+  // This prevents clearing the input during submission
   useEffect(() => {
-    if (!visible) {
+    if (!visible && !isLoading && !wasLoadingRef.current) {
       setLocalReason('');
     }
-  }, [visible]);
+    wasLoadingRef.current = isLoading;
+  }, [visible, isLoading]);
 
   const handleConfirm = useCallback(() => {
+    if (isLoading) return; // Prevent multiple submissions
     onConfirm(localReason);
-  }, [onConfirm, localReason]);
+  }, [onConfirm, localReason, isLoading]);
 
   const handleCancel = useCallback(() => {
+    if (isLoading) return; // Prevent cancel during loading
     setLocalReason('');
     onCancel();
-  }, [onCancel]);
+  }, [onCancel, isLoading]);
 
   return (
     <Modal
       visible={visible}
       transparent
       animationType="fade"
-      onRequestClose={handleCancel}
+      onRequestClose={isLoading ? undefined : handleCancel}
     >
       <View style={modalStyles.overlay}>
         <View style={modalStyles.content}>
@@ -109,7 +115,10 @@ const RejectModal = memo(function RejectModal({
               disabled={isLoading}
             >
               {isLoading ? (
-                <DDIcon name="loader" size={18} color="#FFFFFF" />
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <DDIcon name="loader" size={16} color="#FFFFFF" />
+                  <ThemedText style={modalStyles.confirmText}>{translations.confirm}</ThemedText>
+                </View>
               ) : (
                 <ThemedText style={modalStyles.confirmText}>{translations.confirm}</ThemedText>
               )}
@@ -249,14 +258,18 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
   };
 
   const handleReject = useCallback(async (reason: string) => {
+    // Prevent multiple submissions
+    if (rejectMutation.isPending) return;
+    
     // Store snapshot before action
     if (invite) inviteSnapshotRef.current = invite;
     try {
       const response = await rejectMutation.mutateAsync(
         reason ? { reason } : undefined
       );
-      // Store API response message for display
-      setApiResponseMessage(response?.message || null);
+      // Store API response message for display - prefer data.message over root message
+      const responseMessage = response?.data?.message || response?.message || null;
+      setApiResponseMessage(responseMessage);
       setActionCompleted('rejected');
       setShowRejectModal(false);
     } catch (err) {
