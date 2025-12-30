@@ -233,7 +233,7 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
     const statusConfig = getStatusConfig(item.status);
     const visitorName = item.visitor.fullName;
     const initials = visitorName.split(' ').map(n => n[0]).join('').substring(0, 2);
-    const showCheckIn = item.status === 'approved' || item.status === 'pending_approval';
+    const showCheckIn = item.status === 'approved';
     const showCheckOut = item.status === 'checked_in';
     
     return (
