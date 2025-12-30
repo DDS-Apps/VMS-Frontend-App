@@ -1,6 +1,5 @@
-import React, { useState } from "react";
-import { View, StyleSheet, Pressable, ScrollView } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
+import React, { useState, useMemo } from "react";
+import { View, StyleSheet, Pressable, ScrollView, ActivityIndicator } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
@@ -13,27 +12,26 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { applyOpacity } from "@/utils/statusStyles";
 import { formatTimestamp as formatTimestampUtil } from "@/services/utils/dateTimeUtils";
-import {
-  getGateEvents,
-  getGateEventCounts,
-  GateEvent,
-  GateEventResult,
-  GateEventMethod,
-} from "@/services/mock/securityVisitorState";
+import { useSecurityGateLogsQuery } from "@/hooks/queries/useSecurityQueries";
+import type { GateLogEntry, GateAction, GateResult } from "@/types";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { SecurityStackParamList } from "@/types/securityNavigation.types";
 
 type GateEventsLogScreenProps = NativeStackScreenProps<SecurityStackParamList, "GateEventsLog">;
 
-type ResultFilter = 'all' | GateEventResult;
+type ResultFilter = 'all' | 'allowed' | 'denied';
 
 export default function GateEventsLogScreen({ navigation }: GateEventsLogScreenProps) {
   const { theme } = useTheme();
   const { t, isRTL } = useTranslation();
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
-  const [events, setEvents] = useState<GateEvent[]>([]);
   const [resultFilter, setResultFilter] = useState<ResultFilter>('all');
+
+  const { data: gateLogsResponse, isLoading, isError, refetch } = useSecurityGateLogsQuery({
+    result: resultFilter === 'all' ? undefined : resultFilter,
+    limit: 100,
+  });
 
   const scrollContentStyle = {
     paddingHorizontal: Spacing.lg,
@@ -41,23 +39,29 @@ export default function GateEventsLogScreen({ navigation }: GateEventsLogScreenP
     paddingBottom: insets.bottom + Spacing.xl
   };
 
-  useFocusEffect(
-    React.useCallback(() => {
-      setEvents(getGateEvents());
-    }, [])
-  );
+  const events = useMemo(() => {
+    if (!gateLogsResponse?.data) return [];
+    return gateLogsResponse.data;
+  }, [gateLogsResponse]);
 
-  const filteredEvents = events
-    .filter(event =>
-      event.visitorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      event.gate.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-    .filter(event => {
-      if (resultFilter === 'all') return true;
-      return event.result === resultFilter;
-    });
+  const filteredEvents = useMemo(() => {
+    if (!searchQuery) return events;
+    const query = searchQuery.toLowerCase();
+    return events.filter(event =>
+      (event.visitorName?.toLowerCase().includes(query) || false) ||
+      event.gateName.toLowerCase().includes(query)
+    );
+  }, [events, searchQuery]);
 
-  const eventCounts = getGateEventCounts();
+  const eventCounts = useMemo(() => {
+    const allowed = events.filter(e => e.result === 'allowed').length;
+    const denied = events.filter(e => e.result === 'denied').length;
+    return {
+      total: events.length,
+      allowed,
+      denied,
+    };
+  }, [events]);
 
   const FILTER_OPTIONS: { key: ResultFilter; label: string }[] = [
     { key: 'all', label: t('common.all') },
@@ -100,7 +104,7 @@ export default function GateEventsLogScreen({ navigation }: GateEventsLogScreenP
     }
   };
 
-  const getResultConfig = (result: GateEventResult): { color: string; bgColor: string; label: string; icon: IconName } => {
+  const getResultConfig = (result: GateResult): { color: string; bgColor: string; label: string; icon: IconName } => {
     switch (result) {
       case 'allowed':
         return {
@@ -116,17 +120,26 @@ export default function GateEventsLogScreen({ navigation }: GateEventsLogScreenP
           label: t('security.denied'),
           icon: 'x-circle',
         };
+      default:
+        return {
+          color: theme.textSecondary,
+          bgColor: applyOpacity(theme.textSecondary, '12'),
+          label: result,
+          icon: 'circle',
+        };
     }
   };
 
-  const getMethodConfig = (method: GateEventMethod): { label: string; icon: IconName } => {
-    switch (method) {
-      case 'qr':
-        return { label: t('security.qrScan'), icon: 'maximize' };
-      case 'manual':
-        return { label: t('security.manualEntry'), icon: 'edit-3' };
-      case 'badge':
-        return { label: t('security.badgeScan'), icon: 'credit-card' };
+  const getMethodConfig = (action: GateAction): { label: string; icon: IconName } => {
+    switch (action) {
+      case 'check_in':
+        return { label: t('actions.checkIn'), icon: 'log-in' };
+      case 'check_out':
+        return { label: t('actions.checkOut'), icon: 'log-out' };
+      case 'access_denied':
+        return { label: t('security.denied'), icon: 'x-circle' };
+      default:
+        return { label: action, icon: 'activity' };
     }
   };
 
@@ -156,9 +169,9 @@ export default function GateEventsLogScreen({ navigation }: GateEventsLogScreenP
     }
   };
 
-  const renderEventCard = (event: GateEvent) => {
+  const renderEventCard = (event: GateLogEntry) => {
     const resultConfig = getResultConfig(event.result);
-    const methodConfig = getMethodConfig(event.method);
+    const methodConfig = getMethodConfig(event.action);
     const timestamp = formatTimestamp(event.timestamp);
 
     return (
@@ -172,10 +185,10 @@ export default function GateEventsLogScreen({ navigation }: GateEventsLogScreenP
           <View style={styles.cardHeader}>
             <View style={styles.visitorInfo}>
               <ThemedText style={[Typography.body, { fontWeight: '600' }]}>
-                {event.visitorName}
+                {event.visitorName || t('common.unknown')}
               </ThemedText>
               <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
-                {event.gate}
+                {event.gateName}
               </ThemedText>
             </View>
             <View style={[styles.resultBadge, { backgroundColor: resultConfig.bgColor }]}>
@@ -213,6 +226,39 @@ export default function GateEventsLogScreen({ navigation }: GateEventsLogScreenP
       </ThemedView>
     );
   };
+
+  if (isLoading) {
+    return (
+      <ScreenScrollView contentContainerStyle={[scrollContentStyle, { flex: 1, justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={theme.primary} />
+        <Spacer height={Spacing.md} />
+        <ThemedText style={[Typography.body, { color: theme.textSecondary }]}>
+          {t('common.loading')}
+        </ThemedText>
+      </ScreenScrollView>
+    );
+  }
+
+  if (isError) {
+    return (
+      <ScreenScrollView contentContainerStyle={[scrollContentStyle, { flex: 1, justifyContent: 'center', alignItems: 'center' }]}>
+        <DDIcon name="alert-circle" size={48} color={theme.error} />
+        <Spacer height={Spacing.md} />
+        <ThemedText style={[Typography.body, { color: theme.error, textAlign: 'center' }]}>
+          {t('errors.failedToLoadData')}
+        </ThemedText>
+        <Spacer height={Spacing.lg} />
+        <Pressable
+          style={[styles.retryButton, { backgroundColor: theme.primary }]}
+          onPress={() => refetch()}
+        >
+          <ThemedText style={[Typography.body, { color: '#FFFFFF', fontWeight: '600' }]}>
+            {t('common.retry')}
+          </ThemedText>
+        </Pressable>
+      </ScreenScrollView>
+    );
+  }
 
   return (
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
@@ -298,12 +344,8 @@ export default function GateEventsLogScreen({ navigation }: GateEventsLogScreenP
         <View style={styles.emptyState}>
           <DDIcon name="activity" size={48} variant="muted" />
           <Spacer height={Spacing.md} />
-          <ThemedText style={[Typography.subtitle, { color: theme.textSecondary, textAlign: 'center', fontWeight: '500' }]}>
-            {t('security.noGateEvents')}
-          </ThemedText>
-          <Spacer height={4} />
-          <ThemedText style={[Typography.body, { color: theme.textSecondary, textAlign: 'center', opacity: 0.7 }]}>
-            {searchQuery ? t('common.noResults') : t('common.noData')}
+          <ThemedText style={[Typography.body, { color: theme.textSecondary, textAlign: 'center' }]}>
+            {t('common.noResults')}
           </ThemedText>
         </View>
       )}
@@ -320,39 +362,36 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.md,
+    gap: Spacing.sm,
     padding: Spacing.md,
     borderRadius: BorderRadius.lg,
   },
   filtersContainer: {
     flexDirection: 'row',
     gap: Spacing.sm,
-    paddingEnd: Spacing.sm,
   },
   filterPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
     borderRadius: BorderRadius.full,
     gap: Spacing.xs,
   },
   filterPillText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '500',
-    fontFamily: 'Inter_500Medium',
   },
   filterCount: {
-    paddingHorizontal: 7,
+    paddingHorizontal: Spacing.sm,
     paddingVertical: 2,
     borderRadius: BorderRadius.full,
-    minWidth: 22,
+    minWidth: 24,
     alignItems: 'center',
   },
   filterCountText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '600',
-    fontFamily: 'Inter_600SemiBold',
   },
   cardList: {
     gap: Spacing.md,
@@ -360,16 +399,15 @@ const styles = StyleSheet.create({
   eventCard: {
     borderRadius: BorderRadius.lg,
     overflow: 'hidden',
+    flexDirection: 'row',
   },
   resultBorderLine: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
     width: 4,
   },
   cardContent: {
-    padding: Spacing.lg,
-    paddingStart: Spacing.lg + 4,
+    flex: 1,
+    padding: Spacing.md,
+    gap: Spacing.sm,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -378,7 +416,7 @@ const styles = StyleSheet.create({
   },
   visitorInfo: {
     flex: 1,
-    marginEnd: Spacing.md,
+    gap: 2,
   },
   resultBadge: {
     flexDirection: 'row',
@@ -389,41 +427,41 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   resultText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '600',
-    fontFamily: 'Inter_600SemiBold',
   },
   reasonBox: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: Spacing.xs,
-    marginTop: Spacing.sm,
     padding: Spacing.sm,
     borderRadius: BorderRadius.md,
   },
   metaRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    marginTop: Spacing.md,
     flexWrap: 'wrap',
+    gap: Spacing.sm,
   },
   metaChip: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,
-    borderRadius: BorderRadius.md,
+    borderRadius: BorderRadius.full,
     gap: 4,
   },
   metaText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '500',
-    fontFamily: 'Inter_500Medium',
   },
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: Spacing.xxl * 2,
+    paddingVertical: Spacing.xxl,
+  },
+  retryButton: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
   },
 });
