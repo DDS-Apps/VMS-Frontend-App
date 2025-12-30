@@ -132,14 +132,6 @@ const getMenuGroups = (role: UserRole): { groups: MenuGroup[]; standalone: MenuI
           { id: 'check_in', labelKey: 'navigation.visitorVerification', icon: 'shield', screen: 'CheckIn' },
         ],
       },
-      {
-        id: 'logs',
-        labelKey: 'sidebar.logs',
-        icon: 'activity',
-        items: [
-          { id: 'gate_events', labelKey: 'security.gateEventsLog', icon: 'activity', screen: 'GateEventsLog' },
-        ],
-      },
     ];
   } else if (role === 'valet_driver') {
     result.standalone = [
