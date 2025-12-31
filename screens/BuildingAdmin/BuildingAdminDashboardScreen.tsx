@@ -17,7 +17,7 @@ import {
   SystemStats,
   StaffOverview,
   RecentActivity,
-} from '@/services/mock/buildingAdminState';
+} from '@/services/state/buildingAdminState';
 import type { BuildingAdminDashboardScreenProps } from '@/types/buildingAdminNavigation.types';
 
 interface KPICardProps {

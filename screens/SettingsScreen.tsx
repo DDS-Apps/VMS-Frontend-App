@@ -24,7 +24,7 @@ import {
   getEventTypeDescription,
   EmailSummaryFrequency,
   NotificationEventPreference,
-} from "@/services/mock/userPreferencesState";
+} from "@/services/state/userPreferencesState";
 
 interface SettingsScreenProps {
   userRole?: UserRole;

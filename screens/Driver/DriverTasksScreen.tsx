@@ -23,7 +23,7 @@ import {
   getAvailableParkingSlots,
   ValetRequest,
   ValetParkingSlot,
-} from '@/services/mock/valetAdminState';
+} from '@/services/state/valetAdminState';
 
 type StatusFilter = 'all' | 'assigned' | 'parked' | 'ready_for_pickup' | 'completed' | 'cancelled';
 

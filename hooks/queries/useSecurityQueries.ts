@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient, UseQueryOptions } from '@tanstack/react-query';
-import { securityApiService, SecurityVisitorsParams, SecurityVisitorsResponse } from '@/services/securityApiService';
+import { securityApiService, SecurityVisitorsParams, SecurityVisitorsResponse } from '@/services/api/securityApiService';
 import type {
   SecurityVisitorDto,
   SecuritySummary,

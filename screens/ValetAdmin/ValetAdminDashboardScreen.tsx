@@ -16,7 +16,7 @@ import {
   getValetRequestStats,
   updateValetRequestStatus,
   ValetRequest,
-} from "@/services/mock/valetAdminState";
+} from "@/services/state/valetAdminState";
 import type { ValetAdminDashboardScreenProps } from "@/types/valetAdminNavigation.types";
 
 interface KPICardProps {

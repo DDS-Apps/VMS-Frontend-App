@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { userApiService, type ListUsersParams } from '@/services/userApiService';
+import { userApiService, type ListUsersParams } from '@/services/api/userApiService';
 import type { 
   UserDto, 
   CreateUserDto, 

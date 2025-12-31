@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { publicInviteService } from '@/services/publicInviteService';
+import { publicInviteService } from '@/services/api/publicInviteService';
 import type { AcceptInviteDto, RejectInviteDto } from '@/types/api.types';
 
 export const publicInviteKeys = {

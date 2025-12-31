@@ -10,7 +10,7 @@ import Spacer from '@/components/Spacer';
 import { Spacing, BorderRadius, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
-import { getValetTasks, ValetTask } from '@/services/mock/valetMockData';
+import { getValetTasks, ValetTask } from '@/services/state/valetTasksState';
 import type { ValetService } from '@/types/vms.types';
 
 interface ValetTasksScreenProps {

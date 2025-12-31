@@ -53,7 +53,7 @@ import DriverLoadScreen from "@/screens/ValetAdmin/DriverLoadScreen";
 import ChangePasswordScreen from "@/screens/ChangePasswordScreen";
 import EditProfileScreen from "@/screens/EditProfileScreen";
 import { UserRole } from "@/types/vms.types";
-import { getUnreadCount } from "@/services/mock/notificationState";
+import { getUnreadCount } from "@/services/state/notificationState";
 import type { NativeStackScreenProps, NativeStackNavigationOptions } from "@react-navigation/native-stack";
 import type { ParamListBase, RouteProp } from "@react-navigation/native";
 

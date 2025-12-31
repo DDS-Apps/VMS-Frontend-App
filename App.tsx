@@ -23,8 +23,8 @@ import VisitorInviteScreen from "@/screens/Visitor/VisitorInviteScreen";
 import { ThemeContext } from "@/hooks/useTheme";
 import { Colors } from "@/constants/theme";
 import { UserRole } from "@/types/vms.types";
-import { setCurrentStaff } from "@/services/mock/buffetAdminState";
-import { setCurrentDriver } from "@/services/mock/valetAdminState";
+import { setCurrentStaff } from "@/services/state/buffetAdminState";
+import { setCurrentDriver } from "@/services/state/valetAdminState";
 
 type AuthScreen = 'login' | 'forgotPassword' | 'resetPassword';
 

@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient, UseQueryOptions } from '@tanstack/react-query';
-import { receptionApiService } from '@/services/receptionApiService';
+import { receptionApiService } from '@/services/api/receptionApiService';
 import type {
   TodayVisitorsResponse,
   TodaySummary,

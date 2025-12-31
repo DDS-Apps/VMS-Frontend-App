@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { buffetApiService, type ListBuffetRequestsParams } from '@/services/buffetApiService';
+import { buffetApiService, type ListBuffetRequestsParams } from '@/services/api/buffetApiService';
 import type { PaginatedResponse } from '@/types';
 import type {
   BuffetLocationDto,

@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { invitationApiService, type ListInvitationsParams } from '@/services/invitationApiService';
+import { invitationApiService, type ListInvitationsParams } from '@/services/api/invitationApiService';
 import type { PaginatedResponse } from '@/types';
 import type {
   InvitationDto,

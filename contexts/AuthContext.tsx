@@ -9,7 +9,7 @@ import {
   setOnTokenRefreshed,
   getRefreshToken,
 } from '@/api/httpClient';
-import { authService } from '@/services/authService';
+import { authService } from '@/services/api/authService';
 import { parseAuthHashFragment, clearUrlHash } from '@/utils/authTokenParser';
 import type { AuthTokenResponse, StoredTokens, AuthUserDto } from '@/types/auth.types';
 import type { UserRole } from '@/types/vms.types';

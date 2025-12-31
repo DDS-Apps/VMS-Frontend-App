@@ -17,7 +17,7 @@ import { useFormatters } from "@/hooks/useFormatters";
 import { UserRole } from "@/types/vms.types";
 import { applyOpacity } from "@/utils/statusStyles";
 import { useAuth } from "@/contexts/AuthContext";
-import { authService } from "@/services/authService";
+import { authService } from "@/services/api/authService";
 import { useToast } from "@/contexts/ToastContext";
 import { ApiException } from "@/api/errors";
 

@@ -4,7 +4,7 @@ import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from './AuthContext';
-import { notificationApiService } from '@/services/notificationApiService';
+import { notificationApiService } from '@/services/api/notificationApiService';
 import { notificationKeys } from '@/hooks/queries/useNotificationQueries';
 import type { UserRole } from '@/types/vms.types';
 

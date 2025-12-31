@@ -3,7 +3,7 @@ import {
   parkingApiService, 
   type ListParkingSpacesParams, 
   type ListParkingAllocationsParams 
-} from '@/services/parkingApiService';
+} from '@/services/api/parkingApiService';
 import type {
   ParkingSpaceDto,
   ParkingAllocationDto,

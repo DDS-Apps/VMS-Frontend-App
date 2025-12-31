@@ -16,7 +16,7 @@ import {
   getValetRequests,
   updateValetRequestStatus,
   ValetRequest,
-} from "@/services/mock/valetAdminState";
+} from "@/services/state/valetAdminState";
 import type { ValetAllRequestsScreenProps } from "@/types/valetAdminNavigation.types";
 import type { Theme } from "@/types/theme.types";
 

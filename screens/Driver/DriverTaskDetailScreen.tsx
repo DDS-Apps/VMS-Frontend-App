@@ -22,7 +22,7 @@ import {
   getAvailableParkingSlots,
   ValetRequest,
   ValetParkingSlot,
-} from '@/services/mock/valetAdminState';
+} from '@/services/state/valetAdminState';
 
 interface DriverTaskDetailScreenProps {
   taskId: string;

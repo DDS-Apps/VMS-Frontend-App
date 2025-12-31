@@ -20,7 +20,7 @@ import {
   getValetDrivers,
   ValetRequest,
   ValetDriverExtended,
-} from "@/services/mock/valetAdminState";
+} from "@/services/state/valetAdminState";
 import type { ValetRequestDetailsScreenProps } from "@/types/valetAdminNavigation.types";
 import type { Theme } from "@/types/theme.types";
 

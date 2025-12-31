@@ -17,7 +17,7 @@ import {
   toggleDriverStatus,
   getDriverStats,
   ValetDriverExtended,
-} from "@/services/mock/valetAdminState";
+} from "@/services/state/valetAdminState";
 
 interface KPICardProps {
   title: string;

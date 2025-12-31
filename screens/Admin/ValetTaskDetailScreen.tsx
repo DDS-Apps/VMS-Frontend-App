@@ -17,7 +17,7 @@ import {
   updateTaskStatus,
   getAllDrivers,
   ValetTask,
-} from '@/services/mock/valetMockData';
+} from '@/services/state/valetTasksState';
 import type { ValetService, ValetDriver } from '@/types/vms.types';
 import { useAuth } from '@/contexts/AuthContext';
 

@@ -1,7 +1,7 @@
 import { useQueries } from '@tanstack/react-query';
-import { requestApiService } from '@/services/requestApiService';
-import { buffetApiService } from '@/services/buffetApiService';
-import { valetApiService } from '@/services/valetApiService';
+import { requestApiService } from '@/services/api/requestApiService';
+import { buffetApiService } from '@/services/api/buffetApiService';
+import { valetApiService } from '@/services/api/valetApiService';
 import { useAuth } from '@/contexts/AuthContext';
 import type { 
   VisitListItemDto, 

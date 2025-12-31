@@ -13,7 +13,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Notification, UserRole, NotificationType } from "@/types/vms.types";
-import { getNotificationsByRole as getNotificationsFromState, markAllAsRead as markAllNotificationsAsRead, markAsRead } from "@/services/mock/notificationState";
+import { getNotificationsByRole as getNotificationsFromState, markAllAsRead as markAllNotificationsAsRead, markAsRead } from "@/services/state/notificationState";
 import { applyOpacity } from "@/utils/statusStyles";
 
 interface NotificationsScreenProps {

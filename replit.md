@@ -55,7 +55,11 @@ The VMS app adheres to a Clean Architecture pattern, dividing the application in
 -   **Admin System Monitoring:** System event log, reminder schedule visualization.
 
 **API Integration Layer:**
--   **Architecture:** Follows a structured pattern with `api/`, `components/shared/` (for loading states), `types/`, `services/` (domain services), `hooks/` (React Query hooks), `providers/`, and `contexts/`.
+-   **Architecture:** Follows a structured pattern with `services/api/` (HTTP clients), `services/state/` (local state management), `services/utils/` (shared helpers), `components/shared/` (for loading states), `types/`, `hooks/` (React Query hooks), `providers/`, and `contexts/`.
+-   **Services Structure:**
+    -   `services/api/` - API service files suffixed with `ApiService` (e.g., `visitorApiService.ts`, `authService.ts`)
+    -   `services/state/` - Local state management files suffixed with `State` (e.g., `valetAdminState.ts`, `buffetAdminState.ts`)
+    -   `services/utils/` - Shared utility functions (e.g., `dateTimeUtils.ts`, `statusUtils.ts`, `requestMappers.ts`)
 -   **Key Features:** Axios HTTP Client with interceptors for JWT token injection and automatic refresh, standardized error handling, TanStack Query for data fetching, caching, mutations, and query invalidation, token management (refresh, AsyncStorage persistence), session management, role mapping, Azure AD SSO, and OTP flows.
 -   **Backend URL:** `https://6dd8abd4-1ba4-4930-9228-1c309ae5d4e2-00-2v2xb6f19be8f.sisko.replit.dev`
 

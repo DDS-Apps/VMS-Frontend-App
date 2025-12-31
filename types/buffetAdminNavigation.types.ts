@@ -1,5 +1,5 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import type { BuffetRequest } from "@/services/mock/buffetAdminState";
+import type { BuffetRequest } from "@/services/state/buffetAdminState";
 
 export type BuffetAdminStackParamList = {
   BuffetAdminDashboard: undefined;

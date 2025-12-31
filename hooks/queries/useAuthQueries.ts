@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient, UseQueryOptions } from '@tanstack/react-query';
-import { authService } from '@/services/authService';
+import { authService } from '@/services/api/authService';
 import type {
   AuthConfigResponse,
   AuthUserDto,

@@ -1,5 +1,5 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import type { TodaysVisitor } from "@/services/mock/receptionistVisitorState";
+import type { TodaysVisitor } from "@/services/state/receptionistVisitorState";
 
 export type ReceptionistStackParamList = {
   ReceptionistDashboard: undefined;

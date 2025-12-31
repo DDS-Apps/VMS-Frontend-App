@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { valetApiService, type ListValetAssignmentsParams } from '@/services/valetApiService';
+import { valetApiService, type ListValetAssignmentsParams } from '@/services/api/valetApiService';
 import type { PaginatedResponse } from '@/types';
 import type {
   ValetDriverDto,

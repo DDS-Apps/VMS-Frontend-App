@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient, UseQueryOptions } from '@tanstack/react-query';
-import { notificationApiService } from '@/services/notificationApiService';
+import { notificationApiService } from '@/services/api/notificationApiService';
 import type {
   NotificationDto,
   NotificationPreferences,
@@ -10,7 +10,7 @@ import type {
   ListNotificationsParams,
   PaginatedResponse,
   UnreadCountResponse,
-} from '@/services/notificationApiService';
+} from '@/services/api/notificationApiService';
 import { ApiError } from '@/api/errors';
 
 export const notificationKeys = {

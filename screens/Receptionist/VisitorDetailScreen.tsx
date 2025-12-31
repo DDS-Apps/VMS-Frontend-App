@@ -19,7 +19,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { applyOpacity } from "@/utils/statusStyles";
-import type { VisitorExceptionType } from "@/services/mock/receptionistVisitorState";
+import type { VisitorExceptionType } from "@/services/state/receptionistVisitorState";
 import { VisitorActionButton } from "@/components/VisitorActionButton";
 import { useReceptionCheckInMutation, useReceptionCheckOutMutation } from "@/hooks/queries/useReceptionQueries";
 import { useVisitDetailsQuery } from "@/hooks/queries/useApprovalQueries";

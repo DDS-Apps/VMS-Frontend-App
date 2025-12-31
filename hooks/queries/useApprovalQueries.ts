@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
-import { requestApiService, type ListRequestsParams } from '@/services/requestApiService';
+import { requestApiService, type ListRequestsParams } from '@/services/api/requestApiService';
 import type { PaginatedResponse } from '@/types';
 import type {
   RequestDto,

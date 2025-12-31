@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { valetSelfServiceApiService } from '@/services/valetSelfServiceApiService';
+import { valetSelfServiceApiService } from '@/services/api/valetSelfServiceApiService';
 import type {
   CreateSelfValetRequestDto,
   SelfValetRequestDto,
