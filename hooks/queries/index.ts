@@ -11,7 +11,5 @@ export * from './useNotificationQueries';
 export * from './useGateQueries';
 export * from './useReceptionQueries';
 export * from './useSecurityQueries';
-export * from './useEmployeeParkingQueries';
-export * from './useAnalyticsQueries';
 export * from './usePublicInviteQueries';
 export * from './useAdminQueries';

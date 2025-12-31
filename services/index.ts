@@ -11,5 +11,3 @@ export { notificationApiService } from './notificationApiService';
 export { gateApiService } from './gateApiService';
 export { receptionApiService } from './receptionApiService';
 export { securityApiService } from './securityApiService';
-export { employeeParkingApiService } from './employeeParkingApiService';
-export { analyticsApiService } from './analyticsApiService';
