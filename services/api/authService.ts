@@ -9,15 +9,6 @@ import {
   AuthTokenResponse,
   RefreshTokenResponse,
   AuthConfigResponse,
-  SendOtpPayload,
-  SendOtpResponse,
-  VerifyOtpPayload,
-  VerifyOtpResponse,
-  ResendOtpPayload,
-  ResendOtpResponse,
-  ForgotPasswordPayload,
-  ResetPasswordPayload,
-  ResetPasswordWithOtpPayload,
   ChangePasswordPayload,
   UpdateProfilePayload,
   PhotoUploadResponse,
@@ -94,39 +85,6 @@ export const authService = {
 
   changePassword: (payload: ChangePasswordPayload): Promise<{ message: string }> => {
     return put<{ message: string }, ChangePasswordPayload>(auth.password, payload);
-  },
-
-  forgotPassword: (email: string): Promise<{ message: string }> => {
-    return post<{ message: string }, ForgotPasswordPayload>(
-      auth.forgotPassword,
-      { email }
-    );
-  },
-
-  resetPassword: (payload: ResetPasswordPayload): Promise<{ message: string }> => {
-    return post<{ message: string }, ResetPasswordPayload>(
-      auth.resetPassword,
-      payload
-    );
-  },
-
-  resetPasswordWithOtp: (payload: ResetPasswordWithOtpPayload): Promise<{ message: string }> => {
-    return post<{ message: string }, ResetPasswordWithOtpPayload>(
-      auth.resetPasswordWithOtp,
-      payload
-    );
-  },
-
-  sendOtp: (payload: SendOtpPayload): Promise<SendOtpResponse> => {
-    return post<SendOtpResponse, SendOtpPayload>(auth.sendOtp, payload);
-  },
-
-  verifyOtp: (payload: VerifyOtpPayload): Promise<VerifyOtpResponse> => {
-    return post<VerifyOtpResponse, VerifyOtpPayload>(auth.verifyOtp, payload);
-  },
-
-  resendOtp: (payload: ResendOtpPayload): Promise<ResendOtpResponse> => {
-    return post<ResendOtpResponse, ResendOtpPayload>(auth.resendOtp, payload);
   },
 
   registerBiometric: (payload: BiometricRegisterPayload): Promise<BiometricDevice> => {

@@ -4,13 +4,6 @@ import type {
   AuthConfigResponse,
   AuthUserDto,
   AuthTokenResponse,
-  SendOtpPayload,
-  SendOtpResponse,
-  VerifyOtpPayload,
-  VerifyOtpResponse,
-  ResendOtpPayload,
-  ResendOtpResponse,
-  ResetPasswordPayload,
   ChangePasswordPayload,
   BiometricRegisterPayload,
   BiometricDevice,
@@ -130,30 +123,6 @@ export function useLogoutMutation() {
 export function useChangePasswordMutation() {
   return useMutation<{ message: string }, ApiError, ChangePasswordPayload>({
     mutationFn: (payload) => authService.changePassword(payload),
-  });
-}
-
-export function useSendOtpMutation() {
-  return useMutation<SendOtpResponse, ApiError, SendOtpPayload>({
-    mutationFn: (payload) => authService.sendOtp(payload),
-  });
-}
-
-export function useVerifyOtpMutation() {
-  return useMutation<VerifyOtpResponse, ApiError, VerifyOtpPayload>({
-    mutationFn: (payload) => authService.verifyOtp(payload),
-  });
-}
-
-export function useResendOtpMutation() {
-  return useMutation<ResendOtpResponse, ApiError, ResendOtpPayload>({
-    mutationFn: (payload) => authService.resendOtp(payload),
-  });
-}
-
-export function useResetPasswordMutation() {
-  return useMutation<{ message: string }, ApiError, ResetPasswordPayload>({
-    mutationFn: (payload) => authService.resetPassword(payload),
   });
 }
 

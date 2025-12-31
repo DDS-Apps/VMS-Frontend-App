@@ -16,8 +16,6 @@ import { ToastProvider } from "@/contexts/ToastContext";
 import { PortalProvider } from "@/contexts/PortalContext";
 import SplashScreen from "@/screens/SplashScreen";
 import LoginScreen from "@/screens/LoginScreen";
-import ForgotPasswordScreen from "@/screens/ForgotPasswordScreen";
-import ResetPasswordScreen from "@/screens/ResetPasswordScreen";
 import DashboardContainer from "@/navigation/DashboardContainer";
 import VisitorInviteScreen from "@/screens/Visitor/VisitorInviteScreen";
 import { ThemeContext } from "@/hooks/useTheme";
@@ -26,7 +24,6 @@ import { UserRole } from "@/types/vms.types";
 import { setCurrentStaff } from "@/services/state/buffetAdminState";
 import { setCurrentDriver } from "@/services/state/valetAdminState";
 
-type AuthScreen = 'login' | 'forgotPassword' | 'resetPassword';
 
 function getInviteTokenFromUrl(): string | null {
   if (Platform.OS !== 'web') return null;
@@ -81,8 +78,6 @@ function getInviteTokenFromUrl(): string | null {
 function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
   const { user, isAuthenticated, isLoading: authLoading, logout } = useAuth();
   const [showSplash, setShowSplash] = useState(true);
-  const [authScreen, setAuthScreen] = useState<AuthScreen>('login');
-  const [resetEmail, setResetEmail] = useState('');
   const [inviteToken, setInviteToken] = useState<string | null>(null);
 
   useEffect(() => {
@@ -109,26 +104,6 @@ function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
 
   const handleLogout = async () => {
     await logout();
-    setAuthScreen('login');
-  };
-
-  const handleForgotPassword = () => {
-    setAuthScreen('forgotPassword');
-  };
-
-  const handleForgotPasswordSubmit = (email: string) => {
-    setResetEmail(email);
-    setAuthScreen('resetPassword');
-  };
-
-  const handleResetPasswordSubmit = () => {
-    setAuthScreen('login');
-    setResetEmail('');
-  };
-
-  const handleBackToLogin = () => {
-    setAuthScreen('login');
-    setResetEmail('');
   };
 
   if (inviteToken) {
@@ -152,13 +127,7 @@ function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
   }
 
   if (!isAuthenticated || !user) {
-    if (authScreen === 'forgotPassword') {
-      return <ForgotPasswordScreen onSubmit={handleForgotPasswordSubmit} onBack={handleBackToLogin} />;
-    }
-    if (authScreen === 'resetPassword') {
-      return <ResetPasswordScreen email={resetEmail} onSubmit={handleResetPasswordSubmit} onBack={handleBackToLogin} />;
-    }
-    return <LoginScreen onLoginSuccess={handleLoginSuccess} onForgotPassword={handleForgotPassword} />;
+    return <LoginScreen onLoginSuccess={handleLoginSuccess} />;
   }
 
   const userName = user.name || user.email;

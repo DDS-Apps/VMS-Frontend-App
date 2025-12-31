@@ -64,66 +64,6 @@ export interface AuthConfigResponse {
   mfaEnabled: boolean;
 }
 
-export type OtpChannel = 'email' | 'sms';
-
-export interface SendOtpPayload {
-  email: string;
-  channel: OtpChannel;
-}
-
-export interface SendOtpResponse {
-  success: boolean;
-  message: string;
-  expiresIn: number;
-  maskedDestination: string;
-  channel: OtpChannel;
-  canResendAt: string;
-}
-
-export interface VerifyOtpPayload {
-  email: string;
-  code: string;
-}
-
-export interface VerifyOtpResponse {
-  success: boolean;
-  message: string;
-  resetToken: string;
-  tokenExpiresIn: number;
-}
-
-export interface ResendOtpPayload {
-  email: string;
-  channel: OtpChannel;
-}
-
-export interface ResendOtpResponse {
-  success: boolean;
-  message: string;
-  expiresIn: number;
-  maskedDestination: string;
-  canResendAt: string;
-  resendCount: number;
-  maxResends: number;
-}
-
-export interface ForgotPasswordPayload {
-  email: string;
-}
-
-export interface ResetPasswordPayload {
-  token: string;
-  newPassword: string;
-  confirmPassword: string;
-}
-
-export interface ResetPasswordWithOtpPayload {
-  email: string;
-  resetToken: string;
-  newPassword: string;
-  confirmPassword: string;
-}
-
 export interface ChangePasswordPayload {
   currentPassword: string;
   newPassword: string;

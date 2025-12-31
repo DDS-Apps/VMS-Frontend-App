@@ -27,7 +27,6 @@ import { useAzureAuth, AzureErrorType } from "@/hooks/useAzureAuth";
 
 interface LoginScreenProps {
   onLoginSuccess?: (role: UserRole) => void;
-  onForgotPassword?: () => void;
 }
 
 const INPUT_ICON_SIZE = 22;
@@ -36,7 +35,6 @@ const INPUT_HEIGHT = 56;
 
 export default function LoginScreen({
   onLoginSuccess,
-  onForgotPassword,
 }: LoginScreenProps) {
   const { theme, isDark } = useTheme();
   const { t } = useTranslation();

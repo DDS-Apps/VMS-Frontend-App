@@ -1,7 +1,6 @@
 import { Notification, UserRole } from "@/types/vms.types";
-import { MOCK_APPROVAL_NOTIFICATIONS } from "./approvalMockData";
 
-let notifications: Notification[] = [...MOCK_APPROVAL_NOTIFICATIONS];
+let notifications: Notification[] = [];
 
 export const getNotifications = () => notifications;
 
@@ -124,7 +123,7 @@ export const createCancellationNotification = (
 };
 
 export const resetNotifications = () => {
-  notifications = [...MOCK_APPROVAL_NOTIFICATIONS];
+  notifications = [];
 };
 
 export const createBuffetTaskNotification = (
