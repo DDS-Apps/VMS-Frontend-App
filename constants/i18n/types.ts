@@ -341,6 +341,7 @@ export interface TranslationKeys {
     invalidEmail: string;
     invalidPhone: string;
     fieldRequired: string;
+    passwordRequired: string;
     fillRequiredFields: string;
     readOnly: string;
     reason: string;

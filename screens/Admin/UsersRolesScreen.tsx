@@ -269,6 +269,11 @@ export default function UsersRolesScreen() {
       return;
     }
 
+    if (!editingUser && !formData.password) {
+      showError(t('common.error'), t('form.passwordRequired'));
+      return;
+    }
+
     if (formData.phoneNumber && !validatePhone(formData.phoneNumber)) {
       showError(t('common.error'), t('errors.invalidPhone'));
       return;

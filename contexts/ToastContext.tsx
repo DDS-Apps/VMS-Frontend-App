@@ -6,6 +6,7 @@ import {
   Pressable,
   Dimensions,
   Platform,
+  Modal,
 } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -223,8 +224,14 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={{ showToast, showError, showSuccess, showWarning, showInfo, hideToast }}>
       {children}
-      {toasts.length > 0 ? (
-        <View style={styles.toastWrapper}>
+      <Modal
+        visible={toasts.length > 0}
+        transparent
+        animationType="none"
+        statusBarTranslucent
+        onRequestClose={() => {}}
+      >
+        <View style={styles.toastWrapper} pointerEvents="box-none">
           {toasts.map((toast, index) => (
             <ToastItem
               key={toast.id}
@@ -234,7 +241,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             />
           ))}
         </View>
-      ) : null}
+      </Modal>
     </ToastContext.Provider>
   );
 }
@@ -249,13 +256,8 @@ export function useToast() {
 
 const styles = StyleSheet.create({
   toastWrapper: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 9999,
-    elevation: 9999,
-    pointerEvents: 'box-none',
+    flex: 1,
+    backgroundColor: 'transparent',
   },
   toastContainer: {
     position: 'absolute',

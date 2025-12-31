@@ -341,6 +341,7 @@ export const en: TranslationKeys = {
     invalidEmail: 'Please enter a valid email address',
     invalidPhone: 'Please enter a valid phone number',
     fieldRequired: 'This field is required',
+    passwordRequired: 'Password is required for new users',
     fillRequiredFields: 'Please fill in all required fields',
     readOnly: 'Read only',
     reason: 'Reason',

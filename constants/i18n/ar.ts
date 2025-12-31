@@ -341,6 +341,7 @@ export const ar: TranslationKeys = {
     invalidEmail: 'الرجاء إدخال بريد إلكتروني صحيح',
     invalidPhone: 'الرجاء إدخال رقم هاتف صحيح',
     fieldRequired: 'هذا الحقل مطلوب',
+    passwordRequired: 'كلمة المرور مطلوبة للمستخدمين الجدد',
     fillRequiredFields: 'الرجاء ملء جميع الحقول المطلوبة',
     readOnly: 'للقراءة فقط',
     reason: 'السبب',
