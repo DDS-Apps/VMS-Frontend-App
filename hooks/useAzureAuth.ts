@@ -2,14 +2,14 @@ import { useState, useCallback } from 'react';
 import { Platform } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
-import Constants from 'expo-constants';
 import { apiConfig } from '@/api/config';
+import { parseAuthUrl } from '@/utils/authTokenParser';
 
 WebBrowser.maybeCompleteAuthSession();
 
 export type AzureErrorType = 'not_configured' | 'no_token' | 'auth_failed' | 'cancelled' | null;
 
-interface MicrosoftAuthResult {
+export interface MicrosoftAuthResult {
   accessToken: string;
   refreshToken?: string;
   expiresIn?: number;
@@ -30,73 +30,17 @@ interface UseAzureAuthReturn {
   clearError: () => void;
 }
 
-function parseAuthResponseUrl(url: string): { 
-  accessToken?: string; 
-  refreshToken?: string; 
-  expiresIn?: number; 
-  user?: {
-    id: string;
-    email: string;
-    name: string;
-    role: string;
-  };
-  error?: string;
-} {
-  try {
-    const parsed = Linking.parse(url);
-    const queryParams = parsed.queryParams || {};
-    
-    const hashPart = url.includes('#') ? url.split('#')[1] : '';
-    const hashParams: Record<string, string> = {};
-    if (hashPart) {
-      hashPart.split('&').forEach(pair => {
-        const [key, value] = pair.split('=');
-        if (key && value) {
-          hashParams[decodeURIComponent(key)] = decodeURIComponent(value);
-        }
-      });
-    }
-    
-    const accessToken = (queryParams.access_token as string) || 
-                        (queryParams.token as string) || 
-                        hashParams.access_token || 
-                        hashParams.token;
-    const refreshToken = (queryParams.refresh_token as string) || hashParams.refresh_token;
-    const expiresInStr = (queryParams.expires_in as string) || hashParams.expires_in;
-    const error = (queryParams.error as string) || hashParams.error;
-    
-    let user: { id: string; email: string; name: string; role: string; } | undefined;
-    const userId = (queryParams.user_id as string) || hashParams.user_id;
-    const userEmail = (queryParams.user_email as string) || hashParams.user_email;
-    const userName = (queryParams.user_name as string) || hashParams.user_name;
-    const userRole = (queryParams.user_role as string) || hashParams.user_role;
-    
-    if (userId && userEmail) {
-      user = {
-        id: userId,
-        email: userEmail,
-        name: userName || '',
-        role: userRole || '',
-      };
-    }
-    
-    return {
-      accessToken,
-      refreshToken,
-      expiresIn: expiresInStr ? parseInt(expiresInStr, 10) : undefined,
-      user,
-      error,
-    };
-  } catch (err) {
-    console.error('[AzureAuth] Error parsing auth response URL:', err);
-    return {};
-  }
+const MOBILE_SCHEME = 'dallahvms';
+const MOBILE_CALLBACK_PATH = 'auth/callback';
+
+function getMobileRedirectUrl(): string {
+  return `${MOBILE_SCHEME}://${MOBILE_CALLBACK_PATH}`;
 }
 
-function getAppRedirectUrl(): string {
-  const schemeConfig = Constants.expoConfig?.scheme;
-  const scheme = Array.isArray(schemeConfig) ? schemeConfig[0] : (schemeConfig || 'dallah-vms');
-  return Linking.createURL('auth/callback', { scheme });
+function getMicrosoftLoginUrl(platform: 'web' | 'mobile'): string {
+  const baseUrl = apiConfig.microsoftAuthUrl;
+  const loginEndpoint = apiConfig.endpoints.auth.microsoftLogin;
+  return `${baseUrl}${loginEndpoint}?platform=${platform}`;
 }
 
 export function useAzureAuth(): UseAzureAuthReturn {
@@ -116,61 +60,70 @@ export function useAzureAuth(): UseAzureAuthReturn {
     setErrorType(null);
 
     try {
-      const appRedirectUrl = getAppRedirectUrl();
-      const platformParam = Platform.OS === 'web' ? 'web' : 'mobile';
-      const microsoftLoginUrl = `${microsoftAuthBaseUrl}${apiConfig.endpoints.auth.microsoftLogin}?platform=${platformParam}`;
-      
-      console.log('[AzureAuth] Starting Microsoft login flow');
-      console.log('[AzureAuth] Login URL:', microsoftLoginUrl);
-      console.log('[AzureAuth] App redirect URL:', appRedirectUrl);
-
-      const result = await WebBrowser.openAuthSessionAsync(
-        microsoftLoginUrl,
-        appRedirectUrl,
-        {
-          showInRecents: true,
-          preferEphemeralSession: true,
+      if (Platform.OS === 'web') {
+        const microsoftLoginUrl = getMicrosoftLoginUrl('web');
+        console.log('[AzureAuth] Web: Redirecting to Microsoft login:', microsoftLoginUrl);
+        
+        if (typeof window !== 'undefined') {
+          window.location.href = microsoftLoginUrl;
         }
-      );
+        
+        return null;
+      } else {
+        const mobileRedirectUrl = getMobileRedirectUrl();
+        const microsoftLoginUrl = getMicrosoftLoginUrl('mobile');
+        
+        console.log('[AzureAuth] Mobile: Starting Microsoft login flow');
+        console.log('[AzureAuth] Mobile: Login URL:', microsoftLoginUrl);
+        console.log('[AzureAuth] Mobile: Redirect URL:', mobileRedirectUrl);
 
-      console.log('[AzureAuth] Auth session result type:', result.type);
-      console.log('[AzureAuth] Result URL:', result.type === 'success' ? result.url : 'N/A');
+        const result = await WebBrowser.openAuthSessionAsync(
+          microsoftLoginUrl,
+          mobileRedirectUrl,
+          {
+            showInRecents: true,
+            preferEphemeralSession: true,
+          }
+        );
 
-      if (result.type === 'success' && result.url) {
-        const parsedResponse = parseAuthResponseUrl(result.url);
+        console.log('[AzureAuth] Mobile: Auth session result type:', result.type);
 
-        if (parsedResponse.error) {
-          console.log('[AzureAuth] Error from callback:', parsedResponse.error);
+        if (result.type === 'success' && result.url) {
+          console.log('[AzureAuth] Mobile: Success URL:', result.url);
+          const parsedResponse = parseAuthUrl(result.url);
+
+          if (parsedResponse.error) {
+            console.log('[AzureAuth] Mobile: Error from callback:', parsedResponse.error);
+            setErrorType('auth_failed');
+            setIsLoading(false);
+            return { accessToken: '', errorType: 'auth_failed' };
+          }
+
+          if (!parsedResponse.accessToken) {
+            console.log('[AzureAuth] Mobile: No access token received in response');
+            setErrorType('no_token');
+            setIsLoading(false);
+            return { accessToken: '', errorType: 'no_token' };
+          }
+
+          console.log('[AzureAuth] Mobile: Successfully received token');
+          setIsLoading(false);
+          return {
+            accessToken: parsedResponse.accessToken,
+            refreshToken: parsedResponse.refreshToken,
+            expiresIn: parsedResponse.expiresIn,
+            user: parsedResponse.user,
+          };
+        } else if (result.type === 'cancel' || result.type === 'dismiss') {
+          console.log('[AzureAuth] Mobile: Auth cancelled by user');
+          setIsLoading(false);
+          return { accessToken: '', errorType: 'cancelled' };
+        } else {
+          console.log('[AzureAuth] Mobile: Auth failed with type:', result.type);
           setErrorType('auth_failed');
           setIsLoading(false);
           return { accessToken: '', errorType: 'auth_failed' };
         }
-
-        if (!parsedResponse.accessToken) {
-          console.log('[AzureAuth] No access token received in response');
-          console.log('[AzureAuth] Full URL for debugging:', result.url);
-          setErrorType('no_token');
-          setIsLoading(false);
-          return { accessToken: '', errorType: 'no_token' };
-        }
-
-        console.log('[AzureAuth] Successfully received token');
-        setIsLoading(false);
-        return {
-          accessToken: parsedResponse.accessToken,
-          refreshToken: parsedResponse.refreshToken,
-          expiresIn: parsedResponse.expiresIn,
-          user: parsedResponse.user,
-        };
-      } else if (result.type === 'cancel' || result.type === 'dismiss') {
-        console.log('[AzureAuth] Auth cancelled by user');
-        setIsLoading(false);
-        return { accessToken: '', errorType: 'cancelled' };
-      } else {
-        console.log('[AzureAuth] Auth failed with type:', result.type);
-        setErrorType('auth_failed');
-        setIsLoading(false);
-        return { accessToken: '', errorType: 'auth_failed' };
       }
     } catch (err) {
       console.error('[AzureAuth] Error during auth:', err);

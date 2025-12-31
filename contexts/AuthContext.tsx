@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useCallback, useState, useEffect, ReactNode } from 'react';
+import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { 
   setAccessToken, 
@@ -9,6 +10,7 @@ import {
   getRefreshToken,
 } from '@/api/httpClient';
 import { authService } from '@/services/authService';
+import { parseAuthHashFragment, clearUrlHash } from '@/utils/authTokenParser';
 import type { AuthTokenResponse, StoredTokens, AuthUserDto } from '@/types/auth.types';
 import type { UserRole } from '@/types/vms.types';
 
@@ -190,8 +192,71 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
   }, []);
 
   useEffect(() => {
+    const handleWebHashTokens = async (): Promise<boolean> => {
+      if (Platform.OS !== 'web' || typeof window === 'undefined') {
+        return false;
+      }
+
+      const hash = window.location.hash;
+      if (!hash || !hash.includes('access_token')) {
+        return false;
+      }
+
+      console.log('[AuthContext] Detected auth tokens in URL hash');
+      const parsed = parseAuthHashFragment(hash);
+
+      if (parsed.error) {
+        console.error('[AuthContext] Error in hash:', parsed.error);
+        clearUrlHash();
+        return false;
+      }
+
+      if (!parsed.accessToken) {
+        console.log('[AuthContext] No access token in hash');
+        clearUrlHash();
+        return false;
+      }
+
+      try {
+        console.log('[AuthContext] Processing SSO tokens from URL hash');
+        
+        setAccessToken(parsed.accessToken);
+        const refreshTokenValue = parsed.refreshToken || parsed.accessToken;
+        setRefreshToken(refreshTokenValue);
+
+        await persistTokens(parsed.accessToken, refreshTokenValue, parsed.expiresIn);
+
+        const userDto = await authService.getCurrentUser();
+        const user = mapUserDtoToAuthUser(userDto);
+        user.isSSOUser = true;
+        await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
+
+        setState({
+          user,
+          isLoading: false,
+          isAuthenticated: true,
+          error: null,
+        });
+
+        clearUrlHash();
+        console.log('[AuthContext] SSO login successful');
+        return true;
+      } catch (error) {
+        console.error('[AuthContext] Error processing hash tokens:', error);
+        clearTokens();
+        await AsyncStorage.multiRemove([AUTH_STORAGE_KEY, TOKEN_STORAGE_KEY]);
+        clearUrlHash();
+        return false;
+      }
+    };
+
     const initializeAuth = async () => {
       try {
+        const handledHash = await handleWebHashTokens();
+        if (handledHash) {
+          return;
+        }
+
         const tokensJson = await AsyncStorage.getItem(TOKEN_STORAGE_KEY);
         
         if (tokensJson) {
@@ -246,7 +311,7 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
     };
 
     initializeAuth();
-  }, []);
+  }, [persistTokens]);
 
   const handleTokenResponse = useCallback(async (response: AuthTokenResponse) => {
     setAccessToken(response.accessToken);
