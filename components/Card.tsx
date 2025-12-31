@@ -7,9 +7,8 @@ import Animated, {
   WithSpringConfig,
 } from "react-native-reanimated";
 
-import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
-import { Spacing, BorderRadius, Colors } from "@/constants/theme";
+import { Spacing, BorderRadius } from "@/constants/theme";
 import type { Theme } from "@/types/theme.types";
 
 interface CardProps {
@@ -126,31 +125,9 @@ export function Card({
   );
 }
 
-export function CardDemo({ elevation }: { elevation: number }) {
-  const { theme } = useTheme();
-  const cardBackgroundColor = getBackgroundColorForElevation(elevation, theme);
-
-  return (
-    <View style={[styles.card, { backgroundColor: cardBackgroundColor }]}>
-      <ThemedText variant="h3" style={styles.cardTitle}>
-        Card - Elevation {elevation}
-      </ThemedText>
-      <ThemedText variant="bodySmall" style={styles.cardDescription}>
-        This card has an elevation of {elevation}
-      </ThemedText>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   card: {
     padding: Spacing.lg,
     borderRadius: BorderRadius.lg,
-  },
-  cardTitle: {
-    marginBottom: Spacing.sm,
-  },
-  cardDescription: {
-    opacity: 0.7,
   },
 });
