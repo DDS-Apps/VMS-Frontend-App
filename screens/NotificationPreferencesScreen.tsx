@@ -20,7 +20,7 @@ import {
 import type {
   NotificationPreferences,
   UpdateNotificationPreferencesDto,
-} from "@/services/api/notificationApiService";
+} from "@/types";
 
 export default function NotificationPreferencesScreen() {
   const { theme } = useTheme();

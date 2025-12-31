@@ -4,10 +4,10 @@ import type {
   GateAccessLogDto,
   VerifyGateAccessDto,
   GateVerificationResponse,
-  PaginatedResponse,
   GateConfigDto,
   GateStatsDto,
 } from '@/types/api.types';
+import type { PaginatedResponse } from '@/types';
 
 export const gateKeys = {
   all: ['gates'] as const,

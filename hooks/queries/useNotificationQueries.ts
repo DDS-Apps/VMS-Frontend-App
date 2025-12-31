@@ -1,17 +1,20 @@
 import { useQuery, useMutation, useQueryClient, UseQueryOptions } from '@tanstack/react-query';
 import { notificationApiService } from '@/services/api/notificationApiService';
 import type {
-  NotificationDto,
+  NotificationItemDto,
   NotificationPreferences,
   UpdateNotificationPreferencesDto,
-  SendNotificationDto,
+  SendNotificationPayload,
   RegisterDeviceTokenDto,
   DeviceTokenResponse,
   ListNotificationsParams,
   PaginatedResponse,
   UnreadCountResponse,
-} from '@/services/api/notificationApiService';
+} from '@/types';
 import { ApiError } from '@/api/errors';
+
+type NotificationDto = NotificationItemDto;
+type SendNotificationDto = SendNotificationPayload;
 
 export const notificationKeys = {
   all: ['notifications'] as const,
