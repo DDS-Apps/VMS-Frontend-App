@@ -23,6 +23,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { registerToastMethods, unregisterToastMethods, setGlobalLocale } from '@/utils/globalToast';
 import { LanguageContext } from '@/contexts/LanguageContext';
 import { defaultLocale } from '@/constants/i18n';
+import { Portal } from '@/contexts/PortalContext';
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
 
@@ -237,19 +238,25 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={{ showToast, showError, showSuccess, showWarning, showInfo, hideToast }}>
       {children}
-      {Platform.OS === 'web' ? (
-        toastContent
-      ) : (
-        <Modal
-          visible={toasts.length > 0}
-          transparent
-          animationType="none"
-          statusBarTranslucent
-          onRequestClose={() => {}}
-        >
-          {toastContent}
-        </Modal>
-      )}
+      {toasts.length > 0 ? (
+        <Portal>
+          {Platform.OS === 'web' ? (
+            toastContent
+          ) : (
+            <Modal
+              visible={true}
+              transparent
+              animationType="none"
+              statusBarTranslucent
+              presentationStyle="overFullScreen"
+              hardwareAccelerated
+              onRequestClose={() => {}}
+            >
+              {toastContent}
+            </Modal>
+          )}
+        </Portal>
+      ) : null}
     </ToastContext.Provider>
   );
 }

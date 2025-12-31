@@ -13,6 +13,7 @@ import { QueryProvider } from "@/providers/QueryProvider";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { ToastProvider } from "@/contexts/ToastContext";
+import { PortalProvider } from "@/contexts/PortalContext";
 import SplashScreen from "@/screens/SplashScreen";
 import LoginScreen from "@/screens/LoginScreen";
 import ForgotPasswordScreen from "@/screens/ForgotPasswordScreen";
@@ -234,12 +235,14 @@ export default function App() {
               <SafeAreaProvider>
                 <GestureHandlerRootView style={styles.root}>
                   <KeyboardProviderWrapper>
-                    <ToastProvider>
-                      <NotificationProvider>
-                        <AppContent isDarkMode={isDarkMode} />
-                      </NotificationProvider>
-                      <StatusBar style={isDarkMode ? "light" : "dark"} />
-                    </ToastProvider>
+                    <PortalProvider>
+                      <ToastProvider>
+                        <NotificationProvider>
+                          <AppContent isDarkMode={isDarkMode} />
+                        </NotificationProvider>
+                        <StatusBar style={isDarkMode ? "light" : "dark"} />
+                      </ToastProvider>
+                    </PortalProvider>
                   </KeyboardProviderWrapper>
                 </GestureHandlerRootView>
               </SafeAreaProvider>
