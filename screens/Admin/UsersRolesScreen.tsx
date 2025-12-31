@@ -145,6 +145,13 @@ export default function UsersRolesScreen() {
     managerId: '' as string | undefined,
   });
 
+  const [formErrors, setFormErrors] = useState<{
+    name?: string;
+    email?: string;
+    password?: string;
+    phone?: string;
+  }>({});
+
   const debouncedSearch = useDebounce(searchQuery, 300);
 
   const queryParams = useMemo(() => ({
@@ -205,6 +212,7 @@ export default function UsersRolesScreen() {
       autoApproval: false,
       managerId: undefined,
     });
+    setFormErrors({});
     setShowModal(true);
   };
 
@@ -227,6 +235,7 @@ export default function UsersRolesScreen() {
       autoApproval: user.autoApproval,
       managerId: user.managerId,
     });
+    setFormErrors({});
     setShowModal(true);
   };
 
@@ -261,23 +270,31 @@ export default function UsersRolesScreen() {
   const handlePhoneChange = (text: string) => {
     const formatted = formatSaudiPhone(text);
     setFormData({ ...formData, phoneNumber: formatted });
+    if (formErrors.phone) setFormErrors({ ...formErrors, phone: undefined });
   };
 
   const handleSaveUser = async () => {
-    if (!formData.name || !formData.email || !formData.role) {
-      showError(t('common.error'), t('form.fieldRequired'));
-      return;
+    const errors: typeof formErrors = {};
+    
+    if (!formData.name.trim()) {
+      errors.name = t('form.fieldRequired');
     }
-
+    if (!formData.email.trim()) {
+      errors.email = t('form.fieldRequired');
+    }
     if (!editingUser && !formData.password) {
-      showError(t('common.error'), t('form.passwordRequired'));
+      errors.password = t('form.passwordRequired');
+    }
+    if (formData.phoneNumber && !validatePhone(formData.phoneNumber)) {
+      errors.phone = t('errors.invalidPhone');
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
       return;
     }
 
-    if (formData.phoneNumber && !validatePhone(formData.phoneNumber)) {
-      showError(t('common.error'), t('errors.invalidPhone'));
-      return;
-    }
+    setFormErrors({});
 
     try {
       if (editingUser) {
@@ -1276,8 +1293,12 @@ export default function UsersRolesScreen() {
               <StyledInput
                 label={`${t('form.fullName')} *`}
                 value={formData.name}
-                onChangeText={(text) => setFormData({ ...formData, name: text })}
+                onChangeText={(text) => {
+                  setFormData({ ...formData, name: text });
+                  if (formErrors.name) setFormErrors({ ...formErrors, name: undefined });
+                }}
                 placeholder={t('form.enterFullName')}
+                error={formErrors.name}
               />
 
               <Spacer height={Spacing.md} />
@@ -1285,23 +1306,31 @@ export default function UsersRolesScreen() {
               <StyledInput
                 label={`${t('auth.email')} *`}
                 value={formData.email}
-                onChangeText={(text) => setFormData({ ...formData, email: text })}
+                onChangeText={(text) => {
+                  setFormData({ ...formData, email: text });
+                  if (formErrors.email) setFormErrors({ ...formErrors, email: undefined });
+                }}
                 placeholder={t('auth.emailPlaceholder')}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 editable={!editingUser}
+                error={formErrors.email}
               />
 
               {!editingUser ? (
                 <>
                   <Spacer height={Spacing.md} />
                   <StyledInput
-                    label={t('auth.password')}
+                    label={`${t('auth.password')} *`}
                     value={formData.password}
-                    onChangeText={(text) => setFormData({ ...formData, password: text })}
+                    onChangeText={(text) => {
+                      setFormData({ ...formData, password: text });
+                      if (formErrors.password) setFormErrors({ ...formErrors, password: undefined });
+                    }}
                     placeholder={t('auth.passwordPlaceholder')}
                     secureTextEntry={true}
                     autoCapitalize="none"
+                    error={formErrors.password}
                   />
                 </>
               ) : null}
@@ -1361,6 +1390,7 @@ export default function UsersRolesScreen() {
                 onChangeText={handlePhoneChange}
                 placeholder="+966 5X XXX XXXX"
                 keyboardType="phone-pad"
+                error={formErrors.phone}
               />
 
               <Spacer height={Spacing.md} />

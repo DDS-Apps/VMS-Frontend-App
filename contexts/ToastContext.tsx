@@ -221,27 +221,35 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     setGlobalLocale(locale, isLocaleReady);
   }, [locale, isLocaleReady]);
 
+  const toastContent = toasts.length > 0 ? (
+    <View style={styles.toastWrapper} pointerEvents="box-none">
+      {toasts.map((toast, index) => (
+        <ToastItem
+          key={toast.id}
+          toast={toast}
+          onDismiss={hideToast}
+          index={index}
+        />
+      ))}
+    </View>
+  ) : null;
+
   return (
     <ToastContext.Provider value={{ showToast, showError, showSuccess, showWarning, showInfo, hideToast }}>
       {children}
-      <Modal
-        visible={toasts.length > 0}
-        transparent
-        animationType="none"
-        statusBarTranslucent
-        onRequestClose={() => {}}
-      >
-        <View style={styles.toastWrapper} pointerEvents="box-none">
-          {toasts.map((toast, index) => (
-            <ToastItem
-              key={toast.id}
-              toast={toast}
-              onDismiss={hideToast}
-              index={index}
-            />
-          ))}
-        </View>
-      </Modal>
+      {Platform.OS === 'web' ? (
+        toastContent
+      ) : (
+        <Modal
+          visible={toasts.length > 0}
+          transparent
+          animationType="none"
+          statusBarTranslucent
+          onRequestClose={() => {}}
+        >
+          {toastContent}
+        </Modal>
+      )}
     </ToastContext.Provider>
   );
 }
@@ -256,8 +264,20 @@ export function useToast() {
 
 const styles = StyleSheet.create({
   toastWrapper: {
-    flex: 1,
-    backgroundColor: 'transparent',
+    ...Platform.select({
+      web: {
+        position: 'fixed' as 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 2147483647,
+        pointerEvents: 'box-none',
+      },
+      default: {
+        flex: 1,
+        backgroundColor: 'transparent',
+      },
+    }),
   },
   toastContainer: {
     position: 'absolute',
