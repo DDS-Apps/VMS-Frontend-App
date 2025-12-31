@@ -27,6 +27,7 @@ export const ar: TranslationKeys = {
     filter: 'تصفية',
     all: 'الكل',
     none: 'لا شيء',
+    manager: 'مدير',
     yes: 'نعم',
     no: 'لا',
     ok: 'موافق',

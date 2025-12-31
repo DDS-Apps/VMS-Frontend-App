@@ -27,6 +27,7 @@ export interface TranslationKeys {
     filter: string;
     all: string;
     none: string;
+    manager: string;
     yes: string;
     no: string;
     ok: string;
