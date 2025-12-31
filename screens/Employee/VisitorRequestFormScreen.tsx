@@ -24,7 +24,7 @@ import { applyOpacity, createModalOverlayStyle } from "@/utils/statusStyles";
 import { CalendarDatePicker } from "@/components/CalendarDatePicker";
 import { TimePicker } from "@/components/TimePicker";
 import type { VisitorRequestFormScreenProps } from "@/types/employeeNavigation.types";
-import { calculateServerDuration } from "@/utils/api/dateTimeUtils";
+import { calculateServerDuration } from "@/utils/dateTimeUtils";
 import { useServerDateTime } from "@/hooks/useServerDateTime";
 
 const MONTHS = [
@@ -139,7 +139,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
 
   const { data: roomAvailability, isLoading: isLoadingRooms } = useRoomAvailabilityQuery(roomAvailabilityParams);
   
-  const isRoomAvailable = roomAvailability?.available === true;
+  const isRoomAvailable = Array.isArray(roomAvailability) && roomAvailability.some(room => room.isAvailable);
   const hasCheckedAvailability = roomAvailability !== undefined && !isLoadingRooms;
 
   useEffect(() => {

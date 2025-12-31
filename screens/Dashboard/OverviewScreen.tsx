@@ -20,7 +20,7 @@ import {
   mapAwaitingVisitorToVisitorRequest,
   mapPendingApprovalToVisitorRequest,
   mapPendingHostWalkInToVisitorRequest,
-} from "@/utils/api/requestMappers";
+} from "@/utils/requestMappers";
 
 const { width: screenWidth } = Dimensions.get('window');
 

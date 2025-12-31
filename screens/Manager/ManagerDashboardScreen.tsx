@@ -27,7 +27,7 @@ import type { PendingApprovalDto } from "@/types/api.types";
 import { applyOpacity } from "@/utils/statusStyles";
 import type { ManagerDashboardScreenProps } from "@/types/managerNavigation.types";
 import type { Theme } from "@/types/theme.types";
-import { mapPendingApprovalToVisitorRequest } from "@/utils/api/requestMappers";
+import { mapPendingApprovalToVisitorRequest } from "@/utils/requestMappers";
 
 const LAYOUT = {
   cardPadding: Spacing.lg,

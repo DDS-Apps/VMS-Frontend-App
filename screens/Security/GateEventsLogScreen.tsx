@@ -11,7 +11,7 @@ import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { applyOpacity } from "@/utils/statusStyles";
-import { formatTimestamp as formatTimestampUtil } from "@/utils/api/dateTimeUtils";
+import { formatTimestamp as formatTimestampUtil } from "@/utils/dateTimeUtils";
 import { useSecurityGateLogsQuery } from "@/hooks/queries/useSecurityQueries";
 import type { GateLogEntry, GateAction, GateResult } from "@/types";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";

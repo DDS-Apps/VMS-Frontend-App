@@ -64,8 +64,8 @@ import {
   mapVisitDetailsToVisitorRequest,
   calculateDuration,
   getDurationOptions,
-} from "@/utils/api/requestMappers";
-import { calculateServerDuration } from "@/utils/api/dateTimeUtils";
+} from "@/utils/requestMappers";
+import { calculateServerDuration } from "@/utils/dateTimeUtils";
 import { useServerDateTime } from "@/hooks/useServerDateTime";
 
 export default function RequestDetailsScreen({
@@ -177,7 +177,7 @@ export default function RequestDetailsScreen({
   const { data: editRoomAvailability, isLoading: isLoadingEditRooms } = 
     useRoomAvailabilityQuery(editRoomAvailabilityParams);
   
-  const isEditRoomAvailable = editRoomAvailability?.available === true;
+  const isEditRoomAvailable = Array.isArray(editRoomAvailability) && editRoomAvailability.some(room => room.isAvailable);
   const hasCheckedEditAvailability = editRoomAvailability !== undefined && !isLoadingEditRooms;
 
   const request = useMemo(() => {

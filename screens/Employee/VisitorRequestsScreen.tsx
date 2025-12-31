@@ -24,7 +24,7 @@ import { getStatusConfig as getStatusStyle, applyOpacity, StatusConfig } from "@
 import type { Theme } from "@/types/theme.types";
 import type { EmployeeStackParamList } from "@/types/employeeNavigation.types";
 import type { ManagerStackParamList } from "@/types/managerNavigation.types";
-import { mapVisitListItemToVisitorRequest, mapPendingHostWalkInToVisitorRequest } from "@/utils/api/requestMappers";
+import { mapVisitListItemToVisitorRequest, mapPendingHostWalkInToVisitorRequest } from "@/utils/requestMappers";
 
 
 // Unified Layout Tokens

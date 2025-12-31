@@ -9,13 +9,13 @@ export interface MeetingRoom {
   isAvailable: boolean;
 }
 
-export const useRoomAvailabilityQuery = (params: RoomAvailabilityParams) => {
+export const useRoomAvailabilityQuery = (params: RoomAvailabilityParams | null) => {
   return useQuery({
     queryKey: ['roomAvailability', params],
     queryFn: async (): Promise<MeetingRoom[]> => {
       return [];
     },
-    enabled: !!params.date,
+    enabled: !!params?.date,
   });
 };
 
