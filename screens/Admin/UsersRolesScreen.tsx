@@ -285,7 +285,9 @@ export default function UsersRolesScreen() {
     if (!editingUser && !formData.password) {
       errors.password = t('form.passwordRequired');
     }
-    if (formData.phoneNumber && !validatePhone(formData.phoneNumber)) {
+    if (!formData.phoneNumber) {
+      errors.phone = t('form.phoneRequired');
+    } else if (!validatePhone(formData.phoneNumber)) {
       errors.phone = t('errors.invalidPhone');
     }
 
@@ -1299,6 +1301,7 @@ export default function UsersRolesScreen() {
                 }}
                 placeholder={t('form.enterFullName')}
                 error={formErrors.name}
+                returnKeyType="next"
               />
 
               <Spacer height={Spacing.md} />
@@ -1315,6 +1318,7 @@ export default function UsersRolesScreen() {
                 autoCapitalize="none"
                 editable={!editingUser}
                 error={formErrors.email}
+                returnKeyType="next"
               />
 
               {!editingUser ? (
@@ -1331,6 +1335,7 @@ export default function UsersRolesScreen() {
                     secureTextEntry={true}
                     autoCapitalize="none"
                     error={formErrors.password}
+                    returnKeyType="next"
                   />
                 </>
               ) : null}
@@ -1380,17 +1385,20 @@ export default function UsersRolesScreen() {
                 value={formData.department}
                 onChangeText={(text) => setFormData({ ...formData, department: text })}
                 placeholder={t('form.enterCompany')}
+                returnKeyType="next"
               />
 
               <Spacer height={Spacing.md} />
 
               <StyledInput
-                label={t('form.phoneNumber')}
+                label={`${t('form.phoneNumber')} *`}
                 value={formData.phoneNumber}
                 onChangeText={handlePhoneChange}
                 placeholder="+966 5X XXX XXXX"
                 keyboardType="phone-pad"
                 error={formErrors.phone}
+                returnKeyType="done"
+                onSubmitEditing={handleSaveUser}
               />
 
               <Spacer height={Spacing.md} />

@@ -212,6 +212,7 @@ export default function ResetPasswordScreen({ email, onSubmit, onBack }: ResetPa
                 onFocus={() => setFocusedField('code')}
                 onBlur={() => setFocusedField(null)}
                 keyboardType="number-pad"
+                returnKeyType="next"
               />
             </View>
             {errors.code ? (
@@ -243,6 +244,7 @@ export default function ResetPasswordScreen({ email, onSubmit, onBack }: ResetPa
                 onFocus={() => setFocusedField('newPassword')}
                 onBlur={() => setFocusedField(null)}
                 secureTextEntry={!showNewPassword}
+                returnKeyType="next"
               />
               <Pressable onPress={() => setShowNewPassword(!showNewPassword)} hitSlop={8}>
                 <DDIcon name={showNewPassword ? "eye-off" : "eye"} size={INPUT_ICON_SIZE} variant="muted" />
@@ -277,6 +279,8 @@ export default function ResetPasswordScreen({ email, onSubmit, onBack }: ResetPa
                 onFocus={() => setFocusedField('confirmPassword')}
                 onBlur={() => setFocusedField(null)}
                 secureTextEntry={!showConfirmPassword}
+                returnKeyType="go"
+                onSubmitEditing={handleSubmit}
               />
               <Pressable onPress={() => setShowConfirmPassword(!showConfirmPassword)} hitSlop={8}>
                 <DDIcon name={showConfirmPassword ? "eye-off" : "eye"} size={INPUT_ICON_SIZE} variant="muted" />

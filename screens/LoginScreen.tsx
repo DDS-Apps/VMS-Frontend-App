@@ -353,6 +353,7 @@ export default function LoginScreen({
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
+                returnKeyType="next"
               />
             </View>
             {errors.email ? (
@@ -414,6 +415,8 @@ export default function LoginScreen({
                 onFocus={() => setFocusedField("password")}
                 onBlur={() => setFocusedField(null)}
                 secureTextEntry={!showPassword}
+                returnKeyType="go"
+                onSubmitEditing={handleLogin}
               />
               <Pressable
                 onPress={() => setShowPassword(!showPassword)}

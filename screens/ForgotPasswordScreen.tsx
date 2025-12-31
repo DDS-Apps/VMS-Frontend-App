@@ -151,6 +151,8 @@ export default function ForgotPasswordScreen({ onSubmit, onBack }: ForgotPasswor
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
+                returnKeyType="go"
+                onSubmitEditing={handleSubmit}
               />
             </View>
             {error ? (
