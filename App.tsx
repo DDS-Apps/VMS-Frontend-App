@@ -1,11 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { StyleSheet, View, ActivityIndicator, Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import * as ExpoSplashScreen from "expo-splash-screen";
 
 import { KeyboardProviderWrapper } from "@/components/KeyboardProviderWrapper";
 import { StatusBar } from "expo-status-bar";
 import { useFonts } from 'expo-font';
+
+ExpoSplashScreen.preventAutoHideAsync().catch(() => {});
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { LanguageProvider } from "@/contexts/LanguageContext";
@@ -148,10 +151,8 @@ function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
 
 export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const isWeb = Platform.OS === 'web';
-  const [fontTimeout, setFontTimeout] = useState(false);
+  const [appIsReady, setAppIsReady] = useState(false);
 
-  // Load fonts from local assets to avoid proxy issues on web
   const [fontsLoaded, fontError] = useFonts({
     'Inter_400Regular': require('./assets/fonts/Inter_400Regular.ttf'),
     'Inter_500Medium': require('./assets/fonts/Inter_500Medium.ttf'),
@@ -160,22 +161,39 @@ export default function App() {
   });
 
   useEffect(() => {
-    if (fontError) {
-      console.warn('[App] Font loading error:', fontError);
-      setFontTimeout(true);
+    async function prepare() {
+      try {
+        if (fontError) {
+          console.warn('[App] Font loading error:', fontError);
+        }
+        
+        if (fontsLoaded || fontError) {
+          setAppIsReady(true);
+        }
+      } catch (e) {
+        console.warn('[App] Error during app preparation:', e);
+        setAppIsReady(true);
+      }
     }
-  }, [fontError]);
+    
+    prepare();
+  }, [fontsLoaded, fontError]);
 
   useEffect(() => {
-    // Give fonts time to load, with timeout fallback
     const timer = setTimeout(() => {
-      if (!fontsLoaded && !fontError) {
+      if (!appIsReady) {
         console.warn('[App] Font loading timeout - proceeding without custom fonts');
-        setFontTimeout(true);
+        setAppIsReady(true);
       }
-    }, 5000);
+    }, 3000);
     return () => clearTimeout(timer);
-  }, [fontsLoaded, fontError]);
+  }, [appIsReady]);
+
+  const onLayoutRootView = useCallback(async () => {
+    if (appIsReady) {
+      await ExpoSplashScreen.hideAsync().catch(() => {});
+    }
+  }, [appIsReady]);
 
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
@@ -187,12 +205,8 @@ export default function App() {
     theme: isDarkMode ? Colors.dark : Colors.light,
   };
 
-  if (!fontsLoaded && !fontTimeout) {
-    return (
-      <View style={[styles.root, { justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.light.background }]}>
-        <ActivityIndicator size="large" color={Colors.light.primary} />
-      </View>
-    );
+  if (!appIsReady) {
+    return null;
   }
 
   return (
@@ -202,7 +216,7 @@ export default function App() {
           <LanguageProvider>
             <ThemeContext.Provider value={themeValue}>
               <SafeAreaProvider>
-                <GestureHandlerRootView style={styles.root}>
+                <GestureHandlerRootView style={styles.root} onLayout={onLayoutRootView}>
                   <KeyboardProviderWrapper>
                     <PortalProvider>
                       <ToastProvider>
