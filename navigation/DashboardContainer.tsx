@@ -33,21 +33,7 @@ import UsersRolesScreen from "@/screens/Admin/UsersRolesScreen";
 import UserDetailScreen from "@/screens/Admin/UserDetailScreen";
 import ParkingValetSettingsScreen from "@/screens/Admin/ParkingValetSettingsScreen";
 import BuffetSettingsScreen from "@/screens/Admin/BuffetSettingsScreen";
-import SystemRulesScreen from "@/screens/Admin/SystemRulesScreen";
-import MeetingRoomCatalogScreen from "@/screens/Admin/MeetingRoomCatalogScreen";
-import MeetingCalendarScreen from "@/screens/Admin/MeetingCalendarScreen";
-import MeetingOperationsScreen from "@/screens/Admin/MeetingOperationsScreen";
-import MeetingRoomDetailScreen from "@/screens/Admin/MeetingRoomDetailScreen";
-import ValetZonesScreen from "@/screens/Admin/ValetZonesScreen";
-import NotificationTemplatesScreen from "@/screens/Admin/NotificationTemplatesScreen";
-import BiometricSettingsScreen from "@/screens/Admin/BiometricSettingsScreen";
 import ReminderRulesScreen from "@/screens/Admin/ReminderRulesScreen";
-import IntegrationsStatusScreen from "@/screens/Admin/IntegrationsStatusScreen";
-import EmployeeParkingAssignmentScreen from "@/screens/Admin/EmployeeParkingAssignmentScreen";
-import ParkingOccupancyScreen from "@/screens/Admin/ParkingOccupancyScreen";
-import GlobalAnalyticsScreen from "@/screens/Admin/GlobalAnalyticsScreen";
-import SystemEventLogScreen from "@/screens/Admin/SystemEventLogScreen";
-import ReminderScheduleScreen from "@/screens/Admin/ReminderScheduleScreen";
 import DriverTasksScreen from "@/screens/Driver/DriverTasksScreen";
 import DriverTaskDetailScreen from "@/screens/Driver/DriverTaskDetailScreen";
 import BuffetBoardScreen from "@/screens/Buffet/BuffetBoardScreen";
@@ -59,14 +45,10 @@ import BuffetAllRequestsScreen from "@/screens/BuffetAdmin/BuffetAllRequestsScre
 import BuffetOverviewScreen from "@/screens/BuffetAdmin/BuffetOverviewScreen";
 import ValetAdminDashboardScreen from "@/screens/ValetAdmin/ValetAdminDashboardScreen";
 import ValetAdminDriversScreen from "@/screens/ValetAdmin/ValetAdminDriversScreen";
-import ValetAdminParkingScreen from "@/screens/ValetAdmin/ValetAdminParkingScreen";
 import ValetAllRequestsScreen from "@/screens/ValetAdmin/ValetAllRequestsScreen";
 import ValetRequestDetailsScreen from "@/screens/ValetAdmin/ValetRequestDetailsScreen";
 import BuildingAdminDashboardScreen from "@/screens/BuildingAdmin/BuildingAdminDashboardScreen";
 import AllRequestsScreen from "@/screens/BuildingAdmin/AllRequestsScreen";
-import ParkingUtilizationScreen from "@/screens/BuildingAdmin/ParkingUtilizationScreen";
-import ParkingSpotsScreen from "@/screens/BuildingAdmin/ParkingSpotsScreen";
-import ParkingPriorityRulesScreen from "@/screens/BuildingAdmin/ParkingPriorityRulesScreen";
 import DriverLoadScreen from "@/screens/ValetAdmin/DriverLoadScreen";
 import ChangePasswordScreen from "@/screens/ChangePasswordScreen";
 import EditProfileScreen from "@/screens/EditProfileScreen";
@@ -644,129 +626,10 @@ export default function DashboardContainer({ userRole, userName, userEmail, user
                 </ScreenWrapper>
               )}
             </Stack.Screen>
-            <Stack.Screen name="SystemRules">
-              {() => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <SystemRulesScreen />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
-            <Stack.Screen name="MeetingRoomCatalog">
-              {() => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <MeetingRoomCatalogScreen />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
-            <Stack.Screen name="MeetingCalendar">
-              {() => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <MeetingCalendarScreen />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
-            <Stack.Screen name="MeetingOperations">
-              {() => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <MeetingOperationsScreen />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
-            <Stack.Screen name="MeetingRoomDetail">
-              {(props: any) => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <MeetingRoomDetailScreen {...props} />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
-            <Stack.Screen name="ValetZones">
-              {() => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <ValetZonesScreen />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
-            <Stack.Screen name="NotificationTemplates">
-              {() => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <NotificationTemplatesScreen />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
-            <Stack.Screen name="BiometricSettings">
-              {() => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <BiometricSettingsScreen />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
             <Stack.Screen name="ReminderRules">
               {() => (
                 <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
                   <ReminderRulesScreen />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
-            <Stack.Screen name="IntegrationsStatus">
-              {() => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <IntegrationsStatusScreen />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
-            <Stack.Screen name="EmployeeParkingAssignment">
-              {() => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <EmployeeParkingAssignmentScreen />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
-            <Stack.Screen name="ParkingOccupancy">
-              {() => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <ParkingOccupancyScreen />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
-            <Stack.Screen name="GlobalAnalytics">
-              {() => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <GlobalAnalyticsScreen />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
-            <Stack.Screen name="SystemEventLog">
-              {() => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <SystemEventLogScreen />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
-            <Stack.Screen name="ReminderSchedule">
-              {() => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <ReminderScheduleScreen />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
-            <Stack.Screen name="ParkingUtilization">
-              {() => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <ParkingUtilizationScreen />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
-            <Stack.Screen name="ParkingSpots">
-              {() => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <ParkingSpotsScreen />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
-            <Stack.Screen name="ParkingPriorityRules">
-              {() => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <ParkingPriorityRulesScreen />
                 </ScreenWrapper>
               )}
             </Stack.Screen>
