@@ -199,14 +199,24 @@ export default function LoginScreen({
     setErrors({});
 
     try {
+      console.log('[LoginScreen] Starting Microsoft login...');
       const result = await promptAzureAsync();
 
+      console.log('[LoginScreen] Azure auth result:', {
+        hasResult: !!result,
+        errorType: result?.errorType,
+        hasAccessToken: !!result?.accessToken,
+        accessTokenLength: result?.accessToken?.length || 0,
+      });
+
       if (!result) {
+        console.log('[LoginScreen] No result from Azure auth (web redirect?)');
         setIsMicrosoftSubmitting(false);
         return;
       }
 
       if (result.errorType) {
+        console.log('[LoginScreen] Azure auth error type:', result.errorType);
         if (result.errorType === "cancelled") {
           setIsMicrosoftSubmitting(false);
           return;
@@ -219,6 +229,7 @@ export default function LoginScreen({
       }
 
       if (!result.accessToken) {
+        console.log('[LoginScreen] No access token in result');
         const errorMessage = t("auth.azureLoginFailed");
         setErrors({ general: errorMessage });
         showError(errorMessage, t("toast.loginErrorTitle"));
@@ -226,14 +237,17 @@ export default function LoginScreen({
         return;
       }
 
+      console.log('[LoginScreen] Calling ssoLogin with token length:', result.accessToken.length);
       const user = await ssoLogin({
         accessToken: result.accessToken,
         refreshToken: result.refreshToken,
         expiresIn: result.expiresIn,
       });
+      console.log('[LoginScreen] ssoLogin successful, user role:', user.role);
       const userRole = (user.role as UserRole) || "employee";
       onLoginSuccess?.(userRole);
     } catch (error) {
+      console.error('[LoginScreen] Microsoft login error:', error);
       const errorMessage = getErrorMessage(error, true);
       setErrors({ general: errorMessage });
       showError(errorMessage, t("toast.loginErrorTitle"));

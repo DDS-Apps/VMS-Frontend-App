@@ -91,9 +91,21 @@ export function useAzureAuth(): UseAzureAuthReturn {
         if (result.type === 'success' && result.url) {
           console.log('[AzureAuth] Mobile: Success URL:', result.url);
           const parsedResponse = parseAuthUrl(result.url);
+          
+          console.log('[AzureAuth] Mobile: Parsed response:', {
+            hasAccessToken: !!parsedResponse.accessToken,
+            accessTokenLength: parsedResponse.accessToken?.length || 0,
+            hasRefreshToken: !!parsedResponse.refreshToken,
+            hasExpiresIn: !!parsedResponse.expiresIn,
+            expiresIn: parsedResponse.expiresIn,
+            hasUser: !!parsedResponse.user,
+            hasError: !!parsedResponse.error,
+            error: parsedResponse.error,
+            errorDescription: parsedResponse.errorDescription,
+          });
 
           if (parsedResponse.error) {
-            console.log('[AzureAuth] Mobile: Error from callback:', parsedResponse.error);
+            console.log('[AzureAuth] Mobile: Error from callback:', parsedResponse.error, parsedResponse.errorDescription);
             setErrorType('auth_failed');
             setIsLoading(false);
             return { accessToken: '', errorType: 'auth_failed' };
@@ -101,12 +113,13 @@ export function useAzureAuth(): UseAzureAuthReturn {
 
           if (!parsedResponse.accessToken) {
             console.log('[AzureAuth] Mobile: No access token received in response');
+            console.log('[AzureAuth] Mobile: Full URL for debugging:', result.url);
             setErrorType('no_token');
             setIsLoading(false);
             return { accessToken: '', errorType: 'no_token' };
           }
 
-          console.log('[AzureAuth] Mobile: Successfully received token');
+          console.log('[AzureAuth] Mobile: Successfully received token, length:', parsedResponse.accessToken.length);
           setIsLoading(false);
           return {
             accessToken: parsedResponse.accessToken,

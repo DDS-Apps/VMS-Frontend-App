@@ -368,6 +368,8 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
     setState((prev) => ({ ...prev, error: null }));
 
     try {
+      console.log('[AuthContext] ssoLogin called, token length:', tokens.accessToken?.length || 0);
+      
       if (!tokens.accessToken) {
         throw new Error('No access token provided');
       }
@@ -377,9 +379,13 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
       const refreshTokenValue = tokens.refreshToken || tokens.accessToken;
       setRefreshToken(refreshTokenValue);
 
+      console.log('[AuthContext] Tokens set, persisting...');
       await persistTokens(tokens.accessToken, refreshTokenValue, tokens.expiresIn);
 
+      console.log('[AuthContext] Fetching current user from API...');
       const userDto = await authService.getCurrentUser();
+      console.log('[AuthContext] User fetched successfully:', userDto?.email);
+      
       const user = mapUserDtoToAuthUser(userDto);
       user.isSSOUser = true;
       await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
@@ -391,8 +397,10 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
         error: null,
       });
 
+      console.log('[AuthContext] SSO login complete, user:', user.email, 'role:', user.role);
       return user;
     } catch (error) {
+      console.error('[AuthContext] ssoLogin error:', error);
       clearTokens();
       await AsyncStorage.multiRemove([AUTH_STORAGE_KEY, TOKEN_STORAGE_KEY]);
       const errorMessage = error instanceof Error ? error.message : 'SSO login failed';
