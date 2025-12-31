@@ -4,7 +4,6 @@ export { visitorApiService } from './visitorApiService';
 export { invitationApiService } from './invitationApiService';
 export { requestApiService } from './requestApiService';
 export { parkingApiService } from './parkingApiService';
-export { meetingRoomApiService } from './meetingRoomApiService';
 export { buffetApiService } from './buffetApiService';
 export { valetApiService } from './valetApiService';
 export { notificationApiService } from './notificationApiService';

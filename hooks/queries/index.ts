@@ -4,7 +4,6 @@ export * from './useVisitorQueries';
 export * from './useInvitationQueries';
 export * from './useApprovalQueries';
 export * from './useParkingQueries';
-export * from './useMeetingRoomQueries';
 export * from './useBuffetQueries';
 export * from './useValetQueries';
 export * from './useNotificationQueries';
