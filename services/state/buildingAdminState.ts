@@ -102,7 +102,7 @@ export const getSystemStats = (): SystemStats => {
   const rejectedRequests = visitorRequests.filter(r => r.status === 'rejected').length;
   
   const ongoingBuffets = buffetRequests.filter(r => 
-    r.status === 'pending' || r.status === 'in_progress'
+    r.status === 'pending' || r.status === 'preparing'
   ).length;
   
   const activeValet = valetRequests.filter(r => 
@@ -158,8 +158,8 @@ export const getAllRequests = (): RequestSummary[] => {
       time: r.timeSlot,
       location: r.location,
       canApprove: false,
-      canReassign: r.status === 'pending' || r.status === 'in_progress',
-      canCancel: r.status === 'pending' || r.status === 'in_progress',
+      canReassign: r.status === 'pending' || r.status === 'preparing',
+      canCancel: r.status === 'pending' || r.status === 'preparing',
     });
   });
 
@@ -239,7 +239,7 @@ export const getRecentActivity = (): RecentActivity[] => {
     activities.push({
       id: `activity_buffet_${r.id}`,
       type: 'buffet',
-      action: r.status === 'completed' ? 'Buffet Completed' : r.status === 'in_progress' ? 'Buffet Started' : 'New Buffet Request',
+      action: r.status === 'completed' ? 'Buffet Completed' : r.status === 'preparing' ? 'Buffet Started' : 'New Buffet Request',
       description: `${r.visitorName} at ${r.location}`,
       time: getRelativeTime(r.createdAt),
       icon: 'disc',
