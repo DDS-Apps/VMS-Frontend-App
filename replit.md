@@ -74,26 +74,8 @@ The VMS app adheres to a Clean Architecture pattern, dividing the application in
 -   **@react-native-async-storage/async-storage:** Language preference and auth token persistence.
 -   **axios:** HTTP client for API calls.
 -   **@tanstack/react-query:** Data fetching, caching, and state management.
--   **express:** Production web server for serving Expo web builds.
 
 ## Deployment
-
-### Web App Deployment (Published via Replit)
-The web app uses **Autoscale deployment** with an Express server to serve a static landing page.
-
-**Architecture Decision:** The full React Native Web app has compatibility issues with native-only packages (react-native-keyboard-controller, gesture-handler) that cause freezing in production. Instead, we serve a professional landing page that directs users to the mobile app via Expo Go.
-
-**How it works:**
-1. `server.js` serves static files from the `/public` folder
-2. The landing page (`public/index.html`) provides:
-   - App Store and Google Play links for Expo Go
-   - Instructions for scanning the QR code
-   - Professional DALLAH DIGITAL branding
-3. No build step required - just static HTML/CSS
-
-**To publish:**
-1. Click the "Publish" button in Replit
-2. The Express server starts and serves the landing page
 
 ### Mobile App Deployment (EAS Build)
 Mobile apps are built and distributed via Expo Application Services (EAS).

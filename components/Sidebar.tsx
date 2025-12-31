@@ -185,8 +185,6 @@ const getMenuGroups = (role: UserRole): { groups: MenuGroup[]; standalone: MenuI
         icon: 'settings',
         items: [
           { id: 'valet_drivers', labelKey: 'navigation.drivers', icon: 'users', screen: 'ValetDrivers' },
-          // HIDDEN per user request - Parking Slots
-          // { id: 'valet_parking', labelKey: 'navigation.parkingSlots', icon: 'map-pin', screen: 'ValetParking' },
         ],
       },
     ];
@@ -208,70 +206,8 @@ const getMenuGroups = (role: UserRole): { groups: MenuGroup[]; standalone: MenuI
         items: [
           { id: 'users_roles', labelKey: 'navigation.manageUsers', icon: 'users', screen: 'UsersRoles' },
           { id: 'reminder_rules', labelKey: 'navigation.reminderRules', icon: 'clock', screen: 'ReminderRules' },
-          // HIDDEN per user request
-          // { id: 'notification_templates', labelKey: 'navigation.notificationTemplates', icon: 'mail', screen: 'NotificationTemplates' },
-          // { id: 'biometric_settings', labelKey: 'navigation.biometricSettings', icon: 'lock', screen: 'BiometricSettings' },
         ],
       },
-      // HIDDEN SECTIONS - functionality preserved, menu items hidden per user request
-      // {
-      //   id: 'meetings',
-      //   labelKey: 'sidebar.meetings',
-      //   icon: 'calendar',
-      //   items: [
-      //     { id: 'meeting_catalog', labelKey: 'navigation.meetingRoomCatalog', icon: 'home', screen: 'MeetingRoomCatalog' },
-      //     { id: 'meeting_calendar', labelKey: 'navigation.meetingCalendar', icon: 'calendar', screen: 'MeetingCalendar' },
-      //     { id: 'meeting_ops', labelKey: 'navigation.meetingOperations', icon: 'monitor', screen: 'MeetingOperations' },
-      //   ],
-      // },
-      // {
-      //   id: 'parking',
-      //   labelKey: 'sidebar.parking',
-      //   icon: 'truck',
-      //   items: [
-      //     { id: 'parking_spots', labelKey: 'navigation.parkingSpots', icon: 'map-pin', screen: 'ParkingSpots' },
-      //     { id: 'parking_assignment', labelKey: 'navigation.employeeParkingAssignment', icon: 'truck', screen: 'EmployeeParkingAssignment' },
-      //     { id: 'parking_occupancy', labelKey: 'navigation.parkingOccupancy', icon: 'pie-chart', screen: 'ParkingOccupancy' },
-      //     { id: 'parking_priority_rules', labelKey: 'navigation.priorityRules', icon: 'sliders', screen: 'ParkingPriorityRules' },
-      //   ],
-      // },
-      // {
-      //   id: 'valet',
-      //   labelKey: 'sidebar.valet',
-      //   icon: 'navigation',
-      //   items: [
-      //     { id: 'valet_oversight', labelKey: 'navigation.valetOversight', icon: 'navigation', screen: 'ValetOversight' },
-      //     { id: 'valet_zones', labelKey: 'navigation.valetZones', icon: 'map', screen: 'ValetZones' },
-      //   ],
-      // },
-      // {
-      //   id: 'services_admin',
-      //   labelKey: 'sidebar.servicesAdmin',
-      //   icon: 'coffee',
-      //   items: [
-      //     { id: 'buffet_oversight', labelKey: 'navigation.buffetOversight', icon: 'coffee', screen: 'BuffetOversight' },
-      //     { id: 'all_locations', labelKey: 'navigation.locations', icon: 'map-pin', screen: 'AllLocations' },
-      //   ],
-      // },
-      // {
-      //   id: 'reports_logs',
-      //   labelKey: 'sidebar.reportsLogs',
-      //   icon: 'trending-up',
-      //   items: [
-      //     { id: 'global_analytics', labelKey: 'navigation.globalAnalytics', icon: 'trending-up', screen: 'GlobalAnalytics' },
-      //     { id: 'system_event_log', labelKey: 'admin.systemEventLog', icon: 'file-text', screen: 'SystemEventLog' },
-      //     { id: 'reminder_schedule', labelKey: 'admin.reminderSchedule', icon: 'clock', screen: 'ReminderSchedule' },
-      //   ],
-      // },
-      // {
-      //   id: 'system',
-      //   labelKey: 'sidebar.system',
-      //   icon: 'settings',
-      //   items: [
-      //     { id: 'integrations', labelKey: 'navigation.integrationsHealth', icon: 'link', screen: 'IntegrationsStatus' },
-      //     { id: 'system_rules', labelKey: 'navigation.systemSettings', icon: 'settings', screen: 'SystemRules' },
-      //   ],
-      // },
     ];
   } else {
     result.standalone = [
