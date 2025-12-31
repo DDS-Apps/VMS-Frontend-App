@@ -25,8 +25,8 @@ import { VisitorRequest } from "@/types/vms.types";
 import { applyOpacity, createModalOverlayStyle } from "@/utils/statusStyles";
 import { ManagerApprovalDetailScreenProps } from "@/types/managerNavigation.types";
 import { Theme } from "@/types/theme.types";
-import { mapVisitDetailsToVisitorRequest } from "@/services/utils/requestMappers";
-import { calculateServerDuration } from "@/services/utils/dateTimeUtils";
+import { mapVisitDetailsToVisitorRequest } from "@/utils/api/requestMappers";
+import { calculateServerDuration } from "@/utils/api/dateTimeUtils";
 import { useServerDateTime } from "@/hooks/useServerDateTime";
 
 const LAYOUT = {

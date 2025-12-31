@@ -64,8 +64,8 @@ import {
   mapVisitDetailsToVisitorRequest,
   calculateDuration,
   getDurationOptions,
-} from "@/services/utils/requestMappers";
-import { calculateServerDuration } from "@/services/utils/dateTimeUtils";
+} from "@/utils/api/requestMappers";
+import { calculateServerDuration } from "@/utils/api/dateTimeUtils";
 import { useServerDateTime } from "@/hooks/useServerDateTime";
 
 export default function RequestDetailsScreen({

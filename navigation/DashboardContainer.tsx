@@ -3,8 +3,8 @@ import { NavigationContainer, useNavigation, useNavigationState, useFocusEffect,
 import { createNativeStackNavigator, NativeStackNavigationProp } from "@react-navigation/native-stack";
 import DashboardLayout from "@/components/DashboardLayout";
 import OverviewScreen from "@/screens/Dashboard/OverviewScreen";
-import NotificationsScreen from "@/screens/NotificationsScreen";
-import SettingsScreen from "@/screens/SettingsScreen";
+import NotificationsScreen from "@/screens/Common/NotificationsScreen";
+import SettingsScreen from "@/screens/Common/SettingsScreen";
 import VisitorRequestsScreen from "@/screens/Employee/VisitorRequestsScreen";
 import VisitTypeSelectionScreen from "@/screens/Employee/VisitTypeSelectionScreen";
 import VisitorRequestFormScreen from "@/screens/Employee/VisitorRequestFormScreen";
@@ -50,8 +50,8 @@ import ValetRequestDetailsScreen from "@/screens/ValetAdmin/ValetRequestDetailsS
 import BuildingAdminDashboardScreen from "@/screens/BuildingAdmin/BuildingAdminDashboardScreen";
 import AllRequestsScreen from "@/screens/BuildingAdmin/AllRequestsScreen";
 import DriverLoadScreen from "@/screens/ValetAdmin/DriverLoadScreen";
-import ChangePasswordScreen from "@/screens/ChangePasswordScreen";
-import EditProfileScreen from "@/screens/EditProfileScreen";
+import ChangePasswordScreen from "@/screens/Profile/ChangePasswordScreen";
+import EditProfileScreen from "@/screens/Profile/EditProfileScreen";
 import { UserRole } from "@/types/vms.types";
 import { getUnreadCount } from "@/services/state/notificationState";
 import type { NativeStackScreenProps, NativeStackNavigationOptions } from "@react-navigation/native-stack";

@@ -24,7 +24,7 @@ import { applyOpacity, createModalOverlayStyle } from "@/utils/statusStyles";
 import { CalendarDatePicker } from "@/components/CalendarDatePicker";
 import { TimePicker } from "@/components/TimePicker";
 import type { VisitorRequestFormScreenProps } from "@/types/employeeNavigation.types";
-import { calculateServerDuration } from "@/services/utils/dateTimeUtils";
+import { calculateServerDuration } from "@/utils/api/dateTimeUtils";
 import { useServerDateTime } from "@/hooks/useServerDateTime";
 
 const MONTHS = [

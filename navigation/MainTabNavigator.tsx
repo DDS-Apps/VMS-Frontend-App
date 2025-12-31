@@ -22,7 +22,7 @@ import AllVisitorsTodayScreen from "@/screens/Receptionist/AllVisitorsTodayScree
 import CheckInOutConfirmationScreen from "@/screens/Receptionist/CheckInOutConfirmationScreen";
 import VisitorDetailScreen from "@/screens/Receptionist/VisitorDetailScreen";
 import AdminDashboardScreen from "@/screens/Admin/AdminDashboardScreen";
-import NotificationsScreen from "@/screens/NotificationsScreen";
+import NotificationsScreen from "@/screens/Common/NotificationsScreen";
 
 export type MainTabParamList = {
   DashboardTab: undefined;
