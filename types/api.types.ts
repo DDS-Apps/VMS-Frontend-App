@@ -1650,7 +1650,7 @@ export interface PublicInviteDto {
 
 export interface AcceptInviteDto {
   visitorNotes?: string;
-  parkingOption?: VisitorParkingOption;
+  needsParking?: boolean;
   licensePlate?: string;
   carModel?: string;
   carColor?: string;

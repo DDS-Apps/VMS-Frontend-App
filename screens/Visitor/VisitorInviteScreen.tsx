@@ -501,11 +501,12 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
     
     if (invite) inviteSnapshotRef.current = invite;
     try {
+      const needsParking = selectedParkingOption !== 'no_parking';
       const response = await acceptMutation.mutateAsync({
-        parkingOption: selectedParkingOption,
-        licensePlate: selectedParkingOption === 'parking_with_car_info' ? licensePlate : undefined,
-        carModel: selectedParkingOption === 'parking_with_car_info' ? carModel : undefined,
-        carColor: selectedParkingOption === 'parking_with_car_info' ? carColor : undefined,
+        needsParking,
+        licensePlate: selectedParkingOption === 'parking_with_car_info' ? licensePlate.trim() : undefined,
+        carModel: selectedParkingOption === 'parking_with_car_info' ? carModel.trim() : undefined,
+        carColor: selectedParkingOption === 'parking_with_car_info' ? carColor.trim() : undefined,
       });
       setResponseQrCode(response.qrCode || null);
       setActionCompleted('accepted');
