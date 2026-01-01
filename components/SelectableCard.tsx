@@ -83,6 +83,7 @@ const mobileStyles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    justifyContent: 'center',
     marginHorizontal: -Spacing.xs,
   },
   cardWrapper3Col: {
