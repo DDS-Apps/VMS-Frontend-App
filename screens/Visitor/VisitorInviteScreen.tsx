@@ -473,7 +473,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
   const inviteSnapshotRef = React.useRef<PublicInviteDto | null>(null);
   
   // Inline parking selection state
-  const [selectedParkingOption, setSelectedParkingOption] = useState<VisitorParkingOption | null>(null);
+  const [selectedParkingOption, setSelectedParkingOption] = useState<VisitorParkingOption>('no_parking');
   const [licensePlate, setLicensePlate] = useState('');
   const [carModel, setCarModel] = useState('');
   const [carColor, setCarColor] = useState('');
@@ -1311,7 +1311,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
         <LoadingButton
           onPress={handleAccept}
           loading={acceptMutation.isPending}
-          disabled={acceptMutation.isPending || rejectMutation.isPending || !selectedParkingOption}
+          disabled={acceptMutation.isPending || rejectMutation.isPending || (selectedParkingOption === 'parking_with_car_info' && (!licensePlate.trim() || !carModel.trim() || !carColor.trim()))}
           variant="success"
           size="large"
           icon="check"
