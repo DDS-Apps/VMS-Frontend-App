@@ -14,6 +14,9 @@ export function usePublicInviteQuery(token: string | undefined) {
     enabled: !!token,
     staleTime: 1000 * 60 * 5,
     retry: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchInterval: false,
   });
 }
 
