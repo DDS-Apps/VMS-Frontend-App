@@ -383,8 +383,22 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
       await persistTokens(tokens.accessToken, refreshTokenValue, tokens.expiresIn);
 
       console.log('[AuthContext] Fetching current user from API...');
-      const userDto = await authService.getCurrentUser();
-      console.log('[AuthContext] User fetched successfully:', userDto?.email);
+      console.log('[AuthContext] Using access token (first 20 chars):', tokens.accessToken?.substring(0, 20));
+      let userDto;
+      try {
+        userDto = await authService.getCurrentUser();
+        console.log('[AuthContext] User fetched successfully:', userDto?.email);
+      } catch (userFetchError) {
+        console.error('[AuthContext] Failed to fetch current user:', userFetchError);
+        console.error('[AuthContext] User fetch error details:', {
+          name: userFetchError instanceof Error ? userFetchError.name : 'Unknown',
+          message: userFetchError instanceof Error ? userFetchError.message : String(userFetchError),
+          code: (userFetchError as any)?.code,
+          status: (userFetchError as any)?.status,
+          response: (userFetchError as any)?.response,
+        });
+        throw userFetchError;
+      }
       
       const user = mapUserDtoToAuthUser(userDto);
       user.isSSOUser = true;

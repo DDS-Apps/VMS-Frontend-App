@@ -246,6 +246,14 @@ export default function LoginScreen({
       onLoginSuccess?.(userRole);
     } catch (error) {
       console.error('[LoginScreen] Microsoft login error:', error);
+      console.error('[LoginScreen] Error details:', {
+        name: error instanceof Error ? error.name : 'Unknown',
+        message: error instanceof Error ? error.message : String(error),
+        code: (error as any)?.code,
+        status: (error as any)?.status,
+        response: (error as any)?.response,
+        stack: error instanceof Error ? error.stack : undefined,
+      });
       const errorMessage = getErrorMessage(error, true);
       setErrors({ general: errorMessage });
       showError(errorMessage, t("toast.loginErrorTitle"));
