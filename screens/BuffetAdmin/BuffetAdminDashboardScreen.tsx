@@ -315,7 +315,7 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
                   ) : (
                     <View style={[styles.staffAvatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
                       <ThemedText style={[styles.staffAvatarText, { color: theme.primary }]}>
-                        {staff.name.split(' ').map(n => n[0]).join('')}
+                        {staff.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
                       </ThemedText>
                     </View>
                   )}
@@ -359,7 +359,7 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
 
   const renderRequestCard = (item: BuffetAdminTaskDto) => {
     const statusConfig = getStatusConfig(theme, item.status, t);
-    const initials = item.visitorName.split(' ').map(n => n[0]).join('');
+    const initials = item.visitorName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
     const showActions = item.status !== 'completed' && item.status !== 'cancelled';
     
     return (

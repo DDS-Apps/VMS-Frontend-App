@@ -278,7 +278,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
     );
   }
 
-  const initials = request.visitorName.split(' ').map(n => n[0]).join('');
+  const initials = request.visitorName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   const showActions = !isReadOnlyRole && request.status !== 'completed' && request.status !== 'cancelled';
   const statusColor = getStatusColor(request.status);
 
@@ -566,7 +566,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
                   ) : (
                     <View style={[styles.modalStaffAvatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
                       <ThemedText style={[styles.modalStaffAvatarText, { color: theme.primary }]}>
-                        {staff.name.split(' ').map(n => n[0]).join('')}
+                        {staff.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
                       </ThemedText>
                     </View>
                   )}

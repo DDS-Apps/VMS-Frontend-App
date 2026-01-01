@@ -238,7 +238,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
         <View style={{ alignItems: 'center' }}>
           <View style={[styles.avatarNew, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
             <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
-              {visitor.name.split(' ').map(n => n[0]).join('')}
+              {visitor.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
             </ThemedText>
           </View>
 

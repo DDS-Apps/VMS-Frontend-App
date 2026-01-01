@@ -860,7 +860,7 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
                   ) : (
                     <View style={[styles.staffAvatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
                       <ThemedText style={[styles.staffAvatarText, { color: theme.primary }]}>
-                        {staff.name.split(' ').map(n => n[0]).join('')}
+                        {staff.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
                       </ThemedText>
                     </View>
                   )}

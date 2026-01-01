@@ -97,7 +97,7 @@ export default function UpcomingVisitorsListScreen() {
   const renderVisitorCard = (item: TodayVisitorDto) => {
     const statusConfig = getStatusConfig(item.status);
     const visitorName = item.visitor.fullName;
-    const initials = visitorName.split(' ').map(n => n[0]).join('');
+    const initials = visitorName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
     
     return (
       <ThemedView key={item.id} style={[styles.visitorCard, { backgroundColor: theme.surface }]}>

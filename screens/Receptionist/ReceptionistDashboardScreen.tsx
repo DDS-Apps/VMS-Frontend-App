@@ -215,7 +215,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
   const renderVisitorCard = (item: TodayVisitorDto) => {
     const borderColor = getStatusBorderColor(item.status);
     const visitorName = item.visitor.fullName;
-    const initials = visitorName.split(' ').map(n => n[0]).join('');
+    const initials = visitorName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
     const showCheckIn = item.status === 'pending' || item.status === 'expected';
     const showCheckOut = item.status === 'checked_in';
     const isMutating = checkInMutation.isPending || checkOutMutation.isPending;
