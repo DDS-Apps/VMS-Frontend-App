@@ -637,7 +637,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
       }
       // Visitor needs parking
       if (invite.licensePlate && invite.carModel && invite.carColor) {
-        return `${t('visitorInvite.licensePlate')}: ${invite.licensePlate}\n${t('visitorInvite.carModel')}: ${invite.carModel}\n${t('visitorInvite.carColor')}: ${invite.carColor}`;
+        return `${invite.licensePlate}, ${invite.carModel}, ${invite.carColor}`;
       }
       return t('visitorInvite.needsParkingInfoLater');
     }
