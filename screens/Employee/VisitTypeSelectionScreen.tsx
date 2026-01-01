@@ -1,15 +1,18 @@
-import React from "react";
-import { View, StyleSheet } from "react-native";
+import React, { useState } from "react";
+import { View, StyleSheet, LayoutChangeEvent } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DDIcon, type IconName } from "@/components/DDIcon";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { ThemedText } from "@/components/ThemedText";
-import { SelectableCard, getGridStyle, getCardWrapper3ColStyle } from "@/components/SelectableCard";
+import { SelectableCard } from "@/components/SelectableCard";
 import Spacer from "@/components/Spacer";
 import { Spacing, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { VisitTypeSelectionScreenProps } from "@/types/employeeNavigation.types";
+
+const CARD_MIN_WIDTH = 140;
+const CARD_GAP = Spacing.md;
 
 type VisitType = {
   id: string;
@@ -38,11 +41,19 @@ export default function VisitTypeSelectionScreen({ navigation, onTypeSelect }: V
   const { theme } = useTheme();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const [gridWidth, setGridWidth] = useState(0);
 
   const scrollContentStyle = {
     paddingTop: insets.top + Spacing.xl,
     paddingBottom: insets.bottom + Spacing.xl,
-    paddingHorizontal: Spacing.sm,
+    paddingHorizontal: Spacing.lg,
+  };
+
+  const columns = gridWidth >= CARD_MIN_WIDTH * 3 + CARD_GAP * 2 ? 3 : 2;
+  const cardWidth = gridWidth > 0 ? (gridWidth - CARD_GAP * (columns - 1)) / columns : CARD_MIN_WIDTH;
+
+  const handleGridLayout = (event: LayoutChangeEvent) => {
+    setGridWidth(event.nativeEvent.layout.width);
   };
 
   const visitTypes: VisitType[] = VISIT_TYPE_KEYS.map(item => ({
@@ -72,20 +83,22 @@ export default function VisitTypeSelectionScreen({ navigation, onTypeSelect }: V
 
       <Spacer height={Spacing.xl} />
 
-      <View style={getGridStyle()}>
-        {visitTypes.map((visitType) => (
-          <View key={visitType.id} style={getCardWrapper3ColStyle()}>
-            <SelectableCard onPress={() => handleTypeSelect(visitType)}>
-              <View style={styles.iconContainer}>
-                <DDIcon name={visitType.icon} size={28} color={theme.cardIcon} />
-              </View>
-              <Spacer height={Spacing.xs} />
-              <ThemedText style={[Typography.caption, { color: theme.text, fontWeight: '600', textAlign: 'center', fontSize: 11 }]}>
-                {visitType.title}
-              </ThemedText>
-            </SelectableCard>
-          </View>
-        ))}
+      <View onLayout={handleGridLayout} style={styles.gridContainer}>
+        <View style={styles.grid}>
+          {visitTypes.map((visitType) => (
+            <View key={visitType.id} style={[styles.cardWrapper, { width: cardWidth }]}>
+              <SelectableCard onPress={() => handleTypeSelect(visitType)}>
+                <View style={styles.iconContainer}>
+                  <DDIcon name={visitType.icon} size={28} color={theme.cardIcon} />
+                </View>
+                <Spacer height={Spacing.xs} />
+                <ThemedText style={[Typography.caption, { color: theme.text, fontWeight: '600', textAlign: 'center', fontSize: 11 }]}>
+                  {visitType.title}
+                </ThemedText>
+              </SelectableCard>
+            </View>
+          ))}
+        </View>
       </View>
     </ScreenScrollView>
   );
@@ -94,6 +107,19 @@ export default function VisitTypeSelectionScreen({ navigation, onTypeSelect }: V
 const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
+  },
+  gridContainer: {
+    width: '100%',
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    marginHorizontal: -CARD_GAP / 2,
+  },
+  cardWrapper: {
+    paddingHorizontal: CARD_GAP / 2,
+    marginBottom: CARD_GAP,
   },
   iconContainer: {
     marginBottom: Spacing.xs,
