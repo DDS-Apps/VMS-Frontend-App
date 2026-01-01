@@ -12,6 +12,7 @@ import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
 import { VisitorActionButton } from "@/components/VisitorActionButton";
 import { applyOpacity } from "@/utils/statusStyles";
@@ -24,6 +25,7 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { formatTime, formatTimeFromString } = useFormatters();
+  const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -188,7 +190,7 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
           <View style={[styles.statusBorderLine, { backgroundColor: statusConfig.border }]} />
           
           <View style={styles.cardContent}>
-            <View style={styles.cardHeader}>
+            <View style={[styles.cardHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
                 <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
                   {initials}
@@ -196,7 +198,7 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
               </View>
               
               <View style={styles.nameSection}>
-                <View style={styles.nameRow}>
+                <View style={[styles.nameRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                   <ThemedText style={[styles.visitorName, { color: theme.text }]} numberOfLines={1}>
                     {visitorName}
                   </ThemedText>
@@ -218,14 +220,14 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
               </View>
             </View>
 
-            <View style={styles.detailsRow}>
-              <View style={styles.detailItem}>
+            <View style={[styles.detailsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.detailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <DDIcon name="clock" size={12} variant="muted" />
                 <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
                   {formatTimeFromString(item.visitTime)}
                 </ThemedText>
               </View>
-              <View style={styles.detailItem}>
+              <View style={[styles.detailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <DDIcon name="user" size={12} variant="muted" />
                 <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
                   {t('reception.hostName')}: {item.hostName}
@@ -233,8 +235,8 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
               </View>
             </View>
 
-            <View style={styles.cardFooter}>
-              <View style={styles.servicesRow}>
+            <View style={[styles.cardFooter, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.servicesRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 {item.parkingSlot ? (
                   <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '15') }]}>
                     <DDIcon name="map-pin" size={12} color={theme.info} />
@@ -242,7 +244,7 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
                 ) : null}
                 </View>
 
-              <View style={styles.actionButtons}>
+              <View style={[styles.actionButtons, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 {showCheckIn ? (
                   <VisitorActionButton 
                     type="check_in" 

@@ -618,10 +618,10 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
     return (
       <ThemedView style={[styles.statusHeader, { backgroundColor: theme.surface }]}>
         <View style={[styles.statusAccent, { backgroundColor: statusColor }]} />
-        <View style={styles.statusContent}>
+        <View style={[styles.statusContent, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <DDIcon name={statusIcon} size={20} color={statusColor} />
           <View style={styles.statusTextContainer}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 16 }]}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 16, textAlign: isRTL ? 'right' : 'left' }]}>
               {statusText}
             </ThemedText>
           </View>
@@ -691,14 +691,14 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
         <Spacer height={Spacing.md} />
 
         <ThemedView style={[styles.card, { backgroundColor: theme.surface }]}>
-          <View style={styles.visitorRow}>
+          <View style={[styles.visitorRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
               <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
                 {initials}
               </ThemedText>
             </View>
             <View style={styles.visitorInfo}>
-              <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 17 }]}>
+              <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 17, textAlign: isRTL ? 'right' : 'left' }]}>
                 {request.visitor.fullName}
               </ThemedText>
               {request.visitor.company ? (
@@ -722,7 +722,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
           <Spacer height={Spacing.lg} />
 
-          <View style={styles.contactRow}>
+          <View style={[styles.contactRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <DDIcon name="mail" size={14} variant="muted" />
             <ThemedText style={[Typography.caption, { marginStart: 8, color: theme.textSecondary, fontSize: 13 }]}>
               {request.visitor.email}
@@ -731,7 +731,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
           <Spacer height={Spacing.sm} />
 
-          <View style={styles.contactRow}>
+          <View style={[styles.contactRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <DDIcon name="phone" size={14} variant="muted" />
             <ThemedText style={[Typography.caption, { marginStart: 8, color: theme.textSecondary, fontSize: 13 }]}>
               {request.visitor.phone}
@@ -755,15 +755,15 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
         <Spacer height={Spacing.md} />
 
         <ThemedView style={[styles.card, { backgroundColor: theme.surface }]}>
-          <View style={styles.serviceRow}>
+          <View style={[styles.serviceRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
               <DDIcon name="user" size={18} color={theme.text} />
             </View>
             <View style={styles.serviceInfo}>
-              <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+              <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
                 {t('dashboard.requestedBy')}
               </ThemedText>
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
                 {request.employeeName}{request.employeeDepartment ? ` (${request.employeeDepartment})` : ''}
               </ThemedText>
             </View>
@@ -771,15 +771,15 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
           <Spacer height={Spacing.lg} />
 
-          <View style={styles.serviceRow}>
+          <View style={[styles.serviceRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
               <DDIcon name="calendar" size={18} color={theme.text} />
             </View>
             <View style={styles.serviceInfo}>
-              <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+              <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
                 {t('visitor.visitDate')} & {t('visitor.visitTime')}
               </ThemedText>
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
                 {formatDateShort(request.visitDate)} • {formatVisitTimeRange(request.visitTime, request.endTime)}
               </ThemedText>
             </View>
@@ -787,15 +787,15 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
           <Spacer height={Spacing.lg} />
 
-          <View style={styles.serviceRow}>
+          <View style={[styles.serviceRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
               <DDIcon name="clock" size={18} color={theme.text} />
             </View>
             <View style={styles.serviceInfo}>
-              <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+              <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
                 {t('form.duration')}
               </ThemedText>
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
                 {parseISODuration(request.duration)}
               </ThemedText>
             </View>
@@ -805,12 +805,12 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
           {request.isWalkIn ? (
             <>
               <Spacer height={Spacing.lg} />
-              <View style={styles.serviceRow}>
+              <View style={[styles.serviceRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
                   <DDIcon name="log-out" size={18} color={theme.text} />
                 </View>
                 <View style={styles.serviceInfo}>
-                  <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+                  <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
                     {t('form.endTime')}
                   </ThemedText>
                   {inlineEndTime !== null ? (
@@ -850,15 +850,15 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
           <Spacer height={Spacing.lg} />
 
-          <View style={styles.serviceRow}>
+          <View style={[styles.serviceRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
               <DDIcon name="file-text" size={18} color={theme.text} />
             </View>
             <View style={styles.serviceInfo}>
-              <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+              <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
                 {t('form.purpose')}
               </ThemedText>
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, lineHeight: 20 }]}>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, lineHeight: 20, textAlign: isRTL ? 'right' : 'left' }]}>
                 {request.purpose}
               </ThemedText>
             </View>
@@ -868,15 +868,15 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
           {request.isWalkIn && request.notes ? (
             <>
               <Spacer height={Spacing.lg} />
-              <View style={styles.serviceRow}>
+              <View style={[styles.serviceRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
                   <DDIcon name="edit-3" size={18} color={theme.text} />
                 </View>
                 <View style={styles.serviceInfo}>
-                  <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+                  <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
                     {t('form.notes')}
                   </ThemedText>
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, lineHeight: 20 }]}>
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, lineHeight: 20, textAlign: isRTL ? 'right' : 'left' }]}>
                     {request.notes}
                   </ThemedText>
                 </View>
@@ -892,13 +892,13 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
         <ThemedView style={[styles.card, { backgroundColor: theme.surface }]}>
           {/* Meeting Room */}
-          <View style={styles.serviceRow}>
+          <View style={[styles.serviceRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(request.meetingRoom ? theme.secondary : theme.textSecondary, '20') }]}>
               <DDIcon name="briefcase" size={18} color={request.meetingRoom ? theme.secondary : theme.textSecondary} />
             </View>
             <View style={[styles.serviceInfo, { flex: 1 }]}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+              <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
                   {t('services.meetingRoom')}
                 </ThemedText>
                 {request.meetingRoom?.status ? (
@@ -932,13 +932,13 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
           <Spacer height={Spacing.lg} />
 
           {/* Buffet */}
-          <View style={styles.serviceRow}>
+          <View style={[styles.serviceRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <View style={[styles.serviceIcon, { backgroundColor: applyOpacity((request.buffet || (request as any).buffetPending) ? theme.secondary : theme.textSecondary, '20') }]}>
               <DDIcon name="cloche" size={18} color={(request.buffet || (request as any).buffetPending) ? theme.secondary : theme.textSecondary} />
             </View>
             <View style={[styles.serviceInfo, { flex: 1 }]}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+              <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
                   {t('services.buffet')}
                 </ThemedText>
                 {request.buffet?.status ? (
@@ -1088,7 +1088,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
               <Spacer height={Spacing.xl} />
 
-              <View style={styles.modalActions}>
+              <View style={[styles.modalActions, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <LoadingButton
                   onPress={() => setShowCancelModal(false)}
                   disabled={isProcessing}
@@ -1181,7 +1181,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
               <Spacer height={Spacing.xl} />
 
-              <View style={styles.modalActions}>
+              <View style={[styles.modalActions, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <LoadingButton
                   onPress={() => setShowRejectModal(false)}
                   disabled={isProcessing}
@@ -1387,7 +1387,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
               <Spacer height={Spacing.xl} />
 
-              <View style={styles.modalActions}>
+              <View style={[styles.modalActions, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <LoadingButton
                   onPress={() => setShowWalkInApprovalModal(false)}
                   disabled={isProcessing}

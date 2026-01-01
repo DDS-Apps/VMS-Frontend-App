@@ -12,6 +12,7 @@ import { Spacing, BorderRadius, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useFormatters } from '@/hooks/useFormatters';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { applyOpacity } from '@/utils/statusStyles';
 import { useMyBuffetTasksQuery, useUpdateBuffetTaskStatusMutation } from '@/hooks/queries/useBuffetQueries';
 import type { BuffetStaffTaskDto, BuffetStaffTaskStatus } from '@/types/api.types';
@@ -27,6 +28,7 @@ export default function BuffetBoardScreen() {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { formatDate: formatDateUtil } = useFormatters();
+  const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -386,7 +388,7 @@ export default function BuffetBoardScreen() {
           <View style={[styles.statusBorderLine, { backgroundColor: statusConfig.borderColor }]} />
           
           <View style={styles.cardContent}>
-            <View style={styles.cardHeader}>
+            <View style={[styles.cardHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <View style={styles.nameSection}>
                 <ThemedText style={[Typography.body, { fontWeight: '600' }]}>
                   {task.visitorName}
@@ -410,14 +412,14 @@ export default function BuffetBoardScreen() {
             <Spacer height={Spacing.md} />
 
             <View style={styles.infoGrid}>
-              <View style={styles.infoRow}>
+              <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <DDIcon name="users" size={14} variant="muted" />
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6 }]}>
                   {task.guestCount} {t('buffet.guestCount').toLowerCase()}
                 </ThemedText>
               </View>
 
-              <View style={styles.infoRow}>
+              <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <DDIcon name="calendar" size={14} variant="muted" />
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6 }]}>
                   {formatDateUtil(task.visitDate, 'short')}
@@ -431,7 +433,7 @@ export default function BuffetBoardScreen() {
                 </ThemedText>
               </View>
 
-              <View style={styles.infoRow}>
+              <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <DDIcon name="map-pin" size={14} variant="muted" />
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6 }]}>
                   {task.location}
@@ -439,7 +441,7 @@ export default function BuffetBoardScreen() {
               </View>
 
               {task.mealType ? (
-                <View style={styles.infoRow}>
+                <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                   <DDIcon name="coffee" size={14} variant="muted" />
                   <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6 }]}>
                     {task.mealType.charAt(0).toUpperCase() + task.mealType.slice(1)}
@@ -448,7 +450,7 @@ export default function BuffetBoardScreen() {
               ) : null}
 
               {task.dietaryRequirements && task.dietaryRequirements.length > 0 ? (
-                <View style={styles.infoRow}>
+                <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                   <DDIcon name="alert-circle" size={14} variant="muted" />
                   <ThemedText style={[Typography.caption, { color: theme.warning, marginStart: 6 }]}>
                     {task.dietaryRequirements.join(', ')}
@@ -457,7 +459,7 @@ export default function BuffetBoardScreen() {
               ) : null}
 
               {task.notes ? (
-                <View style={styles.infoRow}>
+                <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                   <DDIcon name="file-text" size={14} variant="muted" />
                   <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6 }]}>
                     {task.notes}
@@ -548,7 +550,7 @@ export default function BuffetBoardScreen() {
         
         <Spacer height={Spacing.md} />
         
-        <View style={styles.dateDisplayRow}>
+        <View style={[styles.dateDisplayRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <ThemedText style={[Typography.bodySmall, { fontWeight: '600' }]}>
             {formatDisplayDate()}
           </ThemedText>
@@ -559,7 +561,7 @@ export default function BuffetBoardScreen() {
 
         <Spacer height={Spacing.md} />
 
-        <View style={styles.searchBarWrapper}>
+        <View style={[styles.searchBarWrapper, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <SearchInput
             placeholder={t('common.search')}
             value={searchQuery}

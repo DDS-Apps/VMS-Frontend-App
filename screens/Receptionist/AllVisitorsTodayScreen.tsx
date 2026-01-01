@@ -12,6 +12,7 @@ import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
 import { VisitorActionButton } from "@/components/VisitorActionButton";
 import { applyOpacity } from "@/utils/statusStyles";
@@ -24,6 +25,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { formatTime, formatTimeFromString } = useFormatters();
+  const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -187,7 +189,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
           <View style={[styles.statusBorderLine, { backgroundColor: statusConfig.border }]} />
           
           <View style={styles.cardContent}>
-            <View style={styles.cardHeader}>
+            <View style={[styles.cardHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
                 <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
                   {initials}
@@ -210,14 +212,14 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
               </View>
             </View>
 
-            <View style={styles.detailsRow}>
-              <View style={styles.detailItem}>
+            <View style={[styles.detailsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.detailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <DDIcon name="clock" size={12} variant="muted" />
                 <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
                   {formatTimeFromString(item.visitTime)}
                 </ThemedText>
               </View>
-              <View style={styles.detailItem}>
+              <View style={[styles.detailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <DDIcon name="user" size={12} variant="muted" />
                 <ThemedText style={[styles.detailText, { color: theme.textSecondary }]} numberOfLines={1}>
                   {item.hostName}{item.hostDepartment ? ` - ${item.hostDepartment}` : ''}
@@ -225,9 +227,9 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
               </View>
             </View>
 
-            <View style={styles.detailsRow}>
+            <View style={[styles.detailsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               {item.visitor.phone ? (
-                <View style={styles.detailItem}>
+                <View style={[styles.detailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                   <DDIcon name="phone" size={12} variant="muted" />
                   <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
                     {item.visitor.phone}
@@ -235,7 +237,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
                 </View>
               ) : null}
               {item.meetingRoom ? (
-                <View style={styles.detailItem}>
+                <View style={[styles.detailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                   <DDIcon name="home" size={12} variant="muted" />
                   <ThemedText style={[styles.detailText, { color: theme.textSecondary }]} numberOfLines={1}>
                     {item.meetingRoom.name}{item.meetingRoom.floor ? ` (${item.meetingRoom.floor})` : ''}
@@ -244,10 +246,10 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
               ) : null}
             </View>
 
-            <View style={styles.cardFooter}>
-              <View style={styles.servicesRow}>
+            <View style={[styles.cardFooter, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.servicesRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 {item.parkingSlot ? (
-                  <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '15') }]}>
+                  <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '15'), flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                     <DDIcon name="map-pin" size={12} color={theme.info} />
                     <ThemedText style={[styles.servicePillText, { color: theme.info }]}>
                       {item.parkingSlot.slotNumber}
@@ -256,7 +258,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
                 ) : null}
               </View>
 
-              <View style={styles.actionButtons}>
+              <View style={[styles.actionButtons, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 {showCheckIn ? (
                   <VisitorActionButton 
                     type="check_in" 
@@ -302,7 +304,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
 
       <Spacer height={Spacing.md} />
 
-      <View style={styles.summaryRow}>
+      <View style={[styles.summaryRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         {renderSummaryCard(t('visitor.expectedVisitors'), summary.expected, theme.warning, 'clock')}
         {renderSummaryCard(t('status.checkedIn'), summary.checkedIn, theme.success, 'log-in')}
         {renderSummaryCard(t('status.checkedOut'), summary.completed, theme.textSecondary, 'log-out')}

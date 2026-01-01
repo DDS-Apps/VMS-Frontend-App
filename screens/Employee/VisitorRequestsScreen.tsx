@@ -305,7 +305,8 @@ const VisitorRequestCard = React.memo(({
   onPress,
   onToggleExpand,
   theme,
-  t 
+  t,
+  isRTL 
 }: { 
   request: VisitorRequest; 
   isExpanded: boolean;
@@ -313,6 +314,7 @@ const VisitorRequestCard = React.memo(({
   onToggleExpand: () => void;
   theme: Theme;
   t: (key: string) => string;
+  isRTL: boolean;
 }) => {
   const statusConfig = getStatusStyle(theme, request.status, t);
 
@@ -327,13 +329,13 @@ const VisitorRequestCard = React.memo(({
       >
         <View style={styles.cardMainSection}>
           {/* Header: Avatar + Name + Status Badge */}
-          <View style={styles.cardHeaderRow}>
+          <View style={[styles.cardHeaderRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <VisitorAvatar name={request.visitor.fullName} theme={theme} />
             
             <View style={styles.cardNameSection}>
-              <View style={styles.nameWithBadgeRow}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, gap: 6 }}>
-                  <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 16, flexShrink: 1 }]} numberOfLines={1}>
+              <View style={[styles.nameWithBadgeRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', flex: 1, gap: 6 }}>
+                  <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 16, flexShrink: 1, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
                     {request.visitor.fullName}
                   </ThemedText>
                   {request.isWalkIn ? (
@@ -343,7 +345,7 @@ const VisitorRequestCard = React.memo(({
                 <StatusBadge statusConfig={statusConfig} />
               </View>
               {request.visitor.company ? (
-                <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 2 }]}>
+                <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 2, textAlign: isRTL ? 'right' : 'left' }]}>
                   {request.visitor.company}
                 </ThemedText>
               ) : null}
@@ -372,9 +374,9 @@ const VisitorRequestCard = React.memo(({
         <>
           <View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
           <View style={styles.expandedContentInside}>
-            <View style={styles.secondaryDetail}>
+            <View style={[styles.secondaryDetail, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <DDIcon name="briefcase" size={14} variant="muted" />
-              <ThemedText style={[Typography.caption, { marginStart: 6, color: theme.textSecondary, flex: 1, fontSize: 12 }]}>
+              <ThemedText style={[Typography.caption, { marginStart: 6, color: theme.textSecondary, flex: 1, fontSize: 12, textAlign: isRTL ? 'right' : 'left' }]}>
                 {request.purpose}
               </ThemedText>
             </View>
@@ -383,9 +385,9 @@ const VisitorRequestCard = React.memo(({
 
             <View style={styles.contactSection}>
               {request.visitor.email ? (
-                <View style={styles.secondaryDetail}>
+                <View style={[styles.secondaryDetail, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                   <DDIcon name="mail" size={13} variant="muted" />
-                  <ThemedText style={[Typography.caption, { marginStart: 6, color: theme.textSecondary, fontSize: 11 }]}>
+                  <ThemedText style={[Typography.caption, { marginStart: 6, color: theme.textSecondary, fontSize: 11, textAlign: isRTL ? 'right' : 'left' }]}>
                     {request.visitor.email}
                   </ThemedText>
                 </View>
@@ -396,9 +398,9 @@ const VisitorRequestCard = React.memo(({
               ) : null}
 
               {request.visitor.phone ? (
-                <View style={styles.secondaryDetail}>
+                <View style={[styles.secondaryDetail, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                   <DDIcon name="phone" size={13} variant="muted" />
-                  <ThemedText style={[Typography.caption, { marginStart: 6, color: theme.textSecondary, fontSize: 11 }]}>
+                  <ThemedText style={[Typography.caption, { marginStart: 6, color: theme.textSecondary, fontSize: 11, textAlign: isRTL ? 'right' : 'left' }]}>
                     {request.visitor.phone}
                   </ThemedText>
                 </View>
@@ -410,7 +412,7 @@ const VisitorRequestCard = React.memo(({
 
       {/* More Details Button - Inside Same Card */}
       <Pressable
-        style={styles.moreDetailsButton}
+        style={[styles.moreDetailsButton, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
         onPress={onToggleExpand}
         android_ripple={{ color: applyOpacity(theme.primary, '10') }}
       >
@@ -606,6 +608,7 @@ type VisitorRequestsRouteParams = {
 export default function VisitorRequestsScreen({ navigation: navProp, userRole = 'employee' }: VisitorRequestsScreenProps = {}) {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   const navigationHook = useNavigation<NativeStackNavigationProp<EmployeeStackParamList>>();
   const navigation = navProp || navigationHook;
@@ -862,6 +865,7 @@ export default function VisitorRequestsScreen({ navigation: navProp, userRole = 
               onToggleExpand={() => setExpandedCard(expandedCard === item.id ? null : item.id)}
               theme={theme}
               t={t}
+              isRTL={isRTL}
             />
           </View>
         )}
@@ -998,7 +1002,7 @@ const styles = StyleSheet.create({
   servicesRow: {
     flexDirection: 'row',
     gap: 8,
-    flexWrap: 'wrap',
+    flexWrap: 'wrap-reverse',
   },
   servicePill: {
     alignItems: 'center',
@@ -1012,13 +1016,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   nameWithBadgeRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: Spacing.sm,
   },
   dateTimeRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
     flexWrap: 'wrap',
@@ -1029,12 +1031,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   dateTimeLeft: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
   dateTimeRight: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
@@ -1072,7 +1072,6 @@ const styles = StyleSheet.create({
     // Container for main card content
   },
   cardHeaderRow: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
   cardNameSection: {
@@ -1087,14 +1086,12 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.xs,
   },
   secondaryDetail: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
   contactSection: {
     // Container for contact details
   },
   moreDetailsButton: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingTop: LAYOUT.contentGap,
@@ -1124,7 +1121,6 @@ const styles = StyleSheet.create({
     borderEndColor: 'rgba(0,0,0,0.06)',
   },
   fixedColumnContent: {
-    flexDirection: 'row',
     alignItems: 'center',
     padding: Spacing.md,
   },
@@ -1153,7 +1149,6 @@ const styles = StyleSheet.create({
     // Container for contact info
   },
   contactRow: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
 

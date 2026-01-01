@@ -154,7 +154,7 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
 
   return (
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
-      <View style={styles.header}>
+      <View style={[styles.header, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <ThemedText style={[Typography.title]}>
           {t('notifications.title')}
         </ThemedText>
@@ -226,6 +226,7 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
                     opacity: pressed ? 0.95 : 1,
                     borderColor: notification.read ? theme.border : applyOpacity(theme.primary, '30'),
                     shadowColor: '#000',
+                    flexDirection: isRTL ? 'row-reverse' : 'row',
                   },
                   !notification.read && styles.unreadBorder,
                 ]}

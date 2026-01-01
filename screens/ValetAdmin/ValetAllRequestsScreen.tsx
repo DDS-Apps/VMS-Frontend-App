@@ -7,6 +7,7 @@ import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
 import { applyOpacity } from "@/utils/statusStyles";
 import { useValetParkingDashboard } from "@/hooks/queries/useValetAdminQueries";
@@ -259,6 +260,7 @@ const ErrorState = ({ theme, t, onRetry }: { theme: Theme; t: (key: string) => s
 export default function ValetAllRequestsScreen() {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { isRTL } = useLanguage();
   const [filterType, setFilterType] = useState<'all' | 'with_parking' | 'without_parking'>('all');
   
   const today = new Date().toISOString().split('T')[0];
@@ -315,8 +317,8 @@ export default function ValetAllRequestsScreen() {
 
       <Spacer height={LAYOUT.sectionSpacing} />
 
-      <View style={[styles.sectionTitleRow, styles.paddedContent]}>
-        <ThemedText style={[Typography.subtitle]}>
+      <View style={[styles.sectionTitleRow, styles.paddedContent, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <ThemedText style={[Typography.subtitle, { textAlign: isRTL ? 'right' : 'left' }]}>
           {t('valet.todaysVisitors')}
         </ThemedText>
       </View>
@@ -387,7 +389,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
   },
   statsGrid: {
-    flexDirection: 'row',
+    flexDirection: 'row' as const,
     gap: Spacing.md,
   },
   statCard: {

@@ -3,6 +3,7 @@ import { View, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { DDIcon } from "@/components/DDIcon";
@@ -17,6 +18,7 @@ export default function CheckInOutConfirmationScreen({
 }: CheckInOutConfirmationScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   const action = route.params?.action || 'check_in';
   const visitorName = route.params?.visitorName || 'Visitor';

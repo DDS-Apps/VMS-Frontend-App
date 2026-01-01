@@ -8,6 +8,7 @@ import { ScreenFlatList } from "@/components/ScreenFlatList";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
 import { applyOpacity, getStatusConfig as getStatusStyle } from "@/utils/statusStyles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -262,7 +263,7 @@ const SectionHeader = ({
 
   return (
     <>
-      <View style={[styles.sectionTitleRow, styles.paddedContent]}>
+      <View style={[styles.sectionTitleRow, styles.paddedContent, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <ThemedText style={[Typography.subtitle]}>
           {t('navigation.buffetRequests')}
         </ThemedText>
@@ -362,11 +363,11 @@ const BuffetRequestCard = React.memo(({
 
       <Pressable onPress={onPress} android_ripple={{ color: applyOpacity(theme.primary, '10') }}>
         <View style={styles.cardMainSection}>
-          <View style={styles.cardHeaderRow}>
+          <View style={[styles.cardHeaderRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <VisitorAvatar name={request.visitorName} theme={theme} />
             
             <View style={styles.cardNameSection}>
-              <View style={styles.nameWithBadgeRow}>
+              <View style={[styles.nameWithBadgeRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 16, flex: 1 }]} numberOfLines={1}>
                   {request.visitorName}
                 </ThemedText>
@@ -380,8 +381,8 @@ const BuffetRequestCard = React.memo(({
 
           <Spacer height={LAYOUT.contentGap} />
 
-          <View style={styles.detailsRow}>
-            <View style={styles.detailItem}>
+          <View style={[styles.detailsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.detailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <DDIcon name="map-pin" size={14} variant="muted" />
               <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
                 {request.location}
@@ -396,8 +397,8 @@ const BuffetRequestCard = React.memo(({
           {request.assignedStaff ? (
             <>
               <Spacer height={Spacing.sm} />
-              <View style={styles.detailsRow}>
-                <View style={styles.detailItem}>
+              <View style={[styles.detailsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                <View style={[styles.detailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                   <DDIcon name="user-check" size={14} variant="success" />
                   <ThemedText style={[styles.detailText, { color: theme.success }]}>
                     {request.assignedStaff}
@@ -410,7 +411,7 @@ const BuffetRequestCard = React.memo(({
           {request.status !== 'completed' && request.status !== 'cancelled' ? (
             <>
               <Spacer height={LAYOUT.contentGap} />
-              <View style={styles.actionsRow}>
+              <View style={[styles.actionsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <Pressable
                   style={[styles.actionButton, { backgroundColor: applyOpacity(theme.warning, '12') }]}
                   onPress={(e) => onAssignStaff(e)}
@@ -573,7 +574,7 @@ const BuffetRequestTableRow = React.memo(({
                 {t('dashboard.quickActions').toUpperCase()}
               </ThemedText>
               <Spacer height={10} />
-              <View style={styles.tableActionsRow}>
+              <View style={[styles.tableActionsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <Pressable
                   style={[styles.tableActionButton, { backgroundColor: applyOpacity(theme.warning, '12') }]}
                   onPress={onAssignStaff}
@@ -648,6 +649,7 @@ function getStatusLabel(status: string, t: (key: string) => string) {
 export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequestsScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   const { showSuccess, showError } = useToast();
   const [filterStatus, setFilterStatus] = useState<string>('all');

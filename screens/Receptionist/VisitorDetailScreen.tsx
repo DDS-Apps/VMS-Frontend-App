@@ -251,7 +251,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
           {visitor.company}
         </ThemedText>
         <Spacer height={Spacing.md} />
-        <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg }]}>
+        <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <DDIcon name={statusConfig.icon} size={14} color={statusConfig.text} />
           <ThemedText style={[Typography.caption, { color: statusConfig.text, fontWeight: '600', marginStart: Spacing.xs }]}>
             {statusConfig.label}
@@ -266,7 +266,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
           {t('visitor.visitorDetails')}
         </ThemedText>
 
-        <View style={styles.infoRow}>
+        <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <DDIcon name="phone" size={18} variant="muted" />
           <View style={{ flex: 1, marginStart: Spacing.md }}>
             <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 11 }]}>
@@ -280,7 +280,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
 
         <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
-        <View style={styles.infoRow}>
+        <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <DDIcon name="clock" size={18} variant="muted" />
           <View style={{ flex: 1, marginStart: Spacing.md }}>
             <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 11 }]}>
@@ -294,7 +294,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
 
         <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
-        <View style={styles.infoRow}>
+        <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <DDIcon name="user" size={18} variant="muted" />
           <View style={{ flex: 1, marginStart: Spacing.md }}>
             <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 11 }]}>
@@ -309,7 +309,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
         {visitor.meetingRoom && (
           <>
             <View style={[styles.divider, { backgroundColor: theme.border }]} />
-            <View style={styles.infoRow}>
+            <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <DDIcon name="home" size={18} variant="muted" />
               <View style={{ flex: 1, marginStart: Spacing.md }}>
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 11 }]}>
@@ -326,7 +326,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
         {visitor.isWalkIn && (
           <>
             <View style={[styles.divider, { backgroundColor: theme.border }]} />
-            <View style={styles.infoRow}>
+            <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <DDIcon name="user-plus" size={18} variant="warning" />
               <View style={{ flex: 1, marginStart: Spacing.md }}>
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 11 }]}>
@@ -350,7 +350,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
               {t('services.additionalServices')}
             </ThemedText>
 
-            <View style={styles.infoRow}>
+            <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <DDIcon name="map-pin" size={18} color={theme.info} />
               <View style={{ flex: 1, marginStart: Spacing.md }}>
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 11 }]}>
@@ -377,9 +377,9 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
             fullWidth 
           />
           <Spacer height={Spacing.md} />
-          <View style={styles.buttonRow}>
+          <View style={[styles.buttonRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <Pressable
-              style={[styles.outlineButton, { borderColor: theme.error, flex: 1 }]}
+              style={[styles.outlineButton, { borderColor: theme.error, flex: 1, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
               onPress={() => setShowCancelModal(true)}
             >
               <DDIcon name="x" size={18} color={theme.error} />
@@ -389,7 +389,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
             </Pressable>
             <Spacer width={Spacing.md} />
             <Pressable
-              style={[styles.outlineButton, { borderColor: theme.warning, flex: 1 }]}
+              style={[styles.outlineButton, { borderColor: theme.warning, flex: 1, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
               onPress={() => setShowExceptionModal(true)}
             >
               <DDIcon name="alert-triangle" size={18} color={theme.warning} />
@@ -410,7 +410,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
           />
           <Spacer height={Spacing.md} />
           <Pressable
-            style={[styles.outlineButton, { borderColor: theme.warning }]}
+            style={[styles.outlineButton, { borderColor: theme.warning, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
             onPress={() => setShowExceptionModal(true)}
           >
             <DDIcon name="alert-triangle" size={18} color={theme.warning} />
@@ -441,7 +441,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
           />
           <View style={styles.modalContainer}>
             <ThemedView style={[styles.modalContent, { backgroundColor: theme.surface }]}>
-              <View style={styles.modalHeader}>
+              <View style={[styles.modalHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <ThemedText style={[Typography.subtitle, { fontSize: 18, fontWeight: '600', color: theme.text }]}>
                   {t('actions.cancelRequest')}
                 </ThemedText>
@@ -458,7 +458,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
 
               <Spacer height={24} />
 
-              <View style={styles.modalActions}>
+              <View style={[styles.modalActions, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <Pressable
                   style={({ pressed }) => [
                     styles.modalCancelButton,
@@ -503,7 +503,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
           />
           <View style={styles.modalContainer}>
             <ThemedView style={[styles.modalContent, { backgroundColor: theme.surface, maxHeight: '90%' }]}>
-              <View style={styles.modalHeader}>
+              <View style={[styles.modalHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <ThemedText style={[Typography.subtitle, { fontSize: 18, fontWeight: '600', color: theme.text }]}>
                   {t('reception.reportException')}
                 </ThemedText>
@@ -526,7 +526,8 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
                       styles.exceptionTypeOption,
                       { 
                         borderColor: selectedExceptionType === option.type ? theme.warning : theme.border,
-                        backgroundColor: selectedExceptionType === option.type ? applyOpacity(theme.warning, '10') : 'transparent'
+                        backgroundColor: selectedExceptionType === option.type ? applyOpacity(theme.warning, '10') : 'transparent',
+                        flexDirection: isRTL ? 'row-reverse' : 'row'
                       }
                     ]}
                     onPress={() => setSelectedExceptionType(option.type)}
@@ -571,7 +572,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
 
                 <Spacer height={Spacing.lg} />
 
-                <View style={styles.optionalFieldsRow}>
+                <View style={[styles.optionalFieldsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                   <View style={{ flex: 1 }}>
                     <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, marginBottom: Spacing.sm }]}>
                       {t('reception.floorNumber')} ({t('form.optional')})
@@ -611,7 +612,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
 
               <Spacer height={Spacing.lg} />
 
-              <View style={styles.modalActions}>
+              <View style={[styles.modalActions, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <Pressable
                   style={({ pressed }) => [
                     styles.modalCancelButton,

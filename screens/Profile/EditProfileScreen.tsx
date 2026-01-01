@@ -296,12 +296,12 @@ export default function EditProfileScreen({
     editable: boolean = true
   ) => (
     <View style={styles.inputContainer}>
-      <View style={styles.labelRow}>
-        <ThemedText style={[styles.inputLabel, { color: theme.text }]}>
+      <View style={[styles.labelRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <ThemedText style={[styles.inputLabel, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
           {label}
         </ThemedText>
         {!editable ? (
-          <View style={[styles.readOnlyBadge, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+          <View style={[styles.readOnlyBadge, { backgroundColor: applyOpacity(theme.textSecondary, '15'), flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <DDIcon name="lock" size={10} color={theme.textSecondary} />
             <ThemedText style={[styles.readOnlyText, { color: theme.textSecondary }]}>
               {t('form.readOnly')}
@@ -384,7 +384,7 @@ export default function EditProfileScreen({
               </View>
             ) : null}
           </View>
-          <View style={styles.photoButtons}>
+          <View style={[styles.photoButtons, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <LoadingButton
               onPress={handlePickPhoto}
               loading={isUploadingPhoto}
@@ -425,21 +425,21 @@ export default function EditProfileScreen({
 
         <Spacer height={Spacing.lg} />
 
-        <View style={styles.infoRow}>
+        <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <View style={styles.infoItem}>
-            <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>
+            <ThemedText style={[styles.infoLabel, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('settings.status')}
             </ThemedText>
-            <ThemedText style={[styles.infoValue, { color: theme.text }]}>
+            <ThemedText style={[styles.infoValue, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
               {user?.status === 'active' ? t('status.active') : t('status.inactive')}
             </ThemedText>
           </View>
           {user?.lastLogin ? (
             <View style={styles.infoItem}>
-              <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>
+              <ThemedText style={[styles.infoLabel, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
                 {t('settings.lastLogin')}
               </ThemedText>
-              <ThemedText style={[styles.infoValue, { color: theme.text }]}>
+              <ThemedText style={[styles.infoValue, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
                 {formatDate(user.lastLogin)}
               </ThemedText>
             </View>

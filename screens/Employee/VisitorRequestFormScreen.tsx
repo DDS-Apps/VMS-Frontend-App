@@ -540,9 +540,9 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
     <ScreenKeyboardAwareScrollView contentContainerStyle={scrollContentStyle}>
       {visitType && visitType !== t('visitor.generalVisit') && (
         <>
-          <ThemedView style={[styles.visitTypeBanner, { backgroundColor: applyOpacity(theme.primary, '15'), borderStartColor: theme.primary, borderStartWidth: 4 }]}>
+          <ThemedView style={[styles.visitTypeBanner, { backgroundColor: applyOpacity(theme.primary, '15'), borderStartColor: theme.primary, borderStartWidth: 4, flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <DDIcon name="info" size={20} variant="primary" />
-            <ThemedText style={[Typography.body, { marginStart: Spacing.md, fontWeight: '600', color: theme.primary }]}>
+            <ThemedText style={[Typography.body, { marginStart: Spacing.md, fontWeight: '600', color: theme.primary, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('visitor.typeOfVisit')}: {visitType}
             </ThemedText>
           </ThemedView>
@@ -777,13 +777,14 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                 styles.iconInputButton, 
                 { 
                   backgroundColor: theme.background, 
-                  borderColor: theme.border
+                  borderColor: theme.border,
+                  flexDirection: isRTL ? 'row-reverse' : 'row'
                 }
               ]}
               onPress={() => setShowPurposePicker(true)}
             >
               <DDIcon name="clipboard" size={20} variant="muted" />
-              <ThemedText style={[Typography.body, { color: theme.text, marginStart: Spacing.md, flex: 1 }]}>
+              <ThemedText style={[Typography.body, { color: theme.text, marginStart: Spacing.md, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                 {purpose || t('form.selectPurpose')}
               </ThemedText>
               <DDIcon name="chevron-down" size={20} variant="muted" />
@@ -797,13 +798,13 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
           <Spacer height={Spacing.lg} />
 
           <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
-            <View style={styles.sectionHeader}>
+            <View style={[styles.sectionHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <View style={[styles.sectionIconContainer, { backgroundColor: theme.primary + '20' }]}>
                 <DDIcon name="calendar" size={20} variant="primary" />
               </View>
               <View style={{ marginStart: Spacing.md }}>
-                <ThemedText style={[Typography.subtitle]}>{t('visitor.visitSchedule')}</ThemedText>
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
+                <ThemedText style={[Typography.subtitle, { textAlign: isRTL ? 'right' : 'left' }]}>{t('visitor.visitSchedule')}</ThemedText>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
                   {t('visitor.whenVisitorComing')}
                 </ThemedText>
               </View>
@@ -820,13 +821,14 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                 styles.iconInputButton, 
                 { 
                   backgroundColor: theme.background, 
-                  borderColor: errors.visitDate ? theme.error : theme.border
+                  borderColor: errors.visitDate ? theme.error : theme.border,
+                  flexDirection: isRTL ? 'row-reverse' : 'row'
                 }
               ]}
               onPress={() => setShowDatePicker(true)}
             >
               <DDIcon name="calendar" size={20} variant="primary" />
-              <ThemedText style={[Typography.body, { color: theme.text, marginStart: Spacing.md, flex: 1 }]}>
+              <ThemedText style={[Typography.body, { color: theme.text, marginStart: Spacing.md, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                 {formatPickerDate(selectedDate)}
               </ThemedText>
               <DDIcon name="chevron-down" size={20} variant="muted" />
@@ -851,13 +853,14 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                 styles.iconInputButton, 
                 { 
                   backgroundColor: theme.background, 
-                  borderColor: errors.visitTime ? theme.error : theme.border
+                  borderColor: errors.visitTime ? theme.error : theme.border,
+                  flexDirection: isRTL ? 'row-reverse' : 'row'
                 }
               ]}
               onPress={() => setShowTimePicker(true)}
             >
               <DDIcon name="clock" size={20} variant="primary" />
-              <ThemedText style={[Typography.body, { color: theme.text, marginStart: Spacing.md, flex: 1 }]}>
+              <ThemedText style={[Typography.body, { color: theme.text, marginStart: Spacing.md, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                 {formatPickerTime(selectedTime)}
               </ThemedText>
               <DDIcon name="chevron-down" size={20} variant="muted" />
@@ -1386,7 +1389,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: BorderRadius.sm,
     paddingHorizontal: Spacing.md,
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     fontFamily: 'Inter_400Regular',
@@ -1397,7 +1399,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: BorderRadius.sm,
     paddingHorizontal: Spacing.md,
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
@@ -1406,11 +1407,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: BorderRadius.sm,
     paddingHorizontal: Spacing.md,
-    flexDirection: 'row',
     alignItems: 'center',
   },
   sectionHeader: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
   sectionIconContainer: {
@@ -1430,7 +1429,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   row: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
   compactServiceIcon: {
@@ -1446,7 +1444,6 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
   },
   serviceHeader: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
   serviceIcon: {
@@ -1457,7 +1454,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonRow: {
-    flexDirection: 'row',
   },
   actionButton: {
     flex: 1,
@@ -1478,14 +1474,12 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   modalHeader: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: Spacing.lg,
     borderBottomWidth: 1,
   },
   durationOption: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: Spacing.lg,
@@ -1508,7 +1502,6 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.xl,
   },
   iosPickerHeader: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: Spacing.lg,
@@ -1528,7 +1521,6 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   webPickerHeader: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: Spacing.xl,
@@ -1542,7 +1534,6 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   channelChip: {
-    flexDirection: 'row',
     alignItems: 'center',
     borderRadius: BorderRadius.full,
     borderWidth: 2,
@@ -1566,7 +1557,6 @@ const styles = StyleSheet.create({
     marginStart: Spacing.xs,
   },
   channelRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: Spacing.md,
@@ -1574,7 +1564,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   channelContent: {
-    flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
   },
@@ -1594,7 +1583,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   visitTypeBanner: {
-    flexDirection: 'row',
     alignItems: 'center',
     padding: Spacing.md,
     borderRadius: BorderRadius.md,
@@ -1637,7 +1625,6 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   availabilityBadge: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,
@@ -1650,7 +1637,6 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.xl,
   },
   searchContainer: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
@@ -1663,7 +1649,6 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
   },
   employeeOption: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,

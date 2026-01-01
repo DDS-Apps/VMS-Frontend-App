@@ -1106,7 +1106,7 @@ export default function RequestDetailsScreen({
 
         <Spacer height={Spacing.lg} />
 
-        <View style={styles.infoRowNew}>
+        <View style={[styles.infoRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <DDIcon name="mail" size={16} variant="muted" />
           <ThemedText
             style={[
@@ -1116,6 +1116,7 @@ export default function RequestDetailsScreen({
                 color: theme.textSecondary,
                 flex: 1,
                 fontSize: 14,
+                textAlign: isRTL ? 'right' : 'left',
               },
             ]}
           >
@@ -1125,7 +1126,7 @@ export default function RequestDetailsScreen({
 
         <Spacer height={Spacing.md} />
 
-        <View style={styles.infoRowNew}>
+        <View style={[styles.infoRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <DDIcon name="phone" size={16} variant="muted" />
           <ThemedText
             style={[
@@ -1134,6 +1135,7 @@ export default function RequestDetailsScreen({
                 marginStart: Spacing.md,
                 color: theme.textSecondary,
                 fontSize: 14,
+                textAlign: isRTL ? 'right' : 'left',
               },
             ]}
           >
@@ -1145,17 +1147,17 @@ export default function RequestDetailsScreen({
       <Spacer height={Spacing.lg} />
 
       <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <ThemedText
             style={[
               Typography.subtitle,
-              { fontSize: 16, fontWeight: "600", color: theme.text },
+              { fontSize: 16, fontWeight: "600", color: theme.text, textAlign: isRTL ? 'right' : 'left' },
             ]}
           >
             {t("visitor.visitDetails")}
           </ThemedText>
           {request.isWalkIn ? (
-            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: applyOpacity(theme.warning, '15'), paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: BorderRadius.sm }}>
+            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', backgroundColor: applyOpacity(theme.warning, '15'), paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: BorderRadius.sm }}>
               <DDIcon name="user-check" size={14} color={theme.warning} />
               <ThemedText style={[Typography.caption, { color: theme.warning, fontWeight: '600', marginStart: Spacing.xs, fontSize: 11 }]}>
                 {t("reception.walkInVisitor")}
@@ -1165,15 +1167,15 @@ export default function RequestDetailsScreen({
         </View>
         <Spacer height={Spacing.xl} />
 
-        <View style={styles.serviceRowNew}>
+        <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="calendar" size={18} color={theme.text} />
           </View>
           <View style={{ flex: 1, marginStart: Spacing.md }}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
               {t("time.dateAndTime")}
             </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
               {formatDateShort(request.visitDate)} • {formatVisitTimeRange(request.visitTime, request.endTime)}
             </ThemedText>
           </View>
@@ -1181,15 +1183,15 @@ export default function RequestDetailsScreen({
 
         <Spacer height={Spacing.lg} />
 
-        <View style={styles.serviceRowNew}>
+        <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="clock" size={18} color={theme.text} />
           </View>
           <View style={{ flex: 1, marginStart: Spacing.md }}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
               {t("form.duration")}
             </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
               {parseISODuration(request.duration)}
             </ThemedText>
           </View>
@@ -1197,15 +1199,15 @@ export default function RequestDetailsScreen({
 
         <Spacer height={Spacing.lg} />
 
-        <View style={styles.serviceRowNew}>
+        <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="briefcase" size={18} color={theme.text} />
           </View>
           <View style={{ flex: 1, marginStart: Spacing.md }}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
               {t("form.purpose")}
             </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, lineHeight: 20 }]}>
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, lineHeight: 20, textAlign: isRTL ? 'right' : 'left' }]}>
               {request.purpose}
             </ThemedText>
           </View>
@@ -1228,7 +1230,7 @@ export default function RequestDetailsScreen({
         <View
           style={[
             styles.serviceItemNew,
-            { backgroundColor: theme.surfaceSecondary },
+            { backgroundColor: theme.surfaceSecondary, flexDirection: isRTL ? 'row-reverse' : 'row' },
           ]}
         >
           <View
@@ -1254,7 +1256,7 @@ export default function RequestDetailsScreen({
             <ThemedText
               style={[
                 Typography.body,
-                { fontWeight: "600", fontSize: 14, color: theme.text },
+                { fontWeight: "600", fontSize: 14, color: theme.text, textAlign: isRTL ? 'right' : 'left' },
               ]}
             >
               {t("services.meetingRoom")}
@@ -1325,7 +1327,7 @@ export default function RequestDetailsScreen({
         <View
           style={[
             styles.serviceItemNew,
-            { backgroundColor: theme.surfaceSecondary },
+            { backgroundColor: theme.surfaceSecondary, flexDirection: isRTL ? 'row-reverse' : 'row' },
           ]}
         >
           <View
@@ -1349,7 +1351,7 @@ export default function RequestDetailsScreen({
             <ThemedText
               style={[
                 Typography.body,
-                { fontWeight: "600", fontSize: 14, color: theme.text },
+                { fontWeight: "600", fontSize: 14, color: theme.text, textAlign: isRTL ? 'right' : 'left' },
               ]}
             >
               {t("buffet.buffetService")}
@@ -1510,11 +1512,11 @@ export default function RequestDetailsScreen({
        request.status !== REQUEST_STATUS.VISITOR_REJECTED &&
        request.status !== REQUEST_STATUS.AUTO_CANCELLED ? (
         <>
-          <View style={styles.actionButtonsRow}>
+          <View style={[styles.actionButtonsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <Pressable
               style={[
                 styles.actionButtonHalf,
-                { backgroundColor: theme.primary },
+                { backgroundColor: theme.primary, flexDirection: isRTL ? 'row-reverse' : 'row' },
               ]}
               onPress={() => openEditModal(request.isWalkIn ? "services-only" : "full")}
             >
@@ -1537,7 +1539,7 @@ export default function RequestDetailsScreen({
             <Pressable
               style={[
                 styles.actionButtonHalf,
-                { borderColor: theme.error, backgroundColor: theme.surface },
+                { borderColor: theme.error, backgroundColor: theme.surface, flexDirection: isRTL ? 'row-reverse' : 'row' },
               ]}
               onPress={() => setShowCancelModal(true)}
             >
@@ -1575,11 +1577,11 @@ export default function RequestDetailsScreen({
           <View
             style={[styles.modalContent, { backgroundColor: theme.surface }]}
           >
-            <View style={styles.modalHeader}>
+            <View style={[styles.modalHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <ThemedText
                 style={[
                   Typography.subtitle,
-                  { fontSize: 18, fontWeight: "600", color: theme.text },
+                  { fontSize: 18, fontWeight: "600", color: theme.text, textAlign: isRTL ? 'right' : 'left' },
                 ]}
               >
                 {t("actions.confirmCancel")}
@@ -2679,12 +2681,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
   },
   headerRow: {
-    flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
   statusBadge: {
-    flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.xs,
@@ -2696,13 +2696,11 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.full,
   },
   alertBox: {
-    flexDirection: "row",
     alignItems: "flex-start",
     padding: Spacing.md,
     borderRadius: BorderRadius.sm,
   },
   managerCommentHeader: {
-    flexDirection: "row",
     alignItems: "center",
   },
   card: {
@@ -2742,20 +2740,16 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   infoRow: {
-    flexDirection: "row",
     alignItems: "center",
   },
   infoRowNew: {
-    flexDirection: "row",
     alignItems: "center",
   },
   detailRow: {
-    flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
   detailRowNew: {
-    flexDirection: "row",
     alignItems: "center",
   },
   detailRowStacked: {
@@ -2763,19 +2757,16 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
   },
   serviceItem: {
-    flexDirection: "row",
     alignItems: "center",
     padding: Spacing.md,
     borderRadius: BorderRadius.sm,
   },
   serviceItemNew: {
-    flexDirection: "row",
     alignItems: "center",
     padding: Spacing.md,
     borderRadius: 8,
   },
   serviceRowNew: {
-    flexDirection: "row",
     alignItems: "flex-start",
   },
   serviceIcon: {
@@ -2846,14 +2837,12 @@ const styles = StyleSheet.create({
     borderStyle: "dashed",
   },
   shareButton: {
-    flexDirection: "row",
     alignItems: "center",
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.xl,
     borderRadius: BorderRadius.sm,
   },
   shareButtonNew: {
-    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: Spacing.md,
@@ -2862,7 +2851,6 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   cancelButtonNew: {
-    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: Spacing.md,
@@ -2871,12 +2859,10 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
   },
   actionButtonsRow: {
-    flexDirection: "row",
     alignItems: "center",
   },
   actionButtonHalf: {
     flex: 1,
-    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: Spacing.md,
@@ -2889,7 +2875,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   pickerButton: {
-    flexDirection: "row",
     alignItems: "center",
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.md,
@@ -2910,7 +2895,6 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
   },
   actionButton: {
-    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     height: Spacing.buttonHeight,
@@ -2936,12 +2920,10 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   modalHeader: {
-    flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
   modalActions: {
-    flexDirection: "row",
     justifyContent: "flex-end",
   },
   modalCancelButton: {
@@ -2956,7 +2938,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   actionButtonFull: {
-    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: Spacing.md,
@@ -2993,14 +2974,12 @@ const styles = StyleSheet.create({
     minHeight: 80,
   },
   serviceToggleRow: {
-    flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingVertical: Spacing.md,
     borderBottomWidth: 1,
   },
   serviceToggleLabel: {
-    flexDirection: "row",
     alignItems: "center",
   },
   compactServiceIcon: {
@@ -3011,7 +2990,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   buttonLoadingContent: {
-    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -3051,7 +3029,6 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   channelChip: {
-    flexDirection: "row",
     alignItems: "center",
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,
@@ -3079,7 +3056,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   availabilityBadge: {
-    flexDirection: "row",
     alignItems: "center",
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,

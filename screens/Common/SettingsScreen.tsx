@@ -122,22 +122,22 @@ export default function SettingsScreen({
 
         <Spacer height={Spacing.md} />
 
-        <View style={styles.profileContainer}>
+        <View style={[styles.profileContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <View style={[styles.avatar, { backgroundColor: theme.primary + '20' }]}>
             <ThemedText style={[Typography.subtitle, { color: theme.primary, fontWeight: '700' }]}>
               {userName.split(' ').map(n => n[0]).join('')}
             </ThemedText>
           </View>
           <View style={{ flex: 1, marginStart: Spacing.md }}>
-            <ThemedText style={[styles.userName, { color: theme.text }]}>
+            <ThemedText style={[styles.userName, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
               {userName}
             </ThemedText>
-            <ThemedText style={[styles.userRole, { color: theme.textSecondary }]}>
+            <ThemedText style={[styles.userRole, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
               {getRoleLabel(userRole)}
             </ThemedText>
             <Spacer height={2} />
             {userEmail ? (
-              <ThemedText style={[styles.userEmail, { color: theme.textSecondary }]}>
+              <ThemedText style={[styles.userEmail, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
                 {userEmail}
               </ThemedText>
             ) : null}
@@ -152,6 +152,7 @@ export default function SettingsScreen({
             { 
               borderColor: theme.primary,
               opacity: pressed ? 0.7 : 1,
+              flexDirection: isRTL ? 'row-reverse' : 'row',
             },
           ]}
           onPress={() => navigation.navigate('EditProfile')}
@@ -170,12 +171,12 @@ export default function SettingsScreen({
 
         <Spacer height={Spacing.md} />
 
-        <View style={styles.settingItem}>
+        <View style={[styles.settingItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <View style={{ flex: 1 }}>
-            <ThemedText style={[styles.settingLabel, { color: theme.text }]}>
+            <ThemedText style={[styles.settingLabel, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('settings.darkMode')}
             </ThemedText>
-            <ThemedText style={[styles.settingDescription, { color: theme.textSecondary }]}>
+            <ThemedText style={[styles.settingDescription, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('settings.darkModeDesc')}
             </ThemedText>
           </View>
@@ -190,12 +191,12 @@ export default function SettingsScreen({
 
         <View style={[styles.sectionDivider, { backgroundColor: theme.surfaceSecondary }]} />
 
-        <View style={styles.settingItem}>
+        <View style={[styles.settingItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <View style={{ flex: 1 }}>
-            <ThemedText style={[styles.settingLabel, { color: theme.text }]}>
+            <ThemedText style={[styles.settingLabel, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('settings.language')}
             </ThemedText>
-            <ThemedText style={[styles.settingDescription, { color: theme.textSecondary }]}>
+            <ThemedText style={[styles.settingDescription, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('settings.languageDesc')}
             </ThemedText>
           </View>
@@ -213,6 +214,7 @@ export default function SettingsScreen({
                   backgroundColor: locale === lang.code ? applyOpacity(theme.primary, '15') : theme.background,
                   borderColor: locale === lang.code ? theme.primary : theme.border,
                   opacity: pressed ? 0.8 : 1,
+                  flexDirection: isRTL ? 'row-reverse' : 'row',
                 },
               ]}
               onPress={() => handleLanguageChange(lang.code)}
@@ -235,12 +237,12 @@ export default function SettingsScreen({
 
         <Spacer height={Spacing.md} />
 
-        <View style={styles.settingItem}>
+        <View style={[styles.settingItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <View style={{ flex: 1 }}>
-            <ThemedText style={[styles.settingLabel, { color: theme.text }]}>
+            <ThemedText style={[styles.settingLabel, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('settings.pushNotifications')}
             </ThemedText>
-            <ThemedText style={[styles.settingDescription, { color: theme.textSecondary }]}>
+            <ThemedText style={[styles.settingDescription, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('settings.pushNotificationsDesc')}
             </ThemedText>
           </View>
@@ -264,6 +266,7 @@ export default function SettingsScreen({
             { 
               backgroundColor: theme.error,
               opacity: pressed ? 0.8 : 1,
+              flexDirection: isRTL ? 'row-reverse' : 'row',
             },
           ]}
           onPress={onLogout}

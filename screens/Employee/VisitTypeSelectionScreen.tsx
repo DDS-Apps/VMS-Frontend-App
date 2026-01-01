@@ -9,6 +9,7 @@ import Spacer from "@/components/Spacer";
 import { Spacing, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { VisitTypeSelectionScreenProps } from "@/types/employeeNavigation.types";
 
 const isWeb = Platform.OS === 'web';
@@ -43,6 +44,7 @@ interface VisitTypeSelectionScreenPropsExtended extends VisitTypeSelectionScreen
 export default function VisitTypeSelectionScreen({ navigation, onTypeSelect }: VisitTypeSelectionScreenPropsExtended) {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   const [gridWidth, setGridWidth] = useState(0);
 

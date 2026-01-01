@@ -12,6 +12,7 @@ import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { UserRole, VisitorRequest } from "@/types/vms.types";
 import { SkeletonDashboard, VisitorRequestCard } from "@/components/shared";
 import { useVisitsQuery, usePendingApprovalsQuery, useAwaitingVisitorQuery, usePendingHostWalkInsQuery } from "@/hooks/queries/useApprovalQueries";
@@ -37,10 +38,11 @@ interface KPICardProps {
 
 function KPICard({ title, value, subtitle, icon, iconColor, backgroundColor, trend, trendUp }: KPICardProps) {
   const { theme } = useTheme();
+  const { isRTL } = useLanguage();
   
   return (
     <View style={[styles.kpiCard, { backgroundColor: theme.surface }]}>
-      <View style={[styles.iconContainer, { backgroundColor: iconColor }]}>
+      <View style={[styles.iconContainer, { backgroundColor: iconColor, alignSelf: 'center' }]}>
         <DDIcon name={icon as IconName} size={24} color={theme.buttonText} />
       </View>
 
@@ -67,6 +69,7 @@ interface OverviewScreenProps {
 export default function OverviewScreen({ userRole, userName }: OverviewScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { isRTL } = useLanguage();
   const { formatDate: fmtDate } = useFormatters();
   const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
   const insets = useSafeAreaInsets();
@@ -245,12 +248,12 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
       {(userRole === 'employee' || userRole === 'manager') && (
         <>
           <View>
-            <View style={styles.header}>
-              <View>
-                <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
+            <View style={[styles.header, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={{ alignItems: isRTL ? 'flex-end' : 'flex-start' }}>
+                <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
                   {t('dashboard.upcomingVisitors')}
                 </ThemedText>
-                <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 4, fontSize: 12 }]}>
+                <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 4, fontSize: 12, textAlign: isRTL ? 'right' : 'left' }]}>
                   {t('dashboard.thisWeek')}
                 </ThemedText>
               </View>
@@ -262,13 +265,13 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                   )}
                   style={({ pressed }) => [
                     styles.viewAllButton,
-                    { opacity: pressed ? 0.7 : 1 }
+                    { opacity: pressed ? 0.7 : 1, flexDirection: isRTL ? 'row-reverse' : 'row' }
                   ]}
                 >
                   <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
                     {t('common.viewAll')}
                   </ThemedText>
-                  <DDIcon name="chevron-right" size={16} color={theme.primary} />
+                  <DDIcon name={isRTL ? "chevron-left" : "chevron-right"} size={16} color={theme.primary} />
                 </Pressable>
               )}
             </View>
@@ -290,7 +293,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                     request={request}
                     onPress={() => navigation.navigate('RequestDetails', { requestId: request.id })}
                     width={cardWidth}
-                    style={index > 0 ? { marginStart: Spacing.md } : undefined}
+                    style={index > 0 ? (isRTL ? { marginEnd: Spacing.md } : { marginStart: Spacing.md }) : undefined}
                   />
                 ))}
               </ScrollView>
@@ -313,12 +316,12 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
       {userRole === 'employee' && (
         <>
           <View>
-            <View style={styles.header}>
-              <View>
-                <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
+            <View style={[styles.header, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={{ alignItems: isRTL ? 'flex-end' : 'flex-start' }}>
+                <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
                   {t('dashboard.recentRequests')}
                 </ThemedText>
-                <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 4, fontSize: 12 }]}>
+                <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 4, fontSize: 12, textAlign: isRTL ? 'right' : 'left' }]}>
                   {t('dashboard.yourLatestRequests')}
                 </ThemedText>
               </View>
@@ -327,13 +330,13 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                   onPress={() => navigation.navigate('VisitorRequests', { initialTab: 'all' })}
                   style={({ pressed }) => [
                     styles.viewAllButton,
-                    { opacity: pressed ? 0.7 : 1 }
+                    { opacity: pressed ? 0.7 : 1, flexDirection: isRTL ? 'row-reverse' : 'row' }
                   ]}
                 >
                   <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
                     {t('common.viewAll')}
                   </ThemedText>
-                  <DDIcon name="chevron-right" size={16} color={theme.primary} />
+                  <DDIcon name={isRTL ? "chevron-left" : "chevron-right"} size={16} color={theme.primary} />
                 </Pressable>
               )}
             </View>
@@ -355,7 +358,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                     request={request}
                     onPress={() => navigation.navigate('RequestDetails', { requestId: request.id })}
                     width={cardWidth}
-                    style={index > 0 ? { marginStart: Spacing.md } : undefined}
+                    style={index > 0 ? (isRTL ? { marginEnd: Spacing.md } : { marginStart: Spacing.md }) : undefined}
                   />
                 ))}
               </ScrollView>
@@ -378,11 +381,11 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
       {userRole === 'manager' && (
         <>
           <View>
-            <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
+            <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('dashboard.pendingApprovals')}
             </ThemedText>
-            <View style={[styles.header, { alignItems: 'center', marginTop: 4 }]}>
-              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, fontSize: 12 }]}>
+            <View style={[styles.header, { flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', marginTop: 4 }]}>
+              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, fontSize: 12, textAlign: isRTL ? 'right' : 'left' }]}>
                 {t('dashboard.requestsAwaitingApproval')}
               </ThemedText>
               {pendingApprovals.length > 0 && (
@@ -390,13 +393,13 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                   onPress={() => navigation.navigate('Approvals')}
                   style={({ pressed }) => [
                     styles.viewAllButton,
-                    { opacity: pressed ? 0.7 : 1 }
+                    { opacity: pressed ? 0.7 : 1, flexDirection: isRTL ? 'row-reverse' : 'row' }
                   ]}
                 >
                   <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
                     {t('common.viewAll')}
                   </ThemedText>
-                  <DDIcon name="chevron-right" size={16} color={theme.primary} />
+                  <DDIcon name={isRTL ? "chevron-left" : "chevron-right"} size={16} color={theme.primary} />
                 </Pressable>
               )}
             </View>
@@ -420,7 +423,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                     width={cardWidth}
                     accentColor={theme.primary}
                     showRequestedBy={true}
-                    style={index > 0 ? { marginStart: Spacing.md } : undefined}
+                    style={index > 0 ? (isRTL ? { marginEnd: Spacing.md } : { marginStart: Spacing.md }) : undefined}
                   />
                 ))}
               </ScrollView>
@@ -443,11 +446,11 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
       {(userRole === 'manager' || userRole === 'employee') && (
         <>
           <View>
-            <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
+            <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('navigation.awaitingVisitor')}
             </ThemedText>
-            <View style={[styles.header, { alignItems: 'center', marginTop: 4 }]}>
-              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, fontSize: 12 }]}>
+            <View style={[styles.header, { flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', marginTop: 4 }]}>
+              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, fontSize: 12, textAlign: isRTL ? 'right' : 'left' }]}>
                 {t('dashboard.awaitingResponse')}
               </ThemedText>
               {awaitingVisitorAcceptance.length > 0 && (
@@ -458,13 +461,13 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                   )}
                   style={({ pressed }) => [
                     styles.viewAllButton,
-                    { opacity: pressed ? 0.7 : 1 }
+                    { opacity: pressed ? 0.7 : 1, flexDirection: isRTL ? 'row-reverse' : 'row' }
                   ]}
                 >
                   <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
                     {t('common.viewAll')}
                   </ThemedText>
-                  <DDIcon name="chevron-right" size={16} color={theme.primary} />
+                  <DDIcon name={isRTL ? "chevron-left" : "chevron-right"} size={16} color={theme.primary} />
                 </Pressable>
               )}
             </View>
@@ -488,7 +491,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                     width={cardWidth}
                     accentColor={theme.warning}
                     showRequestedBy={true}
-                    style={index > 0 ? { marginStart: Spacing.md } : undefined}
+                    style={index > 0 ? (isRTL ? { marginEnd: Spacing.md } : { marginStart: Spacing.md }) : undefined}
                   />
                 ))}
               </ScrollView>
@@ -511,11 +514,11 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
       {(userRole === 'manager' || userRole === 'employee') && (
         <>
           <View>
-            <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
+            <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('navigation.walkInVisitors')}
             </ThemedText>
-            <View style={[styles.header, { alignItems: 'center', marginTop: 4 }]}>
-              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, fontSize: 12 }]}>
+            <View style={[styles.header, { flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', marginTop: 4 }]}>
+              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, fontSize: 12, textAlign: isRTL ? 'right' : 'left' }]}>
                 {t('dashboard.walkIns')}
               </ThemedText>
               {walkInVisitors.length > 0 && (userRole === 'manager' || userRole === 'employee') && (
@@ -523,13 +526,13 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                   onPress={() => navigation.navigate('VisitorRequests', { initialTab: 'walkin' })}
                   style={({ pressed }) => [
                     styles.viewAllButton,
-                    { opacity: pressed ? 0.7 : 1 }
+                    { opacity: pressed ? 0.7 : 1, flexDirection: isRTL ? 'row-reverse' : 'row' }
                   ]}
                 >
                   <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
                     {t('common.viewAll')}
                   </ThemedText>
-                  <DDIcon name="chevron-right" size={16} color={theme.primary} />
+                  <DDIcon name={isRTL ? "chevron-left" : "chevron-right"} size={16} color={theme.primary} />
                 </Pressable>
               )}
             </View>
@@ -553,7 +556,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                     width={cardWidth}
                     accentColor={theme.info}
                     showRequestedBy={true}
-                    style={index > 0 ? { marginStart: Spacing.md } : undefined}
+                    style={index > 0 ? (isRTL ? { marginEnd: Spacing.md } : { marginStart: Spacing.md }) : undefined}
                   />
                 ))}
               </ScrollView>

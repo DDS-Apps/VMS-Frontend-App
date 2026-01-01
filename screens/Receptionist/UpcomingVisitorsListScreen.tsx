@@ -11,6 +11,7 @@ import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
 import { applyOpacity } from "@/utils/statusStyles";
 import { useTodayVisitorsQuery } from "@/hooks/queries/useReceptionQueries";
@@ -20,6 +21,7 @@ export default function UpcomingVisitorsListScreen() {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { formatTimeFromString } = useFormatters();
+  const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -102,7 +104,7 @@ export default function UpcomingVisitorsListScreen() {
         <View style={[styles.statusBorderLine, { backgroundColor: statusConfig.border }]} />
         
         <View style={styles.cardMainSection}>
-          <View style={styles.cardHeaderRow}>
+          <View style={[styles.cardHeaderRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
               <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
                 {initials}
@@ -121,7 +123,7 @@ export default function UpcomingVisitorsListScreen() {
 
           <Spacer height={Spacing.md} />
 
-          <View style={styles.dateTimeRow}>
+          <View style={[styles.dateTimeRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <DDIcon name="clock" size={13} variant="muted" />
             <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
               {formatTimeFromString(item.visitTime)}
@@ -135,8 +137,8 @@ export default function UpcomingVisitorsListScreen() {
 
           <Spacer height={Spacing.md} />
 
-          <View style={styles.bottomRow}>
-            <View style={styles.servicesRow}>
+          <View style={[styles.bottomRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.servicesRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               {item.parkingSlot ? (
                 <View style={[styles.servicePillRounded, { backgroundColor: applyOpacity(theme.info, '20') }]}>
                   <DDIcon name="map-pin" size={14} color={theme.info} />

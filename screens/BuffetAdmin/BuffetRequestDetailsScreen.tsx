@@ -7,6 +7,7 @@ import Spacer from "@/components/Spacer";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
 import { applyOpacity } from "@/utils/statusStyles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -58,6 +59,7 @@ const mapStaffDto = (staff: BuffetAdminStaffDto): StaffDisplayItem => ({
 export default function BuffetRequestDetailsScreen({ route, navigation }: BuffetRequestDetailsScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   const { showSuccess, showError } = useToast();
   const { user } = useAuth();
@@ -283,7 +285,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
     <>
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
       <View style={[styles.headerCard, { backgroundColor: theme.surface }]}>
-        <View style={styles.headerRow}>
+        <View style={[styles.headerRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '12') }]}>
             <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
               {initials}
@@ -311,7 +313,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
 
         <Spacer height={Spacing.md} />
 
-        <View style={styles.infoRow}>
+        <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <View style={[styles.infoIcon, { backgroundColor: applyOpacity(theme.primary, '12') }]}>
             <DDIcon name="user" size={16} color={theme.primary} />
           </View>
@@ -323,19 +325,19 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
 
         <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
-        <View style={styles.infoRow}>
+        <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <View style={[styles.infoIcon, { backgroundColor: applyOpacity(theme.success, '12') }]}>
             <DDIcon name="map-pin" size={16} color={theme.success} />
           </View>
           <View style={styles.infoContent}>
             <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>{t('invitation.location')}</ThemedText>
-            <ThemedText style={[styles.infoValue, { color: theme.text }]}>{request.location}</ThemedText>
+            <ThemedText style={[styles.infoValue, { color: theme.text }]}>{request.hostName}</ThemedText>
           </View>
         </View>
 
         <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
-        <View style={styles.infoRow}>
+        <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <View style={[styles.infoIcon, { backgroundColor: applyOpacity(theme.warning, '12') }]}>
             <DDIcon name="clock" size={16} color={theme.warning} />
           </View>
@@ -347,7 +349,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
 
         <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
-        <View style={styles.infoRow}>
+        <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <View style={[styles.infoIcon, { backgroundColor: applyOpacity(theme.primary, '12') }]}>
             <DDIcon name="users" size={16} color={theme.primary} />
           </View>
@@ -359,7 +361,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
 
         <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
-        <View style={styles.infoRow}>
+        <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <View style={[styles.infoIcon, { backgroundColor: applyOpacity(theme.info, '12') }]}>
             <DDIcon name={getMealTypeIcon(request.mealType) as any} size={16} color={theme.info} />
           </View>
@@ -373,7 +375,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
           <>
             <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
-            <View style={styles.infoRow}>
+            <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <View style={[styles.infoIcon, { backgroundColor: applyOpacity(theme.warning, '12') }]}>
                 <DDIcon name="home" size={16} color={theme.warning} />
               </View>
@@ -407,7 +409,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
       <Spacer height={Spacing.lg} />
 
       <View style={[styles.infoCard, { backgroundColor: theme.surface }]}>
-        <View style={styles.sectionHeaderRow}>
+        <View style={[styles.sectionHeaderRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
             {t('navigation.staffManagement')}
           </ThemedText>
@@ -427,7 +429,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
         <Spacer height={Spacing.md} />
 
         {request.assignedStaff ? (
-          <View style={styles.staffRow}>
+          <View style={[styles.staffRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <View style={[styles.staffAvatar, { backgroundColor: applyOpacity(theme.success, '12') }]}>
               <DDIcon name="user-check" size={16} color={theme.success} />
             </View>
@@ -481,7 +483,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
         onPress={() => setShowAssignModal(false)}
       >
         <Pressable style={[styles.modalContent, { backgroundColor: theme.surface }]}>
-          <View style={styles.modalHeader}>
+          <View style={[styles.modalHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <ThemedText style={[Typography.subtitle, { fontWeight: '600' }]}>
               {request.assignedStaff ? t('buffet.reassignStaff') : t('buffet.assignStaff')}
             </ThemedText>

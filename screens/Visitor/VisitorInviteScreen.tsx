@@ -9,6 +9,7 @@ import Spacer from "@/components/Spacer";
 import { Spacing, BorderRadius, Typography, BrandColors, NeutralColors, FontFamily } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useFormatters } from "@/hooks/useFormatters";
 import { DDIcon } from "@/components/DDIcon";
 import { usePublicInviteQuery, useAcceptInviteMutation, useRejectInviteMutation } from "@/hooks/queries";
@@ -460,15 +461,16 @@ interface VisitorInviteScreenProps {
 }
 
 const BrandingHeader = memo(function BrandingHeader() {
+  const { isRTL } = useLanguage();
   return (
     <View style={helperStyles.brandingHeader}>
-      <View style={helperStyles.logoContainer}>
+      <View style={[helperStyles.logoContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <View style={helperStyles.logoIcon}>
           <DDIcon name="shield" size={24} color={PageColors.accent} />
         </View>
         <View>
-          <ThemedText style={helperStyles.brandName}>DALLAH DIGITAL</ThemedText>
-          <ThemedText style={helperStyles.brandTagline}>Visitor Management System</ThemedText>
+          <ThemedText style={[helperStyles.brandName, { textAlign: isRTL ? 'right' : 'left' }]}>DALLAH DIGITAL</ThemedText>
+          <ThemedText style={[helperStyles.brandTagline, { textAlign: isRTL ? 'right' : 'left' }]}>Visitor Management System</ThemedText>
         </View>
       </View>
     </View>
@@ -499,16 +501,17 @@ interface InfoRowProps {
 }
 
 const InfoRow = memo(function InfoRow({ icon, label, value, subValue }: InfoRowProps) {
+  const { isRTL } = useLanguage();
   return (
-    <View style={helperStyles.infoRow}>
-      <View style={helperStyles.infoIconContainer}>
+    <View style={[helperStyles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <View style={[helperStyles.infoIconContainer, { marginRight: isRTL ? 0 : Spacing.md, marginLeft: isRTL ? Spacing.md : 0 }]}>
         <DDIcon name={icon as any} size={18} color={PageColors.accent} />
       </View>
       <View style={helperStyles.infoContent}>
-        <ThemedText style={helperStyles.infoLabel}>{label}</ThemedText>
-        <ThemedText style={helperStyles.infoValue}>{value}</ThemedText>
+        <ThemedText style={[helperStyles.infoLabel, { textAlign: isRTL ? 'right' : 'left' }]}>{label}</ThemedText>
+        <ThemedText style={[helperStyles.infoValue, { textAlign: isRTL ? 'right' : 'left' }]}>{value}</ThemedText>
         {subValue ? (
-          <ThemedText style={helperStyles.infoSubValue}>{subValue}</ThemedText>
+          <ThemedText style={[helperStyles.infoSubValue, { textAlign: isRTL ? 'right' : 'left' }]}>{subValue}</ThemedText>
         ) : null}
       </View>
     </View>
@@ -601,6 +604,7 @@ const helperStyles = StyleSheet.create({
 export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { isRTL } = useLanguage();
   const { formatDate: fmtDate, formatDateShort, formatTimeFromString, formatDateTime } = useFormatters();
   const insets = useSafeAreaInsets();
   const token = route?.params?.token || route?.params?.visitId;

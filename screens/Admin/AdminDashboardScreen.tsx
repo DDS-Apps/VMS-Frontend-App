@@ -168,7 +168,7 @@ export default function AdminDashboardScreen({
   role,
 }: AdminDashboardScreenProps) {
   const { theme } = useTheme();
-  const { t } = useTranslation();
+  const { t, isRTL } = useTranslation();
   const { title, kpis } = getDashboardData(role, theme, t);
 
   const recentActivity = [
@@ -246,8 +246,8 @@ export default function AdminDashboardScreen({
 
       <Spacer height={Spacing.xl} />
 
-      <View style={styles.sectionHeader}>
-        <ThemedText style={[Typography.subtitle]}>{t('dashboard.recentActivity')}</ThemedText>
+      <View style={[styles.sectionHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <ThemedText style={[Typography.subtitle, { textAlign: isRTL ? 'right' : 'left' }]}>{t('dashboard.recentActivity')}</ThemedText>
         <Pressable>
           <ThemedText style={[Typography.bodySmall, { color: theme.primary }]}>
             {t('common.viewAll')}
@@ -260,7 +260,7 @@ export default function AdminDashboardScreen({
       {recentActivity.map((activity) => (
         <View key={activity.id}>
           <ThemedView
-            style={[styles.activityCard, { backgroundColor: theme.surface }]}
+            style={[styles.activityCard, { backgroundColor: theme.surface, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
           >
             <View
               style={[
@@ -275,11 +275,11 @@ export default function AdminDashboardScreen({
               />
             </View>
             <View style={{ flex: 1, marginStart: Spacing.md }}>
-              <ThemedText style={[Typography.body, { fontWeight: "600" }]}>
+              <ThemedText style={[Typography.body, { fontWeight: "600", textAlign: isRTL ? 'right' : 'left' }]}>
                 {activity.title}
               </ThemedText>
               <ThemedText
-                style={[Typography.caption, { color: theme.textSecondary }]}
+                style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}
               >
                 {activity.subtitle}
               </ThemedText>
@@ -325,12 +325,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   sectionHeader: {
-    flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
   activityCard: {
-    flexDirection: "row",
     alignItems: "center",
     padding: Spacing.md,
     borderRadius: BorderRadius.md,

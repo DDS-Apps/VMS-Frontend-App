@@ -92,7 +92,7 @@ interface DateRange {
 
 export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScreenProps) {
   const { theme } = useTheme();
-  const { t } = useTranslation();
+  const { t, isRTL } = useTranslation();
   const { formatTimeFromString } = useFormatters();
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
@@ -356,12 +356,12 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
           <View style={[styles.statusBorderLine, { backgroundColor: statusConfig.borderColor }]} />
           
           <View style={styles.cardContent}>
-            <View style={styles.cardHeader}>
+            <View style={[styles.cardHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <View style={styles.nameSection}>
-                <ThemedText style={[Typography.body, { fontWeight: '600' }]}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
                   {visitor.name}
                 </ThemedText>
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
                   {visitor.company}
                 </ThemedText>
               </View>
@@ -373,32 +373,32 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
             </View>
 
             <View style={styles.cardDetails}>
-              <View style={styles.detailRow}>
+              <View style={[styles.detailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <DDIcon name="user" size={14} variant="muted" />
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
                   {t('reception.hostName')}: {visitor.host}
                 </ThemedText>
               </View>
               {visitor.meetingRoom ? (
-                <View style={[styles.detailRow, { marginTop: Spacing.xs }]}>
+                <View style={[styles.detailRow, { marginTop: Spacing.xs, flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                   <DDIcon name="home" size={14} variant="muted" />
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
                     {visitor.meetingRoom.roomName} ({visitor.meetingRoom.floor})
                   </ThemedText>
                 </View>
               ) : null}
             </View>
 
-            <View style={styles.serviceBadgesRow}>
+            <View style={[styles.serviceBadgesRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               {visitor.parking.hasParking ? (
-                <View style={[styles.serviceBadge, { backgroundColor: applyOpacity(theme.primary, '12') }]}>
+                <View style={[styles.serviceBadge, { backgroundColor: applyOpacity(theme.primary, '12'), flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                   <DDIcon name="map-pin" size={12} color={theme.primary} />
                   <ThemedText style={[styles.serviceBadgeText, { color: theme.primary }]}>
                     {visitor.parking.slotNumber}
                   </ThemedText>
                 </View>
               ) : (
-                <View style={[styles.serviceBadge, { backgroundColor: applyOpacity(theme.textSecondary, '12') }]}>
+                <View style={[styles.serviceBadge, { backgroundColor: applyOpacity(theme.textSecondary, '12'), flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                   <DDIcon name="x-circle" size={12} color={theme.textSecondary} />
                   <ThemedText style={[styles.serviceBadgeText, { color: theme.textSecondary }]}>
                     {t('security.noParking')}
@@ -406,7 +406,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
                 </View>
               )}
               {visitor.valet.hasValet ? (
-                <View style={[styles.serviceBadge, { backgroundColor: applyOpacity(theme.accent, '12') }]}>
+                <View style={[styles.serviceBadge, { backgroundColor: applyOpacity(theme.accent, '12'), flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                   <DDIcon name="truck" size={12} color={theme.accent} />
                   <ThemedText style={[styles.serviceBadgeText, { color: theme.accent }]}>
                     {t('security.valetService')}
@@ -415,8 +415,8 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
               ) : null}
             </View>
 
-            <View style={styles.timestampsRow}>
-              <View style={[styles.timestampChip, { backgroundColor: applyOpacity(theme.primary, '10') }]}>
+            <View style={[styles.timestampsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.timestampChip, { backgroundColor: applyOpacity(theme.primary, '10'), flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <DDIcon name="clock" size={12} color={theme.primary} />
                 <ThemedText style={[styles.timestampText, { color: theme.primary }]}>
                   {formatTimeFromString(visitor.visitTime)}
@@ -424,7 +424,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
               </View>
               
               {visitor.checkInTime ? (
-                <View style={[styles.timestampChip, { backgroundColor: applyOpacity(theme.success, '10') }]}>
+                <View style={[styles.timestampChip, { backgroundColor: applyOpacity(theme.success, '10'), flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                   <DDIcon name="log-in" size={12} color={theme.success} />
                   <ThemedText style={[styles.timestampText, { color: theme.success }]}>
                     {t('actions.checkIn')}: {formatTimeFromString(visitor.checkInTime)}
@@ -433,7 +433,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
               ) : null}
               
               {visitor.checkOutTime ? (
-                <View style={[styles.timestampChip, { backgroundColor: applyOpacity(theme.textSecondary, '10') }]}>
+                <View style={[styles.timestampChip, { backgroundColor: applyOpacity(theme.textSecondary, '10'), flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                   <DDIcon name="log-out" size={12} color={theme.textSecondary} />
                   <ThemedText style={[styles.timestampText, { color: theme.textSecondary }]}>
                     {t('actions.checkOut')}: {formatTimeFromString(visitor.checkOutTime)}
@@ -516,18 +516,18 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
         
         <Spacer height={Spacing.sm} />
         
-        <View style={styles.dateDisplayRow}>
-          <ThemedText style={[Typography.bodySmall, { fontWeight: '600' }]}>
+        <View style={[styles.dateDisplayRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <ThemedText style={[Typography.bodySmall, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
             {formatDisplayDate()}
           </ThemedText>
-          <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
+          <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'left' : 'right' }]}>
             {filteredVisitors.length} {filteredVisitors.length === 1 ? t('roles.visitor').toLowerCase() : t('navigation.allVisitors').toLowerCase()}
           </ThemedText>
         </View>
 
         <Spacer height={Spacing.md} />
 
-        <View style={styles.searchBarWrapper}>
+        <View style={[styles.searchBarWrapper, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <SearchInput
             placeholder={t('common.search')}
             value={searchQuery}

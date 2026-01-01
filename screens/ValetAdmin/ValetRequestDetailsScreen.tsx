@@ -9,6 +9,7 @@ import Spacer from "@/components/Spacer";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useFormatters } from "@/hooks/useFormatters";
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { applyOpacity } from "@/utils/statusStyles";
@@ -65,6 +66,7 @@ function getStatusLabel(status: string, t: (key: string) => string) {
 export default function ValetRequestDetailsScreen({ route, navigation }: ValetRequestDetailsScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { isRTL } = useLanguage();
   const { formatDate, formatTime } = useFormatters();
   const insets = useSafeAreaInsets();
   const [request, setRequest] = useState<ValetRequest>(route.params.request);
@@ -136,15 +138,15 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
   };
 
   const renderInfoRow = (icon: IconName, label: string, value: string, valueColor?: string) => (
-    <View style={styles.infoRow}>
+    <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
       <View style={[styles.infoIcon, { backgroundColor: applyOpacity(theme.primary, '12') }]}>
         <DDIcon name={icon} size={16} color={theme.primary} />
       </View>
       <View style={styles.infoContent}>
-        <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>
+        <ThemedText style={[styles.infoLabel, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
           {label}
         </ThemedText>
-        <ThemedText style={[styles.infoValue, { color: valueColor || theme.text }]}>
+        <ThemedText style={[styles.infoValue, { color: valueColor || theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
           {value}
         </ThemedText>
       </View>
@@ -157,7 +159,7 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
         <View style={[styles.headerCard, { backgroundColor: theme.surface }]}>
           <View style={[styles.statusAccent, { backgroundColor: statusColor }]} />
           
-          <View style={styles.headerContent}>
+          <View style={[styles.headerContent, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
               <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
                 {initials}
@@ -165,10 +167,10 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
             </View>
             
             <View style={styles.headerInfo}>
-              <ThemedText style={[Typography.subtitle, { fontWeight: '600' }]}>
+              <ThemedText style={[Typography.subtitle, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
                 {request.visitorName}
               </ThemedText>
-              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 2 }]}>
+              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 2, textAlign: isRTL ? 'right' : 'left' }]}>
                 {request.visitorCompany}
               </ThemedText>
             </View>
@@ -336,7 +338,7 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
             </LoadingButton>
           </View>
         ) : (
-          <View style={[styles.completedContainer, { backgroundColor: applyOpacity(statusColor, '10') }]}>
+          <View style={[styles.completedContainer, { backgroundColor: applyOpacity(statusColor, '10'), flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <DDIcon 
               name={request.status === 'completed' ? 'check-circle' : 'x-circle'} 
               size={24} 
@@ -359,7 +361,7 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
       >
         <View style={[styles.modalOverlay, { backgroundColor: applyOpacity(theme.overlay, '50') }]}>
           <View style={[styles.modalContent, { backgroundColor: theme.surface }]}>
-            <View style={styles.modalHeader}>
+            <View style={[styles.modalHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <ThemedText style={[Typography.subtitle, { fontWeight: '600' }]}>
                 {t('actions.assignDriver')}
               </ThemedText>
@@ -375,7 +377,7 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
                 drivers.map((driver) => (
                   <Pressable
                     key={driver.id}
-                    style={[styles.driverItem, { borderColor: theme.border }]}
+                    style={[styles.driverItem, { borderColor: theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
                     onPress={() => handleAssignDriver(driver.id)}
                   >
                     <View style={[styles.driverAvatar, { backgroundColor: applyOpacity(theme.success, '15') }]}>
@@ -384,10 +386,10 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
                       </ThemedText>
                     </View>
                     <View style={styles.driverInfo}>
-                      <ThemedText style={[Typography.body, { fontWeight: '600' }]}>
+                      <ThemedText style={[Typography.body, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
                         {driver.name}
                       </ThemedText>
-                      <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
+                      <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
                         {driver.phone} - {driver.shift}
                       </ThemedText>
                     </View>

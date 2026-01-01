@@ -13,6 +13,7 @@ import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useMyValetRequestsQuery } from "@/hooks/queries/useValetSelfServiceQueries";
 import { applyOpacity } from "@/utils/statusStyles";
 import type { MyValetRequestsScreenProps } from "@/types/employeeNavigation.types";
@@ -103,13 +104,15 @@ const ValetRequestCard = React.memo(({
   theme, 
   onPress,
   formatTime,
-  formatDateLocale
+  formatDateLocale,
+  isRTL
 }: { 
   request: SelfValetRequestDto; 
   theme: Theme;
   onPress: () => void;
   formatTime: (date: Date) => string;
   formatDateLocale: (date: Date, format: 'short' | 'medium' | 'long') => string;
+  isRTL: boolean;
 }) => {
   const status = request.valet?.status || 'pending';
   const statusConfig = getValetStatusConfig(theme, status);
@@ -130,20 +133,20 @@ const ValetRequestCard = React.memo(({
 
   return (
     <Pressable onPress={onPress}>
-      <Card style={styles.taskCard}>
+      <Card style={[styles.taskCard, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <StatusAccent color={statusConfig.borderColor} />
         <View style={styles.taskCardContent}>
-          <View style={styles.taskHeaderRow}>
+          <View style={[styles.taskHeaderRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <View style={styles.vehicleIconContainer}>
               <View style={[styles.vehicleIcon, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
                 <DDIcon name="truck" size={20} variant="primary" />
               </View>
             </View>
             <View style={styles.taskHeaderInfo}>
-              <ThemedText style={[Typography.body, { fontWeight: '600' }]}>
+              <ThemedText style={[Typography.body, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
                 {request.vehicleInfo.plateNumber}
               </ThemedText>
-              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
+              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
                 {request.vehicleInfo.make} {request.vehicleInfo.model} - {request.vehicleInfo.color}
               </ThemedText>
             </View>
@@ -152,14 +155,14 @@ const ValetRequestCard = React.memo(({
 
           <Spacer height={Spacing.md} />
 
-          <View style={styles.taskDetailsRow}>
-            <View style={styles.taskDetailItem}>
+          <View style={[styles.taskDetailsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.taskDetailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <DDIcon name="map-pin" size={14} variant="muted" />
               <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6 }]}>
                 {request.dropOffLocation}
               </ThemedText>
             </View>
-            <View style={styles.taskDetailItem}>
+            <View style={[styles.taskDetailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <DDIcon name="clock" size={14} variant="muted" />
               <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6 }]}>
                 Return: {request.requestedReturnTime}
@@ -170,7 +173,7 @@ const ValetRequestCard = React.memo(({
           {request.valet?.driver ? (
             <>
               <Spacer height={Spacing.sm} />
-              <View style={[styles.driverRow, { backgroundColor: applyOpacity(theme.success, '08') }]}>
+              <View style={[styles.driverRow, { backgroundColor: applyOpacity(theme.success, '08'), flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <DDIcon name="user" size={14} color={theme.success} />
                 <ThemedText style={[Typography.caption, { color: theme.success, marginStart: 6, fontWeight: '500' }]}>
                   Driver: {request.valet.driver.name}
@@ -182,9 +185,9 @@ const ValetRequestCard = React.memo(({
           {request.notes ? (
             <>
               <Spacer height={Spacing.sm} />
-              <View style={styles.notesRow}>
+              <View style={[styles.notesRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <DDIcon name="file-text" size={14} variant="muted" />
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6, flex: 1 }]} numberOfLines={2}>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6, flex: 1, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={2}>
                   {request.notes}
                 </ThemedText>
               </View>
@@ -192,7 +195,7 @@ const ValetRequestCard = React.memo(({
           ) : null}
 
           <Spacer height={Spacing.sm} />
-          <View style={styles.taskFooterRow}>
+          <View style={[styles.taskFooterRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <DDIcon name="calendar" size={12} variant="muted" />
             <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 4, fontSize: 11 }]}>
               {formatDate(request.createdAt)} at {formatTimeStr(request.createdAt)}
@@ -214,6 +217,7 @@ const FILTER_OPTIONS: { key: StatusFilter; label: string }[] = [
 export default function MyValetRequestsScreen({ navigation }: MyValetRequestsScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { isRTL } = useLanguage();
   const { formatTime, formatDate: formatDateLocale } = useFormatters();
   const insets = useSafeAreaInsets();
 
@@ -312,15 +316,15 @@ export default function MyValetRequestsScreen({ navigation }: MyValetRequestsScr
           <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.primary} />
         }
       >
-        <View style={styles.headerRow}>
+        <View style={[styles.headerRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <View>
-            <ThemedText style={[Typography.h2]}>My Valet Requests</ThemedText>
-            <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
+            <ThemedText style={[Typography.h2, { textAlign: isRTL ? 'right' : 'left' }]}>My Valet Requests</ThemedText>
+            <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
               {filteredRequests.length} request{filteredRequests.length !== 1 ? 's' : ''}
             </ThemedText>
           </View>
           <Pressable
-            style={[styles.createButton, { backgroundColor: theme.primary }]}
+            style={[styles.createButton, { backgroundColor: theme.primary, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
             onPress={handleCreateNew}
           >
             <DDIcon name="plus" size={20} color="#FFFFFF" />
@@ -340,7 +344,7 @@ export default function MyValetRequestsScreen({ navigation }: MyValetRequestsScr
 
         <Spacer height={Spacing.md} />
 
-        <View style={styles.filterRow}>
+        <View style={[styles.filterRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           {FILTER_OPTIONS.map((option) => (
             <Pressable
               key={option.key}
@@ -400,6 +404,7 @@ export default function MyValetRequestsScreen({ navigation }: MyValetRequestsScr
                 onPress={() => handleRequestPress(request.id)}
                 formatTime={formatTime}
                 formatDateLocale={formatDateLocale}
+                isRTL={isRTL}
               />
               <Spacer height={Spacing.md} />
             </React.Fragment>
@@ -418,19 +423,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerRow: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   createButton: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.md,
   },
   filterRow: {
-    flexDirection: 'row',
     flexWrap: 'wrap',
     gap: Spacing.sm,
   },
@@ -452,7 +454,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   taskCard: {
-    flexDirection: 'row',
     overflow: 'hidden',
   },
   statusAccent: {
@@ -465,7 +466,6 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
   },
   taskHeaderRow: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
   vehicleIconContainer: {
@@ -492,27 +492,22 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   taskDetailsRow: {
-    flexDirection: 'row',
     flexWrap: 'wrap',
     gap: Spacing.md,
   },
   taskDetailItem: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
   driverRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.sm,
     paddingVertical: Spacing.xs,
     borderRadius: BorderRadius.sm,
   },
   notesRow: {
-    flexDirection: 'row',
     alignItems: 'flex-start',
   },
   taskFooterRow: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
 });

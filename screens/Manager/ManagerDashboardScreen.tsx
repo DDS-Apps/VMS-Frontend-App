@@ -13,6 +13,7 @@ import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { 
   useInfinitePendingApprovalsQuery,
   useApproveVisitMutation,
@@ -41,9 +42,9 @@ const LAYOUT = {
 };
 
 
-const DateTimeDisplay = ({ date, time, duration, theme, compact = false, fmtDate, fmtTime }: { date: string; time: string; duration?: string; theme: Theme; compact?: boolean; fmtDate: (d: Date | string) => string; fmtTime: (t: string) => string }) => {
+const DateTimeDisplay = ({ date, time, duration, theme, compact = false, fmtDate, fmtTime, isRTL = false }: { date: string; time: string; duration?: string; theme: Theme; compact?: boolean; fmtDate: (d: Date | string) => string; fmtTime: (t: string) => string; isRTL?: boolean }) => {
   return (
-    <View style={styles.dateTimeRow}>
+    <View style={[styles.dateTimeRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
       <DDIcon name="calendar" size={compact ? 13 : 14} variant="muted" />
       <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
         {fmtDate(date)}
@@ -71,7 +72,8 @@ const SectionHeader = ({
   isSelectionMode,
   onToggleSelectionMode,
   theme,
-  t
+  t,
+  isRTL = false
 }: { 
   viewMode: 'card' | 'list'; 
   onViewModeChange: (mode: 'card' | 'list') => void;
@@ -79,8 +81,9 @@ const SectionHeader = ({
   onToggleSelectionMode: () => void;
   theme: Theme;
   t: (key: string) => string;
+  isRTL?: boolean;
 }) => (
-  <View style={styles.header}>
+  <View style={[styles.header, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
     <View>
       <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600' }]}>
         {t('navigation.pendingApprovals')}
@@ -89,7 +92,7 @@ const SectionHeader = ({
         {t('dashboard.requestsAwaitingApproval')}
       </ThemedText>
     </View>
-    <View style={styles.headerActions}>
+    <View style={[styles.headerActions, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
       <Pressable
         onPress={onToggleSelectionMode}
         style={[
@@ -110,7 +113,7 @@ const SectionHeader = ({
         </ThemedText>
       </Pressable>
       <Spacer width={Spacing.sm} />
-      <View style={styles.viewModeToggle}>
+      <View style={[styles.viewModeToggle, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <Pressable
           onPress={() => onViewModeChange('card')}
           style={[
@@ -146,15 +149,17 @@ const SelectAllBar = ({
   allSelected,
   onToggleAll,
   theme,
-  t
+  t,
+  isRTL = false
 }: {
   allSelected: boolean;
   onToggleAll: () => void;
   theme: Theme;
   t: (key: string) => string;
+  isRTL?: boolean;
 }) => (
-  <View style={[styles.selectAllBar, { backgroundColor: theme.surfaceSecondary }]}>
-    <Pressable onPress={onToggleAll} style={styles.selectAllButton}>
+  <View style={[styles.selectAllBar, { backgroundColor: theme.surfaceSecondary, flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+    <Pressable onPress={onToggleAll} style={[styles.selectAllButton, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
       <SelectionCheckbox isSelected={allSelected} onToggle={onToggleAll} />
       <Spacer width={Spacing.sm} />
       <ThemedText style={[Typography.body, { color: theme.text }]}>
@@ -172,7 +177,8 @@ const BulkActionBar = ({
   t,
   bottomInset,
   isProcessing = false,
-  processingAction
+  processingAction,
+  isRTL = false
 }: {
   selectedCount: number;
   onApprove: () => void;
@@ -182,6 +188,7 @@ const BulkActionBar = ({
   bottomInset: number;
   isProcessing?: boolean;
   processingAction?: 'approve' | 'reject' | null;
+  isRTL?: boolean;
 }) => (
   <View 
     style={[
@@ -193,13 +200,13 @@ const BulkActionBar = ({
       }
     ]}
   >
-    <View style={styles.bulkActionContent}>
-      <ThemedText style={[Typography.body, { fontWeight: '600', color: theme.text }]}>
+    <View style={[styles.bulkActionContent, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <ThemedText style={[Typography.body, { fontWeight: '600', color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
         {isProcessing ? t('common.processing') : `${selectedCount} ${t('bulkActions.selected')}`}
       </ThemedText>
-      <View style={styles.bulkActionButtons}>
+      <View style={[styles.bulkActionButtons, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <Pressable
-          style={[styles.bulkRejectButton, { borderColor: theme.error, opacity: isProcessing ? 0.6 : 1 }]}
+          style={[styles.bulkRejectButton, { borderColor: theme.error, opacity: isProcessing ? 0.6 : 1, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
           onPress={onReject}
           disabled={isProcessing}
         >
@@ -215,7 +222,7 @@ const BulkActionBar = ({
         </Pressable>
         <Spacer width={Spacing.sm} />
         <Pressable
-          style={[styles.bulkApproveButton, { backgroundColor: theme.success, opacity: isProcessing ? 0.6 : 1 }]}
+          style={[styles.bulkApproveButton, { backgroundColor: theme.success, opacity: isProcessing ? 0.6 : 1, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
           onPress={onApprove}
           disabled={isProcessing}
         >
@@ -247,7 +254,8 @@ const ApprovalTableRow = React.memo(({
   isProcessing,
   t,
   fmtDate,
-  fmtTime
+  fmtTime,
+  isRTL = false
 }: { 
   request: VisitorRequest; 
   onApprove: () => void;
@@ -262,10 +270,11 @@ const ApprovalTableRow = React.memo(({
   t: (key: string) => string;
   fmtDate: (d: Date | string) => string;
   fmtTime: (t: string) => string;
+  isRTL?: boolean;
 }) => {
   return (
     <Pressable onLongPress={onLongPress}>
-      <ThemedView style={[styles.tableRow, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+      <ThemedView style={[styles.tableRow, { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <StatusAccent color={theme.primary} />
         
         {isSelectionMode ? (
@@ -277,8 +286,8 @@ const ApprovalTableRow = React.memo(({
         <View style={[styles.fixedColumn, { width: isSelectionMode ? LAYOUT.tableFixedColumnWidth - 40 : LAYOUT.tableFixedColumnWidth }]}>
           <View style={styles.fixedColumnContent}>
             <View style={{ flex: 1 }}>
-              <View style={styles.nameWithBadge}>
-                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, flex: 1 }]} numberOfLines={2}>
+              <View style={[styles.nameWithBadge, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, flex: 1, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={2}>
                   {request.visitor.fullName}
                 </ThemedText>
                 {request.isWalkIn ? <WalkInBadge /> : null}
@@ -291,6 +300,7 @@ const ApprovalTableRow = React.memo(({
                 compact 
                 fmtDate={fmtDate}
                 fmtTime={fmtTime}
+                isRTL={isRTL}
               />
             </View>
           </View>
@@ -348,7 +358,7 @@ const ApprovalTableRow = React.memo(({
                 {t('common.actions').toUpperCase()}
               </ThemedText>
               <Spacer height={10} />
-              <View style={styles.actionsRow}>
+              <View style={[styles.actionsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <Pressable
                   style={[styles.actionButton, styles.rejectActionButton, { borderColor: theme.error }]}
                   onPress={onReject}
@@ -393,7 +403,8 @@ const ApprovalCard = React.memo(({
   isProcessing,
   t,
   fmtDate,
-  fmtTime
+  fmtTime,
+  isRTL = false
 }: { 
   request: VisitorRequest; 
   onApprove: () => void;
@@ -408,6 +419,7 @@ const ApprovalCard = React.memo(({
   t: (key: string) => string;
   fmtDate: (d: Date | string) => string;
   fmtTime: (t: string) => string;
+  isRTL?: boolean;
 }) => {
   return (
     <Pressable onLongPress={onLongPress}>
@@ -421,19 +433,19 @@ const ApprovalCard = React.memo(({
         ) : null}
         
         <Pressable onPress={isSelectionMode ? onToggleSelection : onViewDetails} style={{ flex: 1 }}>
-          <View style={styles.cardHeader}>
+          <View style={[styles.cardHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
               <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
                 {request.visitor.fullName.split(' ').map(n => n[0]).join('')}
               </ThemedText>
             </View>
             <View style={styles.nameSection}>
-              <View style={styles.nameWithBadgeCard}>
-                <ThemedText style={[styles.visitorName, { color: theme.text }]}>{request.visitor.fullName}</ThemedText>
+              <View style={[styles.nameWithBadgeCard, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                <ThemedText style={[styles.visitorName, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>{request.visitor.fullName}</ThemedText>
                 {request.isWalkIn ? <WalkInBadge /> : null}
               </View>
               {request.visitor.company ? (
-                <ThemedText style={[styles.companyText, { color: theme.textSecondary }]}>{request.visitor.company}</ThemedText>
+                <ThemedText style={[styles.companyText, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>{request.visitor.company}</ThemedText>
               ) : null}
             </View>
           </View>
@@ -447,11 +459,12 @@ const ApprovalCard = React.memo(({
             theme={theme}
             fmtDate={fmtDate}
             fmtTime={fmtTime}
+            isRTL={isRTL}
           />
 
           <Spacer height={Spacing.sm} />
 
-          <View style={styles.employeeRow}>
+          <View style={[styles.employeeRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <DDIcon name="user" size={12} variant="muted" />
             <ThemedText style={[styles.employeeLabel, { color: theme.textSecondary }]}>{t('dashboard.requestedBy')}</ThemedText>
             <ThemedText style={[styles.employeeName, { color: theme.text }]}>{request.employeeName}</ThemedText>
@@ -592,7 +605,7 @@ const RejectRequestModal = ({
 
             <Spacer height={Spacing.xl} />
 
-            <View style={styles.rejectModalActions}>
+            <View style={[styles.rejectModalActions, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <LoadingButton
                 onPress={handleCancel}
                 variant="outline"
@@ -626,6 +639,7 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
   const { theme, isDark } = useTheme();
   const { t } = useTranslation();
   const { formatDate, formatTimeFromString } = useFormatters();
+  const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   const { paddingTop, paddingBottom } = useScreenInsets();
   const { user } = useAuth();
@@ -806,6 +820,7 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
         onToggleSelectionMode={toggleSelectionMode}
         theme={theme}
         t={t}
+        isRTL={isRTL}
       />
 
       <Spacer height={Spacing.lg} />
@@ -834,6 +849,7 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
             onToggleAll={toggleSelectAll}
             theme={theme}
             t={t}
+            isRTL={isRTL}
           />
         </>
       ) : null}
@@ -892,6 +908,7 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
               t={t}
               fmtDate={formatDate}
               fmtTime={formatTimeFromString}
+              isRTL={isRTL}
             />
           )}
           ListHeaderComponent={renderListHeader()}
@@ -917,6 +934,7 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
             bottomInset={insets.bottom}
             isProcessing={isBulkProcessing}
             processingAction={bulkProcessingAction}
+            isRTL={isRTL}
           />
         ) : null}
 
@@ -963,6 +981,7 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
             t={t}
             fmtDate={formatDate}
             fmtTime={formatTimeFromString}
+            isRTL={isRTL}
           />
         )}
         ListHeaderComponent={renderListHeader()}
@@ -989,6 +1008,7 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
           bottomInset={insets.bottom}
           isProcessing={isBulkProcessing}
           processingAction={bulkProcessingAction}
+          isRTL={isRTL}
         />
       ) : null}
 

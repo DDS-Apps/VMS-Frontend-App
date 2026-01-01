@@ -8,6 +8,7 @@ import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { applyOpacity, getStatusConfig } from "@/utils/statusStyles";
 import type { StatusConfig } from "@/types/theme.types";
@@ -123,6 +124,7 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { formatTimeFromString } = useFormatters();
+  const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   const { showSuccess, showError } = useToast();
 
@@ -485,7 +487,7 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
 
   return (
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
-      <View style={styles.kpiRow}>
+      <View style={[styles.kpiRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <KPICard 
           title={t('time.today')} 
           value={String(stats.total)} 
@@ -521,7 +523,7 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
       <Spacer height={Spacing.md} />
 
       <View style={styles.quickActionsGrid}>
-        <View style={styles.quickActionsRow}>
+        <View style={[styles.quickActionsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <QuickActionButton
             icon="bar-chart-2"
             label={t('buffet.capacityOverview')}
@@ -537,7 +539,7 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
             onPress={() => navigation.navigate('BuffetStaff')}
           />
         </View>
-        <View style={styles.quickActionsRow}>
+        <View style={[styles.quickActionsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <QuickActionButton
             icon="map-pin"
             label={t('navigation.locations')}
@@ -557,7 +559,7 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
 
       <Spacer height={Spacing.xl} />
 
-      <View style={styles.sectionHeader}>
+      <View style={[styles.sectionHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
           {t('buffet.buffetService')}
         </ThemedText>

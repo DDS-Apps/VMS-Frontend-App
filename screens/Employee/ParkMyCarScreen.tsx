@@ -10,6 +10,7 @@ import Spacer from "@/components/Spacer";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useServerDateTime } from "@/hooks/useServerDateTime";
 import { useCreateSelfValetRequestMutation } from "@/hooks/queries/useValetSelfServiceQueries";
 import { applyOpacity, createModalOverlayStyle } from "@/utils/statusStyles";
@@ -87,6 +88,7 @@ const ColorChip = ({
 export default function ParkMyCarScreen({ navigation }: ParkMyCarScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   const { formatTimeForApi, formatTimeForDisplay } = useServerDateTime();
   const createMutation = useCreateSelfValetRequestMutation();
@@ -245,13 +247,13 @@ export default function ParkMyCarScreen({ navigation }: ParkMyCarScreenProps) {
       <ScreenKeyboardAwareScrollView contentContainerStyle={scrollContentStyle}>
         <View style={{ paddingHorizontal: Spacing.lg }}>
           <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
-            <View style={styles.sectionHeader}>
+            <View style={[styles.sectionHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <View style={[styles.sectionIconContainer, { backgroundColor: theme.primary + '20' }]}>
                 <DDIcon name="truck" size={20} variant="primary" />
               </View>
               <View style={{ marginStart: Spacing.md }}>
-                <ThemedText style={[Typography.subtitle]}>Request Valet Service</ThemedText>
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
+                <ThemedText style={[Typography.subtitle, { textAlign: isRTL ? 'right' : 'left' }]}>Request Valet Service</ThemedText>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
                   Park your car with our valet team
                 </ThemedText>
               </View>
@@ -259,7 +261,7 @@ export default function ParkMyCarScreen({ navigation }: ParkMyCarScreenProps) {
 
             <Spacer height={Spacing.xl} />
 
-            <ThemedText style={[Typography.label, { color: theme.textSecondary }]}>
+            <ThemedText style={[Typography.label, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
               PLATE NUMBER *
             </ThemedText>
             <Spacer height={Spacing.xs} />
@@ -294,9 +296,9 @@ export default function ParkMyCarScreen({ navigation }: ParkMyCarScreenProps) {
 
             <Spacer height={Spacing.lg} />
 
-            <View style={styles.rowInputs}>
+            <View style={[styles.rowInputs, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <View style={styles.halfInput}>
-                <ThemedText style={[Typography.label, { color: theme.textSecondary }]}>
+                <ThemedText style={[Typography.label, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
                   BRAND/MAKE *
                 </ThemedText>
                 <Spacer height={Spacing.xs} />
@@ -330,7 +332,7 @@ export default function ParkMyCarScreen({ navigation }: ParkMyCarScreenProps) {
               </View>
 
               <View style={styles.halfInput}>
-                <ThemedText style={[Typography.label, { color: theme.textSecondary }]}>
+                <ThemedText style={[Typography.label, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
                   MODEL *
                 </ThemedText>
                 <Spacer height={Spacing.xs} />
@@ -366,11 +368,11 @@ export default function ParkMyCarScreen({ navigation }: ParkMyCarScreenProps) {
 
             <Spacer height={Spacing.lg} />
 
-            <ThemedText style={[Typography.label, { color: theme.textSecondary }]}>
+            <ThemedText style={[Typography.label, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
               COLOR *
             </ThemedText>
             <Spacer height={Spacing.sm} />
-            <View style={styles.colorChipsContainer}>
+            <View style={[styles.colorChipsContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               {COLOR_OPTIONS.map((color) => (
                 <ColorChip
                   key={color}
@@ -397,19 +399,19 @@ export default function ParkMyCarScreen({ navigation }: ParkMyCarScreenProps) {
 
             <Spacer height={Spacing.xl} />
 
-            <ThemedText style={[Typography.label, { color: theme.textSecondary }]}>
+            <ThemedText style={[Typography.label, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
               DROP-OFF LOCATION
             </ThemedText>
             <Spacer height={Spacing.xs} />
             <Pressable
               style={[
                 styles.iconInputButton,
-                { backgroundColor: theme.background, borderColor: theme.border }
+                { backgroundColor: theme.background, borderColor: theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' }
               ]}
               onPress={() => setShowLocationPicker(true)}
             >
               <DDIcon name="map-pin" size={20} variant="muted" />
-              <ThemedText style={[Typography.body, { flex: 1, marginStart: Spacing.sm }]}>
+              <ThemedText style={[Typography.body, { flex: 1, marginStart: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
                 {dropOffLocation}
               </ThemedText>
               <DDIcon name="chevron-down" size={20} variant="muted" />
@@ -417,19 +419,19 @@ export default function ParkMyCarScreen({ navigation }: ParkMyCarScreenProps) {
 
             <Spacer height={Spacing.lg} />
 
-            <ThemedText style={[Typography.label, { color: theme.textSecondary }]}>
+            <ThemedText style={[Typography.label, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
               REQUESTED RETURN TIME
             </ThemedText>
             <Spacer height={Spacing.xs} />
             <Pressable
               style={[
                 styles.iconInputButton,
-                { backgroundColor: theme.background, borderColor: theme.border }
+                { backgroundColor: theme.background, borderColor: theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' }
               ]}
               onPress={() => setShowTimePicker(true)}
             >
               <DDIcon name="clock" size={20} variant="muted" />
-              <ThemedText style={[Typography.body, { flex: 1, marginStart: Spacing.sm }]}>
+              <ThemedText style={[Typography.body, { flex: 1, marginStart: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
                 {formatTimeForDisplay(returnTime)}
               </ThemedText>
               <DDIcon name="chevron-down" size={20} variant="muted" />
@@ -437,7 +439,7 @@ export default function ParkMyCarScreen({ navigation }: ParkMyCarScreenProps) {
 
             <Spacer height={Spacing.lg} />
 
-            <ThemedText style={[Typography.label, { color: theme.textSecondary }]}>
+            <ThemedText style={[Typography.label, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
               NOTES (OPTIONAL)
             </ThemedText>
             <Spacer height={Spacing.xs} />
@@ -489,9 +491,9 @@ export default function ParkMyCarScreen({ navigation }: ParkMyCarScreenProps) {
           onPress={() => setShowLocationPicker(false)}
         >
           <View style={[styles.locationPickerContainer, { backgroundColor: theme.surface }]}>
-            <View style={[styles.locationPickerHeader, { borderBottomColor: theme.border }]}>
+            <View style={[styles.locationPickerHeader, { borderBottomColor: theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <DDIcon name="map-pin" size={20} variant="primary" />
-              <ThemedText style={[Typography.subtitle, { flex: 1, marginStart: Spacing.sm }]}>
+              <ThemedText style={[Typography.subtitle, { flex: 1, marginStart: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
                 Select Location
               </ThemedText>
               <Pressable onPress={() => setShowLocationPicker(false)}>
@@ -504,7 +506,7 @@ export default function ParkMyCarScreen({ navigation }: ParkMyCarScreenProps) {
                   key={location}
                   style={[
                     styles.locationOption,
-                    { borderBottomColor: theme.border },
+                    { borderBottomColor: theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' },
                     dropOffLocation === location && { backgroundColor: applyOpacity(theme.primary, '10') }
                   ]}
                   onPress={() => {
@@ -512,7 +514,7 @@ export default function ParkMyCarScreen({ navigation }: ParkMyCarScreenProps) {
                     setShowLocationPicker(false);
                   }}
                 >
-                  <ThemedText style={[Typography.body, dropOffLocation === location && { color: theme.primary, fontWeight: '600' }]}>
+                  <ThemedText style={[Typography.body, { textAlign: isRTL ? 'right' : 'left' }, dropOffLocation === location && { color: theme.primary, fontWeight: '600' }]}>
                     {location}
                   </ThemedText>
                   {dropOffLocation === location ? (
@@ -566,7 +568,6 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.lg,
   },
   sectionHeader: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
   sectionIconContainer: {
@@ -592,7 +593,6 @@ const styles = StyleSheet.create({
     minHeight: 80,
   },
   iconInputButton: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
@@ -600,14 +600,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   rowInputs: {
-    flexDirection: 'row',
     gap: Spacing.md,
   },
   halfInput: {
     flex: 1,
   },
   colorChipsContainer: {
-    flexDirection: 'row',
     flexWrap: 'wrap',
     gap: Spacing.sm,
   },
@@ -636,14 +634,12 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   locationPickerHeader: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
     borderBottomWidth: 1,
   },
   locationOption: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.lg,

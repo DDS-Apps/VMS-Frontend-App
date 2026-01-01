@@ -9,6 +9,7 @@ import Spacer from '@/components/Spacer';
 import { Spacing, BorderRadius, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { applyOpacity } from '@/utils/statusStyles';
 import { 
   getSystemStats, 
@@ -142,6 +143,7 @@ function StaffCard({ title, icon, total, details, onPress }: StaffCardProps) {
 export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdminDashboardScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { isRTL } = useLanguage();
   const [stats, setStats] = useState<SystemStats | null>(null);
   const [staffOverview, setStaffOverview] = useState<StaffOverview | null>(null);
   const [activities, setActivities] = useState<RecentActivity[]>([]);
@@ -167,7 +169,7 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
 
       <Spacer height={Spacing.xl} />
 
-      <View style={styles.kpiRow}>
+      <View style={[styles.kpiRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <KPICard 
           title={t('dashboard.totalVisitors')} 
           value={String(stats.totalVisitors)} 
@@ -189,7 +191,7 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
 
       <Spacer height={Spacing.md} />
 
-      <View style={styles.kpiRow}>
+      <View style={[styles.kpiRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <KPICard 
           title={t('status.approved')} 
           value={String(stats.approvedRequests)} 
@@ -210,7 +212,7 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
 
       <Spacer height={Spacing.md} />
 
-      <View style={styles.kpiRow}>
+      <View style={[styles.kpiRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <KPICard 
           title={t('buffet.buffetService')} 
           value={String(stats.ongoingBuffets)} 
@@ -237,7 +239,7 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
 
       <Spacer height={Spacing.md} />
 
-      <View style={styles.quickActionsRow}>
+      <View style={[styles.quickActionsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <QuickActionButton
           icon="users"
           label={t('navigation.manageUsers')}
@@ -328,7 +330,7 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
 
       <Spacer height={Spacing.xxl} />
 
-      <View style={styles.sectionHeader}>
+      <View style={[styles.sectionHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <ThemedText style={[Typography.subtitle, { color: theme.text }]}>
           {t('dashboard.recentActivity')}
         </ThemedText>
@@ -352,7 +354,7 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
         <View style={styles.activitiesList}>
           {activities.slice(0, 5).map((activity) => (
             <View key={activity.id}>
-              <ThemedView style={[styles.activityCard, { backgroundColor: theme.surface }]}>
+              <ThemedView style={[styles.activityCard, { backgroundColor: theme.surface, flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <View style={[
                   styles.activityIconContainer, 
                   { backgroundColor: applyOpacity(

@@ -41,7 +41,7 @@ const getStatusOptions = (theme: ReturnType<typeof useTheme>['theme'], t: (key: 
 
 export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenProps) {
   const { theme } = useTheme();
-  const { t } = useTranslation();
+  const { t, isRTL } = useTranslation();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const isReadOnlyRole = user?.role === 'building_admin';
@@ -110,13 +110,13 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
             {t('visitor.visitorDetails')}
           </ThemedText>
 
-          <View style={styles.infoRow}>
+          <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <DDIcon name="user" size={20} variant="primary" />
             <View style={{ marginStart: Spacing.md, flex: 1 }}>
-              <ThemedText style={[Typography.body, { fontWeight: '600' }]}>
+              <ThemedText style={[Typography.body, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
                 {task.visitorName}
               </ThemedText>
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
                 {task.visitorCompany}
               </ThemedText>
             </View>
@@ -124,13 +124,13 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
 
           <Spacer height={Spacing.md} />
 
-          <View style={styles.infoRow}>
+          <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <DDIcon name="briefcase" size={20} variant="muted" />
             <View style={{ marginStart: Spacing.md, flex: 1 }}>
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
                 {t('reception.hostName')}
               </ThemedText>
-              <ThemedText style={[Typography.body, { fontWeight: '500' }]}>
+              <ThemedText style={[Typography.body, { fontWeight: '500', textAlign: isRTL ? 'right' : 'left' }]}>
                 {task.hostName}
               </ThemedText>
             </View>
@@ -138,13 +138,13 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
 
           <Spacer height={Spacing.md} />
 
-          <View style={styles.infoRow}>
+          <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <DDIcon name="calendar" size={20} variant="muted" />
             <View style={{ marginStart: Spacing.md, flex: 1 }}>
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
                 {t('visitor.visitDate')}
               </ThemedText>
-              <ThemedText style={[Typography.body, { fontWeight: '500' }]}>
+              <ThemedText style={[Typography.body, { fontWeight: '500', textAlign: isRTL ? 'right' : 'left' }]}>
                 {task.visitDate}
               </ThemedText>
             </View>
@@ -152,13 +152,13 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
 
           <Spacer height={Spacing.md} />
 
-          <View style={styles.infoRow}>
+          <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <DDIcon name="clock" size={20} variant="muted" />
             <View style={{ marginStart: Spacing.md, flex: 1 }}>
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
                 {t('visitor.visitTime')}
               </ThemedText>
-              <ThemedText style={[Typography.body, { fontWeight: '500' }]}>
+              <ThemedText style={[Typography.body, { fontWeight: '500', textAlign: isRTL ? 'right' : 'left' }]}>
                 {task.pickupTime} - {task.returnTime}
               </ThemedText>
             </View>
@@ -166,13 +166,13 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
 
           <Spacer height={Spacing.md} />
 
-          <View style={styles.infoRow}>
+          <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <DDIcon name="map-pin" size={20} variant="muted" />
             <View style={{ marginStart: Spacing.md, flex: 1 }}>
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
                 {t('invitation.location')}
               </ThemedText>
-              <ThemedText style={[Typography.body, { fontWeight: '500' }]}>
+              <ThemedText style={[Typography.body, { fontWeight: '500', textAlign: isRTL ? 'right' : 'left' }]}>
                 {task.location}
               </ThemedText>
             </View>
@@ -181,16 +181,16 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
           {task.vehicleInfo ? (
             <>
               <Spacer height={Spacing.md} />
-              <View style={styles.infoRow}>
+              <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <DDIcon name="truck" size={20} variant="muted" />
                 <View style={{ marginStart: Spacing.md, flex: 1 }}>
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
                     {t('valet.vehiclePlate')}
                   </ThemedText>
-                  <ThemedText style={[Typography.body, { fontWeight: '500' }]}>
+                  <ThemedText style={[Typography.body, { fontWeight: '500', textAlign: isRTL ? 'right' : 'left' }]}>
                     {task.vehicleInfo.color} {task.vehicleInfo.make} {task.vehicleInfo.model}
                   </ThemedText>
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
                     {task.vehicleInfo.plateNumber}
                   </ThemedText>
                 </View>
@@ -204,14 +204,14 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
               <View
                 style={[
                   styles.notesContainer,
-                  { backgroundColor: theme.surface, borderColor: theme.border },
+                  { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' },
                 ]}
               >
                 <DDIcon name="file-text" size={16} variant="muted" />
                 <ThemedText
                   style={[
                     Typography.body,
-                    { color: theme.textSecondary, marginStart: Spacing.sm, flex: 1 },
+                    { color: theme.textSecondary, marginStart: Spacing.sm, flex: 1, textAlign: isRTL ? 'right' : 'left' },
                   ]}
                 >
                   {task.notes}
@@ -235,10 +235,11 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
                 {
                   backgroundColor: `${currentStatusOption?.color}15`,
                   borderColor: currentStatusOption?.color,
+                  flexDirection: isRTL ? 'row-reverse' : 'row',
                 },
               ]}
             >
-              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+              <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', flex: 1 }}>
                 <DDIcon
                   name={currentStatusOption?.icon as IconName}
                   size={20}
@@ -528,17 +529,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   infoRow: {
-    flexDirection: 'row',
     alignItems: 'flex-start',
   },
   notesContainer: {
-    flexDirection: 'row',
     padding: Spacing.md,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
   },
   statusButton: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: Spacing.md,

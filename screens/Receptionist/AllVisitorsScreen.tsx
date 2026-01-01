@@ -11,6 +11,7 @@ import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
 import { VisitorActionButton } from "@/components/VisitorActionButton";
 import { applyOpacity } from "@/utils/statusStyles";
@@ -65,6 +66,7 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { formatTime, formatTimeFromString } = useFormatters();
+  const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   
   const [searchQuery, setSearchQuery] = useState('');
@@ -245,7 +247,7 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
           <View style={[styles.statusBorderLine, { backgroundColor: statusConfig.border }]} />
           
           <View style={styles.cardContent}>
-            <View style={styles.cardHeader}>
+            <View style={[styles.cardHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
                 <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
                   {initials}
@@ -256,7 +258,7 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
                 <ThemedText style={[styles.visitorName, { color: theme.text }]} numberOfLines={1}>
                   {visitorName}
                 </ThemedText>
-                <View style={styles.companyRow}>
+                <View style={[styles.companyRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                   <ThemedText style={[styles.companyText, { color: theme.textSecondary, flexShrink: 1 }]} numberOfLines={1}>
                     {item.visitor.company ?? ''}
                   </ThemedText>
@@ -271,27 +273,27 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
               </View>
             </View>
 
-            <View style={styles.detailsRow}>
-              <View style={styles.detailItem}>
+            <View style={[styles.detailsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.detailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <DDIcon name="calendar" size={12} variant="muted" />
                 <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
                   {item.visitDate}
                 </ThemedText>
               </View>
-              <View style={styles.detailItem}>
+              <View style={[styles.detailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <DDIcon name="clock" size={12} variant="muted" />
                 <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
                   {formatTimeFromString(item.visitTime)}
                 </ThemedText>
               </View>
-              <View style={styles.detailItem}>
+              <View style={[styles.detailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <DDIcon name="user" size={12} variant="muted" />
                 <ThemedText style={[styles.detailText, { color: theme.textSecondary }]} numberOfLines={1}>
                   {item.employeeName}
                 </ThemedText>
               </View>
               {item.purpose ? (
-                <View style={styles.detailItem}>
+                <View style={[styles.detailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                   <DDIcon name="briefcase" size={12} variant="muted" />
                   <ThemedText style={[styles.detailText, { color: theme.textSecondary }]} numberOfLines={1}>
                     {item.purpose}
@@ -300,10 +302,10 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
               ) : null}
             </View>
 
-            <View style={styles.cardFooter}>
-              <View style={styles.servicesRow}>
+            <View style={[styles.cardFooter, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.servicesRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 {item.hasParking ? (
-                  <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '15') }]}>
+                  <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '15'), flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                     <DDIcon name="map-pin" size={12} color={theme.info} />
                   </View>
                 ) : null}
@@ -319,7 +321,7 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
                 ) : null}
               </View>
 
-              <View style={styles.actionButtons}>
+              <View style={[styles.actionButtons, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 {showCheckIn ? (
                   <VisitorActionButton 
                     type="check_in" 
@@ -434,9 +436,9 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
 
       <Spacer height={Spacing.md} />
 
-      <View style={styles.filtersRow}>
+      <View style={[styles.filtersRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <Pressable
-          style={[styles.filterDropdown, { backgroundColor: theme.surface, borderColor: theme.border }]}
+          style={[styles.filterDropdown, { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
           onPress={() => setShowDatePicker(true)}
         >
           <DDIcon name="calendar" size={14} variant="muted" />
@@ -447,7 +449,7 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
         </Pressable>
 
         <Pressable
-          style={[styles.filterDropdown, { backgroundColor: theme.surface, borderColor: theme.border }]}
+          style={[styles.filterDropdown, { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
           onPress={() => setShowStatusPicker(true)}
         >
           <DDIcon name="filter" size={14} variant="muted" />
@@ -461,13 +463,14 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
 
       <Spacer height={Spacing.sm} />
 
-      <View style={styles.filtersRow}>
+      <View style={[styles.filtersRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <Pressable
           style={[
             styles.filterChip,
             { 
               backgroundColor: walkInOnly ? applyOpacity(theme.warning, '15') : theme.surface,
-              borderColor: walkInOnly ? theme.warning : theme.border
+              borderColor: walkInOnly ? theme.warning : theme.border,
+              flexDirection: isRTL ? 'row-reverse' : 'row'
             }
           ]}
           onPress={() => setWalkInOnly(!walkInOnly)}
@@ -486,7 +489,8 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
             styles.filterChip,
             { 
               backgroundColor: awaitingVisitorOnly ? applyOpacity(theme.info, '15') : theme.surface,
-              borderColor: awaitingVisitorOnly ? theme.info : theme.border
+              borderColor: awaitingVisitorOnly ? theme.info : theme.border,
+              flexDirection: isRTL ? 'row-reverse' : 'row'
             }
           ]}
           onPress={() => setAwaitingVisitorOnly(!awaitingVisitorOnly)}
@@ -505,7 +509,8 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
             styles.filterChip,
             { 
               backgroundColor: pendingApprovalOnly ? applyOpacity(theme.primary, '15') : theme.surface,
-              borderColor: pendingApprovalOnly ? theme.primary : theme.border
+              borderColor: pendingApprovalOnly ? theme.primary : theme.border,
+              flexDirection: isRTL ? 'row-reverse' : 'row'
             }
           ]}
           onPress={() => setPendingApprovalOnly(!pendingApprovalOnly)}

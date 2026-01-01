@@ -14,6 +14,7 @@ import { Spacing, BorderRadius, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useFormatters } from '@/hooks/useFormatters';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { applyOpacity } from '@/utils/statusStyles';
 import { 
   useAllRequestsQuery,
@@ -246,6 +247,7 @@ export default function AllRequestsScreen() {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { formatDate, formatTimeFromString } = useFormatters();
+  const { isRTL } = useLanguage();
   const queryClient = useQueryClient();
   
   const [typeFilter, setTypeFilter] = useState<RequestFilter>('visitor');
@@ -501,7 +503,7 @@ export default function AllRequestsScreen() {
 
         <Spacer height={Spacing.lg} />
 
-        <View style={styles.statsRow}>
+        <View style={[styles.statsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <StatCard
             value={stats.total}
             label={t('common.all')}
@@ -538,7 +540,7 @@ export default function AllRequestsScreen() {
 
         <Spacer height={Spacing.lg} />
 
-        <View style={styles.searchRow}>
+        <View style={[styles.searchRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <View style={styles.searchInputWrapper}>
             <SearchInput
               placeholder={t('common.search')}
