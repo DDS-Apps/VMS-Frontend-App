@@ -630,6 +630,19 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
   };
 
   const getParkingExpectationText = (invite: PublicInviteDto): string => {
+    // Check visitor's parking selection first (for accepted invitations)
+    if (invite.visitorNeedsParking !== undefined) {
+      if (!invite.visitorNeedsParking) {
+        return t('visitorInvite.noParking');
+      }
+      // Visitor needs parking
+      if (invite.licensePlate && invite.carModel && invite.carColor) {
+        return `${invite.licensePlate} - ${invite.carModel} (${invite.carColor})`;
+      }
+      return t('visitorInvite.needsParkingInfoLater');
+    }
+    
+    // Fallback to old logic for pending invitations
     const parkingInfo = invite.parkingInfo || invite.parking;
     if (!parkingInfo) {
       return t('visitorInvite.parkingNotAvailable');
@@ -646,7 +659,20 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
     return t('visitorInvite.parkingNotAvailable');
   };
 
-  const getParkingType = (invite: PublicInviteDto): 'valet' | 'auto' | 'none' => {
+  const getParkingType = (invite: PublicInviteDto): 'valet' | 'auto' | 'none' | 'pending' => {
+    // Check visitor's parking selection first (for accepted invitations)
+    if (invite.visitorNeedsParking !== undefined) {
+      if (!invite.visitorNeedsParking) {
+        return 'none';
+      }
+      // Visitor needs parking - check if car info is provided
+      if (invite.licensePlate && invite.carModel && invite.carColor) {
+        return 'auto';
+      }
+      return 'pending';
+    }
+    
+    // Fallback to old logic
     const parkingInfo = invite.parkingInfo || invite.parking;
     if (invite.valetInfo || invite.hasValet || parkingInfo?.type === 'valet') {
       return 'valet';
@@ -1078,33 +1104,46 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
             <Spacer height={Spacing.xl} />
 
             {/* Parking Section */}
-            <GlassCard style={[
-              styles.parkingCard,
-              { 
-                borderColor: getParkingType(invite) === 'none' 
-                  ? PageColors.warning + '40' 
-                  : PageColors.success + '40' 
-              }
-            ]}>
-              <View style={styles.parkingHeader}>
-                <View style={[
-                  styles.parkingIconContainer,
-                  { backgroundColor: getParkingType(invite) === 'none' ? PageColors.warning + '20' : PageColors.success + '20' }
+            {(() => {
+              const parkingType = getParkingType(invite);
+              const getParkingColor = () => {
+                if (parkingType === 'none') return PageColors.textMuted;
+                if (parkingType === 'pending') return PageColors.warning;
+                return PageColors.success;
+              };
+              const getParkingIcon = () => {
+                if (parkingType === 'valet') return 'truck';
+                if (parkingType === 'auto') return 'navigation';
+                if (parkingType === 'pending') return 'clock';
+                return 'slash';
+              };
+              const parkingColor = getParkingColor();
+              return (
+                <GlassCard style={[
+                  styles.parkingCard,
+                  { borderColor: parkingColor + '40' }
                 ]}>
-                  <DDIcon 
-                    name={getParkingType(invite) === 'valet' ? 'truck' : getParkingType(invite) === 'auto' ? 'navigation' : 'alert-circle'} 
-                    size={24} 
-                    color={getParkingType(invite) === 'none' ? PageColors.warning : PageColors.success}
-                  />
-                </View>
-                <View style={styles.parkingContent}>
-                  <ThemedText style={styles.parkingTitle}>{t('services.parking')}</ThemedText>
-                  <ThemedText style={styles.parkingDescription}>
-                    {getParkingExpectationText(invite)}
-                  </ThemedText>
-                </View>
-              </View>
-            </GlassCard>
+                  <View style={styles.parkingHeader}>
+                    <View style={[
+                      styles.parkingIconContainer,
+                      { backgroundColor: parkingColor + '20' }
+                    ]}>
+                      <DDIcon 
+                        name={getParkingIcon()} 
+                        size={24} 
+                        color={parkingColor}
+                      />
+                    </View>
+                    <View style={styles.parkingContent}>
+                      <ThemedText style={styles.parkingTitle}>{t('services.parking')}</ThemedText>
+                      <ThemedText style={styles.parkingDescription}>
+                        {getParkingExpectationText(invite)}
+                      </ThemedText>
+                    </View>
+                  </View>
+                </GlassCard>
+              );
+            })()}
           </>
         ) : null}
         </ContentWrapper>

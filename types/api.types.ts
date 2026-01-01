@@ -1646,6 +1646,10 @@ export interface PublicInviteDto {
   hasBuffet?: boolean;
   hasValet?: boolean;
   createdAt?: string;
+  visitorNeedsParking?: boolean;
+  licensePlate?: string | null;
+  carModel?: string | null;
+  carColor?: string | null;
 }
 
 export interface AcceptInviteDto {
