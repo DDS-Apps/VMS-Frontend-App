@@ -23,7 +23,7 @@ const LAYOUT = {
 };
 
 const VisitorAvatar = ({ name, theme, size = 44 }: { name: string; theme: Theme; size?: number }) => {
-  const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2);
+  const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   return (
     <View style={[
       styles.avatar, 

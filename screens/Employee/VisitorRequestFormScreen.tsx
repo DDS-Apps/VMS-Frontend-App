@@ -885,13 +885,14 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                 styles.iconInputButton, 
                 { 
                   backgroundColor: theme.background, 
-                  borderColor: errors.endTime ? theme.error : theme.border
+                  borderColor: errors.endTime ? theme.error : theme.border,
+                  flexDirection: isRTL ? 'row-reverse' : 'row'
                 }
               ]}
               onPress={() => setShowEndTimePicker(true)}
             >
               <DDIcon name="clock" size={20} variant="primary" />
-              <ThemedText style={[Typography.body, { color: theme.text, marginStart: Spacing.md, flex: 1 }]}>
+              <ThemedText style={[Typography.body, { color: theme.text, marginStart: Spacing.md, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                 {formatPickerTime(selectedEndTime)}
               </ThemedText>
               <DDIcon name="chevron-down" size={20} variant="muted" />
@@ -917,12 +918,13 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                 { 
                   backgroundColor: theme.surface, 
                   borderColor: theme.border,
-                  opacity: 0.7
+                  opacity: 0.7,
+                  flexDirection: isRTL ? 'row-reverse' : 'row'
                 }
               ]}
             >
               <DDIcon name="clock" size={20} variant="muted" />
-              <ThemedText style={[Typography.body, { color: isEndTimeBeforeStartTime() ? theme.error : theme.textSecondary, marginStart: Spacing.md, flex: 1 }]}>
+              <ThemedText style={[Typography.body, { color: isEndTimeBeforeStartTime() ? theme.error : theme.textSecondary, marginStart: Spacing.md, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                 {calculateDuration()}
               </ThemedText>
               <DDIcon name="lock" size={16} variant="muted" />
