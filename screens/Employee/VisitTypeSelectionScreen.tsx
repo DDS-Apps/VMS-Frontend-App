@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, StyleSheet, LayoutChangeEvent } from "react-native";
+import { View, StyleSheet, LayoutChangeEvent, Platform } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DDIcon, type IconName } from "@/components/DDIcon";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
@@ -11,8 +11,11 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { VisitTypeSelectionScreenProps } from "@/types/employeeNavigation.types";
 
+const isWeb = Platform.OS === 'web';
 const CARD_MIN_WIDTH = 140;
 const CARD_GAP = Spacing.md;
+const WEB_CARD_SIZE = 150;
+const WEB_COLUMNS = 5;
 
 type VisitType = {
   id: string;
@@ -49,8 +52,9 @@ export default function VisitTypeSelectionScreen({ navigation, onTypeSelect }: V
     paddingHorizontal: Spacing.lg,
   };
 
-  const columns = gridWidth >= CARD_MIN_WIDTH * 3 + CARD_GAP * 2 ? 3 : 2;
-  const cardWidth = gridWidth > 0 ? (gridWidth - CARD_GAP * (columns - 1)) / columns : CARD_MIN_WIDTH;
+  const mobileColumns = gridWidth >= CARD_MIN_WIDTH * 3 + CARD_GAP * 2 ? 3 : 2;
+  const columns = isWeb ? WEB_COLUMNS : mobileColumns;
+  const cardWidth = isWeb ? WEB_CARD_SIZE : (gridWidth > 0 ? (gridWidth - CARD_GAP * (columns - 1)) / columns : CARD_MIN_WIDTH);
 
   const handleGridLayout = (event: LayoutChangeEvent) => {
     setGridWidth(event.nativeEvent.layout.width);
@@ -86,7 +90,7 @@ export default function VisitTypeSelectionScreen({ navigation, onTypeSelect }: V
       <View onLayout={handleGridLayout} style={styles.gridContainer}>
         <View style={styles.grid}>
           {visitTypes.map((visitType) => (
-            <View key={visitType.id} style={[styles.cardWrapper, { width: cardWidth }]}>
+            <View key={visitType.id} style={[styles.cardWrapper, isWeb ? styles.webCardWrapper : { width: cardWidth }]}>
               <SelectableCard onPress={() => handleTypeSelect(visitType)}>
                 <View style={styles.iconContainer}>
                   <DDIcon name={visitType.icon} size={28} color={theme.cardIcon} />
@@ -115,11 +119,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
-    marginHorizontal: -CARD_GAP / 2,
+    marginHorizontal: isWeb ? 0 : -CARD_GAP / 2,
+    gap: isWeb ? CARD_GAP : undefined,
   },
   cardWrapper: {
-    paddingHorizontal: CARD_GAP / 2,
-    marginBottom: CARD_GAP,
+    paddingHorizontal: isWeb ? 0 : CARD_GAP / 2,
+    marginBottom: isWeb ? 0 : CARD_GAP,
+  },
+  webCardWrapper: {
+    width: WEB_CARD_SIZE,
+    height: WEB_CARD_SIZE,
   },
   iconContainer: {
     marginBottom: Spacing.xs,
