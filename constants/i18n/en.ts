@@ -221,7 +221,7 @@ export const en: TranslationKeys = {
     reminderRules: 'Reminder Rules',
     integrationsHealth: 'Integrations Health',
     globalAnalytics: 'Global Analytics',
-    parkMyCar: 'Park My Car',
+    myValetRequests: 'My Valet Requests',
     parkingDashboard: 'Parking Dashboard',
   },
   visitor: {
@@ -823,6 +823,8 @@ export const en: TranslationKeys = {
     noParking: 'No Parking',
     noValet: 'No Valet',
     valetService: 'Valet Service',
+    parkingAssigned: 'Parking Assigned',
+    valetAssigned: 'Valet Assigned',
   },
   parking: {
     parkingManagement: 'Parking Management',
@@ -940,6 +942,8 @@ export const en: TranslationKeys = {
     underutilized: 'Underutilized',
     todaysVisitors: "Today's Visitors",
     noVisitorsToday: 'No visitors expected today',
+    noRequests: 'No valet requests yet',
+    noMatchingRequests: 'No matching valet requests found',
   },
   buffet: {
     buffetService: 'Buffet Service',

@@ -11,7 +11,6 @@ import { getCommonScreenOptions } from "@/navigation/screenOptions";
 import VisitorRequestsScreen from "@/screens/Employee/VisitorRequestsScreen";
 import VisitorRequestFormScreen from "@/screens/Employee/VisitorRequestFormScreen";
 import RequestDetailsScreen from "@/screens/Employee/RequestDetailsScreen";
-import ParkMyCarScreen from "@/screens/Employee/ParkMyCarScreen";
 import SecurityCheckInScreen from "@/screens/Security/SecurityCheckInScreen";
 import ReceptionistDashboardScreen from "@/screens/Receptionist/ReceptionistDashboardScreen";
 import VisitTypeSelectionScreen from "@/screens/Employee/VisitTypeSelectionScreen";
@@ -59,11 +58,6 @@ function DashboardStack({ userRole }: { userRole: UserRole }) {
         >
           {(props) => <RequestDetailsScreen {...props} userRole="employee" />}
         </Stack.Screen>
-        <Stack.Screen
-          name="ParkMyCar"
-          component={ParkMyCarScreen}
-          options={{ headerTitle: "Park My Car" }}
-        />
       </Stack.Navigator>
     );
   } else if (userRole === 'security') {

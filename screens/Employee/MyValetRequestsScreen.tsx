@@ -284,9 +284,6 @@ export default function MyValetRequestsScreen({ navigation }: MyValetRequestsScr
     navigation.navigate('ValetRequestDetails', { requestId });
   };
 
-  const handleCreateNew = () => {
-    navigation.navigate('ParkMyCar');
-  };
 
   if (isLoading || isRefetching) {
     return (
@@ -318,20 +315,11 @@ export default function MyValetRequestsScreen({ navigation }: MyValetRequestsScr
       >
         <View style={[styles.headerRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <View>
-            <ThemedText style={[Typography.h2, { textAlign: isRTL ? 'right' : 'left' }]}>My Valet Requests</ThemedText>
+            <ThemedText style={[Typography.h2, { textAlign: isRTL ? 'right' : 'left' }]}>{t('navigation.myValetRequests')}</ThemedText>
             <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-              {filteredRequests.length} request{filteredRequests.length !== 1 ? 's' : ''}
+              {filteredRequests.length} {t('sidebar.requests')}
             </ThemedText>
           </View>
-          <Pressable
-            style={[styles.createButton, { backgroundColor: theme.primary, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
-            onPress={handleCreateNew}
-          >
-            <DDIcon name="plus" size={20} color="#FFFFFF" />
-            <ThemedText style={[Typography.bodySmall, { color: '#FFFFFF', marginStart: 6, fontWeight: '600' }]}>
-              New Request
-            </ThemedText>
-          </Pressable>
         </View>
 
         <Spacer height={Spacing.lg} />
@@ -378,22 +366,9 @@ export default function MyValetRequestsScreen({ navigation }: MyValetRequestsScr
             <Spacer height={Spacing.md} />
             <ThemedText style={[Typography.body, { color: theme.textSecondary, textAlign: 'center' }]}>
               {searchQuery || statusFilter !== 'all' 
-                ? 'No matching valet requests found'
-                : 'No valet requests yet'}
+                ? t('valet.noMatchingRequests')
+                : t('valet.noRequests')}
             </ThemedText>
-            {!searchQuery && statusFilter === 'all' ? (
-              <>
-                <Spacer height={Spacing.md} />
-                <Pressable
-                  style={[styles.emptyCreateButton, { borderColor: theme.primary }]}
-                  onPress={handleCreateNew}
-                >
-                  <ThemedText style={[Typography.body, { color: theme.primary, fontWeight: '600' }]}>
-                    Park My Car
-                  </ThemedText>
-                </Pressable>
-              </>
-            ) : null}
           </View>
         ) : (
           filteredRequests.map((request) => (

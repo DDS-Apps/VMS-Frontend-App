@@ -204,18 +204,24 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
           <DDIcon 
             name="truck" 
             size={18} 
-            color={theme.textSecondary} 
+            color={visitorData.valetAssigned ? theme.primary : theme.textSecondary} 
           />
           <View style={{ flex: 1, marginStart: Spacing.md }}>
             <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 11, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('security.valetStatus')}
             </ThemedText>
-            <View style={[styles.noBadge, { backgroundColor: applyOpacity(theme.textSecondary, '12'), flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <DDIcon name="x-circle" size={12} color={theme.textSecondary} />
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontWeight: '500' }]}>
-                {t('security.noValet')}
+            {visitorData.valetAssigned ? (
+              <ThemedText style={[Typography.body, { fontWeight: '500', color: theme.primary, textAlign: isRTL ? 'right' : 'left' }]}>
+                {visitorData.valetDriverName || t('security.valetAssigned')}
               </ThemedText>
-            </View>
+            ) : (
+              <View style={[styles.noBadge, { backgroundColor: applyOpacity(theme.textSecondary, '12'), flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                <DDIcon name="x-circle" size={12} color={theme.textSecondary} />
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontWeight: '500' }]}>
+                  {t('security.noValet')}
+                </ThemedText>
+              </View>
+            )}
           </View>
         </View>
       </ThemedView>

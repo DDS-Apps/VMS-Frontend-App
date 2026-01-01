@@ -9,7 +9,6 @@ import VisitorRequestsScreen from "@/screens/Employee/VisitorRequestsScreen";
 import VisitTypeSelectionScreen from "@/screens/Employee/VisitTypeSelectionScreen";
 import VisitorRequestFormScreen from "@/screens/Employee/VisitorRequestFormScreen";
 import RequestDetailsScreen from "@/screens/Employee/RequestDetailsScreen";
-import ParkMyCarScreen from "@/screens/Employee/ParkMyCarScreen";
 import MyValetRequestsScreen from "@/screens/Employee/MyValetRequestsScreen";
 import EmployeeValetRequestDetailsScreen from "@/screens/Employee/ValetRequestDetailsScreen";
 import ManagerDashboardScreen from "@/screens/Manager/ManagerDashboardScreen";
@@ -272,13 +271,6 @@ export default function DashboardContainer({ userRole, userName, userEmail, user
                 </ScreenWrapper>
               )}
             </Stack.Screen>
-            <Stack.Screen name="ParkMyCar">
-              {(props) => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager} isSSOUser={isSSOUser}>
-                  <ParkMyCarScreen {...props} />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
             <Stack.Screen name="MyValetRequests">
               {(props) => (
                 <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager} isSSOUser={isSSOUser}>
@@ -336,13 +328,6 @@ export default function DashboardContainer({ userRole, userName, userEmail, user
               {(props) => (
                 <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager} isSSOUser={isSSOUser}>
                   <ManagerDashboardScreen {...props} />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
-            <Stack.Screen name="ParkMyCar">
-              {(props) => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager} isSSOUser={isSSOUser}>
-                  <ParkMyCarScreen {...props} />
                 </ScreenWrapper>
               )}
             </Stack.Screen>

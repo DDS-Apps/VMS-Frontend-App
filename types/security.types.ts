@@ -32,6 +32,9 @@ export interface SecurityVisitorDto {
   accessAreas?: string[];
   parkingAssigned?: boolean;
   parkingSpot?: string;
+  valetAssigned?: boolean;
+  valetDriverName?: string;
+  valetStatus?: string;
   qrCode?: string;
   checkInTime?: string;
   checkOutTime?: string;

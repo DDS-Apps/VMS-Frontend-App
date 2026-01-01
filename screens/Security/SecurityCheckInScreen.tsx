@@ -78,7 +78,9 @@ const mapApiToSecurityVisitor = (dto: SecurityVisitorDto): SecurityVisitor => {
       slotNumber: dto.parkingSpot,
     },
     valet: {
-      hasValet: false,
+      hasValet: dto.valetAssigned || false,
+      driverName: dto.valetDriverName,
+      status: dto.valetStatus,
     },
   };
 };

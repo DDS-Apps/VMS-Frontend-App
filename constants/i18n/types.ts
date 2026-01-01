@@ -221,7 +221,7 @@ export interface TranslationKeys {
     reminderRules: string;
     integrationsHealth: string;
     globalAnalytics: string;
-    parkMyCar: string;
+    myValetRequests: string;
   };
   visitor: {
     guest: string;
@@ -822,6 +822,8 @@ export interface TranslationKeys {
     noParking: string;
     noValet: string;
     valetService: string;
+    parkingAssigned: string;
+    valetAssigned: string;
   };
   parking: {
     parkingManagement: string;
@@ -933,6 +935,10 @@ export interface TranslationKeys {
     driverLoadDistribution: string;
     overloaded: string;
     underutilized: string;
+    todaysVisitors: string;
+    noVisitorsToday: string;
+    noRequests: string;
+    noMatchingRequests: string;
   };
   buffet: {
     buffetService: string;

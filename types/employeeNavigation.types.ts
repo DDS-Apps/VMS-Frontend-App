@@ -6,17 +6,11 @@ export type EmployeeStackParamList = {
   VisitTypeSelection: undefined;
   VisitorRequestForm: { visitType?: string };
   RequestDetails: { requestId: string };
-  ParkMyCar: undefined;
   MyValetRequests: undefined;
   ValetRequestDetails: { requestId: string };
   Notifications: undefined;
   Settings: undefined;
 };
-
-export type ParkMyCarScreenProps = NativeStackScreenProps<
-  EmployeeStackParamList,
-  "ParkMyCar"
->;
 
 export type EmployeeDashboardScreenProps = NativeStackScreenProps<
   EmployeeStackParamList,

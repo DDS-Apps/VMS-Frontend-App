@@ -221,7 +221,7 @@ export const ar: TranslationKeys = {
     reminderRules: 'قواعد التذكير',
     integrationsHealth: 'صحة التكاملات',
     globalAnalytics: 'التحليلات الشاملة',
-    parkMyCar: 'ركن سيارتي',
+    myValetRequests: 'طلبات صف السيارات',
     parkingDashboard: 'لوحة المواقف',
   },
   visitor: {
@@ -823,6 +823,8 @@ export const ar: TranslationKeys = {
     noParking: 'بدون موقف',
     noValet: 'بدون خدمة صف السيارات',
     valetService: 'خدمة صف السيارات',
+    parkingAssigned: 'تم تعيين موقف',
+    valetAssigned: 'تم تعيين خدمة صف السيارات',
   },
   parking: {
     parkingManagement: 'إدارة المواقف',
@@ -940,6 +942,8 @@ export const ar: TranslationKeys = {
     underutilized: 'غير مستغل',
     todaysVisitors: 'زوار اليوم',
     noVisitorsToday: 'لا يوجد زوار متوقعون اليوم',
+    noRequests: 'لا توجد طلبات صف سيارات بعد',
+    noMatchingRequests: 'لم يتم العثور على طلبات صف سيارات مطابقة',
   },
   buffet: {
     buffetService: 'خدمة البوفيه',

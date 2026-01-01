@@ -68,7 +68,7 @@ const getMenuGroups = (role: UserRole): { groups: MenuGroup[]; standalone: MenuI
         labelKey: 'sidebar.services',
         icon: 'truck',
         items: [
-          { id: 'my_valet_requests', labelKey: 'navigation.parkMyCar', icon: 'truck', screen: 'MyValetRequests' },
+          { id: 'my_valet_requests', labelKey: 'navigation.myValetRequests', icon: 'truck', screen: 'MyValetRequests' },
         ],
       },
     ];
@@ -93,7 +93,7 @@ const getMenuGroups = (role: UserRole): { groups: MenuGroup[]; standalone: MenuI
         labelKey: 'sidebar.services',
         icon: 'truck',
         items: [
-          { id: 'my_valet_requests', labelKey: 'navigation.parkMyCar', icon: 'truck', screen: 'MyValetRequests' },
+          { id: 'my_valet_requests', labelKey: 'navigation.myValetRequests', icon: 'truck', screen: 'MyValetRequests' },
         ],
       },
     ];
