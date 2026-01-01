@@ -280,137 +280,159 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
 
   const initials = request.visitorName.split(' ').map(n => n[0]).join('');
   const showActions = !isReadOnlyRole && request.status !== 'completed' && request.status !== 'cancelled';
+  const statusColor = getStatusColor(request.status);
 
   return (
     <>
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
-      <View style={[styles.headerCard, { backgroundColor: theme.surface }]}>
-        <View style={[styles.headerRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-          <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '12') }]}>
+      <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
+        <View style={{ alignItems: 'center' }}>
+          <View style={[styles.avatarNew, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
             <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
               {initials}
             </ThemedText>
           </View>
-          <View style={styles.headerInfo}>
-            <ThemedText style={[styles.visitorName, { color: theme.text }]}>
-              {request.visitorName}
+
+          <Spacer height={Spacing.lg} />
+
+          <ThemedText style={[Typography.title, { fontWeight: '600', fontSize: 22, color: theme.text }]}>
+            {request.visitorName}
+          </ThemedText>
+          <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, marginTop: 4 }]}>
+            {request.company || ''}
+          </ThemedText>
+
+          <Spacer height={Spacing.sm} />
+
+          <View
+            style={{
+              alignSelf: 'center',
+              backgroundColor: applyOpacity(statusColor, '15'),
+              borderColor: applyOpacity(statusColor, '30'),
+              borderWidth: StyleSheet.hairlineWidth,
+              paddingHorizontal: Spacing.md,
+              paddingVertical: 6,
+              borderRadius: BorderRadius.full,
+            }}
+          >
+            <ThemedText style={[Typography.caption, { color: statusColor, fontWeight: '600', fontSize: 12 }]}>
+              {getStatusLabel(request.status)}
             </ThemedText>
-            <View style={[styles.statusBadge, { backgroundColor: applyOpacity(getStatusColor(request.status), '15') }]}>
-              <ThemedText style={[styles.statusText, { color: getStatusColor(request.status) }]}>
-                {getStatusLabel(request.status)}
-              </ThemedText>
-            </View>
           </View>
         </View>
-      </View>
+      </ThemedView>
 
       <Spacer height={Spacing.lg} />
 
-      <View style={[styles.infoCard, { backgroundColor: theme.surface }]}>
-        <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
+      <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
+        <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
           {t('buffet.orderDetails')}
         </ThemedText>
+        <Spacer height={Spacing.xl} />
 
-        <Spacer height={Spacing.md} />
-
-        <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-          <View style={[styles.infoIcon, { backgroundColor: applyOpacity(theme.primary, '12') }]}>
-            <DDIcon name="user" size={16} color={theme.primary} />
+        <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+            <DDIcon name="user" size={18} color={theme.text} />
           </View>
-          <View style={styles.infoContent}>
-            <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>{t('reception.hostName')}</ThemedText>
-            <ThemedText style={[styles.infoValue, { color: theme.text }]}>{request.hostName}</ThemedText>
-          </View>
-        </View>
-
-        <View style={[styles.divider, { backgroundColor: theme.border }]} />
-
-        <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-          <View style={[styles.infoIcon, { backgroundColor: applyOpacity(theme.success, '12') }]}>
-            <DDIcon name="map-pin" size={16} color={theme.success} />
-          </View>
-          <View style={styles.infoContent}>
-            <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>{t('invitation.location')}</ThemedText>
-            <ThemedText style={[styles.infoValue, { color: theme.text }]}>{request.hostName}</ThemedText>
+          <View style={{ flex: 1, marginStart: Spacing.md }}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+              {t('reception.hostName')}
+            </ThemedText>
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+              {request.hostName}
+            </ThemedText>
           </View>
         </View>
 
-        <View style={[styles.divider, { backgroundColor: theme.border }]} />
+        <Spacer height={Spacing.lg} />
 
-        <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-          <View style={[styles.infoIcon, { backgroundColor: applyOpacity(theme.warning, '12') }]}>
-            <DDIcon name="clock" size={16} color={theme.warning} />
+        <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+            <DDIcon name="map-pin" size={18} color={theme.text} />
           </View>
-          <View style={styles.infoContent}>
-            <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>{t('buffet.servingTime')}</ThemedText>
-            <ThemedText style={[styles.infoValue, { color: theme.text }]}>{request.timeSlot}</ThemedText>
-          </View>
-        </View>
-
-        <View style={[styles.divider, { backgroundColor: theme.border }]} />
-
-        <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-          <View style={[styles.infoIcon, { backgroundColor: applyOpacity(theme.primary, '12') }]}>
-            <DDIcon name="users" size={16} color={theme.primary} />
-          </View>
-          <View style={styles.infoContent}>
-            <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>{t('buffet.numberOfGuests')}</ThemedText>
-            <ThemedText style={[styles.infoValue, { color: theme.text }]}>{request.guestCount}</ThemedText>
+          <View style={{ flex: 1, marginStart: Spacing.md }}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+              {t('invitation.location')}
+            </ThemedText>
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+              {request.meetingRoom || request.hostName}
+            </ThemedText>
           </View>
         </View>
 
-        <View style={[styles.divider, { backgroundColor: theme.border }]} />
+        <Spacer height={Spacing.lg} />
 
-        <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-          <View style={[styles.infoIcon, { backgroundColor: applyOpacity(theme.info, '12') }]}>
-            <DDIcon name={getMealTypeIcon(request.mealType) as any} size={16} color={theme.info} />
+        <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+            <DDIcon name="clock" size={18} color={theme.text} />
           </View>
-          <View style={styles.infoContent}>
-            <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>{t('buffet.mealType')}</ThemedText>
-            <ThemedText style={[styles.infoValue, { color: theme.text }]}>{getMealTypeLabel(request.mealType)}</ThemedText>
+          <View style={{ flex: 1, marginStart: Spacing.md }}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+              {t('buffet.servingTime')}
+            </ThemedText>
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+              {request.timeSlot}
+            </ThemedText>
           </View>
         </View>
 
-        {request.meetingRoom ? (
-          <>
-            <View style={[styles.divider, { backgroundColor: theme.border }]} />
+        <Spacer height={Spacing.lg} />
 
-            <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <View style={[styles.infoIcon, { backgroundColor: applyOpacity(theme.warning, '12') }]}>
-                <DDIcon name="home" size={16} color={theme.warning} />
-              </View>
-              <View style={styles.infoContent}>
-                <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>{t('buffet.meetingRoom')}</ThemedText>
-                <ThemedText style={[styles.infoValue, { color: theme.text }]}>{request.meetingRoom}</ThemedText>
-              </View>
-            </View>
-          </>
-        ) : null}
-      </View>
+        <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+            <DDIcon name="users" size={18} color={theme.text} />
+          </View>
+          <View style={{ flex: 1, marginStart: Spacing.md }}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+              {t('buffet.numberOfGuests')}
+            </ThemedText>
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+              {request.guestCount}
+            </ThemedText>
+          </View>
+        </View>
+
+        <Spacer height={Spacing.lg} />
+
+        <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.info, '15') }]}>
+            <DDIcon name={getMealTypeIcon(request.mealType) as any} size={18} color={theme.info} />
+          </View>
+          <View style={{ flex: 1, marginStart: Spacing.md }}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+              {t('buffet.mealType')}
+            </ThemedText>
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+              {getMealTypeLabel(request.mealType)}
+            </ThemedText>
+          </View>
+        </View>
+      </ThemedView>
 
       {request.notes ? (
         <>
           <Spacer height={Spacing.lg} />
 
-          <View style={[styles.infoCard, { backgroundColor: theme.surface }]}>
-            <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
-              {t('form.notes')}
-            </ThemedText>
-
-            <Spacer height={Spacing.md} />
-
-            <ThemedText style={[styles.notesText, { color: theme.textSecondary }]}>
+          <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
+            <View style={[styles.notesHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <DDIcon name="file-text" size={16} color={theme.info} />
+              <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginStart: Spacing.sm, fontSize: 14, color: theme.text }]}>
+                {t('form.notes')}
+              </ThemedText>
+            </View>
+            <Spacer height={Spacing.sm} />
+            <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, lineHeight: 20, textAlign: isRTL ? 'right' : 'left' }]}>
               {request.notes}
             </ThemedText>
-          </View>
+          </ThemedView>
         </>
       ) : null}
 
       <Spacer height={Spacing.lg} />
 
-      <View style={[styles.infoCard, { backgroundColor: theme.surface }]}>
+      <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
         <View style={[styles.sectionHeaderRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-          <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
+          <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text }]}>
             {t('navigation.staffManagement')}
           </ThemedText>
           {showActions ? (
@@ -426,16 +448,21 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
           ) : null}
         </View>
 
-        <Spacer height={Spacing.md} />
+        <Spacer height={Spacing.lg} />
 
         {request.assignedStaff ? (
-          <View style={[styles.staffRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <View style={[styles.staffAvatar, { backgroundColor: applyOpacity(theme.success, '12') }]}>
-              <DDIcon name="user-check" size={16} color={theme.success} />
+          <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.success, '15') }]}>
+              <DDIcon name="user-check" size={18} color={theme.success} />
             </View>
-            <ThemedText style={[styles.staffName, { color: theme.text }]}>
-              {request.assignedStaff}
-            </ThemedText>
+            <View style={{ flex: 1, marginStart: Spacing.md }}>
+              <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+                {t('buffet.assignedStaff')}
+              </ThemedText>
+              <ThemedText style={[Typography.caption, { color: theme.success, marginTop: 2, fontSize: 13, fontWeight: '500', textAlign: isRTL ? 'right' : 'left' }]}>
+                {request.assignedStaff}
+              </ThemedText>
+            </View>
           </View>
         ) : (
           <View style={styles.noStaffState}>
@@ -445,7 +472,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
             </ThemedText>
           </View>
         )}
-      </View>
+      </ThemedView>
 
       {showActions ? (
         <>
@@ -460,7 +487,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
                 loading={updateStatusMutation.isPending}
                 loadingText={t('common.loading')}
                 onPress={handleAdvanceStatus}
-                style={styles.actionButtonNew}
+                fullWidth
               >
                 {getNextStatusAction()!.label}
               </LoadingButton>
@@ -584,183 +611,87 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+  cardNew: {
+    padding: 20,
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  headerCard: {
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+  avatarNew: {
+    width: 80,
+    height: 80,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarText: {
-    fontSize: 20,
-    fontWeight: '600',
-  },
-  headerInfo: {
-    marginStart: Spacing.md,
-    flex: 1,
-  },
-  visitorName: {
-    fontSize: 20,
+    fontSize: 32,
+    lineHeight: 40,
     fontWeight: '700',
   },
-  statusBadge: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    borderRadius: BorderRadius.sm,
-    marginTop: Spacing.xs,
+  serviceRowNew: {
+    alignItems: 'flex-start',
   },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  infoCard: {
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: Spacing.sm,
-  },
-  infoIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+  serviceIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  infoContent: {
-    marginStart: Spacing.md,
-    flex: 1,
-  },
-  infoLabel: {
-    fontSize: 12,
-    marginBottom: 2,
-  },
-  infoValue: {
-    fontSize: 15,
-    fontWeight: '500',
-  },
-  divider: {
-    height: 1,
-    marginVertical: Spacing.xs,
-  },
-  notesText: {
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  staffRow: {
-    flexDirection: 'row',
+  notesHeader: {
     alignItems: 'center',
-  },
-  staffAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  staffName: {
-    marginStart: Spacing.md,
-    fontSize: 15,
-    fontWeight: '500',
-  },
-  noStaffState: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
-  noStaffText: {
-    fontSize: 14,
-  },
-  actionsRow: {
-    flexDirection: 'row',
-    gap: Spacing.md,
-  },
-  actionButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.md,
-    gap: 8,
-  },
-  actionButtonNew: {
-    flex: 1,
-  },
-  primaryButton: {},
-  primaryButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#FFFFFF',
   },
   sectionHeaderRow: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   assignButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 6,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.sm,
-    gap: 4,
+    gap: 6,
   },
   assignButtonText: {
     fontSize: 12,
     fontWeight: '600',
   },
+  noStaffState: {
+    alignItems: 'center',
+    paddingVertical: Spacing.lg,
+  },
+  noStaffText: {
+    fontSize: 14,
+    marginTop: Spacing.sm,
+  },
+  actionsRow: {
+    gap: Spacing.md,
+  },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     padding: Spacing.lg,
   },
   modalContent: {
     width: '100%',
-    maxHeight: '80%',
+    maxWidth: 400,
     borderRadius: BorderRadius.lg,
     padding: Spacing.lg,
+    maxHeight: '80%',
   },
   modalHeader: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing.md,
   },
   modalRequestInfo: {
-    marginBottom: Spacing.md,
+    paddingVertical: Spacing.md,
   },
   modalDivider: {
     height: 1,
@@ -792,9 +723,9 @@ const styles = StyleSheet.create({
     marginStart: Spacing.md,
   },
   modalStaffStatusDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
   modalNoStaff: {
     alignItems: 'center',

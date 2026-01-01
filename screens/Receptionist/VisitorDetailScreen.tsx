@@ -81,7 +81,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
   const [exceptionRoom, setExceptionRoom] = useState('');
 
   const scrollContentStyle = {
-    paddingHorizontal: Spacing.xl,
+    paddingHorizontal: Spacing.lg,
     paddingTop: insets.top + Spacing.xl,
     paddingBottom: insets.bottom + Spacing.xl
   };
@@ -110,14 +110,14 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
     );
   }
 
-  const getStatusConfig = (status: string): { label: string; bg: string; text: string; icon: IconName } => {
+  const getStatusConfig = (status: string): { label: string; bg: string; text: string; border: string; icon: IconName } => {
     switch (status) {
       case 'checked_in':
-        return { label: t('status.checkedIn'), bg: applyOpacity(theme.success, '15'), text: theme.success, icon: 'check-circle' };
+        return { label: t('status.checkedIn'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: applyOpacity(theme.success, '30'), icon: 'check-circle' };
       case 'completed':
-        return { label: t('status.checkedOut'), bg: applyOpacity(theme.textSecondary, '15'), text: theme.textSecondary, icon: 'log-out' };
+        return { label: t('status.checkedOut'), bg: applyOpacity(theme.textSecondary, '15'), text: theme.textSecondary, border: applyOpacity(theme.textSecondary, '30'), icon: 'log-out' };
       default:
-        return { label: t('visitor.expectedVisitors'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, icon: 'clock' };
+        return { label: t('visitor.expectedVisitors'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: applyOpacity(theme.warning, '30'), icon: 'clock' };
     }
   };
 
@@ -160,7 +160,6 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
   };
 
   const handleCancel = () => {
-    // API endpoint for cancellation not yet available
     Alert.alert(
       t('common.comingSoon'),
       t('reception.cancelNotAvailable'),
@@ -182,7 +181,6 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
       return;
     }
 
-    // API endpoint for exception reporting not yet available
     Alert.alert(
       t('common.comingSoon'),
       t('reception.exceptionNotAvailable'),
@@ -236,137 +234,167 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
 
   return (
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
-      <View style={styles.header}>
-        <View style={[styles.largeAvatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
-          <ThemedText style={[styles.largeAvatarText, { color: theme.primary }]}>
-            {visitor.name.split(' ').map(n => n[0]).join('')}
-          </ThemedText>
-        </View>
-        <Spacer height={Spacing.lg} />
-        <ThemedText style={[Typography.title, { fontSize: 24, fontWeight: '700', textAlign: 'center' }]}>
-          {visitor.name}
-        </ThemedText>
-        <Spacer height={Spacing.xs} />
-        <ThemedText style={[Typography.body, { color: theme.textSecondary, textAlign: 'center' }]}>
-          {visitor.company}
-        </ThemedText>
-        <Spacer height={Spacing.md} />
-        <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-          <DDIcon name={statusConfig.icon} size={14} color={statusConfig.text} />
-          <ThemedText style={[Typography.caption, { color: statusConfig.text, fontWeight: '600', marginStart: Spacing.xs }]}>
-            {statusConfig.label}
-          </ThemedText>
-        </View>
-      </View>
-
-      <Spacer height={Spacing.xxl} />
-
-      <ThemedView style={[styles.card, { backgroundColor: theme.surface }]}>
-        <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginBottom: Spacing.md }]}>
-          {t('visitor.visitorDetails')}
-        </ThemedText>
-
-        <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-          <DDIcon name="phone" size={18} variant="muted" />
-          <View style={{ flex: 1, marginStart: Spacing.md }}>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 11 }]}>
-              {t('form.phoneNumber')}
+      <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
+        <View style={{ alignItems: 'center' }}>
+          <View style={[styles.avatarNew, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
+            <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
+              {visitor.name.split(' ').map(n => n[0]).join('')}
             </ThemedText>
-            <ThemedText style={[Typography.body, { fontWeight: '500' }]}>
-              {visitor.phone}
+          </View>
+
+          <Spacer height={Spacing.lg} />
+
+          <ThemedText style={[Typography.title, { fontWeight: '600', fontSize: 22, color: theme.text }]}>
+            {visitor.name}
+          </ThemedText>
+          <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, marginTop: 4 }]}>
+            {visitor.company}
+          </ThemedText>
+
+          <Spacer height={Spacing.sm} />
+
+          <View
+            style={{
+              alignSelf: 'center',
+              backgroundColor: statusConfig.bg,
+              borderColor: statusConfig.border,
+              borderWidth: StyleSheet.hairlineWidth,
+              paddingHorizontal: Spacing.md,
+              paddingVertical: 6,
+              borderRadius: BorderRadius.full,
+            }}
+          >
+            <ThemedText style={[Typography.caption, { color: statusConfig.text, fontWeight: '600', fontSize: 12 }]}>
+              {statusConfig.label}
             </ThemedText>
           </View>
         </View>
 
+        <Spacer height={Spacing.xl} />
+
         <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
-        <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-          <DDIcon name="clock" size={18} variant="muted" />
+        <Spacer height={Spacing.lg} />
+
+        <View style={[styles.infoRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <DDIcon name="phone" size={16} variant="muted" />
+          <ThemedText
+            style={[
+              Typography.body,
+              {
+                marginStart: Spacing.md,
+                color: theme.textSecondary,
+                flex: 1,
+                fontSize: 14,
+                textAlign: isRTL ? 'right' : 'left',
+              },
+            ]}
+          >
+            {visitor.phone || '-'}
+          </ThemedText>
+        </View>
+      </ThemedView>
+
+      <Spacer height={Spacing.lg} />
+
+      <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
+        <View style={[{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', justifyContent: 'space-between' }]}>
+          <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+            {t('visitor.visitorDetails')}
+          </ThemedText>
+          {visitor.isWalkIn ? (
+            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', backgroundColor: applyOpacity(theme.warning, '15'), paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: BorderRadius.sm }}>
+              <DDIcon name="user-check" size={14} color={theme.warning} />
+              <ThemedText style={[Typography.caption, { color: theme.warning, fontWeight: '600', marginStart: Spacing.xs, fontSize: 11 }]}>
+                {t('reception.walkInVisitor')}
+              </ThemedText>
+            </View>
+          ) : null}
+        </View>
+        <Spacer height={Spacing.xl} />
+
+        <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+            <DDIcon name="clock" size={18} color={theme.text} />
+          </View>
           <View style={{ flex: 1, marginStart: Spacing.md }}>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 11 }]}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('visitor.visitTime')}
             </ThemedText>
-            <ThemedText style={[Typography.body, { fontWeight: '500' }]}>
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
               {visitor.time}
             </ThemedText>
           </View>
         </View>
 
-        <View style={[styles.divider, { backgroundColor: theme.border }]} />
+        <Spacer height={Spacing.lg} />
 
-        <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-          <DDIcon name="user" size={18} variant="muted" />
+        <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+            <DDIcon name="user" size={18} color={theme.text} />
+          </View>
           <View style={{ flex: 1, marginStart: Spacing.md }}>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 11 }]}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('reception.hostName')}
             </ThemedText>
-            <ThemedText style={[Typography.body, { fontWeight: '500' }]}>
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
               {visitor.host}{visitor.hostDepartment ? ` - ${visitor.hostDepartment}` : ''}
             </ThemedText>
           </View>
         </View>
 
-        {visitor.meetingRoom && (
+        {visitor.meetingRoom ? (
           <>
-            <View style={[styles.divider, { backgroundColor: theme.border }]} />
-            <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <DDIcon name="home" size={18} variant="muted" />
+            <Spacer height={Spacing.lg} />
+
+            <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                <DDIcon name="home" size={18} color={theme.text} />
+              </View>
               <View style={{ flex: 1, marginStart: Spacing.md }}>
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 11 }]}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
                   {t('meeting.meetingRoom')}
                 </ThemedText>
-                <ThemedText style={[Typography.body, { fontWeight: '500' }]}>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
                   {visitor.meetingRoom.name}{visitor.meetingRoom.floor ? ` (${visitor.meetingRoom.floor})` : ''}
                 </ThemedText>
               </View>
             </View>
           </>
-        )}
-
-        {visitor.isWalkIn && (
-          <>
-            <View style={[styles.divider, { backgroundColor: theme.border }]} />
-            <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <DDIcon name="user-plus" size={18} variant="warning" />
-              <View style={{ flex: 1, marginStart: Spacing.md }}>
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 11 }]}>
-                  {t('visitor.visitType')}
-                </ThemedText>
-                <ThemedText style={[Typography.body, { fontWeight: '500' }]}>
-                  {t('reception.walkInVisitor')}
-                </ThemedText>
-              </View>
-            </View>
-          </>
-        )}
+        ) : null}
       </ThemedView>
 
-      <Spacer height={Spacing.lg} />
-
-      {visitor.parking && (
+      {visitor.parking ? (
         <>
-          <ThemedView style={[styles.card, { backgroundColor: theme.surface }]}>
-            <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginBottom: Spacing.md }]}>
+          <Spacer height={Spacing.lg} />
+
+          <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
+            <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('services.additionalServices')}
             </ThemedText>
+            <Spacer height={Spacing.xl} />
 
-            <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <DDIcon name="map-pin" size={18} color={theme.info} />
+            <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.info, '15') }]}>
+                <DDIcon name="map-pin" size={18} color={theme.info} />
+              </View>
               <View style={{ flex: 1, marginStart: Spacing.md }}>
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 11 }]}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
                   {t('services.parking')}
                 </ThemedText>
-                <ThemedText style={[Typography.body, { fontWeight: '500' }]}>
+                <ThemedText style={[Typography.caption, { color: theme.info, marginTop: 2, fontSize: 13, fontWeight: '500', textAlign: isRTL ? 'right' : 'left' }]}>
                   {visitor.parking}
                 </ThemedText>
               </View>
             </View>
           </ThemedView>
-          <Spacer height={Spacing.lg} />
         </>
-      )}
+      ) : null}
+
+      <Spacer height={Spacing.lg} />
 
       <RequestTimeline steps={timelineSteps} />
+
       <Spacer height={Spacing.lg} />
 
       {visitor.status === 'pending' && (
@@ -567,50 +595,43 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
                   value={guidanceNotes}
                   onChangeText={setGuidanceNotes}
                   multiline
-                  numberOfLines={3}
                 />
 
                 <Spacer height={Spacing.lg} />
 
+                <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, marginBottom: Spacing.sm }]}>
+                  {t('reception.alternateLocation')} ({t('common.optional')})
+                </ThemedText>
                 <View style={[styles.optionalFieldsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                   <View style={{ flex: 1 }}>
-                    <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, marginBottom: Spacing.sm }]}>
-                      {t('reception.floorNumber')} ({t('form.optional')})
-                    </ThemedText>
                     <TextInput
                       style={[
                         styles.textInput,
                         { borderColor: theme.border, color: theme.text, backgroundColor: theme.surface }
                       ]}
-                      placeholder="e.g. 3"
+                      placeholder={t('reception.floor')}
                       placeholderTextColor={theme.textSecondary}
                       value={exceptionFloor}
                       onChangeText={setExceptionFloor}
-                      keyboardType="number-pad"
                     />
                   </View>
                   <Spacer width={Spacing.md} />
                   <View style={{ flex: 1 }}>
-                    <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, marginBottom: Spacing.sm }]}>
-                      {t('reception.roomNumber')} ({t('form.optional')})
-                    </ThemedText>
                     <TextInput
                       style={[
                         styles.textInput,
                         { borderColor: theme.border, color: theme.text, backgroundColor: theme.surface }
                       ]}
-                      placeholder="e.g. 301"
+                      placeholder={t('reception.room')}
                       placeholderTextColor={theme.textSecondary}
                       value={exceptionRoom}
                       onChangeText={setExceptionRoom}
                     />
                   </View>
                 </View>
-
-                <Spacer height={Spacing.md} />
               </ScrollView>
 
-              <Spacer height={Spacing.lg} />
+              <Spacer height={24} />
 
               <View style={[styles.modalActions, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <Pressable
@@ -632,14 +653,14 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
                     styles.modalSubmitButton,
                     { 
                       opacity: pressed ? 0.8 : 1, 
-                      backgroundColor: selectedExceptionType ? theme.warning : applyOpacity(theme.warning, '50')
+                      backgroundColor: selectedExceptionType ? theme.warning : theme.surfaceSecondary 
                     }
                   ]}
                   onPress={handleReportException}
                   disabled={!selectedExceptionType}
                 >
-                  <ThemedText style={[Typography.body, { color: theme.buttonText, fontWeight: '600', fontSize: 14 }]}>
-                    {t('common.submit')}
+                  <ThemedText style={[Typography.body, { color: selectedExceptionType ? theme.buttonText : theme.textSecondary, fontWeight: '600', fontSize: 14 }]}>
+                    {t('reception.submitException')}
                   </ThemedText>
                 </Pressable>
               </View>
@@ -652,73 +673,104 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
 }
 
 const styles = StyleSheet.create({
-  header: {
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: Spacing.xl,
   },
-  largeAvatar: {
+  cardNew: {
+    padding: 20,
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  avatarNew: {
     width: 80,
     height: 80,
-    borderRadius: BorderRadius.full,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  largeAvatarText: {
+  avatarText: {
     fontSize: 32,
     lineHeight: 40,
     fontWeight: '700',
   },
-  statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.full,
-  },
-  card: {
-    padding: Spacing.lg,
-    borderRadius: BorderRadius.lg,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: Spacing.sm,
-  },
   divider: {
     height: 1,
-    marginVertical: Spacing.sm,
+    width: '100%',
   },
-  actionButton: {
-    flexDirection: 'row',
+  infoRowNew: {
+    alignItems: 'center',
+  },
+  serviceRowNew: {
+    alignItems: 'flex-start',
+  },
+  serviceIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  buttonRow: {
+    alignItems: 'center',
+  },
+  outlineButton: {
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: Spacing.md,
     borderRadius: BorderRadius.md,
+    borderWidth: 1.5,
     gap: Spacing.sm,
   },
-  actionButtonText: {
-    fontSize: 15,
+  outlineButtonText: {
+    fontSize: 14,
     fontWeight: '600',
   },
-  buttonRow: {
-    flexDirection: 'row',
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  outlineButton: {
-    flexDirection: 'row',
+  modalBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  modalContainer: {
+    width: '90%',
+    maxWidth: 400,
+  },
+  modalContent: {
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+  },
+  modalHeader: {
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  modalActions: {
+    alignItems: 'center',
+  },
+  modalCancelButton: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: Spacing.md,
-    borderRadius: 20,
-    borderWidth: 2,
-    gap: Spacing.sm,
-    height: 50,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
   },
-  outlineButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
+  modalSubmitButton: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
   },
   exceptionTypeOption: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.md,
@@ -731,8 +783,8 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    alignItems: 'center',
     justifyContent: 'center',
+    alignItems: 'center',
   },
   radioButtonInner: {
     width: 10,
@@ -747,56 +799,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   optionalFieldsRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalBackdrop: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  modalContainer: {
-    width: '100%',
-    paddingHorizontal: Spacing.xl,
-    maxWidth: 400,
-  },
-  modalContent: {
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.xl,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  modalActions: {
-    flexDirection: 'row',
-  },
-  modalCancelButton: {
-    flex: 1,
-    height: 48,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalSubmitButton: {
-    flex: 1,
-    height: 48,
-    borderRadius: BorderRadius.md,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
   },
 });
