@@ -964,6 +964,8 @@ export const ar: TranslationKeys = {
     hasBeenAssigned: 'تم تعيينه لهذا الطلب',
     reassign: 'إعادة تعيين',
     noStaffOnDuty: 'لا يوجد موظفون في الخدمة حالياً',
+    markOnDuty: 'تحديد في الخدمة',
+    markOffDuty: 'تحديد خارج الخدمة',
     assigningStaffFor: 'تعيين موظف لـ:',
     currentlyAssigned: 'المعين حالياً:',
     selectFromAvailable: 'اختر من الموظفين المتاحين',

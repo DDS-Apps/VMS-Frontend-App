@@ -964,6 +964,8 @@ export interface TranslationKeys {
     hasBeenAssigned: string;
     reassign: string;
     noStaffOnDuty: string;
+    markOnDuty: string;
+    markOffDuty: string;
     assigningStaffFor: string;
     currentlyAssigned: string;
     selectFromAvailable: string;

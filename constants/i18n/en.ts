@@ -964,6 +964,8 @@ export const en: TranslationKeys = {
     hasBeenAssigned: 'has been assigned to this request',
     reassign: 'Reassign',
     noStaffOnDuty: 'No staff members currently on duty',
+    markOnDuty: 'Mark On Duty',
+    markOffDuty: 'Mark Off Duty',
     assigningStaffFor: 'Assigning staff for:',
     currentlyAssigned: 'Currently assigned:',
     selectFromAvailable: 'Select from available staff',

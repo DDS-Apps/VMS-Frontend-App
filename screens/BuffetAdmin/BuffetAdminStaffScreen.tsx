@@ -1,5 +1,5 @@
-import React, { useMemo } from "react";
-import { View, StyleSheet, ActivityIndicator } from "react-native";
+import React, { useMemo, useState } from "react";
+import { View, StyleSheet, ActivityIndicator, Pressable } from "react-native";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -12,6 +12,7 @@ import { DDIcon, IconName } from "@/components/DDIcon";
 import { applyOpacity } from "@/utils/statusStyles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useBuffetAdminStaffQuery } from "@/hooks/queries/useBuffetQueries";
+import { toggleStaffDutyStatus } from "@/services/state/buffetAdminState";
 import type { BuffetAdminStaffDto } from "@/types/api.types";
 
 interface KPICardProps {
@@ -52,8 +53,16 @@ export default function BuffetAdminStaffScreen() {
   const { t } = useTranslation();
   const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
+  const [togglingStaffId, setTogglingStaffId] = useState<string | null>(null);
   
-  const { data: staffResponse, isLoading, isFetching } = useBuffetAdminStaffQuery();
+  const { data: staffResponse, isLoading, isFetching, refetch } = useBuffetAdminStaffQuery();
+
+  const handleToggleDuty = async (staffId: string) => {
+    setTogglingStaffId(staffId);
+    toggleStaffDutyStatus(staffId);
+    await refetch();
+    setTogglingStaffId(null);
+  };
 
   const staff = useMemo(() => {
     const responseData = staffResponse?.data as { data?: BuffetAdminStaffDto[] } | BuffetAdminStaffDto[] | undefined;
@@ -166,6 +175,33 @@ export default function BuffetAdminStaffScreen() {
               {isOnDuty ? t('dashboard.onDuty') : t('status.inactive')}
             </ThemedText>
           </View>
+
+          <Pressable
+            style={[
+              styles.toggleButton,
+              { 
+                backgroundColor: isOnDuty ? applyOpacity(theme.textSecondary, '12') : applyOpacity(theme.success, '12'),
+                opacity: togglingStaffId === item.id ? 0.6 : 1,
+              }
+            ]}
+            onPress={() => handleToggleDuty(item.id)}
+            disabled={togglingStaffId === item.id}
+          >
+            {togglingStaffId === item.id ? (
+              <ActivityIndicator size="small" color={isOnDuty ? theme.textSecondary : theme.success} />
+            ) : (
+              <>
+                <DDIcon 
+                  name={isOnDuty ? "user-x" : "user-check"} 
+                  size={14} 
+                  color={isOnDuty ? theme.textSecondary : theme.success} 
+                />
+                <ThemedText style={[styles.toggleButtonText, { color: isOnDuty ? theme.textSecondary : theme.success }]}>
+                  {isOnDuty ? t('buffet.markOffDuty') : t('buffet.markOnDuty')}
+                </ThemedText>
+              </>
+            )}
+          </Pressable>
         </View>
       </View>
     );
@@ -362,6 +398,18 @@ const styles = StyleSheet.create({
   },
   statusLabel: {
     fontSize: 13,
+    fontWeight: '600',
+  },
+  toggleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.sm,
+    gap: 4,
+  },
+  toggleButtonText: {
+    fontSize: 12,
     fontWeight: '600',
   },
   emptyState: {
