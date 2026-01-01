@@ -1073,10 +1073,10 @@ const styles = StyleSheet.create({
   },
   cardHeaderRow: {
     alignItems: 'center',
+    gap: LAYOUT.contentGap,
   },
   cardNameSection: {
     flex: 1,
-    marginStart: LAYOUT.contentGap,
   },
   dividerLine: {
     height: 1,

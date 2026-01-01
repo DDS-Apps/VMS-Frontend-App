@@ -945,7 +945,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
             {t('services.optionalServices')}
           </ThemedText>
 
-          <View style={getGridStyle()}>
+          <View style={[getGridStyle(), { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <View style={getCardWrapper2ColStyle()}>
               <SelectableCard
                 onPress={() => setNeedsMeetingRoom(!needsMeetingRoom)}
@@ -1028,48 +1028,48 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
         {t('invitation.communicationChannels')}
       </ThemedText>
 
-      <View style={styles.channelsContainer}>
+      <View style={[styles.channelsContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <Pressable
-          style={[styles.channelChip, { backgroundColor: theme.surface, borderColor: sendWhatsApp ? theme.primary : theme.border }]}
+          style={[styles.channelChip, { backgroundColor: theme.surface, borderColor: sendWhatsApp ? theme.primary : theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
           onPress={() => setSendWhatsApp(!sendWhatsApp)}
         >
           <View style={[styles.channelChipIcon, { backgroundColor: theme.success + '15' }]}>
             <DDIcon name="message-circle" size={16} variant="success" />
           </View>
-          <ThemedText style={[Typography.bodySmall, { fontWeight: '500', marginStart: Spacing.xs }]}>
+          <ThemedText style={[Typography.bodySmall, { fontWeight: '500', marginHorizontal: Spacing.xs }]}>
             {t('services.whatsapp')}
           </ThemedText>
-          {sendWhatsApp && (
+          {sendWhatsApp ? (
             <View style={[styles.chipCheckmark, { backgroundColor: theme.primary }]}>
               <DDIcon name="check" size={10} color={theme.buttonText} />
             </View>
-          )}
+          ) : null}
         </Pressable>
 
         <Pressable
-          style={[styles.channelChip, { backgroundColor: theme.surface, borderColor: sendSMS ? theme.primary : theme.border }]}
+          style={[styles.channelChip, { backgroundColor: theme.surface, borderColor: sendSMS ? theme.primary : theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
           onPress={() => setSendSMS(!sendSMS)}
         >
           <View style={[styles.channelChipIcon, { backgroundColor: theme.info + '15' }]}>
             <DDIcon name="smartphone" size={16} color={theme.info} />
           </View>
-          <ThemedText style={[Typography.bodySmall, { fontWeight: '500', marginStart: Spacing.xs }]}>
+          <ThemedText style={[Typography.bodySmall, { fontWeight: '500', marginHorizontal: Spacing.xs }]}>
             {t('services.sms')}
           </ThemedText>
-          {sendSMS && (
+          {sendSMS ? (
             <View style={[styles.chipCheckmark, { backgroundColor: theme.primary }]}>
               <DDIcon name="check" size={10} color={theme.buttonText} />
             </View>
-          )}
+          ) : null}
         </Pressable>
 
         <View
-          style={[styles.channelChip, { backgroundColor: theme.surface, borderColor: theme.primary, opacity: 0.8 }]}
+          style={[styles.channelChip, { backgroundColor: theme.surface, borderColor: theme.primary, opacity: 0.8, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
         >
           <View style={[styles.channelChipIcon, { backgroundColor: theme.warning + '15' }]}>
             <DDIcon name="mail" size={16} color={theme.warning} />
           </View>
-          <ThemedText style={[Typography.bodySmall, { fontWeight: '500', marginStart: Spacing.xs }]}>
+          <ThemedText style={[Typography.bodySmall, { fontWeight: '500', marginHorizontal: Spacing.xs }]}>
             {t('services.email')}
           </ThemedText>
           <View style={[styles.chipCheckmark, { backgroundColor: theme.primary }]}>
