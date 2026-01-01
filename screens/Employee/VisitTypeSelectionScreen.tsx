@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DDIcon, type IconName } from "@/components/DDIcon";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { ThemedText } from "@/components/ThemedText";
-import { SelectableCard, CardGridStyles } from "@/components/SelectableCard";
+import { SelectableCard, getGridStyle, getCardWrapper3ColStyle } from "@/components/SelectableCard";
 import Spacer from "@/components/Spacer";
 import { Spacing, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
@@ -71,9 +71,9 @@ export default function VisitTypeSelectionScreen({ navigation, onTypeSelect }: V
 
       <Spacer height={Spacing.xl} />
 
-      <View style={CardGridStyles.grid}>
+      <View style={getGridStyle()}>
         {visitTypes.map((visitType) => (
-          <View key={visitType.id} style={CardGridStyles.cardWrapper3Col}>
+          <View key={visitType.id} style={getCardWrapper3ColStyle()}>
             <SelectableCard onPress={() => handleTypeSelect(visitType)}>
               <View style={styles.iconContainer}>
                 <DDIcon name={visitType.icon} size={28} color={theme.cardIcon} />

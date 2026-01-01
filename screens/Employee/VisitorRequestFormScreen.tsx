@@ -5,7 +5,7 @@ import { DDIcon } from "@/components/DDIcon";
 import { ScreenKeyboardAwareScrollView } from "@/components/ScreenKeyboardAwareScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { SelectableCard, CardGridStyles } from "@/components/SelectableCard";
+import { SelectableCard, CardGridStyles, getGridStyle, getCardWrapper2ColStyle } from "@/components/SelectableCard";
 import { LoadingButton } from "@/components/shared/LoadingButton";
 import Spacer from "@/components/Spacer";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";

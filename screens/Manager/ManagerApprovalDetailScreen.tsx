@@ -12,7 +12,7 @@ import { StatusBadge } from "@/components/shared/StatusBadge";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
-import { SelectableCard, CardGridStyles } from "@/components/SelectableCard";
+import { SelectableCard, CardGridStyles, getGridStyle, getCardWrapper3ColStyle } from "@/components/SelectableCard";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { REQUEST_STATUS } from "@/constants/requestConstants";

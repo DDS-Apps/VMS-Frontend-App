@@ -77,32 +77,43 @@ export function SelectableCard({
   );
 }
 
+const isWeb = Platform.OS === 'web';
+
 export const CardGridStyles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: Platform.OS === 'web' ? 'flex-start' : 'space-between',
-    gap: Platform.OS === 'web' ? Spacing.md : undefined,
+    justifyContent: 'space-between',
+  },
+  gridWeb: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-start',
+    gap: Spacing.md,
   },
   cardWrapper3Col: {
-    width: Platform.OS === 'web' ? undefined : '31%',
-    maxWidth: Platform.OS === 'web' ? 250 : undefined,
-    maxHeight: Platform.OS === 'web' ? 250 : undefined,
-    minWidth: Platform.OS === 'web' ? 150 : undefined,
-    flexGrow: Platform.OS === 'web' ? 0 : undefined,
-    flexBasis: Platform.OS === 'web' ? 'auto' : undefined,
+    width: '31%',
+    marginBottom: Spacing.md,
+  },
+  cardWrapper3ColWeb: {
+    width: 150,
+    height: 150,
     marginBottom: Spacing.md,
   },
   cardWrapper2Col: {
-    width: Platform.OS === 'web' ? undefined : '48%',
-    maxWidth: Platform.OS === 'web' ? 250 : undefined,
-    maxHeight: Platform.OS === 'web' ? 250 : undefined,
-    minWidth: Platform.OS === 'web' ? 150 : undefined,
-    flexGrow: Platform.OS === 'web' ? 0 : undefined,
-    flexBasis: Platform.OS === 'web' ? 'auto' : undefined,
+    width: '48%',
+    marginBottom: Spacing.md,
+  },
+  cardWrapper2ColWeb: {
+    width: 150,
+    height: 150,
     marginBottom: Spacing.md,
   },
 });
+
+export const getGridStyle = () => isWeb ? CardGridStyles.gridWeb : CardGridStyles.grid;
+export const getCardWrapper3ColStyle = () => isWeb ? CardGridStyles.cardWrapper3ColWeb : CardGridStyles.cardWrapper3Col;
+export const getCardWrapper2ColStyle = () => isWeb ? CardGridStyles.cardWrapper2ColWeb : CardGridStyles.cardWrapper2Col;
 
 const styles = StyleSheet.create({
   card: {
@@ -110,6 +121,5 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     justifyContent: 'center',
     alignItems: 'center',
-    ...(Platform.OS === 'web' ? { width: 250, height: 250 } : {}),
   },
 });
