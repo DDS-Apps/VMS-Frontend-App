@@ -226,7 +226,7 @@ const VisitorCard = React.memo(({
               <View style={styles.carInfoRow}>
                 <DDIcon name="tag" size={14} variant="success" />
                 <ThemedText style={[styles.carInfoLabel, { color: theme.textSecondary }]}>
-                  {t('form.licensePlate')}:
+                  {t('visitorInvite.licensePlate')}:
                 </ThemedText>
                 <ThemedText style={[styles.carInfoValue, { color: theme.text }]}>
                   {visitor.licensePlate}
@@ -236,7 +236,7 @@ const VisitorCard = React.memo(({
               <View style={styles.carInfoRow}>
                 <DDIcon name="truck" size={14} variant="success" />
                 <ThemedText style={[styles.carInfoLabel, { color: theme.textSecondary }]}>
-                  {t('form.carModel')}:
+                  {t('visitorInvite.carModel')}:
                 </ThemedText>
                 <ThemedText style={[styles.carInfoValue, { color: theme.text }]}>
                   {visitor.carModel}
@@ -248,7 +248,7 @@ const VisitorCard = React.memo(({
                   <View style={styles.carInfoRow}>
                     <DDIcon name="droplet" size={14} variant="success" />
                     <ThemedText style={[styles.carInfoLabel, { color: theme.textSecondary }]}>
-                      {t('form.carColor')}:
+                      {t('visitorInvite.carColor')}:
                     </ThemedText>
                     <ThemedText style={[styles.carInfoValue, { color: theme.text }]}>
                       {visitor.carColor}
