@@ -79,41 +79,53 @@ export function SelectableCard({
 
 const isWeb = Platform.OS === 'web';
 
-export const CardGridStyles = StyleSheet.create({
+const mobileStyles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    marginHorizontal: -Spacing.xs,
   },
-  gridWeb: {
+  cardWrapper3Col: {
+    width: '33.33%',
+    paddingHorizontal: Spacing.xs,
+    marginBottom: Spacing.md,
+  },
+  cardWrapper2Col: {
+    width: '50%',
+    paddingHorizontal: Spacing.xs,
+    marginBottom: Spacing.md,
+  },
+});
+
+const webStyles = StyleSheet.create({
+  grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'flex-start',
     gap: Spacing.md,
   },
   cardWrapper3Col: {
-    width: '31%',
-    marginBottom: Spacing.md,
-  },
-  cardWrapper3ColWeb: {
     width: 150,
     height: 150,
-    marginBottom: Spacing.md,
   },
   cardWrapper2Col: {
-    width: '48%',
-    marginBottom: Spacing.md,
-  },
-  cardWrapper2ColWeb: {
     width: 150,
     height: 150,
-    marginBottom: Spacing.md,
   },
 });
 
-export const getGridStyle = () => isWeb ? CardGridStyles.gridWeb : CardGridStyles.grid;
-export const getCardWrapper3ColStyle = () => isWeb ? CardGridStyles.cardWrapper3ColWeb : CardGridStyles.cardWrapper3Col;
-export const getCardWrapper2ColStyle = () => isWeb ? CardGridStyles.cardWrapper2ColWeb : CardGridStyles.cardWrapper2Col;
+export const CardGridStyles = StyleSheet.create({
+  grid: mobileStyles.grid,
+  gridWeb: webStyles.grid,
+  cardWrapper3Col: mobileStyles.cardWrapper3Col,
+  cardWrapper3ColWeb: webStyles.cardWrapper3Col,
+  cardWrapper2Col: mobileStyles.cardWrapper2Col,
+  cardWrapper2ColWeb: webStyles.cardWrapper2Col,
+});
+
+export const getGridStyle = () => isWeb ? webStyles.grid : mobileStyles.grid;
+export const getCardWrapper3ColStyle = () => isWeb ? webStyles.cardWrapper3Col : mobileStyles.cardWrapper3Col;
+export const getCardWrapper2ColStyle = () => isWeb ? webStyles.cardWrapper2Col : mobileStyles.cardWrapper2Col;
 
 const styles = StyleSheet.create({
   card: {
