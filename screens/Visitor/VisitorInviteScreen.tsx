@@ -1129,18 +1129,6 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
 
       {/* Visitor Card */}
       <GlassCard>
-        <View style={styles.visitorHeader}>
-          <View style={styles.avatarContainer}>
-            <ThemedText style={styles.avatarText}>
-              {getInitials(getVisitorFullName(invite))}
-            </ThemedText>
-          </View>
-          <Spacer height={Spacing.md} />
-          <ThemedText style={styles.visitorName}>{getVisitorFullName(invite)}</ThemedText>
-        </View>
-
-        <View style={styles.cardDivider} />
-
         <InfoRow 
           icon="user" 
           label={t('reception.hostName')} 
@@ -1306,24 +1294,8 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
 
       <Spacer height={Spacing.xl * 1.5} />
 
-      {/* Action Buttons - Accept on left (teal), Reject on right (red outline) */}
+      {/* Action Buttons - Reject on left, Accept on right */}
       <View style={styles.actionButtons}>
-        <LoadingButton
-          onPress={handleAccept}
-          loading={acceptMutation.isPending}
-          disabled={acceptMutation.isPending || rejectMutation.isPending || (selectedParkingOption === 'parking_with_car_info' && (!licensePlate.trim() || !carModel.trim() || !carColor.trim()))}
-          variant="success"
-          size="large"
-          icon="check"
-          iconPosition="left"
-          loadingText={t('common.loading')}
-          style={styles.actionButton}
-        >
-          {t('actions.accept')}
-        </LoadingButton>
-        
-        <View style={styles.buttonSpacer} />
-        
         <LoadingButton
           onPress={() => setShowRejectModal(true)}
           loading={rejectMutation.isPending}
@@ -1336,6 +1308,22 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
           style={styles.actionButton}
         >
           {t('actions.reject')}
+        </LoadingButton>
+        
+        <View style={styles.buttonSpacer} />
+        
+        <LoadingButton
+          onPress={handleAccept}
+          loading={acceptMutation.isPending}
+          disabled={acceptMutation.isPending || rejectMutation.isPending || (selectedParkingOption === 'parking_with_car_info' && (!licensePlate.trim() || !carModel.trim() || !carColor.trim()))}
+          variant="success"
+          size="large"
+          icon="check"
+          iconPosition="left"
+          loadingText={t('common.loading')}
+          style={styles.actionButton}
+        >
+          {t('actions.accept')}
         </LoadingButton>
       </View>
 
