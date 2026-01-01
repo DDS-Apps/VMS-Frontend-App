@@ -97,7 +97,6 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
   const [purpose, setPurpose] = useState(visitType);
   
   const [needsMeetingRoom, setNeedsMeetingRoom] = useState(false);
-  const [needsParking, setNeedsParking] = useState(false);
   const [needsBuffet, setNeedsBuffet] = useState(false);
 
   const [sendWhatsApp, setSendWhatsApp] = useState(false);
@@ -485,11 +484,11 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
         duration: duration,
         purpose: purpose.trim() || 'General visit',
         communicationChannels,
-        needsParking: asReceptionist ? false : needsParking,
-        needsMeetingRoom: asReceptionist ? false : true,
+        needsParking: false,
+        needsMeetingRoom: asReceptionist ? false : needsMeetingRoom,
         needsBuffet: asReceptionist ? false : needsBuffet,
         needsValet: false,
-        parkingPreference: asReceptionist ? 'none' : (needsParking ? 'auto' : 'none'),
+        parkingPreference: 'none',
       };
 
       console.log('[VisitorRequestForm] Submitting request with payload:', JSON.stringify(payload, null, 2));
@@ -942,7 +941,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
           </ThemedText>
 
           <View style={CardGridStyles.grid}>
-            <View style={CardGridStyles.cardWrapper3Col}>
+            <View style={CardGridStyles.cardWrapper2Col}>
               <SelectableCard
                 onPress={() => setNeedsMeetingRoom(!needsMeetingRoom)}
                 selected={needsMeetingRoom}
@@ -956,21 +955,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
               </SelectableCard>
             </View>
 
-            <View style={CardGridStyles.cardWrapper3Col}>
-              <SelectableCard
-                onPress={() => setNeedsParking(!needsParking)}
-                selected={needsParking}
-              >
-                <View style={[styles.compactServiceIcon, { backgroundColor: applyOpacity(theme.cardIcon, '15') }]}>
-                  <DDIcon name="map-pin" size={20} color={theme.cardIcon} />
-                </View>
-                <ThemedText style={[Typography.caption, { fontWeight: '600', marginTop: Spacing.xs, textAlign: 'center', color: theme.text, fontSize: 11 }]}>
-                  {t('parking.parking')}
-                </ThemedText>
-              </SelectableCard>
-            </View>
-
-            <View style={CardGridStyles.cardWrapper3Col}>
+            <View style={CardGridStyles.cardWrapper2Col}>
               <SelectableCard
                 onPress={() => setNeedsBuffet(!needsBuffet)}
                 selected={needsBuffet}

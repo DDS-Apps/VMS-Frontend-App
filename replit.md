@@ -49,7 +49,8 @@ The VMS app adheres to a Clean Architecture pattern, dividing the application in
 -   **Users & Roles Management:** Comprehensive user management with bulk actions, three view modes (List, Grid, Table), filtering, and sorting.
 -   **Meeting Rooms / Ammam Management:** Live room status, detail screens, room reassignment, out-of-service toggles, audit trails.
 -   **Parking & Valet Configuration (Building Admin):** CRUD for parking spots, reorderable priority rules, utilization monitoring.
--   **Driver Load Monitoring (Valet Admin):** Task distribution dashboard for drivers.
+-   **Parking Dashboard (Valet Admin):** Read-only monitoring dashboard showing today's visitor parking status, with KPIs for expected visitors, parking needs, car info availability, and check-ins. Operations are managed externally.
+-   **Visitor Parking Selection:** Visitors select their parking preference when accepting invitations via a modal with 3 options: no parking, parking with car details, or parking with info to be provided later.
 -   **Visitor Invite Enhancements:** Handling of expired/invalid invites, display of parking/valet expectations.
 -   **Settings - Notification Preferences:** Per-user notification preferences with role-specific defaults, push/email toggles, frequency options, and event-type specific toggles.
 -   **Admin System Monitoring:** System event log, reminder schedule visualization.

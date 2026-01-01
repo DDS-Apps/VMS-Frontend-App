@@ -175,6 +175,7 @@ export const apiConfig = {
       drivers: "/api/v1/valet-admin/drivers",
       driversLoad: "/api/v1/valet-admin/drivers/load",
       zones: "/api/v1/valet-admin/zones",
+      parkingDashboard: "/api/v1/valet-admin/parking-dashboard",
       assignTask: (id: string, type: string) => `/api/v1/valet-admin/tasks/${id}/assign?type=${type}`,
     },
     valetDriver: {

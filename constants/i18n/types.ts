@@ -371,6 +371,7 @@ export interface TranslationKeys {
     email: string;
   };
   status: {
+    expected: string;
     pending: string;
     pendingApproval: string;
     pendingHostApproval: string;
@@ -870,6 +871,14 @@ export interface TranslationKeys {
     spotActivated: string;
     spotDeactivated: string;
     confirmDelete: string;
+    expectedVisitors: string;
+    withCarInfo: string;
+    checkedIn: string;
+    readOnlyNote: string;
+    noParking: string;
+    parkingPending: string;
+    todaysParkingStatus: string;
+    noVisitorsExpected: string;
   };
   valet: {
     valetService: string;
@@ -1193,6 +1202,19 @@ export interface TranslationKeys {
     minute: string;
     minutes: string;
     hostNotified: string;
+    parkingPreference: string;
+    noParking: string;
+    needsParking: string;
+    needsParkingInfoLater: string;
+    licensePlate: string;
+    carModel: string;
+    carColor: string;
+    noParkingDescription: string;
+    needsParkingDescription: string;
+    needsParkingInfoLaterDescription: string;
+    enterLicensePlate: string;
+    enterCarModel: string;
+    enterCarColor: string;
   };
   calendar: {
     chooseDate: string;

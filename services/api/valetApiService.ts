@@ -21,6 +21,7 @@ import type {
   ListDriverTasksParams,
   UpdateDriverTaskStatusDto,
   UpdateDriverTaskStatusResponseDto,
+  ParkingDashboardDto,
 } from '@/types/api.types';
 
 const { valet, valetAdmin, valetDriver } = apiConfig.endpoints;
@@ -140,6 +141,10 @@ export const valetApiService = {
 
   listZones: (): Promise<{ data: ValetZoneDto[] }> => {
     return get<{ data: ValetZoneDto[] }>(valetAdmin.zones);
+  },
+
+  getParkingDashboard: (): Promise<ParkingDashboardDto> => {
+    return get<ParkingDashboardDto>(valetAdmin.parkingDashboard);
   },
 
   // Valet Driver endpoints

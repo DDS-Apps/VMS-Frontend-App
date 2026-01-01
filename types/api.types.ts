@@ -638,9 +638,44 @@ export interface UpdateInvitationDto {
   notes?: string;
 }
 
+export type VisitorParkingOption = 'no_parking' | 'parking_with_car_info' | 'parking_without_car_info';
+
 export interface RespondToInvitationDto {
   response: 'accept' | 'reject';
   reason?: string;
+  parkingOption?: VisitorParkingOption;
+  licensePlate?: string;
+  carModel?: string;
+  carColor?: string;
+}
+
+export interface ParkingDashboardVisitorDto {
+  id: string;
+  visitorName: string;
+  visitorCompany?: string;
+  hostName: string;
+  hostDepartment?: string;
+  visitDate: string;
+  visitTime: string;
+  expectedArrival?: string;
+  status: 'expected' | 'checked_in' | 'checked_out';
+  parkingOption: VisitorParkingOption;
+  licensePlate?: string;
+  carModel?: string;
+  carColor?: string;
+  checkInTime?: string;
+  checkOutTime?: string;
+}
+
+export interface ParkingDashboardDto {
+  date: string;
+  totalExpected: number;
+  totalWithParking: number;
+  totalWithCarInfo: number;
+  totalWithoutCarInfo: number;
+  totalNoParking: number;
+  checkedIn: number;
+  visitors: ParkingDashboardVisitorDto[];
 }
 
 export interface CreateUserDto {
@@ -1615,6 +1650,10 @@ export interface PublicInviteDto {
 
 export interface AcceptInviteDto {
   visitorNotes?: string;
+  parkingOption?: VisitorParkingOption;
+  licensePlate?: string;
+  carModel?: string;
+  carColor?: string;
 }
 
 export interface RejectInviteDto {

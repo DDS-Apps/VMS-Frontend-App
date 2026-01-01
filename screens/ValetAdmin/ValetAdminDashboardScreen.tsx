@@ -1,6 +1,5 @@
-import React, { useState } from "react";
-import { View, StyleSheet, Pressable, GestureResponderEvent } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
+import React, { useCallback } from "react";
+import { View, StyleSheet, RefreshControl, ActivityIndicator, Pressable } from "react-native";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -11,12 +10,8 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { applyOpacity } from "@/utils/statusStyles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import {
-  getTodayValetRequests,
-  getValetRequestStats,
-  updateValetRequestStatus,
-  ValetRequest,
-} from "@/services/state/valetAdminState";
+import { useParkingDashboardQuery } from "@/hooks/queries/useValetQueries";
+import type { ParkingDashboardVisitorDto, VisitorParkingOption } from "@/types/api.types";
 import type { ValetAdminDashboardScreenProps } from "@/types/valetAdminNavigation.types";
 
 interface KPICardProps {
@@ -52,39 +47,12 @@ function KPICard({ title, value, icon, iconBgColor, iconColor, cardBgColor }: KP
   );
 }
 
-interface QuickActionProps {
-  icon: IconName;
-  label: string;
-  iconBgColor: string;
-  iconColor: string;
-  onPress: () => void;
-}
-
-function QuickActionButton({ icon, label, iconBgColor, iconColor, onPress }: QuickActionProps) {
-  const { theme } = useTheme();
-  
-  return (
-    <Pressable
-      style={[styles.quickActionCard, { backgroundColor: theme.surface }]}
-      onPress={onPress}
-    >
-      <View style={[styles.quickActionIconContainer, { backgroundColor: iconBgColor }]}>
-        <DDIcon name={icon} size={24} color={iconColor} />
-      </View>
-      <Spacer height={Spacing.sm} />
-      <ThemedText style={[styles.quickActionLabel, { color: theme.text }]}>
-        {label}
-      </ThemedText>
-    </Pressable>
-  );
-}
-
 export default function ValetAdminDashboardScreen({ navigation }: ValetAdminDashboardScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const [requests, setRequests] = useState<ValetRequest[]>([]);
-  const [stats, setStats] = useState({ total: 0, pending: 0, assigned: 0, parked: 0, readyForPickup: 0, completed: 0 });
+  
+  const { data, isLoading, isError, isRefetching, refetch } = useParkingDashboardQuery();
 
   const scrollContentStyle = {
     paddingHorizontal: Spacing.lg,
@@ -92,118 +60,88 @@ export default function ValetAdminDashboardScreen({ navigation }: ValetAdminDash
     paddingBottom: insets.bottom + Spacing.xl + 80
   };
 
-  const parseTime = (timeStr: string): number => {
-    const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
-    if (!match) return 0;
-    let hours = parseInt(match[1], 10);
-    const minutes = parseInt(match[2], 10);
-    const period = match[3].toUpperCase();
-    if (period === 'PM' && hours !== 12) hours += 12;
-    if (period === 'AM' && hours === 12) hours = 0;
-    return hours * 60 + minutes;
-  };
+  const onRefresh = useCallback(() => {
+    refetch();
+  }, [refetch]);
 
-  const sortByTime = (reqs: ValetRequest[]): ValetRequest[] => {
-    return [...reqs].sort((a, b) => {
-      if (a.status === 'completed' && b.status !== 'completed') return 1;
-      if (a.status !== 'completed' && b.status === 'completed') return -1;
-      return parseTime(a.pickupTime) - parseTime(b.pickupTime);
-    });
-  };
-
-  useFocusEffect(
-    React.useCallback(() => {
-      const todayRequests = getTodayValetRequests();
-      setRequests(sortByTime(todayRequests));
-      setStats(getValetRequestStats());
-    }, [])
-  );
-
-  const handleMarkComplete = (requestId: string, event: GestureResponderEvent) => {
-    event?.stopPropagation?.();
-    updateValetRequestStatus(requestId, 'completed');
-    const todayRequests = getTodayValetRequests();
-    setRequests(sortByTime(todayRequests));
-    setStats(getValetRequestStats());
-  };
-
-  const handleViewDetails = (request: ValetRequest, event: GestureResponderEvent) => {
-    event?.stopPropagation?.();
-    navigation.navigate('ValetRequestDetails', { request });
-  };
-
-  const getStatusBorderColor = (status: string) => {
+  const getStatusColor = (status: 'expected' | 'checked_in' | 'checked_out') => {
     switch (status) {
-      case 'pending':
+      case 'expected':
         return theme.primary;
-      case 'assigned':
-        return theme.warning;
-      case 'parked':
-        return theme.info;
-      case 'ready_for_pickup':
+      case 'checked_in':
         return theme.success;
-      case 'completed':
-        return theme.secondary;
-      case 'cancelled':
-        return theme.error;
+      case 'checked_out':
+        return theme.textSecondary;
       default:
         return theme.textSecondary;
     }
   };
 
-  const getStatusLabel = (status: string) => {
+  const getStatusLabel = (status: 'expected' | 'checked_in' | 'checked_out') => {
     switch (status) {
-      case 'pending':
-        return t('status.pending');
-      case 'assigned':
-        return t('status.assigned');
-      case 'parked':
-        return t('parking.parked');
-      case 'ready_for_pickup':
-        return t('valet.readyForPickup');
-      case 'completed':
-        return t('status.completed');
-      case 'cancelled':
-        return t('status.cancelled');
+      case 'expected':
+        return t('status.expected');
+      case 'checked_in':
+        return t('status.checkedIn');
+      case 'checked_out':
+        return t('status.checkedOut');
       default:
         return status;
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return theme.primary;
-      case 'assigned':
-        return theme.warning;
-      case 'parked':
-        return theme.info;
-      case 'ready_for_pickup':
+  const getParkingOptionIcon = (option: VisitorParkingOption): IconName => {
+    switch (option) {
+      case 'no_parking':
+        return 'slash';
+      case 'parking_with_car_info':
+        return 'truck';
+      case 'parking_without_car_info':
+        return 'clock';
+      default:
+        return 'help-circle';
+    }
+  };
+
+  const getParkingOptionColor = (option: VisitorParkingOption) => {
+    switch (option) {
+      case 'no_parking':
+        return theme.textSecondary;
+      case 'parking_with_car_info':
         return theme.success;
-      case 'completed':
-        return theme.secondary;
-      case 'cancelled':
-        return theme.error;
+      case 'parking_without_car_info':
+        return theme.warning;
       default:
         return theme.textSecondary;
     }
   };
 
-  const renderRequestCard = (item: ValetRequest) => {
-    const borderColor = getStatusBorderColor(item.status);
-    const initials = item.visitorName.split(' ').map(n => n[0]).join('');
-    const showComplete = item.status !== 'completed' && item.status !== 'cancelled';
+  const getParkingOptionLabel = (option: VisitorParkingOption) => {
+    switch (option) {
+      case 'no_parking':
+        return t('parking.noParking');
+      case 'parking_with_car_info':
+        return t('parking.withCarInfo');
+      case 'parking_without_car_info':
+        return t('parking.parkingPending');
+      default:
+        return '';
+    }
+  };
+
+  const renderVisitorCard = (visitor: ParkingDashboardVisitorDto) => {
+    const initials = visitor.visitorName.split(' ').map(n => n[0]).join('').substring(0, 2);
+    const parkingColor = getParkingOptionColor(visitor.parkingOption);
+    const statusColor = getStatusColor(visitor.status);
     
     return (
-      <Pressable 
-        key={item.id}
-        onPress={(e) => handleViewDetails(item, e)}
-        style={({ pressed }) => [
-          styles.requestCard,
+      <View 
+        key={visitor.id}
+        style={[
+          styles.visitorCard,
           { 
             backgroundColor: theme.surface,
-            borderStartColor: borderColor,
-            opacity: pressed ? 0.9 : 1,
+            borderStartColor: parkingColor,
           },
         ]}
       >
@@ -215,189 +153,168 @@ export default function ValetAdminDashboardScreen({ navigation }: ValetAdminDash
           </View>
           <View style={styles.headerInfo}>
             <ThemedText style={[styles.visitorName, { color: theme.text }]} numberOfLines={1}>
-              {item.visitorName}
+              {visitor.visitorName}
             </ThemedText>
             <ThemedText style={[styles.hostName, { color: theme.textSecondary }]} numberOfLines={1}>
-              {t('reception.hostName')}: {item.hostName}
+              {t('reception.hostName')}: {visitor.hostName}
             </ThemedText>
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: applyOpacity(getStatusColor(item.status), '15') }]}>
-            <ThemedText style={[styles.statusText, { color: getStatusColor(item.status) }]}>
-              {getStatusLabel(item.status)}
+          <View style={[styles.statusBadge, { backgroundColor: applyOpacity(statusColor, '15') }]}>
+            <ThemedText style={[styles.statusText, { color: statusColor }]}>
+              {getStatusLabel(visitor.status)}
             </ThemedText>
           </View>
         </View>
 
         <Spacer height={Spacing.md} />
-
-        {item.vehicleInfo ? (
-          <>
-            <View style={styles.metaRow}>
-              <DDIcon name="truck" size={14} color={theme.textSecondary} />
-              <ThemedText style={[styles.metaText, { color: theme.textSecondary }]} numberOfLines={1}>
-                {item.vehicleInfo.make} {item.vehicleInfo.model} - {item.vehicleInfo.color}
-              </ThemedText>
-            </View>
-            <Spacer height={Spacing.xs} />
-          </>
-        ) : null}
 
         <View style={styles.metaRow}>
           <DDIcon name="clock" size={14} color={theme.textSecondary} />
           <ThemedText style={[styles.metaText, { color: theme.textSecondary }]}>
-            {item.pickupTime} - {item.returnTime}
+            {visitor.visitTime}
           </ThemedText>
-          {item.parkingSlot ? (
-            <>
-              <View style={styles.metaDot} />
-              <DDIcon name="map-pin" size={14} color={theme.textSecondary} />
-              <ThemedText style={[styles.metaText, { color: theme.textSecondary }]}>
-                {t('parking.slot')} {item.parkingSlot}
-              </ThemedText>
-            </>
-          ) : null}
         </View>
 
-        {item.assignedDriver ? (
+        <Spacer height={Spacing.sm} />
+
+        <View style={styles.metaRow}>
+          <DDIcon name={getParkingOptionIcon(visitor.parkingOption)} size={14} color={parkingColor} />
+          <ThemedText style={[styles.metaText, { color: parkingColor }]}>
+            {getParkingOptionLabel(visitor.parkingOption)}
+          </ThemedText>
+        </View>
+
+        {visitor.parkingOption === 'parking_with_car_info' && (visitor.licensePlate || visitor.carModel) ? (
           <>
             <Spacer height={Spacing.xs} />
             <View style={styles.metaRow}>
-              <DDIcon name="user" size={14} color={theme.textSecondary} />
-              <ThemedText style={[styles.metaText, { color: theme.textSecondary }]}>
-                {t('valet.driver')}: {item.assignedDriver.name}
+              <DDIcon name="truck" size={14} color={theme.textSecondary} />
+              <ThemedText style={[styles.metaText, { color: theme.textSecondary }]} numberOfLines={1}>
+                {[visitor.carModel, visitor.carColor, visitor.licensePlate].filter(Boolean).join(' - ')}
               </ThemedText>
             </View>
           </>
         ) : null}
-
-        <Spacer height={Spacing.md} />
-
-        <View style={styles.cardFooter}>
-          <Pressable
-            style={[styles.viewDetailsButton, { borderColor: theme.primary }]}
-            onPress={(e) => handleViewDetails(item, e)}
-          >
-            <DDIcon name="eye" size={14} color={theme.primary} />
-            <ThemedText style={[styles.viewDetailsText, { color: theme.primary }]}>
-              {t('common.viewDetails')}
-            </ThemedText>
-          </Pressable>
-
-          {showComplete ? (
-            <Pressable
-              style={[styles.completeButton, { backgroundColor: theme.success }]}
-              onPress={(e) => handleMarkComplete(item.id, e)}
-            >
-              <DDIcon name="check" size={14} color="#FFFFFF" />
-              <ThemedText style={styles.completeButtonText}>
-                {t('actions.markAsComplete')}
-              </ThemedText>
-            </Pressable>
-          ) : (
-            <View style={[styles.completedBadge, { backgroundColor: applyOpacity(theme.success, '15') }]}>
-              <DDIcon name="check-circle" size={14} color={theme.success} />
-              <ThemedText style={[styles.completedText, { color: theme.success }]}>
-                {t('status.completed')}
-              </ThemedText>
-            </View>
-          )}
-        </View>
-      </Pressable>
+      </View>
     );
   };
 
+  if (isLoading) {
+    return (
+      <ThemedView style={styles.centered}>
+        <ActivityIndicator size="large" color={theme.primary} />
+        <Spacer height={Spacing.md} />
+        <ThemedText style={[Typography.body, { color: theme.textSecondary }]}>
+          {t('common.loading')}
+        </ThemedText>
+      </ThemedView>
+    );
+  }
+
+  if (isError) {
+    return (
+      <ThemedView style={styles.centered}>
+        <DDIcon name="alert-circle" size={48} color={theme.error} />
+        <Spacer height={Spacing.md} />
+        <ThemedText style={[Typography.body, { color: theme.text }]}>
+          {t('common.error')}
+        </ThemedText>
+        <Spacer height={Spacing.lg} />
+        <Pressable
+          style={[styles.retryButton, { backgroundColor: theme.primary }]}
+          onPress={() => refetch()}
+        >
+          <DDIcon name="refresh-cw" size={16} color="#FFFFFF" />
+          <ThemedText style={styles.retryButtonText}>
+            {t('common.retry')}
+          </ThemedText>
+        </Pressable>
+      </ThemedView>
+    );
+  }
+
+  const visitors = data?.visitors ?? [];
+  const totalExpected = data?.totalExpected ?? 0;
+  const totalWithParking = data?.totalWithParking ?? 0;
+  const totalWithCarInfo = data?.totalWithCarInfo ?? 0;
+  const checkedIn = data?.checkedIn ?? 0;
+
   return (
-    <ScreenScrollView contentContainerStyle={scrollContentStyle}>
+    <ScreenScrollView 
+      contentContainerStyle={scrollContentStyle}
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefetching}
+          onRefresh={onRefresh}
+          tintColor={theme.primary}
+          colors={[theme.primary]}
+        />
+      }
+    >
+      <View style={[styles.infoBanner, { backgroundColor: applyOpacity(theme.info, '10'), borderColor: applyOpacity(theme.info, '20') }]}>
+        <DDIcon name="info" size={16} color={theme.info} />
+        <ThemedText style={[styles.infoBannerText, { color: theme.info }]}>
+          {t('parking.readOnlyNote')}
+        </ThemedText>
+      </View>
+
+      <Spacer height={Spacing.lg} />
+
       <View style={styles.kpiRow}>
         <KPICard 
-          title={t('dashboard.totalToday')} 
-          value={String(stats.total)} 
-          icon="navigation" 
+          title={t('parking.expectedVisitors')} 
+          value={String(totalExpected)} 
+          icon="users" 
           iconBgColor={applyOpacity(theme.primary, '20')}
           iconColor={theme.primary}
           cardBgColor={applyOpacity(theme.primary, '06')}
         />
         <KPICard 
-          title={t('status.pending')} 
-          value={String(stats.pending)} 
-          icon="clock" 
+          title={t('parking.needsParking')} 
+          value={String(totalWithParking)} 
+          icon="navigation" 
           iconBgColor={applyOpacity(theme.warning, '20')}
           iconColor={theme.warning}
           cardBgColor={applyOpacity(theme.warning, '06')}
         />
+      </View>
+
+      <Spacer height={Spacing.sm} />
+
+      <View style={styles.kpiRow}>
         <KPICard 
-          title={t('status.completed')} 
-          value={String(stats.completed)} 
-          icon="check-circle" 
+          title={t('parking.withCarInfo')} 
+          value={String(totalWithCarInfo)} 
+          icon="truck" 
           iconBgColor={applyOpacity(theme.success, '20')}
           iconColor={theme.success}
           cardBgColor={applyOpacity(theme.success, '06')}
+        />
+        <KPICard 
+          title={t('parking.checkedIn')} 
+          value={String(checkedIn)} 
+          icon="check-circle" 
+          iconBgColor={applyOpacity(theme.info, '20')}
+          iconColor={theme.info}
+          cardBgColor={applyOpacity(theme.info, '06')}
         />
       </View>
 
       <Spacer height={Spacing.xl} />
 
       <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
-        {t('dashboard.quickActions')}
+        {t('parking.expectedVisitors')}
       </ThemedText>
 
       <Spacer height={Spacing.md} />
 
-      <View style={styles.quickActionsRow}>
-        <QuickActionButton
-          icon="users"
-          label={t('valet.manageDrivers')}
-          iconBgColor={applyOpacity(theme.primary, '12')}
-          iconColor={theme.primary}
-          onPress={() => navigation.navigate('ValetDrivers')}
-        />
-        <QuickActionButton
-          icon="map-pin"
-          label={t('parking.parkingSlots')}
-          iconBgColor={applyOpacity(theme.success, '12')}
-          iconColor={theme.success}
-          onPress={() => navigation.navigate('ValetParking')}
-        />
-        <QuickActionButton
-          icon="list"
-          label={t('navigation.allRequests')}
-          iconBgColor={applyOpacity(theme.warning, '12')}
-          iconColor={theme.warning}
-          onPress={() => navigation.navigate('ValetAllRequests')}
-        />
-      </View>
-
-      <Spacer height={Spacing.xl} />
-
-      <View style={styles.sectionHeader}>
-        <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
-          {t('valet.todaysValetRequests')}
-        </ThemedText>
-        {requests.length > 3 ? (
-          <Pressable 
-            onPress={() => navigation.navigate('ValetAllRequests')}
-            style={({ pressed }) => [
-              styles.viewAllButton,
-              { opacity: pressed ? 0.7 : 1 }
-            ]}
-          >
-            <ThemedText style={[styles.viewAllText, { color: theme.primary }]}>
-              {t('common.viewAll')}
-            </ThemedText>
-            <DDIcon name="chevron-right" size={16} variant="primary" directionAware />
-          </Pressable>
-        ) : null}
-      </View>
-
-      <Spacer height={Spacing.md} />
-
-      {requests.length > 0 ? (
-        <View style={styles.requestsList}>
-          {requests.slice(0, 5).map((request) => renderRequestCard(request))}
+      {visitors.length > 0 ? (
+        <View style={styles.visitorsList}>
+          {visitors.map((visitor) => renderVisitorCard(visitor))}
         </View>
       ) : (
         <ThemedView style={[styles.emptyState, { backgroundColor: theme.surface }]}>
-          <DDIcon name="navigation" size={32} variant="muted" />
+          <DDIcon name="users" size={32} variant="muted" />
           <Spacer height={Spacing.sm} />
           <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
             {t('common.noData')}
@@ -411,6 +328,25 @@ export default function ValetAdminDashboardScreen({ navigation }: ValetAdminDash
 }
 
 const styles = StyleSheet.create({
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Spacing.xl,
+  },
+  infoBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.md,
+    borderRadius: BorderRadius.sm,
+    borderWidth: StyleSheet.hairlineWidth,
+    gap: Spacing.sm,
+  },
+  infoBannerText: {
+    fontSize: 13,
+    fontWeight: '500',
+    flex: 1,
+  },
   kpiRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -450,52 +386,10 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
   },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  viewAllButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  viewAllText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  quickActionsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: Spacing.sm,
-  },
-  quickActionCard: {
-    flex: 1,
-    paddingVertical: Spacing.lg,
-    paddingHorizontal: Spacing.md,
-    borderRadius: 12,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  quickActionIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  quickActionLabel: {
-    fontSize: 12,
-    fontWeight: '500',
-    textAlign: 'center',
-  },
-  requestsList: {
+  visitorsList: {
     gap: Spacing.md,
   },
-  requestCard: {
+  visitorCard: {
     borderRadius: 12,
     borderStartWidth: 4,
     padding: Spacing.lg,
@@ -549,60 +443,23 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginStart: 4,
   },
-  metaDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#D1D5DB',
-    marginHorizontal: Spacing.sm,
-  },
-  cardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  viewDetailsButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    borderWidth: StyleSheet.hairlineWidth,
-    gap: 4,
-  },
-  viewDetailsText: {
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  completeButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    gap: 4,
-  },
-  completeButtonText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  completedBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    gap: 4,
-  },
-  completedText: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
   emptyState: {
     padding: Spacing.xl,
     borderRadius: BorderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  retryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: BorderRadius.full,
+    gap: Spacing.sm,
+  },
+  retryButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });

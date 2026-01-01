@@ -12,7 +12,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
 import { DDIcon } from "@/components/DDIcon";
 import { usePublicInviteQuery, useAcceptInviteMutation, useRejectInviteMutation } from "@/hooks/queries";
-import type { PublicInviteDto } from "@/types/api.types";
+import type { PublicInviteDto, VisitorParkingOption } from "@/types/api.types";
 
 // DALLAH DIGITAL Theme Colors for this page
 const PageColors = {
@@ -205,6 +205,251 @@ const modalStyles = StyleSheet.create({
   },
 });
 
+interface ParkingSelectionModalProps {
+  visible: boolean;
+  onCancel: () => void;
+  onConfirm: (data: {
+    parkingOption: VisitorParkingOption;
+    licensePlate?: string;
+    carModel?: string;
+    carColor?: string;
+  }) => void;
+  isLoading: boolean;
+  translations: {
+    title: string;
+    noParking: string;
+    needsParking: string;
+    needsParkingInfoLater: string;
+    licensePlate: string;
+    carModel: string;
+    carColor: string;
+    confirm: string;
+    cancel: string;
+  };
+}
+
+const ParkingSelectionModal = memo(function ParkingSelectionModal({
+  visible,
+  onCancel,
+  onConfirm,
+  isLoading,
+  translations,
+}: ParkingSelectionModalProps) {
+  const [selectedOption, setSelectedOption] = useState<VisitorParkingOption | null>(null);
+  const [licensePlate, setLicensePlate] = useState('');
+  const [carModel, setCarModel] = useState('');
+  const [carColor, setCarColor] = useState('');
+  const wasLoadingRef = React.useRef(false);
+
+  useEffect(() => {
+    if (!visible && !isLoading && !wasLoadingRef.current) {
+      setSelectedOption(null);
+      setLicensePlate('');
+      setCarModel('');
+      setCarColor('');
+    }
+    wasLoadingRef.current = isLoading;
+  }, [visible, isLoading]);
+
+  const handleConfirm = useCallback(() => {
+    if (isLoading || !selectedOption) return;
+    onConfirm({
+      parkingOption: selectedOption,
+      licensePlate: selectedOption === 'parking_with_car_info' ? licensePlate : undefined,
+      carModel: selectedOption === 'parking_with_car_info' ? carModel : undefined,
+      carColor: selectedOption === 'parking_with_car_info' ? carColor : undefined,
+    });
+  }, [onConfirm, selectedOption, licensePlate, carModel, carColor, isLoading]);
+
+  const handleCancel = useCallback(() => {
+    if (isLoading) return;
+    setSelectedOption(null);
+    setLicensePlate('');
+    setCarModel('');
+    setCarColor('');
+    onCancel();
+  }, [onCancel, isLoading]);
+
+  const renderOptionCard = (
+    option: VisitorParkingOption,
+    label: string,
+    icon: 'slash' | 'truck' | 'clock'
+  ) => {
+    const isSelected = selectedOption === option;
+    return (
+      <Pressable
+        style={[
+          parkingModalStyles.optionCard,
+          isSelected && parkingModalStyles.optionCardSelected,
+          isLoading && { opacity: 0.6 },
+        ]}
+        onPress={() => !isLoading && setSelectedOption(option)}
+        disabled={isLoading}
+      >
+        <View style={[
+          parkingModalStyles.optionIconContainer,
+          isSelected && { backgroundColor: PageColors.accent + '30' }
+        ]}>
+          <DDIcon name={icon} size={20} color={isSelected ? PageColors.accent : PageColors.textSecondary} />
+        </View>
+        <ThemedText style={[
+          parkingModalStyles.optionLabel,
+          isSelected && { color: PageColors.accent }
+        ]}>
+          {label}
+        </ThemedText>
+        {isSelected ? (
+          <DDIcon name="check-circle" size={20} color={PageColors.accent} />
+        ) : (
+          <View style={parkingModalStyles.optionPlaceholder} />
+        )}
+      </Pressable>
+    );
+  };
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={isLoading ? undefined : handleCancel}
+    >
+      <View style={modalStyles.overlay}>
+        <ScrollView 
+          style={{ maxHeight: '90%' }}
+          contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={modalStyles.content}>
+            <ThemedText style={modalStyles.title}>
+              {translations.title}
+            </ThemedText>
+
+            <View style={parkingModalStyles.optionsContainer}>
+              {renderOptionCard('no_parking', translations.noParking, 'slash')}
+              {renderOptionCard('parking_with_car_info', translations.needsParking, 'truck')}
+              {renderOptionCard('parking_without_car_info', translations.needsParkingInfoLater, 'clock')}
+            </View>
+
+            {selectedOption === 'parking_with_car_info' ? (
+              <View style={parkingModalStyles.carInfoContainer}>
+                <TextInput
+                  style={parkingModalStyles.carInfoInput}
+                  placeholder={translations.licensePlate}
+                  placeholderTextColor={PageColors.textMuted}
+                  value={licensePlate}
+                  onChangeText={setLicensePlate}
+                  editable={!isLoading}
+                  autoCapitalize="characters"
+                />
+                <TextInput
+                  style={parkingModalStyles.carInfoInput}
+                  placeholder={translations.carModel}
+                  placeholderTextColor={PageColors.textMuted}
+                  value={carModel}
+                  onChangeText={setCarModel}
+                  editable={!isLoading}
+                />
+                <TextInput
+                  style={parkingModalStyles.carInfoInput}
+                  placeholder={translations.carColor}
+                  placeholderTextColor={PageColors.textMuted}
+                  value={carColor}
+                  onChangeText={setCarColor}
+                  editable={!isLoading}
+                />
+              </View>
+            ) : null}
+
+            <View style={modalStyles.buttons}>
+              <Pressable
+                style={[modalStyles.button, modalStyles.cancelButton, isLoading && { opacity: 0.6 }]}
+                onPress={handleCancel}
+                disabled={isLoading}
+              >
+                <ThemedText style={modalStyles.cancelText}>{translations.cancel}</ThemedText>
+              </Pressable>
+              <Pressable
+                style={[
+                  modalStyles.button,
+                  parkingModalStyles.confirmButton,
+                  (!selectedOption || isLoading) && { opacity: 0.6 }
+                ]}
+                onPress={handleConfirm}
+                disabled={!selectedOption || isLoading}
+              >
+                {isLoading ? (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <DDIcon name="loader" size={16} color="#FFFFFF" />
+                    <ThemedText style={modalStyles.confirmText}>{translations.confirm}</ThemedText>
+                  </View>
+                ) : (
+                  <ThemedText style={modalStyles.confirmText}>{translations.confirm}</ThemedText>
+                )}
+              </Pressable>
+            </View>
+          </View>
+        </ScrollView>
+      </View>
+    </Modal>
+  );
+});
+
+const parkingModalStyles = StyleSheet.create({
+  optionsContainer: {
+    gap: Spacing.sm,
+    marginBottom: Spacing.lg,
+  },
+  optionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.md,
+    backgroundColor: PageColors.cardBackground,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: PageColors.cardBorder,
+    gap: Spacing.md,
+  },
+  optionCardSelected: {
+    borderColor: PageColors.accent,
+    backgroundColor: PageColors.accent + '10',
+  },
+  optionIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: BorderRadius.sm,
+    backgroundColor: PageColors.cardBackground,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  optionLabel: {
+    flex: 1,
+    fontSize: 14,
+    color: PageColors.textPrimary,
+    fontFamily: FontFamily.latinMedium,
+  },
+  optionPlaceholder: {
+    width: 20,
+  },
+  carInfoContainer: {
+    gap: Spacing.sm,
+    marginBottom: Spacing.lg,
+  },
+  carInfoInput: {
+    backgroundColor: PageColors.cardBackground,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: PageColors.cardBorder,
+    padding: Spacing.md,
+    color: PageColors.textPrimary,
+    fontSize: 15,
+    fontFamily: FontFamily.latinRegular,
+  },
+  confirmButton: {
+    backgroundColor: PageColors.success,
+  },
+});
+
 interface VisitorInviteScreenProps {
   route?: {
     params?: {
@@ -222,6 +467,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
   const token = route?.params?.token || route?.params?.visitId;
   
   const [showRejectModal, setShowRejectModal] = useState(false);
+  const [showParkingModal, setShowParkingModal] = useState(false);
   const [actionCompleted, setActionCompleted] = useState<'accepted' | 'rejected' | null>(null);
   const [responseQrCode, setResponseQrCode] = useState<string | null>(null);
   const [apiResponseMessage, setApiResponseMessage] = useState<string | null>(null);
@@ -245,17 +491,37 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
     flexGrow: 1,
   };
 
-  const handleAccept = async () => {
-    // Store snapshot before action
+  const handleAccept = () => {
+    setShowParkingModal(true);
+  };
+
+  const handleConfirmParking = useCallback(async (data: {
+    parkingOption: VisitorParkingOption;
+    licensePlate?: string;
+    carModel?: string;
+    carColor?: string;
+  }) => {
+    if (acceptMutation.isPending) return;
+    
     if (invite) inviteSnapshotRef.current = invite;
     try {
-      const response = await acceptMutation.mutateAsync(undefined);
+      const response = await acceptMutation.mutateAsync({
+        parkingOption: data.parkingOption,
+        licensePlate: data.parkingOption === 'parking_with_car_info' ? data.licensePlate : undefined,
+        carModel: data.parkingOption === 'parking_with_car_info' ? data.carModel : undefined,
+        carColor: data.parkingOption === 'parking_with_car_info' ? data.carColor : undefined,
+      });
       setResponseQrCode(response.qrCode || null);
+      setShowParkingModal(false);
       setActionCompleted('accepted');
     } catch (err) {
       console.error('Accept failed:', err);
     }
-  };
+  }, [acceptMutation, invite]);
+
+  const handleCancelParking = useCallback(() => {
+    setShowParkingModal(false);
+  }, []);
 
   const handleReject = useCallback(async (reason: string) => {
     // Prevent multiple submissions
@@ -287,6 +553,18 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
     placeholder: t('visitor.reasonPlaceholder'),
     cancel: t('actions.cancel'),
     confirm: t('actions.confirm'),
+  }), [t]);
+
+  const parkingModalTranslations = React.useMemo(() => ({
+    title: t('visitorInvite.parkingPreference'),
+    noParking: t('visitorInvite.noParking'),
+    needsParking: t('visitorInvite.needsParking'),
+    needsParkingInfoLater: t('visitorInvite.needsParkingInfoLater'),
+    licensePlate: t('visitorInvite.licensePlate'),
+    carModel: t('visitorInvite.carModel'),
+    carColor: t('visitorInvite.carColor'),
+    confirm: t('actions.confirm'),
+    cancel: t('actions.cancel'),
   }), [t]);
 
   const formatVisitDate = (dateString: string) => {
@@ -569,7 +847,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
 
   // Don't show loading screen when modal is open or mutation is pending
   // This prevents the modal from unmounting and losing its state
-  const shouldShowLoadingScreen = (isLoading || isFetching) && !showRejectModal && !rejectMutation.isPending && !acceptMutation.isPending;
+  const shouldShowLoadingScreen = (isLoading || isFetching) && !showRejectModal && !showParkingModal && !rejectMutation.isPending && !acceptMutation.isPending;
   
   if (shouldShowLoadingScreen) {
     return (
@@ -1003,6 +1281,15 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
         onConfirm={handleReject}
         isLoading={rejectMutation.isPending}
         translations={rejectModalTranslations}
+      />
+
+      {/* Parking Selection Modal */}
+      <ParkingSelectionModal
+        visible={showParkingModal}
+        onCancel={handleCancelParking}
+        onConfirm={handleConfirmParking}
+        isLoading={acceptMutation.isPending}
+        translations={parkingModalTranslations}
       />
       </ContentWrapper>
     </ScrollView>
