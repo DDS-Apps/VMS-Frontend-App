@@ -41,7 +41,8 @@ export default function VisitTypeSelectionScreen({ navigation, onTypeSelect }: V
 
   const scrollContentStyle = {
     paddingTop: insets.top + Spacing.xl,
-    paddingBottom: insets.bottom + Spacing.xl
+    paddingBottom: insets.bottom + Spacing.xl,
+    paddingHorizontal: Spacing.sm,
   };
 
   const visitTypes: VisitType[] = VISIT_TYPE_KEYS.map(item => ({
