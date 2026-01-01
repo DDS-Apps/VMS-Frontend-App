@@ -561,14 +561,14 @@ const styles = StyleSheet.create({
   avatar: {
     width: 80,
     height: 80,
-    borderRadius: BorderRadius.full,
+    borderRadius: BorderRadius.md - 2,
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarImage: {
     width: 80,
     height: 80,
-    borderRadius: BorderRadius.full,
+    borderRadius: BorderRadius.md - 2,
   },
   avatarOverlay: {
     position: 'absolute',
@@ -576,7 +576,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    borderRadius: BorderRadius.full,
+    borderRadius: BorderRadius.md - 2,
     justifyContent: 'center',
     alignItems: 'center',
   },

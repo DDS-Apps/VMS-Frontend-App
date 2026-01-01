@@ -839,7 +839,7 @@ const styles = StyleSheet.create({
   staffAvatar: {
     width: 48,
     height: 48,
-    borderRadius: 24,
+    borderRadius: BorderRadius.md - 2,
     alignItems: 'center',
     justifyContent: 'center',
     marginEnd: Spacing.md,
