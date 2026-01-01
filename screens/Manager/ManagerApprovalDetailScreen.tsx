@@ -931,41 +931,6 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
           </View>
           <Spacer height={Spacing.lg} />
 
-          {/* Parking */}
-          <View style={styles.serviceRow}>
-            <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(request.parkingSlot ? theme.info : theme.textSecondary, '20') }]}>
-              <DDIcon name="map-pin" size={18} color={request.parkingSlot ? theme.info : theme.textSecondary} />
-            </View>
-            <View style={[styles.serviceInfo, { flex: 1 }]}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
-                  {t('services.parking')}
-                </ThemedText>
-                {request.parkingSlot?.status ? (
-                  <StatusBadge
-                    label={formatServiceStatus(request.parkingSlot.status)}
-                    variant={getServiceStatusVariant(request.parkingSlot.status)}
-                    size="sm"
-                  />
-                ) : null}
-              </View>
-              {request.parkingSlot ? (
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
-                  {request.parkingSlot.location === 'SKBC_basement' || request.parkingSlot.location === 'skbc_basement' ? 'SKBC Basement' : request.parkingSlot.location}, {t('parking.slotNumber')} {request.parkingSlot.slotNumber}
-                </ThemedText>
-              ) : (request as any).parkingPending ? (
-                <ThemedText style={[Typography.caption, { color: theme.warning, marginTop: 2, fontSize: 13 }]}>
-                  {t('status.pending')}
-                </ThemedText>
-              ) : (
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, fontStyle: 'italic' }]}>
-                  {t('common.notRequested')}
-                </ThemedText>
-              )}
-            </View>
-          </View>
-          <Spacer height={Spacing.lg} />
-
           {/* Buffet */}
           <View style={styles.serviceRow}>
             <View style={[styles.serviceIcon, { backgroundColor: applyOpacity((request.buffet || (request as any).buffetPending) ? theme.secondary : theme.textSecondary, '20') }]}>

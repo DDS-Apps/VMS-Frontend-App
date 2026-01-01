@@ -28,7 +28,6 @@ import { SkeletonCard } from "@/components/shared/Skeleton";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { ParkingSection } from "@/components/ParkingSection";
 import {
   RequestTimeline,
   useTimelineSteps,
@@ -1317,95 +1316,6 @@ export default function RequestDetailsScreen({
             <StatusBadge
               label={formatServiceStatus(request.meetingRoom.status)}
               variant={getServiceStatusVariant(request.meetingRoom.status)}
-              size="sm"
-            />
-          ) : null}
-        </View>
-        <Spacer height={Spacing.md} />
-
-        <View
-          style={[
-            styles.serviceItemNew,
-            { backgroundColor: theme.surfaceSecondary },
-          ]}
-        >
-          <View
-            style={[
-              styles.serviceIcon,
-              {
-                backgroundColor: applyOpacity(
-                  request.parkingSlot ? theme.info : theme.textSecondary,
-                  "15",
-                ),
-              },
-            ]}
-          >
-            <DDIcon
-              name="map-pin"
-              size={18}
-              color={request.parkingSlot ? theme.info : theme.textSecondary}
-            />
-          </View>
-          <View style={{ flex: 1, marginStart: Spacing.md }}>
-            <ThemedText
-              style={[
-                Typography.body,
-                { fontWeight: "600", fontSize: 14, color: theme.text },
-              ]}
-            >
-              {t("services.parking")}
-            </ThemedText>
-            {(request.parkingSlot || (request as any).parkingPending) && (request.status === REQUEST_STATUS.REJECTED || request.status === REQUEST_STATUS.CANCELLED) ? (
-              <ThemedText
-                style={[
-                  Typography.caption,
-                  { color: theme.error, fontSize: 12, marginTop: 2 },
-                ]}
-              >
-                {t("status.cancelled")}
-              </ThemedText>
-            ) : request.parkingSlot ? (
-              <ThemedText
-                style={[
-                  Typography.caption,
-                  { color: theme.textSecondary, fontSize: 12, marginTop: 2 },
-                ]}
-              >
-                {request.parkingSlot.location === "skbc_basement" ||
-                request.parkingSlot.location === "SKBC_basement"
-                  ? "SKBC Basement"
-                  : request.parkingSlot.location}{" "}
-                - {t("parking.slotNumber")} {request.parkingSlot.slotNumber}
-              </ThemedText>
-            ) : (request as any).parkingPending ? (
-              <ThemedText
-                style={[
-                  Typography.caption,
-                  { color: theme.warning, fontSize: 12, marginTop: 2 },
-                ]}
-              >
-                {t("status.pending")}
-              </ThemedText>
-            ) : (
-              <ThemedText
-                style={[
-                  Typography.caption,
-                  {
-                    color: theme.textSecondary,
-                    fontSize: 12,
-                    marginTop: 2,
-                    fontStyle: "italic",
-                  },
-                ]}
-              >
-                {t("common.notRequested")}
-              </ThemedText>
-            )}
-          </View>
-          {request.parkingSlot?.status ? (
-            <StatusBadge
-              label={formatServiceStatus(request.parkingSlot.status)}
-              variant={getServiceStatusVariant(request.parkingSlot.status)}
               size="sm"
             />
           ) : null}
