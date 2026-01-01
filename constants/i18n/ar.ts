@@ -222,6 +222,7 @@ export const ar: TranslationKeys = {
     integrationsHealth: 'صحة التكاملات',
     globalAnalytics: 'التحليلات الشاملة',
     parkMyCar: 'ركن سيارتي',
+    parkingDashboard: 'لوحة المواقف',
   },
   visitor: {
     guest: 'ضيف',

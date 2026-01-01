@@ -222,6 +222,7 @@ export const en: TranslationKeys = {
     integrationsHealth: 'Integrations Health',
     globalAnalytics: 'Global Analytics',
     parkMyCar: 'Park My Car',
+    parkingDashboard: 'Parking Dashboard',
   },
   visitor: {
     guest: 'Guest',

@@ -168,26 +168,9 @@ const getMenuGroups = (role: UserRole): { groups: MenuGroup[]; standalone: MenuI
     ];
   } else if (role === 'valet_admin') {
     result.standalone = [
-      { id: 'dashboard', labelKey: 'navigation.dashboard', icon: 'grid', screen: 'ValetAdminDashboard' },
+      { id: 'parking_dashboard', labelKey: 'navigation.parkingDashboard', icon: 'truck', screen: 'ValetAllRequests' },
     ];
-    result.groups = [
-      {
-        id: 'operations',
-        labelKey: 'sidebar.operations',
-        icon: 'truck',
-        items: [
-          { id: 'valet_requests', labelKey: 'navigation.allRequests', icon: 'list', screen: 'ValetAllRequests' },
-        ],
-      },
-      {
-        id: 'management',
-        labelKey: 'sidebar.management',
-        icon: 'settings',
-        items: [
-          { id: 'valet_drivers', labelKey: 'navigation.drivers', icon: 'users', screen: 'ValetDrivers' },
-        ],
-      },
-    ];
+    result.groups = [];
   } else if (role === 'building_admin') {
     result.standalone = [];
     result.groups = [
