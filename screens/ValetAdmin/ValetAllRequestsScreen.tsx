@@ -146,6 +146,19 @@ const VisitorCard = React.memo(({
 }) => {
   const hasCarInfo = !!(visitor.licensePlate && visitor.carModel);
 
+  const detailParts = [
+    visitor.hostName,
+    visitor.hostDepartment,
+    visitor.visitTime,
+    visitor.visitorPhone,
+  ].filter(Boolean);
+
+  const carInfoParts = [
+    visitor.licensePlate,
+    visitor.carModel,
+    visitor.carColor,
+  ].filter(Boolean);
+
   return (
     <ThemedView style={[styles.visitorCard, { backgroundColor: theme.surface }]}>
       <View style={[
@@ -176,40 +189,13 @@ const VisitorCard = React.memo(({
           />
         </View>
 
-        <Spacer height={LAYOUT.contentGap} />
+        <Spacer height={Spacing.sm} />
 
-        <View style={styles.detailsRow}>
-          <View style={styles.detailItem}>
-            <DDIcon name="user" size={14} variant="muted" />
-            <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
-              {t('reception.hostName')}: {visitor.hostName}
-            </ThemedText>
-          </View>
-        </View>
-
-        {visitor.hostDepartment ? (
-          <>
-            <Spacer height={Spacing.xs} />
-            <View style={styles.detailsRow}>
-              <View style={styles.detailItem}>
-                <DDIcon name="briefcase" size={14} variant="muted" />
-                <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
-                  {visitor.hostDepartment}
-                </ThemedText>
-              </View>
-            </View>
-          </>
-        ) : null}
-
-        <Spacer height={Spacing.xs} />
-
-        <View style={styles.detailsRow}>
-          <View style={styles.detailItem}>
-            <DDIcon name="clock" size={14} variant="muted" />
-            <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
-              {visitor.visitTime}
-            </ThemedText>
-          </View>
+        <View style={styles.compactDetailsRow}>
+          <DDIcon name="user" size={14} variant="muted" />
+          <ThemedText style={[styles.compactDetailText, { color: theme.textSecondary }]} numberOfLines={1}>
+            {detailParts.join('  |  ')}
+          </ThemedText>
           {visitor.isWalkIn ? (
             <View style={[styles.walkInBadge, { backgroundColor: applyOpacity(theme.info, '15') }]}>
               <ThemedText style={[styles.walkInText, { color: theme.info }]}>
@@ -221,55 +207,12 @@ const VisitorCard = React.memo(({
 
         {visitor.visitorNeedsParking && hasCarInfo ? (
           <>
-            <Spacer height={LAYOUT.contentGap} />
-            <View style={[styles.carInfoSection, { backgroundColor: applyOpacity(theme.success, '08') }]}>
-              <View style={styles.carInfoRow}>
-                <DDIcon name="tag" size={14} variant="success" />
-                <ThemedText style={[styles.carInfoLabel, { color: theme.textSecondary }]}>
-                  {t('visitorInvite.licensePlate')}:
-                </ThemedText>
-                <ThemedText style={[styles.carInfoValue, { color: theme.text }]}>
-                  {visitor.licensePlate}
-                </ThemedText>
-              </View>
-              <Spacer height={Spacing.xs} />
-              <View style={styles.carInfoRow}>
-                <DDIcon name="truck" size={14} variant="success" />
-                <ThemedText style={[styles.carInfoLabel, { color: theme.textSecondary }]}>
-                  {t('visitorInvite.carModel')}:
-                </ThemedText>
-                <ThemedText style={[styles.carInfoValue, { color: theme.text }]}>
-                  {visitor.carModel}
-                </ThemedText>
-              </View>
-              {visitor.carColor ? (
-                <>
-                  <Spacer height={Spacing.xs} />
-                  <View style={styles.carInfoRow}>
-                    <DDIcon name="droplet" size={14} variant="success" />
-                    <ThemedText style={[styles.carInfoLabel, { color: theme.textSecondary }]}>
-                      {t('visitorInvite.carColor')}:
-                    </ThemedText>
-                    <ThemedText style={[styles.carInfoValue, { color: theme.text }]}>
-                      {visitor.carColor}
-                    </ThemedText>
-                  </View>
-                </>
-              ) : null}
-            </View>
-          </>
-        ) : null}
-
-        {visitor.visitorPhone ? (
-          <>
             <Spacer height={Spacing.sm} />
-            <View style={styles.detailsRow}>
-              <View style={styles.detailItem}>
-                <DDIcon name="phone" size={14} variant="muted" />
-                <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
-                  {visitor.visitorPhone}
-                </ThemedText>
-              </View>
+            <View style={[styles.compactCarInfo, { backgroundColor: applyOpacity(theme.success, '08') }]}>
+              <DDIcon name="truck" size={14} variant="success" />
+              <ThemedText style={[styles.compactCarText, { color: theme.success }]}>
+                {carInfoParts.join('  |  ')}
+              </ThemedText>
             </View>
           </>
         ) : null}
@@ -555,6 +498,28 @@ const styles = StyleSheet.create({
   carInfoValue: {
     fontSize: 12,
     fontWeight: '600',
+  },
+  compactDetailsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  compactDetailText: {
+    fontSize: 13,
+    flex: 1,
+  },
+  compactCarInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+  },
+  compactCarText: {
+    fontSize: 13,
+    fontWeight: '600',
+    flex: 1,
   },
   emptyState: {
     padding: Spacing.xxl,
