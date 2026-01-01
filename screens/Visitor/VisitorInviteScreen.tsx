@@ -1276,33 +1276,34 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
           )}
         </Pressable>
         
-        {/* Car Info Fields - shown when parking_with_car_info is selected */}
-        {selectedParkingOption === 'parking_with_car_info' ? (
-          <View style={styles.carInfoContainer}>
-            <TextInput
-              style={styles.carInfoInput}
-              placeholder={t('visitorInvite.licensePlate')}
-              placeholderTextColor={PageColors.textMuted}
-              value={licensePlate}
-              onChangeText={setLicensePlate}
-              autoCapitalize="characters"
-            />
-            <TextInput
-              style={styles.carInfoInput}
-              placeholder={t('visitorInvite.carModel')}
-              placeholderTextColor={PageColors.textMuted}
-              value={carModel}
-              onChangeText={setCarModel}
-            />
-            <TextInput
-              style={styles.carInfoInput}
-              placeholder={t('visitorInvite.carColor')}
-              placeholderTextColor={PageColors.textMuted}
-              value={carColor}
-              onChangeText={setCarColor}
-            />
-          </View>
-        ) : null}
+        {/* Car Info Fields - always mounted to prevent focus loss, visibility controlled by style */}
+        <View style={[
+          styles.carInfoContainer,
+          selectedParkingOption !== 'parking_with_car_info' && { height: 0, overflow: 'hidden', marginTop: 0 }
+        ]}>
+          <TextInput
+            style={styles.carInfoInput}
+            placeholder={t('visitorInvite.licensePlate')}
+            placeholderTextColor={PageColors.textMuted}
+            value={licensePlate}
+            onChangeText={setLicensePlate}
+            autoCapitalize="characters"
+          />
+          <TextInput
+            style={styles.carInfoInput}
+            placeholder={t('visitorInvite.carModel')}
+            placeholderTextColor={PageColors.textMuted}
+            value={carModel}
+            onChangeText={setCarModel}
+          />
+          <TextInput
+            style={styles.carInfoInput}
+            placeholder={t('visitorInvite.carColor')}
+            placeholderTextColor={PageColors.textMuted}
+            value={carColor}
+            onChangeText={setCarColor}
+          />
+        </View>
         
         {/* Option 3: Parking without Car Info */}
         <Pressable
