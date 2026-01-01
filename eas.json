@@ -32,5 +32,9 @@
         "buildType": "app-bundle"
       }
     }
+  },
+  "submit": {
+    "preview": {},
+    "production": {}
   }
 }
