@@ -2,6 +2,7 @@ import React from "react";
 import { View, StyleSheet } from "react-native";
 import { DDIcon } from "@/components/DDIcon";
 import { useTheme } from "@/hooks/useTheme";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { applyOpacity } from "@/utils/statusStyles";
 import { Spacing } from "@/constants/theme";
 
@@ -21,10 +22,11 @@ export const ServiceIcons = ({
   size = 16 
 }: ServiceIconsProps) => {
   const { theme } = useTheme();
+  const { isRTL } = useLanguage();
   const iconContainerSize = size * 2;
   
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
       {!!parkingSlot ? (
         <View style={[
           styles.pill, 

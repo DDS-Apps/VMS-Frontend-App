@@ -44,6 +44,7 @@ export const StatusBadge = ({
         backgroundColor: applyOpacity(color, '15'),
         paddingHorizontal: isSmall ? Spacing.sm : Spacing.md,
         paddingVertical: isSmall ? Spacing.xs / 2 : Spacing.xs,
+        flexDirection: isRTL ? 'row-reverse' : 'row',
       }
     ]}>
       {icon ? (
