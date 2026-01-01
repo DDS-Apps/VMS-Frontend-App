@@ -11,6 +11,7 @@ import Spacer from '@/components/Spacer';
 import { Spacing, BorderRadius, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useLanguage } from '@/contexts/LanguageContext';
 import {
   getValetTaskById,
   assignDriverToTask,
@@ -20,6 +21,7 @@ import {
 } from '@/services/state/valetTasksState';
 import type { ValetService, ValetDriver } from '@/types/vms.types';
 import { useAuth } from '@/contexts/AuthContext';
+import { applyOpacity } from '@/utils/statusStyles';
 
 interface ValetTaskDetailScreenProps {
   taskId: string;
@@ -41,7 +43,8 @@ const getStatusOptions = (theme: ReturnType<typeof useTheme>['theme'], t: (key: 
 
 export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenProps) {
   const { theme } = useTheme();
-  const { t, isRTL } = useTranslation();
+  const { t } = useTranslation();
+  const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const isReadOnlyRole = user?.role === 'building_admin';
@@ -89,295 +92,313 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
     (opt) => opt.value === task.valet.status
   );
 
+  const statusColor = currentStatusOption?.color || theme.textSecondary;
+  const initials = task.visitorName.split(' ').map(n => n[0]).join('');
+
   return (
     <ScreenScrollView contentContainerStyle={{ 
-      paddingHorizontal: Spacing.xl,
+      paddingHorizontal: Spacing.lg,
       paddingTop: insets.top + Spacing.xl,
       paddingBottom: insets.bottom + Spacing.xl
     }}>
-      <View>
-        <ThemedText style={[Typography.title, { fontWeight: '700', fontSize: 28, marginBottom: Spacing.sm }]}>
-          {t('actions.viewDetails')}
-        </ThemedText>
-        <ThemedText style={[Typography.body, { color: theme.textSecondary }]}>
-          #{task.id}
-        </ThemedText>
+      <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
+        <View style={{ alignItems: 'center' }}>
+          <View style={[styles.avatarNew, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
+            <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
+              {initials}
+            </ThemedText>
+          </View>
 
+          <Spacer height={Spacing.lg} />
+
+          <ThemedText style={[Typography.title, { fontWeight: '600', fontSize: 22, color: theme.text }]}>
+            {task.visitorName}
+          </ThemedText>
+          <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, marginTop: 4 }]}>
+            {task.visitorCompany}
+          </ThemedText>
+
+          <Spacer height={Spacing.sm} />
+
+          <View
+            style={{
+              alignSelf: 'center',
+              backgroundColor: applyOpacity(statusColor, '15'),
+              borderColor: applyOpacity(statusColor, '30'),
+              borderWidth: StyleSheet.hairlineWidth,
+              paddingHorizontal: Spacing.md,
+              paddingVertical: 6,
+              borderRadius: BorderRadius.full,
+            }}
+          >
+            <ThemedText style={[Typography.caption, { color: statusColor, fontWeight: '600', fontSize: 12 }]}>
+              {currentStatusOption?.label || task.valet.status}
+            </ThemedText>
+          </View>
+        </View>
+      </ThemedView>
+
+      <Spacer height={Spacing.lg} />
+
+      <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
+        <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+          {t('visitor.visitorDetails')}
+        </ThemedText>
         <Spacer height={Spacing.xl} />
 
-        <ThemedView style={[styles.card, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
-          <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginBottom: Spacing.lg }]}>
-            {t('visitor.visitorDetails')}
-          </ThemedText>
-
-          <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <DDIcon name="user" size={20} variant="primary" />
-            <View style={{ marginStart: Spacing.md, flex: 1 }}>
-              <ThemedText style={[Typography.body, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
-                {task.visitorName}
-              </ThemedText>
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-                {task.visitorCompany}
-              </ThemedText>
-            </View>
+        <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+            <DDIcon name="briefcase" size={18} color={theme.text} />
           </View>
-
-          <Spacer height={Spacing.md} />
-
-          <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <DDIcon name="briefcase" size={20} variant="muted" />
-            <View style={{ marginStart: Spacing.md, flex: 1 }}>
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-                {t('reception.hostName')}
-              </ThemedText>
-              <ThemedText style={[Typography.body, { fontWeight: '500', textAlign: isRTL ? 'right' : 'left' }]}>
-                {task.hostName}
-              </ThemedText>
-            </View>
+          <View style={{ flex: 1, marginStart: Spacing.md }}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+              {t('reception.hostName')}
+            </ThemedText>
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+              {task.hostName}
+            </ThemedText>
           </View>
-
-          <Spacer height={Spacing.md} />
-
-          <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <DDIcon name="calendar" size={20} variant="muted" />
-            <View style={{ marginStart: Spacing.md, flex: 1 }}>
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-                {t('visitor.visitDate')}
-              </ThemedText>
-              <ThemedText style={[Typography.body, { fontWeight: '500', textAlign: isRTL ? 'right' : 'left' }]}>
-                {task.visitDate}
-              </ThemedText>
-            </View>
-          </View>
-
-          <Spacer height={Spacing.md} />
-
-          <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <DDIcon name="clock" size={20} variant="muted" />
-            <View style={{ marginStart: Spacing.md, flex: 1 }}>
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-                {t('visitor.visitTime')}
-              </ThemedText>
-              <ThemedText style={[Typography.body, { fontWeight: '500', textAlign: isRTL ? 'right' : 'left' }]}>
-                {task.pickupTime} - {task.returnTime}
-              </ThemedText>
-            </View>
-          </View>
-
-          <Spacer height={Spacing.md} />
-
-          <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <DDIcon name="map-pin" size={20} variant="muted" />
-            <View style={{ marginStart: Spacing.md, flex: 1 }}>
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-                {t('invitation.location')}
-              </ThemedText>
-              <ThemedText style={[Typography.body, { fontWeight: '500', textAlign: isRTL ? 'right' : 'left' }]}>
-                {task.location}
-              </ThemedText>
-            </View>
-          </View>
-
-          {task.vehicleInfo ? (
-            <>
-              <Spacer height={Spacing.md} />
-              <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                <DDIcon name="truck" size={20} variant="muted" />
-                <View style={{ marginStart: Spacing.md, flex: 1 }}>
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-                    {t('valet.vehiclePlate')}
-                  </ThemedText>
-                  <ThemedText style={[Typography.body, { fontWeight: '500', textAlign: isRTL ? 'right' : 'left' }]}>
-                    {task.vehicleInfo.color} {task.vehicleInfo.make} {task.vehicleInfo.model}
-                  </ThemedText>
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-                    {task.vehicleInfo.plateNumber}
-                  </ThemedText>
-                </View>
-              </View>
-            </>
-          ) : null}
-
-          {task.notes ? (
-            <>
-              <Spacer height={Spacing.md} />
-              <View
-                style={[
-                  styles.notesContainer,
-                  { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' },
-                ]}
-              >
-                <DDIcon name="file-text" size={16} variant="muted" />
-                <ThemedText
-                  style={[
-                    Typography.body,
-                    { color: theme.textSecondary, marginStart: Spacing.sm, flex: 1, textAlign: isRTL ? 'right' : 'left' },
-                  ]}
-                >
-                  {task.notes}
-                </ThemedText>
-              </View>
-            </>
-          ) : null}
-        </ThemedView>
+        </View>
 
         <Spacer height={Spacing.lg} />
 
-        <ThemedView style={[styles.card, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
-          <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginBottom: Spacing.lg }]}>
-            {t('status.pending')}
-          </ThemedText>
-
-          {isReadOnlyRole ? (
-            <View
-              style={[
-                styles.statusButton,
-                {
-                  backgroundColor: `${currentStatusOption?.color}15`,
-                  borderColor: currentStatusOption?.color,
-                  flexDirection: isRTL ? 'row-reverse' : 'row',
-                },
-              ]}
-            >
-              <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', flex: 1 }}>
-                <DDIcon
-                  name={currentStatusOption?.icon as IconName}
-                  size={20}
-                  color={currentStatusOption?.color}
-                />
-                <ThemedText
-                  style={[
-                    Typography.body,
-                    {
-                      color: currentStatusOption?.color,
-                      fontWeight: '600',
-                      marginStart: Spacing.md,
-                    },
-                  ]}
-                >
-                  {currentStatusOption?.label}
-                </ThemedText>
-              </View>
-            </View>
-          ) : (
-            <Pressable
-              onPress={() => setShowStatusPicker(true)}
-              style={({ pressed }) => [
-                styles.statusButton,
-                {
-                  backgroundColor: `${currentStatusOption?.color}15`,
-                  borderColor: currentStatusOption?.color,
-                  opacity: pressed ? 0.7 : 1,
-                },
-              ]}
-            >
-              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                <DDIcon
-                  name={currentStatusOption?.icon as IconName}
-                  size={20}
-                  color={currentStatusOption?.color}
-                />
-                <ThemedText
-                  style={[
-                    Typography.body,
-                    {
-                      color: currentStatusOption?.color,
-                      fontWeight: '600',
-                      marginStart: Spacing.md,
-                    },
-                  ]}
-                >
-                  {currentStatusOption?.label}
-                </ThemedText>
-              </View>
-              <DDIcon name="chevron-down" size={20} color={currentStatusOption?.color} directionAware />
-            </Pressable>
-          )}
-        </ThemedView>
+        <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+            <DDIcon name="calendar" size={18} color={theme.text} />
+          </View>
+          <View style={{ flex: 1, marginStart: Spacing.md }}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+              {t('visitor.visitDate')}
+            </ThemedText>
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+              {task.visitDate}
+            </ThemedText>
+          </View>
+        </View>
 
         <Spacer height={Spacing.lg} />
 
-        <ThemedView style={[styles.card, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
-          <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginBottom: Spacing.lg }]}>
-            {t('actions.assignDriver')}
-          </ThemedText>
+        <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+            <DDIcon name="clock" size={18} color={theme.text} />
+          </View>
+          <View style={{ flex: 1, marginStart: Spacing.md }}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+              {t('visitor.visitTime')}
+            </ThemedText>
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+              {task.pickupTime} - {task.returnTime}
+            </ThemedText>
+          </View>
+        </View>
 
-          {task.valet.driver ? (
-            <View
-              style={[
-                styles.driverCard,
-                { backgroundColor: theme.surface, borderColor: theme.border },
-              ]}
-            >
-              <View style={{ flex: 1 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.xs }}>
-                  <DDIcon name="truck" size={20} variant="primary" />
-                  <ThemedText
-                    style={[Typography.body, { fontWeight: '600', marginStart: Spacing.sm }]}
-                  >
-                    {task.valet.driver.name}
-                  </ThemedText>
-                </View>
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
-                  {task.valet.driver.phone}
-                </ThemedText>
-                <Spacer height={Spacing.xs} />
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <View
-                    style={[
-                      styles.statusDot,
-                      {
-                        backgroundColor:
-                          task.valet.driver.status === 'available' ? theme.success : theme.warning,
-                      },
-                    ]}
-                  />
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
-                    {task.valet.driver.status === 'available' ? t('status.available') : t('status.occupied')} • {task.valet.driver.currentTasks} {t('valet.assignedTasks').toLowerCase()}
-                  </ThemedText>
-                </View>
+        <Spacer height={Spacing.lg} />
+
+        <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+            <DDIcon name="map-pin" size={18} color={theme.text} />
+          </View>
+          <View style={{ flex: 1, marginStart: Spacing.md }}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+              {t('invitation.location')}
+            </ThemedText>
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+              {task.location}
+            </ThemedText>
+          </View>
+        </View>
+
+        {task.vehicleInfo ? (
+          <>
+            <Spacer height={Spacing.lg} />
+            <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.info, '15') }]}>
+                <DDIcon name="truck" size={18} color={theme.info} />
               </View>
-              {!isReadOnlyRole && (
-                <Pressable
-                  onPress={() => setShowDriverPicker(true)}
-                  style={({ pressed }) => [
-                    styles.changeButton,
-                    { backgroundColor: theme.surface, borderColor: theme.border, opacity: pressed ? 0.7 : 1 },
-                  ]}
-                >
-                  <ThemedText style={[Typography.caption, { color: theme.primary, fontWeight: '600' }]}>
-                    {t('common.edit')}
-                  </ThemedText>
-                </Pressable>
-              )}
+              <View style={{ flex: 1, marginStart: Spacing.md }}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {t('valet.vehiclePlate')}
+                </ThemedText>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {task.vehicleInfo.color} {task.vehicleInfo.make} {task.vehicleInfo.model}
+                </ThemedText>
+                <ThemedText style={[Typography.caption, { color: theme.info, marginTop: 2, fontSize: 12, fontWeight: '500', textAlign: isRTL ? 'right' : 'left' }]}>
+                  {task.vehicleInfo.plateNumber}
+                </ThemedText>
+              </View>
             </View>
-          ) : isReadOnlyRole ? (
-            <View style={[styles.driverCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-              <ThemedText style={[Typography.body, { color: theme.textSecondary }]}>
-                {t('common.noData')}
+          </>
+        ) : null}
+      </ThemedView>
+
+      {task.notes ? (
+        <>
+          <Spacer height={Spacing.lg} />
+          <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
+            <View style={[styles.notesHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <DDIcon name="file-text" size={16} color={theme.info} />
+              <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginStart: Spacing.sm, fontSize: 14, color: theme.text }]}>
+                {t('form.notes')}
               </ThemedText>
             </View>
-          ) : (
-            <Pressable
-              onPress={() => setShowDriverPicker(true)}
-              style={({ pressed }) => [
-                styles.assignButton,
-                { backgroundColor: theme.primary, opacity: pressed ? 0.7 : 1 },
-              ]}
-            >
-              <DDIcon name="user-plus" size={20} color={theme.buttonText} />
+            <Spacer height={Spacing.sm} />
+            <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, lineHeight: 20, textAlign: isRTL ? 'right' : 'left' }]}>
+              {task.notes}
+            </ThemedText>
+          </ThemedView>
+        </>
+      ) : null}
+
+      <Spacer height={Spacing.lg} />
+
+      <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
+        <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text, textAlign: isRTL ? 'right' : 'left', marginBottom: Spacing.lg }]}>
+          {t('status.pending')}
+        </ThemedText>
+
+        {isReadOnlyRole ? (
+          <View
+            style={[
+              styles.statusButton,
+              {
+                backgroundColor: applyOpacity(statusColor, '15'),
+                borderColor: statusColor,
+                flexDirection: isRTL ? 'row-reverse' : 'row',
+              },
+            ]}
+          >
+            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', flex: 1 }}>
+              <DDIcon
+                name={currentStatusOption?.icon as IconName}
+                size={20}
+                color={statusColor}
+              />
               <ThemedText
                 style={[
                   Typography.body,
-                  { color: theme.buttonText, fontWeight: '600', marginStart: Spacing.sm },
+                  {
+                    color: statusColor,
+                    fontWeight: '600',
+                    marginStart: Spacing.md,
+                  },
                 ]}
               >
-                {t('actions.assignDriver')}
+                {currentStatusOption?.label}
+              </ThemedText>
+            </View>
+          </View>
+        ) : (
+          <Pressable
+            onPress={() => setShowStatusPicker(true)}
+            style={({ pressed }) => [
+              styles.statusButton,
+              {
+                backgroundColor: applyOpacity(statusColor, '15'),
+                borderColor: statusColor,
+                opacity: pressed ? 0.7 : 1,
+                flexDirection: isRTL ? 'row-reverse' : 'row',
+              },
+            ]}
+          >
+            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', flex: 1 }}>
+              <DDIcon
+                name={currentStatusOption?.icon as IconName}
+                size={20}
+                color={statusColor}
+              />
+              <ThemedText
+                style={[
+                  Typography.body,
+                  {
+                    color: statusColor,
+                    fontWeight: '600',
+                    marginStart: Spacing.md,
+                  },
+                ]}
+              >
+                {currentStatusOption?.label}
+              </ThemedText>
+            </View>
+            <DDIcon name="chevron-down" size={20} color={statusColor} directionAware />
+          </Pressable>
+        )}
+      </ThemedView>
+
+      <Spacer height={Spacing.lg} />
+
+      <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
+        <View style={[{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: Spacing.lg }]}>
+          <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text }]}>
+            {t('actions.assignDriver')}
+          </ThemedText>
+          {task.valet.driver && !isReadOnlyRole ? (
+            <Pressable
+              onPress={() => setShowDriverPicker(true)}
+              style={[styles.editButton, { backgroundColor: applyOpacity(theme.warning, '12') }]}
+            >
+              <DDIcon name="edit-2" size={14} color={theme.warning} />
+              <ThemedText style={[styles.editButtonText, { color: theme.warning }]}>
+                {t('common.edit')}
               </ThemedText>
             </Pressable>
-          )}
-        </ThemedView>
-      </View>
+          ) : null}
+        </View>
+
+        {task.valet.driver ? (
+          <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.success, '15') }]}>
+              <DDIcon name="truck" size={18} color={theme.success} />
+            </View>
+            <View style={{ flex: 1, marginStart: Spacing.md }}>
+              <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+                {task.valet.driver.name}
+              </ThemedText>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+                {task.valet.driver.phone}
+              </ThemedText>
+              <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', marginTop: 4 }}>
+                <View
+                  style={[
+                    styles.statusDot,
+                    {
+                      backgroundColor:
+                        task.valet.driver.status === 'available' ? theme.success : theme.warning,
+                    },
+                  ]}
+                />
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12 }]}>
+                  {task.valet.driver.status === 'available' ? t('status.available') : t('status.occupied')} - {task.valet.driver.currentTasks} {t('valet.assignedTasks').toLowerCase()}
+                </ThemedText>
+              </View>
+            </View>
+          </View>
+        ) : isReadOnlyRole ? (
+          <View style={styles.noDriverState}>
+            <DDIcon name="user-x" size={24} variant="muted" />
+            <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: Spacing.sm }]}>
+              {t('common.noData')}
+            </ThemedText>
+          </View>
+        ) : (
+          <Pressable
+            onPress={() => setShowDriverPicker(true)}
+            style={({ pressed }) => [
+              styles.assignButton,
+              { backgroundColor: theme.primary, opacity: pressed ? 0.7 : 1 },
+            ]}
+          >
+            <DDIcon name="user-plus" size={18} color={theme.buttonText} />
+            <ThemedText
+              style={[
+                Typography.body,
+                { color: theme.buttonText, fontWeight: '600', marginStart: Spacing.sm },
+              ]}
+            >
+              {t('actions.assignDriver')}
+            </ThemedText>
+          </Pressable>
+        )}
+      </ThemedView>
 
       <Modal
         visible={showDriverPicker}
@@ -405,21 +426,21 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
                     onPress={() => handleAssignDriver(driver.id)}
                     style={({ pressed }) => [
                       styles.driverOption,
-                      { borderColor: theme.border, opacity: pressed ? 0.7 : 1 },
+                      { borderColor: theme.border, opacity: pressed ? 0.7 : 1, flexDirection: isRTL ? 'row-reverse' : 'row' },
                     ]}
                   >
                     <View style={{ flex: 1 }}>
-                      <ThemedText style={[Typography.body, { fontWeight: '600' }]}>
+                      <ThemedText style={[Typography.body, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
                         {driver.name}
                       </ThemedText>
-                      <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
+                      <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
                         {driver.phone}
                       </ThemedText>
                       <Spacer height={Spacing.xs} />
-                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center' }}>
                         <View style={[styles.statusDot, { backgroundColor: theme.success }]} />
                         <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
-                          {t('status.available')} • {driver.currentTasks} {t('valet.assignedTasks').toLowerCase()}
+                          {t('status.available')} - {driver.currentTasks} {t('valet.assignedTasks').toLowerCase()}
                         </ThemedText>
                       </View>
                     </View>
@@ -476,9 +497,10 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
                 style={({ pressed }) => [
                   styles.statusOption,
                   {
-                    backgroundColor: task.valet.status === option.value ? `${option.color}15` : 'transparent',
+                    backgroundColor: task.valet.status === option.value ? applyOpacity(option.color, '15') : 'transparent',
                     borderColor: theme.border,
                     opacity: pressed ? 0.7 : 1,
+                    flexDirection: isRTL ? 'row-reverse' : 'row',
                   },
                 ]}
               >
@@ -491,6 +513,7 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
                       fontWeight: task.valet.status === option.value ? '600' : '400',
                       marginStart: Spacing.md,
                       flex: 1,
+                      textAlign: isRTL ? 'right' : 'left',
                     },
                   ]}
                 >
@@ -520,21 +543,39 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
 }
 
 const styles = StyleSheet.create({
-  container: {
-    padding: Spacing.xl,
+  cardNew: {
+    padding: 20,
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  card: {
-    padding: Spacing.lg,
-    borderRadius: BorderRadius.lg,
-    borderWidth: 1,
+  avatarNew: {
+    width: 80,
+    height: 80,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  infoRow: {
+  avatarText: {
+    fontSize: 32,
+    lineHeight: 40,
+    fontWeight: '700',
+  },
+  serviceRowNew: {
     alignItems: 'flex-start',
   },
-  notesContainer: {
-    padding: Spacing.md,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
+  serviceIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  notesHeader: {
+    alignItems: 'center',
   },
   statusButton: {
     alignItems: 'center',
@@ -543,18 +584,21 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
     borderWidth: 1,
   },
-  driverCard: {
+  editButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: Spacing.md,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-  },
-  changeButton: {
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.sm,
-    borderWidth: 1,
+    gap: 6,
+  },
+  editButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  noDriverState: {
+    alignItems: 'center',
+    paddingVertical: Spacing.lg,
   },
   assignButton: {
     flexDirection: 'row',
@@ -583,7 +627,6 @@ const styles = StyleSheet.create({
     padding: Spacing.xl,
   },
   driverOption: {
-    flexDirection: 'row',
     alignItems: 'center',
     padding: Spacing.md,
     borderRadius: BorderRadius.md,
@@ -591,18 +634,11 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
   },
   statusOption: {
-    flexDirection: 'row',
     alignItems: 'center',
     padding: Spacing.md,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
     marginBottom: Spacing.md,
-  },
-  cancelButton: {
-    padding: Spacing.md,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    alignItems: 'center',
   },
   emptyState: {
     alignItems: 'center',

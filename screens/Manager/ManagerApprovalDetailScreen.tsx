@@ -30,9 +30,9 @@ import { calculateServerDuration } from "@/utils/dateTimeUtils";
 import { useServerDateTime } from "@/hooks/useServerDateTime";
 
 const LAYOUT = {
-  cardPadding: Spacing.lg,
-  cardRadius: BorderRadius.md,
-  sectionSpacing: Spacing.xxl,
+  cardPadding: 20,
+  cardRadius: 10,
+  sectionSpacing: Spacing.lg,
   contentGap: Spacing.md,
   headerPadding: Spacing.lg,
   accentWidth: 3,
@@ -600,62 +600,126 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
     });
   };
 
-  const renderStatusHeader = () => {
-    let statusColor = theme.primary;
-    let statusIcon: IconName = 'clock';
+  const getStatusInfo = () => {
+    let statusColor = theme.warning;
     let statusText = t('status.pending');
 
-    if (request.status === REQUEST_STATUS.APPROVED) {
+    if (request.status === REQUEST_STATUS.APPROVED || request.status === REQUEST_STATUS.VISITOR_ACCEPTED) {
       statusColor = theme.success;
-      statusIcon = 'check-circle';
       statusText = t('status.approved');
     } else if (request.status === REQUEST_STATUS.REJECTED) {
       statusColor = theme.error;
-      statusIcon = 'x-circle';
       statusText = t('status.rejected');
+    } else if (request.status === REQUEST_STATUS.CANCELLED) {
+      statusColor = theme.textSecondary;
+      statusText = t('status.cancelled');
     }
 
-    return (
-      <ThemedView style={[styles.statusHeader, { backgroundColor: theme.surface }]}>
-        <View style={[styles.statusAccent, { backgroundColor: statusColor }]} />
-        <View style={[styles.statusContent, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-          <DDIcon name={statusIcon} size={20} color={statusColor} />
-          <View style={styles.statusTextContainer}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 16, textAlign: isRTL ? 'right' : 'left' }]}>
-              {statusText}
-            </ThemedText>
-          </View>
-        </View>
-      </ThemedView>
-    );
+    return { statusColor, statusText };
   };
 
+  const { statusColor, statusText } = getStatusInfo();
   const initials = request.visitor.fullName.split(' ').map(n => n[0]).join('');
 
   return (
     <>
       <ScreenScrollView 
         contentContainerStyle={{
-          paddingHorizontal: Spacing.xl,
+          paddingHorizontal: Spacing.lg,
           paddingTop: Spacing.lg,
         }}
       >
+        <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
+          <View style={{ alignItems: 'center' }}>
+            <View style={[styles.avatarNew, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
+              <ThemedText style={[styles.avatarTextNew, { color: theme.primary }]}>
+                {initials}
+              </ThemedText>
+            </View>
 
-        {renderStatusHeader()}
+            <Spacer height={Spacing.lg} />
+
+            <ThemedText style={[Typography.title, { fontWeight: '600', fontSize: 22, color: theme.text }]}>
+              {request.visitor.fullName}
+            </ThemedText>
+            {request.visitor.company ? (
+              <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, marginTop: 4 }]}>
+                {request.visitor.company}
+              </ThemedText>
+            ) : null}
+
+            <Spacer height={Spacing.sm} />
+
+            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.sm }}>
+              <View
+                style={{
+                  backgroundColor: applyOpacity(statusColor, '15'),
+                  borderColor: applyOpacity(statusColor, '30'),
+                  borderWidth: StyleSheet.hairlineWidth,
+                  paddingHorizontal: Spacing.md,
+                  paddingVertical: 6,
+                  borderRadius: BorderRadius.full,
+                }}
+              >
+                <ThemedText style={[Typography.caption, { color: statusColor, fontWeight: '600', fontSize: 12 }]}>
+                  {statusText}
+                </ThemedText>
+              </View>
+              {request.isWalkIn ? (
+                <View
+                  style={{
+                    backgroundColor: applyOpacity(theme.warning, '15'),
+                    borderColor: applyOpacity(theme.warning, '30'),
+                    borderWidth: StyleSheet.hairlineWidth,
+                    paddingHorizontal: Spacing.md,
+                    paddingVertical: 6,
+                    borderRadius: BorderRadius.full,
+                  }}
+                >
+                  <ThemedText style={[Typography.caption, { color: theme.warning, fontWeight: '600', fontSize: 12 }]}>
+                    {t('reception.walkInVisitor')}
+                  </ThemedText>
+                </View>
+              ) : null}
+            </View>
+
+            <Spacer height={Spacing.lg} />
+
+            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center' }}>
+              <DDIcon name="mail" size={16} variant="muted" />
+              <ThemedText style={[Typography.caption, { marginStart: 8, color: theme.textSecondary, fontSize: 13 }]}>
+                {request.visitor.email}
+              </ThemedText>
+            </View>
+
+            <Spacer height={Spacing.xs} />
+
+            <View style={[{ height: StyleSheet.hairlineWidth, backgroundColor: theme.border, width: '60%' }]} />
+
+            <Spacer height={Spacing.xs} />
+
+            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center' }}>
+              <DDIcon name="phone" size={16} variant="muted" />
+              <ThemedText style={[Typography.caption, { marginStart: 8, color: theme.textSecondary, fontSize: 13 }]}>
+                {request.visitor.phone}
+              </ThemedText>
+            </View>
+          </View>
+        </ThemedView>
 
         {request.status === REQUEST_STATUS.REJECTED && request.approval.rejectionReason ? (
           <>
             <Spacer height={Spacing.lg} />
-            <ThemedView style={[styles.card, { backgroundColor: applyOpacity(theme.error, '08') }]}>
+            <ThemedView style={[styles.cardNew, { backgroundColor: applyOpacity(theme.error, '08') }]}>
               <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'flex-start', gap: Spacing.sm }}>
                 <View style={{ marginTop: 2 }}>
                   <DDIcon name="message-circle" size={18} color={theme.error} />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <ThemedText style={[Typography.bodySmall, { color: theme.error, fontWeight: '600', marginBottom: 4 }]}>
+                  <ThemedText style={[Typography.bodySmall, { color: theme.error, fontWeight: '600', marginBottom: 4, textAlign: isRTL ? 'right' : 'left' }]}>
                     {t('form.reason')}
                   </ThemedText>
-                  <ThemedText style={[Typography.body, { color: theme.text, lineHeight: 22 }]}>
+                  <ThemedText style={[Typography.body, { color: theme.text, lineHeight: 22, textAlign: isRTL ? 'right' : 'left' }]}>
                     {request.approval.rejectionReason}
                   </ThemedText>
                 </View>
@@ -667,16 +731,16 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
         {request.visitorDecision && !request.visitorDecision.accepted && request.visitorDecision.reason ? (
           <>
             <Spacer height={Spacing.lg} />
-            <ThemedView style={[styles.card, { backgroundColor: applyOpacity(theme.error, '08') }]}>
+            <ThemedView style={[styles.cardNew, { backgroundColor: applyOpacity(theme.error, '08') }]}>
               <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'flex-start', gap: Spacing.sm }}>
                 <View style={{ marginTop: 2 }}>
                   <DDIcon name="user-x" size={18} color={theme.error} />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <ThemedText style={[Typography.bodySmall, { color: theme.error, fontWeight: '600', marginBottom: 4 }]}>
+                  <ThemedText style={[Typography.bodySmall, { color: theme.error, fontWeight: '600', marginBottom: 4, textAlign: isRTL ? 'right' : 'left' }]}>
                     {t('visitor.visitorDeclineReason')}
                   </ThemedText>
-                  <ThemedText style={[Typography.body, { color: theme.text, lineHeight: 22 }]}>
+                  <ThemedText style={[Typography.body, { color: theme.text, lineHeight: 22, textAlign: isRTL ? 'right' : 'left' }]}>
                     {request.visitorDecision.reason}
                   </ThemedText>
                 </View>
@@ -687,74 +751,10 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
         <Spacer height={LAYOUT.sectionSpacing} />
 
-        <SectionHeader title={t('visitor.visitorDetails')} theme={theme} />
-        <Spacer height={Spacing.md} />
-
-        <ThemedView style={[styles.card, { backgroundColor: theme.surface }]}>
-          <View style={[styles.visitorRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
-              <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
-                {initials}
-              </ThemedText>
-            </View>
-            <View style={styles.visitorInfo}>
-              <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 17, textAlign: isRTL ? 'right' : 'left' }]}>
-                {request.visitor.fullName}
-              </ThemedText>
-              {request.visitor.company ? (
-                <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', marginTop: 4 }}>
-                  <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
-                    {request.visitor.company}
-                  </ThemedText>
-                  {request.isWalkIn ? (
-                    <View style={{ marginStart: Spacing.sm }}>
-                      <DDIcon name="user-check" size={14} color={theme.warning} />
-                    </View>
-                  ) : null}
-                </View>
-              ) : request.isWalkIn ? (
-                <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', marginTop: 4 }}>
-                  <DDIcon name="user-check" size={14} color={theme.warning} />
-                </View>
-              ) : null}
-            </View>
-          </View>
-
-          <Spacer height={Spacing.lg} />
-
-          <View style={[styles.contactRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <DDIcon name="mail" size={14} variant="muted" />
-            <ThemedText style={[Typography.caption, { marginStart: 8, color: theme.textSecondary, fontSize: 13 }]}>
-              {request.visitor.email}
-            </ThemedText>
-          </View>
-
-          <Spacer height={Spacing.sm} />
-
-          <View style={[styles.contactRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <DDIcon name="phone" size={14} variant="muted" />
-            <ThemedText style={[Typography.caption, { marginStart: 8, color: theme.textSecondary, fontSize: 13 }]}>
-              {request.visitor.phone}
-            </ThemedText>
-          </View>
-        </ThemedView>
-
-        <Spacer height={LAYOUT.sectionSpacing} />
-
-        <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <SectionHeader title={t('visitor.visitorRequest')} theme={theme} />
-          {request.isWalkIn ? (
-            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', backgroundColor: applyOpacity(theme.warning, '15'), paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: BorderRadius.sm }}>
-              <DDIcon name="user-check" size={14} color={theme.warning} />
-              <ThemedText style={[Typography.caption, { color: theme.warning, fontWeight: '600', marginStart: Spacing.xs, fontSize: 11 }]}>
-                {t('reception.walkInVisitor')}
-              </ThemedText>
-            </View>
-          ) : null}
-        </View>
-        <Spacer height={Spacing.md} />
-
-        <ThemedView style={[styles.card, { backgroundColor: theme.surface }]}>
+        <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
+          <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text, textAlign: isRTL ? 'right' : 'left', marginBottom: Spacing.xl }]}>
+            {t('visitor.visitorRequest')}
+          </ThemedText>
           <View style={[styles.serviceRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
               <DDIcon name="user" size={18} color={theme.text} />
@@ -887,10 +887,10 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
         <Spacer height={LAYOUT.sectionSpacing} />
 
-        <SectionHeader title={t('services.additionalServices')} theme={theme} />
-        <Spacer height={Spacing.md} />
-
-        <ThemedView style={[styles.card, { backgroundColor: theme.surface }]}>
+        <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
+          <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text, textAlign: isRTL ? 'right' : 'left', marginBottom: Spacing.xl }]}>
+            {t('services.additionalServices')}
+          </ThemedText>
           {/* Meeting Room */}
           <View style={[styles.serviceRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(request.meetingRoom ? theme.secondary : theme.textSecondary, '20') }]}>
@@ -1436,6 +1436,27 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 const styles = StyleSheet.create({
   sectionHeader: {
   },
+  cardNew: {
+    padding: 20,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  avatarNew: {
+    width: 80,
+    height: 80,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarTextNew: {
+    fontSize: 32,
+    lineHeight: 40,
+    fontWeight: '700',
+  },
 
   statusHeader: {
     borderRadius: LAYOUT.cardRadius,
@@ -1529,7 +1550,7 @@ const styles = StyleSheet.create({
   serviceIcon: {
     width: 40,
     height: 40,
-    borderRadius: BorderRadius.sm,
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
   },
