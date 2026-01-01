@@ -239,23 +239,23 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     <ToastContext.Provider value={{ showToast, showError, showSuccess, showWarning, showInfo, hideToast }}>
       {children}
       {toasts.length > 0 ? (
-        <Portal>
-          {Platform.OS === 'web' ? (
-            toastContent
-          ) : (
-            <Modal
-              visible={true}
-              transparent
-              animationType="none"
-              statusBarTranslucent
-              presentationStyle="overFullScreen"
-              hardwareAccelerated
-              onRequestClose={() => {}}
-            >
-              {toastContent}
-            </Modal>
-          )}
-        </Portal>
+        Platform.OS === 'web' ? (
+          <Portal>
+            {toastContent}
+          </Portal>
+        ) : (
+          <Modal
+            visible={true}
+            transparent
+            animationType="none"
+            statusBarTranslucent
+            presentationStyle="overFullScreen"
+            hardwareAccelerated
+            onRequestClose={() => {}}
+          >
+            {toastContent}
+          </Modal>
+        )
       ) : null}
     </ToastContext.Provider>
   );
