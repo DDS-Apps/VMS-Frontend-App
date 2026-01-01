@@ -12,3 +12,4 @@ export * from './useReceptionQueries';
 export * from './useSecurityQueries';
 export * from './usePublicInviteQueries';
 export * from './useAdminQueries';
+export * from './useMeetingRoomQueries';

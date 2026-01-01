@@ -12,3 +12,4 @@ export * from './userApiService';
 export * from './valetApiService';
 export * from './valetSelfServiceApiService';
 export * from './visitorApiService';
+export * from './meetingRoomApiService';
