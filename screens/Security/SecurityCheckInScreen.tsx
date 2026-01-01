@@ -16,6 +16,32 @@ import { applyOpacity } from "@/utils/statusStyles";
 import { useSecurityVisitorsQuery } from "@/hooks/queries/useSecurityQueries";
 import type { SecurityVisitorDto } from "@/types";
 import type { SecurityCheckInScreenProps } from "@/types/securityNavigation.types";
+import type { Theme } from "@/types/theme.types";
+
+const LAYOUT = {
+  cardPadding: Spacing.lg,
+  cardRadius: BorderRadius.md,
+  avatarSize: 44,
+};
+
+const VisitorAvatar = ({ name, theme, size = 44 }: { name: string; theme: Theme; size?: number }) => {
+  const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  return (
+    <View style={[
+      styles.avatar, 
+      { 
+        backgroundColor: applyOpacity(theme.primary, '15'),
+        width: size,
+        height: size,
+        borderRadius: LAYOUT.cardRadius - 2,
+      }
+    ]}>
+      <ThemedText style={[styles.avatarText, { color: theme.primary, fontSize: size * 0.36 }]}>
+        {initials}
+      </ThemedText>
+    </View>
+  );
+};
 
 type SecurityVisitorStatus = 'expected' | 'checked_in' | 'checked_out' | 'cancelled';
 
@@ -344,6 +370,30 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
   const renderVisitorCard = (visitor: SecurityVisitor) => {
     const statusConfig = getStatusConfig(visitor.status);
     
+    const detailParts = [
+      visitor.host,
+      formatTimeFromString(visitor.visitTime),
+      visitor.checkInTime ? `${t('actions.checkIn')}: ${formatTimeFromString(visitor.checkInTime)}` : null,
+      visitor.checkOutTime ? `${t('actions.checkOut')}: ${formatTimeFromString(visitor.checkOutTime)}` : null,
+    ].filter(Boolean);
+
+    const getServiceInfo = () => {
+      const parts: string[] = [];
+      if (visitor.parking.hasParking) {
+        parts.push(visitor.parking.slotNumber || t('parking.parkingAssigned'));
+      } else {
+        parts.push(t('security.noParking'));
+      }
+      if (visitor.valet.hasValet) {
+        parts.push(t('security.valetService'));
+      }
+      return parts;
+    };
+
+    const serviceParts = getServiceInfo();
+    const hasParking = visitor.parking.hasParking;
+    const hasValet = visitor.valet.hasValet;
+    
     return (
       <Pressable 
         key={visitor.id}
@@ -355,90 +405,58 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
             { backgroundColor: theme.surface }
           ]}
         >
-          <View style={[styles.statusBorderLine, { backgroundColor: statusConfig.borderColor }]} />
+          <View style={[styles.cardAccent, { backgroundColor: statusConfig.borderColor }]} />
           
-          <View style={styles.cardContent}>
-            <View style={[styles.cardHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <View style={styles.nameSection}>
-                <ThemedText style={[Typography.body, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
+          <View style={styles.cardMainSection}>
+            <View style={[styles.cardHeaderRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <VisitorAvatar name={visitor.name} theme={theme} size={LAYOUT.avatarSize} />
+              
+              <View style={[styles.cardNameSection, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 16, textAlign: isRTL ? 'right' : 'left' }]}>
                   {visitor.name}
                 </ThemedText>
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-                  {visitor.company}
-                </ThemedText>
+                {visitor.company ? (
+                  <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 2, textAlign: isRTL ? 'right' : 'left' }]}>
+                    {visitor.company}
+                  </ThemedText>
+                ) : null}
               </View>
-              <View style={[styles.statusBadge, { backgroundColor: statusConfig.bgColor }]}>
+
+              <View style={[styles.statusBadge, { backgroundColor: statusConfig.bgColor, borderColor: applyOpacity(statusConfig.color, '30') }]}>
                 <ThemedText style={[styles.statusText, { color: statusConfig.color }]}>
                   {statusConfig.label}
                 </ThemedText>
               </View>
             </View>
 
-            <View style={styles.cardDetails}>
-              <View style={[styles.detailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                <DDIcon name="user" size={14} variant="muted" />
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-                  {t('reception.hostName')}: {visitor.host}
-                </ThemedText>
-              </View>
-              {visitor.meetingRoom ? (
-                <View style={[styles.detailRow, { marginTop: Spacing.xs, flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                  <DDIcon name="home" size={14} variant="muted" />
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-                    {visitor.meetingRoom.roomName} ({visitor.meetingRoom.floor})
-                  </ThemedText>
-                </View>
-              ) : null}
+            <Spacer height={Spacing.sm} />
+
+            <View style={[styles.compactDetailsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <DDIcon name="user" size={14} variant="muted" />
+              <ThemedText style={[styles.compactDetailText, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+                {detailParts.join('  |  ')}
+              </ThemedText>
             </View>
 
-            <View style={[styles.serviceBadgesRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              {visitor.parking.hasParking ? (
-                <View style={[styles.serviceBadge, { backgroundColor: applyOpacity(theme.primary, '12'), flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                  <DDIcon name="map-pin" size={12} color={theme.primary} />
-                  <ThemedText style={[styles.serviceBadgeText, { color: theme.primary }]}>
-                    {visitor.parking.slotNumber}
-                  </ThemedText>
-                </View>
-              ) : (
-                <View style={[styles.serviceBadge, { backgroundColor: applyOpacity(theme.textSecondary, '12'), flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                  <DDIcon name="x-circle" size={12} color={theme.textSecondary} />
-                  <ThemedText style={[styles.serviceBadgeText, { color: theme.textSecondary }]}>
-                    {t('security.noParking')}
-                  </ThemedText>
-                </View>
-              )}
-              {visitor.valet.hasValet ? (
-                <View style={[styles.serviceBadge, { backgroundColor: applyOpacity(theme.accent, '12'), flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <Spacer height={Spacing.sm} />
+
+            <View style={[styles.compactServiceRow, { 
+              backgroundColor: hasParking ? applyOpacity(theme.success, '08') : applyOpacity(theme.textSecondary, '08'),
+              flexDirection: isRTL ? 'row-reverse' : 'row'
+            }]}>
+              <DDIcon 
+                name={hasParking ? "map-pin" : "x-circle"} 
+                size={14} 
+                color={hasParking ? theme.success : theme.textSecondary} 
+              />
+              <ThemedText style={[styles.compactServiceText, { color: hasParking ? theme.success : theme.textSecondary }]}>
+                {serviceParts.join('  |  ')}
+              </ThemedText>
+              {hasValet ? (
+                <View style={[styles.valetBadge, { backgroundColor: applyOpacity(theme.accent, '15') }]}>
                   <DDIcon name="truck" size={12} color={theme.accent} />
-                  <ThemedText style={[styles.serviceBadgeText, { color: theme.accent }]}>
+                  <ThemedText style={[styles.valetBadgeText, { color: theme.accent }]}>
                     {t('security.valetService')}
-                  </ThemedText>
-                </View>
-              ) : null}
-            </View>
-
-            <View style={[styles.timestampsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <View style={[styles.timestampChip, { backgroundColor: applyOpacity(theme.primary, '10'), flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                <DDIcon name="clock" size={12} color={theme.primary} />
-                <ThemedText style={[styles.timestampText, { color: theme.primary }]}>
-                  {formatTimeFromString(visitor.visitTime)}
-                </ThemedText>
-              </View>
-              
-              {visitor.checkInTime ? (
-                <View style={[styles.timestampChip, { backgroundColor: applyOpacity(theme.success, '10'), flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                  <DDIcon name="log-in" size={12} color={theme.success} />
-                  <ThemedText style={[styles.timestampText, { color: theme.success }]}>
-                    {t('actions.checkIn')}: {formatTimeFromString(visitor.checkInTime)}
-                  </ThemedText>
-                </View>
-              ) : null}
-              
-              {visitor.checkOutTime ? (
-                <View style={[styles.timestampChip, { backgroundColor: applyOpacity(theme.textSecondary, '10'), flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                  <DDIcon name="log-out" size={12} color={theme.textSecondary} />
-                  <ThemedText style={[styles.timestampText, { color: theme.textSecondary }]}>
-                    {t('actions.checkOut')}: {formatTimeFromString(visitor.checkOutTime)}
                   </ThemedText>
                 </View>
               ) : null}
@@ -654,85 +672,77 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
   },
   visitorCard: {
-    borderRadius: BorderRadius.lg,
+    borderRadius: BorderRadius.md,
     overflow: 'hidden',
-  },
-  statusBorderLine: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    width: 4,
-    borderTopStartRadius: BorderRadius.lg,
-    borderBottomStartRadius: BorderRadius.lg,
-  },
-  cardContent: {
-    padding: Spacing.lg,
-    paddingStart: Spacing.lg + 4,
-  },
-  cardHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
   },
-  nameSection: {
+  cardAccent: {
+    width: 4,
+  },
+  cardMainSection: {
     flex: 1,
-    marginEnd: Spacing.md,
+    padding: Spacing.lg,
+  },
+  cardHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  avatar: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarText: {
+    fontWeight: '600',
+    fontFamily: 'Inter_600SemiBold',
+  },
+  cardNameSection: {
+    flex: 1,
+    marginHorizontal: Spacing.md,
   },
   statusBadge: {
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,
     borderRadius: BorderRadius.full,
+    borderWidth: 1,
   },
   statusText: {
     fontSize: 11,
     fontWeight: '600',
     fontFamily: 'Inter_600SemiBold',
   },
-  cardDetails: {
-    marginTop: Spacing.sm,
-  },
-  detailRow: {
+  compactDetailsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
-  serviceBadgesRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    marginTop: Spacing.sm,
-    flexWrap: 'wrap',
+  compactDetailText: {
+    fontSize: 13,
+    fontFamily: 'Inter_400Regular',
+    flex: 1,
   },
-  serviceBadge: {
+  compactServiceRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    borderRadius: BorderRadius.md,
-    gap: 4,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.sm,
+    gap: 6,
   },
-  serviceBadgeText: {
-    fontSize: 11,
-    fontWeight: '500',
+  compactServiceText: {
+    fontSize: 13,
     fontFamily: 'Inter_500Medium',
+    flex: 1,
   },
-  timestampsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    marginTop: Spacing.md,
-    flexWrap: 'wrap',
-  },
-  timestampChip: {
+  valetBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    borderRadius: BorderRadius.md,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.sm,
     gap: 4,
   },
-  timestampText: {
-    fontSize: 12,
+  valetBadgeText: {
+    fontSize: 11,
     fontWeight: '500',
     fontFamily: 'Inter_500Medium',
   },
