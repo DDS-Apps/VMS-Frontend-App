@@ -459,6 +459,145 @@ interface VisitorInviteScreenProps {
   };
 }
 
+const BrandingHeader = memo(function BrandingHeader() {
+  return (
+    <View style={helperStyles.brandingHeader}>
+      <View style={helperStyles.logoContainer}>
+        <View style={helperStyles.logoIcon}>
+          <DDIcon name="shield" size={24} color={PageColors.accent} />
+        </View>
+        <View>
+          <ThemedText style={helperStyles.brandName}>DALLAH DIGITAL</ThemedText>
+          <ThemedText style={helperStyles.brandTagline}>Visitor Management System</ThemedText>
+        </View>
+      </View>
+    </View>
+  );
+});
+
+const GlassCard = memo(function GlassCard({ children, style }: { children: React.ReactNode; style?: any }) {
+  return (
+    <View style={[helperStyles.glassCard, style]}>
+      {children}
+    </View>
+  );
+});
+
+const ContentWrapper = memo(function ContentWrapper({ children }: { children: React.ReactNode }) {
+  return (
+    <View style={helperStyles.contentWrapper}>
+      {children}
+    </View>
+  );
+});
+
+interface InfoRowProps {
+  icon: string;
+  label: string;
+  value: string;
+  subValue?: string;
+}
+
+const InfoRow = memo(function InfoRow({ icon, label, value, subValue }: InfoRowProps) {
+  return (
+    <View style={helperStyles.infoRow}>
+      <View style={helperStyles.infoIconContainer}>
+        <DDIcon name={icon as any} size={18} color={PageColors.accent} />
+      </View>
+      <View style={helperStyles.infoContent}>
+        <ThemedText style={helperStyles.infoLabel}>{label}</ThemedText>
+        <ThemedText style={helperStyles.infoValue}>{value}</ThemedText>
+        {subValue ? (
+          <ThemedText style={helperStyles.infoSubValue}>{subValue}</ThemedText>
+        ) : null}
+      </View>
+    </View>
+  );
+});
+
+const helperStyles = StyleSheet.create({
+  brandingHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.xl * 1.5,
+  },
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+  },
+  logoIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: PageColors.cardBackground,
+    borderWidth: 1,
+    borderColor: PageColors.cardBorder,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  brandName: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: PageColors.textPrimary,
+    letterSpacing: 1,
+    fontFamily: FontFamily.latinBold,
+  },
+  brandTagline: {
+    fontSize: 12,
+    color: PageColors.textSecondary,
+    fontFamily: FontFamily.latinRegular,
+  },
+  glassCard: {
+    backgroundColor: PageColors.cardBackground,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: PageColors.cardBorder,
+    padding: Spacing.lg,
+  },
+  contentWrapper: {
+    width: '100%',
+    maxWidth: 600,
+    alignSelf: 'center',
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingVertical: Spacing.sm,
+  },
+  infoIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: BorderRadius.sm,
+    backgroundColor: PageColors.accent + '15',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: Spacing.md,
+  },
+  infoContent: {
+    flex: 1,
+  },
+  infoLabel: {
+    fontSize: 12,
+    color: PageColors.textMuted,
+    marginBottom: 2,
+    fontFamily: FontFamily.latinRegular,
+  },
+  infoValue: {
+    fontSize: 15,
+    color: PageColors.textPrimary,
+    fontWeight: '500',
+    fontFamily: FontFamily.latinMedium,
+  },
+  infoSubValue: {
+    fontSize: 13,
+    color: PageColors.textSecondary,
+    marginTop: 2,
+    fontFamily: FontFamily.latinRegular,
+  },
+});
+
 export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
@@ -730,51 +869,6 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
     if (parts.length === 0) return '?';
     return parts.map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
-
-  // Branding Header Component
-  const BrandingHeader = () => (
-    <View style={styles.brandingHeader}>
-      <View style={styles.logoContainer}>
-        <View style={styles.logoIcon}>
-          <DDIcon name="shield" size={24} color={PageColors.accent} />
-        </View>
-        <View>
-          <ThemedText style={styles.brandName}>DALLAH DIGITAL</ThemedText>
-          <ThemedText style={styles.brandTagline}>Visitor Management System</ThemedText>
-        </View>
-      </View>
-    </View>
-  );
-
-  // Glass Card Component
-  const GlassCard = ({ children, style }: { children: React.ReactNode; style?: any }) => (
-    <View style={[styles.glassCard, style]}>
-      {children}
-    </View>
-  );
-
-  // Content Wrapper Component (max-width 600px for desktop)
-  const ContentWrapper = ({ children }: { children: React.ReactNode }) => (
-    <View style={styles.contentWrapper}>
-      {children}
-    </View>
-  );
-
-  // Info Row Component
-  const InfoRow = ({ icon, label, value, subValue }: { icon: string; label: string; value: string; subValue?: string }) => (
-    <View style={styles.infoRow}>
-      <View style={styles.infoIconContainer}>
-        <DDIcon name={icon as any} size={18} color={PageColors.accent} />
-      </View>
-      <View style={styles.infoContent}>
-        <ThemedText style={styles.infoLabel}>{label}</ThemedText>
-        <ThemedText style={styles.infoValue}>{value}</ThemedText>
-        {subValue ? (
-          <ThemedText style={styles.infoSubValue}>{subValue}</ThemedText>
-        ) : null}
-      </View>
-    </View>
-  );
 
   // If action was completed (accept/reject), show success immediately without waiting for refetch
   // Use the snapshot to ensure we have data even if refetch causes invite to be undefined
