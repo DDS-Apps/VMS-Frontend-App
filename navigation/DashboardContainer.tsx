@@ -47,6 +47,7 @@ import ValetAdminDashboardScreen from "@/screens/ValetAdmin/ValetAdminDashboardS
 import ValetAdminDriversScreen from "@/screens/ValetAdmin/ValetAdminDriversScreen";
 import ValetAllRequestsScreen from "@/screens/ValetAdmin/ValetAllRequestsScreen";
 import ValetRequestDetailsScreen from "@/screens/ValetAdmin/ValetRequestDetailsScreen";
+import ValetAdminParkingScreen from "@/screens/ValetAdmin/ValetAdminParkingScreen";
 import BuildingAdminDashboardScreen from "@/screens/BuildingAdmin/BuildingAdminDashboardScreen";
 import AllRequestsScreen from "@/screens/BuildingAdmin/AllRequestsScreen";
 import DriverLoadScreen from "@/screens/ValetAdmin/DriverLoadScreen";

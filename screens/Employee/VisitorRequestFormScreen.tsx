@@ -138,7 +138,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
 
   const { data: roomAvailability, isLoading: isLoadingRooms } = useRoomAvailabilityQuery(roomAvailabilityParams);
   
-  const isRoomAvailable = Array.isArray(roomAvailability) && roomAvailability.some(room => room.isAvailable);
+  const isRoomAvailable = roomAvailability?.available === true;
   const hasCheckedAvailability = roomAvailability !== undefined && !isLoadingRooms;
 
   useEffect(() => {
