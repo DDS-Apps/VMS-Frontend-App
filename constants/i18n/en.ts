@@ -879,6 +879,10 @@ export const en: TranslationKeys = {
     parkingPending: 'Parking Info Pending',
     todaysParkingStatus: "Today's Parking Status",
     noVisitorsExpected: 'No visitors expected',
+    withParking: 'With Parking',
+    withoutParking: 'Without Parking',
+    carInfoProvided: 'Car Info Provided',
+    carInfoPending: 'Car Info Pending',
   },
   valet: {
     valetService: 'Valet Service',
@@ -933,6 +937,8 @@ export const en: TranslationKeys = {
     driverLoadDistribution: 'Driver Load Distribution',
     overloaded: 'Overloaded',
     underutilized: 'Underutilized',
+    todaysVisitors: "Today's Visitors",
+    noVisitorsToday: 'No visitors expected today',
   },
   buffet: {
     buffetService: 'Buffet Service',

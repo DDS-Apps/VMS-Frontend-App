@@ -879,6 +879,10 @@ export const ar: TranslationKeys = {
     parkingPending: 'معلومات الموقف معلقة',
     todaysParkingStatus: 'حالة المواقف اليوم',
     noVisitorsExpected: 'لا يوجد زوار متوقعون',
+    withParking: 'مع موقف',
+    withoutParking: 'بدون موقف',
+    carInfoProvided: 'معلومات السيارة متوفرة',
+    carInfoPending: 'معلومات السيارة معلقة',
   },
   valet: {
     valetService: 'خدمة صف السيارات',
@@ -933,6 +937,8 @@ export const ar: TranslationKeys = {
     driverLoadDistribution: 'توزيع حمل السائقين',
     overloaded: 'محمل بشكل زائد',
     underutilized: 'غير مستغل',
+    todaysVisitors: 'زوار اليوم',
+    noVisitorsToday: 'لا يوجد زوار متوقعون اليوم',
   },
   buffet: {
     buffetService: 'خدمة البوفيه',

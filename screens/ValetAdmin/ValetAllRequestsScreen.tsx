@@ -1,23 +1,16 @@
-import React, { useState, useCallback } from "react";
-import { View, StyleSheet, Pressable, ScrollView, GestureResponderEvent } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
+import React, { useState, useMemo } from "react";
+import { View, StyleSheet, Pressable, ScrollView, ActivityIndicator, RefreshControl } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
-import { ScreenFlatList } from "@/components/ScreenFlatList";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { DDIcon } from "@/components/DDIcon";
 import { applyOpacity } from "@/utils/statusStyles";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import {
-  getValetRequests,
-  updateValetRequestStatus,
-  ValetRequest,
-} from "@/services/state/valetAdminState";
-import type { ValetAllRequestsScreenProps } from "@/types/valetAdminNavigation.types";
+import { useValetParkingDashboard } from "@/hooks/queries/useValetAdminQueries";
+import type { ValetParkingVisitorDto } from "@/types/api.types";
 import type { Theme } from "@/types/theme.types";
 
 const LAYOUT = {
@@ -26,18 +19,10 @@ const LAYOUT = {
   sectionSpacing: Spacing.xxl,
   contentGap: Spacing.md,
   statCardRadius: BorderRadius.md,
-  statusBorderWidth: 3,
-  tableRowHeight: 110,
-  tableFixedColumnWidth: 160,
-  tableScrollColumnWidth: 200,
 };
 
-const StatusAccent = ({ color }: { color: string }) => (
-  <View style={[styles.statusAccent, { backgroundColor: color }]} />
-);
-
 const VisitorAvatar = ({ name, theme, size = 44 }: { name: string; theme: Theme; size?: number }) => {
-  const initials = name.split(' ').map(n => n[0]).join('');
+  const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2);
   return (
     <View style={[
       styles.avatar, 
@@ -55,266 +40,240 @@ const VisitorAvatar = ({ name, theme, size = 44 }: { name: string; theme: Theme;
   );
 };
 
-const DateTimeDisplay = ({ time, theme }: { time: string; theme: Theme }) => {
+const StatusBadge = ({ needsParking, hasCarInfo, theme, t }: { 
+  needsParking: boolean; 
+  hasCarInfo: boolean;
+  theme: Theme; 
+  t: (key: string) => string;
+}) => {
+  let color: string;
+  let label: string;
+  let icon: string;
+
+  if (!needsParking) {
+    color = theme.textSecondary;
+    label = t('parking.noParking');
+    icon = 'x-circle';
+  } else if (hasCarInfo) {
+    color = theme.success;
+    label = t('parking.carInfoProvided');
+    icon = 'check-circle';
+  } else {
+    color = theme.warning;
+    label = t('parking.carInfoPending');
+    icon = 'alert-circle';
+  }
+
   return (
-    <View style={styles.dateTimeRow}>
-      <DDIcon name="clock" size={14} variant="muted" />
-      <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
-        {time}
+    <View style={[
+      styles.statusBadge, 
+      { 
+        backgroundColor: applyOpacity(color, '15'), 
+        borderColor: applyOpacity(color, '30'),
+      }
+    ]}>
+      <DDIcon name={icon} size={12} color={color} />
+      <ThemedText style={[styles.statusText, { color, marginStart: 4 }]}>
+        {label}
       </ThemedText>
     </View>
   );
 };
 
-const StatusBadge = ({ status, statusColor, statusLabel, compact = false }: { status: string; statusColor: string; statusLabel: string; compact?: boolean }) => (
-  <View style={[
-    styles.statusBadge, 
-    { 
-      backgroundColor: applyOpacity(statusColor, '15'), 
-      borderColor: applyOpacity(statusColor, '30'),
-      paddingHorizontal: compact ? Spacing.sm : Spacing.md,
-      paddingVertical: compact ? 6 : 8,
-    }
-  ]}>
-    <ThemedText style={[styles.statusText, { color: statusColor, fontSize: compact ? 11 : 12 }]}>
-      {statusLabel}
-    </ThemedText>
-  </View>
-);
-
-const StatsCards = ({ stats, theme, t }: { stats: { total: number; pending: number; assigned: number; completed: number }; theme: Theme; t: (key: string) => string }) => (
+const StatsCards = ({ 
+  totalVisitors, 
+  withParking, 
+  withoutParking, 
+  theme, 
+  t 
+}: { 
+  totalVisitors: number;
+  withParking: number;
+  withoutParking: number;
+  theme: Theme; 
+  t: (key: string) => string;
+}) => (
   <View style={styles.statsGrid}>
     <ThemedView style={[styles.statCard, { backgroundColor: theme.surface }]}>
       <View style={[styles.statIconContainer, { backgroundColor: applyOpacity(theme.primary, '20') }]}>
-        <DDIcon name="navigation" size={24} variant="primary" />
+        <DDIcon name="users" size={24} variant="primary" />
       </View>
       <Spacer height={Spacing.sm} />
       <ThemedText style={[Typography.title, { fontSize: 32, lineHeight: 40 }]}>
-        {stats.total}
+        {totalVisitors}
       </ThemedText>
       <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: 'center' }]}>
-        {t('dashboard.totalRequests')}
-      </ThemedText>
-    </ThemedView>
-
-    <ThemedView style={[styles.statCard, { backgroundColor: theme.surface }]}>
-      <View style={[styles.statIconContainer, { backgroundColor: applyOpacity(theme.warning, '20') }]}>
-        <DDIcon name="clock" size={24} variant="warning" />
-      </View>
-      <Spacer height={Spacing.sm} />
-      <ThemedText style={[Typography.title, { fontSize: 32, lineHeight: 40 }]}>
-        {stats.pending + stats.assigned}
-      </ThemedText>
-      <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: 'center' }]}>
-        {t('status.inProgress')}
+        {t('dashboard.totalVisitors')}
       </ThemedText>
     </ThemedView>
 
     <ThemedView style={[styles.statCard, { backgroundColor: theme.surface }]}>
       <View style={[styles.statIconContainer, { backgroundColor: applyOpacity(theme.success, '20') }]}>
-        <DDIcon name="check-circle" size={24} variant="success" />
+        <DDIcon name="truck" size={24} variant="success" />
       </View>
       <Spacer height={Spacing.sm} />
       <ThemedText style={[Typography.title, { fontSize: 32, lineHeight: 40 }]}>
-        {stats.completed}
+        {withParking}
       </ThemedText>
       <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: 'center' }]}>
-        {t('status.completed')}
+        {t('parking.withParking')}
+      </ThemedText>
+    </ThemedView>
+
+    <ThemedView style={[styles.statCard, { backgroundColor: theme.surface }]}>
+      <View style={[styles.statIconContainer, { backgroundColor: applyOpacity(theme.textSecondary, '20') }]}>
+        <DDIcon name="x-circle" size={24} variant="muted" />
+      </View>
+      <Spacer height={Spacing.sm} />
+      <ThemedText style={[Typography.title, { fontSize: 32, lineHeight: 40 }]}>
+        {withoutParking}
+      </ThemedText>
+      <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: 'center' }]}>
+        {t('parking.withoutParking')}
       </ThemedText>
     </ThemedView>
   </View>
 );
 
-function getStatusColor(status: string, theme: Theme) {
-  switch (status) {
-    case 'pending':
-      return theme.primary;
-    case 'assigned':
-      return theme.warning;
-    case 'parked':
-      return theme.info;
-    case 'ready_for_pickup':
-      return theme.success;
-    case 'completed':
-      return theme.secondary;
-    case 'cancelled':
-      return theme.error;
-    default:
-      return theme.textSecondary;
-  }
-}
-
-function getStatusLabel(status: string, t: (key: string) => string) {
-  switch (status) {
-    case 'pending':
-      return t('status.pending');
-    case 'assigned':
-      return t('status.assigned');
-    case 'parked':
-      return t('parking.parked');
-    case 'ready_for_pickup':
-      return t('valet.readyForPickup');
-    case 'completed':
-      return t('status.completed');
-    case 'cancelled':
-      return t('status.cancelled');
-    default:
-      return status;
-  }
-}
-
-const ValetRequestCard = React.memo(({ 
-  request, 
-  isExpanded,
-  onPress,
-  onToggleExpand,
-  onComplete,
-  theme 
+const VisitorCard = React.memo(({ 
+  visitor, 
+  theme,
+  t,
 }: { 
-  request: ValetRequest; 
-  isExpanded: boolean;
-  onPress: () => void;
-  onToggleExpand: () => void;
-  onComplete: (e: GestureResponderEvent) => void;
+  visitor: ValetParkingVisitorDto; 
   theme: Theme;
+  t: (key: string) => string;
 }) => {
-  const { t } = useTranslation();
-  const statusColor = getStatusColor(request.status, theme);
-  const statusLabel = getStatusLabel(request.status, t);
+  const hasCarInfo = !!(visitor.licensePlate && visitor.carModel);
 
   return (
-    <ThemedView style={[styles.requestCard, { backgroundColor: theme.surface }]}>
-      <StatusAccent color={statusColor} />
+    <ThemedView style={[styles.visitorCard, { backgroundColor: theme.surface }]}>
+      <View style={[
+        styles.cardAccent, 
+        { backgroundColor: visitor.visitorNeedsParking ? theme.success : theme.textSecondary }
+      ]} />
 
-      <Pressable onPress={onPress}>
-        <View style={styles.cardMainSection}>
-          <View style={styles.cardHeaderRow}>
-            <VisitorAvatar name={request.visitorName} theme={theme} />
-            
-            <View style={styles.cardNameSection}>
-              <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 16 }]}>
-                {request.visitorName}
-              </ThemedText>
+      <View style={styles.cardMainSection}>
+        <View style={styles.cardHeaderRow}>
+          <VisitorAvatar name={visitor.visitorName} theme={theme} />
+          
+          <View style={styles.cardNameSection}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 16 }]}>
+              {visitor.visitorName}
+            </ThemedText>
+            {visitor.visitorCompany ? (
               <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 2 }]}>
-                {t('reception.hostName')}: {request.hostName}
+                {visitor.visitorCompany}
               </ThemedText>
-            </View>
-
-            <StatusBadge status={request.status} statusColor={statusColor} statusLabel={statusLabel} compact />
+            ) : null}
           </View>
 
-          <Spacer height={LAYOUT.contentGap} />
+          <StatusBadge 
+            needsParking={visitor.visitorNeedsParking} 
+            hasCarInfo={hasCarInfo}
+            theme={theme} 
+            t={t}
+          />
+        </View>
 
-          {request.vehicleInfo ? (
+        <Spacer height={LAYOUT.contentGap} />
+
+        <View style={styles.detailsRow}>
+          <View style={styles.detailItem}>
+            <DDIcon name="user" size={14} variant="muted" />
+            <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
+              {t('reception.hostName')}: {visitor.hostName}
+            </ThemedText>
+          </View>
+        </View>
+
+        {visitor.hostDepartment ? (
+          <>
+            <Spacer height={Spacing.xs} />
             <View style={styles.detailsRow}>
               <View style={styles.detailItem}>
-                <DDIcon name="truck" size={14} variant="muted" />
+                <DDIcon name="briefcase" size={14} variant="muted" />
                 <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
-                  {request.vehicleInfo.make} {request.vehicleInfo.model} - {request.vehicleInfo.color}
+                  {visitor.hostDepartment}
                 </ThemedText>
               </View>
             </View>
-          ) : null}
+          </>
+        ) : null}
 
-          <Spacer height={Spacing.sm} />
+        <Spacer height={Spacing.xs} />
 
-          <View style={styles.detailsRow}>
-            <View style={styles.detailItem}>
-              <DDIcon name="clock" size={14} variant="muted" />
-              <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
-                {request.pickupTime} - {request.returnTime}
+        <View style={styles.detailsRow}>
+          <View style={styles.detailItem}>
+            <DDIcon name="clock" size={14} variant="muted" />
+            <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
+              {visitor.visitTime}
+            </ThemedText>
+          </View>
+          {visitor.isWalkIn ? (
+            <View style={[styles.walkInBadge, { backgroundColor: applyOpacity(theme.info, '15') }]}>
+              <ThemedText style={[styles.walkInText, { color: theme.info }]}>
+                {t('reception.walkIn')}
               </ThemedText>
             </View>
-            {request.parkingSlot ? (
-              <View style={[styles.detailItem, { marginStart: Spacing.md }]}>
-                <DDIcon name="map-pin" size={14} variant="muted" />
-                <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
-                  {t('parking.slot')} {request.parkingSlot}
-                </ThemedText>
-              </View>
-            ) : null}
-          </View>
-
-          {request.assignedDriver ? (
-            <>
-              <Spacer height={Spacing.sm} />
-              <View style={styles.detailsRow}>
-                <View style={styles.detailItem}>
-                  <DDIcon name="user" size={14} variant="muted" />
-                  <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
-                    {t('valet.driver')}: {request.assignedDriver.name}
-                  </ThemedText>
-                </View>
-              </View>
-            </>
-          ) : null}
-
-          {request.status !== 'completed' && request.status !== 'cancelled' ? (
-            <>
-              <Spacer height={LAYOUT.contentGap} />
-              <View style={styles.actionsRow}>
-                <Pressable
-                  style={[styles.actionButton, { backgroundColor: applyOpacity(theme.primary, '12') }]}
-                  onPress={onPress}
-                >
-                  <DDIcon name="eye" size={14} color={theme.primary} />
-                  <ThemedText style={[styles.actionButtonText, { color: theme.primary }]}>
-                    {t('common.viewDetails')}
-                  </ThemedText>
-                </Pressable>
-                <Pressable
-                  style={[styles.actionButton, { backgroundColor: applyOpacity(theme.success, '12') }]}
-                  onPress={(e) => onComplete(e)}
-                >
-                  <DDIcon name="check" size={14} color={theme.success} />
-                  <ThemedText style={[styles.actionButtonText, { color: theme.success }]}>
-                    {t('actions.markAsComplete')}
-                  </ThemedText>
-                </Pressable>
-              </View>
-            </>
           ) : null}
         </View>
-      </Pressable>
 
-      {isExpanded && request.vehicleInfo ? (
-        <>
-          <View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
-          <View style={styles.expandedContentInside}>
-            <View style={styles.secondaryDetail}>
-              <DDIcon name="tag" size={14} variant="muted" />
-              <ThemedText style={[Typography.caption, { marginStart: 6, color: theme.textSecondary, fontSize: 12 }]}>
-                {t('valet.plateNumber')}: {request.vehicleInfo.plateNumber}
-              </ThemedText>
+        {visitor.visitorNeedsParking && hasCarInfo ? (
+          <>
+            <Spacer height={LAYOUT.contentGap} />
+            <View style={[styles.carInfoSection, { backgroundColor: applyOpacity(theme.success, '08') }]}>
+              <View style={styles.carInfoRow}>
+                <DDIcon name="tag" size={14} variant="success" />
+                <ThemedText style={[styles.carInfoLabel, { color: theme.textSecondary }]}>
+                  {t('form.licensePlate')}:
+                </ThemedText>
+                <ThemedText style={[styles.carInfoValue, { color: theme.text }]}>
+                  {visitor.licensePlate}
+                </ThemedText>
+              </View>
+              <Spacer height={Spacing.xs} />
+              <View style={styles.carInfoRow}>
+                <DDIcon name="truck" size={14} variant="success" />
+                <ThemedText style={[styles.carInfoLabel, { color: theme.textSecondary }]}>
+                  {t('form.carModel')}:
+                </ThemedText>
+                <ThemedText style={[styles.carInfoValue, { color: theme.text }]}>
+                  {visitor.carModel}
+                </ThemedText>
+              </View>
+              {visitor.carColor ? (
+                <>
+                  <Spacer height={Spacing.xs} />
+                  <View style={styles.carInfoRow}>
+                    <DDIcon name="droplet" size={14} variant="success" />
+                    <ThemedText style={[styles.carInfoLabel, { color: theme.textSecondary }]}>
+                      {t('form.carColor')}:
+                    </ThemedText>
+                    <ThemedText style={[styles.carInfoValue, { color: theme.text }]}>
+                      {visitor.carColor}
+                    </ThemedText>
+                  </View>
+                </>
+              ) : null}
             </View>
-            {request.notes ? (
-              <>
-                <Spacer height={Spacing.sm} />
-                <View style={styles.secondaryDetail}>
-                  <DDIcon name="file-text" size={14} variant="muted" />
-                  <ThemedText style={[Typography.caption, { marginStart: 6, color: theme.textSecondary, flex: 1, fontSize: 12 }]}>
-                    {t('form.notes')}: {request.notes}
-                  </ThemedText>
-                </View>
-              </>
-            ) : null}
-          </View>
-        </>
-      ) : null}
+          </>
+        ) : null}
 
-      <Pressable
-        style={styles.moreDetailsButton}
-        onPress={onToggleExpand}
-      >
-        <ThemedText style={[styles.moreDetailsText, { color: theme.primary }]}>
-          {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
-        </ThemedText>
-        <DDIcon 
-          name={isExpanded ? "chevron-up" : "chevron-down"} 
-          size={16} 
-          variant="primary" 
-        />
-      </Pressable>
+        {visitor.visitorPhone ? (
+          <>
+            <Spacer height={Spacing.sm} />
+            <View style={styles.detailsRow}>
+              <View style={styles.detailItem}>
+                <DDIcon name="phone" size={14} variant="muted" />
+                <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
+                  {visitor.visitorPhone}
+                </ThemedText>
+              </View>
+            </View>
+          </>
+        ) : null}
+      </View>
     </ThemedView>
   );
 });
@@ -324,257 +283,99 @@ const EmptyState = ({ theme, t }: { theme: Theme; t: (key: string) => string }) 
     <DDIcon name="inbox" size={48} variant="muted" />
     <Spacer height={Spacing.md} />
     <ThemedText style={[Typography.body, { color: theme.textSecondary }]}>
-      {t('common.noData')}
+      {t('valet.noVisitorsToday')}
     </ThemedText>
   </ThemedView>
 );
 
-const ValetRequestTableRow = React.memo(({ 
-  request, 
-  onPress,
-  onComplete,
-  theme 
-}: { 
-  request: ValetRequest; 
-  onPress: () => void;
-  onComplete: (e: GestureResponderEvent) => void;
-  theme: Theme;
-}) => {
-  const { t } = useTranslation();
-  const statusColor = getStatusColor(request.status, theme);
-  const statusLabel = getStatusLabel(request.status, t);
+const LoadingState = ({ theme }: { theme: Theme }) => (
+  <View style={styles.loadingContainer}>
+    <ActivityIndicator size="large" color={theme.primary} />
+  </View>
+);
 
-  return (
-    <Pressable onPress={onPress}>
-      <ThemedView style={[styles.tableRow, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-        <StatusAccent color={statusColor} />
-        
-        <View style={[styles.fixedColumn, { width: LAYOUT.tableFixedColumnWidth }]}>
-          <View style={styles.fixedColumnContent}>
-            <View style={{ flex: 1 }}>
-              <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]} numberOfLines={2}>
-                {request.visitorName}
-              </ThemedText>
-              <Spacer height={4} />
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary }]} numberOfLines={1}>
-                {t('reception.hostName')}: {request.hostName}
-              </ThemedText>
-              <Spacer height={6} />
-              <View style={styles.dateTimeRow}>
-                <DDIcon name="clock" size={13} variant="muted" />
-                <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: 12 }]}>
-                  {request.pickupTime} - {request.returnTime}
-                </ThemedText>
-              </View>
-            </View>
-          </View>
-        </View>
-
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={true}
-          style={styles.scrollableColumns}
-          contentContainerStyle={styles.scrollableContent}
-          persistentScrollbar={true}
-          nestedScrollEnabled={true}
-        >
-          <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
-            <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
-              {t('valet.vehicle').toUpperCase()}
-            </ThemedText>
-            <Spacer height={10} />
-            {request.vehicleInfo ? (
-              <ThemedText style={[styles.columnValue, { fontSize: 14 }]} numberOfLines={2}>
-                {request.vehicleInfo.make} {request.vehicleInfo.model}
-              </ThemedText>
-            ) : (
-              <ThemedText style={[styles.columnValue, { fontSize: 14, color: theme.textSecondary }]}>
-                {t('valet.noVehicleInfo')}
-              </ThemedText>
-            )}
-          </View>
-
-          <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
-            <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
-              {t('valet.driver').toUpperCase()}
-            </ThemedText>
-            <Spacer height={10} />
-            {request.assignedDriver ? (
-              <ThemedText style={[styles.columnValue, { fontSize: 14, color: theme.success }]} numberOfLines={1}>
-                {request.assignedDriver.name}
-              </ThemedText>
-            ) : (
-              <ThemedText style={[styles.columnValue, { fontSize: 14, color: theme.textSecondary }]}>
-                {t('valet.unassigned')}
-              </ThemedText>
-            )}
-          </View>
-
-          <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth * 0.8 }]}>
-            <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
-              {t('parking.slot').toUpperCase()}
-            </ThemedText>
-            <Spacer height={10} />
-            {request.parkingSlot ? (
-              <ThemedText style={[styles.columnValue, { fontSize: 14 }]} numberOfLines={1}>
-                {request.parkingSlot}
-              </ThemedText>
-            ) : (
-              <ThemedText style={[styles.columnValue, { fontSize: 14, color: theme.textSecondary }]}>
-                --
-              </ThemedText>
-            )}
-          </View>
-
-          <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth * 0.8 }]}>
-            <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
-              {t('common.status').toUpperCase()}
-            </ThemedText>
-            <Spacer height={10} />
-            <StatusBadge status={request.status} statusColor={statusColor} statusLabel={statusLabel} compact />
-          </View>
-
-          {request.status !== 'completed' && request.status !== 'cancelled' ? (
-            <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
-              <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
-                {t('valet.actions').toUpperCase()}
-              </ThemedText>
-              <Spacer height={10} />
-              <View style={styles.tableActionsRow}>
-                <Pressable
-                  style={[styles.tableActionButton, { backgroundColor: applyOpacity(theme.primary, '12') }]}
-                  onPress={onPress}
-                >
-                  <DDIcon name="eye" size={14} color={theme.primary} />
-                  <ThemedText style={[styles.tableActionText, { color: theme.primary }]}>
-                    {t('common.view')}
-                  </ThemedText>
-                </Pressable>
-                <Pressable
-                  style={[styles.tableActionButton, { backgroundColor: applyOpacity(theme.success, '12') }]}
-                  onPress={onComplete}
-                >
-                  <DDIcon name="check" size={14} color={theme.success} />
-                  <ThemedText style={[styles.tableActionText, { color: theme.success }]}>
-                    {t('common.done')}
-                  </ThemedText>
-                </Pressable>
-              </View>
-            </View>
-          ) : null}
-        </ScrollView>
-      </ThemedView>
+const ErrorState = ({ theme, t, onRetry }: { theme: Theme; t: (key: string) => string; onRetry: () => void }) => (
+  <ThemedView style={[styles.emptyState, { backgroundColor: theme.surface }]}>
+    <DDIcon name="alert-circle" size={48} variant="danger" />
+    <Spacer height={Spacing.md} />
+    <ThemedText style={[Typography.body, { color: theme.textSecondary, textAlign: 'center' }]}>
+      {t('common.errorLoadingData')}
+    </ThemedText>
+    <Spacer height={Spacing.md} />
+    <Pressable
+      style={[styles.retryButton, { backgroundColor: theme.primary }]}
+      onPress={onRetry}
+    >
+      <ThemedText style={[Typography.bodySmall, { color: theme.buttonText }]}>
+        {t('common.retry')}
+      </ThemedText>
     </Pressable>
-  );
-});
+  </ThemedView>
+);
 
-export default function ValetAllRequestsScreen({ navigation }: ValetAllRequestsScreenProps) {
+export default function ValetAllRequestsScreen() {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const insets = useSafeAreaInsets();
-  const [requests, setRequests] = useState<ValetRequest[]>([]);
-  const [filterStatus, setFilterStatus] = useState<string>('all');
-  const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
-  const [expandedCard, setExpandedCard] = useState<string | null>(null);
+  const [filterType, setFilterType] = useState<'all' | 'with_parking' | 'without_parking'>('all');
+  
+  const today = new Date().toISOString().split('T')[0];
+  const { data, isLoading, isError, refetch, isRefetching } = useValetParkingDashboard(today);
 
-  const parseTime = (timeStr: string): number => {
-    const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
-    if (!match) return 0;
-    let hours = parseInt(match[1], 10);
-    const minutes = parseInt(match[2], 10);
-    const period = match[3].toUpperCase();
-    if (period === 'PM' && hours !== 12) hours += 12;
-    if (period === 'AM' && hours === 12) hours = 0;
-    return hours * 60 + minutes;
-  };
-
-  const sortByTime = (reqs: ValetRequest[]): ValetRequest[] => {
-    return [...reqs].sort((a, b) => {
-      if (a.status === 'completed' && b.status !== 'completed') return 1;
-      if (a.status !== 'completed' && b.status === 'completed') return -1;
-      return parseTime(a.pickupTime) - parseTime(b.pickupTime);
-    });
-  };
-
-  useFocusEffect(
-    useCallback(() => {
-      setRequests(sortByTime(getValetRequests()));
-    }, [])
-  );
-
-  const handleViewDetails = (request: ValetRequest) => {
-    navigation.navigate('ValetRequestDetails', { request });
-  };
-
-  const handleMarkComplete = (request: ValetRequest, event?: GestureResponderEvent) => {
-    event?.stopPropagation?.();
-    updateValetRequestStatus(request.id, 'completed');
-    setRequests(sortByTime(getValetRequests()));
-  };
-
-  const stats = {
-    total: requests.length,
-    pending: requests.filter(r => r.status === 'pending').length,
-    assigned: requests.filter(r => r.status === 'assigned').length,
-    parked: requests.filter(r => r.status === 'parked').length,
-    completed: requests.filter(r => r.status === 'completed').length,
-  };
-
-  const filteredRequests = filterStatus === 'all' 
-    ? requests 
-    : requests.filter(r => r.status === filterStatus);
+  const filteredVisitors = useMemo(() => {
+    if (!data?.data) return [];
+    
+    switch (filterType) {
+      case 'with_parking':
+        return data.data.filter(v => v.visitorNeedsParking);
+      case 'without_parking':
+        return data.data.filter(v => !v.visitorNeedsParking);
+      default:
+        return data.data;
+    }
+  }, [data?.data, filterType]);
 
   const filterOptions = [
-    { key: 'all', label: t('common.all') },
-    { key: 'pending', label: t('status.pending') },
-    { key: 'assigned', label: t('status.assigned') },
-    { key: 'parked', label: t('parking.parked') },
-    { key: 'ready_for_pickup', label: t('valet.readyForPickup') },
-    { key: 'completed', label: t('status.completed') },
+    { key: 'all' as const, label: t('common.all') },
+    { key: 'with_parking' as const, label: t('parking.withParking') },
+    { key: 'without_parking' as const, label: t('parking.withoutParking') },
   ];
 
+  if (isLoading) {
+    return <LoadingState theme={theme} />;
+  }
+
+  if (isError) {
+    return <ErrorState theme={theme} t={t} onRetry={refetch} />;
+  }
+
   return (
-    <ScreenScrollView>
+    <ScreenScrollView
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefetching}
+          onRefresh={refetch}
+          tintColor={theme.primary}
+        />
+      }
+    >
       <Spacer height={Spacing.xl} />
 
       <View style={styles.paddedContent}>
-        <StatsCards stats={stats} theme={theme} t={t} />
+        <StatsCards 
+          totalVisitors={data?.summary.totalVisitors ?? 0}
+          withParking={data?.summary.withParking ?? 0}
+          withoutParking={data?.summary.withoutParking ?? 0}
+          theme={theme} 
+          t={t} 
+        />
       </View>
 
       <Spacer height={LAYOUT.sectionSpacing} />
 
       <View style={[styles.sectionTitleRow, styles.paddedContent]}>
         <ThemedText style={[Typography.subtitle]}>
-          {t('navigation.valetRequests')}
+          {t('valet.todaysVisitors')}
         </ThemedText>
-        <View style={styles.viewToggle}>
-          <Pressable
-            style={[
-              styles.viewToggleButton,
-              { backgroundColor: viewMode === 'card' ? theme.primary : theme.surface },
-            ]}
-            onPress={() => setViewMode('card')}
-          >
-            <DDIcon 
-              name="grid" 
-              size={18} 
-              color={viewMode === 'card' ? theme.buttonText : theme.textSecondary} 
-            />
-          </Pressable>
-          <Pressable
-            style={[
-              styles.viewToggleButton,
-              { backgroundColor: viewMode === 'list' ? theme.primary : theme.surface },
-            ]}
-            onPress={() => setViewMode('list')}
-          >
-            <DDIcon 
-              name="list" 
-              size={18} 
-              color={viewMode === 'list' ? theme.buttonText : theme.textSecondary} 
-            />
-          </Pressable>
-        </View>
       </View>
 
       <Spacer height={Spacing.md} />
@@ -591,22 +392,21 @@ export default function ValetAllRequestsScreen({ navigation }: ValetAllRequestsS
             style={[
               styles.filterChip,
               { 
-                backgroundColor: filterStatus === filter.key 
+                backgroundColor: filterType === filter.key 
                   ? applyOpacity(theme.primary, '15') 
                   : theme.surface,
-                borderColor: filterStatus === filter.key ? theme.primary : theme.border,
+                borderColor: filterType === filter.key ? theme.primary : theme.border,
               }
             ]}
-            onPress={() => setFilterStatus(filter.key)}
+            onPress={() => setFilterType(filter.key)}
           >
             <ThemedText
               style={[
-                Typography.body,
+                styles.filterChipText,
                 { 
-                  color: filterStatus === filter.key ? theme.primary : theme.textSecondary, 
-                  fontWeight: '500',
-                  fontSize: 13,
-                },
+                  color: filterType === filter.key ? theme.primary : theme.textSecondary,
+                  fontWeight: filterType === filter.key ? '600' : '400',
+                }
               ]}
             >
               {filter.label}
@@ -618,35 +418,23 @@ export default function ValetAllRequestsScreen({ navigation }: ValetAllRequestsS
       <Spacer height={Spacing.lg} />
 
       <View style={styles.paddedContent}>
-        {filteredRequests.length > 0 ? (
-          filteredRequests.map((request) => (
-            <View key={request.id}>
-              {viewMode === 'card' ? (
-                <ValetRequestCard
-                  request={request}
-                  isExpanded={expandedCard === request.id}
-                  onPress={() => handleViewDetails(request)}
-                  onToggleExpand={() => setExpandedCard(expandedCard === request.id ? null : request.id)}
-                  onComplete={(e) => handleMarkComplete(request, e)}
-                  theme={theme}
-                />
-              ) : (
-                <ValetRequestTableRow
-                  request={request}
-                  onPress={() => handleViewDetails(request)}
-                  onComplete={(e) => handleMarkComplete(request, e)}
-                  theme={theme}
-                />
-              )}
-              <Spacer height={LAYOUT.contentGap} />
-            </View>
-          ))
-        ) : (
+        {filteredVisitors.length === 0 ? (
           <EmptyState theme={theme} t={t} />
+        ) : (
+          filteredVisitors.map((visitor) => (
+            <React.Fragment key={visitor.requestId}>
+              <VisitorCard 
+                visitor={visitor} 
+                theme={theme} 
+                t={t}
+              />
+              <Spacer height={Spacing.md} />
+            </React.Fragment>
+          ))
         )}
       </View>
 
-      <Spacer height={LAYOUT.sectionSpacing} />
+      <Spacer height={Spacing.xxl} />
     </ScreenScrollView>
   );
 }
@@ -657,23 +445,18 @@ const styles = StyleSheet.create({
   },
   statsGrid: {
     flexDirection: 'row',
-    gap: LAYOUT.contentGap,
+    gap: Spacing.md,
   },
   statCard: {
     flex: 1,
-    padding: LAYOUT.cardPadding,
+    padding: Spacing.lg,
     borderRadius: LAYOUT.statCardRadius,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
   },
   statIconContainer: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+    width: 48,
+    height: 48,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -683,52 +466,37 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   tabsContainer: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
     paddingHorizontal: Spacing.xl,
+    gap: Spacing.sm,
   },
   filterChip: {
-    paddingHorizontal: Spacing.md,
+    paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.full,
     borderWidth: 1,
   },
-  viewToggle: {
-    flexDirection: 'row',
-    gap: 2,
-    backgroundColor: 'rgba(0,0,0,0.05)',
-    borderRadius: 8,
-    padding: 2,
+  filterChipText: {
+    fontSize: 14,
   },
-  viewToggleButton: {
-    padding: 8,
-    borderRadius: 6,
-  },
-  requestCard: {
+  visitorCard: {
     borderRadius: LAYOUT.cardRadius,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
+    flexDirection: 'row',
   },
-  statusAccent: {
-    position: 'absolute',
-    start: 0,
-    top: 0,
-    bottom: 0,
-    width: LAYOUT.statusBorderWidth,
-    borderTopStartRadius: LAYOUT.cardRadius,
-    borderBottomStartRadius: LAYOUT.cardRadius,
+  cardAccent: {
+    width: 4,
   },
   cardMainSection: {
+    flex: 1,
     padding: LAYOUT.cardPadding,
-    paddingStart: LAYOUT.cardPadding + LAYOUT.statusBorderWidth,
   },
   cardHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: Spacing.md,
+  },
+  cardNameSection: {
+    flex: 1,
   },
   avatar: {
     justifyContent: 'center',
@@ -737,142 +505,71 @@ const styles = StyleSheet.create({
   avatarText: {
     fontWeight: '600',
   },
-  cardNameSection: {
-    flex: 1,
-    marginStart: Spacing.md,
-  },
   statusBadge: {
-    borderRadius: BorderRadius.sm,
-    borderWidth: 1,
-  },
-  statusText: {
-    fontWeight: '600',
-  },
-  detailsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-  },
-  detailItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  detailText: {
-    fontSize: 13,
-    marginStart: 4,
-  },
-  dateTimeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  dateTimeText: {
-    fontSize: 13,
-    marginStart: 4,
-  },
-  actionsRow: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    gap: 4,
-  },
-  actionButtonText: {
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  dividerLine: {
-    height: 1,
-    marginHorizontal: LAYOUT.cardPadding,
-  },
-  expandedContentInside: {
-    padding: LAYOUT.cardPadding,
-    paddingTop: Spacing.md,
-  },
-  secondaryDetail: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  moreDetailsButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: Spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,0.06)',
-    gap: 4,
-  },
-  moreDetailsText: {
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  emptyState: {
-    padding: Spacing.xl * 2,
-    borderRadius: LAYOUT.cardRadius,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tableRow: {
-    flexDirection: 'row',
-    minHeight: LAYOUT.tableRowHeight,
-    borderRadius: LAYOUT.cardRadius,
-    borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 2,
-    overflow: 'hidden',
-  },
-  fixedColumn: {
-    justifyContent: 'center',
-    borderEndWidth: 1,
-    borderEndColor: 'rgba(0,0,0,0.06)',
-  },
-  fixedColumnContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: Spacing.md,
-  },
-  scrollableColumns: {
-    flex: 1,
-  },
-  scrollableContent: {
-    paddingEnd: Spacing.xl,
-  },
-  tableColumn: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.lg,
-    justifyContent: 'center',
-  },
-  columnHeader: {
-    fontSize: 11,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  columnValue: {
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  tableActionsRow: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
-  tableActionButton: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.sm,
     paddingVertical: 6,
     borderRadius: BorderRadius.sm,
-    gap: 4,
+    borderWidth: 1,
   },
-  tableActionText: {
+  statusText: {
+    fontSize: 11,
+    fontWeight: '500',
+  },
+  detailsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: Spacing.md,
+  },
+  detailItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  detailText: {
+    fontSize: 13,
+  },
+  walkInBadge: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.xs,
+  },
+  walkInText: {
+    fontSize: 11,
+    fontWeight: '500',
+  },
+  carInfoSection: {
+    padding: Spacing.md,
+    borderRadius: BorderRadius.sm,
+  },
+  carInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  carInfoLabel: {
+    fontSize: 12,
+  },
+  carInfoValue: {
     fontSize: 12,
     fontWeight: '600',
+  },
+  emptyState: {
+    padding: Spacing.xxl,
+    borderRadius: LAYOUT.cardRadius,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  retryButton: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.sm,
   },
 });

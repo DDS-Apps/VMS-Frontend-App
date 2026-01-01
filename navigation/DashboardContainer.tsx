@@ -43,14 +43,10 @@ import BuffetAdminLocationsScreen from "@/screens/BuffetAdmin/BuffetAdminLocatio
 import BuffetRequestDetailsScreen from "@/screens/BuffetAdmin/BuffetRequestDetailsScreen";
 import BuffetAllRequestsScreen from "@/screens/BuffetAdmin/BuffetAllRequestsScreen";
 import BuffetOverviewScreen from "@/screens/BuffetAdmin/BuffetOverviewScreen";
-import ValetAdminDashboardScreen from "@/screens/ValetAdmin/ValetAdminDashboardScreen";
-import ValetAdminDriversScreen from "@/screens/ValetAdmin/ValetAdminDriversScreen";
 import ValetAllRequestsScreen from "@/screens/ValetAdmin/ValetAllRequestsScreen";
 import ValetRequestDetailsScreen from "@/screens/ValetAdmin/ValetRequestDetailsScreen";
-import ValetAdminParkingScreen from "@/screens/ValetAdmin/ValetAdminParkingScreen";
 import BuildingAdminDashboardScreen from "@/screens/BuildingAdmin/BuildingAdminDashboardScreen";
 import AllRequestsScreen from "@/screens/BuildingAdmin/AllRequestsScreen";
-import DriverLoadScreen from "@/screens/ValetAdmin/DriverLoadScreen";
 import ChangePasswordScreen from "@/screens/Profile/ChangePasswordScreen";
 import EditProfileScreen from "@/screens/Profile/EditProfileScreen";
 import { UserRole } from "@/types/vms.types";
@@ -127,7 +123,7 @@ function ScreenWrapperInner({ children, userRole, userName, userPhotoUrl, onLogo
     if (role === 'valet_driver') return 'DriverTasks';
     if (role === 'buffet_staff') return 'BuffetBoard';
     if (role === 'buffet_admin') return 'BuffetAdminDashboard';
-    if (role === 'valet_admin') return 'ValetAdminDashboard';
+    if (role === 'valet_admin') return 'ValetAllRequests';
     if (role === 'building_admin') return 'BuildingAdminDashboard';
     if (role === 'security') return 'CheckIn';
     return 'Dashboard';
@@ -186,7 +182,7 @@ export default function DashboardContainer({ userRole, userName, userEmail, user
     if (userRole === 'valet_driver') return 'DriverTasks';
     if (userRole === 'buffet_staff') return 'BuffetBoard';
     if (userRole === 'buffet_admin') return 'BuffetAdminDashboard';
-    if (userRole === 'valet_admin') return 'ValetAdminDashboard';
+    if (userRole === 'valet_admin') return 'ValetAllRequests';
     if (userRole === 'building_admin') return 'AllRequests';
     if (userRole === 'security') return 'CheckIn';
     return 'Dashboard';
@@ -525,31 +521,10 @@ export default function DashboardContainer({ userRole, userName, userEmail, user
         )}
         {userRole === 'valet_admin' && (
           <>
-            <Stack.Screen name="ValetAdminDashboard">
-              {(props) => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <ValetAdminDashboardScreen {...props} />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
-            <Stack.Screen name="ValetDrivers">
-              {() => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <ValetAdminDriversScreen />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
-            <Stack.Screen name="ValetParking">
-              {() => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <ValetAdminParkingScreen />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
             <Stack.Screen name="ValetAllRequests">
-              {(props) => (
+              {() => (
                 <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <ValetAllRequestsScreen {...props} />
+                  <ValetAllRequestsScreen />
                 </ScreenWrapper>
               )}
             </Stack.Screen>
@@ -557,13 +532,6 @@ export default function DashboardContainer({ userRole, userName, userEmail, user
               {(props) => (
                 <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
                   <ValetRequestDetailsScreen {...props} />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
-            <Stack.Screen name="DriverLoad">
-              {() => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <DriverLoadScreen />
                 </ScreenWrapper>
               )}
             </Stack.Screen>
@@ -607,9 +575,9 @@ export default function DashboardContainer({ userRole, userName, userEmail, user
               )}
             </Stack.Screen>
             <Stack.Screen name="ValetOversight">
-              {(props) => (
+              {() => (
                 <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <ValetAdminDashboardScreen {...props} />
+                  <ValetAllRequestsScreen />
                 </ScreenWrapper>
               )}
             </Stack.Screen>

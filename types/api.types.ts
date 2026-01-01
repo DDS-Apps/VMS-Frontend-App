@@ -1680,3 +1680,32 @@ export interface PublicInviteResponseDto {
     };
   };
 }
+
+// Valet Admin Parking Dashboard Types
+export interface ValetParkingDashboardSummary {
+  totalVisitors: number;
+  withParking: number;
+  withoutParking: number;
+}
+
+export interface ValetParkingVisitorDto {
+  requestId: string;
+  visitorName: string;
+  visitorCompany?: string;
+  visitorPhone?: string;
+  hostName: string;
+  hostDepartment?: string;
+  visitDate: string;
+  visitTime: string;
+  status: string;
+  visitorNeedsParking: boolean;
+  licensePlate?: string | null;
+  carModel?: string | null;
+  carColor?: string | null;
+  isWalkIn: boolean;
+}
+
+export interface ValetParkingDashboardResponse {
+  summary: ValetParkingDashboardSummary;
+  data: ValetParkingVisitorDto[];
+}
