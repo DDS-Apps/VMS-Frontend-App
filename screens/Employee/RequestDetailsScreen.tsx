@@ -2278,8 +2278,8 @@ export default function RequestDetailsScreen({
                 {t("services.optionalServices")}
               </ThemedText>
 
-              <View style={CardGridStyles.grid}>
-                <View style={CardGridStyles.cardWrapper3Col}>
+              <View style={getGridStyle()}>
+                <View style={getCardWrapper3ColStyle()}>
                   <SelectableCard
                     onPress={() => setEditRequiresMeetingRoom(!editRequiresMeetingRoom)}
                     selected={editRequiresMeetingRoom}
@@ -2293,7 +2293,7 @@ export default function RequestDetailsScreen({
                   </SelectableCard>
                 </View>
 
-                <View style={[CardGridStyles.cardWrapper3Col, request.isWalkIn && { opacity: 0.5 }]}>
+                <View style={[getCardWrapper3ColStyle(), request.isWalkIn && { opacity: 0.5 }]}>
                   <SelectableCard
                     onPress={() => !request.isWalkIn && setEditRequiresParking(!editRequiresParking)}
                     selected={request.isWalkIn ? false : editRequiresParking}
@@ -2307,7 +2307,7 @@ export default function RequestDetailsScreen({
                   </SelectableCard>
                 </View>
 
-                <View style={CardGridStyles.cardWrapper3Col}>
+                <View style={getCardWrapper3ColStyle()}>
                   <SelectableCard
                     onPress={() => setEditRequiresBuffet(!editRequiresBuffet)}
                     selected={editRequiresBuffet}

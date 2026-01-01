@@ -940,8 +940,8 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
             {t('services.optionalServices')}
           </ThemedText>
 
-          <View style={CardGridStyles.grid}>
-            <View style={CardGridStyles.cardWrapper2Col}>
+          <View style={getGridStyle()}>
+            <View style={getCardWrapper2ColStyle()}>
               <SelectableCard
                 onPress={() => setNeedsMeetingRoom(!needsMeetingRoom)}
                 selected={needsMeetingRoom}
@@ -955,7 +955,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
               </SelectableCard>
             </View>
 
-            <View style={CardGridStyles.cardWrapper2Col}>
+            <View style={getCardWrapper2ColStyle()}>
               <SelectableCard
                 onPress={() => setNeedsBuffet(!needsBuffet)}
                 selected={needsBuffet}

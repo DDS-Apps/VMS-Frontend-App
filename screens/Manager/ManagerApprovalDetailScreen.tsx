@@ -1373,8 +1373,8 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
                       {t('services.additionalServices')}
                     </ThemedText>
                     
-                    <View style={CardGridStyles.grid}>
-                      <View style={CardGridStyles.cardWrapper3Col}>
+                    <View style={getGridStyle()}>
+                      <View style={getCardWrapper3ColStyle()}>
                         <SelectableCard
                           onPress={() => setWalkInRequiresMeetingRoom(!walkInRequiresMeetingRoom)}
                           selected={walkInRequiresMeetingRoom}
@@ -1388,7 +1388,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
                         </SelectableCard>
                       </View>
 
-                      <View style={[CardGridStyles.cardWrapper3Col, { opacity: 0.5 }]}>
+                      <View style={[getCardWrapper3ColStyle(), { opacity: 0.5 }]}>
                         <SelectableCard
                           onPress={() => {}}
                           selected={false}
@@ -1402,7 +1402,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
                         </SelectableCard>
                       </View>
 
-                      <View style={CardGridStyles.cardWrapper3Col}>
+                      <View style={getCardWrapper3ColStyle()}>
                         <SelectableCard
                           onPress={() => setWalkInRequiresBuffet(!walkInRequiresBuffet)}
                           selected={walkInRequiresBuffet}

@@ -83,16 +83,15 @@ const mobileStyles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: Spacing.md,
+    justifyContent: 'space-between',
+    rowGap: Spacing.md,
   },
   cardWrapper3Col: {
-    flexBasis: '30%',
-    flexGrow: 1,
+    width: '48%',
     marginBottom: 0,
   },
   cardWrapper2Col: {
-    flexBasis: '45%',
-    flexGrow: 1,
+    width: '48%',
     marginBottom: 0,
   },
 });
