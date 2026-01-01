@@ -96,14 +96,14 @@ export function VisitorRequestCard({
     >
       <View style={[styles.statusBorderLine, { backgroundColor: borderColor }]} />
 
-      <View style={styles.cardHeader}>
+      <View style={[styles.cardHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
           <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
             {initials}
           </ThemedText>
         </View>
         <View style={styles.nameSection}>
-          <View style={styles.nameRow}>
+          <View style={[styles.nameRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <ThemedText style={[styles.visitorName, { color: theme.text }]} numberOfLines={1}>
               {request.visitor.fullName}
             </ThemedText>
@@ -154,7 +154,7 @@ export function VisitorRequestCard({
 
       <Spacer height={Spacing.md} />
 
-      <View style={styles.dateTimeRow}>
+      <View style={[styles.dateTimeRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <View style={[styles.dateTimeLeft, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <DDIcon name="calendar" size={13} color={theme.textSecondary} />
           <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
@@ -179,7 +179,7 @@ export function VisitorRequestCard({
 
       <Spacer height={Spacing.md} />
 
-      <View style={styles.servicesRow}>
+      <View style={[styles.servicesRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         {request.parkingSlot ? (
           <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '20') }]}>
             <DDIcon name="map-pin" size={14} color={theme.info} />
