@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, Pressable, View, ViewStyle } from "react-native";
+import { StyleSheet, Pressable, View, ViewStyle, Platform } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -81,14 +81,25 @@ export const CardGridStyles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    justifyContent: Platform.OS === 'web' ? 'flex-start' : 'space-between',
+    gap: Platform.OS === 'web' ? Spacing.md : undefined,
   },
   cardWrapper3Col: {
-    width: '31%',
+    width: Platform.OS === 'web' ? undefined : '31%',
+    maxWidth: Platform.OS === 'web' ? 250 : undefined,
+    maxHeight: Platform.OS === 'web' ? 250 : undefined,
+    minWidth: Platform.OS === 'web' ? 150 : undefined,
+    flexGrow: Platform.OS === 'web' ? 0 : undefined,
+    flexBasis: Platform.OS === 'web' ? 'auto' : undefined,
     marginBottom: Spacing.md,
   },
   cardWrapper2Col: {
-    width: '48%',
+    width: Platform.OS === 'web' ? undefined : '48%',
+    maxWidth: Platform.OS === 'web' ? 250 : undefined,
+    maxHeight: Platform.OS === 'web' ? 250 : undefined,
+    minWidth: Platform.OS === 'web' ? 150 : undefined,
+    flexGrow: Platform.OS === 'web' ? 0 : undefined,
+    flexBasis: Platform.OS === 'web' ? 'auto' : undefined,
     marginBottom: Spacing.md,
   },
 });
@@ -99,5 +110,6 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     justifyContent: 'center',
     alignItems: 'center',
+    ...(Platform.OS === 'web' ? { width: 250, height: 250 } : {}),
   },
 });
