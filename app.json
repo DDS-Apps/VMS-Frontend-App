@@ -56,8 +56,8 @@
       "reactCompiler": true
     },
     "extra": {
-      "apiBaseUrl": "https://vms-backend-folio3.replit.app",
-      "microsoftAuthUrl": "https://vms-backend-folio3.replit.app",
+      "apiBaseUrl": "https://b4ba7f88-2197-4a63-950a-28e79dda3bbd-00-2mahxxjomcww2.worf.replit.dev",
+      "microsoftAuthUrl": "https://b4ba7f88-2197-4a63-950a-28e79dda3bbd-00-2mahxxjomcww2.worf.replit.dev",
       "eas": {
         "projectId": "33b6baff-6c89-44be-905f-006d0da4434d"
       }
