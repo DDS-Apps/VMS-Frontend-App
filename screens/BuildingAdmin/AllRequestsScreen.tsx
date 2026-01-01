@@ -120,9 +120,10 @@ interface RequestCardProps {
   t: (key: string) => string;
   formatDate: (date: string | Date) => string;
   formatTimeFromString: (time: string) => string;
+  isRTL: boolean;
 }
 
-function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDate, formatTimeFromString }: RequestCardProps) {
+function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDate, formatTimeFromString, isRTL }: RequestCardProps) {
   const typeColor = getTypeColor(request.type, theme);
   const statusColor = getStatusColor(request.status, theme);
   const typeIcon = getTypeIcon(request.type);
@@ -130,10 +131,10 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
   return (
     <Pressable onPress={onPress}>
       <ThemedView style={[styles.requestCard, { backgroundColor: theme.surface }]}>
-        <View style={[styles.typeAccent, { backgroundColor: typeColor }]} />
+        <View style={[styles.typeAccent, { backgroundColor: statusColor }]} />
         
         <View style={styles.cardContent}>
-          <View style={styles.cardHeader}>
+          <View style={[styles.cardHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <View style={[styles.typeBadge, { backgroundColor: applyOpacity(typeColor, '12') }]}>
               <DDIcon name={typeIcon} size={12} color={typeColor} />
               <ThemedText style={[styles.typeBadgeText, { color: typeColor }]}>
@@ -150,23 +151,23 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
 
           <Spacer height={Spacing.md} />
 
-          <ThemedText style={[Typography.body, { fontWeight: '600' }]} numberOfLines={1}>
+          <ThemedText style={[Typography.body, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
             {request.visitorName}
           </ThemedText>
-          <ThemedText style={[Typography.caption, { color: theme.textSecondary }]} numberOfLines={1}>
+          <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
             {t('reception.hostName')}: {request.hostName}
           </ThemedText>
 
           <Spacer height={Spacing.sm} />
 
-          <View style={styles.detailsRow}>
-            <View style={styles.detailItem}>
+          <View style={[styles.detailsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.detailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <DDIcon name="calendar" size={14} variant="muted" />
               <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
                 {formatDate(request.date)}
               </ThemedText>
             </View>
-            <View style={styles.detailItem}>
+            <View style={[styles.detailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <DDIcon name="clock" size={14} variant="muted" />
               <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
                 {formatTimeFromString(request.time)}
@@ -177,9 +178,9 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
           {request.location ? (
             <>
               <Spacer height={Spacing.xs} />
-              <View style={styles.detailItem}>
+              <View style={[styles.detailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <DDIcon name="map-pin" size={14} variant="muted" />
-                <ThemedText style={[styles.detailText, { color: theme.textSecondary }]} numberOfLines={1}>
+                <ThemedText style={[styles.detailText, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
                   {request.location}
                 </ThemedText>
               </View>
@@ -189,10 +190,10 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
           {(request.canApprove || request.canCancel) ? (
             <>
               <Spacer height={Spacing.md} />
-              <View style={styles.actionsRow}>
+              <View style={[styles.actionsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 {request.canApprove ? (
                   <Pressable
-                    style={[styles.approveButton, { backgroundColor: '#22C55E' }]}
+                    style={[styles.approveButton, { backgroundColor: '#22C55E', flexDirection: isRTL ? 'row-reverse' : 'row' }]}
                     onPress={(e) => {
                       e.stopPropagation();
                       onApprove?.();
@@ -206,7 +207,7 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
                 ) : null}
                 {request.canCancel ? (
                   <Pressable
-                    style={[styles.rejectButton, { borderColor: theme.error }]}
+                    style={[styles.rejectButton, { borderColor: theme.error, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
                     onPress={(e) => {
                       e.stopPropagation();
                       onReject?.();
@@ -700,6 +701,7 @@ export default function AllRequestsScreen() {
                   t={t}
                   formatDate={formatDate}
                   formatTimeFromString={formatTimeFromString}
+                  isRTL={isRTL}
                 />
                 <Spacer height={LAYOUT.contentGap} />
               </View>
