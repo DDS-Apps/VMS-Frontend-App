@@ -3029,6 +3029,7 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   channelChip: {
+    flexDirection: "row",
     alignItems: "center",
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,

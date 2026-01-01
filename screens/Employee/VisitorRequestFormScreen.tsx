@@ -1538,12 +1538,12 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   channelChip: {
+    flexDirection: 'row',
     alignItems: 'center',
     borderRadius: BorderRadius.full,
     borderWidth: 2,
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,
-    position: 'relative',
   },
   channelChipIcon: {
     width: 24,
