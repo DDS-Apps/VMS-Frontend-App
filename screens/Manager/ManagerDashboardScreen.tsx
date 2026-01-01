@@ -500,7 +500,8 @@ const RejectRequestModal = ({
   isProcessing,
   isBulk,
   t,
-  insets
+  insets,
+  isRTL
 }: {
   visible: boolean;
   onClose: () => void;
@@ -511,6 +512,7 @@ const RejectRequestModal = ({
   isBulk?: boolean;
   t: (key: string) => string;
   insets: { bottom: number };
+  isRTL: boolean;
 }) => {
   const [rejectionReason, setRejectionReason] = useState('');
 
@@ -952,6 +954,7 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
           isBulk={isBulkReject}
           t={t}
           insets={insets}
+          isRTL={isRTL}
         />
       </View>
     );
@@ -1026,6 +1029,7 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
         isBulk={isBulkReject}
         t={t}
         insets={insets}
+        isRTL={isRTL}
       />
     </View>
   );
