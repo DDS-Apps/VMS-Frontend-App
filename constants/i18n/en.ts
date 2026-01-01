@@ -80,6 +80,7 @@ export const en: TranslationKeys = {
     clear: 'Clear',
     savedSuccessfully: 'Saved successfully',
     errorOccurred: 'An error occurred',
+    errorLoadingData: 'Error loading data',
   },
   bulkActions: {
     selectMode: 'Select',

@@ -80,6 +80,7 @@ export interface TranslationKeys {
     clear: string;
     savedSuccessfully: string;
     errorOccurred: string;
+    errorLoadingData: string;
   };
   bulkActions: {
     selectMode: string;
@@ -222,6 +223,7 @@ export interface TranslationKeys {
     integrationsHealth: string;
     globalAnalytics: string;
     myValetRequests: string;
+    parkingDashboard: string;
   };
   visitor: {
     guest: string;
@@ -881,6 +883,10 @@ export interface TranslationKeys {
     parkingPending: string;
     todaysParkingStatus: string;
     noVisitorsExpected: string;
+    withParking: string;
+    withoutParking: string;
+    carInfoProvided: string;
+    carInfoPending: string;
   };
   valet: {
     valetService: string;

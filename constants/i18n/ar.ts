@@ -80,6 +80,7 @@ export const ar: TranslationKeys = {
     clear: 'مسح',
     savedSuccessfully: 'تم الحفظ بنجاح',
     errorOccurred: 'حدث خطأ',
+    errorLoadingData: 'خطأ في تحميل البيانات',
   },
   bulkActions: {
     selectMode: 'تحديد',

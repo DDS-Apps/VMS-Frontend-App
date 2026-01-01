@@ -84,7 +84,7 @@ const StatusAccent = ({ color }: { color: string }) => (
 );
 
 const VisitorAvatar = ({ name, theme, size = 44 }: { name: string; theme: Theme; size?: number }) => {
-  const initials = name.split(' ').map(n => n[0]).join('');
+  const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   return (
     <View style={[
       styles.avatar, 
@@ -242,7 +242,8 @@ const SectionHeader = ({
   onViewModeChange, 
   statusCounts,
   theme,
-  t
+  t,
+  isRTL = false
 }: { 
   filterStatus: string; 
   onFilterChange: (status: string) => void;
@@ -251,6 +252,7 @@ const SectionHeader = ({
   statusCounts: Record<StatusFilter, number>;
   theme: Theme;
   t: (key: string) => string;
+  isRTL?: boolean;
 }) => {
   const filterOptions: { key: StatusFilter; label: string }[] = [
     { key: 'all', label: t('common.all') },
@@ -355,6 +357,7 @@ const BuffetRequestCard = React.memo(({
   theme: Theme;
 }) => {
   const { t } = useTranslation();
+  const { isRTL } = useLanguage();
   const statusConfig = getStatusStyle(theme, request.status, t);
 
   return (
@@ -498,6 +501,7 @@ const BuffetRequestTableRow = React.memo(({
   theme: Theme;
 }) => {
   const { t } = useTranslation();
+  const { isRTL } = useLanguage();
   const statusConfig = getStatusStyle(theme, request.status, t);
 
   return (
@@ -936,6 +940,7 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
                 statusCounts={statusCounts}
                 theme={theme}
                 t={t}
+                isRTL={isRTL}
               />
 
               <Spacer height={Spacing.lg} />
@@ -974,6 +979,7 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
           statusCounts={statusCounts}
           theme={theme}
           t={t}
+          isRTL={isRTL}
         />
 
         <Spacer height={Spacing.lg} />

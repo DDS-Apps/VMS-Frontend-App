@@ -1403,6 +1403,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   iconInputButton: {
+    flexDirection: 'row',
     height: Spacing.inputHeight,
     borderWidth: 1,
     borderRadius: BorderRadius.sm,
@@ -1454,6 +1455,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonRow: {
+    flexDirection: 'row',
   },
   actionButton: {
     flex: 1,
