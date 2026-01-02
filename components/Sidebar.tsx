@@ -63,14 +63,6 @@ const getMenuGroups = (role: UserRole): { groups: MenuGroup[]; standalone: MenuI
           { id: 'visitor_requests', labelKey: 'navigation.myRequests', icon: 'list', screen: 'VisitorRequests' },
         ],
       },
-      {
-        id: 'services',
-        labelKey: 'sidebar.services',
-        icon: 'truck',
-        items: [
-          { id: 'my_valet_requests', labelKey: 'navigation.myValetRequests', icon: 'truck', screen: 'MyValetRequests' },
-        ],
-      },
     ];
   } else if (role === 'manager') {
     result.standalone = [
@@ -87,14 +79,6 @@ const getMenuGroups = (role: UserRole): { groups: MenuGroup[]; standalone: MenuI
           { id: 'pending_approvals', labelKey: 'navigation.pendingApprovals', icon: 'check-circle', screen: 'PendingApprovals' },
         ],
         badgeKey: 'pendingApprovals',
-      },
-      {
-        id: 'services',
-        labelKey: 'sidebar.services',
-        icon: 'truck',
-        items: [
-          { id: 'my_valet_requests', labelKey: 'navigation.myValetRequests', icon: 'truck', screen: 'MyValetRequests' },
-        ],
       },
     ];
   } else if (role === 'receptionist') {
