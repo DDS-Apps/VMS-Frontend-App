@@ -1149,7 +1149,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                 <DDIcon name="x" size={24} variant="muted" />
               </Pressable>
             </View>
-            <View style={[styles.searchContainer, { backgroundColor: theme.background, borderBottomColor: theme.border }]}>
+            <View style={[styles.searchContainer, { backgroundColor: theme.background, borderBottomColor: theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <DDIcon name="search" size={20} variant="muted" />
               <TextInput
                 style={[styles.searchInput, { color: theme.text }]}
@@ -1173,7 +1173,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                     key={employee.id}
                     style={[
                       styles.employeeOption,
-                      { borderBottomColor: theme.border },
+                      { borderBottomColor: theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' },
                       selectedEmployeeId === employee.id && { backgroundColor: applyOpacity(theme.primary, '10') }
                     ]}
                     onPress={() => handleEmployeeSelect(employee)}
@@ -1183,11 +1183,11 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                         {employee.name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() || '?'}
                       </ThemedText>
                     </View>
-                    <View style={{ flex: 1, marginStart: Spacing.md }}>
-                      <ThemedText style={[Typography.body, { fontWeight: '500' }]}>
+                    <View style={{ flex: 1, marginStart: Spacing.md, alignItems: isRTL ? 'flex-end' : 'flex-start' }}>
+                      <ThemedText style={[Typography.body, { fontWeight: '500', textAlign: isRTL ? 'right' : 'left' }]}>
                         {employee.name || 'Unknown'}
                       </ThemedText>
-                      <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
+                      <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
                         {employee.department || ''}
                       </ThemedText>
                     </View>
@@ -1636,6 +1636,7 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.xl,
   },
   searchContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
@@ -1648,6 +1649,7 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
   },
   employeeOption: {
+    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
