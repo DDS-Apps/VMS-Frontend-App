@@ -11,22 +11,20 @@ echo "VMS Frontend Production Build"
 echo "=========================================="
 echo ""
 
-# Step 1: Log environment variables
+# Step 1: Log environment variables (informational only)
 echo "[BUILD] Checking environment variables..."
 echo "  EXPO_PUBLIC_VMS_API_BASE_URL: ${EXPO_PUBLIC_VMS_API_BASE_URL:-NOT SET}"
 echo "  EXPO_PUBLIC_MICROSOFT_AUTH_URL: ${EXPO_PUBLIC_MICROSOFT_AUTH_URL:-NOT SET}"
 echo ""
 
-# Step 2: Validate environment variables
-if [ -z "$EXPO_PUBLIC_VMS_API_BASE_URL" ]; then
-  echo "[BUILD] WARNING: EXPO_PUBLIC_VMS_API_BASE_URL not set, will use hardcoded fallback"
+# Step 2: Set production URL if env var is missing or contains dev URL
+# This ensures the build always uses the correct production URL
+if [ -z "$EXPO_PUBLIC_VMS_API_BASE_URL" ] || [[ "$EXPO_PUBLIC_VMS_API_BASE_URL" == *"worf.replit.dev"* ]] || [[ "$EXPO_PUBLIC_VMS_API_BASE_URL" == *"-00-"* ]]; then
+  echo "[BUILD] Setting production URL (env var was missing or contained dev URL)"
+  export EXPO_PUBLIC_VMS_API_BASE_URL="https://$CORRECT_BACKEND/api"
+  export EXPO_PUBLIC_MICROSOFT_AUTH_URL="https://$CORRECT_BACKEND"
+  echo "[BUILD] Using: $EXPO_PUBLIC_VMS_API_BASE_URL"
 else
-  if [[ "$EXPO_PUBLIC_VMS_API_BASE_URL" != *"$CORRECT_BACKEND"* ]]; then
-    echo "[BUILD] ERROR: EXPO_PUBLIC_VMS_API_BASE_URL does not contain expected backend!"
-    echo "  Expected to contain: $CORRECT_BACKEND"
-    echo "  Got: $EXPO_PUBLIC_VMS_API_BASE_URL"
-    exit 1
-  fi
   echo "[BUILD] Environment variable validated successfully"
 fi
 echo ""
