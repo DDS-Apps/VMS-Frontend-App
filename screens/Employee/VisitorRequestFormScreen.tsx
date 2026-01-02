@@ -1501,6 +1501,7 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.xl,
   },
   iosPickerHeader: {
+    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: Spacing.lg,
