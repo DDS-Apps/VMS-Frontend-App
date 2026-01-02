@@ -1,0 +1,49 @@
+You are working inside my Replit project (Expo / React Native Web frontend). Production is deployed via Replit “Static Deployment”.
+
+Problem:
+When I publish the frontend to production (https://vms-frontend-folio3.replit.app/), the built web bundle still calls the DEV backend host:
+https://b4ba7f88-2197-4a63-950a-28e79dda3bbd-00-2mahxxjomcww2.worf.replit.dev/...
+Instead, production MUST call:
+https://vms-backend-folio3.replit.app/api
+
+Important context:
+- This is Expo web export (static files). EXPO_PUBLIC_* values are baked into the JS at build time.
+- Replit Static Deployments often do NOT use Workspace Secrets at runtime; the build must receive env vars via Deployment Secrets / Deployment env.
+- I already tried deleting dist/ and rebuilding, but Replit publish keeps shipping a bundle that still contains the dev domain.
+
+Your task (do ALL, no skipping):
+
+1) Identify where the API base URL is read in code
+   - Search for process.env.EXPO_PUBLIC_VMS_API_BASE_URL and any fallback to a dev URL.
+   - Ensure production build cannot silently fall back to the dev URL if the env var is missing.
+   - Implement a “fail loud” behavior for production builds if EXPO_PUBLIC_VMS_API_BASE_URL is absent (throw an error or log a fatal error and block login).
+
+2) Fix Replit deployment configuration for Static Deployment
+   - Ensure the Static Deployment is serving the SAME folder we export to (dist/).
+   - Configure the Deployment build command to ALWAYS create a fresh bundle:
+     - Remove old dist/
+     - Run expo export for web into dist/
+   - Ensure the deployment build environment has EXPO_PUBLIC_VMS_API_BASE_URL set to:
+     https://vms-backend-folio3.replit.app/api
+     NOTE: If Workspace Secrets are not available in Static Deployment builds, add it to Deployment Secrets for the deployment.
+
+3) Add build-time verification so we can’t ship the wrong URL again
+   - After export, scan the output bundle:
+     - The string “worf.replit.dev” must NOT exist anywhere in dist/
+     - If found, FAIL the build (non-zero exit)
+   - Also print the resolved EXPO_PUBLIC_VMS_API_BASE_URL into build logs.
+
+4) Provide exact changes you made:
+   - List files modified and what changed.
+   - Show the final build command used for Deployment.
+   - Confirm the public directory for Static Deployment.
+
+Acceptance Criteria (must satisfy all):
+- After Publish, the production site’s login calls ONLY https://vms-backend-folio3.replit.app/api (no worf.replit.dev anywhere).
+- “grep -R worf.replit.dev dist” returns nothing.
+- Build logs show EXPO_PUBLIC_VMS_API_BASE_URL correctly during deployment build.
+- No fallback to dev host in production builds.
+
+Start by:
+- Searching repo for “worf.replit.dev”, “EXPO_PUBLIC_VMS_API_BASE_URL”, “API_BASE_URL”, and “/api/v1/auth/login”
+- Then update code + deployment build steps accordingly.
