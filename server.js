@@ -6,33 +6,36 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const DIST_DIR = path.join(__dirname, 'dist');
 
-app.use((req, res, next) => {
+app.disable('x-powered-by');
+
+app.use(function(req, res, next) {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-  res.setHeader('Pragma', 'no-cache');
-  res.setHeader('Expires', '0');
   next();
+});
+
+app.get('/health', function(req, res) {
+  res.status(200).json({ status: 'healthy', timestamp: new Date().toISOString() });
 });
 
 app.use(express.static(DIST_DIR, {
   maxAge: 0,
-  etag: false,
+  etag: true,
+  index: 'index.html'
 }));
 
-app.get('/:path(.*)', (req, res) => {
+app.use(function(req, res) {
   const indexPath = path.join(DIST_DIR, 'index.html');
   if (fs.existsSync(indexPath)) {
     res.sendFile(indexPath);
   } else {
-    res.status(503).send('Application is starting. Please wait for build to complete.');
+    res.status(404).send('Application not built. Run: npx expo export --platform web');
   }
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Serving static files from: ${DIST_DIR}`);
-  if (fs.existsSync(path.join(DIST_DIR, 'index.html'))) {
-    console.log('index.html found - ready to serve');
-  } else {
-    console.log('Warning: index.html not found in dist folder');
-  }
+app.listen(PORT, '0.0.0.0', function() {
+  console.log('Production server running on http://0.0.0.0:' + PORT);
+  console.log('Serving Expo web app from: ' + DIST_DIR);
 });
