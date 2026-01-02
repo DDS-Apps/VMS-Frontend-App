@@ -903,6 +903,25 @@ export interface BuffetAdminLocationDto {
   status: BuffetLocationStatus;
 }
 
+export interface CreateBuffetAdminLocationDto {
+  name: string;
+  floor?: string;
+  building?: string;
+  description?: string;
+  capacity?: number;
+}
+
+export interface CreateBuffetAdminLocationResponseDto {
+  id: string;
+  name: string;
+  floor?: string;
+  building?: string;
+  description?: string;
+  capacity?: number;
+  isActive: boolean;
+  createdAt: string;
+}
+
 export interface BuffetAdminStaffDto {
   id: string;
   name: string;
