@@ -59,6 +59,13 @@ const mapStaffDto = (staff: BuffetAdminStaffDto): StaffDisplayItem => ({
 
 const BUFFET_STATUS_ORDER = ['pending', 'preparing', 'ready', 'served', 'completed'] as const;
 
+const getStepStatus = (stepIndex: number, currentStatusIndex: number, isCancelled: boolean): 'completed' | 'current' | 'pending' => {
+  if (isCancelled) return 'pending';
+  if (stepIndex < currentStatusIndex) return 'completed';
+  if (stepIndex === currentStatusIndex) return 'current';
+  return 'pending';
+};
+
 const buildBuffetTimelineSteps = (
   request: BuffetRequest,
   t: (key: string) => string
@@ -77,31 +84,31 @@ const buildBuffetTimelineSteps = (
     {
       id: 'pending',
       label: t('buffet.pending'),
-      status: isCancelled ? 'pending' : (currentStatusIndex >= 0 ? 'completed' : 'pending'),
+      status: getStepStatus(0, currentStatusIndex, isCancelled),
       icon: 'clock',
     },
     {
       id: 'preparing',
       label: t('buffet.preparing'),
-      status: isCancelled ? 'pending' : (currentStatusIndex >= 1 ? (currentStatusIndex === 1 ? 'current' : 'completed') : 'pending'),
+      status: getStepStatus(1, currentStatusIndex, isCancelled),
       icon: 'loader',
     },
     {
       id: 'ready',
       label: t('buffet.ready'),
-      status: isCancelled ? 'pending' : (currentStatusIndex >= 2 ? (currentStatusIndex === 2 ? 'current' : 'completed') : 'pending'),
+      status: getStepStatus(2, currentStatusIndex, isCancelled),
       icon: 'check-circle',
     },
     {
       id: 'served',
       label: t('buffet.served'),
-      status: isCancelled ? 'pending' : (currentStatusIndex >= 3 ? (currentStatusIndex === 3 ? 'current' : 'completed') : 'pending'),
+      status: getStepStatus(3, currentStatusIndex, isCancelled),
       icon: 'coffee',
     },
     {
       id: 'completed',
       label: t('buffet.completed'),
-      status: isCancelled ? 'pending' : (currentStatusIndex >= 4 ? 'completed' : 'pending'),
+      status: getStepStatus(4, currentStatusIndex, isCancelled),
       icon: 'check',
     },
   ];
