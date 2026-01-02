@@ -1885,7 +1885,7 @@ export default function RequestDetailsScreen({
               <ThemedText
                 style={[
                   Typography.caption,
-                  { color: theme.textSecondary, fontSize: 12, marginBottom: 8 },
+                  { color: theme.textSecondary, fontSize: 12, marginBottom: 8, textAlign: isRTL ? 'right' : 'left' },
                 ]}
               >
                 {t("form.purpose")} *
@@ -1896,6 +1896,7 @@ export default function RequestDetailsScreen({
                   {
                     backgroundColor: theme.surfaceSecondary,
                     borderColor: theme.border,
+                    flexDirection: isRTL ? 'row-reverse' : 'row',
                   },
                 ]}
                 onPress={() => setShowPurposePicker(true)}
@@ -1909,6 +1910,7 @@ export default function RequestDetailsScreen({
                       color: editPurpose ? theme.text : theme.textSecondary,
                       fontSize: 14,
                       flex: 1,
+                      textAlign: isRTL ? 'right' : 'left',
                     },
                   ]}
                 >
@@ -1924,7 +1926,7 @@ export default function RequestDetailsScreen({
                   <ThemedText
                     style={[
                       Typography.caption,
-                      { color: theme.textSecondary, fontSize: 12, marginBottom: 8 },
+                      { color: theme.textSecondary, fontSize: 12, marginBottom: 8, textAlign: isRTL ? 'right' : 'left' },
                     ]}
                   >
                     {t("form.startTime")}
@@ -1936,6 +1938,7 @@ export default function RequestDetailsScreen({
                         backgroundColor: applyOpacity(theme.surfaceSecondary, '50'),
                         borderColor: theme.border,
                         opacity: 0.7,
+                        flexDirection: isRTL ? 'row-reverse' : 'row',
                       },
                     ]}
                   >
@@ -1948,6 +1951,7 @@ export default function RequestDetailsScreen({
                           color: theme.textSecondary,
                           fontSize: 14,
                           flex: 1,
+                          textAlign: isRTL ? 'right' : 'left',
                         },
                       ]}
                     >
@@ -1961,7 +1965,7 @@ export default function RequestDetailsScreen({
                   <ThemedText
                     style={[
                       Typography.caption,
-                      { color: theme.textSecondary, marginTop: Spacing.xs, fontSize: 11 },
+                      { color: theme.textSecondary, marginTop: Spacing.xs, fontSize: 11, textAlign: isRTL ? 'right' : 'left' },
                     ]}
                   >
                     {t("form.startTimeReadOnly")}
@@ -1971,7 +1975,7 @@ export default function RequestDetailsScreen({
                   <ThemedText
                     style={[
                       Typography.caption,
-                      { color: theme.textSecondary, fontSize: 12, marginBottom: 8 },
+                      { color: theme.textSecondary, fontSize: 12, marginBottom: 8, textAlign: isRTL ? 'right' : 'left' },
                     ]}
                   >
                     {t("form.endTime")} *
@@ -1982,6 +1986,7 @@ export default function RequestDetailsScreen({
                       {
                         backgroundColor: theme.surfaceSecondary,
                         borderColor: isWalkInEndTimeBeforeNow() ? theme.error : theme.border,
+                        flexDirection: isRTL ? 'row-reverse' : 'row',
                       },
                     ]}
                     onPress={() => setShowEditEndTimePicker(true)}
@@ -1995,6 +2000,7 @@ export default function RequestDetailsScreen({
                           color: isWalkInEndTimeBeforeNow() ? theme.error : theme.text,
                           fontSize: 14,
                           flex: 1,
+                          textAlign: isRTL ? 'right' : 'left',
                         },
                       ]}
                     >
@@ -2006,7 +2012,7 @@ export default function RequestDetailsScreen({
                     <ThemedText
                       style={[
                         Typography.caption,
-                        { color: theme.error, marginTop: Spacing.xs, fontSize: 11 },
+                        { color: theme.error, marginTop: Spacing.xs, fontSize: 11, textAlign: isRTL ? 'right' : 'left' },
                       ]}
                     >
                       {t("errors.endTimeMustBeLater")}
@@ -2015,7 +2021,7 @@ export default function RequestDetailsScreen({
                     <ThemedText
                       style={[
                         Typography.caption,
-                        { color: theme.textSecondary, marginTop: Spacing.xs, fontSize: 11 },
+                        { color: theme.textSecondary, marginTop: Spacing.xs, fontSize: 11, textAlign: isRTL ? 'right' : 'left' },
                       ]}
                     >
                       {t("form.duration")}: {calculateWalkInDuration()}
@@ -2031,7 +2037,7 @@ export default function RequestDetailsScreen({
                   <ThemedText
                     style={[
                       Typography.caption,
-                      { color: theme.textSecondary, fontSize: 12, marginBottom: 8 },
+                      { color: theme.textSecondary, fontSize: 12, marginBottom: 8, textAlign: isRTL ? 'right' : 'left' },
                     ]}
                   >
                     {t("form.date")}
@@ -2042,6 +2048,7 @@ export default function RequestDetailsScreen({
                       {
                         backgroundColor: theme.surfaceSecondary,
                         borderColor: theme.border,
+                        flexDirection: isRTL ? 'row-reverse' : 'row',
                       },
                     ]}
                     onPress={() => setShowEditDatePicker(true)}
@@ -2054,6 +2061,8 @@ export default function RequestDetailsScreen({
                           marginStart: Spacing.sm,
                           color: theme.text,
                           fontSize: 14,
+                          flex: 1,
+                          textAlign: isRTL ? 'right' : 'left',
                         },
                       ]}
                     >
@@ -2066,7 +2075,7 @@ export default function RequestDetailsScreen({
               <ThemedText
                 style={[
                   Typography.caption,
-                  { color: theme.textSecondary, fontSize: 12, marginBottom: 8 },
+                  { color: theme.textSecondary, fontSize: 12, marginBottom: 8, textAlign: isRTL ? 'right' : 'left' },
                 ]}
               >
                 {t("form.time")}
@@ -2077,6 +2086,7 @@ export default function RequestDetailsScreen({
                   {
                     backgroundColor: theme.surfaceSecondary,
                     borderColor: theme.border,
+                    flexDirection: isRTL ? 'row-reverse' : 'row',
                   },
                 ]}
                 onPress={() => setShowEditTimePicker(true)}
@@ -2089,6 +2099,8 @@ export default function RequestDetailsScreen({
                       marginStart: Spacing.sm,
                       color: theme.text,
                       fontSize: 14,
+                      flex: 1,
+                      textAlign: isRTL ? 'right' : 'left',
                     },
                   ]}
                 >
@@ -2101,7 +2113,7 @@ export default function RequestDetailsScreen({
               <ThemedText
                 style={[
                   Typography.caption,
-                  { color: theme.textSecondary, fontSize: 12, marginBottom: 8 },
+                  { color: theme.textSecondary, fontSize: 12, marginBottom: 8, textAlign: isRTL ? 'right' : 'left' },
                 ]}
               >
                 {t("form.endTime")}
@@ -2112,6 +2124,7 @@ export default function RequestDetailsScreen({
                   {
                     backgroundColor: theme.surfaceSecondary,
                     borderColor: theme.border,
+                    flexDirection: isRTL ? 'row-reverse' : 'row',
                   },
                 ]}
                 onPress={() => setShowEditEndTimePicker(true)}
@@ -2124,6 +2137,8 @@ export default function RequestDetailsScreen({
                       marginStart: Spacing.sm,
                       color: theme.text,
                       fontSize: 14,
+                      flex: 1,
+                      textAlign: isRTL ? 'right' : 'left',
                     },
                   ]}
                 >
@@ -2136,7 +2151,7 @@ export default function RequestDetailsScreen({
               <ThemedText
                 style={[
                   Typography.caption,
-                  { color: theme.textSecondary, fontSize: 12, marginBottom: 8 },
+                  { color: theme.textSecondary, fontSize: 12, marginBottom: 8, textAlign: isRTL ? 'right' : 'left' },
                 ]}
               >
                 {t("form.duration")}
@@ -2148,6 +2163,7 @@ export default function RequestDetailsScreen({
                     backgroundColor: theme.surface,
                     borderColor: theme.border,
                     opacity: 0.7,
+                    flexDirection: isRTL ? 'row-reverse' : 'row',
                   },
                 ]}
               >
@@ -2160,6 +2176,7 @@ export default function RequestDetailsScreen({
                       color: isEditEndTimeBeforeStartTime() ? theme.error : theme.textSecondary,
                       fontSize: 14,
                       flex: 1,
+                      textAlign: isRTL ? 'right' : 'left',
                     },
                   ]}
                 >
@@ -2170,7 +2187,7 @@ export default function RequestDetailsScreen({
               <ThemedText
                 style={[
                   Typography.caption,
-                  { color: theme.textSecondary, marginTop: Spacing.xs, fontSize: 11 },
+                  { color: theme.textSecondary, marginTop: Spacing.xs, fontSize: 11, textAlign: isRTL ? 'right' : 'left' },
                 ]}
               >
                 {t("form.calculatedAutomatically")}
@@ -2188,6 +2205,7 @@ export default function RequestDetailsScreen({
                     fontWeight: "600",
                     color: theme.text,
                     marginBottom: Spacing.md,
+                    textAlign: isRTL ? 'right' : 'left',
                   },
                 ]}
               >
