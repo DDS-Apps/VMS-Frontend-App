@@ -1287,6 +1287,7 @@ export const en: TranslationKeys = {
     },
   },
   timeline: {
+    requestCreated: 'Request Created',
     requestSubmitted: 'Request Submitted',
     autoApproved: 'Auto-approved',
     managerApproved: 'Manager Approved',

@@ -1287,6 +1287,7 @@ export interface TranslationKeys {
     };
   };
   timeline: {
+    requestCreated: string;
     requestSubmitted: string;
     autoApproved: string;
     managerApproved: string;

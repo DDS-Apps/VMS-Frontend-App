@@ -1287,6 +1287,7 @@ export const ar: TranslationKeys = {
     },
   },
   timeline: {
+    requestCreated: 'تم إنشاء الطلب',
     requestSubmitted: 'تم إرسال الطلب',
     autoApproved: 'موافقة تلقائية',
     managerApproved: 'موافقة المدير',
