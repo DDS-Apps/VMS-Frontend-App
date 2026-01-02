@@ -169,7 +169,7 @@ export default function RequestDetailsScreen({
   const { data: editRoomAvailability, isLoading: isLoadingEditRooms } = 
     useRoomAvailabilityQuery(editRoomAvailabilityParams);
   
-  const isEditRoomAvailable = Array.isArray(editRoomAvailability) && editRoomAvailability.some(room => room.isAvailable);
+  const isEditRoomAvailable = editRoomAvailability?.available === true;
   const hasCheckedEditAvailability = editRoomAvailability !== undefined && !isLoadingEditRooms;
 
   const request = useMemo(() => {
