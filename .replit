@@ -82,7 +82,7 @@ expertMode = true
 
 [deployment]
 deploymentTarget = "autoscale"
-build = ["sh", "-c", "npx expo export --platform web"]
+build = ["npm", "run", "build:web"]
 run = ["node", "server.js"]
 
 [[deployment.responseHeaders]]
