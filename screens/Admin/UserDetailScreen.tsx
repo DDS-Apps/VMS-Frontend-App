@@ -280,6 +280,25 @@ export default function UserDetailScreen() {
               </ThemedText>
             </View>
           </View>
+
+          <View style={[styles.separator, { backgroundColor: theme.border }]} />
+
+          <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <DDIcon name="user" size={18} variant="muted" />
+            <View style={[styles.infoContent, { marginStart: Spacing.md }]}>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+                {t('common.manager')}
+              </ThemedText>
+              <ThemedText style={[Typography.body, { textAlign: isRTL ? 'right' : 'left' }]}>
+                {user.managerName || t('common.none')}
+              </ThemedText>
+              {user.managerId ? (
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left', marginTop: 2 }]}>
+                  ID: {user.managerId}
+                </ThemedText>
+              ) : null}
+            </View>
+          </View>
         </View>
 
         <Spacer height={Spacing.lg} />
