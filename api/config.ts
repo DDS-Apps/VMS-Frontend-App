@@ -153,6 +153,7 @@ export const apiConfig = {
       taskStatus: (id: string) => `/api/v1/buffet-admin/tasks/${id}/status`,
       locations: "/api/v1/buffet-admin/locations",
       staff: "/api/v1/buffet-admin/staff",
+      staffDuty: (id: string) => `/api/v1/buffet-admin/staff/${id}/duty`,
       loadSummary: "/api/v1/buffet-admin/load-summary",
     },
     valet: {

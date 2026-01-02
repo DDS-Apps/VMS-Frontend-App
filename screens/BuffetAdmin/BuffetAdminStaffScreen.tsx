@@ -11,8 +11,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { applyOpacity } from "@/utils/statusStyles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useBuffetAdminStaffQuery } from "@/hooks/queries/useBuffetQueries";
-import { toggleStaffDutyStatus } from "@/services/state/buffetAdminState";
+import { useBuffetAdminStaffQuery, useUpdateStaffDutyMutation } from "@/hooks/queries/useBuffetQueries";
 import type { BuffetAdminStaffDto } from "@/types/api.types";
 
 interface KPICardProps {
@@ -55,13 +54,20 @@ export default function BuffetAdminStaffScreen() {
   const insets = useSafeAreaInsets();
   const [togglingStaffId, setTogglingStaffId] = useState<string | null>(null);
   
-  const { data: staffResponse, isLoading, isFetching, refetch } = useBuffetAdminStaffQuery();
+  const { data: staffResponse, isLoading, isFetching } = useBuffetAdminStaffQuery();
+  const updateDutyMutation = useUpdateStaffDutyMutation();
 
-  const handleToggleDuty = async (staffId: string) => {
+  const handleToggleDuty = (staffId: string, currentStatus: 'on_duty' | 'off_duty') => {
+    const newStatus = currentStatus === 'on_duty' ? 'off_duty' : 'on_duty';
     setTogglingStaffId(staffId);
-    toggleStaffDutyStatus(staffId);
-    await refetch();
-    setTogglingStaffId(null);
+    updateDutyMutation.mutate(
+      { id: staffId, data: { dutyStatus: newStatus } },
+      {
+        onSettled: () => {
+          setTogglingStaffId(null);
+        },
+      }
+    );
   };
 
   const staff = useMemo(() => {
@@ -184,7 +190,7 @@ export default function BuffetAdminStaffScreen() {
                 opacity: togglingStaffId === item.id ? 0.6 : 1,
               }
             ]}
-            onPress={() => handleToggleDuty(item.id)}
+            onPress={() => handleToggleDuty(item.id, item.status)}
             disabled={togglingStaffId === item.id}
           >
             {togglingStaffId === item.id ? (

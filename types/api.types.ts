@@ -911,6 +911,17 @@ export interface BuffetAdminStaffDto {
   currentTasks: number;
 }
 
+export interface UpdateStaffDutyDto {
+  dutyStatus: 'on_duty' | 'off_duty';
+}
+
+export interface UpdateStaffDutyResponseDto {
+  id: string;
+  name: string;
+  dutyStatus: 'on_duty' | 'off_duty';
+  updatedAt: string;
+}
+
 export interface BuffetLocationLoadDto {
   locationId: string;
   locationName: string;

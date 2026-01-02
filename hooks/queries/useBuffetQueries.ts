@@ -21,6 +21,8 @@ import type {
   BuffetAdminLocationDto,
   BuffetAdminStaffDto,
   BuffetLoadSummaryDto,
+  UpdateStaffDutyDto,
+  UpdateStaffDutyResponseDto,
 } from '@/types/api.types';
 
 export const buffetKeys = {
@@ -287,6 +289,21 @@ export function useBuffetAdminStaffQuery(enabled = true) {
     queryKey: buffetKeys.adminStaff(),
     queryFn: () => buffetApiService.getBuffetAdminStaff(),
     enabled,
+  });
+}
+
+export function useUpdateStaffDutyMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation<UpdateStaffDutyResponseDto, Error, { id: string; data: UpdateStaffDutyDto }>({
+    mutationFn: ({ id, data }) => buffetApiService.updateStaffDutyStatus(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        predicate: (query) =>
+          query.queryKey[0] === 'buffet' &&
+          (query.queryKey[1] === 'admin-staff' || query.queryKey[1] === 'staff'),
+      });
+    },
   });
 }
 

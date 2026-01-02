@@ -21,6 +21,8 @@ import type {
   BuffetAdminLocationDto,
   BuffetAdminStaffDto,
   BuffetLoadSummaryDto,
+  UpdateStaffDutyDto,
+  UpdateStaffDutyResponseDto,
 } from '@/types/api.types';
 
 const { buffet, buffetStaff, buffetAdmin } = apiConfig.endpoints;
@@ -162,6 +164,10 @@ export const buffetApiService = {
 
   getBuffetAdminStaff: (): Promise<{ data: BuffetAdminStaffDto[] }> => {
     return get<{ data: BuffetAdminStaffDto[] }>(buffetAdmin.staff);
+  },
+
+  updateStaffDutyStatus: (id: string, data: UpdateStaffDutyDto): Promise<UpdateStaffDutyResponseDto> => {
+    return patch<UpdateStaffDutyResponseDto, UpdateStaffDutyDto>(buffetAdmin.staffDuty(id), data);
   },
 
   getBuffetLoadSummary: (): Promise<BuffetLoadSummaryDto> => {
