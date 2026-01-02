@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { NavigationContainer, useNavigation, useNavigationState, useFocusEffect, CommonActions } from "@react-navigation/native";
 import { createNativeStackNavigator, NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useLanguage } from "@/contexts/LanguageContext";
 import DashboardLayout from "@/components/DashboardLayout";
 import OverviewScreen from "@/screens/Dashboard/OverviewScreen";
 import NotificationsScreen from "@/screens/Common/NotificationsScreen";
@@ -176,6 +177,7 @@ const ScreenWrapper = React.memo(ScreenWrapperInner);
 
 export default function DashboardContainer({ userRole, userName, userEmail, userPhotoUrl, asManager, onLogout, isSSOUser }: DashboardContainerProps) {
   const effectiveRole = asManager ? 'manager' : userRole;
+  const { isRTL, locale } = useLanguage();
   
   const getInitialRouteName = () => {
     if (userRole === 'receptionist') return 'ReceptionistDashboard';
@@ -189,7 +191,7 @@ export default function DashboardContainer({ userRole, userName, userEmail, user
   };
   
   return (
-    <NavigationContainer>
+    <NavigationContainer key={`nav-${locale}-${isRTL ? 'rtl' : 'ltr'}`}>
       <Stack.Navigator
         initialRouteName={getInitialRouteName()}
         screenOptions={{

@@ -56,10 +56,9 @@ export default function DashboardLayout({
   isSSOUser = false,
 }: DashboardLayoutProps) {
   const { theme, isDark, toggleTheme } = useTheme();
-  const { locale, setLocale } = useLanguage();
+  const { locale, setLocale, isRTL } = useLanguage();
   const { t } = useTranslation();
   const { width } = useWindowDimensions();
-  const isRTL = I18nManager.isRTL;
   const insets = useSafeAreaInsets();
   
   const [profileMenuVisible, setProfileMenuVisible] = useState(false);
