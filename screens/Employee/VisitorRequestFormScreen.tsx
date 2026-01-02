@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { View, StyleSheet, TextInput, Pressable, Switch, Platform, Alert, Modal, Animated, ScrollView } from "react-native";
+import { CommonActions } from "@react-navigation/native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DDIcon } from "@/components/DDIcon";
 import { ScreenKeyboardAwareScrollView } from "@/components/ScreenKeyboardAwareScrollView";
@@ -172,11 +173,13 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
       }),
     ]).start(() => {
       setShowSuccessModal(false);
-      if (isWalkIn) {
-        navigation.navigate('AllVisitors' as never);
-      } else {
-        navigation.navigate('Dashboard' as never);
-      }
+      const targetScreen = isWalkIn ? 'AllVisitors' : 'Dashboard';
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: targetScreen }],
+        })
+      );
     });
   };
 
