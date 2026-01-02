@@ -51,6 +51,7 @@ export interface TranslationKeys {
     auto: string;
     addUser: string;
     userSource: string;
+    newest: string;
     role: string;
     selectRole: string;
     appCreated: string;

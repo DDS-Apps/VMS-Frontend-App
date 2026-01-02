@@ -51,6 +51,7 @@ export const ar: TranslationKeys = {
     auto: 'تلقائي',
     addUser: 'إضافة مستخدم',
     userSource: 'مصدر المستخدم',
+    newest: 'الأحدث',
     role: 'الدور',
     selectRole: 'اختر الدور',
     appCreated: 'منشأ من التطبيق',

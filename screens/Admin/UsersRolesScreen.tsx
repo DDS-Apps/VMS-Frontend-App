@@ -79,7 +79,7 @@ const ALL_ROLES: UserRole[] = [
   'valet_driver',
 ];
 
-type SortOption = 'name' | 'role' | 'department';
+type SortOption = 'createdAt' | 'name' | 'role' | 'department';
 type ViewMode = 'list' | 'grid' | 'table';
 type GroupMode = 'none' | 'role';
 
@@ -121,7 +121,7 @@ export default function UsersRolesScreen() {
   const [filterRole, setFilterRole] = useState<UserRole | 'all'>('all');
   const [filterActive, setFilterActive] = useState<boolean | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<SortOption>('name');
+  const [sortBy, setSortBy] = useState<SortOption>('createdAt');
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [groupBy, setGroupBy] = useState<GroupMode>('none');
   const [showSortMenu, setShowSortMenu] = useState(false);
@@ -435,6 +435,7 @@ export default function UsersRolesScreen() {
 
   const getSortLabel = (sort: SortOption) => {
     const labels: Record<SortOption, string> = {
+      createdAt: t('common.newest'),
       name: t('form.fullName'),
       role: t('common.userSource'),
       department: t('form.company'),
@@ -445,18 +446,20 @@ export default function UsersRolesScreen() {
   const filteredAndSortedUsers = useMemo(() => {
     let result = [...users];
     
-    result = result.sort((a, b) => {
-      switch (sortBy) {
-        case 'name':
-          return a.name.localeCompare(b.name);
-        case 'role':
-          return a.role.localeCompare(b.role);
-        case 'department':
-          return (a.department || '').localeCompare(b.department || '');
-        default:
-          return 0;
-      }
-    });
+    if (sortBy !== 'createdAt') {
+      result = result.sort((a, b) => {
+        switch (sortBy) {
+          case 'name':
+            return a.name.localeCompare(b.name);
+          case 'role':
+            return a.role.localeCompare(b.role);
+          case 'department':
+            return (a.department || '').localeCompare(b.department || '');
+          default:
+            return 0;
+        }
+      });
+    }
     
     return result;
   }, [users, sortBy]);

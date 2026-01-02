@@ -51,6 +51,7 @@ export const en: TranslationKeys = {
     auto: 'Auto',
     addUser: 'Add User',
     userSource: 'User Source',
+    newest: 'Newest',
     role: 'Role',
     selectRole: 'Select Role',
     appCreated: 'App Created',
