@@ -1348,7 +1348,6 @@ export interface BuffetPreferencesPayload {
 }
 
 export interface CreateVisitPayload {
-  hostId: string;
   visitor: CreateVisitVisitorPayload;
   visitDate: string;
   visitTime: string;
@@ -1358,11 +1357,8 @@ export interface CreateVisitPayload {
   communicationChannels?: ('email' | 'sms' | 'whatsapp' | 'qr_code')[];
   needsMeetingRoom?: boolean;
   meetingRoomId?: string;
-  needsParking?: boolean;
   needsBuffet?: boolean;
-  needsValet?: boolean;
   buffetPreferences?: BuffetPreferencesPayload;
-  parkingPreference?: 'auto' | 'manual' | 'none';
 }
 
 export interface CreateVisitResponseApproval {

@@ -467,7 +467,6 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
       const duration = calculateServerDuration(selectedTime, selectedEndTime);
 
       const payload: CreateVisitPayload = {
-        hostId: asReceptionist ? selectedEmployeeId : user.id,
         visitor: {
           fullName: fullName.trim(),
           email: email.trim(),
@@ -480,11 +479,8 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
         duration: duration,
         purpose: purpose.trim() || 'General visit',
         communicationChannels,
-        needsParking: false,
         needsMeetingRoom: asReceptionist ? false : needsMeetingRoom,
         needsBuffet: asReceptionist ? false : needsBuffet,
-        needsValet: false,
-        parkingPreference: 'none',
       };
 
       console.log('[VisitorRequestForm] Submitting request with payload:', JSON.stringify(payload, null, 2));
