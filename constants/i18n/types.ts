@@ -976,9 +976,11 @@ export interface TranslationKeys {
     buffet: string;
     onDuty: string;
     selectFromAvailableStaff: string;
+    pending: string;
     preparing: string;
     ready: string;
     served: string;
+    completed: string;
     mealType: string;
     meetingRoom: string;
     breakfast: string;
