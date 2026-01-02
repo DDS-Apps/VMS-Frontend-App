@@ -20,6 +20,8 @@ export interface ListUsersParams {
   department?: string;
   search?: string;
   isActive?: boolean;
+  sortBy?: 'name' | 'role' | 'department' | 'createdAt';
+  sortOrder?: 'asc' | 'desc';
 }
 
 function buildQueryString(params: Record<string, unknown>): string {
