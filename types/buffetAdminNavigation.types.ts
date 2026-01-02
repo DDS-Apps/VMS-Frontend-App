@@ -6,6 +6,7 @@ export type BuffetAdminStackParamList = {
   BuffetRequestDetails: { request: BuffetRequest };
   BuffetStaff: undefined;
   BuffetLocations: undefined;
+  BuffetCreateLocation: undefined;
   BuffetAllRequests: undefined;
   BuffetOverview: undefined;
   Notifications: undefined;
@@ -35,4 +36,9 @@ export type BuffetAdminLocationsScreenProps = NativeStackScreenProps<
 export type BuffetAllRequestsScreenProps = NativeStackScreenProps<
   BuffetAdminStackParamList,
   "BuffetAllRequests"
+>;
+
+export type BuffetAdminCreateLocationScreenProps = NativeStackScreenProps<
+  BuffetAdminStackParamList,
+  "BuffetCreateLocation"
 >;

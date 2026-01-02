@@ -1000,6 +1000,19 @@ export interface TranslationKeys {
     locationBreakdown: string;
     activeOrders: string;
     noEvents: string;
+    createLocation: string;
+    locationName: string;
+    locationNamePlaceholder: string;
+    locationNameRequired: string;
+    building: string;
+    buildingPlaceholder: string;
+    floor: string;
+    floorPlaceholder: string;
+    capacity: string;
+    capacityPlaceholder: string;
+    description: string;
+    descriptionPlaceholder: string;
+    addLocation: string;
   };
   months: {
     january: string;

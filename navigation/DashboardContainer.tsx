@@ -39,6 +39,7 @@ import BuffetBoardScreen from "@/screens/Buffet/BuffetBoardScreen";
 import BuffetAdminDashboardScreen from "@/screens/BuffetAdmin/BuffetAdminDashboardScreen";
 import BuffetAdminStaffScreen from "@/screens/BuffetAdmin/BuffetAdminStaffScreen";
 import BuffetAdminLocationsScreen from "@/screens/BuffetAdmin/BuffetAdminLocationsScreen";
+import BuffetAdminCreateLocationScreen from "@/screens/BuffetAdmin/BuffetAdminCreateLocationScreen";
 import BuffetRequestDetailsScreen from "@/screens/BuffetAdmin/BuffetRequestDetailsScreen";
 import BuffetAllRequestsScreen from "@/screens/BuffetAdmin/BuffetAllRequestsScreen";
 import BuffetOverviewScreen from "@/screens/BuffetAdmin/BuffetOverviewScreen";
@@ -475,9 +476,16 @@ export default function DashboardContainer({ userRole, userName, userEmail, user
               )}
             </Stack.Screen>
             <Stack.Screen name="BuffetLocations">
-              {() => (
+              {(props) => (
                 <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <BuffetAdminLocationsScreen />
+                  <BuffetAdminLocationsScreen {...props} />
+                </ScreenWrapper>
+              )}
+            </Stack.Screen>
+            <Stack.Screen name="BuffetCreateLocation">
+              {(props) => (
+                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
+                  <BuffetAdminCreateLocationScreen {...props} />
                 </ScreenWrapper>
               )}
             </Stack.Screen>

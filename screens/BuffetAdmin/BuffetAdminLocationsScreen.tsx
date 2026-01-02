@@ -17,6 +17,7 @@ import {
   useBuffetLoadSummaryQuery,
 } from "@/hooks/queries/useBuffetQueries";
 import type { BuffetAdminLocationDto, BuffetLocationLoadDto } from "@/types/api.types";
+import type { BuffetAdminLocationsScreenProps } from "@/types/buffetAdminNavigation.types";
 
 interface KPICardProps {
   title: string;
@@ -62,7 +63,7 @@ interface LocationDisplayItem {
   currentRequests: number;
 }
 
-export default function BuffetAdminLocationsScreen() {
+export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLocationsScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { isRTL } = useLanguage();
@@ -305,6 +306,20 @@ export default function BuffetAdminLocationsScreen() {
 
         <Spacer height={Spacing.xl} />
       </ScreenScrollView>
+
+      <Pressable
+        style={[
+          styles.fab,
+          {
+            backgroundColor: theme.primary,
+            [isRTL ? 'left' : 'right']: Spacing.lg,
+            bottom: insets.bottom + 80,
+          }
+        ]}
+        onPress={() => navigation.navigate('BuffetCreateLocation')}
+      >
+        <DDIcon name="plus" size={24} color="#FFFFFF" />
+      </Pressable>
 
       <Modal
         visible={showEditModal}
@@ -602,5 +617,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  fab: {
+    position: 'absolute',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 6,
   },
 });
