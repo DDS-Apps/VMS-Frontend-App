@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LoadingButton } from "@/components/shared/LoadingButton";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { useToast } from "@/contexts/ToastContext";
+import { RequestTimeline, type TimelineStep } from "@/components/shared/RequestTimeline";
 import {
   useBuffetAdminTaskQuery,
   useBuffetAdminStaffQuery,
@@ -55,6 +56,67 @@ const mapStaffDto = (staff: BuffetAdminStaffDto): StaffDisplayItem => ({
   status: staff.status,
   currentTasks: staff.currentTasks,
 });
+
+const BUFFET_STATUS_ORDER = ['pending', 'preparing', 'ready', 'served', 'completed'] as const;
+
+const buildBuffetTimelineSteps = (
+  request: BuffetRequest,
+  t: (key: string) => string
+): TimelineStep[] => {
+  const currentStatusIndex = BUFFET_STATUS_ORDER.indexOf(request.status as typeof BUFFET_STATUS_ORDER[number]);
+  const isCancelled = request.status === 'cancelled';
+
+  const steps: TimelineStep[] = [
+    {
+      id: 'created',
+      label: t('timeline.requestCreated'),
+      timestamp: request.createdAt,
+      status: 'completed',
+      icon: 'file-plus',
+    },
+    {
+      id: 'pending',
+      label: t('buffet.pending'),
+      status: isCancelled ? 'pending' : (currentStatusIndex >= 0 ? 'completed' : 'pending'),
+      icon: 'clock',
+    },
+    {
+      id: 'preparing',
+      label: t('buffet.preparing'),
+      status: isCancelled ? 'pending' : (currentStatusIndex >= 1 ? (currentStatusIndex === 1 ? 'current' : 'completed') : 'pending'),
+      icon: 'loader',
+    },
+    {
+      id: 'ready',
+      label: t('buffet.ready'),
+      status: isCancelled ? 'pending' : (currentStatusIndex >= 2 ? (currentStatusIndex === 2 ? 'current' : 'completed') : 'pending'),
+      icon: 'check-circle',
+    },
+    {
+      id: 'served',
+      label: t('buffet.served'),
+      status: isCancelled ? 'pending' : (currentStatusIndex >= 3 ? (currentStatusIndex === 3 ? 'current' : 'completed') : 'pending'),
+      icon: 'coffee',
+    },
+    {
+      id: 'completed',
+      label: t('buffet.completed'),
+      status: isCancelled ? 'pending' : (currentStatusIndex >= 4 ? 'completed' : 'pending'),
+      icon: 'check',
+    },
+  ];
+
+  if (isCancelled) {
+    steps.push({
+      id: 'cancelled',
+      label: t('status.cancelled'),
+      status: 'error',
+      icon: 'x-circle',
+    });
+  }
+
+  return steps;
+};
 
 export default function BuffetRequestDetailsScreen({ route, navigation }: BuffetRequestDetailsScreenProps) {
   const { theme } = useTheme();
@@ -115,6 +177,8 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
       .filter(s => s.status === 'on_duty')
       .map(mapStaffDto);
   }, [staffResponse]);
+
+  const timelineSteps = useMemo(() => buildBuffetTimelineSteps(request, t), [request, t]);
 
   const handleOpenAssignModal = () => {
     setShowAssignModal(true);
@@ -473,6 +537,10 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
           </View>
         )}
       </ThemedView>
+
+      <Spacer height={Spacing.lg} />
+
+      <RequestTimeline steps={timelineSteps} />
 
       {showActions ? (
         <>
