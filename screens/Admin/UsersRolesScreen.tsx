@@ -160,6 +160,8 @@ export default function UsersRolesScreen() {
     role: filterRole !== 'all' ? filterRole as ApiUserRole : undefined,
     search: debouncedSearch || undefined,
     isActive: filterActive !== 'all' ? filterActive : undefined,
+    sortBy: 'createdAt' as const,
+    sortOrder: 'desc' as const,
   }), [currentPage, filterRole, debouncedSearch, filterActive]);
 
   const { 
