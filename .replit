@@ -81,9 +81,10 @@ stack = "EXPO"
 expertMode = true
 
 [deployment]
-deploymentTarget = "autoscale"
+deploymentTarget = "static"
 build = ["npm", "run", "build:web"]
 run = ["node", "server.js"]
+publicDir = "dist"
 
 [[deployment.responseHeaders]]
 path = "/*"
