@@ -130,7 +130,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
   const { t } = useTranslation();
   const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
-  const { showSuccess, showError } = useToast();
+  const { showSuccess } = useToast();
   const { user } = useAuth();
   const isReadOnlyRole = user?.role === 'building_admin';
   const initialRequest = route.params.request;
@@ -203,10 +203,9 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
           setAssigningStaffId(null);
           showSuccess(`${staff.name} ${t('buffet.hasBeenAssigned')}`, t('buffet.staffAssigned'));
         },
-        onError: (error: any) => {
+        onError: () => {
           setAssigningStaffId(null);
-          const errorMessage = error?.response?.data?.message || t('common.errorOccurred');
-          showError(errorMessage, t('common.error'));
+          // Error toast is handled globally by QueryProvider
         },
       }
     );
@@ -318,10 +317,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
             showSuccess(getStatusLabel(nextStatus), t('common.success'));
           }
         },
-        onError: (error: any) => {
-          const errorMessage = error?.response?.data?.message || t('common.errorOccurred');
-          showError(errorMessage, t('common.error'));
-        },
+        // Error toast is handled globally by QueryProvider with actual API error message
       }
     );
   };

@@ -60,6 +60,10 @@ export function getLocalizedErrorMessage(error: unknown): string {
       case 'CONFLICT':
       case 'UNKNOWN':
       default:
+        // Return the actual API error message if available, otherwise fall back to generic
+        if (error.message && error.message.trim().length > 0) {
+          return error.message;
+        }
         return t('toast.unknownError');
     }
   }
@@ -71,6 +75,10 @@ export function getLocalizedErrorMessage(error: unknown): string {
     }
     if (msg.includes('network') || msg.includes('fetch') || msg.includes('connection')) {
       return t('toast.networkError');
+    }
+    // Return the actual error message if it's meaningful
+    if (error.message && error.message.trim().length > 0) {
+      return error.message;
     }
     return t('toast.unknownError');
   }
