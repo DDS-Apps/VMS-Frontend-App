@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { View, StyleSheet, Pressable, ViewStyle } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -15,7 +15,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { VisitorRequest } from "@/types/vms.types";
 import { getStatusConfig as getStatusStyle, applyOpacity } from "@/utils/statusStyles";
 
-type CardVariant = 'default' | 'compact' | 'expandable' | 'actions' | 'selectable';
+type CardVariant = 'default' | 'compact' | 'actions' | 'selectable';
 
 interface VisitorRequestCardProps {
   request: VisitorRequest;
@@ -27,8 +27,6 @@ interface VisitorRequestCardProps {
   location?: string;
   style?: ViewStyle;
   variant?: CardVariant;
-  isExpanded?: boolean;
-  onToggleExpand?: () => void;
   showActions?: boolean;
   onApprove?: () => void;
   onReject?: () => void;
@@ -88,8 +86,6 @@ export function VisitorRequestCard({
   location,
   style,
   variant = 'default',
-  isExpanded: controlledExpanded,
-  onToggleExpand,
   showActions = false,
   onApprove,
   onReject,
@@ -103,10 +99,6 @@ export function VisitorRequestCard({
   const { t } = useTranslation();
   const { formatDateShort, formatTimeFromString, toLocalNumerals } = useFormatters();
   const { isRTL } = useLanguage();
-
-  const [internalExpanded, setInternalExpanded] = useState(false);
-  const isExpanded = controlledExpanded !== undefined ? controlledExpanded : internalExpanded;
-  const handleToggleExpand = onToggleExpand || (() => setInternalExpanded(!internalExpanded));
 
   const statusConfig = getStatusStyle(theme, request.status, t);
   const borderColor = accentColor || statusConfig.borderColor;
@@ -291,67 +283,7 @@ export function VisitorRequestCard({
     );
   };
 
-  const renderExpandedContent = () => {
-    if (variant !== 'expandable' || !isExpanded) return null;
-    return (
-      <>
-        <View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
-        <View style={styles.expandedContent}>
-          {request.purpose ? (
-            <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <DDIcon name="briefcase" size={14} variant="muted" />
-              <ThemedText style={[styles.expandedText, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-                {request.purpose}
-              </ThemedText>
-            </View>
-          ) : null}
-          
-          {(request.visitor.email || request.visitor.phone) ? (
-            <>
-              <Spacer height={Spacing.sm} />
-              {request.visitor.email ? (
-                <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                  <DDIcon name="mail" size={13} variant="muted" />
-                  <ThemedText style={[styles.expandedTextSmall, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-                    {request.visitor.email}
-                  </ThemedText>
-                </View>
-              ) : null}
-              {request.visitor.email && request.visitor.phone ? <Spacer height={Spacing.xs} /> : null}
-              {request.visitor.phone ? (
-                <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                  <DDIcon name="phone" size={13} variant="muted" />
-                  <ThemedText style={[styles.expandedTextSmall, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-                    {request.visitor.phone}
-                  </ThemedText>
-                </View>
-              ) : null}
-            </>
-          ) : null}
-        </View>
-      </>
-    );
-  };
 
-  const renderExpandToggle = () => {
-    if (variant !== 'expandable') return null;
-    return (
-      <Pressable
-        style={[styles.expandToggle, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
-        onPress={handleToggleExpand}
-        android_ripple={{ color: applyOpacity(theme.primary, '10') }}
-      >
-        <ThemedText style={[styles.expandToggleText, { color: theme.primary }]}>
-          {isExpanded ? t('common.close') : t('actions.viewDetails')}
-        </ThemedText>
-        <DDIcon 
-          name={isExpanded ? "chevron-up" : "chevron-down"} 
-          size={16} 
-          variant="primary" 
-        />
-      </Pressable>
-    );
-  };
 
   const renderActions = () => {
     if (!showActions || isSelectionMode) return null;
@@ -413,8 +345,6 @@ export function VisitorRequestCard({
           {renderActions()}
         </View>
 
-        {renderExpandedContent()}
-        {renderExpandToggle()}
       </ThemedView>
     </Pressable>
   );
@@ -519,34 +449,6 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.full,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  dividerLine: {
-    height: 1,
-    marginHorizontal: Spacing.lg,
-  },
-  expandedContent: {
-    paddingHorizontal: Spacing.lg + LAYOUT.accentWidth,
-    paddingVertical: Spacing.md,
-  },
-  expandedText: {
-    flex: 1,
-    fontSize: 12,
-    lineHeight: 18,
-  },
-  expandedTextSmall: {
-    fontSize: 11,
-  },
-  expandToggle: {
-    paddingVertical: Spacing.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.xs,
-    borderTopWidth: 1,
-    borderTopColor: 'transparent',
-  },
-  expandToggleText: {
-    fontSize: 13,
-    fontWeight: '500',
   },
   checkboxContainer: {
     position: 'absolute',

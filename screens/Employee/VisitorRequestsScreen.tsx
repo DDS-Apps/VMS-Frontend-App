@@ -504,7 +504,6 @@ export default function VisitorRequestsScreen({ navigation: navProp, userRole = 
   
   const [selectedTab, setSelectedTab] = useState<TabType>(initialTabFromParams || defaultTab);
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
-  const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const [lastInitialTab, setLastInitialTab] = useState<string | undefined>(initialTabFromParams);
 
   useEffect(() => {
@@ -730,10 +729,7 @@ export default function VisitorRequestsScreen({ navigation: navProp, userRole = 
           <View style={styles.paddedContent}>
             <VisitorRequestCard
               request={item}
-              variant="expandable"
-              isExpanded={expandedCard === item.id}
               onPress={() => navigation.navigate('RequestDetails', { requestId: item.id })}
-              onToggleExpand={() => setExpandedCard(expandedCard === item.id ? null : item.id)}
             />
           </View>
         )}
