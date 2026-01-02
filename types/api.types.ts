@@ -926,7 +926,7 @@ export interface BuffetAdminStaffDto {
   id: string;
   name: string;
   role: string;
-  status: 'on_duty' | 'off_duty';
+  dutyStatus: 'on_duty' | 'off_duty';
   currentTasks: number;
 }
 

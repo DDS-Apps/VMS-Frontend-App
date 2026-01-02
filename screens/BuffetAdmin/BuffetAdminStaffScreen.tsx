@@ -76,8 +76,8 @@ export default function BuffetAdminStaffScreen() {
   }, [staffResponse]);
 
   const stats = useMemo(() => {
-    const onDuty = staff.filter(s => s.status === 'on_duty').length;
-    const offDuty = staff.filter(s => s.status === 'off_duty').length;
+    const onDuty = staff.filter(s => s.dutyStatus === 'on_duty').length;
+    const offDuty = staff.filter(s => s.dutyStatus === 'off_duty').length;
     return {
       total: staff.length,
       onDuty,
@@ -122,7 +122,7 @@ export default function BuffetAdminStaffScreen() {
   };
 
   const renderStaffCard = (item: BuffetAdminStaffDto) => {
-    const isOnDuty = item.status === 'on_duty';
+    const isOnDuty = item.dutyStatus === 'on_duty';
     const initials = item.name.split(' ').map(n => n[0]).join('').slice(0, 2);
     const roleColor = getRoleColor(item.role);
     
@@ -190,7 +190,7 @@ export default function BuffetAdminStaffScreen() {
                 opacity: togglingStaffId === item.id ? 0.6 : 1,
               }
             ]}
-            onPress={() => handleToggleDuty(item.id, item.status)}
+            onPress={() => handleToggleDuty(item.id, item.dutyStatus)}
             disabled={togglingStaffId === item.id}
           >
             {togglingStaffId === item.id ? (
