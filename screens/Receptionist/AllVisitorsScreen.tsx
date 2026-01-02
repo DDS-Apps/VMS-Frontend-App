@@ -73,9 +73,7 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [dateFilter, setDateFilter] = useState<DateFilter>('today');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
-  const [walkInOnly, setWalkInOnly] = useState(false);
-  const [awaitingVisitorOnly, setAwaitingVisitorOnly] = useState(false);
-  const [pendingApprovalOnly, setPendingApprovalOnly] = useState(false);
+  const [activeQuickFilter, setActiveQuickFilter] = useState<'walk_in' | 'awaiting_visitor' | 'pending_approval' | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showStatusPicker, setShowStatusPicker] = useState(false);
 
@@ -90,12 +88,12 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
     ...getDateRange(dateFilter),
     status: mapStatusToApi(statusFilter),
     search: debouncedSearch || undefined,
-    isWalkIn: walkInOnly || undefined,
-    awaitingVisitor: awaitingVisitorOnly || undefined,
-    pendingApproval: pendingApprovalOnly || undefined,
+    isWalkIn: activeQuickFilter === 'walk_in' || undefined,
+    awaitingVisitor: activeQuickFilter === 'awaiting_visitor' || undefined,
+    pendingApproval: activeQuickFilter === 'pending_approval' || undefined,
     myRequestsOnly: false,
     limit: PAGE_SIZE,
-  }), [dateFilter, statusFilter, debouncedSearch, walkInOnly, awaitingVisitorOnly, pendingApprovalOnly]);
+  }), [dateFilter, statusFilter, debouncedSearch, activeQuickFilter]);
 
   const { 
     data, 
@@ -468,18 +466,18 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
           style={[
             styles.filterChip,
             { 
-              backgroundColor: walkInOnly ? applyOpacity(theme.warning, '15') : theme.surface,
-              borderColor: walkInOnly ? theme.warning : theme.border,
+              backgroundColor: activeQuickFilter === 'walk_in' ? applyOpacity(theme.warning, '15') : theme.surface,
+              borderColor: activeQuickFilter === 'walk_in' ? theme.warning : theme.border,
               flexDirection: isRTL ? 'row-reverse' : 'row'
             }
           ]}
-          onPress={() => setWalkInOnly(!walkInOnly)}
+          onPress={() => setActiveQuickFilter(activeQuickFilter === 'walk_in' ? null : 'walk_in')}
           accessibilityLabel={t('common.walkIn')}
           accessibilityRole="button"
-          accessibilityState={{ selected: walkInOnly }}
+          accessibilityState={{ selected: activeQuickFilter === 'walk_in' }}
         >
-          <DDIcon name="user-plus" size={12} color={walkInOnly ? theme.warning : theme.textSecondary} />
-          <ThemedText style={[styles.filterChipText, { color: walkInOnly ? theme.warning : theme.textSecondary }]}>
+          <DDIcon name="user-plus" size={12} color={activeQuickFilter === 'walk_in' ? theme.warning : theme.textSecondary} />
+          <ThemedText style={[styles.filterChipText, { color: activeQuickFilter === 'walk_in' ? theme.warning : theme.textSecondary }]}>
             {t('common.walkIn')}
           </ThemedText>
         </Pressable>
@@ -488,18 +486,18 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
           style={[
             styles.filterChip,
             { 
-              backgroundColor: awaitingVisitorOnly ? applyOpacity(theme.info, '15') : theme.surface,
-              borderColor: awaitingVisitorOnly ? theme.info : theme.border,
+              backgroundColor: activeQuickFilter === 'awaiting_visitor' ? applyOpacity(theme.info, '15') : theme.surface,
+              borderColor: activeQuickFilter === 'awaiting_visitor' ? theme.info : theme.border,
               flexDirection: isRTL ? 'row-reverse' : 'row'
             }
           ]}
-          onPress={() => setAwaitingVisitorOnly(!awaitingVisitorOnly)}
+          onPress={() => setActiveQuickFilter(activeQuickFilter === 'awaiting_visitor' ? null : 'awaiting_visitor')}
           accessibilityLabel={t('filters.awaitingVisitor')}
           accessibilityRole="button"
-          accessibilityState={{ selected: awaitingVisitorOnly }}
+          accessibilityState={{ selected: activeQuickFilter === 'awaiting_visitor' }}
         >
-          <DDIcon name="clock" size={12} color={awaitingVisitorOnly ? theme.info : theme.textSecondary} />
-          <ThemedText style={[styles.filterChipText, { color: awaitingVisitorOnly ? theme.info : theme.textSecondary }]}>
+          <DDIcon name="clock" size={12} color={activeQuickFilter === 'awaiting_visitor' ? theme.info : theme.textSecondary} />
+          <ThemedText style={[styles.filterChipText, { color: activeQuickFilter === 'awaiting_visitor' ? theme.info : theme.textSecondary }]}>
             {t('filters.awaitingVisitor')}
           </ThemedText>
         </Pressable>
@@ -508,18 +506,18 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
           style={[
             styles.filterChip,
             { 
-              backgroundColor: pendingApprovalOnly ? applyOpacity(theme.primary, '15') : theme.surface,
-              borderColor: pendingApprovalOnly ? theme.primary : theme.border,
+              backgroundColor: activeQuickFilter === 'pending_approval' ? applyOpacity(theme.primary, '15') : theme.surface,
+              borderColor: activeQuickFilter === 'pending_approval' ? theme.primary : theme.border,
               flexDirection: isRTL ? 'row-reverse' : 'row'
             }
           ]}
-          onPress={() => setPendingApprovalOnly(!pendingApprovalOnly)}
+          onPress={() => setActiveQuickFilter(activeQuickFilter === 'pending_approval' ? null : 'pending_approval')}
           accessibilityLabel={t('filters.pendingApproval')}
           accessibilityRole="button"
-          accessibilityState={{ selected: pendingApprovalOnly }}
+          accessibilityState={{ selected: activeQuickFilter === 'pending_approval' }}
         >
-          <DDIcon name="check-circle" size={12} color={pendingApprovalOnly ? theme.primary : theme.textSecondary} />
-          <ThemedText style={[styles.filterChipText, { color: pendingApprovalOnly ? theme.primary : theme.textSecondary }]}>
+          <DDIcon name="check-circle" size={12} color={activeQuickFilter === 'pending_approval' ? theme.primary : theme.textSecondary} />
+          <ThemedText style={[styles.filterChipText, { color: activeQuickFilter === 'pending_approval' ? theme.primary : theme.textSecondary }]}>
             {t('filters.pendingApproval')}
           </ThemedText>
         </Pressable>
@@ -527,7 +525,7 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
 
       <Spacer height={Spacing.md} />
     </View>
-  ), [t, theme, totalCount, isFetching, isFetchingNextPage, searchQuery, walkInOnly, awaitingVisitorOnly, pendingApprovalOnly, getSelectedDateLabel, getSelectedStatusLabel]);
+  ), [t, theme, totalCount, isFetching, isFetchingNextPage, searchQuery, activeQuickFilter, getSelectedDateLabel, getSelectedStatusLabel]);
 
   if (isLoading) {
     return (

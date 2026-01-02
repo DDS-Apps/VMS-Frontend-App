@@ -86,6 +86,77 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
     paddingBottom: insets.bottom + Spacing.xl
   };
 
+  const handleCheckIn = () => {
+    if (!visitor) return;
+    checkInMutation.mutate(
+      { visitId: visitor.id },
+      {
+        onSuccess: () => {
+          const currentTime = formatTime(new Date());
+          navigation.navigate('CheckInOutConfirmation', {
+            action: 'check_in',
+            visitorName: visitor.name,
+            time: currentTime
+          });
+        },
+        onError: (error) => {
+          Alert.alert(t('common.error'), error.message || t('errors.checkInFailed'));
+        }
+      }
+    );
+  };
+
+  const handleCheckOut = () => {
+    if (!visitor) return;
+    checkOutMutation.mutate(
+      { visitId: visitor.id },
+      {
+        onSuccess: () => {
+          const currentTime = formatTime(new Date());
+          navigation.navigate('CheckInOutConfirmation', {
+            action: 'check_out',
+            visitorName: visitor.name,
+            time: currentTime
+          });
+        },
+        onError: (error) => {
+          Alert.alert(t('common.error'), error.message || t('errors.checkOutFailed'));
+        }
+      }
+    );
+  };
+
+  const timelineData: TimelineData = useMemo(() => ({
+    createdAt: visitor?.createdAt ?? '',
+    status: visitor?.status ?? 'pending',
+    isWalkIn: visitor?.isWalkIn ?? false,
+  }), [visitor]);
+
+  const timelineActions: TimelineActionCallbacks | undefined = useMemo(() => {
+    if (!visitor) return undefined;
+    if (visitor.status === 'pending') {
+      return {
+        onCheckIn: handleCheckIn,
+        isCheckInLoading: checkInMutation.isPending,
+      };
+    }
+    if (visitor.status === 'checked_in') {
+      return {
+        onCheckOut: handleCheckOut,
+        isCheckOutLoading: checkOutMutation.isPending,
+      };
+    }
+    return undefined;
+  }, [visitor?.status, checkInMutation.isPending, checkOutMutation.isPending]);
+
+  const timelineSteps = useTimelineSteps({
+    data: timelineData,
+    role: 'receptionist',
+    flowType: 'receptionist_checkin',
+    actions: timelineActions,
+    showActions: false,
+  });
+
   if (isLoading) {
     return (
       <View style={[styles.loadingContainer, { paddingTop: insets.top + Spacing.xl }]}>
@@ -119,44 +190,6 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
       default:
         return { label: t('visitor.expectedVisitors'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: applyOpacity(theme.warning, '30'), icon: 'clock' };
     }
-  };
-
-  const handleCheckIn = () => {
-    checkInMutation.mutate(
-      { visitId: visitor.id },
-      {
-        onSuccess: () => {
-          const currentTime = formatTime(new Date());
-          navigation.navigate('CheckInOutConfirmation', {
-            action: 'check_in',
-            visitorName: visitor.name,
-            time: currentTime
-          });
-        },
-        onError: (error) => {
-          Alert.alert(t('common.error'), error.message || t('errors.checkInFailed'));
-        }
-      }
-    );
-  };
-
-  const handleCheckOut = () => {
-    checkOutMutation.mutate(
-      { visitId: visitor.id },
-      {
-        onSuccess: () => {
-          const currentTime = formatTime(new Date());
-          navigation.navigate('CheckInOutConfirmation', {
-            action: 'check_out',
-            visitorName: visitor.name,
-            time: currentTime
-          });
-        },
-        onError: (error) => {
-          Alert.alert(t('common.error'), error.message || t('errors.checkOutFailed'));
-        }
-      }
-    );
   };
 
   const handleCancel = () => {
@@ -197,40 +230,6 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
   };
 
   const statusConfig = getStatusConfig(visitor.status);
-
-  const timelineData: TimelineData = useMemo(() => ({
-    createdAt: visitor.createdAt,
-    status: visitor.status,
-    checkedInAt: visitDetails?.checkedInAt,
-    checkedOutAt: visitDetails?.checkedOutAt,
-    completedAt: visitDetails?.completedAt,
-    cancelledAt: visitDetails?.cancelledAt,
-    isWalkIn: visitor.isWalkIn,
-  }), [visitor, visitDetails]);
-
-  const timelineActions: TimelineActionCallbacks | undefined = useMemo(() => {
-    if (visitor.status === 'pending') {
-      return {
-        onCheckIn: handleCheckIn,
-        isCheckInLoading: checkInMutation.isPending,
-      };
-    }
-    if (visitor.status === 'checked_in') {
-      return {
-        onCheckOut: handleCheckOut,
-        isCheckOutLoading: checkOutMutation.isPending,
-      };
-    }
-    return undefined;
-  }, [visitor.status, checkInMutation.isPending, checkOutMutation.isPending]);
-
-  const timelineSteps = useTimelineSteps({
-    data: timelineData,
-    role: 'receptionist',
-    flowType: 'receptionist_checkin',
-    actions: timelineActions,
-    showActions: false,
-  });
 
   return (
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
