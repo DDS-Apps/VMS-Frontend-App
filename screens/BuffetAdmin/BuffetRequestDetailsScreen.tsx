@@ -53,7 +53,7 @@ const mapStaffDto = (staff: BuffetAdminStaffDto): StaffDisplayItem => ({
   id: staff.id,
   name: staff.name,
   role: staff.role,
-  status: staff.status,
+  status: staff.dutyStatus,
   currentTasks: staff.currentTasks,
 });
 
@@ -181,7 +181,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
     const responseData = staffResponse?.data as { data?: BuffetAdminStaffDto[] } | BuffetAdminStaffDto[] | undefined;
     const allStaff = Array.isArray(responseData) ? responseData : (Array.isArray((responseData as { data?: BuffetAdminStaffDto[] })?.data) ? (responseData as { data: BuffetAdminStaffDto[] }).data : []);
     return allStaff
-      .filter(s => s.status === 'on_duty')
+      .filter(s => s.dutyStatus === 'on_duty')
       .map(mapStaffDto);
   }, [staffResponse]);
 

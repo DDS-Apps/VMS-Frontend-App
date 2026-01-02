@@ -56,8 +56,8 @@ const mapAdminStaffDto = (staff: BuffetAdminStaffDto): BuffetStaff => {
     id: staff.id,
     name: staff.name,
     role: staff.role,
-    shift: staff.status === 'on_duty' ? 'On Duty' : 'Off Duty',
-    status: staff.status,
+    shift: staff.dutyStatus === 'on_duty' ? 'On Duty' : 'Off Duty',
+    status: staff.dutyStatus,
     currentTasks: staff.currentTasks,
   };
 };
@@ -705,7 +705,9 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
   const availableStaff = useMemo(() => {
     const responseData = staffData?.data as { data?: BuffetAdminStaffDto[] } | BuffetAdminStaffDto[] | undefined;
     const staffList = Array.isArray(responseData) ? responseData : (Array.isArray((responseData as { data?: BuffetAdminStaffDto[] })?.data) ? (responseData as { data: BuffetAdminStaffDto[] }).data : []);
-    return staffList.map(mapAdminStaffDto);
+    return staffList
+      .filter(s => s.dutyStatus === 'on_duty')
+      .map(mapAdminStaffDto);
   }, [staffData]);
 
   const handleViewDetails = (request: BuffetRequest) => {
