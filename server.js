@@ -18,7 +18,7 @@ app.use(express.static(DIST_DIR, {
   etag: false,
 }));
 
-app.use((req, res) => {
+app.get('*', (req, res) => {
   const indexPath = path.join(DIST_DIR, 'index.html');
   if (fs.existsSync(indexPath)) {
     res.sendFile(indexPath);
