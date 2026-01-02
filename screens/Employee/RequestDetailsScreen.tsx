@@ -1107,7 +1107,9 @@ export default function RequestDetailsScreen({
         <Spacer height={Spacing.lg} />
 
         <View style={[styles.infoRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-          <DDIcon name="mail" size={16} variant="muted" />
+          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+            <DDIcon name="mail" size={18} color={theme.text} />
+          </View>
           <ThemedText
             style={[
               Typography.body,
@@ -1127,7 +1129,9 @@ export default function RequestDetailsScreen({
         <Spacer height={Spacing.md} />
 
         <View style={[styles.infoRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-          <DDIcon name="phone" size={16} variant="muted" />
+          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+            <DDIcon name="phone" size={18} color={theme.text} />
+          </View>
           <ThemedText
             style={[
               Typography.body,

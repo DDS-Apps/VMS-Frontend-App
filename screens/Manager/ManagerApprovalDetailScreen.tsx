@@ -686,21 +686,21 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
             <Spacer height={Spacing.lg} />
 
             <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', alignSelf: isRTL ? 'flex-end' : 'flex-start' }}>
-              <DDIcon name="mail" size={16} variant="muted" />
-              <ThemedText style={[Typography.caption, { marginStart: 8, color: theme.textSecondary, fontSize: 13 }]}>
+              <View style={[styles.contactIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                <DDIcon name="mail" size={18} color={theme.text} />
+              </View>
+              <ThemedText style={[Typography.caption, { marginStart: Spacing.md, color: theme.textSecondary, fontSize: 13 }]}>
                 {request.visitor.email}
               </ThemedText>
             </View>
 
-            <Spacer height={Spacing.xs} />
-
-            <View style={[{ height: StyleSheet.hairlineWidth, backgroundColor: theme.border, width: '60%', alignSelf: isRTL ? 'flex-end' : 'flex-start' }]} />
-
-            <Spacer height={Spacing.xs} />
+            <Spacer height={Spacing.md} />
 
             <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', alignSelf: isRTL ? 'flex-end' : 'flex-start' }}>
-              <DDIcon name="phone" size={16} variant="muted" />
-              <ThemedText style={[Typography.caption, { marginStart: 8, color: theme.textSecondary, fontSize: 13 }]}>
+              <View style={[styles.contactIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                <DDIcon name="phone" size={18} color={theme.text} />
+              </View>
+              <ThemedText style={[Typography.caption, { marginStart: Spacing.md, color: theme.textSecondary, fontSize: 13 }]}>
                 {request.visitor.phone}
               </ThemedText>
             </View>
@@ -1617,6 +1617,13 @@ const styles = StyleSheet.create({
     padding: Spacing.xs,
     borderRadius: BorderRadius.sm,
     zIndex: 10,
+  },
+  contactIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalIconWrapper: {
     alignItems: 'center',
