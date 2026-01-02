@@ -102,7 +102,7 @@ export const LoadingButton = ({
       case "success":
         return {
           bg: theme.success,
-          text: theme.buttonText,
+          text: '#FFFFFF',
         };
       default:
         return {
