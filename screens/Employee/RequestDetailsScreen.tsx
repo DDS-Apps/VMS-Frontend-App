@@ -66,6 +66,7 @@ import {
 } from "@/utils/requestMappers";
 import { calculateServerDuration } from "@/utils/dateTimeUtils";
 import { useServerDateTime } from "@/hooks/useServerDateTime";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function RequestDetailsScreen({
   navigation,
@@ -74,6 +75,7 @@ export default function RequestDetailsScreen({
 }: RequestDetailsScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { user } = useAuth();
   const { 
     formatDateForApi, 
     formatTimeForApi,
@@ -819,9 +821,10 @@ export default function RequestDetailsScreen({
           setShowEditModal(false);
           let message = t("notifications.visitUpdated");
           if (isApprovalFlow) {
-            message = request.approval.requiresApproval
-              ? t("notifications.walkInForwardedToManager")
-              : t("notifications.walkInApproved");
+            const hasAutoApproval = user?.autoApproval === true;
+            message = hasAutoApproval
+              ? t("notifications.walkInApproved")
+              : t("notifications.walkInForwardedToManager");
           }
           setSuccessMessage(message);
           setShowSuccessModal(true);
