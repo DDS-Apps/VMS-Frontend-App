@@ -517,7 +517,10 @@ function buildStandardTimeline(
   }
 
   // ============ Step 3: Visitor Accepted ============
-  if (isVisitorDeclined) {
+  // Skip visitor response step entirely if manager already rejected (visitor never received invitation)
+  if (isRejected) {
+    // Manager rejected - don't show visitor response step at all
+  } else if (isVisitorDeclined) {
     steps.push({
       id: 'visitor_response',
       label: t('timeline.visitorDeclined'),
@@ -562,7 +565,10 @@ function buildStandardTimeline(
   }
 
   // ============ Step 4: Visitor Checked In ============
-  if (CHECKED_IN_STATUSES.includes(data.status) || data.checkedInAt) {
+  // Skip check-in step if manager already rejected
+  if (isRejected) {
+    // Manager rejected - don't show check-in step
+  } else if (CHECKED_IN_STATUSES.includes(data.status) || data.checkedInAt) {
     steps.push({
       id: 'checked_in',
       label: t('timeline.visitorCheckedIn'),
@@ -605,7 +611,10 @@ function buildStandardTimeline(
   }
 
   // ============ Step 5: Visit Completed ============
-  if (COMPLETED_REQUEST_STATUSES.includes(data.status) || data.completedAt || data.checkedOutAt) {
+  // Skip completed step if manager already rejected
+  if (isRejected) {
+    // Manager rejected - don't show completed step
+  } else if (COMPLETED_REQUEST_STATUSES.includes(data.status) || data.completedAt || data.checkedOutAt) {
     steps.push({
       id: 'completed',
       label: t('timeline.visitCompleted'),
