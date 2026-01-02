@@ -2926,6 +2926,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalActions: {
+    flexDirection: "row",
     justifyContent: "flex-end",
   },
   modalCancelButton: {
