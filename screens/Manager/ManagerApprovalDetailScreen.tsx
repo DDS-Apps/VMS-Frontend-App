@@ -9,6 +9,11 @@ import { SkeletonCard } from "@/components/shared/Skeleton";
 import { LoadingButton } from "@/components/shared/LoadingButton";
 import { ApprovalActionGroup } from "@/components/shared/ApprovalActionGroup";
 import { StatusBadge } from "@/components/shared/StatusBadge";
+import {
+  RequestTimeline,
+  useTimelineSteps,
+  type TimelineData,
+} from "@/components/shared/RequestTimeline";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
@@ -167,6 +172,19 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
     if (!visitData) return null;
     return mapVisitDetailsToVisitorRequest(visitData);
   }, [visitData]);
+
+  const timelineData: TimelineData = useMemo(() => ({
+    createdAt: visitData?.createdAt ?? '',
+    status: visitData?.status ?? 'pending',
+    isWalkIn: visitData?.isWalkIn ?? false,
+  }), [visitData]);
+
+  const timelineSteps = useTimelineSteps({
+    data: timelineData,
+    role: 'manager',
+    flowType: visitData?.isWalkIn ? 'walk_in' : 'standard',
+    showActions: false,
+  });
 
   // Check if the logged-in manager is the host of this walk-in
   // If manager IS the host: Receptionist created this for the manager → Manager can add services
@@ -967,6 +985,8 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
         </ThemedView>
 
         <Spacer height={LAYOUT.sectionSpacing} />
+
+        <RequestTimeline steps={timelineSteps} />
 
         <Spacer height={100} />
       </ScreenScrollView>
