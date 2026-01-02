@@ -2420,33 +2420,7 @@ export default function RequestDetailsScreen({
                 </>
               ) : null}
 
-              <ThemedText
-                style={[
-                  Typography.caption,
-                  { color: theme.textSecondary, fontSize: 12, marginBottom: 8 },
-                ]}
-              >
-                {t("form.notes")} ({t("form.optional")})
-              </ThemedText>
-              <TextInput
-                style={[
-                  styles.textAreaField,
-                  {
-                    backgroundColor: theme.surfaceSecondary,
-                    borderColor: theme.border,
-                    color: theme.text,
-                  },
-                ]}
-                value={editNotes}
-                onChangeText={setEditNotes}
-                placeholder={t("form.additionalNotes")}
-                placeholderTextColor={theme.textSecondary}
-                multiline
-                numberOfLines={3}
-                textAlignVertical="top"
-              />
-
-              <Spacer height={Spacing.xl} />
+              <Spacer height={Spacing.md} />
             </ScrollView>
 
             <View style={styles.modalActions}>
