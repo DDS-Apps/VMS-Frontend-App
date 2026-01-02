@@ -1,36 +1,14 @@
 import Constants from "expo-constants";
 
+// Hardcoded production backend URL - always use this
 const PRODUCTION_BACKEND_URL = 'https://vms-backend-folio3.replit.app';
 
-const RAW_API_BASE_URL =
-  Constants.expoConfig?.extra?.apiBaseUrl ||
-  process.env.EXPO_PUBLIC_VMS_API_BASE_URL ||
-  PRODUCTION_BACKEND_URL;
-
-// Normalize: remove trailing /api or /api/ to avoid duplicate paths
-const API_BASE_URL = RAW_API_BASE_URL.replace(/\/api\/?$/, '');
-
-const MICROSOFT_AUTH_BASE_URL =
-  Constants.expoConfig?.extra?.microsoftAuthUrl ||
-  process.env.EXPO_PUBLIC_MICROSOFT_AUTH_URL ||
-  PRODUCTION_BACKEND_URL;
-
-// FAIL-LOUD: Block app initialization if misconfigured with dev URL in production
-const isDevUrl = API_BASE_URL.includes('worf.replit.dev') || 
-                 API_BASE_URL.includes('-00-') ||
-                 (API_BASE_URL.includes('.replit.dev') && !API_BASE_URL.includes('vms-backend-folio3'));
-
-if (isDevUrl) {
-  const errorMsg = `[API Config] FATAL: Production build is misconfigured with development URL: ${API_BASE_URL}. Expected: ${PRODUCTION_BACKEND_URL}`;
-  console.error(errorMsg);
-  // In production web builds, throw to prevent the app from running with wrong backend
-  if (typeof window !== 'undefined' && !__DEV__) {
-    throw new Error(errorMsg);
-  }
-}
+// Use hardcoded URL directly - no environment variable fallbacks
+const API_BASE_URL = PRODUCTION_BACKEND_URL;
+const MICROSOFT_AUTH_BASE_URL = PRODUCTION_BACKEND_URL;
 
 // Log the resolved URL for debugging
-console.log('[API Config] Resolved API Base URL:', API_BASE_URL);
+console.log('[API Config] Using API Base URL:', API_BASE_URL);
 
 export const apiConfig = {
   baseUrl: API_BASE_URL,
