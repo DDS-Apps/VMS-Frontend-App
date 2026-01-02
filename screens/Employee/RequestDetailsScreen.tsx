@@ -2983,6 +2983,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     fontSize: 14,
     minHeight: 80,
+    width: '100%',
   },
   serviceToggleRow: {
     alignItems: "center",
