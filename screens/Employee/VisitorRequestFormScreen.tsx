@@ -26,6 +26,7 @@ import { TimePicker } from "@/components/TimePicker";
 import type { VisitorRequestFormScreenProps } from "@/types/employeeNavigation.types";
 import { calculateServerDuration } from "@/utils/dateTimeUtils";
 import { useServerDateTime } from "@/hooks/useServerDateTime";
+import { PURPOSE_OPTIONS } from "@/constants/requestConstants";
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -43,14 +44,6 @@ const ID_TYPE_OPTIONS: { value: VisitorIdType; labelKey: string }[] = [
   { value: 'passport', labelKey: 'visitor.passport' },
   { value: 'driver_license', labelKey: 'visitor.driverLicense' },
   { value: 'other', labelKey: 'common.other' },
-];
-
-const PURPOSE_OPTIONS = [
-  { value: 'business_meeting', labelKey: 'visitor.businessMeeting' },
-  { value: 'interview', labelKey: 'visitor.interview' },
-  { value: 'delivery', labelKey: 'visitor.delivery' },
-  { value: 'maintenance', labelKey: 'visitor.maintenance' },
-  { value: 'general', labelKey: 'visitor.generalVisit' },
 ];
 
 export default function VisitorRequestFormScreen({ navigation, route, asManager, asReceptionist, isWalkIn }: VisitorRequestFormScreenPropsExtended) {

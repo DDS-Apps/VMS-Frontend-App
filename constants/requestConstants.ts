@@ -2,6 +2,18 @@ import type { RequestStatus, CommunicationChannel, ParkingLocation } from '@/typ
 import type { BuffetMealType } from '@/types/api.types';
 import { ParkingLocation as ApiParkingLocation } from '@/types/api.types';
 
+export const PURPOSE_OPTIONS = [
+  { value: 'business_meeting', labelKey: 'visitor.businessMeeting' },
+  { value: 'interview', labelKey: 'visitor.interview' },
+  { value: 'delivery', labelKey: 'visitor.delivery' },
+  { value: 'maintenance', labelKey: 'visitor.maintenance' },
+  { value: 'general', labelKey: 'visitor.generalVisit' },
+  { value: 'partners', labelKey: 'visitor.partners' },
+  { value: 'government', labelKey: 'visitor.government' },
+  { value: 'vip', labelKey: 'visitor.vip' },
+  { value: 'contractor', labelKey: 'visitor.contractor' },
+] as const;
+
 export const MEAL_TYPES: readonly BuffetMealType[] = [
   'breakfast',
   'lunch',

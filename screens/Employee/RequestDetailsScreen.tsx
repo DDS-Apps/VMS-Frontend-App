@@ -36,7 +36,7 @@ import {
 } from "@/components/shared/RequestTimeline";
 import Spacer from "@/components/Spacer";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
-import { REQUEST_STATUS } from "@/constants/requestConstants";
+import { REQUEST_STATUS, PURPOSE_OPTIONS } from "@/constants/requestConstants";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
@@ -127,13 +127,6 @@ export default function RequestDetailsScreen({
   const [isApprovalFlow, setIsApprovalFlow] = useState(false);
   const [approvalStartTime, setApprovalStartTime] = useState<Date | null>(null);
 
-  const PURPOSE_OPTIONS = [
-    { value: 'business_meeting', labelKey: 'visitor.businessMeeting' },
-    { value: 'interview', labelKey: 'visitor.interview' },
-    { value: 'delivery', labelKey: 'visitor.delivery' },
-    { value: 'maintenance', labelKey: 'visitor.maintenance' },
-    { value: 'general', labelKey: 'visitor.generalVisit' },
-  ];
 
   // Success modal states
   const [showSuccessModal, setShowSuccessModal] = useState(false);
