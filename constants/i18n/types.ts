@@ -1013,6 +1013,7 @@ export interface TranslationKeys {
     description: string;
     descriptionPlaceholder: string;
     addLocation: string;
+    locationCreated: string;
   };
   months: {
     january: string;

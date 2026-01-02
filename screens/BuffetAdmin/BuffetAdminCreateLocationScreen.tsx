@@ -51,12 +51,19 @@ export default function BuffetAdminCreateLocationScreen({ navigation }: BuffetAd
       },
       {
         onSuccess: () => {
-          navigation.dispatch(
-            CommonActions.reset({
-              index: 0,
-              routes: [{ name: 'BuffetLocations' }],
-            })
-          );
+          Alert.alert(t('common.success'), t('buffet.locationCreated'), [
+            {
+              text: t('common.ok'),
+              onPress: () => {
+                navigation.dispatch(
+                  CommonActions.reset({
+                    index: 0,
+                    routes: [{ name: 'BuffetLocations' }],
+                  })
+                );
+              },
+            },
+          ]);
         },
       }
     );

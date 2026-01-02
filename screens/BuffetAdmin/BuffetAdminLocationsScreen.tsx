@@ -178,19 +178,10 @@ export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLo
               {item.building} - {item.floor}
             </ThemedText>
           </View>
-          <View style={styles.headerActions}>
-            <View style={[styles.statusBadge, { backgroundColor: applyOpacity(isActive ? theme.success : theme.textSecondary, '15') }]}>
-              <ThemedText style={[styles.statusText, { color: isActive ? theme.success : theme.textSecondary }]}>
-                {isActive ? t('status.active') : t('status.inactive')}
-              </ThemedText>
-            </View>
-            <Pressable
-              style={styles.editIconButton}
-              onPress={(e) => handleEditLocation(item, e)}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <DDIcon name="edit-2" size={18} color={theme.primary} />
-            </Pressable>
+          <View style={[styles.statusBadge, { backgroundColor: applyOpacity(isActive ? theme.success : theme.textSecondary, '15') }]}>
+            <ThemedText style={[styles.statusText, { color: isActive ? theme.success : theme.textSecondary }]}>
+              {isActive ? t('status.active') : t('status.inactive')}
+            </ThemedText>
           </View>
         </View>
 

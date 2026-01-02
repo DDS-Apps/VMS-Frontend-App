@@ -1013,6 +1013,7 @@ export const ar: TranslationKeys = {
     description: 'الوصف',
     descriptionPlaceholder: 'أدخل وصف الموقع...',
     addLocation: 'إضافة موقع',
+    locationCreated: 'تم إنشاء الموقع بنجاح',
   },
   months: {
     january: 'يناير',

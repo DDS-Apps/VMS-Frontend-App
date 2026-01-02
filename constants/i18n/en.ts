@@ -1013,6 +1013,7 @@ export const en: TranslationKeys = {
     description: 'Description',
     descriptionPlaceholder: 'Enter location description...',
     addLocation: 'Add Location',
+    locationCreated: 'Location created successfully',
   },
   months: {
     january: 'January',
