@@ -2209,20 +2209,6 @@ export default function RequestDetailsScreen({
                   </SelectableCard>
                 </View>
 
-                <View style={[getCardWrapper3ColStyle(), request.isWalkIn && { opacity: 0.5 }]}>
-                  <SelectableCard
-                    onPress={() => !request.isWalkIn && setEditRequiresParking(!editRequiresParking)}
-                    selected={request.isWalkIn ? false : editRequiresParking}
-                  >
-                    <View style={[styles.compactServiceIcon, { backgroundColor: applyOpacity(theme.cardIcon, "15") }]}>
-                      <DDIcon name="map-pin" size={20} color={request.isWalkIn ? theme.textSecondary : theme.cardIcon} />
-                    </View>
-                    <ThemedText style={[Typography.caption, { fontWeight: "600", marginTop: Spacing.xs, textAlign: "center", color: request.isWalkIn ? theme.textSecondary : theme.text, fontSize: 11 }]}>
-                      {t("parking.parking")}
-                    </ThemedText>
-                  </SelectableCard>
-                </View>
-
                 <View style={getCardWrapper3ColStyle()}>
                   <SelectableCard
                     onPress={() => setEditRequiresBuffet(!editRequiresBuffet)}
