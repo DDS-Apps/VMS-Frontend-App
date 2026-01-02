@@ -317,6 +317,27 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
         </View>
       </ThemedView>
 
+      {visitor.status === 'rejected' && visitor.rejectionReason ? (
+        <>
+          <Spacer height={Spacing.lg} />
+          <ThemedView style={[styles.cardNew, { backgroundColor: applyOpacity(theme.error, '08') }]}>
+            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'flex-start', gap: Spacing.sm }}>
+              <View style={{ marginTop: 2 }}>
+                <DDIcon name="message-circle" size={18} color={theme.error} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <ThemedText style={[Typography.bodySmall, { color: theme.error, fontWeight: '600', marginBottom: 4, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {t('form.reason')}
+                </ThemedText>
+                <ThemedText style={[Typography.body, { color: theme.text, lineHeight: 22, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {visitor.rejectionReason}
+                </ThemedText>
+              </View>
+            </View>
+          </ThemedView>
+        </>
+      ) : null}
+
       <Spacer height={Spacing.lg} />
 
       <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
