@@ -31,7 +31,7 @@ interface LegacyVisitor {
   time: string;
   host: string;
   hostDepartment?: string;
-  status: 'pending' | 'checked_in' | 'completed';
+  status: 'pending' | 'checked_in' | 'completed' | 'rejected';
   isWalkIn: boolean;
   phone: string;
   parking?: string;
@@ -40,6 +40,8 @@ interface LegacyVisitor {
   origin: 'scheduled' | 'walk_in';
   scheduledFor: string;
   createdAt: string;
+  rejectedAt?: string;
+  rejectionReason?: string;
 }
 
 export default function VisitorDetailScreen({ navigation, route }: VisitorDetailScreenProps) {
@@ -53,6 +55,14 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
   
   const { data: visitDetails, isLoading, isError } = useVisitDetailsQuery(visitId ?? '', !!visitId);
   
+  const mapVisitStatus = (status: string): 'pending' | 'checked_in' | 'completed' | 'rejected' => {
+    if (status === 'rejected') return 'rejected';
+    if (status === 'approved' || status === 'pending_approval') return 'pending';
+    if (status === 'checked_in') return 'checked_in';
+    if (status === 'completed' || status === 'checked_out') return 'completed';
+    return 'pending';
+  };
+  
   const visitor: LegacyVisitor | null = legacyVisitor ?? (visitDetails ? {
     id: visitDetails.id,
     name: visitDetails.visitor.fullName,
@@ -60,7 +70,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
     time: visitDetails.visitTime,
     host: visitDetails.employeeName,
     hostDepartment: visitDetails.employeeDepartment,
-    status: (visitDetails.status === 'approved' || visitDetails.status === 'pending_approval' ? 'pending' : visitDetails.status) as 'pending' | 'checked_in' | 'completed',
+    status: mapVisitStatus(visitDetails.status),
     isWalkIn: visitDetails.isWalkIn ?? false,
     phone: visitDetails.visitor.phone ?? '',
     parking: visitDetails.parkingSlot?.slotNumber,
@@ -69,6 +79,8 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
     origin: visitDetails.isWalkIn ? 'walk_in' : 'scheduled',
     scheduledFor: visitDetails.visitDate,
     createdAt: visitDetails.createdAt,
+    rejectedAt: visitDetails.rejection?.rejectedAt,
+    rejectionReason: visitDetails.rejection?.reason,
   } : null);
   
   const checkInMutation = useReceptionCheckInMutation();
@@ -130,6 +142,15 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
     createdAt: visitor?.createdAt ?? '',
     status: visitor?.status ?? 'pending',
     isWalkIn: visitor?.isWalkIn ?? false,
+    hostApproval: visitor?.rejectedAt ? {
+      required: true,
+      rejectedAt: visitor.rejectedAt,
+    } : undefined,
+    approval: visitor?.rejectedAt ? {
+      requiresApproval: true,
+      rejectedAt: visitor.rejectedAt,
+      rejectionReason: visitor.rejectionReason,
+    } : undefined,
   }), [visitor]);
 
   const timelineActions: TimelineActionCallbacks | undefined = useMemo(() => {
@@ -187,6 +208,8 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
         return { label: t('status.checkedIn'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: applyOpacity(theme.success, '30'), icon: 'check-circle' };
       case 'completed':
         return { label: t('status.checkedOut'), bg: applyOpacity(theme.textSecondary, '15'), text: theme.textSecondary, border: applyOpacity(theme.textSecondary, '30'), icon: 'log-out' };
+      case 'rejected':
+        return { label: t('status.rejected'), bg: applyOpacity(theme.error, '15'), text: theme.error, border: applyOpacity(theme.error, '30'), icon: 'x-circle' };
       default:
         return { label: t('visitor.expectedVisitors'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: applyOpacity(theme.warning, '30'), icon: 'clock' };
     }

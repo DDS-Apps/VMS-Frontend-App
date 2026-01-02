@@ -688,6 +688,32 @@ function buildReceptionistTimeline(
     return steps;
   }
 
+  // Check for rejected status
+  const isRejected = data.status === 'rejected' || data.approval?.rejectedAt || data.hostApproval?.rejectedAt;
+  if (isRejected) {
+    const isManagerRejection = data.approval?.rejectedAt && !data.hostApproval?.rejectedAt;
+    steps.push({
+      id: isManagerRejection ? 'manager_rejected' : 'host_rejected',
+      label: isManagerRejection ? t('timeline.rejected') : t('timeline.hostRejected'),
+      timestamp: data.approval?.rejectedAt || data.hostApproval?.rejectedAt,
+      status: 'error',
+      icon: 'x-circle',
+    });
+    steps.push({
+      id: 'checked_in',
+      label: t('timeline.visitorCheckedIn'),
+      status: 'pending',
+      icon: 'log-in',
+    });
+    steps.push({
+      id: 'checked_out',
+      label: t('timeline.visitorCheckedOut'),
+      status: 'pending',
+      icon: 'log-out',
+    });
+    return steps;
+  }
+
   if (data.checkedInAt) {
     steps.push({
       id: 'checked_in',
