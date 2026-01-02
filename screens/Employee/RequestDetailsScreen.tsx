@@ -2696,11 +2696,13 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.full,
   },
   alertBox: {
+    flexDirection: "row",
     alignItems: "flex-start",
     padding: Spacing.md,
     borderRadius: BorderRadius.sm,
   },
   managerCommentHeader: {
+    flexDirection: "row",
     alignItems: "center",
   },
   card: {
