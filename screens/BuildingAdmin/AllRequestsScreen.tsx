@@ -557,7 +557,6 @@ export default function AllRequestsScreen() {
         navigation.navigate('BuffetRequestDetails', { request: request.originalData });
         break;
       case 'valet':
-        navigation.navigate('ManagerApprovalDetail', { requestId: request.id });
         break;
     }
   };
