@@ -61,6 +61,8 @@ export const ar: TranslationKeys = {
     selected: 'محدد',
     enableAuto: 'تفعيل الموافقة التلقائية',
     disableAuto: 'إلغاء الموافقة التلقائية',
+    autoApprovalEnabled: 'مفعّل',
+    autoApprovalDisabled: 'معطّل',
     source: 'المصدر',
     actions: 'الإجراءات',
     active: 'نشط',

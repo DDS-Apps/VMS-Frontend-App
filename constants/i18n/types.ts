@@ -61,6 +61,8 @@ export interface TranslationKeys {
     selected: string;
     enableAuto: string;
     disableAuto: string;
+    autoApprovalEnabled: string;
+    autoApprovalDisabled: string;
     source: string;
     actions: string;
     active: string;

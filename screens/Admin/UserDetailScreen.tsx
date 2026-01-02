@@ -252,14 +252,14 @@ export default function UserDetailScreen() {
                   <View style={[styles.enabledBadge, { backgroundColor: theme.success + '20', flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                     <DDIcon name="check" size={12} color={theme.success} />
                     <ThemedText style={[Typography.caption, { color: theme.success, fontWeight: '600', marginStart: 4 }]}>
-                      {t('common.enableAuto')}
+                      {t('common.autoApprovalEnabled')}
                     </ThemedText>
                   </View>
                 ) : (
                   <View style={[styles.enabledBadge, { backgroundColor: theme.textSecondary + '20', flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                     <DDIcon name="x" size={12} color={theme.textSecondary} />
                     <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontWeight: '600', marginStart: 4 }]}>
-                      {t('common.disableAuto')}
+                      {t('common.autoApprovalDisabled')}
                     </ThemedText>
                   </View>
                 )}

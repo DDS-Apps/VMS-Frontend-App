@@ -61,6 +61,8 @@ export const en: TranslationKeys = {
     selected: 'selected',
     enableAuto: 'Enable Auto Approve',
     disableAuto: 'Disable Auto Approve',
+    autoApprovalEnabled: 'Enabled',
+    autoApprovalDisabled: 'Disabled',
     source: 'Source',
     actions: 'Actions',
     active: 'Active',
