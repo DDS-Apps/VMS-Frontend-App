@@ -986,6 +986,8 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                         ? applyOpacity(theme.success, '15') 
                         : applyOpacity(theme.error, '15'),
                       borderColor: isRoomAvailable ? theme.success : theme.error,
+                      flexDirection: isRTL ? 'row-reverse' : 'row',
+                      justifyContent: 'flex-start',
                     }
                   ]}
                 >
@@ -1011,8 +1013,8 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                   </ThemedText>
                 </View>
               ) : isLoadingRooms ? (
-                <View style={[styles.availabilityBadge, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-                  <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
+                <View style={[styles.availabilityBadge, { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: isRTL ? 'row-reverse' : 'row', justifyContent: 'flex-start' }]}>
+                  <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
                     {t('common.checkingAvailability')}...
                   </ThemedText>
                 </View>
