@@ -2930,6 +2930,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   modalHeader: {
+    flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
