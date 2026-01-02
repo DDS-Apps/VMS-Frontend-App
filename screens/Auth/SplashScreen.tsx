@@ -38,16 +38,21 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
   };
 
   const initializeApp = async () => {
+    console.log('[SplashScreen] initializeApp called');
     // Skip health check on all platforms - backend may not be running
     // This allows the app to proceed to login without waiting for backend
     setSplashState('ready');
+    console.log('[SplashScreen] splashState set to ready, calling onFinish in 300ms');
     setTimeout(() => {
+      console.log('[SplashScreen] calling onFinish(false)');
       onFinish(false);
     }, 300);
   };
 
   useEffect(() => {
+    console.log('[SplashScreen] useEffect triggered, setting timer for 500ms');
     const timer = setTimeout(() => {
+      console.log('[SplashScreen] Timer fired, calling initializeApp');
       initializeApp();
     }, 500);
 

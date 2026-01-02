@@ -8,7 +8,7 @@ import { useScreenInsets } from "@/hooks/useScreenInsets";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
-import { ServiceIcons, SelectionCheckbox, StatusAccent, WalkInBadge, SkeletonDashboard, LoadingSpinner, ApprovalActionGroup, LoadingButton } from "@/components/shared";
+import { ServiceIcons, SelectionCheckbox, StatusAccent, WalkInBadge, SkeletonDashboard, LoadingSpinner, ApprovalActionGroup, LoadingButton, VisitorRequestCard } from "@/components/shared";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -390,106 +390,6 @@ const ApprovalTableRow = React.memo(({
   );
 });
 
-const ApprovalCard = React.memo(({ 
-  request, 
-  onApprove,
-  onReject,
-  onViewDetails,
-  onLongPress,
-  isSelectionMode,
-  isSelected,
-  onToggleSelection,
-  theme,
-  isProcessing,
-  t,
-  fmtDate,
-  fmtTime,
-  isRTL = false
-}: { 
-  request: VisitorRequest; 
-  onApprove: () => void;
-  onReject: () => void;
-  onViewDetails: () => void;
-  onLongPress: () => void;
-  isSelectionMode: boolean;
-  isSelected: boolean;
-  onToggleSelection: () => void;
-  theme: Theme;
-  isProcessing: boolean;
-  t: (key: string) => string;
-  fmtDate: (d: Date | string) => string;
-  fmtTime: (t: string) => string;
-  isRTL?: boolean;
-}) => {
-  return (
-    <Pressable onLongPress={onLongPress}>
-      <ThemedView style={[styles.requestCard, { backgroundColor: theme.surface }]}>
-        <StatusAccent color={theme.primary} />
-        
-        {isSelectionMode ? (
-          <View style={styles.cardCheckboxContainer}>
-            <SelectionCheckbox isSelected={isSelected} onToggle={onToggleSelection} />
-          </View>
-        ) : null}
-        
-        <Pressable onPress={isSelectionMode ? onToggleSelection : onViewDetails} style={{ flex: 1 }}>
-          <View style={[styles.cardHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
-              <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
-                {request.visitor.fullName.split(' ').map(n => n[0]).join('')}
-              </ThemedText>
-            </View>
-            <View style={styles.nameSection}>
-              <View style={[styles.nameWithBadgeCard, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                <ThemedText style={[styles.visitorName, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>{request.visitor.fullName}</ThemedText>
-                {request.isWalkIn ? <WalkInBadge /> : null}
-              </View>
-              {request.visitor.company ? (
-                <ThemedText style={[styles.companyText, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>{request.visitor.company}</ThemedText>
-              ) : null}
-            </View>
-          </View>
-
-          <Spacer height={Spacing.md} />
-
-          <DateTimeDisplay 
-            date={request.visitDate} 
-            time={request.visitTime} 
-            duration={request.duration}
-            theme={theme}
-            fmtDate={fmtDate}
-            fmtTime={fmtTime}
-            isRTL={isRTL}
-          />
-
-          <Spacer height={Spacing.sm} />
-
-          <View style={[styles.employeeRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <DDIcon name="user" size={12} variant="muted" />
-            <ThemedText style={[styles.employeeLabel, { color: theme.textSecondary }]}>{t('dashboard.requestedBy')}</ThemedText>
-            <ThemedText style={[styles.employeeName, { color: theme.text }]}>{request.employeeName}</ThemedText>
-          </View>
-
-          <Spacer height={Spacing.md} />
-
-          <ServiceIcons parkingSlot={request.parkingSlot} meetingRoom={request.meetingRoom} buffet={request.buffet} valet={request.valet} size={14} />
-        </Pressable>
-
-        {!isSelectionMode ? (
-          <>
-            <Spacer height={Spacing.md} />
-            <ApprovalActionGroup
-              onApprove={onApprove}
-              onReject={onReject}
-              disabled={isProcessing}
-              size="medium"
-            />
-          </>
-        ) : null}
-      </ThemedView>
-    </Pressable>
-  );
-});
 
 const RejectRequestModal = ({
   visible,
@@ -970,21 +870,19 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
         data={filteredRequests}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <ApprovalCard
+          <VisitorRequestCard
             request={item}
+            onPress={() => handleViewDetails(item.id)}
+            onLongPress={() => handleLongPress(item.id)}
+            showRequestedBy
+            showActions={!isSelectionMode}
             onApprove={() => handleApprove(item.id)}
             onReject={() => handleReject(item.id)}
-            onViewDetails={() => handleViewDetails(item.id)}
-            onLongPress={() => handleLongPress(item.id)}
+            isProcessing={isProcessing}
             isSelectionMode={isSelectionMode}
             isSelected={selectedIds.has(item.id)}
             onToggleSelection={() => toggleSelection(item.id)}
-            theme={theme}
-            isProcessing={isProcessing}
-            t={t}
-            fmtDate={formatDate}
-            fmtTime={formatTimeFromString}
-            isRTL={isRTL}
+            accentColor={theme.primary}
           />
         )}
         ListHeaderComponent={renderListHeader()}
