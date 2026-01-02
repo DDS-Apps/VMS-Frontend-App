@@ -440,29 +440,15 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
 
         <View style={styles.cardFooter}>
           {showActions ? (
-            <>
-              <Pressable
-                style={[styles.assignButton, { backgroundColor: applyOpacity(theme.warning, '12') }]}
-                onPress={(e) => handleOpenAssignModal(item, e)}
-              >
-                <DDIcon name="user-plus" size={14} color={theme.warning} />
-                <ThemedText style={[styles.assignButtonText, { color: theme.warning }]}>
-                  {item.assignedTo ? t('buffet.reassign') : t('buffet.assignStaff')}
-                </ThemedText>
-              </Pressable>
-
-              {item.assignedToId ? (
-                <Pressable
-                  style={[styles.completeButton, { backgroundColor: theme.success }]}
-                  onPress={(e) => handleMarkComplete(item.id, e)}
-                >
-                  <DDIcon name="check" size={14} color="#FFFFFF" />
-                  <ThemedText style={styles.completeButtonText}>
-                    {t('actions.markAsComplete')}
-                  </ThemedText>
-                </Pressable>
-              ) : null}
-            </>
+            <Pressable
+              style={[styles.assignButton, { backgroundColor: applyOpacity(theme.warning, '12') }]}
+              onPress={(e) => handleOpenAssignModal(item, e)}
+            >
+              <DDIcon name="user-plus" size={14} color={theme.warning} />
+              <ThemedText style={[styles.assignButtonText, { color: theme.warning }]}>
+                {item.assignedTo ? t('buffet.reassign') : t('buffet.assignStaff')}
+              </ThemedText>
+            </Pressable>
           ) : (
             <View style={[styles.completedBadge, { backgroundColor: applyOpacity(theme.success, '15') }]}>
               <DDIcon name="check-circle" size={14} color={theme.success} />
