@@ -127,11 +127,6 @@ export function parseAuthUrl(url: string): ParsedAuthTokens {
       console.log('[AuthTokenParser] Found hash fragment:', hashPart);
       const result = parseAuthHashFragment(hashPart);
       
-      console.log('[AuthTokenParser] Parsed from hash fragment:', {
-        hasAccessToken: !!result.accessToken,
-        hasError: !!result.error,
-        error: result.error
-      });
       return result;
     }
     
