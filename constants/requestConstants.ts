@@ -12,6 +12,7 @@ export const PURPOSE_OPTIONS = [
   { value: 'government', labelKey: 'visitor.government' },
   { value: 'vip', labelKey: 'visitor.vip' },
   { value: 'contractor', labelKey: 'visitor.contractor' },
+  { value: 'vendors', labelKey: 'visitor.vendors' },
 ] as const;
 
 export const MEAL_TYPES: readonly BuffetMealType[] = [

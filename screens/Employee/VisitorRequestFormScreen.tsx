@@ -88,7 +88,8 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [showEndTimePicker, setShowEndTimePicker] = useState(false);
-  const [purpose, setPurpose] = useState(visitType);
+  const [purposeValue, setPurposeValue] = useState('general');
+  const [purposeLabel, setPurposeLabel] = useState(visitType);
   
   const [needsMeetingRoom, setNeedsMeetingRoom] = useState(false);
   const [needsBuffet, setNeedsBuffet] = useState(false);
@@ -441,7 +442,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
           hostId: selectedEmployeeId,
           hostName: hostEmployee,
           visitType: visitType || 'Walk-in',
-          purpose: purpose.trim() || 'Walk-in visit',
+          purpose: purposeValue || 'general',
           idType: idType,
           idNumber: idNumber.trim(),
         };
@@ -477,7 +478,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
         visitTime: formatTimeForApi(selectedTime),
         endTime: formatTimeForApi(selectedEndTime),
         duration: duration,
-        purpose: purpose.trim() || 'General visit',
+        purpose: purposeValue || 'general',
         communicationChannels,
         needsMeetingRoom: asReceptionist ? false : needsMeetingRoom,
         needsBuffet: asReceptionist ? false : needsBuffet,
@@ -777,7 +778,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
             >
               <DDIcon name="clipboard" size={20} variant="muted" />
               <ThemedText style={[Typography.body, { color: theme.text, marginStart: Spacing.md, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
-                {purpose || t('form.selectPurpose')}
+                {purposeLabel || t('form.selectPurpose')}
               </ThemedText>
               <DDIcon name="chevron-down" size={20} variant="muted" />
             </Pressable>
@@ -1295,10 +1296,11 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                   style={[
                     styles.employeeOption,
                     { borderBottomColor: theme.border },
-                    purpose === t(option.labelKey as any) && { backgroundColor: applyOpacity(theme.primary, '10') }
+                    purposeValue === option.value && { backgroundColor: applyOpacity(theme.primary, '10') }
                   ]}
                   onPress={() => {
-                    setPurpose(t(option.labelKey as any));
+                    setPurposeValue(option.value);
+                    setPurposeLabel(t(option.labelKey as any));
                     setShowPurposePicker(false);
                   }}
                 >
@@ -1310,7 +1312,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                       {t(option.labelKey as any)}
                     </ThemedText>
                   </View>
-                  {purpose === t(option.labelKey as any) ? (
+                  {purposeValue === option.value ? (
                     <DDIcon name="check-circle" size={24} variant="primary" />
                   ) : null}
                 </Pressable>
