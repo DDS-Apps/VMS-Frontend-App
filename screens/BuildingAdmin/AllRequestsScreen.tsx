@@ -25,7 +25,9 @@ import {
 import { useApproveVisitMutation, useRejectVisitMutation } from '@/hooks/queries/useApprovalQueries';
 import { useUpdateBuffetRequestMutation } from '@/hooks/queries/useBuffetQueries';
 import { useUpdateValetAssignmentMutation } from '@/hooks/queries/useValetQueries';
+import { useValetParkingDashboard } from '@/hooks/queries/useValetAdminQueries';
 import { useQueryClient } from '@tanstack/react-query';
+import type { ValetParkingVisitorDto } from '@/types/api.types';
 import type { Theme } from '@/types/theme.types';
 import type { VisitListItemDto, BuffetAdminTaskDto, ValetTaskDto } from '@/types/api.types';
 import { BuffetRequestStatus, ValetAssignmentStatus } from '@/types/api.types';
@@ -270,14 +272,92 @@ export default function AllRequestsScreen() {
 
   const { data: requests, stats, isLoading, isFetching, isError, refetch } = useAllRequestsQuery(filters);
   
+  const valetDateParam = selectedDate ? selectedDate.toISOString().split('T')[0] : undefined;
+  const { 
+    data: valetDashboardData, 
+    isLoading: isValetLoading, 
+    isFetching: isValetFetching,
+    isError: isValetError,
+    refetch: refetchValet 
+  } = useValetParkingDashboard(valetDateParam);
+
+  const mapValetVisitorToUnified = useCallback((visitor: ValetParkingVisitorDto): UnifiedRequest => {
+    const mapStatus = (status: string): UnifiedStatus => {
+      const statusLower = status.toLowerCase();
+      if (['checked_in', 'in_progress'].includes(statusLower)) return 'in_progress';
+      if (['completed', 'checked_out'].includes(statusLower)) return 'completed';
+      if (['approved', 'visitor_accepted'].includes(statusLower)) return 'approved';
+      if (['cancelled', 'auto_cancelled'].includes(statusLower)) return 'cancelled';
+      if (['rejected'].includes(statusLower)) return 'rejected';
+      return 'pending';
+    };
+
+    return {
+      id: visitor.requestId,
+      type: 'valet' as UnifiedRequestType,
+      visitorName: visitor.visitorName,
+      hostName: visitor.hostName,
+      date: visitor.visitDate,
+      time: visitor.visitTime,
+      status: mapStatus(visitor.status),
+      location: visitor.hostDepartment,
+      canApprove: false,
+      canCancel: false,
+      createdAt: visitor.visitDate,
+      company: visitor.visitorCompany,
+      vehicleInfo: visitor.licensePlate ? {
+        make: '',
+        model: visitor.carModel ?? '',
+        color: visitor.carColor ?? '',
+        plateNumber: visitor.licensePlate,
+      } : undefined,
+      originalData: visitor as any,
+    };
+  }, []);
+
+  const valetRequests = useMemo(() => {
+    if (!valetDashboardData?.data) return [];
+    let mapped = valetDashboardData.data.map(mapValetVisitorToUnified);
+    
+    if (statusFilter !== 'all') {
+      mapped = mapped.filter(r => r.status === statusFilter);
+    }
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      mapped = mapped.filter(r => 
+        r.visitorName.toLowerCase().includes(query) || 
+        r.hostName.toLowerCase().includes(query)
+      );
+    }
+    return mapped;
+  }, [valetDashboardData, statusFilter, searchQuery, mapValetVisitorToUnified]);
+
+  const valetStats = useMemo(() => {
+    if (!valetDashboardData?.summary) return null;
+    return {
+      total: valetDashboardData.summary.totalVisitors,
+      withParking: valetDashboardData.summary.withParking,
+      withoutParking: valetDashboardData.summary.withoutParking,
+    };
+  }, [valetDashboardData]);
+
+  const displayRequests = typeFilter === 'valet' ? valetRequests : requests;
+  const displayIsLoading = typeFilter === 'valet' ? isValetLoading : isLoading;
+  const displayIsFetching = typeFilter === 'valet' ? isValetFetching : isFetching;
+  const displayIsError = typeFilter === 'valet' ? isValetError : isError;
+
   const approveVisitMutation = useApproveVisitMutation();
   const rejectVisitMutation = useRejectVisitMutation();
   const updateBuffetMutation = useUpdateBuffetRequestMutation();
   const updateValetMutation = useUpdateValetAssignmentMutation();
 
   const handleRefresh = useCallback(() => {
-    refetch();
-  }, [refetch]);
+    if (typeFilter === 'valet') {
+      refetchValet();
+    } else {
+      refetch();
+    }
+  }, [refetch, refetchValet, typeFilter]);
 
   const invalidateAllQueries = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['all-requests'] });
@@ -490,7 +570,7 @@ export default function AllRequestsScreen() {
     <ScreenScrollView
       refreshControl={
         <RefreshControl
-          refreshing={isFetching && !isLoading}
+          refreshing={displayIsFetching && !displayIsLoading}
           onRefresh={handleRefresh}
           tintColor={theme.primary}
         />
@@ -655,9 +735,9 @@ export default function AllRequestsScreen() {
 
       <Spacer height={Spacing.lg} />
 
-      {isLoading ? (
+      {displayIsLoading ? (
         <LoadingSkeleton theme={theme} />
-      ) : isError ? (
+      ) : displayIsError ? (
         <View style={styles.paddedContent}>
           <EmptyState
             icon="alert-circle"
@@ -679,18 +759,18 @@ export default function AllRequestsScreen() {
           <View style={styles.resultsSummary}>
             <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
               {t('dashboard.showingXofY')
-                .replace('{{shown}}', String(requests.length))
-                .replace('{{total}}', String(stats.total))}
+                .replace('{{shown}}', String(displayRequests.length))
+                .replace('{{total}}', String(typeFilter === 'valet' ? (valetStats?.total ?? 0) : stats.total))}
             </ThemedText>
-            {isFetching ? (
+            {displayIsFetching ? (
               <ActivityIndicator size="small" color={theme.primary} />
             ) : null}
           </View>
 
           <Spacer height={Spacing.md} />
 
-          {requests.length > 0 ? (
-            requests.map(request => (
+          {displayRequests.length > 0 ? (
+            displayRequests.map(request => (
               <View key={`${request.type}-${request.id}`}>
                 <RequestCard
                   request={request}
