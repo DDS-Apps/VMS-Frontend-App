@@ -1613,6 +1613,7 @@ const styles = StyleSheet.create({
   closeButton: {
     position: 'absolute',
     top: Spacing.lg,
+    right: Spacing.lg,
     padding: Spacing.xs,
     borderRadius: BorderRadius.sm,
     zIndex: 10,
