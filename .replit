@@ -99,5 +99,11 @@ value = "0"
 [userenv]
 
 [userenv.shared]
+
+[userenv.production]
+EXPO_PUBLIC_VMS_API_BASE_URL = "https://vms-backend-folio3.replit.app/api"
+EXPO_PUBLIC_MICROSOFT_AUTH_URL = "https://vms-backend-folio3.replit.app"
+
+[userenv.development]
 EXPO_PUBLIC_VMS_API_BASE_URL = "https://vms-backend-folio3.replit.app/api"
 EXPO_PUBLIC_MICROSOFT_AUTH_URL = "https://vms-backend-folio3.replit.app"
