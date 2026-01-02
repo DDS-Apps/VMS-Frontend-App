@@ -2243,6 +2243,7 @@ export default function RequestDetailsScreen({
                       style={[
                         styles.availabilityBadge, 
                         { 
+                          flexDirection: isRTL ? 'row-reverse' : 'row',
                           backgroundColor: isEditRoomAvailable 
                             ? applyOpacity(theme.success, '15') 
                             : applyOpacity(theme.error, '15'),
@@ -2272,7 +2273,7 @@ export default function RequestDetailsScreen({
                       </ThemedText>
                     </View>
                   ) : isLoadingEditRooms ? (
-                    <View style={[styles.availabilityBadge, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                    <View style={[styles.availabilityBadge, { flexDirection: isRTL ? 'row-reverse' : 'row', backgroundColor: theme.surface, borderColor: theme.border }]}>
                       <ActivityIndicator size="small" color={theme.primary} style={{ marginEnd: Spacing.xs }} />
                       <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
                         {t('common.checkingAvailability')}...
@@ -3063,6 +3064,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   availabilityBadge: {
+    flexDirection: "row",
     alignItems: "center",
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,
