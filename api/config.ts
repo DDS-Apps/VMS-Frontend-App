@@ -1,15 +1,23 @@
 import Constants from "expo-constants";
 
+const PRODUCTION_BACKEND_URL = 'https://vms-backend-folio3.replit.app';
+
 const RAW_API_BASE_URL =
   Constants.expoConfig?.extra?.apiBaseUrl ||
-  process.env.EXPO_PUBLIC_VMS_API_BASE_URL || '';
+  process.env.EXPO_PUBLIC_VMS_API_BASE_URL ||
+  PRODUCTION_BACKEND_URL;
 
 // Normalize: remove trailing /api or /api/ to avoid duplicate paths
 const API_BASE_URL = RAW_API_BASE_URL.replace(/\/api\/?$/, '');
 
 const MICROSOFT_AUTH_BASE_URL =
   Constants.expoConfig?.extra?.microsoftAuthUrl ||
-  process.env.EXPO_PUBLIC_MICROSOFT_AUTH_URL || '';
+  process.env.EXPO_PUBLIC_MICROSOFT_AUTH_URL ||
+  PRODUCTION_BACKEND_URL;
+
+if (!API_BASE_URL || API_BASE_URL.includes('worf.replit.dev')) {
+  console.warn('[API Config] Warning: API base URL may be misconfigured:', API_BASE_URL);
+}
 
 export const apiConfig = {
   baseUrl: API_BASE_URL,

@@ -1,3 +1,5 @@
+const PRODUCTION_BACKEND_URL = 'https://vms-backend-folio3.replit.app';
+
 export default ({ config }) => ({
   ...config,
   owner: 'ahsanshafiq',
@@ -6,7 +8,7 @@ export default ({ config }) => ({
     eas: {
       projectId: '33b6baff-6c89-44be-905f-006d0da4434d',
     },
-    apiBaseUrl: process.env.EXPO_PUBLIC_VMS_API_BASE_URL?.replace(/\/api\/?$/, '') || config.extra?.apiBaseUrl || '',
-    microsoftAuthUrl: process.env.EXPO_PUBLIC_MICROSOFT_AUTH_URL || config.extra?.microsoftAuthUrl || '',
+    apiBaseUrl: process.env.EXPO_PUBLIC_VMS_API_BASE_URL?.replace(/\/api\/?$/, '') || config.extra?.apiBaseUrl || PRODUCTION_BACKEND_URL,
+    microsoftAuthUrl: process.env.EXPO_PUBLIC_MICROSOFT_AUTH_URL || config.extra?.microsoftAuthUrl || PRODUCTION_BACKEND_URL,
   },
 });
