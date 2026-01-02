@@ -15,9 +15,22 @@ const MICROSOFT_AUTH_BASE_URL =
   process.env.EXPO_PUBLIC_MICROSOFT_AUTH_URL ||
   PRODUCTION_BACKEND_URL;
 
-if (!API_BASE_URL || API_BASE_URL.includes('worf.replit.dev')) {
-  console.warn('[API Config] Warning: API base URL may be misconfigured:', API_BASE_URL);
+// FAIL-LOUD: Block app initialization if misconfigured with dev URL in production
+const isDevUrl = API_BASE_URL.includes('worf.replit.dev') || 
+                 API_BASE_URL.includes('-00-') ||
+                 (API_BASE_URL.includes('.replit.dev') && !API_BASE_URL.includes('vms-backend-folio3'));
+
+if (isDevUrl) {
+  const errorMsg = `[API Config] FATAL: Production build is misconfigured with development URL: ${API_BASE_URL}. Expected: ${PRODUCTION_BACKEND_URL}`;
+  console.error(errorMsg);
+  // In production web builds, throw to prevent the app from running with wrong backend
+  if (typeof window !== 'undefined' && !__DEV__) {
+    throw new Error(errorMsg);
+  }
 }
+
+// Log the resolved URL for debugging
+console.log('[API Config] Resolved API Base URL:', API_BASE_URL);
 
 export const apiConfig = {
   baseUrl: API_BASE_URL,

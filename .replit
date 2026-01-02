@@ -82,7 +82,7 @@ expertMode = true
 
 [deployment]
 deploymentTarget = "autoscale"
-build = ["npm", "run", "build:web"]
+build = ["bash", "scripts/build-and-verify.sh"]
 run = ["node", "server.js"]
 publicDir = "dist"
 
