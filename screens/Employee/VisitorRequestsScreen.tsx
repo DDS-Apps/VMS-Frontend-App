@@ -18,7 +18,7 @@ import { VisitorRequest } from "@/types/vms.types";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@/contexts/AuthContext";
 import { useInfiniteVisitsQuery, usePendingHostWalkInsQuery } from "@/hooks/queries/useApprovalQueries";
-import { ListLoadingFooter } from "@/components/shared";
+import { ListLoadingFooter, VisitorRequestCard } from "@/components/shared";
 import type { VisitListItemDto } from "@/types/api.types";
 import { getStatusConfig as getStatusStyle, applyOpacity, StatusConfig } from "@/utils/statusStyles";
 import type { Theme } from "@/types/theme.types";
@@ -298,136 +298,6 @@ const VisitorRequestTableRow = React.memo(({
   );
 });
 
-// Card View: Request Card Component
-const VisitorRequestCard = React.memo(({ 
-  request, 
-  isExpanded,
-  onPress,
-  onToggleExpand,
-  theme,
-  t,
-  isRTL 
-}: { 
-  request: VisitorRequest; 
-  isExpanded: boolean;
-  onPress: () => void;
-  onToggleExpand: () => void;
-  theme: Theme;
-  t: (key: string) => string;
-  isRTL: boolean;
-}) => {
-  const statusConfig = getStatusStyle(theme, request.status, t);
-
-  return (
-    <ThemedView style={[styles.requestCard, { backgroundColor: theme.surface }]}>
-      <StatusAccent color={statusConfig.borderColor} />
-
-      {/* Main Card Content - Clickable to navigate */}
-      <Pressable
-        onPress={onPress}
-        android_ripple={{ color: applyOpacity(theme.primary, '10') }}
-      >
-        <View style={styles.cardMainSection}>
-          {/* Header: Avatar + Name + Status Badge */}
-          <View style={[styles.cardHeaderRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <VisitorAvatar name={request.visitor.fullName} theme={theme} />
-            
-            <View style={styles.cardNameSection}>
-              <View style={[styles.nameWithBadgeRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', flex: 1, gap: 6 }}>
-                  <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 16, flexShrink: 1, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
-                    {request.visitor.fullName}
-                  </ThemedText>
-                  {request.isWalkIn ? (
-                    <DDIcon name="user-check" size={14} color={theme.warning} />
-                  ) : null}
-                </View>
-                <StatusBadge statusConfig={statusConfig} />
-              </View>
-              {request.visitor.company ? (
-                <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 2, textAlign: isRTL ? 'right' : 'left' }]}>
-                  {request.visitor.company}
-                </ThemedText>
-              ) : null}
-            </View>
-          </View>
-
-          <Spacer height={LAYOUT.contentGap} />
-
-          {/* Date and Time Row */}
-          <DateTimeDisplay 
-            date={request.visitDate} 
-            time={request.visitTime} 
-            duration={request.duration}
-            theme={theme} 
-          />
-
-          <Spacer height={LAYOUT.contentGap} />
-
-          {/* Bottom Row: Services Icons only */}
-          <ServiceIcons request={request} theme={theme} />
-        </View>
-      </Pressable>
-
-      {/* Expandable Secondary Details - Inside Same Card */}
-      {isExpanded && (
-        <>
-          <View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
-          <View style={styles.expandedContentInside}>
-            <View style={[styles.secondaryDetail, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <DDIcon name="briefcase" size={14} variant="muted" />
-              <ThemedText style={[Typography.caption, { marginStart: 6, color: theme.textSecondary, flex: 1, fontSize: 12, textAlign: isRTL ? 'right' : 'left' }]}>
-                {request.purpose}
-              </ThemedText>
-            </View>
-
-            <Spacer height={Spacing.sm} />
-
-            <View style={styles.contactSection}>
-              {request.visitor.email ? (
-                <View style={[styles.secondaryDetail, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                  <DDIcon name="mail" size={13} variant="muted" />
-                  <ThemedText style={[Typography.caption, { marginStart: 6, color: theme.textSecondary, fontSize: 11, textAlign: isRTL ? 'right' : 'left' }]}>
-                    {request.visitor.email}
-                  </ThemedText>
-                </View>
-              ) : null}
-
-              {request.visitor.email && request.visitor.phone ? (
-                <Spacer height={Spacing.xs} />
-              ) : null}
-
-              {request.visitor.phone ? (
-                <View style={[styles.secondaryDetail, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                  <DDIcon name="phone" size={13} variant="muted" />
-                  <ThemedText style={[Typography.caption, { marginStart: 6, color: theme.textSecondary, fontSize: 11, textAlign: isRTL ? 'right' : 'left' }]}>
-                    {request.visitor.phone}
-                  </ThemedText>
-                </View>
-              ) : null}
-            </View>
-          </View>
-        </>
-      )}
-
-      {/* More Details Button - Inside Same Card */}
-      <Pressable
-        style={[styles.moreDetailsButton, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
-        onPress={onToggleExpand}
-        android_ripple={{ color: applyOpacity(theme.primary, '10') }}
-      >
-        <ThemedText style={[styles.moreDetailsText, { color: theme.primary }]}>
-          {isExpanded ? t('common.close') : t('actions.viewDetails')}
-        </ThemedText>
-        <DDIcon 
-          name={isExpanded ? "chevron-up" : "chevron-down"} 
-          size={16} 
-          variant="primary" 
-        />
-      </Pressable>
-    </ThemedView>
-  );
-});
 
 // Shared: Stats Cards Component
 const StatsCards = ({ totalVisitors, todaysVisitors, theme, t }: { totalVisitors: number; todaysVisitors: number; theme: Theme; t: (key: string) => string }) => (
@@ -860,12 +730,10 @@ export default function VisitorRequestsScreen({ navigation: navProp, userRole = 
           <View style={styles.paddedContent}>
             <VisitorRequestCard
               request={item}
+              variant="expandable"
               isExpanded={expandedCard === item.id}
               onPress={() => navigation.navigate('RequestDetails', { requestId: item.id })}
               onToggleExpand={() => setExpandedCard(expandedCard === item.id ? null : item.id)}
-              theme={theme}
-              t={t}
-              isRTL={isRTL}
             />
           </View>
         )}
