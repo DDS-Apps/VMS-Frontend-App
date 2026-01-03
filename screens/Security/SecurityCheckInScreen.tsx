@@ -412,15 +412,11 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
         parts.push(t('security.noParking'));
       }
       
-      if (visitor.valet.hasValet) {
-        parts.push(t('security.valetService'));
-      }
       return parts;
     };
 
     const serviceParts = getServiceInfo();
     const hasParking = visitor.parking.visitorNeedsParking === true || visitor.parking.hasParking;
-    const hasValet = visitor.valet.hasValet;
     
     return (
       <Pressable 
@@ -480,14 +476,6 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
               <ThemedText style={[styles.compactServiceText, { color: hasParking ? theme.success : theme.textSecondary }]}>
                 {serviceParts.join('  |  ')}
               </ThemedText>
-              {hasValet ? (
-                <View style={[styles.valetBadge, { backgroundColor: applyOpacity(theme.accent, '15') }]}>
-                  <DDIcon name="truck" size={12} color={theme.accent} />
-                  <ThemedText style={[styles.valetBadgeText, { color: theme.accent }]}>
-                    {t('security.valetService')}
-                  </ThemedText>
-                </View>
-              ) : null}
             </View>
           </View>
         </ThemedView>

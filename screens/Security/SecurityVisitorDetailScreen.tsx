@@ -70,7 +70,6 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
 
   const statusConfig = getStatusConfig(visitorData.status);
   const hasParking = visitorData.visitorNeedsParking === true || visitorData.parkingAssigned || false;
-  const hasValet = visitorData.valetAssigned || false;
   
   // Build parking display info
   const getParkingDisplayInfo = () => {
@@ -258,7 +257,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
 
       <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
         <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
-          {t('security.parkingAndValet')}
+          {t('security.parkingStatus')}
         </ThemedText>
         <Spacer height={Spacing.xl} />
 
@@ -285,30 +284,6 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
           </View>
         </View>
 
-        <Spacer height={Spacing.lg} />
-
-        <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-          <View style={[styles.serviceIcon, { backgroundColor: hasValet ? applyOpacity(theme.primary, '15') : applyOpacity(theme.textSecondary, '15') }]}>
-            <DDIcon name="truck" size={18} color={hasValet ? theme.primary : theme.text} />
-          </View>
-          <View style={{ flex: 1, marginStart: Spacing.md }}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
-              {t('security.valetStatus')}
-            </ThemedText>
-            {hasValet ? (
-              <ThemedText style={[Typography.caption, { color: theme.primary, marginTop: 2, fontSize: 13, fontWeight: '500', textAlign: isRTL ? 'right' : 'left' }]}>
-                {visitorData.valetDriverName || t('security.valetAssigned')}
-              </ThemedText>
-            ) : (
-              <View style={[styles.noBadge, { backgroundColor: applyOpacity(theme.textSecondary, '12'), flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                <DDIcon name="x-circle" size={12} color={theme.textSecondary} />
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontWeight: '500', marginStart: 4, fontSize: 12 }]}>
-                  {t('security.noValet')}
-                </ThemedText>
-              </View>
-            )}
-          </View>
-        </View>
       </ThemedView>
 
       {(visitorData.checkInTime || visitorData.checkOutTime) ? (

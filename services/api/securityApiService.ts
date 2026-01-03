@@ -19,6 +19,13 @@ import type {
 
 const { security, visitors, visits } = apiConfig.endpoints;
 
+// Helper to normalize boolean values from API (handles string "true"/"false" and boolean)
+function normalizeBoolean(value: unknown): boolean | undefined {
+  if (value === true || value === 'true') return true;
+  if (value === false || value === 'false') return false;
+  return undefined;
+}
+
 function buildQueryString(params: Record<string, unknown>): string {
   const query = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => {
@@ -45,7 +52,7 @@ function mapVisitToSecurityVisitor(visit: VisitListItemDto): SecurityVisitorDto 
     status: visit.status as SecurityVisitorDto['status'],
     isBlacklisted: false,
     parkingAssigned: visit.hasParking || false,
-    visitorNeedsParking: visit.visitorNeedsParking,
+    visitorNeedsParking: normalizeBoolean(visit.visitorNeedsParking),
     licensePlate: visit.licensePlate,
     carModel: visit.carModel,
     carColor: visit.carColor,
@@ -69,7 +76,7 @@ function mapVisitDetailsToSecurityVisitor(visit: VisitDetailsDto): SecurityVisit
     isBlacklisted: false,
     parkingAssigned: !!visit.parkingAllocation,
     parkingSpot: visit.parkingAllocation?.spotNumber,
-    visitorNeedsParking: visit.visitorNeedsParking,
+    visitorNeedsParking: normalizeBoolean(visit.visitorNeedsParking),
     licensePlate: visit.licensePlate,
     carModel: visit.carModel,
     carColor: visit.carColor,
