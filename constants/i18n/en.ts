@@ -829,6 +829,8 @@ export const en: TranslationKeys = {
     valetService: 'Valet Service',
     parkingAssigned: 'Parking Assigned',
     valetAssigned: 'Valet Assigned',
+    needsParking: 'Needs Parking',
+    parkingDetailsPending: 'Details Pending',
   },
   parking: {
     parkingManagement: 'Parking Management',

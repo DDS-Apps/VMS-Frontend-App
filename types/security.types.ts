@@ -32,6 +32,10 @@ export interface SecurityVisitorDto {
   accessAreas?: string[];
   parkingAssigned?: boolean;
   parkingSpot?: string;
+  visitorNeedsParking?: boolean;
+  licensePlate?: string | null;
+  carModel?: string | null;
+  carColor?: string | null;
   valetAssigned?: boolean;
   valetDriverName?: string;
   valetStatus?: string;

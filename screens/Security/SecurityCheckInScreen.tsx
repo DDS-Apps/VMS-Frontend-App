@@ -60,6 +60,10 @@ interface SecurityVisitor {
     slotNumber?: string;
     location?: string;
     floor?: string;
+    visitorNeedsParking?: boolean;
+    licensePlate?: string | null;
+    carModel?: string | null;
+    carColor?: string | null;
   };
   valet: {
     hasValet: boolean;
@@ -102,6 +106,10 @@ const mapApiToSecurityVisitor = (dto: SecurityVisitorDto): SecurityVisitor => {
     parking: {
       hasParking: dto.parkingAssigned || false,
       slotNumber: dto.parkingSpot,
+      visitorNeedsParking: dto.visitorNeedsParking,
+      licensePlate: dto.licensePlate,
+      carModel: dto.carModel,
+      carColor: dto.carColor,
     },
     valet: {
       hasValet: dto.valetAssigned || false,
@@ -379,11 +387,31 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
 
     const getServiceInfo = () => {
       const parts: string[] = [];
-      if (visitor.parking.hasParking) {
+      
+      // Check parking status based on visitorNeedsParking field
+      if (visitor.parking.visitorNeedsParking === false) {
+        // Visitor explicitly doesn't need parking
+        parts.push(t('security.noParking'));
+      } else if (visitor.parking.visitorNeedsParking === true) {
+        // Visitor needs parking - check if car details are available
+        const carDetails: string[] = [];
+        if (visitor.parking.licensePlate) carDetails.push(visitor.parking.licensePlate);
+        if (visitor.parking.carModel) carDetails.push(visitor.parking.carModel);
+        if (visitor.parking.carColor) carDetails.push(visitor.parking.carColor);
+        
+        if (carDetails.length > 0) {
+          parts.push(`${t('security.needsParking')}: ${carDetails.join(' - ')}`);
+        } else {
+          parts.push(`${t('security.needsParking')} (${t('security.parkingDetailsPending')})`);
+        }
+      } else if (visitor.parking.hasParking) {
+        // Fallback: parking slot assigned
         parts.push(visitor.parking.slotNumber || t('parking.parkingAssigned'));
       } else {
+        // Default: no parking
         parts.push(t('security.noParking'));
       }
+      
       if (visitor.valet.hasValet) {
         parts.push(t('security.valetService'));
       }
@@ -391,7 +419,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
     };
 
     const serviceParts = getServiceInfo();
-    const hasParking = visitor.parking.hasParking;
+    const hasParking = visitor.parking.visitorNeedsParking === true || visitor.parking.hasParking;
     const hasValet = visitor.valet.hasValet;
     
     return (

@@ -1322,6 +1322,10 @@ export interface VisitListItemDto {
   hasMeetingRoom?: boolean;
   hasBuffet?: boolean;
   hasValet?: boolean;
+  visitorNeedsParking?: boolean;
+  licensePlate?: string | null;
+  carModel?: string | null;
+  carColor?: string | null;
 }
 
 export interface VisitListResponse {
@@ -1514,6 +1518,10 @@ export interface VisitDetailsDto {
     reason?: string;
     decidedAt: string;
   };
+  visitorNeedsParking?: boolean;
+  licensePlate?: string | null;
+  carModel?: string | null;
+  carColor?: string | null;
   createdAt: string;
   updatedAt: string;
   timezone?: string;

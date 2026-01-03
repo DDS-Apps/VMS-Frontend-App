@@ -829,6 +829,8 @@ export const ar: TranslationKeys = {
     valetService: 'خدمة صف السيارات',
     parkingAssigned: 'تم تعيين موقف',
     valetAssigned: 'تم تعيين خدمة صف السيارات',
+    needsParking: 'يحتاج موقف',
+    parkingDetailsPending: 'التفاصيل معلقة',
   },
   parking: {
     parkingManagement: 'إدارة المواقف',

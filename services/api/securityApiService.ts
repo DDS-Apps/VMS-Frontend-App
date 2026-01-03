@@ -45,6 +45,10 @@ function mapVisitToSecurityVisitor(visit: VisitListItemDto): SecurityVisitorDto 
     status: visit.status as SecurityVisitorDto['status'],
     isBlacklisted: false,
     parkingAssigned: visit.hasParking || false,
+    visitorNeedsParking: visit.visitorNeedsParking,
+    licensePlate: visit.licensePlate,
+    carModel: visit.carModel,
+    carColor: visit.carColor,
   };
 }
 
@@ -65,6 +69,10 @@ function mapVisitDetailsToSecurityVisitor(visit: VisitDetailsDto): SecurityVisit
     isBlacklisted: false,
     parkingAssigned: !!visit.parkingAllocation,
     parkingSpot: visit.parkingAllocation?.spotNumber,
+    visitorNeedsParking: visit.visitorNeedsParking,
+    licensePlate: visit.licensePlate,
+    carModel: visit.carModel,
+    carColor: visit.carColor,
     qrCode: visit.qrCode,
   };
 }

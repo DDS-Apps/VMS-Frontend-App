@@ -69,8 +69,33 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
   }
 
   const statusConfig = getStatusConfig(visitorData.status);
-  const hasParking = visitorData.parkingAssigned || false;
+  const hasParking = visitorData.visitorNeedsParking === true || visitorData.parkingAssigned || false;
   const hasValet = visitorData.valetAssigned || false;
+  
+  // Build parking display info
+  const getParkingDisplayInfo = () => {
+    if (visitorData.visitorNeedsParking === false) {
+      return { text: t('security.noParking'), showDetails: false };
+    } else if (visitorData.visitorNeedsParking === true) {
+      const carDetails: string[] = [];
+      if (visitorData.licensePlate) carDetails.push(visitorData.licensePlate);
+      if (visitorData.carModel) carDetails.push(visitorData.carModel);
+      if (visitorData.carColor) carDetails.push(visitorData.carColor);
+      
+      if (carDetails.length > 0) {
+        return { text: `${t('security.needsParking')}: ${carDetails.join(' - ')}`, showDetails: true };
+      } else {
+        return { text: `${t('security.needsParking')} (${t('security.parkingDetailsPending')})`, showDetails: true };
+      }
+    } else if (visitorData.parkingSpot) {
+      return { text: visitorData.parkingSpot, showDetails: true };
+    } else if (visitorData.parkingAssigned) {
+      return { text: t('security.parkingAssigned'), showDetails: true };
+    }
+    return { text: t('security.noParking'), showDetails: false };
+  };
+  
+  const parkingInfo = getParkingDisplayInfo();
 
   return (
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
@@ -245,15 +270,15 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
             <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('security.parkingStatus')}
             </ThemedText>
-            {hasParking ? (
+            {parkingInfo.showDetails ? (
               <ThemedText style={[Typography.caption, { color: theme.primary, marginTop: 2, fontSize: 13, fontWeight: '500', textAlign: isRTL ? 'right' : 'left' }]}>
-                {visitorData.parkingSpot || t('security.parkingAssigned')}
+                {parkingInfo.text}
               </ThemedText>
             ) : (
               <View style={[styles.noBadge, { backgroundColor: applyOpacity(theme.textSecondary, '12'), flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <DDIcon name="x-circle" size={12} color={theme.textSecondary} />
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontWeight: '500', marginStart: 4, fontSize: 12 }]}>
-                  {t('security.noParking')}
+                  {parkingInfo.text}
                 </ThemedText>
               </View>
             )}

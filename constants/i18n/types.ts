@@ -829,6 +829,8 @@ export interface TranslationKeys {
     valetService: string;
     parkingAssigned: string;
     valetAssigned: string;
+    needsParking: string;
+    parkingDetailsPending: string;
   };
   parking: {
     parkingManagement: string;
