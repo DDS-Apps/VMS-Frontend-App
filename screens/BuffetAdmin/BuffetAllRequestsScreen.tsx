@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
-import { View, StyleSheet, Pressable, ScrollView, Modal, GestureResponderEvent, ActivityIndicator } from "react-native";
+import { View, StyleSheet, Pressable, ScrollView, Modal, GestureResponderEvent, ActivityIndicator, Platform } from "react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
@@ -11,6 +12,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
 import { applyOpacity, getStatusConfig as getStatusStyle } from "@/utils/statusStyles";
+import { formatDateForApi, formatDate as formatDateDisplay } from "@/utils/dateTimeUtils";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { LoadingButton } from "@/components/shared/LoadingButton";
@@ -637,8 +639,41 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
   const [selectedRequest, setSelectedRequest] = useState<BuffetRequest | null>(null);
   const [assigningStaffId, setAssigningStaffId] = useState<string | null>(null);
   const [completingRequestId, setCompletingRequestId] = useState<string | null>(null);
+  
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [tempDate, setTempDate] = useState<Date>(new Date());
 
-  const { data: tasksData, isLoading: isLoadingTasks, refetch: refetchTasks } = useBuffetAdminTasksQuery();
+  const dateParam = formatDateForApi(selectedDate);
+  const { data: tasksData, isLoading: isLoadingTasks, refetch: refetchTasks } = useBuffetAdminTasksQuery({ date: dateParam });
+  
+  const handlePrevDay = () => {
+    const newDate = new Date(selectedDate);
+    newDate.setDate(newDate.getDate() - 1);
+    setSelectedDate(newDate);
+  };
+  
+  const handleNextDay = () => {
+    const newDate = new Date(selectedDate);
+    newDate.setDate(newDate.getDate() + 1);
+    setSelectedDate(newDate);
+  };
+  
+  const handleDateChange = (_event: unknown, date?: Date) => {
+    setShowDatePicker(false);
+    if (date) {
+      setSelectedDate(date);
+    }
+  };
+  
+  const isToday = formatDateForApi(selectedDate) === formatDateForApi(new Date());
+  
+  const getDisplayDate = () => {
+    if (isToday) {
+      return t('common.today');
+    }
+    return formatDateDisplay(selectedDate, { isRTL });
+  };
   const { data: staffData } = useBuffetAdminStaffQuery();
   const updateStatusMutation = useUpdateBuffetAdminTaskStatusMutation();
   const assignTaskMutation = useAssignBuffetTaskMutation();
@@ -884,6 +919,7 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
         <ScreenFlatList
           data={filteredRequests}
           keyExtractor={(item) => item.id}
+          contentContainerStyle={{ paddingTop: Spacing.xl }}
           renderItem={({ item }) => (
             <BuffetRequestTableRow 
               request={item} 
@@ -896,6 +932,44 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
           )}
           ListHeaderComponent={
             <>
+              <View style={[styles.paddedContent, styles.dateNavRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                <Pressable
+                  style={[styles.dateNavButton, { backgroundColor: theme.surfaceSecondary }]}
+                  onPress={handlePrevDay}
+                >
+                  <DDIcon name={isRTL ? "chevron-right" : "chevron-left"} size={20} color={theme.text} />
+                </Pressable>
+                
+                <Pressable
+                  style={[styles.dateDisplay, { backgroundColor: theme.surfaceSecondary }]}
+                  onPress={() => { setTempDate(selectedDate); setShowDatePicker(true); }}
+                >
+                  <DDIcon name="calendar" size={18} color={theme.primary} />
+                  <ThemedText style={[Typography.body, { fontWeight: '600', marginStart: Spacing.sm }]}>
+                    {getDisplayDate()}
+                  </ThemedText>
+                  {isToday ? null : (
+                    <Pressable
+                      style={[styles.todayBadge, { backgroundColor: applyOpacity(theme.primary, '15') }]}
+                      onPress={() => setSelectedDate(new Date())}
+                    >
+                      <ThemedText style={[Typography.caption, { color: theme.primary, fontSize: 10, fontWeight: '600' }]}>
+                        {t('common.today')}
+                      </ThemedText>
+                    </Pressable>
+                  )}
+                </Pressable>
+                
+                <Pressable
+                  style={[styles.dateNavButton, { backgroundColor: theme.surfaceSecondary }]}
+                  onPress={handleNextDay}
+                >
+                  <DDIcon name={isRTL ? "chevron-left" : "chevron-right"} size={20} color={theme.text} />
+                </Pressable>
+              </View>
+
+              <Spacer height={Spacing.lg} />
+
               <View style={styles.paddedContent}>
                 <StatsCards 
                   totalRequests={totalRequests} 
@@ -926,6 +1000,58 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
           ItemSeparatorComponent={() => <Spacer height={Spacing.md} />}
         />
         {renderStaffAssignModal()}
+        {showDatePicker ? (
+          Platform.OS === 'ios' ? (
+            <Modal
+              visible={showDatePicker}
+              transparent
+              animationType="fade"
+              onRequestClose={() => setShowDatePicker(false)}
+            >
+              <Pressable
+                style={styles.datePickerModalOverlay}
+                onPress={() => setShowDatePicker(false)}
+              >
+                <Pressable style={[styles.datePickerModalContent, { backgroundColor: theme.surface }]}>
+                  <View style={[styles.datePickerHeader, { borderBottomColor: theme.border }]}>
+                    <Pressable onPress={() => setShowDatePicker(false)}>
+                      <ThemedText style={[Typography.body, { color: theme.textSecondary }]}>
+                        {t('common.cancel')}
+                      </ThemedText>
+                    </Pressable>
+                    <ThemedText style={[Typography.body, { fontWeight: '600' }]}>
+                      {t('common.selectDate')}
+                    </ThemedText>
+                    <Pressable onPress={() => {
+                      setSelectedDate(tempDate);
+                      setShowDatePicker(false);
+                    }}>
+                      <ThemedText style={[Typography.body, { color: theme.primary, fontWeight: '600' }]}>
+                        {t('common.done')}
+                      </ThemedText>
+                    </Pressable>
+                  </View>
+                  <DateTimePicker
+                    value={tempDate}
+                    mode="date"
+                    display="spinner"
+                    onChange={(_event, date) => {
+                      if (date) setTempDate(date);
+                    }}
+                    style={{ height: 200 }}
+                  />
+                </Pressable>
+              </Pressable>
+            </Modal>
+          ) : (
+            <DateTimePicker
+              value={selectedDate}
+              mode="date"
+              display="default"
+              onChange={handleDateChange}
+            />
+          )
+        ) : null}
       </>
     );
   }
@@ -934,6 +1060,44 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
     <>
       <ScreenScrollView>
         <Spacer height={Spacing.xl} />
+
+        <View style={[styles.paddedContent, styles.dateNavRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <Pressable
+            style={[styles.dateNavButton, { backgroundColor: theme.surfaceSecondary }]}
+            onPress={handlePrevDay}
+          >
+            <DDIcon name={isRTL ? "chevron-right" : "chevron-left"} size={20} color={theme.text} />
+          </Pressable>
+          
+          <Pressable
+            style={[styles.dateDisplay, { backgroundColor: theme.surfaceSecondary }]}
+            onPress={() => { setTempDate(selectedDate); setShowDatePicker(true); }}
+          >
+            <DDIcon name="calendar" size={18} color={theme.primary} />
+            <ThemedText style={[Typography.body, { fontWeight: '600', marginStart: Spacing.sm }]}>
+              {getDisplayDate()}
+            </ThemedText>
+            {isToday ? null : (
+              <Pressable 
+                style={[styles.todayBadge, { backgroundColor: applyOpacity(theme.primary, '15') }]}
+                onPress={() => setSelectedDate(new Date())}
+              >
+                <ThemedText style={[Typography.caption, { color: theme.primary, fontSize: 10, fontWeight: '600' }]}>
+                  {t('common.today')}
+                </ThemedText>
+              </Pressable>
+            )}
+          </Pressable>
+          
+          <Pressable
+            style={[styles.dateNavButton, { backgroundColor: theme.surfaceSecondary }]}
+            onPress={handleNextDay}
+          >
+            <DDIcon name={isRTL ? "chevron-left" : "chevron-right"} size={20} color={theme.text} />
+          </Pressable>
+        </View>
+
+        <Spacer height={Spacing.lg} />
 
         <View style={styles.paddedContent}>
           <StatsCards 
@@ -985,6 +1149,58 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
         <Spacer height={LAYOUT.sectionSpacing} />
       </ScreenScrollView>
       {renderStaffAssignModal()}
+      {showDatePicker ? (
+        Platform.OS === 'ios' ? (
+          <Modal
+            visible={showDatePicker}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setShowDatePicker(false)}
+          >
+            <Pressable
+              style={styles.datePickerModalOverlay}
+              onPress={() => setShowDatePicker(false)}
+            >
+              <Pressable style={[styles.datePickerModalContent, { backgroundColor: theme.surface }]}>
+                <View style={[styles.datePickerHeader, { borderBottomColor: theme.border }]}>
+                  <Pressable onPress={() => setShowDatePicker(false)}>
+                    <ThemedText style={[Typography.body, { color: theme.textSecondary }]}>
+                      {t('common.cancel')}
+                    </ThemedText>
+                  </Pressable>
+                  <ThemedText style={[Typography.body, { fontWeight: '600' }]}>
+                    {t('common.selectDate')}
+                  </ThemedText>
+                  <Pressable onPress={() => {
+                    setSelectedDate(tempDate);
+                    setShowDatePicker(false);
+                  }}>
+                    <ThemedText style={[Typography.body, { color: theme.primary, fontWeight: '600' }]}>
+                      {t('common.done')}
+                    </ThemedText>
+                  </Pressable>
+                </View>
+                <DateTimePicker
+                  value={tempDate}
+                  mode="date"
+                  display="spinner"
+                  onChange={(_event, date) => {
+                    if (date) setTempDate(date);
+                  }}
+                  style={{ height: 200 }}
+                />
+              </Pressable>
+            </Pressable>
+          </Modal>
+        ) : (
+          <DateTimePicker
+            value={selectedDate}
+            mode="date"
+            display="default"
+            onChange={handleDateChange}
+          />
+        )
+      ) : null}
     </>
   );
 }
@@ -992,6 +1208,51 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
 const styles = StyleSheet.create({
   paddedContent: {
     paddingHorizontal: Spacing.xl,
+  },
+  dateNavRow: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+  },
+  dateNavButton: {
+    width: 40,
+    height: 40,
+    borderRadius: BorderRadius.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dateDisplay: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
+    flex: 1,
+    justifyContent: 'center',
+  },
+  todayBadge: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.sm,
+    marginStart: Spacing.sm,
+  },
+  datePickerModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  datePickerModalContent: {
+    borderTopLeftRadius: BorderRadius.lg,
+    borderTopRightRadius: BorderRadius.lg,
+    paddingBottom: Spacing.xl,
+  },
+  datePickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   statsGrid: {
     flexDirection: 'row',
