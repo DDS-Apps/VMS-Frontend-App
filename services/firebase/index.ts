@@ -4,4 +4,5 @@ export {
   getWebFcmToken,
   onWebForegroundMessage,
   registerServiceWorker,
+  isWebPushAvailable,
 } from './webMessaging';

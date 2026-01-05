@@ -6,6 +6,30 @@ type FirebaseMessaging = any;
 
 let messaging: FirebaseMessaging | null = null;
 let firebaseApp: FirebaseApp | null = null;
+let serviceWorkerAvailable = false;
+
+function isDevEnvironment(): boolean {
+  if (typeof __DEV__ !== 'undefined' && __DEV__) {
+    return true;
+  }
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    return hostname.includes('localhost') || 
+           hostname.includes('127.0.0.1') || 
+           hostname.includes('.replit.dev');
+  }
+  return false;
+}
+
+async function checkServiceWorkerAvailable(): Promise<boolean> {
+  try {
+    const response = await fetch('/firebase-messaging-sw.js', { method: 'HEAD' });
+    const contentType = response.headers.get('content-type') || '';
+    return response.ok && contentType.includes('javascript');
+  } catch {
+    return false;
+  }
+}
 
 export async function initializeFirebaseWeb(): Promise<boolean> {
   if (Platform.OS !== 'web') {
@@ -21,8 +45,17 @@ export async function initializeFirebaseWeb(): Promise<boolean> {
     }
 
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-      messaging = messagingModule.getMessaging(firebaseApp);
-      return true;
+      serviceWorkerAvailable = await checkServiceWorkerAvailable();
+      
+      if (!serviceWorkerAvailable && isDevEnvironment()) {
+        console.log('[Firebase Web] Service worker not available in development. Web push notifications will work in production builds.');
+        return false;
+      }
+      
+      if (serviceWorkerAvailable) {
+        messaging = messagingModule.getMessaging(firebaseApp);
+        return true;
+      }
     }
     return false;
   } catch (error) {
@@ -32,7 +65,7 @@ export async function initializeFirebaseWeb(): Promise<boolean> {
 }
 
 export async function getWebFcmToken(): Promise<string | null> {
-  if (Platform.OS !== 'web' || !messaging) {
+  if (Platform.OS !== 'web' || !messaging || !serviceWorkerAvailable) {
     return null;
   }
 
@@ -79,6 +112,13 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
     return null;
   }
 
+  if (!serviceWorkerAvailable) {
+    if (isDevEnvironment()) {
+      console.log('[Firebase Web] Skipping service worker registration in development environment.');
+    }
+    return null;
+  }
+
   try {
     const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
     console.log('[Firebase Web] Service worker registered');
@@ -87,4 +127,8 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
     console.error('[Firebase Web] Service worker registration failed:', error);
     return null;
   }
+}
+
+export function isWebPushAvailable(): boolean {
+  return Platform.OS === 'web' && serviceWorkerAvailable && messaging !== null;
 }
