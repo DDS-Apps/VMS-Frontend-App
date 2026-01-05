@@ -257,7 +257,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
 
       <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
         <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
-          {t('security.parkingStatus')}
+          {t('services.parking')}
         </ThemedText>
         <Spacer height={Spacing.xl} />
 
@@ -267,7 +267,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
           </View>
           <View style={{ flex: 1, marginStart: Spacing.md }}>
             <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
-              {t('security.parkingStatus')}
+              {t('services.parking')}
             </ThemedText>
             {parkingInfo.showDetails ? (
               <ThemedText style={[Typography.caption, { color: theme.primary, marginTop: 2, fontSize: 13, fontWeight: '500', textAlign: isRTL ? 'right' : 'left' }]}>
