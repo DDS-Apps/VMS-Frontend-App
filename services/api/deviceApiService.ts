@@ -32,11 +32,21 @@ export const deviceApiService = {
     return get<PushStatusResponse>(devices.status);
   },
 
-  sendTestNotification: (data?: TestNotificationPayload): Promise<{ success: boolean }> => {
-    return post<{ success: boolean }, TestNotificationPayload>(devices.test, data || {
+  sendTestNotification: async (data?: TestNotificationPayload): Promise<{ success: boolean }> => {
+    const payload = data || {
       title: 'Test Notification',
       body: 'Push notifications are working!',
-    });
+    };
+    console.log('[Device API] Sending test notification to:', devices.test);
+    console.log('[Device API] Payload:', JSON.stringify(payload));
+    try {
+      const result = await post<{ success: boolean }, TestNotificationPayload>(devices.test, payload);
+      console.log('[Device API] Test notification response:', JSON.stringify(result));
+      return result;
+    } catch (error) {
+      console.error('[Device API] Test notification error:', error);
+      throw error;
+    }
   },
 };
 
