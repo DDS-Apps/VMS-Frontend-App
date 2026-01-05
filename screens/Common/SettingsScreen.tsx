@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, Pressable, Switch } from "react-native";
+import { View, StyleSheet, Pressable, Switch, ActivityIndicator, Platform } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { DDIcon } from "@/components/DDIcon";
 import Constants from "expo-constants";
+import { pushNotificationService } from "@/services/push";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -48,6 +49,8 @@ export default function SettingsScreen({
   
   const [preferences, setPreferences] = useState(() => getUserPreferences(userId, userRole));
   const [showEventPreferences, setShowEventPreferences] = useState(false);
+  const [isSendingTest, setIsSendingTest] = useState(false);
+  const [testResult, setTestResult] = useState<'success' | 'error' | null>(null);
 
   useEffect(() => {
     setPreferences(getUserPreferences(userId, userRole));
@@ -99,6 +102,22 @@ export default function SettingsScreen({
   const handleEventPreferenceToggle = (eventKey: keyof NotificationEventPreference, enabled: boolean) => {
     const updated = updateEventPreference(userId, userRole, eventKey, enabled);
     setPreferences(updated);
+  };
+
+  const handleTestNotification = async () => {
+    setIsSendingTest(true);
+    setTestResult(null);
+    try {
+      await pushNotificationService.sendTestNotification();
+      setTestResult('success');
+      setTimeout(() => setTestResult(null), 3000);
+    } catch (error) {
+      console.error('[Settings] Test notification failed:', error);
+      setTestResult('error');
+      setTimeout(() => setTestResult(null), 3000);
+    } finally {
+      setIsSendingTest(false);
+    }
   };
 
   const relevantEventTypes = getRelevantEventTypesForRole(userRole);
@@ -254,6 +273,53 @@ export default function SettingsScreen({
             ios_backgroundColor={theme.border}
           />
         </View>
+
+        <View style={[styles.sectionDivider, { backgroundColor: theme.surfaceSecondary }]} />
+
+        <Pressable
+          style={({ pressed }) => [
+            styles.testNotificationButton,
+            { 
+              backgroundColor: testResult === 'success' 
+                ? theme.success 
+                : testResult === 'error' 
+                  ? theme.error 
+                  : theme.primary,
+              opacity: pressed ? 0.8 : 1,
+              flexDirection: isRTL ? 'row-reverse' : 'row',
+            },
+          ]}
+          onPress={handleTestNotification}
+          disabled={isSendingTest}
+        >
+          {isSendingTest ? (
+            <ActivityIndicator size="small" color={theme.buttonText} />
+          ) : testResult === 'success' ? (
+            <DDIcon name="check-circle" size={18} color={theme.buttonText} />
+          ) : testResult === 'error' ? (
+            <DDIcon name="alert-circle" size={18} color={theme.buttonText} />
+          ) : (
+            <DDIcon name="bell" size={18} color={theme.buttonText} />
+          )}
+          <ThemedText style={[styles.testNotificationText, { color: theme.buttonText, marginStart: Spacing.sm }]}>
+            {isSendingTest 
+              ? t('settings.sendingTest') 
+              : testResult === 'success' 
+                ? t('settings.testSent')
+                : testResult === 'error'
+                  ? t('settings.testFailed')
+                  : t('settings.testNotification')}
+          </ThemedText>
+        </Pressable>
+
+        {Platform.OS === 'web' ? null : (
+          <>
+            <Spacer height={Spacing.sm} />
+            <ThemedText style={[styles.testNotificationHint, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+              {t('settings.testNotificationHint')}
+            </ThemedText>
+          </>
+        )}
 
       </ThemedView>
 
@@ -447,5 +513,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: Spacing.lg,
     borderRadius: BorderRadius.md,
+  },
+  testNotificationButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: 10,
+    gap: Spacing.sm,
+  },
+  testNotificationText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  testNotificationHint: {
+    fontSize: 11,
   },
 });

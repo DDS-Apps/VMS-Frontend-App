@@ -17,7 +17,7 @@ export const deviceApiService = {
   },
 
   unregisterToken: async (fcmToken: string): Promise<void> => {
-    await httpClient.delete(devices.token, { data: { fcmToken } });
+    await post<void, { fcmToken: string }>(`${devices.token}/unregister`, { fcmToken });
   },
 
   unregisterAllTokens: (): Promise<void> => {

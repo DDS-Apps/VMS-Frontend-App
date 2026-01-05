@@ -191,6 +191,7 @@ export const apiConfig = {
     notifications: "/api/v1/notifications",
     devices: {
       token: "/api/v1/devices/token",
+      tokenUnregister: "/api/v1/devices/token/unregister",
       tokens: "/api/v1/devices/tokens",
       status: "/api/v1/devices/status",
       test: "/api/v1/devices/test",

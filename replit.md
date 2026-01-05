@@ -70,7 +70,22 @@ The VMS app adheres to a Clean Architecture pattern, dividing the application in
     -   `services/state/` - Local state management files suffixed with `State` (e.g., `valetAdminState.ts`, `buffetAdminState.ts`)
     -   `utils/` - Shared utility functions (e.g., `dateTimeUtils.ts`, `statusUtils.ts`, `requestMappers.ts`)
 -   **Key Features:** Axios HTTP Client with interceptors for JWT token injection and automatic refresh, standardized error handling, TanStack Query for data fetching, caching, mutations, and query invalidation, token management (refresh, AsyncStorage persistence), session management, role mapping, Azure AD SSO, and OTP flows.
--   **Backend URL:** `https://6dd8abd4-1ba4-4930-9228-1c309ae5d4e2-00-2v2xb6f19be8f.sisko.replit.dev`
+-   **Backend URL:** `https://vms-backend-folio3.replit.app` (hardcoded, no environment variables)
+
+**Push Notifications:**
+-   **Architecture:** Unified push notification service supporting both mobile (expo-notifications with native FCM tokens) and web (Firebase SDK with VAPID key).
+-   **Files:**
+    -   `services/firebase/config.ts` - Firebase initialization with app credentials
+    -   `services/firebase/webMessaging.ts` - Web-specific Firebase messaging (FCM token, foreground messages)
+    -   `services/push/pushNotificationService.ts` - Unified service for mobile and web notifications
+    -   `services/api/deviceApiService.ts` - Backend API for device token registration/management
+    -   `web/firebase-messaging-sw.js` - Service worker for web background notifications
+    -   `navigation/navigationRef.ts` - Navigation ref for deep linking from notifications
+    -   `utils/notificationNavigator.ts` - Handles notification tap navigation to specific screens
+-   **Backend Endpoints:** `/api/v1/devices/token` (register/unregister), `/api/v1/devices/tokens` (list/bulk delete), `/api/v1/devices/status` (push status), `/api/v1/devices/test` (send test notification)
+-   **Auth Integration:** Automatically registers device on login, unregisters on logout via AuthContext integration.
+-   **Android Channels:** default, visitors, approvals, tasks, reminders
+-   **Important:** Push notifications require EAS native builds to work on physical devices. Expo Go has limited push notification support.
 
 ## External Dependencies
 -   **React Native:** Core framework.
@@ -87,6 +102,8 @@ The VMS app adheres to a Clean Architecture pattern, dividing the application in
 -   **@react-native-async-storage/async-storage:** Language preference and auth token persistence.
 -   **axios:** HTTP client for API calls.
 -   **@tanstack/react-query:** Data fetching, caching, and state management.
+-   **expo-notifications:** Push notifications for mobile (iOS/Android).
+-   **firebase:** Firebase SDK for web push notifications (FCM).
 
 ## Deployment
 

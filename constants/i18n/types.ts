@@ -539,6 +539,11 @@ export interface TranslationKeys {
     notificationSettings: string;
     pushNotifications: string;
     pushNotificationsDesc: string;
+    testNotification: string;
+    sendingTest: string;
+    testSent: string;
+    testFailed: string;
+    testNotificationHint: string;
     emailNotifications: string;
     emailNotificationsDesc: string;
     emailSummaryFrequency: string;
