@@ -104,12 +104,13 @@ const VisitorAvatar = ({ name, theme, size = 44 }: { name: string; theme: Theme;
   );
 };
 
-const DateTimeDisplay = ({ date, time, theme, compact = false }: { date: string; time: string; theme: Theme; compact?: boolean }) => {
+const DateTimeDisplay = ({ date, time, theme, compact = false, isRTL = false }: { date: string; time: string; theme: Theme; compact?: boolean; isRTL?: boolean }) => {
+  const formattedDate = formatDateDisplay(date, { isRTL, includeYear: true });
   return (
     <View style={styles.dateTimeRow}>
       <DDIcon name="calendar" size={compact ? 13 : 14} variant="muted" />
       <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
-        {date}
+        {formattedDate}
       </ThemedText>
       <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
       <DDIcon name="clock" size={compact ? 13 : 14} variant="muted" />
@@ -397,7 +398,7 @@ const BuffetRequestCard = React.memo(({
 
           <Spacer height={Spacing.sm} />
 
-          <DateTimeDisplay date={request.visitDate} time={request.timeSlot} theme={theme} />
+          <DateTimeDisplay date={request.visitDate} time={request.timeSlot} theme={theme} isRTL={isRTL} />
 
           {request.assignedStaff ? (
             <>
@@ -513,7 +514,8 @@ const BuffetRequestTableRow = React.memo(({
                 date={request.visitDate} 
                 time={request.timeSlot} 
                 theme={theme} 
-                compact 
+                compact
+                isRTL={isRTL}
               />
             </View>
           </View>

@@ -227,11 +227,17 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
       return visitor.status === statusFilter;
     })
     .sort((a, b) => {
+      // First sort by visitDate descending (latest first)
+      if (a.visitDate !== b.visitDate) {
+        return b.visitDate.localeCompare(a.visitDate);
+      }
+      // Then by status order
       const statusOrder: Record<SecurityVisitorStatus, number> = { expected: 0, checked_in: 1, checked_out: 2, cancelled: 3 };
       if (statusOrder[a.status] !== statusOrder[b.status]) {
         return statusOrder[a.status] - statusOrder[b.status];
       }
-      return parseTimeToMinutes(a.visitTime) - parseTimeToMinutes(b.visitTime);
+      // Then by time descending (latest first)
+      return parseTimeToMinutes(b.visitTime) - parseTimeToMinutes(a.visitTime);
     });
 
   const getStatusConfig = (status: SecurityVisitor['status']) => {
