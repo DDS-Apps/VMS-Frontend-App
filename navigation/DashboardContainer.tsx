@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { NavigationContainer, useNavigation, useNavigationState, useFocusEffect, CommonActions } from "@react-navigation/native";
+import { navigationRef } from "./navigationRef";
 import { createNativeStackNavigator, NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useLanguage } from "@/contexts/LanguageContext";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -191,7 +192,7 @@ export default function DashboardContainer({ userRole, userName, userEmail, user
   };
   
   return (
-    <NavigationContainer key={`nav-${locale}-${isRTL ? 'rtl' : 'ltr'}`}>
+    <NavigationContainer ref={navigationRef} key={`nav-${locale}-${isRTL ? 'rtl' : 'ltr'}`}>
       <Stack.Navigator
         initialRouteName={getInitialRouteName()}
         screenOptions={{

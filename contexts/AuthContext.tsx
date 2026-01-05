@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useCallback, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useCallback, useState, useEffect, ReactNode, useRef } from 'react';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { 
@@ -11,6 +11,7 @@ import {
 } from '@/api/httpClient';
 import { authService } from '@/services/api/authService';
 import { parseAuthHashFragment, clearUrlHash } from '@/utils/authTokenParser';
+import { pushNotificationService } from '@/services/push';
 import type { AuthTokenResponse, StoredTokens, AuthUserDto } from '@/types/auth.types';
 import type { UserRole } from '@/types/vms.types';
 
@@ -77,6 +78,12 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
   });
 
   const handleLogout = useCallback(async () => {
+    try {
+      await pushNotificationService.unregister();
+    } catch (pushError) {
+      console.warn('[AuthContext] Failed to unregister push notifications:', pushError);
+    }
+
     try {
       const currentRefreshToken = getRefreshToken();
       if (currentRefreshToken) {
@@ -240,6 +247,11 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
 
         clearUrlHash();
         console.log('[AuthContext] SSO login successful');
+
+        pushNotificationService.initialize().catch((pushError) => {
+          console.warn('[AuthContext] Failed to initialize push notifications:', pushError);
+        });
+
         return true;
       } catch (error) {
         console.error('[AuthContext] Error processing hash tokens:', error);
@@ -282,6 +294,10 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
               error: null,
             });
             await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
+
+            pushNotificationService.initialize().catch((pushError) => {
+              console.warn('[AuthContext] Failed to initialize push notifications:', pushError);
+            });
           } catch (error) {
             await AsyncStorage.multiRemove([AUTH_STORAGE_KEY, TOKEN_STORAGE_KEY]);
             clearTokens();
@@ -327,6 +343,10 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
       isLoading: false,
       isAuthenticated: true,
       error: null,
+    });
+
+    pushNotificationService.initialize().catch((error) => {
+      console.warn('[AuthContext] Failed to initialize push notifications:', error);
     });
 
     return response;
@@ -412,6 +432,11 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
       });
 
       console.log('[AuthContext] SSO login complete, user:', user.email, 'role:', user.role);
+
+      pushNotificationService.initialize().catch((pushError) => {
+        console.warn('[AuthContext] Failed to initialize push notifications:', pushError);
+      });
+
       return user;
     } catch (error) {
       console.error('[AuthContext] ssoLogin error:', error);

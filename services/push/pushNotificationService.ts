@@ -9,6 +9,7 @@ import {
   onWebForegroundMessage,
   registerServiceWorker,
 } from '@/services/firebase';
+import { handleNotificationTap } from '@/utils/notificationNavigator';
 import type { DevicePlatform, NotificationPayload } from '@/types';
 
 Notifications.setNotificationHandler({
@@ -22,7 +23,6 @@ Notifications.setNotificationHandler({
 });
 
 type NotificationCallback = (notification: Notifications.Notification) => void;
-type NotificationResponseCallback = (response: Notifications.NotificationResponse) => void;
 
 class PushNotificationService {
   private static instance: PushNotificationService;
@@ -40,8 +40,7 @@ class PushNotificationService {
   }
 
   async initialize(
-    onNotificationReceived?: NotificationCallback,
-    onNotificationTapped?: NotificationResponseCallback
+    onNotificationReceived?: NotificationCallback
   ): Promise<boolean> {
     if (this.isInitialized) {
       console.log('[Push] Already initialized');
@@ -52,7 +51,7 @@ class PushNotificationService {
       if (Platform.OS === 'web') {
         return await this.initializeWeb(onNotificationReceived);
       } else {
-        return await this.initializeMobile(onNotificationReceived, onNotificationTapped);
+        return await this.initializeMobile(onNotificationReceived);
       }
     } catch (error) {
       console.error('[Push] Initialization error:', error);
@@ -102,8 +101,7 @@ class PushNotificationService {
   }
 
   private async initializeMobile(
-    onNotificationReceived?: NotificationCallback,
-    onNotificationTapped?: NotificationResponseCallback
+    onNotificationReceived?: NotificationCallback
   ): Promise<boolean> {
     if (!Device.isDevice) {
       console.log('[Push Mobile] Push notifications require a physical device');
@@ -145,7 +143,7 @@ class PushNotificationService {
 
     this.responseListener = Notifications.addNotificationResponseReceivedListener((response) => {
       console.log('[Push Mobile] Notification tapped:', response);
-      onNotificationTapped?.(response);
+      handleNotificationTap(response);
     });
 
     this.isInitialized = true;
