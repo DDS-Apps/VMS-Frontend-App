@@ -189,6 +189,12 @@ export const apiConfig = {
       byId: (id: string) => `/api/v1/valet/self-service/${id}`,
     },
     notifications: "/api/v1/notifications",
+    devices: {
+      token: "/api/v1/devices/token",
+      tokens: "/api/v1/devices/tokens",
+      status: "/api/v1/devices/status",
+      test: "/api/v1/devices/test",
+    },
     gates: {
       base: "/api/v1/gates",
       config: "/api/v1/gates/config",
