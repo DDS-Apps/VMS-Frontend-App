@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "224821384776",
+    "project_id": "dallahdigital-vms",
+    "storage_bucket": "dallahdigital-vms.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:224821384776:android:ce145b6bbcbf94ecd0aa7d",
+        "android_client_info": {
+          "package_name": "com.dallah.vms"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCmV7OrJ6yYHQgf4SkU4ig1oTNILbLmTrM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
