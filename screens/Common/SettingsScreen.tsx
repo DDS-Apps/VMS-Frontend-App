@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, Pressable, Switch, ActivityIndicator, Platform } from "react-native";
+import { View, StyleSheet, Pressable, Switch, ActivityIndicator, Platform, ScrollView } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { DDIcon } from "@/components/DDIcon";
 import Constants from "expo-constants";
 import { pushNotificationService } from "@/services/push";
+import { InAppNotificationToast } from "@/components/InAppNotificationToast";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -51,6 +52,10 @@ export default function SettingsScreen({
   const [showEventPreferences, setShowEventPreferences] = useState(false);
   const [isSendingTest, setIsSendingTest] = useState(false);
   const [testResult, setTestResult] = useState<'success' | 'error' | null>(null);
+  const [showDebugInfo, setShowDebugInfo] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<string>('');
+  const [showInAppToast, setShowInAppToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState({ title: '', body: '' });
 
   useEffect(() => {
     setPreferences(getUserPreferences(userId, userRole));
@@ -107,27 +112,69 @@ export default function SettingsScreen({
   const handleTestNotification = async () => {
     setIsSendingTest(true);
     setTestResult(null);
+    setDebugInfo('');
     try {
-      await pushNotificationService.sendTestNotification();
-      setTestResult('success');
-      setTimeout(() => setTestResult(null), 3000);
+      const result = await pushNotificationService.sendTestNotification();
+      setDebugInfo(result.debugInfo);
+      
+      if (result.success) {
+        setTestResult('success');
+        setToastMessage({
+          title: 'Test Notification Sent',
+          body: 'Check your device for the notification. If on web dev, notifications may not appear.',
+        });
+        setShowInAppToast(true);
+      } else {
+        setTestResult('error');
+        setToastMessage({
+          title: 'Notification Not Sent',
+          body: result.debugInfo.includes('No push token') 
+            ? 'Push notifications not initialized. Check debug info below.'
+            : 'Failed to send notification. Check debug info below.',
+        });
+        setShowInAppToast(true);
+      }
+      setTimeout(() => setTestResult(null), 5000);
     } catch (error) {
       console.error('[Settings] Test notification failed:', error);
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      setDebugInfo(prev => prev + '\nException: ' + errorMsg);
       setTestResult('error');
-      setTimeout(() => setTestResult(null), 3000);
+      setToastMessage({
+        title: 'Error',
+        body: errorMsg,
+      });
+      setShowInAppToast(true);
+      setTimeout(() => setTestResult(null), 5000);
     } finally {
       setIsSendingTest(false);
+      setShowDebugInfo(true);
     }
+  };
+
+  const handleShowDebugInfo = () => {
+    const info = pushNotificationService.getDebugInfo();
+    setDebugInfo(info);
+    setShowDebugInfo(true);
   };
 
   const relevantEventTypes = getRelevantEventTypesForRole(userRole);
   const notificationsEnabled = preferences.notifications.pushEnabled || preferences.notifications.emailEnabled;
 
   return (
-    <ScreenScrollView contentContainerStyle={scrollContentStyle}>
-      <ThemedText style={[Typography.title]}>
-        {t('settings.title')}
-      </ThemedText>
+    <>
+      <InAppNotificationToast
+        visible={showInAppToast}
+        title={toastMessage.title}
+        body={toastMessage.body}
+        onDismiss={() => setShowInAppToast(false)}
+        type={testResult === 'success' ? 'success' : testResult === 'error' ? 'error' : 'info'}
+        duration={5000}
+      />
+      <ScreenScrollView contentContainerStyle={scrollContentStyle}>
+        <ThemedText style={[Typography.title]}>
+          {t('settings.title')}
+        </ThemedText>
       <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
         {t('settings.subtitle')}
       </ThemedText>
@@ -321,6 +368,35 @@ export default function SettingsScreen({
           </>
         )}
 
+        <Spacer height={Spacing.md} />
+
+        <Pressable
+          style={({ pressed }) => [
+            styles.debugButton,
+            { 
+              backgroundColor: theme.surfaceSecondary,
+              opacity: pressed ? 0.8 : 1,
+            },
+          ]}
+          onPress={handleShowDebugInfo}
+        >
+          <DDIcon name="info" size={16} color={theme.textSecondary} />
+          <ThemedText style={[styles.debugButtonText, { color: theme.textSecondary }]}>
+            {showDebugInfo ? 'Hide Debug Info' : 'Show Debug Info'}
+          </ThemedText>
+        </Pressable>
+
+        {showDebugInfo && debugInfo ? (
+          <>
+            <Spacer height={Spacing.sm} />
+            <View style={[styles.debugInfoContainer, { backgroundColor: theme.background, borderColor: theme.border }]}>
+              <ThemedText style={[styles.debugInfoText, { color: theme.textSecondary }]}>
+                {debugInfo}
+              </ThemedText>
+            </View>
+          </>
+        ) : null}
+
       </ThemedView>
 
       {/* Email Notifications, Event Notifications, and About sections hidden - app info shown in sidebar */}
@@ -344,8 +420,9 @@ export default function SettingsScreen({
         </Pressable>
       ) : null}
 
-      <Spacer height={Spacing.xl} />
-    </ScreenScrollView>
+        <Spacer height={Spacing.xl} />
+      </ScreenScrollView>
+    </>
   );
 }
 
@@ -529,5 +606,28 @@ const styles = StyleSheet.create({
   },
   testNotificationHint: {
     fontSize: 11,
+  },
+  debugButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: 8,
+    gap: Spacing.xs,
+  },
+  debugButtonText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  debugInfoContainer: {
+    padding: Spacing.md,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  debugInfoText: {
+    fontSize: 11,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    lineHeight: 16,
   },
 });

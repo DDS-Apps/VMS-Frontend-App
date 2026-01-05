@@ -257,13 +257,51 @@ class PushNotificationService {
     }
   }
 
-  async sendTestNotification() {
-    try {
-      return await deviceApiService.sendTestNotification();
-    } catch (error) {
-      console.error('[Push] Failed to send test notification:', error);
-      throw error;
+  async sendTestNotification(): Promise<{ success: boolean; debugInfo: string }> {
+    const debugInfo: string[] = [];
+    debugInfo.push(`Platform: ${Platform.OS}`);
+    debugInfo.push(`Initialized: ${this.isInitialized}`);
+    debugInfo.push(`Token exists: ${!!this.token}`);
+    debugInfo.push(`Token (first 20 chars): ${this.token?.substring(0, 20) || 'none'}...`);
+    
+    console.log('[Push Debug] ===== SEND TEST NOTIFICATION =====');
+    console.log('[Push Debug] Platform:', Platform.OS);
+    console.log('[Push Debug] Initialized:', this.isInitialized);
+    console.log('[Push Debug] Token exists:', !!this.token);
+    
+    if (!this.token) {
+      const msg = 'No push token available. Push notifications not initialized.';
+      console.warn('[Push Debug]', msg);
+      debugInfo.push(`Error: ${msg}`);
+      return { success: false, debugInfo: debugInfo.join('\n') };
     }
+    
+    try {
+      console.log('[Push Debug] Calling backend API to send test notification...');
+      const result = await deviceApiService.sendTestNotification();
+      console.log('[Push Debug] Backend response:', result);
+      debugInfo.push(`Backend response: ${JSON.stringify(result)}`);
+      return { success: result.success, debugInfo: debugInfo.join('\n') };
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      console.error('[Push Debug] Failed to send test notification:', errorMsg);
+      debugInfo.push(`Error: ${errorMsg}`);
+      return { success: false, debugInfo: debugInfo.join('\n') };
+    }
+  }
+
+  getDebugInfo(): string {
+    const info: string[] = [];
+    info.push(`Platform: ${Platform.OS}`);
+    info.push(`Initialized: ${this.isInitialized}`);
+    info.push(`Token exists: ${!!this.token}`);
+    if (this.token) {
+      info.push(`Token preview: ${this.token.substring(0, 30)}...`);
+    }
+    info.push(`Notification listener active: ${!!this.notificationListener}`);
+    info.push(`Response listener active: ${!!this.responseListener}`);
+    info.push(`Web unsubscribe active: ${!!this.webUnsubscribe}`);
+    return info.join('\n');
   }
 
   getToken(): string | null {
