@@ -248,7 +248,7 @@ export default function UserDetailScreen() {
                 {t('common.autoApproval')}
               </ThemedText>
               <View style={styles.autoApprovalValue}>
-                {user.canBypassApproval ? (
+                {(user.canBypassApproval || user.autoApproval) ? (
                   <View style={[styles.enabledBadge, { backgroundColor: theme.success + '20', flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                     <DDIcon name="check" size={12} color={theme.success} />
                     <ThemedText style={[Typography.caption, { color: theme.success, fontWeight: '600', marginStart: 4 }]}>
