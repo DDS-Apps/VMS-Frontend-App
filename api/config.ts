@@ -30,7 +30,7 @@ export const apiConfig = {
       sendOtp: "/api/v1/auth/send-otp",
       verifyOtp: "/api/v1/auth/verify-otp",
       resendOtp: "/api/v1/auth/resend-otp",
-      notificationPreferences: "/api/v1/auth/notification-preferences",
+      notificationPreferences: "/api/v1/users/me/notification-preferences",
       biometric: {
         register: "/api/v1/auth/biometric/register",
         devices: "/api/v1/auth/biometric/devices",
