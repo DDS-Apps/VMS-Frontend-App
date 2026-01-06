@@ -188,7 +188,7 @@ class PushNotificationService {
       name: 'Default',
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
-      lightColor: '#0e2342',
+      lightColor: '#F58423',
     });
 
     await Notifications.setNotificationChannelAsync('visitors', {

@@ -5,7 +5,7 @@ export type { StatusConfig };
 
 /**
  * Safely apply opacity to a hex color
- * @param color Hex color string (e.g., '#307BF2')
+ * @param color Hex color string (e.g., '#F58423')
  * @param alpha Opacity value as 2-digit hex (e.g., '10' for ~6% opacity, '15' for ~8%, 'FF' for 100%)
  * @returns Color with opacity in #RRGGBBAA format
  */
@@ -80,7 +80,7 @@ export const getStatusTranslationKey = (status: string): string => {
 
 /**
  * Get theme-aware status configuration for visitor request statuses
- * Uses DALLAH DIGITAL brand colors
+ * Uses Dallah Albaraka brand colors (Orange/Green/Grey)
  * @param theme - The current theme
  * @param status - The status code
  * @param t - Optional translation function. If provided, label will be translated.
@@ -110,18 +110,18 @@ export const getStatusConfig = (theme: Theme, status: string, t?: (key: string) 
       };
     case 'visitor_accepted':
       return {
-        bg: applyOpacity(BrandColors.brandBlue, '15'),
-        text: BrandColors.brandBlue,
-        border: applyOpacity(BrandColors.brandBlue, '30'),
-        borderColor: BrandColors.brandBlue,
+        bg: applyOpacity(BrandColors.brandOrange, '15'),
+        text: BrandColors.brandOrange,
+        border: applyOpacity(BrandColors.brandOrange, '30'),
+        borderColor: BrandColors.brandOrange,
         label
       };
     case 'checked_in':
       return {
-        bg: applyOpacity(BrandColors.brandTeal, '20'),
-        text: BrandColors.brandTeal,
-        border: applyOpacity(BrandColors.brandTeal, '40'),
-        borderColor: BrandColors.brandTeal,
+        bg: applyOpacity(BrandColors.brandGreen, '20'),
+        text: BrandColors.brandGreen,
+        border: applyOpacity(BrandColors.brandGreen, '40'),
+        borderColor: BrandColors.brandGreen,
         label
       };
     case 'completed':
@@ -161,10 +161,10 @@ export const getStatusConfig = (theme: Theme, status: string, t?: (key: string) 
       };
     case 'pending':
       return {
-        bg: applyOpacity(BrandColors.brandBlue, '15'),
-        text: BrandColors.brandBlue,
-        border: applyOpacity(BrandColors.brandBlue, '30'),
-        borderColor: BrandColors.brandBlue,
+        bg: applyOpacity(BrandColors.brandOrange, '15'),
+        text: BrandColors.brandOrange,
+        border: applyOpacity(BrandColors.brandOrange, '30'),
+        borderColor: BrandColors.brandOrange,
         label
       };
     case 'in_progress':
@@ -178,10 +178,10 @@ export const getStatusConfig = (theme: Theme, status: string, t?: (key: string) 
       };
     case 'ready':
       return {
-        bg: applyOpacity(BrandColors.brandTeal, '15'),
-        text: BrandColors.brandTeal,
-        border: applyOpacity(BrandColors.brandTeal, '30'),
-        borderColor: BrandColors.brandTeal,
+        bg: applyOpacity(BrandColors.brandGreen, '15'),
+        text: BrandColors.brandGreen,
+        border: applyOpacity(BrandColors.brandGreen, '30'),
+        borderColor: BrandColors.brandGreen,
         label
       };
     case 'served':
@@ -205,7 +205,7 @@ export const getStatusConfig = (theme: Theme, status: string, t?: (key: string) 
 
 /**
  * Get simplified status variant for visitor check-in statuses
- * Uses DALLAH DIGITAL brand colors
+ * Uses Dallah Albaraka brand colors (Orange/Green/Grey)
  */
 export const getStatusVariant = (status: string): { bgColor: string; textColor: string } => {
   switch (status.toLowerCase()) {
@@ -216,13 +216,13 @@ export const getStatusVariant = (status: string): { bgColor: string; textColor: 
       };
     case 'checked_in':
       return {
-        bgColor: applyOpacity(BrandColors.brandTeal, '15'),
-        textColor: BrandColors.brandTeal,
+        bgColor: applyOpacity(BrandColors.brandGreen, '15'),
+        textColor: BrandColors.brandGreen,
       };
     case 'in_progress':
       return {
-        bgColor: applyOpacity(BrandColors.brandBlue, '15'),
-        textColor: BrandColors.brandBlue,
+        bgColor: applyOpacity(BrandColors.brandOrange, '15'),
+        textColor: BrandColors.brandOrange,
       };
     case 'completed':
       return {
@@ -231,8 +231,8 @@ export const getStatusVariant = (status: string): { bgColor: string; textColor: 
       };
     default:
       return {
-        bgColor: '#52617815',
-        textColor: '#526178',
+        bgColor: applyOpacity(BrandColors.brandGrey80, '15'),
+        textColor: BrandColors.brandGrey80,
       };
   }
 };
@@ -246,19 +246,19 @@ export const createModalOverlayStyle = (theme: Theme, opacity: '50' | '60' = '50
 
 /**
  * Get badge colors for different status types
- * Uses DALLAH DIGITAL color palette
+ * Uses Dallah Albaraka color palette (Orange/Green/Grey)
  */
 export const getBadgeColors = (type: 'info' | 'success' | 'warning' | 'error' | 'primary' | 'secondary') => {
   switch (type) {
     case 'primary':
       return {
-        bg: applyOpacity(BrandColors.brandBlue, '15'),
-        text: BrandColors.brandBlue,
+        bg: applyOpacity(BrandColors.brandOrange, '15'),
+        text: BrandColors.brandOrange,
       };
     case 'secondary':
       return {
-        bg: applyOpacity(BrandColors.brandTeal, '15'),
-        text: BrandColors.brandTeal,
+        bg: applyOpacity(BrandColors.brandGreen, '15'),
+        text: BrandColors.brandGreen,
       };
     case 'success':
       return {
@@ -278,8 +278,8 @@ export const getBadgeColors = (type: 'info' | 'success' | 'warning' | 'error' | 
     case 'info':
     default:
       return {
-        bg: applyOpacity(BrandColors.brandBlue, '15'),
-        text: BrandColors.brandBlue,
+        bg: applyOpacity(BrandColors.brandOrange, '15'),
+        text: BrandColors.brandOrange,
       };
   }
 };

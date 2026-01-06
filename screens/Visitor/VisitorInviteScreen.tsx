@@ -15,20 +15,20 @@ import { DDIcon } from "@/components/DDIcon";
 import { usePublicInviteQuery, useAcceptInviteMutation, useRejectInviteMutation } from "@/hooks/queries";
 import type { PublicInviteDto, VisitorParkingOption } from "@/types/api.types";
 
-// DALLAH DIGITAL Theme Colors for this page
+// Dallah Albaraka Theme Colors for this page
 const PageColors = {
-  background: BrandColors.brandNavy,
+  background: BrandColors.brandGrey,
   cardBackground: 'rgba(255, 255, 255, 0.08)',
   cardBorder: 'rgba(255, 255, 255, 0.12)',
   textPrimary: '#FFFFFF',
   textSecondary: 'rgba(255, 255, 255, 0.7)',
   textMuted: 'rgba(255, 255, 255, 0.5)',
-  accent: BrandColors.brandTeal,
-  accentLight: BrandColors.softTeal,
-  success: '#1BBE7A',
+  accent: BrandColors.brandOrange,
+  accentLight: BrandColors.softOrange,
+  success: BrandColors.brandGreen,
   error: '#E53935',
   warning: '#FFA000',
-  buttonPrimary: BrandColors.brandBlue,
+  buttonPrimary: BrandColors.brandOrange,
 };
 
 // Reject Modal Component - manages its own local state to prevent cursor issues
@@ -469,7 +469,7 @@ const BrandingHeader = memo(function BrandingHeader() {
           <DDIcon name="shield" size={24} color={PageColors.accent} />
         </View>
         <View>
-          <ThemedText style={[helperStyles.brandName, { textAlign: isRTL ? 'right' : 'left' }]}>DALLAH DIGITAL</ThemedText>
+          <ThemedText style={[helperStyles.brandName, { textAlign: isRTL ? 'right' : 'left' }]}>Dallah Albaraka</ThemedText>
           <ThemedText style={[helperStyles.brandTagline, { textAlign: isRTL ? 'right' : 'left' }]}>Visitor Management System</ThemedText>
         </View>
       </View>

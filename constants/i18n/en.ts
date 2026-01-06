@@ -3,7 +3,7 @@ import { TranslationKeys } from './types';
 export const en: TranslationKeys = {
   common: {
     appName: 'VMS',
-    brandName: 'DALLAH DIGITAL',
+    brandName: 'Dallah Albaraka',
     welcomeTitle: 'Welcome to VMS',
     welcomeSubtitle: 'Visitor Management System',
     loading: 'Loading...',
@@ -535,7 +535,7 @@ export const en: TranslationKeys = {
     language: 'Language',
     languageDesc: 'Choose your preferred language',
     appName: 'App Name',
-    companyName: 'DALLAH DIGITAL',
+    companyName: 'Dallah Albaraka',
     notificationSettings: 'Notification Settings',
     pushNotifications: 'Push Notifications',
     pushNotificationsDesc: 'Receive instant alerts on your device',
@@ -721,7 +721,7 @@ export const en: TranslationKeys = {
     serverError: 'Server error',
     validationError: 'Please check your input',
     restartApp: 'Restart App',
-    appCrashed: 'DALLAH DIGITAL VMS encountered an issue',
+    appCrashed: 'Dallah Albaraka VMS encountered an issue',
     error: 'Error',
     fillRequiredFields: 'Please fill in all required fields',
     durationRequired: 'Duration is required',

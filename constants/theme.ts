@@ -1,43 +1,64 @@
 import { Platform } from "react-native";
 
 // ============================================
-// DALLAH DIGITAL Brand Theme
+// DALLAH ALBARAKA Brand Theme
 // ============================================
 
-// Brand Core Colors
+// Brand Core Colors (Dallah Albaraka Palette)
 export const BrandColors = {
-  brandBlue: "#307BF2", // Primary CTAs, buttons, links, highlights
-  brandTeal: "#12E1D5", // Secondary accent, highlights, badges, progress
-  brandNavy: "#0e2342", // Primary dark background, sidebar, headers
-  brandNavyDark: "#041A3A", // Darker navy for text on light surfaces
-  softTeal: "#E4FCF9", // Subtle accent backgrounds for cards/info
+  // Primary: Dallah Orange
+  brandOrange: "#F58423", // Primary CTAs, buttons, links, highlights
+  brandOrange80: "#F79D4F", // 80% tint
+  brandOrange60: "#F9B57B", // 60% tint
+  brandOrange40: "#FBCEA7", // 40% tint
+  brandOrange20: "#FDE6D3", // 20% tint (soft backgrounds)
+
+  // Primary: Dallah Green
+  brandGreen: "#009933", // Secondary accent, success states, badges
+  brandGreen80: "#33AD5C", // 80% tint
+  brandGreen60: "#66C285", // 60% tint
+  brandGreen40: "#99D6AD", // 40% tint
+  brandGreen20: "#CCEBD6", // 20% tint (soft backgrounds)
+
+  // Secondary: Dallah Grey
+  brandGrey: "#282829", // Primary dark background, sidebar, headers
+  brandGrey80: "#535354", // 80% tint
+  brandGrey60: "#7E7E7F", // 60% tint
+  brandGrey40: "#A9A9A9", // 40% tint
+  brandGrey20: "#D4D4D4", // 20% tint
+
+  // Soft accent backgrounds
+  softOrange: "#FDE6D3", // Subtle accent backgrounds for cards/info
+  softGreen: "#CCEBD6", // Subtle green backgrounds
 };
 
 // Neutral Colors
 export const NeutralColors = {
-  grey900: "#526178", // Secondary text, muted icons
+  grey900: "#535354", // Secondary text, muted icons (brandGrey80)
+  grey600: "#7E7E7F", // Tertiary text (brandGrey60)
+  grey400: "#A9A9A9", // Disabled states (brandGrey40)
   grey300: "#C7CCD3", // Borders, dividers, input outlines
-  grey200: "#DFE2E6", // Card borders, subtle surfaces, hover
+  grey200: "#D4D4D4", // Card borders, subtle surfaces (brandGrey20)
   grey50: "#F5F7FA", // Light backgrounds
   white: "#FFFFFF", // Surfaces, cards, modals, inputs
 };
 
 // Status Colors
 export const StatusColors = {
-  success: "#22C55E", // Pure green for Approve/Accept buttons
-  warning: "#FFA000",
-  error: "#E53935",
-  info: "#307BF2", // Uses brandBlue
+  success: "#009933", // Dallah Green for Approve/Accept buttons
+  warning: "#F58423", // Dallah Orange for warnings
+  error: "#E53935", // Keep red for errors
+  info: "#F58423", // Dallah Orange for info
 };
 
 // Gradient (for rare hero/CTA use)
 export const GradientColors = {
-  start: "#12E1D5", // brandTeal
-  end: "#307BF2", // brandBlue
+  start: "#F58423", // brandOrange
+  end: "#009933", // brandGreen
 };
 
-const tintColorLight = BrandColors.brandBlue;
-const tintColorDark = BrandColors.brandTeal;
+const tintColorLight = BrandColors.brandOrange;
+const tintColorDark = BrandColors.brandOrange80;
 
 export const Colors = {
   // Brand tokens (accessible directly)
@@ -47,18 +68,18 @@ export const Colors = {
   gradient: GradientColors,
 
   light: {
-    // Brand colors - Blue as primary for CTAs/buttons
-    primary: BrandColors.brandBlue,
-    secondary: BrandColors.brandTeal,
-    accent: BrandColors.softTeal,
+    // Brand colors - Orange as primary for CTAs/buttons
+    primary: BrandColors.brandOrange,
+    secondary: BrandColors.brandGreen,
+    accent: BrandColors.softOrange,
 
     // Backgrounds - Light mode uses white
     background: NeutralColors.white,
     surface: NeutralColors.white,
     surfaceSecondary: NeutralColors.grey50,
 
-    // Text - Navy for visibility on white
-    text: BrandColors.brandNavyDark,
+    // Text - Grey for visibility on white
+    text: BrandColors.brandGrey,
     textSecondary: NeutralColors.grey900,
 
     // Borders
@@ -69,11 +90,11 @@ export const Colors = {
     success: StatusColors.success,
     warning: StatusColors.warning,
     error: StatusColors.error,
-    info: BrandColors.brandBlue,
+    info: BrandColors.brandOrange,
 
-    // Buttons - White text on blue buttons for proper contrast
+    // Buttons - White text on orange buttons for proper contrast
     buttonText: NeutralColors.white,
-    buttonSecondaryText: BrandColors.brandBlue,
+    buttonSecondaryText: BrandColors.brandOrange,
     buttonTextOnError: NeutralColors.white,
 
     // Overlay
@@ -81,11 +102,11 @@ export const Colors = {
 
     // Navigation
     tabIconDefault: NeutralColors.grey900,
-    tabIconSelected: BrandColors.brandBlue,
-    link: BrandColors.brandBlue,
+    tabIconSelected: BrandColors.brandOrange,
+    link: BrandColors.brandOrange,
     
-    // Card icons - Navy dark for refined look on light surfaces
-    cardIcon: BrandColors.brandNavyDark,
+    // Card icons - Grey for refined look on light surfaces
+    cardIcon: BrandColors.brandGrey,
 
     // Additional backgrounds
     backgroundRoot: NeutralColors.white,
@@ -93,96 +114,96 @@ export const Colors = {
     backgroundSecondary: NeutralColors.grey50,
     backgroundTertiary: NeutralColors.grey200,
 
-    // Sidebar (light background with navy text in light mode)
+    // Sidebar (light background with grey text in light mode)
     sidebarBg: NeutralColors.grey50,
     sidebarActive: NeutralColors.white,
-    sidebarText: BrandColors.brandNavyDark,
+    sidebarText: BrandColors.brandGrey,
     sidebarTextMuted: NeutralColors.grey900,
-    sidebarIcon: BrandColors.brandNavyDark,
+    sidebarIcon: BrandColors.brandGrey,
     sidebarIconMuted: NeutralColors.grey900,
 
     // Charts
-    chartBlue: BrandColors.brandBlue,
-    chartTeal: BrandColors.brandTeal,
+    chartOrange: BrandColors.brandOrange,
+    chartGreen: BrandColors.brandGreen,
     chartPurple: "#A78BFA",
     chartPink: "#F472B6",
     chartYellow: "#FBBF24",
 
     // Soft backgrounds for cards/badges
-    softTeal: BrandColors.softTeal,
-    softBlue: "#EBF4FF",
-    softSuccess: "#DCFCE7", // Light green background
-    softWarning: "#FFF7E6",
+    softOrange: BrandColors.softOrange,
+    softGreen: BrandColors.softGreen,
+    softSuccess: "#CCEBD6", // Light green background (brandGreen20)
+    softWarning: "#FDE6D3", // Light orange background (brandOrange20)
     softError: "#FEECEB",
   },
   dark: {
-    // Brand colors (slightly adjusted for dark mode)
-    primary: BrandColors.brandTeal,
-    secondary: BrandColors.brandBlue,
-    accent: "#1A3A5A",
+    // Brand colors (adjusted for dark mode)
+    primary: BrandColors.brandOrange80,
+    secondary: BrandColors.brandGreen80,
+    accent: "#3A3A3B",
 
-    // Backgrounds - Dark mode uses navy #0e2342
-    background: BrandColors.brandNavy,
-    surface: "#1a3a5a",
-    surfaceSecondary: "#254a6a",
+    // Backgrounds - Dark mode uses grey
+    background: BrandColors.brandGrey,
+    surface: "#353536",
+    surfaceSecondary: "#424243",
 
     // Text - White for visibility on dark
     text: NeutralColors.white,
-    textSecondary: "#94A3B8",
+    textSecondary: "#B0B0B1",
 
     // Borders
-    border: "#2A4a6a",
-    borderLight: "#3A5a7a",
+    border: "#4A4A4B",
+    borderLight: "#5A5A5B",
 
     // Status
-    success: "#4ADE80", // Pure green for Approve/Accept buttons
-    warning: "#FBBF24",
+    success: BrandColors.brandGreen80,
+    warning: BrandColors.brandOrange80,
     error: "#F87171",
-    info: BrandColors.brandTeal,
+    info: BrandColors.brandOrange80,
 
-    // Buttons - Navy text on teal buttons for better contrast
-    buttonText: BrandColors.brandNavyDark,
-    buttonSecondaryText: BrandColors.brandTeal,
+    // Buttons - Dark text on orange buttons for better contrast
+    buttonText: BrandColors.brandGrey,
+    buttonSecondaryText: BrandColors.brandOrange80,
     buttonTextOnError: NeutralColors.white,
 
     // Overlay
     overlay: "#000000",
 
     // Navigation
-    tabIconDefault: "#94A3B8",
-    tabIconSelected: BrandColors.brandTeal,
-    link: BrandColors.brandTeal,
+    tabIconDefault: "#B0B0B1",
+    tabIconSelected: BrandColors.brandOrange80,
+    link: BrandColors.brandOrange80,
     
-    // Card icons - Teal for visibility on dark surfaces
-    cardIcon: BrandColors.brandTeal,
+    // Card icons - Orange for visibility on dark surfaces
+    cardIcon: BrandColors.brandOrange80,
 
     // Additional backgrounds
-    backgroundRoot: "#050D1A",
-    backgroundDefault: BrandColors.brandNavy,
-    backgroundSecondary: "#1a3a5a",
-    backgroundTertiary: "#254a6a",
+    backgroundRoot: "#1A1A1B",
+    backgroundDefault: BrandColors.brandGrey,
+    backgroundSecondary: "#353536",
+    backgroundTertiary: "#424243",
 
     // Sidebar (same as background for consistent dark mode)
-    sidebarBg: BrandColors.brandNavy,
-    sidebarActive: "#1a3a5a",
+    sidebarBg: BrandColors.brandGrey,
+    sidebarActive: "#353536",
     sidebarText: NeutralColors.white,
     sidebarTextMuted: "rgba(255, 255, 255, 0.7)",
     sidebarIcon: NeutralColors.white,
     sidebarIconMuted: "rgba(255, 255, 255, 0.7)",
 
     // Charts
-    chartBlue: BrandColors.brandBlue,
-    chartTeal: BrandColors.brandTeal,
+    chartOrange: BrandColors.brandOrange,
+    chartGreen: BrandColors.brandGreen80,
     chartPurple: "#A78BFA",
     chartPink: "#F472B6",
     chartYellow: "#FBBF24",
 
     // Soft backgrounds for cards/badges (dark variants)
-    softTeal: "#0A2A2A",
-    softBlue: "#0A1A3A",
-    softSuccess: "#0A2A1A",
-    softWarning: "#2A2A0A",
-    softError: "#2A0A0A",
+    softOrange: "#3A2A1A",
+    softGreen: "#1A2A1A",
+    softSuccess: "#1A2A1A",
+    softWarning: "#3A2A1A",
+    softError: "#3A1A1A",
   },
 };
 
@@ -199,7 +220,6 @@ export const Spacing = {
   xxxl: 48,
   inputHeight: 44,
   buttonHeight: 48,
-  // Brand spacing scale: [4, 8, 12, 16, 24, 32, 48]
 };
 
 // ============================================
@@ -207,13 +227,12 @@ export const Spacing = {
 // ============================================
 export const BorderRadius = {
   xs: 4,
-  sm: 8, // radiusSmall
+  sm: 8,
   md: 12,
-  lg: 16, // radiusCard
+  lg: 16,
   xl: 20,
   xxl: 24,
-  full: 9999, // radiusPill
-  // Aliases for brand guide
+  full: 9999,
   card: 16,
   pill: 9999,
   small: 8,
@@ -224,50 +243,110 @@ export const BorderRadius = {
 // ============================================
 
 // Font families for locale-aware rendering
+// Using FS Albert Pro (Latin) and FS Albert Arabic Web (Arabic)
+// Falls back to Inter/Noto Sans Arabic if FS Albert fonts are not available
 export const FontFamily = {
-  // Latin UI (English, numbers)
+  // Latin UI (English, numbers) - FS Albert Pro with fallbacks
+  latinLight: Platform.select({
+    web: "'FS Albert Pro', Inter, system-ui, -apple-system, sans-serif",
+    default: "FSAlbertPro-Light",
+  }) as string,
+  latinRegular: Platform.select({
+    web: "'FS Albert Pro', Inter, system-ui, -apple-system, sans-serif",
+    default: "FSAlbertPro-Regular",
+  }) as string,
+  latinMedium: Platform.select({
+    web: "'FS Albert Pro', Inter, system-ui, -apple-system, sans-serif",
+    default: "FSAlbertPro-Regular",
+  }) as string,
+  latinSemiBold: Platform.select({
+    web: "'FS Albert Pro', Inter, system-ui, -apple-system, sans-serif",
+    default: "FSAlbertPro-Bold",
+  }) as string,
+  latinBold: Platform.select({
+    web: "'FS Albert Pro', Inter, system-ui, -apple-system, sans-serif",
+    default: "FSAlbertPro-Bold",
+  }) as string,
+  latinExtraBold: Platform.select({
+    web: "'FS Albert Pro', Inter, system-ui, -apple-system, sans-serif",
+    default: "FSAlbertPro-ExtraBold",
+  }) as string,
+
+  // Arabic UI - FS Albert Arabic Web with fallbacks
+  arabicLight: Platform.select({
+    web: "'FS Albert Arabic Web', 'Noto Sans Arabic', sans-serif",
+    default: "FSAlbertArabicWeb-Light",
+  }) as string,
+  arabicRegular: Platform.select({
+    web: "'FS Albert Arabic Web', 'Noto Sans Arabic', sans-serif",
+    default: "FSAlbertArabicWeb-Regular",
+  }) as string,
+  arabicMedium: Platform.select({
+    web: "'FS Albert Arabic Web', 'Noto Sans Arabic', sans-serif",
+    default: "FSAlbertArabicWeb-Regular",
+  }) as string,
+  arabicSemiBold: Platform.select({
+    web: "'FS Albert Arabic Web', 'Noto Sans Arabic', sans-serif",
+    default: "FSAlbertArabicWeb-Bold",
+  }) as string,
+  arabicBold: Platform.select({
+    web: "'FS Albert Arabic Web', 'Noto Sans Arabic', sans-serif",
+    default: "FSAlbertArabicWeb-Bold",
+  }) as string,
+  arabicExtraBold: Platform.select({
+    web: "'FS Albert Arabic Web', 'Noto Sans Arabic', sans-serif",
+    default: "FSAlbertArabicWeb-ExtraBold",
+  }) as string,
+
+  // Display fonts (for marketing/hero sections)
+  latinDisplay: Platform.select({
+    web: "'FS Albert Pro', Inter, system-ui, sans-serif",
+    default: "FSAlbertPro-ExtraBold",
+  }) as string,
+  arabicDisplay: Platform.select({
+    web: "'FS Albert Arabic Web', 'Noto Sans Arabic', sans-serif",
+    default: "FSAlbertArabicWeb-ExtraBold",
+  }) as string,
+};
+
+// Fallback font family tokens (used when FS Albert fonts are not loaded)
+export const FontFamilyFallback = {
   latinRegular: "Inter_400Regular",
   latinMedium: "Inter_500Medium",
   latinSemiBold: "Inter_600SemiBold",
   latinBold: "Inter_700Bold",
-
-  // Arabic UI
   arabicRegular: "NotoSansArabic_400Regular",
   arabicMedium: "NotoSansArabic_500Medium",
   arabicSemiBold: "NotoSansArabic_600SemiBold",
   arabicBold: "NotoSansArabic_700Bold",
-
-  // Display fonts (optional, for marketing/hero)
-  latinDisplay: "Poppins_600SemiBold",
-  arabicDisplay: "Tajawal_700Bold",
 };
 
 // Typography tokens with type scale
 export const Typography = {
-  // Headings
+  // Headings (ExtraBold for headlines)
   h1: {
     fontSize: 40,
     lineHeight: 48,
-    fontWeight: "600" as const,
-    fontFamily: FontFamily.latinSemiBold,
+    fontWeight: "800" as const,
+    fontFamily: FontFamily.latinExtraBold,
     letterSpacing: 0.5,
   },
   h2: {
     fontSize: 32,
     lineHeight: 38,
-    fontWeight: "600" as const,
-    fontFamily: FontFamily.latinSemiBold,
+    fontWeight: "800" as const,
+    fontFamily: FontFamily.latinExtraBold,
     letterSpacing: 0.4,
   },
   h3: {
     fontSize: 24,
     lineHeight: 29,
-    fontWeight: "600" as const,
-    fontFamily: FontFamily.latinSemiBold,
+    fontWeight: "700" as const,
+    fontFamily: FontFamily.latinBold,
     letterSpacing: 0.3,
   },
 
-  // Body text
+  // Body text (Regular weight)
   bodyL: {
     fontSize: 18,
     lineHeight: 27,
@@ -310,22 +389,22 @@ export const Typography = {
   display: {
     fontSize: 32,
     lineHeight: 40,
-    fontWeight: "700" as const,
-    fontFamily: FontFamily.latinBold,
+    fontWeight: "800" as const,
+    fontFamily: FontFamily.latinExtraBold,
     letterSpacing: 0.4,
   },
   title: {
     fontSize: 24,
     lineHeight: 32,
-    fontWeight: "600" as const,
-    fontFamily: FontFamily.latinSemiBold,
+    fontWeight: "700" as const,
+    fontFamily: FontFamily.latinBold,
     letterSpacing: 0.3,
   },
   subtitle: {
     fontSize: 20,
     lineHeight: 28,
-    fontWeight: "600" as const,
-    fontFamily: FontFamily.latinSemiBold,
+    fontWeight: "700" as const,
+    fontFamily: FontFamily.latinBold,
     letterSpacing: 0.3,
   },
   bodyLarge: {
@@ -355,7 +434,7 @@ export const IconSizes = {
 export const Shadows = {
   sm: Platform.select({
     ios: {
-      shadowColor: BrandColors.brandNavyDark,
+      shadowColor: BrandColors.brandGrey,
       shadowOffset: { width: 0, height: 1 },
       shadowOpacity: 0.08,
       shadowRadius: 2,
@@ -364,7 +443,7 @@ export const Shadows = {
       elevation: 2,
     },
     default: {
-      shadowColor: BrandColors.brandNavyDark,
+      shadowColor: BrandColors.brandGrey,
       shadowOffset: { width: 0, height: 1 },
       shadowOpacity: 0.08,
       shadowRadius: 2,
@@ -372,7 +451,7 @@ export const Shadows = {
   }),
   md: Platform.select({
     ios: {
-      shadowColor: BrandColors.brandNavyDark,
+      shadowColor: BrandColors.brandGrey,
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.1,
       shadowRadius: 4,
@@ -381,7 +460,7 @@ export const Shadows = {
       elevation: 4,
     },
     default: {
-      shadowColor: BrandColors.brandNavyDark,
+      shadowColor: BrandColors.brandGrey,
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.1,
       shadowRadius: 4,
@@ -389,7 +468,7 @@ export const Shadows = {
   }),
   lg: Platform.select({
     ios: {
-      shadowColor: BrandColors.brandNavyDark,
+      shadowColor: BrandColors.brandGrey,
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.12,
       shadowRadius: 8,
@@ -398,7 +477,7 @@ export const Shadows = {
       elevation: 8,
     },
     default: {
-      shadowColor: BrandColors.brandNavyDark,
+      shadowColor: BrandColors.brandGrey,
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.12,
       shadowRadius: 8,
@@ -411,21 +490,21 @@ export const Shadows = {
 // ============================================
 export const Fonts = Platform.select({
   ios: {
-    sans: "Inter",
+    sans: "FS Albert Pro",
     serif: "ui-serif",
     rounded: "ui-rounded",
     mono: "ui-monospace",
   },
   default: {
-    sans: "Inter",
+    sans: "FS Albert Pro",
     serif: "serif",
-    rounded: "Inter",
+    rounded: "FS Albert Pro",
     mono: "monospace",
   },
   web: {
-    sans: "Inter, 'Noto Sans Arabic', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+    sans: "'FS Albert Pro', Inter, 'Noto Sans Arabic', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
     serif: "Georgia, 'Times New Roman', serif",
-    rounded: "Inter, 'SF Pro Rounded', sans-serif",
+    rounded: "'FS Albert Pro', Inter, 'SF Pro Rounded', sans-serif",
     mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
   },
 });

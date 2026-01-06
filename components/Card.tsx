@@ -70,7 +70,7 @@ export function Card({
         };
       case "soft":
         return {
-          backgroundColor: theme.softTeal,
+          backgroundColor: theme.softOrange,
           borderWidth: 0,
         };
       default:

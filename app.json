@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "Dallah Digital VMS",
+    "name": "Dallah Albaraka VMS",
     "slug": "dallah-vms",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "dallahvms",
@@ -37,12 +37,12 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-logo.png",
+          "image": "./assets/images/logo.png",
           "imageWidth": 320,
           "resizeMode": "contain",
-          "backgroundColor": "#0e2342",
+          "backgroundColor": "#282829",
           "dark": {
-            "backgroundColor": "#0e2342"
+            "backgroundColor": "#282829"
           }
         }
       ],
@@ -51,7 +51,7 @@
         "expo-notifications",
         {
           "icon": "./assets/images/notification-icon.png",
-          "color": "#0e2342",
+          "color": "#F58423",
           "defaultChannel": "default"
         }
       ]
