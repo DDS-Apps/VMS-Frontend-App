@@ -707,3 +707,120 @@ export const getServerNowForPicker = (
 ): Date => {
   return convertServerDateToPicker(new Date(), serverTimezone);
 };
+
+/**
+ * Check if a visit has expired (end time has passed)
+ * A visit is only expired when the END time has passed, not the start time
+ * 
+ * @param visitDate - Date string in YYYY-MM-DD format
+ * @param visitTime - Start time string (optional)
+ * @param endTime - End time string (optional)
+ * @param duration - Duration string (optional, e.g., "2 hours", "PT2H")
+ * @returns true if the visit has expired
+ */
+export const isVisitExpired = (
+  visitDate: string | undefined,
+  visitTime?: string,
+  endTime?: string,
+  duration?: string
+): boolean => {
+  if (!visitDate) return false;
+  
+  try {
+    const now = new Date();
+    
+    // Helper to parse time string to hours/minutes
+    const parseTime = (timeStr: string): { hours: number; minutes: number } | null => {
+      if (!timeStr) return null;
+      
+      // Handle 12-hour format (e.g., "9:00 AM", "2:30 PM")
+      if (timeStr.includes('AM') || timeStr.includes('PM')) {
+        const isPM = timeStr.toUpperCase().includes('PM');
+        const timePart = timeStr.replace(/\s*(AM|PM)/i, '').trim();
+        const [h, m] = timePart.split(':').map(Number);
+        let hours = h;
+        if (isPM && hours !== 12) hours += 12;
+        if (!isPM && hours === 12) hours = 0;
+        return { hours, minutes: m || 0 };
+      }
+      
+      // Handle 24-hour format (e.g., "14:30")
+      if (timeStr.includes(':')) {
+        const [h, m] = timeStr.split(':').map(Number);
+        return { hours: h, minutes: m || 0 };
+      }
+      
+      return null;
+    };
+    
+    // Helper to parse duration to milliseconds
+    const parseDurationMs = (dur: string): number => {
+      if (!dur) return 60 * 60 * 1000; // Default 1 hour
+      
+      const durStr = String(dur).trim();
+      
+      // Handle "Full Day"
+      if (/full\s*day/i.test(durStr)) {
+        return 24 * 60 * 60 * 1000;
+      }
+      
+      // Parse ISO 8601 duration (e.g., "PT1H30M", "PT24H", "P1D")
+      if (durStr.startsWith("P")) {
+        let totalMs = 0;
+        const daysMatch = durStr.match(/(\d+)D/i);
+        const hoursMatch = durStr.match(/(\d+)H/i);
+        const minutesMatch = durStr.match(/(\d+)M(?!O)/i);
+        if (daysMatch) totalMs += parseInt(daysMatch[1]) * 24 * 60 * 60 * 1000;
+        if (hoursMatch) totalMs += parseInt(hoursMatch[1]) * 60 * 60 * 1000;
+        if (minutesMatch) totalMs += parseInt(minutesMatch[1]) * 60 * 1000;
+        return totalMs > 0 ? totalMs : 60 * 60 * 1000;
+      }
+      
+      // Parse human-readable format (e.g., "2 hours 10 minutes")
+      let totalMs = 0;
+      const daysMatch = durStr.match(/(\d+(?:\.\d+)?)\s*days?/i);
+      const hoursMatch = durStr.match(/(\d+(?:\.\d+)?)\s*(?:hours?|h\b)/i);
+      const minutesMatch = durStr.match(/(\d+)\s*(?:minutes?|mins?|m\b)/i);
+      
+      if (daysMatch) totalMs += parseFloat(daysMatch[1]) * 24 * 60 * 60 * 1000;
+      if (hoursMatch) totalMs += parseFloat(hoursMatch[1]) * 60 * 60 * 1000;
+      if (minutesMatch) totalMs += parseInt(minutesMatch[1]) * 60 * 1000;
+      
+      return totalMs > 0 ? totalMs : 60 * 60 * 1000;
+    };
+    
+    const [year, month, day] = visitDate.split('-').map(Number);
+    if (!year || !month || !day) return false;
+    
+    // Priority 1: Check end time if available
+    if (endTime) {
+      const endTimeParsed = parseTime(endTime);
+      if (endTimeParsed) {
+        const visitEndDateTime = new Date(year, month - 1, day, endTimeParsed.hours, endTimeParsed.minutes);
+        if (!isNaN(visitEndDateTime.getTime())) {
+          return visitEndDateTime < now;
+        }
+      }
+    }
+    
+    // Priority 2: Calculate end time from start time + duration
+    if (visitTime && duration) {
+      const startTimeParsed = parseTime(visitTime);
+      if (startTimeParsed) {
+        const startDateTime = new Date(year, month - 1, day, startTimeParsed.hours, startTimeParsed.minutes);
+        if (!isNaN(startDateTime.getTime())) {
+          const durationMs = parseDurationMs(duration);
+          const calculatedEndTime = new Date(startDateTime.getTime() + durationMs);
+          return calculatedEndTime < now;
+        }
+      }
+    }
+    
+    // Fallback: check if the visit date (end of day) has passed
+    const visitDateEndOfDay = new Date(year, month - 1, day, 23, 59, 59);
+    return visitDateEndOfDay < now;
+    
+  } catch (err) {
+    return false;
+  }
+};

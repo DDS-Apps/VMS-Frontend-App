@@ -31,6 +31,7 @@ interface VisitorRequestCardProps {
   onApprove?: () => void;
   onReject?: () => void;
   isProcessing?: boolean;
+  isExpired?: boolean;
   isSelectionMode?: boolean;
   isSelected?: boolean;
   onToggleSelection?: () => void;
@@ -90,6 +91,7 @@ export function VisitorRequestCard({
   onApprove,
   onReject,
   isProcessing = false,
+  isExpired = false,
   isSelectionMode = false,
   isSelected = false,
   onToggleSelection,
@@ -293,7 +295,7 @@ export function VisitorRequestCard({
         <ApprovalActionGroup
           onApprove={onApprove || (() => {})}
           onReject={onReject || (() => {})}
-          disabled={isProcessing}
+          disabled={isProcessing || isExpired}
           size="medium"
         />
       </>
