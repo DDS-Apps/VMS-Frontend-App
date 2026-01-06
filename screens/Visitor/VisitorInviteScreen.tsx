@@ -15,20 +15,21 @@ import { DDIcon } from "@/components/DDIcon";
 import { usePublicInviteQuery, useAcceptInviteMutation, useRejectInviteMutation } from "@/hooks/queries";
 import type { PublicInviteDto, VisitorParkingOption } from "@/types/api.types";
 
-// Dallah Albaraka Theme Colors for this page
+// Dallah Albaraka Light Theme Colors for this page
 const PageColors = {
-  background: BrandColors.brandGrey,
-  cardBackground: 'rgba(255, 255, 255, 0.08)',
-  cardBorder: 'rgba(255, 255, 255, 0.12)',
-  textPrimary: '#FFFFFF',
-  textSecondary: 'rgba(255, 255, 255, 0.7)',
-  textMuted: 'rgba(255, 255, 255, 0.5)',
+  background: NeutralColors.white,
+  cardBackground: NeutralColors.white,
+  cardBorder: NeutralColors.grey300,
+  textPrimary: BrandColors.brandGrey,
+  textSecondary: NeutralColors.grey900,
+  textMuted: NeutralColors.grey600,
   accent: BrandColors.brandOrange,
   accentLight: BrandColors.softOrange,
   success: BrandColors.brandGreen,
   error: '#E53935',
   warning: '#FFA000',
   buttonPrimary: BrandColors.brandOrange,
+  surfaceElevated: NeutralColors.grey50,
 };
 
 // Reject Modal Component - manages its own local state to prevent cursor issues
@@ -162,7 +163,7 @@ const modalStyles = StyleSheet.create({
     fontFamily: FontFamily.latinRegular,
   },
   input: {
-    backgroundColor: PageColors.cardBackground,
+    backgroundColor: PageColors.surfaceElevated,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
     borderColor: PageColors.cardBorder,
@@ -185,7 +186,7 @@ const modalStyles = StyleSheet.create({
     justifyContent: 'center',
   },
   cancelButton: {
-    backgroundColor: PageColors.cardBackground,
+    backgroundColor: PageColors.surfaceElevated,
     borderWidth: 1,
     borderColor: PageColors.cardBorder,
   },
@@ -405,7 +406,7 @@ const parkingModalStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: Spacing.md,
-    backgroundColor: PageColors.cardBackground,
+    backgroundColor: PageColors.surfaceElevated,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
     borderColor: PageColors.cardBorder,
@@ -413,7 +414,7 @@ const parkingModalStyles = StyleSheet.create({
   },
   optionCardSelected: {
     borderColor: PageColors.accent,
-    backgroundColor: PageColors.accent + '10',
+    backgroundColor: BrandColors.softOrange,
   },
   optionIconContainer: {
     width: 36,
@@ -437,7 +438,7 @@ const parkingModalStyles = StyleSheet.create({
     marginBottom: Spacing.lg,
   },
   carInfoInput: {
-    backgroundColor: PageColors.cardBackground,
+    backgroundColor: PageColors.surfaceElevated,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
     borderColor: PageColors.cardBorder,
@@ -465,9 +466,11 @@ const BrandingHeader = memo(function BrandingHeader() {
   return (
     <View style={helperStyles.brandingHeader}>
       <View style={[helperStyles.logoContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-        <View style={helperStyles.logoIcon}>
-          <DDIcon name="shield" size={24} color={PageColors.accent} />
-        </View>
+        <Image 
+          source={require('@assets/images/dallah-logo.png')} 
+          style={helperStyles.logoImage}
+          resizeMode="contain"
+        />
         <View>
           <ThemedText style={[helperStyles.brandName, { textAlign: isRTL ? 'right' : 'left' }]}>Dallah Albaraka</ThemedText>
           <ThemedText style={[helperStyles.brandTagline, { textAlign: isRTL ? 'right' : 'left' }]}>Visitor Management System</ThemedText>
@@ -540,6 +543,11 @@ const helperStyles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  logoImage: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+  },
   brandName: {
     fontSize: 18,
     fontWeight: '700',
@@ -558,6 +566,11 @@ const helperStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: PageColors.cardBorder,
     padding: Spacing.lg,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
   },
   contentWrapper: {
     width: '100%',
