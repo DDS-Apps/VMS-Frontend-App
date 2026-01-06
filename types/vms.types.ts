@@ -130,6 +130,12 @@ export interface VisitorRequest {
   isWalkIn?: boolean;
   needsResourceReallocation?: boolean;
   notes?: string;
+  isBuffet?: boolean;
+  isMeetingRoom?: boolean;
+  visitorNeedsParking?: boolean;
+  licensePlate?: string;
+  carModel?: string;
+  carColor?: string;
 }
 
 export interface DashboardStats {

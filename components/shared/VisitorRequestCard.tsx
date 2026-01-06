@@ -46,7 +46,13 @@ const LAYOUT = {
 const ServiceIconsRow = ({ request, size = 14, showWalkIn = false }: { request: VisitorRequest; size?: number; showWalkIn?: boolean }) => {
   const { theme } = useTheme();
   const { isRTL } = useLanguage();
-  const hasServices = request.parkingSlot || request.meetingRoom || request.buffet || request.valet || (showWalkIn && request.isWalkIn);
+  
+  const showParking = request.visitorNeedsParking === true || !!request.parkingSlot;
+  const showMeetingRoom = request.isMeetingRoom === true || !!request.meetingRoom;
+  const showBuffet = request.isBuffet === true || !!request.buffet;
+  const showValet = !!request.valet;
+  
+  const hasServices = showParking || showMeetingRoom || showBuffet || showValet || (showWalkIn && request.isWalkIn);
   
   if (!hasServices) {
     return null;
@@ -59,22 +65,22 @@ const ServiceIconsRow = ({ request, size = 14, showWalkIn = false }: { request: 
           <DDIcon name="user-plus" size={size} color={theme.secondary} />
         </View>
       ) : null}
-      {request.parkingSlot ? (
+      {showParking ? (
         <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '20') }]}>
           <DDIcon name="map-pin" size={size} color={theme.info} />
         </View>
       ) : null}
-      {request.meetingRoom ? (
+      {showMeetingRoom ? (
         <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.secondary, '20') }]}>
           <DDIcon name="briefcase" size={size} color={theme.secondary} />
         </View>
       ) : null}
-      {request.buffet ? (
+      {showBuffet ? (
         <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.warning, '20') }]}>
           <DDIcon name="cloche" size={size} color={theme.warning} />
         </View>
       ) : null}
-      {request.valet ? (
+      {showValet ? (
         <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.primary, '20') }]}>
           <DDIcon name="truck" size={size} color={theme.primary} />
         </View>
