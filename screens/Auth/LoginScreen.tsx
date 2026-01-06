@@ -611,7 +611,6 @@ const styles = StyleSheet.create({
   },
   logo: {
     width: 320,
-    height: 100,
     alignSelf: "center",
   },
   form: {
