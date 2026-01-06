@@ -13,6 +13,7 @@ import { authService } from '@/services/api/authService';
 import { parseAuthHashFragment, clearUrlHash } from '@/utils/authTokenParser';
 import { pushNotificationService } from '@/services/push';
 import type { AuthTokenResponse, StoredTokens, AuthUserDto } from '@/types/auth.types';
+import { isValidRole } from '@/constants/roles';
 import type { UserRole } from '@/types/vms.types';
 
 const AUTH_STORAGE_KEY = '@vms_auth';
@@ -128,14 +129,9 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
     };
   }, [handleLogout, persistTokens]);
 
-  const VALID_ROLES: UserRole[] = [
-    'employee', 'manager', 'building_admin', 'buffet_admin', 'buffet_staff',
-    'valet_admin', 'valet_driver', 'security', 'visitor', 'receptionist'
-  ];
-
   const mapRoleToUserRole = (role: string): UserRole => {
-    if (VALID_ROLES.includes(role as UserRole)) {
-      return role as UserRole;
+    if (isValidRole(role)) {
+      return role;
     }
     console.warn(`Unknown role received from backend: ${role}, defaulting to 'employee'`);
     return 'employee';

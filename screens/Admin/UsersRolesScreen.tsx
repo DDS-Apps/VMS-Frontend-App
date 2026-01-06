@@ -23,7 +23,7 @@ import {
   useUsersByRoleQuery,
 } from '@/hooks/queries/useUserQueries';
 import type { UserDto, CreateUserDto, UpdateUserDto, UserRole as ApiUserRole } from '@/types/api.types';
-import { UserRole } from '@/types/vms.types';
+import { UserRole, USER_ROLES } from '@/types/vms.types';
 
 type UserSource = 'microsoft_ad' | 'app_created';
 
@@ -68,17 +68,7 @@ function mapUserDtoToDisplayUser(dto: UserDto): DisplayUser {
   };
 }
 
-const ALL_ROLES: UserRole[] = [
-  'employee',
-  'manager',
-  'receptionist',
-  'security',
-  'building_admin',
-  'buffet_admin',
-  'buffet_staff',
-  'valet_admin',
-  'valet_driver',
-];
+const ALL_ROLES: UserRole[] = USER_ROLES.filter(role => role !== 'visitor');
 
 type SortOption = 'createdAt' | 'name' | 'role' | 'department';
 type ViewMode = 'list' | 'grid' | 'table';
