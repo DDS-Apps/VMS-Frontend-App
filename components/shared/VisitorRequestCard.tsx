@@ -538,7 +538,7 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   detailRow: {
-    alignItems: 'flex-start',
+    alignItems: 'center',
     gap: Spacing.sm,
   },
   detailText: {
