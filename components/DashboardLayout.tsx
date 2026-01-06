@@ -63,12 +63,15 @@ export default function DashboardLayout({
   
   const [profileMenuVisible, setProfileMenuVisible] = useState(false);
   
-  const getInitials = (name: string): string => {
-    const words = name.trim().split(' ');
-    if (words.length >= 2) {
+  const getInitials = (name: string | undefined | null): string => {
+    if (!name) return '??';
+    const trimmedName = name.trim();
+    if (!trimmedName) return '??';
+    const words = trimmedName.split(' ').filter(w => w.length > 0);
+    if (words.length >= 2 && words[0] && words[1]) {
       return (words[0][0] + words[1][0]).toUpperCase();
     }
-    return name.slice(0, 2).toUpperCase();
+    return trimmedName.slice(0, 2).toUpperCase();
   };
   
   const handleLanguageToggle = async () => {

@@ -165,7 +165,11 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
     };
   };
 
-  const mapLoginUserToAuthUser = (loginUser: AuthTokenResponse['user']): AuthUser => {
+  const mapLoginUserToAuthUser = (loginUser: AuthTokenResponse['user']): AuthUser | null => {
+    if (!loginUser) {
+      console.warn('[AuthContext] Received null/undefined user in token response');
+      return null;
+    }
     return {
       id: loginUser.id,
       email: loginUser.email,
@@ -351,12 +355,23 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
   }, [persistTokens]);
 
   const handleTokenResponse = useCallback(async (response: AuthTokenResponse) => {
+    const user = mapLoginUserToAuthUser(response.user);
+    
+    if (!user) {
+      console.error('[AuthContext] Invalid user data received from server');
+      setState({
+        user: null,
+        isLoading: false,
+        isAuthenticated: false,
+        error: 'Invalid user data received from server',
+      });
+      throw new Error('Invalid user data received from server');
+    }
+    
     setAccessToken(response.accessToken);
     setRefreshToken(response.refreshToken);
 
     await persistTokens(response.accessToken, response.refreshToken, response.expiresIn);
-    
-    const user = mapLoginUserToAuthUser(response.user);
     await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
 
     setState({
