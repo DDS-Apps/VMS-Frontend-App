@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, StyleSheet, Pressable, ViewStyle } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -47,9 +47,11 @@ const LAYOUT = {
 const ServiceIconsRow = ({ request, size = 14 }: { request: VisitorRequest; size?: number }) => {
   const { theme } = useTheme();
   const { isRTL } = useLanguage();
-
   const hasServices = request.parkingSlot || request.meetingRoom || request.buffet || request.valet;
-  if (!hasServices) return null;
+  
+  if (!hasServices) {
+    return null;
+  }
 
   return (
     <View style={[styles.servicesRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
@@ -101,6 +103,7 @@ export function VisitorRequestCard({
   const { t } = useTranslation();
   const { formatDateShort, formatTimeFromString, toLocalNumerals } = useFormatters();
   const { isRTL } = useLanguage();
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const statusConfig = getStatusStyle(theme, request.status, t);
   const borderColor = accentColor || statusConfig.borderColor;
@@ -159,6 +162,10 @@ export function VisitorRequestCard({
     }
   };
 
+  const toggleExpanded = () => {
+    setIsExpanded(!isExpanded);
+  };
+
   const renderAvatar = () => (
     <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
       <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
@@ -185,15 +192,12 @@ export function VisitorRequestCard({
       {renderAvatar()}
       <View style={styles.nameSection}>
         <View style={[styles.nameRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-          <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', flex: 1, gap: Spacing.xs }}>
-            <ThemedText style={[styles.visitorName, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
-              {request.visitor.fullName}
-            </ThemedText>
-            {request.isWalkIn ? (
-              <WalkInBadge size="sm" />
-            ) : null}
-          </View>
-          {renderStatusBadge()}
+          <ThemedText style={[styles.visitorName, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+            {request.visitor.fullName}
+          </ThemedText>
+          {request.isWalkIn ? (
+            <WalkInBadge size="sm" />
+          ) : null}
         </View>
         {request.visitor.company ? (
           <ThemedText style={[styles.companyText, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
@@ -203,6 +207,93 @@ export function VisitorRequestCard({
       </View>
     </View>
   );
+
+  const renderDateTime = () => (
+    <View style={[styles.dateTimeRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <View style={[styles.dateTimeItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <DDIcon name="calendar" size={13} color={theme.textSecondary} />
+        <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
+          {formatDate(request.visitDate)}
+        </ThemedText>
+      </View>
+      <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
+      <View style={[styles.dateTimeItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <DDIcon name="clock" size={13} color={theme.textSecondary} />
+        <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
+          {formatTime(request.visitTime)}
+        </ThemedText>
+      </View>
+      {request.duration ? (
+        <>
+          <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
+          <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
+            {formatDuration(request.duration)}
+          </ThemedText>
+        </>
+      ) : null}
+    </View>
+  );
+
+  const renderServicesAndStatus = () => (
+    <View style={[styles.servicesStatusRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <ServiceIconsRow request={request} />
+      {renderStatusBadge()}
+    </View>
+  );
+
+  const renderExpandedDetails = () => {
+    if (!isExpanded) return null;
+
+    const hasDetails = request.purpose || request.visitor.email || request.visitor.phone;
+    if (!hasDetails) return null;
+
+    return (
+      <View style={styles.expandedSection}>
+        {request.purpose ? (
+          <View style={[styles.detailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <DDIcon name="briefcase" size={14} color={theme.textSecondary} />
+            <ThemedText style={[styles.detailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={2}>
+              {request.purpose}
+            </ThemedText>
+          </View>
+        ) : null}
+        {request.visitor.email ? (
+          <View style={[styles.detailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <DDIcon name="mail" size={14} color={theme.textSecondary} />
+            <ThemedText style={[styles.detailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+              {request.visitor.email}
+            </ThemedText>
+          </View>
+        ) : null}
+        {request.visitor.phone ? (
+          <View style={[styles.detailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <DDIcon name="phone" size={14} color={theme.textSecondary} />
+            <ThemedText style={[styles.detailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+              {request.visitor.phone}
+            </ThemedText>
+          </View>
+        ) : null}
+      </View>
+    );
+  };
+
+  const renderDetailsToggle = () => {
+    const hasDetails = request.purpose || request.visitor.email || request.visitor.phone;
+    if (!hasDetails) return null;
+
+    return (
+      <Pressable onPress={toggleExpanded} style={styles.toggleContainer}>
+        <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
+          {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
+        </ThemedText>
+        <DDIcon 
+          name={isExpanded ? 'chevron-up' : 'chevron-down'} 
+          size={16} 
+          color={theme.primary} 
+        />
+      </Pressable>
+    );
+  };
 
   const renderRequestedBy = () => {
     if (!showRequestedBy || !request.employeeName) return null;
@@ -244,48 +335,6 @@ export function VisitorRequestCard({
       </>
     );
   };
-
-  const renderDateTime = () => (
-    <View style={[styles.dateTimeRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-      <View style={[styles.dateTimeItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-        <DDIcon name="calendar" size={13} color={theme.textSecondary} />
-        <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
-          {formatDate(request.visitDate)}
-        </ThemedText>
-      </View>
-      <View style={[styles.dateTimeItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-        <DDIcon name="clock" size={13} color={theme.textSecondary} />
-        <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
-          {formatTime(request.visitTime)}
-        </ThemedText>
-        {request.duration ? (
-          <>
-            <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
-            <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
-              {formatDuration(request.duration)}
-            </ThemedText>
-          </>
-        ) : null}
-      </View>
-    </View>
-  );
-
-  const renderLocation = () => {
-    if (!location) return null;
-    return (
-      <>
-        <Spacer height={Spacing.xs} />
-        <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-          <DDIcon name="map-pin" size={13} variant="muted" />
-          <ThemedText style={[styles.infoValue, { color: theme.textSecondary, flex: 1, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
-            {location}
-          </ThemedText>
-        </View>
-      </>
-    );
-  };
-
-
 
   const renderActions = () => {
     if (!showActions || isSelectionMode) return null;
@@ -350,14 +399,17 @@ export function VisitorRequestCard({
           {renderRequestedBy()}
           {renderHost()}
           
-          <Spacer height={Spacing.md} />
+          <Spacer height={Spacing.sm} />
           
           {renderDateTime()}
-          {renderLocation()}
           
-          <Spacer height={Spacing.md} />
+          <Spacer height={Spacing.sm} />
           
-          <ServiceIconsRow request={request} />
+          {renderServicesAndStatus()}
+
+          {renderExpandedDetails()}
+          
+          {renderDetailsToggle()}
           
           {renderActions()}
         </View>
@@ -397,7 +449,7 @@ const styles = StyleSheet.create({
   avatar: {
     width: LAYOUT.avatarSize,
     height: LAYOUT.avatarSize,
-    borderRadius: LAYOUT.cardRadius - 2,
+    borderRadius: LAYOUT.avatarSize / 2,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -411,25 +463,23 @@ const styles = StyleSheet.create({
   },
   nameRow: {
     alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: Spacing.sm,
+    gap: Spacing.xs,
   },
   visitorName: {
     fontSize: 15,
     fontWeight: '600',
-    flex: 1,
   },
   companyText: {
     fontSize: 12,
-    marginTop: 0,
+    marginTop: 2,
   },
   statusBadge: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    borderRadius: BorderRadius.full,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.sm,
   },
   statusText: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '600',
   },
   infoRow: {
@@ -445,11 +495,12 @@ const styles = StyleSheet.create({
   },
   dateTimeRow: {
     alignItems: 'center',
-    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: Spacing.xs,
   },
   dateTimeItem: {
     alignItems: 'center',
-    gap: 6,
+    gap: 4,
   },
   dateTimeText: {
     fontSize: 13,
@@ -457,8 +508,13 @@ const styles = StyleSheet.create({
   separator: {
     fontSize: 13,
   },
+  servicesStatusRow: {
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   servicesRow: {
     gap: Spacing.sm,
+    alignItems: 'center',
   },
   servicePill: {
     width: 32,
@@ -466,6 +522,29 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.full,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  expandedSection: {
+    marginTop: Spacing.md,
+    gap: Spacing.sm,
+  },
+  detailRow: {
+    alignItems: 'flex-start',
+    gap: Spacing.sm,
+  },
+  detailText: {
+    fontSize: 13,
+    flex: 1,
+  },
+  toggleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: Spacing.md,
+    gap: Spacing.xs,
+  },
+  toggleText: {
+    fontSize: 13,
+    fontWeight: '500',
   },
   checkboxContainer: {
     position: 'absolute',
