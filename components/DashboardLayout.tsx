@@ -242,7 +242,8 @@ export default function DashboardLayout({
               borderBottomColor: theme.border, 
               backgroundColor: theme.background,
               paddingTop: insets.top + Spacing.sm,
-            }
+            },
+            isRTL && { flexDirection: 'row-reverse' },
           ]}>
             {canGoBack && onGoBack ? (
               <Pressable 
@@ -518,9 +519,10 @@ export default function DashboardLayout({
                 { 
                   borderBottomColor: theme.border, 
                   backgroundColor: theme.background,
-                }
+                },
+                isRTL && { flexDirection: 'row-reverse' },
               ]}>
-                <View style={styles.desktopHeaderLeft}>
+                <View style={[styles.desktopHeaderLeft, isRTL && { flexDirection: 'row-reverse' }]}>
                   {canGoBack && onGoBack ? (
                     <Pressable 
                       onPress={onGoBack} 
@@ -548,7 +550,7 @@ export default function DashboardLayout({
                   ) : null}
                 </View>
                 
-                <View style={styles.desktopHeaderRight}>
+                <View style={[styles.desktopHeaderRight, isRTL && { flexDirection: 'row-reverse' }]}>
                   <Pressable 
                     onPress={() => onNavigate('Notifications')} 
                     style={({ pressed }) => [
