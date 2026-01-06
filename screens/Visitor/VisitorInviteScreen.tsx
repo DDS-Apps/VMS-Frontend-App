@@ -467,7 +467,7 @@ const BrandingHeader = memo(function BrandingHeader() {
     <View style={helperStyles.brandingHeader}>
       <View style={[helperStyles.logoContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <Image 
-          source={require('@/assets/images/dallah-logo.png')} 
+          source={require('@/assets/images/logo.png')} 
           style={helperStyles.logoImage}
           resizeMode="contain"
         />
