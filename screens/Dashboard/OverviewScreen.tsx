@@ -4,6 +4,7 @@ import { useNavigation, ParamListBase, useFocusEffect } from "@react-navigation/
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
+import { ROUTES } from "@/constants";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { DDIcon, IconName } from "@/components/DDIcon";
@@ -260,8 +261,8 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
               {upcomingThisWeek.length > 0 && (
                 <Pressable 
                   onPress={() => navigation.navigate(
-                    'VisitorRequests', 
-                    { initialTab: userRole === 'manager' ? 'all' : 'upcoming' }
+                    ROUTES.VISITOR_REQUESTS as never, 
+                    { initialTab: userRole === 'manager' ? 'all' : 'upcoming' } as never
                   )}
                   style={({ pressed }) => [
                     styles.viewAllButton,
@@ -291,7 +292,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                   <VisitorRequestCard
                     key={request.id}
                     request={request}
-                    onPress={() => navigation.navigate('RequestDetails', { requestId: request.id })}
+                    onPress={() => navigation.navigate(ROUTES.REQUEST_DETAILS as never, { requestId: request.id } as never)}
                     width={cardWidth}
                     style={index > 0 ? (isRTL ? { marginEnd: Spacing.md } : { marginStart: Spacing.md }) : undefined}
                   />
@@ -327,7 +328,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
               </View>
               {recentRequests.length > 0 && (
                 <Pressable 
-                  onPress={() => navigation.navigate('VisitorRequests', { initialTab: 'all' })}
+                  onPress={() => navigation.navigate(ROUTES.VISITOR_REQUESTS as never, { initialTab: 'all' } as never)}
                   style={({ pressed }) => [
                     styles.viewAllButton,
                     { opacity: pressed ? 0.7 : 1, flexDirection: isRTL ? 'row-reverse' : 'row' }
@@ -356,7 +357,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                   <VisitorRequestCard
                     key={request.id}
                     request={request}
-                    onPress={() => navigation.navigate('RequestDetails', { requestId: request.id })}
+                    onPress={() => navigation.navigate(ROUTES.REQUEST_DETAILS as never, { requestId: request.id } as never)}
                     width={cardWidth}
                     style={index > 0 ? (isRTL ? { marginEnd: Spacing.md } : { marginStart: Spacing.md }) : undefined}
                   />
@@ -390,7 +391,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
               </ThemedText>
               {pendingApprovals.length > 0 && (
                 <Pressable 
-                  onPress={() => navigation.navigate('Approvals')}
+                  onPress={() => navigation.navigate(ROUTES.APPROVALS as never)}
                   style={({ pressed }) => [
                     styles.viewAllButton,
                     { opacity: pressed ? 0.7 : 1, flexDirection: isRTL ? 'row-reverse' : 'row' }
@@ -419,7 +420,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                   <VisitorRequestCard
                     key={request.id}
                     request={request}
-                    onPress={() => navigation.navigate('ManagerApprovalDetail', { requestId: request.id })}
+                    onPress={() => navigation.navigate(ROUTES.MANAGER_APPROVAL_DETAIL as never, { requestId: request.id } as never)}
                     width={cardWidth}
                     accentColor={theme.primary}
                     showRequestedBy={true}
@@ -487,7 +488,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                   <VisitorRequestCard
                     key={request.id}
                     request={request}
-                    onPress={() => navigation.navigate('RequestDetails', { requestId: request.id })}
+                    onPress={() => navigation.navigate(ROUTES.REQUEST_DETAILS as never, { requestId: request.id } as never)}
                     width={cardWidth}
                     accentColor={theme.warning}
                     showRequestedBy={true}
@@ -523,7 +524,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
               </ThemedText>
               {walkInVisitors.length > 0 && (userRole === 'manager' || userRole === 'employee') && (
                 <Pressable 
-                  onPress={() => navigation.navigate('VisitorRequests', { initialTab: 'walkin' })}
+                  onPress={() => navigation.navigate(ROUTES.VISITOR_REQUESTS as never, { initialTab: 'walkin' } as never)}
                   style={({ pressed }) => [
                     styles.viewAllButton,
                     { opacity: pressed ? 0.7 : 1, flexDirection: isRTL ? 'row-reverse' : 'row' }
@@ -552,7 +553,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                   <VisitorRequestCard
                     key={request.id}
                     request={request}
-                    onPress={() => navigation.navigate('RequestDetails', { requestId: request.id })}
+                    onPress={() => navigation.navigate(ROUTES.REQUEST_DETAILS as never, { requestId: request.id } as never)}
                     width={cardWidth}
                     accentColor={theme.info}
                     showRequestedBy={true}
@@ -669,7 +670,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
               bottom: insets.bottom + 80 + Spacing.lg,
             },
           ]}
-          onPress={() => navigation.navigate('VisitTypeSelection')}
+          onPress={() => navigation.navigate(ROUTES.VISIT_TYPE_SELECTION as never)}
         >
           <DDIcon name="user-plus" size={24} color={theme.buttonText} />
         </Pressable>

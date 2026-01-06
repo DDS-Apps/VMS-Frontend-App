@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { View, StyleSheet, Pressable, GestureResponderEvent, Alert, Switch, FlatList, ActivityIndicator, Modal, Platform } from "react-native";
 import type { AllVisitorsScreenProps } from "@/types/receptionistNavigation.types";
+import { ROUTES } from "@/constants";
 import { SkeletonList, WalkInBadge } from "@/components/shared";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SearchInput } from "@/components/SearchInput";
@@ -155,7 +156,7 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
       {
         onSuccess: () => {
           const currentTime = formatTime(new Date());
-          navigation.navigate('CheckInOutConfirmation', {
+          navigation.navigate(ROUTES.CHECK_IN_OUT_CONFIRMATION as never, {
             action: 'check_in',
             visitorName,
             time: currentTime
@@ -176,7 +177,7 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
       {
         onSuccess: () => {
           const currentTime = formatTime(new Date());
-          navigation.navigate('CheckInOutConfirmation', {
+          navigation.navigate(ROUTES.CHECK_IN_OUT_CONFIRMATION as never, {
             action: 'check_out',
             visitorName,
             time: currentTime
@@ -210,7 +211,7 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
   }, [t, theme]);
 
   const handleVisitorPress = useCallback((visitor: VisitListItemDto) => {
-    navigation.navigate('VisitorDetail', { visitId: visitor.id });
+    navigation.navigate(ROUTES.VISITOR_DETAIL as never, { visitId: visitor.id } as never);
   }, [navigation]);
 
   const handleEndReached = useCallback(() => {

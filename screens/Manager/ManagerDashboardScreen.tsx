@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { View, StyleSheet, Pressable, TextInput, ScrollView, Modal, FlatList, Alert } from "react-native";
 import { useFocusEffect } from '@react-navigation/native';
+import { ROUTES } from "@/constants";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import { DDIcon } from "@/components/DDIcon";
@@ -710,7 +711,7 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
   };
 
   const handleViewDetails = (requestId: string) => {
-    navigation.navigate('ManagerApprovalDetail', { requestId });
+    navigation.navigate(ROUTES.MANAGER_APPROVAL_DETAIL as never, { requestId } as never);
   };
 
   const renderStickyHeader = () => (

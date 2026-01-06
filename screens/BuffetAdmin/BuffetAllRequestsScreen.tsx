@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { View, StyleSheet, Pressable, ScrollView, Modal, GestureResponderEvent, ActivityIndicator, Platform } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { ROUTES } from "@/constants";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
@@ -722,7 +723,7 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
   }, [staffData]);
 
   const handleViewDetails = (request: BuffetRequest) => {
-    navigation.navigate('BuffetRequestDetails', { request: request as any });
+    navigation.navigate(ROUTES.BUFFET_REQUEST_DETAILS as never, { request: request as any } as never);
   };
 
   const handleOpenAssignModal = (request: BuffetRequest, event?: GestureResponderEvent) => {

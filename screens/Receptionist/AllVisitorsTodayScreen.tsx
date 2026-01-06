@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { View, StyleSheet, Pressable, GestureResponderEvent, Alert, ScrollView } from "react-native";
 import type { AllVisitorsTodayScreenProps } from "@/types/receptionistNavigation.types";
+import { ROUTES } from "@/constants";
 import { SkeletonList } from "@/components/shared/Skeleton";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScreenScrollView } from "@/components/ScreenScrollView";
@@ -106,7 +107,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
       {
         onSuccess: () => {
           const currentTime = formatTime(new Date());
-          navigation.navigate('CheckInOutConfirmation', {
+          navigation.navigate(ROUTES.CHECK_IN_OUT_CONFIRMATION as never, {
             action: 'check_in',
             visitorName,
             time: currentTime
@@ -127,7 +128,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
       {
         onSuccess: () => {
           const currentTime = formatTime(new Date());
-          navigation.navigate('CheckInOutConfirmation', {
+          navigation.navigate(ROUTES.CHECK_IN_OUT_CONFIRMATION as never, {
             action: 'check_out',
             visitorName,
             time: currentTime
@@ -169,7 +170,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
       scheduledFor: today,
       createdAt: today,
     };
-    navigation.navigate('VisitorDetail', { visitor: legacyVisitor });
+    navigation.navigate(ROUTES.VISITOR_DETAIL as never, { visitor: legacyVisitor } as never);
   };
 
   const renderVisitorCard = (item: TodayVisitorDto) => {

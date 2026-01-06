@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { View, StyleSheet, Pressable, Modal, TextInput, Alert, GestureResponderEvent, ActivityIndicator } from "react-native";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
+import { ROUTES } from "@/constants";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { LoadingButton } from "@/components/shared/LoadingButton";
@@ -307,7 +308,7 @@ export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLo
             bottom: insets.bottom + 80,
           }
         ]}
-        onPress={() => navigation.navigate('BuffetCreateLocation')}
+        onPress={() => navigation.navigate(ROUTES.BUFFET_CREATE_LOCATION as never)}
       >
         <DDIcon name="plus" size={24} color="#FFFFFF" />
       </Pressable>

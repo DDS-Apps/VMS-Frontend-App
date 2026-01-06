@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { View, StyleSheet, Pressable, ScrollView, RefreshControl, ActivityIndicator, Modal, TextInput, Alert, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { ROUTES } from "@/constants";
 import type { NavigationProp } from '@react-navigation/native';
 import { DDIcon, IconName } from '@/components/DDIcon';
 import { ScreenScrollView } from '@/components/ScreenScrollView';
@@ -551,10 +552,10 @@ export default function AllRequestsScreen() {
     }
     switch (request.type) {
       case 'visitor':
-        navigation.navigate('ManagerApprovalDetail', { requestId: request.id });
+        navigation.navigate(ROUTES.MANAGER_APPROVAL_DETAIL as never, { requestId: request.id } as never);
         break;
       case 'buffet':
-        navigation.navigate('BuffetRequestDetails', { request: request.originalData });
+        navigation.navigate(ROUTES.BUFFET_REQUEST_DETAILS as never, { request: request.originalData } as never);
         break;
       case 'valet':
         break;

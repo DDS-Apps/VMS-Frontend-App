@@ -2,6 +2,7 @@ import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { View, StyleSheet, Pressable, Modal, ScrollView, KeyboardAvoidingView, Platform, Switch, SectionList, FlatList, ActivityIndicator } from 'react-native';
 import { ConfirmationModal } from '@/components/shared/ConfirmationModal';
 import { useNavigation } from '@react-navigation/native';
+import { ROUTES } from "@/constants";
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { StyledInput } from '@/components/StyledInput';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -220,7 +221,7 @@ export default function UsersRolesScreen() {
 
   const handleViewUserDetail = (userId: string) => {
     if (bulkMode) return;
-    navigation.navigate('UserDetail', { userId });
+    navigation.navigate(ROUTES.USER_DETAIL as never, { userId } as never);
   };
 
   const handleEditUser = (user: DisplayUser) => {

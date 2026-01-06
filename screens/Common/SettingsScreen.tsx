@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { DDIcon } from "@/components/DDIcon";
+import { ROUTES } from "@/constants";
 import Constants from "expo-constants";
 import { pushNotificationService } from "@/services/push";
 import { InAppNotificationToast } from "@/components/InAppNotificationToast";
@@ -221,7 +222,7 @@ export default function SettingsScreen({
               flexDirection: isRTL ? 'row-reverse' : 'row',
             },
           ]}
-          onPress={() => navigation.navigate('EditProfile')}
+          onPress={() => navigation.navigate(ROUTES.EDIT_PROFILE as never)}
         >
           <DDIcon name="edit-2" size={16} variant="primary" />
           <ThemedText style={[styles.editProfileText, { color: theme.primary }]}>

@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { View, StyleSheet, Pressable, Dimensions, GestureResponderEvent, LayoutAnimation, Platform, UIManager, Alert } from "react-native";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
+import { ROUTES } from "@/constants";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
@@ -144,11 +145,11 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
       {
         onSuccess: () => {
           const currentTime = formatTime(new Date());
-          navigation.navigate('CheckInOutConfirmation', {
+          navigation.navigate(ROUTES.CHECK_IN_OUT_CONFIRMATION as never, {
             action: 'check_in',
             visitorName,
             time: currentTime
-          });
+          } as never);
         },
         onError: (error) => {
           Alert.alert(t('common.error'), error.message || t('errors.checkInFailed'));
@@ -165,11 +166,11 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
       {
         onSuccess: () => {
           const currentTime = formatTime(new Date());
-          navigation.navigate('CheckInOutConfirmation', {
+          navigation.navigate(ROUTES.CHECK_IN_OUT_CONFIRMATION as never, {
             action: 'check_out',
             visitorName,
             time: currentTime
-          });
+          } as never);
         },
         onError: (error) => {
           Alert.alert(t('common.error'), error.message || t('errors.checkOutFailed'));
@@ -205,7 +206,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
       scheduledFor: today,
       createdAt: today,
     };
-    navigation.navigate('VisitorDetail', { visitor: legacyVisitor });
+    navigation.navigate(ROUTES.VISITOR_DETAIL as never, { visitor: legacyVisitor } as never);
   };
 
   const checkedInCount = summary?.checkedIn ?? todaysVisitors.filter(v => v.status === 'checked_in').length;
@@ -357,21 +358,21 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
             label={t('navigation.allVisitors')}
             iconBgColor={applyOpacity(theme.primary, '12')}
             iconColor={theme.primary}
-            onPress={() => navigation.navigate('AllVisitors')}
+            onPress={() => navigation.navigate(ROUTES.ALL_VISITORS as never)}
           />
           <QuickActionButton
             icon="user-plus"
             label={t('navigation.walkInVisitors')}
             iconBgColor={applyOpacity(theme.success, '12')}
             iconColor={theme.success}
-            onPress={() => navigation.navigate('WalkInVisitors')}
+            onPress={() => navigation.navigate(ROUTES.WALK_IN_VISITORS as never)}
           />
           <QuickActionButton
             icon="clock"
             label={t('navigation.todaysVisitors')}
             iconBgColor={applyOpacity(theme.warning, '12')}
             iconColor={theme.warning}
-            onPress={() => navigation.navigate('AllVisitorsToday')}
+            onPress={() => navigation.navigate(ROUTES.ALL_VISITORS_TODAY as never)}
           />
         </View>
 
@@ -491,7 +492,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
           </ThemedText>
           {todaysVisitors.length > 3 ? (
             <Pressable 
-              onPress={() => navigation.navigate('AllVisitorsToday')}
+              onPress={() => navigation.navigate(ROUTES.ALL_VISITORS_TODAY as never)}
               style={({ pressed }) => [
                 styles.viewAllButton,
                 { opacity: pressed ? 0.7 : 1, flexDirection: isRTL ? 'row-reverse' : 'row' }
@@ -532,7 +533,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
             bottom: insets.bottom + 80 + Spacing.lg,
           },
         ]}
-        onPress={() => navigation.navigate('WalkInRegistration')}
+        onPress={() => navigation.navigate(ROUTES.WALK_IN_REGISTRATION as never)}
       >
         <DDIcon name="user-plus" size={24} color="#FFFFFF" />
       </Pressable>

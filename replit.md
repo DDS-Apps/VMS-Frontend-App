@@ -62,6 +62,13 @@ The VMS app adheres to a Clean Architecture pattern, dividing the application in
     -   `screens/Common/` - Shared screens (NotificationsScreen, SettingsScreen, NotificationPreferencesScreen)
     -   `screens/[RoleName]/` - Role-specific screens organized by user role
 
+**Centralized Constants:**
+-   **Route Names:** `constants/routes.ts` - Centralized route name constants (70+ routes) used across all navigation calls. Use `ROUTES.SCREEN_NAME` instead of hardcoded strings.
+-   **Notification Types:** `constants/notificationTypes.ts` - Centralized notification type constants for push notification handling.
+-   **Export Pattern:** All constants exported via `constants/index.ts` for clean imports.
+-   **Navigation Pattern:** Use `navigation.navigate(ROUTES.SCREEN_NAME as never, { params } as never)` - the `as never` cast is a TypeScript workaround for the global constants approach. The app runs correctly at runtime.
+-   **Future Improvement:** Consider stack-scoped constants (e.g., `EMPLOYEE_ROUTES`) typed with `satisfies Record<string, keyof EmployeeStackParamList>` for full type safety.
+
 **API Integration Layer:**
 -   **Architecture:** Follows a structured pattern with `api/` (HTTP client core), `services/api/` (API service layer), `services/state/` (local state management), `utils/` (shared helpers), `components/shared/` (for loading states), `types/`, `hooks/` (React Query hooks), `providers/`, and `contexts/`.
 -   **Services Structure:**

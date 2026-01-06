@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { View, StyleSheet, Pressable, ScrollView, ActivityIndicator } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ROUTES } from "@/constants";
 import { DDIcon } from "@/components/DDIcon";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { SearchInput } from "@/components/SearchInput";
@@ -427,7 +428,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
     return (
       <Pressable 
         key={visitor.id}
-        onPress={() => navigation.navigate('SecurityVisitorDetail', { visitorId: visitor.id })}
+        onPress={() => navigation.navigate(ROUTES.SECURITY_VISITOR_DETAIL as never, { visitorId: visitor.id } as never)}
       >
         <ThemedView 
           style={[

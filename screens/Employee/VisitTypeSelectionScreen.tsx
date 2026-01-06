@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { View, StyleSheet, LayoutChangeEvent, Platform } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DDIcon, type IconName } from "@/components/DDIcon";
+import { ROUTES } from "@/constants";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { SelectableCard } from "@/components/SelectableCard";
@@ -72,7 +73,7 @@ export default function VisitTypeSelectionScreen({ navigation, onTypeSelect }: V
     if (onTypeSelect) {
       onTypeSelect(visitType.title);
     } else {
-      navigation.navigate('VisitorRequestForm', { visitType: visitType.title });
+      navigation.navigate(ROUTES.VISITOR_REQUEST_FORM as never, { visitType: visitType.title } as never);
     }
   };
 
