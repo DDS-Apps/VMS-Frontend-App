@@ -32,7 +32,7 @@ interface LegacyVisitor {
   time: string;
   host: string;
   hostDepartment?: string;
-  status: 'pending' | 'checked_in' | 'completed' | 'rejected';
+  status: 'pending' | 'checked_in' | 'completed' | 'rejected' | 'cancelled';
   isWalkIn: boolean;
   phone: string;
   parking?: string;
@@ -56,8 +56,9 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
   
   const { data: visitDetails, isLoading, isError } = useVisitDetailsQuery(visitId ?? '', !!visitId);
   
-  const mapVisitStatus = (status: string): 'pending' | 'checked_in' | 'completed' | 'rejected' => {
+  const mapVisitStatus = (status: string): 'pending' | 'checked_in' | 'completed' | 'rejected' | 'cancelled' => {
     if (status === 'rejected') return 'rejected';
+    if (status === 'cancelled') return 'cancelled';
     if (status === 'approved' || status === 'pending_approval') return 'pending';
     if (status === 'checked_in') return 'checked_in';
     if (status === 'completed' || status === 'checked_out') return 'completed';
@@ -211,6 +212,8 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
         return { label: t('status.checkedOut'), bg: applyOpacity(theme.textSecondary, '15'), text: theme.textSecondary, border: applyOpacity(theme.textSecondary, '30'), icon: 'log-out' };
       case 'rejected':
         return { label: t('status.rejected'), bg: applyOpacity(theme.error, '15'), text: theme.error, border: applyOpacity(theme.error, '30'), icon: 'x-circle' };
+      case 'cancelled':
+        return { label: t('status.cancelled'), bg: applyOpacity(theme.textSecondary, '15'), text: theme.textSecondary, border: applyOpacity(theme.textSecondary, '30'), icon: 'x-circle' };
       default:
         return { label: t('visitor.expectedVisitors'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: applyOpacity(theme.warning, '30'), icon: 'clock' };
     }
