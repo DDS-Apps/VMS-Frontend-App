@@ -12,6 +12,7 @@ import {
 import { authService } from '@/services/api/authService';
 import { parseAuthHashFragment, clearUrlHash } from '@/utils/authTokenParser';
 import { pushNotificationService } from '@/services/push';
+import { crashlyticsService } from '@/services/crashlytics/crashlyticsService';
 import type { AuthTokenResponse, StoredTokens, AuthUserDto } from '@/types/auth.types';
 import { isValidRole } from '@/constants/roles';
 import type { UserRole } from '@/types/vms.types';
@@ -83,6 +84,12 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
       await pushNotificationService.unregister();
     } catch (pushError) {
       console.warn('[AuthContext] Failed to unregister push notifications:', pushError);
+    }
+
+    try {
+      await crashlyticsService.clearUserAttributes();
+    } catch (crashlyticsError) {
+      console.warn('[AuthContext] Failed to clear crashlytics user attributes:', crashlyticsError);
     }
 
     try {
@@ -248,6 +255,15 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
           console.warn('[AuthContext] Failed to initialize push notifications:', pushError);
         });
 
+        crashlyticsService.setUserAttributes({
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+        }).catch((crashlyticsError) => {
+          console.warn('[AuthContext] Failed to set crashlytics user attributes:', crashlyticsError);
+        });
+
         return true;
       } catch (error) {
         console.error('[AuthContext] Error processing hash tokens:', error);
@@ -293,6 +309,15 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
 
             pushNotificationService.initialize().catch((pushError) => {
               console.warn('[AuthContext] Failed to initialize push notifications:', pushError);
+            });
+
+            crashlyticsService.setUserAttributes({
+              id: user.id,
+              email: user.email,
+              name: user.name,
+              role: user.role,
+            }).catch((crashlyticsError) => {
+              console.warn('[AuthContext] Failed to set crashlytics user attributes:', crashlyticsError);
             });
           } catch (error) {
             await AsyncStorage.multiRemove([AUTH_STORAGE_KEY, TOKEN_STORAGE_KEY]);
@@ -343,6 +368,15 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
 
     pushNotificationService.initialize().catch((error) => {
       console.warn('[AuthContext] Failed to initialize push notifications:', error);
+    });
+
+    crashlyticsService.setUserAttributes({
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+    }).catch((error) => {
+      console.warn('[AuthContext] Failed to set crashlytics user attributes:', error);
     });
 
     return response;
@@ -431,6 +465,15 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
 
       pushNotificationService.initialize().catch((pushError) => {
         console.warn('[AuthContext] Failed to initialize push notifications:', pushError);
+      });
+
+      crashlyticsService.setUserAttributes({
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+      }).catch((crashlyticsError) => {
+        console.warn('[AuthContext] Failed to set crashlytics user attributes:', crashlyticsError);
       });
 
       return user;

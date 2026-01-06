@@ -113,6 +113,34 @@ All configuration is managed via environment variables with `EXPO_PUBLIC_` prefi
 -   **Android Channels:** default, visitors, approvals, tasks, reminders
 -   **Important:** Push notifications require EAS native builds to work on physical devices. Expo Go has limited push notification support.
 
+**Crashlytics (Crash Reporting):**
+-   **Architecture:** Firebase Crashlytics integration for crash monitoring with graceful fallback for development/web.
+-   **Files:**
+    -   `services/crashlytics/crashlyticsService.ts` - Wrapper service with mock fallback for non-native environments
+    -   `firebase.json` - Crashlytics configuration (debug enabled, auto collection, JS error handling)
+-   **Features:**
+    -   Automatic JavaScript exception reporting via ErrorBoundary integration
+    -   User attributes (id, email, name, role) set on login for crash grouping
+    -   Custom logging and non-fatal error recording
+    -   Graceful fallback to console logging in Expo Go/web
+-   **Integration Points:**
+    -   `components/ErrorBoundary.tsx` - Reports JS crashes to Crashlytics
+    -   `contexts/AuthContext.tsx` - Sets/clears user attributes on login/logout
+-   **EAS Build Setup:** Before building with EAS, run these commands:
+    ```bash
+    # Install native dependencies
+    npx expo install @react-native-firebase/app @react-native-firebase/crashlytics expo-dev-client expo-build-properties
+    
+    # Add plugins to app.json (in the "plugins" array):
+    # "@react-native-firebase/app",
+    # "@react-native-firebase/crashlytics",
+    # ["expo-build-properties", { "ios": { "useFrameworks": "static" } }]
+    
+    # Generate native folders
+    npx expo prebuild --clean
+    ```
+-   **Important:** Crashlytics requires EAS native builds. In Expo Go and web, the service falls back to console logging. The plugins are NOT added to app.json by default to avoid breaking Expo Go development - add them only when preparing for EAS builds.
+
 ## External Dependencies
 -   **React Native:** Core framework.
 -   **Expo SDK 54:** Development platform.
@@ -130,6 +158,8 @@ All configuration is managed via environment variables with `EXPO_PUBLIC_` prefi
 -   **@tanstack/react-query:** Data fetching, caching, and state management.
 -   **expo-notifications:** Push notifications for mobile (iOS/Android).
 -   **firebase:** Firebase SDK for web push notifications (FCM).
+-   **@react-native-firebase/app:** React Native Firebase core (EAS builds only).
+-   **@react-native-firebase/crashlytics:** Firebase Crashlytics for crash reporting (EAS builds only).
 
 ## Deployment
 
