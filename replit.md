@@ -70,7 +70,26 @@ The VMS app adheres to a Clean Architecture pattern, dividing the application in
     -   `services/state/` - Local state management files suffixed with `State` (e.g., `valetAdminState.ts`, `buffetAdminState.ts`)
     -   `utils/` - Shared utility functions (e.g., `dateTimeUtils.ts`, `statusUtils.ts`, `requestMappers.ts`)
 -   **Key Features:** Axios HTTP Client with interceptors for JWT token injection and automatic refresh, standardized error handling, TanStack Query for data fetching, caching, mutations, and query invalidation, token management (refresh, AsyncStorage persistence), session management, role mapping, Azure AD SSO, and OTP flows.
--   **Backend URL:** `https://vms-backend-folio3.replit.app` (hardcoded, no environment variables)
+-   **Backend URL:** `https://vms-backend-folio3.replit.app` (configurable via environment variable)
+
+**Environment Variables:**
+All configuration is managed via environment variables with `EXPO_PUBLIC_` prefix for build-time bundling:
+-   **API Configuration:**
+    -   `EXPO_PUBLIC_API_BASE_URL` - Backend API base URL
+    -   `EXPO_PUBLIC_MICROSOFT_AUTH_URL` - Microsoft OAuth endpoint
+-   **Firebase Configuration:**
+    -   `EXPO_PUBLIC_FIREBASE_API_KEY` - Firebase API key
+    -   `EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN` - Firebase auth domain
+    -   `EXPO_PUBLIC_FIREBASE_PROJECT_ID` - Firebase project ID
+    -   `EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET` - Firebase storage bucket
+    -   `EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` - FCM sender ID
+    -   `EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID` - Firebase analytics ID
+    -   `EXPO_PUBLIC_FIREBASE_APP_ID_WEB` - Firebase web app ID
+    -   `EXPO_PUBLIC_FIREBASE_APP_ID_ANDROID` - Firebase Android app ID
+    -   `EXPO_PUBLIC_FIREBASE_APP_ID_IOS` - Firebase iOS app ID
+    -   `EXPO_PUBLIC_FIREBASE_VAPID_KEY` - Web push VAPID key
+-   **Reference:** See `.env.example` for complete documentation
+-   **EAS Builds:** Configure via `eas secret:create` or in `eas.json` env section
 
 **Push Notifications:**
 -   **Architecture:** Unified push notification service supporting both mobile (expo-notifications with native FCM tokens) and web (Firebase SDK with VAPID key).
