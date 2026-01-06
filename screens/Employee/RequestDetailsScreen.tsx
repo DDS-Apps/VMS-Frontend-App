@@ -1250,7 +1250,7 @@ export default function RequestDetailsScreen({
               styles.serviceIcon,
               {
                 backgroundColor: applyOpacity(
-                  request.meetingRoom ? theme.secondary : theme.textSecondary,
+                  (request.meetingRoom || request.isMeetingRoom) ? theme.secondary : theme.textSecondary,
                   "15",
                 ),
               },
@@ -1260,7 +1260,7 @@ export default function RequestDetailsScreen({
               name="briefcase"
               size={18}
               color={
-                request.meetingRoom ? theme.secondary : theme.textSecondary
+                (request.meetingRoom || request.isMeetingRoom) ? theme.secondary : theme.textSecondary
               }
             />
           </View>
@@ -1273,7 +1273,7 @@ export default function RequestDetailsScreen({
             >
               {t("services.meetingRoom")}
             </ThemedText>
-            {(request.meetingRoom || (request as any).meetingRoomPending) && (request.status === REQUEST_STATUS.REJECTED || request.status === REQUEST_STATUS.CANCELLED) ? (
+            {(request.meetingRoom || request.isMeetingRoom || (request as any).meetingRoomPending) && (request.status === REQUEST_STATUS.REJECTED || request.status === REQUEST_STATUS.CANCELLED) ? (
               <ThemedText
                 style={[
                   Typography.caption,
@@ -1301,6 +1301,15 @@ export default function RequestDetailsScreen({
                   {formatDateShort(request.visitDate)} • {formatVisitTimeRange(request.visitTime, request.endTime)}
                 </ThemedText>
               </>
+            ) : request.isMeetingRoom ? (
+              <ThemedText
+                style={[
+                  Typography.caption,
+                  { color: theme.warning, fontSize: 12, marginTop: 2 },
+                ]}
+              >
+                {t("status.pending")}
+              </ThemedText>
             ) : (request as any).meetingRoomPending ? (
               <ThemedText
                 style={[
@@ -1347,7 +1356,7 @@ export default function RequestDetailsScreen({
               styles.serviceIcon,
               {
                 backgroundColor: applyOpacity(
-                  (request.buffet || (request as any).buffetPending) ? theme.secondary : theme.textSecondary,
+                  (request.buffet || request.isBuffet || (request as any).buffetPending) ? theme.secondary : theme.textSecondary,
                   "15",
                 ),
               },
@@ -1356,7 +1365,7 @@ export default function RequestDetailsScreen({
             <DDIcon
               name="cloche"
               size={18}
-              color={(request.buffet || (request as any).buffetPending) ? theme.secondary : theme.textSecondary}
+              color={(request.buffet || request.isBuffet || (request as any).buffetPending) ? theme.secondary : theme.textSecondary}
             />
           </View>
           <View style={{ flex: 1, marginStart: Spacing.md }}>
@@ -1368,7 +1377,7 @@ export default function RequestDetailsScreen({
             >
               {t("buffet.buffetService")}
             </ThemedText>
-            {(request.buffet || (request as any).buffetPending) && (request.status === REQUEST_STATUS.REJECTED || request.status === REQUEST_STATUS.CANCELLED) ? (
+            {(request.buffet || request.isBuffet || (request as any).buffetPending) && (request.status === REQUEST_STATUS.REJECTED || request.status === REQUEST_STATUS.CANCELLED) ? (
               <ThemedText
                 style={[
                   Typography.caption,
@@ -1387,6 +1396,15 @@ export default function RequestDetailsScreen({
                 {request.buffet.location} -{" "}
                 {request.buffet.mealType.charAt(0).toUpperCase() +
                   request.buffet.mealType.slice(1)}
+              </ThemedText>
+            ) : request.isBuffet ? (
+              <ThemedText
+                style={[
+                  Typography.caption,
+                  { color: theme.warning, fontSize: 12, marginTop: 2 },
+                ]}
+              >
+                {t("status.pending")}
               </ThemedText>
             ) : (request as any).buffetPending ? (
               <ThemedText
