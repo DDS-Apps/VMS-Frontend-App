@@ -12,6 +12,7 @@ import {
 import { authService } from '@/services/api/authService';
 import { parseAuthHashFragment, clearUrlHash } from '@/utils/authTokenParser';
 import { pushNotificationService } from '@/services/push';
+import { queryClient } from '@/providers/QueryProvider';
 import type { AuthTokenResponse, StoredTokens, AuthUserDto } from '@/types/auth.types';
 import type { UserRole } from '@/types/vms.types';
 
@@ -248,6 +249,7 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
         clearUrlHash();
         console.log('[AuthContext] SSO login successful');
 
+        pushNotificationService.setQueryClient(queryClient);
         pushNotificationService.initialize().catch((pushError) => {
           console.warn('[AuthContext] Failed to initialize push notifications:', pushError);
         });
@@ -295,6 +297,7 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
             });
             await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
 
+            pushNotificationService.setQueryClient(queryClient);
             pushNotificationService.initialize().catch((pushError) => {
               console.warn('[AuthContext] Failed to initialize push notifications:', pushError);
             });
@@ -345,6 +348,7 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
       error: null,
     });
 
+    pushNotificationService.setQueryClient(queryClient);
     pushNotificationService.initialize().catch((error) => {
       console.warn('[AuthContext] Failed to initialize push notifications:', error);
     });
@@ -433,6 +437,7 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
 
       console.log('[AuthContext] SSO login complete, user:', user.email, 'role:', user.role);
 
+      pushNotificationService.setQueryClient(queryClient);
       pushNotificationService.initialize().catch((pushError) => {
         console.warn('[AuthContext] Failed to initialize push notifications:', pushError);
       });

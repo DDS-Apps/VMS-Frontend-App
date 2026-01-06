@@ -50,14 +50,17 @@ export function useNotificationQuery(
   });
 }
 
+const FIFTEEN_MINUTES = 15 * 60 * 1000;
+const FIVE_MINUTES = 5 * 60 * 1000;
+
 export function useUnreadNotificationCountQuery(
   options?: Omit<UseQueryOptions<UnreadCountResponse, ApiError>, 'queryKey' | 'queryFn'>
 ) {
   return useQuery<UnreadCountResponse, ApiError>({
     queryKey: notificationKeys.unreadCount(),
     queryFn: () => notificationApiService.getUnreadCount(),
-    staleTime: 30 * 1000,
-    refetchInterval: 60 * 1000,
+    staleTime: FIVE_MINUTES,
+    refetchInterval: FIFTEEN_MINUTES,
     ...options,
   });
 }

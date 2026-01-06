@@ -2,6 +2,7 @@ import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import Constants from 'expo-constants';
+import { QueryClient } from '@tanstack/react-query';
 import { deviceApiService } from '@/services/api/deviceApiService';
 import {
   initializeFirebaseWeb,
@@ -10,6 +11,7 @@ import {
   registerServiceWorker,
 } from '@/services/firebase';
 import { handleNotificationTap } from '@/utils/notificationNavigator';
+import { invalidateQueriesForNotification, refreshAllNotificationData } from './notificationQueryMapper';
 import type { DevicePlatform, NotificationPayload } from '@/types';
 
 Notifications.setNotificationHandler({
@@ -31,6 +33,28 @@ class PushNotificationService {
   private notificationListener: Notifications.EventSubscription | null = null;
   private responseListener: Notifications.EventSubscription | null = null;
   private webUnsubscribe: (() => void) | null = null;
+  private queryClient: QueryClient | null = null;
+
+  setQueryClient(client: QueryClient): void {
+    this.queryClient = client;
+    console.log('[Push] QueryClient set for automatic data refresh');
+  }
+
+  private handleNotificationReceived(data: Record<string, unknown>): void {
+    if (!this.queryClient) {
+      console.log('[Push] QueryClient not set, skipping data refresh');
+      return;
+    }
+
+    const notificationType = data?.type as string;
+    if (notificationType) {
+      console.log(`[Push] Refreshing data for notification type: ${notificationType}`);
+      invalidateQueriesForNotification(this.queryClient, notificationType);
+    } else {
+      console.log('[Push] No notification type, refreshing all notification data');
+      refreshAllNotificationData(this.queryClient);
+    }
+  }
 
   static getInstance(): PushNotificationService {
     if (!PushNotificationService.instance) {
@@ -81,13 +105,17 @@ class PushNotificationService {
     this.webUnsubscribe = onWebForegroundMessage((payload: unknown) => {
       console.log('[Push Web] Foreground message:', payload);
       const typedPayload = payload as Record<string, unknown>;
+      const data = typedPayload.data as Record<string, unknown> || {};
+      
+      this.handleNotificationReceived(data);
+      
       if (onNotificationReceived && typedPayload.notification) {
         const mockNotification = {
           request: {
             content: {
               title: (typedPayload.notification as { title?: string })?.title || '',
               body: (typedPayload.notification as { body?: string })?.body || '',
-              data: typedPayload.data as Record<string, unknown> || {},
+              data,
             },
           },
         } as unknown as Notifications.Notification;
@@ -138,11 +166,15 @@ class PushNotificationService {
 
     this.notificationListener = Notifications.addNotificationReceivedListener((notification) => {
       console.log('[Push Mobile] Notification received:', notification);
+      const data = notification.request.content.data as Record<string, unknown>;
+      this.handleNotificationReceived(data);
       onNotificationReceived?.(notification);
     });
 
     this.responseListener = Notifications.addNotificationResponseReceivedListener((response) => {
       console.log('[Push Mobile] Notification tapped:', response);
+      const data = response.notification.request.content.data as Record<string, unknown>;
+      this.handleNotificationReceived(data);
       handleNotificationTap(response);
     });
 
