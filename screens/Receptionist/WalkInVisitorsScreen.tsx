@@ -30,6 +30,19 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
+
+  const toggleCardExpanded = (id: string) => {
+    setExpandedCards(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
 
   const { data: todayResponse, isLoading, isFetching, isError, error } = useTodayVisitorsQuery();
   const checkInMutation = useReceptionCheckInMutation();
@@ -180,6 +193,8 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
     const initials = visitorName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
     const showCheckIn = item.status === 'pending' || item.status === 'expected';
     const showCheckOut = item.status === 'checked_in';
+    const isExpanded = expandedCards.has(item.id);
+    const hasDetails = (item as any).purpose || item.visitor.email || item.visitor.phone;
     
     return (
       <Pressable 
@@ -213,39 +228,87 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
                   {item.visitor.company ?? ''}
                 </ThemedText>
               </View>
-
-              <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg }]}>
-                <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
-                  {statusConfig.label}
-                </ThemedText>
-              </View>
             </View>
 
             <View style={[styles.detailsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <View style={[styles.detailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                <DDIcon name="clock" size={12} variant="muted" />
+                <DDIcon name="clock" size={12} color={theme.textSecondary} />
                 <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
                   {formatTimeFromString(item.visitTime)}
                 </ThemedText>
               </View>
+              <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
               <View style={[styles.detailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                <DDIcon name="user" size={12} variant="muted" />
+                <DDIcon name="user" size={12} color={theme.textSecondary} />
                 <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
                   {t('reception.hostName')}: {item.hostName}
                 </ThemedText>
               </View>
             </View>
 
-            <View style={[styles.cardFooter, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.servicesStatusRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <View style={[styles.servicesRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 {item.parkingSlot ? (
-                  <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '15') }]}>
+                  <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '20') }]}>
                     <DDIcon name="map-pin" size={12} color={theme.info} />
                   </View>
                 ) : null}
-                </View>
+              </View>
 
-              <View style={[styles.actionButtons, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: 1 }]}>
+                <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
+                  {statusConfig.label}
+                </ThemedText>
+              </View>
+            </View>
+
+            {isExpanded && hasDetails ? (
+              <View style={styles.expandedSection}>
+                {(item as any).purpose ? (
+                  <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                    <DDIcon name="briefcase" size={14} color={theme.textSecondary} />
+                    <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={2}>
+                      {(item as any).purpose}
+                    </ThemedText>
+                  </View>
+                ) : null}
+                {item.visitor.email ? (
+                  <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                    <DDIcon name="mail" size={14} color={theme.textSecondary} />
+                    <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+                      {item.visitor.email}
+                    </ThemedText>
+                  </View>
+                ) : null}
+                {item.visitor.phone ? (
+                  <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                    <DDIcon name="phone" size={14} color={theme.textSecondary} />
+                    <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+                      {item.visitor.phone}
+                    </ThemedText>
+                  </View>
+                ) : null}
+              </View>
+            ) : null}
+
+            {hasDetails ? (
+              <Pressable 
+                onPress={(e) => { e.stopPropagation(); toggleCardExpanded(item.id); }} 
+                style={styles.toggleContainer}
+              >
+                <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
+                  {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
+                </ThemedText>
+                <DDIcon 
+                  name={isExpanded ? 'chevron-up' : 'chevron-down'} 
+                  size={16} 
+                  color={theme.primary} 
+                />
+              </Pressable>
+            ) : null}
+
+            <View style={[styles.cardFooter, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={styles.actionButtons}>
                 {showCheckIn ? (
                   <VisitorActionButton 
                     type="check_in" 
@@ -435,20 +498,15 @@ const styles = StyleSheet.create({
     fontSize: 11,
     marginTop: 1,
   },
-  statusBadge: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 3,
-    borderRadius: BorderRadius.full,
-  },
-  statusText: {
-    fontSize: 10,
-    fontWeight: '600',
+  separator: {
+    fontSize: 12,
   },
   detailsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.md,
+    gap: Spacing.xs,
     marginBottom: Spacing.sm,
+    flexWrap: 'wrap',
   },
   detailItem: {
     flexDirection: 'row',
@@ -458,22 +516,62 @@ const styles = StyleSheet.create({
   detailText: {
     fontSize: 12,
   },
-  cardFooter: {
+  servicesStatusRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    minHeight: 28,
+    marginBottom: Spacing.sm,
   },
   servicesRow: {
     flexDirection: 'row',
-    gap: Spacing.xs,
+    gap: Spacing.sm,
+    alignItems: 'center',
   },
   servicePill: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
+    width: 28,
+    height: 28,
+    borderRadius: BorderRadius.full,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  statusBadge: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 5,
+    borderRadius: BorderRadius.sm,
+  },
+  statusText: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  expandedSection: {
+    marginTop: Spacing.sm,
+    gap: Spacing.sm,
+  },
+  expandedDetailRow: {
+    alignItems: 'flex-start',
+    gap: Spacing.sm,
+  },
+  expandedDetailText: {
+    fontSize: 13,
+    flex: 1,
+  },
+  toggleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: Spacing.md,
+    gap: Spacing.xs,
+  },
+  toggleText: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  cardFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    marginTop: Spacing.sm,
+    minHeight: 28,
   },
   actionButtons: {
     flexDirection: 'row',

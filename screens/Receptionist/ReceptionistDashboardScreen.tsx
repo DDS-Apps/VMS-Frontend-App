@@ -85,6 +85,31 @@ function QuickActionButton({ icon, label, iconBgColor, iconColor, onPress }: Qui
   );
 }
 
+const ServiceIconsRow = ({ visitor, size = 14 }: { visitor: TodayVisitorDto; size?: number }) => {
+  const { theme } = useTheme();
+  const { isRTL } = useLanguage();
+  const hasServices = visitor.parkingSlot || visitor.meetingRoom;
+  
+  if (!hasServices) {
+    return <View />;
+  }
+
+  return (
+    <View style={[styles.servicesRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      {visitor.parkingSlot ? (
+        <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '20') }]}>
+          <DDIcon name="map-pin" size={size} color={theme.info} />
+        </View>
+      ) : null}
+      {visitor.meetingRoom ? (
+        <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.secondary, '20') }]}>
+          <DDIcon name="briefcase" size={size} color={theme.secondary} />
+        </View>
+      ) : null}
+    </View>
+  );
+};
+
 export default function ReceptionistDashboardScreen({ navigation }: ReceptionistDashboardScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
@@ -92,6 +117,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
   const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   const [expandedRooms, setExpandedRooms] = useState<Set<string>>(new Set());
+  const [expandedVisitors, setExpandedVisitors] = useState<Set<string>>(new Set());
 
   const { data: todayResponse, isLoading: isLoadingVisitors, isFetching: isFetchingVisitors, isError: isVisitorError, error: visitorError } = useTodayVisitorsQuery();
   const { data: roomsData, isLoading: isLoadingRooms, isFetching: isFetchingRooms, isError: isRoomsError, error: roomsError } = useRoomsTodayQuery();
@@ -132,6 +158,19 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
         newSet.delete(roomId);
       } else {
         newSet.add(roomId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleVisitorExpanded = (visitorId: string) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpandedVisitors(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(visitorId)) {
+        newSet.delete(visitorId);
+      } else {
+        newSet.add(visitorId);
       }
       return newSet;
     });
@@ -179,14 +218,14 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
     );
   };
 
-  const getStatusBorderColor = (status: string) => {
+  const getStatusConfig = (status: string) => {
     switch (status) {
       case 'checked_in':
-        return theme.success;
+        return { label: t('status.checkedIn'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: theme.success };
       case 'completed':
-        return theme.textSecondary;
+        return { label: t('status.checkedOut'), bg: applyOpacity(theme.textSecondary, '15'), text: theme.textSecondary, border: theme.textSecondary };
       default:
-        return theme.primary;
+        return { label: t('visitor.expectedVisitors'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: theme.warning };
     }
   };
 
@@ -214,12 +253,14 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
   const expectedCount = summary?.expected ?? todaysVisitors.length;
 
   const renderVisitorCard = (item: TodayVisitorDto) => {
-    const borderColor = getStatusBorderColor(item.status);
+    const statusConfig = getStatusConfig(item.status);
     const visitorName = item.visitor.fullName;
     const initials = visitorName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
     const showCheckIn = item.status === 'pending' || item.status === 'expected';
     const showCheckOut = item.status === 'checked_in';
     const isMutating = checkInMutation.isPending || checkOutMutation.isPending;
+    const isExpanded = expandedVisitors.has(item.id);
+    const hasDetails = item.visitor.phone;
     
     return (
       <Pressable 
@@ -229,7 +270,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
           styles.visitorCard,
           { 
             backgroundColor: theme.surface,
-            borderStartColor: borderColor,
+            borderStartColor: statusConfig.border,
             opacity: pressed ? 0.9 : 1,
           },
         ]}
@@ -241,15 +282,15 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
             </ThemedText>
           </View>
           <View style={styles.visitorHeaderInfo}>
-            <ThemedText style={[styles.visitorName, { color: theme.text }]} numberOfLines={1}>
-              {visitorName}
-            </ThemedText>
-            <View style={[styles.companyRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <ThemedText style={[styles.visitorCompany, { color: theme.textSecondary, flexShrink: 1 }]} numberOfLines={1}>
-                {item.visitor.company ?? ''}
+            <View style={[styles.nameRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <ThemedText style={[styles.visitorName, { color: theme.text }]} numberOfLines={1}>
+                {visitorName}
               </ThemedText>
               {item.isWalkIn ? <WalkInBadge size="sm" /> : null}
             </View>
+            <ThemedText style={[styles.visitorCompany, { color: theme.textSecondary }]} numberOfLines={1}>
+              {item.visitor.company ?? ''}
+            </ThemedText>
           </View>
         </View>
 
@@ -269,11 +310,48 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.visitorCardFooter, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-          <View style={[styles.locationBadge, { backgroundColor: applyOpacity(theme.info, '12') }]}>
-            <DDIcon name="map-pin" size={14} color={theme.info} />
+        <View style={[styles.servicesStatusRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <ServiceIconsRow visitor={item} />
+          <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: 1 }]}>
+            <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
+              {statusConfig.label}
+            </ThemedText>
           </View>
+        </View>
 
+        {isExpanded && hasDetails ? (
+          <View style={styles.expandedSection}>
+            {item.visitor.phone ? (
+              <View style={[styles.detailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                <DDIcon name="phone" size={14} color={theme.textSecondary} />
+                <ThemedText style={[styles.detailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+                  {item.visitor.phone}
+                </ThemedText>
+              </View>
+            ) : null}
+          </View>
+        ) : null}
+
+        {hasDetails ? (
+          <Pressable 
+            onPress={(e) => { e.stopPropagation(); toggleVisitorExpanded(item.id); }} 
+            style={styles.toggleContainer}
+          >
+            <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
+              {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
+            </ThemedText>
+            <DDIcon 
+              name={isExpanded ? 'chevron-up' : 'chevron-down'} 
+              size={16} 
+              color={theme.primary} 
+            />
+          </Pressable>
+        ) : null}
+
+        <Spacer height={Spacing.md} />
+
+        <View style={[styles.visitorCardFooter, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View />
           {showCheckIn ? (
             <VisitorActionButton 
               type="check_in" 
@@ -593,6 +671,7 @@ const styles = StyleSheet.create({
   viewAllButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 4,
   },
   viewAllText: {
     fontSize: 14,
@@ -600,25 +679,19 @@ const styles = StyleSheet.create({
   },
   quickActionsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     gap: Spacing.sm,
   },
   quickActionCard: {
     flex: 1,
-    paddingVertical: Spacing.lg,
-    paddingHorizontal: Spacing.md,
-    borderRadius: 12,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 1,
+    paddingVertical: Spacing.lg,
+    paddingHorizontal: Spacing.sm,
+    borderRadius: 12,
   },
   quickActionIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -627,132 +700,24 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     textAlign: 'center',
   },
-  visitorsList: {
-    gap: Spacing.md,
-  },
-  visitorCard: {
-    borderRadius: 12,
-    borderStartWidth: 4,
-    padding: Spacing.lg,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  visitorCardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: BorderRadius.md - 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  visitorHeaderInfo: {
-    marginStart: Spacing.md,
-    flex: 1,
-  },
-  visitorName: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  visitorCompany: {
-    fontSize: 13,
-  },
-  companyRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 2,
+  meetingsContainer: {
     gap: Spacing.sm,
   },
-  visitorMetaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  visitorMetaText: {
-    fontSize: 13,
-    marginStart: 4,
-  },
-  metaDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#D1D5DB',
-    marginHorizontal: Spacing.sm,
-  },
-  visitorCardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  locationBadge: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  statusButton: {
-    width: 90,
-    height: 32,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  statusButtonText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  emptyState: {
-    padding: Spacing.xl,
-    borderRadius: BorderRadius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  fab: {
-    position: 'absolute',
-    end: Spacing.lg,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  meetingsContainer: {
-    gap: Spacing.md,
-  },
   roomCard: {
-    borderRadius: BorderRadius.md,
+    borderRadius: 12,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 1,
   },
   roomHeader: {
+    padding: Spacing.md,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    padding: Spacing.lg,
+    justifyContent: 'space-between',
   },
   roomHeaderLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
+    gap: Spacing.sm,
   },
   roomIconContainer: {
     width: 40,
@@ -762,11 +727,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   roomInfo: {
-    marginStart: Spacing.md,
     flex: 1,
   },
   roomName: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
   },
   roomFloor: {
@@ -786,13 +750,15 @@ const styles = StyleSheet.create({
   meetingCountText: {
     fontSize: 11,
     fontWeight: '600',
+    textTransform: 'capitalize',
   },
   meetingsList: {
+    paddingHorizontal: Spacing.md,
+    paddingBottom: Spacing.md,
     borderTopWidth: 1,
-    paddingHorizontal: Spacing.lg,
   },
   meetingItem: {
-    paddingVertical: Spacing.md,
+    paddingVertical: Spacing.sm,
   },
   meetingTimeSlot: {
     flexDirection: 'row',
@@ -802,33 +768,163 @@ const styles = StyleSheet.create({
   },
   meetingTime: {
     fontSize: 12,
-    fontWeight: '500',
   },
   meetingTitle: {
     fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 4,
+    fontWeight: '500',
   },
   meetingMeta: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
+    marginTop: 4,
   },
   meetingHost: {
     fontSize: 12,
-    flex: 1,
   },
-  visitorsBadge: {
+  visitorsList: {
+    gap: Spacing.sm,
+  },
+  visitorCard: {
+    borderRadius: 12,
+    padding: Spacing.md,
+    borderStartWidth: 4,
+  },
+  visitorCardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 3,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: BorderRadius.full,
+  },
+  avatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarText: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  visitorHeaderInfo: {
+    flex: 1,
     marginStart: Spacing.sm,
   },
-  visitorsBadgeText: {
-    fontSize: 10,
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  visitorName: {
+    fontSize: 15,
     fontWeight: '600',
+  },
+  visitorCompany: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  companyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    marginTop: 2,
+  },
+  visitorMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    flexWrap: 'wrap',
+  },
+  visitorMetaText: {
+    fontSize: 12,
+  },
+  metaDot: {
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
+    backgroundColor: '#CBD5E1',
+    marginHorizontal: 4,
+  },
+  servicesStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  servicesRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    alignItems: 'center',
+  },
+  servicePill: {
+    width: 32,
+    height: 32,
+    borderRadius: BorderRadius.full,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  statusBadge: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.sm,
+  },
+  statusText: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  expandedSection: {
+    marginTop: Spacing.md,
+    gap: Spacing.sm,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.sm,
+  },
+  detailText: {
+    fontSize: 13,
+    flex: 1,
+  },
+  toggleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: Spacing.md,
+    gap: Spacing.xs,
+  },
+  toggleText: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  visitorCardFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  locationBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.sm,
+    gap: 4,
+  },
+  emptyState: {
+    padding: Spacing.xl,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fab: {
+    position: 'absolute',
+    right: Spacing.lg,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 6,
   },
 });
