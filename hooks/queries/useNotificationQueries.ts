@@ -117,8 +117,30 @@ export function useDeleteNotificationMutation() {
 export function useUpdateNotificationPreferencesMutation() {
   const queryClient = useQueryClient();
 
-  return useMutation<NotificationPreferences, ApiError, UpdateNotificationPreferencesDto>({
+  return useMutation<
+    NotificationPreferences,
+    ApiError,
+    UpdateNotificationPreferencesDto,
+    { previousPrefs: NotificationPreferences | undefined }
+  >({
     mutationFn: (preferences) => notificationApiService.updatePreferences(preferences),
+    onMutate: async (newPrefs) => {
+      await queryClient.cancelQueries({ queryKey: notificationKeys.preferences() });
+      const previousPrefs = queryClient.getQueryData<NotificationPreferences>(notificationKeys.preferences());
+      if (previousPrefs) {
+        queryClient.setQueryData<NotificationPreferences>(notificationKeys.preferences(), {
+          ...previousPrefs,
+          ...newPrefs,
+        });
+      }
+      return { previousPrefs };
+    },
+    onError: (_err, _newPrefs, context) => {
+      if (context?.previousPrefs) {
+        queryClient.setQueryData(notificationKeys.preferences(), context.previousPrefs);
+      }
+      queryClient.invalidateQueries({ queryKey: notificationKeys.preferences() });
+    },
     onSuccess: (data) => {
       queryClient.setQueryData(notificationKeys.preferences(), data);
     },

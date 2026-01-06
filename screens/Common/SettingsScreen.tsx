@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { View, StyleSheet, Pressable, Switch, ActivityIndicator, Platform, ScrollView } from "react-native";
+import React, { useState } from "react";
+import { View, StyleSheet, Pressable, Switch, ActivityIndicator, Platform } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -19,15 +19,9 @@ import { UserRole } from "@/types/vms.types";
 import { applyOpacity } from "@/utils/statusStyles";
 import { SupportedLocale } from "@/constants/i18n";
 import {
-  getUserPreferences,
-  updateUserNotificationPreferences,
-  updateEventPreference,
-  getRelevantEventTypesForRole,
-  getEventTypeLabel,
-  getEventTypeDescription,
-  EmailSummaryFrequency,
-  NotificationEventPreference,
-} from "@/services/state/userPreferencesState";
+  useNotificationPreferencesQuery,
+  useUpdateNotificationPreferencesMutation,
+} from "@/hooks/queries/useNotificationQueries";
 
 interface SettingsScreenProps {
   userRole?: UserRole;
@@ -49,18 +43,15 @@ export default function SettingsScreen({
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NativeStackNavigationProp<{ EditProfile: undefined }>>();
   
-  const [preferences, setPreferences] = useState(() => getUserPreferences(userId, userRole));
-  const [showEventPreferences, setShowEventPreferences] = useState(false);
+  const { data: preferences, isLoading: isLoadingPrefs } = useNotificationPreferencesQuery();
+  const updatePreferencesMutation = useUpdateNotificationPreferencesMutation();
+  
   const [isSendingTest, setIsSendingTest] = useState(false);
   const [testResult, setTestResult] = useState<'success' | 'error' | null>(null);
   const [showDebugInfo, setShowDebugInfo] = useState(false);
   const [debugInfo, setDebugInfo] = useState<string>('');
   const [showInAppToast, setShowInAppToast] = useState(false);
   const [toastMessage, setToastMessage] = useState({ title: '', body: '' });
-
-  useEffect(() => {
-    setPreferences(getUserPreferences(userId, userRole));
-  }, [userId, userRole]);
 
   const scrollContentStyle = {
     paddingHorizontal: Spacing.xl,
@@ -91,23 +82,18 @@ export default function SettingsScreen({
   };
 
   const handlePushToggle = (enabled: boolean) => {
-    const updated = updateUserNotificationPreferences(userId, userRole, { pushEnabled: enabled });
-    setPreferences(updated);
-  };
-
-  const handleEmailToggle = (enabled: boolean) => {
-    const updated = updateUserNotificationPreferences(userId, userRole, { emailEnabled: enabled });
-    setPreferences(updated);
-  };
-
-  const handleEmailFrequencyChange = (frequency: EmailSummaryFrequency) => {
-    const updated = updateUserNotificationPreferences(userId, userRole, { emailSummaryFrequency: frequency });
-    setPreferences(updated);
-  };
-
-  const handleEventPreferenceToggle = (eventKey: keyof NotificationEventPreference, enabled: boolean) => {
-    const updated = updateEventPreference(userId, userRole, eventKey, enabled);
-    setPreferences(updated);
+    updatePreferencesMutation.mutate(
+      { pushEnabled: enabled },
+      {
+        onError: () => {
+          setToastMessage({
+            title: t('common.error'),
+            body: t('settings.preferencesError'),
+          });
+          setShowInAppToast(true);
+        },
+      }
+    );
   };
 
   const handleTestNotification = async () => {
@@ -159,8 +145,7 @@ export default function SettingsScreen({
     setShowDebugInfo(true);
   };
 
-  const relevantEventTypes = getRelevantEventTypesForRole(userRole);
-  const notificationsEnabled = preferences.notifications.pushEnabled || preferences.notifications.emailEnabled;
+  const pushEnabled = preferences?.pushEnabled ?? false;
 
   return (
     <>
@@ -313,13 +298,17 @@ export default function SettingsScreen({
               {t('settings.pushNotificationsDesc')}
             </ThemedText>
           </View>
-          <Switch
-            value={preferences.notifications.pushEnabled}
-            onValueChange={handlePushToggle}
-            trackColor={{ false: theme.border, true: applyOpacity(theme.primary, '80') }}
-            thumbColor={preferences.notifications.pushEnabled ? theme.primary : theme.buttonText}
-            ios_backgroundColor={theme.border}
-          />
+          {isLoadingPrefs ? (
+            <ActivityIndicator size="small" color={theme.primary} />
+          ) : (
+            <Switch
+              value={pushEnabled}
+              onValueChange={handlePushToggle}
+              trackColor={{ false: theme.border, true: applyOpacity(theme.primary, '80') }}
+              thumbColor={pushEnabled ? theme.primary : theme.buttonText}
+              ios_backgroundColor={theme.border}
+            />
+          )}
         </View>
 
         <View style={[styles.sectionDivider, { backgroundColor: theme.surfaceSecondary }]} />

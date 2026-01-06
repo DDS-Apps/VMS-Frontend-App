@@ -2,7 +2,6 @@ export * from './buffetAdminState';
 export * from './buildingAdminState';
 export * from './notificationState';
 export * from './receptionistVisitorState';
-export * from './userPreferencesState';
 export * from './valetAdminState';
 export {
   getVisitorRequests,
