@@ -57,30 +57,38 @@ const StatusAccent = ({ color }: { color: string }) => (
 );
 
 // Shared: Service Icons Component
-const ServiceIcons = ({ request, theme, size = 16 }: { request: VisitorRequest; theme: Theme; size?: number }) => (
-  <View style={styles.servicesRow}>
-    {request.parkingSlot && (
-      <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '20'), width: size * 2, height: size * 2, borderRadius: size }]}>
-        <DDIcon name="map-pin" size={size} color={theme.info} />
-      </View>
-    )}
-    {request.meetingRoom && (
-      <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.secondary, '20'), width: size * 2, height: size * 2, borderRadius: size }]}>
-        <DDIcon name="briefcase" size={size} color={theme.secondary} />
-      </View>
-    )}
-    {request.buffet && (
-      <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.warning, '20'), width: size * 2, height: size * 2, borderRadius: size }]}>
-        <DDIcon name="cloche" size={size} variant="warning" />
-      </View>
-    )}
-    {request.valet && (
-      <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.primary, '20'), width: size * 2, height: size * 2, borderRadius: size }]}>
-        <DDIcon name="truck" size={size} variant="primary" />
-      </View>
-    )}
-  </View>
-);
+const ServiceIcons = ({ request, theme, size = 16 }: { request: VisitorRequest; theme: Theme; size?: number }) => {
+  const hasServices = request.parkingSlot || request.meetingRoom || request.buffet || request.valet;
+  
+  if (!hasServices) {
+    return <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>-</ThemedText>;
+  }
+  
+  return (
+    <View style={styles.servicesRow}>
+      {request.parkingSlot ? (
+        <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '20'), width: size * 2, height: size * 2, borderRadius: size }]}>
+          <DDIcon name="map-pin" size={size} color={theme.info} />
+        </View>
+      ) : null}
+      {request.meetingRoom ? (
+        <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.secondary, '20'), width: size * 2, height: size * 2, borderRadius: size }]}>
+          <DDIcon name="briefcase" size={size} color={theme.secondary} />
+        </View>
+      ) : null}
+      {request.buffet ? (
+        <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.warning, '20'), width: size * 2, height: size * 2, borderRadius: size }]}>
+          <DDIcon name="cloche" size={size} variant="warning" />
+        </View>
+      ) : null}
+      {request.valet ? (
+        <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.primary, '20'), width: size * 2, height: size * 2, borderRadius: size }]}>
+          <DDIcon name="truck" size={size} variant="primary" />
+        </View>
+      ) : null}
+    </View>
+  );
+};
 
 // Shared: Status Badge Component - matches shared VisitorRequestCard styling
 const StatusBadge = ({ statusConfig, compact = false }: { statusConfig: StatusConfig; compact?: boolean }) => (
@@ -891,9 +899,9 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   dateTimeRowSplit: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: 4,
   },
   dateTimeLeft: {
     alignItems: 'center',

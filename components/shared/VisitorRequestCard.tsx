@@ -421,7 +421,7 @@ const styles = StyleSheet.create({
   },
   companyText: {
     fontSize: 12,
-    marginTop: 2,
+    marginTop: 0,
   },
   statusBadge: {
     paddingHorizontal: Spacing.sm,
