@@ -68,6 +68,7 @@ export const en: TranslationKeys = {
     active: 'Active',
     inactive: 'Inactive',
     add: 'Add',
+    create: 'Create',
     walkIn: 'Walk-In',
     searchPlaceholder: 'Search by name or email...',
     page: 'Page',

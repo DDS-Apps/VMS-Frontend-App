@@ -68,6 +68,7 @@ export interface TranslationKeys {
     active: string;
     inactive: string;
     add: string;
+    create: string;
     walkIn: string;
     searchPlaceholder: string;
     page: string;

@@ -68,6 +68,7 @@ export const ar: TranslationKeys = {
     active: 'نشط',
     inactive: 'غير نشط',
     add: 'إضافة',
+    create: 'إنشاء',
     walkIn: 'حضور مباشر',
     searchPlaceholder: 'البحث بالاسم أو البريد الإلكتروني...',
     page: 'صفحة',
