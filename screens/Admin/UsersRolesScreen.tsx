@@ -180,8 +180,8 @@ export default function UsersRolesScreen() {
   }, [usersResponse?.data]);
 
   const totalPages = useMemo(() => {
-    if (!usersResponse) return 1;
-    return Math.ceil(usersResponse.total / ITEMS_PER_PAGE);
+    if (!usersResponse || !usersResponse.total) return 1;
+    return Math.ceil(usersResponse.total / ITEMS_PER_PAGE) || 1;
   }, [usersResponse]);
 
   const totalUsers = usersResponse?.total ?? 0;
