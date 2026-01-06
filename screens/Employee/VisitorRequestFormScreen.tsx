@@ -70,9 +70,10 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
   );
   const visitType = route?.params?.visitType || t('visitor.generalVisit');
 
+  const FOOTER_HEIGHT = 100;
   const scrollContentStyle = {
     paddingTop: insets.top + Spacing.xl,
-    paddingBottom: insets.bottom + Spacing.xl
+    paddingBottom: FOOTER_HEIGHT + Spacing.xl
   };
   
   const [fullName, setFullName] = useState('');
@@ -530,6 +531,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
   };
 
   return (
+    <>
     <ScreenKeyboardAwareScrollView contentContainerStyle={scrollContentStyle}>
       {visitType && visitType !== t('visitor.generalVisit') && (
         <>
@@ -1073,34 +1075,6 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
         </View>
       </View>
 
-      <Spacer height={Spacing.xl} />
-
-      <View style={styles.buttonRow}>
-        <LoadingButton
-          onPress={() => navigation.goBack()}
-          variant="outline"
-          size="large"
-          style={styles.actionButton}
-        >
-          {t('actions.cancel')}
-        </LoadingButton>
-
-        <Spacer width={Spacing.md} />
-
-        <LoadingButton
-          onPress={handleSubmit}
-          loading={isSubmitting}
-          disabled={isSubmitting}
-          variant="primary"
-          size="large"
-          style={styles.actionButton}
-        >
-          {t('actions.submitRequest')}
-        </LoadingButton>
-      </View>
-
-      <Spacer height={Spacing.xl} />
-
       <CalendarDatePicker
         visible={showDatePicker}
         onClose={() => setShowDatePicker(false)}
@@ -1372,10 +1346,47 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
         </Pressable>
       </Modal>
     </ScreenKeyboardAwareScrollView>
+
+    {/* Sticky Footer for Action Buttons */}
+    <View style={[styles.stickyFooter, { backgroundColor: theme.background, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.lg }]}>
+      <View style={[styles.buttonRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <LoadingButton
+          onPress={() => navigation.goBack()}
+          variant="outline"
+          size="large"
+          style={styles.actionButton}
+        >
+          {t('actions.cancel')}
+        </LoadingButton>
+
+        <View style={{ width: Spacing.md }} />
+
+        <LoadingButton
+          onPress={handleSubmit}
+          loading={isSubmitting}
+          disabled={isSubmitting}
+          variant="primary"
+          size="large"
+          style={styles.actionButton}
+        >
+          {t('actions.submitRequest')}
+        </LoadingButton>
+      </View>
+    </View>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
+  stickyFooter: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.lg,
+    borderTopWidth: 1,
+  },
   container: {
   },
   section: {
