@@ -1,10 +1,8 @@
 import Constants from "expo-constants";
 
-// Backend URL - reads from environment variable with fallback to production URL
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://vms-backend-folio3.replit.app';
-const MICROSOFT_AUTH_BASE_URL = process.env.EXPO_PUBLIC_MICROSOFT_AUTH_URL || 'https://vms-backend-folio3.replit.app';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+const MICROSOFT_AUTH_BASE_URL = process.env.EXPO_PUBLIC_MICROSOFT_AUTH_URL;
 
-// Log the resolved URL for debugging
 console.log('[API Config] Using API Base URL:', API_BASE_URL);
 
 export const apiConfig = {
