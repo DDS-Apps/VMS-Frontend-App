@@ -148,8 +148,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
   },
   logo: {
-    width: 320,
-    height: 120,
+    width: 400,
+    height: 160,
   },
   statusContainer: {
     position: 'absolute',
