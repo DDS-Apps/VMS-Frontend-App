@@ -92,7 +92,8 @@ export function useMarkAllNotificationsAsReadMutation() {
   return useMutation<{ count: number }, ApiError>({
     mutationFn: () => notificationApiService.markAllAsRead(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: notificationKeys.all });
+      queryClient.invalidateQueries({ queryKey: notificationKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCount() });
     },
   });
 }

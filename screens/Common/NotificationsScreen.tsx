@@ -1,8 +1,7 @@
-import React, { useState } from "react";
-import { View, StyleSheet, Pressable, I18nManager } from "react-native";
+import React, { useState, useCallback } from "react";
+import { View, StyleSheet, Pressable, ActivityIndicator } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DDIcon, IconName } from "@/components/DDIcon";
-import { useFocusEffect } from "@react-navigation/native";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -12,9 +11,15 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Notification, UserRole, NotificationType } from "@/types/vms.types";
-import { getNotificationsByRole as getNotificationsFromState, markAllAsRead as markAllNotificationsAsRead, markAsRead } from "@/services/state/notificationState";
+import { UserRole } from "@/types/vms.types";
+import type { NotificationItemDto, NotificationEventType } from "@/types/notification.types";
 import { applyOpacity } from "@/utils/statusStyles";
+import { navigateFromInAppNotification } from "@/utils/notificationNavigator";
+import { 
+  useNotificationsQuery, 
+  useMarkNotificationAsReadMutation, 
+  useMarkAllNotificationsAsReadMutation 
+} from "@/hooks/queries/useNotificationQueries";
 
 interface NotificationsScreenProps {
   userRole?: UserRole;
@@ -27,7 +32,6 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
   const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   const [selectedTab, setSelectedTab] = useState<'all' | 'unread'>('all');
-  const [notifications, setNotifications] = useState<Notification[]>([]);
 
   const scrollContentStyle = {
     paddingHorizontal: Spacing.xl,
@@ -35,64 +39,69 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
     paddingBottom: insets.bottom + Spacing.xl
   };
 
-  useFocusEffect(
-    React.useCallback(() => {
-      setNotifications(getNotificationsFromState(userRole));
-    }, [userRole])
-  );
+  const isReadFilter = selectedTab === 'unread' ? false : undefined;
+  const { data, isLoading, refetch } = useNotificationsQuery({ isRead: isReadFilter, limit: 50 });
+  const markAsReadMutation = useMarkNotificationAsReadMutation();
+  const markAllAsReadMutation = useMarkAllNotificationsAsReadMutation();
 
-  const getRoleNotifications = () => {
-    return notifications.filter(n => {
-      if (!n.targetRoles || n.targetRoles.length === 0) return true;
-      if (!userRole) return true;
-      return n.targetRoles.includes(userRole);
+  const notifications = data?.data ?? [];
+  const totalCount = data?.total ?? 0;
+  const unreadCount = notifications.filter(n => !n.isRead).length;
+
+  const handleMarkAllAsRead = useCallback(() => {
+    markAllAsReadMutation.mutate();
+  }, [markAllAsReadMutation]);
+
+  const handleNotificationPress = useCallback((notification: NotificationItemDto) => {
+    if (!notification.isRead) {
+      markAsReadMutation.mutate(notification.id);
+    }
+    
+    navigateFromInAppNotification({
+      type: notification.type,
+      data: notification.data,
     });
-  };
+  }, [markAsReadMutation]);
 
-  const markAllAsRead = () => {
-    markAllNotificationsAsRead(userRole);
-    setNotifications(getNotificationsFromState(userRole));
-  };
-
-  const handleNotificationPress = (notificationId: string) => {
-    markAsRead(notificationId);
-    setNotifications(getNotificationsFromState(userRole));
-  };
-
-  const roleNotifications = getRoleNotifications();
-  const filteredNotifications = selectedTab === 'all' 
-    ? roleNotifications 
-    : roleNotifications.filter((n: Notification) => !n.read);
-
-  const getNotificationIcon = (type: NotificationType) => {
+  const getNotificationIcon = (type: NotificationEventType | string) => {
     switch (type) {
-      case 'request_submitted': return { icon: 'send', color: theme.info };
+      case 'request_created': return { icon: 'send', color: theme.info };
       case 'request_approved': return { icon: 'check-circle', color: theme.success };
       case 'request_rejected': return { icon: 'x-circle', color: theme.error };
       case 'request_cancelled': return { icon: 'x-circle', color: theme.error };
-      case 'request_modified': return { icon: 'edit-2', color: theme.info };
+      case 'request_updated': return { icon: 'edit-2', color: theme.info };
       case 'visitor_accepted': return { icon: 'user-check', color: theme.success };
       case 'visitor_rejected': return { icon: 'user-x', color: theme.error };
-      case 'visitor_reminder': return { icon: 'bell', color: theme.warning };
       case 'visitor_arrival': return { icon: 'navigation', color: theme.primary };
+      case 'visitor_no_show': return { icon: 'user-x', color: theme.warning };
       case 'check_in': return { icon: 'log-in', color: theme.primary };
       case 'check_out': return { icon: 'log-out', color: theme.secondary };
-      case 'update': return { icon: 'alert-circle', color: theme.info };
-      case 'assignment': return { icon: 'user-plus', color: theme.secondary };
       case 'auto_cancelled': return { icon: 'x-octagon', color: theme.error };
       case 'pending_approval': return { icon: 'clock', color: theme.warning };
-      case 'walk_in_registered': return { icon: 'user-plus', color: theme.info };
-      case 'walk_in_approved': return { icon: 'check-circle', color: theme.success };
       case 'expected_today': return { icon: 'calendar', color: theme.primary };
+      case 'reminder_tomorrow':
+      case 'reminder_2hours':
+      case 'reminder_30min':
+      case 'reminder_now': return { icon: 'bell', color: theme.warning };
+      case 'room_booked': return { icon: 'home', color: theme.info };
+      case 'room_reminder': return { icon: 'bell', color: theme.warning };
+      case 'room_cancelled': return { icon: 'x-circle', color: theme.error };
+      case 'room_conflict': return { icon: 'alert-triangle', color: theme.error };
+      case 'room_reassigned': return { icon: 'refresh-cw', color: theme.info };
+      case 'parking_assigned': return { icon: 'map-pin', color: theme.success };
+      case 'parking_full': return { icon: 'alert-circle', color: theme.warning };
       case 'buffet_new_request': return { icon: 'disc', color: theme.primary };
+      case 'buffet_request_created': return { icon: 'plus-circle', color: theme.info };
+      case 'buffet_task_assigned': return { icon: 'user-plus', color: theme.secondary };
       case 'buffet_scheduled': return { icon: 'clock', color: theme.info };
-      case 'buffet_completed': return { icon: 'check-circle', color: theme.success };
+      case 'buffet_status_update': return { icon: 'refresh-cw', color: theme.info };
       case 'buffet_staff_update': return { icon: 'users', color: theme.secondary };
+      case 'buffet_completed': return { icon: 'check-circle', color: theme.success };
       case 'valet_new_request': return { icon: 'truck', color: theme.primary };
+      case 'valet_task_assigned': return { icon: 'key', color: theme.warning };
       case 'valet_scheduled': return { icon: 'clock', color: theme.info };
       case 'valet_completed': return { icon: 'check-circle', color: theme.success };
       case 'valet_cancelled': return { icon: 'x-circle', color: theme.error };
-      case 'valet_task_assigned': return { icon: 'key', color: theme.warning };
       case 'security_access_update': return { icon: 'shield', color: theme.secondary };
       case 'security_gate_pass': return { icon: 'key', color: theme.primary };
       default: return { icon: 'bell', color: theme.textSecondary };
@@ -112,38 +121,45 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
     return t('time.daysAgo', { count: toLocalNumerals(String(diffDays)) });
   };
 
-  const getLocalizedTitle = (notification: Notification): string => {
-    const typeToTitleKey: Record<NotificationType, string> = {
-      'request_submitted': 'notifications.types.requestSubmitted',
+  const getLocalizedTitle = (notification: NotificationItemDto): string => {
+    const typeToTitleKey: Record<string, string> = {
+      'request_created': 'notifications.types.requestSubmitted',
       'request_approved': 'notifications.types.requestApproved',
       'request_rejected': 'notifications.types.requestRejected',
       'request_cancelled': 'notifications.types.requestCancelled',
-      'request_modified': 'notifications.types.requestModified',
+      'request_updated': 'notifications.types.requestModified',
       'visitor_accepted': 'notifications.types.visitorAccepted',
       'visitor_rejected': 'notifications.types.visitorDeclined',
-      'visitor_reminder': 'notifications.types.visitorReminder',
       'visitor_arrival': 'notifications.types.visitorArrival',
+      'visitor_no_show': 'notifications.types.visitorNoShow',
       'check_in': 'notifications.types.checkIn',
       'check_out': 'notifications.types.checkOut',
-      'update': 'notifications.types.update',
-      'assignment': 'notifications.types.assignment',
       'auto_cancelled': 'notifications.types.autoCancelled',
       'pending_approval': 'notifications.types.pendingApproval',
-      'walk_in_registered': 'notifications.types.walkInRegistered',
-      'walk_in_approved': 'notifications.types.walkInApproved',
       'expected_today': 'notifications.types.expectedToday',
+      'reminder_tomorrow': 'notifications.types.reminderTomorrow',
+      'reminder_2hours': 'notifications.types.reminder2Hours',
+      'reminder_30min': 'notifications.types.reminder30Min',
+      'reminder_now': 'notifications.types.reminderNow',
+      'room_booked': 'notifications.types.roomBooked',
+      'room_reminder': 'notifications.types.roomReminder',
+      'room_cancelled': 'notifications.types.roomCancelled',
+      'room_conflict': 'notifications.types.roomConflict',
+      'room_reassigned': 'notifications.types.roomReassigned',
+      'parking_assigned': 'notifications.types.parkingAssigned',
+      'parking_full': 'notifications.types.parkingFull',
       'buffet_new_request': 'notifications.types.buffetNewRequest',
-      'buffet_scheduled': 'notifications.types.buffetScheduled',
-      'buffet_completed': 'notifications.types.buffetCompleted',
-      'buffet_staff_update': 'notifications.types.buffetStaffUpdate',
-      'buffet_task_assigned': 'notifications.types.buffetTaskAssigned',
       'buffet_request_created': 'notifications.types.buffetRequestCreated',
+      'buffet_task_assigned': 'notifications.types.buffetTaskAssigned',
+      'buffet_scheduled': 'notifications.types.buffetScheduled',
       'buffet_status_update': 'notifications.types.buffetStatusUpdate',
+      'buffet_staff_update': 'notifications.types.buffetStaffUpdate',
+      'buffet_completed': 'notifications.types.buffetCompleted',
       'valet_new_request': 'notifications.types.valetNewRequest',
+      'valet_task_assigned': 'notifications.types.valetTaskAssigned',
       'valet_scheduled': 'notifications.types.valetScheduled',
       'valet_completed': 'notifications.types.valetCompleted',
       'valet_cancelled': 'notifications.types.valetCancelled',
-      'valet_task_assigned': 'notifications.types.valetTaskAssigned',
       'security_access_update': 'notifications.types.securityAccessUpdate',
       'security_gate_pass': 'notifications.types.securityGatePass',
     };
@@ -158,9 +174,12 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
         <ThemedText style={[Typography.title]}>
           {t('notifications.title')}
         </ThemedText>
-        <Pressable onPress={markAllAsRead}>
+        <Pressable 
+          onPress={handleMarkAllAsRead}
+          disabled={markAllAsReadMutation.isPending}
+        >
           <ThemedText style={[Typography.bodySmall, { color: theme.primary }]}>
-            {t('notifications.markAllRead')}
+            {markAllAsReadMutation.isPending ? t('common.loading') : t('notifications.markAllRead')}
           </ThemedText>
         </Pressable>
       </View>
@@ -181,7 +200,7 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
               { color: selectedTab === 'all' ? theme.buttonText : theme.text },
             ]}
           >
-            {t('common.all')} ({roleNotifications.length})
+            {t('common.all')} ({toLocalNumerals(String(totalCount))})
           </ThemedText>
         </Pressable>
         <Pressable
@@ -197,14 +216,18 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
               { color: selectedTab === 'unread' ? theme.buttonText : theme.text },
             ]}
           >
-            {t('notifications.unread')} ({roleNotifications.filter((n: Notification) => !n.read).length})
+            {t('notifications.unread')} ({toLocalNumerals(String(unreadCount))})
           </ThemedText>
         </Pressable>
       </View>
 
       <Spacer height={Spacing.lg} />
 
-      {filteredNotifications.length === 0 ? (
+      {isLoading ? (
+        <ThemedView style={[styles.emptyState, { backgroundColor: theme.surface }]}>
+          <ActivityIndicator size="large" color={theme.primary} />
+        </ThemedView>
+      ) : notifications.length === 0 ? (
         <ThemedView style={[styles.emptyState, { backgroundColor: theme.surface }]}>
           <DDIcon name="inbox" size={48} variant="muted" />
           <Spacer height={Spacing.md} />
@@ -213,25 +236,25 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
           </ThemedText>
         </ThemedView>
       ) : (
-        filteredNotifications.map((notification) => {
+        notifications.map((notification) => {
           const iconConfig = getNotificationIcon(notification.type);
           return (
             <View key={notification.id}>
               <Pressable
-                onPress={() => handleNotificationPress(notification.id)}
+                onPress={() => handleNotificationPress(notification)}
                 style={({ pressed }) => [
                   styles.notificationCard,
                   { 
-                    backgroundColor: notification.read ? theme.surface : applyOpacity(theme.primary, '10'),
+                    backgroundColor: notification.isRead ? theme.surface : applyOpacity(theme.primary, '10'),
                     opacity: pressed ? 0.95 : 1,
-                    borderColor: notification.read ? theme.border : applyOpacity(theme.primary, '30'),
+                    borderColor: notification.isRead ? theme.border : applyOpacity(theme.primary, '30'),
                     shadowColor: '#000',
                     flexDirection: isRTL ? 'row-reverse' : 'row',
                   },
-                  !notification.read && styles.unreadBorder,
+                  !notification.isRead && styles.unreadBorder,
                 ]}
               >
-                {!notification.read && (
+                {!notification.isRead ? (
                   <View style={[
                     styles.leftBorderLine, 
                     { 
@@ -239,7 +262,7 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
                       ...(isRTL ? { left: 'auto', right: 0 } : { left: 0, right: 'auto' }),
                     }
                   ]} />
-                )}
+                ) : null}
 
                 <View style={[styles.iconContainer, { backgroundColor: applyOpacity(iconConfig.color, '20') }]}>
                   <DDIcon name={iconConfig.icon as IconName} size={20} color={iconConfig.color} />
@@ -253,13 +276,13 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
                   </View>
                   <Spacer height={Spacing.sm} />
                   <ThemedText style={[styles.notificationMessage, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-                    {notification.message}
+                    {notification.body}
                   </ThemedText>
                   <Spacer height={Spacing.sm} />
                   <View style={[styles.timeContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                     <DDIcon name="clock" size={12} variant="muted" />
                     <ThemedText style={[styles.timeText, { color: theme.textSecondary }]}>
-                      {formatTime(notification.timestamp)}
+                      {formatTime(notification.createdAt)}
                     </ThemedText>
                   </View>
                 </View>
