@@ -656,7 +656,7 @@ const styles = StyleSheet.create({
   },
   microsoftButton: {
     height: INPUT_HEIGHT,
-    borderRadius: BorderRadius.sm,
+    borderRadius: BorderRadius.pill,
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
