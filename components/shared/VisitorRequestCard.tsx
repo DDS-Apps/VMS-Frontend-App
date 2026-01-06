@@ -236,7 +236,9 @@ export function VisitorRequestCard({
 
   const renderServicesAndStatus = () => (
     <View style={[styles.servicesStatusRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-      <ServiceIconsRow request={request} />
+      <View style={styles.servicesContainer}>
+        <ServiceIconsRow request={request} />
+      </View>
       {renderStatusBadge()}
     </View>
   );
@@ -511,6 +513,9 @@ const styles = StyleSheet.create({
   servicesStatusRow: {
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  servicesContainer: {
+    flex: 1,
   },
   servicesRow: {
     gap: Spacing.sm,

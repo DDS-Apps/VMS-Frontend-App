@@ -237,13 +237,6 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
                   {formatTimeFromString(item.visitTime)}
                 </ThemedText>
               </View>
-              <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
-              <View style={[styles.detailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                <DDIcon name="user" size={12} color={theme.textSecondary} />
-                <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
-                  {t('reception.hostName')}: {item.hostName}
-                </ThemedText>
-              </View>
             </View>
 
             <View style={[styles.servicesStatusRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
