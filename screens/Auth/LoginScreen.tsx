@@ -33,9 +33,7 @@ const INPUT_ICON_SIZE = 22;
 const INPUT_FONT_SIZE = 17;
 const INPUT_HEIGHT = 56;
 
-export default function LoginScreen({
-  onLoginSuccess,
-}: LoginScreenProps) {
+export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   const { theme, isDark } = useTheme();
   const { t } = useTranslation();
   const { isRTL } = useLanguage();
@@ -197,10 +195,10 @@ export default function LoginScreen({
     setErrors({});
 
     try {
-      console.log('[LoginScreen] Starting Microsoft login...');
+      console.log("[LoginScreen] Starting Microsoft login...");
       const result = await promptAzureAsync();
 
-      console.log('[LoginScreen] Azure auth result:', {
+      console.log("[LoginScreen] Azure auth result:", {
         hasResult: !!result,
         errorType: result?.errorType,
         hasAccessToken: !!result?.accessToken,
@@ -208,13 +206,13 @@ export default function LoginScreen({
       });
 
       if (!result) {
-        console.log('[LoginScreen] No result from Azure auth (web redirect?)');
+        console.log("[LoginScreen] No result from Azure auth (web redirect?)");
         setIsMicrosoftSubmitting(false);
         return;
       }
 
       if (result.errorType) {
-        console.log('[LoginScreen] Azure auth error type:', result.errorType);
+        console.log("[LoginScreen] Azure auth error type:", result.errorType);
         if (result.errorType === "cancelled") {
           setIsMicrosoftSubmitting(false);
           return;
@@ -227,7 +225,7 @@ export default function LoginScreen({
       }
 
       if (!result.accessToken) {
-        console.log('[LoginScreen] No access token in result');
+        console.log("[LoginScreen] No access token in result");
         const errorMessage = t("auth.azureLoginFailed");
         setErrors({ general: errorMessage });
         showError(errorMessage, t("toast.loginErrorTitle"));
@@ -235,19 +233,22 @@ export default function LoginScreen({
         return;
       }
 
-      console.log('[LoginScreen] Calling ssoLogin with token length:', result.accessToken.length);
+      console.log(
+        "[LoginScreen] Calling ssoLogin with token length:",
+        result.accessToken.length,
+      );
       const user = await ssoLogin({
         accessToken: result.accessToken,
         refreshToken: result.refreshToken,
         expiresIn: result.expiresIn,
       });
-      console.log('[LoginScreen] ssoLogin successful, user role:', user.role);
+      console.log("[LoginScreen] ssoLogin successful, user role:", user.role);
       const userRole = (user.role as UserRole) || "employee";
       onLoginSuccess?.(userRole);
     } catch (error) {
-      console.error('[LoginScreen] Microsoft login error:', error);
-      console.error('[LoginScreen] Error details:', {
-        name: error instanceof Error ? error.name : 'Unknown',
+      console.error("[LoginScreen] Microsoft login error:", error);
+      console.error("[LoginScreen] Error details:", {
+        name: error instanceof Error ? error.name : "Unknown",
         message: error instanceof Error ? error.message : String(error),
         code: (error as any)?.code,
         status: (error as any)?.status,
@@ -488,7 +489,7 @@ export default function LoginScreen({
                   {t("auth.rememberMe")}
                 </ThemedText>
               </Pressable>
-{/* Forgot password hidden per user request
+              {/* Forgot password hidden per user request
               <Pressable onPress={onForgotPassword}>
                 <ThemedText
                   style={[Typography.bodySmall, { color: theme.primary }]}

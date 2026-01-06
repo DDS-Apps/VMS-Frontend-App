@@ -71,7 +71,7 @@ export default function SidebarGroup({
         ]}
         onPress={handleToggle}
       >
-        <View style={styles.headerLeft}>
+        <View style={[styles.headerLeft, isRTL && { flexDirection: 'row-reverse' }]}>
           <DDIcon name={icon} size={18} color={theme.sidebarTextMuted} />
           <ThemedText
             style={[

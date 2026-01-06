@@ -10,6 +10,7 @@ import SidebarGroup from "@/components/SidebarGroup";
 import { Colors, Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { UserRole } from "@/types/vms.types";
 
 interface MenuItem {
@@ -202,6 +203,7 @@ export default function Sidebar({
 }: SidebarProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { isRTL } = useLanguage();
   const { groups, standalone } = getMenuGroups(userRole);
   const { width } = Dimensions.get('window');
   const isLargeScreen = width >= 768;
@@ -269,6 +271,7 @@ export default function Sidebar({
         key={item.id}
         style={({ pressed }) => [
           styles.menuItem,
+          isRTL && { flexDirection: 'row-reverse' },
           isActive && [styles.menuItemActive, { backgroundColor: theme.sidebarActive }],
           pressed && { opacity: 0.7 },
         ]}
@@ -301,6 +304,7 @@ export default function Sidebar({
         key={item.id}
         style={({ pressed }) => [
           styles.standaloneItem,
+          isRTL && { flexDirection: 'row-reverse' },
           isActive && [styles.menuItemActive, { backgroundColor: theme.sidebarActive }],
           pressed && { opacity: 0.7 },
         ]}
@@ -344,11 +348,14 @@ export default function Sidebar({
       { 
         backgroundColor: theme.sidebarBg, 
         borderRightColor: theme.border,
+        borderLeftColor: theme.border,
+        borderRightWidth: isRTL ? 0 : 1,
+        borderLeftWidth: isRTL ? 1 : 0,
         paddingTop: insets.top + Spacing.sm,
       },
     ]}>
       <Pressable 
-        style={({ pressed }) => [styles.profileHeader, pressed && { opacity: 0.7 }]}
+        style={({ pressed }) => [styles.profileHeader, isRTL && { flexDirection: 'row-reverse' }, pressed && { opacity: 0.7 }]}
         onPress={() => handleItemPress('Dashboard')}
       >
         {userPhotoUrl ? (
@@ -451,7 +458,6 @@ const styles = StyleSheet.create({
   sidebar: {
     width: '100%',
     height: '100%',
-    borderRightWidth: 1,
     paddingBottom: Spacing.lg,
   },
   profileHeader: {
