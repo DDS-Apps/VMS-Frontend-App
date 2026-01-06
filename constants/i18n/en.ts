@@ -298,6 +298,7 @@ export const en: TranslationKeys = {
     driverLicense: "Driver's License",
     selectEndTime: 'Please select an end time for this visit',
     walkIn: 'Walk-In',
+    visitExpired: 'Visit Expired',
   },
   form: {
     fullName: 'Full Name',

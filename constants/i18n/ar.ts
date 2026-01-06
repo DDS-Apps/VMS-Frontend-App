@@ -298,6 +298,7 @@ export const ar: TranslationKeys = {
     driverLicense: 'رخصة القيادة',
     selectEndTime: 'يرجى تحديد وقت انتهاء لهذه الزيارة',
     walkIn: 'زائر بدون موعد',
+    visitExpired: 'انتهت الزيارة',
   },
   form: {
     fullName: 'الاسم الكامل',

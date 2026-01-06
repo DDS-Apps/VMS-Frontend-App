@@ -298,6 +298,7 @@ export interface TranslationKeys {
     driverLicense: string;
     selectEndTime: string;
     walkIn: string;
+    visitExpired: string;
   };
   form: {
     fullName: string;

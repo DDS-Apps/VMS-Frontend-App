@@ -297,7 +297,7 @@ export function VisitorRequestCard({
           <View style={[styles.expiredBanner, { backgroundColor: applyOpacity(theme.textSecondary, '10'), borderColor: theme.border }]}>
             <DDIcon name="clock" size={14} color={theme.textSecondary} />
             <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: Spacing.xs }]}>
-              {t('visit.visitExpired')}
+              {t('visitor.visitExpired')}
             </ThemedText>
           </View>
         </>
