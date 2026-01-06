@@ -22,6 +22,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { applyOpacity } from "@/utils/statusStyles";
 import type { VisitorExceptionType } from "@/services/state/receptionistVisitorState";
 import { VisitorActionButton } from "@/components/VisitorActionButton";
+import { StatusBadge } from "@/components/shared/StatusBadge";
 import { useReceptionCheckInMutation, useReceptionCheckOutMutation } from "@/hooks/queries/useReceptionQueries";
 import { useVisitDetailsQuery } from "@/hooks/queries/useApprovalQueries";
 
@@ -204,18 +205,18 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
     );
   }
 
-  const getStatusConfig = (status: string): { label: string; bg: string; text: string; border: string; icon: IconName } => {
+  const getStatusConfig = (status: string): { label: string; variant: 'success' | 'warning' | 'error' | 'info' | 'muted' | 'primary'; icon: IconName } => {
     switch (status) {
       case 'checked_in':
-        return { label: t('status.checkedIn'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: applyOpacity(theme.success, '30'), icon: 'check-circle' };
+        return { label: t('status.checkedIn'), variant: 'success', icon: 'check-circle' };
       case 'completed':
-        return { label: t('status.checkedOut'), bg: applyOpacity(theme.textSecondary, '15'), text: theme.textSecondary, border: applyOpacity(theme.textSecondary, '30'), icon: 'log-out' };
+        return { label: t('status.checkedOut'), variant: 'muted', icon: 'log-out' };
       case 'rejected':
-        return { label: t('status.rejected'), bg: applyOpacity(theme.error, '15'), text: theme.error, border: applyOpacity(theme.error, '30'), icon: 'x-circle' };
+        return { label: t('status.rejected'), variant: 'error', icon: 'x-circle' };
       case 'cancelled':
-        return { label: t('status.cancelled'), bg: applyOpacity(theme.textSecondary, '15'), text: theme.textSecondary, border: applyOpacity(theme.textSecondary, '30'), icon: 'x-circle' };
+        return { label: t('status.cancelled'), variant: 'error', icon: 'x-circle' };
       default:
-        return { label: t('visitor.expectedVisitors'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: applyOpacity(theme.warning, '30'), icon: 'clock' };
+        return { label: t('visitor.expectedVisitors'), variant: 'warning', icon: 'clock' };
     }
   };
 
@@ -279,21 +280,11 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
 
           <Spacer height={Spacing.sm} />
 
-          <View
-            style={{
-              alignSelf: 'center',
-              backgroundColor: statusConfig.bg,
-              borderColor: statusConfig.border,
-              borderWidth: StyleSheet.hairlineWidth,
-              paddingHorizontal: Spacing.md,
-              paddingVertical: 6,
-              borderRadius: BorderRadius.full,
-            }}
-          >
-            <ThemedText style={[Typography.caption, { color: statusConfig.text, fontWeight: '600', fontSize: 12 }]}>
-              {statusConfig.label}
-            </ThemedText>
-          </View>
+          <StatusBadge
+            label={statusConfig.label}
+            variant={statusConfig.variant}
+            icon={statusConfig.icon}
+          />
         </View>
 
         <Spacer height={Spacing.xl} />
