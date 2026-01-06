@@ -462,20 +462,13 @@ interface VisitorInviteScreenProps {
 }
 
 const BrandingHeader = memo(function BrandingHeader() {
-  const { isRTL } = useLanguage();
   return (
     <View style={helperStyles.brandingHeader}>
-      <View style={[helperStyles.logoContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-        <Image 
-          source={require('@/assets/images/logo.png')} 
-          style={helperStyles.logoImage}
-          resizeMode="contain"
-        />
-        <View>
-          <ThemedText style={[helperStyles.brandName, { textAlign: isRTL ? 'right' : 'left' }]}>Dallah Albaraka</ThemedText>
-          <ThemedText style={[helperStyles.brandTagline, { textAlign: isRTL ? 'right' : 'left' }]}>Visitor Management System</ThemedText>
-        </View>
-      </View>
+      <Image 
+        source={require('@/assets/images/logo.png')} 
+        style={helperStyles.logoImage}
+        resizeMode="contain"
+      />
     </View>
   );
 });
@@ -544,9 +537,8 @@ const helperStyles = StyleSheet.create({
     alignItems: 'center',
   },
   logoImage: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
+    width: 120,
+    height: 100,
   },
   brandName: {
     fontSize: 18,
@@ -905,7 +897,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
             ]}>
               <DDIcon 
                 name={actionCompleted === 'accepted' ? 'check-circle' : 'x-circle'} 
-                size={64} 
+                size={32} 
                 color={actionCompleted === 'accepted' ? PageColors.success : PageColors.error}
               />
             </View>
@@ -994,7 +986,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
             <BrandingHeader />
             <View style={styles.centerContainer}>
               <View style={[styles.statusIconContainer, { backgroundColor: PageColors.error + '20' }]}>
-                <DDIcon name="clock" size={64} color={PageColors.error} />
+                <DDIcon name="clock" size={32} color={PageColors.error} />
               </View>
               <Spacer height={Spacing.xl} />
               <ThemedText style={styles.statusTitle}>{t('visitorInvite.invitationExpired')}</ThemedText>
@@ -1014,7 +1006,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
           <BrandingHeader />
           <View style={styles.centerContainer}>
             <View style={[styles.statusIconContainer, { backgroundColor: PageColors.warning + '20' }]}>
-              <DDIcon name="alert-circle" size={64} color={PageColors.warning} />
+              <DDIcon name="alert-circle" size={32} color={PageColors.warning} />
             </View>
             <Spacer height={Spacing.xl} />
             <ThemedText style={styles.statusTitle}>{t('visitorInvite.invitationNotFound')}</ThemedText>
@@ -1057,7 +1049,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
           <BrandingHeader />
           <View style={styles.centerContainer}>
             <View style={[styles.statusIconContainer, { backgroundColor: PageColors.error + '20' }]}>
-              <DDIcon name={isCancelled ? 'x-circle' : 'clock'} size={64} color={PageColors.error} />
+              <DDIcon name={isCancelled ? 'x-circle' : 'clock'} size={32} color={PageColors.error} />
             </View>
             <Spacer height={Spacing.xl} />
             <ThemedText style={styles.statusTitle}>
@@ -1120,7 +1112,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
           ]}>
             <DDIcon 
               name={finalStatus === 'accepted' ? 'check-circle' : 'x-circle'} 
-              size={64} 
+              size={32} 
               color={finalStatus === 'accepted' ? PageColors.success : PageColors.error}
             />
           </View>
@@ -1743,9 +1735,9 @@ const styles = StyleSheet.create({
   
   // Status Screens
   statusIconContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
   },
