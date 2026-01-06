@@ -170,11 +170,17 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
       console.warn('[AuthContext] Received null/undefined user in token response');
       return null;
     }
+    
+    if (!loginUser.id || !loginUser.email) {
+      console.warn('[AuthContext] User data missing required fields (id or email):', JSON.stringify(loginUser));
+      return null;
+    }
+    
     return {
       id: loginUser.id,
       email: loginUser.email,
-      name: loginUser.name,
-      role: mapRoleToUserRole(loginUser.role),
+      name: loginUser.name || loginUser.email.split('@')[0],
+      role: mapRoleToUserRole(loginUser.role || 'employee'),
       autoApproval: loginUser.autoApproval,
       department: loginUser.department,
       timezone: loginUser.timezone,
@@ -355,10 +361,14 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
   }, [persistTokens]);
 
   const handleTokenResponse = useCallback(async (response: AuthTokenResponse) => {
-    const user = mapLoginUserToAuthUser(response.user);
+    console.log('[AuthContext] Processing token response, has user:', !!response?.user);
+    
+    // Handle case where user might be at root level of response (API format variation)
+    const userData = response.user || (response as unknown as { id?: string; email?: string });
+    const user = mapLoginUserToAuthUser(userData as AuthTokenResponse['user']);
     
     if (!user) {
-      console.error('[AuthContext] Invalid user data received from server');
+      console.error('[AuthContext] Invalid user data received from server. Response keys:', Object.keys(response || {}));
       setState({
         user: null,
         isLoading: false,
