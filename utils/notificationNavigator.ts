@@ -1,5 +1,7 @@
 import type { NotificationResponse } from 'expo-notifications';
 import { navigate, isReady } from '@/navigation/navigationRef';
+import { ROUTES } from '@/constants/routes';
+import { NOTIFICATION_TYPES } from '@/constants/notificationTypes';
 
 export function handleNotificationTap(response: NotificationResponse) {
   const data = response.notification.request.content.data || {};
@@ -19,70 +21,70 @@ export function handleNotificationTap(response: NotificationResponse) {
   }
 
   switch (type) {
-    case 'new_visitor_request':
-    case 'visitor_request_update':
+    case NOTIFICATION_TYPES.NEW_VISITOR_REQUEST:
+    case NOTIFICATION_TYPES.VISITOR_REQUEST_UPDATE:
       if (data.requestId) {
-        navigate('VisitDetails', { visitId: data.requestId });
+        navigate(ROUTES.VISIT_DETAILS, { visitId: data.requestId });
       } else {
-        navigate('Approvals');
+        navigate(ROUTES.APPROVALS);
       }
       break;
 
-    case 'visitor_check_in':
-    case 'visitor_check_out':
+    case NOTIFICATION_TYPES.VISITOR_CHECK_IN:
+    case NOTIFICATION_TYPES.VISITOR_CHECK_OUT:
       if (data.requestId) {
-        navigate('VisitDetails', { visitId: data.requestId });
+        navigate(ROUTES.VISIT_DETAILS, { visitId: data.requestId });
       } else {
-        navigate('TodaysVisitors');
+        navigate(ROUTES.TODAYS_VISITORS);
       }
       break;
 
-    case 'approval_required':
-      navigate('Approvals');
+    case NOTIFICATION_TYPES.APPROVAL_REQUIRED:
+      navigate(ROUTES.APPROVALS);
       break;
 
-    case 'buffet_task':
-    case 'buffet_order':
+    case NOTIFICATION_TYPES.BUFFET_TASK:
+    case NOTIFICATION_TYPES.BUFFET_ORDER:
       if (data.orderId) {
-        navigate('BuffetOrderDetails', { orderId: data.orderId });
+        navigate(ROUTES.BUFFET_ORDER_DETAILS, { orderId: data.orderId });
       } else {
-        navigate('BuffetTasks');
+        navigate(ROUTES.BUFFET_TASKS);
       }
       break;
 
-    case 'valet_task':
-    case 'valet_assignment':
+    case NOTIFICATION_TYPES.VALET_TASK:
+    case NOTIFICATION_TYPES.VALET_ASSIGNMENT:
       if (data.taskId) {
-        navigate('ValetTaskDetails', { taskId: data.taskId });
+        navigate(ROUTES.VALET_TASK_DETAILS, { taskId: data.taskId });
       } else {
-        navigate('ValetTasks');
+        navigate(ROUTES.VALET_TASKS);
       }
       break;
 
-    case 'security_alert':
-    case 'security_incident':
-      navigate('SecurityDashboard');
+    case NOTIFICATION_TYPES.SECURITY_ALERT:
+    case NOTIFICATION_TYPES.SECURITY_INCIDENT:
+      navigate(ROUTES.SECURITY_DASHBOARD);
       break;
 
-    case 'meeting_room':
-    case 'ammam_update':
+    case NOTIFICATION_TYPES.MEETING_ROOM:
+    case NOTIFICATION_TYPES.AMMAM_UPDATE:
       if (data.roomId) {
-        navigate('RoomDetails', { roomId: data.roomId });
+        navigate(ROUTES.ROOM_DETAILS, { roomId: data.roomId });
       } else {
-        navigate('MeetingRooms');
+        navigate(ROUTES.MEETING_ROOMS);
       }
       break;
 
-    case 'reminder':
+    case NOTIFICATION_TYPES.REMINDER:
       if (data.requestId) {
-        navigate('VisitDetails', { visitId: data.requestId });
+        navigate(ROUTES.VISIT_DETAILS, { visitId: data.requestId });
       } else {
-        navigate('Notifications');
+        navigate(ROUTES.NOTIFICATIONS);
       }
       break;
 
     default:
-      navigate('Notifications');
+      navigate(ROUTES.NOTIFICATIONS);
       break;
   }
 }
