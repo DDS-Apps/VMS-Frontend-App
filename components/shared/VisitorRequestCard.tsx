@@ -4,7 +4,6 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { DDIcon } from "@/components/DDIcon";
 import Spacer from "@/components/Spacer";
-import { WalkInBadge } from "@/components/shared/StatusBadge";
 import { SelectionCheckbox } from "@/components/shared/SelectionCheckbox";
 import { ApprovalActionGroup } from "@/components/shared/ApprovalActionGroup";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
@@ -44,10 +43,10 @@ const LAYOUT = {
   accentWidth: 4,
 };
 
-const ServiceIconsRow = ({ request, size = 14 }: { request: VisitorRequest; size?: number }) => {
+const ServiceIconsRow = ({ request, size = 14, showWalkIn = false }: { request: VisitorRequest; size?: number; showWalkIn?: boolean }) => {
   const { theme } = useTheme();
   const { isRTL } = useLanguage();
-  const hasServices = request.parkingSlot || request.meetingRoom || request.buffet || request.valet;
+  const hasServices = request.parkingSlot || request.meetingRoom || request.buffet || request.valet || (showWalkIn && request.isWalkIn);
   
   if (!hasServices) {
     return null;
@@ -55,6 +54,11 @@ const ServiceIconsRow = ({ request, size = 14 }: { request: VisitorRequest; size
 
   return (
     <View style={[styles.servicesRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      {showWalkIn && request.isWalkIn ? (
+        <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.secondary, '15') }]}>
+          <DDIcon name="user-plus" size={size} color={theme.secondary} />
+        </View>
+      ) : null}
       {request.parkingSlot ? (
         <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '20') }]}>
           <DDIcon name="map-pin" size={size} color={theme.info} />
@@ -191,14 +195,9 @@ export function VisitorRequestCard({
     <View style={[styles.cardHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
       {renderAvatar()}
       <View style={styles.nameSection}>
-        <View style={[styles.nameRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-          <ThemedText style={[styles.visitorName, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
-            {request.visitor.fullName}
-          </ThemedText>
-          {request.isWalkIn ? (
-            <WalkInBadge size="sm" />
-          ) : null}
-        </View>
+        <ThemedText style={[styles.visitorName, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+          {request.visitor.fullName}
+        </ThemedText>
         {request.visitor.company ? (
           <ThemedText style={[styles.companyText, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
             {request.visitor.company}
@@ -237,7 +236,7 @@ export function VisitorRequestCard({
   const renderServicesAndStatus = () => (
     <View style={[styles.servicesStatusRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
       <View style={styles.servicesContainer}>
-        <ServiceIconsRow request={request} />
+        <ServiceIconsRow request={request} showWalkIn={true} />
       </View>
       {renderStatusBadge()}
     </View>
@@ -321,7 +320,7 @@ export function VisitorRequestCard({
   };
 
   const renderHost = () => {
-    if (!hostName) return null;
+    if (!hostName || hostName.toLowerCase() === 'unknown host' || hostName.trim() === '') return null;
     return (
       <>
         <Spacer height={Spacing.xs} />
@@ -476,12 +475,12 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   statusBadge: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: BorderRadius.sm,
   },
   statusText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '600',
   },
   infoRow: {

@@ -214,16 +214,9 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
               </View>
               
               <View style={styles.nameSection}>
-                <View style={[styles.nameRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                  <ThemedText style={[styles.visitorName, { color: theme.text }]} numberOfLines={1}>
-                    {visitorName}
-                  </ThemedText>
-                  <View style={[styles.walkInBadge, { backgroundColor: applyOpacity(theme.secondary, '15') }]}>
-                    <ThemedText style={[styles.walkInText, { color: theme.secondary }]}>
-                      {t('reception.walkInVisitor')}
-                    </ThemedText>
-                  </View>
-                </View>
+                <ThemedText style={[styles.visitorName, { color: theme.text }]} numberOfLines={1}>
+                  {visitorName}
+                </ThemedText>
                 <ThemedText style={[styles.companyText, { color: theme.textSecondary }]} numberOfLines={1}>
                   {item.visitor.company ?? ''}
                 </ThemedText>
@@ -240,7 +233,10 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
             </View>
 
             <View style={[styles.servicesStatusRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <View style={[styles.servicesRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.servicesRowContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.secondary, '15') }]}>
+                  <DDIcon name="user-plus" size={12} color={theme.secondary} />
+                </View>
                 {item.parkingSlot ? (
                   <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '20') }]}>
                     <DDIcon name="map-pin" size={12} color={theme.info} />
@@ -469,23 +465,9 @@ const styles = StyleSheet.create({
     flex: 1,
     marginHorizontal: Spacing.sm,
   },
-  nameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.xs,
-  },
   visitorName: {
     fontSize: 14,
     fontWeight: '600',
-  },
-  walkInBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: BorderRadius.sm,
-  },
-  walkInText: {
-    fontSize: 9,
-    fontWeight: '700',
   },
   companyText: {
     fontSize: 11,
@@ -520,6 +502,12 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
     alignItems: 'center',
   },
+  servicesRowContainer: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    alignItems: 'center',
+    flex: 1,
+  },
   servicePill: {
     width: 28,
     height: 28,
@@ -528,12 +516,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   statusBadge: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: BorderRadius.sm,
   },
   statusText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '600',
   },
   expandedSection: {
