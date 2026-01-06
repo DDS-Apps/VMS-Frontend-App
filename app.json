@@ -40,9 +40,9 @@
           "image": "./assets/images/logo.png",
           "imageWidth": 320,
           "resizeMode": "contain",
-          "backgroundColor": "#282829",
+          "backgroundColor": "#FFFFFF",
           "dark": {
-            "backgroundColor": "#282829"
+            "backgroundColor": "#FFFFFF"
           }
         }
       ],

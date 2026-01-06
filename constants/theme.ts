@@ -178,7 +178,7 @@ export const Colors = {
     cardIcon: BrandColors.brandOrange80,
 
     // Additional backgrounds
-    backgroundRoot: "#1A1A1B",
+    backgroundRoot: BrandColors.brandGrey,
     backgroundDefault: BrandColors.brandGrey,
     backgroundSecondary: "#353536",
     backgroundTertiary: "#424243",
