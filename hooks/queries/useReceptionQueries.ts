@@ -126,11 +126,14 @@ export function useReceptionCheckInMutation() {
 
   return useMutation<CheckInResponseDto, ApiError, { visitId: string; data?: CheckInDto }>({
     mutationFn: ({ visitId, data }) => receptionApiService.checkInVisitor(visitId, data),
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
         predicate: (query) =>
           query.queryKey[0] === 'reception' &&
           (query.queryKey[1] === 'today' || query.queryKey[1] === 'alerts'),
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['requests', 'visit-detail', variables.visitId],
       });
     },
   });
@@ -141,10 +144,13 @@ export function useReceptionCheckOutMutation() {
 
   return useMutation<CheckOutResponseDto, ApiError, { visitId: string; data?: CheckOutDto }>({
     mutationFn: ({ visitId, data }) => receptionApiService.checkOutVisitor(visitId, data),
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
         predicate: (query) =>
           query.queryKey[0] === 'reception' && query.queryKey[1] === 'today',
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['requests', 'visit-detail', variables.visitId],
       });
     },
   });

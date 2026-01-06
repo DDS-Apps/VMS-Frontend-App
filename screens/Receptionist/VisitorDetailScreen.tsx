@@ -404,7 +404,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
               </View>
               <View style={{ flex: 1, marginStart: Spacing.md }}>
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
-                  {t('meeting.meetingRoom')}
+                  {t('visitor.meetingRoom')}
                 </ThemedText>
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
                   {visitor.meetingRoom.name}{visitor.meetingRoom.floor ? ` (${visitor.meetingRoom.floor})` : ''}
@@ -687,6 +687,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
           type="check_in" 
           onPress={handleCheckIn} 
           fullWidth 
+          loading={checkInMutation.isPending}
         />
         <Spacer height={Spacing.md} />
         <View style={[styles.buttonRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
@@ -717,22 +718,26 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
 
     {visitor.status === 'checked_in' && (
       <View style={[styles.stickyFooter, { backgroundColor: theme.background, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.lg }]}>
-        <VisitorActionButton 
-          type="check_out" 
-          onPress={handleCheckOut} 
-          fullWidth 
-        />
-        <Spacer height={Spacing.md} />
-        <LoadingButton
-          onPress={() => setShowExceptionModal(true)}
-          variant="warning-outline"
-          size="large"
-          icon="alert-triangle"
-          iconPosition="left"
-          fullWidth
-        >
-          {t('reception.reportException')}
-        </LoadingButton>
+        <View style={[styles.buttonRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <VisitorActionButton 
+            type="check_out" 
+            onPress={handleCheckOut} 
+            fullWidth 
+            loading={checkOutMutation.isPending}
+            flex={1}
+          />
+          <View style={{ width: Spacing.md }} />
+          <LoadingButton
+            onPress={() => setShowExceptionModal(true)}
+            variant="warning-outline"
+            size="large"
+            icon="alert-triangle"
+            iconPosition="left"
+            style={{ flex: 1 }}
+          >
+            {t('reception.reportException')}
+          </LoadingButton>
+        </View>
       </View>
     )}
     </>

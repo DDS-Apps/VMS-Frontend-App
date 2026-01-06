@@ -1,5 +1,5 @@
 import React from "react";
-import { View, StyleSheet, Pressable, GestureResponderEvent } from "react-native";
+import { View, StyleSheet, Pressable, GestureResponderEvent, ActivityIndicator } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { useTheme } from "@/hooks/useTheme";
@@ -14,9 +14,11 @@ interface VisitorActionButtonProps {
   onPress?: (event: GestureResponderEvent) => void;
   disabled?: boolean;
   fullWidth?: boolean;
+  loading?: boolean;
+  flex?: number;
 }
 
-export function VisitorActionButton({ type, onPress, disabled = false, fullWidth = false }: VisitorActionButtonProps) {
+export function VisitorActionButton({ type, onPress, disabled = false, fullWidth = false, loading = false, flex }: VisitorActionButtonProps) {
   const { theme } = useTheme();
   const { t, isRTL } = useTranslation();
 
@@ -52,6 +54,7 @@ export function VisitorActionButton({ type, onPress, disabled = false, fullWidth
   const config = getConfig();
 
   const buttonStyle = fullWidth ? styles.fullWidthButton : styles.button;
+  const isDisabled = disabled || loading;
 
   if (!config.isButton || disabled) {
     return (
@@ -61,6 +64,7 @@ export function VisitorActionButton({ type, onPress, disabled = false, fullWidth
           backgroundColor: config.bgColor,
           borderWidth: type === 'completed' ? 1 : 0,
           borderColor: theme.border,
+          flex: flex,
         }
       ]}>
         <DDIcon 
@@ -80,16 +84,25 @@ export function VisitorActionButton({ type, onPress, disabled = false, fullWidth
     <Pressable
       style={({ pressed }) => [
         buttonStyle,
-        { backgroundColor: config.bgColor, opacity: pressed ? 0.8 : 1 }
+        { 
+          backgroundColor: config.bgColor, 
+          opacity: isDisabled ? 0.6 : pressed ? 0.8 : 1,
+          flex: flex,
+        }
       ]}
       onPress={onPress}
+      disabled={isDisabled}
     >
-      <DDIcon 
-        name={config.icon} 
-        size={fullWidth ? 18 : 14} 
-        color={config.textColor}
-        directionAware={config.icon === 'log-in' || config.icon === 'log-out'}
-      />
+      {loading ? (
+        <ActivityIndicator size="small" color={config.textColor} />
+      ) : (
+        <DDIcon 
+          name={config.icon} 
+          size={fullWidth ? 18 : 14} 
+          color={config.textColor}
+          directionAware={config.icon === 'log-in' || config.icon === 'log-out'}
+        />
+      )}
       <ThemedText style={[fullWidth ? styles.fullWidthButtonText : styles.buttonText, { color: config.textColor }]}>
         {config.label}
       </ThemedText>
