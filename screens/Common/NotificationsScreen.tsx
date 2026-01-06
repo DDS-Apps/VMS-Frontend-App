@@ -5,6 +5,7 @@ import { DDIcon, IconName } from "@/components/DDIcon";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { StatusAccent } from "@/components/shared/StatusBadge";
 import Spacer from "@/components/Spacer";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
@@ -20,6 +21,8 @@ import {
   useMarkNotificationAsReadMutation, 
   useMarkAllNotificationsAsReadMutation 
 } from "@/hooks/queries/useNotificationQueries";
+
+type BadgeVariant = 'success' | 'warning' | 'error' | 'info' | 'muted';
 
 interface NotificationsScreenProps {
   userRole?: UserRole;
@@ -63,48 +66,66 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
     });
   }, [markAsReadMutation]);
 
-  const getNotificationIcon = (type: NotificationEventType | string) => {
+  const getNotificationConfig = (type: NotificationEventType | string): { icon: IconName; variant: BadgeVariant } => {
     switch (type) {
-      case 'request_created': return { icon: 'send', color: theme.info };
-      case 'request_approved': return { icon: 'check-circle', color: theme.success };
-      case 'request_rejected': return { icon: 'x-circle', color: theme.error };
-      case 'request_cancelled': return { icon: 'x-circle', color: theme.error };
-      case 'request_updated': return { icon: 'edit-2', color: theme.info };
-      case 'visitor_accepted': return { icon: 'user-check', color: theme.success };
-      case 'visitor_rejected': return { icon: 'user-x', color: theme.error };
-      case 'visitor_arrival': return { icon: 'navigation', color: theme.primary };
-      case 'visitor_no_show': return { icon: 'user-x', color: theme.warning };
-      case 'check_in': return { icon: 'log-in', color: theme.primary };
-      case 'check_out': return { icon: 'log-out', color: theme.secondary };
-      case 'auto_cancelled': return { icon: 'x-octagon', color: theme.error };
-      case 'pending_approval': return { icon: 'clock', color: theme.warning };
-      case 'expected_today': return { icon: 'calendar', color: theme.primary };
-      case 'reminder_tomorrow':
-      case 'reminder_2hours':
-      case 'reminder_30min':
-      case 'reminder_now': return { icon: 'bell', color: theme.warning };
-      case 'room_booked': return { icon: 'home', color: theme.info };
-      case 'room_reminder': return { icon: 'bell', color: theme.warning };
-      case 'room_cancelled': return { icon: 'x-circle', color: theme.error };
-      case 'room_conflict': return { icon: 'alert-triangle', color: theme.error };
-      case 'room_reassigned': return { icon: 'refresh-cw', color: theme.info };
-      case 'parking_assigned': return { icon: 'map-pin', color: theme.success };
-      case 'parking_full': return { icon: 'alert-circle', color: theme.warning };
-      case 'buffet_new_request': return { icon: 'disc', color: theme.primary };
-      case 'buffet_request_created': return { icon: 'plus-circle', color: theme.info };
-      case 'buffet_task_assigned': return { icon: 'user-plus', color: theme.secondary };
-      case 'buffet_scheduled': return { icon: 'clock', color: theme.info };
-      case 'buffet_status_update': return { icon: 'refresh-cw', color: theme.info };
-      case 'buffet_staff_update': return { icon: 'users', color: theme.secondary };
-      case 'buffet_completed': return { icon: 'check-circle', color: theme.success };
-      case 'valet_new_request': return { icon: 'truck', color: theme.primary };
-      case 'valet_task_assigned': return { icon: 'key', color: theme.warning };
-      case 'valet_scheduled': return { icon: 'clock', color: theme.info };
-      case 'valet_completed': return { icon: 'check-circle', color: theme.success };
-      case 'valet_cancelled': return { icon: 'x-circle', color: theme.error };
-      case 'security_access_update': return { icon: 'shield', color: theme.secondary };
-      case 'security_gate_pass': return { icon: 'key', color: theme.primary };
-      default: return { icon: 'bell', color: theme.textSecondary };
+      // Success variants (green)
+      case 'request_approved': return { icon: 'check-circle', variant: 'success' };
+      case 'visitor_accepted': return { icon: 'user-check', variant: 'success' };
+      case 'check_in': return { icon: 'log-in', variant: 'success' };
+      case 'check_out': return { icon: 'log-out', variant: 'success' };
+      case 'parking_assigned': return { icon: 'map-pin', variant: 'success' };
+      case 'buffet_completed': return { icon: 'check-circle', variant: 'success' };
+      case 'valet_completed': return { icon: 'check-circle', variant: 'success' };
+      
+      // Error variants (red)
+      case 'request_rejected': return { icon: 'x-circle', variant: 'error' };
+      case 'request_cancelled': return { icon: 'x-circle', variant: 'error' };
+      case 'visitor_rejected': return { icon: 'user-x', variant: 'error' };
+      case 'auto_cancelled': return { icon: 'x-octagon', variant: 'error' };
+      case 'room_cancelled': return { icon: 'x-circle', variant: 'error' };
+      case 'room_conflict': return { icon: 'alert-triangle', variant: 'error' };
+      case 'valet_cancelled': return { icon: 'x-circle', variant: 'error' };
+      
+      // Warning variants (orange/yellow)
+      case 'pending_approval': return { icon: 'clock', variant: 'warning' };
+      case 'visitor_no_show': return { icon: 'user-x', variant: 'warning' };
+      case 'visitor_arrival': return { icon: 'navigation', variant: 'warning' };
+      case 'expected_today': return { icon: 'calendar', variant: 'warning' };
+      case 'reminder_tomorrow': return { icon: 'bell', variant: 'warning' };
+      case 'reminder_2hours': return { icon: 'bell', variant: 'warning' };
+      case 'reminder_30min': return { icon: 'bell', variant: 'warning' };
+      case 'reminder_now': return { icon: 'bell', variant: 'warning' };
+      case 'room_reminder': return { icon: 'bell', variant: 'warning' };
+      case 'parking_full': return { icon: 'alert-circle', variant: 'warning' };
+      case 'valet_task_assigned': return { icon: 'key', variant: 'warning' };
+      
+      // Info variants (blue/neutral)
+      case 'request_created': return { icon: 'send', variant: 'info' };
+      case 'request_updated': return { icon: 'edit-2', variant: 'info' };
+      case 'room_booked': return { icon: 'home', variant: 'info' };
+      case 'room_reassigned': return { icon: 'refresh-cw', variant: 'info' };
+      case 'buffet_new_request': return { icon: 'disc', variant: 'info' };
+      case 'buffet_request_created': return { icon: 'plus-circle', variant: 'info' };
+      case 'buffet_task_assigned': return { icon: 'user-plus', variant: 'info' };
+      case 'buffet_scheduled': return { icon: 'clock', variant: 'info' };
+      case 'buffet_status_update': return { icon: 'refresh-cw', variant: 'info' };
+      case 'buffet_staff_update': return { icon: 'users', variant: 'info' };
+      case 'valet_new_request': return { icon: 'truck', variant: 'info' };
+      case 'valet_scheduled': return { icon: 'clock', variant: 'info' };
+      case 'security_access_update': return { icon: 'shield', variant: 'info' };
+      case 'security_gate_pass': return { icon: 'key', variant: 'info' };
+      
+      default: return { icon: 'bell', variant: 'muted' };
+    }
+  };
+
+  const getVariantColor = (variant: BadgeVariant): string => {
+    switch (variant) {
+      case 'success': return theme.success;
+      case 'warning': return theme.warning;
+      case 'error': return theme.error;
+      case 'info': return theme.info;
+      default: return theme.textSecondary;
     }
   };
 
@@ -237,7 +258,8 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
         </ThemedView>
       ) : (
         notifications.map((notification) => {
-          const iconConfig = getNotificationIcon(notification.type);
+          const { icon, variant } = getNotificationConfig(notification.type);
+          const accentColor = getVariantColor(variant);
           return (
             <View key={notification.id}>
               <Pressable
@@ -245,37 +267,30 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
                 style={({ pressed }) => [
                   styles.notificationCard,
                   { 
-                    backgroundColor: notification.isRead ? theme.surface : applyOpacity(theme.primary, '10'),
+                    backgroundColor: theme.surface,
                     opacity: pressed ? 0.95 : 1,
-                    borderColor: notification.isRead ? theme.border : applyOpacity(theme.primary, '30'),
+                    borderColor: theme.border,
                     shadowColor: '#000',
                     flexDirection: isRTL ? 'row-reverse' : 'row',
                   },
-                  !notification.isRead && styles.unreadBorder,
                 ]}
               >
+                <StatusAccent color={accentColor} width={4} />
+
                 {!notification.isRead ? (
-                  <View style={[
-                    styles.leftBorderLine, 
-                    { 
-                      backgroundColor: theme.primary,
-                      ...(isRTL ? { left: 'auto', right: 0 } : { left: 0, right: 'auto' }),
-                    }
-                  ]} />
+                  <View style={[styles.unreadDot, { backgroundColor: theme.primary }]} />
                 ) : null}
 
-                <View style={[styles.iconContainer, { backgroundColor: applyOpacity(iconConfig.color, '20') }]}>
-                  <DDIcon name={iconConfig.icon as IconName} size={20} color={iconConfig.color} />
+                <View style={[styles.iconContainer, { backgroundColor: applyOpacity(accentColor, '15') }]}>
+                  <DDIcon name={icon} size={20} color={accentColor} />
                 </View>
 
                 <View style={styles.notificationContent}>
-                  <View style={styles.notificationHeader}>
-                    <ThemedText style={[styles.notificationTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
-                      {getLocalizedTitle(notification)}
-                    </ThemedText>
-                  </View>
-                  <Spacer height={Spacing.sm} />
-                  <ThemedText style={[styles.notificationMessage, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+                  <ThemedText style={[styles.notificationTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+                    {getLocalizedTitle(notification)}
+                  </ThemedText>
+                  <Spacer height={Spacing.xs} />
+                  <ThemedText style={[styles.notificationMessage, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={3}>
                     {notification.body}
                   </ThemedText>
                   <Spacer height={Spacing.sm} />
@@ -297,9 +312,6 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
 }
 
 const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: Spacing.lg,
-  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -316,29 +328,19 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.sm,
     alignItems: 'center',
   },
-  activeTab: {
-  },
+  activeTab: {},
   notificationCard: {
     flexDirection: 'row',
     padding: Spacing.lg,
-    paddingStart: Spacing.lg,
+    paddingStart: Spacing.xl,
     borderRadius: BorderRadius.md,
     position: 'relative',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
+    overflow: 'hidden',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 1,
     borderWidth: StyleSheet.hairlineWidth,
-  },
-  unreadBorder: {
-  },
-  leftBorderLine: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    width: 3,
-    borderTopStartRadius: 10,
-    borderBottomStartRadius: 10,
   },
   iconContainer: {
     width: 44,
@@ -346,24 +348,19 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.full,
     justifyContent: 'center',
     alignItems: 'center',
-    marginStart: Spacing.xs,
   },
   notificationContent: {
     flex: 1,
     marginStart: Spacing.md,
   },
-  notificationHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
   notificationTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    lineHeight: 22,
+    fontSize: 15,
+    fontWeight: '600',
+    lineHeight: 20,
   },
   notificationMessage: {
     fontSize: 13,
-    lineHeight: 19,
+    lineHeight: 18,
   },
   timeContainer: {
     flexDirection: 'row',
@@ -375,16 +372,10 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '500',
   },
-  actionButton: {
-    alignSelf: 'flex-start',
-    paddingVertical: Spacing.xs,
-    paddingHorizontal: Spacing.md,
-    borderRadius: BorderRadius.sm,
-  },
   unreadDot: {
     position: 'absolute',
-    top: Spacing.lg,
-    end: Spacing.lg,
+    top: Spacing.md,
+    end: Spacing.md,
     width: 8,
     height: 8,
     borderRadius: BorderRadius.full,
