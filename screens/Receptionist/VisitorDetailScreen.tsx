@@ -33,7 +33,7 @@ interface LegacyVisitor {
   time: string;
   host: string;
   hostDepartment?: string;
-  status: 'pending' | 'checked_in' | 'completed' | 'rejected' | 'cancelled';
+  status: 'pending' | 'approved' | 'checked_in' | 'completed' | 'rejected' | 'cancelled' | 'pending_approval';
   isWalkIn: boolean;
   phone: string;
   parking?: string;
@@ -57,10 +57,11 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
   
   const { data: visitDetails, isLoading, isError } = useVisitDetailsQuery(visitId ?? '', !!visitId);
   
-  const mapVisitStatus = (status: string): 'pending' | 'checked_in' | 'completed' | 'rejected' | 'cancelled' => {
+  const mapVisitStatus = (status: string): 'pending' | 'approved' | 'checked_in' | 'completed' | 'rejected' | 'cancelled' | 'pending_approval' => {
     if (status === 'rejected') return 'rejected';
     if (status === 'cancelled') return 'cancelled';
-    if (status === 'approved' || status === 'pending_approval') return 'pending';
+    if (status === 'pending_approval') return 'pending_approval';
+    if (status === 'approved') return 'approved';
     if (status === 'checked_in') return 'checked_in';
     if (status === 'completed' || status === 'checked_out') return 'completed';
     return 'pending';
@@ -78,7 +79,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
     phone: visitDetails.visitor.phone ?? '',
     parking: visitDetails.parkingSlot?.slotNumber,
     valet: visitDetails.parkingAllocation?.status,
-    meetingRoom: visitDetails.meetingRoom ? { name: visitDetails.meetingRoom.name, floor: visitDetails.meetingRoom.floor } : undefined,
+    meetingRoom: (visitDetails.meetingRoom && visitDetails.meetingRoom.name) ? { name: visitDetails.meetingRoom.name, floor: visitDetails.meetingRoom.floor } : undefined,
     origin: visitDetails.isWalkIn ? 'walk_in' : 'scheduled',
     scheduledFor: visitDetails.visitDate,
     createdAt: visitDetails.createdAt,
@@ -158,7 +159,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
 
   const timelineActions: TimelineActionCallbacks | undefined = useMemo(() => {
     if (!visitor) return undefined;
-    if (visitor.status === 'pending') {
+    if (visitor.status === 'approved' || visitor.status === 'pending') {
       return {
         onCheckIn: handleCheckIn,
         isCheckInLoading: checkInMutation.isPending,
@@ -215,6 +216,10 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
         return { label: t('status.rejected'), variant: 'error', icon: 'x-circle' };
       case 'cancelled':
         return { label: t('status.cancelled'), variant: 'error', icon: 'x-circle' };
+      case 'pending_approval':
+        return { label: t('status.pendingApproval'), variant: 'warning', icon: 'clock' };
+      case 'approved':
+        return { label: t('visitor.expectedVisitors'), variant: 'info', icon: 'check-circle' };
       default:
         return { label: t('visitor.expectedVisitors'), variant: 'warning', icon: 'clock' };
     }
@@ -435,7 +440,18 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
 
       <Spacer height={Spacing.lg} />
 
-      {visitor.status === 'pending' && (
+      {visitor.status === 'pending_approval' && (
+        <ThemedView style={[styles.pendingApprovalBanner, { backgroundColor: applyOpacity(theme.warning, '10'), borderColor: theme.warning }]}>
+          <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.sm }}>
+            <DDIcon name="clock" size={20} color={theme.warning} />
+            <ThemedText style={[Typography.body, { color: theme.warning, fontWeight: '600', flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
+              {t('status.pendingApproval')}
+            </ThemedText>
+          </View>
+        </ThemedView>
+      )}
+
+      {(visitor.status === 'approved' || visitor.status === 'pending') && (
         <>
           <VisitorActionButton 
             type="check_in" 
@@ -757,6 +773,12 @@ const styles = StyleSheet.create({
   },
   buttonRow: {
     alignItems: 'center',
+  },
+  pendingApprovalBanner: {
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    marginBottom: Spacing.md,
   },
   outlineButton: {
     alignItems: 'center',
