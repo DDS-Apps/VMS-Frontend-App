@@ -289,13 +289,28 @@ export function VisitorRequestCard({
 
   const renderActions = () => {
     if (!showActions || isSelectionMode) return null;
+    
+    if (isExpired) {
+      return (
+        <>
+          <Spacer height={Spacing.md} />
+          <View style={[styles.expiredBanner, { backgroundColor: applyOpacity(theme.textSecondary, '10'), borderColor: theme.border }]}>
+            <DDIcon name="clock" size={14} color={theme.textSecondary} />
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: Spacing.xs }]}>
+              {t('visit.visitExpired')}
+            </ThemedText>
+          </View>
+        </>
+      );
+    }
+    
     return (
       <>
         <Spacer height={Spacing.md} />
         <ApprovalActionGroup
           onApprove={onApprove || (() => {})}
           onReject={onReject || (() => {})}
-          disabled={isProcessing || isExpired}
+          disabled={isProcessing}
           size="medium"
         />
       </>
@@ -457,5 +472,14 @@ const styles = StyleSheet.create({
     top: Spacing.md,
     end: Spacing.md,
     zIndex: 1,
+  },
+  expiredBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
   },
 });
