@@ -12,6 +12,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { UserRole } from "@/types/vms.types";
+import Constants from 'expo-constants';
 
 interface MenuItem {
   id: string;
@@ -415,7 +416,7 @@ export default function Sidebar({
           {t('common.brandName')} {t('common.appName')}
         </ThemedText>
         <ThemedText style={[styles.appVersion, { color: theme.sidebarTextMuted }]}>
-          v1.0.0
+          v{Constants.expoConfig?.version || '1.0.0'}
         </ThemedText>
       </View>
 

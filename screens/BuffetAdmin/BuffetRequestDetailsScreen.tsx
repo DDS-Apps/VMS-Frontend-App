@@ -443,37 +443,6 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
           </View>
         </View>
 
-        <Spacer height={Spacing.lg} />
-
-        <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-            <DDIcon name="users" size={18} color={theme.text} />
-          </View>
-          <View style={{ flex: 1, marginStart: Spacing.md }}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
-              {t('buffet.numberOfGuests')}
-            </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
-              {request.guestCount}
-            </ThemedText>
-          </View>
-        </View>
-
-        <Spacer height={Spacing.lg} />
-
-        <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.info, '15') }]}>
-            <DDIcon name={getMealTypeIcon(request.mealType) as any} size={18} color={theme.info} />
-          </View>
-          <View style={{ flex: 1, marginStart: Spacing.md }}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
-              {t('buffet.mealType')}
-            </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
-              {getMealTypeLabel(request.mealType)}
-            </ThemedText>
-          </View>
-        </View>
       </ThemedView>
 
       {request.notes ? (
