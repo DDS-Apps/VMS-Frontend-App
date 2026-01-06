@@ -70,6 +70,10 @@ function mapUserDtoToDisplayUser(dto: UserDto): DisplayUser {
 
 const ALL_ROLES: UserRole[] = USER_ROLES.filter(role => role !== 'visitor');
 
+const HIDDEN_ROLES_IN_CREATE: UserRole[] = ['valet_driver', 'visitor'];
+const DISABLED_ROLES_IN_CREATE: UserRole[] = ['employee', 'manager'];
+const CREATABLE_ROLES: UserRole[] = ALL_ROLES.filter(role => !HIDDEN_ROLES_IN_CREATE.includes(role));
+
 type SortOption = 'createdAt' | 'name' | 'role' | 'department';
 type ViewMode = 'list' | 'grid' | 'table';
 type GroupMode = 'none' | 'role';
@@ -128,7 +132,7 @@ export default function UsersRolesScreen() {
     name: '',
     email: '',
     password: '',
-    role: 'employee' as UserRole,
+    role: 'receptionist' as UserRole,
     department: '',
     phoneNumber: '',
     status: 'active' as 'active' | 'inactive',
@@ -198,7 +202,7 @@ export default function UsersRolesScreen() {
       name: '',
       email: '',
       password: '',
-      role: 'employee',
+      role: 'receptionist',
       department: '',
       phoneNumber: '',
       status: 'active',
@@ -1348,32 +1352,50 @@ export default function UsersRolesScreen() {
                 contentContainerStyle={{ paddingEnd: Spacing.xl }}
                 nestedScrollEnabled={true}
               >
-                {ALL_ROLES.map((role) => (
-                  <Pressable
-                    key={role}
-                    style={[
-                      styles.roleOption,
-                      {
-                        backgroundColor: formData.role === role ? theme.primary : theme.surface,
-                        borderColor: formData.role === role ? theme.primary : theme.border,
-                        marginEnd: Spacing.sm,
-                      },
-                    ]}
-                    onPress={() => setFormData({ ...formData, role })}
-                  >
-                    <ThemedText
+                {CREATABLE_ROLES.map((role) => {
+                  const isDisabled = DISABLED_ROLES_IN_CREATE.includes(role);
+                  const isSelected = formData.role === role;
+                  return (
+                    <Pressable
+                      key={role}
                       style={[
-                        Typography.caption,
+                        styles.roleOption,
                         {
-                          color: formData.role === role ? theme.buttonText : theme.text,
-                          fontWeight: formData.role === role ? '600' : '400',
+                          backgroundColor: isDisabled 
+                            ? theme.surfaceSecondary 
+                            : isSelected 
+                              ? theme.primary 
+                              : theme.surface,
+                          borderColor: isDisabled 
+                            ? theme.border 
+                            : isSelected 
+                              ? theme.primary 
+                              : theme.border,
+                          marginEnd: Spacing.sm,
+                          opacity: isDisabled ? 0.5 : 1,
                         },
                       ]}
+                      onPress={() => !isDisabled && setFormData({ ...formData, role })}
+                      disabled={isDisabled}
                     >
-                      {getRoleLabel(role)}
-                    </ThemedText>
-                  </Pressable>
-                ))}
+                      <ThemedText
+                        style={[
+                          Typography.caption,
+                          {
+                            color: isDisabled 
+                              ? theme.textSecondary 
+                              : isSelected 
+                                ? theme.buttonText 
+                                : theme.text,
+                            fontWeight: isSelected ? '600' : '400',
+                          },
+                        ]}
+                      >
+                        {getRoleLabel(role)}
+                      </ThemedText>
+                    </Pressable>
+                  );
+                })}
               </ScrollView>
 
               <StyledInput
