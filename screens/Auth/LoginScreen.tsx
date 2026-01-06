@@ -298,11 +298,7 @@ export default function LoginScreen({
       >
         <View style={styles.content}>
           <Image
-            source={
-              isRTL
-                ? require("../../assets/images/logo-arabic.png")
-                : require("../../assets/images/logo-english.png")
-            }
+            source={require("../../assets/images/logo.png")}
             style={styles.logo}
             resizeMode="contain"
           />
