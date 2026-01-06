@@ -12,7 +12,7 @@ import { DDIcon, IconName } from "@/components/DDIcon";
 import { useTheme } from "@/hooks/useTheme";
 import { BorderRadius, Spacing } from "@/constants/theme";
 
-type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "danger" | "danger-outline" | "success";
+type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "danger" | "danger-outline" | "warning-outline" | "success";
 type ButtonSize = "small" | "medium" | "large";
 
 interface LoadingButtonProps {
@@ -99,6 +99,12 @@ export const LoadingButton = ({
           text: theme.error,
           border: theme.error,
         };
+      case "warning-outline":
+        return {
+          bg: "transparent",
+          text: theme.warning,
+          border: theme.warning,
+        };
       case "success":
         return {
           bg: theme.success,
@@ -183,7 +189,7 @@ export const LoadingButton = ({
           paddingHorizontal: sizeStyle.paddingHorizontal,
           backgroundColor: variantStyles.bg,
           borderColor: variantStyles.border,
-          borderWidth: variantStyles.border ? 1 : 0,
+          borderWidth: variantStyles.border ? 1.5 : 0,
           opacity: isDisabled ? 0.5 : 1,
           alignSelf: fullWidth ? "stretch" : "flex-start",
         },
@@ -198,7 +204,7 @@ export const LoadingButton = ({
 
 const styles = StyleSheet.create({
   button: {
-    borderRadius: BorderRadius.full,
+    borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
     flexDirection: "row",

@@ -855,8 +855,20 @@ export default function RequestDetailsScreen({
     return status.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
   };
 
+  const showStickyFooter = 
+    (request.isWalkIn && request.status === REQUEST_STATUS.PENDING_HOST_APPROVAL) ||
+    (request.status === REQUEST_STATUS.PENDING_APPROVAL && userRole === 'manager' && !isVisitExpired) ||
+    (request.status !== REQUEST_STATUS.PENDING_HOST_APPROVAL &&
+     !(request.status === REQUEST_STATUS.PENDING_APPROVAL && userRole === 'manager') &&
+     request.status !== REQUEST_STATUS.COMPLETED &&
+     request.status !== REQUEST_STATUS.CANCELLED &&
+     request.status !== REQUEST_STATUS.REJECTED &&
+     request.status !== REQUEST_STATUS.VISITOR_REJECTED &&
+     request.status !== REQUEST_STATUS.AUTO_CANCELLED);
+
   return (
-    <ScreenScrollView contentContainerStyle={scrollContentStyle}>
+    <>
+    <ScreenScrollView contentContainerStyle={[scrollContentStyle, showStickyFooter && { paddingBottom: insets.bottom + 120 }]}>
 
       {/* Rejection/Decline Reason */}
       {request.approval.rejectedAt && request.approval.rejectionReason ? (
@@ -1459,108 +1471,19 @@ export default function RequestDetailsScreen({
 
       <Spacer height={Spacing.xl} />
 
-      {/* Walk-in request pending: Show Approve/Reject buttons */}
-      {request.isWalkIn && request.status === REQUEST_STATUS.PENDING_HOST_APPROVAL ? (
-        <>
-          <ApprovalActionGroup
-            onApprove={handleHostApprove}
-            onReject={() => setShowHostRejectModal(true)}
-            approveLoading={hostApproveMutation.isPending}
-            rejectLoading={hostRejectMutation.isPending}
-            size="medium"
-            showIcons={true}
-          />
-          <Spacer height={Spacing.xl} />
-        </>
-      ) : null}
-
-      {/* Manager approval pending: Show Accept/Reject buttons - only for managers */}
-      {request.status === REQUEST_STATUS.PENDING_APPROVAL && userRole === 'manager' ? (
-        isVisitExpired ? (
-          <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: Spacing.sm, paddingHorizontal: Spacing.md }}>
-            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.xs }}>
-              <DDIcon name="alert-circle" size={16} color={theme.warning} />
-              <ThemedText style={[Typography.caption, { color: theme.warning, fontWeight: '600', textAlign: 'center' }]}>
-                {t('status.visitExpired')}
-              </ThemedText>
-            </View>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: 'center', marginTop: 2, fontSize: 12 }]}>
-              {t('errors.visitDatePassed')}
+      {/* Expired visit message for managers - inline display */}
+      {request.status === REQUEST_STATUS.PENDING_APPROVAL && userRole === 'manager' && isVisitExpired ? (
+        <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: Spacing.sm, paddingHorizontal: Spacing.md }}>
+          <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.xs }}>
+            <DDIcon name="alert-circle" size={16} color={theme.warning} />
+            <ThemedText style={[Typography.caption, { color: theme.warning, fontWeight: '600', textAlign: 'center' }]}>
+              {t('status.visitExpired')}
             </ThemedText>
           </View>
-        ) : (
-          <>
-            <ApprovalActionGroup
-              onApprove={handleManagerApprove}
-              onReject={() => setShowManagerRejectModal(true)}
-              approveLoading={managerApproveMutation.isPending}
-              rejectLoading={managerRejectMutation.isPending}
-              size="medium"
-              showIcons={true}
-            />
-            <Spacer height={Spacing.xl} />
-          </>
-        )
-      ) : null}
-
-      {/* Show Edit and Cancel buttons - hidden for terminal statuses and for managers on pending_approval */}
-      {request.status !== REQUEST_STATUS.PENDING_HOST_APPROVAL &&
-       !(request.status === REQUEST_STATUS.PENDING_APPROVAL && userRole === 'manager') &&
-       request.status !== REQUEST_STATUS.COMPLETED &&
-       request.status !== REQUEST_STATUS.CANCELLED &&
-       request.status !== REQUEST_STATUS.REJECTED &&
-       request.status !== REQUEST_STATUS.VISITOR_REJECTED &&
-       request.status !== REQUEST_STATUS.AUTO_CANCELLED ? (
-        <>
-          <View style={[styles.actionButtonsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <Pressable
-              style={[
-                styles.actionButtonHalf,
-                { backgroundColor: theme.primary, flexDirection: isRTL ? 'row-reverse' : 'row' },
-              ]}
-              onPress={() => openEditModal(request.isWalkIn ? "services-only" : "full")}
-            >
-              <DDIcon name={request.isWalkIn ? "settings" : "edit-2"} size={18} color={theme.buttonText} />
-              <ThemedText
-                style={[
-                  Typography.body,
-                  {
-                    color: theme.buttonText,
-                    marginStart: Spacing.sm,
-                    fontWeight: "600",
-                    fontSize: 14,
-                  },
-                ]}
-              >
-                {request.isWalkIn ? t("actions.editServices") : t("common.edit")}
-              </ThemedText>
-            </Pressable>
-            <Spacer width={Spacing.md} />
-            <Pressable
-              style={[
-                styles.actionButtonHalf,
-                { borderColor: theme.error, backgroundColor: theme.surface, flexDirection: isRTL ? 'row-reverse' : 'row' },
-              ]}
-              onPress={() => setShowCancelModal(true)}
-            >
-              <DDIcon name="x" size={18} variant="danger" />
-              <ThemedText
-                style={[
-                  Typography.body,
-                  {
-                    color: theme.error,
-                    marginStart: Spacing.sm,
-                    fontWeight: "600",
-                    fontSize: 14,
-                  },
-                ]}
-              >
-                {t("common.cancel")}
-              </ThemedText>
-            </Pressable>
-          </View>
-          <Spacer height={Spacing.xl} />
-        </>
+          <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: 'center', marginTop: 2, fontSize: 12 }]}>
+            {t('errors.visitDatePassed')}
+          </ThemedText>
+        </View>
       ) : null}
 
       <Modal
@@ -2652,10 +2575,81 @@ export default function RequestDetailsScreen({
       </Modal>
 
     </ScreenScrollView>
+
+    {/* Sticky Footer for Actions */}
+    {request.isWalkIn && request.status === REQUEST_STATUS.PENDING_HOST_APPROVAL ? (
+      <View style={[styles.stickyFooter, { backgroundColor: theme.background, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.lg }]}>
+        <ApprovalActionGroup
+          onApprove={handleHostApprove}
+          onReject={() => setShowHostRejectModal(true)}
+          approveLoading={hostApproveMutation.isPending}
+          rejectLoading={hostRejectMutation.isPending}
+          size="large"
+          showIcons={true}
+        />
+      </View>
+    ) : null}
+
+    {request.status === REQUEST_STATUS.PENDING_APPROVAL && userRole === 'manager' && !isVisitExpired ? (
+      <View style={[styles.stickyFooter, { backgroundColor: theme.background, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.lg }]}>
+        <ApprovalActionGroup
+          onApprove={handleManagerApprove}
+          onReject={() => setShowManagerRejectModal(true)}
+          approveLoading={managerApproveMutation.isPending}
+          rejectLoading={managerRejectMutation.isPending}
+          size="large"
+          showIcons={true}
+        />
+      </View>
+    ) : null}
+
+    {request.status !== REQUEST_STATUS.PENDING_HOST_APPROVAL &&
+     !(request.status === REQUEST_STATUS.PENDING_APPROVAL && userRole === 'manager') &&
+     request.status !== REQUEST_STATUS.COMPLETED &&
+     request.status !== REQUEST_STATUS.CANCELLED &&
+     request.status !== REQUEST_STATUS.REJECTED &&
+     request.status !== REQUEST_STATUS.VISITOR_REJECTED &&
+     request.status !== REQUEST_STATUS.AUTO_CANCELLED ? (
+      <View style={[styles.stickyFooter, { backgroundColor: theme.background, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.lg }]}>
+        <View style={[styles.actionButtonsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <LoadingButton
+            onPress={() => openEditModal(request.isWalkIn ? "services-only" : "full")}
+            variant="primary"
+            size="large"
+            icon={request.isWalkIn ? "settings" : "edit-2"}
+            iconPosition="left"
+            style={{ flex: 1 }}
+          >
+            {request.isWalkIn ? t("actions.editServices") : t("common.edit")}
+          </LoadingButton>
+          <View style={{ width: Spacing.md }} />
+          <LoadingButton
+            onPress={() => setShowCancelModal(true)}
+            variant="danger-outline"
+            size="large"
+            icon="x-circle"
+            iconPosition="left"
+            style={{ flex: 1 }}
+          >
+            {t("common.cancel")}
+          </LoadingButton>
+        </View>
+      </View>
+    ) : null}
+    </>
   );
 }
 
 const styles = StyleSheet.create({
+  stickyFooter: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.lg,
+    borderTopWidth: 1,
+  },
   container: {
     paddingHorizontal: Spacing.lg,
   },

@@ -23,6 +23,7 @@ import { applyOpacity } from "@/utils/statusStyles";
 import type { VisitorExceptionType } from "@/services/state/receptionistVisitorState";
 import { VisitorActionButton } from "@/components/VisitorActionButton";
 import { StatusBadge } from "@/components/shared/StatusBadge";
+import { LoadingButton } from "@/components/shared/LoadingButton";
 import { useReceptionCheckInMutation, useReceptionCheckOutMutation } from "@/hooks/queries/useReceptionQueries";
 import { useVisitDetailsQuery } from "@/hooks/queries/useApprovalQueries";
 
@@ -96,10 +97,16 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
   const [exceptionFloor, setExceptionFloor] = useState('');
   const [exceptionRoom, setExceptionRoom] = useState('');
 
+  const showStickyFooter = visitor && (
+    visitor.status === 'approved' || 
+    visitor.status === 'pending' || 
+    visitor.status === 'checked_in'
+  );
+
   const scrollContentStyle = {
     paddingHorizontal: Spacing.lg,
     paddingTop: insets.top + Spacing.xl,
-    paddingBottom: insets.bottom + Spacing.xl
+    paddingBottom: showStickyFooter ? insets.bottom + 140 : insets.bottom + Spacing.xl
   };
 
   const handleCheckIn = () => {
@@ -265,6 +272,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
   const statusConfig = getStatusConfig(visitor.status);
 
   return (
+    <>
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
       <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
         <View style={{ alignItems: 'center' }}>
@@ -449,58 +457,6 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
             </ThemedText>
           </View>
         </ThemedView>
-      )}
-
-      {(visitor.status === 'approved' || visitor.status === 'pending') && (
-        <>
-          <VisitorActionButton 
-            type="check_in" 
-            onPress={handleCheckIn} 
-            fullWidth 
-          />
-          <Spacer height={Spacing.md} />
-          <View style={[styles.buttonRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <Pressable
-              style={[styles.outlineButton, { borderColor: theme.error, flex: 1, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
-              onPress={() => setShowCancelModal(true)}
-            >
-              <DDIcon name="x" size={18} color={theme.error} />
-              <ThemedText style={[styles.outlineButtonText, { color: theme.error }]}>
-                {t('actions.cancelRequest')}
-              </ThemedText>
-            </Pressable>
-            <Spacer width={Spacing.md} />
-            <Pressable
-              style={[styles.outlineButton, { borderColor: theme.warning, flex: 1, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
-              onPress={() => setShowExceptionModal(true)}
-            >
-              <DDIcon name="alert-triangle" size={18} color={theme.warning} />
-              <ThemedText style={[styles.outlineButtonText, { color: theme.warning }]}>
-                {t('reception.reportException')}
-              </ThemedText>
-            </Pressable>
-          </View>
-        </>
-      )}
-
-      {visitor.status === 'checked_in' && (
-        <>
-          <VisitorActionButton 
-            type="check_out" 
-            onPress={handleCheckOut} 
-            fullWidth 
-          />
-          <Spacer height={Spacing.md} />
-          <Pressable
-            style={[styles.outlineButton, { borderColor: theme.warning, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
-            onPress={() => setShowExceptionModal(true)}
-          >
-            <DDIcon name="alert-triangle" size={18} color={theme.warning} />
-            <ThemedText style={[styles.outlineButtonText, { color: theme.warning }]}>
-              {t('reception.reportException')}
-            </ThemedText>
-          </Pressable>
-        </>
       )}
 
       {visitor.status === 'completed' && (
@@ -723,10 +679,76 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
         </View>
       </Modal>
     </ScreenScrollView>
+
+    {/* Sticky Footer for Actions */}
+    {(visitor.status === 'approved' || visitor.status === 'pending') && (
+      <View style={[styles.stickyFooter, { backgroundColor: theme.background, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.lg }]}>
+        <VisitorActionButton 
+          type="check_in" 
+          onPress={handleCheckIn} 
+          fullWidth 
+        />
+        <Spacer height={Spacing.md} />
+        <View style={[styles.buttonRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <LoadingButton
+            onPress={() => setShowCancelModal(true)}
+            variant="danger-outline"
+            size="large"
+            icon="x-circle"
+            iconPosition="left"
+            style={{ flex: 1 }}
+          >
+            {t('actions.cancelRequest')}
+          </LoadingButton>
+          <View style={{ width: Spacing.md }} />
+          <LoadingButton
+            onPress={() => setShowExceptionModal(true)}
+            variant="warning-outline"
+            size="large"
+            icon="alert-triangle"
+            iconPosition="left"
+            style={{ flex: 1 }}
+          >
+            {t('reception.reportException')}
+          </LoadingButton>
+        </View>
+      </View>
+    )}
+
+    {visitor.status === 'checked_in' && (
+      <View style={[styles.stickyFooter, { backgroundColor: theme.background, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.lg }]}>
+        <VisitorActionButton 
+          type="check_out" 
+          onPress={handleCheckOut} 
+          fullWidth 
+        />
+        <Spacer height={Spacing.md} />
+        <LoadingButton
+          onPress={() => setShowExceptionModal(true)}
+          variant="warning-outline"
+          size="large"
+          icon="alert-triangle"
+          iconPosition="left"
+          fullWidth
+        >
+          {t('reception.reportException')}
+        </LoadingButton>
+      </View>
+    )}
+    </>
   );
 }
 
 const styles = StyleSheet.create({
+  stickyFooter: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.lg,
+    borderTopWidth: 1,
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
