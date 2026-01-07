@@ -16,6 +16,28 @@ function isLocalDevEnvironment(): boolean {
   return false;
 }
 
+function getServiceWorkerUrl(): string {
+  if (typeof window === 'undefined') {
+    return '/firebase-messaging-sw.js';
+  }
+  
+  const { protocol, hostname } = window.location;
+  
+  // On Replit, the proxy strips the port - we need to use the base URL without port
+  // Check if we're on Replit by looking for replit.dev or replit.app in hostname
+  const isReplit = hostname.includes('replit.dev') || hostname.includes('replit.app');
+  
+  if (isReplit) {
+    // Use the full origin without port for Replit
+    const baseUrl = `${protocol}//${hostname}`;
+    console.log('[Firebase Web] Replit detected, using base URL:', baseUrl);
+    return `${baseUrl}/firebase-messaging-sw.js`;
+  }
+  
+  // For other environments, use relative path
+  return '/firebase-messaging-sw.js';
+}
+
 async function tryRegisterServiceWorker(): Promise<ServiceWorkerRegistration | null> {
   if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
     console.log('[Firebase Web] Service workers not supported');
@@ -23,8 +45,23 @@ async function tryRegisterServiceWorker(): Promise<ServiceWorkerRegistration | n
   }
   
   try {
-    console.log('[Firebase Web] Attempting to register service worker...');
-    const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+    const swUrl = getServiceWorkerUrl();
+    console.log('[Firebase Web] Attempting to register service worker at:', swUrl);
+    
+    // First check if there's an existing registration
+    const existingRegistration = await navigator.serviceWorker.getRegistration('/firebase-cloud-messaging-push-scope');
+    if (existingRegistration) {
+      console.log('[Firebase Web] Using existing service worker registration');
+      return existingRegistration;
+    }
+    
+    const registration = await navigator.serviceWorker.register(swUrl, {
+      scope: '/firebase-cloud-messaging-push-scope'
+    });
+    
+    // Wait for the service worker to be ready
+    await navigator.serviceWorker.ready;
+    
     console.log('[Firebase Web] Service worker registered successfully');
     return registration;
   } catch (error) {
