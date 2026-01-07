@@ -719,7 +719,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
               onPress={() => setShowIdTypePicker(true)}
             >
               <DDIcon name="credit-card" size={20} variant="muted" />
-              <ThemedText style={[Typography.body, { color: theme.text, marginStart: Spacing.md, flex: 1 }]}>
+              <ThemedText style={[Typography.body, { color: theme.text, flex: 1 }]}>
                 {t(ID_TYPE_OPTIONS.find(opt => opt.value === idType)?.labelKey || 'visitor.nationalId')}
               </ThemedText>
               <DDIcon name="chevron-down" size={20} variant="muted" />
@@ -779,7 +779,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
               onPress={() => setShowPurposePicker(true)}
             >
               <DDIcon name="clipboard" size={20} variant="muted" />
-              <ThemedText style={[Typography.body, { color: theme.text, marginStart: Spacing.md, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.body, { color: theme.text, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                 {purposeLabel || t('form.selectPurpose')}
               </ThemedText>
               <DDIcon name="chevron-down" size={20} variant="muted" />
@@ -797,7 +797,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
               <View style={[styles.sectionIconContainer, { backgroundColor: theme.primary + '20' }]}>
                 <DDIcon name="calendar" size={20} variant="primary" />
               </View>
-              <View style={{ marginStart: Spacing.md }}>
+              <View>
                 <ThemedText style={[Typography.subtitle, { textAlign: isRTL ? 'right' : 'left' }]}>{t('visitor.visitSchedule')}</ThemedText>
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
                   {t('visitor.whenVisitorComing')}
@@ -823,7 +823,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
               onPress={() => setShowDatePicker(true)}
             >
               <DDIcon name="calendar" size={20} variant="primary" />
-              <ThemedText style={[Typography.body, { color: theme.text, marginStart: Spacing.md, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.body, { color: theme.text, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                 {formatPickerDate(selectedDate)}
               </ThemedText>
               <DDIcon name="chevron-down" size={20} variant="muted" />
@@ -855,7 +855,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
               onPress={() => setShowTimePicker(true)}
             >
               <DDIcon name="clock" size={20} variant="primary" />
-              <ThemedText style={[Typography.body, { color: theme.text, marginStart: Spacing.md, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.body, { color: theme.text, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                 {formatPickerTime(selectedTime)}
               </ThemedText>
               <DDIcon name="chevron-down" size={20} variant="muted" />
@@ -887,7 +887,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
               onPress={() => setShowEndTimePicker(true)}
             >
               <DDIcon name="clock" size={20} variant="primary" />
-              <ThemedText style={[Typography.body, { color: theme.text, marginStart: Spacing.md, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.body, { color: theme.text, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                 {formatPickerTime(selectedEndTime)}
               </ThemedText>
               <DDIcon name="chevron-down" size={20} variant="muted" />
@@ -1418,9 +1418,11 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.sm,
     paddingHorizontal: Spacing.md,
     alignItems: 'center',
+    gap: Spacing.md,
   },
   sectionHeader: {
     alignItems: 'center',
+    gap: Spacing.md,
   },
   sectionIconContainer: {
     width: 40,
