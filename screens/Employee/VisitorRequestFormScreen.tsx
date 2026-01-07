@@ -546,7 +546,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
       )}
       
       <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
-        <ThemedText style={[Typography.subtitle]}>{t('visitor.visitorInformation')}</ThemedText>
+        <ThemedText style={[Typography.subtitle, { textAlign: isRTL ? 'right' : 'left' }]}>{t('visitor.visitorInformation')}</ThemedText>
         <Spacer height={Spacing.lg} />
 
         <ThemedText style={[Typography.label, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
@@ -679,13 +679,14 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                 styles.iconInputButton, 
                 { 
                   backgroundColor: theme.background, 
-                  borderColor: errors.hostEmployee ? theme.error : theme.border
+                  borderColor: errors.hostEmployee ? theme.error : theme.border,
+                  flexDirection: isRTL ? 'row-reverse' : 'row'
                 }
               ]}
               onPress={() => setShowEmployeePicker(true)}
             >
               <DDIcon name="user" size={20} variant="muted" />
-              <ThemedText style={[Typography.body, { color: hostEmployee ? theme.text : theme.textSecondary, marginStart: Spacing.md, flex: 1 }]}>
+              <ThemedText style={[Typography.body, { color: hostEmployee ? theme.text : theme.textSecondary, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                 {hostEmployee || t('visitor.selectHost')}
               </ThemedText>
               <DDIcon name="chevron-down" size={20} variant="muted" />
@@ -713,13 +714,14 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                 styles.iconInputButton, 
                 { 
                   backgroundColor: theme.background, 
-                  borderColor: theme.border
+                  borderColor: theme.border,
+                  flexDirection: isRTL ? 'row-reverse' : 'row'
                 }
               ]}
               onPress={() => setShowIdTypePicker(true)}
             >
               <DDIcon name="credit-card" size={20} variant="muted" />
-              <ThemedText style={[Typography.body, { color: theme.text, flex: 1 }]}>
+              <ThemedText style={[Typography.body, { color: theme.text, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                 {t(ID_TYPE_OPTIONS.find(opt => opt.value === idType)?.labelKey || 'visitor.nationalId')}
               </ThemedText>
               <DDIcon name="chevron-down" size={20} variant="muted" />
@@ -807,7 +809,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
 
             <Spacer height={Spacing.lg} />
 
-            <ThemedText style={[Typography.label, { color: theme.textSecondary }]}>
+            <ThemedText style={[Typography.label, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('form.visitDate')} *
             </ThemedText>
             <Spacer height={Spacing.xs} />
@@ -839,7 +841,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
 
             <Spacer height={Spacing.lg} />
 
-            <ThemedText style={[Typography.label, { color: theme.textSecondary }]}>
+            <ThemedText style={[Typography.label, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('form.visitTime')} *
             </ThemedText>
             <Spacer height={Spacing.xs} />
@@ -871,7 +873,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
 
             <Spacer height={Spacing.lg} />
 
-            <ThemedText style={[Typography.label, { color: theme.textSecondary }]}>
+            <ThemedText style={[Typography.label, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('form.endTime')} *
             </ThemedText>
             <Spacer height={Spacing.xs} />
@@ -919,7 +921,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
               ]}
             >
               <DDIcon name="clock" size={20} variant="muted" />
-              <ThemedText style={[Typography.body, { color: isEndTimeBeforeStartTime() ? theme.error : theme.textSecondary, marginStart: Spacing.md, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.body, { color: isEndTimeBeforeStartTime() ? theme.error : theme.textSecondary, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                 {calculateDuration()}
               </ThemedText>
               <DDIcon name="lock" size={16} variant="muted" />
