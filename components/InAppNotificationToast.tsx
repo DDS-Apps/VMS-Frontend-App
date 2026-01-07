@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: Spacing.md,
     borderRadius: BorderRadius.md,
-    borderLeftWidth: 4,
+    borderStartWidth: 4,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    marginLeft: Spacing.md,
+    marginStart: Spacing.md,
   },
   title: {
     fontSize: 14,

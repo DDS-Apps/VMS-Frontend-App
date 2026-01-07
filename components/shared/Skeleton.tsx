@@ -166,7 +166,7 @@ export const SkeletonListItem = ({
           width={avatarSize}
           height={avatarSize}
           borderRadius={avatarSize / 2}
-          style={{ marginRight: Spacing.md }}
+          style={{ marginEnd: Spacing.md }}
         />
       ) : null}
       <View style={styles.listItemContent}>

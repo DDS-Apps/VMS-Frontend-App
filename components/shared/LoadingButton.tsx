@@ -138,7 +138,7 @@ export const LoadingButton = ({
 
   const renderContent = () => {
     const iconElement = icon && !loading ? (
-      <View style={iconPosition === "left" ? { marginRight: Spacing.sm } : { marginLeft: Spacing.sm }}>
+      <View style={iconPosition === "left" ? { marginEnd: Spacing.sm } : { marginStart: Spacing.sm }}>
         <DDIcon
           name={icon}
           size={sizeStyle.iconSize}
@@ -148,7 +148,7 @@ export const LoadingButton = ({
     ) : null;
 
     const spinnerElement = loading ? (
-      <View style={{ marginRight: Spacing.sm }}>
+      <View style={{ marginEnd: Spacing.sm }}>
         <LoadingSpinner 
           size="small" 
           color={variantStyles.text} 

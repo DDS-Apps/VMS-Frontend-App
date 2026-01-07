@@ -1,12 +1,13 @@
-import { I18nManager, ViewStyle, TextStyle } from "react-native";
+import { ViewStyle, TextStyle } from "react-native";
 import { useMemo } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 /**
  * Hook to get current locale direction information
  * Useful for RTL-aware layouts and content
  */
 export function useLocaleDirection() {
-  const isRTL = I18nManager.isRTL;
+  const { isRTL } = useLanguage();
   
   const direction = useMemo(() => ({
     isRTL,

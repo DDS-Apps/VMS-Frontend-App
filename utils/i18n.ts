@@ -1,12 +1,10 @@
-import { I18nManager, ViewStyle, TextStyle } from 'react-native';
-import { useMemo } from 'react';
+import { ViewStyle, TextStyle } from 'react-native';
 
-export const useLocaleDirection = () => {
-  return useMemo(() => ({
-    isRTL: I18nManager.isRTL,
-    direction: I18nManager.isRTL ? 'rtl' : 'ltr',
-  }), []);
-};
+/**
+ * @deprecated Use useLanguage from '@/contexts/LanguageContext' instead
+ * This hook is kept for backward compatibility but will be removed in a future version.
+ */
+export { useLocaleDirection } from '@/hooks/useLocaleDirection';
 
 export const getLogicalPadding = (
   horizontal?: number,
@@ -82,13 +80,17 @@ export const getLogicalMargin = (
   return style;
 };
 
-export const getTextAlign = (): 'left' | 'right' | 'center' => {
-  return I18nManager.isRTL ? 'right' : 'left';
+/**
+ * @deprecated These functions use I18nManager.isRTL directly which doesn't work reliably on native.
+ * Use useLanguage().isRTL from '@/contexts/LanguageContext' instead.
+ */
+export const getTextAlign = (isRTL: boolean): 'left' | 'right' | 'center' => {
+  return isRTL ? 'right' : 'left';
 };
 
-export const getFlexDirection = (direction: 'row' | 'column'): 'row' | 'row-reverse' | 'column' | 'column-reverse' => {
+export const getFlexDirection = (direction: 'row' | 'column', isRTL: boolean): 'row' | 'row-reverse' | 'column' | 'column-reverse' => {
   if (direction === 'column') return 'column';
-  return I18nManager.isRTL ? 'row-reverse' : 'row';
+  return isRTL ? 'row-reverse' : 'row';
 };
 
 export const logicalStyles = {
@@ -96,8 +98,4 @@ export const logicalStyles = {
   paddingEnd: (value: number): ViewStyle => ({ paddingEnd: value }),
   marginStart: (value: number): ViewStyle => ({ marginStart: value }),
   marginEnd: (value: number): ViewStyle => ({ marginEnd: value }),
-  textAlign: (): TextStyle => ({ textAlign: getTextAlign() }),
-  flexDirection: (direction: 'row' | 'column'): ViewStyle => ({ 
-    flexDirection: getFlexDirection(direction) 
-  }),
 };
