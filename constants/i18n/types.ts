@@ -300,6 +300,7 @@ export interface TranslationKeys {
     selectEndTime: string;
     walkIn: string;
     visitExpired: string;
+    meetingRoom: string;
   };
   form: {
     fullName: string;

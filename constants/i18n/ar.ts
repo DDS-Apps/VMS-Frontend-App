@@ -300,6 +300,7 @@ export const ar: TranslationKeys = {
     selectEndTime: 'يرجى تحديد وقت انتهاء لهذه الزيارة',
     walkIn: 'زائر بدون موعد',
     visitExpired: 'انتهت الزيارة',
+    meetingRoom: 'غرفة الاجتماعات',
   },
   form: {
     fullName: 'الاسم الكامل',
