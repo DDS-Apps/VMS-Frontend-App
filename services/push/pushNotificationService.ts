@@ -217,12 +217,24 @@ class PushNotificationService {
   }
 
   private async registerTokenWithBackend(): Promise<void> {
-    if (!this.token) return;
+    console.log('[Push] registerTokenWithBackend() called, token exists:', !!this.token);
+    if (!this.token) {
+      console.log('[Push] No token to register, skipping');
+      return;
+    }
 
     const platform: DevicePlatform = Platform.OS as DevicePlatform;
     const deviceName = this.getDeviceName();
     const deviceModel = Device.modelName || undefined;
     const appVersion = Constants.expoConfig?.version || '1.0.0';
+
+    console.log('[Push] Registering token with backend:', {
+      platform,
+      deviceName,
+      deviceModel,
+      appVersion,
+      tokenPrefix: this.token.substring(0, 20) + '...',
+    });
 
     try {
       await deviceApiService.registerToken({
@@ -232,7 +244,7 @@ class PushNotificationService {
         deviceModel,
         appVersion,
       });
-      console.log('[Push] Token registered with backend');
+      console.log('[Push] Token registered with backend successfully');
     } catch (error) {
       console.error('[Push] Failed to register token with backend:', error);
     }
@@ -251,11 +263,16 @@ class PushNotificationService {
   }
 
   async unregister(): Promise<void> {
-    if (!this.token) return;
+    console.log('[Push] unregister() called, token exists:', !!this.token);
+    if (!this.token) {
+      console.log('[Push] No token to unregister, skipping');
+      return;
+    }
 
     try {
+      console.log('[Push] Calling deviceApiService.unregisterToken...');
       await deviceApiService.unregisterToken(this.token);
-      console.log('[Push] Token unregistered from backend');
+      console.log('[Push] Token unregistered from backend successfully');
     } catch (error) {
       console.error('[Push] Failed to unregister token:', error);
     }
