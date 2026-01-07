@@ -273,7 +273,6 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
                   <ThemedText style={[styles.visitorName, { color: theme.text }]} numberOfLines={1}>
                     {visitorName}
                   </ThemedText>
-                  {item.isWalkIn ? <WalkInBadge size="sm" /> : null}
                 </View>
                 <ThemedText style={[styles.companyText, { color: theme.textSecondary }]} numberOfLines={1}>
                   {item.visitor.company ?? ''}
@@ -323,10 +322,13 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
                 ) : null}
               </View>
 
-              <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: 1 }]}>
-                <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
-                  {statusConfig.label}
-                </ThemedText>
+              <View style={[styles.statusArea, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                {item.isWalkIn ? <WalkInBadge size="sm" /> : null}
+                <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: 1 }]}>
+                  <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
+                    {statusConfig.label}
+                  </ThemedText>
+                </View>
               </View>
             </View>
 
@@ -766,6 +768,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: Spacing.sm,
     alignItems: 'center',
+  },
+  statusArea: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
   },
   servicePill: {
     width: 28,
