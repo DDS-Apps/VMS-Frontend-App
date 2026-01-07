@@ -61,6 +61,7 @@ interface SecurityVisitor {
     slotNumber?: string;
     location?: string;
     floor?: string;
+    isVisitorNeedsParking?: boolean;
     visitorNeedsParking?: boolean;
     licensePlate?: string | null;
     carModel?: string | null;
@@ -107,6 +108,7 @@ const mapApiToSecurityVisitor = (dto: SecurityVisitorDto): SecurityVisitor => {
     parking: {
       hasParking: dto.parkingAssigned || false,
       slotNumber: dto.parkingSpot,
+      isVisitorNeedsParking: dto.isVisitorNeedsParking,
       visitorNeedsParking: dto.visitorNeedsParking,
       licensePlate: dto.licensePlate,
       carModel: dto.carModel,
@@ -395,11 +397,12 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
     const getServiceInfo = () => {
       const parts: string[] = [];
       
-      // Check parking status based on visitorNeedsParking field
-      if (visitor.parking.visitorNeedsParking === false) {
+      // Check parking status based on isVisitorNeedsParking or visitorNeedsParking field
+      const needsParking = visitor.parking.isVisitorNeedsParking ?? visitor.parking.visitorNeedsParking;
+      if (needsParking === false) {
         // Visitor explicitly doesn't need parking
         parts.push(t('security.noParking'));
-      } else if (visitor.parking.visitorNeedsParking === true) {
+      } else if (needsParking === true) {
         // Visitor needs parking - check if car details are available
         const carDetails: string[] = [];
         if (visitor.parking.licensePlate) carDetails.push(visitor.parking.licensePlate);
@@ -423,7 +426,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
     };
 
     const serviceParts = getServiceInfo();
-    const hasParking = visitor.parking.visitorNeedsParking === true || visitor.parking.hasParking;
+    const hasParking = visitor.parking.isVisitorNeedsParking === true || visitor.parking.visitorNeedsParking === true || visitor.parking.hasParking;
     
     return (
       <Pressable 

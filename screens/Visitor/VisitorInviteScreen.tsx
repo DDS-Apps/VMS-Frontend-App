@@ -779,8 +779,9 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
 
   const getParkingExpectationText = (invite: PublicInviteDto): string => {
     // Check visitor's parking selection first (for accepted invitations)
-    if (invite.visitorNeedsParking !== undefined) {
-      if (!invite.visitorNeedsParking) {
+    const needsParking = invite.isVisitorNeedsParking ?? invite.visitorNeedsParking;
+    if (needsParking !== undefined) {
+      if (!needsParking) {
         return t('visitorInvite.noParking');
       }
       // Visitor needs parking
@@ -809,8 +810,9 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
 
   const getParkingType = (invite: PublicInviteDto): 'valet' | 'auto' | 'none' | 'pending' => {
     // Check visitor's parking selection first (for accepted invitations)
-    if (invite.visitorNeedsParking !== undefined) {
-      if (!invite.visitorNeedsParking) {
+    const needsParking = invite.isVisitorNeedsParking ?? invite.visitorNeedsParking;
+    if (needsParking !== undefined) {
+      if (!needsParking) {
         return 'none';
       }
       // Visitor needs parking - check if car info is provided

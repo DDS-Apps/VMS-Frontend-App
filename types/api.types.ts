@@ -1322,6 +1322,9 @@ export interface VisitListItemDto {
   hasMeetingRoom?: boolean;
   hasBuffet?: boolean;
   hasValet?: boolean;
+  isBuffet?: boolean;
+  isMeetingRoom?: boolean;
+  isVisitorNeedsParking?: boolean;
   visitorNeedsParking?: boolean;
   licensePlate?: string | null;
   carModel?: string | null;
@@ -1518,6 +1521,9 @@ export interface VisitDetailsDto {
     reason?: string;
     decidedAt: string;
   };
+  isBuffet?: boolean;
+  isMeetingRoom?: boolean;
+  isVisitorNeedsParking?: boolean;
   visitorNeedsParking?: boolean;
   licensePlate?: string | null;
   carModel?: string | null;
@@ -1680,6 +1686,9 @@ export interface PublicInviteDto {
   hasBuffet?: boolean;
   hasValet?: boolean;
   createdAt?: string;
+  isBuffet?: boolean;
+  isMeetingRoom?: boolean;
+  isVisitorNeedsParking?: boolean;
   visitorNeedsParking?: boolean;
   licensePlate?: string | null;
   carModel?: string | null;
@@ -1732,6 +1741,9 @@ export interface ValetParkingVisitorDto {
   visitDate: string;
   visitTime: string;
   status: string;
+  isBuffet?: boolean;
+  isMeetingRoom?: boolean;
+  isVisitorNeedsParking?: boolean;
   visitorNeedsParking: boolean;
   licensePlate?: string | null;
   carModel?: string | null;

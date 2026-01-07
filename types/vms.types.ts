@@ -132,6 +132,7 @@ export interface VisitorRequest {
   notes?: string;
   isBuffet?: boolean;
   isMeetingRoom?: boolean;
+  isVisitorNeedsParking?: boolean;
   visitorNeedsParking?: boolean;
   licensePlate?: string;
   carModel?: string;

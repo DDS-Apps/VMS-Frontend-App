@@ -47,7 +47,7 @@ const ServiceIconsRow = ({ request, size = 14, showWalkIn = false }: { request: 
   const { theme } = useTheme();
   const { isRTL } = useLanguage();
   
-  const showParking = request.visitorNeedsParking === true || !!request.parkingSlot;
+  const showParking = request.isVisitorNeedsParking === true || request.visitorNeedsParking === true || !!request.parkingSlot;
   const showMeetingRoom = request.isMeetingRoom === true || !!request.meetingRoom;
   const showBuffet = request.isBuffet === true || !!request.buffet;
   const showValet = !!request.valet;
