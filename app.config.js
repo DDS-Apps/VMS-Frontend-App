@@ -1,5 +1,4 @@
-const PRODUCTION_BACKEND_URL =
-  "https://b4ba7f88-2197-4a63-950a-28e79dda3bbd-00-2mahxxjomcww2.worf.replit.dev";
+const PRODUCTION_BACKEND_URL = "https://vms-backend-folio3.replit.app";
 
 export default ({ config }) => ({
   ...config,

@@ -99,7 +99,7 @@ value = "0"
 [userenv]
 
 [userenv.shared]
-EXPO_PUBLIC_API_BASE_URL = "https://b4ba7f88-2197-4a63-950a-28e79dda3bbd-00-2mahxxjomcww2.worf.replit.dev"
+EXPO_PUBLIC_API_BASE_URL = "https://vms-backend-folio3.replit.app"
 EXPO_PUBLIC_FIREBASE_API_KEY = "AIzaSyDYMIEEPJLFkpZIkhxmHDcMhfL-BNkSdjw"
 EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN = "dallahdigital-vms.firebaseapp.com"
 EXPO_PUBLIC_FIREBASE_PROJECT_ID = "dallahdigital-vms"
@@ -112,9 +112,9 @@ EXPO_PUBLIC_FIREBASE_APP_ID_IOS = "1:224821384776:ios:fd73944c70ae83e5d0aa7d"
 EXPO_PUBLIC_FIREBASE_VAPID_KEY = "BKVbpaIfbFwy4mf6bsA6dDNONAjM8gIVQsYd8mLCo1RPwOc9miHHeKK4vOsAOMP5LOViNnYA9X2YnM85Tfoq984"
 
 [userenv.production]
-EXPO_PUBLIC_VMS_API_BASE_URL = "https://b4ba7f88-2197-4a63-950a-28e79dda3bbd-00-2mahxxjomcww2.worf.replit.dev/api"
+EXPO_PUBLIC_VMS_API_BASE_URL = "https://vms-backend-folio3.replit.app/api"
 EXPO_PUBLIC_MICROSOFT_AUTH_URL = "https://vms-backend-folio3.replit.app"
 
 [userenv.development]
-EXPO_PUBLIC_VMS_API_BASE_URL = "https://b4ba7f88-2197-4a63-950a-28e79dda3bbd-00-2mahxxjomcww2.worf.replit.dev/api"
+EXPO_PUBLIC_VMS_API_BASE_URL = "https://vms-backend-folio3.replit.app/api"
 EXPO_PUBLIC_MICROSOFT_AUTH_URL = "https://vms-backend-folio3.replit.app"
