@@ -64,9 +64,11 @@ export async function initializeFirebaseWeb(): Promise<boolean> {
       console.log('[Firebase Web] Is dev environment:', isDevEnvironment());
       
       if (!serviceWorkerAvailable && isDevEnvironment()) {
-        console.log('[Firebase Web] Service worker not available in development. Web push notifications will work in production builds.');
-        console.log('[Firebase Web] ========== INITIALIZE END (dev, no sw) ==========');
-        return false;
+        console.log('[Firebase Web] Service worker not available in development - proceeding anyway for API testing');
+        console.log('[Firebase Web] Note: Actual push notifications will not work, but token registration API will be called');
+        messaging = messagingModule.getMessaging(firebaseApp);
+        console.log('[Firebase Web] ========== INITIALIZE SUCCESS (dev mode) ==========');
+        return true;
       }
       
       if (serviceWorkerAvailable) {
@@ -86,22 +88,42 @@ export async function initializeFirebaseWeb(): Promise<boolean> {
 }
 
 export async function getWebFcmToken(): Promise<string | null> {
-  if (Platform.OS !== 'web' || !messaging || !serviceWorkerAvailable) {
+  console.log('[Firebase Web] ========== GET FCM TOKEN START ==========');
+  console.log('[Firebase Web] Platform:', Platform.OS);
+  console.log('[Firebase Web] Messaging available:', !!messaging);
+  console.log('[Firebase Web] Service worker available:', serviceWorkerAvailable);
+  console.log('[Firebase Web] Is dev environment:', isDevEnvironment());
+
+  if (Platform.OS !== 'web' || !messaging) {
+    console.log('[Firebase Web] Cannot get token - not web or no messaging');
     return null;
   }
 
   try {
+    console.log('[Firebase Web] Requesting notification permission...');
     const permission = await Notification.requestPermission();
+    console.log('[Firebase Web] Permission result:', permission);
     if (permission !== 'granted') {
       console.log('[Firebase Web] Notification permission denied');
       return null;
     }
 
+    if (!serviceWorkerAvailable && isDevEnvironment()) {
+      console.log('[Firebase Web] Development mode - generating test token for API testing');
+      const testToken = `dev-web-token-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+      console.log('[Firebase Web] Generated dev token:', testToken.substring(0, 30) + '...');
+      console.log('[Firebase Web] ========== GET FCM TOKEN SUCCESS (dev) ==========');
+      return testToken;
+    }
+
+    console.log('[Firebase Web] Getting real FCM token...');
     const { getToken } = await import('firebase/messaging');
     const token = await getToken(messaging, { vapidKey: VAPID_KEY });
     console.log('[Firebase Web] FCM Token obtained');
+    console.log('[Firebase Web] ========== GET FCM TOKEN SUCCESS ==========');
     return token;
   } catch (error) {
+    console.error('[Firebase Web] ========== GET FCM TOKEN ERROR ==========');
     console.error('[Firebase Web] Error getting FCM token:', error);
     return null;
   }
