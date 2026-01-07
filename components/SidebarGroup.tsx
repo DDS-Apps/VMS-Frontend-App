@@ -122,9 +122,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
+    gap: Spacing.md,
   },
   headerTitle: {
-    marginStart: Spacing.md,
     fontSize: 14,
     fontWeight: '600',
   },

@@ -489,9 +489,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     borderRadius: BorderRadius.sm,
     marginBottom: Spacing.xs,
+    gap: Spacing.md,
   },
   standaloneText: {
-    marginStart: Spacing.md,
     fontSize: 15,
     fontWeight: '500',
   },
@@ -501,13 +501,13 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm + 2,
     paddingHorizontal: Spacing.sm,
     borderRadius: BorderRadius.sm,
+    gap: Spacing.md,
     marginBottom: 2,
   },
   menuItemActive: {
     backgroundColor: 'transparent',
   },
   menuText: {
-    marginStart: Spacing.md,
     fontSize: 14,
   },
   footer: {
