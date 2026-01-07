@@ -622,6 +622,7 @@ const styles = StyleSheet.create({
   },
   menuButton: {
     padding: Spacing.xs,
+    marginEnd: Spacing.xs,
   },
   mainContainer: {
     flex: 1,
@@ -696,7 +697,7 @@ const styles = StyleSheet.create({
   headerLogo: {
     width: 32,
     height: 32,
-    marginStart: Spacing.sm,
+    marginStart: Spacing.md,
   },
   avatarButton: {
     marginStart: Spacing.sm,
