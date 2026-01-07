@@ -887,7 +887,7 @@ export default function RequestDetailsScreen({
             <ThemedText
               style={[
                 Typography.bodySmall,
-                { marginStart: Spacing.sm, flex: 1, color: theme.error },
+                { marginStart: Spacing.sm, flex: 1, color: theme.error, textAlign: isRTL ? 'right' : 'left' },
               ]}
             >
               {t("form.reason")}: {request.approval.rejectionReason}
@@ -914,7 +914,7 @@ export default function RequestDetailsScreen({
             <ThemedText
               style={[
                 Typography.bodySmall,
-                { marginStart: Spacing.sm, flex: 1, color: theme.error },
+                { marginStart: Spacing.sm, flex: 1, color: theme.error, textAlign: isRTL ? 'right' : 'left' },
               ]}
             >
               {t("visitor.visitorDeclineReason")}: {request.visitorDecision.reason}
@@ -948,6 +948,7 @@ export default function RequestDetailsScreen({
                     fontSize: 14,
                     fontWeight: "600",
                     color: theme.text,
+                    textAlign: isRTL ? 'right' : 'left',
                   },
                 ]}
               >
@@ -958,7 +959,7 @@ export default function RequestDetailsScreen({
             <ThemedText
               style={[
                 Typography.body,
-                { color: theme.textSecondary, fontSize: 14, lineHeight: 20 },
+                { color: theme.textSecondary, fontSize: 14, lineHeight: 20, textAlign: isRTL ? 'right' : 'left' },
               ]}
             >
               {request.approval.managerComment}
@@ -966,7 +967,7 @@ export default function RequestDetailsScreen({
             {request.approval.managerName && (
               <>
                 <Spacer height={Spacing.md} />
-                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <View style={{ flexDirection: 'row', alignItems: "center" }}>
                   <DDIcon name="user" size={12} variant="muted" />
                   <ThemedText
                     style={[
@@ -1014,7 +1015,7 @@ export default function RequestDetailsScreen({
           <ThemedView
             style={[styles.cardNew, { backgroundColor: theme.surface }]}
           >
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <View style={{ flexDirection: 'row', alignItems: "center" }}>
               <DDIcon name="file-text" size={16} color={theme.info} />
               <ThemedText
                 style={[
@@ -1024,6 +1025,7 @@ export default function RequestDetailsScreen({
                     fontSize: 14,
                     fontWeight: "600",
                     color: theme.text,
+                    textAlign: isRTL ? 'right' : 'left',
                   },
                 ]}
               >
