@@ -87,7 +87,7 @@ export interface UpdateNotificationPreferencesDto {
 }
 
 export interface RegisterDeviceTokenDto {
-  fcmToken: string;
+  deviceToken: string;
   platform: DevicePlatform;
   deviceName?: string;
   deviceModel?: string;

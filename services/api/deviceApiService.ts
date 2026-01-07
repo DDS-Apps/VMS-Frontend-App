@@ -20,7 +20,7 @@ export const deviceApiService = {
     console.log('[Device API] Auth token present:', hasAuthToken);
     console.log('[Device API] Platform:', data.platform);
     console.log('[Device API] Device:', data.deviceName, data.deviceModel);
-    console.log('[Device API] Token (first 30 chars):', data.fcmToken.substring(0, 30) + '...');
+    console.log('[Device API] Token (first 30 chars):', data.deviceToken.substring(0, 30) + '...');
     
     try {
       const response = await post<DeviceTokenResponse, RegisterDeviceTokenDto>(endpoint, data);
@@ -37,16 +37,16 @@ export const deviceApiService = {
     }
   },
 
-  unregisterToken: async (fcmToken: string): Promise<void> => {
+  unregisterToken: async (deviceToken: string): Promise<void> => {
     const endpoint = devices.token;
     const hasAuthToken = !!getAccessToken();
     console.log('[Device API] ========== UNREGISTER TOKEN START ==========');
     console.log('[Device API] Endpoint:', apiConfig.baseUrl + endpoint);
     console.log('[Device API] Auth token present:', hasAuthToken);
-    console.log('[Device API] Token (first 30 chars):', fcmToken.substring(0, 30) + '...');
+    console.log('[Device API] Token (first 30 chars):', deviceToken.substring(0, 30) + '...');
     
     try {
-      await del<void, { fcmToken: string }>(endpoint, { fcmToken });
+      await del<void, { deviceToken: string }>(endpoint, { deviceToken });
       console.log('[Device API] Token unregistered successfully');
       console.log('[Device API] ========== UNREGISTER TOKEN SUCCESS ==========');
     } catch (error: unknown) {

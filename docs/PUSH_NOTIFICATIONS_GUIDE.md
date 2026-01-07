@@ -105,7 +105,7 @@ Register a device to receive push notifications.
 
 ```json
 {
-  "fcmToken": "your-fcm-token-from-firebase",
+  "deviceToken": "your-device-token-from-firebase",
   "platform": "android",
   "deviceName": "John's Phone",
   "deviceModel": "Samsung Galaxy S23",
@@ -115,7 +115,7 @@ Register a device to receive push notifications.
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| fcmToken | string | Yes | FCM token from Firebase SDK |
+| deviceToken | string | Yes | Device token from Firebase SDK |
 | platform | string | Yes | `android`, `ios`, or `web` |
 | deviceName | string | No | User-friendly device name |
 | deviceModel | string | No | Device model identifier |
@@ -140,7 +140,7 @@ Unregister a specific device (e.g., on logout).
 
 ```json
 {
-  "fcmToken": "your-fcm-token"
+  "deviceToken": "your-device-token"
 }
 ```
 
@@ -391,7 +391,7 @@ export class PushNotificationService {
 
     try {
       await apiClient.post('/devices/token', {
-        fcmToken: this.token,
+        deviceToken: this.token,
         platform: 'web',
         deviceName: this.getBrowserName(),
         appVersion: '1.0.0'
@@ -407,7 +407,7 @@ export class PushNotificationService {
 
     try {
       await apiClient.delete('/devices/token', {
-        data: { fcmToken: this.token }
+        data: { deviceToken: this.token }
       });
       console.log('Push token unregistered');
     } catch (error) {
@@ -613,7 +613,7 @@ export class PushNotificationService {
 
     try {
       await apiClient.post('/devices/token', {
-        fcmToken: this.token,
+        deviceToken: this.token,
         platform,
         deviceName,
         deviceModel,
@@ -630,7 +630,7 @@ export class PushNotificationService {
 
     try {
       await apiClient.delete('/devices/token', {
-        data: { fcmToken: this.token }
+        data: { deviceToken: this.token }
       });
     } catch (error) {
       console.error('Failed to unregister:', error);

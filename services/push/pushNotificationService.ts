@@ -271,7 +271,7 @@ class PushNotificationService {
     try {
       console.log('[Push] Calling deviceApiService.registerToken()...');
       const result = await deviceApiService.registerToken({
-        fcmToken: this.token,
+        deviceToken: this.token,
         platform,
         deviceName,
         deviceModel,
