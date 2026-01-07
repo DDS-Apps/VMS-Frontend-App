@@ -12,12 +12,16 @@ import {
 const { devices } = apiConfig.endpoints;
 
 export const deviceApiService = {
-  registerToken: (data: RegisterDeviceTokenDto): Promise<DeviceTokenResponse> => {
-    return post<DeviceTokenResponse, RegisterDeviceTokenDto>(devices.token, data);
+  registerToken: async (data: RegisterDeviceTokenDto): Promise<DeviceTokenResponse> => {
+    console.log('[Device API] Registering token:', data.fcmToken.substring(0, 20) + '...', 'platform:', data.platform);
+    const response = await post<DeviceTokenResponse, RegisterDeviceTokenDto>(devices.token, data);
+    console.log('[Device API] Token registered successfully');
+    return response;
   },
 
   unregisterToken: async (fcmToken: string): Promise<void> => {
-    await post<void, { fcmToken: string }>(`${devices.token}/unregister`, { fcmToken });
+    console.log('[Device API] Unregistering token:', fcmToken.substring(0, 20) + '...');
+    await del<void, { fcmToken: string }>(devices.token, { fcmToken });
   },
 
   unregisterAllTokens: (): Promise<void> => {

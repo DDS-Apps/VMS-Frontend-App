@@ -177,10 +177,10 @@ export async function put<T, D = unknown>(url: string, data?: D): Promise<T> {
   return unwrapResponse<T>(response.data);
 }
 
-export async function del<T>(url: string): Promise<T | undefined> {
+export async function del<T, D = unknown>(url: string, data?: D): Promise<T | undefined> {
   console.log('[httpClient.del] Making DELETE request to:', url);
   try {
-    const response = await httpClient.delete(url);
+    const response = await httpClient.delete(url, { data });
     console.log('[httpClient.del] Response status:', response.status);
     if (response.status === 204) {
       return undefined as T;
