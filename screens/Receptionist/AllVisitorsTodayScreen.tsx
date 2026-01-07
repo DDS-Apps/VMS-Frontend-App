@@ -29,7 +29,12 @@ type StatusFilter = 'all' | 'expected' | 'checked_in' | 'completed';
 const ServiceIconsRow = ({ visitor, size = 14 }: { visitor: TodayVisitorDto; size?: number }) => {
   const { theme } = useTheme();
   const { isRTL } = useLanguage();
-  const hasServices = visitor.parkingSlot || visitor.meetingRoom;
+  
+  const showParking = visitor.isVisitorNeedsParking === true || visitor.visitorNeedsParking === true || visitor.hasParking === true || !!visitor.parkingSlot;
+  const showMeetingRoom = visitor.isMeetingRoom === true || visitor.hasMeetingRoom === true || !!visitor.meetingRoom;
+  const showBuffet = visitor.isBuffet === true || visitor.hasBuffet === true;
+  
+  const hasServices = showParking || showMeetingRoom || showBuffet;
   
   if (!hasServices) {
     return <View />;
@@ -37,14 +42,19 @@ const ServiceIconsRow = ({ visitor, size = 14 }: { visitor: TodayVisitorDto; siz
 
   return (
     <View style={[styles.servicesIconsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-      {visitor.parkingSlot ? (
-        <View style={[styles.serviceIconPill, { backgroundColor: applyOpacity(theme.info, '20') }]}>
-          <DDIcon name="map-pin" size={size} color={theme.info} />
+      {showBuffet ? (
+        <View style={[styles.serviceIconPill, { backgroundColor: applyOpacity(theme.warning, '20') }]}>
+          <DDIcon name="coffee" size={size} color={theme.warning} />
         </View>
       ) : null}
-      {visitor.meetingRoom ? (
+      {showMeetingRoom ? (
         <View style={[styles.serviceIconPill, { backgroundColor: applyOpacity(theme.secondary, '20') }]}>
           <DDIcon name="briefcase" size={size} color={theme.secondary} />
+        </View>
+      ) : null}
+      {showParking ? (
+        <View style={[styles.serviceIconPill, { backgroundColor: applyOpacity(theme.info, '20') }]}>
+          <DDIcon name="map-pin" size={size} color={theme.info} />
         </View>
       ) : null}
     </View>

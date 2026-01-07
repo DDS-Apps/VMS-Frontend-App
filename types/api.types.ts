@@ -1140,6 +1140,10 @@ export interface PendingApprovalDto {
   hasParking: boolean;
   hasBuffet: boolean;
   hasValet: boolean;
+  isBuffet?: boolean;
+  isMeetingRoom?: boolean;
+  isVisitorNeedsParking?: boolean;
+  visitorNeedsParking?: boolean;
   createdAt: string;
 }
 
@@ -1235,6 +1239,14 @@ export interface AwaitingVisitorDto {
   autoCancelAt: string;
   firstReminderSent: boolean;
   secondReminderSent: boolean;
+  hasMeetingRoom?: boolean;
+  hasParking?: boolean;
+  hasBuffet?: boolean;
+  hasValet?: boolean;
+  isBuffet?: boolean;
+  isMeetingRoom?: boolean;
+  isVisitorNeedsParking?: boolean;
+  visitorNeedsParking?: boolean;
 }
 
 export interface AwaitingVisitorListParams {

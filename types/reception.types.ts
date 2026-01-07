@@ -57,6 +57,14 @@ export interface TodayVisitorDto {
   parkingSlot?: ParkingSlotInfo;
   qrCode?: string;
   isWalkIn?: boolean;
+  hasMeetingRoom?: boolean;
+  hasParking?: boolean;
+  hasBuffet?: boolean;
+  hasValet?: boolean;
+  isBuffet?: boolean;
+  isMeetingRoom?: boolean;
+  isVisitorNeedsParking?: boolean;
+  visitorNeedsParking?: boolean;
 }
 
 export interface TodaySummary {
