@@ -12,6 +12,7 @@ import Sidebar from "@/components/Sidebar";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { DDIcon } from "@/components/DDIcon";
+import { EnableNotificationsPrompt } from "@/components/shared/EnableNotificationsPrompt";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -598,6 +599,7 @@ export default function DashboardLayout({
             )}
             
             <View style={styles.contentInner}>
+              {Platform.OS === 'web' && <EnableNotificationsPrompt />}
               {children}
             </View>
           </View>
