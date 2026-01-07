@@ -452,6 +452,7 @@ const styles = StyleSheet.create({
   },
   cardHeader: {
     alignItems: 'center',
+    gap: Spacing.md,
   },
   avatar: {
     width: LAYOUT.avatarSize,
@@ -466,7 +467,6 @@ const styles = StyleSheet.create({
   },
   nameSection: {
     flex: 1,
-    marginStart: Spacing.md,
   },
   nameRow: {
     alignItems: 'center',
