@@ -305,6 +305,7 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
 
             <View style={[styles.servicesStatusRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <View style={[styles.servicesRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                {item.isWalkIn ? <WalkInBadge size="sm" /> : null}
                 {item.hasParking ? (
                   <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '20') }]}>
                     <DDIcon name="map-pin" size={12} color={theme.info} />
@@ -322,13 +323,10 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
                 ) : null}
               </View>
 
-              <View style={[styles.statusArea, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                {item.isWalkIn ? <WalkInBadge size="sm" /> : null}
-                <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: 1 }]}>
-                  <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
-                    {statusConfig.label}
-                  </ThemedText>
-                </View>
+              <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: 1 }]}>
+                <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
+                  {statusConfig.label}
+                </ThemedText>
               </View>
             </View>
 
