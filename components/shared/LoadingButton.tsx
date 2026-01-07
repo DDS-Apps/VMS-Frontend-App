@@ -204,7 +204,7 @@ export const LoadingButton = ({
 
 const styles = StyleSheet.create({
   button: {
-    borderRadius: BorderRadius.pill,
+    borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
     flexDirection: "row",
