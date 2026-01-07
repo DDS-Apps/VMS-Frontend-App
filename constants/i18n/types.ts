@@ -491,6 +491,11 @@ export interface TranslationKeys {
     enablePushDescription: string;
     permissionGranted: string;
     permissionDenied: string;
+    enablePromptTitle: string;
+    enablePromptDescription: string;
+    enableButton: string;
+    enableLater: string;
+    enablingNotifications: string;
     types: {
       requestSubmitted: string;
       requestApproved: string;

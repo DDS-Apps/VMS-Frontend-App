@@ -491,6 +491,11 @@ export const ar: TranslationKeys = {
     enablePushDescription: 'فعّل إشعارات الدفع لتلقي التنبيهات على جهازك',
     permissionGranted: 'تم تفعيل إشعارات الدفع',
     permissionDenied: 'تم رفض إذن إشعارات الدفع',
+    enablePromptTitle: 'تفعيل الإشعارات',
+    enablePromptDescription: 'احصل على إشعارات حول وصول الزوار والموافقات والتحديثات المهمة',
+    enableButton: 'تفعيل الإشعارات',
+    enableLater: 'لاحقاً',
+    enablingNotifications: 'جاري التفعيل...',
     types: {
       requestSubmitted: 'تم تقديم الطلب',
       requestApproved: 'تمت الموافقة على الطلب',

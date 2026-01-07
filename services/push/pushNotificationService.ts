@@ -9,6 +9,7 @@ import {
   getWebFcmToken,
   onWebForegroundMessage,
   registerServiceWorker,
+  getWebNotificationPermissionStatus,
 } from '@/services/firebase';
 import { handleNotificationTap } from '@/utils/notificationNavigator';
 import { invalidateQueriesForNotification, refreshAllNotificationData } from './notificationQueryMapper';
@@ -404,6 +405,38 @@ class PushNotificationService {
 
   isReady(): boolean {
     return this.isInitialized && this.token !== null;
+  }
+
+  async getPermissionStatus(): Promise<'granted' | 'denied' | 'undetermined' | 'unsupported'> {
+    if (Platform.OS === 'web') {
+      const status = getWebNotificationPermissionStatus();
+      if (status === 'unsupported') return 'unsupported';
+      if (status === 'granted') return 'granted';
+      if (status === 'denied') return 'denied';
+      return 'undetermined';
+    }
+
+    if (!Device.isDevice) {
+      return 'unsupported';
+    }
+
+    const { status } = await Notifications.getPermissionsAsync();
+    if (status === 'granted') return 'granted';
+    if (status === 'denied') return 'denied';
+    return 'undetermined';
+  }
+
+  shouldShowEnablePrompt(): boolean {
+    if (this.isInitialized && this.token) {
+      return false;
+    }
+    
+    if (Platform.OS === 'web') {
+      const status = getWebNotificationPermissionStatus();
+      return status === 'default';
+    }
+    
+    return true;
   }
 }
 

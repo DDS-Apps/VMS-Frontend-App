@@ -491,6 +491,11 @@ export const en: TranslationKeys = {
     enablePushDescription: 'Enable push notifications to receive alerts on your device',
     permissionGranted: 'Push notifications enabled',
     permissionDenied: 'Push notification permission denied',
+    enablePromptTitle: 'Enable Notifications',
+    enablePromptDescription: 'Get notified about visitor arrivals, approvals, and important updates',
+    enableButton: 'Enable Notifications',
+    enableLater: 'Maybe Later',
+    enablingNotifications: 'Enabling...',
     types: {
       requestSubmitted: 'Request Submitted',
       requestApproved: 'Request Approved',

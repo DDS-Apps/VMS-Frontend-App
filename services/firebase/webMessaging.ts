@@ -206,3 +206,15 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
 export function isWebPushAvailable(): boolean {
   return Platform.OS === 'web' && messaging !== null;
 }
+
+export function getWebNotificationPermissionStatus(): 'granted' | 'denied' | 'default' | 'unsupported' {
+  if (Platform.OS !== 'web' || typeof window === 'undefined') {
+    return 'unsupported';
+  }
+  
+  if (!('Notification' in window)) {
+    return 'unsupported';
+  }
+  
+  return Notification.permission;
+}
