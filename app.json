@@ -16,14 +16,14 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.dallah.vms",
-      "googleServicesFile": "./google-services.json"
+      "googleServicesFile": "./config/qa/google-services.json"
     },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.dallah.vms",
       "appleTeamId": "SNJM77V43A",
       "buildNumber": "7",
-      "googleServicesFile": "./GoogleService-Info.plist",
+      "googleServicesFile": "./config/qa/GoogleService-Info.plist",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "UIBackgroundModes": ["remote-notification"]
@@ -60,8 +60,8 @@
       "reactCompiler": true
     },
     "extra": {
-      "apiBaseUrl": "https://vms-backend-folio3.replit.app",
-      "microsoftAuthUrl": "https://vms-backend-folio3.replit.app",
+      "apiBaseUrl": "https://vms-backend-app-qa.replit.app",
+      "microsoftAuthUrl": "https://vms-backend-app-qa.replit.app",
       "eas": {
         "projectId": "33b6baff-6c89-44be-905f-006d0da4434d"
       }
