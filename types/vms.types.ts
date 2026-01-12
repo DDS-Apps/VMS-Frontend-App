@@ -1,4 +1,7 @@
-export type UserRole = 'employee' | 'manager' | 'building_admin' | 'buffet_admin' | 'buffet_staff' | 'valet_admin' | 'valet_driver' | 'security' | 'visitor' | 'receptionist';
+import { UserRole as UserRoleType, USER_ROLES, isValidRole } from '@/constants/roles';
+
+export type UserRole = UserRoleType;
+export { USER_ROLES, isValidRole };
 
 export type RequestStatus = 
   | 'draft' 
@@ -127,6 +130,13 @@ export interface VisitorRequest {
   isWalkIn?: boolean;
   needsResourceReallocation?: boolean;
   notes?: string;
+  isBuffet?: boolean;
+  isMeetingRoom?: boolean;
+  isVisitorNeedsParking?: boolean;
+  visitorNeedsParking?: boolean;
+  licensePlate?: string;
+  carModel?: string;
+  carColor?: string;
 }
 
 export interface DashboardStats {

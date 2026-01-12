@@ -10,7 +10,9 @@ import SidebarGroup from "@/components/SidebarGroup";
 import { Colors, Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { UserRole } from "@/types/vms.types";
+import Constants from 'expo-constants';
 
 interface MenuItem {
   id: string;
@@ -202,6 +204,7 @@ export default function Sidebar({
 }: SidebarProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { isRTL } = useLanguage();
   const { groups, standalone } = getMenuGroups(userRole);
   const { width } = Dimensions.get('window');
   const isLargeScreen = width >= 768;
@@ -269,6 +272,7 @@ export default function Sidebar({
         key={item.id}
         style={({ pressed }) => [
           styles.menuItem,
+          isRTL && { flexDirection: 'row-reverse' },
           isActive && [styles.menuItemActive, { backgroundColor: theme.sidebarActive }],
           pressed && { opacity: 0.7 },
         ]}
@@ -301,6 +305,7 @@ export default function Sidebar({
         key={item.id}
         style={({ pressed }) => [
           styles.standaloneItem,
+          isRTL && { flexDirection: 'row-reverse' },
           isActive && [styles.menuItemActive, { backgroundColor: theme.sidebarActive }],
           pressed && { opacity: 0.7 },
         ]}
@@ -344,11 +349,14 @@ export default function Sidebar({
       { 
         backgroundColor: theme.sidebarBg, 
         borderRightColor: theme.border,
+        borderLeftColor: theme.border,
+        borderRightWidth: isRTL ? 0 : 1,
+        borderLeftWidth: isRTL ? 1 : 0,
         paddingTop: insets.top + Spacing.sm,
       },
     ]}>
       <Pressable 
-        style={({ pressed }) => [styles.profileHeader, pressed && { opacity: 0.7 }]}
+        style={({ pressed }) => [styles.profileHeader, isRTL && { flexDirection: 'row-reverse' }, pressed && { opacity: 0.7 }]}
         onPress={() => handleItemPress('Dashboard')}
       >
         {userPhotoUrl ? (
@@ -408,7 +416,7 @@ export default function Sidebar({
           {t('common.brandName')} {t('common.appName')}
         </ThemedText>
         <ThemedText style={[styles.appVersion, { color: theme.sidebarTextMuted }]}>
-          v1.0.0
+          v{Constants.expoConfig?.version || '1.0.0'}
         </ThemedText>
       </View>
 
@@ -451,7 +459,6 @@ const styles = StyleSheet.create({
   sidebar: {
     width: '100%',
     height: '100%',
-    borderRightWidth: 1,
     paddingBottom: Spacing.lg,
   },
   profileHeader: {
@@ -482,9 +489,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     borderRadius: BorderRadius.sm,
     marginBottom: Spacing.xs,
+    gap: Spacing.md,
   },
   standaloneText: {
-    marginStart: Spacing.md,
     fontSize: 15,
     fontWeight: '500',
   },
@@ -494,13 +501,13 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm + 2,
     paddingHorizontal: Spacing.sm,
     borderRadius: BorderRadius.sm,
+    gap: Spacing.md,
     marginBottom: 2,
   },
   menuItemActive: {
     backgroundColor: 'transparent',
   },
   menuText: {
-    marginStart: Spacing.md,
     fontSize: 14,
   },
   footer: {

@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { View, StyleSheet, Pressable, Modal, TextInput, Alert, ScrollView, ActivityIndicator } from "react-native";
 import type { VisitorDetailScreenProps } from "@/types/receptionistNavigation.types";
+import { ROUTES } from "@/constants";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DDIcon, type IconName } from "@/components/DDIcon";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
@@ -21,6 +22,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { applyOpacity } from "@/utils/statusStyles";
 import type { VisitorExceptionType } from "@/services/state/receptionistVisitorState";
 import { VisitorActionButton } from "@/components/VisitorActionButton";
+import { StatusBadge } from "@/components/shared/StatusBadge";
+import { LoadingButton } from "@/components/shared/LoadingButton";
 import { useReceptionCheckInMutation, useReceptionCheckOutMutation } from "@/hooks/queries/useReceptionQueries";
 import { useVisitDetailsQuery } from "@/hooks/queries/useApprovalQueries";
 
@@ -31,7 +34,7 @@ interface LegacyVisitor {
   time: string;
   host: string;
   hostDepartment?: string;
-  status: 'pending' | 'checked_in' | 'completed' | 'rejected';
+  status: 'pending' | 'approved' | 'checked_in' | 'completed' | 'rejected' | 'cancelled' | 'pending_approval';
   isWalkIn: boolean;
   phone: string;
   parking?: string;
@@ -55,9 +58,11 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
   
   const { data: visitDetails, isLoading, isError } = useVisitDetailsQuery(visitId ?? '', !!visitId);
   
-  const mapVisitStatus = (status: string): 'pending' | 'checked_in' | 'completed' | 'rejected' => {
+  const mapVisitStatus = (status: string): 'pending' | 'approved' | 'checked_in' | 'completed' | 'rejected' | 'cancelled' | 'pending_approval' => {
     if (status === 'rejected') return 'rejected';
-    if (status === 'approved' || status === 'pending_approval') return 'pending';
+    if (status === 'cancelled') return 'cancelled';
+    if (status === 'pending_approval') return 'pending_approval';
+    if (status === 'approved') return 'approved';
     if (status === 'checked_in') return 'checked_in';
     if (status === 'completed' || status === 'checked_out') return 'completed';
     return 'pending';
@@ -75,7 +80,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
     phone: visitDetails.visitor.phone ?? '',
     parking: visitDetails.parkingSlot?.slotNumber,
     valet: visitDetails.parkingAllocation?.status,
-    meetingRoom: visitDetails.meetingRoom ? { name: visitDetails.meetingRoom.name, floor: visitDetails.meetingRoom.floor } : undefined,
+    meetingRoom: (visitDetails.meetingRoom && visitDetails.meetingRoom.name) ? { name: visitDetails.meetingRoom.name, floor: visitDetails.meetingRoom.floor } : undefined,
     origin: visitDetails.isWalkIn ? 'walk_in' : 'scheduled',
     scheduledFor: visitDetails.visitDate,
     createdAt: visitDetails.createdAt,
@@ -92,10 +97,16 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
   const [exceptionFloor, setExceptionFloor] = useState('');
   const [exceptionRoom, setExceptionRoom] = useState('');
 
+  const showStickyFooter = visitor && (
+    visitor.status === 'approved' || 
+    visitor.status === 'pending' || 
+    visitor.status === 'checked_in'
+  );
+
   const scrollContentStyle = {
     paddingHorizontal: Spacing.lg,
     paddingTop: insets.top + Spacing.xl,
-    paddingBottom: insets.bottom + Spacing.xl
+    paddingBottom: showStickyFooter ? insets.bottom + 140 : insets.bottom + Spacing.xl
   };
 
   const handleCheckIn = () => {
@@ -105,7 +116,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
       {
         onSuccess: () => {
           const currentTime = formatTime(new Date());
-          navigation.navigate('CheckInOutConfirmation', {
+          navigation.navigate(ROUTES.CHECK_IN_OUT_CONFIRMATION as never, {
             action: 'check_in',
             visitorName: visitor.name,
             time: currentTime
@@ -125,7 +136,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
       {
         onSuccess: () => {
           const currentTime = formatTime(new Date());
-          navigation.navigate('CheckInOutConfirmation', {
+          navigation.navigate(ROUTES.CHECK_IN_OUT_CONFIRMATION as never, {
             action: 'check_out',
             visitorName: visitor.name,
             time: currentTime
@@ -155,7 +166,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
 
   const timelineActions: TimelineActionCallbacks | undefined = useMemo(() => {
     if (!visitor) return undefined;
-    if (visitor.status === 'pending') {
+    if (visitor.status === 'approved' || visitor.status === 'pending') {
       return {
         onCheckIn: handleCheckIn,
         isCheckInLoading: checkInMutation.isPending,
@@ -202,16 +213,22 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
     );
   }
 
-  const getStatusConfig = (status: string): { label: string; bg: string; text: string; border: string; icon: IconName } => {
+  const getStatusConfig = (status: string): { label: string; variant: 'success' | 'warning' | 'error' | 'info' | 'muted' | 'primary'; icon: IconName } => {
     switch (status) {
       case 'checked_in':
-        return { label: t('status.checkedIn'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: applyOpacity(theme.success, '30'), icon: 'check-circle' };
+        return { label: t('status.checkedIn'), variant: 'success', icon: 'check-circle' };
       case 'completed':
-        return { label: t('status.checkedOut'), bg: applyOpacity(theme.textSecondary, '15'), text: theme.textSecondary, border: applyOpacity(theme.textSecondary, '30'), icon: 'log-out' };
+        return { label: t('status.checkedOut'), variant: 'muted', icon: 'log-out' };
       case 'rejected':
-        return { label: t('status.rejected'), bg: applyOpacity(theme.error, '15'), text: theme.error, border: applyOpacity(theme.error, '30'), icon: 'x-circle' };
+        return { label: t('status.rejected'), variant: 'error', icon: 'x-circle' };
+      case 'cancelled':
+        return { label: t('status.cancelled'), variant: 'error', icon: 'x-circle' };
+      case 'pending_approval':
+        return { label: t('status.pendingApproval'), variant: 'warning', icon: 'clock' };
+      case 'approved':
+        return { label: t('visitor.expectedVisitors'), variant: 'info', icon: 'check-circle' };
       default:
-        return { label: t('visitor.expectedVisitors'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: applyOpacity(theme.warning, '30'), icon: 'clock' };
+        return { label: t('visitor.expectedVisitors'), variant: 'warning', icon: 'clock' };
     }
   };
 
@@ -255,6 +272,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
   const statusConfig = getStatusConfig(visitor.status);
 
   return (
+    <>
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
       <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
         <View style={{ alignItems: 'center' }}>
@@ -275,21 +293,11 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
 
           <Spacer height={Spacing.sm} />
 
-          <View
-            style={{
-              alignSelf: 'center',
-              backgroundColor: statusConfig.bg,
-              borderColor: statusConfig.border,
-              borderWidth: StyleSheet.hairlineWidth,
-              paddingHorizontal: Spacing.md,
-              paddingVertical: 6,
-              borderRadius: BorderRadius.full,
-            }}
-          >
-            <ThemedText style={[Typography.caption, { color: statusConfig.text, fontWeight: '600', fontSize: 12 }]}>
-              {statusConfig.label}
-            </ThemedText>
-          </View>
+          <StatusBadge
+            label={statusConfig.label}
+            variant={statusConfig.variant}
+            icon={statusConfig.icon}
+          />
         </View>
 
         <Spacer height={Spacing.xl} />
@@ -396,7 +404,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
               </View>
               <View style={{ flex: 1, marginStart: Spacing.md }}>
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
-                  {t('meeting.meetingRoom')}
+                  {t('visitor.meetingRoom')}
                 </ThemedText>
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
                   {visitor.meetingRoom.name}{visitor.meetingRoom.floor ? ` (${visitor.meetingRoom.floor})` : ''}
@@ -440,56 +448,15 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
 
       <Spacer height={Spacing.lg} />
 
-      {visitor.status === 'pending' && (
-        <>
-          <VisitorActionButton 
-            type="check_in" 
-            onPress={handleCheckIn} 
-            fullWidth 
-          />
-          <Spacer height={Spacing.md} />
-          <View style={[styles.buttonRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <Pressable
-              style={[styles.outlineButton, { borderColor: theme.error, flex: 1, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
-              onPress={() => setShowCancelModal(true)}
-            >
-              <DDIcon name="x" size={18} color={theme.error} />
-              <ThemedText style={[styles.outlineButtonText, { color: theme.error }]}>
-                {t('actions.cancelRequest')}
-              </ThemedText>
-            </Pressable>
-            <Spacer width={Spacing.md} />
-            <Pressable
-              style={[styles.outlineButton, { borderColor: theme.warning, flex: 1, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
-              onPress={() => setShowExceptionModal(true)}
-            >
-              <DDIcon name="alert-triangle" size={18} color={theme.warning} />
-              <ThemedText style={[styles.outlineButtonText, { color: theme.warning }]}>
-                {t('reception.reportException')}
-              </ThemedText>
-            </Pressable>
-          </View>
-        </>
-      )}
-
-      {visitor.status === 'checked_in' && (
-        <>
-          <VisitorActionButton 
-            type="check_out" 
-            onPress={handleCheckOut} 
-            fullWidth 
-          />
-          <Spacer height={Spacing.md} />
-          <Pressable
-            style={[styles.outlineButton, { borderColor: theme.warning, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
-            onPress={() => setShowExceptionModal(true)}
-          >
-            <DDIcon name="alert-triangle" size={18} color={theme.warning} />
-            <ThemedText style={[styles.outlineButtonText, { color: theme.warning }]}>
-              {t('reception.reportException')}
+      {visitor.status === 'pending_approval' && (
+        <ThemedView style={[styles.pendingApprovalBanner, { backgroundColor: applyOpacity(theme.warning, '10'), borderColor: theme.warning }]}>
+          <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.sm }}>
+            <DDIcon name="clock" size={20} color={theme.warning} />
+            <ThemedText style={[Typography.body, { color: theme.warning, fontWeight: '600', flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
+              {t('status.pendingApproval')}
             </ThemedText>
-          </Pressable>
-        </>
+          </View>
+        </ThemedView>
       )}
 
       {visitor.status === 'completed' && (
@@ -712,10 +679,81 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
         </View>
       </Modal>
     </ScreenScrollView>
+
+    {/* Sticky Footer for Actions */}
+    {(visitor.status === 'approved' || visitor.status === 'pending') && (
+      <View style={[styles.stickyFooter, { backgroundColor: theme.background, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.lg }]}>
+        <VisitorActionButton 
+          type="check_in" 
+          onPress={handleCheckIn} 
+          fullWidth 
+          loading={checkInMutation.isPending}
+        />
+        <Spacer height={Spacing.md} />
+        <View style={[styles.buttonRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <LoadingButton
+            onPress={() => setShowCancelModal(true)}
+            variant="danger-outline"
+            size="large"
+            icon="x-circle"
+            iconPosition="left"
+            style={{ flex: 1 }}
+          >
+            {t('actions.cancelRequest')}
+          </LoadingButton>
+          <View style={{ width: Spacing.md }} />
+          <LoadingButton
+            onPress={() => setShowExceptionModal(true)}
+            variant="warning-outline"
+            size="large"
+            icon="alert-triangle"
+            iconPosition="left"
+            style={{ flex: 1 }}
+          >
+            {t('reception.reportException')}
+          </LoadingButton>
+        </View>
+      </View>
+    )}
+
+    {visitor.status === 'checked_in' && (
+      <View style={[styles.stickyFooter, { backgroundColor: theme.background, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.lg }]}>
+        <View style={[styles.buttonRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <VisitorActionButton 
+            type="check_out" 
+            onPress={handleCheckOut} 
+            fullWidth 
+            loading={checkOutMutation.isPending}
+            flex={1}
+          />
+          <View style={{ width: Spacing.md }} />
+          <LoadingButton
+            onPress={() => setShowExceptionModal(true)}
+            variant="warning-outline"
+            size="large"
+            icon="alert-triangle"
+            iconPosition="left"
+            style={{ flex: 1 }}
+          >
+            {t('reception.reportException')}
+          </LoadingButton>
+        </View>
+      </View>
+    )}
+    </>
   );
 }
 
 const styles = StyleSheet.create({
+  stickyFooter: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.lg,
+    borderTopWidth: 1,
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -762,6 +800,12 @@ const styles = StyleSheet.create({
   },
   buttonRow: {
     alignItems: 'center',
+  },
+  pendingApprovalBanner: {
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    marginBottom: Spacing.md,
   },
   outlineButton: {
     alignItems: 'center',

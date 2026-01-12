@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
-import { View, StyleSheet, Pressable, GestureResponderEvent, Alert, ScrollView } from "react-native";
+import { View, StyleSheet, Pressable, GestureResponderEvent, Alert, ScrollView, LayoutAnimation, Platform, UIManager } from "react-native";
 import type { AllVisitorsTodayScreenProps } from "@/types/receptionistNavigation.types";
+import { ROUTES } from "@/constants";
 import { SkeletonList } from "@/components/shared/Skeleton";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScreenScrollView } from "@/components/ScreenScrollView";
@@ -19,7 +20,46 @@ import { applyOpacity } from "@/utils/statusStyles";
 import { useTodayVisitorsQuery, useReceptionCheckInMutation, useReceptionCheckOutMutation } from "@/hooks/queries/useReceptionQueries";
 import type { TodayVisitorDto, ListReceptionTodayParams } from "@/types";
 
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
 type StatusFilter = 'all' | 'expected' | 'checked_in' | 'completed';
+
+const ServiceIconsRow = ({ visitor, size = 14 }: { visitor: TodayVisitorDto; size?: number }) => {
+  const { theme } = useTheme();
+  const { isRTL } = useLanguage();
+  
+  const showParking = visitor.isVisitorNeedsParking === true || visitor.visitorNeedsParking === true || visitor.hasParking === true || !!visitor.parkingSlot;
+  const showMeetingRoom = visitor.isMeetingRoom === true || visitor.hasMeetingRoom === true || !!visitor.meetingRoom;
+  const showBuffet = visitor.isBuffet === true || visitor.hasBuffet === true;
+  
+  const hasServices = showParking || showMeetingRoom || showBuffet;
+  
+  if (!hasServices) {
+    return <View />;
+  }
+
+  return (
+    <View style={[styles.servicesIconsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      {showBuffet ? (
+        <View style={[styles.serviceIconPill, { backgroundColor: applyOpacity(theme.warning, '20') }]}>
+          <DDIcon name="coffee" size={size} color={theme.warning} />
+        </View>
+      ) : null}
+      {showMeetingRoom ? (
+        <View style={[styles.serviceIconPill, { backgroundColor: applyOpacity(theme.secondary, '20') }]}>
+          <DDIcon name="briefcase" size={size} color={theme.secondary} />
+        </View>
+      ) : null}
+      {showParking ? (
+        <View style={[styles.serviceIconPill, { backgroundColor: applyOpacity(theme.info, '20') }]}>
+          <DDIcon name="map-pin" size={size} color={theme.info} />
+        </View>
+      ) : null}
+    </View>
+  );
+};
 
 export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayScreenProps) {
   const { theme } = useTheme();
@@ -29,6 +69,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [expandedVisitors, setExpandedVisitors] = useState<Set<string>>(new Set());
 
   const queryParams: ListReceptionTodayParams | undefined = statusFilter !== 'all' 
     ? { status: statusFilter } 
@@ -78,6 +119,19 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
     });
   }, [todaysVisitors, searchQuery]);
 
+  const toggleVisitorExpanded = (visitorId: string) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpandedVisitors(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(visitorId)) {
+        newSet.delete(visitorId);
+      } else {
+        newSet.add(visitorId);
+      }
+      return newSet;
+    });
+  };
+
   if (isLoading || isFetching) {
     return (
       <View style={[styles.loadingContainer, { paddingTop: insets.top + Spacing.lg, paddingHorizontal: Spacing.lg }]}>
@@ -106,7 +160,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
       {
         onSuccess: () => {
           const currentTime = formatTime(new Date());
-          navigation.navigate('CheckInOutConfirmation', {
+          navigation.navigate(ROUTES.CHECK_IN_OUT_CONFIRMATION as never, {
             action: 'check_in',
             visitorName,
             time: currentTime
@@ -127,7 +181,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
       {
         onSuccess: () => {
           const currentTime = formatTime(new Date());
-          navigation.navigate('CheckInOutConfirmation', {
+          navigation.navigate(ROUTES.CHECK_IN_OUT_CONFIRMATION as never, {
             action: 'check_out',
             visitorName,
             time: currentTime
@@ -169,7 +223,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
       scheduledFor: today,
       createdAt: today,
     };
-    navigation.navigate('VisitorDetail', { visitor: legacyVisitor });
+    navigation.navigate(ROUTES.VISITOR_DETAIL as never, { visitor: legacyVisitor } as never);
   };
 
   const renderVisitorCard = (item: TodayVisitorDto) => {
@@ -178,6 +232,8 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
     const initials = visitorName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
     const showCheckIn = item.status === 'pending' || item.status === 'expected';
     const showCheckOut = item.status === 'checked_in';
+    const isExpanded = expandedVisitors.has(item.id);
+    const hasDetails = item.visitor.phone;
     
     return (
       <Pressable 
@@ -204,12 +260,6 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
                   {item.visitor.company ?? ''}
                 </ThemedText>
               </View>
-
-              <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg }]}>
-                <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
-                  {statusConfig.label}
-                </ThemedText>
-              </View>
             </View>
 
             <View style={[styles.detailsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
@@ -227,37 +277,46 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
               </View>
             </View>
 
-            <View style={[styles.detailsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              {item.visitor.phone ? (
-                <View style={[styles.detailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                  <DDIcon name="phone" size={12} variant="muted" />
-                  <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
-                    {item.visitor.phone}
-                  </ThemedText>
-                </View>
-              ) : null}
-              {item.meetingRoom ? (
-                <View style={[styles.detailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                  <DDIcon name="home" size={12} variant="muted" />
-                  <ThemedText style={[styles.detailText, { color: theme.textSecondary }]} numberOfLines={1}>
-                    {item.meetingRoom.name}{item.meetingRoom.floor ? ` (${item.meetingRoom.floor})` : ''}
-                  </ThemedText>
-                </View>
-              ) : null}
+            <View style={[styles.servicesStatusRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <ServiceIconsRow visitor={item} />
+              <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: 1 }]}>
+                <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
+                  {statusConfig.label}
+                </ThemedText>
+              </View>
             </View>
 
-            <View style={[styles.cardFooter, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <View style={[styles.servicesRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                {item.parkingSlot ? (
-                  <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '15'), flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                    <DDIcon name="map-pin" size={12} color={theme.info} />
-                    <ThemedText style={[styles.servicePillText, { color: theme.info }]}>
-                      {item.parkingSlot.slotNumber}
+            {isExpanded && hasDetails ? (
+              <View style={styles.expandedSection}>
+                {item.visitor.phone ? (
+                  <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                    <DDIcon name="phone" size={14} color={theme.textSecondary} />
+                    <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+                      {item.visitor.phone}
                     </ThemedText>
                   </View>
                 ) : null}
               </View>
+            ) : null}
 
+            {hasDetails ? (
+              <Pressable 
+                onPress={(e) => { e.stopPropagation(); toggleVisitorExpanded(item.id); }} 
+                style={styles.toggleContainer}
+              >
+                <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
+                  {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
+                </ThemedText>
+                <DDIcon 
+                  name={isExpanded ? 'chevron-up' : 'chevron-down'} 
+                  size={16} 
+                  color={theme.primary} 
+                />
+              </Pressable>
+            ) : null}
+
+            <View style={[styles.cardFooter, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View />
               <View style={[styles.actionButtons, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 {showCheckIn ? (
                   <VisitorActionButton 
@@ -459,14 +518,14 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
   },
   avatar: {
-    width: 36,
-    height: 36,
-    borderRadius: BorderRadius.md - 2,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '700',
   },
   nameSection: {
@@ -474,21 +533,12 @@ const styles = StyleSheet.create({
     marginHorizontal: Spacing.sm,
   },
   visitorName: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
   },
   companyText: {
-    fontSize: 11,
-    marginTop: 1,
-  },
-  statusBadge: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 3,
-    borderRadius: BorderRadius.full,
-  },
-  statusText: {
-    fontSize: 10,
-    fontWeight: '600',
+    fontSize: 12,
+    marginTop: 2,
   },
   detailsRow: {
     flexDirection: 'row',
@@ -503,6 +553,57 @@ const styles = StyleSheet.create({
   },
   detailText: {
     fontSize: 12,
+  },
+  servicesStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.sm,
+  },
+  servicesIconsRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    alignItems: 'center',
+  },
+  serviceIconPill: {
+    width: 32,
+    height: 32,
+    borderRadius: BorderRadius.full,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  statusBadge: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.sm,
+  },
+  statusText: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  expandedSection: {
+    marginTop: Spacing.sm,
+    gap: Spacing.sm,
+  },
+  expandedDetailRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.sm,
+  },
+  expandedDetailText: {
+    fontSize: 13,
+    flex: 1,
+  },
+  toggleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.sm,
+    gap: Spacing.xs,
+  },
+  toggleText: {
+    fontSize: 13,
+    fontWeight: '500',
   },
   cardFooter: {
     flexDirection: 'row',

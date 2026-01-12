@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { View, StyleSheet, Pressable, GestureResponderEvent, ActivityIndicator, Alert, Modal, ScrollView } from "react-native";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
+import { ROUTES } from "@/constants";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
@@ -214,7 +215,7 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
   const handleViewDetails = (request: BuffetAdminTaskDto, event: GestureResponderEvent) => {
     event.stopPropagation();
     const mappedRequest = mapTaskToRequest(request);
-    navigation.navigate('BuffetRequestDetails', { request: mappedRequest as any });
+    navigation.navigate(ROUTES.BUFFET_REQUEST_DETAILS as never, { request: mappedRequest as any } as never);
   };
 
   const handleOpenAssignModal = (item: BuffetAdminTaskDto, event: GestureResponderEvent) => {
@@ -517,14 +518,14 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
             label={t('buffet.capacityOverview')}
             iconBgColor={applyOpacity(theme.info, '12')}
             iconColor={theme.info}
-            onPress={() => navigation.navigate('BuffetOverview')}
+            onPress={() => navigation.navigate(ROUTES.BUFFET_OVERVIEW as never)}
           />
           <QuickActionButton
             icon="users"
             label={t('navigation.staffManagement')}
             iconBgColor={applyOpacity(theme.primary, '12')}
             iconColor={theme.primary}
-            onPress={() => navigation.navigate('BuffetStaff')}
+            onPress={() => navigation.navigate(ROUTES.BUFFET_STAFF as never)}
           />
         </View>
         <View style={[styles.quickActionsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
@@ -533,14 +534,14 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
             label={t('navigation.locations')}
             iconBgColor={applyOpacity(theme.success, '12')}
             iconColor={theme.success}
-            onPress={() => navigation.navigate('BuffetLocations')}
+            onPress={() => navigation.navigate(ROUTES.BUFFET_LOCATIONS as never)}
           />
           <QuickActionButton
             icon="list"
             label={t('navigation.allRequests')}
             iconBgColor={applyOpacity(theme.warning, '12')}
             iconColor={theme.warning}
-            onPress={() => navigation.navigate('BuffetAllRequests')}
+            onPress={() => navigation.navigate(ROUTES.BUFFET_ALL_REQUESTS as never)}
           />
         </View>
       </View>
@@ -553,7 +554,7 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
         </ThemedText>
         {requests.length > 3 ? (
           <Pressable 
-            onPress={() => navigation.navigate('BuffetAllRequests')}
+            onPress={() => navigation.navigate(ROUTES.BUFFET_ALL_REQUESTS as never)}
             style={({ pressed }) => [
               styles.viewAllButton,
               { opacity: pressed ? 0.7 : 1 }

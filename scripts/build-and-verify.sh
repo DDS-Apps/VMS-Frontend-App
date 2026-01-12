@@ -42,6 +42,16 @@ echo ""
 echo "[BUILD] Export completed"
 echo ""
 
+# Step 4.5: Copy Firebase service worker to dist root
+echo "[BUILD] Copying Firebase service worker..."
+if [ -f "web/firebase-messaging-sw.js" ]; then
+  cp web/firebase-messaging-sw.js dist/
+  echo "[BUILD] Service worker copied to dist/firebase-messaging-sw.js"
+else
+  echo "[BUILD] WARNING: web/firebase-messaging-sw.js not found, skipping copy"
+fi
+echo ""
+
 # Step 5: Verify the bundle does not contain forbidden URLs (actual URL patterns, not string literals for validation)
 echo "[BUILD] Verifying bundle for forbidden API URLs..."
 FOUND_FORBIDDEN=false

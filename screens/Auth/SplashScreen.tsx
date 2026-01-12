@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { View, StyleSheet, Image, I18nManager, ActivityIndicator, Platform } from "react-native";
+import { View, StyleSheet, Image, ActivityIndicator, Platform } from "react-native";
 import { BrandColors, Spacing, Typography } from "@/constants/theme";
 import { ThemedText } from "@/components/ThemedText";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
 import { LoadingButton } from "@/components/shared/LoadingButton";
 
@@ -14,7 +15,7 @@ interface SplashScreenProps {
 }
 
 export default function SplashScreen({ onFinish }: SplashScreenProps) {
-  const isRTL = I18nManager.isRTL;
+  const { isRTL } = useLanguage();
   const { t } = useTranslation();
   const { checkHealth, isTokenValid, user, isAuthenticated, isLoading: authLoading } = useAuth();
   
@@ -22,7 +23,7 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [isRetrying, setIsRetrying] = useState(false);
 
-  const logoSource = require("@/assets/images/dallah-logo.png");
+  const logoSource = require("@/assets/images/logo.png");
 
   const performHealthCheck = async (): Promise<boolean> => {
     // Skip health check on web - proceed directly to login
@@ -145,11 +146,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: BrandColors.brandNavy,
+    backgroundColor: "#FFFFFF",
   },
   logo: {
-    width: 320,
-    height: 120,
+    width: 400,
+    height: 160,
   },
   statusContainer: {
     position: 'absolute',

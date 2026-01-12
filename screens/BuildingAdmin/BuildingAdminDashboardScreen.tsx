@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { View, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { ROUTES } from "@/constants";
 import { DDIcon, IconName } from '@/components/DDIcon';
 import { ScreenScrollView } from '@/components/ScreenScrollView';
 import { ThemedText } from '@/components/ThemedText';
@@ -245,7 +246,7 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
           label={t('navigation.manageUsers')}
           iconBgColor={applyOpacity(theme.primary, '12')}
           iconColor={theme.primary}
-          onPress={() => navigation.navigate('UsersRoles')}
+          onPress={() => navigation.navigate(ROUTES.USERS_ROLES as never)}
           badge={stats.totalUsers}
         />
         <QuickActionButton
@@ -253,7 +254,7 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
           label={t('navigation.allRequests')}
           iconBgColor={applyOpacity(theme.warning, '12')}
           iconColor={theme.warning}
-          onPress={() => navigation.navigate('AllRequests')}
+          onPress={() => navigation.navigate(ROUTES.ALL_REQUESTS as never)}
           badge={stats.pendingRequests}
         />
         <QuickActionButton
@@ -261,14 +262,14 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
           label={t('navigation.locations')}
           iconBgColor={applyOpacity(theme.success, '12')}
           iconColor={theme.success}
-          onPress={() => navigation.navigate('AllLocations')}
+          onPress={() => navigation.navigate(ROUTES.ALL_LOCATIONS as never)}
         />
         <QuickActionButton
           icon="activity"
           label={t('navigation.reportsAndLogs')}
           iconBgColor={applyOpacity(theme.info, '12')}
           iconColor={theme.info}
-          onPress={() => navigation.navigate('Reports')}
+          onPress={() => navigation.navigate(ROUTES.REPORTS as never)}
         />
       </View>
 
@@ -294,7 +295,7 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
             { label: t('dashboard.onDuty'), value: staffOverview.buffetStaff.onDuty, color: theme.success },
             { label: t('status.inactive'), value: staffOverview.buffetStaff.offDuty, color: theme.textSecondary },
           ]}
-          onPress={() => navigation.navigate('BuffetOversight')}
+          onPress={() => navigation.navigate(ROUTES.BUFFET_OVERSIGHT as never)}
         />
         <Spacer width={Spacing.md} />
         <StaffCard
@@ -306,7 +307,7 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
             { label: t('status.occupied'), value: staffOverview.valetDrivers.busy, color: theme.warning },
             { label: t('status.inactive'), value: staffOverview.valetDrivers.offDuty, color: theme.textSecondary },
           ]}
-          onPress={() => navigation.navigate('ValetOversight')}
+          onPress={() => navigation.navigate(ROUTES.VALET_OVERSIGHT as never)}
         />
         <Spacer width={Spacing.md} />
         <StaffCard
@@ -335,7 +336,7 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
           {t('dashboard.recentActivity')}
         </ThemedText>
         <Pressable 
-          onPress={() => navigation.navigate('Notifications')}
+          onPress={() => navigation.navigate(ROUTES.NOTIFICATIONS as never)}
           style={({ pressed }) => [
             styles.viewAllButton,
             { opacity: pressed ? 0.7 : 1 }

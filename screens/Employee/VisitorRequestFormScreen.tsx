@@ -70,9 +70,10 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
   );
   const visitType = route?.params?.visitType || t('visitor.generalVisit');
 
+  const FOOTER_HEIGHT = 100;
   const scrollContentStyle = {
     paddingTop: insets.top + Spacing.xl,
-    paddingBottom: insets.bottom + Spacing.xl
+    paddingBottom: FOOTER_HEIGHT + Spacing.xl
   };
   
   const [fullName, setFullName] = useState('');
@@ -530,6 +531,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
   };
 
   return (
+    <>
     <ScreenKeyboardAwareScrollView contentContainerStyle={scrollContentStyle}>
       {visitType && visitType !== t('visitor.generalVisit') && (
         <>
@@ -544,7 +546,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
       )}
       
       <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
-        <ThemedText style={[Typography.subtitle]}>{t('visitor.visitorInformation')}</ThemedText>
+        <ThemedText style={[Typography.subtitle, { textAlign: isRTL ? 'right' : 'left' }]}>{t('visitor.visitorInformation')}</ThemedText>
         <Spacer height={Spacing.lg} />
 
         <ThemedText style={[Typography.label, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
@@ -677,13 +679,14 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                 styles.iconInputButton, 
                 { 
                   backgroundColor: theme.background, 
-                  borderColor: errors.hostEmployee ? theme.error : theme.border
+                  borderColor: errors.hostEmployee ? theme.error : theme.border,
+                  flexDirection: isRTL ? 'row-reverse' : 'row'
                 }
               ]}
               onPress={() => setShowEmployeePicker(true)}
             >
               <DDIcon name="user" size={20} variant="muted" />
-              <ThemedText style={[Typography.body, { color: hostEmployee ? theme.text : theme.textSecondary, marginStart: Spacing.md, flex: 1 }]}>
+              <ThemedText style={[Typography.body, { color: hostEmployee ? theme.text : theme.textSecondary, flex: 1, marginStart: Spacing.md, marginEnd: Spacing.md, textAlign: isRTL ? 'right' : 'left' }]}>
                 {hostEmployee || t('visitor.selectHost')}
               </ThemedText>
               <DDIcon name="chevron-down" size={20} variant="muted" />
@@ -711,13 +714,14 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                 styles.iconInputButton, 
                 { 
                   backgroundColor: theme.background, 
-                  borderColor: theme.border
+                  borderColor: theme.border,
+                  flexDirection: isRTL ? 'row-reverse' : 'row'
                 }
               ]}
               onPress={() => setShowIdTypePicker(true)}
             >
               <DDIcon name="credit-card" size={20} variant="muted" />
-              <ThemedText style={[Typography.body, { color: theme.text, marginStart: Spacing.md, flex: 1 }]}>
+              <ThemedText style={[Typography.body, { color: theme.text, flex: 1, marginStart: Spacing.md, marginEnd: Spacing.md, textAlign: isRTL ? 'right' : 'left' }]}>
                 {t(ID_TYPE_OPTIONS.find(opt => opt.value === idType)?.labelKey || 'visitor.nationalId')}
               </ThemedText>
               <DDIcon name="chevron-down" size={20} variant="muted" />
@@ -777,7 +781,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
               onPress={() => setShowPurposePicker(true)}
             >
               <DDIcon name="clipboard" size={20} variant="muted" />
-              <ThemedText style={[Typography.body, { color: theme.text, marginStart: Spacing.md, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.body, { color: theme.text, flex: 1, marginStart: Spacing.md, marginEnd: Spacing.md, textAlign: isRTL ? 'right' : 'left' }]}>
                 {purposeLabel || t('form.selectPurpose')}
               </ThemedText>
               <DDIcon name="chevron-down" size={20} variant="muted" />
@@ -805,7 +809,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
 
             <Spacer height={Spacing.lg} />
 
-            <ThemedText style={[Typography.label, { color: theme.textSecondary }]}>
+            <ThemedText style={[Typography.label, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('form.visitDate')} *
             </ThemedText>
             <Spacer height={Spacing.xs} />
@@ -821,7 +825,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
               onPress={() => setShowDatePicker(true)}
             >
               <DDIcon name="calendar" size={20} variant="primary" />
-              <ThemedText style={[Typography.body, { color: theme.text, marginStart: Spacing.md, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.body, { color: theme.text, flex: 1, marginStart: Spacing.md, marginEnd: Spacing.md, textAlign: isRTL ? 'right' : 'left' }]}>
                 {formatPickerDate(selectedDate)}
               </ThemedText>
               <DDIcon name="chevron-down" size={20} variant="muted" />
@@ -837,7 +841,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
 
             <Spacer height={Spacing.lg} />
 
-            <ThemedText style={[Typography.label, { color: theme.textSecondary }]}>
+            <ThemedText style={[Typography.label, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('form.visitTime')} *
             </ThemedText>
             <Spacer height={Spacing.xs} />
@@ -853,7 +857,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
               onPress={() => setShowTimePicker(true)}
             >
               <DDIcon name="clock" size={20} variant="primary" />
-              <ThemedText style={[Typography.body, { color: theme.text, marginStart: Spacing.md, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.body, { color: theme.text, flex: 1, marginStart: Spacing.md, marginEnd: Spacing.md, textAlign: isRTL ? 'right' : 'left' }]}>
                 {formatPickerTime(selectedTime)}
               </ThemedText>
               <DDIcon name="chevron-down" size={20} variant="muted" />
@@ -869,7 +873,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
 
             <Spacer height={Spacing.lg} />
 
-            <ThemedText style={[Typography.label, { color: theme.textSecondary }]}>
+            <ThemedText style={[Typography.label, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('form.endTime')} *
             </ThemedText>
             <Spacer height={Spacing.xs} />
@@ -885,7 +889,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
               onPress={() => setShowEndTimePicker(true)}
             >
               <DDIcon name="clock" size={20} variant="primary" />
-              <ThemedText style={[Typography.body, { color: theme.text, marginStart: Spacing.md, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.body, { color: theme.text, flex: 1, marginStart: Spacing.md, marginEnd: Spacing.md, textAlign: isRTL ? 'right' : 'left' }]}>
                 {formatPickerTime(selectedEndTime)}
               </ThemedText>
               <DDIcon name="chevron-down" size={20} variant="muted" />
@@ -901,7 +905,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
 
             <Spacer height={Spacing.lg} />
 
-            <ThemedText style={[Typography.label, { color: theme.textSecondary }]}>
+            <ThemedText style={[Typography.label, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('form.duration').toUpperCase()}
             </ThemedText>
             <Spacer height={Spacing.xs} />
@@ -917,7 +921,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
               ]}
             >
               <DDIcon name="clock" size={20} variant="muted" />
-              <ThemedText style={[Typography.body, { color: isEndTimeBeforeStartTime() ? theme.error : theme.textSecondary, marginStart: Spacing.md, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.body, { color: isEndTimeBeforeStartTime() ? theme.error : theme.textSecondary, flex: 1, marginStart: Spacing.md, marginEnd: Spacing.md, textAlign: isRTL ? 'right' : 'left' }]}>
                 {calculateDuration()}
               </ThemedText>
               <DDIcon name="lock" size={16} variant="muted" />
@@ -1072,34 +1076,6 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
           </View>
         </View>
       </View>
-
-      <Spacer height={Spacing.xl} />
-
-      <View style={styles.buttonRow}>
-        <LoadingButton
-          onPress={() => navigation.goBack()}
-          variant="outline"
-          size="large"
-          style={styles.actionButton}
-        >
-          {t('actions.cancel')}
-        </LoadingButton>
-
-        <Spacer width={Spacing.md} />
-
-        <LoadingButton
-          onPress={handleSubmit}
-          loading={isSubmitting}
-          disabled={isSubmitting}
-          variant="primary"
-          size="large"
-          style={styles.actionButton}
-        >
-          {t('actions.submitRequest')}
-        </LoadingButton>
-      </View>
-
-      <Spacer height={Spacing.xl} />
 
       <CalendarDatePicker
         visible={showDatePicker}
@@ -1372,10 +1348,47 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
         </Pressable>
       </Modal>
     </ScreenKeyboardAwareScrollView>
+
+    {/* Sticky Footer for Action Buttons */}
+    <View style={[styles.stickyFooter, { backgroundColor: theme.background, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.lg }]}>
+      <View style={[styles.buttonRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <LoadingButton
+          onPress={() => navigation.goBack()}
+          variant="outline"
+          size="large"
+          style={styles.actionButton}
+        >
+          {t('actions.cancel')}
+        </LoadingButton>
+
+        <View style={{ width: Spacing.md }} />
+
+        <LoadingButton
+          onPress={handleSubmit}
+          loading={isSubmitting}
+          disabled={isSubmitting}
+          variant="primary"
+          size="large"
+          style={styles.actionButton}
+        >
+          {t('actions.submitRequest')}
+        </LoadingButton>
+      </View>
+    </View>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
+  stickyFooter: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.lg,
+    borderTopWidth: 1,
+  },
   container: {
   },
   section: {
@@ -1401,7 +1414,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   iconInputButton: {
-    flexDirection: 'row',
     height: Spacing.inputHeight,
     borderWidth: 1,
     borderRadius: BorderRadius.sm,

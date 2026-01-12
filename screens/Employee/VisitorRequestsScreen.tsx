@@ -5,6 +5,7 @@ import { SkeletonList } from "@/components/shared/Skeleton";
 import { useNavigation, useRoute, RouteProp, useFocusEffect } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ScreenFlatList } from "@/components/ScreenFlatList";
+import { ROUTES } from "@/constants";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
@@ -56,30 +57,38 @@ const StatusAccent = ({ color }: { color: string }) => (
 );
 
 // Shared: Service Icons Component
-const ServiceIcons = ({ request, theme, size = 16 }: { request: VisitorRequest; theme: Theme; size?: number }) => (
-  <View style={styles.servicesRow}>
-    {request.parkingSlot && (
-      <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '20'), width: size * 2, height: size * 2, borderRadius: size }]}>
-        <DDIcon name="map-pin" size={size} color={theme.info} />
-      </View>
-    )}
-    {request.meetingRoom && (
-      <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.secondary, '20'), width: size * 2, height: size * 2, borderRadius: size }]}>
-        <DDIcon name="briefcase" size={size} color={theme.secondary} />
-      </View>
-    )}
-    {request.buffet && (
-      <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.warning, '20'), width: size * 2, height: size * 2, borderRadius: size }]}>
-        <DDIcon name="cloche" size={size} variant="warning" />
-      </View>
-    )}
-    {request.valet && (
-      <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.primary, '20'), width: size * 2, height: size * 2, borderRadius: size }]}>
-        <DDIcon name="truck" size={size} variant="primary" />
-      </View>
-    )}
-  </View>
-);
+const ServiceIcons = ({ request, theme, size = 16 }: { request: VisitorRequest; theme: Theme; size?: number }) => {
+  const hasServices = request.parkingSlot || request.meetingRoom || request.buffet || request.valet;
+  
+  if (!hasServices) {
+    return <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>-</ThemedText>;
+  }
+  
+  return (
+    <View style={styles.servicesRow}>
+      {request.parkingSlot ? (
+        <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '20'), width: size * 2, height: size * 2, borderRadius: size }]}>
+          <DDIcon name="map-pin" size={size} color={theme.info} />
+        </View>
+      ) : null}
+      {request.meetingRoom ? (
+        <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.secondary, '20'), width: size * 2, height: size * 2, borderRadius: size }]}>
+          <DDIcon name="briefcase" size={size} color={theme.secondary} />
+        </View>
+      ) : null}
+      {request.buffet ? (
+        <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.warning, '20'), width: size * 2, height: size * 2, borderRadius: size }]}>
+          <DDIcon name="cloche" size={size} variant="warning" />
+        </View>
+      ) : null}
+      {request.valet ? (
+        <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.primary, '20'), width: size * 2, height: size * 2, borderRadius: size }]}>
+          <DDIcon name="truck" size={size} variant="primary" />
+        </View>
+      ) : null}
+    </View>
+  );
+};
 
 // Shared: Status Badge Component - matches shared VisitorRequestCard styling
 const StatusBadge = ({ statusConfig, compact = false }: { statusConfig: StatusConfig; compact?: boolean }) => (
@@ -667,7 +676,7 @@ export default function VisitorRequestsScreen({ navigation: navProp, userRole = 
             <View style={styles.paddedContent}>
               <VisitorRequestTableRow 
                 request={item} 
-                onPress={() => navigation.navigate('RequestDetails', { requestId: item.id })}
+                onPress={() => navigation.navigate(ROUTES.REQUEST_DETAILS as never, { requestId: item.id } as never)}
                 theme={theme}
                 t={t}
               />
@@ -711,7 +720,7 @@ export default function VisitorRequestsScreen({ navigation: navProp, userRole = 
               bottom: insets.bottom + 80 + Spacing.lg,
             },
           ]}
-          onPress={() => navigation.navigate('VisitTypeSelection')}
+          onPress={() => navigation.navigate(ROUTES.VISIT_TYPE_SELECTION as never)}
         >
           <DDIcon name="user-plus" size={24} color={theme.buttonText} />
         </Pressable>
@@ -729,7 +738,7 @@ export default function VisitorRequestsScreen({ navigation: navProp, userRole = 
           <View style={styles.paddedContent}>
             <VisitorRequestCard
               request={item}
-              onPress={() => navigation.navigate('RequestDetails', { requestId: item.id })}
+              onPress={() => navigation.navigate(ROUTES.REQUEST_DETAILS as never, { requestId: item.id } as never)}
             />
           </View>
         )}
@@ -773,7 +782,7 @@ export default function VisitorRequestsScreen({ navigation: navProp, userRole = 
             bottom: insets.bottom + 80 + Spacing.lg,
           },
         ]}
-        onPress={() => navigation.navigate('VisitTypeSelection')}
+        onPress={() => navigation.navigate(ROUTES.VISIT_TYPE_SELECTION as never)}
       >
         <DDIcon name="user-plus" size={24} color={theme.buttonText} />
       </Pressable>
@@ -890,9 +899,9 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   dateTimeRowSplit: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: 4,
   },
   dateTimeLeft: {
     alignItems: 'center',

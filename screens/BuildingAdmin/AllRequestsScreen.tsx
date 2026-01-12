@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { View, StyleSheet, Pressable, ScrollView, RefreshControl, ActivityIndicator, Modal, TextInput, Alert, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { ROUTES } from "@/constants";
 import type { NavigationProp } from '@react-navigation/native';
 import { DDIcon, IconName } from '@/components/DDIcon';
 import { ScreenScrollView } from '@/components/ScreenScrollView';
@@ -123,12 +124,114 @@ interface RequestCardProps {
   formatDate: (date: string | Date) => string;
   formatTimeFromString: (time: string) => string;
   isRTL: boolean;
+  isExpanded: boolean;
+  onToggleExpand: () => void;
 }
 
-function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDate, formatTimeFromString, isRTL }: RequestCardProps) {
+function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDate, formatTimeFromString, isRTL, isExpanded, onToggleExpand }: RequestCardProps) {
   const typeColor = getTypeColor(request.type, theme);
   const statusColor = getStatusColor(request.status, theme);
   const typeIcon = getTypeIcon(request.type);
+
+  const hasExpandableDetails = useMemo(() => {
+    if (request.type === 'visitor') {
+      const originalData = request.originalData as VisitListItemDto;
+      return Boolean(originalData?.visitor?.email || originalData?.visitor?.phone);
+    }
+    if (request.type === 'buffet') {
+      return Boolean(request.guestCount);
+    }
+    if (request.type === 'valet') {
+      return Boolean(request.vehicleInfo);
+    }
+    return false;
+  }, [request]);
+
+  const renderExpandedDetails = () => {
+    if (!isExpanded) return null;
+
+    if (request.type === 'visitor') {
+      const originalData = request.originalData as VisitListItemDto;
+      const hasDetails = originalData?.visitor?.email || originalData?.visitor?.phone;
+      if (!hasDetails) return null;
+
+      return (
+        <View style={styles.expandedSection}>
+          {originalData?.visitor?.email ? (
+            <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <DDIcon name="mail" size={14} color={theme.textSecondary} />
+              <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+                {originalData.visitor.email}
+              </ThemedText>
+            </View>
+          ) : null}
+          {originalData?.visitor?.phone ? (
+            <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <DDIcon name="phone" size={14} color={theme.textSecondary} />
+              <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+                {originalData.visitor.phone}
+              </ThemedText>
+            </View>
+          ) : null}
+        </View>
+      );
+    }
+
+    if (request.type === 'buffet' && request.guestCount) {
+      return (
+        <View style={styles.expandedSection}>
+          <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <DDIcon name="users" size={14} color={theme.textSecondary} />
+            <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+              {t('buffet.guestCount')}: {request.guestCount}
+            </ThemedText>
+          </View>
+          {request.mealType ? (
+            <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <DDIcon name="cloche" size={14} color={theme.textSecondary} />
+              <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+                {request.mealType}
+              </ThemedText>
+            </View>
+          ) : null}
+        </View>
+      );
+    }
+
+    if (request.type === 'valet' && request.vehicleInfo) {
+      const vehicle = request.vehicleInfo;
+      return (
+        <View style={styles.expandedSection}>
+          {vehicle.plateNumber ? (
+            <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <DDIcon name="hash" size={14} color={theme.textSecondary} />
+              <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+                {t('valet.plateNumber')}: {vehicle.plateNumber}
+              </ThemedText>
+            </View>
+          ) : null}
+          {(vehicle.make || vehicle.model) ? (
+            <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <DDIcon name="truck" size={14} color={theme.textSecondary} />
+              <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+                {[vehicle.make, vehicle.model].filter(Boolean).join(' ')}
+              </ThemedText>
+            </View>
+          ) : null}
+          {vehicle.color ? (
+            <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <DDIcon name="droplet" size={14} color={theme.textSecondary} />
+              <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+                {t('valet.color')}: {vehicle.color}
+              </ThemedText>
+            </View>
+          ) : null}
+        </View>
+      );
+    }
+
+    return null;
+  };
 
   return (
     <Pressable onPress={onPress}>
@@ -137,25 +240,11 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
         
         <View style={styles.cardContent}>
           <View style={[styles.cardHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <View style={[styles.typeBadge, { backgroundColor: applyOpacity(typeColor, '12') }]}>
-              <DDIcon name={typeIcon} size={12} color={typeColor} />
-              <ThemedText style={[styles.typeBadgeText, { color: typeColor }]}>
-                {request.type === 'visitor' ? t('services.visitor') : 
-                 request.type === 'buffet' ? t('services.buffet') : t('services.valet')}
-              </ThemedText>
-            </View>
-            <View style={[styles.statusBadge, { backgroundColor: applyOpacity(statusColor, '12'), borderColor: statusColor }]}>
-              <ThemedText style={[styles.statusText, { color: statusColor }]}>
-                {getStatusLabel(request.status, t)}
-              </ThemedText>
-            </View>
+            <ThemedText style={[Typography.body, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left', flex: 1 }]} numberOfLines={1}>
+              {request.visitorName}
+            </ThemedText>
           </View>
 
-          <Spacer height={Spacing.md} />
-
-          <ThemedText style={[Typography.body, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
-            {request.visitorName}
-          </ThemedText>
           <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
             {t('reception.hostName')}: {request.hostName}
           </ThemedText>
@@ -187,6 +276,44 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
                 </ThemedText>
               </View>
             </>
+          ) : null}
+
+          <Spacer height={Spacing.sm} />
+
+          <View style={[styles.badgesRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.typeBadge, { backgroundColor: applyOpacity(typeColor, '12') }]}>
+              <DDIcon name={typeIcon} size={12} color={typeColor} />
+              <ThemedText style={[styles.typeBadgeText, { color: typeColor }]}>
+                {request.type === 'visitor' ? t('services.visitor') : 
+                 request.type === 'buffet' ? t('services.buffet') : t('services.valet')}
+              </ThemedText>
+            </View>
+            <View style={[styles.statusBadge, { backgroundColor: applyOpacity(statusColor, '12'), borderColor: statusColor }]}>
+              <ThemedText style={[styles.statusText, { color: statusColor }]}>
+                {getStatusLabel(request.status, t)}
+              </ThemedText>
+            </View>
+          </View>
+
+          {renderExpandedDetails()}
+
+          {hasExpandableDetails ? (
+            <Pressable 
+              onPress={(e) => {
+                e.stopPropagation();
+                onToggleExpand();
+              }} 
+              style={styles.toggleContainer}
+            >
+              <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
+                {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
+              </ThemedText>
+              <DDIcon 
+                name={isExpanded ? 'chevron-up' : 'chevron-down'} 
+                size={16} 
+                color={theme.primary} 
+              />
+            </Pressable>
           ) : null}
 
           {(request.canApprove || request.canCancel) ? (
@@ -262,6 +389,19 @@ export default function AllRequestsScreen() {
   const [rejectReason, setRejectReason] = useState('');
   const [selectedRequest, setSelectedRequest] = useState<UnifiedRequest | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
+
+  const toggleCardExpanded = useCallback((cardId: string) => {
+    setExpandedCards(prev => {
+      const next = new Set(prev);
+      if (next.has(cardId)) {
+        next.delete(cardId);
+      } else {
+        next.add(cardId);
+      }
+      return next;
+    });
+  }, []);
 
   const filters = useMemo(() => ({
     type: typeFilter,
@@ -551,10 +691,10 @@ export default function AllRequestsScreen() {
     }
     switch (request.type) {
       case 'visitor':
-        navigation.navigate('ManagerApprovalDetail', { requestId: request.id });
+        navigation.navigate(ROUTES.MANAGER_APPROVAL_DETAIL as never, { requestId: request.id } as never);
         break;
       case 'buffet':
-        navigation.navigate('BuffetRequestDetails', { request: request.originalData });
+        navigation.navigate(ROUTES.BUFFET_REQUEST_DETAILS as never, { request: request.originalData } as never);
         break;
       case 'valet':
         break;
@@ -769,22 +909,27 @@ export default function AllRequestsScreen() {
           <Spacer height={Spacing.md} />
 
           {displayRequests.length > 0 ? (
-            displayRequests.map(request => (
-              <View key={`${request.type}-${request.id}`}>
-                <RequestCard
-                  request={request}
-                  onPress={() => handleCardPress(request)}
-                  onApprove={() => handleApprove(request)}
-                  onReject={() => handleReject(request)}
-                  theme={theme}
-                  t={t}
-                  formatDate={formatDate}
-                  formatTimeFromString={formatTimeFromString}
-                  isRTL={isRTL}
-                />
-                <Spacer height={LAYOUT.contentGap} />
-              </View>
-            ))
+            displayRequests.map(request => {
+              const cardKey = `${request.type}-${request.id}`;
+              return (
+                <View key={cardKey}>
+                  <RequestCard
+                    request={request}
+                    onPress={() => handleCardPress(request)}
+                    onApprove={() => handleApprove(request)}
+                    onReject={() => handleReject(request)}
+                    theme={theme}
+                    t={t}
+                    formatDate={formatDate}
+                    formatTimeFromString={formatTimeFromString}
+                    isRTL={isRTL}
+                    isExpanded={expandedCards.has(cardKey)}
+                    onToggleExpand={() => toggleCardExpanded(cardKey)}
+                  />
+                  <Spacer height={LAYOUT.contentGap} />
+                </View>
+              );
+            })
           ) : (
             <EmptyState
               icon="inbox"
@@ -1028,6 +1173,34 @@ const styles = StyleSheet.create({
   },
   detailText: {
     fontSize: 13,
+  },
+  badgesRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  expandedSection: {
+    marginTop: Spacing.md,
+    gap: Spacing.sm,
+  },
+  expandedDetailRow: {
+    alignItems: 'flex-start',
+    gap: Spacing.sm,
+  },
+  expandedDetailText: {
+    fontSize: 13,
+    flex: 1,
+  },
+  toggleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: Spacing.md,
+    gap: Spacing.xs,
+  },
+  toggleText: {
+    fontSize: 13,
+    fontWeight: '500',
   },
   actionsRow: {
     flexDirection: 'row',

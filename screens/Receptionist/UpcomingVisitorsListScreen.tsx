@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from "react";
+import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { View, StyleSheet, Pressable, Alert } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SkeletonList } from "@/components/shared/Skeleton";
@@ -24,6 +24,19 @@ export default function UpcomingVisitorsListScreen() {
   const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
+  const [expandedVisitors, setExpandedVisitors] = useState<Set<string>>(new Set());
+
+  const toggleExpand = useCallback((visitorId: string) => {
+    setExpandedVisitors(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(visitorId)) {
+        newSet.delete(visitorId);
+      } else {
+        newSet.add(visitorId);
+      }
+      return newSet;
+    });
+  }, []);
 
   const { data: todayResponse, isLoading, isFetching, isError, error } = useTodayVisitorsQuery();
 
@@ -151,6 +164,43 @@ export default function UpcomingVisitorsListScreen() {
               </ThemedText>
             </View>
           </View>
+
+          {expandedVisitors.has(item.id) && (item.visitor.phone || item.visitor.email) ? (
+            <>
+              <Spacer height={Spacing.md} />
+              <View style={[styles.expandedSection, { backgroundColor: applyOpacity(theme.border, '30') }]}>
+                {item.visitor.phone ? (
+                  <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                    <DDIcon name="phone" size={14} variant="muted" />
+                    <ThemedText style={[styles.expandedDetailText, { color: theme.textSecondary }]}>
+                      {item.visitor.phone}
+                    </ThemedText>
+                  </View>
+                ) : null}
+                {item.visitor.email ? (
+                  <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                    <DDIcon name="mail" size={14} variant="muted" />
+                    <ThemedText style={[styles.expandedDetailText, { color: theme.textSecondary }]}>
+                      {item.visitor.email}
+                    </ThemedText>
+                  </View>
+                ) : null}
+              </View>
+            </>
+          ) : null}
+
+          {(item.visitor.phone || item.visitor.email) ? (
+            <Pressable onPress={() => toggleExpand(item.id)} style={styles.toggleContainer}>
+              <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
+                {expandedVisitors.has(item.id) ? t('common.lessDetails') : t('common.moreDetails')}
+              </ThemedText>
+              <DDIcon 
+                name={expandedVisitors.has(item.id) ? "chevron-up" : "chevron-down"} 
+                size={14} 
+                color={theme.primary} 
+              />
+            </Pressable>
+          ) : null}
         </View>
       </ThemedView>
     );
@@ -291,5 +341,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: Spacing.xxl * 2,
+  },
+  expandedSection: {
+    padding: Spacing.md,
+    borderRadius: BorderRadius.sm,
+    gap: Spacing.sm,
+  },
+  expandedDetailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  expandedDetailText: {
+    fontSize: 13,
+  },
+  toggleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.xs,
+    paddingTop: Spacing.md,
+  },
+  toggleText: {
+    fontSize: 13,
+    fontWeight: '500',
   },
 });

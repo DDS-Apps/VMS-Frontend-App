@@ -855,8 +855,20 @@ export default function RequestDetailsScreen({
     return status.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
   };
 
+  const showStickyFooter = 
+    (request.isWalkIn && request.status === REQUEST_STATUS.PENDING_HOST_APPROVAL) ||
+    (request.status === REQUEST_STATUS.PENDING_APPROVAL && userRole === 'manager' && !isVisitExpired) ||
+    (request.status !== REQUEST_STATUS.PENDING_HOST_APPROVAL &&
+     !(request.status === REQUEST_STATUS.PENDING_APPROVAL && userRole === 'manager') &&
+     request.status !== REQUEST_STATUS.COMPLETED &&
+     request.status !== REQUEST_STATUS.CANCELLED &&
+     request.status !== REQUEST_STATUS.REJECTED &&
+     request.status !== REQUEST_STATUS.VISITOR_REJECTED &&
+     request.status !== REQUEST_STATUS.AUTO_CANCELLED);
+
   return (
-    <ScreenScrollView contentContainerStyle={scrollContentStyle}>
+    <>
+    <ScreenScrollView contentContainerStyle={[scrollContentStyle, showStickyFooter && { paddingBottom: insets.bottom + 120 }]}>
 
       {/* Rejection/Decline Reason */}
       {request.approval.rejectedAt && request.approval.rejectionReason ? (
@@ -875,7 +887,7 @@ export default function RequestDetailsScreen({
             <ThemedText
               style={[
                 Typography.bodySmall,
-                { marginStart: Spacing.sm, flex: 1, color: theme.error },
+                { marginStart: Spacing.sm, flex: 1, color: theme.error, textAlign: isRTL ? 'right' : 'left' },
               ]}
             >
               {t("form.reason")}: {request.approval.rejectionReason}
@@ -902,7 +914,7 @@ export default function RequestDetailsScreen({
             <ThemedText
               style={[
                 Typography.bodySmall,
-                { marginStart: Spacing.sm, flex: 1, color: theme.error },
+                { marginStart: Spacing.sm, flex: 1, color: theme.error, textAlign: isRTL ? 'right' : 'left' },
               ]}
             >
               {t("visitor.visitorDeclineReason")}: {request.visitorDecision.reason}
@@ -936,6 +948,7 @@ export default function RequestDetailsScreen({
                     fontSize: 14,
                     fontWeight: "600",
                     color: theme.text,
+                    textAlign: isRTL ? 'right' : 'left',
                   },
                 ]}
               >
@@ -946,7 +959,7 @@ export default function RequestDetailsScreen({
             <ThemedText
               style={[
                 Typography.body,
-                { color: theme.textSecondary, fontSize: 14, lineHeight: 20 },
+                { color: theme.textSecondary, fontSize: 14, lineHeight: 20, textAlign: isRTL ? 'right' : 'left' },
               ]}
             >
               {request.approval.managerComment}
@@ -954,7 +967,7 @@ export default function RequestDetailsScreen({
             {request.approval.managerName && (
               <>
                 <Spacer height={Spacing.md} />
-                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <View style={{ flexDirection: 'row', alignItems: "center" }}>
                   <DDIcon name="user" size={12} variant="muted" />
                   <ThemedText
                     style={[
@@ -1002,7 +1015,7 @@ export default function RequestDetailsScreen({
           <ThemedView
             style={[styles.cardNew, { backgroundColor: theme.surface }]}
           >
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <View style={{ flexDirection: 'row', alignItems: "center" }}>
               <DDIcon name="file-text" size={16} color={theme.info} />
               <ThemedText
                 style={[
@@ -1012,6 +1025,7 @@ export default function RequestDetailsScreen({
                     fontSize: 14,
                     fontWeight: "600",
                     color: theme.text,
+                    textAlign: isRTL ? 'right' : 'left',
                   },
                 ]}
               >
@@ -1238,7 +1252,7 @@ export default function RequestDetailsScreen({
               styles.serviceIcon,
               {
                 backgroundColor: applyOpacity(
-                  request.meetingRoom ? theme.secondary : theme.textSecondary,
+                  (request.meetingRoom || request.isMeetingRoom) ? theme.secondary : theme.textSecondary,
                   "15",
                 ),
               },
@@ -1248,7 +1262,7 @@ export default function RequestDetailsScreen({
               name="briefcase"
               size={18}
               color={
-                request.meetingRoom ? theme.secondary : theme.textSecondary
+                (request.meetingRoom || request.isMeetingRoom) ? theme.secondary : theme.textSecondary
               }
             />
           </View>
@@ -1261,7 +1275,7 @@ export default function RequestDetailsScreen({
             >
               {t("services.meetingRoom")}
             </ThemedText>
-            {(request.meetingRoom || (request as any).meetingRoomPending) && (request.status === REQUEST_STATUS.REJECTED || request.status === REQUEST_STATUS.CANCELLED) ? (
+            {(request.meetingRoom || request.isMeetingRoom || (request as any).meetingRoomPending) && (request.status === REQUEST_STATUS.REJECTED || request.status === REQUEST_STATUS.CANCELLED) ? (
               <ThemedText
                 style={[
                   Typography.caption,
@@ -1289,6 +1303,15 @@ export default function RequestDetailsScreen({
                   {formatDateShort(request.visitDate)} • {formatVisitTimeRange(request.visitTime, request.endTime)}
                 </ThemedText>
               </>
+            ) : request.isMeetingRoom ? (
+              <ThemedText
+                style={[
+                  Typography.caption,
+                  { color: theme.warning, fontSize: 12, marginTop: 2 },
+                ]}
+              >
+                {t("status.pending")}
+              </ThemedText>
             ) : (request as any).meetingRoomPending ? (
               <ThemedText
                 style={[
@@ -1335,7 +1358,7 @@ export default function RequestDetailsScreen({
               styles.serviceIcon,
               {
                 backgroundColor: applyOpacity(
-                  (request.buffet || (request as any).buffetPending) ? theme.secondary : theme.textSecondary,
+                  (request.buffet || request.isBuffet || (request as any).buffetPending) ? theme.secondary : theme.textSecondary,
                   "15",
                 ),
               },
@@ -1344,7 +1367,7 @@ export default function RequestDetailsScreen({
             <DDIcon
               name="cloche"
               size={18}
-              color={(request.buffet || (request as any).buffetPending) ? theme.secondary : theme.textSecondary}
+              color={(request.buffet || request.isBuffet || (request as any).buffetPending) ? theme.secondary : theme.textSecondary}
             />
           </View>
           <View style={{ flex: 1, marginStart: Spacing.md }}>
@@ -1356,7 +1379,7 @@ export default function RequestDetailsScreen({
             >
               {t("buffet.buffetService")}
             </ThemedText>
-            {(request.buffet || (request as any).buffetPending) && (request.status === REQUEST_STATUS.REJECTED || request.status === REQUEST_STATUS.CANCELLED) ? (
+            {(request.buffet || request.isBuffet || (request as any).buffetPending) && (request.status === REQUEST_STATUS.REJECTED || request.status === REQUEST_STATUS.CANCELLED) ? (
               <ThemedText
                 style={[
                   Typography.caption,
@@ -1375,6 +1398,15 @@ export default function RequestDetailsScreen({
                 {request.buffet.location} -{" "}
                 {request.buffet.mealType.charAt(0).toUpperCase() +
                   request.buffet.mealType.slice(1)}
+              </ThemedText>
+            ) : request.isBuffet ? (
+              <ThemedText
+                style={[
+                  Typography.caption,
+                  { color: theme.warning, fontSize: 12, marginTop: 2 },
+                ]}
+              >
+                {t("status.pending")}
               </ThemedText>
             ) : (request as any).buffetPending ? (
               <ThemedText
@@ -1459,108 +1491,19 @@ export default function RequestDetailsScreen({
 
       <Spacer height={Spacing.xl} />
 
-      {/* Walk-in request pending: Show Approve/Reject buttons */}
-      {request.isWalkIn && request.status === REQUEST_STATUS.PENDING_HOST_APPROVAL ? (
-        <>
-          <ApprovalActionGroup
-            onApprove={handleHostApprove}
-            onReject={() => setShowHostRejectModal(true)}
-            approveLoading={hostApproveMutation.isPending}
-            rejectLoading={hostRejectMutation.isPending}
-            size="medium"
-            showIcons={true}
-          />
-          <Spacer height={Spacing.xl} />
-        </>
-      ) : null}
-
-      {/* Manager approval pending: Show Accept/Reject buttons - only for managers */}
-      {request.status === REQUEST_STATUS.PENDING_APPROVAL && userRole === 'manager' ? (
-        isVisitExpired ? (
-          <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: Spacing.sm, paddingHorizontal: Spacing.md }}>
-            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.xs }}>
-              <DDIcon name="alert-circle" size={16} color={theme.warning} />
-              <ThemedText style={[Typography.caption, { color: theme.warning, fontWeight: '600', textAlign: 'center' }]}>
-                {t('status.visitExpired')}
-              </ThemedText>
-            </View>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: 'center', marginTop: 2, fontSize: 12 }]}>
-              {t('errors.visitDatePassed')}
+      {/* Expired visit message for managers - inline display */}
+      {request.status === REQUEST_STATUS.PENDING_APPROVAL && userRole === 'manager' && isVisitExpired ? (
+        <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: Spacing.sm, paddingHorizontal: Spacing.md }}>
+          <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.xs }}>
+            <DDIcon name="alert-circle" size={16} color={theme.warning} />
+            <ThemedText style={[Typography.caption, { color: theme.warning, fontWeight: '600', textAlign: 'center' }]}>
+              {t('status.visitExpired')}
             </ThemedText>
           </View>
-        ) : (
-          <>
-            <ApprovalActionGroup
-              onApprove={handleManagerApprove}
-              onReject={() => setShowManagerRejectModal(true)}
-              approveLoading={managerApproveMutation.isPending}
-              rejectLoading={managerRejectMutation.isPending}
-              size="medium"
-              showIcons={true}
-            />
-            <Spacer height={Spacing.xl} />
-          </>
-        )
-      ) : null}
-
-      {/* Show Edit and Cancel buttons - hidden for terminal statuses and for managers on pending_approval */}
-      {request.status !== REQUEST_STATUS.PENDING_HOST_APPROVAL &&
-       !(request.status === REQUEST_STATUS.PENDING_APPROVAL && userRole === 'manager') &&
-       request.status !== REQUEST_STATUS.COMPLETED &&
-       request.status !== REQUEST_STATUS.CANCELLED &&
-       request.status !== REQUEST_STATUS.REJECTED &&
-       request.status !== REQUEST_STATUS.VISITOR_REJECTED &&
-       request.status !== REQUEST_STATUS.AUTO_CANCELLED ? (
-        <>
-          <View style={[styles.actionButtonsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <Pressable
-              style={[
-                styles.actionButtonHalf,
-                { backgroundColor: theme.primary, flexDirection: isRTL ? 'row-reverse' : 'row' },
-              ]}
-              onPress={() => openEditModal(request.isWalkIn ? "services-only" : "full")}
-            >
-              <DDIcon name={request.isWalkIn ? "settings" : "edit-2"} size={18} color={theme.buttonText} />
-              <ThemedText
-                style={[
-                  Typography.body,
-                  {
-                    color: theme.buttonText,
-                    marginStart: Spacing.sm,
-                    fontWeight: "600",
-                    fontSize: 14,
-                  },
-                ]}
-              >
-                {request.isWalkIn ? t("actions.editServices") : t("common.edit")}
-              </ThemedText>
-            </Pressable>
-            <Spacer width={Spacing.md} />
-            <Pressable
-              style={[
-                styles.actionButtonHalf,
-                { borderColor: theme.error, backgroundColor: theme.surface, flexDirection: isRTL ? 'row-reverse' : 'row' },
-              ]}
-              onPress={() => setShowCancelModal(true)}
-            >
-              <DDIcon name="x" size={18} variant="danger" />
-              <ThemedText
-                style={[
-                  Typography.body,
-                  {
-                    color: theme.error,
-                    marginStart: Spacing.sm,
-                    fontWeight: "600",
-                    fontSize: 14,
-                  },
-                ]}
-              >
-                {t("common.cancel")}
-              </ThemedText>
-            </Pressable>
-          </View>
-          <Spacer height={Spacing.xl} />
-        </>
+          <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: 'center', marginTop: 2, fontSize: 12 }]}>
+            {t('errors.visitDatePassed')}
+          </ThemedText>
+        </View>
       ) : null}
 
       <Modal
@@ -2652,10 +2595,81 @@ export default function RequestDetailsScreen({
       </Modal>
 
     </ScreenScrollView>
+
+    {/* Sticky Footer for Actions */}
+    {request.isWalkIn && request.status === REQUEST_STATUS.PENDING_HOST_APPROVAL ? (
+      <View style={[styles.stickyFooter, { backgroundColor: theme.background, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.lg }]}>
+        <ApprovalActionGroup
+          onApprove={handleHostApprove}
+          onReject={() => setShowHostRejectModal(true)}
+          approveLoading={hostApproveMutation.isPending}
+          rejectLoading={hostRejectMutation.isPending}
+          size="large"
+          showIcons={true}
+        />
+      </View>
+    ) : null}
+
+    {request.status === REQUEST_STATUS.PENDING_APPROVAL && userRole === 'manager' && !isVisitExpired ? (
+      <View style={[styles.stickyFooter, { backgroundColor: theme.background, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.lg }]}>
+        <ApprovalActionGroup
+          onApprove={handleManagerApprove}
+          onReject={() => setShowManagerRejectModal(true)}
+          approveLoading={managerApproveMutation.isPending}
+          rejectLoading={managerRejectMutation.isPending}
+          size="large"
+          showIcons={true}
+        />
+      </View>
+    ) : null}
+
+    {request.status !== REQUEST_STATUS.PENDING_HOST_APPROVAL &&
+     !(request.status === REQUEST_STATUS.PENDING_APPROVAL && userRole === 'manager') &&
+     request.status !== REQUEST_STATUS.COMPLETED &&
+     request.status !== REQUEST_STATUS.CANCELLED &&
+     request.status !== REQUEST_STATUS.REJECTED &&
+     request.status !== REQUEST_STATUS.VISITOR_REJECTED &&
+     request.status !== REQUEST_STATUS.AUTO_CANCELLED ? (
+      <View style={[styles.stickyFooter, { backgroundColor: theme.background, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.lg }]}>
+        <View style={[styles.actionButtonsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <LoadingButton
+            onPress={() => openEditModal(request.isWalkIn ? "services-only" : "full")}
+            variant="primary"
+            size="large"
+            icon={request.isWalkIn ? "settings" : "edit-2"}
+            iconPosition="left"
+            style={{ flex: 1 }}
+          >
+            {request.isWalkIn ? t("actions.editServices") : t("common.edit")}
+          </LoadingButton>
+          <View style={{ width: Spacing.md }} />
+          <LoadingButton
+            onPress={() => setShowCancelModal(true)}
+            variant="danger-outline"
+            size="large"
+            icon="x-circle"
+            iconPosition="left"
+            style={{ flex: 1 }}
+          >
+            {t("common.cancel")}
+          </LoadingButton>
+        </View>
+      </View>
+    ) : null}
+    </>
   );
 }
 
 const styles = StyleSheet.create({
+  stickyFooter: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.lg,
+    borderTopWidth: 1,
+  },
   container: {
     paddingHorizontal: Spacing.lg,
   },

@@ -1,20 +1,28 @@
-import React, { useState } from "react";
-import { View, StyleSheet, Pressable, I18nManager } from "react-native";
+import React, { useState, useCallback } from "react";
+import { View, StyleSheet, Pressable, ActivityIndicator } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DDIcon, IconName } from "@/components/DDIcon";
-import { useFocusEffect } from "@react-navigation/native";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { StatusAccent } from "@/components/shared/StatusBadge";
 import Spacer from "@/components/Spacer";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Notification, UserRole, NotificationType } from "@/types/vms.types";
-import { getNotificationsByRole as getNotificationsFromState, markAllAsRead as markAllNotificationsAsRead, markAsRead } from "@/services/state/notificationState";
+import { UserRole } from "@/types/vms.types";
+import type { NotificationItemDto, NotificationEventType } from "@/types/notification.types";
 import { applyOpacity } from "@/utils/statusStyles";
+import { navigateFromInAppNotification } from "@/utils/notificationNavigator";
+import { 
+  useNotificationsQuery, 
+  useMarkNotificationAsReadMutation, 
+  useMarkAllNotificationsAsReadMutation 
+} from "@/hooks/queries/useNotificationQueries";
+
+type BadgeVariant = 'success' | 'warning' | 'error' | 'info' | 'muted';
 
 interface NotificationsScreenProps {
   userRole?: UserRole;
@@ -27,7 +35,6 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
   const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   const [selectedTab, setSelectedTab] = useState<'all' | 'unread'>('all');
-  const [notifications, setNotifications] = useState<Notification[]>([]);
 
   const scrollContentStyle = {
     paddingHorizontal: Spacing.xl,
@@ -35,67 +42,90 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
     paddingBottom: insets.bottom + Spacing.xl
   };
 
-  useFocusEffect(
-    React.useCallback(() => {
-      setNotifications(getNotificationsFromState(userRole));
-    }, [userRole])
-  );
+  const isReadFilter = selectedTab === 'unread' ? false : undefined;
+  const { data, isLoading, refetch } = useNotificationsQuery({ isRead: isReadFilter, limit: 50 });
+  const markAsReadMutation = useMarkNotificationAsReadMutation();
+  const markAllAsReadMutation = useMarkAllNotificationsAsReadMutation();
 
-  const getRoleNotifications = () => {
-    return notifications.filter(n => {
-      if (!n.targetRoles || n.targetRoles.length === 0) return true;
-      if (!userRole) return true;
-      return n.targetRoles.includes(userRole);
+  const notifications = data?.data ?? [];
+  const totalCount = data?.total ?? 0;
+  const unreadCount = notifications.filter(n => !n.isRead).length;
+
+  const handleMarkAllAsRead = useCallback(() => {
+    markAllAsReadMutation.mutate();
+  }, [markAllAsReadMutation]);
+
+  const handleNotificationPress = useCallback((notification: NotificationItemDto) => {
+    if (!notification.isRead) {
+      markAsReadMutation.mutate(notification.id);
+    }
+    
+    navigateFromInAppNotification({
+      type: notification.type,
+      data: notification.data,
     });
-  };
+  }, [markAsReadMutation]);
 
-  const markAllAsRead = () => {
-    markAllNotificationsAsRead(userRole);
-    setNotifications(getNotificationsFromState(userRole));
-  };
-
-  const handleNotificationPress = (notificationId: string) => {
-    markAsRead(notificationId);
-    setNotifications(getNotificationsFromState(userRole));
-  };
-
-  const roleNotifications = getRoleNotifications();
-  const filteredNotifications = selectedTab === 'all' 
-    ? roleNotifications 
-    : roleNotifications.filter((n: Notification) => !n.read);
-
-  const getNotificationIcon = (type: NotificationType) => {
+  const getNotificationConfig = (type: NotificationEventType | string): { icon: IconName; variant: BadgeVariant } => {
     switch (type) {
-      case 'request_submitted': return { icon: 'send', color: theme.info };
-      case 'request_approved': return { icon: 'check-circle', color: theme.success };
-      case 'request_rejected': return { icon: 'x-circle', color: theme.error };
-      case 'request_cancelled': return { icon: 'x-circle', color: theme.error };
-      case 'request_modified': return { icon: 'edit-2', color: theme.info };
-      case 'visitor_accepted': return { icon: 'user-check', color: theme.success };
-      case 'visitor_rejected': return { icon: 'user-x', color: theme.error };
-      case 'visitor_reminder': return { icon: 'bell', color: theme.warning };
-      case 'visitor_arrival': return { icon: 'navigation', color: theme.primary };
-      case 'check_in': return { icon: 'log-in', color: theme.primary };
-      case 'check_out': return { icon: 'log-out', color: theme.secondary };
-      case 'update': return { icon: 'alert-circle', color: theme.info };
-      case 'assignment': return { icon: 'user-plus', color: theme.secondary };
-      case 'auto_cancelled': return { icon: 'x-octagon', color: theme.error };
-      case 'pending_approval': return { icon: 'clock', color: theme.warning };
-      case 'walk_in_registered': return { icon: 'user-plus', color: theme.info };
-      case 'walk_in_approved': return { icon: 'check-circle', color: theme.success };
-      case 'expected_today': return { icon: 'calendar', color: theme.primary };
-      case 'buffet_new_request': return { icon: 'disc', color: theme.primary };
-      case 'buffet_scheduled': return { icon: 'clock', color: theme.info };
-      case 'buffet_completed': return { icon: 'check-circle', color: theme.success };
-      case 'buffet_staff_update': return { icon: 'users', color: theme.secondary };
-      case 'valet_new_request': return { icon: 'truck', color: theme.primary };
-      case 'valet_scheduled': return { icon: 'clock', color: theme.info };
-      case 'valet_completed': return { icon: 'check-circle', color: theme.success };
-      case 'valet_cancelled': return { icon: 'x-circle', color: theme.error };
-      case 'valet_task_assigned': return { icon: 'key', color: theme.warning };
-      case 'security_access_update': return { icon: 'shield', color: theme.secondary };
-      case 'security_gate_pass': return { icon: 'key', color: theme.primary };
-      default: return { icon: 'bell', color: theme.textSecondary };
+      // Success variants (green)
+      case 'request_approved': return { icon: 'check-circle', variant: 'success' };
+      case 'visitor_accepted': return { icon: 'user-check', variant: 'success' };
+      case 'check_in': return { icon: 'log-in', variant: 'success' };
+      case 'check_out': return { icon: 'log-out', variant: 'success' };
+      case 'parking_assigned': return { icon: 'map-pin', variant: 'success' };
+      case 'buffet_completed': return { icon: 'check-circle', variant: 'success' };
+      case 'valet_completed': return { icon: 'check-circle', variant: 'success' };
+      
+      // Error variants (red)
+      case 'request_rejected': return { icon: 'x-circle', variant: 'error' };
+      case 'request_cancelled': return { icon: 'x-circle', variant: 'error' };
+      case 'visitor_rejected': return { icon: 'user-x', variant: 'error' };
+      case 'auto_cancelled': return { icon: 'x-octagon', variant: 'error' };
+      case 'room_cancelled': return { icon: 'x-circle', variant: 'error' };
+      case 'room_conflict': return { icon: 'alert-triangle', variant: 'error' };
+      case 'valet_cancelled': return { icon: 'x-circle', variant: 'error' };
+      
+      // Warning variants (orange/yellow)
+      case 'pending_approval': return { icon: 'clock', variant: 'warning' };
+      case 'visitor_no_show': return { icon: 'user-x', variant: 'warning' };
+      case 'visitor_arrival': return { icon: 'navigation', variant: 'warning' };
+      case 'expected_today': return { icon: 'calendar', variant: 'warning' };
+      case 'reminder_tomorrow': return { icon: 'bell', variant: 'warning' };
+      case 'reminder_2hours': return { icon: 'bell', variant: 'warning' };
+      case 'reminder_30min': return { icon: 'bell', variant: 'warning' };
+      case 'reminder_now': return { icon: 'bell', variant: 'warning' };
+      case 'room_reminder': return { icon: 'bell', variant: 'warning' };
+      case 'parking_full': return { icon: 'alert-circle', variant: 'warning' };
+      case 'valet_task_assigned': return { icon: 'key', variant: 'warning' };
+      
+      // Info variants (blue/neutral)
+      case 'request_created': return { icon: 'send', variant: 'info' };
+      case 'request_updated': return { icon: 'edit-2', variant: 'info' };
+      case 'room_booked': return { icon: 'home', variant: 'info' };
+      case 'room_reassigned': return { icon: 'refresh-cw', variant: 'info' };
+      case 'buffet_new_request': return { icon: 'disc', variant: 'info' };
+      case 'buffet_request_created': return { icon: 'plus-circle', variant: 'info' };
+      case 'buffet_task_assigned': return { icon: 'user-plus', variant: 'info' };
+      case 'buffet_scheduled': return { icon: 'clock', variant: 'info' };
+      case 'buffet_status_update': return { icon: 'refresh-cw', variant: 'info' };
+      case 'buffet_staff_update': return { icon: 'users', variant: 'info' };
+      case 'valet_new_request': return { icon: 'truck', variant: 'info' };
+      case 'valet_scheduled': return { icon: 'clock', variant: 'info' };
+      case 'security_access_update': return { icon: 'shield', variant: 'info' };
+      case 'security_gate_pass': return { icon: 'key', variant: 'info' };
+      
+      default: return { icon: 'bell', variant: 'muted' };
+    }
+  };
+
+  const getVariantColor = (variant: BadgeVariant): string => {
+    switch (variant) {
+      case 'success': return theme.success;
+      case 'warning': return theme.warning;
+      case 'error': return theme.error;
+      case 'info': return theme.info;
+      default: return theme.textSecondary;
     }
   };
 
@@ -112,38 +142,45 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
     return t('time.daysAgo', { count: toLocalNumerals(String(diffDays)) });
   };
 
-  const getLocalizedTitle = (notification: Notification): string => {
-    const typeToTitleKey: Record<NotificationType, string> = {
-      'request_submitted': 'notifications.types.requestSubmitted',
+  const getLocalizedTitle = (notification: NotificationItemDto): string => {
+    const typeToTitleKey: Record<string, string> = {
+      'request_created': 'notifications.types.requestSubmitted',
       'request_approved': 'notifications.types.requestApproved',
       'request_rejected': 'notifications.types.requestRejected',
       'request_cancelled': 'notifications.types.requestCancelled',
-      'request_modified': 'notifications.types.requestModified',
+      'request_updated': 'notifications.types.requestModified',
       'visitor_accepted': 'notifications.types.visitorAccepted',
       'visitor_rejected': 'notifications.types.visitorDeclined',
-      'visitor_reminder': 'notifications.types.visitorReminder',
       'visitor_arrival': 'notifications.types.visitorArrival',
+      'visitor_no_show': 'notifications.types.visitorNoShow',
       'check_in': 'notifications.types.checkIn',
       'check_out': 'notifications.types.checkOut',
-      'update': 'notifications.types.update',
-      'assignment': 'notifications.types.assignment',
       'auto_cancelled': 'notifications.types.autoCancelled',
       'pending_approval': 'notifications.types.pendingApproval',
-      'walk_in_registered': 'notifications.types.walkInRegistered',
-      'walk_in_approved': 'notifications.types.walkInApproved',
       'expected_today': 'notifications.types.expectedToday',
+      'reminder_tomorrow': 'notifications.types.reminderTomorrow',
+      'reminder_2hours': 'notifications.types.reminder2Hours',
+      'reminder_30min': 'notifications.types.reminder30Min',
+      'reminder_now': 'notifications.types.reminderNow',
+      'room_booked': 'notifications.types.roomBooked',
+      'room_reminder': 'notifications.types.roomReminder',
+      'room_cancelled': 'notifications.types.roomCancelled',
+      'room_conflict': 'notifications.types.roomConflict',
+      'room_reassigned': 'notifications.types.roomReassigned',
+      'parking_assigned': 'notifications.types.parkingAssigned',
+      'parking_full': 'notifications.types.parkingFull',
       'buffet_new_request': 'notifications.types.buffetNewRequest',
-      'buffet_scheduled': 'notifications.types.buffetScheduled',
-      'buffet_completed': 'notifications.types.buffetCompleted',
-      'buffet_staff_update': 'notifications.types.buffetStaffUpdate',
-      'buffet_task_assigned': 'notifications.types.buffetTaskAssigned',
       'buffet_request_created': 'notifications.types.buffetRequestCreated',
+      'buffet_task_assigned': 'notifications.types.buffetTaskAssigned',
+      'buffet_scheduled': 'notifications.types.buffetScheduled',
       'buffet_status_update': 'notifications.types.buffetStatusUpdate',
+      'buffet_staff_update': 'notifications.types.buffetStaffUpdate',
+      'buffet_completed': 'notifications.types.buffetCompleted',
       'valet_new_request': 'notifications.types.valetNewRequest',
+      'valet_task_assigned': 'notifications.types.valetTaskAssigned',
       'valet_scheduled': 'notifications.types.valetScheduled',
       'valet_completed': 'notifications.types.valetCompleted',
       'valet_cancelled': 'notifications.types.valetCancelled',
-      'valet_task_assigned': 'notifications.types.valetTaskAssigned',
       'security_access_update': 'notifications.types.securityAccessUpdate',
       'security_gate_pass': 'notifications.types.securityGatePass',
     };
@@ -158,9 +195,12 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
         <ThemedText style={[Typography.title]}>
           {t('notifications.title')}
         </ThemedText>
-        <Pressable onPress={markAllAsRead}>
+        <Pressable 
+          onPress={handleMarkAllAsRead}
+          disabled={markAllAsReadMutation.isPending}
+        >
           <ThemedText style={[Typography.bodySmall, { color: theme.primary }]}>
-            {t('notifications.markAllRead')}
+            {markAllAsReadMutation.isPending ? t('common.loading') : t('notifications.markAllRead')}
           </ThemedText>
         </Pressable>
       </View>
@@ -181,7 +221,7 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
               { color: selectedTab === 'all' ? theme.buttonText : theme.text },
             ]}
           >
-            {t('common.all')} ({roleNotifications.length})
+            {t('common.all')} ({toLocalNumerals(String(totalCount))})
           </ThemedText>
         </Pressable>
         <Pressable
@@ -197,14 +237,18 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
               { color: selectedTab === 'unread' ? theme.buttonText : theme.text },
             ]}
           >
-            {t('notifications.unread')} ({roleNotifications.filter((n: Notification) => !n.read).length})
+            {t('notifications.unread')} ({toLocalNumerals(String(unreadCount))})
           </ThemedText>
         </Pressable>
       </View>
 
       <Spacer height={Spacing.lg} />
 
-      {filteredNotifications.length === 0 ? (
+      {isLoading ? (
+        <ThemedView style={[styles.emptyState, { backgroundColor: theme.surface }]}>
+          <ActivityIndicator size="large" color={theme.primary} />
+        </ThemedView>
+      ) : notifications.length === 0 ? (
         <ThemedView style={[styles.emptyState, { backgroundColor: theme.surface }]}>
           <DDIcon name="inbox" size={48} variant="muted" />
           <Spacer height={Spacing.md} />
@@ -213,53 +257,47 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
           </ThemedText>
         </ThemedView>
       ) : (
-        filteredNotifications.map((notification) => {
-          const iconConfig = getNotificationIcon(notification.type);
+        notifications.map((notification) => {
+          const { icon, variant } = getNotificationConfig(notification.type);
+          const accentColor = getVariantColor(variant);
           return (
             <View key={notification.id}>
               <Pressable
-                onPress={() => handleNotificationPress(notification.id)}
+                onPress={() => handleNotificationPress(notification)}
                 style={({ pressed }) => [
                   styles.notificationCard,
                   { 
-                    backgroundColor: notification.read ? theme.surface : applyOpacity(theme.primary, '10'),
+                    backgroundColor: theme.surface,
                     opacity: pressed ? 0.95 : 1,
-                    borderColor: notification.read ? theme.border : applyOpacity(theme.primary, '30'),
+                    borderColor: theme.border,
                     shadowColor: '#000',
                     flexDirection: isRTL ? 'row-reverse' : 'row',
                   },
-                  !notification.read && styles.unreadBorder,
                 ]}
               >
-                {!notification.read && (
-                  <View style={[
-                    styles.leftBorderLine, 
-                    { 
-                      backgroundColor: theme.primary,
-                      ...(isRTL ? { left: 'auto', right: 0 } : { left: 0, right: 'auto' }),
-                    }
-                  ]} />
-                )}
+                <StatusAccent color={accentColor} width={4} />
 
-                <View style={[styles.iconContainer, { backgroundColor: applyOpacity(iconConfig.color, '20') }]}>
-                  <DDIcon name={iconConfig.icon as IconName} size={20} color={iconConfig.color} />
+                {!notification.isRead ? (
+                  <View style={[styles.unreadDot, { backgroundColor: theme.primary }]} />
+                ) : null}
+
+                <View style={[styles.iconContainer, { backgroundColor: applyOpacity(accentColor, '15') }]}>
+                  <DDIcon name={icon} size={20} color={accentColor} />
                 </View>
 
                 <View style={styles.notificationContent}>
-                  <View style={styles.notificationHeader}>
-                    <ThemedText style={[styles.notificationTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
-                      {getLocalizedTitle(notification)}
-                    </ThemedText>
-                  </View>
-                  <Spacer height={Spacing.sm} />
-                  <ThemedText style={[styles.notificationMessage, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-                    {notification.message}
+                  <ThemedText style={[styles.notificationTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+                    {getLocalizedTitle(notification)}
+                  </ThemedText>
+                  <Spacer height={Spacing.xs} />
+                  <ThemedText style={[styles.notificationMessage, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={3}>
+                    {notification.body}
                   </ThemedText>
                   <Spacer height={Spacing.sm} />
                   <View style={[styles.timeContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                     <DDIcon name="clock" size={12} variant="muted" />
                     <ThemedText style={[styles.timeText, { color: theme.textSecondary }]}>
-                      {formatTime(notification.timestamp)}
+                      {formatTime(notification.createdAt)}
                     </ThemedText>
                   </View>
                 </View>
@@ -274,9 +312,6 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
 }
 
 const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: Spacing.lg,
-  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -293,29 +328,19 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.sm,
     alignItems: 'center',
   },
-  activeTab: {
-  },
+  activeTab: {},
   notificationCard: {
     flexDirection: 'row',
     padding: Spacing.lg,
-    paddingStart: Spacing.lg,
+    paddingStart: Spacing.xl,
     borderRadius: BorderRadius.md,
     position: 'relative',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
+    overflow: 'hidden',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 1,
     borderWidth: StyleSheet.hairlineWidth,
-  },
-  unreadBorder: {
-  },
-  leftBorderLine: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    width: 3,
-    borderTopStartRadius: 10,
-    borderBottomStartRadius: 10,
   },
   iconContainer: {
     width: 44,
@@ -323,24 +348,19 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.full,
     justifyContent: 'center',
     alignItems: 'center',
-    marginStart: Spacing.xs,
   },
   notificationContent: {
     flex: 1,
     marginStart: Spacing.md,
   },
-  notificationHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
   notificationTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    lineHeight: 22,
+    fontSize: 15,
+    fontWeight: '600',
+    lineHeight: 20,
   },
   notificationMessage: {
     fontSize: 13,
-    lineHeight: 19,
+    lineHeight: 18,
   },
   timeContainer: {
     flexDirection: 'row',
@@ -352,16 +372,10 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '500',
   },
-  actionButton: {
-    alignSelf: 'flex-start',
-    paddingVertical: Spacing.xs,
-    paddingHorizontal: Spacing.md,
-    borderRadius: BorderRadius.sm,
-  },
   unreadDot: {
     position: 'absolute',
-    top: Spacing.lg,
-    end: Spacing.lg,
+    top: Spacing.md,
+    end: Spacing.md,
     width: 8,
     height: 8,
     borderRadius: BorderRadius.full,

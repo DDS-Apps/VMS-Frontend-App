@@ -2,6 +2,7 @@ import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { View, StyleSheet, Pressable, Modal, ScrollView, KeyboardAvoidingView, Platform, Switch, SectionList, FlatList, ActivityIndicator } from 'react-native';
 import { ConfirmationModal } from '@/components/shared/ConfirmationModal';
 import { useNavigation } from '@react-navigation/native';
+import { ROUTES } from "@/constants";
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { StyledInput } from '@/components/StyledInput';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -22,7 +23,7 @@ import {
   useUsersByRoleQuery,
 } from '@/hooks/queries/useUserQueries';
 import type { UserDto, CreateUserDto, UpdateUserDto, UserRole as ApiUserRole } from '@/types/api.types';
-import { UserRole } from '@/types/vms.types';
+import { UserRole, USER_ROLES } from '@/types/vms.types';
 
 type UserSource = 'microsoft_ad' | 'app_created';
 
@@ -67,17 +68,11 @@ function mapUserDtoToDisplayUser(dto: UserDto): DisplayUser {
   };
 }
 
-const ALL_ROLES: UserRole[] = [
-  'employee',
-  'manager',
-  'receptionist',
-  'security',
-  'building_admin',
-  'buffet_admin',
-  'buffet_staff',
-  'valet_admin',
-  'valet_driver',
-];
+const ALL_ROLES: UserRole[] = USER_ROLES.filter(role => role !== 'visitor');
+
+const HIDDEN_ROLES_IN_CREATE: UserRole[] = ['valet_driver', 'visitor'];
+const DISABLED_ROLES_IN_CREATE: UserRole[] = ['employee', 'manager'];
+const CREATABLE_ROLES: UserRole[] = ALL_ROLES.filter(role => !HIDDEN_ROLES_IN_CREATE.includes(role));
 
 type SortOption = 'createdAt' | 'name' | 'role' | 'department';
 type ViewMode = 'list' | 'grid' | 'table';
@@ -137,7 +132,7 @@ export default function UsersRolesScreen() {
     name: '',
     email: '',
     password: '',
-    role: 'employee' as UserRole,
+    role: 'receptionist' as UserRole,
     department: '',
     phoneNumber: '',
     status: 'active' as 'active' | 'inactive',
@@ -185,8 +180,8 @@ export default function UsersRolesScreen() {
   }, [usersResponse?.data]);
 
   const totalPages = useMemo(() => {
-    if (!usersResponse) return 1;
-    return Math.ceil(usersResponse.total / ITEMS_PER_PAGE);
+    if (!usersResponse || !usersResponse.total) return 1;
+    return Math.ceil(usersResponse.total / ITEMS_PER_PAGE) || 1;
   }, [usersResponse]);
 
   const totalUsers = usersResponse?.total ?? 0;
@@ -207,7 +202,7 @@ export default function UsersRolesScreen() {
       name: '',
       email: '',
       password: '',
-      role: 'employee',
+      role: 'receptionist',
       department: '',
       phoneNumber: '',
       status: 'active',
@@ -220,7 +215,7 @@ export default function UsersRolesScreen() {
 
   const handleViewUserDetail = (userId: string) => {
     if (bulkMode) return;
-    navigation.navigate('UserDetail', { userId });
+    navigation.navigate(ROUTES.USER_DETAIL as never, { userId } as never);
   };
 
   const handleEditUser = (user: DisplayUser) => {
@@ -1357,32 +1352,50 @@ export default function UsersRolesScreen() {
                 contentContainerStyle={{ paddingEnd: Spacing.xl }}
                 nestedScrollEnabled={true}
               >
-                {ALL_ROLES.map((role) => (
-                  <Pressable
-                    key={role}
-                    style={[
-                      styles.roleOption,
-                      {
-                        backgroundColor: formData.role === role ? theme.primary : theme.surface,
-                        borderColor: formData.role === role ? theme.primary : theme.border,
-                        marginEnd: Spacing.sm,
-                      },
-                    ]}
-                    onPress={() => setFormData({ ...formData, role })}
-                  >
-                    <ThemedText
+                {CREATABLE_ROLES.map((role) => {
+                  const isDisabled = DISABLED_ROLES_IN_CREATE.includes(role);
+                  const isSelected = formData.role === role;
+                  return (
+                    <Pressable
+                      key={role}
                       style={[
-                        Typography.caption,
+                        styles.roleOption,
                         {
-                          color: formData.role === role ? theme.buttonText : theme.text,
-                          fontWeight: formData.role === role ? '600' : '400',
+                          backgroundColor: isDisabled 
+                            ? theme.surfaceSecondary 
+                            : isSelected 
+                              ? theme.primary 
+                              : theme.surface,
+                          borderColor: isDisabled 
+                            ? theme.border 
+                            : isSelected 
+                              ? theme.primary 
+                              : theme.border,
+                          marginEnd: Spacing.sm,
+                          opacity: isDisabled ? 0.5 : 1,
                         },
                       ]}
+                      onPress={() => !isDisabled && setFormData({ ...formData, role })}
+                      disabled={isDisabled}
                     >
-                      {getRoleLabel(role)}
-                    </ThemedText>
-                  </Pressable>
-                ))}
+                      <ThemedText
+                        style={[
+                          Typography.caption,
+                          {
+                            color: isDisabled 
+                              ? theme.textSecondary 
+                              : isSelected 
+                                ? theme.buttonText 
+                                : theme.text,
+                            fontWeight: isSelected ? '600' : '400',
+                          },
+                        ]}
+                      >
+                        {getRoleLabel(role)}
+                      </ThemedText>
+                    </Pressable>
+                  );
+                })}
               </ScrollView>
 
               <StyledInput

@@ -100,3 +100,23 @@ export const isRequestActive = isActiveFromConstants;
 export const isRequestCompleted = isCompletedFromConstants;
 
 export const isRequestCancelled = isCancelledFromConstants;
+
+/**
+ * Normalize boolean values that may come as strings from legacy APIs.
+ * Returns true only for explicit boolean true or string "true".
+ */
+export const normalizeBoolean = (value: unknown): boolean => {
+  if (value === true || value === 'true') return true;
+  return false;
+};
+
+/**
+ * Coalesce two potential boolean values, preferring the first if defined.
+ * Handles string "true"/"false" from legacy APIs.
+ */
+export const coalesceBoolean = (primary: unknown, fallback: unknown): boolean => {
+  if (primary === true || primary === 'true') return true;
+  if (primary === false || primary === 'false') return false;
+  if (fallback === true || fallback === 'true') return true;
+  return false;
+};

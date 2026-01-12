@@ -164,7 +164,7 @@ const VisitorCard = React.memo(({
     <ThemedView style={[styles.visitorCard, { backgroundColor: theme.surface }]}>
       <View style={[
         styles.cardAccent, 
-        { backgroundColor: visitor.visitorNeedsParking ? theme.success : theme.textSecondary }
+        { backgroundColor: (visitor.isVisitorNeedsParking === true || visitor.visitorNeedsParking === true) ? theme.success : theme.textSecondary }
       ]} />
 
       <View style={styles.cardMainSection}>
@@ -183,7 +183,7 @@ const VisitorCard = React.memo(({
           </View>
 
           <StatusBadge 
-            needsParking={visitor.visitorNeedsParking} 
+            needsParking={visitor.isVisitorNeedsParking === true || visitor.visitorNeedsParking === true} 
             hasCarInfo={hasCarInfo}
             theme={theme} 
             t={t}
@@ -206,7 +206,7 @@ const VisitorCard = React.memo(({
           ) : null}
         </View>
 
-        {visitor.visitorNeedsParking && hasCarInfo ? (
+        {(visitor.isVisitorNeedsParking === true || visitor.visitorNeedsParking === true) && hasCarInfo ? (
           <>
             <Spacer height={Spacing.sm} />
             <View style={[styles.compactCarInfo, { backgroundColor: applyOpacity(theme.success, '08') }]}>
@@ -271,9 +271,9 @@ export default function ValetAllRequestsScreen() {
     
     switch (filterType) {
       case 'with_parking':
-        return data.data.filter(v => v.visitorNeedsParking);
+        return data.data.filter(v => v.isVisitorNeedsParking === true || v.visitorNeedsParking === true);
       case 'without_parking':
-        return data.data.filter(v => !v.visitorNeedsParking);
+        return data.data.filter(v => v.isVisitorNeedsParking !== true && v.visitorNeedsParking !== true);
       default:
         return data.data;
     }

@@ -1140,6 +1140,10 @@ export interface PendingApprovalDto {
   hasParking: boolean;
   hasBuffet: boolean;
   hasValet: boolean;
+  isBuffet?: boolean;
+  isMeetingRoom?: boolean;
+  isVisitorNeedsParking?: boolean;
+  visitorNeedsParking?: boolean;
   createdAt: string;
 }
 
@@ -1235,6 +1239,14 @@ export interface AwaitingVisitorDto {
   autoCancelAt: string;
   firstReminderSent: boolean;
   secondReminderSent: boolean;
+  hasMeetingRoom?: boolean;
+  hasParking?: boolean;
+  hasBuffet?: boolean;
+  hasValet?: boolean;
+  isBuffet?: boolean;
+  isMeetingRoom?: boolean;
+  isVisitorNeedsParking?: boolean;
+  visitorNeedsParking?: boolean;
 }
 
 export interface AwaitingVisitorListParams {
@@ -1322,6 +1334,9 @@ export interface VisitListItemDto {
   hasMeetingRoom?: boolean;
   hasBuffet?: boolean;
   hasValet?: boolean;
+  isBuffet?: boolean;
+  isMeetingRoom?: boolean;
+  isVisitorNeedsParking?: boolean;
   visitorNeedsParking?: boolean;
   licensePlate?: string | null;
   carModel?: string | null;
@@ -1518,6 +1533,9 @@ export interface VisitDetailsDto {
     reason?: string;
     decidedAt: string;
   };
+  isBuffet?: boolean;
+  isMeetingRoom?: boolean;
+  isVisitorNeedsParking?: boolean;
   visitorNeedsParking?: boolean;
   licensePlate?: string | null;
   carModel?: string | null;
@@ -1680,6 +1698,9 @@ export interface PublicInviteDto {
   hasBuffet?: boolean;
   hasValet?: boolean;
   createdAt?: string;
+  isBuffet?: boolean;
+  isMeetingRoom?: boolean;
+  isVisitorNeedsParking?: boolean;
   visitorNeedsParking?: boolean;
   licensePlate?: string | null;
   carModel?: string | null;
@@ -1732,6 +1753,9 @@ export interface ValetParkingVisitorDto {
   visitDate: string;
   visitTime: string;
   status: string;
+  isBuffet?: boolean;
+  isMeetingRoom?: boolean;
+  isVisitorNeedsParking?: boolean;
   visitorNeedsParking: boolean;
   licensePlate?: string | null;
   carModel?: string | null;

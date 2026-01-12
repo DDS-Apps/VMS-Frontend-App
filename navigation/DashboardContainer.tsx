@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { NavigationContainer, useNavigation, useNavigationState, useFocusEffect, CommonActions } from "@react-navigation/native";
+import React from "react";
+import { NavigationContainer, useNavigation, useNavigationState, CommonActions } from "@react-navigation/native";
+import { navigationRef } from "./navigationRef";
 import { createNativeStackNavigator, NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useLanguage } from "@/contexts/LanguageContext";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -51,7 +52,7 @@ import AllRequestsScreen from "@/screens/BuildingAdmin/AllRequestsScreen";
 import ChangePasswordScreen from "@/screens/Profile/ChangePasswordScreen";
 import EditProfileScreen from "@/screens/Profile/EditProfileScreen";
 import { UserRole } from "@/types/vms.types";
-import { getUnreadCount } from "@/services/state/notificationState";
+import { useUnreadNotificationCountQuery } from "@/hooks/queries/useNotificationQueries";
 import type { NativeStackScreenProps, NativeStackNavigationOptions } from "@react-navigation/native-stack";
 import type { ParamListBase, RouteProp } from "@react-navigation/native";
 
@@ -142,17 +143,8 @@ function ScreenWrapperInner({ children, userRole, userName, userPhotoUrl, onLogo
   };
 
   const effectiveRoleForWrapper = asManager ? 'manager' : userRole;
-  const [unreadCount, setUnreadCount] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setUnreadCount(getUnreadCount(effectiveRoleForWrapper));
-    }, 1000);
-    
-    setUnreadCount(getUnreadCount(effectiveRoleForWrapper));
-    
-    return () => clearInterval(interval);
-  }, [effectiveRoleForWrapper]);
+  const { data: unreadCountData } = useUnreadNotificationCountQuery();
+  const unreadCount = unreadCountData?.count ?? 0;
 
   return (
     <DashboardLayout
@@ -191,7 +183,7 @@ export default function DashboardContainer({ userRole, userName, userEmail, user
   };
   
   return (
-    <NavigationContainer key={`nav-${locale}-${isRTL ? 'rtl' : 'ltr'}`}>
+    <NavigationContainer ref={navigationRef} key={`nav-${locale}-${isRTL ? 'rtl' : 'ltr'}`}>
       <Stack.Navigator
         initialRouteName={getInitialRouteName()}
         screenOptions={{

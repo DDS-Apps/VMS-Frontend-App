@@ -172,6 +172,13 @@ export const mapVisitListItemToVisitorRequest = (visit: VisitListItemDto): Visit
     createdAt: visit.createdAt || new Date().toISOString(),
     updatedAt: visit.createdAt || new Date().toISOString(),
     isWalkIn: visit.isWalkIn,
+    isBuffet: visit.isBuffet === true || visit.hasBuffet,
+    isMeetingRoom: visit.isMeetingRoom === true || visit.hasMeetingRoom,
+    isVisitorNeedsParking: visit.isVisitorNeedsParking === true || visit.visitorNeedsParking === true || visit.hasParking,
+    visitorNeedsParking: visit.visitorNeedsParking === true || visit.hasParking,
+    licensePlate: visit.licensePlate ?? undefined,
+    carModel: visit.carModel ?? undefined,
+    carColor: visit.carColor ?? undefined,
   };
 };
 
@@ -194,7 +201,7 @@ export const mapAwaitingVisitorToVisitorRequest = (awaiting: AwaitingVisitorDto)
     purpose: '',
     status: resolveStatus(awaiting.status),
     communicationChannels: DEFAULT_COMMUNICATION_CHANNELS,
-    parkingType: 'none',
+    parkingType: awaiting.isVisitorNeedsParking === true || awaiting.visitorNeedsParking === true || awaiting.hasParking ? 'auto' : 'none',
     approval: {
       requiresApproval: true,
       approvedAt: awaiting.approvedAt,
@@ -203,6 +210,10 @@ export const mapAwaitingVisitorToVisitorRequest = (awaiting: AwaitingVisitorDto)
     createdAt: awaiting.approvedAt,
     updatedAt: awaiting.approvedAt,
     isWalkIn: false,
+    isBuffet: awaiting.isBuffet === true || awaiting.hasBuffet === true,
+    isMeetingRoom: awaiting.isMeetingRoom === true || awaiting.hasMeetingRoom === true,
+    isVisitorNeedsParking: awaiting.isVisitorNeedsParking === true || awaiting.visitorNeedsParking === true || awaiting.hasParking === true,
+    visitorNeedsParking: awaiting.visitorNeedsParking === true || awaiting.hasParking === true,
   };
 };
 
@@ -237,6 +248,10 @@ export const mapPendingApprovalToVisitorRequest = (item: PendingApprovalDto): Vi
     createdAt: item.createdAt,
     updatedAt: item.createdAt,
     isWalkIn: item.isWalkIn ?? false,
+    isBuffet: item.isBuffet === true || item.hasBuffet,
+    isMeetingRoom: item.isMeetingRoom === true || item.hasMeetingRoom,
+    isVisitorNeedsParking: item.isVisitorNeedsParking === true || item.visitorNeedsParking === true || item.hasParking,
+    visitorNeedsParking: item.visitorNeedsParking === true || item.hasParking,
   };
 };
 

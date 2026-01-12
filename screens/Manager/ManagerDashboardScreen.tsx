@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { View, StyleSheet, Pressable, TextInput, ScrollView, Modal, FlatList, Alert } from "react-native";
 import { useFocusEffect } from '@react-navigation/native';
+import { ROUTES } from "@/constants";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import { DDIcon } from "@/components/DDIcon";
@@ -29,6 +30,7 @@ import { applyOpacity } from "@/utils/statusStyles";
 import type { ManagerDashboardScreenProps } from "@/types/managerNavigation.types";
 import type { Theme } from "@/types/theme.types";
 import { mapPendingApprovalToVisitorRequest } from "@/utils/requestMappers";
+import { isVisitExpired } from "@/utils/dateTimeUtils";
 
 const LAYOUT = {
   cardPadding: Spacing.lg,
@@ -252,6 +254,7 @@ const ApprovalTableRow = React.memo(({
   onToggleSelection,
   theme,
   isProcessing,
+  isExpired = false,
   t,
   fmtDate,
   fmtTime,
@@ -267,6 +270,7 @@ const ApprovalTableRow = React.memo(({
   onToggleSelection: () => void;
   theme: Theme;
   isProcessing: boolean;
+  isExpired?: boolean;
   t: (key: string) => string;
   fmtDate: (d: Date | string) => string;
   fmtTime: (t: string) => string;
@@ -360,17 +364,17 @@ const ApprovalTableRow = React.memo(({
               <Spacer height={10} />
               <View style={[styles.actionsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <Pressable
-                  style={[styles.actionButton, styles.rejectActionButton, { borderColor: theme.error }]}
+                  style={[styles.actionButton, styles.rejectActionButton, { borderColor: theme.error, opacity: isProcessing || isExpired ? 0.5 : 1 }]}
                   onPress={onReject}
-                  disabled={isProcessing}
+                  disabled={isProcessing || isExpired}
                 >
                   <DDIcon name="x" size={16} color={theme.error} />
                 </Pressable>
                 <Spacer width={Spacing.sm} />
                 <Pressable
-                  style={[styles.actionButton, styles.approveActionButton, { backgroundColor: theme.success }]}
+                  style={[styles.actionButton, styles.approveActionButton, { backgroundColor: theme.success, opacity: isProcessing || isExpired ? 0.5 : 1 }]}
                   onPress={onApprove}
-                  disabled={isProcessing}
+                  disabled={isProcessing || isExpired}
                 >
                   <DDIcon name="check" size={16} color={theme.buttonText} />
                 </Pressable>
@@ -710,7 +714,7 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
   };
 
   const handleViewDetails = (requestId: string) => {
-    navigation.navigate('ManagerApprovalDetail', { requestId });
+    navigation.navigate(ROUTES.MANAGER_APPROVAL_DETAIL as never, { requestId } as never);
   };
 
   const renderStickyHeader = () => (
@@ -807,6 +811,7 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
               onToggleSelection={() => toggleSelection(item.id)}
               theme={theme}
               isProcessing={isProcessing}
+              isExpired={isVisitExpired(item.visitDate, item.visitTime, item.endTime, item.duration)}
               t={t}
               fmtDate={formatDate}
               fmtTime={formatTimeFromString}
@@ -879,6 +884,7 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
             onApprove={() => handleApprove(item.id)}
             onReject={() => handleReject(item.id)}
             isProcessing={isProcessing}
+            isExpired={isVisitExpired(item.visitDate, item.visitTime, item.endTime, item.duration)}
             isSelectionMode={isSelectionMode}
             isSelected={selectedIds.has(item.id)}
             onToggleSelection={() => toggleSelection(item.id)}

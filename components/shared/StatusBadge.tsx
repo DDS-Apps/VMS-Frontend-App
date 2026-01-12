@@ -1,5 +1,5 @@
 import React from "react";
-import { View, StyleSheet, I18nManager } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { useTheme } from "@/hooks/useTheme";
@@ -100,7 +100,7 @@ interface StatusAccentProps {
 }
 
 export const StatusAccent = ({ color, width = 4 }: StatusAccentProps) => {
-  const isRTL = I18nManager.isRTL;
+  const { isRTL } = useLanguage();
   return (
     <View style={[
       styles.accent, 

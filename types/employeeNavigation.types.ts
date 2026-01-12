@@ -1,4 +1,5 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import type { UserRole } from '@/types/vms.types';
 
 export type EmployeeStackParamList = {
   Dashboard: undefined;
@@ -36,7 +37,7 @@ export type RequestDetailsScreenProps = NativeStackScreenProps<
   EmployeeStackParamList,
   "RequestDetails"
 > & {
-  userRole?: 'employee' | 'manager' | 'receptionist' | 'security' | 'admin' | 'buffet_admin' | 'valet_admin' | 'valet_driver' | 'building_admin';
+  userRole?: UserRole;
 };
 
 export type MyValetRequestsScreenProps = NativeStackScreenProps<

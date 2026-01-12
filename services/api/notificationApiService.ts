@@ -28,18 +28,100 @@ function buildQueryString(params: Record<string, unknown>): string {
   return queryString ? `?${queryString}` : '';
 }
 
+interface ApiNotificationItem {
+  id: string;
+  userId?: string;
+  type: string;
+  title: string;
+  message?: string;
+  body?: string;
+  data?: Record<string, unknown>;
+  priority?: NotificationPriority;
+  channels?: NotificationChannel[];
+  read?: boolean;
+  isRead?: boolean;
+  readAt?: string;
+  timestamp?: string;
+  createdAt?: string;
+  expiresAt?: string;
+  actionRequired?: boolean;
+}
+
+interface ApiPaginatedNotifications {
+  data: ApiNotificationItem[];
+  unreadCount?: number;
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+  page?: number;
+  limit?: number;
+  total?: number;
+  totalPages?: number;
+}
+
+const typeMapping: Record<string, NotificationEventType> = {
+  'request_submitted': 'request_created',
+  'request_created': 'request_created',
+  'request_approved': 'request_approved',
+  'request_rejected': 'request_rejected',
+  'request_cancelled': 'request_cancelled',
+  'request_updated': 'request_updated',
+};
+
+function mapApiNotificationToDto(item: ApiNotificationItem): NotificationItemDto {
+  const mappedType = typeMapping[item.type] || (item.type as NotificationEventType);
+  
+  return {
+    id: item.id,
+    userId: item.userId || '',
+    type: mappedType,
+    title: item.title,
+    body: item.body || item.message || '',
+    data: item.data,
+    priority: item.priority || 'medium',
+    channels: item.channels || ['in_app'],
+    isRead: item.isRead ?? item.read ?? false,
+    readAt: item.readAt,
+    createdAt: item.createdAt || item.timestamp || new Date().toISOString(),
+    expiresAt: item.expiresAt,
+  };
+}
+
+function mapApiResponse(response: ApiPaginatedNotifications): PaginatedResponse<NotificationItemDto> {
+  const pagination = response.pagination || {
+    page: response.page || 1,
+    limit: response.limit || 50,
+    total: response.total || response.data.length,
+    totalPages: response.totalPages || 1,
+  };
+  
+  return {
+    data: response.data.map(mapApiNotificationToDto),
+    page: pagination.page,
+    limit: pagination.limit,
+    total: pagination.total,
+    totalPages: pagination.totalPages,
+  };
+}
+
 export const notificationApiService = {
-  list: (params?: ListNotificationsParams): Promise<PaginatedResponse<NotificationItemDto>> => {
+  list: async (params?: ListNotificationsParams): Promise<PaginatedResponse<NotificationItemDto>> => {
     const queryString = params ? buildQueryString(params as unknown as Record<string, unknown>) : '';
-    return get<PaginatedResponse<NotificationItemDto>>(`${notifications}${queryString}`);
+    const response = await get<ApiPaginatedNotifications>(`${notifications}${queryString}`);
+    return mapApiResponse(response);
   },
 
-  getById: (id: string): Promise<NotificationItemDto> => {
-    return get<NotificationItemDto>(`${notifications}/${id}`);
+  getById: async (id: string): Promise<NotificationItemDto> => {
+    const response = await get<ApiNotificationItem>(`${notifications}/${id}`);
+    return mapApiNotificationToDto(response);
   },
 
-  markAsRead: (id: string): Promise<NotificationItemDto> => {
-    return patch<NotificationItemDto>(`${notifications}/${id}/read`);
+  markAsRead: async (id: string): Promise<NotificationItemDto> => {
+    const response = await patch<ApiNotificationItem>(`${notifications}/${id}/read`);
+    return mapApiNotificationToDto(response);
   },
 
   markAllAsRead: (): Promise<{ count: number }> => {

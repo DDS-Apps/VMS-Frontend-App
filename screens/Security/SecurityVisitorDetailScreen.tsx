@@ -69,13 +69,14 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
   }
 
   const statusConfig = getStatusConfig(visitorData.status);
-  const hasParking = visitorData.visitorNeedsParking === true || visitorData.parkingAssigned || false;
+  const needsParking = visitorData.isVisitorNeedsParking ?? visitorData.visitorNeedsParking;
+  const hasParking = needsParking === true || visitorData.parkingAssigned || false;
   
   // Build parking display info
   const getParkingDisplayInfo = () => {
-    if (visitorData.visitorNeedsParking === false) {
+    if (needsParking === false) {
       return { text: t('security.noParking'), showDetails: false };
-    } else if (visitorData.visitorNeedsParking === true) {
+    } else if (needsParking === true) {
       const carDetails: string[] = [];
       if (visitorData.licensePlate) carDetails.push(visitorData.licensePlate);
       if (visitorData.carModel) carDetails.push(visitorData.carModel);

@@ -1,14 +1,17 @@
 import Constants from "expo-constants";
 
-// Hardcoded production backend URL - always use this
-const PRODUCTION_BACKEND_URL = 'https://vms-backend-folio3.replit.app';
+const API_BASE_URL = 
+  process.env.EXPO_PUBLIC_API_BASE_URL || 
+  Constants.expoConfig?.extra?.apiBaseUrl ||
+  'https://vms-backend-folio3.replit.app';
 
-// Use hardcoded URL directly - no environment variable fallbacks
-const API_BASE_URL = PRODUCTION_BACKEND_URL;
-const MICROSOFT_AUTH_BASE_URL = PRODUCTION_BACKEND_URL;
+const MICROSOFT_AUTH_BASE_URL = 
+  process.env.EXPO_PUBLIC_MICROSOFT_AUTH_URL || 
+  Constants.expoConfig?.extra?.microsoftAuthUrl ||
+  'https://vms-backend-folio3.replit.app';
 
-// Log the resolved URL for debugging
 console.log('[API Config] Using API Base URL:', API_BASE_URL);
+console.log('[API Config] Source: process.env =', process.env.EXPO_PUBLIC_API_BASE_URL, ', Constants.extra =', Constants.expoConfig?.extra?.apiBaseUrl);
 
 export const apiConfig = {
   baseUrl: API_BASE_URL,
@@ -35,7 +38,7 @@ export const apiConfig = {
       sendOtp: "/api/v1/auth/send-otp",
       verifyOtp: "/api/v1/auth/verify-otp",
       resendOtp: "/api/v1/auth/resend-otp",
-      notificationPreferences: "/api/v1/auth/notification-preferences",
+      notificationPreferences: "/api/v1/users/me/notification-preferences",
       biometric: {
         register: "/api/v1/auth/biometric/register",
         devices: "/api/v1/auth/biometric/devices",
@@ -189,6 +192,13 @@ export const apiConfig = {
       byId: (id: string) => `/api/v1/valet/self-service/${id}`,
     },
     notifications: "/api/v1/notifications",
+    devices: {
+      token: "/api/v1/devices/token",
+      tokenUnregister: "/api/v1/devices/token/unregister",
+      tokens: "/api/v1/devices/tokens",
+      status: "/api/v1/devices/status",
+      test: "/api/v1/devices/test",
+    },
     gates: {
       base: "/api/v1/gates",
       config: "/api/v1/gates/config",

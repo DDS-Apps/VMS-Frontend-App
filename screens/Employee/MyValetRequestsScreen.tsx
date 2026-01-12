@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { View, StyleSheet, Pressable, Alert, RefreshControl } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ROUTES } from "@/constants";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { SearchInput } from "@/components/SearchInput";
 import { DDIcon } from "@/components/DDIcon";
@@ -281,7 +282,7 @@ export default function MyValetRequestsScreen({ navigation }: MyValetRequestsScr
   };
 
   const handleRequestPress = (requestId: string) => {
-    navigation.navigate('ValetRequestDetails', { requestId });
+    navigation.navigate(ROUTES.VALET_REQUEST_DETAILS as never, { requestId } as never);
   };
 
 

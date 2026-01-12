@@ -68,6 +68,7 @@ export interface TranslationKeys {
     active: string;
     inactive: string;
     add: string;
+    create: string;
     walkIn: string;
     searchPlaceholder: string;
     page: string;
@@ -298,6 +299,8 @@ export interface TranslationKeys {
     driverLicense: string;
     selectEndTime: string;
     walkIn: string;
+    visitExpired: string;
+    meetingRoom: string;
   };
   form: {
     fullName: string;
@@ -488,6 +491,11 @@ export interface TranslationKeys {
     enablePushDescription: string;
     permissionGranted: string;
     permissionDenied: string;
+    enablePromptTitle: string;
+    enablePromptDescription: string;
+    enableButton: string;
+    enableLater: string;
+    enablingNotifications: string;
     types: {
       requestSubmitted: string;
       requestApproved: string;
@@ -539,6 +547,11 @@ export interface TranslationKeys {
     notificationSettings: string;
     pushNotifications: string;
     pushNotificationsDesc: string;
+    testNotification: string;
+    sendingTest: string;
+    testSent: string;
+    testFailed: string;
+    testNotificationHint: string;
     emailNotifications: string;
     emailNotificationsDesc: string;
     emailSummaryFrequency: string;

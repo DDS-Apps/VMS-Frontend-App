@@ -71,7 +71,7 @@ export default function SidebarGroup({
         ]}
         onPress={handleToggle}
       >
-        <View style={styles.headerLeft}>
+        <View style={[styles.headerLeft, isRTL && { flexDirection: 'row-reverse' }]}>
           <DDIcon name={icon} size={18} color={theme.sidebarTextMuted} />
           <ThemedText
             style={[
@@ -122,9 +122,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
+    gap: Spacing.md,
   },
   headerTitle: {
-    marginStart: Spacing.md,
     fontSize: 14,
     fontWeight: '600',
   },

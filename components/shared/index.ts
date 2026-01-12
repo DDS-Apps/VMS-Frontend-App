@@ -16,3 +16,4 @@ export {
 } from './Skeleton';
 export { VisitorRequestCard } from './VisitorRequestCard';
 export { ListLoadingFooter } from './ListLoadingFooter';
+export { EnableNotificationsPrompt } from './EnableNotificationsPrompt';

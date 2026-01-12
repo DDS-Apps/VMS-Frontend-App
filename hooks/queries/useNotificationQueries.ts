@@ -50,14 +50,17 @@ export function useNotificationQuery(
   });
 }
 
+const FIFTEEN_MINUTES = 15 * 60 * 1000;
+const FIVE_MINUTES = 5 * 60 * 1000;
+
 export function useUnreadNotificationCountQuery(
   options?: Omit<UseQueryOptions<UnreadCountResponse, ApiError>, 'queryKey' | 'queryFn'>
 ) {
   return useQuery<UnreadCountResponse, ApiError>({
     queryKey: notificationKeys.unreadCount(),
     queryFn: () => notificationApiService.getUnreadCount(),
-    staleTime: 30 * 1000,
-    refetchInterval: 60 * 1000,
+    staleTime: FIVE_MINUTES,
+    refetchInterval: FIFTEEN_MINUTES,
     ...options,
   });
 }
@@ -92,7 +95,8 @@ export function useMarkAllNotificationsAsReadMutation() {
   return useMutation<{ count: number }, ApiError>({
     mutationFn: () => notificationApiService.markAllAsRead(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: notificationKeys.all });
+      queryClient.invalidateQueries({ queryKey: notificationKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCount() });
     },
   });
 }
@@ -113,8 +117,30 @@ export function useDeleteNotificationMutation() {
 export function useUpdateNotificationPreferencesMutation() {
   const queryClient = useQueryClient();
 
-  return useMutation<NotificationPreferences, ApiError, UpdateNotificationPreferencesDto>({
+  return useMutation<
+    NotificationPreferences,
+    ApiError,
+    UpdateNotificationPreferencesDto,
+    { previousPrefs: NotificationPreferences | undefined }
+  >({
     mutationFn: (preferences) => notificationApiService.updatePreferences(preferences),
+    onMutate: async (newPrefs) => {
+      await queryClient.cancelQueries({ queryKey: notificationKeys.preferences() });
+      const previousPrefs = queryClient.getQueryData<NotificationPreferences>(notificationKeys.preferences());
+      if (previousPrefs) {
+        queryClient.setQueryData<NotificationPreferences>(notificationKeys.preferences(), {
+          ...previousPrefs,
+          ...newPrefs,
+        });
+      }
+      return { previousPrefs };
+    },
+    onError: (_err, _newPrefs, context) => {
+      if (context?.previousPrefs) {
+        queryClient.setQueryData(notificationKeys.preferences(), context.previousPrefs);
+      }
+      queryClient.invalidateQueries({ queryKey: notificationKeys.preferences() });
+    },
     onSuccess: (data) => {
       queryClient.setQueryData(notificationKeys.preferences(), data);
     },

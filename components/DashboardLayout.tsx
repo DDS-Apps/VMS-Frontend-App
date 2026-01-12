@@ -12,6 +12,7 @@ import Sidebar from "@/components/Sidebar";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { DDIcon } from "@/components/DDIcon";
+import { EnableNotificationsPrompt } from "@/components/shared/EnableNotificationsPrompt";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -63,12 +64,15 @@ export default function DashboardLayout({
   
   const [profileMenuVisible, setProfileMenuVisible] = useState(false);
   
-  const getInitials = (name: string): string => {
-    const words = name.trim().split(' ');
-    if (words.length >= 2) {
+  const getInitials = (name: string | undefined | null): string => {
+    if (!name) return '??';
+    const trimmedName = name.trim();
+    if (!trimmedName) return '??';
+    const words = trimmedName.split(' ').filter(w => w.length > 0);
+    if (words.length >= 2 && words[0] && words[1]) {
       return (words[0][0] + words[1][0]).toUpperCase();
     }
-    return name.slice(0, 2).toUpperCase();
+    return trimmedName.slice(0, 2).toUpperCase();
   };
   
   const handleLanguageToggle = async () => {
@@ -242,7 +246,8 @@ export default function DashboardLayout({
               borderBottomColor: theme.border, 
               backgroundColor: theme.background,
               paddingTop: insets.top + Spacing.sm,
-            }
+            },
+            isRTL && { flexDirection: 'row-reverse' },
           ]}>
             {canGoBack && onGoBack ? (
               <Pressable 
@@ -446,7 +451,7 @@ export default function DashboardLayout({
           </Pressable>
         </Modal>
 
-        <View style={styles.mainContainer}>
+        <View style={[styles.mainContainer, isRTL && { flexDirection: 'row-reverse' }]}>
           {/* Mobile Overlay - Rendered first so sidebar appears on top */}
           {!isLargeScreen && sidebarOpen && (
             <Animated.View
@@ -518,9 +523,10 @@ export default function DashboardLayout({
                 { 
                   borderBottomColor: theme.border, 
                   backgroundColor: theme.background,
-                }
+                },
+                isRTL && { flexDirection: 'row-reverse' },
               ]}>
-                <View style={styles.desktopHeaderLeft}>
+                <View style={[styles.desktopHeaderLeft, isRTL && { flexDirection: 'row-reverse' }]}>
                   {canGoBack && onGoBack ? (
                     <Pressable 
                       onPress={onGoBack} 
@@ -548,7 +554,7 @@ export default function DashboardLayout({
                   ) : null}
                 </View>
                 
-                <View style={styles.desktopHeaderRight}>
+                <View style={[styles.desktopHeaderRight, isRTL && { flexDirection: 'row-reverse' }]}>
                   <Pressable 
                     onPress={() => onNavigate('Notifications')} 
                     style={({ pressed }) => [
@@ -593,6 +599,7 @@ export default function DashboardLayout({
             )}
             
             <View style={styles.contentInner}>
+              {Platform.OS === 'web' && <EnableNotificationsPrompt />}
               {children}
             </View>
           </View>
@@ -617,6 +624,7 @@ const styles = StyleSheet.create({
   },
   menuButton: {
     padding: Spacing.xs,
+    marginEnd: Spacing.xs,
   },
   mainContainer: {
     flex: 1,
@@ -691,7 +699,7 @@ const styles = StyleSheet.create({
   headerLogo: {
     width: 32,
     height: 32,
-    marginStart: Spacing.sm,
+    marginStart: Spacing.md,
   },
   avatarButton: {
     marginStart: Spacing.sm,

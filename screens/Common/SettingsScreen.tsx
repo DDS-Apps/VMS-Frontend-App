@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from "react";
-import { View, StyleSheet, Pressable, Switch } from "react-native";
+import React, { useState } from "react";
+import { View, StyleSheet, Pressable, Switch, ActivityIndicator, Platform } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { DDIcon } from "@/components/DDIcon";
+import { ROUTES } from "@/constants";
 import Constants from "expo-constants";
+import { pushNotificationService } from "@/services/push";
+import { InAppNotificationToast } from "@/components/InAppNotificationToast";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -16,15 +19,9 @@ import { UserRole } from "@/types/vms.types";
 import { applyOpacity } from "@/utils/statusStyles";
 import { SupportedLocale } from "@/constants/i18n";
 import {
-  getUserPreferences,
-  updateUserNotificationPreferences,
-  updateEventPreference,
-  getRelevantEventTypesForRole,
-  getEventTypeLabel,
-  getEventTypeDescription,
-  EmailSummaryFrequency,
-  NotificationEventPreference,
-} from "@/services/state/userPreferencesState";
+  useNotificationPreferencesQuery,
+  useUpdateNotificationPreferencesMutation,
+} from "@/hooks/queries/useNotificationQueries";
 
 interface SettingsScreenProps {
   userRole?: UserRole;
@@ -46,12 +43,15 @@ export default function SettingsScreen({
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NativeStackNavigationProp<{ EditProfile: undefined }>>();
   
-  const [preferences, setPreferences] = useState(() => getUserPreferences(userId, userRole));
-  const [showEventPreferences, setShowEventPreferences] = useState(false);
-
-  useEffect(() => {
-    setPreferences(getUserPreferences(userId, userRole));
-  }, [userId, userRole]);
+  const { data: preferences, isLoading: isLoadingPrefs } = useNotificationPreferencesQuery();
+  const updatePreferencesMutation = useUpdateNotificationPreferencesMutation();
+  
+  const [isSendingTest, setIsSendingTest] = useState(false);
+  const [testResult, setTestResult] = useState<'success' | 'error' | null>(null);
+  const [showDebugInfo, setShowDebugInfo] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<string>('');
+  const [showInAppToast, setShowInAppToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState({ title: '', body: '' });
 
   const scrollContentStyle = {
     paddingHorizontal: Spacing.xl,
@@ -82,33 +82,85 @@ export default function SettingsScreen({
   };
 
   const handlePushToggle = (enabled: boolean) => {
-    const updated = updateUserNotificationPreferences(userId, userRole, { pushEnabled: enabled });
-    setPreferences(updated);
+    updatePreferencesMutation.mutate(
+      { pushEnabled: enabled },
+      {
+        onError: () => {
+          setToastMessage({
+            title: t('common.error'),
+            body: t('settings.preferencesError'),
+          });
+          setShowInAppToast(true);
+        },
+      }
+    );
   };
 
-  const handleEmailToggle = (enabled: boolean) => {
-    const updated = updateUserNotificationPreferences(userId, userRole, { emailEnabled: enabled });
-    setPreferences(updated);
+  const handleTestNotification = async () => {
+    setIsSendingTest(true);
+    setTestResult(null);
+    setDebugInfo('');
+    try {
+      const result = await pushNotificationService.sendTestNotification();
+      setDebugInfo(result.debugInfo);
+      
+      if (result.success) {
+        setTestResult('success');
+        setToastMessage({
+          title: 'Test Notification Sent',
+          body: 'Check your device for the notification. If on web dev, notifications may not appear.',
+        });
+        setShowInAppToast(true);
+      } else {
+        setTestResult('error');
+        setToastMessage({
+          title: 'Notification Not Sent',
+          body: result.debugInfo.includes('No push token') 
+            ? 'Push notifications not initialized. Check debug info below.'
+            : 'Failed to send notification. Check debug info below.',
+        });
+        setShowInAppToast(true);
+      }
+      setTimeout(() => setTestResult(null), 5000);
+    } catch (error) {
+      console.error('[Settings] Test notification failed:', error);
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      setDebugInfo(prev => prev + '\nException: ' + errorMsg);
+      setTestResult('error');
+      setToastMessage({
+        title: 'Error',
+        body: errorMsg,
+      });
+      setShowInAppToast(true);
+      setTimeout(() => setTestResult(null), 5000);
+    } finally {
+      setIsSendingTest(false);
+      setShowDebugInfo(true);
+    }
   };
 
-  const handleEmailFrequencyChange = (frequency: EmailSummaryFrequency) => {
-    const updated = updateUserNotificationPreferences(userId, userRole, { emailSummaryFrequency: frequency });
-    setPreferences(updated);
+  const handleShowDebugInfo = () => {
+    const info = pushNotificationService.getDebugInfo();
+    setDebugInfo(info);
+    setShowDebugInfo(true);
   };
 
-  const handleEventPreferenceToggle = (eventKey: keyof NotificationEventPreference, enabled: boolean) => {
-    const updated = updateEventPreference(userId, userRole, eventKey, enabled);
-    setPreferences(updated);
-  };
-
-  const relevantEventTypes = getRelevantEventTypesForRole(userRole);
-  const notificationsEnabled = preferences.notifications.pushEnabled || preferences.notifications.emailEnabled;
+  const pushEnabled = preferences?.pushEnabled ?? false;
 
   return (
-    <ScreenScrollView contentContainerStyle={scrollContentStyle}>
-      <ThemedText style={[Typography.title]}>
-        {t('settings.title')}
-      </ThemedText>
+    <>
+      <InAppNotificationToast
+        visible={showInAppToast}
+        title={toastMessage.title}
+        body={toastMessage.body}
+        onDismiss={() => setShowInAppToast(false)}
+        type={testResult === 'success' ? 'success' : testResult === 'error' ? 'error' : 'info'}
+        duration={5000}
+      />
+      <ScreenScrollView contentContainerStyle={scrollContentStyle}>
+        <ThemedText style={[Typography.title]}>
+          {t('settings.title')}
+        </ThemedText>
       <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
         {t('settings.subtitle')}
       </ThemedText>
@@ -155,7 +207,7 @@ export default function SettingsScreen({
               flexDirection: isRTL ? 'row-reverse' : 'row',
             },
           ]}
-          onPress={() => navigation.navigate('EditProfile')}
+          onPress={() => navigation.navigate(ROUTES.EDIT_PROFILE as never)}
         >
           <DDIcon name="edit-2" size={16} variant="primary" />
           <ThemedText style={[styles.editProfileText, { color: theme.primary }]}>
@@ -246,14 +298,94 @@ export default function SettingsScreen({
               {t('settings.pushNotificationsDesc')}
             </ThemedText>
           </View>
-          <Switch
-            value={preferences.notifications.pushEnabled}
-            onValueChange={handlePushToggle}
-            trackColor={{ false: theme.border, true: applyOpacity(theme.primary, '80') }}
-            thumbColor={preferences.notifications.pushEnabled ? theme.primary : theme.buttonText}
-            ios_backgroundColor={theme.border}
-          />
+          {isLoadingPrefs ? (
+            <ActivityIndicator size="small" color={theme.primary} />
+          ) : (
+            <Switch
+              value={pushEnabled}
+              onValueChange={handlePushToggle}
+              trackColor={{ false: theme.border, true: applyOpacity(theme.primary, '80') }}
+              thumbColor={pushEnabled ? theme.primary : theme.buttonText}
+              ios_backgroundColor={theme.border}
+            />
+          )}
         </View>
+
+        <View style={[styles.sectionDivider, { backgroundColor: theme.surfaceSecondary }]} />
+
+        <Pressable
+          style={({ pressed }) => [
+            styles.testNotificationButton,
+            { 
+              backgroundColor: testResult === 'success' 
+                ? theme.success 
+                : testResult === 'error' 
+                  ? theme.error 
+                  : theme.primary,
+              opacity: pressed ? 0.8 : 1,
+              flexDirection: isRTL ? 'row-reverse' : 'row',
+            },
+          ]}
+          onPress={handleTestNotification}
+          disabled={isSendingTest}
+        >
+          {isSendingTest ? (
+            <ActivityIndicator size="small" color={theme.buttonText} />
+          ) : testResult === 'success' ? (
+            <DDIcon name="check-circle" size={18} color={theme.buttonText} />
+          ) : testResult === 'error' ? (
+            <DDIcon name="alert-circle" size={18} color={theme.buttonText} />
+          ) : (
+            <DDIcon name="bell" size={18} color={theme.buttonText} />
+          )}
+          <ThemedText style={[styles.testNotificationText, { color: theme.buttonText, marginStart: Spacing.sm }]}>
+            {isSendingTest 
+              ? t('settings.sendingTest') 
+              : testResult === 'success' 
+                ? t('settings.testSent')
+                : testResult === 'error'
+                  ? t('settings.testFailed')
+                  : t('settings.testNotification')}
+          </ThemedText>
+        </Pressable>
+
+        {Platform.OS === 'web' ? null : (
+          <>
+            <Spacer height={Spacing.sm} />
+            <ThemedText style={[styles.testNotificationHint, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+              {t('settings.testNotificationHint')}
+            </ThemedText>
+          </>
+        )}
+
+        <Spacer height={Spacing.md} />
+
+        <Pressable
+          style={({ pressed }) => [
+            styles.debugButton,
+            { 
+              backgroundColor: theme.surfaceSecondary,
+              opacity: pressed ? 0.8 : 1,
+            },
+          ]}
+          onPress={handleShowDebugInfo}
+        >
+          <DDIcon name="info" size={16} color={theme.textSecondary} />
+          <ThemedText style={[styles.debugButtonText, { color: theme.textSecondary }]}>
+            {showDebugInfo ? 'Hide Debug Info' : 'Show Debug Info'}
+          </ThemedText>
+        </Pressable>
+
+        {showDebugInfo && debugInfo ? (
+          <>
+            <Spacer height={Spacing.sm} />
+            <View style={[styles.debugInfoContainer, { backgroundColor: theme.background, borderColor: theme.border }]}>
+              <ThemedText style={[styles.debugInfoText, { color: theme.textSecondary }]}>
+                {debugInfo}
+              </ThemedText>
+            </View>
+          </>
+        ) : null}
 
       </ThemedView>
 
@@ -278,8 +410,9 @@ export default function SettingsScreen({
         </Pressable>
       ) : null}
 
-      <Spacer height={Spacing.xl} />
-    </ScreenScrollView>
+        <Spacer height={Spacing.xl} />
+      </ScreenScrollView>
+    </>
   );
 }
 
@@ -447,5 +580,44 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: Spacing.lg,
     borderRadius: BorderRadius.md,
+  },
+  testNotificationButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: 10,
+    gap: Spacing.sm,
+  },
+  testNotificationText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  testNotificationHint: {
+    fontSize: 11,
+  },
+  debugButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: 8,
+    gap: Spacing.xs,
+  },
+  debugButtonText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  debugInfoContainer: {
+    padding: Spacing.md,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  debugInfoText: {
+    fontSize: 11,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    lineHeight: 16,
   },
 });
