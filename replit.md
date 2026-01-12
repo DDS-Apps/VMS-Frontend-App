@@ -1,5 +1,17 @@
 # Dallah Albaraka - Visitor Management System (VMS) Mobile App
 
+## Current Environment: QA
+This Replit project is configured for the **QA/Testing environment**.
+
+| Setting | Value |
+|---------|-------|
+| **Backend API** | `https://vms-backend-app-qa.replit.app` |
+| **Firebase Project** | `dallah-albaraka-vms` |
+| **Branch** | `qa` |
+| **Purpose** | QA/Testing - Not for production use |
+
+All environment variables are stored in Replit Secrets (not hardcoded in code).
+
 ## Overview
 The Dallah Albaraka Visitor Management System (VMS) is a comprehensive React Native and Expo mobile application. Its primary purpose is to streamline visitor management for organizations, supporting nine distinct user roles with specialized interfaces for various functions including visitor requests, check-ins, parking, valet services, and buffet bookings. Visitors interact through unique external invitation links via a lightweight web view. The system is branded with Dallah Albaraka's color scheme, defaults to light mode, and emphasizes UI/UX design and visual analytics.
 
