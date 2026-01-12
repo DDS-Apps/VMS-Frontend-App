@@ -68,6 +68,13 @@ The VMS app employs a Clean Architecture pattern, segmenting the application int
 - **Architecture:** Firebase Crashlytics integration for crash monitoring with graceful fallback for development/web.
 - **Features:** Automatic JavaScript exception reporting via ErrorBoundary integration, user attributes (id, email, name, role) set on login for crash grouping, custom logging and non-fatal error recording. Graceful fallback to console logging in Expo Go/web.
 
+**Multi-Environment Setup:**
+- **Environments:** Production (`dallahdigital-vms`) and QA (`dallah-albaraka-vms`) with separate Firebase projects and backends.
+- **Deployment Strategy:** Separate Replit projects for each environment (Replit limitation of one deployment per project).
+- **Branch Mapping:** `main` branch → Production, `qa` branch → QA.
+- **Configuration:** All environment variables stored in Replit Secrets, not in code. See `config/environments.ts` for utilities and `config/README.md` for setup instructions.
+- **Environment Detection:** Uses Firebase project ID to detect current environment at runtime.
+
 ## External Dependencies
 - **React Native:** Core framework.
 - **Expo SDK 54:** Development platform.
