@@ -3,6 +3,14 @@ const QA_BACKEND_URL = process.env.EXPO_PUBLIC_API_BASE_URL || "https://vms-back
 export default ({ config }) => ({
   ...config,
   owner: "ahsanshafiq",
+  android: {
+    ...config.android,
+    googleServicesFile: "./config/qa/google-services.json",
+  },
+  ios: {
+    ...config.ios,
+    googleServicesFile: "./config/qa/GoogleService-Info.plist",
+  },
   extra: {
     ...config.extra,
     eas: {
