@@ -1,13 +1,13 @@
 #!/bin/bash
-# Build and Verify Script for Production Web Bundle
-# This script ensures the production bundle uses the correct backend URL
+# Build and Verify Script for QA Web Bundle
+# This script ensures the QA bundle uses the correct backend URL
 
 set -e  # Exit on any error
 
-CORRECT_BACKEND="vms-backend-folio3.replit.app"
+CORRECT_BACKEND="vms-backend-app-qa.replit.app"
 
 echo "=========================================="
-echo "VMS Frontend Production Build"
+echo "VMS Frontend QA Build"
 echo "=========================================="
 echo ""
 
