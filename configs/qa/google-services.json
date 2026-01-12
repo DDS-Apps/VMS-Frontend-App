@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "913604772710",
+    "project_id": "dallah-albaraka-vms",
+    "storage_bucket": "dallah-albaraka-vms.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:913604772710:android:a9320215a876705e62bea7",
+        "android_client_info": {
+          "package_name": "com.dallah.vms"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyApEOEi6r3jUU0njwUlMDg55T4cxvRXv8g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
