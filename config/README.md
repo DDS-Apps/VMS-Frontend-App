@@ -23,7 +23,25 @@ Since Replit only supports one deployment per project, you need to create a sepa
 
 1. **Create new Replit project** (e.g., `dallah-vms-qa`)
 2. **Connect to `qa` git branch**
-3. **Add all environment variables** from the QA configuration
+3. **Add all environment variables** from the QA configuration below
+
+## Environment Variable Reference
+
+### Production Environment
+| Variable | Value |
+|----------|-------|
+| `EXPO_PUBLIC_API_BASE_URL` | `https://vms-backend-folio3.replit.app` |
+| `EXPO_PUBLIC_VMS_API_BASE_URL` | `https://vms-backend-folio3.replit.app/api` |
+| `EXPO_PUBLIC_MICROSOFT_AUTH_URL` | `https://vms-backend-folio3.replit.app` |
+| `EXPO_PUBLIC_FIREBASE_PROJECT_ID` | `dallahdigital-vms` |
+
+### QA Environment
+| Variable | Value |
+|----------|-------|
+| `EXPO_PUBLIC_API_BASE_URL` | `https://vms-backend-app-qa.replit.app` |
+| `EXPO_PUBLIC_VMS_API_BASE_URL` | `https://vms-backend-app-qa.replit.app/api` |
+| `EXPO_PUBLIC_MICROSOFT_AUTH_URL` | `https://vms-backend-app-qa.replit.app` |
+| `EXPO_PUBLIC_FIREBASE_PROJECT_ID` | `dallah-albaraka-vms` |
 
 ## Required Environment Variables
 
@@ -32,7 +50,7 @@ Add these in Replit Secrets for each environment:
 ### Backend Configuration
 ```
 EXPO_PUBLIC_API_BASE_URL          # Base API URL
-EXPO_PUBLIC_VMS_API_BASE_URL      # VMS API endpoint
+EXPO_PUBLIC_VMS_API_BASE_URL      # VMS API endpoint  
 EXPO_PUBLIC_MICROSOFT_AUTH_URL    # Microsoft OAuth URL
 ```
 
