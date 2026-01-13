@@ -34,6 +34,8 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
 
   const isRTL = localeConfig[locale].isRTL;
   const localeCode: LocaleCode = isRTL ? 'ar-SA' : 'en-US';
+  
+  console.log('[LanguageProvider] render - locale:', locale, 'isRTL:', isRTL, 'localeConfig[locale]:', localeConfig[locale]);
 
   useEffect(() => {
     loadStoredLanguage();
@@ -75,17 +77,31 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
 
   const setLocale = useCallback(async (newLocale: SupportedLocale) => {
     try {
+      console.log('[LanguageContext] setLocale called with:', newLocale);
       await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, newLocale);
       
-      const currentRTL = getCurrentRTLState();
-      const needsReload = applyRTLChange(newLocale, currentRTL);
+      // For web, always update state and document direction
+      if (Platform.OS === 'web') {
+        console.log('[LanguageContext] Web platform - updating state and document direction');
+        setWebDocumentDirection(newLocale);
+        setLocaleState(newLocale);
+        console.log('[LanguageContext] Web: setLocaleState completed with:', newLocale);
+        return;
+      }
       
-      if (needsReload && Platform.OS !== 'web') {
+      // For native, check if RTL direction change requires reload
+      const currentRTL = getCurrentRTLState();
+      console.log('[LanguageContext] Native: currentRTL:', currentRTL);
+      const needsReload = applyRTLChange(newLocale, currentRTL);
+      console.log('[LanguageContext] Native: needsReload:', needsReload);
+      
+      if (needsReload) {
         console.log('[LanguageContext] RTL direction changed, reloading app...');
         await reloadAppAsync();
         return;
       }
       
+      console.log('[LanguageContext] Native: Calling setLocaleState with:', newLocale);
       setLocaleState(newLocale);
     } catch (error) {
       console.error('Failed to save language preference:', error);
