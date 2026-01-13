@@ -138,23 +138,19 @@ export const LoadingButton = ({
 
   const renderContent = () => {
     const iconElement = icon && !loading ? (
-      <View style={iconPosition === "left" ? { marginEnd: Spacing.sm } : { marginStart: Spacing.sm }}>
-        <DDIcon
-          name={icon}
-          size={sizeStyle.iconSize}
-          color={variantStyles.text}
-        />
-      </View>
+      <DDIcon
+        name={icon}
+        size={sizeStyle.iconSize}
+        color={variantStyles.text}
+      />
     ) : null;
 
     const spinnerElement = loading ? (
-      <View style={{ marginEnd: Spacing.sm }}>
-        <LoadingSpinner 
-          size="small" 
-          color={variantStyles.text} 
-          inline 
-        />
-      </View>
+      <LoadingSpinner 
+        size="small" 
+        color={variantStyles.text} 
+        inline 
+      />
     ) : null;
 
     const displayText = loadingText && loading ? loadingText : children;
@@ -216,5 +212,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    gap: Spacing.sm,
   },
 });
