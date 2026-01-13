@@ -212,6 +212,7 @@ export function VisitorRequestCard({
   );
 
   const renderHeader = () => {
+    console.log('[VisitorRequestCard] renderHeader isRTL:', isRTL);
     const nameContent = (
       <View style={styles.nameSection}>
         <ThemedText style={[styles.visitorName, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
@@ -225,16 +226,18 @@ export function VisitorRequestCard({
       </View>
     );
 
+    const avatarEl = renderAvatar();
+    
     return (
       <View style={[styles.cardHeader, { flexDirection: 'row' }]}>
         {isRTL ? (
           <>
             {nameContent}
-            {renderAvatar()}
+            {avatarEl}
           </>
         ) : (
           <>
-            {renderAvatar()}
+            {avatarEl}
             {nameContent}
           </>
         )}
