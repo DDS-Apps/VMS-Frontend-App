@@ -346,3 +346,65 @@ The core issue is React Native Web's child order caching. The solution is:
 4. **Accept that language switch requires reload/restart** - this is a platform limitation
 
 The current implementation attempts this but has inconsistencies between web and mobile initialization paths that may cause issues.
+
+---
+
+## Questions for Diagnosis
+
+Before proposing a fix, please clarify:
+
+### 1. Which platforms have layout issues?
+
+Are the layout problems (icons/text misaligned) happening on:
+- [ ] Web only
+- [ ] iOS only
+- [ ] Android only
+- [ ] All platforms
+- [ ] Web + one mobile platform
+
+### 2. Third-party libraries in use
+
+Are you using any custom components or third-party libraries that handle layout or text rendering?
+
+**Navigation:**
+- React Navigation v7+ (yes - `@react-navigation/native`, `@react-navigation/native-stack`, `@react-navigation/bottom-tabs`)
+
+**UI Components:**
+- expo-blur
+- react-native-reanimated
+- react-native-gesture-handler
+- react-native-safe-area-context
+- react-native-svg
+- react-native-qrcode-svg
+- expo-linear-gradient
+- expo-image
+
+**Icons:**
+- @expo/vector-icons (Feather icons)
+- Custom `DDIcon` component for theme-aware icons
+
+### 3. Fix preference
+
+Do you want:
+- [ ] **Fix existing implementation** - Debug and patch the current Replit setup
+- [ ] **Clean minimal implementation** - Start fresh with a proven RTL pattern that avoids known issues
+
+### 4. Specific components with issues
+
+Which components are showing incorrect RTL behavior?
+- [ ] VisitorRequestCard (date/time row, service icons)
+- [ ] SectionHeader (title/action alignment)
+- [ ] StatusBadge (icon/text order)
+- [ ] ServiceIcons (icon arrangement)
+- [ ] Navigation headers (back button, title)
+- [ ] Other: _______________
+
+---
+
+## Expected Outcome
+
+Once clarified, the goal is:
+- Arabic content appears properly **right-aligned**
+- English content remains **left-aligned**
+- Icons appear on the **correct side** based on language direction
+- Layout is **consistent across web, iOS, and Android**
