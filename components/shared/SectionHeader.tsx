@@ -2,6 +2,7 @@ import React from "react";
 import { View, StyleSheet, Pressable, ViewStyle } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { DDIcon, IconName } from "@/components/DDIcon";
+import { DirectionalRow } from "@/components/DirectionalRow";
 import { Spacing, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -43,17 +44,17 @@ export function SectionHeader({
 
   const renderTitleSection = () => {
     return (
-      <View style={[styles.titleContainer, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
+      <View style={styles.titleContainer}>
         {icon ? (
-          <View style={[styles.titleRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <DirectionalRow style={styles.titleRow} gap={Spacing.sm}>
             <DDIcon name={icon} size={titleSize === 'large' ? 20 : 18} color={theme.primary} />
             <ThemedText 
-              style={[Typography.subtitle, getTitleStyle(), { marginStart: Spacing.sm }]}
+              style={[Typography.subtitle, getTitleStyle()]}
               align="start"
             >
               {title}
             </ThemedText>
-          </View>
+          </DirectionalRow>
         ) : (
           <ThemedText 
             style={[Typography.subtitle, getTitleStyle()]}
@@ -78,19 +79,18 @@ export function SectionHeader({
     if (!onViewAll || !viewAllText) return null;
 
     return (
-      <Pressable 
-        onPress={onViewAll} 
-        style={[styles.viewAllButton, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
-      >
-        <ThemedText style={[Typography.body, { color: theme.primary, fontWeight: '500' }]}>
-          {viewAllText}
-        </ThemedText>
-        <DDIcon 
-          name="chevron-right" 
-          size={16} 
-          color={theme.primary}
-          directionAware
-        />
+      <Pressable onPress={onViewAll}>
+        <DirectionalRow style={styles.viewAllButton} gap={2}>
+          <ThemedText style={[Typography.body, { color: theme.primary, fontWeight: '500' }]}>
+            {viewAllText}
+          </ThemedText>
+          <DDIcon 
+            name="chevron-right" 
+            size={16} 
+            color={theme.primary}
+            directionAware
+          />
+        </DirectionalRow>
       </Pressable>
     );
   };
@@ -104,11 +104,11 @@ export function SectionHeader({
   const viewAllButton = renderViewAllButton();
 
   return (
-    <View style={[styles.container, { flexDirection: isRTL ? 'row-reverse' : 'row' }, style]}>
+    <DirectionalRow style={[styles.container, style]}>
       {titleSection}
       {rightSection}
       {viewAllButton}
-    </View>
+    </DirectionalRow>
   );
 }
 

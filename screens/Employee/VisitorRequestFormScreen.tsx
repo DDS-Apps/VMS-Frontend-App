@@ -3,6 +3,7 @@ import { View, StyleSheet, TextInput, Pressable, Switch, Platform, Alert, Modal,
 import { CommonActions } from "@react-navigation/native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DDIcon } from "@/components/DDIcon";
+import { DirectionalRow } from "@/components/DirectionalRow";
 import { ScreenKeyboardAwareScrollView } from "@/components/ScreenKeyboardAwareScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -535,11 +536,13 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
     <ScreenKeyboardAwareScrollView contentContainerStyle={scrollContentStyle}>
       {visitType && visitType !== t('visitor.generalVisit') && (
         <>
-          <ThemedView style={[styles.visitTypeBanner, { backgroundColor: applyOpacity(theme.primary, '15'), borderStartColor: theme.primary, borderStartWidth: 4, flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <DDIcon name="info" size={20} variant="primary" />
-            <ThemedText style={[Typography.body, { marginStart: Spacing.md, fontWeight: '600', color: theme.primary, textAlign: isRTL ? 'right' : 'left' }]}>
-              {t('visitor.typeOfVisit')}: {visitType}
-            </ThemedText>
+          <ThemedView style={[styles.visitTypeBanner, { backgroundColor: applyOpacity(theme.primary, '15'), borderStartColor: theme.primary, borderStartWidth: 4 }]}>
+            <DirectionalRow gap={Spacing.md}>
+              <DDIcon name="info" size={20} variant="primary" />
+              <ThemedText style={[Typography.body, { fontWeight: '600', color: theme.primary, textAlign: isRTL ? 'right' : 'left' }]}>
+                {t('visitor.typeOfVisit')}: {visitType}
+              </ThemedText>
+            </DirectionalRow>
           </ThemedView>
           <Spacer height={Spacing.lg} />
         </>
@@ -775,16 +778,17 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                 { 
                   backgroundColor: theme.background, 
                   borderColor: theme.border,
-                  flexDirection: isRTL ? 'row-reverse' : 'row'
                 }
               ]}
               onPress={() => setShowPurposePicker(true)}
             >
-              <DDIcon name="clipboard" size={20} variant="muted" />
-              <ThemedText style={[Typography.body, { color: theme.text, flex: 1, marginStart: Spacing.md, marginEnd: Spacing.md, textAlign: isRTL ? 'right' : 'left' }]}>
-                {purposeLabel || t('form.selectPurpose')}
-              </ThemedText>
-              <DDIcon name="chevron-down" size={20} variant="muted" />
+              <DirectionalRow style={{ flex: 1 }} gap={Spacing.md}>
+                <DDIcon name="clipboard" size={20} variant="muted" />
+                <ThemedText style={[Typography.body, { color: theme.text, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {purposeLabel || t('form.selectPurpose')}
+                </ThemedText>
+                <DDIcon name="chevron-down" size={20} variant="muted" />
+              </DirectionalRow>
             </Pressable>
           </>
         ) : null}
@@ -795,17 +799,17 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
           <Spacer height={Spacing.lg} />
 
           <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
-            <View style={[styles.sectionHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <DirectionalRow style={styles.sectionHeader} gap={Spacing.md}>
               <View style={[styles.sectionIconContainer, { backgroundColor: theme.primary + '20' }]}>
                 <DDIcon name="calendar" size={20} variant="primary" />
               </View>
-              <View style={{ marginStart: Spacing.md }}>
+              <View>
                 <ThemedText style={[Typography.subtitle, { textAlign: isRTL ? 'right' : 'left' }]}>{t('visitor.visitSchedule')}</ThemedText>
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
                   {t('visitor.whenVisitorComing')}
                 </ThemedText>
               </View>
-            </View>
+            </DirectionalRow>
 
             <Spacer height={Spacing.lg} />
 
@@ -819,16 +823,17 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                 { 
                   backgroundColor: theme.background, 
                   borderColor: errors.visitDate ? theme.error : theme.border,
-                  flexDirection: isRTL ? 'row-reverse' : 'row'
                 }
               ]}
               onPress={() => setShowDatePicker(true)}
             >
-              <DDIcon name="calendar" size={20} variant="primary" />
-              <ThemedText style={[Typography.body, { color: theme.text, flex: 1, marginStart: Spacing.md, marginEnd: Spacing.md, textAlign: isRTL ? 'right' : 'left' }]}>
-                {formatPickerDate(selectedDate)}
-              </ThemedText>
-              <DDIcon name="chevron-down" size={20} variant="muted" />
+              <DirectionalRow style={{ flex: 1 }} gap={Spacing.md}>
+                <DDIcon name="calendar" size={20} variant="primary" />
+                <ThemedText style={[Typography.body, { color: theme.text, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {formatPickerDate(selectedDate)}
+                </ThemedText>
+                <DDIcon name="chevron-down" size={20} variant="muted" />
+              </DirectionalRow>
             </Pressable>
             {errors.visitDate ? (
               <>
@@ -851,16 +856,17 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                 { 
                   backgroundColor: theme.background, 
                   borderColor: errors.visitTime ? theme.error : theme.border,
-                  flexDirection: isRTL ? 'row-reverse' : 'row'
                 }
               ]}
               onPress={() => setShowTimePicker(true)}
             >
-              <DDIcon name="clock" size={20} variant="primary" />
-              <ThemedText style={[Typography.body, { color: theme.text, flex: 1, marginStart: Spacing.md, marginEnd: Spacing.md, textAlign: isRTL ? 'right' : 'left' }]}>
-                {formatPickerTime(selectedTime)}
-              </ThemedText>
-              <DDIcon name="chevron-down" size={20} variant="muted" />
+              <DirectionalRow style={{ flex: 1 }} gap={Spacing.md}>
+                <DDIcon name="clock" size={20} variant="primary" />
+                <ThemedText style={[Typography.body, { color: theme.text, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {formatPickerTime(selectedTime)}
+                </ThemedText>
+                <DDIcon name="chevron-down" size={20} variant="muted" />
+              </DirectionalRow>
             </Pressable>
             {errors.visitTime ? (
               <>
@@ -883,16 +889,17 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                 { 
                   backgroundColor: theme.background, 
                   borderColor: errors.endTime ? theme.error : theme.border,
-                  flexDirection: isRTL ? 'row-reverse' : 'row'
                 }
               ]}
               onPress={() => setShowEndTimePicker(true)}
             >
-              <DDIcon name="clock" size={20} variant="primary" />
-              <ThemedText style={[Typography.body, { color: theme.text, flex: 1, marginStart: Spacing.md, marginEnd: Spacing.md, textAlign: isRTL ? 'right' : 'left' }]}>
-                {formatPickerTime(selectedEndTime)}
-              </ThemedText>
-              <DDIcon name="chevron-down" size={20} variant="muted" />
+              <DirectionalRow style={{ flex: 1 }} gap={Spacing.md}>
+                <DDIcon name="clock" size={20} variant="primary" />
+                <ThemedText style={[Typography.body, { color: theme.text, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {formatPickerTime(selectedEndTime)}
+                </ThemedText>
+                <DDIcon name="chevron-down" size={20} variant="muted" />
+              </DirectionalRow>
             </Pressable>
             {errors.endTime ? (
               <>
@@ -916,15 +923,16 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                   backgroundColor: theme.surface, 
                   borderColor: theme.border,
                   opacity: 0.7,
-                  flexDirection: isRTL ? 'row-reverse' : 'row'
                 }
               ]}
             >
-              <DDIcon name="clock" size={20} variant="muted" />
-              <ThemedText style={[Typography.body, { color: isEndTimeBeforeStartTime() ? theme.error : theme.textSecondary, flex: 1, marginStart: Spacing.md, marginEnd: Spacing.md, textAlign: isRTL ? 'right' : 'left' }]}>
-                {calculateDuration()}
-              </ThemedText>
-              <DDIcon name="lock" size={16} variant="muted" />
+              <DirectionalRow style={{ flex: 1 }} gap={Spacing.md}>
+                <DDIcon name="clock" size={20} variant="muted" />
+                <ThemedText style={[Typography.body, { color: isEndTimeBeforeStartTime() ? theme.error : theme.textSecondary, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {calculateDuration()}
+                </ThemedText>
+                <DDIcon name="lock" size={16} variant="muted" />
+              </DirectionalRow>
             </View>
             <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: Spacing.xs }]}>
               {t('form.calculatedAutomatically')}
@@ -1027,55 +1035,61 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
         {t('invitation.communicationChannels')}
       </ThemedText>
 
-      <View style={[styles.channelsContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <DirectionalRow style={styles.channelsContainer} gap={Spacing.sm}>
         <Pressable
-          style={[styles.channelChip, { backgroundColor: theme.surface, borderColor: sendWhatsApp ? theme.primary : theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
+          style={[styles.channelChip, { backgroundColor: theme.surface, borderColor: sendWhatsApp ? theme.primary : theme.border }]}
           onPress={() => setSendWhatsApp(!sendWhatsApp)}
         >
-          <View style={[styles.channelChipIcon, { backgroundColor: theme.success + '15' }]}>
-            <DDIcon name="message-circle" size={16} variant="success" />
-          </View>
-          <ThemedText style={[Typography.bodySmall, { fontWeight: '500', marginHorizontal: Spacing.xs }]}>
-            {t('services.whatsapp')}
-          </ThemedText>
-          {sendWhatsApp ? (
-            <View style={[styles.chipCheckmark, { backgroundColor: theme.primary }]}>
-              <DDIcon name="check" size={10} color={theme.buttonText} />
+          <DirectionalRow gap={Spacing.xs}>
+            <View style={[styles.channelChipIcon, { backgroundColor: theme.success + '15' }]}>
+              <DDIcon name="message-circle" size={16} variant="success" />
             </View>
-          ) : null}
+            <ThemedText style={[Typography.bodySmall, { fontWeight: '500' }]}>
+              {t('services.whatsapp')}
+            </ThemedText>
+            {sendWhatsApp ? (
+              <View style={[styles.chipCheckmark, { backgroundColor: theme.primary }]}>
+                <DDIcon name="check" size={10} color={theme.buttonText} />
+              </View>
+            ) : null}
+          </DirectionalRow>
         </Pressable>
 
         <Pressable
-          style={[styles.channelChip, { backgroundColor: theme.surface, borderColor: sendSMS ? theme.primary : theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
+          style={[styles.channelChip, { backgroundColor: theme.surface, borderColor: sendSMS ? theme.primary : theme.border }]}
           onPress={() => setSendSMS(!sendSMS)}
         >
-          <View style={[styles.channelChipIcon, { backgroundColor: theme.info + '15' }]}>
-            <DDIcon name="smartphone" size={16} color={theme.info} />
-          </View>
-          <ThemedText style={[Typography.bodySmall, { fontWeight: '500', marginHorizontal: Spacing.xs }]}>
-            {t('services.sms')}
-          </ThemedText>
-          {sendSMS ? (
-            <View style={[styles.chipCheckmark, { backgroundColor: theme.primary }]}>
-              <DDIcon name="check" size={10} color={theme.buttonText} />
+          <DirectionalRow gap={Spacing.xs}>
+            <View style={[styles.channelChipIcon, { backgroundColor: theme.info + '15' }]}>
+              <DDIcon name="smartphone" size={16} color={theme.info} />
             </View>
-          ) : null}
+            <ThemedText style={[Typography.bodySmall, { fontWeight: '500' }]}>
+              {t('services.sms')}
+            </ThemedText>
+            {sendSMS ? (
+              <View style={[styles.chipCheckmark, { backgroundColor: theme.primary }]}>
+                <DDIcon name="check" size={10} color={theme.buttonText} />
+              </View>
+            ) : null}
+          </DirectionalRow>
         </Pressable>
 
         <View
-          style={[styles.channelChip, { backgroundColor: theme.surface, borderColor: theme.primary, opacity: 0.8, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
+          style={[styles.channelChip, { backgroundColor: theme.surface, borderColor: theme.primary, opacity: 0.8 }]}
         >
-          <View style={[styles.channelChipIcon, { backgroundColor: theme.warning + '15' }]}>
-            <DDIcon name="mail" size={16} color={theme.warning} />
-          </View>
-          <ThemedText style={[Typography.bodySmall, { fontWeight: '500', marginHorizontal: Spacing.xs }]}>
-            {t('services.email')}
-          </ThemedText>
-          <View style={[styles.chipCheckmark, { backgroundColor: theme.primary }]}>
-            <DDIcon name="check" size={10} color={theme.buttonText} />
-          </View>
+          <DirectionalRow gap={Spacing.xs}>
+            <View style={[styles.channelChipIcon, { backgroundColor: theme.warning + '15' }]}>
+              <DDIcon name="mail" size={16} color={theme.warning} />
+            </View>
+            <ThemedText style={[Typography.bodySmall, { fontWeight: '500' }]}>
+              {t('services.email')}
+            </ThemedText>
+            <View style={[styles.chipCheckmark, { backgroundColor: theme.primary }]}>
+              <DDIcon name="check" size={10} color={theme.buttonText} />
+            </View>
+          </DirectionalRow>
         </View>
-      </View>
+      </DirectionalRow>
 
       <CalendarDatePicker
         visible={showDatePicker}
