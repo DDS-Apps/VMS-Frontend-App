@@ -537,7 +537,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
       {visitType && visitType !== t('visitor.generalVisit') && (
         <>
           <ThemedView style={[styles.visitTypeBanner, { backgroundColor: applyOpacity(theme.primary, '15'), borderStartColor: theme.primary, borderStartWidth: 4 }]}>
-            <DirectionalRow gap={Spacing.md}>
+            <DirectionalRow gap={Spacing.md} forceReverse>
               <DDIcon name="info" size={20} variant="primary" />
               <ThemedText style={[Typography.body, { flex: 1, fontWeight: '600', color: theme.primary, textAlign: isRTL ? 'right' : 'left' }]}>
                 {t('visitor.typeOfVisit')}: {visitType}
@@ -782,7 +782,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
               ]}
               onPress={() => setShowPurposePicker(true)}
             >
-              <DirectionalRow style={{ flex: 1 }} gap={Spacing.md}>
+              <DirectionalRow style={{ flex: 1 }} gap={Spacing.md} forceReverse>
                 <DDIcon name="clipboard" size={20} variant="muted" />
                 <ThemedText style={[Typography.body, { color: theme.text, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                   {purposeLabel || t('form.selectPurpose')}
@@ -799,7 +799,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
           <Spacer height={Spacing.lg} />
 
           <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
-            <DirectionalRow style={styles.sectionHeader} gap={Spacing.md}>
+            <DirectionalRow style={styles.sectionHeader} gap={Spacing.md} forceReverse>
               <View style={[styles.sectionIconContainer, { backgroundColor: theme.primary + '20' }]}>
                 <DDIcon name="calendar" size={20} variant="primary" />
               </View>
@@ -827,7 +827,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
               ]}
               onPress={() => setShowDatePicker(true)}
             >
-              <DirectionalRow style={{ flex: 1 }} gap={Spacing.md}>
+              <DirectionalRow style={{ flex: 1 }} gap={Spacing.md} forceReverse>
                 <DDIcon name="calendar" size={20} variant="primary" />
                 <ThemedText style={[Typography.body, { color: theme.text, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                   {formatPickerDate(selectedDate)}
@@ -860,7 +860,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
               ]}
               onPress={() => setShowTimePicker(true)}
             >
-              <DirectionalRow style={{ flex: 1 }} gap={Spacing.md}>
+              <DirectionalRow style={{ flex: 1 }} gap={Spacing.md} forceReverse>
                 <DDIcon name="clock" size={20} variant="primary" />
                 <ThemedText style={[Typography.body, { color: theme.text, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                   {formatPickerTime(selectedTime)}
@@ -893,7 +893,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
               ]}
               onPress={() => setShowEndTimePicker(true)}
             >
-              <DirectionalRow style={{ flex: 1 }} gap={Spacing.md}>
+              <DirectionalRow style={{ flex: 1 }} gap={Spacing.md} forceReverse>
                 <DDIcon name="clock" size={20} variant="primary" />
                 <ThemedText style={[Typography.body, { color: theme.text, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                   {formatPickerTime(selectedEndTime)}
@@ -926,7 +926,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                 }
               ]}
             >
-              <DirectionalRow style={{ flex: 1 }} gap={Spacing.md}>
+              <DirectionalRow style={{ flex: 1 }} gap={Spacing.md} forceReverse>
                 <DDIcon name="clock" size={20} variant="muted" />
                 <ThemedText style={[Typography.body, { color: isEndTimeBeforeStartTime() ? theme.error : theme.textSecondary, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                   {calculateDuration()}
@@ -1035,12 +1035,12 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
         {t('invitation.communicationChannels')}
       </ThemedText>
 
-      <DirectionalRow style={styles.channelsContainer} gap={Spacing.sm}>
+      <DirectionalRow style={styles.channelsContainer} gap={Spacing.sm} forceReverse>
         <Pressable
           style={[styles.channelChip, { backgroundColor: theme.surface, borderColor: sendWhatsApp ? theme.primary : theme.border }]}
           onPress={() => setSendWhatsApp(!sendWhatsApp)}
         >
-          <DirectionalRow gap={Spacing.xs}>
+          <DirectionalRow gap={Spacing.xs} forceReverse>
             <View style={[styles.channelChipIcon, { backgroundColor: theme.success + '15' }]}>
               <DDIcon name="message-circle" size={16} variant="success" />
             </View>
@@ -1059,7 +1059,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
           style={[styles.channelChip, { backgroundColor: theme.surface, borderColor: sendSMS ? theme.primary : theme.border }]}
           onPress={() => setSendSMS(!sendSMS)}
         >
-          <DirectionalRow gap={Spacing.xs}>
+          <DirectionalRow gap={Spacing.xs} forceReverse>
             <View style={[styles.channelChipIcon, { backgroundColor: theme.info + '15' }]}>
               <DDIcon name="smartphone" size={16} color={theme.info} />
             </View>
@@ -1077,7 +1077,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
         <View
           style={[styles.channelChip, { backgroundColor: theme.surface, borderColor: theme.primary, opacity: 0.8 }]}
         >
-          <DirectionalRow gap={Spacing.xs}>
+          <DirectionalRow gap={Spacing.xs} forceReverse>
             <View style={[styles.channelChipIcon, { backgroundColor: theme.warning + '15' }]}>
               <DDIcon name="mail" size={16} color={theme.warning} />
             </View>
