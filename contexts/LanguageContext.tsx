@@ -59,7 +59,22 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
       
       // Sync to raw localStorage on web for sync RTL initialization on next page load
       if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
-        localStorage.setItem(LANGUAGE_STORAGE_KEY, validLocale);
+        const currentLocalStorage = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+        
+        // If localStorage is out of sync with AsyncStorage, sync it and reload
+        if (currentLocalStorage !== validLocale) {
+          console.log('[LanguageContext] Web: localStorage mismatch detected, syncing and reloading');
+          console.log('[LanguageContext] localStorage:', currentLocalStorage, '→', validLocale);
+          localStorage.setItem(LANGUAGE_STORAGE_KEY, validLocale);
+          
+          // Only reload if the RTL state would change
+          const currentIsRTL = currentLocalStorage === 'ar';
+          if (currentIsRTL !== needsRTL) {
+            console.log('[LanguageContext] Web: RTL mismatch, reloading page...');
+            window.location.reload();
+            return;
+          }
+        }
       }
       
       // If mobile detected a mismatch between stored locale and I18nManager state,
