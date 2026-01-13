@@ -1,6 +1,7 @@
 import { Text, type TextProps } from "react-native";
 
 import { useTheme } from "@/hooks/useTheme";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Typography, FontFamily } from "@/constants/theme";
 
 export type TextVariant = 
@@ -32,8 +33,11 @@ export function ThemedText({
   ...rest
 }: ThemedTextProps) {
   const { theme, isDark } = useTheme();
+  const { isRTL } = useLanguage();
 
   const textVariant = variant || type || "body";
+  
+  const writingDirection = isRTL ? 'rtl' : 'ltr';
 
   const getColor = () => {
     if (color) {
@@ -84,6 +88,13 @@ export function ThemedText({
   };
 
   return (
-    <Text style={[{ color: getColor() }, getTypeStyle(), style]} {...rest} />
+    <Text 
+      style={[
+        { color: getColor(), writingDirection }, 
+        getTypeStyle(), 
+        style
+      ]} 
+      {...rest} 
+    />
   );
 }

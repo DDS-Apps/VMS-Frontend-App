@@ -8,6 +8,9 @@ import { KeyboardProviderWrapper } from "@/components/KeyboardProviderWrapper";
 import { StatusBar } from "expo-status-bar";
 import { useFonts } from 'expo-font';
 
+import { initializeRTLSync } from "@/utils/rtlInitializer";
+initializeRTLSync();
+
 ExpoSplashScreen.preventAutoHideAsync().catch(() => {});
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";

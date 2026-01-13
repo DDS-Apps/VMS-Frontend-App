@@ -3,6 +3,12 @@ import { I18nManager, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { reloadAppAsync } from 'expo';
 import { SupportedLocale, localeConfig, defaultLocale } from '@/constants/i18n';
+import { 
+  isRTLLanguage, 
+  setWebDocumentDirection, 
+  applyRTLChange,
+  getCurrentRTLState 
+} from '@/utils/rtlInitializer';
 
 const LANGUAGE_STORAGE_KEY = '@vms_language';
 
@@ -33,15 +39,31 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
     loadStoredLanguage();
   }, []);
 
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      setWebDocumentDirection(locale);
+    }
+  }, [locale]);
+
   const loadStoredLanguage = async () => {
     try {
       const storedLocale = await AsyncStorage.getItem(LANGUAGE_STORAGE_KEY);
       if (storedLocale && (storedLocale === 'en' || storedLocale === 'ar')) {
-        setLocaleState(storedLocale as SupportedLocale);
-        const needsRTL = localeConfig[storedLocale as SupportedLocale].isRTL;
-        if (I18nManager.isRTL !== needsRTL) {
-          I18nManager.allowRTL(needsRTL);
+        const validLocale = storedLocale as SupportedLocale;
+        setLocaleState(validLocale);
+        
+        const needsRTL = isRTLLanguage(validLocale);
+        const currentRTL = getCurrentRTLState();
+        
+        if (Platform.OS === 'web') {
+          setWebDocumentDirection(validLocale);
+        } else if (currentRTL !== needsRTL) {
+          I18nManager.allowRTL(true);
           I18nManager.forceRTL(needsRTL);
+        }
+      } else {
+        if (Platform.OS === 'web') {
+          setWebDocumentDirection(defaultLocale);
         }
       }
     } catch (error) {
@@ -55,17 +77,13 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
     try {
       await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, newLocale);
       
-      const needsRTL = localeConfig[newLocale].isRTL;
-      const currentRTL = I18nManager.isRTL;
+      const currentRTL = getCurrentRTLState();
+      const needsReload = applyRTLChange(newLocale, currentRTL);
       
-      if (currentRTL !== needsRTL) {
-        I18nManager.allowRTL(needsRTL);
-        I18nManager.forceRTL(needsRTL);
-        
-        if (Platform.OS !== 'web') {
-          await reloadAppAsync();
-          return;
-        }
+      if (needsReload && Platform.OS !== 'web') {
+        console.log('[LanguageContext] RTL direction changed, reloading app...');
+        await reloadAppAsync();
+        return;
       }
       
       setLocaleState(newLocale);
