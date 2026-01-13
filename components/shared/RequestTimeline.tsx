@@ -102,6 +102,7 @@ export function RequestTimeline({
       alignItems: 'center' as const,
       justifyContent: 'center' as const,
       minWidth: 100,
+      gap: Spacing.xs,
     };
 
     switch (action.type) {
@@ -168,7 +169,7 @@ export function RequestTimeline({
   return (
     <ThemedView style={[styles.container, { backgroundColor: theme.surface }]}>
       {showTitle ? (
-        <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginBottom: Spacing.lg }]}>
+        <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginBottom: Spacing.lg, textAlign: isRTL ? 'right' : 'left' }]}>
           {title || t('request.timeline')}
         </ThemedText>
       ) : null}
@@ -226,7 +227,6 @@ export function RequestTimeline({
               style={[
                 Typography.bodySmall,
                 getActionTextStyle(action),
-                { marginStart: Spacing.xs },
               ]}
             >
               {action.label}
@@ -1061,11 +1061,11 @@ const styles = StyleSheet.create({
   },
   stepContainer: {
     flexDirection: 'row',
+    gap: Spacing.md,
   },
   iconColumn: {
     alignItems: 'center',
     width: 28,
-    marginEnd: Spacing.md,
   },
   iconCircle: {
     width: 28,

@@ -1574,6 +1574,7 @@ const styles = StyleSheet.create({
   serviceRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
+    gap: Spacing.md,
   },
   serviceIcon: {
     width: 40,
@@ -1584,7 +1585,6 @@ const styles = StyleSheet.create({
   },
   serviceInfo: {
     flex: 1,
-    marginStart: Spacing.md,
   },
   compactServiceIcon: {
     width: 36,

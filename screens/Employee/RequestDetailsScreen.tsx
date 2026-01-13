@@ -1187,7 +1187,7 @@ export default function RequestDetailsScreen({
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="calendar" size={18} color={theme.text} />
           </View>
-          <View style={{ flex: 1, marginStart: Spacing.md }}>
+          <View style={{ flex: 1 }}>
             <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
               {t("time.dateAndTime")}
             </ThemedText>
@@ -1203,7 +1203,7 @@ export default function RequestDetailsScreen({
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="clock" size={18} color={theme.text} />
           </View>
-          <View style={{ flex: 1, marginStart: Spacing.md }}>
+          <View style={{ flex: 1 }}>
             <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
               {t("form.duration")}
             </ThemedText>
@@ -1219,7 +1219,7 @@ export default function RequestDetailsScreen({
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="briefcase" size={18} color={theme.text} />
           </View>
-          <View style={{ flex: 1, marginStart: Spacing.md }}>
+          <View style={{ flex: 1 }}>
             <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
               {t("form.purpose")}
             </ThemedText>
@@ -1268,7 +1268,7 @@ export default function RequestDetailsScreen({
               }
             />
           </View>
-          <View style={{ flex: 1, marginStart: Spacing.md }}>
+          <View style={{ flex: 1 }}>
             <ThemedText
               style={[
                 Typography.body,
@@ -1373,7 +1373,7 @@ export default function RequestDetailsScreen({
               color={(request.buffet || request.isBuffet || (request as any).buffetPending) ? theme.secondary : theme.textSecondary}
             />
           </View>
-          <View style={{ flex: 1, marginStart: Spacing.md }}>
+          <View style={{ flex: 1 }}>
             <ThemedText
               style={[
                 Typography.body,
@@ -2767,6 +2767,7 @@ const styles = StyleSheet.create({
   },
   serviceRowNew: {
     alignItems: "flex-start",
+    gap: Spacing.md,
   },
   serviceIcon: {
     width: 40,

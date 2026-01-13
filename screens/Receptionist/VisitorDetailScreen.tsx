@@ -338,7 +338,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="clock" size={18} color={theme.text} />
           </View>
-          <View style={{ flex: 1, marginStart: Spacing.md }}>
+          <View style={{ flex: 1 }}>
             <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('visitor.visitTime')}
             </ThemedText>
@@ -354,7 +354,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="user" size={18} color={theme.text} />
           </View>
-          <View style={{ flex: 1, marginStart: Spacing.md }}>
+          <View style={{ flex: 1 }}>
             <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('reception.hostName')}
             </ThemedText>
@@ -372,7 +372,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
               <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
                 <DDIcon name="home" size={18} color={theme.text} />
               </View>
-              <View style={{ flex: 1, marginStart: Spacing.md }}>
+              <View style={{ flex: 1 }}>
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
                   {t('visitor.meetingRoom')}
                 </ThemedText>
@@ -399,7 +399,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
               <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.info, '15') }]}>
                 <DDIcon name="map-pin" size={18} color={theme.info} />
               </View>
-              <View style={{ flex: 1, marginStart: Spacing.md }}>
+              <View style={{ flex: 1 }}>
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
                   {t('services.parking')}
                 </ThemedText>
@@ -594,6 +594,7 @@ const styles = StyleSheet.create({
   },
   serviceRowNew: {
     alignItems: 'flex-start',
+    gap: Spacing.md,
   },
   serviceIcon: {
     width: 40,
