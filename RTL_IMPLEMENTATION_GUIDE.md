@@ -345,7 +345,75 @@ The core issue is React Native Web's child order caching. The solution is:
 3. **Avoid nested flexDirection toggles** - only outermost container should toggle
 4. **Accept that language switch requires reload/restart** - this is a platform limitation
 
-The current implementation attempts this but has inconsistencies between web and mobile initialization paths that may cause issues.
+The implementation now addresses these issues with the following fixes.
+
+---
+
+## Fixes Applied (January 2026)
+
+### 1. Enhanced `initializeRTLSync()` in `utils/rtlInitializer.ts`
+
+```typescript
+export function initializeRTLSync(): void {
+  I18nManager.allowRTL(true);
+  
+  // NEW: Enable automatic left/right swapping for margins, paddings, positioning
+  if (typeof I18nManager.swapLeftAndRightInRTL === 'function') {
+    I18nManager.swapLeftAndRightInRTL(true);
+  }
+  
+  if (Platform.OS === 'web') {
+    // Sync read from localStorage, call forceRTL, set document.dir
+  } else {
+    // NEW: Mobile now calls forceRTL with persisted state
+    const currentRTL = I18nManager.isRTL;
+    I18nManager.forceRTL(currentRTL);
+  }
+}
+```
+
+### 2. Enhanced `initializeRTLAsync()` with Reload Detection
+
+```typescript
+export interface RTLAsyncResult {
+  locale: SupportedLocale;
+  needsReload: boolean;
+}
+
+export async function initializeRTLAsync(): Promise<RTLAsyncResult> {
+  // Reads from AsyncStorage
+  // Returns needsReload: true if stored locale differs from I18nManager state
+  // This handles fresh installs where I18nManager defaults to LTR
+}
+```
+
+### 3. New RTL Style Helpers in `utils/rtlStyles.ts`
+
+```typescript
+// Use on OUTERMOST container only - prevents double reversal
+export function row(isRTL: boolean): ViewStyle
+
+// Apply to ALL visible text to fix iOS Arabic alignment
+export function rtlText(isRTL: boolean): TextStyle
+
+// Mirror directional icons
+export function mirrorIcon(isRTL: boolean): ViewStyle
+export function getDirectionalChevron(isRTL: boolean, direction: 'forward' | 'back'): string
+```
+
+### 4. ThemedText Now Always Applies RTL Alignment
+
+```typescript
+// 'auto' now defaults to proper RTL alignment instead of undefined
+const textAlign = align === 'auto' 
+  ? (isRTL ? 'right' : 'left')
+  : getTextAlign(isRTL, align);
+```
+
+### 5. Fixed Double-Reversal in VisitorRequestCard
+
+- `renderIconText()` now uses fixed `flexDirection: 'row'` since parent handles RTL
+- Added explicit `textAlign` for inner text elements
 
 ---
 

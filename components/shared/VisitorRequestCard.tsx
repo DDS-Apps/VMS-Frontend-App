@@ -230,10 +230,12 @@ export function VisitorRequestCard({
   };
 
   const renderIconText = (icon: string, text: string, iconSize: number = 13) => {
+    // Use fixed 'row' direction since parent dateTimeRow already handles RTL mirroring
+    // Inner items should NOT also flip, or they will cancel out
     return (
-      <View style={[styles.dateTimeItem, { flexDirection: 'row' }]}>
+      <View style={[styles.dateTimeItem, { flexDirection: 'row', alignItems: 'center' }]}>
         <DDIcon name={icon} size={iconSize} color={theme.textSecondary} />
-        <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
+        <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
           {text}
         </ThemedText>
       </View>

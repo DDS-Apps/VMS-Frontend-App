@@ -29,7 +29,12 @@ export function setWebDocumentDirection(locale: SupportedLocale): void {
   }
 }
 
-export async function initializeRTLAsync(): Promise<SupportedLocale> {
+export interface RTLAsyncResult {
+  locale: SupportedLocale;
+  needsReload: boolean;
+}
+
+export async function initializeRTLAsync(): Promise<RTLAsyncResult> {
   try {
     const storedLocale = await AsyncStorage.getItem(LANGUAGE_STORAGE_KEY);
     const locale = (storedLocale === 'en' || storedLocale === 'ar') 
@@ -37,26 +42,40 @@ export async function initializeRTLAsync(): Promise<SupportedLocale> {
       : defaultLocale;
     
     const needsRTL = isRTLLanguage(locale);
+    const currentRTL = I18nManager.isRTL;
+    
+    console.log('[RTL] initializeRTLAsync:', { locale, needsRTL, currentRTL });
     
     if (Platform.OS === 'web') {
       setWebDocumentDirection(locale);
-    } else {
-      I18nManager.allowRTL(true);
-      
-      if (I18nManager.isRTL !== needsRTL) {
-        I18nManager.forceRTL(needsRTL);
-      }
+      return { locale, needsReload: false };
     }
     
-    return locale;
+    // On mobile, check if stored locale implies different RTL than current state
+    // This handles fresh installs where I18nManager defaults to LTR but user's stored locale is Arabic
+    if (currentRTL !== needsRTL) {
+      console.log('[RTL] Mismatch detected, forcing RTL and requesting reload');
+      I18nManager.allowRTL(true);
+      I18nManager.forceRTL(needsRTL);
+      return { locale, needsReload: true };
+    }
+    
+    return { locale, needsReload: false };
   } catch (error) {
     console.warn('[RTL] Failed to initialize RTL:', error);
-    return defaultLocale;
+    return { locale: defaultLocale, needsReload: false };
   }
 }
 
 export function initializeRTLSync(): void {
+  // Enable RTL support on all platforms
   I18nManager.allowRTL(true);
+  
+  // Enable automatic left/right swapping for margins, paddings, and positioning
+  // This is critical for proper RTL layout on mobile
+  if (typeof I18nManager.swapLeftAndRightInRTL === 'function') {
+    I18nManager.swapLeftAndRightInRTL(true);
+  }
   
   if (Platform.OS === 'web') {
     // On web, synchronously read from localStorage to set RTL before first render
@@ -80,10 +99,15 @@ export function initializeRTLSync(): void {
       console.warn('[RTL] Failed to initialize RTL sync on web:', error);
     }
   } else {
-    // On mobile (iOS/Android), I18nManager state persists across reloads
-    // The actual locale will be determined by initializeRTLAsync after AsyncStorage read
-    // But we ensure RTL is allowed from the start
-    console.log('[RTL] initializeRTLSync on mobile - RTL allowed, waiting for async init');
+    // On mobile (iOS/Android), use I18nManager's persisted state as baseline
+    // This ensures first render respects the previously set RTL state
+    // The async init will reconcile with AsyncStorage if needed
+    const currentRTL = I18nManager.isRTL;
+    console.log('[RTL] initializeRTLSync on mobile:', { currentRTL });
+    
+    // Force RTL state to ensure it's applied before first render
+    // Using the current persisted value maintains consistency
+    I18nManager.forceRTL(currentRTL);
   }
 }
 

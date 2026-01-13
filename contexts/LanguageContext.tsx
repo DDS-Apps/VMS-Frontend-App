@@ -7,7 +7,8 @@ import {
   isRTLLanguage, 
   setWebDocumentDirection, 
   applyRTLChange,
-  getCurrentRTLState 
+  getCurrentRTLState,
+  initializeRTLAsync as rtlInitAsync,
 } from '@/utils/rtlInitializer';
 
 const LANGUAGE_STORAGE_KEY = '@vms_language';
@@ -50,27 +51,26 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
 
   const loadStoredLanguage = async () => {
     try {
-      const storedLocale = await AsyncStorage.getItem(LANGUAGE_STORAGE_KEY);
-      if (storedLocale && (storedLocale === 'en' || storedLocale === 'ar')) {
-        const validLocale = storedLocale as SupportedLocale;
-        const needsRTL = isRTLLanguage(validLocale);
-        
-        setLocaleState(validLocale);
-        setIsRTL(needsRTL);
-        setLayoutNonce(prev => prev + 1);
-        
-        const currentRTL = getCurrentRTLState();
-        
-        if (Platform.OS === 'web') {
-          setWebDocumentDirection(validLocale);
-        } else if (currentRTL !== needsRTL) {
-          I18nManager.allowRTL(true);
-          I18nManager.forceRTL(needsRTL);
-        }
-      } else {
-        if (Platform.OS === 'web') {
-          setWebDocumentDirection(defaultLocale);
-        }
+      // Use the unified RTL async initializer
+      const { locale: validLocale, needsReload } = await rtlInitAsync();
+      const needsRTL = isRTLLanguage(validLocale);
+      
+      console.log('[LanguageContext] loadStoredLanguage:', { validLocale, needsRTL, needsReload });
+      
+      // If mobile detected a mismatch between stored locale and I18nManager state,
+      // we need to reload the app to apply the RTL change
+      if (needsReload && Platform.OS !== 'web') {
+        console.log('[LanguageContext] RTL mismatch detected, reloading app...');
+        await reloadAppAsync();
+        return;
+      }
+      
+      setLocaleState(validLocale);
+      setIsRTL(needsRTL);
+      setLayoutNonce(prev => prev + 1);
+      
+      if (Platform.OS === 'web') {
+        setWebDocumentDirection(validLocale);
       }
     } catch (error) {
       console.warn('Failed to load stored language:', error);

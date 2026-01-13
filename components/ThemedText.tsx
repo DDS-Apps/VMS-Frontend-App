@@ -43,7 +43,11 @@ export function ThemedText({
   const textVariant = variant || type || "body";
   
   const writingDirection = isRTL ? 'rtl' : 'ltr';
-  const textAlign = align === 'auto' ? undefined : getTextAlign(isRTL, align);
+  // Always apply textAlign for RTL to fix iOS Arabic left-alignment issue
+  // 'auto' means use the default alignment based on RTL state
+  const textAlign = align === 'auto' 
+    ? (isRTL ? 'right' : 'left')
+    : getTextAlign(isRTL, align);
 
   const getColor = () => {
     if (color) {
@@ -96,7 +100,7 @@ export function ThemedText({
   const baseStyle: TextStyle = { 
     color: getColor(), 
     writingDirection,
-    ...(textAlign && { textAlign }),
+    textAlign,
   };
 
   return (
