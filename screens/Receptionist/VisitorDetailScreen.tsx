@@ -20,7 +20,6 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { applyOpacity } from "@/utils/statusStyles";
-import type { VisitorExceptionType } from "@/services/state/receptionistVisitorState";
 import { VisitorActionButton } from "@/components/VisitorActionButton";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { LoadingButton } from "@/components/shared/LoadingButton";
@@ -91,11 +90,6 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
   const checkInMutation = useReceptionCheckInMutation();
   const checkOutMutation = useReceptionCheckOutMutation();
   const [showCancelModal, setShowCancelModal] = useState(false);
-  const [showExceptionModal, setShowExceptionModal] = useState(false);
-  const [selectedExceptionType, setSelectedExceptionType] = useState<VisitorExceptionType | null>(null);
-  const [guidanceNotes, setGuidanceNotes] = useState('');
-  const [exceptionFloor, setExceptionFloor] = useState('');
-  const [exceptionRoom, setExceptionRoom] = useState('');
 
   const showStickyFooter = visitor && (
     visitor.status === 'approved' || 
@@ -238,35 +232,6 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
       t('reception.cancelNotAvailable'),
       [{ text: t('common.ok'), onPress: () => setShowCancelModal(false) }]
     );
-  };
-
-  const exceptionTypeOptions: { type: VisitorExceptionType; label: string }[] = [
-    { type: 'communication_failure', label: t('reception.communicationFailure') },
-    { type: 'qr_issue', label: t('reception.qrIssue') },
-    { type: 'badge_malfunction', label: t('reception.badgeMalfunction') },
-    { type: 'identity_mismatch', label: t('reception.identityMismatch') },
-    { type: 'escort_required', label: t('reception.escortRequired') },
-    { type: 'other', label: t('reception.otherException') },
-  ];
-
-  const handleReportException = () => {
-    if (!selectedExceptionType) {
-      return;
-    }
-
-    Alert.alert(
-      t('common.comingSoon'),
-      t('reception.exceptionNotAvailable'),
-      [{ text: t('common.ok'), onPress: resetExceptionModal }]
-    );
-  };
-
-  const resetExceptionModal = () => {
-    setShowExceptionModal(false);
-    setSelectedExceptionType(null);
-    setGuidanceNotes('');
-    setExceptionFloor('');
-    setExceptionRoom('');
   };
 
   const statusConfig = getStatusConfig(visitor.status);
@@ -527,169 +492,11 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
           </View>
         </View>
       </Modal>
-
-      <Modal
-        visible={showExceptionModal}
-        transparent
-        animationType="fade"
-        onRequestClose={resetExceptionModal}
-      >
-        <View style={styles.modalOverlay}>
-          <Pressable 
-            style={[styles.modalBackdrop, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]}
-            onPress={resetExceptionModal}
-          />
-          <View style={styles.modalContainer}>
-            <ThemedView style={[styles.modalContent, { backgroundColor: theme.surface, maxHeight: '90%' }]}>
-              <View style={[styles.modalHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                <ThemedText style={[Typography.subtitle, { fontSize: 18, fontWeight: '600', color: theme.text }]}>
-                  {t('reception.reportException')}
-                </ThemedText>
-                <Pressable onPress={resetExceptionModal}>
-                  <DDIcon name="x" size={22} variant="muted" />
-                </Pressable>
-              </View>
-
-              <Spacer height={20} />
-
-              <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 400 }}>
-                <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, marginBottom: Spacing.md }]}>
-                  {t('reception.exceptionType')}
-                </ThemedText>
-
-                {exceptionTypeOptions.map((option) => (
-                  <Pressable
-                    key={option.type}
-                    style={[
-                      styles.exceptionTypeOption,
-                      { 
-                        borderColor: selectedExceptionType === option.type ? theme.warning : theme.border,
-                        backgroundColor: selectedExceptionType === option.type ? applyOpacity(theme.warning, '10') : 'transparent',
-                        flexDirection: isRTL ? 'row-reverse' : 'row'
-                      }
-                    ]}
-                    onPress={() => setSelectedExceptionType(option.type)}
-                  >
-                    <View style={[
-                      styles.radioButton,
-                      { borderColor: selectedExceptionType === option.type ? theme.warning : theme.border }
-                    ]}>
-                      {selectedExceptionType === option.type ? (
-                        <View style={[styles.radioButtonInner, { backgroundColor: theme.warning }]} />
-                      ) : null}
-                    </View>
-                    <ThemedText style={[Typography.body, { color: theme.text, marginStart: Spacing.md }]}>
-                      {option.label}
-                    </ThemedText>
-                  </Pressable>
-                ))}
-
-                <Spacer height={Spacing.lg} />
-
-                <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, marginBottom: Spacing.sm }]}>
-                  {t('reception.guidanceNotes')}
-                </ThemedText>
-                <TextInput
-                  style={[
-                    styles.textInput,
-                    { 
-                      borderColor: theme.border, 
-                      color: theme.text,
-                      backgroundColor: theme.surface,
-                      minHeight: 80,
-                      textAlignVertical: 'top'
-                    }
-                  ]}
-                  placeholder={t('reception.guidanceNotesPlaceholder')}
-                  placeholderTextColor={theme.textSecondary}
-                  value={guidanceNotes}
-                  onChangeText={setGuidanceNotes}
-                  multiline
-                />
-
-                <Spacer height={Spacing.lg} />
-
-                <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, marginBottom: Spacing.sm }]}>
-                  {t('reception.alternateLocation')} ({t('common.optional')})
-                </ThemedText>
-                <View style={[styles.optionalFieldsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                  <View style={{ flex: 1 }}>
-                    <TextInput
-                      style={[
-                        styles.textInput,
-                        { borderColor: theme.border, color: theme.text, backgroundColor: theme.surface }
-                      ]}
-                      placeholder={t('reception.floor')}
-                      placeholderTextColor={theme.textSecondary}
-                      value={exceptionFloor}
-                      onChangeText={setExceptionFloor}
-                    />
-                  </View>
-                  <Spacer width={Spacing.md} />
-                  <View style={{ flex: 1 }}>
-                    <TextInput
-                      style={[
-                        styles.textInput,
-                        { borderColor: theme.border, color: theme.text, backgroundColor: theme.surface }
-                      ]}
-                      placeholder={t('reception.room')}
-                      placeholderTextColor={theme.textSecondary}
-                      value={exceptionRoom}
-                      onChangeText={setExceptionRoom}
-                    />
-                  </View>
-                </View>
-              </ScrollView>
-
-              <Spacer height={24} />
-
-              <View style={[styles.modalActions, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                <Pressable
-                  style={({ pressed }) => [
-                    styles.modalCancelButton,
-                    { opacity: pressed ? 0.7 : 1, backgroundColor: theme.surfaceSecondary, borderColor: theme.border }
-                  ]}
-                  onPress={resetExceptionModal}
-                >
-                  <ThemedText style={[Typography.body, { color: theme.textSecondary, fontWeight: '600', fontSize: 14 }]}>
-                    {t('common.cancel')}
-                  </ThemedText>
-                </Pressable>
-
-                <Spacer width={12} />
-
-                <Pressable
-                  style={({ pressed }) => [
-                    styles.modalSubmitButton,
-                    { 
-                      opacity: pressed ? 0.8 : 1, 
-                      backgroundColor: selectedExceptionType ? theme.warning : theme.surfaceSecondary 
-                    }
-                  ]}
-                  onPress={handleReportException}
-                  disabled={!selectedExceptionType}
-                >
-                  <ThemedText style={[Typography.body, { color: selectedExceptionType ? theme.buttonText : theme.textSecondary, fontWeight: '600', fontSize: 14 }]}>
-                    {t('reception.submitException')}
-                  </ThemedText>
-                </Pressable>
-              </View>
-            </ThemedView>
-          </View>
-        </View>
-      </Modal>
     </ScreenScrollView>
 
     {/* Sticky Footer for Actions */}
     {(visitor.status === 'approved' || visitor.status === 'pending') && (
       <View style={[styles.stickyFooter, { backgroundColor: theme.background, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.lg }]}>
-        <VisitorActionButton 
-          type="check_in" 
-          onPress={handleCheckIn} 
-          fullWidth 
-          loading={checkInMutation.isPending}
-        />
-        <Spacer height={Spacing.md} />
         <View style={[styles.buttonRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <LoadingButton
             onPress={() => setShowCancelModal(true)}
@@ -702,42 +509,24 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
             {t('actions.cancelRequest')}
           </LoadingButton>
           <View style={{ width: Spacing.md }} />
-          <LoadingButton
-            onPress={() => setShowExceptionModal(true)}
-            variant="warning-outline"
-            size="large"
-            icon="alert-triangle"
-            iconPosition="left"
-            style={{ flex: 1 }}
-          >
-            {t('reception.reportException')}
-          </LoadingButton>
+          <VisitorActionButton 
+            type="check_in" 
+            onPress={handleCheckIn} 
+            loading={checkInMutation.isPending}
+            flex={1}
+          />
         </View>
       </View>
     )}
 
     {visitor.status === 'checked_in' && (
       <View style={[styles.stickyFooter, { backgroundColor: theme.background, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.lg }]}>
-        <View style={[styles.buttonRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-          <VisitorActionButton 
-            type="check_out" 
-            onPress={handleCheckOut} 
-            fullWidth 
-            loading={checkOutMutation.isPending}
-            flex={1}
-          />
-          <View style={{ width: Spacing.md }} />
-          <LoadingButton
-            onPress={() => setShowExceptionModal(true)}
-            variant="warning-outline"
-            size="large"
-            icon="alert-triangle"
-            iconPosition="left"
-            style={{ flex: 1 }}
-          >
-            {t('reception.reportException')}
-          </LoadingButton>
-        </View>
+        <VisitorActionButton 
+          type="check_out" 
+          onPress={handleCheckOut} 
+          fullWidth 
+          loading={checkOutMutation.isPending}
+        />
       </View>
     )}
     </>
@@ -856,36 +645,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: Spacing.md,
     borderRadius: BorderRadius.md,
-  },
-  exceptionTypeOption: {
-    alignItems: 'center',
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.md,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    marginBottom: Spacing.sm,
-  },
-  radioButton: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  radioButtonInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
-  textInput: {
-    borderWidth: 1,
-    borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.md,
-    fontSize: 14,
-  },
-  optionalFieldsRow: {
-    alignItems: 'center',
   },
 });
