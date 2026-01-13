@@ -332,6 +332,8 @@ export default function DriverTaskDetailScreen({
               {t('valet.parkVehicle')}
             </LoadingButton>
 
+            <View style={{ width: Spacing.md }} />
+
             <LoadingButton
               onPress={handleComplete}
               loading={isUpdating}
@@ -457,7 +459,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   actionsContainer: {
-    gap: Spacing.md,
+    alignItems: 'center',
   },
   actionButton: {
     alignItems: 'center',

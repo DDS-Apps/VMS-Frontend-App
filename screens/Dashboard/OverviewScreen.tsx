@@ -272,6 +272,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                   <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
                     {t('common.viewAll')}
                   </ThemedText>
+                  <View style={{ width: Spacing.xs }} />
                   <DDIcon name={isRTL ? "chevron-left" : "chevron-right"} size={16} color={theme.primary} />
                 </Pressable>
               )}
@@ -337,6 +338,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                   <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
                     {t('common.viewAll')}
                   </ThemedText>
+                  <View style={{ width: Spacing.xs }} />
                   <DDIcon name={isRTL ? "chevron-left" : "chevron-right"} size={16} color={theme.primary} />
                 </Pressable>
               )}
@@ -400,6 +402,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                   <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
                     {t('common.viewAll')}
                   </ThemedText>
+                  <View style={{ width: Spacing.xs }} />
                   <DDIcon name={isRTL ? "chevron-left" : "chevron-right"} size={16} color={theme.primary} />
                 </Pressable>
               )}
@@ -468,6 +471,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                   <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
                     {t('common.viewAll')}
                   </ThemedText>
+                  <View style={{ width: Spacing.xs }} />
                   <DDIcon name={isRTL ? "chevron-left" : "chevron-right"} size={16} color={theme.primary} />
                 </Pressable>
               )}
@@ -533,6 +537,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                   <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
                     {t('common.viewAll')}
                   </ThemedText>
+                  <View style={{ width: Spacing.xs }} />
                   <DDIcon name={isRTL ? "chevron-left" : "chevron-right"} size={16} color={theme.primary} />
                 </Pressable>
               )}
