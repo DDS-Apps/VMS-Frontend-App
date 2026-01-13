@@ -703,50 +703,24 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
             <Spacer height={Spacing.lg} />
 
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: isRTL ? 'flex-end' : 'flex-start' }}>
-              {isRTL ? (
-                <>
-                  <ThemedText style={[Typography.caption, { marginEnd: Spacing.md, color: theme.textSecondary, fontSize: 13, textAlign: 'right' }]}>
-                    {request.visitor.email}
-                  </ThemedText>
-                  <View style={[styles.contactIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-                    <DDIcon name="mail" size={18} color={theme.text} />
-                  </View>
-                </>
-              ) : (
-                <>
-                  <View style={[styles.contactIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-                    <DDIcon name="mail" size={18} color={theme.text} />
-                  </View>
-                  <ThemedText style={[Typography.caption, { marginStart: Spacing.md, color: theme.textSecondary, fontSize: 13, textAlign: 'left' }]}>
-                    {request.visitor.email}
-                  </ThemedText>
-                </>
-              )}
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <View style={[styles.contactIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                <DDIcon name="mail" size={18} color={theme.text} />
+              </View>
+              <ThemedText style={[Typography.caption, { marginStart: Spacing.md, color: theme.textSecondary, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+                {request.visitor.email}
+              </ThemedText>
             </View>
 
             <Spacer height={Spacing.md} />
 
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: isRTL ? 'flex-end' : 'flex-start' }}>
-              {isRTL ? (
-                <>
-                  <ThemedText style={[Typography.caption, { marginEnd: Spacing.md, color: theme.textSecondary, fontSize: 13, textAlign: 'right' }]}>
-                    {request.visitor.phone}
-                  </ThemedText>
-                  <View style={[styles.contactIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-                    <DDIcon name="phone" size={18} color={theme.text} />
-                  </View>
-                </>
-              ) : (
-                <>
-                  <View style={[styles.contactIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-                    <DDIcon name="phone" size={18} color={theme.text} />
-                  </View>
-                  <ThemedText style={[Typography.caption, { marginStart: Spacing.md, color: theme.textSecondary, fontSize: 13, textAlign: 'left' }]}>
-                    {request.visitor.phone}
-                  </ThemedText>
-                </>
-              )}
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <View style={[styles.contactIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                <DDIcon name="phone" size={18} color={theme.text} />
+              </View>
+              <ThemedText style={[Typography.caption, { marginStart: Spacing.md, color: theme.textSecondary, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+                {request.visitor.phone}
+              </ThemedText>
             </View>
           </View>
         </ThemedView>
@@ -755,36 +729,18 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
           <>
             <Spacer height={Spacing.lg} />
             <ThemedView style={[styles.cardNew, { backgroundColor: applyOpacity(theme.error, '08') }]}>
-              <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: isRTL ? 'flex-end' : 'flex-start', gap: Spacing.sm }}>
-                {isRTL ? (
-                  <>
-                    <View style={{ flex: 1, alignItems: 'flex-end' }}>
-                      <ThemedText style={[Typography.bodySmall, { color: theme.error, fontWeight: '600', marginBottom: 4, textAlign: 'right' }]}>
-                        {t('form.reason')}
-                      </ThemedText>
-                      <ThemedText style={[Typography.body, { color: theme.text, lineHeight: 22, textAlign: 'right' }]}>
-                        {request.approval.rejectionReason}
-                      </ThemedText>
-                    </View>
-                    <View style={{ marginTop: 2 }}>
-                      <DDIcon name="message-circle" size={18} color={theme.error} />
-                    </View>
-                  </>
-                ) : (
-                  <>
-                    <View style={{ marginTop: 2 }}>
-                      <DDIcon name="message-circle" size={18} color={theme.error} />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <ThemedText style={[Typography.bodySmall, { color: theme.error, fontWeight: '600', marginBottom: 4, textAlign: 'left' }]}>
-                        {t('form.reason')}
-                      </ThemedText>
-                      <ThemedText style={[Typography.body, { color: theme.text, lineHeight: 22, textAlign: 'left' }]}>
-                        {request.approval.rejectionReason}
-                      </ThemedText>
-                    </View>
-                  </>
-                )}
+              <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.sm }}>
+                <View style={{ marginTop: 2 }}>
+                  <DDIcon name="message-circle" size={18} color={theme.error} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <ThemedText style={[Typography.bodySmall, { color: theme.error, fontWeight: '600', marginBottom: 4, textAlign: isRTL ? 'right' : 'left' }]}>
+                    {t('form.reason')}
+                  </ThemedText>
+                  <ThemedText style={[Typography.body, { color: theme.text, lineHeight: 22, textAlign: isRTL ? 'right' : 'left' }]}>
+                    {request.approval.rejectionReason}
+                  </ThemedText>
+                </View>
               </View>
             </ThemedView>
           </>
@@ -794,36 +750,18 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
           <>
             <Spacer height={Spacing.lg} />
             <ThemedView style={[styles.cardNew, { backgroundColor: applyOpacity(theme.error, '08') }]}>
-              <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: isRTL ? 'flex-end' : 'flex-start', gap: Spacing.sm }}>
-                {isRTL ? (
-                  <>
-                    <View style={{ flex: 1, alignItems: 'flex-end' }}>
-                      <ThemedText style={[Typography.bodySmall, { color: theme.error, fontWeight: '600', marginBottom: 4, textAlign: 'right' }]}>
-                        {t('visitor.visitorDeclineReason')}
-                      </ThemedText>
-                      <ThemedText style={[Typography.body, { color: theme.text, lineHeight: 22, textAlign: 'right' }]}>
-                        {request.visitorDecision.reason}
-                      </ThemedText>
-                    </View>
-                    <View style={{ marginTop: 2 }}>
-                      <DDIcon name="user-x" size={18} color={theme.error} />
-                    </View>
-                  </>
-                ) : (
-                  <>
-                    <View style={{ marginTop: 2 }}>
-                      <DDIcon name="user-x" size={18} color={theme.error} />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <ThemedText style={[Typography.bodySmall, { color: theme.error, fontWeight: '600', marginBottom: 4, textAlign: 'left' }]}>
-                        {t('visitor.visitorDeclineReason')}
-                      </ThemedText>
-                      <ThemedText style={[Typography.body, { color: theme.text, lineHeight: 22, textAlign: 'left' }]}>
-                        {request.visitorDecision.reason}
-                      </ThemedText>
-                    </View>
-                  </>
-                )}
+              <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.sm }}>
+                <View style={{ marginTop: 2 }}>
+                  <DDIcon name="user-x" size={18} color={theme.error} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <ThemedText style={[Typography.bodySmall, { color: theme.error, fontWeight: '600', marginBottom: 4, textAlign: isRTL ? 'right' : 'left' }]}>
+                    {t('visitor.visitorDeclineReason')}
+                  </ThemedText>
+                  <ThemedText style={[Typography.body, { color: theme.text, lineHeight: 22, textAlign: isRTL ? 'right' : 'left' }]}>
+                    {request.visitorDecision.reason}
+                  </ThemedText>
+                </View>
               </View>
             </ThemedView>
           </>
@@ -835,266 +773,131 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
           <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text, textAlign: isRTL ? 'right' : 'left', marginBottom: Spacing.xl }]}>
             {t('visitor.visitorRequest')}
           </ThemedText>
-          <View style={[styles.serviceRow, { flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start' }]}>
-            {isRTL ? (
-              <>
-                <View style={[styles.serviceInfo, { marginEnd: Spacing.md, alignItems: 'flex-end' }]}>
-                  <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: 'right' }]}>
-                    {t('dashboard.requestedBy')}
-                  </ThemedText>
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: 'right' }]}>
-                    {request.employeeName}{request.employeeDepartment ? ` (${request.employeeDepartment})` : ''}
-                  </ThemedText>
-                </View>
-                <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-                  <DDIcon name="user" size={18} color={theme.text} />
-                </View>
-              </>
-            ) : (
-              <>
-                <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-                  <DDIcon name="user" size={18} color={theme.text} />
-                </View>
-                <View style={styles.serviceInfo}>
-                  <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: 'left' }]}>
-                    {t('dashboard.requestedBy')}
-                  </ThemedText>
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: 'left' }]}>
-                    {request.employeeName}{request.employeeDepartment ? ` (${request.employeeDepartment})` : ''}
-                  </ThemedText>
-                </View>
-              </>
-            )}
+          <View style={[styles.serviceRow, { flexDirection: 'row' }]}>
+            <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+              <DDIcon name="user" size={18} color={theme.text} />
+            </View>
+            <View style={styles.serviceInfo}>
+              <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+                {t('dashboard.requestedBy')}
+              </ThemedText>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+                {request.employeeName}{request.employeeDepartment ? ` (${request.employeeDepartment})` : ''}
+              </ThemedText>
+            </View>
           </View>
 
           <Spacer height={Spacing.lg} />
 
-          <View style={[styles.serviceRow, { flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start' }]}>
-            {isRTL ? (
-              <>
-                <View style={[styles.serviceInfo, { marginEnd: Spacing.md, alignItems: 'flex-end' }]}>
-                  <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: 'right' }]}>
-                    {t('visitor.visitDate')} & {t('visitor.visitTime')}
-                  </ThemedText>
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: 'right' }]}>
-                    {formatDateShort(request.visitDate)} • {formatVisitTimeRange(request.visitTime, request.endTime)}
-                  </ThemedText>
-                </View>
-                <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-                  <DDIcon name="calendar" size={18} color={theme.text} />
-                </View>
-              </>
-            ) : (
-              <>
-                <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-                  <DDIcon name="calendar" size={18} color={theme.text} />
-                </View>
-                <View style={styles.serviceInfo}>
-                  <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: 'left' }]}>
-                    {t('visitor.visitDate')} & {t('visitor.visitTime')}
-                  </ThemedText>
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: 'left' }]}>
-                    {formatDateShort(request.visitDate)} • {formatVisitTimeRange(request.visitTime, request.endTime)}
-                  </ThemedText>
-                </View>
-              </>
-            )}
+          <View style={[styles.serviceRow, { flexDirection: 'row' }]}>
+            <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+              <DDIcon name="calendar" size={18} color={theme.text} />
+            </View>
+            <View style={styles.serviceInfo}>
+              <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+                {t('visitor.visitDate')} & {t('visitor.visitTime')}
+              </ThemedText>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+                {formatDateShort(request.visitDate)} • {formatVisitTimeRange(request.visitTime, request.endTime)}
+              </ThemedText>
+            </View>
           </View>
 
           <Spacer height={Spacing.lg} />
 
-          <View style={[styles.serviceRow, { flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start' }]}>
-            {isRTL ? (
-              <>
-                <View style={[styles.serviceInfo, { marginEnd: Spacing.md, alignItems: 'flex-end' }]}>
-                  <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: 'right' }]}>
-                    {t('form.duration')}
-                  </ThemedText>
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: 'right' }]}>
-                    {parseISODuration(request.duration)}
-                  </ThemedText>
-                </View>
-                <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-                  <DDIcon name="clock" size={18} color={theme.text} />
-                </View>
-              </>
-            ) : (
-              <>
-                <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-                  <DDIcon name="clock" size={18} color={theme.text} />
-                </View>
-                <View style={styles.serviceInfo}>
-                  <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: 'left' }]}>
-                    {t('form.duration')}
-                  </ThemedText>
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: 'left' }]}>
-                    {parseISODuration(request.duration)}
-                  </ThemedText>
-                </View>
-              </>
-            )}
+          <View style={[styles.serviceRow, { flexDirection: 'row' }]}>
+            <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+              <DDIcon name="clock" size={18} color={theme.text} />
+            </View>
+            <View style={styles.serviceInfo}>
+              <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+                {t('form.duration')}
+              </ThemedText>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+                {parseISODuration(request.duration)}
+              </ThemedText>
+            </View>
           </View>
 
           {/* End Time - Inline editable for walk-ins */}
           {request.isWalkIn ? (
             <>
               <Spacer height={Spacing.lg} />
-              <View style={[styles.serviceRow, { flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start' }]}>
-                {isRTL ? (
-                  <>
-                    <View style={[styles.serviceInfo, { marginEnd: Spacing.md, alignItems: 'flex-end' }]}>
-                      <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: 'right' }]}>
-                        {t('form.endTime')}
+              <View style={[styles.serviceRow, { flexDirection: 'row' }]}>
+                <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                  <DDIcon name="log-out" size={18} color={theme.text} />
+                </View>
+                <View style={styles.serviceInfo}>
+                  <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+                    {t('form.endTime')}
+                  </ThemedText>
+                  {inlineEndTime !== null ? (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginTop: 2 }}>
+                      <Pressable
+                        onPress={() => setShowInlineEndTimePicker(true)}
+                        style={[styles.inlineTimeButton, { backgroundColor: applyOpacity(theme.primary, '10'), borderColor: theme.primary }]}
+                      >
+                        <DDIcon name="clock" size={14} color={theme.primary} />
+                        <ThemedText style={[Typography.body, { color: theme.primary, fontWeight: '600', marginStart: 4 }]}>
+                          {formatTimeForDisplay(inlineEndTime)}
+                        </ThemedText>
+                      </Pressable>
+                      <Pressable onPress={handleSaveInlineEndTime} disabled={updateMutation.isPending}>
+                        <DDIcon name="check" size={20} color={theme.success} />
+                      </Pressable>
+                      <Pressable onPress={handleCancelInlineEndTime}>
+                        <DDIcon name="x" size={20} color={theme.error} />
+                      </Pressable>
+                    </View>
+                  ) : (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginTop: 2 }}>
+                      <ThemedText style={[Typography.caption, { color: request.endTime ? theme.textSecondary : theme.warning, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+                        {request.endTime ? formatTimeFromString(request.endTime) : t('common.notRequested')}
                       </ThemedText>
-                      {inlineEndTime !== null ? (
-                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: Spacing.sm, marginTop: 2 }}>
-                          <Pressable onPress={handleCancelInlineEndTime}>
-                            <DDIcon name="x" size={20} color={theme.error} />
-                          </Pressable>
-                          <Pressable onPress={handleSaveInlineEndTime} disabled={updateMutation.isPending}>
-                            <DDIcon name="check" size={20} color={theme.success} />
-                          </Pressable>
-                          <Pressable
-                            onPress={() => setShowInlineEndTimePicker(true)}
-                            style={[styles.inlineTimeButton, { backgroundColor: applyOpacity(theme.primary, '10'), borderColor: theme.primary }]}
-                          >
-                            <ThemedText style={[Typography.body, { color: theme.primary, fontWeight: '600', marginEnd: 4 }]}>
-                              {formatTimeForDisplay(inlineEndTime)}
-                            </ThemedText>
-                            <DDIcon name="clock" size={14} color={theme.primary} />
-                          </Pressable>
-                        </View>
-                      ) : (
-                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: Spacing.sm, marginTop: 2 }}>
-                          {!isReadOnlyRole && isManagerTheHost && (request.status === REQUEST_STATUS.APPROVED || request.status === REQUEST_STATUS.VISITOR_ACCEPTED) ? (
-                            <Pressable onPress={handleStartInlineEndTimeEdit} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                              <DDIcon name="edit-2" size={16} color={theme.primary} />
-                            </Pressable>
-                          ) : null}
-                          <ThemedText style={[Typography.caption, { color: request.endTime ? theme.textSecondary : theme.warning, fontSize: 13 }]}>
-                            {request.endTime ? formatTimeFromString(request.endTime) : t('common.notRequested')}
-                          </ThemedText>
-                        </View>
-                      )}
+                      {!isReadOnlyRole && isManagerTheHost && (request.status === REQUEST_STATUS.APPROVED || request.status === REQUEST_STATUS.VISITOR_ACCEPTED) ? (
+                        <Pressable onPress={handleStartInlineEndTimeEdit} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                          <DDIcon name="edit-2" size={16} color={theme.primary} />
+                        </Pressable>
+                      ) : null}
                     </View>
-                    <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-                      <DDIcon name="log-out" size={18} color={theme.text} />
-                    </View>
-                  </>
-                ) : (
-                  <>
-                    <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-                      <DDIcon name="log-out" size={18} color={theme.text} />
-                    </View>
-                    <View style={styles.serviceInfo}>
-                      <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: 'left' }]}>
-                        {t('form.endTime')}
-                      </ThemedText>
-                      {inlineEndTime !== null ? (
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginTop: 2 }}>
-                          <Pressable
-                            onPress={() => setShowInlineEndTimePicker(true)}
-                            style={[styles.inlineTimeButton, { backgroundColor: applyOpacity(theme.primary, '10'), borderColor: theme.primary }]}
-                          >
-                            <DDIcon name="clock" size={14} color={theme.primary} />
-                            <ThemedText style={[Typography.body, { color: theme.primary, fontWeight: '600', marginStart: 4 }]}>
-                              {formatTimeForDisplay(inlineEndTime)}
-                            </ThemedText>
-                          </Pressable>
-                          <Pressable onPress={handleSaveInlineEndTime} disabled={updateMutation.isPending}>
-                            <DDIcon name="check" size={20} color={theme.success} />
-                          </Pressable>
-                          <Pressable onPress={handleCancelInlineEndTime}>
-                            <DDIcon name="x" size={20} color={theme.error} />
-                          </Pressable>
-                        </View>
-                      ) : (
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginTop: 2 }}>
-                          <ThemedText style={[Typography.caption, { color: request.endTime ? theme.textSecondary : theme.warning, fontSize: 13 }]}>
-                            {request.endTime ? formatTimeFromString(request.endTime) : t('common.notRequested')}
-                          </ThemedText>
-                          {!isReadOnlyRole && isManagerTheHost && (request.status === REQUEST_STATUS.APPROVED || request.status === REQUEST_STATUS.VISITOR_ACCEPTED) ? (
-                            <Pressable onPress={handleStartInlineEndTimeEdit} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                              <DDIcon name="edit-2" size={16} color={theme.primary} />
-                            </Pressable>
-                          ) : null}
-                        </View>
-                      )}
-                    </View>
-                  </>
-                )}
+                  )}
+                </View>
               </View>
             </>
           ) : null}
 
           <Spacer height={Spacing.lg} />
 
-          <View style={[styles.serviceRow, { flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start' }]}>
-            {isRTL ? (
-              <>
-                <View style={[styles.serviceInfo, { marginEnd: Spacing.md, alignItems: 'flex-end' }]}>
-                  <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: 'right' }]}>
-                    {t('form.purpose')}
-                  </ThemedText>
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, lineHeight: 20, textAlign: 'right' }]}>
-                    {request.purpose}
-                  </ThemedText>
-                </View>
-                <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-                  <DDIcon name="file-text" size={18} color={theme.text} />
-                </View>
-              </>
-            ) : (
-              <>
-                <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-                  <DDIcon name="file-text" size={18} color={theme.text} />
-                </View>
-                <View style={styles.serviceInfo}>
-                  <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: 'left' }]}>
-                    {t('form.purpose')}
-                  </ThemedText>
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, lineHeight: 20, textAlign: 'left' }]}>
-                    {request.purpose}
-                  </ThemedText>
-                </View>
-              </>
-            )}
+          <View style={[styles.serviceRow, { flexDirection: 'row' }]}>
+            <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+              <DDIcon name="file-text" size={18} color={theme.text} />
+            </View>
+            <View style={styles.serviceInfo}>
+              <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+                {t('form.purpose')}
+              </ThemedText>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, lineHeight: 20, textAlign: isRTL ? 'right' : 'left' }]}>
+                {request.purpose}
+              </ThemedText>
+            </View>
           </View>
 
           {/* Walk-in Notes */}
           {request.isWalkIn && request.notes ? (
             <>
               <Spacer height={Spacing.lg} />
-              <View style={[styles.serviceRow, { flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start' }]}>
-                {isRTL ? (
-                  <>
-                    <View style={[styles.serviceInfo, { marginEnd: Spacing.md, alignItems: 'flex-end' }]}>
-                      <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: 'right' }]}>
-                        {t('form.notes')}
-                      </ThemedText>
-                      <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, lineHeight: 20, textAlign: 'right' }]}>
-                        {request.notes}
-                      </ThemedText>
-                    </View>
-                    <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-                      <DDIcon name="edit-3" size={18} color={theme.text} />
-                    </View>
-                  </>
-                ) : (
-                  <>
-                    <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-                      <DDIcon name="edit-3" size={18} color={theme.text} />
-                    </View>
-                    <View style={styles.serviceInfo}>
-                      <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: 'left' }]}>
-                        {t('form.notes')}
-                      </ThemedText>
-                      <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, lineHeight: 20, textAlign: 'left' }]}>
-                        {request.notes}
-                      </ThemedText>
-                    </View>
-                  </>
-                )}
+              <View style={[styles.serviceRow, { flexDirection: 'row' }]}>
+                <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                  <DDIcon name="edit-3" size={18} color={theme.text} />
+                </View>
+                <View style={styles.serviceInfo}>
+                  <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+                    {t('form.notes')}
+                  </ThemedText>
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, lineHeight: 20, textAlign: isRTL ? 'right' : 'left' }]}>
+                    {request.notes}
+                  </ThemedText>
+                </View>
               </View>
             </>
           ) : null}
@@ -1107,172 +910,85 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
             {t('services.additionalServices')}
           </ThemedText>
           {/* Meeting Room */}
-          <View style={[styles.serviceRow, { flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start' }]}>
-            {isRTL ? (
-              <>
-                <View style={[styles.serviceInfo, { flex: 1, marginEnd: Spacing.md, alignItems: 'flex-end' }]}>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-                    {request.meetingRoom?.status ? (
-                      <StatusBadge
-                        label={formatServiceStatus(request.meetingRoom.status)}
-                        variant={getServiceStatusVariant(request.meetingRoom.status)}
-                        size="sm"
-                      />
-                    ) : <View />}
-                    <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: 'right' }]}>
-                      {t('services.meetingRoom')}
-                    </ThemedText>
-                  </View>
-                  {request.meetingRoom ? (
-                    <>
-                      <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: 'right' }]}>
-                        {request.meetingRoom.name} - {request.meetingRoom.floor}
-                      </ThemedText>
-                      <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12, textAlign: 'right' }]}>
-                        {formatDateShort(request.visitDate)} • {formatVisitTimeRange(request.visitTime, request.endTime)}
-                      </ThemedText>
-                    </>
-                  ) : request.isMeetingRoom ? (
-                    <ThemedText style={[Typography.caption, { color: theme.warning, marginTop: 2, fontSize: 13, textAlign: 'right' }]}>
-                      {t('status.pending')}
-                    </ThemedText>
-                  ) : (request as any).meetingRoomPending ? (
-                    <ThemedText style={[Typography.caption, { color: theme.warning, marginTop: 2, fontSize: 13, textAlign: 'right' }]}>
-                      {t('status.pending')}
-                    </ThemedText>
-                  ) : (
-                    <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, fontStyle: 'italic', textAlign: 'right' }]}>
-                      {t('common.notRequested')}
-                    </ThemedText>
-                  )}
-                </View>
-                <View style={[styles.serviceIcon, { backgroundColor: applyOpacity((request.meetingRoom || request.isMeetingRoom) ? theme.secondary : theme.textSecondary, '20') }]}>
-                  <DDIcon name="briefcase" size={18} color={(request.meetingRoom || request.isMeetingRoom) ? theme.secondary : theme.textSecondary} />
-                </View>
-              </>
-            ) : (
-              <>
-                <View style={[styles.serviceIcon, { backgroundColor: applyOpacity((request.meetingRoom || request.isMeetingRoom) ? theme.secondary : theme.textSecondary, '20') }]}>
-                  <DDIcon name="briefcase" size={18} color={(request.meetingRoom || request.isMeetingRoom) ? theme.secondary : theme.textSecondary} />
-                </View>
-                <View style={[styles.serviceInfo, { flex: 1 }]}>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: 'left' }]}>
-                      {t('services.meetingRoom')}
-                    </ThemedText>
-                    {request.meetingRoom?.status ? (
-                      <StatusBadge
-                        label={formatServiceStatus(request.meetingRoom.status)}
-                        variant={getServiceStatusVariant(request.meetingRoom.status)}
-                        size="sm"
-                      />
-                    ) : null}
-                  </View>
-                  {request.meetingRoom ? (
-                    <>
-                      <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: 'left' }]}>
-                        {request.meetingRoom.name} - {request.meetingRoom.floor}
-                      </ThemedText>
-                      <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12, textAlign: 'left' }]}>
-                        {formatDateShort(request.visitDate)} • {formatVisitTimeRange(request.visitTime, request.endTime)}
-                      </ThemedText>
-                    </>
-                  ) : request.isMeetingRoom ? (
-                    <ThemedText style={[Typography.caption, { color: theme.warning, marginTop: 2, fontSize: 13, textAlign: 'left' }]}>
-                      {t('status.pending')}
-                    </ThemedText>
-                  ) : (request as any).meetingRoomPending ? (
-                    <ThemedText style={[Typography.caption, { color: theme.warning, marginTop: 2, fontSize: 13, textAlign: 'left' }]}>
-                      {t('status.pending')}
-                    </ThemedText>
-                  ) : (
-                    <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, fontStyle: 'italic', textAlign: 'left' }]}>
-                      {t('common.notRequested')}
-                    </ThemedText>
-                  )}
-                </View>
-              </>
-            )}
+          <View style={[styles.serviceRow, { flexDirection: 'row' }]}>
+            <View style={[styles.serviceIcon, { backgroundColor: applyOpacity((request.meetingRoom || request.isMeetingRoom) ? theme.secondary : theme.textSecondary, '20') }]}>
+              <DDIcon name="briefcase" size={18} color={(request.meetingRoom || request.isMeetingRoom) ? theme.secondary : theme.textSecondary} />
+            </View>
+            <View style={[styles.serviceInfo, { flex: 1 }]}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {t('services.meetingRoom')}
+                </ThemedText>
+                {request.meetingRoom?.status ? (
+                  <StatusBadge
+                    label={formatServiceStatus(request.meetingRoom.status)}
+                    variant={getServiceStatusVariant(request.meetingRoom.status)}
+                    size="sm"
+                  />
+                ) : null}
+              </View>
+              {request.meetingRoom ? (
+                <>
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+                    {request.meetingRoom.name} - {request.meetingRoom.floor}
+                  </ThemedText>
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12, textAlign: isRTL ? 'right' : 'left' }]}>
+                    {formatDateShort(request.visitDate)} • {formatVisitTimeRange(request.visitTime, request.endTime)}
+                  </ThemedText>
+                </>
+              ) : request.isMeetingRoom ? (
+                <ThemedText style={[Typography.caption, { color: theme.warning, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {t('status.pending')}
+                </ThemedText>
+              ) : (request as any).meetingRoomPending ? (
+                <ThemedText style={[Typography.caption, { color: theme.warning, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {t('status.pending')}
+                </ThemedText>
+              ) : (
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, fontStyle: 'italic', textAlign: isRTL ? 'right' : 'left' }]}>
+                  {t('common.notRequested')}
+                </ThemedText>
+              )}
+            </View>
           </View>
           <Spacer height={Spacing.lg} />
 
           {/* Buffet */}
-          <View style={[styles.serviceRow, { flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start' }]}>
-            {isRTL ? (
-              <>
-                <View style={[styles.serviceInfo, { flex: 1, marginEnd: Spacing.md, alignItems: 'flex-end' }]}>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-                    {request.buffet?.status ? (
-                      <StatusBadge
-                        label={formatServiceStatus(request.buffet.status)}
-                        variant={getServiceStatusVariant(request.buffet.status)}
-                        size="sm"
-                      />
-                    ) : <View />}
-                    <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: 'right' }]}>
-                      {t('services.buffet')}
-                    </ThemedText>
-                  </View>
-                  {request.buffet && request.buffet.mealType ? (
-                    <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: 'right' }]}>
-                      {request.buffet.location} ({request.buffet.mealType.charAt(0).toUpperCase() + request.buffet.mealType.slice(1)})
-                    </ThemedText>
-                  ) : request.isBuffet ? (
-                    <ThemedText style={[Typography.caption, { color: theme.warning, marginTop: 2, fontSize: 13, textAlign: 'right' }]}>
-                      {t('status.pending')}
-                    </ThemedText>
-                  ) : (request as any).buffetPending ? (
-                    <ThemedText style={[Typography.caption, { color: theme.warning, marginTop: 2, fontSize: 13, textAlign: 'right' }]}>
-                      {t('status.pending')}
-                    </ThemedText>
-                  ) : (
-                    <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, fontStyle: 'italic', textAlign: 'right' }]}>
-                      {t('common.notRequested')}
-                    </ThemedText>
-                  )}
-                </View>
-                <View style={[styles.serviceIcon, { backgroundColor: applyOpacity((request.buffet || request.isBuffet || (request as any).buffetPending) ? theme.secondary : theme.textSecondary, '20') }]}>
-                  <DDIcon name="cloche" size={18} color={(request.buffet || request.isBuffet || (request as any).buffetPending) ? theme.secondary : theme.textSecondary} />
-                </View>
-              </>
-            ) : (
-              <>
-                <View style={[styles.serviceIcon, { backgroundColor: applyOpacity((request.buffet || request.isBuffet || (request as any).buffetPending) ? theme.secondary : theme.textSecondary, '20') }]}>
-                  <DDIcon name="cloche" size={18} color={(request.buffet || request.isBuffet || (request as any).buffetPending) ? theme.secondary : theme.textSecondary} />
-                </View>
-                <View style={[styles.serviceInfo, { flex: 1 }]}>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: 'left' }]}>
-                      {t('services.buffet')}
-                    </ThemedText>
-                    {request.buffet?.status ? (
-                      <StatusBadge
-                        label={formatServiceStatus(request.buffet.status)}
-                        variant={getServiceStatusVariant(request.buffet.status)}
-                        size="sm"
-                      />
-                    ) : null}
-                  </View>
-                  {request.buffet && request.buffet.mealType ? (
-                    <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: 'left' }]}>
-                      {request.buffet.location} ({request.buffet.mealType.charAt(0).toUpperCase() + request.buffet.mealType.slice(1)})
-                    </ThemedText>
-                  ) : request.isBuffet ? (
-                    <ThemedText style={[Typography.caption, { color: theme.warning, marginTop: 2, fontSize: 13, textAlign: 'left' }]}>
-                      {t('status.pending')}
-                    </ThemedText>
-                  ) : (request as any).buffetPending ? (
-                    <ThemedText style={[Typography.caption, { color: theme.warning, marginTop: 2, fontSize: 13, textAlign: 'left' }]}>
-                      {t('status.pending')}
-                    </ThemedText>
-                  ) : (
-                    <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, fontStyle: 'italic', textAlign: 'left' }]}>
-                      {t('common.notRequested')}
-                    </ThemedText>
-                  )}
-                </View>
-              </>
-            )}
+          <View style={[styles.serviceRow, { flexDirection: 'row' }]}>
+            <View style={[styles.serviceIcon, { backgroundColor: applyOpacity((request.buffet || request.isBuffet || (request as any).buffetPending) ? theme.secondary : theme.textSecondary, '20') }]}>
+              <DDIcon name="cloche" size={18} color={(request.buffet || request.isBuffet || (request as any).buffetPending) ? theme.secondary : theme.textSecondary} />
+            </View>
+            <View style={[styles.serviceInfo, { flex: 1 }]}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {t('services.buffet')}
+                </ThemedText>
+                {request.buffet?.status ? (
+                  <StatusBadge
+                    label={formatServiceStatus(request.buffet.status)}
+                    variant={getServiceStatusVariant(request.buffet.status)}
+                    size="sm"
+                  />
+                ) : null}
+              </View>
+              {request.buffet && request.buffet.mealType ? (
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {request.buffet.location} ({request.buffet.mealType.charAt(0).toUpperCase() + request.buffet.mealType.slice(1)})
+                </ThemedText>
+              ) : request.isBuffet ? (
+                <ThemedText style={[Typography.caption, { color: theme.warning, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {t('status.pending')}
+                </ThemedText>
+              ) : (request as any).buffetPending ? (
+                <ThemedText style={[Typography.caption, { color: theme.warning, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {t('status.pending')}
+                </ThemedText>
+              ) : (
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, fontStyle: 'italic', textAlign: isRTL ? 'right' : 'left' }]}>
+                  {t('common.notRequested')}
+                </ThemedText>
+              )}
+            </View>
           </View>
         </ThemedView>
 

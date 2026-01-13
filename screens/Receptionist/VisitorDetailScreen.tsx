@@ -276,43 +276,22 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.infoRowNew, { flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start' }]}>
-          {isRTL ? (
-            <>
-              <ThemedText
-                style={[
-                  Typography.body,
-                  {
-                    marginEnd: Spacing.md,
-                    color: theme.textSecondary,
-                    fontSize: 14,
-                    textAlign: 'right',
-                  },
-                ]}
-              >
-                {visitor.phone || '-'}
-              </ThemedText>
-              <DDIcon name="phone" size={16} variant="muted" />
-            </>
-          ) : (
-            <>
-              <DDIcon name="phone" size={16} variant="muted" />
-              <ThemedText
-                style={[
-                  Typography.body,
-                  {
-                    marginStart: Spacing.md,
-                    color: theme.textSecondary,
-                    flex: 1,
-                    fontSize: 14,
-                    textAlign: 'left',
-                  },
-                ]}
-              >
-                {visitor.phone || '-'}
-              </ThemedText>
-            </>
-          )}
+        <View style={[styles.infoRowNew, { flexDirection: 'row' }]}>
+          <DDIcon name="phone" size={16} variant="muted" />
+          <ThemedText
+            style={[
+              Typography.body,
+              {
+                marginStart: Spacing.md,
+                color: theme.textSecondary,
+                flex: 1,
+                fontSize: 14,
+                textAlign: isRTL ? 'right' : 'left',
+              },
+            ]}
+          >
+            {visitor.phone || '-'}
+          </ThemedText>
         </View>
       </ThemedView>
 
@@ -320,36 +299,18 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
         <>
           <Spacer height={Spacing.lg} />
           <ThemedView style={[styles.cardNew, { backgroundColor: applyOpacity(theme.error, '08') }]}>
-            <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: isRTL ? 'flex-end' : 'flex-start', gap: Spacing.sm }}>
-              {isRTL ? (
-                <>
-                  <View style={{ flex: 1, alignItems: 'flex-end' }}>
-                    <ThemedText style={[Typography.bodySmall, { color: theme.error, fontWeight: '600', marginBottom: 4, textAlign: 'right' }]}>
-                      {t('form.reason')}
-                    </ThemedText>
-                    <ThemedText style={[Typography.body, { color: theme.text, lineHeight: 22, textAlign: 'right' }]}>
-                      {visitor.rejectionReason}
-                    </ThemedText>
-                  </View>
-                  <View style={{ marginTop: 2 }}>
-                    <DDIcon name="message-circle" size={18} color={theme.error} />
-                  </View>
-                </>
-              ) : (
-                <>
-                  <View style={{ marginTop: 2 }}>
-                    <DDIcon name="message-circle" size={18} color={theme.error} />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <ThemedText style={[Typography.bodySmall, { color: theme.error, fontWeight: '600', marginBottom: 4, textAlign: 'left' }]}>
-                      {t('form.reason')}
-                    </ThemedText>
-                    <ThemedText style={[Typography.body, { color: theme.text, lineHeight: 22, textAlign: 'left' }]}>
-                      {visitor.rejectionReason}
-                    </ThemedText>
-                  </View>
-                </>
-              )}
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.sm }}>
+              <View style={{ marginTop: 2 }}>
+                <DDIcon name="message-circle" size={18} color={theme.error} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <ThemedText style={[Typography.bodySmall, { color: theme.error, fontWeight: '600', marginBottom: 4, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {t('form.reason')}
+                </ThemedText>
+                <ThemedText style={[Typography.body, { color: theme.text, lineHeight: 22, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {visitor.rejectionReason}
+                </ThemedText>
+              </View>
             </View>
           </ThemedView>
         </>
@@ -363,127 +324,62 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
             {t('visitor.visitorDetails')}
           </ThemedText>
           {visitor.isWalkIn ? (
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: isRTL ? 'flex-end' : 'flex-start', backgroundColor: applyOpacity(theme.warning, '15'), paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: BorderRadius.sm }}>
-              {isRTL ? (
-                <>
-                  <ThemedText style={[Typography.caption, { color: theme.warning, fontWeight: '600', marginEnd: Spacing.xs, fontSize: 11 }]}>
-                    {t('reception.walkInVisitor')}
-                  </ThemedText>
-                  <DDIcon name="user-check" size={14} color={theme.warning} />
-                </>
-              ) : (
-                <>
-                  <DDIcon name="user-check" size={14} color={theme.warning} />
-                  <ThemedText style={[Typography.caption, { color: theme.warning, fontWeight: '600', marginStart: Spacing.xs, fontSize: 11 }]}>
-                    {t('reception.walkInVisitor')}
-                  </ThemedText>
-                </>
-              )}
+            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: applyOpacity(theme.warning, '15'), paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: BorderRadius.sm }}>
+              <DDIcon name="user-check" size={14} color={theme.warning} />
+              <ThemedText style={[Typography.caption, { color: theme.warning, fontWeight: '600', marginStart: Spacing.xs, fontSize: 11 }]}>
+                {t('reception.walkInVisitor')}
+              </ThemedText>
             </View>
           ) : null}
         </View>
         <Spacer height={Spacing.xl} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start' }]}>
-          {isRTL ? (
-            <>
-              <View style={{ flex: 1, marginEnd: Spacing.md, alignItems: 'flex-end' }}>
-                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: 'right' }]}>
-                  {t('visitor.visitTime')}
-                </ThemedText>
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: 'right' }]}>
-                  {visitor.time}
-                </ThemedText>
-              </View>
-              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-                <DDIcon name="clock" size={18} color={theme.text} />
-              </View>
-            </>
-          ) : (
-            <>
-              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-                <DDIcon name="clock" size={18} color={theme.text} />
-              </View>
-              <View style={{ flex: 1, marginStart: Spacing.md }}>
-                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: 'left' }]}>
-                  {t('visitor.visitTime')}
-                </ThemedText>
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: 'left' }]}>
-                  {visitor.time}
-                </ThemedText>
-              </View>
-            </>
-          )}
+        <View style={[styles.serviceRowNew, { flexDirection: 'row' }]}>
+          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+            <DDIcon name="clock" size={18} color={theme.text} />
+          </View>
+          <View style={{ flex: 1, marginStart: Spacing.md }}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+              {t('visitor.visitTime')}
+            </ThemedText>
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+              {visitor.time}
+            </ThemedText>
+          </View>
         </View>
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start' }]}>
-          {isRTL ? (
-            <>
-              <View style={{ flex: 1, marginEnd: Spacing.md, alignItems: 'flex-end' }}>
-                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: 'right' }]}>
-                  {t('reception.hostName')}
-                </ThemedText>
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: 'right' }]}>
-                  {visitor.host}{visitor.hostDepartment ? ` - ${visitor.hostDepartment}` : ''}
-                </ThemedText>
-              </View>
-              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-                <DDIcon name="user" size={18} color={theme.text} />
-              </View>
-            </>
-          ) : (
-            <>
-              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-                <DDIcon name="user" size={18} color={theme.text} />
-              </View>
-              <View style={{ flex: 1, marginStart: Spacing.md }}>
-                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: 'left' }]}>
-                  {t('reception.hostName')}
-                </ThemedText>
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: 'left' }]}>
-                  {visitor.host}{visitor.hostDepartment ? ` - ${visitor.hostDepartment}` : ''}
-                </ThemedText>
-              </View>
-            </>
-          )}
+        <View style={[styles.serviceRowNew, { flexDirection: 'row' }]}>
+          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+            <DDIcon name="user" size={18} color={theme.text} />
+          </View>
+          <View style={{ flex: 1, marginStart: Spacing.md }}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+              {t('reception.hostName')}
+            </ThemedText>
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+              {visitor.host}{visitor.hostDepartment ? ` - ${visitor.hostDepartment}` : ''}
+            </ThemedText>
+          </View>
         </View>
 
         {visitor.meetingRoom ? (
           <>
             <Spacer height={Spacing.lg} />
 
-            <View style={[styles.serviceRowNew, { flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start' }]}>
-              {isRTL ? (
-                <>
-                  <View style={{ flex: 1, marginEnd: Spacing.md, alignItems: 'flex-end' }}>
-                    <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: 'right' }]}>
-                      {t('visitor.meetingRoom')}
-                    </ThemedText>
-                    <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: 'right' }]}>
-                      {visitor.meetingRoom.name}{visitor.meetingRoom.floor ? ` (${visitor.meetingRoom.floor})` : ''}
-                    </ThemedText>
-                  </View>
-                  <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-                    <DDIcon name="home" size={18} color={theme.text} />
-                  </View>
-                </>
-              ) : (
-                <>
-                  <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-                    <DDIcon name="home" size={18} color={theme.text} />
-                  </View>
-                  <View style={{ flex: 1, marginStart: Spacing.md }}>
-                    <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: 'left' }]}>
-                      {t('visitor.meetingRoom')}
-                    </ThemedText>
-                    <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: 'left' }]}>
-                      {visitor.meetingRoom.name}{visitor.meetingRoom.floor ? ` (${visitor.meetingRoom.floor})` : ''}
-                    </ThemedText>
-                  </View>
-                </>
-              )}
+            <View style={[styles.serviceRowNew, { flexDirection: 'row' }]}>
+              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                <DDIcon name="home" size={18} color={theme.text} />
+              </View>
+              <View style={{ flex: 1, marginStart: Spacing.md }}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {t('visitor.meetingRoom')}
+                </ThemedText>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {visitor.meetingRoom.name}{visitor.meetingRoom.floor ? ` (${visitor.meetingRoom.floor})` : ''}
+                </ThemedText>
+              </View>
             </View>
           </>
         ) : null}
@@ -499,36 +395,18 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
             </ThemedText>
             <Spacer height={Spacing.xl} />
 
-            <View style={[styles.serviceRowNew, { flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start' }]}>
-              {isRTL ? (
-                <>
-                  <View style={{ flex: 1, marginEnd: Spacing.md, alignItems: 'flex-end' }}>
-                    <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: 'right' }]}>
-                      {t('services.parking')}
-                    </ThemedText>
-                    <ThemedText style={[Typography.caption, { color: theme.info, marginTop: 2, fontSize: 13, fontWeight: '500', textAlign: 'right' }]}>
-                      {visitor.parking}
-                    </ThemedText>
-                  </View>
-                  <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.info, '15') }]}>
-                    <DDIcon name="map-pin" size={18} color={theme.info} />
-                  </View>
-                </>
-              ) : (
-                <>
-                  <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.info, '15') }]}>
-                    <DDIcon name="map-pin" size={18} color={theme.info} />
-                  </View>
-                  <View style={{ flex: 1, marginStart: Spacing.md }}>
-                    <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: 'left' }]}>
-                      {t('services.parking')}
-                    </ThemedText>
-                    <ThemedText style={[Typography.caption, { color: theme.info, marginTop: 2, fontSize: 13, fontWeight: '500', textAlign: 'left' }]}>
-                      {visitor.parking}
-                    </ThemedText>
-                  </View>
-                </>
-              )}
+            <View style={[styles.serviceRowNew, { flexDirection: 'row' }]}>
+              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.info, '15') }]}>
+                <DDIcon name="map-pin" size={18} color={theme.info} />
+              </View>
+              <View style={{ flex: 1, marginStart: Spacing.md }}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {t('services.parking')}
+                </ThemedText>
+                <ThemedText style={[Typography.caption, { color: theme.info, marginTop: 2, fontSize: 13, fontWeight: '500', textAlign: isRTL ? 'right' : 'left' }]}>
+                  {visitor.parking}
+                </ThemedText>
+              </View>
             </View>
           </ThemedView>
         </>
@@ -542,22 +420,11 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
 
       {visitor.status === 'pending_approval' && (
         <ThemedView style={[styles.pendingApprovalBanner, { backgroundColor: applyOpacity(theme.warning, '10'), borderColor: theme.warning }]}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: isRTL ? 'flex-end' : 'flex-start', gap: Spacing.sm }}>
-            {isRTL ? (
-              <>
-                <ThemedText style={[Typography.body, { color: theme.warning, fontWeight: '600', textAlign: 'right' }]}>
-                  {t('status.pendingApproval')}
-                </ThemedText>
-                <DDIcon name="clock" size={20} color={theme.warning} />
-              </>
-            ) : (
-              <>
-                <DDIcon name="clock" size={20} color={theme.warning} />
-                <ThemedText style={[Typography.body, { color: theme.warning, fontWeight: '600', flex: 1, textAlign: 'left' }]}>
-                  {t('status.pendingApproval')}
-                </ThemedText>
-              </>
-            )}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
+            <DDIcon name="clock" size={20} color={theme.warning} />
+            <ThemedText style={[Typography.body, { color: theme.warning, fontWeight: '600', flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
+              {t('status.pendingApproval')}
+            </ThemedText>
           </View>
         </ThemedView>
       )}
