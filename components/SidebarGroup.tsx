@@ -11,6 +11,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { Spacing, BorderRadius } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useRTLStyles } from "@/hooks/useRTLStyles";
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -35,6 +36,7 @@ export default function SidebarGroup({
 }: SidebarGroupProps) {
   const { theme } = useTheme();
   const { isRTL } = useLanguage();
+  const rtlStyles = useRTLStyles();
   const expandProgress = useSharedValue(isExpanded ? 1 : 0);
 
   React.useEffect(() => {
@@ -65,13 +67,14 @@ export default function SidebarGroup({
       <Pressable
         style={({ pressed }) => [
           styles.header,
+          rtlStyles.row,
           { 
             backgroundColor: pressed ? theme.sidebarActive : 'transparent',
           },
         ]}
         onPress={handleToggle}
       >
-        <View style={[styles.headerLeft, isRTL && { flexDirection: 'row-reverse' }]}>
+        <View style={[styles.headerLeft, rtlStyles.row]}>
           <DDIcon name={icon} size={18} color={theme.sidebarTextMuted} />
           <ThemedText
             style={[
@@ -83,7 +86,7 @@ export default function SidebarGroup({
             {title}
           </ThemedText>
         </View>
-        <View style={[styles.headerRight, isRTL && { flexDirection: 'row-reverse' }]}>
+        <View style={[styles.headerRight, rtlStyles.row]}>
           {badge !== undefined && badge > 0 ? (
             <View style={[styles.badge, { backgroundColor: theme.primary }]}>
               <ThemedText style={styles.badgeText}>
