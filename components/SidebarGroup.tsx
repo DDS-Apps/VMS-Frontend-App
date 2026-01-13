@@ -83,7 +83,7 @@ export default function SidebarGroup({
             {title}
           </ThemedText>
         </View>
-        <View style={styles.headerRight}>
+        <View style={[styles.headerRight, isRTL && { flexDirection: 'row-reverse' }]}>
           {badge !== undefined && badge > 0 ? (
             <View style={[styles.badge, { backgroundColor: theme.primary }]}>
               <ThemedText style={styles.badgeText}>

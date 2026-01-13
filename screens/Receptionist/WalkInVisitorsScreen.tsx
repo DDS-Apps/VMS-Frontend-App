@@ -322,13 +322,13 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
   return (
     <>
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
-      <ThemedText style={[Typography.title, { fontSize: 22, fontWeight: '700' }]}>
+      <ThemedText style={[Typography.title, { fontSize: 22, fontWeight: '700', textAlign: isRTL ? 'right' : 'left' }]}>
         {t('navigation.walkInVisitors')}
       </ThemedText>
       
       <Spacer height={4} />
       
-      <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
+      <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
         {filteredVisitors.length} {t('reception.walkInVisitor').toLowerCase()}{filteredVisitors.length === 1 ? '' : 's'} found
       </ThemedText>
 

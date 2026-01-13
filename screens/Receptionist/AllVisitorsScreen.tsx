@@ -278,13 +278,13 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
                 </ThemedText>
               </View>
               
-              <View style={styles.nameSection}>
+              <View style={[styles.nameSection, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
                 <View style={[styles.nameRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                  <ThemedText style={[styles.visitorName, { color: theme.text }]} numberOfLines={1}>
+                  <ThemedText style={[styles.visitorName, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
                     {visitorName}
                   </ThemedText>
                 </View>
-                <ThemedText style={[styles.companyText, { color: theme.textSecondary }]} numberOfLines={1}>
+                <ThemedText style={[styles.companyText, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
                   {item.visitor.company ?? ''}
                 </ThemedText>
               </View>
@@ -372,7 +372,7 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
             {hasDetails ? (
               <Pressable 
                 onPress={(e) => { e.stopPropagation(); toggleCardExpanded(item.id); }} 
-                style={styles.toggleContainer}
+                style={[styles.toggleContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
               >
                 <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
                   {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
@@ -480,13 +480,13 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
 
   const ListHeader = useMemo(() => (
     <View>
-      <ThemedText style={[Typography.title, { fontSize: 22, fontWeight: '700' }]}>
+      <ThemedText style={[Typography.title, { fontSize: 22, fontWeight: '700', textAlign: isRTL ? 'right' : 'left' }]}>
         {t('navigation.allVisitors')}
       </ThemedText>
       
       <Spacer height={4} />
       
-      <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
+      <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
         {totalCount} {totalCount === 1 ? 'visitor' : 'visitors'} found
         {isFetching && !isFetchingNextPage ? ' ...' : ''}
       </ThemedText>

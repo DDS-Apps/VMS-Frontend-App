@@ -267,11 +267,11 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
                 </ThemedText>
               </View>
               
-              <View style={styles.nameSection}>
-                <ThemedText style={[styles.visitorName, { color: theme.text }]} numberOfLines={1}>
+              <View style={[styles.nameSection, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
+                <ThemedText style={[styles.visitorName, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
                   {visitorName}
                 </ThemedText>
-                <ThemedText style={[styles.companyText, { color: theme.textSecondary }]} numberOfLines={1}>
+                <ThemedText style={[styles.companyText, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
                   {item.visitor.company ?? ''}
                 </ThemedText>
               </View>
@@ -317,7 +317,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
             {hasDetails ? (
               <Pressable 
                 onPress={(e) => { e.stopPropagation(); toggleVisitorExpanded(item.id); }} 
-                style={styles.toggleContainer}
+                style={[styles.toggleContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
               >
                 <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
                   {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
@@ -366,13 +366,13 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
 
   return (
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
-      <ThemedText style={[Typography.title, { fontSize: 22, fontWeight: '700' }]}>
+      <ThemedText style={[Typography.title, { fontSize: 22, fontWeight: '700', textAlign: isRTL ? 'right' : 'left' }]}>
         {t('navigation.todaysVisitors')}
       </ThemedText>
       
       <Spacer height={4} />
       
-      <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
+      <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
         {todaysVisitors.length} {t('dashboard.expectedToday').toLowerCase()}
       </ThemedText>
 

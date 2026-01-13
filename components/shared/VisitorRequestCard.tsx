@@ -289,7 +289,7 @@ export function VisitorRequestCard({
     if (!hasDetails) return null;
 
     return (
-      <Pressable onPress={toggleExpanded} style={styles.toggleContainer}>
+      <Pressable onPress={toggleExpanded} style={[styles.toggleContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
           {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
         </ThemedText>
@@ -546,7 +546,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   toggleContainer: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingTop: Spacing.md,

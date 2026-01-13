@@ -86,11 +86,11 @@ const SectionHeader = ({
   isRTL?: boolean;
 }) => (
   <View style={[styles.header, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-    <View>
-      <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600' }]}>
+    <View style={{ alignItems: isRTL ? 'flex-end' : 'flex-start' }}>
+      <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
         {t('navigation.pendingApprovals')}
       </ThemedText>
-      <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 12 }]}>
+      <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 12, textAlign: isRTL ? 'right' : 'left' }]}>
         {t('dashboard.requestsAwaitingApproval')}
       </ThemedText>
     </View>

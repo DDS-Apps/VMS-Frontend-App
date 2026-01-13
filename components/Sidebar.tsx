@@ -411,7 +411,7 @@ export default function Sidebar({
         {renderStandaloneItem(settingsItem)}
       </ScrollView>
 
-      <View style={styles.appInfo}>
+      <View style={[styles.appInfo, isRTL && { flexDirection: 'row-reverse' }]}>
         <ThemedText style={[styles.appName, { color: theme.sidebarTextMuted }]}>
           {t('common.brandName')} {t('common.appName')}
         </ThemedText>
@@ -421,7 +421,7 @@ export default function Sidebar({
       </View>
 
       <View style={[styles.footer, { borderTopColor: theme.border }]}>
-        <View style={styles.footerActions}>
+        <View style={[styles.footerActions, isRTL && { flexDirection: 'row-reverse', justifyContent: 'flex-end' }]}>
           <Pressable 
             onPress={onToggleDarkMode} 
             style={({ pressed }) => [
