@@ -371,10 +371,12 @@ export default function DashboardLayout({
                   onNavigate('Settings');
                 }}
               >
-                <DDIcon name="user" size={20} variant="muted" />
-                <ThemedText style={[Typography.body, { marginStart: Spacing.md }]}>
-                  {t('settings.profile')}
-                </ThemedText>
+                <DirectionalRow gap={Spacing.md}>
+                  <DDIcon name="user" size={20} variant="muted" />
+                  <ThemedText style={Typography.body}>
+                    {t('settings.profile')}
+                  </ThemedText>
+                </DirectionalRow>
               </Pressable>
               
               {!isSSOUser ? (
@@ -385,59 +387,65 @@ export default function DashboardLayout({
                     onNavigate('ChangePassword');
                   }}
                 >
-                  <DDIcon name="lock" size={20} variant="muted" />
-                  <ThemedText style={[Typography.body, { marginStart: Spacing.md }]}>
-                    {t('settings.changePassword')}
-                  </ThemedText>
+                  <DirectionalRow gap={Spacing.md}>
+                    <DDIcon name="lock" size={20} variant="muted" />
+                    <ThemedText style={Typography.body}>
+                      {t('settings.changePassword')}
+                    </ThemedText>
+                  </DirectionalRow>
                 </Pressable>
               ) : null}
               
               <View style={[styles.dropdownDivider, { backgroundColor: theme.border }]} />
               
               <View style={styles.dropdownItem}>
-                <DDIcon name="globe" size={20} variant="muted" />
-                <ThemedText style={[Typography.body, { marginStart: Spacing.md, flex: 1 }]}>
-                  {t('settings.language')}
-                </ThemedText>
-                <View style={styles.languageToggle}>
-                  <Pressable 
-                    onPress={handleLanguageToggle}
-                    style={[
-                      styles.langOption,
-                      locale === 'en' && { backgroundColor: theme.primary }
-                    ]}
-                  >
-                    <ThemedText style={[Typography.caption, { color: locale === 'en' ? '#FFFFFF' : theme.textSecondary, fontWeight: '600' }]}>
-                      EN
-                    </ThemedText>
-                  </Pressable>
-                  <Pressable 
-                    onPress={handleLanguageToggle}
-                    style={[
-                      styles.langOption,
-                      locale === 'ar' && { backgroundColor: theme.primary }
-                    ]}
-                  >
-                    <ThemedText style={[Typography.caption, { color: locale === 'ar' ? '#FFFFFF' : theme.textSecondary, fontWeight: '600' }]}>
-                      AR
-                    </ThemedText>
-                  </Pressable>
-                </View>
+                <DirectionalRow gap={Spacing.md} style={{ flex: 1 }}>
+                  <DDIcon name="globe" size={20} variant="muted" />
+                  <ThemedText style={[Typography.body, { flex: 1 }]}>
+                    {t('settings.language')}
+                  </ThemedText>
+                  <View style={styles.languageToggle}>
+                    <Pressable 
+                      onPress={handleLanguageToggle}
+                      style={[
+                        styles.langOption,
+                        locale === 'en' && { backgroundColor: theme.primary }
+                      ]}
+                    >
+                      <ThemedText style={[Typography.caption, { color: locale === 'en' ? '#FFFFFF' : theme.textSecondary, fontWeight: '600' }]}>
+                        EN
+                      </ThemedText>
+                    </Pressable>
+                    <Pressable 
+                      onPress={handleLanguageToggle}
+                      style={[
+                        styles.langOption,
+                        locale === 'ar' && { backgroundColor: theme.primary }
+                      ]}
+                    >
+                      <ThemedText style={[Typography.caption, { color: locale === 'ar' ? '#FFFFFF' : theme.textSecondary, fontWeight: '600' }]}>
+                        AR
+                      </ThemedText>
+                    </Pressable>
+                  </View>
+                </DirectionalRow>
               </View>
               
               <View style={styles.dropdownItem}>
-                <DDIcon name={isDark ? "moon" : "sun"} size={20} variant="muted" />
-                <ThemedText style={[Typography.body, { marginStart: Spacing.md, flex: 1 }]}>
-                  {t('settings.darkMode')}
-                </ThemedText>
-                <Switch
-                  value={isDark}
-                  onValueChange={() => {
-                    toggleTheme();
-                  }}
-                  trackColor={{ false: theme.border, true: theme.primary }}
-                  thumbColor="#FFFFFF"
-                />
+                <DirectionalRow gap={Spacing.md} style={{ flex: 1 }}>
+                  <DDIcon name={isDark ? "moon" : "sun"} size={20} variant="muted" />
+                  <ThemedText style={[Typography.body, { flex: 1 }]}>
+                    {t('settings.darkMode')}
+                  </ThemedText>
+                  <Switch
+                    value={isDark}
+                    onValueChange={() => {
+                      toggleTheme();
+                    }}
+                    trackColor={{ false: theme.border, true: theme.primary }}
+                    thumbColor="#FFFFFF"
+                  />
+                </DirectionalRow>
               </View>
               
               <View style={[styles.dropdownDivider, { backgroundColor: theme.border }]} />
@@ -449,10 +457,12 @@ export default function DashboardLayout({
                   onLogout();
                 }}
               >
-                <DDIcon name="log-out" size={20} color={theme.error} directionAware />
-                <ThemedText style={[Typography.body, { marginStart: Spacing.md, color: theme.error }]}>
-                  {t('auth.signOut')}
-                </ThemedText>
+                <DirectionalRow gap={Spacing.md}>
+                  <DDIcon name="log-out" size={20} color={theme.error} directionAware />
+                  <ThemedText style={[Typography.body, { color: theme.error }]}>
+                    {t('auth.signOut')}
+                  </ThemedText>
+                </DirectionalRow>
               </Pressable>
             </View>
           </Pressable>
