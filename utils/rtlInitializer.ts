@@ -56,8 +56,29 @@ export async function initializeRTLAsync(): Promise<SupportedLocale> {
 }
 
 export function initializeRTLSync(): void {
-  if (Platform.OS !== 'web') {
-    I18nManager.allowRTL(true);
+  I18nManager.allowRTL(true);
+  
+  if (Platform.OS === 'web') {
+    // On web, synchronously read from localStorage to set RTL before first render
+    try {
+      if (typeof localStorage !== 'undefined') {
+        const storedLocale = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+        const locale = (storedLocale === 'en' || storedLocale === 'ar') 
+          ? storedLocale as SupportedLocale 
+          : defaultLocale;
+        const needsRTL = isRTLLanguage(locale);
+        
+        console.log('[RTL] initializeRTLSync on web:', { locale, needsRTL });
+        
+        // Set I18nManager for React Native Web to mirror flexDirection
+        I18nManager.forceRTL(needsRTL);
+        
+        // Also set document direction
+        setWebDocumentDirection(locale);
+      }
+    } catch (error) {
+      console.warn('[RTL] Failed to initialize RTL sync on web:', error);
+    }
   }
 }
 

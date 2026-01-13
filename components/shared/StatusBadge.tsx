@@ -65,20 +65,11 @@ export const StatusBadge = ({
         backgroundColor: applyOpacity(color, '15'),
         paddingHorizontal: isSmall ? Spacing.sm : Spacing.md,
         paddingVertical: isSmall ? Spacing.xs / 2 : Spacing.xs,
-        flexDirection: 'row',
+        flexDirection: isRTL ? 'row-reverse' : 'row',
       }
     ]}>
-      {isRTL ? (
-        <>
-          {textEl}
-          {iconEl}
-        </>
-      ) : (
-        <>
-          {iconEl}
-          {textEl}
-        </>
-      )}
+      {iconEl}
+      {textEl}
     </View>
   );
 };

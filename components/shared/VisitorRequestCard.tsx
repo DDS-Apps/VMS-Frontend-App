@@ -212,60 +212,30 @@ export function VisitorRequestCard({
   );
 
   const renderHeader = () => {
-    console.log('[VisitorRequestCard] renderHeader isRTL:', isRTL);
-    const nameContent = (
-      <View style={styles.nameSection}>
-        <ThemedText style={[styles.visitorName, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
-          {request.visitor.fullName}
-        </ThemedText>
-        {request.visitor.company ? (
-          <ThemedText style={[styles.companyText, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-            {request.visitor.company}
-          </ThemedText>
-        ) : null}
-      </View>
-    );
-
-    const avatarEl = renderAvatar();
-    
     return (
-      <View style={[styles.cardHeader, { flexDirection: 'row' }]}>
-        {isRTL ? (
-          <>
-            {nameContent}
-            {avatarEl}
-          </>
-        ) : (
-          <>
-            {avatarEl}
-            {nameContent}
-          </>
-        )}
+      <View style={[styles.cardHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        {renderAvatar()}
+        <View style={styles.nameSection}>
+          <ThemedText style={[styles.visitorName, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+            {request.visitor.fullName}
+          </ThemedText>
+          {request.visitor.company ? (
+            <ThemedText style={[styles.companyText, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+              {request.visitor.company}
+            </ThemedText>
+          ) : null}
+        </View>
       </View>
     );
   };
 
   const renderIconText = (icon: string, text: string, iconSize: number = 13) => {
-    const iconEl = <DDIcon name={icon} size={iconSize} color={theme.textSecondary} />;
-    const textEl = (
-      <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
-        {text}
-      </ThemedText>
-    );
-    
     return (
-      <View style={[styles.dateTimeItem, { flexDirection: 'row' }]}>
-        {isRTL ? (
-          <>
-            {textEl}
-            {iconEl}
-          </>
-        ) : (
-          <>
-            {iconEl}
-            {textEl}
-          </>
-        )}
+      <View style={[styles.dateTimeItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <DDIcon name={icon} size={iconSize} color={theme.textSecondary} />
+        <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
+          {text}
+        </ThemedText>
       </View>
     );
   };
@@ -293,46 +263,21 @@ export function VisitorRequestCard({
   };
 
   const renderServicesAndStatus = () => (
-    <View style={[styles.servicesStatusRow, { flexDirection: 'row' }]}>
-      {isRTL ? (
-        <>
-          {renderStatusBadge()}
-          <View style={styles.servicesContainer}>
-            <ServiceIconsRow request={request} showWalkIn={true} />
-          </View>
-        </>
-      ) : (
-        <>
-          <View style={styles.servicesContainer}>
-            <ServiceIconsRow request={request} showWalkIn={true} />
-          </View>
-          {renderStatusBadge()}
-        </>
-      )}
+    <View style={[styles.servicesStatusRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <View style={styles.servicesContainer}>
+        <ServiceIconsRow request={request} showWalkIn={true} />
+      </View>
+      {renderStatusBadge()}
     </View>
   );
 
   const renderDetailRow = (iconName: string, text: string, numberOfLines: number = 1) => {
-    const iconEl = <DDIcon name={iconName} size={14} color={theme.textSecondary} />;
-    const textEl = (
-      <ThemedText style={[styles.detailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={numberOfLines}>
-        {text}
-      </ThemedText>
-    );
-    
     return (
-      <View style={[styles.detailRow, { flexDirection: 'row' }]}>
-        {isRTL ? (
-          <>
-            {textEl}
-            {iconEl}
-          </>
-        ) : (
-          <>
-            {iconEl}
-            {textEl}
-          </>
-        )}
+      <View style={[styles.detailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <DDIcon name={iconName} size={14} color={theme.textSecondary} />
+        <ThemedText style={[styles.detailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={numberOfLines}>
+          {text}
+        </ThemedText>
       </View>
     );
   };
@@ -356,32 +301,16 @@ export function VisitorRequestCard({
     const hasDetails = request.purpose || request.visitor.email || request.visitor.phone;
     if (!hasDetails) return null;
 
-    const textEl = (
-      <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
-        {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
-      </ThemedText>
-    );
-    const iconEl = (
-      <DDIcon 
-        name={isExpanded ? 'chevron-up' : 'chevron-down'} 
-        size={16} 
-        color={theme.primary} 
-      />
-    );
-
     return (
-      <Pressable onPress={toggleExpanded} style={[styles.toggleContainer, { flexDirection: 'row' }]}>
-        {isRTL ? (
-          <>
-            {iconEl}
-            {textEl}
-          </>
-        ) : (
-          <>
-            {textEl}
-            {iconEl}
-          </>
-        )}
+      <Pressable onPress={toggleExpanded} style={[styles.toggleContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
+          {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
+        </ThemedText>
+        <DDIcon 
+          name={isExpanded ? 'chevron-up' : 'chevron-down'} 
+          size={16} 
+          color={theme.primary} 
+        />
       </Pressable>
     );
   };
@@ -389,42 +318,22 @@ export function VisitorRequestCard({
   const renderRequestedBy = () => {
     if (!showRequestedBy || !request.employeeName) return null;
     
-    const iconEl = <DDIcon name="user" size={12} variant="muted" />;
-    const labelEl = (
-      <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>
-        {t('dashboard.requestedBy')}
-      </ThemedText>
-    );
-    const valueEl = (
-      <ThemedText style={[styles.infoValue, { color: theme.text }]}>
-        {request.employeeName}
-      </ThemedText>
-    );
-    const deptEl = request.employeeDepartment ? (
-      <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>
-        ({request.employeeDepartment})
-      </ThemedText>
-    ) : null;
-
     return (
       <>
         <Spacer height={Spacing.sm} />
-        <View style={[styles.infoRow, { flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start' }]}>
-          {isRTL ? (
-            <>
-              {deptEl}
-              {valueEl}
-              {labelEl}
-              {iconEl}
-            </>
-          ) : (
-            <>
-              {iconEl}
-              {labelEl}
-              {valueEl}
-              {deptEl}
-            </>
-          )}
+        <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <DDIcon name="user" size={12} variant="muted" />
+          <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>
+            {t('dashboard.requestedBy')}
+          </ThemedText>
+          <ThemedText style={[styles.infoValue, { color: theme.text }]}>
+            {request.employeeName}
+          </ThemedText>
+          {request.employeeDepartment ? (
+            <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>
+              ({request.employeeDepartment})
+            </ThemedText>
+          ) : null}
         </View>
       </>
     );
@@ -433,35 +342,17 @@ export function VisitorRequestCard({
   const renderHost = () => {
     if (!hostName || hostName.toLowerCase() === 'unknown host' || hostName.trim() === '') return null;
     
-    const iconEl = <DDIcon name="user" size={12} variant="muted" />;
-    const labelEl = (
-      <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>
-        {t('reception.hostName')}:
-      </ThemedText>
-    );
-    const valueEl = (
-      <ThemedText style={[styles.infoValue, { color: theme.text }]}>
-        {hostName}
-      </ThemedText>
-    );
-
     return (
       <>
         <Spacer height={Spacing.xs} />
-        <View style={[styles.infoRow, { flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start' }]}>
-          {isRTL ? (
-            <>
-              {valueEl}
-              {labelEl}
-              {iconEl}
-            </>
-          ) : (
-            <>
-              {iconEl}
-              {labelEl}
-              {valueEl}
-            </>
-          )}
+        <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <DDIcon name="user" size={12} variant="muted" />
+          <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>
+            {t('reception.hostName')}:
+          </ThemedText>
+          <ThemedText style={[styles.infoValue, { color: theme.text }]}>
+            {hostName}
+          </ThemedText>
         </View>
       </>
     );

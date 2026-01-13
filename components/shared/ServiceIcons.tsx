@@ -89,8 +89,8 @@ export const ServiceIcons = ({
   }
   
   return (
-    <View style={[styles.container, { flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start' }]}>
-      {isRTL ? items.reverse() : items}
+    <View style={[styles.container, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      {items}
     </View>
   );
 };
