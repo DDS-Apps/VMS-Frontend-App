@@ -206,6 +206,9 @@ export default function Sidebar({
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { isRTL, layoutKey } = useLanguage();
+  
+  console.log('[Sidebar] Received from useLanguage:', { isRTL, layoutKey });
+  
   const rtlStyles = useRTLStyles();
   const { groups, standalone } = getMenuGroups(userRole);
   const { width } = Dimensions.get('window');

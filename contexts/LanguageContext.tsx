@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { I18nManager, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { reloadAppAsync } from 'expo';
@@ -83,10 +83,13 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
     try {
       const newIsRTL = localeConfig[newLocale].isRTL;
       
+      console.log('[LanguageContext] setLocale called:', { newLocale, newIsRTL, localeConfigValue: localeConfig[newLocale] });
+      
       await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, newLocale);
       
       if (Platform.OS === 'web') {
         setWebDocumentDirection(newLocale);
+        console.log('[LanguageContext] Web: Setting locale to', newLocale, 'isRTL:', newIsRTL);
         setLocaleState(newLocale);
         setIsRTL(newIsRTL);
         setLayoutNonce(prev => prev + 1);
@@ -109,14 +112,18 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
     }
   }, []);
 
-  const value = useMemo<LanguageContextType>(() => ({
+  console.log('[LanguageContext] Current state:', { locale, isRTL, layoutKey });
+  
+  const value: LanguageContextType = {
     locale,
     localeCode,
     isRTL,
     layoutKey,
     setLocale,
     isLoading,
-  }), [locale, localeCode, isRTL, layoutKey, setLocale, isLoading]);
+  };
+  
+  console.log('[LanguageContext] Provider value:', { locale: value.locale, isRTL: value.isRTL, layoutKey: value.layoutKey });
 
   return (
     <LanguageContext.Provider value={value}>
