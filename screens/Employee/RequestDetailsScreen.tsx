@@ -756,6 +756,7 @@ export default function RequestDetailsScreen({
       // Full mode: use the edited date/time values
       payload.visitDate = formatDateForApiLocal(editDate);
       payload.visitTime = formatTimeForApiLocal(editTime);
+      payload.endTime = formatTimeForApiLocal(editEndTime);
       
       // Calculate human-readable duration from start and end times
       payload.duration = calculateServerDuration(editTime, editEndTime);
@@ -804,6 +805,7 @@ export default function RequestDetailsScreen({
         // Non-walk-in services-only edit: use existing schedule fields
         payload.visitDate = visitData.visitDate || formatDateForApiLocal(new Date());
         payload.visitTime = visitData.visitTime || formatTimeForApiLocal(new Date());
+        payload.endTime = visitData.endTime || formatTimeForApiLocal(editEndTime);
         payload.duration = visitData.duration || "1 hour";
       }
     }
