@@ -6,18 +6,21 @@ interface DirectionalRowProps {
   children: ReactNode;
   style?: StyleProp<ViewStyle>;
   gap?: number;
+  forceReverse?: boolean;
 }
 
-export function DirectionalRow({ children, style, gap }: DirectionalRowProps) {
+export function DirectionalRow({ children, style, gap, forceReverse = false }: DirectionalRowProps) {
   const { isRTL } = useLanguage();
   
   const childArray = Children.toArray(children);
   
-  // Platform-aware RTL handling:
-  // - On WEB: Browser's document.dir='rtl' automatically reverses flex layouts,
-  //   so we keep DOM order and let the browser handle visual reversal
-  // - On MOBILE: I18nManager doesn't flip flexDirection, so we reverse children manually
-  const shouldReverseChildren = isRTL && Platform.OS !== 'web';
+  // RTL handling strategy:
+  // - On WEB: Browser's document.dir='rtl' should reverse flex layouts automatically,
+  //   BUT some containers (with borders/overflow) have React Native Web bugs.
+  //   Use forceReverse=true for those problematic containers to manually reverse children.
+  // - On MOBILE: I18nManager doesn't flip flexDirection, so we always reverse children.
+  const isWeb = Platform.OS === 'web';
+  const shouldReverseChildren = isRTL && (!isWeb || forceReverse);
   const orderedChildren = shouldReverseChildren ? [...childArray].reverse() : childArray;
   
   // Flatten styles and set flexDirection

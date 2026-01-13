@@ -6,6 +6,8 @@ import { DDIcon } from "@/components/DDIcon";
 import Spacer from "@/components/Spacer";
 import { SelectionCheckbox } from "@/components/shared/SelectionCheckbox";
 import { ApprovalActionGroup } from "@/components/shared/ApprovalActionGroup";
+import { DirectionalIconLabel } from "@/components/DirectionalIconLabel";
+import { DirectionalRow } from "@/components/DirectionalRow";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -97,9 +99,9 @@ const ServiceIconsRow = ({ request, size = 14, showWalkIn = false }: { request: 
   }
 
   return (
-    <View style={[styles.servicesRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+    <DirectionalRow style={styles.servicesRow} forceReverse gap={Spacing.sm}>
       {serviceItems}
-    </View>
+    </DirectionalRow>
   );
 };
 
@@ -213,7 +215,7 @@ export function VisitorRequestCard({
 
   const renderHeader = () => {
     return (
-      <View style={[styles.cardHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <DirectionalRow style={styles.cardHeader} forceReverse gap={Spacing.md}>
         {renderAvatar()}
         <View style={styles.nameSection}>
           <ThemedText style={[styles.visitorName, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
@@ -225,26 +227,30 @@ export function VisitorRequestCard({
             </ThemedText>
           ) : null}
         </View>
-      </View>
+      </DirectionalRow>
     );
   };
 
   const renderIconText = (icon: string, text: string, iconSize: number = 13) => {
-    // Use fixed 'row' direction since parent dateTimeRow already handles RTL mirroring
-    // Inner items should NOT also flip, or they will cancel out
     return (
-      <View style={[styles.dateTimeItem, { flexDirection: 'row', alignItems: 'center' }]}>
-        <DDIcon name={icon} size={iconSize} color={theme.textSecondary} />
-        <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+      <DirectionalIconLabel 
+        icon={icon} 
+        iconSize={iconSize}
+        iconColor={theme.textSecondary}
+        style={styles.dateTimeItem}
+        gap={4}
+        forceReverse
+      >
+        <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
           {text}
         </ThemedText>
-      </View>
+      </DirectionalIconLabel>
     );
   };
 
   const renderDateTime = () => {
     return (
-      <View style={[styles.dateTimeRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <DirectionalRow style={styles.dateTimeRow} forceReverse>
         {renderIconText('calendar', formatDate(request.visitDate))}
         <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
         {renderIconText('clock', formatTime(request.visitTime))}
@@ -256,27 +262,33 @@ export function VisitorRequestCard({
             </ThemedText>
           </>
         ) : null}
-      </View>
+      </DirectionalRow>
     );
   };
 
   const renderServicesAndStatus = () => (
-    <View style={[styles.servicesStatusRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+    <DirectionalRow style={styles.servicesStatusRow} forceReverse>
       <View style={styles.servicesContainer}>
         <ServiceIconsRow request={request} showWalkIn={true} />
       </View>
       {renderStatusBadge()}
-    </View>
+    </DirectionalRow>
   );
 
   const renderDetailRow = (iconName: string, text: string, numberOfLines: number = 1) => {
     return (
-      <View style={[styles.detailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-        <DDIcon name={iconName} size={14} color={theme.textSecondary} />
-        <ThemedText style={[styles.detailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={numberOfLines}>
+      <DirectionalIconLabel 
+        icon={iconName} 
+        iconSize={14}
+        iconColor={theme.textSecondary}
+        style={styles.detailRow}
+        gap={Spacing.sm}
+        forceReverse
+      >
+        <ThemedText style={[styles.detailText, { color: theme.text }]} numberOfLines={numberOfLines}>
           {text}
         </ThemedText>
-      </View>
+      </DirectionalIconLabel>
     );
   };
 
@@ -300,15 +312,17 @@ export function VisitorRequestCard({
     if (!hasDetails) return null;
 
     return (
-      <Pressable onPress={toggleExpanded} style={[styles.toggleContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-        <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
-          {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
-        </ThemedText>
-        <DDIcon 
-          name={isExpanded ? 'chevron-up' : 'chevron-down'} 
-          size={16} 
-          color={theme.primary} 
-        />
+      <Pressable onPress={toggleExpanded}>
+        <DirectionalRow style={styles.toggleContainer} forceReverse gap={Spacing.xs}>
+          <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
+            {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
+          </ThemedText>
+          <DDIcon 
+            name={isExpanded ? 'chevron-up' : 'chevron-down'} 
+            size={16} 
+            color={theme.primary} 
+          />
+        </DirectionalRow>
       </Pressable>
     );
   };
@@ -319,7 +333,7 @@ export function VisitorRequestCard({
     return (
       <>
         <Spacer height={Spacing.sm} />
-        <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <DirectionalRow style={styles.infoRow} forceReverse gap={Spacing.xs}>
           <DDIcon name="user" size={12} variant="muted" />
           <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>
             {t('dashboard.requestedBy')}
@@ -332,7 +346,7 @@ export function VisitorRequestCard({
               ({request.employeeDepartment})
             </ThemedText>
           ) : null}
-        </View>
+        </DirectionalRow>
       </>
     );
   };
@@ -343,7 +357,7 @@ export function VisitorRequestCard({
     return (
       <>
         <Spacer height={Spacing.xs} />
-        <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <DirectionalRow style={styles.infoRow} forceReverse gap={Spacing.xs}>
           <DDIcon name="user" size={12} variant="muted" />
           <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>
             {t('reception.hostName')}:
@@ -351,7 +365,7 @@ export function VisitorRequestCard({
           <ThemedText style={[styles.infoValue, { color: theme.text }]}>
             {hostName}
           </ThemedText>
-        </View>
+        </DirectionalRow>
       </>
     );
   };
