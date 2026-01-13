@@ -1,0 +1,155 @@
+You are working on our React Native + Expo SDK 54 app (iOS/Android/Web) with English (LTR) and Arabic (RTL). We have RTL/LTR layout shifting issues on mobile: Arabic text is not consistently right-aligned, and many rows are “mixed” (icons on left but labels right, or vice versa). Web looks mostly OK, mobile is inconsistent.
+
+We already have these files and flow (DO NOT reinvent):
+- `utils/rtlInitializer.ts`
+- `contexts/LanguageContext.tsx`
+- `index.js` calls `initializeRTLSync()` BEFORE `registerRootComponent()`
+- Language key: `@vms_language`
+- Current strategy uses `flexDirection: isRTL ? 'row-reverse' : 'row'` in some places, but not consistently, and nested row-reverse causes double reversal.
+
+Your job is to FIX the existing implementation (do not start fresh) and ensure:
+- Arabic: RTL layout + right-aligned text everywhere
+- English: LTR layout + left-aligned text everywhere
+- Icon + label rows are consistent (no mixed direction)
+- Directional icons (chevrons/arrows) are mirrored correctly in RTL
+- Works on iOS + Android + Web
+
+---------------------------
+## PART 1 — Root cause audit (must do first)
+1) Search the codebase for:
+   - `flexDirection: isRTL ? 'row-reverse' : 'row'`
+   - `textAlign`, `writingDirection`
+   - `marginLeft/marginRight/paddingLeft/paddingRight/left/right`
+   - `I18nManager.allowRTL/forceRTL/swapLeftAndRightInRTL`
+2) Identify components/screens where BOTH of these are true:
+   - A parent container flips row direction
+   - A child container also flips row direction
+This creates double reversal. List the exact files/components.
+
+3) Identify Text elements rendered in Arabic WITHOUT:
+   - `textAlign` OR `writingDirection`
+Especially on iOS this causes left-aligned Arabic.
+
+Output: a short root-cause report with file paths and “why mobile is inconsistent”.
+
+---------------------------
+## PART 2 — Fix global initialization (critical)
+Our current guide says:
+- Web: sync localStorage read + forceRTL before first render
+- Mobile: we only call `allowRTL(true)` in sync init and rely on persisted state
+
+Fix this so MOBILE behaves reliably too.
+
+### Requirements:
+- In `initializeRTLSync()`:
+  - Always call `I18nManager.allowRTL(true)` on all platforms
+  - Call `I18nManager.swapLeftAndRightInRTL(true)` (recommended)
+  - Decide `needsRTL`:
+    - Web: read from localStorage synchronously
+    - Mobile: do NOT async-read here, but also do NOT leave direction undefined:
+      - Use current `I18nManager.isRTL` as baseline
+- In `initializeRTLAsync()` (called in LanguageProvider):
+  - Read locale from AsyncStorage
+  - If stored locale implies RTL but `I18nManager.isRTL` differs:
+    - Call `I18nManager.forceRTL(needsRTL)`
+    - Trigger a hard reload (Expo: `Updates.reloadAsync()`)
+  - This ensures fresh installs and first launch are correct, not “LTR until user switches”.
+
+Also confirm `LanguageContext.tsx` language switch does:
+- Save locale
+- Call `I18nManager.forceRTL(needsRTL)`
+- Reload: web `window.location.reload()`, native `Updates.reloadAsync()`
+
+Do NOT remove reload behavior; it’s required.
+
+---------------------------
+## PART 3 — Implement a “single source of truth” RTL styling helpers
+Create these helpers (use existing patterns/paths if similar exist; otherwise add new file, e.g. `utils/rtlStyles.ts`):
+
+### A) Logical spacing helpers
+We must stop using left/right in styles. Add a small helper:
+
+- Replace `marginLeft/marginRight` with `marginStart/marginEnd`
+- Replace `paddingLeft/paddingRight` with `paddingStart/paddingEnd`
+
+Do a safe refactor in the components causing issues (focus on those marked in screenshots: sidebar/menu items, header rows, cards, notification banner).
+
+### B) Row layout helper (prevent double reversal)
+Create a reusable style generator:
+
+`row(isRTL)` returns:
+- `flexDirection: isRTL ? 'row-reverse' : 'row'`
+- `alignItems: 'center'`
+
+Then enforce a rule:
+- Only apply this on the outermost row that controls icon/text order.
+- Inner rows must NOT also apply row-reverse unless specifically needed.
+
+Refactor the problematic components to use this helper.
+
+### C) Text direction helper (fix iOS Arabic alignment)
+Create `rtlText(isRTL)` returning:
+- `textAlign: isRTL ? 'right' : 'left'`
+- `writingDirection: isRTL ? 'rtl' : 'ltr'`
+
+Then ensure every visible label/value text in the problematic components uses this.
+
+---------------------------
+## PART 4 — Add an AppText wrapper (fast + consistent fix)
+Create `components/AppText.tsx` and replace the most problematic Text usages (menu labels, card titles, banner text, header text). This wrapper must:
+- Apply `rtlText(isRTL)` by default
+- Allow overriding via `style` prop
+- Use correct font fallback if we already have Arabic/English fonts configured (do NOT invent new fonts)
+
+Example behavior:
+- Arabic -> right aligned
+- English -> left aligned
+
+---------------------------
+## PART 5 — Fix directional icons (chevrons/arrows)
+Audit all icons that imply direction (back arrow, chevron in list items, expand/collapse arrows).
+Implement a small helper:
+- Either choose correct icon name based on `isRTL`
+OR apply:
+`transform: [{ scaleX: isRTL ? -1 : 1 }]`
+
+Then patch the affected UI (sidebar item chevrons, navigation header back button, etc.)
+
+---------------------------
+## PART 6 — Patch the exact areas shown in screenshots
+The red-marked areas show mixed alignment:
+1) Sidebar/menu item rows (icon + label)
+2) Top notification/banner block (text alignment)
+3) Visitor card list item (name + meta row with icons/times)
+4) Mobile header row (hamburger/logo/profile/bell alignment)
+
+Find these components by searching for the Arabic strings shown and/or the icon names used in those rows.
+Apply:
+- `row(isRTL)`
+- `rtlText(isRTL)`
+- convert left/right spacing to start/end
+- remove nested row-reverse where it cancels out
+
+---------------------------
+## PART 7 — Verification checklist (must include in your output)
+After changes, confirm:
+- Arabic (RTL):
+  - all text blocks right-aligned (especially iOS)
+  - icon+label rows mirrored consistently (icons appear on correct side)
+  - no mixed direction in same row
+  - directional arrows point correct way
+- English (LTR):
+  - layout normal
+- Language switch:
+  - forces reload and comes back fully mirrored correctly
+- Fresh install:
+  - if stored locale is Arabic, first visible screen is RTL (not LTR)
+
+---------------------------
+## Deliverables
+1) Root-cause list with file paths
+2) PR-style code changes implementing the above
+3) Short “what changed” summary
+4) Testing notes
+
+Proceed now: audit first, then implement fixes.
