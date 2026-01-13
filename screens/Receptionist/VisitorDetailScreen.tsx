@@ -219,7 +219,10 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
         return { label: t('status.cancelled'), variant: 'error', icon: 'x-circle' };
       case 'pending_approval':
         return { label: t('status.pendingApproval'), variant: 'warning', icon: 'clock' };
+      case 'pending_host_approval':
+        return { label: t('status.pendingHostApproval'), variant: 'warning', icon: 'clock' };
       case 'approved':
+      case 'visitor_accepted':
         return { label: t('visitor.expectedVisitors'), variant: 'info', icon: 'check-circle' };
       default:
         return { label: t('visitor.expectedVisitors'), variant: 'warning', icon: 'clock' };
@@ -495,7 +498,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
     </ScreenScrollView>
 
     {/* Sticky Footer for Actions */}
-    {(visitor.status === 'approved' || visitor.status === 'pending') && (
+    {(visitor.status === 'approved' || visitor.status === 'visitor_accepted') && (
       <View style={[styles.stickyFooter, { backgroundColor: theme.background, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.lg }]}>
         <View style={[styles.buttonRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <LoadingButton
