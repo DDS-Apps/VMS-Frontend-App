@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Pressable, Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -15,6 +16,8 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { pushNotificationService } from '@/services/push';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { BorderRadius, Spacing } from '@/constants/theme';
+
+const PROMPT_DISMISSED_KEY = 'notification_prompt_dismissed';
 
 interface EnableNotificationsPromptProps {
   onEnabled?: () => void;
@@ -34,6 +37,12 @@ export function EnableNotificationsPrompt({
 
   useEffect(() => {
     const checkPermission = async () => {
+      const dismissed = await AsyncStorage.getItem(PROMPT_DISMISSED_KEY);
+      if (dismissed === 'true') {
+        setIsVisible(false);
+        return;
+      }
+      
       const shouldShow = pushNotificationService.shouldShowEnablePrompt();
       if (shouldShow) {
         const status = await pushNotificationService.getPermissionStatus();
@@ -67,7 +76,8 @@ export function EnableNotificationsPrompt({
     scale.value = withSpring(1);
   };
 
-  const handleDismiss = () => {
+  const handleDismiss = async () => {
+    await AsyncStorage.setItem(PROMPT_DISMISSED_KEY, 'true');
     setIsVisible(false);
     onDismissed?.();
   };
@@ -94,13 +104,13 @@ export function EnableNotificationsPrompt({
       </View>
       
       <View style={styles.content}>
-        <ThemedText variant="bodySmall" style={styles.title}>
+        <ThemedText variant="bodySmall" style={[styles.title, { textAlign: isRTL ? 'right' : 'left' }]}>
           {t('notifications.enablePromptTitle')}
         </ThemedText>
         <ThemedText 
           variant="caption" 
           color={theme.textSecondary}
-          style={styles.description}
+          style={[styles.description, { textAlign: isRTL ? 'right' : 'left' }]}
         >
           {t('notifications.enablePromptDescription')}
         </ThemedText>
@@ -148,9 +158,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginHorizontal: Spacing.md,
     marginBottom: Spacing.md,
+    gap: Spacing.sm,
   },
   iconContainer: {
-    marginEnd: Spacing.sm,
     paddingTop: 2,
   },
   content: {
@@ -180,6 +190,5 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     padding: Spacing.xs,
-    marginStart: Spacing.xs,
   },
 });
