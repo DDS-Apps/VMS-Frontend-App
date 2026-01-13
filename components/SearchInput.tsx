@@ -45,6 +45,33 @@ export function SearchInput({
     onClear?.();
   };
 
+  const searchIcon = <DDIcon name="search" size={ICON_SIZE} variant="muted" />;
+  const inputEl = (
+    <TextInput
+      style={[
+        styles.input,
+        { 
+          color: theme.text,
+          textAlign: isRTL ? 'right' : 'left',
+          writingDirection: isRTL ? 'rtl' : 'ltr',
+        },
+        Platform.OS === 'web' ? { outlineStyle: 'none' } as any : {},
+      ]}
+      placeholder={placeholder}
+      placeholderTextColor={theme.textSecondary}
+      value={value}
+      onChangeText={onChangeText}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
+      {...textInputProps}
+    />
+  );
+  const clearButton = showClearButton && value && value.length > 0 ? (
+    <Pressable onPress={handleClear} hitSlop={8}>
+      <DDIcon name="x" size={18} variant="muted" />
+    </Pressable>
+  ) : null;
+
   return (
     <View
       style={[
@@ -57,30 +84,19 @@ export function SearchInput({
         containerStyle,
       ]}
     >
-      <DDIcon name="search" size={ICON_SIZE} variant="muted" />
-      <TextInput
-        style={[
-          styles.input,
-          { 
-            color: theme.text,
-            textAlign: isRTL ? 'right' : 'left',
-            writingDirection: isRTL ? 'rtl' : 'ltr',
-          },
-          Platform.OS === 'web' ? { outlineStyle: 'none' } as any : {},
-        ]}
-        placeholder={placeholder}
-        placeholderTextColor={theme.textSecondary}
-        value={value}
-        onChangeText={onChangeText}
-        onFocus={handleFocus}
-        onBlur={handleBlur}
-        {...textInputProps}
-      />
-      {showClearButton && value && value.length > 0 ? (
-        <Pressable onPress={handleClear} hitSlop={8}>
-          <DDIcon name="x" size={18} variant="muted" />
-        </Pressable>
-      ) : null}
+      {isRTL ? (
+        <>
+          {clearButton}
+          {inputEl}
+          {searchIcon}
+        </>
+      ) : (
+        <>
+          {searchIcon}
+          {inputEl}
+          {clearButton}
+        </>
+      )}
     </View>
   );
 }

@@ -3,6 +3,7 @@ import { View, StyleSheet, ViewStyle, StyleProp } from "react-native";
 import { LoadingButton } from "@/components/shared/LoadingButton";
 import { Spacing } from "@/constants/theme";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 type ButtonSize = "small" | "medium" | "large";
 
@@ -40,6 +41,7 @@ export const ApprovalActionGroup = ({
   fullWidth = true,
 }: ApprovalActionGroupProps) => {
   const { t } = useTranslation();
+  const { isRTL } = useLanguage();
 
   const isAnyLoading = approveLoading || rejectLoading;
   const isDisabled = disabled || isAnyLoading;
@@ -52,37 +54,55 @@ export const ApprovalActionGroup = ({
   const containerStyle = layout === "row" ? styles.rowContainer : styles.columnContainer;
   const buttonStyle = layout === "row" ? styles.rowButton : styles.columnButton;
 
+  const rejectButton = (
+    <LoadingButton
+      onPress={onReject}
+      loading={rejectLoading}
+      disabled={isDisabled && !rejectLoading}
+      variant="danger-outline"
+      size={size}
+      icon={showIcons ? "x-circle" : undefined}
+      loadingText={defaultRejectLoadingText}
+      fullWidth={fullWidth}
+      style={buttonStyle}
+    >
+      {defaultRejectLabel}
+    </LoadingButton>
+  );
+
+  const approveButton = (
+    <LoadingButton
+      onPress={onApprove}
+      loading={approveLoading}
+      disabled={isDisabled && !approveLoading}
+      variant="success"
+      size={size}
+      icon={showIcons ? "check-circle" : undefined}
+      loadingText={defaultApproveLoadingText}
+      fullWidth={fullWidth}
+      style={buttonStyle}
+    >
+      {defaultApproveLabel}
+    </LoadingButton>
+  );
+
+  const spacer = layout === "row" ? <View style={styles.spacerHorizontal} /> : <View style={styles.spacerVertical} />;
+
   return (
     <View style={[containerStyle, style]}>
-      <LoadingButton
-        onPress={onReject}
-        loading={rejectLoading}
-        disabled={isDisabled && !rejectLoading}
-        variant="danger-outline"
-        size={size}
-        icon={showIcons ? "x-circle" : undefined}
-        loadingText={defaultRejectLoadingText}
-        fullWidth={fullWidth}
-        style={buttonStyle}
-      >
-        {defaultRejectLabel}
-      </LoadingButton>
-
-      {layout === "row" ? <View style={styles.spacerHorizontal} /> : <View style={styles.spacerVertical} />}
-
-      <LoadingButton
-        onPress={onApprove}
-        loading={approveLoading}
-        disabled={isDisabled && !approveLoading}
-        variant="success"
-        size={size}
-        icon={showIcons ? "check-circle" : undefined}
-        loadingText={defaultApproveLoadingText}
-        fullWidth={fullWidth}
-        style={buttonStyle}
-      >
-        {defaultApproveLabel}
-      </LoadingButton>
+      {isRTL && layout === "row" ? (
+        <>
+          {approveButton}
+          {spacer}
+          {rejectButton}
+        </>
+      ) : (
+        <>
+          {rejectButton}
+          {spacer}
+          {approveButton}
+        </>
+      )}
     </View>
   );
 };

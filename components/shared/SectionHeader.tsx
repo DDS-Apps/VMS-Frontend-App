@@ -41,18 +41,34 @@ export function SectionHeader({
     }
   };
 
-  return (
-    <View style={[styles.container, { flexDirection: isRTL ? 'row-reverse' : 'row' }, style]}>
+  const renderTitleSection = () => {
+    const iconEl = icon ? (
+      <DDIcon name={icon} size={titleSize === 'large' ? 20 : 18} color={theme.primary} />
+    ) : null;
+    const titleEl = (
+      <ThemedText 
+        style={[Typography.subtitle, getTitleStyle(), icon ? { marginStart: Spacing.sm } : {}]}
+        align="start"
+      >
+        {title}
+      </ThemedText>
+    );
+
+    return (
       <View style={[styles.titleContainer, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
         {icon ? (
-          <View style={[styles.titleRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <DDIcon name={icon} size={titleSize === 'large' ? 20 : 18} color={theme.primary} />
-            <ThemedText 
-              style={[Typography.subtitle, getTitleStyle(), { marginStart: Spacing.sm }]}
-              align="start"
-            >
-              {title}
-            </ThemedText>
+          <View style={[styles.titleRow, { flexDirection: 'row' }]}>
+            {isRTL ? (
+              <>
+                {titleEl}
+                {iconEl}
+              </>
+            ) : (
+              <>
+                {iconEl}
+                {titleEl}
+              </>
+            )}
           </View>
         ) : (
           <ThemedText 
@@ -71,29 +87,69 @@ export function SectionHeader({
           </ThemedText>
         ) : null}
       </View>
+    );
+  };
 
-      {rightContent ? (
-        <View style={styles.rightContainer}>
-          {rightContent}
-        </View>
-      ) : null}
+  const renderViewAllButton = () => {
+    if (!onViewAll || !viewAllText) return null;
 
-      {onViewAll && viewAllText ? (
-        <Pressable 
-          onPress={onViewAll} 
-          style={[styles.viewAllButton, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
-        >
-          <ThemedText style={[Typography.body, { color: theme.primary, fontWeight: '500' }]}>
-            {viewAllText}
-          </ThemedText>
-          <DDIcon 
-            name="chevron-right" 
-            size={16} 
-            color={theme.primary}
-            directionAware
-          />
-        </Pressable>
-      ) : null}
+    const textEl = (
+      <ThemedText style={[Typography.body, { color: theme.primary, fontWeight: '500' }]}>
+        {viewAllText}
+      </ThemedText>
+    );
+    const iconEl = (
+      <DDIcon 
+        name="chevron-right" 
+        size={16} 
+        color={theme.primary}
+        directionAware
+      />
+    );
+
+    return (
+      <Pressable 
+        onPress={onViewAll} 
+        style={[styles.viewAllButton, { flexDirection: 'row' }]}
+      >
+        {isRTL ? (
+          <>
+            {iconEl}
+            {textEl}
+          </>
+        ) : (
+          <>
+            {textEl}
+            {iconEl}
+          </>
+        )}
+      </Pressable>
+    );
+  };
+
+  const titleSection = renderTitleSection();
+  const rightSection = rightContent ? (
+    <View style={styles.rightContainer}>
+      {rightContent}
+    </View>
+  ) : null;
+  const viewAllButton = renderViewAllButton();
+
+  return (
+    <View style={[styles.container, { flexDirection: 'row' }, style]}>
+      {isRTL ? (
+        <>
+          {viewAllButton}
+          {rightSection}
+          {titleSection}
+        </>
+      ) : (
+        <>
+          {titleSection}
+          {rightSection}
+          {viewAllButton}
+        </>
+      )}
     </View>
   );
 }

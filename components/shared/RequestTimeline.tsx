@@ -15,6 +15,7 @@ import {
 } from "@/constants/requestConstants";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export type TimelineStepStatus = 'completed' | 'current' | 'pending' | 'error';
 
@@ -66,6 +67,7 @@ export function RequestTimeline({
 }: RequestTimelineProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { isRTL } = useLanguage();
 
   const getStepColor = (status: TimelineStepStatus) => {
     switch (status) {
@@ -180,94 +182,130 @@ export function RequestTimeline({
         const isError = step.status === 'error';
         const hasActions = step.actions && step.actions.length > 0;
 
-        return (
-          <View key={step.id} style={styles.stepContainer}>
-            <View style={styles.iconColumn}>
+        const iconColumnEl = (
+          <View style={styles.iconColumn}>
+            <View
+              style={[
+                styles.iconCircle,
+                {
+                  backgroundColor: isCompleted || isCurrent || isError
+                    ? stepColor
+                    : 'transparent',
+                  borderColor: stepColor,
+                  borderWidth: isCompleted || isCurrent || isError ? 0 : 2,
+                },
+              ]}
+            >
+              <DDIcon
+                name={step.icon}
+                size={14}
+                color={isCompleted || isCurrent || isError ? '#FFFFFF' : stepColor}
+              />
+            </View>
+            {!isLast ? (
               <View
                 style={[
-                  styles.iconCircle,
-                  {
-                    backgroundColor: isCompleted || isCurrent || isError
-                      ? stepColor
-                      : 'transparent',
-                    borderColor: stepColor,
-                    borderWidth: isCompleted || isCurrent || isError ? 0 : 2,
-                  },
+                  styles.line,
+                  { backgroundColor: lineColor },
                 ]}
-              >
-                <DDIcon
-                  name={step.icon}
-                  size={14}
-                  color={isCompleted || isCurrent || isError ? '#FFFFFF' : stepColor}
+              />
+            ) : null}
+          </View>
+        );
+
+        const renderActionButton = (action: TimelineAction, actionIndex: number) => {
+          const iconEl = (
+            <DDIcon
+              name={getActionIcon(action)}
+              size={16}
+              color={getActionTextStyle(action).color}
+            />
+          );
+          const textEl = (
+            <ThemedText
+              style={[
+                Typography.bodySmall,
+                getActionTextStyle(action),
+                { marginStart: Spacing.xs },
+              ]}
+            >
+              {action.label}
+            </ThemedText>
+          );
+
+          return (
+            <Pressable
+              key={`${step.id}-action-${actionIndex}`}
+              onPress={action.onPress}
+              disabled={action.disabled || action.isLoading}
+              style={({ pressed }) => [
+                getActionButtonStyle(action),
+                pressed && { opacity: 0.8 },
+                action.disabled && { opacity: 0.5 },
+              ]}
+            >
+              {action.isLoading ? (
+                <ActivityIndicator 
+                  size="small" 
+                  color={action.type === 'reject' || action.type === 'cancel' ? theme.error : '#FFFFFF'} 
                 />
+              ) : isRTL ? (
+                <>
+                  {textEl}
+                  {iconEl}
+                </>
+              ) : (
+                <>
+                  {iconEl}
+                  {textEl}
+                </>
+              )}
+            </Pressable>
+          );
+        };
+
+        const actionButtons = hasActions 
+          ? step.actions!.map((action, actionIndex) => renderActionButton(action, actionIndex))
+          : null;
+
+        const contentColumnEl = (
+          <View style={[styles.contentColumn, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
+            <ThemedText
+              style={[
+                Typography.body,
+                {
+                  fontWeight: isCompleted || isCurrent ? '600' : '400',
+                  color: isCompleted || isCurrent || isError ? theme.text : theme.textSecondary,
+                  textAlign: isRTL ? 'right' : 'left',
+                },
+              ]}
+            >
+              {step.label}
+            </ThemedText>
+
+            {hasActions ? (
+              <View style={[styles.actionsContainer, { justifyContent: isRTL ? 'flex-end' : 'flex-start', gap: Spacing.sm }]}>
+                {isRTL ? actionButtons?.reverse() : actionButtons}
               </View>
-              {!isLast ? (
-                <View
-                  style={[
-                    styles.line,
-                    { backgroundColor: lineColor },
-                  ]}
-                />
-              ) : null}
-            </View>
+            ) : null}
 
-            <View style={styles.contentColumn}>
-              <ThemedText
-                style={[
-                  Typography.body,
-                  {
-                    fontWeight: isCompleted || isCurrent ? '600' : '400',
-                    color: isCompleted || isCurrent || isError ? theme.text : theme.textSecondary,
-                  },
-                ]}
-              >
-                {step.label}
-              </ThemedText>
+            <Spacer height={isLast ? 0 : Spacing.lg} />
+          </View>
+        );
 
-              {hasActions ? (
-                <View style={styles.actionsContainer}>
-                  {step.actions!.map((action, actionIndex) => (
-                    <Pressable
-                      key={`${step.id}-action-${actionIndex}`}
-                      onPress={action.onPress}
-                      disabled={action.disabled || action.isLoading}
-                      style={({ pressed }) => [
-                        getActionButtonStyle(action),
-                        pressed && { opacity: 0.8 },
-                        action.disabled && { opacity: 0.5 },
-                        actionIndex > 0 && { marginStart: Spacing.sm },
-                      ]}
-                    >
-                      {action.isLoading ? (
-                        <ActivityIndicator 
-                          size="small" 
-                          color={action.type === 'reject' || action.type === 'cancel' ? theme.error : '#FFFFFF'} 
-                        />
-                      ) : (
-                        <>
-                          <DDIcon
-                            name={getActionIcon(action)}
-                            size={16}
-                            color={getActionTextStyle(action).color}
-                          />
-                          <ThemedText
-                            style={[
-                              Typography.bodySmall,
-                              getActionTextStyle(action),
-                              { marginStart: Spacing.xs },
-                            ]}
-                          >
-                            {action.label}
-                          </ThemedText>
-                        </>
-                      )}
-                    </Pressable>
-                  ))}
-                </View>
-              ) : null}
-
-              <Spacer height={isLast ? 0 : Spacing.lg} />
-            </View>
+        return (
+          <View key={step.id} style={[styles.stepContainer, { flexDirection: 'row' }]}>
+            {isRTL ? (
+              <>
+                {contentColumnEl}
+                {iconColumnEl}
+              </>
+            ) : (
+              <>
+                {iconColumnEl}
+                {contentColumnEl}
+              </>
+            )}
           </View>
         );
       })}

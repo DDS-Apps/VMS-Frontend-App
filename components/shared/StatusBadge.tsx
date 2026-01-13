@@ -37,6 +37,27 @@ export const StatusBadge = ({
   const color = getColor();
   const isSmall = size === 'sm';
   
+  const iconEl = icon ? (
+    <DDIcon 
+      name={icon} 
+      size={isSmall ? 12 : 14} 
+      color={color} 
+    />
+  ) : null;
+  
+  const textEl = (
+    <ThemedText style={[
+      styles.text, 
+      { 
+        color,
+        fontSize: isSmall ? 11 : 12,
+        marginStart: icon ? Spacing.xs : 0,
+      }
+    ]}>
+      {label}
+    </ThemedText>
+  );
+
   return (
     <View style={[
       styles.badge,
@@ -44,26 +65,20 @@ export const StatusBadge = ({
         backgroundColor: applyOpacity(color, '15'),
         paddingHorizontal: isSmall ? Spacing.sm : Spacing.md,
         paddingVertical: isSmall ? Spacing.xs / 2 : Spacing.xs,
-        flexDirection: isRTL ? 'row-reverse' : 'row',
+        flexDirection: 'row',
       }
     ]}>
-      {icon ? (
-        <DDIcon 
-          name={icon} 
-          size={isSmall ? 12 : 14} 
-          color={color} 
-        />
-      ) : null}
-      <ThemedText style={[
-        styles.text, 
-        { 
-          color,
-          fontSize: isSmall ? 11 : 12,
-          marginStart: icon ? Spacing.xs : 0,
-        }
-      ]}>
-        {label}
-      </ThemedText>
+      {isRTL ? (
+        <>
+          {textEl}
+          {iconEl}
+        </>
+      ) : (
+        <>
+          {iconEl}
+          {textEl}
+        </>
+      )}
     </View>
   );
 };
