@@ -205,7 +205,7 @@ export default function Sidebar({
 }: SidebarProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { isRTL } = useLanguage();
+  const { isRTL, layoutKey } = useLanguage();
   const rtlStyles = useRTLStyles();
   const { groups, standalone } = getMenuGroups(userRole);
   const { width } = Dimensions.get('window');
@@ -389,17 +389,20 @@ export default function Sidebar({
   };
 
   return (
-    <ThemedView style={[
-      styles.sidebar, 
-      { 
-        backgroundColor: theme.sidebarBg, 
-        borderRightColor: theme.border,
-        borderLeftColor: theme.border,
-        borderRightWidth: isRTL ? 0 : 1,
-        borderLeftWidth: isRTL ? 1 : 0,
-        paddingTop: insets.top + Spacing.sm,
-      },
-    ]}>
+    <ThemedView 
+      key={layoutKey}
+      style={[
+        styles.sidebar, 
+        { 
+          backgroundColor: theme.sidebarBg, 
+          borderRightColor: theme.border,
+          borderLeftColor: theme.border,
+          borderRightWidth: isRTL ? 0 : 1,
+          borderLeftWidth: isRTL ? 1 : 0,
+          paddingTop: insets.top + Spacing.sm,
+        },
+      ]}
+    >
       <Pressable 
         style={({ pressed }) => [styles.profileHeader, pressed && { opacity: 0.7 }]}
         onPress={() => handleItemPress('Dashboard')}

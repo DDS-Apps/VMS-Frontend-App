@@ -58,7 +58,7 @@ export default function DashboardLayout({
   isSSOUser = false,
 }: DashboardLayoutProps) {
   const { theme, isDark, toggleTheme } = useTheme();
-  const { locale, setLocale, isRTL } = useLanguage();
+  const { locale, setLocale, isRTL, layoutKey } = useLanguage();
   const { t } = useTranslation();
   const rtlStyles = useRTLStyles();
   const { width } = useWindowDimensions();
@@ -239,7 +239,7 @@ export default function DashboardLayout({
 
   return (
     <GestureDetector gesture={edgeSwipeGesture}>
-      <ThemedView style={[styles.container, { direction: isRTL ? 'rtl' : 'ltr' }]}>
+      <ThemedView key={layoutKey} style={[styles.container, { direction: isRTL ? 'rtl' : 'ltr' }]}>
         {/* Mobile Header Bar */}
         {!isLargeScreen && (
           <ThemedView style={[

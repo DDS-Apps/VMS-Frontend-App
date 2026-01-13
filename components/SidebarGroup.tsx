@@ -35,7 +35,7 @@ export default function SidebarGroup({
   children,
 }: SidebarGroupProps) {
   const { theme } = useTheme();
-  const { isRTL } = useLanguage();
+  const { isRTL, layoutKey } = useLanguage();
   const rtlStyles = useRTLStyles();
   const expandProgress = useSharedValue(isExpanded ? 1 : 0);
 
@@ -63,7 +63,7 @@ export default function SidebarGroup({
   };
 
   return (
-    <View style={styles.container}>
+    <View key={layoutKey} style={styles.container}>
       <Pressable
         style={({ pressed }) => [
           styles.header,

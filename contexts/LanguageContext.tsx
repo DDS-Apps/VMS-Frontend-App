@@ -18,6 +18,7 @@ interface LanguageContextType {
   locale: SupportedLocale;
   localeCode: LocaleCode;
   isRTL: boolean;
+  layoutKey: string;
   setLocale: (locale: SupportedLocale) => Promise<void>;
   isLoading: boolean;
 }
@@ -31,9 +32,11 @@ interface LanguageProviderProps {
 export function LanguageProvider({ children }: LanguageProviderProps) {
   const [locale, setLocaleState] = useState<SupportedLocale>(defaultLocale);
   const [isRTL, setIsRTL] = useState<boolean>(localeConfig[defaultLocale].isRTL);
+  const [layoutNonce, setLayoutNonce] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
 
   const localeCode: LocaleCode = isRTL ? 'ar-SA' : 'en-US';
+  const layoutKey = `${locale}-${isRTL ? 'rtl' : 'ltr'}-${layoutNonce}`;
 
   useEffect(() => {
     loadStoredLanguage();
@@ -54,6 +57,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
         
         setLocaleState(validLocale);
         setIsRTL(needsRTL);
+        setLayoutNonce(prev => prev + 1);
         
         const currentRTL = getCurrentRTLState();
         
@@ -85,6 +89,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
         setWebDocumentDirection(newLocale);
         setLocaleState(newLocale);
         setIsRTL(newIsRTL);
+        setLayoutNonce(prev => prev + 1);
         return;
       }
       
@@ -98,6 +103,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
       
       setLocaleState(newLocale);
       setIsRTL(newIsRTL);
+      setLayoutNonce(prev => prev + 1);
     } catch (error) {
       console.error('Failed to save language preference:', error);
     }
@@ -107,9 +113,10 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
     locale,
     localeCode,
     isRTL,
+    layoutKey,
     setLocale,
     isLoading,
-  }), [locale, localeCode, isRTL, setLocale, isLoading]);
+  }), [locale, localeCode, isRTL, layoutKey, setLocale, isLoading]);
 
   return (
     <LanguageContext.Provider value={value}>
