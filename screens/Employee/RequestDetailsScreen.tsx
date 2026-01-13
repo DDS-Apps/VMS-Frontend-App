@@ -1346,202 +1346,402 @@ export default function RequestDetailsScreen({
         <View
           style={[
             styles.serviceItemNew,
-            { backgroundColor: theme.surfaceSecondary, flexDirection: isRTL ? 'row-reverse' : 'row' },
+            { backgroundColor: theme.surfaceSecondary, flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start' },
           ]}
         >
-          <View
-            style={[
-              styles.serviceIcon,
-              {
-                backgroundColor: applyOpacity(
-                  (request.meetingRoom || request.isMeetingRoom) ? theme.secondary : theme.textSecondary,
-                  "15",
-                ),
-              },
-            ]}
-          >
-            <DDIcon
-              name="briefcase"
-              size={18}
-              color={
-                (request.meetingRoom || request.isMeetingRoom) ? theme.secondary : theme.textSecondary
-              }
-            />
-          </View>
-          <View style={{ flex: 1, marginStart: Spacing.md }}>
-            <ThemedText
-              style={[
-                Typography.body,
-                { fontWeight: "600", fontSize: 14, color: theme.text, textAlign: isRTL ? 'right' : 'left' },
-              ]}
-            >
-              {t("services.meetingRoom")}
-            </ThemedText>
-            {(request.meetingRoom || request.isMeetingRoom || (request as any).meetingRoomPending) && (request.status === REQUEST_STATUS.REJECTED || request.status === REQUEST_STATUS.CANCELLED) ? (
-              <ThemedText
-                style={[
-                  Typography.caption,
-                  { color: theme.error, fontSize: 12, marginTop: 2 },
-                ]}
-              >
-                {t("status.cancelled")}
-              </ThemedText>
-            ) : request.meetingRoom ? (
-              <>
+          {isRTL ? (
+            <>
+              {request.meetingRoom?.status ? (
+                <StatusBadge
+                  label={formatServiceStatus(request.meetingRoom.status)}
+                  variant={getServiceStatusVariant(request.meetingRoom.status)}
+                  size="sm"
+                />
+              ) : null}
+              <View style={{ flex: 1, marginEnd: Spacing.md, alignItems: 'flex-end' }}>
                 <ThemedText
                   style={[
-                    Typography.caption,
-                    { color: theme.textSecondary, fontSize: 12, marginTop: 2 },
+                    Typography.body,
+                    { fontWeight: "600", fontSize: 14, color: theme.text, textAlign: 'right' },
                   ]}
                 >
-                  {request.meetingRoom.name} - {request.meetingRoom.floor}
+                  {t("services.meetingRoom")}
                 </ThemedText>
-                <ThemedText
-                  style={[
-                    Typography.caption,
-                    { color: theme.textSecondary, fontSize: 12 },
-                  ]}
-                >
-                  {formatDateShort(request.visitDate)} • {formatVisitTimeRange(request.visitTime, request.endTime)}
-                </ThemedText>
-              </>
-            ) : request.isMeetingRoom ? (
-              <ThemedText
+                {(request.meetingRoom || request.isMeetingRoom || (request as any).meetingRoomPending) && (request.status === REQUEST_STATUS.REJECTED || request.status === REQUEST_STATUS.CANCELLED) ? (
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      { color: theme.error, fontSize: 12, marginTop: 2, textAlign: 'right' },
+                    ]}
+                  >
+                    {t("status.cancelled")}
+                  </ThemedText>
+                ) : request.meetingRoom ? (
+                  <>
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.textSecondary, fontSize: 12, marginTop: 2, textAlign: 'right' },
+                      ]}
+                    >
+                      {request.meetingRoom.name} - {request.meetingRoom.floor}
+                    </ThemedText>
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.textSecondary, fontSize: 12, textAlign: 'right' },
+                      ]}
+                    >
+                      {formatDateShort(request.visitDate)} • {formatVisitTimeRange(request.visitTime, request.endTime)}
+                    </ThemedText>
+                  </>
+                ) : request.isMeetingRoom ? (
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      { color: theme.warning, fontSize: 12, marginTop: 2, textAlign: 'right' },
+                    ]}
+                  >
+                    {t("status.pending")}
+                  </ThemedText>
+                ) : (request as any).meetingRoomPending ? (
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      { color: theme.warning, fontSize: 12, marginTop: 2, textAlign: 'right' },
+                    ]}
+                  >
+                    {t("status.pending")}
+                  </ThemedText>
+                ) : (
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      {
+                        color: theme.textSecondary,
+                        fontSize: 12,
+                        marginTop: 2,
+                        fontStyle: "italic",
+                        textAlign: 'right',
+                      },
+                    ]}
+                  >
+                    {t("common.notRequested")}
+                  </ThemedText>
+                )}
+              </View>
+              <View
                 style={[
-                  Typography.caption,
-                  { color: theme.warning, fontSize: 12, marginTop: 2 },
-                ]}
-              >
-                {t("status.pending")}
-              </ThemedText>
-            ) : (request as any).meetingRoomPending ? (
-              <ThemedText
-                style={[
-                  Typography.caption,
-                  { color: theme.warning, fontSize: 12, marginTop: 2 },
-                ]}
-              >
-                {t("status.pending")}
-              </ThemedText>
-            ) : (
-              <ThemedText
-                style={[
-                  Typography.caption,
+                  styles.serviceIcon,
                   {
-                    color: theme.textSecondary,
-                    fontSize: 12,
-                    marginTop: 2,
-                    fontStyle: "italic",
+                    backgroundColor: applyOpacity(
+                      (request.meetingRoom || request.isMeetingRoom) ? theme.secondary : theme.textSecondary,
+                      "15",
+                    ),
                   },
                 ]}
               >
-                {t("common.notRequested")}
-              </ThemedText>
-            )}
-          </View>
-          {request.meetingRoom?.status ? (
-            <StatusBadge
-              label={formatServiceStatus(request.meetingRoom.status)}
-              variant={getServiceStatusVariant(request.meetingRoom.status)}
-              size="sm"
-            />
-          ) : null}
+                <DDIcon
+                  name="briefcase"
+                  size={18}
+                  color={
+                    (request.meetingRoom || request.isMeetingRoom) ? theme.secondary : theme.textSecondary
+                  }
+                />
+              </View>
+            </>
+          ) : (
+            <>
+              <View
+                style={[
+                  styles.serviceIcon,
+                  {
+                    backgroundColor: applyOpacity(
+                      (request.meetingRoom || request.isMeetingRoom) ? theme.secondary : theme.textSecondary,
+                      "15",
+                    ),
+                  },
+                ]}
+              >
+                <DDIcon
+                  name="briefcase"
+                  size={18}
+                  color={
+                    (request.meetingRoom || request.isMeetingRoom) ? theme.secondary : theme.textSecondary
+                  }
+                />
+              </View>
+              <View style={{ flex: 1, marginStart: Spacing.md }}>
+                <ThemedText
+                  style={[
+                    Typography.body,
+                    { fontWeight: "600", fontSize: 14, color: theme.text, textAlign: 'left' },
+                  ]}
+                >
+                  {t("services.meetingRoom")}
+                </ThemedText>
+                {(request.meetingRoom || request.isMeetingRoom || (request as any).meetingRoomPending) && (request.status === REQUEST_STATUS.REJECTED || request.status === REQUEST_STATUS.CANCELLED) ? (
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      { color: theme.error, fontSize: 12, marginTop: 2 },
+                    ]}
+                  >
+                    {t("status.cancelled")}
+                  </ThemedText>
+                ) : request.meetingRoom ? (
+                  <>
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.textSecondary, fontSize: 12, marginTop: 2 },
+                      ]}
+                    >
+                      {request.meetingRoom.name} - {request.meetingRoom.floor}
+                    </ThemedText>
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.textSecondary, fontSize: 12 },
+                      ]}
+                    >
+                      {formatDateShort(request.visitDate)} • {formatVisitTimeRange(request.visitTime, request.endTime)}
+                    </ThemedText>
+                  </>
+                ) : request.isMeetingRoom ? (
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      { color: theme.warning, fontSize: 12, marginTop: 2 },
+                    ]}
+                  >
+                    {t("status.pending")}
+                  </ThemedText>
+                ) : (request as any).meetingRoomPending ? (
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      { color: theme.warning, fontSize: 12, marginTop: 2 },
+                    ]}
+                  >
+                    {t("status.pending")}
+                  </ThemedText>
+                ) : (
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      {
+                        color: theme.textSecondary,
+                        fontSize: 12,
+                        marginTop: 2,
+                        fontStyle: "italic",
+                      },
+                    ]}
+                  >
+                    {t("common.notRequested")}
+                  </ThemedText>
+                )}
+              </View>
+              {request.meetingRoom?.status ? (
+                <StatusBadge
+                  label={formatServiceStatus(request.meetingRoom.status)}
+                  variant={getServiceStatusVariant(request.meetingRoom.status)}
+                  size="sm"
+                />
+              ) : null}
+            </>
+          )}
         </View>
         <Spacer height={Spacing.md} />
 
         <View
           style={[
             styles.serviceItemNew,
-            { backgroundColor: theme.surfaceSecondary, flexDirection: isRTL ? 'row-reverse' : 'row' },
+            { backgroundColor: theme.surfaceSecondary, flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start' },
           ]}
         >
-          <View
-            style={[
-              styles.serviceIcon,
-              {
-                backgroundColor: applyOpacity(
-                  (request.buffet || request.isBuffet || (request as any).buffetPending) ? theme.secondary : theme.textSecondary,
-                  "15",
-                ),
-              },
-            ]}
-          >
-            <DDIcon
-              name="cloche"
-              size={18}
-              color={(request.buffet || request.isBuffet || (request as any).buffetPending) ? theme.secondary : theme.textSecondary}
-            />
-          </View>
-          <View style={{ flex: 1, marginStart: Spacing.md }}>
-            <ThemedText
-              style={[
-                Typography.body,
-                { fontWeight: "600", fontSize: 14, color: theme.text, textAlign: isRTL ? 'right' : 'left' },
-              ]}
-            >
-              {t("buffet.buffetService")}
-            </ThemedText>
-            {(request.buffet || request.isBuffet || (request as any).buffetPending) && (request.status === REQUEST_STATUS.REJECTED || request.status === REQUEST_STATUS.CANCELLED) ? (
-              <ThemedText
+          {isRTL ? (
+            <>
+              {request.buffet?.status ? (
+                <StatusBadge
+                  label={formatServiceStatus(request.buffet.status)}
+                  variant={getServiceStatusVariant(request.buffet.status)}
+                  size="sm"
+                />
+              ) : null}
+              <View style={{ flex: 1, marginEnd: Spacing.md, alignItems: 'flex-end' }}>
+                <ThemedText
+                  style={[
+                    Typography.body,
+                    { fontWeight: "600", fontSize: 14, color: theme.text, textAlign: 'right' },
+                  ]}
+                >
+                  {t("buffet.buffetService")}
+                </ThemedText>
+                {(request.buffet || request.isBuffet || (request as any).buffetPending) && (request.status === REQUEST_STATUS.REJECTED || request.status === REQUEST_STATUS.CANCELLED) ? (
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      { color: theme.error, fontSize: 12, marginTop: 2, textAlign: 'right' },
+                    ]}
+                  >
+                    {t("status.cancelled")}
+                  </ThemedText>
+                ) : request.buffet && request.buffet.mealType ? (
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      { color: theme.textSecondary, fontSize: 12, marginTop: 2, textAlign: 'right' },
+                    ]}
+                  >
+                    {request.buffet.location} -{" "}
+                    {request.buffet.mealType.charAt(0).toUpperCase() +
+                      request.buffet.mealType.slice(1)}
+                  </ThemedText>
+                ) : request.isBuffet ? (
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      { color: theme.warning, fontSize: 12, marginTop: 2, textAlign: 'right' },
+                    ]}
+                  >
+                    {t("status.pending")}
+                  </ThemedText>
+                ) : (request as any).buffetPending ? (
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      { color: theme.warning, fontSize: 12, marginTop: 2, textAlign: 'right' },
+                    ]}
+                  >
+                    {t("status.pending")}
+                  </ThemedText>
+                ) : (
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      {
+                        color: theme.textSecondary,
+                        fontSize: 12,
+                        marginTop: 2,
+                        fontStyle: "italic",
+                        textAlign: 'right',
+                      },
+                    ]}
+                  >
+                    {t("common.notRequested")}
+                  </ThemedText>
+                )}
+              </View>
+              <View
                 style={[
-                  Typography.caption,
-                  { color: theme.error, fontSize: 12, marginTop: 2 },
-                ]}
-              >
-                {t("status.cancelled")}
-              </ThemedText>
-            ) : request.buffet && request.buffet.mealType ? (
-              <ThemedText
-                style={[
-                  Typography.caption,
-                  { color: theme.textSecondary, fontSize: 12, marginTop: 2 },
-                ]}
-              >
-                {request.buffet.location} -{" "}
-                {request.buffet.mealType.charAt(0).toUpperCase() +
-                  request.buffet.mealType.slice(1)}
-              </ThemedText>
-            ) : request.isBuffet ? (
-              <ThemedText
-                style={[
-                  Typography.caption,
-                  { color: theme.warning, fontSize: 12, marginTop: 2 },
-                ]}
-              >
-                {t("status.pending")}
-              </ThemedText>
-            ) : (request as any).buffetPending ? (
-              <ThemedText
-                style={[
-                  Typography.caption,
-                  { color: theme.warning, fontSize: 12, marginTop: 2 },
-                ]}
-              >
-                {t("status.pending")}
-              </ThemedText>
-            ) : (
-              <ThemedText
-                style={[
-                  Typography.caption,
+                  styles.serviceIcon,
                   {
-                    color: theme.textSecondary,
-                    fontSize: 12,
-                    marginTop: 2,
-                    fontStyle: "italic",
+                    backgroundColor: applyOpacity(
+                      (request.buffet || request.isBuffet || (request as any).buffetPending) ? theme.secondary : theme.textSecondary,
+                      "15",
+                    ),
                   },
                 ]}
               >
-                {t("common.notRequested")}
-              </ThemedText>
-            )}
-          </View>
-          {request.buffet?.status ? (
-            <StatusBadge
-              label={formatServiceStatus(request.buffet.status)}
-              variant={getServiceStatusVariant(request.buffet.status)}
-              size="sm"
-            />
-          ) : null}
+                <DDIcon
+                  name="cloche"
+                  size={18}
+                  color={(request.buffet || request.isBuffet || (request as any).buffetPending) ? theme.secondary : theme.textSecondary}
+                />
+              </View>
+            </>
+          ) : (
+            <>
+              <View
+                style={[
+                  styles.serviceIcon,
+                  {
+                    backgroundColor: applyOpacity(
+                      (request.buffet || request.isBuffet || (request as any).buffetPending) ? theme.secondary : theme.textSecondary,
+                      "15",
+                    ),
+                  },
+                ]}
+              >
+                <DDIcon
+                  name="cloche"
+                  size={18}
+                  color={(request.buffet || request.isBuffet || (request as any).buffetPending) ? theme.secondary : theme.textSecondary}
+                />
+              </View>
+              <View style={{ flex: 1, marginStart: Spacing.md }}>
+                <ThemedText
+                  style={[
+                    Typography.body,
+                    { fontWeight: "600", fontSize: 14, color: theme.text, textAlign: 'left' },
+                  ]}
+                >
+                  {t("buffet.buffetService")}
+                </ThemedText>
+                {(request.buffet || request.isBuffet || (request as any).buffetPending) && (request.status === REQUEST_STATUS.REJECTED || request.status === REQUEST_STATUS.CANCELLED) ? (
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      { color: theme.error, fontSize: 12, marginTop: 2 },
+                    ]}
+                  >
+                    {t("status.cancelled")}
+                  </ThemedText>
+                ) : request.buffet && request.buffet.mealType ? (
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      { color: theme.textSecondary, fontSize: 12, marginTop: 2 },
+                    ]}
+                  >
+                    {request.buffet.location} -{" "}
+                    {request.buffet.mealType.charAt(0).toUpperCase() +
+                      request.buffet.mealType.slice(1)}
+                  </ThemedText>
+                ) : request.isBuffet ? (
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      { color: theme.warning, fontSize: 12, marginTop: 2 },
+                    ]}
+                  >
+                    {t("status.pending")}
+                  </ThemedText>
+                ) : (request as any).buffetPending ? (
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      { color: theme.warning, fontSize: 12, marginTop: 2 },
+                    ]}
+                  >
+                    {t("status.pending")}
+                  </ThemedText>
+                ) : (
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      {
+                        color: theme.textSecondary,
+                        fontSize: 12,
+                        marginTop: 2,
+                        fontStyle: "italic",
+                      },
+                    ]}
+                  >
+                    {t("common.notRequested")}
+                  </ThemedText>
+                )}
+              </View>
+              {request.buffet?.status ? (
+                <StatusBadge
+                  label={formatServiceStatus(request.buffet.status)}
+                  variant={getServiceStatusVariant(request.buffet.status)}
+                  size="sm"
+                />
+              ) : null}
+            </>
+          )}
         </View>
       </ThemedView>
       <Spacer height={Spacing.lg} />
