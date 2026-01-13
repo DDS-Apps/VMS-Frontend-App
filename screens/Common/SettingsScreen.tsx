@@ -168,7 +168,7 @@ export default function SettingsScreen({
       <Spacer height={Spacing.xl} />
 
       <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
-        <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
+        <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
           {t('settings.profile')}
         </ThemedText>
 
@@ -217,7 +217,7 @@ export default function SettingsScreen({
       </ThemedView>
 
       <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
-        <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
+        <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
           {t('settings.appearance')}
         </ThemedText>
 
@@ -283,7 +283,7 @@ export default function SettingsScreen({
       </ThemedView>
 
       <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
-        <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
+        <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
           {t('settings.notificationSettings')}
         </ThemedText>
 

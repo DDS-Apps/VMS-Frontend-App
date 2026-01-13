@@ -419,7 +419,7 @@ export default function EditProfileScreen({
       </ThemedView>
 
       <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
-        <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
+        <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
           {t('settings.basicInfo')}
         </ThemedText>
 
@@ -448,7 +448,7 @@ export default function EditProfileScreen({
       </ThemedView>
 
       <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
-        <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
+        <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
           {t('settings.personalInfo')}
         </ThemedText>
 
@@ -487,7 +487,7 @@ export default function EditProfileScreen({
       </ThemedView>
 
       <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
-        <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
+        <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
           {t('settings.workInfo')}
         </ThemedText>
 
