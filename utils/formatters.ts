@@ -171,11 +171,32 @@ export const capitalizeFirst = (text: string): string => {
 };
 
 export const formatPhoneNumber = (phone: string): string => {
-  const cleaned = phone.replace(/\D/g, '');
-  const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
-  if (match) {
-    return `(${match[1]}) ${match[2]}-${match[3]}`;
+  if (!phone) return '';
+  
+  // Handle KSA numbers: +966XXXXXXXXX or 966XXXXXXXXX (12-13 digits)
+  const ksaMatch = phone.match(/^\+?966(\d{2})(\d{3})(\d{4})$/);
+  if (ksaMatch) {
+    return `+966 ${ksaMatch[1]} ${ksaMatch[2]} ${ksaMatch[3]}`;
   }
+  
+  // Handle US numbers: 10 digits
+  const cleaned = phone.replace(/\D/g, '');
+  const usMatch = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
+  if (usMatch) {
+    return `(${usMatch[1]}) ${usMatch[2]}-${usMatch[3]}`;
+  }
+  
+  // For other international numbers, just add spaces for readability
+  if (phone.startsWith('+') && cleaned.length >= 10) {
+    // Format as: +XXX XX XXX XXXX (country code + groups)
+    const countryCode = phone.match(/^\+\d{1,3}/)?.[0] || '';
+    const rest = cleaned.slice(countryCode.length - 1); // Remove + from length calc
+    if (rest.length >= 9) {
+      const formatted = rest.replace(/(\d{2})(\d{3})(\d{4})$/, '$1 $2 $3');
+      return `${countryCode} ${formatted}`;
+    }
+  }
+  
   return phone;
 };
 

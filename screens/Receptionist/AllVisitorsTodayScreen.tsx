@@ -17,6 +17,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
 import { VisitorActionButton } from "@/components/VisitorActionButton";
 import { applyOpacity } from "@/utils/statusStyles";
+import { formatPhoneNumber } from "@/utils/formatters";
 import { useTodayVisitorsQuery, useReceptionCheckInMutation, useReceptionCheckOutMutation } from "@/hooks/queries/useReceptionQueries";
 import type { TodayVisitorDto, ListReceptionTodayParams } from "@/types";
 
@@ -306,7 +307,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
                   <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                     <DDIcon name="phone" size={14} color={theme.textSecondary} />
                     <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
-                      {item.visitor.phone}
+                      {formatPhoneNumber(item.visitor.phone)}
                     </ThemedText>
                   </View>
                 ) : null}
@@ -601,7 +602,7 @@ const styles = StyleSheet.create({
   },
   expandedDetailRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     gap: Spacing.sm,
   },
   expandedDetailText: {
