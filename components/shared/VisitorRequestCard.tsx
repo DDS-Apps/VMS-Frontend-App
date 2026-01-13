@@ -99,7 +99,7 @@ const ServiceIconsRow = ({ request, size = 14, showWalkIn = false }: { request: 
   }
 
   return (
-    <DirectionalRow style={styles.servicesRow} forceReverse gap={Spacing.sm}>
+    <DirectionalRow style={styles.servicesRow} gap={Spacing.sm}>
       {serviceItems}
     </DirectionalRow>
   );
@@ -215,7 +215,7 @@ export function VisitorRequestCard({
 
   const renderHeader = () => {
     return (
-      <DirectionalRow style={styles.cardHeader} forceReverse gap={Spacing.md}>
+      <DirectionalRow style={styles.cardHeader} gap={Spacing.md}>
         {renderAvatar()}
         <View style={styles.nameSection}>
           <ThemedText style={[styles.visitorName, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
@@ -239,7 +239,6 @@ export function VisitorRequestCard({
         iconColor={theme.textSecondary}
         style={styles.dateTimeItem}
         gap={4}
-        forceReverse
       >
         <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
           {text}
@@ -250,7 +249,7 @@ export function VisitorRequestCard({
 
   const renderDateTime = () => {
     return (
-      <DirectionalRow style={styles.dateTimeRow} forceReverse>
+      <DirectionalRow style={styles.dateTimeRow}>
         {renderIconText('calendar', formatDate(request.visitDate))}
         <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
         {renderIconText('clock', formatTime(request.visitTime))}
@@ -267,7 +266,7 @@ export function VisitorRequestCard({
   };
 
   const renderServicesAndStatus = () => (
-    <DirectionalRow style={styles.servicesStatusRow} forceReverse>
+    <DirectionalRow style={styles.servicesStatusRow}>
       <View style={styles.servicesContainer}>
         <ServiceIconsRow request={request} showWalkIn={true} />
       </View>
@@ -283,7 +282,6 @@ export function VisitorRequestCard({
         iconColor={theme.textSecondary}
         style={styles.detailRow}
         gap={Spacing.sm}
-        forceReverse
       >
         <ThemedText style={[styles.detailText, { color: theme.text }]} numberOfLines={numberOfLines}>
           {text}
@@ -313,7 +311,7 @@ export function VisitorRequestCard({
 
     return (
       <Pressable onPress={toggleExpanded}>
-        <DirectionalRow style={styles.toggleContainer} forceReverse gap={Spacing.xs}>
+        <DirectionalRow style={styles.toggleContainer} gap={Spacing.xs}>
           <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
             {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
           </ThemedText>
@@ -333,7 +331,7 @@ export function VisitorRequestCard({
     return (
       <>
         <Spacer height={Spacing.sm} />
-        <DirectionalRow style={styles.infoRow} forceReverse gap={Spacing.xs}>
+        <DirectionalRow style={styles.infoRow} gap={Spacing.xs}>
           <DDIcon name="user" size={12} variant="muted" />
           <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>
             {t('dashboard.requestedBy')}
@@ -357,7 +355,7 @@ export function VisitorRequestCard({
     return (
       <>
         <Spacer height={Spacing.xs} />
-        <DirectionalRow style={styles.infoRow} forceReverse gap={Spacing.xs}>
+        <DirectionalRow style={styles.infoRow} gap={Spacing.xs}>
           <DDIcon name="user" size={12} variant="muted" />
           <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>
             {t('reception.hostName')}:
