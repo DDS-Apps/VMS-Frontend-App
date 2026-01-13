@@ -57,6 +57,11 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
       
       console.log('[LanguageContext] loadStoredLanguage:', { validLocale, needsRTL, needsReload });
       
+      // Sync to raw localStorage on web for sync RTL initialization on next page load
+      if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
+        localStorage.setItem(LANGUAGE_STORAGE_KEY, validLocale);
+      }
+      
       // If mobile detected a mismatch between stored locale and I18nManager state,
       // we need to reload the app to apply the RTL change
       if (needsReload && Platform.OS !== 'web') {
@@ -86,6 +91,11 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
       console.log('[LanguageContext] setLocale called:', { newLocale, newIsRTL, localeConfigValue: localeConfig[newLocale] });
       
       await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, newLocale);
+      
+      // Also write to raw localStorage on web for sync RTL initialization
+      if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
+        localStorage.setItem(LANGUAGE_STORAGE_KEY, newLocale);
+      }
       
       if (Platform.OS === 'web') {
         setWebDocumentDirection(newLocale);
