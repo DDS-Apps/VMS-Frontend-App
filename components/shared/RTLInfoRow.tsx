@@ -20,28 +20,25 @@ export function RTLInfoRow({
 }: RTLInfoRowProps) {
   const { isRTL } = useLanguage();
   
-  const contentStyle: ViewStyle = isRTL 
-    ? { flex: 1, marginEnd: gap, alignItems: 'flex-end' }
-    : { flex: 1, marginStart: gap };
-  
   return (
     <View style={[
       { 
         flexDirection: 'row', 
         alignItems,
-        justifyContent: isRTL ? 'flex-end' : 'flex-start' 
+        justifyContent: isRTL ? 'flex-end' : 'flex-start',
+        gap,
       }, 
       style
     ]}>
       {isRTL ? (
         <>
-          <View style={contentStyle}>{children}</View>
+          <View style={{ flex: 1, alignItems: 'flex-end' }}>{children}</View>
           {icon}
         </>
       ) : (
         <>
           {icon}
-          <View style={contentStyle}>{children}</View>
+          <View style={{ flex: 1 }}>{children}</View>
         </>
       )}
     </View>
@@ -68,19 +65,20 @@ export function RTLSimpleRow({
       { 
         flexDirection: 'row', 
         alignItems: 'center',
-        justifyContent: isRTL ? 'flex-end' : 'flex-start' 
+        justifyContent: isRTL ? 'flex-end' : 'flex-start',
+        gap,
       }, 
       style
     ]}>
       {isRTL ? (
         <>
-          <View style={{ marginEnd: gap }}>{text}</View>
+          <View>{text}</View>
           {icon}
         </>
       ) : (
         <>
           {icon}
-          <View style={{ marginStart: gap, flex: 1 }}>{text}</View>
+          <View style={{ flex: 1 }}>{text}</View>
         </>
       )}
     </View>

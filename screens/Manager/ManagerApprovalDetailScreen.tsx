@@ -703,22 +703,22 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
             <Spacer height={Spacing.lg} />
 
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
               <View style={[styles.contactIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
                 <DDIcon name="mail" size={18} color={theme.text} />
               </View>
-              <ThemedText style={[Typography.caption, { marginStart: Spacing.md, color: theme.textSecondary, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 13, textAlign: isRTL ? 'right' : 'left', flex: 1 }]}>
                 {request.visitor.email}
               </ThemedText>
             </View>
 
             <Spacer height={Spacing.md} />
 
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
               <View style={[styles.contactIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
                 <DDIcon name="phone" size={18} color={theme.text} />
               </View>
-              <ThemedText style={[Typography.caption, { marginStart: Spacing.md, color: theme.textSecondary, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 13, textAlign: isRTL ? 'right' : 'left', flex: 1 }]}>
                 {request.visitor.phone}
               </ThemedText>
             </View>

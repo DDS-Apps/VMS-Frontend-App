@@ -1,5 +1,5 @@
 import React from "react";
-import { View, StyleSheet, Pressable, ActivityIndicator } from "react-native";
+import { View, StyleSheet, Pressable, ActivityIndicator, Platform } from "react-native";
 import { DDIcon, type IconName } from "@/components/DDIcon";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -249,11 +249,6 @@ export function RequestTimeline({
                   size="small" 
                   color={action.type === 'reject' || action.type === 'cancel' ? theme.error : '#FFFFFF'} 
                 />
-              ) : isRTL ? (
-                <>
-                  {textEl}
-                  {iconEl}
-                </>
               ) : (
                 <>
                   {iconEl}
@@ -285,7 +280,7 @@ export function RequestTimeline({
 
             {hasActions ? (
               <View style={[styles.actionsContainer, { justifyContent: isRTL ? 'flex-end' : 'flex-start', gap: Spacing.sm }]}>
-                {isRTL ? actionButtons?.reverse() : actionButtons}
+                {actionButtons}
               </View>
             ) : null}
 
@@ -293,9 +288,15 @@ export function RequestTimeline({
           </View>
         );
 
+        // Platform-aware RTL handling:
+        // - On WEB: Browser's document.dir='rtl' reverses flex layouts automatically
+        // - On MOBILE: I18nManager doesn't flip flexDirection, so manually reverse in RTL
+        const isWeb = Platform.OS === 'web';
+        const shouldReverse = isRTL && !isWeb;
+
         return (
           <View key={step.id} style={[styles.stepContainer, { flexDirection: 'row' }]}>
-            {isRTL ? (
+            {shouldReverse ? (
               <>
                 {contentColumnEl}
                 {iconColumnEl}
