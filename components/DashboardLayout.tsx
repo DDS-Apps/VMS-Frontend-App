@@ -237,6 +237,8 @@ export default function DashboardLayout({
     };
   });
 
+  console.log('[DashboardLayout] Rendering with isRTL:', isRTL, 'layoutKey:', layoutKey, 'isLargeScreen:', isLargeScreen);
+
   return (
     <GestureDetector gesture={edgeSwipeGesture}>
       <ThemedView key={layoutKey} style={[styles.container, { direction: isRTL ? 'rtl' : 'ltr' }]}>
@@ -542,7 +544,7 @@ export default function DashboardLayout({
           </Pressable>
         </Modal>
 
-        <View style={[styles.mainContainer, isRTL && { flexDirection: 'row-reverse' }]}>
+        <View style={[styles.mainContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           {/* Mobile Overlay - Rendered first so sidebar appears on top */}
           {!isLargeScreen && sidebarOpen && (
             <Animated.View
