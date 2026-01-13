@@ -1,40 +1,32 @@
-import React, { ReactNode, Children } from 'react';
-import { View, ViewStyle, StyleProp, StyleSheet, Platform } from 'react-native';
+import React, { ReactNode } from 'react';
+import { View, ViewStyle, StyleProp, StyleSheet } from 'react-native';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface DirectionalRowProps {
   children: ReactNode;
   style?: StyleProp<ViewStyle>;
   gap?: number;
+  /** @deprecated No longer needed - flexDirection handles RTL automatically */
   forceReverse?: boolean;
 }
 
-export function DirectionalRow({ children, style, gap, forceReverse = false }: DirectionalRowProps) {
+export function DirectionalRow({ children, style, gap }: DirectionalRowProps) {
   const { isRTL } = useLanguage();
   
-  const childArray = Children.toArray(children);
-  
-  // RTL handling strategy:
-  // - On WEB: Browser's document.dir='rtl' should reverse flex layouts automatically,
-  //   BUT some containers (with borders/overflow) have React Native Web bugs.
-  //   Use forceReverse=true for those problematic containers to manually reverse children.
-  // - On MOBILE: I18nManager doesn't flip flexDirection, so we always reverse children.
-  const isWeb = Platform.OS === 'web';
-  const shouldReverseChildren = isRTL && (!isWeb || forceReverse);
-  const orderedChildren = shouldReverseChildren ? [...childArray].reverse() : childArray;
-  
-  // Flatten styles and set flexDirection
+  // RTL handling: Use flexDirection to mirror layout
+  // React Native Web sets direction:ltr on Views, so browser RTL doesn't work.
+  // We must explicitly use row-reverse for RTL layouts on all platforms.
   const flattenedStyle = StyleSheet.flatten([style]);
   const finalStyle: ViewStyle = {
     ...flattenedStyle,
-    flexDirection: 'row',
+    flexDirection: isRTL ? 'row-reverse' : 'row',
     alignItems: flattenedStyle?.alignItems ?? 'center',
     gap: gap ?? flattenedStyle?.gap,
   };
   
   return (
     <View style={finalStyle}>
-      {orderedChildren}
+      {children}
     </View>
   );
 }
