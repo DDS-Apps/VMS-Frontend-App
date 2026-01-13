@@ -26,7 +26,13 @@ type StatusFilter = 'all' | 'pending_approval' | 'approved' | 'checked_in' | 'au
 function getDateRange(filter: DateFilter): { startDate?: string; endDate?: string } {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const formatDate = (d: Date) => d.toISOString().split('T')[0];
+  // Use local timezone formatting instead of UTC (toISOString converts to UTC)
+  const formatDate = (d: Date) => {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
   
   switch (filter) {
     case 'today':
