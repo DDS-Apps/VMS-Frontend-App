@@ -155,13 +155,13 @@ const DateTimeDisplay = ({ date, time, duration, theme, compact = false }: { dat
 
   return (
     <View style={styles.dateTimeRowSplit}>
-      <View style={[styles.dateTimeLeft, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <View style={styles.dateTimeLeft}>
         <DDIcon name="calendar" size={compact ? 13 : 14} variant="muted" />
         <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
           {formatVisitDate(date)}
         </ThemedText>
       </View>
-      <View style={[styles.dateTimeRight, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <View style={styles.dateTimeRight}>
         <DDIcon name="clock" size={compact ? 13 : 14} variant="muted" />
         <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
           {formatTimeFromString(time)}
@@ -904,10 +904,12 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   dateTimeLeft: {
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
   dateTimeRight: {
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },

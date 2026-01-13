@@ -1,6 +1,7 @@
 import { ScrollView, ScrollViewProps, StyleSheet, Platform } from "react-native";
 
 import { useTheme } from "@/hooks/useTheme";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useScreenInsets } from "@/hooks/useScreenInsets";
 import { Spacing } from "@/constants/theme";
 
@@ -12,13 +13,14 @@ export function ScreenScrollView({
   ...scrollViewProps
 }: ScrollViewProps) {
   const { theme } = useTheme();
+  const { isRTL } = useLanguage();
   const { paddingTop, paddingBottom, scrollInsetBottom } = useScreenInsets();
 
   return (
     <ScrollView
       style={[
         styles.container,
-        { backgroundColor: theme.backgroundRoot },
+        { backgroundColor: theme.backgroundRoot, direction: isRTL ? 'rtl' : 'ltr' },
         style,
       ]}
       contentContainerStyle={[

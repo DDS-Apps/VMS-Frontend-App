@@ -237,7 +237,7 @@ export default function DashboardLayout({
 
   return (
     <GestureDetector gesture={edgeSwipeGesture}>
-      <ThemedView style={styles.container}>
+      <ThemedView style={[styles.container, { direction: isRTL ? 'rtl' : 'ltr' }]}>
         {/* Mobile Header Bar */}
         {!isLargeScreen && (
           <ThemedView style={[
@@ -247,7 +247,6 @@ export default function DashboardLayout({
               backgroundColor: theme.background,
               paddingTop: insets.top + Spacing.sm,
             },
-            isRTL && { flexDirection: 'row-reverse' },
           ]}>
             {canGoBack && onGoBack ? (
               <Pressable 
@@ -451,7 +450,7 @@ export default function DashboardLayout({
           </Pressable>
         </Modal>
 
-        <View style={[styles.mainContainer, isRTL && { flexDirection: 'row-reverse' }]}>
+        <View style={styles.mainContainer}>
           {/* Mobile Overlay - Rendered first so sidebar appears on top */}
           {!isLargeScreen && sidebarOpen && (
             <Animated.View
@@ -524,9 +523,8 @@ export default function DashboardLayout({
                   borderBottomColor: theme.border, 
                   backgroundColor: theme.background,
                 },
-                isRTL && { flexDirection: 'row-reverse' },
               ]}>
-                <View style={[styles.desktopHeaderLeft, isRTL && { flexDirection: 'row-reverse' }]}>
+                <View style={styles.desktopHeaderLeft}>
                   {canGoBack && onGoBack ? (
                     <Pressable 
                       onPress={onGoBack} 
@@ -554,7 +552,7 @@ export default function DashboardLayout({
                   ) : null}
                 </View>
                 
-                <View style={[styles.desktopHeaderRight, isRTL && { flexDirection: 'row-reverse' }]}>
+                <View style={styles.desktopHeaderRight}>
                   <Pressable 
                     onPress={() => onNavigate('Notifications')} 
                     style={({ pressed }) => [
