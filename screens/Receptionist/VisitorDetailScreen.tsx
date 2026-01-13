@@ -33,7 +33,7 @@ interface LegacyVisitor {
   time: string;
   host: string;
   hostDepartment?: string;
-  status: 'pending' | 'approved' | 'checked_in' | 'completed' | 'rejected' | 'cancelled' | 'pending_approval';
+  status: 'pending' | 'approved' | 'checked_in' | 'completed' | 'rejected' | 'cancelled' | 'pending_approval' | 'pending_host_approval' | 'visitor_accepted';
   isWalkIn: boolean;
   phone: string;
   parking?: string;
@@ -57,11 +57,13 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
   
   const { data: visitDetails, isLoading, isError } = useVisitDetailsQuery(visitId ?? '', !!visitId);
   
-  const mapVisitStatus = (status: string): 'pending' | 'approved' | 'checked_in' | 'completed' | 'rejected' | 'cancelled' | 'pending_approval' => {
+  const mapVisitStatus = (status: string): 'pending' | 'approved' | 'checked_in' | 'completed' | 'rejected' | 'cancelled' | 'pending_approval' | 'pending_host_approval' | 'visitor_accepted' => {
     if (status === 'rejected') return 'rejected';
     if (status === 'cancelled') return 'cancelled';
     if (status === 'pending_approval') return 'pending_approval';
+    if (status === 'pending_host_approval') return 'pending_host_approval';
     if (status === 'approved') return 'approved';
+    if (status === 'visitor_accepted') return 'visitor_accepted';
     if (status === 'checked_in') return 'checked_in';
     if (status === 'completed' || status === 'checked_out') return 'completed';
     return 'pending';
@@ -93,7 +95,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
 
   const showStickyFooter = visitor && (
     visitor.status === 'approved' || 
-    visitor.status === 'pending' || 
+    visitor.status === 'visitor_accepted' || 
     visitor.status === 'checked_in'
   );
 
@@ -160,7 +162,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
 
   const timelineActions: TimelineActionCallbacks | undefined = useMemo(() => {
     if (!visitor) return undefined;
-    if (visitor.status === 'approved' || visitor.status === 'pending') {
+    if (visitor.status === 'approved' || visitor.status === 'visitor_accepted') {
       return {
         onCheckIn: handleCheckIn,
         isCheckInLoading: checkInMutation.isPending,
