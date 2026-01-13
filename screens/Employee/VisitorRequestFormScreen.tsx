@@ -537,7 +537,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
       {visitType && visitType !== t('visitor.generalVisit') && (
         <>
           <ThemedView style={[styles.visitTypeBanner, { backgroundColor: applyOpacity(theme.primary, '15'), borderStartColor: theme.primary, borderStartWidth: 4 }]}>
-            <DirectionalRow gap={Spacing.md} forceReverse>
+            <DirectionalRow gap={Spacing.md}>
               <DDIcon name="info" size={20} variant="primary" />
               <ThemedText style={[Typography.body, { flex: 1, fontWeight: '600', color: theme.primary, textAlign: isRTL ? 'right' : 'left' }]}>
                 {t('visitor.typeOfVisit')}: {visitType}
@@ -799,7 +799,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
           <Spacer height={Spacing.lg} />
 
           <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
-            <DirectionalRow style={styles.sectionHeader} gap={Spacing.md} forceReverse>
+            <DirectionalRow style={styles.sectionHeader} gap={Spacing.md}>
               <View style={[styles.sectionIconContainer, { backgroundColor: theme.primary + '20' }]}>
                 <DDIcon name="calendar" size={20} variant="primary" />
               </View>
@@ -1035,7 +1035,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
         {t('invitation.communicationChannels')}
       </ThemedText>
 
-      <DirectionalRow style={styles.channelsContainer} gap={Spacing.sm} forceReverse>
+      <DirectionalRow style={styles.channelsContainer} gap={Spacing.sm}>
         <Pressable
           style={[styles.channelChip, { backgroundColor: theme.surface, borderColor: sendWhatsApp ? theme.primary : theme.border }]}
           onPress={() => setSendWhatsApp(!sendWhatsApp)}
