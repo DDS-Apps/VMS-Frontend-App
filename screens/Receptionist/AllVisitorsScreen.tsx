@@ -72,7 +72,7 @@ const PAGE_SIZE = 20;
 export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { formatTime, formatTimeFromString } = useFormatters();
+  const { formatTime, formatTimeFromString, formatDateShort } = useFormatters();
   const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   
@@ -294,7 +294,7 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
               <View style={[styles.detailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <DDIcon name="calendar" size={12} color={theme.textSecondary} />
                 <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
-                  {item.visitDate}
+                  {formatDateShort(item.visitDate)}
                 </ThemedText>
               </View>
               <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
@@ -803,7 +803,7 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   expandedDetailRow: {
-    alignItems: 'flex-start',
+    alignItems: 'center',
     gap: Spacing.sm,
   },
   expandedDetailText: {
