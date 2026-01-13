@@ -1,5 +1,5 @@
 import React from "react";
-import { View, StyleSheet, Pressable, I18nManager, LayoutAnimation, Platform, UIManager } from "react-native";
+import { View, StyleSheet, Pressable, LayoutAnimation, Platform, UIManager } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -10,6 +10,7 @@ import { DDIcon, IconName } from "@/components/DDIcon";
 import { ThemedText } from "@/components/ThemedText";
 import { Spacing, BorderRadius } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -33,6 +34,7 @@ export default function SidebarGroup({
   children,
 }: SidebarGroupProps) {
   const { theme } = useTheme();
+  const { isRTL } = useLanguage();
   const expandProgress = useSharedValue(isExpanded ? 1 : 0);
 
   React.useEffect(() => {
@@ -42,8 +44,6 @@ export default function SidebarGroup({
       mass: 0.5,
     });
   }, [isExpanded, expandProgress]);
-
-  const isRTL = I18nManager.isRTL;
 
   const chevronStyle = useAnimatedStyle(() => {
     const baseRotation = isRTL ? 180 : 0;
@@ -71,7 +71,7 @@ export default function SidebarGroup({
         ]}
         onPress={handleToggle}
       >
-        <View style={styles.headerLeft}>
+        <View style={[styles.headerLeft, isRTL && { flexDirection: 'row-reverse' }]}>
           <DDIcon name={icon} size={18} color={theme.sidebarTextMuted} />
           <ThemedText
             style={[
@@ -122,9 +122,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
+    gap: Spacing.md,
   },
   headerTitle: {
-    marginStart: Spacing.md,
     fontSize: 14,
     fontWeight: '600',
   },

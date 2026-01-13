@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { View, StyleSheet, Pressable, TextInput, ScrollView, Modal, FlatList, Alert } from "react-native";
 import { useFocusEffect } from '@react-navigation/native';
+import { ROUTES } from "@/constants";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import { DDIcon } from "@/components/DDIcon";
@@ -8,11 +9,12 @@ import { useScreenInsets } from "@/hooks/useScreenInsets";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
-import { ServiceIcons, SelectionCheckbox, StatusAccent, WalkInBadge, SkeletonDashboard, LoadingSpinner, ApprovalActionGroup } from "@/components/shared";
+import { ServiceIcons, SelectionCheckbox, StatusAccent, WalkInBadge, SkeletonDashboard, LoadingSpinner, ApprovalActionGroup, LoadingButton, VisitorRequestCard } from "@/components/shared";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { 
   useInfinitePendingApprovalsQuery,
   useApproveVisitMutation,
@@ -27,42 +29,8 @@ import type { PendingApprovalDto } from "@/types/api.types";
 import { applyOpacity } from "@/utils/statusStyles";
 import type { ManagerDashboardScreenProps } from "@/types/managerNavigation.types";
 import type { Theme } from "@/types/theme.types";
-
-const mapPendingApprovalToVisitorRequest = (approval: PendingApprovalDto): VisitorRequest => {
-  return {
-    id: approval.id,
-    employeeId: '',
-    employeeName: approval.employeeName,
-    employeeDepartment: approval.employeeDepartment,
-    visitor: {
-      id: approval.visitor.id,
-      fullName: approval.visitor.fullName,
-      email: approval.visitor.email,
-      phone: approval.visitor.phone,
-      company: approval.visitor.company,
-    },
-    visitDate: approval.visitDate,
-    visitTime: approval.visitTime,
-    duration: approval.duration,
-    purpose: approval.purpose,
-    status: 'pending_approval',
-    communicationChannels: ['email'],
-    parkingType: approval.hasParking ? 'auto' : 'none',
-    parkingSlot: approval.hasParking ? { id: 'auto', location: 'SKBC_basement', slotNumber: 'TBD' } : undefined,
-    meetingRoom: approval.hasMeetingRoom ? { id: 'auto', name: 'TBD', capacity: 10, floor: '1', timeSlot: approval.visitTime } : undefined,
-    buffet: approval.hasBuffet ? { id: 'auto', mealType: 'lunch', location: 'Main Buffet' } : undefined,
-    valet: approval.hasValet ? { id: 'auto', pickupTime: approval.visitTime, returnTime: '', status: 'pending' } : undefined,
-    qrCode: undefined,
-    approval: {
-      requiresApproval: true,
-      autoApproved: false,
-    },
-    reminders: {},
-    createdAt: approval.createdAt,
-    updatedAt: approval.createdAt,
-    isWalkIn: approval.isWalkIn,
-  };
-};
+import { mapPendingApprovalToVisitorRequest } from "@/utils/requestMappers";
+import { isVisitExpired } from "@/utils/dateTimeUtils";
 
 const LAYOUT = {
   cardPadding: Spacing.lg,
@@ -76,9 +44,9 @@ const LAYOUT = {
 };
 
 
-const DateTimeDisplay = ({ date, time, duration, theme, compact = false, fmtDate }: { date: string; time: string; duration?: string; theme: Theme; compact?: boolean; fmtDate: (d: Date | string) => string }) => {
+const DateTimeDisplay = ({ date, time, duration, theme, compact = false, fmtDate, fmtTime, isRTL = false }: { date: string; time: string; duration?: string; theme: Theme; compact?: boolean; fmtDate: (d: Date | string) => string; fmtTime: (t: string) => string; isRTL?: boolean }) => {
   return (
-    <View style={styles.dateTimeRow}>
+    <View style={[styles.dateTimeRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
       <DDIcon name="calendar" size={compact ? 13 : 14} variant="muted" />
       <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
         {fmtDate(date)}
@@ -86,7 +54,7 @@ const DateTimeDisplay = ({ date, time, duration, theme, compact = false, fmtDate
       <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
       <DDIcon name="clock" size={compact ? 13 : 14} variant="muted" />
       <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
-        {time}
+        {fmtTime(time)}
       </ThemedText>
       {duration ? (
         <>
@@ -106,7 +74,8 @@ const SectionHeader = ({
   isSelectionMode,
   onToggleSelectionMode,
   theme,
-  t
+  t,
+  isRTL = false
 }: { 
   viewMode: 'card' | 'list'; 
   onViewModeChange: (mode: 'card' | 'list') => void;
@@ -114,8 +83,9 @@ const SectionHeader = ({
   onToggleSelectionMode: () => void;
   theme: Theme;
   t: (key: string) => string;
+  isRTL?: boolean;
 }) => (
-  <View style={styles.header}>
+  <View style={[styles.header, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
     <View>
       <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600' }]}>
         {t('navigation.pendingApprovals')}
@@ -124,7 +94,7 @@ const SectionHeader = ({
         {t('dashboard.requestsAwaitingApproval')}
       </ThemedText>
     </View>
-    <View style={styles.headerActions}>
+    <View style={[styles.headerActions, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
       <Pressable
         onPress={onToggleSelectionMode}
         style={[
@@ -145,7 +115,7 @@ const SectionHeader = ({
         </ThemedText>
       </Pressable>
       <Spacer width={Spacing.sm} />
-      <View style={styles.viewModeToggle}>
+      <View style={[styles.viewModeToggle, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <Pressable
           onPress={() => onViewModeChange('card')}
           style={[
@@ -181,15 +151,17 @@ const SelectAllBar = ({
   allSelected,
   onToggleAll,
   theme,
-  t
+  t,
+  isRTL = false
 }: {
   allSelected: boolean;
   onToggleAll: () => void;
   theme: Theme;
   t: (key: string) => string;
+  isRTL?: boolean;
 }) => (
-  <View style={[styles.selectAllBar, { backgroundColor: theme.surfaceSecondary }]}>
-    <Pressable onPress={onToggleAll} style={styles.selectAllButton}>
+  <View style={[styles.selectAllBar, { backgroundColor: theme.surfaceSecondary, flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+    <Pressable onPress={onToggleAll} style={[styles.selectAllButton, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
       <SelectionCheckbox isSelected={allSelected} onToggle={onToggleAll} />
       <Spacer width={Spacing.sm} />
       <ThemedText style={[Typography.body, { color: theme.text }]}>
@@ -207,7 +179,8 @@ const BulkActionBar = ({
   t,
   bottomInset,
   isProcessing = false,
-  processingAction
+  processingAction,
+  isRTL = false
 }: {
   selectedCount: number;
   onApprove: () => void;
@@ -217,6 +190,7 @@ const BulkActionBar = ({
   bottomInset: number;
   isProcessing?: boolean;
   processingAction?: 'approve' | 'reject' | null;
+  isRTL?: boolean;
 }) => (
   <View 
     style={[
@@ -228,13 +202,13 @@ const BulkActionBar = ({
       }
     ]}
   >
-    <View style={styles.bulkActionContent}>
-      <ThemedText style={[Typography.body, { fontWeight: '600', color: theme.text }]}>
+    <View style={[styles.bulkActionContent, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <ThemedText style={[Typography.body, { fontWeight: '600', color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
         {isProcessing ? t('common.processing') : `${selectedCount} ${t('bulkActions.selected')}`}
       </ThemedText>
-      <View style={styles.bulkActionButtons}>
+      <View style={[styles.bulkActionButtons, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <Pressable
-          style={[styles.bulkRejectButton, { borderColor: theme.error, opacity: isProcessing ? 0.6 : 1 }]}
+          style={[styles.bulkRejectButton, { borderColor: theme.error, opacity: isProcessing ? 0.6 : 1, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
           onPress={onReject}
           disabled={isProcessing}
         >
@@ -250,7 +224,7 @@ const BulkActionBar = ({
         </Pressable>
         <Spacer width={Spacing.sm} />
         <Pressable
-          style={[styles.bulkApproveButton, { backgroundColor: theme.success, opacity: isProcessing ? 0.6 : 1 }]}
+          style={[styles.bulkApproveButton, { backgroundColor: theme.success, opacity: isProcessing ? 0.6 : 1, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
           onPress={onApprove}
           disabled={isProcessing}
         >
@@ -280,8 +254,11 @@ const ApprovalTableRow = React.memo(({
   onToggleSelection,
   theme,
   isProcessing,
+  isExpired = false,
   t,
-  fmtDate
+  fmtDate,
+  fmtTime,
+  isRTL = false
 }: { 
   request: VisitorRequest; 
   onApprove: () => void;
@@ -293,12 +270,15 @@ const ApprovalTableRow = React.memo(({
   onToggleSelection: () => void;
   theme: Theme;
   isProcessing: boolean;
+  isExpired?: boolean;
   t: (key: string) => string;
   fmtDate: (d: Date | string) => string;
+  fmtTime: (t: string) => string;
+  isRTL?: boolean;
 }) => {
   return (
     <Pressable onLongPress={onLongPress}>
-      <ThemedView style={[styles.tableRow, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+      <ThemedView style={[styles.tableRow, { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <StatusAccent color={theme.primary} />
         
         {isSelectionMode ? (
@@ -310,8 +290,8 @@ const ApprovalTableRow = React.memo(({
         <View style={[styles.fixedColumn, { width: isSelectionMode ? LAYOUT.tableFixedColumnWidth - 40 : LAYOUT.tableFixedColumnWidth }]}>
           <View style={styles.fixedColumnContent}>
             <View style={{ flex: 1 }}>
-              <View style={styles.nameWithBadge}>
-                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, flex: 1 }]} numberOfLines={2}>
+              <View style={[styles.nameWithBadge, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, flex: 1, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={2}>
                   {request.visitor.fullName}
                 </ThemedText>
                 {request.isWalkIn ? <WalkInBadge /> : null}
@@ -323,6 +303,8 @@ const ApprovalTableRow = React.memo(({
                 theme={theme} 
                 compact 
                 fmtDate={fmtDate}
+                fmtTime={fmtTime}
+                isRTL={isRTL}
               />
             </View>
           </View>
@@ -334,6 +316,7 @@ const ApprovalTableRow = React.memo(({
           style={styles.scrollableColumns}
           contentContainerStyle={styles.scrollableColumnsContent}
           persistentScrollbar={true}
+          nestedScrollEnabled={true}
         >
           <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
             <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
@@ -379,19 +362,19 @@ const ApprovalTableRow = React.memo(({
                 {t('common.actions').toUpperCase()}
               </ThemedText>
               <Spacer height={10} />
-              <View style={styles.actionsRow}>
+              <View style={[styles.actionsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <Pressable
-                  style={[styles.actionButton, styles.rejectActionButton, { borderColor: theme.error }]}
+                  style={[styles.actionButton, styles.rejectActionButton, { borderColor: theme.error, opacity: isProcessing || isExpired ? 0.5 : 1 }]}
                   onPress={onReject}
-                  disabled={isProcessing}
+                  disabled={isProcessing || isExpired}
                 >
                   <DDIcon name="x" size={16} color={theme.error} />
                 </Pressable>
                 <Spacer width={Spacing.sm} />
                 <Pressable
-                  style={[styles.actionButton, styles.approveActionButton, { backgroundColor: theme.success }]}
+                  style={[styles.actionButton, styles.approveActionButton, { backgroundColor: theme.success, opacity: isProcessing || isExpired ? 0.5 : 1 }]}
                   onPress={onApprove}
-                  disabled={isProcessing}
+                  disabled={isProcessing || isExpired}
                 >
                   <DDIcon name="check" size={16} color={theme.buttonText} />
                 </Pressable>
@@ -411,117 +394,29 @@ const ApprovalTableRow = React.memo(({
   );
 });
 
-const ApprovalCard = React.memo(({ 
-  request, 
-  onApprove,
-  onReject,
-  onViewDetails,
-  onLongPress,
-  isSelectionMode,
-  isSelected,
-  onToggleSelection,
-  theme,
-  isProcessing,
-  t,
-  fmtDate
-}: { 
-  request: VisitorRequest; 
-  onApprove: () => void;
-  onReject: () => void;
-  onViewDetails: () => void;
-  onLongPress: () => void;
-  isSelectionMode: boolean;
-  isSelected: boolean;
-  onToggleSelection: () => void;
-  theme: Theme;
-  isProcessing: boolean;
-  t: (key: string) => string;
-  fmtDate: (d: Date | string) => string;
-}) => {
-  return (
-    <Pressable onLongPress={onLongPress}>
-      <ThemedView style={[styles.requestCard, { backgroundColor: theme.surface }]}>
-        <StatusAccent color={theme.primary} />
-        
-        {isSelectionMode ? (
-          <View style={styles.cardCheckboxContainer}>
-            <SelectionCheckbox isSelected={isSelected} onToggle={onToggleSelection} />
-          </View>
-        ) : null}
-        
-        <Pressable onPress={isSelectionMode ? onToggleSelection : onViewDetails} style={{ flex: 1 }}>
-          <View style={styles.cardHeader}>
-            <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
-              <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
-                {request.visitor.fullName.split(' ').map(n => n[0]).join('')}
-              </ThemedText>
-            </View>
-            <View style={styles.nameSection}>
-              <View style={styles.nameWithBadgeCard}>
-                <ThemedText style={[styles.visitorName, { color: theme.text }]}>{request.visitor.fullName}</ThemedText>
-                {request.isWalkIn ? <WalkInBadge /> : null}
-              </View>
-              {request.visitor.company ? (
-                <ThemedText style={[styles.companyText, { color: theme.textSecondary }]}>{request.visitor.company}</ThemedText>
-              ) : null}
-            </View>
-          </View>
-
-          <Spacer height={Spacing.md} />
-
-          <DateTimeDisplay 
-            date={request.visitDate} 
-            time={request.visitTime} 
-            duration={request.duration}
-            theme={theme}
-            fmtDate={fmtDate}
-          />
-
-          <Spacer height={Spacing.sm} />
-
-          <View style={styles.employeeRow}>
-            <DDIcon name="user" size={12} variant="muted" />
-            <ThemedText style={[styles.employeeLabel, { color: theme.textSecondary }]}>{t('dashboard.requestedBy')}</ThemedText>
-            <ThemedText style={[styles.employeeName, { color: theme.text }]}>{request.employeeName}</ThemedText>
-          </View>
-
-          <Spacer height={Spacing.md} />
-
-          <ServiceIcons parkingSlot={request.parkingSlot} meetingRoom={request.meetingRoom} buffet={request.buffet} valet={request.valet} size={14} />
-        </Pressable>
-
-        {!isSelectionMode ? (
-          <>
-            <Spacer height={Spacing.md} />
-            <ApprovalActionGroup
-              onApprove={onApprove}
-              onReject={onReject}
-              disabled={isProcessing}
-              size="medium"
-            />
-          </>
-        ) : null}
-      </ThemedView>
-    </Pressable>
-  );
-});
 
 const RejectRequestModal = ({
   visible,
   onClose,
   onSubmit,
   theme,
+  isDark,
   isProcessing,
   isBulk,
-  t
+  t,
+  insets,
+  isRTL
 }: {
   visible: boolean;
   onClose: () => void;
   onSubmit: (reason: string) => void;
   theme: Theme;
+  isDark: boolean;
   isProcessing: boolean;
   isBulk?: boolean;
   t: (key: string) => string;
+  insets: { bottom: number };
+  isRTL: boolean;
 }) => {
   const [rejectionReason, setRejectionReason] = useState('');
 
@@ -530,44 +425,66 @@ const RejectRequestModal = ({
     setRejectionReason('');
   };
 
+  const handleCancel = () => {
+    if (isProcessing) return;
+    setRejectionReason('');
+    onClose();
+  };
+
   return (
     <Modal
       visible={visible}
       transparent
       animationType="fade"
-      onRequestClose={() => !isProcessing && onClose()}
+      onRequestClose={handleCancel}
       statusBarTranslucent
     >
-      <View style={styles.modalOverlay}>
-        <Pressable 
-          style={[styles.modalBackdrop, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]}
-          onPress={() => !isProcessing && onClose()}
+      <Pressable 
+        style={styles.modalOverlay} 
+        onPress={!isProcessing ? handleCancel : undefined}
+      >
+        <BlurView
+          intensity={isDark ? 40 : 60}
+          tint={isDark ? "dark" : "light"}
+          style={StyleSheet.absoluteFill}
         />
-        <View style={styles.modalContainer}>
-          <ThemedView style={[styles.modalContent, { backgroundColor: theme.surface }]}>
+        <Pressable 
+          style={[
+            styles.rejectModalContainer,
+            { 
+              backgroundColor: theme.surface,
+              borderColor: theme.border,
+              marginHorizontal: Spacing.lg,
+              marginBottom: insets.bottom,
+            }
+          ]}
+          onPress={(e) => e.stopPropagation()}
+        >
+          <ThemedView style={styles.rejectModalContent}>
             <Pressable 
-              onPress={() => !isProcessing && onClose()}
-              style={styles.closeButton}
+              onPress={handleCancel}
+              style={styles.rejectModalCloseButton}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              disabled={isProcessing}
             >
               <DDIcon name="x" size={20} variant="muted" />
             </Pressable>
 
-            <View style={styles.modalIconWrapper}>
-              <View style={[styles.modalIconContainer, { backgroundColor: applyOpacity(theme.warning, '15') }]}>
-                <DDIcon name="alert-triangle" size={22} color={theme.warning} />
+            <View style={styles.rejectModalIconContainer}>
+              <View style={[styles.rejectModalIcon, { backgroundColor: applyOpacity(theme.warning, '15') }]}>
+                <DDIcon name="alert-triangle" size={28} color={theme.warning} />
               </View>
             </View>
 
             <Spacer height={Spacing.lg} />
 
-            <ThemedText style={[Typography.subtitle, { fontSize: 18, fontWeight: '600', textAlign: 'center' }]}>
+            <ThemedText style={[Typography.h3, { textAlign: 'center' }]}>
               {isBulk ? t('bulkActions.rejectSelected') : t('actions.reject')}
             </ThemedText>
 
             <Spacer height={Spacing.sm} />
 
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 13, lineHeight: 20, textAlign: 'center' }]}>
+            <ThemedText style={[Typography.body, { color: theme.textSecondary, textAlign: 'center' }]}>
               {t('form.enterNotes')} ({t('form.optional').toLowerCase()})
             </ThemedText>
 
@@ -594,55 +511,41 @@ const RejectRequestModal = ({
 
             <Spacer height={Spacing.xl} />
 
-            <View style={styles.modalActions}>
-              <Pressable
-                style={[
-                  styles.modalCancelButton,
-                  { 
-                    backgroundColor: 'transparent',
-                    borderWidth: 1.5,
-                    borderColor: theme.border,
-                    opacity: isProcessing ? 0.5 : 1
-                  }
-                ]}
-                onPress={onClose}
+            <View style={[styles.rejectModalActions, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <LoadingButton
+                onPress={handleCancel}
+                variant="outline"
+                size="medium"
+                fullWidth={false}
                 disabled={isProcessing}
+                style={{ flex: 1, marginEnd: Spacing.sm }}
               >
-                <ThemedText style={[styles.cancelButtonText, { color: theme.text, fontWeight: '600' }]}>
-                  {t('common.cancel')}
-                </ThemedText>
-              </Pressable>
-
-              <Spacer width={Spacing.md} />
-
-              <Pressable
-                style={[
-                  styles.modalSubmitButton,
-                  { 
-                    backgroundColor: isProcessing ? theme.textSecondary : theme.warning,
-                    opacity: isProcessing ? 0.7 : 1
-                  }
-                ]}
+                {t('common.cancel')}
+              </LoadingButton>
+              <LoadingButton
                 onPress={handleSubmit}
+                variant="primary"
+                size="medium"
+                fullWidth={false}
+                loading={isProcessing}
                 disabled={isProcessing}
+                style={{ flex: 1, backgroundColor: theme.warning }}
               >
-                {isProcessing ? <DDIcon name="loader" size={18} color={theme.buttonText} /> : null}
-                <ThemedText style={[styles.submitButtonText, { color: theme.buttonText, fontWeight: '600', marginStart: isProcessing ? 8 : 0 }]}>
-                  {isProcessing ? t('common.loading') : t('common.confirm')}
-                </ThemedText>
-              </Pressable>
+                {t('common.confirm')}
+              </LoadingButton>
             </View>
           </ThemedView>
-        </View>
-      </View>
+        </Pressable>
+      </Pressable>
     </Modal>
   );
 };
 
 export default function ManagerDashboardScreen({ navigation }: ManagerDashboardScreenProps) {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
   const { t } = useTranslation();
-  const { formatDate } = useFormatters();
+  const { formatDate, formatTimeFromString } = useFormatters();
+  const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   const { paddingTop, paddingBottom } = useScreenInsets();
   const { user } = useAuth();
@@ -811,7 +714,7 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
   };
 
   const handleViewDetails = (requestId: string) => {
-    navigation.navigate('ManagerApprovalDetail', { requestId });
+    navigation.navigate(ROUTES.MANAGER_APPROVAL_DETAIL as never, { requestId } as never);
   };
 
   const renderStickyHeader = () => (
@@ -823,6 +726,7 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
         onToggleSelectionMode={toggleSelectionMode}
         theme={theme}
         t={t}
+        isRTL={isRTL}
       />
 
       <Spacer height={Spacing.lg} />
@@ -851,6 +755,7 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
             onToggleAll={toggleSelectAll}
             theme={theme}
             t={t}
+            isRTL={isRTL}
           />
         </>
       ) : null}
@@ -906,8 +811,11 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
               onToggleSelection={() => toggleSelection(item.id)}
               theme={theme}
               isProcessing={isProcessing}
+              isExpired={isVisitExpired(item.visitDate, item.visitTime, item.endTime, item.duration)}
               t={t}
               fmtDate={formatDate}
+              fmtTime={formatTimeFromString}
+              isRTL={isRTL}
             />
           )}
           ListHeaderComponent={renderListHeader()}
@@ -933,6 +841,7 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
             bottomInset={insets.bottom}
             isProcessing={isBulkProcessing}
             processingAction={bulkProcessingAction}
+            isRTL={isRTL}
           />
         ) : null}
 
@@ -945,9 +854,12 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
           }}
           onSubmit={handleRejectSubmit}
           theme={theme}
+          isDark={isDark}
           isProcessing={isProcessing}
           isBulk={isBulkReject}
           t={t}
+          insets={insets}
+          isRTL={isRTL}
         />
       </View>
     );
@@ -963,19 +875,20 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
         data={filteredRequests}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <ApprovalCard
+          <VisitorRequestCard
             request={item}
+            onPress={() => handleViewDetails(item.id)}
+            onLongPress={() => handleLongPress(item.id)}
+            showRequestedBy
+            showActions={!isSelectionMode}
             onApprove={() => handleApprove(item.id)}
             onReject={() => handleReject(item.id)}
-            onViewDetails={() => handleViewDetails(item.id)}
-            onLongPress={() => handleLongPress(item.id)}
+            isProcessing={isProcessing}
+            isExpired={isVisitExpired(item.visitDate, item.visitTime, item.endTime, item.duration)}
             isSelectionMode={isSelectionMode}
             isSelected={selectedIds.has(item.id)}
             onToggleSelection={() => toggleSelection(item.id)}
-            theme={theme}
-            isProcessing={isProcessing}
-            t={t}
-            fmtDate={formatDate}
+            accentColor={theme.primary}
           />
         )}
         ListHeaderComponent={renderListHeader()}
@@ -1002,6 +915,7 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
           bottomInset={insets.bottom}
           isProcessing={isBulkProcessing}
           processingAction={bulkProcessingAction}
+          isRTL={isRTL}
         />
       ) : null}
 
@@ -1014,9 +928,12 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
         }}
         onSubmit={handleRejectSubmit}
         theme={theme}
+        isDark={isDark}
         isProcessing={isProcessing}
         isBulk={isBulkReject}
         t={t}
+        insets={insets}
+        isRTL={isRTL}
       />
     </View>
   );
@@ -1438,6 +1355,41 @@ const styles = StyleSheet.create({
   emptyState: {
     padding: Spacing.xl * 2,
     borderRadius: BorderRadius.lg,
+    alignItems: 'center',
+  },
+  rejectModalContainer: {
+    borderRadius: BorderRadius.xl,
+    borderWidth: 1,
+    maxWidth: 400,
+    width: '100%',
+    marginHorizontal: Spacing.lg,
+    padding: Spacing.xl,
+    overflow: 'hidden',
+  },
+  rejectModalCloseButton: {
+    position: 'absolute',
+    top: Spacing.md,
+    left: Spacing.md,
+    padding: Spacing.xs,
+    borderRadius: BorderRadius.sm,
+    zIndex: 10,
+  },
+  rejectModalIconContainer: {
+    alignItems: 'center',
+    marginTop: Spacing.lg,
+  },
+  rejectModalIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  rejectModalActions: {
+    flexDirection: 'row',
+    width: '100%',
+  },
+  rejectModalContent: {
     alignItems: 'center',
   },
 });

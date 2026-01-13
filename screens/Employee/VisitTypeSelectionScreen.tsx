@@ -1,15 +1,23 @@
-import React from "react";
-import { View, StyleSheet } from "react-native";
+import React, { useState } from "react";
+import { View, StyleSheet, LayoutChangeEvent, Platform } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DDIcon, type IconName } from "@/components/DDIcon";
+import { ROUTES } from "@/constants";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { ThemedText } from "@/components/ThemedText";
-import { SelectableCard, CardGridStyles } from "@/components/SelectableCard";
+import { SelectableCard } from "@/components/SelectableCard";
 import Spacer from "@/components/Spacer";
 import { Spacing, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { VisitTypeSelectionScreenProps } from "@/types/employeeNavigation.types";
+
+const isWeb = Platform.OS === 'web';
+const CARD_MIN_WIDTH = 140;
+const CARD_GAP = Spacing.md;
+const WEB_CARD_SIZE = 150;
+const WEB_COLUMNS = 5;
 
 type VisitType = {
   id: string;
@@ -37,11 +45,22 @@ interface VisitTypeSelectionScreenPropsExtended extends VisitTypeSelectionScreen
 export default function VisitTypeSelectionScreen({ navigation, onTypeSelect }: VisitTypeSelectionScreenPropsExtended) {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
+  const [gridWidth, setGridWidth] = useState(0);
 
   const scrollContentStyle = {
     paddingTop: insets.top + Spacing.xl,
-    paddingBottom: insets.bottom + Spacing.xl
+    paddingBottom: insets.bottom + Spacing.xl,
+    paddingHorizontal: Spacing.lg,
+  };
+
+  const mobileColumns = gridWidth >= CARD_MIN_WIDTH * 3 + CARD_GAP * 2 ? 3 : 2;
+  const columns = isWeb ? WEB_COLUMNS : mobileColumns;
+  const cardWidth = isWeb ? WEB_CARD_SIZE : (gridWidth > 0 ? (gridWidth - CARD_GAP * (columns - 1)) / columns : CARD_MIN_WIDTH);
+
+  const handleGridLayout = (event: LayoutChangeEvent) => {
+    setGridWidth(event.nativeEvent.layout.width);
   };
 
   const visitTypes: VisitType[] = VISIT_TYPE_KEYS.map(item => ({
@@ -54,7 +73,7 @@ export default function VisitTypeSelectionScreen({ navigation, onTypeSelect }: V
     if (onTypeSelect) {
       onTypeSelect(visitType.title);
     } else {
-      navigation.navigate('VisitorRequestForm', { visitType: visitType.title });
+      navigation.navigate(ROUTES.VISITOR_REQUEST_FORM as never, { visitType: visitType.title } as never);
     }
   };
 
@@ -71,20 +90,22 @@ export default function VisitTypeSelectionScreen({ navigation, onTypeSelect }: V
 
       <Spacer height={Spacing.xl} />
 
-      <View style={CardGridStyles.grid}>
-        {visitTypes.map((visitType) => (
-          <View key={visitType.id} style={CardGridStyles.cardWrapper3Col}>
-            <SelectableCard onPress={() => handleTypeSelect(visitType)}>
-              <View style={styles.iconContainer}>
-                <DDIcon name={visitType.icon} size={28} color={theme.cardIcon} />
-              </View>
-              <Spacer height={Spacing.xs} />
-              <ThemedText style={[Typography.caption, { color: theme.text, fontWeight: '600', textAlign: 'center', fontSize: 11 }]}>
-                {visitType.title}
-              </ThemedText>
-            </SelectableCard>
-          </View>
-        ))}
+      <View onLayout={handleGridLayout} style={styles.gridContainer}>
+        <View style={styles.grid}>
+          {visitTypes.map((visitType) => (
+            <View key={visitType.id} style={[styles.cardWrapper, isWeb ? styles.webCardWrapper : { width: cardWidth }]}>
+              <SelectableCard onPress={() => handleTypeSelect(visitType)}>
+                <View style={styles.iconContainer}>
+                  <DDIcon name={visitType.icon} size={28} color={theme.cardIcon} />
+                </View>
+                <Spacer height={Spacing.xs} />
+                <ThemedText style={[Typography.caption, { color: theme.text, fontWeight: '600', textAlign: 'center', fontSize: 11 }]}>
+                  {visitType.title}
+                </ThemedText>
+              </SelectableCard>
+            </View>
+          ))}
+        </View>
       </View>
     </ScreenScrollView>
   );
@@ -93,6 +114,24 @@ export default function VisitTypeSelectionScreen({ navigation, onTypeSelect }: V
 const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
+  },
+  gridContainer: {
+    width: '100%',
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    marginHorizontal: isWeb ? 0 : -CARD_GAP / 2,
+    gap: isWeb ? CARD_GAP : undefined,
+  },
+  cardWrapper: {
+    paddingHorizontal: isWeb ? 0 : CARD_GAP / 2,
+    marginBottom: isWeb ? 0 : CARD_GAP,
+  },
+  webCardWrapper: {
+    width: WEB_CARD_SIZE,
+    height: WEB_CARD_SIZE,
   },
   iconContainer: {
     marginBottom: Spacing.xs,

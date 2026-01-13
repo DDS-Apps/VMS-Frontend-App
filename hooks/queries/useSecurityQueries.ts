@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient, UseQueryOptions } from '@tanstack/react-query';
-import { securityApiService } from '@/services/securityApiService';
+import { securityApiService, SecurityVisitorsParams, SecurityVisitorsResponse } from '@/services/api/securityApiService';
 import type {
   SecurityVisitorDto,
   SecuritySummary,
@@ -9,16 +9,18 @@ import type {
   BlacklistCheckResult,
   GateCheckInDto,
   GateCheckOutDto,
-  ListTodayParams,
+  ListSecurityTodayParams,
   ListGateLogsParams,
   PaginatedResponse,
-} from '@/services/securityApiService';
+} from '@/types';
 import { ApiError } from '@/api/errors';
 
 export const securityKeys = {
   all: ['security'] as const,
+  visitors: () => [...securityKeys.all, 'visitors'] as const,
+  visitorsList: (params?: SecurityVisitorsParams) => [...securityKeys.visitors(), 'list', params] as const,
   today: () => [...securityKeys.all, 'today'] as const,
-  todayList: (params?: ListTodayParams) => [...securityKeys.today(), 'list', params] as const,
+  todayList: (params?: ListSecurityTodayParams) => [...securityKeys.today(), 'list', params] as const,
   todaySummary: () => [...securityKeys.today(), 'summary'] as const,
   alerts: () => [...securityKeys.all, 'alerts'] as const,
   gateLogs: () => [...securityKeys.all, 'gate-logs'] as const,
@@ -29,8 +31,21 @@ export const securityKeys = {
     [...securityKeys.all, 'blacklist-check', params] as const,
 };
 
+export function useSecurityVisitorsQuery(
+  params?: SecurityVisitorsParams,
+  options?: Omit<UseQueryOptions<SecurityVisitorsResponse, ApiError>, 'queryKey' | 'queryFn'>
+) {
+  return useQuery<SecurityVisitorsResponse, ApiError>({
+    queryKey: securityKeys.visitorsList(params),
+    queryFn: () => securityApiService.getVisitors(params),
+    staleTime: 30 * 1000,
+    refetchInterval: 60 * 1000,
+    ...options,
+  });
+}
+
 export function useSecurityTodayVisitorsQuery(
-  params?: ListTodayParams,
+  params?: ListSecurityTodayParams,
   options?: Omit<UseQueryOptions<SecurityVisitorDto[], ApiError>, 'queryKey' | 'queryFn'>
 ) {
   return useQuery<SecurityVisitorDto[], ApiError>({

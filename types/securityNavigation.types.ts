@@ -1,9 +1,8 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import type { SecurityVisitor } from "@/services/mock/securityVisitorState";
 
 export type SecurityStackParamList = {
   CheckIn: undefined;
-  SecurityVisitorDetail: { visitor: SecurityVisitor };
+  SecurityVisitorDetail: { visitorId: string };
   GateEventsLog: undefined;
   Notifications: undefined;
   Settings: undefined;

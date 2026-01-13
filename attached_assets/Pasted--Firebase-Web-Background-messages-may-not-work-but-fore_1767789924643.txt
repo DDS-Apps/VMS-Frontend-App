@@ -1,0 +1,48 @@
+[Firebase Web] Background messages may not work, but foreground messaging should still function index-bd256a9a48ee94981a87b048b82106a8.js:1170:4512
+[Firebase Web] ========== GET FCM TOKEN START ========== index-bd256a9a48ee94981a87b048b82106a8.js:1170:1235
+[Firebase Web] Platform: web index-bd256a9a48ee94981a87b048b82106a8.js:1170:1307
+[Firebase Web] Messaging available: true index-bd256a9a48ee94981a87b048b82106a8.js:1170:1353
+[Firebase Web] Service worker registered: false index-bd256a9a48ee94981a87b048b82106a8.js:1170:1408
+[Firebase Web] VAPID key configured: true index-bd256a9a48ee94981a87b048b82106a8.js:1170:1469
+[Firebase Web] Requesting notification permission... index-bd256a9a48ee94981a87b048b82106a8.js:1170:1627
+[Firebase Web] Permission result: granted index-bd256a9a48ee94981a87b048b82106a8.js:1170:1745
+[Firebase Web] Getting real FCM token with VAPID key... index-bd256a9a48ee94981a87b048b82106a8.js:1170:1883
+[Firebase Web] No service worker, requesting token without it index-bd256a9a48ee94981a87b048b82106a8.js:1170:2150
+[Firebase Web] ========== GET FCM TOKEN ERROR ========== index-bd256a9a48ee94981a87b048b82106a8.js:1170:2550
+[Firebase Web] Error getting FCM token: FirebaseError: Messaging: We are unable to register the default service worker. ServiceWorker script at https://vms-frontend-folio3.replit.app/firebase-messaging-sw.js for scope https://vms-frontend-folio3.replit.app/firebase-cloud-messaging-push-scope encountered an error during installation. (messaging/failed-service-worker-registration).
+    te https://vms-frontend-folio3.replit.app/_expo/static/js/web/index-14b1ff28ae6f2cd437b7bc21119cd88b.js:215
+    ie https://vms-frontend-folio3.replit.app/_expo/static/js/web/index-14b1ff28ae6f2cd437b7bc21119cd88b.js:231
+    ae https://vms-frontend-folio3.replit.app/_expo/static/js/web/index-14b1ff28ae6f2cd437b7bc21119cd88b.js:263
+    be https://vms-frontend-folio3.replit.app/_expo/static/js/web/index-14b1ff28ae6f2cd437b7bc21119cd88b.js:360
+    getWebFcmToken https://vms-frontend-folio3.replit.app/_expo/static/js/web/index-bd256a9a48ee94981a87b048b82106a8.js:1170
+    initializeWeb https://vms-frontend-folio3.replit.app/_expo/static/js/web/index-bd256a9a48ee94981a87b048b82106a8.js:1016
+    initialize https://vms-frontend-folio3.replit.app/_expo/static/js/web/index-bd256a9a48ee94981a87b048b82106a8.js:1016
+    U https://vms-frontend-folio3.replit.app/_expo/static/js/web/index-bd256a9a48ee94981a87b048b82106a8.js:957
+    L https://vms-frontend-folio3.replit.app/_expo/static/js/web/index-bd256a9a48ee94981a87b048b82106a8.js:957
+    ce https://vms-frontend-folio3.replit.app/_expo/static/js/web/index-bd256a9a48ee94981a87b048b82106a8.js:1352
+    onClick https://vms-frontend-folio3.replit.app/_expo/static/js/web/index-bd256a9a48ee94981a87b048b82106a8.js:844
+    ef https://vms-frontend-folio3.replit.app/_expo/static/js/web/index-bd256a9a48ee94981a87b048b82106a8.js:44
+    of https://vms-frontend-folio3.replit.app/_expo/static/js/web/index-bd256a9a48ee94981a87b048b82106a8.js:44
+    Bn https://vms-frontend-folio3.replit.app/_expo/static/js/web/index-bd256a9a48ee94981a87b048b82106a8.js:44
+    of https://vms-frontend-folio3.replit.app/_expo/static/js/web/index-bd256a9a48ee94981a87b048b82106a8.js:44
+    Fd https://vms-frontend-folio3.replit.app/_expo/static/js/web/index-bd256a9a48ee94981a87b048b82106a8.js:44
+    Td https://vms-frontend-folio3.replit.app/_expo/static/js/web/index-bd256a9a48ee94981a87b048b82106a8.js:44
+    af https://vms-frontend-folio3.replit.app/_expo/static/js/web/index-bd256a9a48ee94981a87b048b82106a8.js:44
+    tf https://vms-frontend-folio3.replit.app/_expo/static/js/web/index-bd256a9a48ee94981a87b048b82106a8.js:44
+    lf https://vms-frontend-folio3.replit.app/_expo/static/js/web/index-bd256a9a48ee94981a87b048b82106a8.js:44
+    lf https://vms-frontend-folio3.replit.app/_expo/static/js/web/index-bd256a9a48ee94981a87b048b82106a8.js:44
+    createRoot https://vms-frontend-folio3.replit.app/_expo/static/js/web/index-bd256a9a48ee94981a87b048b82106a8.js:44
+    u https://vms-frontend-folio3.replit.app/_expo/static/js/web/index-bd256a9a48ee94981a87b048b82106a8.js:32
+    p https://vms-frontend-folio3.replit.app/_expo/static/js/web/index-bd256a9a48ee94981a87b048b82106a8.js:29
+    run https://vms-frontend-folio3.replit.app/_expo/static/js/web/index-bd256a9a48ee94981a87b048b82106a8.js:21
+    runApplication https://vms-frontend-folio3.replit.app/_expo/static/js/web/index-bd256a9a48ee94981a87b048b82106a8.js:21
+    o https://vms-frontend-folio3.replit.app/_expo/static/js/web/index-bd256a9a48ee94981a87b048b82106a8.js:20
+    <anonymous> https://vms-frontend-folio3.replit.app/_expo/static/js/web/index-bd256a9a48ee94981a87b048b82106a8.js:1
+    f https://vms-frontend-folio3.replit.app/_expo/static/js/web/__expo-metro-runtime-46ac14f77b8d07852b02d57eb3e5b645.js:2
+    a https://vms-frontend-folio3.replit.app/_expo/static/js/web/__expo-metro-runtime-46ac14f77b8d07852b02d57eb3e5b645.js:2
+    i https://vms-frontend-folio3.replit.app/_expo/static/js/web/__expo-metro-runtime-46ac14f77b8d07852b02d57eb3e5b645.js:2
+    <anonymous> https://vms-frontend-folio3.replit.app/_expo/static/js/web/index-bd256a9a48ee94981a87b048b82106a8.js:1674
+index-bd256a9a48ee94981a87b048b82106a8.js:1170:2624
+[Push Web] No token obtained index-bd256a9a48ee94981a87b048b82106a8.js:1016:2800
+[Push] Initialization result: false index-bd256a9a48ee94981a87b048b82106a8.js:1016:2004
+[Push] ========== INITIALIZE END ==========

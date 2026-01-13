@@ -638,9 +638,44 @@ export interface UpdateInvitationDto {
   notes?: string;
 }
 
+export type VisitorParkingOption = 'no_parking' | 'parking_with_car_info' | 'parking_without_car_info';
+
 export interface RespondToInvitationDto {
   response: 'accept' | 'reject';
   reason?: string;
+  parkingOption?: VisitorParkingOption;
+  licensePlate?: string;
+  carModel?: string;
+  carColor?: string;
+}
+
+export interface ParkingDashboardVisitorDto {
+  id: string;
+  visitorName: string;
+  visitorCompany?: string;
+  hostName: string;
+  hostDepartment?: string;
+  visitDate: string;
+  visitTime: string;
+  expectedArrival?: string;
+  status: 'expected' | 'checked_in' | 'checked_out';
+  parkingOption: VisitorParkingOption;
+  licensePlate?: string;
+  carModel?: string;
+  carColor?: string;
+  checkInTime?: string;
+  checkOutTime?: string;
+}
+
+export interface ParkingDashboardDto {
+  date: string;
+  totalExpected: number;
+  totalWithParking: number;
+  totalWithCarInfo: number;
+  totalWithoutCarInfo: number;
+  totalNoParking: number;
+  checkedIn: number;
+  visitors: ParkingDashboardVisitorDto[];
 }
 
 export interface CreateUserDto {
@@ -803,7 +838,7 @@ export interface UpdateBuffetStaffTaskStatusResponseDto {
 }
 
 // Buffet Admin Task types
-export type BuffetAdminTaskStatus = 'pending' | 'in_progress' | 'completed' | 'cancelled';
+export type BuffetAdminTaskStatus = 'pending' | 'preparing' | 'ready' | 'served' | 'completed' | 'cancelled';
 
 export interface BuffetAdminTaskDto {
   id: string;
@@ -868,12 +903,42 @@ export interface BuffetAdminLocationDto {
   status: BuffetLocationStatus;
 }
 
+export interface CreateBuffetAdminLocationDto {
+  name: string;
+  floor?: string;
+  building?: string;
+  description?: string;
+  capacity?: number;
+}
+
+export interface CreateBuffetAdminLocationResponseDto {
+  id: string;
+  name: string;
+  floor?: string;
+  building?: string;
+  description?: string;
+  capacity?: number;
+  isActive: boolean;
+  createdAt: string;
+}
+
 export interface BuffetAdminStaffDto {
   id: string;
   name: string;
   role: string;
-  status: 'on_duty' | 'off_duty';
+  dutyStatus: 'on_duty' | 'off_duty';
   currentTasks: number;
+}
+
+export interface UpdateStaffDutyDto {
+  dutyStatus: 'on_duty' | 'off_duty';
+}
+
+export interface UpdateStaffDutyResponseDto {
+  id: string;
+  name: string;
+  dutyStatus: 'on_duty' | 'off_duty';
+  updatedAt: string;
 }
 
 export interface BuffetLocationLoadDto {
@@ -1075,6 +1140,10 @@ export interface PendingApprovalDto {
   hasParking: boolean;
   hasBuffet: boolean;
   hasValet: boolean;
+  isBuffet?: boolean;
+  isMeetingRoom?: boolean;
+  isVisitorNeedsParking?: boolean;
+  visitorNeedsParking?: boolean;
   createdAt: string;
 }
 
@@ -1170,6 +1239,14 @@ export interface AwaitingVisitorDto {
   autoCancelAt: string;
   firstReminderSent: boolean;
   secondReminderSent: boolean;
+  hasMeetingRoom?: boolean;
+  hasParking?: boolean;
+  hasBuffet?: boolean;
+  hasValet?: boolean;
+  isBuffet?: boolean;
+  isMeetingRoom?: boolean;
+  isVisitorNeedsParking?: boolean;
+  visitorNeedsParking?: boolean;
 }
 
 export interface AwaitingVisitorListParams {
@@ -1257,6 +1334,13 @@ export interface VisitListItemDto {
   hasMeetingRoom?: boolean;
   hasBuffet?: boolean;
   hasValet?: boolean;
+  isBuffet?: boolean;
+  isMeetingRoom?: boolean;
+  isVisitorNeedsParking?: boolean;
+  visitorNeedsParking?: boolean;
+  licensePlate?: string | null;
+  carModel?: string | null;
+  carColor?: string | null;
 }
 
 export interface VisitListResponse {
@@ -1283,7 +1367,6 @@ export interface BuffetPreferencesPayload {
 }
 
 export interface CreateVisitPayload {
-  hostId: string;
   visitor: CreateVisitVisitorPayload;
   visitDate: string;
   visitTime: string;
@@ -1293,11 +1376,8 @@ export interface CreateVisitPayload {
   communicationChannels?: ('email' | 'sms' | 'whatsapp' | 'qr_code')[];
   needsMeetingRoom?: boolean;
   meetingRoomId?: string;
-  needsParking?: boolean;
   needsBuffet?: boolean;
-  needsValet?: boolean;
   buffetPreferences?: BuffetPreferencesPayload;
-  parkingPreference?: 'auto' | 'manual' | 'none';
 }
 
 export interface CreateVisitResponseApproval {
@@ -1412,6 +1492,11 @@ export interface VisitDetailsReminders {
   secondReminderSent?: boolean;
 }
 
+export interface VisitDetailsRejection {
+  rejectedAt: string;
+  reason: string;
+}
+
 export interface VisitDetailsDto {
   id: string;
   employeeId: string;
@@ -1438,11 +1523,26 @@ export interface VisitDetailsDto {
   meetingBooking?: VisitDetailsMeetingBooking;
   buffet?: VisitDetailsBuffet;
   approval: VisitDetailsApproval;
+  rejection?: VisitDetailsRejection;
   reminders?: VisitDetailsReminders;
   qrCode?: string;
   isWalkIn?: boolean;
+  notes?: string;
+  visitorDecision?: {
+    accepted: boolean;
+    reason?: string;
+    decidedAt: string;
+  };
+  isBuffet?: boolean;
+  isMeetingRoom?: boolean;
+  isVisitorNeedsParking?: boolean;
+  visitorNeedsParking?: boolean;
+  licensePlate?: string | null;
+  carModel?: string | null;
+  carColor?: string | null;
   createdAt: string;
   updatedAt: string;
+  timezone?: string;
 }
 
 export interface UpdateVisitPayload {
@@ -1598,10 +1698,21 @@ export interface PublicInviteDto {
   hasBuffet?: boolean;
   hasValet?: boolean;
   createdAt?: string;
+  isBuffet?: boolean;
+  isMeetingRoom?: boolean;
+  isVisitorNeedsParking?: boolean;
+  visitorNeedsParking?: boolean;
+  licensePlate?: string | null;
+  carModel?: string | null;
+  carColor?: string | null;
 }
 
 export interface AcceptInviteDto {
   visitorNotes?: string;
+  needsParking?: boolean;
+  licensePlate?: string;
+  carModel?: string;
+  carColor?: string;
 }
 
 export interface RejectInviteDto {
@@ -1613,4 +1724,46 @@ export interface PublicInviteResponseDto {
   message: string;
   status: string;
   qrCode?: string;
+  data?: {
+    id?: string;
+    status?: string;
+    message?: string;
+    visitorDecision?: {
+      accepted: boolean;
+      decidedAt: string;
+      reason?: string;
+    };
+  };
+}
+
+// Valet Admin Parking Dashboard Types
+export interface ValetParkingDashboardSummary {
+  totalVisitors: number;
+  withParking: number;
+  withoutParking: number;
+}
+
+export interface ValetParkingVisitorDto {
+  requestId: string;
+  visitorName: string;
+  visitorCompany?: string;
+  visitorPhone?: string;
+  hostName: string;
+  hostDepartment?: string;
+  visitDate: string;
+  visitTime: string;
+  status: string;
+  isBuffet?: boolean;
+  isMeetingRoom?: boolean;
+  isVisitorNeedsParking?: boolean;
+  visitorNeedsParking: boolean;
+  licensePlate?: string | null;
+  carModel?: string | null;
+  carColor?: string | null;
+  isWalkIn: boolean;
+}
+
+export interface ValetParkingDashboardResponse {
+  summary: ValetParkingDashboardSummary;
+  data: ValetParkingVisitorDto[];
 }

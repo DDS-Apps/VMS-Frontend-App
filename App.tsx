@@ -1,17 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { StyleSheet, View, ActivityIndicator, Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import * as ExpoSplashScreen from "expo-splash-screen";
 
 import { KeyboardProviderWrapper } from "@/components/KeyboardProviderWrapper";
 import { StatusBar } from "expo-status-bar";
-import {
-  useFonts,
-  Inter_400Regular,
-  Inter_500Medium,
-  Inter_600SemiBold,
-  Inter_700Bold,
-} from '@expo-google-fonts/inter';
+import { useFonts } from 'expo-font';
+
+ExpoSplashScreen.preventAutoHideAsync().catch(() => {});
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { LanguageProvider } from "@/contexts/LanguageContext";
@@ -19,19 +16,17 @@ import { QueryProvider } from "@/providers/QueryProvider";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { ToastProvider } from "@/contexts/ToastContext";
-import SplashScreen from "@/screens/SplashScreen";
-import LoginScreen from "@/screens/LoginScreen";
-import ForgotPasswordScreen from "@/screens/ForgotPasswordScreen";
-import ResetPasswordScreen from "@/screens/ResetPasswordScreen";
+import { PortalProvider } from "@/contexts/PortalContext";
+import SplashScreen from "@/screens/Auth/SplashScreen";
+import LoginScreen from "@/screens/Auth/LoginScreen";
 import DashboardContainer from "@/navigation/DashboardContainer";
 import VisitorInviteScreen from "@/screens/Visitor/VisitorInviteScreen";
 import { ThemeContext } from "@/hooks/useTheme";
 import { Colors } from "@/constants/theme";
 import { UserRole } from "@/types/vms.types";
-import { setCurrentStaff } from "@/services/mock/buffetAdminState";
-import { setCurrentDriver } from "@/services/mock/valetAdminState";
+import { setCurrentStaff } from "@/services/state/buffetAdminState";
+import { setCurrentDriver } from "@/services/state/valetAdminState";
 
-type AuthScreen = 'login' | 'forgotPassword' | 'resetPassword';
 
 function getInviteTokenFromUrl(): string | null {
   if (Platform.OS !== 'web') return null;
@@ -86,8 +81,6 @@ function getInviteTokenFromUrl(): string | null {
 function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
   const { user, isAuthenticated, isLoading: authLoading, logout } = useAuth();
   const [showSplash, setShowSplash] = useState(true);
-  const [authScreen, setAuthScreen] = useState<AuthScreen>('login');
-  const [resetEmail, setResetEmail] = useState('');
   const [inviteToken, setInviteToken] = useState<string | null>(null);
 
   useEffect(() => {
@@ -114,26 +107,6 @@ function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
 
   const handleLogout = async () => {
     await logout();
-    setAuthScreen('login');
-  };
-
-  const handleForgotPassword = () => {
-    setAuthScreen('forgotPassword');
-  };
-
-  const handleForgotPasswordSubmit = (email: string) => {
-    setResetEmail(email);
-    setAuthScreen('resetPassword');
-  };
-
-  const handleResetPasswordSubmit = () => {
-    setAuthScreen('login');
-    setResetEmail('');
-  };
-
-  const handleBackToLogin = () => {
-    setAuthScreen('login');
-    setResetEmail('');
   };
 
   if (inviteToken) {
@@ -157,13 +130,7 @@ function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
   }
 
   if (!isAuthenticated || !user) {
-    if (authScreen === 'forgotPassword') {
-      return <ForgotPasswordScreen onSubmit={handleForgotPasswordSubmit} onBack={handleBackToLogin} />;
-    }
-    if (authScreen === 'resetPassword') {
-      return <ResetPasswordScreen email={resetEmail} onSubmit={handleResetPasswordSubmit} onBack={handleBackToLogin} />;
-    }
-    return <LoginScreen onLoginSuccess={handleLoginSuccess} onForgotPassword={handleForgotPassword} />;
+    return <LoginScreen onLoginSuccess={handleLoginSuccess} />;
   }
 
   const userName = user.name || user.email;
@@ -174,40 +141,59 @@ function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
     <DashboardContainer 
       userRole={userRole} 
       userName={userName}
+      userEmail={user.email}
       userPhotoUrl={userPhotoUrl}
-      onLogout={handleLogout} 
+      onLogout={handleLogout}
+      isSSOUser={user.isSSOUser}
     />
   );
 }
 
 export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const isWeb = Platform.OS === 'web';
-  const [fontTimeout, setFontTimeout] = useState(false);
+  const [appIsReady, setAppIsReady] = useState(false);
 
   const [fontsLoaded, fontError] = useFonts({
-    Inter_400Regular,
-    Inter_500Medium,
-    Inter_600SemiBold,
-    Inter_700Bold,
+    'Inter_400Regular': require('./assets/fonts/Inter_400Regular.ttf'),
+    'Inter_500Medium': require('./assets/fonts/Inter_500Medium.ttf'),
+    'Inter_600SemiBold': require('./assets/fonts/Inter_600SemiBold.ttf'),
+    'Inter_700Bold': require('./assets/fonts/Inter_700Bold.ttf'),
   });
 
   useEffect(() => {
-    if (fontError) {
-      console.warn('[App] Font loading error:', fontError);
-      setFontTimeout(true);
+    async function prepare() {
+      try {
+        if (fontError) {
+          console.warn('[App] Font loading error:', fontError);
+        }
+        
+        if (fontsLoaded || fontError) {
+          setAppIsReady(true);
+        }
+      } catch (e) {
+        console.warn('[App] Error during app preparation:', e);
+        setAppIsReady(true);
+      }
     }
-  }, [fontError]);
+    
+    prepare();
+  }, [fontsLoaded, fontError]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (!fontsLoaded && !fontError) {
+      if (!appIsReady) {
         console.warn('[App] Font loading timeout - proceeding without custom fonts');
-        setFontTimeout(true);
+        setAppIsReady(true);
       }
-    }, 5000);
+    }, 3000);
     return () => clearTimeout(timer);
-  }, [fontsLoaded, fontError]);
+  }, [appIsReady]);
+
+  const onLayoutRootView = useCallback(async () => {
+    if (appIsReady) {
+      await ExpoSplashScreen.hideAsync().catch(() => {});
+    }
+  }, [appIsReady]);
 
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
@@ -219,12 +205,8 @@ export default function App() {
     theme: isDarkMode ? Colors.dark : Colors.light,
   };
 
-  if (!fontsLoaded && !fontTimeout) {
-    return (
-      <View style={[styles.root, { justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.light.background }]}>
-        <ActivityIndicator size="large" color={Colors.light.primary} />
-      </View>
-    );
+  if (!appIsReady) {
+    return null;
   }
 
   return (
@@ -234,14 +216,16 @@ export default function App() {
           <LanguageProvider>
             <ThemeContext.Provider value={themeValue}>
               <SafeAreaProvider>
-                <GestureHandlerRootView style={styles.root}>
+                <GestureHandlerRootView style={styles.root} onLayout={onLayoutRootView}>
                   <KeyboardProviderWrapper>
-                    <ToastProvider>
-                      <NotificationProvider>
-                        <AppContent isDarkMode={isDarkMode} />
-                      </NotificationProvider>
-                      <StatusBar style={isDarkMode ? "light" : "dark"} />
-                    </ToastProvider>
+                    <PortalProvider>
+                      <ToastProvider>
+                        <NotificationProvider>
+                          <AppContent isDarkMode={isDarkMode} />
+                        </NotificationProvider>
+                        <StatusBar style={isDarkMode ? "light" : "dark"} />
+                      </ToastProvider>
+                    </PortalProvider>
                   </KeyboardProviderWrapper>
                 </GestureHandlerRootView>
               </SafeAreaProvider>

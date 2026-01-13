@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, Pressable, View, ViewStyle } from "react-native";
+import { StyleSheet, Pressable, View, ViewStyle, Platform } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -77,21 +77,56 @@ export function SelectableCard({
   );
 }
 
-export const CardGridStyles = StyleSheet.create({
+const isWeb = Platform.OS === 'web';
+
+const mobileStyles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
+    marginHorizontal: -Spacing.sm,
   },
   cardWrapper3Col: {
-    width: '31%',
+    width: '50%',
+    paddingHorizontal: Spacing.sm,
     marginBottom: Spacing.md,
   },
   cardWrapper2Col: {
-    width: '48%',
+    width: '50%',
+    paddingHorizontal: Spacing.sm,
     marginBottom: Spacing.md,
   },
 });
+
+const webStyles = StyleSheet.create({
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-start',
+    gap: Spacing.md,
+  },
+  cardWrapper3Col: {
+    width: 150,
+    height: 150,
+  },
+  cardWrapper2Col: {
+    width: 150,
+    height: 150,
+  },
+});
+
+export const CardGridStyles = StyleSheet.create({
+  grid: mobileStyles.grid,
+  gridWeb: webStyles.grid,
+  cardWrapper3Col: mobileStyles.cardWrapper3Col,
+  cardWrapper3ColWeb: webStyles.cardWrapper3Col,
+  cardWrapper2Col: mobileStyles.cardWrapper2Col,
+  cardWrapper2ColWeb: webStyles.cardWrapper2Col,
+});
+
+export const getGridStyle = () => isWeb ? webStyles.grid : mobileStyles.grid;
+export const getCardWrapper3ColStyle = () => isWeb ? webStyles.cardWrapper3Col : mobileStyles.cardWrapper3Col;
+export const getCardWrapper2ColStyle = () => isWeb ? webStyles.cardWrapper2Col : mobileStyles.cardWrapper2Col;
 
 const styles = StyleSheet.create({
   card: {

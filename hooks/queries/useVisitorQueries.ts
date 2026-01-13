@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { visitorApiService, type ListVisitorsParams } from '@/services/visitorApiService';
+import { visitorApiService, type ListVisitorsParams } from '@/services/api/visitorApiService';
 import type { VisitorDto, CreateVisitorDto, UpdateVisitorDto } from '@/types/api.types';
 import type { PaginatedResponse } from '@/types';
 

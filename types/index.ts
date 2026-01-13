@@ -107,6 +107,9 @@ export {
   type CreateInvitationDto,
   type UpdateInvitationDto,
   type RespondToInvitationDto,
+  type VisitorParkingOption,
+  type ParkingDashboardVisitorDto,
+  type ParkingDashboardDto,
   type CreateUserDto,
   type UpdateUserDto,
   type CreateParkingSpaceDto,
@@ -152,4 +155,9 @@ export {
   type AdminUserDto,
   type AdminUserListParams,
   type AdminUserPaginatedResponse,
+  // Visit List Types
+  type VisitListParams,
+  type VisitListItemDto,
+  type VisitListResponse,
+  type VisitDetailsDto,
 } from './api.types';

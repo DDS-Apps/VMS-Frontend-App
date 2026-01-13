@@ -1,12 +1,15 @@
 import React, { useState, useMemo } from "react";
 import { View, StyleSheet, Pressable, GestureResponderEvent, ActivityIndicator, Alert, Modal, ScrollView } from "react-native";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
+import { ROUTES } from "@/constants";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useFormatters } from "@/hooks/useFormatters";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { applyOpacity, getStatusConfig } from "@/utils/statusStyles";
 import type { StatusConfig } from "@/types/theme.types";
@@ -52,8 +55,8 @@ const mapAdminStaffDto = (staff: BuffetAdminStaffDto): BuffetStaff => {
     id: staff.id,
     name: staff.name,
     role: staff.role,
-    shift: staff.status === 'on_duty' ? 'On Duty' : 'Off Duty',
-    status: staff.status,
+    shift: staff.dutyStatus === 'on_duty' ? 'On Duty' : 'Off Duty',
+    status: staff.dutyStatus,
     currentTasks: staff.currentTasks,
   };
 };
@@ -71,7 +74,7 @@ function KPICard({ title, value, icon, iconBgColor, iconColor, cardBgColor }: KP
   const { theme } = useTheme();
   
   return (
-    <View style={[styles.kpiCard, { backgroundColor: cardBgColor, borderWidth: 1, borderColor: applyOpacity(iconColor, '15') }]}>
+    <View style={[styles.kpiCard, { backgroundColor: cardBgColor, borderWidth: StyleSheet.hairlineWidth, borderColor: applyOpacity(iconColor, '15') }]}>
       <View style={[styles.kpiIconContainer, { backgroundColor: iconBgColor }]}>
         <DDIcon name={icon as IconName} size={28} color={iconColor} />
       </View>
@@ -121,6 +124,8 @@ function QuickActionButton({ icon, label, iconBgColor, iconColor, onPress }: Qui
 export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDashboardScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { formatTimeFromString } = useFormatters();
+  const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   const { showSuccess, showError } = useToast();
 
@@ -161,16 +166,29 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
     const responseData = tasksResponse?.data as { data?: BuffetAdminTaskDto[] } | BuffetAdminTaskDto[] | undefined;
     const tasks = Array.isArray(responseData) ? responseData : (Array.isArray((responseData as { data?: BuffetAdminTaskDto[] })?.data) ? (responseData as { data: BuffetAdminTaskDto[] }).data : []);
     return [...tasks].sort((a, b) => {
-      if (a.status === 'completed' && b.status !== 'completed') return 1;
-      if (a.status !== 'completed' && b.status === 'completed') return -1;
-      return parseTimeSlot(a.visitTime) - parseTimeSlot(b.visitTime);
+      const statusOrder: Record<string, number> = { 
+        pending: 0, 
+        preparing: 1, 
+        ready: 2, 
+        served: 3, 
+        completed: 4, 
+        cancelled: 5 
+      };
+      const statusA = statusOrder[a.status] ?? 99;
+      const statusB = statusOrder[b.status] ?? 99;
+      if (statusA !== statusB) return statusA - statusB;
+      const dateA = new Date(a.visitDate + 'T' + (a.visitTime?.replace(/\s*(AM|PM)/i, '') || '00:00')).getTime();
+      const dateB = new Date(b.visitDate + 'T' + (b.visitTime?.replace(/\s*(AM|PM)/i, '') || '00:00')).getTime();
+      return dateB - dateA;
     });
   }, [tasksResponse]);
 
   const availableStaff = useMemo(() => {
     const responseData = staffData?.data as { data?: BuffetAdminStaffDto[] } | BuffetAdminStaffDto[] | undefined;
     const staffList = Array.isArray(responseData) ? responseData : (Array.isArray((responseData as { data?: BuffetAdminStaffDto[] })?.data) ? (responseData as { data: BuffetAdminStaffDto[] }).data : []);
-    return staffList.map(mapAdminStaffDto);
+    return staffList
+      .filter(s => s.dutyStatus === 'on_duty')
+      .map(mapAdminStaffDto);
   }, [staffData]);
 
   const scrollContentStyle = {
@@ -197,7 +215,7 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
   const handleViewDetails = (request: BuffetAdminTaskDto, event: GestureResponderEvent) => {
     event.stopPropagation();
     const mappedRequest = mapTaskToRequest(request);
-    navigation.navigate('BuffetRequestDetails', { request: mappedRequest as any });
+    navigation.navigate(ROUTES.BUFFET_REQUEST_DETAILS as never, { request: mappedRequest as any } as never);
   };
 
   const handleOpenAssignModal = (item: BuffetAdminTaskDto, event: GestureResponderEvent) => {
@@ -300,7 +318,7 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
                   ) : (
                     <View style={[styles.staffAvatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
                       <ThemedText style={[styles.staffAvatarText, { color: theme.primary }]}>
-                        {staff.name.split(' ').map(n => n[0]).join('')}
+                        {staff.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
                       </ThemedText>
                     </View>
                   )}
@@ -344,7 +362,7 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
 
   const renderRequestCard = (item: BuffetAdminTaskDto) => {
     const statusConfig = getStatusConfig(theme, item.status, t);
-    const initials = item.visitorName.split(' ').map(n => n[0]).join('');
+    const initials = item.visitorName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
     const showActions = item.status !== 'completed' && item.status !== 'cancelled';
     
     return (
@@ -372,7 +390,7 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
               <ThemedText style={[styles.visitorName, { color: theme.text, flex: 1 }]} numberOfLines={1}>
                 {item.visitorName}
               </ThemedText>
-              <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: 1 }]}>
+              <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: StyleSheet.hairlineWidth }]}>
                 <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
                   {statusConfig.label}
                 </ThemedText>
@@ -398,7 +416,7 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
         <View style={styles.metaRow}>
           <DDIcon name="clock" size={14} color={theme.textSecondary} />
           <ThemedText style={[styles.metaText, { color: theme.textSecondary }]}>
-            {item.visitTime}
+            {formatTimeFromString(item.visitTime)}
           </ThemedText>
           <View style={styles.metaDot} />
           <DDIcon name="users" size={14} color={theme.textSecondary} />
@@ -423,27 +441,15 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
 
         <View style={styles.cardFooter}>
           {showActions ? (
-            <>
-              <Pressable
-                style={[styles.assignButton, { backgroundColor: applyOpacity(theme.warning, '12') }]}
-                onPress={(e) => handleOpenAssignModal(item, e)}
-              >
-                <DDIcon name="user-plus" size={14} color={theme.warning} />
-                <ThemedText style={[styles.assignButtonText, { color: theme.warning }]}>
-                  {item.assignedTo ? t('buffet.reassign') : t('buffet.assignStaff')}
-                </ThemedText>
-              </Pressable>
-
-              <Pressable
-                style={[styles.completeButton, { backgroundColor: theme.success }]}
-                onPress={(e) => handleMarkComplete(item.id, e)}
-              >
-                <DDIcon name="check" size={14} color="#FFFFFF" />
-                <ThemedText style={styles.completeButtonText}>
-                  {t('actions.markAsComplete')}
-                </ThemedText>
-              </Pressable>
-            </>
+            <Pressable
+              style={[styles.assignButton, { backgroundColor: applyOpacity(theme.warning, '12') }]}
+              onPress={(e) => handleOpenAssignModal(item, e)}
+            >
+              <DDIcon name="user-plus" size={14} color={theme.warning} />
+              <ThemedText style={[styles.assignButtonText, { color: theme.warning }]}>
+                {item.assignedTo ? t('buffet.reassign') : t('buffet.assignStaff')}
+              </ThemedText>
+            </Pressable>
           ) : (
             <View style={[styles.completedBadge, { backgroundColor: applyOpacity(theme.success, '15') }]}>
               <DDIcon name="check-circle" size={14} color={theme.success} />
@@ -470,11 +476,11 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
 
   return (
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
-      <View style={styles.kpiRow}>
+      <View style={[styles.kpiRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <KPICard 
           title={t('time.today')} 
           value={String(stats.total)} 
-          icon="coffee" 
+          icon="disc" 
           iconBgColor={applyOpacity(theme.primary, '20')}
           iconColor={theme.primary}
           cardBgColor={applyOpacity(theme.primary, '06')}
@@ -506,49 +512,49 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
       <Spacer height={Spacing.md} />
 
       <View style={styles.quickActionsGrid}>
-        <View style={styles.quickActionsRow}>
+        <View style={[styles.quickActionsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <QuickActionButton
             icon="bar-chart-2"
             label={t('buffet.capacityOverview')}
             iconBgColor={applyOpacity(theme.info, '12')}
             iconColor={theme.info}
-            onPress={() => navigation.navigate('BuffetOverview')}
+            onPress={() => navigation.navigate(ROUTES.BUFFET_OVERVIEW as never)}
           />
           <QuickActionButton
             icon="users"
             label={t('navigation.staffManagement')}
             iconBgColor={applyOpacity(theme.primary, '12')}
             iconColor={theme.primary}
-            onPress={() => navigation.navigate('BuffetStaff')}
+            onPress={() => navigation.navigate(ROUTES.BUFFET_STAFF as never)}
           />
         </View>
-        <View style={styles.quickActionsRow}>
+        <View style={[styles.quickActionsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <QuickActionButton
             icon="map-pin"
             label={t('navigation.locations')}
             iconBgColor={applyOpacity(theme.success, '12')}
             iconColor={theme.success}
-            onPress={() => navigation.navigate('BuffetLocations')}
+            onPress={() => navigation.navigate(ROUTES.BUFFET_LOCATIONS as never)}
           />
           <QuickActionButton
             icon="list"
             label={t('navigation.allRequests')}
             iconBgColor={applyOpacity(theme.warning, '12')}
             iconColor={theme.warning}
-            onPress={() => navigation.navigate('BuffetAllRequests')}
+            onPress={() => navigation.navigate(ROUTES.BUFFET_ALL_REQUESTS as never)}
           />
         </View>
       </View>
 
       <Spacer height={Spacing.xl} />
 
-      <View style={styles.sectionHeader}>
+      <View style={[styles.sectionHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
           {t('buffet.buffetService')}
         </ThemedText>
         {requests.length > 3 ? (
           <Pressable 
-            onPress={() => navigation.navigate('BuffetAllRequests')}
+            onPress={() => navigation.navigate(ROUTES.BUFFET_ALL_REQUESTS as never)}
             style={({ pressed }) => [
               styles.viewAllButton,
               { opacity: pressed ? 0.7 : 1 }
@@ -570,7 +576,7 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
         </View>
       ) : (
         <ThemedView style={[styles.emptyState, { backgroundColor: theme.surface }]}>
-          <DDIcon name="coffee" size={32} variant="muted" />
+          <DDIcon name="cloche" size={32} variant="muted" />
           <Spacer height={Spacing.sm} />
           <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
             {t('common.noData')}
@@ -616,6 +622,7 @@ const styles = StyleSheet.create({
   },
   kpiValue: {
     fontSize: 32,
+    lineHeight: 40,
     fontWeight: '700',
     letterSpacing: -0.5,
   },
@@ -753,7 +760,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 20,
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
     gap: 4,
   },
   viewDetailsText: {
@@ -868,7 +875,7 @@ const styles = StyleSheet.create({
     marginTop: Spacing.md,
     padding: Spacing.md,
     borderRadius: BorderRadius.md,
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
     alignItems: 'center',
   },
 });

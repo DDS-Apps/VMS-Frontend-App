@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { View, StyleSheet, Pressable, Dimensions, GestureResponderEvent, LayoutAnimation, Platform, UIManager, Alert } from "react-native";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
+import { ROUTES } from "@/constants";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
@@ -8,13 +9,14 @@ import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { VisitorActionButton } from "@/components/VisitorActionButton";
 import { applyOpacity } from "@/utils/statusStyles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTodayVisitorsQuery, useRoomsTodayQuery, useReceptionCheckInMutation, useReceptionCheckOutMutation } from "@/hooks/queries/useReceptionQueries";
 import type { TodayVisitorDto, RoomStatusDto } from "@/types";
-import { SkeletonDashboard } from "@/components/shared/Skeleton";
+import { SkeletonDashboard, WalkInBadge } from "@/components/shared";
 import type { ReceptionistDashboardScreenProps } from "@/types/receptionistNavigation.types";
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -36,7 +38,7 @@ function KPICard({ title, value, icon, iconBgColor, iconColor, cardBgColor }: KP
   const { theme } = useTheme();
   
   return (
-    <View style={[styles.kpiCard, { backgroundColor: cardBgColor, borderWidth: 1, borderColor: applyOpacity(iconColor, '15') }]}>
+    <View style={[styles.kpiCard, { backgroundColor: cardBgColor }]}>
       <View style={[styles.kpiIconContainer, { backgroundColor: iconBgColor }]}>
         <DDIcon name={icon} size={28} color={iconColor} />
       </View>
@@ -83,12 +85,49 @@ function QuickActionButton({ icon, label, iconBgColor, iconColor, onPress }: Qui
   );
 }
 
+const ServiceIconsRow = ({ visitor, size = 14 }: { visitor: TodayVisitorDto; size?: number }) => {
+  const { theme } = useTheme();
+  const { isRTL } = useLanguage();
+  
+  const showParking = visitor.isVisitorNeedsParking === true || visitor.visitorNeedsParking === true || visitor.hasParking === true || !!visitor.parkingSlot;
+  const showMeetingRoom = visitor.isMeetingRoom === true || visitor.hasMeetingRoom === true || !!visitor.meetingRoom;
+  const showBuffet = visitor.isBuffet === true || visitor.hasBuffet === true;
+  
+  const hasServices = showParking || showMeetingRoom || showBuffet;
+  
+  if (!hasServices) {
+    return <View />;
+  }
+
+  return (
+    <View style={[styles.servicesRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      {showBuffet ? (
+        <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.warning, '20') }]}>
+          <DDIcon name="coffee" size={size} color={theme.warning} />
+        </View>
+      ) : null}
+      {showMeetingRoom ? (
+        <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.secondary, '20') }]}>
+          <DDIcon name="briefcase" size={size} color={theme.secondary} />
+        </View>
+      ) : null}
+      {showParking ? (
+        <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '20') }]}>
+          <DDIcon name="map-pin" size={size} color={theme.info} />
+        </View>
+      ) : null}
+    </View>
+  );
+};
+
 export default function ReceptionistDashboardScreen({ navigation }: ReceptionistDashboardScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { formatTime } = useFormatters();
+  const { formatTime, formatTimeFromString } = useFormatters();
+  const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   const [expandedRooms, setExpandedRooms] = useState<Set<string>>(new Set());
+  const [expandedVisitors, setExpandedVisitors] = useState<Set<string>>(new Set());
 
   const { data: todayResponse, isLoading: isLoadingVisitors, isFetching: isFetchingVisitors, isError: isVisitorError, error: visitorError } = useTodayVisitorsQuery();
   const { data: roomsData, isLoading: isLoadingRooms, isFetching: isFetchingRooms, isError: isRoomsError, error: roomsError } = useRoomsTodayQuery();
@@ -134,6 +173,19 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
     });
   };
 
+  const toggleVisitorExpanded = (visitorId: string) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpandedVisitors(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(visitorId)) {
+        newSet.delete(visitorId);
+      } else {
+        newSet.add(visitorId);
+      }
+      return newSet;
+    });
+  };
+
   const handleCheckIn = (visitorId: string, visitorName: string, event: GestureResponderEvent) => {
     event.stopPropagation();
     
@@ -142,11 +194,11 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
       {
         onSuccess: () => {
           const currentTime = formatTime(new Date());
-          navigation.navigate('CheckInOutConfirmation', {
+          navigation.navigate(ROUTES.CHECK_IN_OUT_CONFIRMATION as never, {
             action: 'check_in',
             visitorName,
             time: currentTime
-          });
+          } as never);
         },
         onError: (error) => {
           Alert.alert(t('common.error'), error.message || t('errors.checkInFailed'));
@@ -163,11 +215,11 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
       {
         onSuccess: () => {
           const currentTime = formatTime(new Date());
-          navigation.navigate('CheckInOutConfirmation', {
+          navigation.navigate(ROUTES.CHECK_IN_OUT_CONFIRMATION as never, {
             action: 'check_out',
             visitorName,
             time: currentTime
-          });
+          } as never);
         },
         onError: (error) => {
           Alert.alert(t('common.error'), error.message || t('errors.checkOutFailed'));
@@ -176,14 +228,14 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
     );
   };
 
-  const getStatusBorderColor = (status: string) => {
+  const getStatusConfig = (status: string) => {
     switch (status) {
       case 'checked_in':
-        return theme.success;
+        return { label: t('status.checkedIn'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: theme.success };
       case 'completed':
-        return theme.textSecondary;
+        return { label: t('status.checkedOut'), bg: applyOpacity(theme.textSecondary, '15'), text: theme.textSecondary, border: theme.textSecondary };
       default:
-        return theme.primary;
+        return { label: t('visitor.expectedVisitors'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: theme.warning };
     }
   };
 
@@ -203,7 +255,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
       scheduledFor: today,
       createdAt: today,
     };
-    navigation.navigate('VisitorDetail', { visitor: legacyVisitor });
+    navigation.navigate(ROUTES.VISITOR_DETAIL as never, { visitor: legacyVisitor } as never);
   };
 
   const checkedInCount = summary?.checkedIn ?? todaysVisitors.filter(v => v.status === 'checked_in').length;
@@ -211,12 +263,14 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
   const expectedCount = summary?.expected ?? todaysVisitors.length;
 
   const renderVisitorCard = (item: TodayVisitorDto) => {
-    const borderColor = getStatusBorderColor(item.status);
+    const statusConfig = getStatusConfig(item.status);
     const visitorName = item.visitor.fullName;
-    const initials = visitorName.split(' ').map(n => n[0]).join('');
+    const initials = visitorName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
     const showCheckIn = item.status === 'pending' || item.status === 'expected';
     const showCheckOut = item.status === 'checked_in';
     const isMutating = checkInMutation.isPending || checkOutMutation.isPending;
+    const isExpanded = expandedVisitors.has(item.id);
+    const hasDetails = item.visitor.phone;
     
     return (
       <Pressable 
@@ -226,21 +280,24 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
           styles.visitorCard,
           { 
             backgroundColor: theme.surface,
-            borderStartColor: borderColor,
+            borderStartColor: statusConfig.border,
             opacity: pressed ? 0.9 : 1,
           },
         ]}
       >
-        <View style={styles.visitorCardHeader}>
+        <View style={[styles.visitorCardHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '12') }]}>
             <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
               {initials}
             </ThemedText>
           </View>
           <View style={styles.visitorHeaderInfo}>
-            <ThemedText style={[styles.visitorName, { color: theme.text }]} numberOfLines={1}>
-              {visitorName}
-            </ThemedText>
+            <View style={[styles.nameRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <ThemedText style={[styles.visitorName, { color: theme.text }]} numberOfLines={1}>
+                {visitorName}
+              </ThemedText>
+              {item.isWalkIn ? <WalkInBadge size="sm" /> : null}
+            </View>
             <ThemedText style={[styles.visitorCompany, { color: theme.textSecondary }]} numberOfLines={1}>
               {item.visitor.company ?? ''}
             </ThemedText>
@@ -249,10 +306,10 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
 
         <Spacer height={Spacing.md} />
 
-        <View style={styles.visitorMetaRow}>
+        <View style={[styles.visitorMetaRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <DDIcon name="clock" size={14} color={theme.textSecondary} />
           <ThemedText style={[styles.visitorMetaText, { color: theme.textSecondary }]}>
-            {item.visitTime}
+            {formatTimeFromString(item.visitTime)}
           </ThemedText>
           <View style={styles.metaDot} />
           <DDIcon name="user" size={14} color={theme.textSecondary} />
@@ -263,11 +320,48 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
 
         <Spacer height={Spacing.md} />
 
-        <View style={styles.visitorCardFooter}>
-          <View style={[styles.locationBadge, { backgroundColor: applyOpacity(theme.info, '12') }]}>
-            <DDIcon name="map-pin" size={14} color={theme.info} />
+        <View style={[styles.servicesStatusRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <ServiceIconsRow visitor={item} />
+          <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: 1 }]}>
+            <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
+              {statusConfig.label}
+            </ThemedText>
           </View>
+        </View>
 
+        {isExpanded && hasDetails ? (
+          <View style={styles.expandedSection}>
+            {item.visitor.phone ? (
+              <View style={[styles.detailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                <DDIcon name="phone" size={14} color={theme.textSecondary} />
+                <ThemedText style={[styles.detailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+                  {item.visitor.phone}
+                </ThemedText>
+              </View>
+            ) : null}
+          </View>
+        ) : null}
+
+        {hasDetails ? (
+          <Pressable 
+            onPress={(e) => { e.stopPropagation(); toggleVisitorExpanded(item.id); }} 
+            style={styles.toggleContainer}
+          >
+            <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
+              {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
+            </ThemedText>
+            <DDIcon 
+              name={isExpanded ? 'chevron-up' : 'chevron-down'} 
+              size={16} 
+              color={theme.primary} 
+            />
+          </Pressable>
+        ) : null}
+
+        <Spacer height={Spacing.md} />
+
+        <View style={[styles.visitorCardFooter, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View />
           {showCheckIn ? (
             <VisitorActionButton 
               type="check_in" 
@@ -311,7 +405,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
   return (
     <>
       <ScreenScrollView contentContainerStyle={scrollContentStyle}>
-        <View style={styles.kpiRow}>
+        <View style={[styles.kpiRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <KPICard 
             title={t('dashboard.expectedToday')} 
             value={String(expectedCount)} 
@@ -346,27 +440,27 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
 
         <Spacer height={Spacing.md} />
 
-        <View style={styles.quickActionsRow}>
+        <View style={[styles.quickActionsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <QuickActionButton
             icon="users"
             label={t('navigation.allVisitors')}
             iconBgColor={applyOpacity(theme.primary, '12')}
             iconColor={theme.primary}
-            onPress={() => navigation.navigate('AllVisitors')}
+            onPress={() => navigation.navigate(ROUTES.ALL_VISITORS as never)}
           />
           <QuickActionButton
             icon="user-plus"
             label={t('navigation.walkInVisitors')}
             iconBgColor={applyOpacity(theme.success, '12')}
             iconColor={theme.success}
-            onPress={() => navigation.navigate('WalkInVisitors')}
+            onPress={() => navigation.navigate(ROUTES.WALK_IN_VISITORS as never)}
           />
           <QuickActionButton
             icon="clock"
             label={t('navigation.todaysVisitors')}
             iconBgColor={applyOpacity(theme.warning, '12')}
             iconColor={theme.warning}
-            onPress={() => navigation.navigate('AllVisitorsToday')}
+            onPress={() => navigation.navigate(ROUTES.ALL_VISITORS_TODAY as never)}
           />
         </View>
 
@@ -394,10 +488,10 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
                   style={[styles.roomCard, { backgroundColor: theme.surface }]}
                 >
                   <Pressable
-                    style={styles.roomHeader}
+                    style={[styles.roomHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
                     onPress={() => toggleRoomExpanded(room.id)}
                   >
-                    <View style={styles.roomHeaderLeft}>
+                    <View style={[styles.roomHeaderLeft, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                       <View style={[styles.roomIconContainer, { backgroundColor: applyOpacity(theme.info, '12') }]}>
                         <DDIcon name="home" size={20} color={theme.info} />
                       </View>
@@ -410,7 +504,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
                         </ThemedText>
                       </View>
                     </View>
-                    <View style={styles.roomHeaderRight}>
+                    <View style={[styles.roomHeaderRight, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                       <View style={[styles.meetingCountBadge, { backgroundColor: applyOpacity(statusColor, '12') }]}>
                         <ThemedText style={[styles.meetingCountText, { color: statusColor }]}>
                           {room.status}
@@ -430,7 +524,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
                     <View style={[styles.meetingsList, { borderTopColor: theme.border }]}>
                       {room.currentBooking ? (
                         <View style={styles.meetingItem}>
-                          <View style={styles.meetingTimeSlot}>
+                          <View style={[styles.meetingTimeSlot, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                             <DDIcon name="clock" size={14} color={theme.textSecondary} />
                             <ThemedText style={[styles.meetingTime, { color: theme.textSecondary }]}>
                               {room.currentBooking.startTime} - {room.currentBooking.endTime ?? t('common.ongoing')}
@@ -440,7 +534,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
                             {room.currentBooking.visitorName}
                           </ThemedText>
                           {room.currentBooking.hostName ? (
-                            <View style={styles.meetingMeta}>
+                            <View style={[styles.meetingMeta, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                               <DDIcon name="user" size={12} color={theme.textSecondary} />
                               <ThemedText style={[styles.meetingHost, { color: theme.textSecondary }]} numberOfLines={1}>
                                 {room.currentBooking.hostName}
@@ -451,7 +545,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
                       ) : null}
                       {room.nextBooking ? (
                         <View style={[styles.meetingItem, room.currentBooking && { borderTopWidth: 1, borderTopColor: applyOpacity(theme.border, '50') }]}>
-                          <View style={styles.meetingTimeSlot}>
+                          <View style={[styles.meetingTimeSlot, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                             <DDIcon name="clock" size={14} color={theme.textSecondary} />
                             <ThemedText style={[styles.meetingTime, { color: theme.textSecondary }]}>
                               {t('reception.next')}: {room.nextBooking.startTime}
@@ -480,16 +574,16 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
 
         <Spacer height={Spacing.xl} />
 
-        <View style={styles.sectionHeader}>
+        <View style={[styles.sectionHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
             {t('navigation.todaysVisitors')}
           </ThemedText>
           {todaysVisitors.length > 3 ? (
             <Pressable 
-              onPress={() => navigation.navigate('AllVisitorsToday')}
+              onPress={() => navigation.navigate(ROUTES.ALL_VISITORS_TODAY as never)}
               style={({ pressed }) => [
                 styles.viewAllButton,
-                { opacity: pressed ? 0.7 : 1 }
+                { opacity: pressed ? 0.7 : 1, flexDirection: isRTL ? 'row-reverse' : 'row' }
               ]}
             >
               <ThemedText style={[styles.viewAllText, { color: theme.primary }]}>
@@ -527,7 +621,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
             bottom: insets.bottom + 80 + Spacing.lg,
           },
         ]}
-        onPress={() => navigation.navigate('WalkInRegistration')}
+        onPress={() => navigation.navigate(ROUTES.WALK_IN_REGISTRATION as never)}
       >
         <DDIcon name="user-plus" size={24} color="#FFFFFF" />
       </Pressable>
@@ -550,11 +644,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     borderRadius: 16,
     alignItems: 'center',
+    borderWidth: 0,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
   },
   kpiIconContainer: {
     width: 56,
@@ -565,6 +660,7 @@ const styles = StyleSheet.create({
   },
   kpiValue: {
     fontSize: 32,
+    lineHeight: 40,
     fontWeight: '700',
     letterSpacing: -0.5,
   },
@@ -585,6 +681,7 @@ const styles = StyleSheet.create({
   viewAllButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 4,
   },
   viewAllText: {
     fontSize: 14,
@@ -592,25 +689,19 @@ const styles = StyleSheet.create({
   },
   quickActionsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     gap: Spacing.sm,
   },
   quickActionCard: {
     flex: 1,
-    paddingVertical: Spacing.lg,
-    paddingHorizontal: Spacing.md,
-    borderRadius: 12,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 1,
+    paddingVertical: Spacing.lg,
+    paddingHorizontal: Spacing.sm,
+    borderRadius: 12,
   },
   quickActionIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -619,127 +710,24 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     textAlign: 'center',
   },
-  visitorsList: {
-    gap: Spacing.md,
-  },
-  visitorCard: {
-    borderRadius: 12,
-    borderStartWidth: 4,
-    padding: Spacing.lg,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  visitorCardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  visitorHeaderInfo: {
-    marginStart: Spacing.md,
-    flex: 1,
-  },
-  visitorName: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  visitorCompany: {
-    fontSize: 13,
-    marginTop: 2,
-  },
-  visitorMetaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  visitorMetaText: {
-    fontSize: 13,
-    marginStart: 4,
-  },
-  metaDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#D1D5DB',
-    marginHorizontal: Spacing.sm,
-  },
-  visitorCardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  locationBadge: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  statusButton: {
-    width: 90,
-    height: 32,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  statusButtonText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  emptyState: {
-    padding: Spacing.xl,
-    borderRadius: BorderRadius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  fab: {
-    position: 'absolute',
-    end: Spacing.lg,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
   meetingsContainer: {
-    gap: Spacing.md,
+    gap: Spacing.sm,
   },
   roomCard: {
-    borderRadius: BorderRadius.md,
+    borderRadius: 12,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 1,
   },
   roomHeader: {
+    padding: Spacing.md,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    padding: Spacing.lg,
+    justifyContent: 'space-between',
   },
   roomHeaderLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
+    gap: Spacing.sm,
   },
   roomIconContainer: {
     width: 40,
@@ -749,11 +737,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   roomInfo: {
-    marginStart: Spacing.md,
     flex: 1,
   },
   roomName: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
   },
   roomFloor: {
@@ -773,13 +760,15 @@ const styles = StyleSheet.create({
   meetingCountText: {
     fontSize: 11,
     fontWeight: '600',
+    textTransform: 'capitalize',
   },
   meetingsList: {
+    paddingHorizontal: Spacing.md,
+    paddingBottom: Spacing.md,
     borderTopWidth: 1,
-    paddingHorizontal: Spacing.lg,
   },
   meetingItem: {
-    paddingVertical: Spacing.md,
+    paddingVertical: Spacing.sm,
   },
   meetingTimeSlot: {
     flexDirection: 'row',
@@ -789,33 +778,163 @@ const styles = StyleSheet.create({
   },
   meetingTime: {
     fontSize: 12,
-    fontWeight: '500',
   },
   meetingTitle: {
     fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 4,
+    fontWeight: '500',
   },
   meetingMeta: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
+    marginTop: 4,
   },
   meetingHost: {
     fontSize: 12,
-    flex: 1,
   },
-  visitorsBadge: {
+  visitorsList: {
+    gap: Spacing.sm,
+  },
+  visitorCard: {
+    borderRadius: 12,
+    padding: Spacing.md,
+    borderStartWidth: 4,
+  },
+  visitorCardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 3,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: BorderRadius.full,
+  },
+  avatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarText: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  visitorHeaderInfo: {
+    flex: 1,
     marginStart: Spacing.sm,
   },
-  visitorsBadgeText: {
-    fontSize: 10,
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  visitorName: {
+    fontSize: 15,
     fontWeight: '600',
+  },
+  visitorCompany: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  companyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    marginTop: 2,
+  },
+  visitorMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    flexWrap: 'wrap',
+  },
+  visitorMetaText: {
+    fontSize: 12,
+  },
+  metaDot: {
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
+    backgroundColor: '#CBD5E1',
+    marginHorizontal: 4,
+  },
+  servicesStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  servicesRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    alignItems: 'center',
+  },
+  servicePill: {
+    width: 32,
+    height: 32,
+    borderRadius: BorderRadius.full,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  statusBadge: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.sm,
+  },
+  statusText: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  expandedSection: {
+    marginTop: Spacing.md,
+    gap: Spacing.sm,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.sm,
+  },
+  detailText: {
+    fontSize: 13,
+    flex: 1,
+  },
+  toggleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: Spacing.md,
+    gap: Spacing.xs,
+  },
+  toggleText: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  visitorCardFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  locationBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.sm,
+    gap: 4,
+  },
+  emptyState: {
+    padding: Spacing.xl,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fab: {
+    position: 'absolute',
+    right: Spacing.lg,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 6,
   },
 });

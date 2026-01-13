@@ -1,6 +1,8 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { View, StyleSheet, Pressable, Modal, Alert, ScrollView, KeyboardAvoidingView, Platform, Switch, SectionList, FlatList, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, Pressable, Modal, ScrollView, KeyboardAvoidingView, Platform, Switch, SectionList, FlatList, ActivityIndicator } from 'react-native';
+import { ConfirmationModal } from '@/components/shared/ConfirmationModal';
 import { useNavigation } from '@react-navigation/native';
+import { ROUTES } from "@/constants";
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { StyledInput } from '@/components/StyledInput';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -18,10 +20,10 @@ import {
   useCreateUserMutation, 
   useUpdateUserMutation, 
   useDeleteUserMutation,
-  useManagersQuery,
+  useUsersByRoleQuery,
 } from '@/hooks/queries/useUserQueries';
 import type { UserDto, CreateUserDto, UpdateUserDto, UserRole as ApiUserRole } from '@/types/api.types';
-import { UserRole } from '@/types/vms.types';
+import { UserRole, USER_ROLES } from '@/types/vms.types';
 
 type UserSource = 'microsoft_ad' | 'app_created';
 
@@ -66,20 +68,13 @@ function mapUserDtoToDisplayUser(dto: UserDto): DisplayUser {
   };
 }
 
-const ALL_ROLES: UserRole[] = [
-  'employee',
-  'manager',
-  'receptionist',
-  'security',
-  'building_admin',
-  'buffet_admin',
-  'buffet_staff',
-  'valet_admin',
-  'valet_driver',
-  'visitor',
-];
+const ALL_ROLES: UserRole[] = USER_ROLES.filter(role => role !== 'visitor');
 
-type SortOption = 'name' | 'role' | 'department';
+const HIDDEN_ROLES_IN_CREATE: UserRole[] = ['valet_driver', 'visitor'];
+const DISABLED_ROLES_IN_CREATE: UserRole[] = ['employee', 'manager'];
+const CREATABLE_ROLES: UserRole[] = ALL_ROLES.filter(role => !HIDDEN_ROLES_IN_CREATE.includes(role));
+
+type SortOption = 'createdAt' | 'name' | 'role' | 'department';
 type ViewMode = 'list' | 'grid' | 'table';
 type GroupMode = 'none' | 'role';
 
@@ -111,7 +106,7 @@ function useDebounce<T>(value: T, delay: number): T {
 
 export default function UsersRolesScreen() {
   const { theme } = useTheme();
-  const { t } = useTranslation();
+  const { t, isRTL } = useTranslation();
   const insets = useSafeAreaInsets();
   const { showError, showSuccess } = useToast();
   const navigation = useNavigation<NavigationProp>();
@@ -121,7 +116,7 @@ export default function UsersRolesScreen() {
   const [filterRole, setFilterRole] = useState<UserRole | 'all'>('all');
   const [filterActive, setFilterActive] = useState<boolean | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<SortOption>('name');
+  const [sortBy, setSortBy] = useState<SortOption>('createdAt');
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [groupBy, setGroupBy] = useState<GroupMode>('none');
   const [showSortMenu, setShowSortMenu] = useState(false);
@@ -130,17 +125,27 @@ export default function UsersRolesScreen() {
   const [bulkMode, setBulkMode] = useState(false);
   const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(new Set());
   
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<string | null>(null);
+  
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
-    role: 'employee' as UserRole,
+    role: 'receptionist' as UserRole,
     department: '',
     phoneNumber: '',
     status: 'active' as 'active' | 'inactive',
     autoApproval: false,
     managerId: '' as string | undefined,
   });
+
+  const [formErrors, setFormErrors] = useState<{
+    name?: string;
+    email?: string;
+    password?: string;
+    phone?: string;
+  }>({});
 
   const debouncedSearch = useDebounce(searchQuery, 300);
 
@@ -150,6 +155,8 @@ export default function UsersRolesScreen() {
     role: filterRole !== 'all' ? filterRole as ApiUserRole : undefined,
     search: debouncedSearch || undefined,
     isActive: filterActive !== 'all' ? filterActive : undefined,
+    sortBy: 'createdAt' as const,
+    sortOrder: 'desc' as const,
   }), [currentPage, filterRole, debouncedSearch, filterActive]);
 
   const { 
@@ -165,7 +172,7 @@ export default function UsersRolesScreen() {
   const updateMutation = useUpdateUserMutation();
   const deleteMutation = useDeleteUserMutation();
   
-  const { data: managers = [] } = useManagersQuery();
+  const { data: managers = [] } = useUsersByRoleQuery('manager' as ApiUserRole);
 
   const users: DisplayUser[] = useMemo(() => {
     if (!usersResponse?.data) return [];
@@ -173,8 +180,8 @@ export default function UsersRolesScreen() {
   }, [usersResponse?.data]);
 
   const totalPages = useMemo(() => {
-    if (!usersResponse) return 1;
-    return Math.ceil(usersResponse.total / ITEMS_PER_PAGE);
+    if (!usersResponse || !usersResponse.total) return 1;
+    return Math.ceil(usersResponse.total / ITEMS_PER_PAGE) || 1;
   }, [usersResponse]);
 
   const totalUsers = usersResponse?.total ?? 0;
@@ -195,19 +202,20 @@ export default function UsersRolesScreen() {
       name: '',
       email: '',
       password: '',
-      role: 'employee',
+      role: 'receptionist',
       department: '',
       phoneNumber: '',
       status: 'active',
       autoApproval: false,
       managerId: undefined,
     });
+    setFormErrors({});
     setShowModal(true);
   };
 
   const handleViewUserDetail = (userId: string) => {
     if (bulkMode) return;
-    navigation.navigate('UserDetail', { userId });
+    navigation.navigate(ROUTES.USER_DETAIL as never, { userId } as never);
   };
 
   const handleEditUser = (user: DisplayUser) => {
@@ -216,6 +224,7 @@ export default function UsersRolesScreen() {
     setFormData({
       name: user.name,
       email: user.email,
+      password: '',
       role: user.role,
       department: user.department || '',
       phoneNumber: user.phoneNumber || '',
@@ -223,6 +232,7 @@ export default function UsersRolesScreen() {
       autoApproval: user.autoApproval,
       managerId: user.managerId,
     });
+    setFormErrors({});
     setShowModal(true);
   };
 
@@ -257,18 +267,33 @@ export default function UsersRolesScreen() {
   const handlePhoneChange = (text: string) => {
     const formatted = formatSaudiPhone(text);
     setFormData({ ...formData, phoneNumber: formatted });
+    if (formErrors.phone) setFormErrors({ ...formErrors, phone: undefined });
   };
 
   const handleSaveUser = async () => {
-    if (!formData.name || !formData.email || !formData.role) {
-      Alert.alert(t('common.error'), t('form.fieldRequired'));
+    const errors: typeof formErrors = {};
+    
+    if (!formData.name.trim()) {
+      errors.name = t('form.fieldRequired');
+    }
+    if (!formData.email.trim()) {
+      errors.email = t('form.fieldRequired');
+    }
+    if (!editingUser && !formData.password) {
+      errors.password = t('form.passwordRequired');
+    }
+    if (!formData.phoneNumber) {
+      errors.phone = t('form.phoneRequired');
+    } else if (!validatePhone(formData.phoneNumber)) {
+      errors.phone = t('errors.invalidPhone');
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
       return;
     }
 
-    if (formData.phoneNumber && !validatePhone(formData.phoneNumber)) {
-      Alert.alert(t('common.error'), t('errors.invalidPhone'));
-      return;
-    }
+    setFormErrors({});
 
     try {
       if (editingUser) {
@@ -307,26 +332,25 @@ export default function UsersRolesScreen() {
 
   const handleDeleteUser = (userId: string) => {
     if (bulkMode) return;
-    Alert.alert(
-      t('common.delete'),
-      t('common.confirm'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('common.delete'),
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteMutation.mutateAsync(userId);
-              showSuccess(t('toast.successTitle'), t('toast.userDeleted'));
-            } catch (err: unknown) {
-              const errorMessage = err instanceof Error ? err.message : t('toast.unknownError');
-              showError(t('toast.errorTitle'), errorMessage);
-            }
-          },
-        },
-      ]
-    );
+    setUserToDelete(userId);
+    setDeleteModalVisible(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!userToDelete) return;
+    await deleteMutation.mutateAsync(userToDelete);
+  };
+
+  const handleDeleteSuccess = () => {
+    setDeleteModalVisible(false);
+    setUserToDelete(null);
+    showSuccess(t('toast.successTitle'), t('toast.userDeleted'));
+    refetch();
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteModalVisible(false);
+    setUserToDelete(null);
   };
 
   const toggleUserSelection = (userId: string) => {
@@ -406,6 +430,7 @@ export default function UsersRolesScreen() {
 
   const getSortLabel = (sort: SortOption) => {
     const labels: Record<SortOption, string> = {
+      createdAt: t('common.newest'),
       name: t('form.fullName'),
       role: t('common.userSource'),
       department: t('form.company'),
@@ -416,18 +441,20 @@ export default function UsersRolesScreen() {
   const filteredAndSortedUsers = useMemo(() => {
     let result = [...users];
     
-    result = result.sort((a, b) => {
-      switch (sortBy) {
-        case 'name':
-          return a.name.localeCompare(b.name);
-        case 'role':
-          return a.role.localeCompare(b.role);
-        case 'department':
-          return (a.department || '').localeCompare(b.department || '');
-        default:
-          return 0;
-      }
-    });
+    if (sortBy !== 'createdAt') {
+      result = result.sort((a, b) => {
+        switch (sortBy) {
+          case 'name':
+            return a.name.localeCompare(b.name);
+          case 'role':
+            return a.role.localeCompare(b.role);
+          case 'department':
+            return (a.department || '').localeCompare(b.department || '');
+          default:
+            return 0;
+        }
+      });
+    }
     
     return result;
   }, [users, sortBy]);
@@ -477,22 +504,22 @@ export default function UsersRolesScreen() {
           }
         ]}
       >
-        <View style={styles.userHeader}>
+        <View style={[styles.userHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           {bulkMode ? (
             <View style={{ marginEnd: Spacing.md }}>
               {renderCheckbox(item.id)}
             </View>
           ) : null}
           <View style={{ flex: 1 }}>
-            <View style={styles.nameRow}>
-              <ThemedText style={[Typography.subtitle, { fontWeight: '600', flex: 1 }]} numberOfLines={1}>
+            <View style={[styles.nameRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <ThemedText style={[Typography.subtitle, { fontWeight: '600', flex: 1, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
                 {item.name}
               </ThemedText>
             </View>
             <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginBottom: Spacing.xs }]} numberOfLines={1}>
               {item.email}
             </ThemedText>
-            <View style={styles.badgeRow}>
+            <View style={[styles.badgeRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <View style={[styles.roleBadge, { backgroundColor: theme.primary + '20' }]}>
                 <ThemedText style={[Typography.caption, { color: theme.primary, fontWeight: '600' }]}>
                   {getRoleLabel(item.role)}
@@ -509,7 +536,7 @@ export default function UsersRolesScreen() {
             </View>
           </View>
           {!isGrid && !bulkMode ? (
-            <View style={styles.actions}>
+            <View style={[styles.actions, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <Pressable
                 style={[styles.actionButton, { backgroundColor: theme.primary + '15' }]}
                 onPress={() => handleEditUser(item)}
@@ -531,7 +558,7 @@ export default function UsersRolesScreen() {
           <>
             <Spacer height={Spacing.md} />
             {item.department ? (
-              <View style={[styles.infoRow, bulkMode ? { marginStart: 32 } : null]}>
+              <View style={[styles.infoRow, bulkMode ? { marginStart: 32 } : null, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <DDIcon name="briefcase" variant="muted" size={14} />
                 <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginStart: Spacing.xs }]}>
                   {item.department}
@@ -541,7 +568,7 @@ export default function UsersRolesScreen() {
             {item.phoneNumber ? (
               <>
                 <Spacer height={Spacing.xs} />
-                <View style={[styles.infoRow, bulkMode ? { marginStart: 32 } : null]}>
+                <View style={[styles.infoRow, bulkMode ? { marginStart: 32 } : null, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                   <DDIcon name="phone" variant="muted" size={14} />
                   <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginStart: Spacing.xs }]}>
                     {item.phoneNumber}
@@ -1268,8 +1295,13 @@ export default function UsersRolesScreen() {
               <StyledInput
                 label={`${t('form.fullName')} *`}
                 value={formData.name}
-                onChangeText={(text) => setFormData({ ...formData, name: text })}
+                onChangeText={(text) => {
+                  setFormData({ ...formData, name: text });
+                  if (formErrors.name) setFormErrors({ ...formErrors, name: undefined });
+                }}
                 placeholder={t('form.enterFullName')}
+                error={formErrors.name}
+                returnKeyType="next"
               />
 
               <Spacer height={Spacing.md} />
@@ -1277,23 +1309,33 @@ export default function UsersRolesScreen() {
               <StyledInput
                 label={`${t('auth.email')} *`}
                 value={formData.email}
-                onChangeText={(text) => setFormData({ ...formData, email: text })}
+                onChangeText={(text) => {
+                  setFormData({ ...formData, email: text });
+                  if (formErrors.email) setFormErrors({ ...formErrors, email: undefined });
+                }}
                 placeholder={t('auth.emailPlaceholder')}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 editable={!editingUser}
+                error={formErrors.email}
+                returnKeyType="next"
               />
 
               {!editingUser ? (
                 <>
                   <Spacer height={Spacing.md} />
                   <StyledInput
-                    label={t('auth.password')}
+                    label={`${t('auth.password')} *`}
                     value={formData.password}
-                    onChangeText={(text) => setFormData({ ...formData, password: text })}
+                    onChangeText={(text) => {
+                      setFormData({ ...formData, password: text });
+                      if (formErrors.password) setFormErrors({ ...formErrors, password: undefined });
+                    }}
                     placeholder={t('auth.passwordPlaceholder')}
                     secureTextEntry={true}
                     autoCapitalize="none"
+                    error={formErrors.password}
+                    returnKeyType="next"
                   />
                 </>
               ) : null}
@@ -1308,33 +1350,52 @@ export default function UsersRolesScreen() {
                 showsHorizontalScrollIndicator={false}
                 style={{ marginBottom: Spacing.md }}
                 contentContainerStyle={{ paddingEnd: Spacing.xl }}
+                nestedScrollEnabled={true}
               >
-                {ALL_ROLES.map((role) => (
-                  <Pressable
-                    key={role}
-                    style={[
-                      styles.roleOption,
-                      {
-                        backgroundColor: formData.role === role ? theme.primary : theme.surface,
-                        borderColor: formData.role === role ? theme.primary : theme.border,
-                        marginEnd: Spacing.sm,
-                      },
-                    ]}
-                    onPress={() => setFormData({ ...formData, role })}
-                  >
-                    <ThemedText
+                {CREATABLE_ROLES.map((role) => {
+                  const isDisabled = DISABLED_ROLES_IN_CREATE.includes(role);
+                  const isSelected = formData.role === role;
+                  return (
+                    <Pressable
+                      key={role}
                       style={[
-                        Typography.caption,
+                        styles.roleOption,
                         {
-                          color: formData.role === role ? theme.buttonText : theme.text,
-                          fontWeight: formData.role === role ? '600' : '400',
+                          backgroundColor: isDisabled 
+                            ? theme.surfaceSecondary 
+                            : isSelected 
+                              ? theme.primary 
+                              : theme.surface,
+                          borderColor: isDisabled 
+                            ? theme.border 
+                            : isSelected 
+                              ? theme.primary 
+                              : theme.border,
+                          marginEnd: Spacing.sm,
+                          opacity: isDisabled ? 0.5 : 1,
                         },
                       ]}
+                      onPress={() => !isDisabled && setFormData({ ...formData, role })}
+                      disabled={isDisabled}
                     >
-                      {getRoleLabel(role)}
-                    </ThemedText>
-                  </Pressable>
-                ))}
+                      <ThemedText
+                        style={[
+                          Typography.caption,
+                          {
+                            color: isDisabled 
+                              ? theme.textSecondary 
+                              : isSelected 
+                                ? theme.buttonText 
+                                : theme.text,
+                            fontWeight: isSelected ? '600' : '400',
+                          },
+                        ]}
+                      >
+                        {getRoleLabel(role)}
+                      </ThemedText>
+                    </Pressable>
+                  );
+                })}
               </ScrollView>
 
               <StyledInput
@@ -1342,16 +1403,20 @@ export default function UsersRolesScreen() {
                 value={formData.department}
                 onChangeText={(text) => setFormData({ ...formData, department: text })}
                 placeholder={t('form.enterCompany')}
+                returnKeyType="next"
               />
 
               <Spacer height={Spacing.md} />
 
               <StyledInput
-                label={t('form.phoneNumber')}
+                label={`${t('form.phoneNumber')} *`}
                 value={formData.phoneNumber}
                 onChangeText={handlePhoneChange}
                 placeholder="+966 5X XXX XXXX"
                 keyboardType="phone-pad"
+                error={formErrors.phone}
+                returnKeyType="done"
+                onSubmitEditing={handleSaveUser}
               />
 
               <Spacer height={Spacing.md} />
@@ -1364,6 +1429,7 @@ export default function UsersRolesScreen() {
                 showsHorizontalScrollIndicator={false}
                 style={{ marginBottom: Spacing.md }}
                 contentContainerStyle={{ paddingEnd: Spacing.xl }}
+                nestedScrollEnabled={true}
               >
                 <Pressable
                   style={[
@@ -1455,6 +1521,19 @@ export default function UsersRolesScreen() {
           </View>
         </KeyboardAvoidingView>
       </Modal>
+
+      <ConfirmationModal
+        visible={deleteModalVisible}
+        title={t('common.delete')}
+        description={t('common.confirm')}
+        confirmLabel={t('common.delete')}
+        cancelLabel={t('common.cancel')}
+        tone="danger"
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+        onSuccess={handleDeleteSuccess}
+        successMessage={t('toast.userDeleted')}
+      />
     </ThemedView>
   );
 }

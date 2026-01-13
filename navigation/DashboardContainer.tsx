@@ -1,16 +1,18 @@
-import React, { useState, useEffect } from "react";
-import { NavigationContainer, useNavigation, useNavigationState, useFocusEffect, CommonActions } from "@react-navigation/native";
+import React from "react";
+import { NavigationContainer, useNavigation, useNavigationState, CommonActions } from "@react-navigation/native";
+import { navigationRef } from "./navigationRef";
 import { createNativeStackNavigator, NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useLanguage } from "@/contexts/LanguageContext";
 import DashboardLayout from "@/components/DashboardLayout";
 import OverviewScreen from "@/screens/Dashboard/OverviewScreen";
-import NotificationsScreen from "@/screens/NotificationsScreen";
-import SettingsScreen from "@/screens/SettingsScreen";
+import NotificationsScreen from "@/screens/Common/NotificationsScreen";
+import SettingsScreen from "@/screens/Common/SettingsScreen";
 import VisitorRequestsScreen from "@/screens/Employee/VisitorRequestsScreen";
 import VisitTypeSelectionScreen from "@/screens/Employee/VisitTypeSelectionScreen";
 import VisitorRequestFormScreen from "@/screens/Employee/VisitorRequestFormScreen";
 import RequestDetailsScreen from "@/screens/Employee/RequestDetailsScreen";
-import ParkMyCarScreen from "@/screens/Employee/ParkMyCarScreen";
 import MyValetRequestsScreen from "@/screens/Employee/MyValetRequestsScreen";
+import EmployeeValetRequestDetailsScreen from "@/screens/Employee/ValetRequestDetailsScreen";
 import ManagerDashboardScreen from "@/screens/Manager/ManagerDashboardScreen";
 import ManagerApprovalDetailScreen from "@/screens/Manager/ManagerApprovalDetailScreen";
 import SecurityCheckInScreen from "@/screens/Security/SecurityCheckInScreen";
@@ -32,45 +34,25 @@ import UsersRolesScreen from "@/screens/Admin/UsersRolesScreen";
 import UserDetailScreen from "@/screens/Admin/UserDetailScreen";
 import ParkingValetSettingsScreen from "@/screens/Admin/ParkingValetSettingsScreen";
 import BuffetSettingsScreen from "@/screens/Admin/BuffetSettingsScreen";
-import SystemRulesScreen from "@/screens/Admin/SystemRulesScreen";
-import MeetingRoomCatalogScreen from "@/screens/Admin/MeetingRoomCatalogScreen";
-import MeetingCalendarScreen from "@/screens/Admin/MeetingCalendarScreen";
-import MeetingOperationsScreen from "@/screens/Admin/MeetingOperationsScreen";
-import MeetingRoomDetailScreen from "@/screens/Admin/MeetingRoomDetailScreen";
-import ValetZonesScreen from "@/screens/Admin/ValetZonesScreen";
-import NotificationTemplatesScreen from "@/screens/Admin/NotificationTemplatesScreen";
-import BiometricSettingsScreen from "@/screens/Admin/BiometricSettingsScreen";
 import ReminderRulesScreen from "@/screens/Admin/ReminderRulesScreen";
-import IntegrationsStatusScreen from "@/screens/Admin/IntegrationsStatusScreen";
-import EmployeeParkingAssignmentScreen from "@/screens/Admin/EmployeeParkingAssignmentScreen";
-import ParkingOccupancyScreen from "@/screens/Admin/ParkingOccupancyScreen";
-import GlobalAnalyticsScreen from "@/screens/Admin/GlobalAnalyticsScreen";
-import SystemEventLogScreen from "@/screens/Admin/SystemEventLogScreen";
-import ReminderScheduleScreen from "@/screens/Admin/ReminderScheduleScreen";
 import DriverTasksScreen from "@/screens/Driver/DriverTasksScreen";
 import DriverTaskDetailScreen from "@/screens/Driver/DriverTaskDetailScreen";
 import BuffetBoardScreen from "@/screens/Buffet/BuffetBoardScreen";
 import BuffetAdminDashboardScreen from "@/screens/BuffetAdmin/BuffetAdminDashboardScreen";
 import BuffetAdminStaffScreen from "@/screens/BuffetAdmin/BuffetAdminStaffScreen";
 import BuffetAdminLocationsScreen from "@/screens/BuffetAdmin/BuffetAdminLocationsScreen";
+import BuffetAdminCreateLocationScreen from "@/screens/BuffetAdmin/BuffetAdminCreateLocationScreen";
 import BuffetRequestDetailsScreen from "@/screens/BuffetAdmin/BuffetRequestDetailsScreen";
 import BuffetAllRequestsScreen from "@/screens/BuffetAdmin/BuffetAllRequestsScreen";
 import BuffetOverviewScreen from "@/screens/BuffetAdmin/BuffetOverviewScreen";
-import ValetAdminDashboardScreen from "@/screens/ValetAdmin/ValetAdminDashboardScreen";
-import ValetAdminDriversScreen from "@/screens/ValetAdmin/ValetAdminDriversScreen";
-import ValetAdminParkingScreen from "@/screens/ValetAdmin/ValetAdminParkingScreen";
 import ValetAllRequestsScreen from "@/screens/ValetAdmin/ValetAllRequestsScreen";
 import ValetRequestDetailsScreen from "@/screens/ValetAdmin/ValetRequestDetailsScreen";
 import BuildingAdminDashboardScreen from "@/screens/BuildingAdmin/BuildingAdminDashboardScreen";
 import AllRequestsScreen from "@/screens/BuildingAdmin/AllRequestsScreen";
-import ParkingUtilizationScreen from "@/screens/BuildingAdmin/ParkingUtilizationScreen";
-import ParkingSpotsScreen from "@/screens/BuildingAdmin/ParkingSpotsScreen";
-import ParkingPriorityRulesScreen from "@/screens/BuildingAdmin/ParkingPriorityRulesScreen";
-import DriverLoadScreen from "@/screens/ValetAdmin/DriverLoadScreen";
-import ChangePasswordScreen from "@/screens/ChangePasswordScreen";
-import EditProfileScreen from "@/screens/EditProfileScreen";
+import ChangePasswordScreen from "@/screens/Profile/ChangePasswordScreen";
+import EditProfileScreen from "@/screens/Profile/EditProfileScreen";
 import { UserRole } from "@/types/vms.types";
-import { getUnreadCount } from "@/services/mock/notificationState";
+import { useUnreadNotificationCountQuery } from "@/hooks/queries/useNotificationQueries";
 import type { NativeStackScreenProps, NativeStackNavigationOptions } from "@react-navigation/native-stack";
 import type { ParamListBase, RouteProp } from "@react-navigation/native";
 
@@ -79,9 +61,11 @@ const Stack = createNativeStackNavigator();
 interface DashboardContainerProps {
   userRole: UserRole;
   userName: string;
+  userEmail?: string;
   userPhotoUrl?: string | null;
   asManager?: boolean;
   onLogout: () => void;
+  isSSOUser?: boolean;
 }
 
 interface ScreenWrapperProps {
@@ -91,6 +75,7 @@ interface ScreenWrapperProps {
   userPhotoUrl?: string | null;
   onLogout: () => void;
   asManager?: boolean;
+  isSSOUser?: boolean;
 }
 
 type DriverTasksRenderProps = NativeStackScreenProps<{
@@ -113,7 +98,7 @@ type ValetTaskDetailRenderProps = NativeStackScreenProps<{
   ValetTaskDetail: { taskId: string };
 }, 'ValetTaskDetail'>;
 
-function ScreenWrapperInner({ children, userRole, userName, userPhotoUrl, onLogout, asManager }: ScreenWrapperProps) {
+function ScreenWrapperInner({ children, userRole, userName, userPhotoUrl, onLogout, asManager, isSSOUser }: ScreenWrapperProps) {
   const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
   const navigationState = useNavigationState((state) => state);
   
@@ -140,7 +125,7 @@ function ScreenWrapperInner({ children, userRole, userName, userPhotoUrl, onLogo
     if (role === 'valet_driver') return 'DriverTasks';
     if (role === 'buffet_staff') return 'BuffetBoard';
     if (role === 'buffet_admin') return 'BuffetAdminDashboard';
-    if (role === 'valet_admin') return 'ValetAdminDashboard';
+    if (role === 'valet_admin') return 'ValetAllRequests';
     if (role === 'building_admin') return 'BuildingAdminDashboard';
     if (role === 'security') return 'CheckIn';
     return 'Dashboard';
@@ -158,17 +143,8 @@ function ScreenWrapperInner({ children, userRole, userName, userPhotoUrl, onLogo
   };
 
   const effectiveRoleForWrapper = asManager ? 'manager' : userRole;
-  const [unreadCount, setUnreadCount] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setUnreadCount(getUnreadCount(effectiveRoleForWrapper));
-    }, 1000);
-    
-    setUnreadCount(getUnreadCount(effectiveRoleForWrapper));
-    
-    return () => clearInterval(interval);
-  }, [effectiveRoleForWrapper]);
+  const { data: unreadCountData } = useUnreadNotificationCountQuery();
+  const unreadCount = unreadCountData?.count ?? 0;
 
   return (
     <DashboardLayout
@@ -182,6 +158,7 @@ function ScreenWrapperInner({ children, userRole, userName, userPhotoUrl, onLogo
       canGoBack={canGoBack}
       onGoBack={handleGoBack}
       unreadNotificationCount={unreadCount}
+      isSSOUser={isSSOUser}
     >
       {children}
     </DashboardLayout>
@@ -190,22 +167,23 @@ function ScreenWrapperInner({ children, userRole, userName, userPhotoUrl, onLogo
 
 const ScreenWrapper = React.memo(ScreenWrapperInner);
 
-export default function DashboardContainer({ userRole, userName, userPhotoUrl, asManager, onLogout }: DashboardContainerProps) {
+export default function DashboardContainer({ userRole, userName, userEmail, userPhotoUrl, asManager, onLogout, isSSOUser }: DashboardContainerProps) {
   const effectiveRole = asManager ? 'manager' : userRole;
+  const { isRTL, locale } = useLanguage();
   
   const getInitialRouteName = () => {
     if (userRole === 'receptionist') return 'ReceptionistDashboard';
     if (userRole === 'valet_driver') return 'DriverTasks';
     if (userRole === 'buffet_staff') return 'BuffetBoard';
     if (userRole === 'buffet_admin') return 'BuffetAdminDashboard';
-    if (userRole === 'valet_admin') return 'ValetAdminDashboard';
-    if (userRole === 'building_admin') return 'BuildingAdminDashboard';
+    if (userRole === 'valet_admin') return 'ValetAllRequests';
+    if (userRole === 'building_admin') return 'AllRequests';
     if (userRole === 'security') return 'CheckIn';
     return 'Dashboard';
   };
   
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef} key={`nav-${locale}-${isRTL ? 'rtl' : 'ltr'}`}>
       <Stack.Navigator
         initialRouteName={getInitialRouteName()}
         screenOptions={{
@@ -214,45 +192,47 @@ export default function DashboardContainer({ userRole, userName, userPhotoUrl, a
       >
         <Stack.Screen name="Dashboard">
           {(props) => (
-            <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager}>
+            <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager} isSSOUser={isSSOUser}>
               <OverviewScreen userRole={effectiveRole} userName={userName} {...props} />
             </ScreenWrapper>
           )}
         </Stack.Screen>
         <Stack.Screen name="Notifications">
           {() => (
-            <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager}>
+            <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager} isSSOUser={isSSOUser}>
               <NotificationsScreen userRole={effectiveRole} />
             </ScreenWrapper>
           )}
         </Stack.Screen>
         <Stack.Screen name="RequestDetails">
           {(props) => (
-            <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager}>
-              <RequestDetailsScreen {...props} />
+            <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager} isSSOUser={isSSOUser}>
+              <RequestDetailsScreen {...props} userRole={effectiveRole} />
             </ScreenWrapper>
           )}
         </Stack.Screen>
         <Stack.Screen name="Settings">
           {() => (
-            <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager}>
-              <SettingsScreen userRole={effectiveRole} userName={userName} onLogout={onLogout} />
+            <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager} isSSOUser={isSSOUser}>
+              <SettingsScreen userRole={effectiveRole} userName={userName} userEmail={userEmail} onLogout={onLogout} />
             </ScreenWrapper>
           )}
         </Stack.Screen>
-        <Stack.Screen name="ChangePassword">
-          {({ navigation }) => (
-            <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager}>
-              <ChangePasswordScreen 
-                onSuccess={() => navigation.goBack()} 
-                onCancel={() => navigation.goBack()} 
-              />
-            </ScreenWrapper>
-          )}
-        </Stack.Screen>
+        {!isSSOUser ? (
+          <Stack.Screen name="ChangePassword">
+            {({ navigation }) => (
+              <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager} isSSOUser={isSSOUser}>
+                <ChangePasswordScreen 
+                  onSuccess={() => navigation.goBack()} 
+                  onCancel={() => navigation.goBack()} 
+                />
+              </ScreenWrapper>
+            )}
+          </Stack.Screen>
+        ) : null}
         <Stack.Screen name="EditProfile">
           {({ navigation }) => (
-            <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager}>
+            <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager} isSSOUser={isSSOUser}>
               <EditProfileScreen 
                 userRole={effectiveRole}
                 userName={userName}
@@ -267,36 +247,36 @@ export default function DashboardContainer({ userRole, userName, userPhotoUrl, a
           <>
             <Stack.Screen name="VisitTypeSelection">
               {(props) => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager}>
+                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager} isSSOUser={isSSOUser}>
                   <VisitTypeSelectionScreen {...props} />
                 </ScreenWrapper>
               )}
             </Stack.Screen>
             <Stack.Screen name="VisitorRequestForm">
               {(props) => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager}>
+                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager} isSSOUser={isSSOUser}>
                   <VisitorRequestFormScreen asManager={false} {...props} />
                 </ScreenWrapper>
               )}
             </Stack.Screen>
             <Stack.Screen name="VisitorRequests">
               {(props) => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager}>
+                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager} isSSOUser={isSSOUser}>
                   <VisitorRequestsScreen userRole="employee" {...props} />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
-            <Stack.Screen name="ParkMyCar">
-              {(props) => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager}>
-                  <ParkMyCarScreen {...props} />
                 </ScreenWrapper>
               )}
             </Stack.Screen>
             <Stack.Screen name="MyValetRequests">
               {(props) => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager}>
+                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager} isSSOUser={isSSOUser}>
                   <MyValetRequestsScreen {...props} />
+                </ScreenWrapper>
+              )}
+            </Stack.Screen>
+            <Stack.Screen name="ValetRequestDetails">
+              {(props) => (
+                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager} isSSOUser={isSSOUser}>
+                  <EmployeeValetRequestDetailsScreen {...props} />
                 </ScreenWrapper>
               )}
             </Stack.Screen>
@@ -306,43 +286,57 @@ export default function DashboardContainer({ userRole, userName, userPhotoUrl, a
           <>
             <Stack.Screen name="Approvals">
               {(props) => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager}>
+                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager} isSSOUser={isSSOUser}>
                   <ManagerDashboardScreen {...props} />
                 </ScreenWrapper>
               )}
             </Stack.Screen>
             <Stack.Screen name="ManagerApprovalDetail">
               {(props) => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager}>
+                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager} isSSOUser={isSSOUser}>
                   <ManagerApprovalDetailScreen {...props} />
                 </ScreenWrapper>
               )}
             </Stack.Screen>
             <Stack.Screen name="VisitTypeSelection">
               {(props) => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager}>
+                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager} isSSOUser={isSSOUser}>
                   <VisitTypeSelectionScreen {...props} />
                 </ScreenWrapper>
               )}
             </Stack.Screen>
             <Stack.Screen name="VisitorRequestForm">
               {(props) => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager}>
+                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager} isSSOUser={isSSOUser}>
                   <VisitorRequestFormScreen asManager={true} {...props} />
                 </ScreenWrapper>
               )}
             </Stack.Screen>
             <Stack.Screen name="VisitorRequests">
               {(props) => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager}>
+                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager} isSSOUser={isSSOUser}>
                   <VisitorRequestsScreen userRole="manager" {...props} />
                 </ScreenWrapper>
               )}
             </Stack.Screen>
             <Stack.Screen name="PendingApprovals">
               {(props) => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager}>
+                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager} isSSOUser={isSSOUser}>
                   <ManagerDashboardScreen {...props} />
+                </ScreenWrapper>
+              )}
+            </Stack.Screen>
+            <Stack.Screen name="MyValetRequests">
+              {(props) => (
+                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager} isSSOUser={isSSOUser}>
+                  <MyValetRequestsScreen {...props} />
+                </ScreenWrapper>
+              )}
+            </Stack.Screen>
+            <Stack.Screen name="ValetRequestDetails">
+              {(props) => (
+                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager} isSSOUser={isSSOUser}>
+                  <EmployeeValetRequestDetailsScreen {...props} />
                 </ScreenWrapper>
               )}
             </Stack.Screen>
@@ -476,9 +470,16 @@ export default function DashboardContainer({ userRole, userName, userPhotoUrl, a
               )}
             </Stack.Screen>
             <Stack.Screen name="BuffetLocations">
-              {() => (
+              {(props) => (
                 <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <BuffetAdminLocationsScreen />
+                  <BuffetAdminLocationsScreen {...props} />
+                </ScreenWrapper>
+              )}
+            </Stack.Screen>
+            <Stack.Screen name="BuffetCreateLocation">
+              {(props) => (
+                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
+                  <BuffetAdminCreateLocationScreen {...props} />
                 </ScreenWrapper>
               )}
             </Stack.Screen>
@@ -507,31 +508,10 @@ export default function DashboardContainer({ userRole, userName, userPhotoUrl, a
         )}
         {userRole === 'valet_admin' && (
           <>
-            <Stack.Screen name="ValetAdminDashboard">
-              {(props) => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <ValetAdminDashboardScreen {...props} />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
-            <Stack.Screen name="ValetDrivers">
-              {() => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <ValetAdminDriversScreen />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
-            <Stack.Screen name="ValetParking">
-              {() => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <ValetAdminParkingScreen />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
             <Stack.Screen name="ValetAllRequests">
-              {(props) => (
+              {() => (
                 <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <ValetAllRequestsScreen {...props} />
+                  <ValetAllRequestsScreen />
                 </ScreenWrapper>
               )}
             </Stack.Screen>
@@ -539,13 +519,6 @@ export default function DashboardContainer({ userRole, userName, userPhotoUrl, a
               {(props) => (
                 <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
                   <ValetRequestDetailsScreen {...props} />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
-            <Stack.Screen name="DriverLoad">
-              {() => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <DriverLoadScreen />
                 </ScreenWrapper>
               )}
             </Stack.Screen>
@@ -589,9 +562,9 @@ export default function DashboardContainer({ userRole, userName, userPhotoUrl, a
               )}
             </Stack.Screen>
             <Stack.Screen name="ValetOversight">
-              {(props) => (
+              {() => (
                 <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <ValetAdminDashboardScreen {...props} />
+                  <ValetAllRequestsScreen />
                 </ScreenWrapper>
               )}
             </Stack.Screen>
@@ -609,62 +582,6 @@ export default function DashboardContainer({ userRole, userName, userPhotoUrl, a
                 </ScreenWrapper>
               )}
             </Stack.Screen>
-            <Stack.Screen name="SystemRules">
-              {() => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <SystemRulesScreen />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
-            <Stack.Screen name="MeetingRoomCatalog">
-              {() => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <MeetingRoomCatalogScreen />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
-            <Stack.Screen name="MeetingCalendar">
-              {() => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <MeetingCalendarScreen />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
-            <Stack.Screen name="MeetingOperations">
-              {() => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <MeetingOperationsScreen />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
-            <Stack.Screen name="MeetingRoomDetail">
-              {(props: any) => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <MeetingRoomDetailScreen {...props} />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
-            <Stack.Screen name="ValetZones">
-              {() => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <ValetZonesScreen />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
-            <Stack.Screen name="NotificationTemplates">
-              {() => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <NotificationTemplatesScreen />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
-            <Stack.Screen name="BiometricSettings">
-              {() => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <BiometricSettingsScreen />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
             <Stack.Screen name="ReminderRules">
               {() => (
                 <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
@@ -672,66 +589,17 @@ export default function DashboardContainer({ userRole, userName, userPhotoUrl, a
                 </ScreenWrapper>
               )}
             </Stack.Screen>
-            <Stack.Screen name="IntegrationsStatus">
-              {() => (
+            <Stack.Screen name="ManagerApprovalDetail">
+              {(props) => (
                 <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <IntegrationsStatusScreen />
+                  <ManagerApprovalDetailScreen {...props} />
                 </ScreenWrapper>
               )}
             </Stack.Screen>
-            <Stack.Screen name="EmployeeParkingAssignment">
-              {() => (
+            <Stack.Screen name="BuffetRequestDetails">
+              {(props) => (
                 <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <EmployeeParkingAssignmentScreen />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
-            <Stack.Screen name="ParkingOccupancy">
-              {() => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <ParkingOccupancyScreen />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
-            <Stack.Screen name="GlobalAnalytics">
-              {() => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <GlobalAnalyticsScreen />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
-            <Stack.Screen name="SystemEventLog">
-              {() => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <SystemEventLogScreen />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
-            <Stack.Screen name="ReminderSchedule">
-              {() => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <ReminderScheduleScreen />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
-            <Stack.Screen name="ParkingUtilization">
-              {() => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <ParkingUtilizationScreen />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
-            <Stack.Screen name="ParkingSpots">
-              {() => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <ParkingSpotsScreen />
-                </ScreenWrapper>
-              )}
-            </Stack.Screen>
-            <Stack.Screen name="ParkingPriorityRules">
-              {() => (
-                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
-                  <ParkingPriorityRulesScreen />
+                  <BuffetRequestDetailsScreen {...props} />
                 </ScreenWrapper>
               )}
             </Stack.Screen>

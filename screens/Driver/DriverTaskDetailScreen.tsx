@@ -11,6 +11,7 @@ import Spacer from '@/components/Spacer';
 import { Spacing, BorderRadius, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useFormatters } from '@/hooks/useFormatters';
 import { applyOpacity } from '@/utils/statusStyles';
 import {
@@ -22,7 +23,7 @@ import {
   getAvailableParkingSlots,
   ValetRequest,
   ValetParkingSlot,
-} from '@/services/mock/valetAdminState';
+} from '@/services/state/valetAdminState';
 
 interface DriverTaskDetailScreenProps {
   taskId: string;
@@ -35,6 +36,7 @@ export default function DriverTaskDetailScreen({
 }: DriverTaskDetailScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { isRTL } = useLanguage();
   const { formatDate, formatTime } = useFormatters();
   const insets = useSafeAreaInsets();
   const [task, setTask] = useState<ValetRequest | null>(null);
@@ -142,13 +144,13 @@ export default function DriverTaskDetailScreen({
   const isTerminalStatus = task.status === 'completed' || task.status === 'cancelled';
 
   const renderInfoRow = (icon: string, label: string, value: string, iconVariant: 'muted' | 'primary' | 'success' = 'muted') => (
-    <View style={styles.infoRow}>
+    <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
       <DDIcon name={icon as IconName} variant={iconVariant} size={20} />
       <View style={{ flex: 1, marginStart: Spacing.md }}>
-        <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginBottom: 2 }]}>
+        <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginBottom: 2, textAlign: isRTL ? 'right' : 'left' }]}>
           {label}
         </ThemedText>
-        <ThemedText style={[Typography.body, { fontWeight: '500' }]}>
+        <ThemedText style={[Typography.body, { fontWeight: '500', textAlign: isRTL ? 'right' : 'left' }]}>
           {value}
         </ThemedText>
       </View>
@@ -164,7 +166,7 @@ export default function DriverTaskDetailScreen({
     >
       <View style={styles.modalOverlay}>
         <ThemedView style={[styles.modalContent, { backgroundColor: theme.background }]}>
-          <View style={styles.modalHeader}>
+          <View style={[styles.modalHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <ThemedText style={[Typography.subtitle, { fontWeight: '600' }]}>
               {t('parking.assignSlot')}
             </ThemedText>
@@ -180,21 +182,21 @@ export default function DriverTaskDetailScreen({
               {availableSlots.map((slot) => (
                 <Pressable
                   key={slot.id}
-                  style={[styles.slotCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                  style={[styles.slotCard, { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
                   onPress={() => handleSelectSlot(slot)}
                 >
                   <View style={[styles.slotIcon, { backgroundColor: applyOpacity(theme.success, '15') }]}>
                     <DDIcon name="check-circle" size={20} color={theme.success} />
                   </View>
                   <View style={{ flex: 1 }}>
-                    <ThemedText style={[Typography.body, { fontWeight: '600' }]}>
+                    <ThemedText style={[Typography.body, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
                       {slot.slotNumber}
                     </ThemedText>
-                    <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
+                    <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
                       {slot.zone}
                     </ThemedText>
                   </View>
-                  <DDIcon name="chevron-right" size={20} variant="muted" />
+                  <DDIcon name="chevron-right" size={20} variant="muted" directionAware />
                 </Pressable>
               ))}
             </ScrollView>
@@ -219,7 +221,7 @@ export default function DriverTaskDetailScreen({
         paddingTop: insets.top + Spacing.xl,
         paddingBottom: insets.bottom + Spacing.xl + 100
       }}>
-        <Pressable onPress={onNavigateBack} style={styles.backButton}>
+        <Pressable onPress={onNavigateBack} style={[styles.backButton, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <DDIcon name="arrow-left" variant="primary" directionAware />
           <ThemedText style={[Typography.body, { color: theme.primary, marginStart: Spacing.xs }]}>
             {t('common.back')}
@@ -228,12 +230,12 @@ export default function DriverTaskDetailScreen({
 
         <Spacer height={Spacing.xl} />
 
-        <View style={styles.headerSection}>
+        <View style={[styles.headerSection, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <View style={{ flex: 1 }}>
-            <ThemedText style={[Typography.title, { fontSize: 22, fontWeight: '600' }]}>
+            <ThemedText style={[Typography.title, { fontSize: 22, fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
               {task.visitorName}
             </ThemedText>
-            <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 4 }]}>
+            <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 4, textAlign: isRTL ? 'right' : 'left' }]}>
               {task.visitorCompany}
             </ThemedText>
           </View>
@@ -404,7 +406,8 @@ export default function DriverTaskDetailScreen({
             backgroundColor: task.status === 'completed' 
               ? applyOpacity(theme.success, '10') 
               : applyOpacity(theme.textSecondary, '10'),
-            borderColor: task.status === 'completed' ? theme.success : theme.textSecondary
+            borderColor: task.status === 'completed' ? theme.success : theme.textSecondary,
+            flexDirection: isRTL ? 'row-reverse' : 'row'
           }]}>
             <DDIcon 
               name={task.status === 'completed' ? 'check-circle' : 'x-circle'} 

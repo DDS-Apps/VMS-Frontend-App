@@ -11,7 +11,6 @@ import { getCommonScreenOptions } from "@/navigation/screenOptions";
 import VisitorRequestsScreen from "@/screens/Employee/VisitorRequestsScreen";
 import VisitorRequestFormScreen from "@/screens/Employee/VisitorRequestFormScreen";
 import RequestDetailsScreen from "@/screens/Employee/RequestDetailsScreen";
-import ParkMyCarScreen from "@/screens/Employee/ParkMyCarScreen";
 import SecurityCheckInScreen from "@/screens/Security/SecurityCheckInScreen";
 import ReceptionistDashboardScreen from "@/screens/Receptionist/ReceptionistDashboardScreen";
 import VisitTypeSelectionScreen from "@/screens/Employee/VisitTypeSelectionScreen";
@@ -22,7 +21,7 @@ import AllVisitorsTodayScreen from "@/screens/Receptionist/AllVisitorsTodayScree
 import CheckInOutConfirmationScreen from "@/screens/Receptionist/CheckInOutConfirmationScreen";
 import VisitorDetailScreen from "@/screens/Receptionist/VisitorDetailScreen";
 import AdminDashboardScreen from "@/screens/Admin/AdminDashboardScreen";
-import NotificationsScreen from "@/screens/NotificationsScreen";
+import NotificationsScreen from "@/screens/Common/NotificationsScreen";
 
 export type MainTabParamList = {
   DashboardTab: undefined;
@@ -55,14 +54,10 @@ function DashboardStack({ userRole }: { userRole: UserRole }) {
         />
         <Stack.Screen
           name="RequestDetails"
-          component={RequestDetailsScreen}
           options={{ headerTitle: "Request Details" }}
-        />
-        <Stack.Screen
-          name="ParkMyCar"
-          component={ParkMyCarScreen}
-          options={{ headerTitle: "Park My Car" }}
-        />
+        >
+          {(props) => <RequestDetailsScreen {...props} userRole="employee" />}
+        </Stack.Screen>
       </Stack.Navigator>
     );
   } else if (userRole === 'security') {

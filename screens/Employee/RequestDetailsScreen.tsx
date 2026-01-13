@@ -1,202 +1,359 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
-import { View, StyleSheet, Pressable, ScrollView, Modal, Platform, Alert, TextInput, Switch, Animated, ActivityIndicator } from "react-native";
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import {
+  View,
+  StyleSheet,
+  Pressable,
+  ScrollView,
+  Modal,
+  Platform,
+  Alert,
+  TextInput,
+  Switch,
+  Animated,
+  ActivityIndicator,
+} from "react-native";
+import QRCode from "react-native-qrcode-svg";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import DateTimePicker, {
+  DateTimePickerEvent,
+} from "@react-native-community/datetimepicker";
 import { CalendarDatePicker } from "@/components/CalendarDatePicker";
 import { TimePicker } from "@/components/TimePicker";
 import { DDIcon, type IconName } from "@/components/DDIcon";
+import { SelectableCard, CardGridStyles, getGridStyle, getCardWrapper3ColStyle } from "@/components/SelectableCard";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { LoadingButton } from "@/components/shared/LoadingButton";
+import { ApprovalActionGroup } from "@/components/shared/ApprovalActionGroup";
 import { SkeletonCard } from "@/components/shared/Skeleton";
+import { StatusBadge } from "@/components/shared/StatusBadge";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { ParkingSection } from "@/components/ParkingSection";
-import { VisitTimeline, useVisitTimelineSteps, type VisitTimelineData } from "@/components/VisitTimeline";
+import {
+  RequestTimeline,
+  useTimelineSteps,
+  type TimelineData,
+  type TimelineActionCallbacks,
+} from "@/components/shared/RequestTimeline";
 import Spacer from "@/components/Spacer";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
+import { REQUEST_STATUS, PURPOSE_OPTIONS } from "@/constants/requestConstants";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useVisitDetailsQuery, useCancelVisitMutation, useUpdateVisitMutation, useHostApproveVisitMutation, useHostRejectVisitMutation } from "@/hooks/queries/useApprovalQueries";
-import { VisitorRequest, ParkingType, ParkingLocation } from "@/types/vms.types";
-import type { VisitDetailsDto } from "@/types/api.types";
-import { getStatusConfig as getStatusStyle, applyOpacity, createModalOverlayStyle } from "@/utils/statusStyles";
+import {
+  useVisitDetailsQuery,
+  useCancelVisitMutation,
+  useUpdateVisitMutation,
+  useHostApproveVisitMutation,
+  useHostRejectVisitMutation,
+  useApproveVisitMutation,
+  useRejectVisitMutation,
+} from "@/hooks/queries/useApprovalQueries";
+import { useRoomAvailabilityQuery } from "@/hooks/queries/useMeetingRoomQueries";
+import type { RoomAvailabilityParams } from "@/types/api.types";
+import { VisitorRequest } from "@/types/vms.types";
+import {
+  getStatusConfig as getStatusStyle,
+  applyOpacity,
+  createModalOverlayStyle,
+} from "@/utils/statusStyles";
 import { RequestDetailsScreenProps } from "@/types/employeeNavigation.types";
+import {
+  mapVisitDetailsToVisitorRequest,
+  calculateDuration,
+  getDurationOptions,
+} from "@/utils/requestMappers";
+import { calculateServerDuration } from "@/utils/dateTimeUtils";
+import { useServerDateTime } from "@/hooks/useServerDateTime";
+import { useAuth } from "@/contexts/AuthContext";
 
-const isEmptyObject = (obj: any): boolean => {
-  return obj && typeof obj === 'object' && Object.keys(obj).length === 0;
-};
-
-const hasValidData = (obj: any): boolean => {
-  if (!obj || typeof obj !== 'object') return false;
-  if (Object.keys(obj).length === 0) return false;
-  return true;
-};
-
-const mapVisitDetailsToVisitorRequest = (visit: VisitDetailsDto): VisitorRequest & { parkingPending?: boolean; meetingRoomPending?: boolean } => {
-  const statusMap: Record<string, VisitorRequest['status']> = {
-    pending: 'pending_approval',
-    pending_approval: 'pending_approval',
-    approved: 'approved',
-    accepted: 'visitor_accepted',
-    rejected: 'visitor_rejected',
-    expired: 'auto_cancelled',
-    checked_in: 'checked_in',
-    checked_out: 'completed',
-    cancelled: 'cancelled',
-    completed: 'completed',
-    awaiting_visitor: 'visitor_pending',
-    visitor_pending: 'visitor_pending',
-    visitor_accepted: 'visitor_accepted',
-    visitor_rejected: 'visitor_rejected',
-  };
-
-  return {
-    id: visit.id,
-    employeeId: visit.employeeId,
-    employeeName: visit.employeeName,
-    employeeDepartment: visit.employeeDepartment,
-    visitor: {
-      id: visit.visitor.id,
-      fullName: visit.visitor.fullName,
-      email: visit.visitor.email || '',
-      phone: visit.visitor.phone || '',
-      company: visit.visitor.company,
-    },
-    visitDate: visit.visitDate,
-    visitTime: visit.visitTime,
-    duration: visit.duration || '1 hour',
-    endTime: visit.endTime,
-    purpose: visit.purpose || '',
-    status: statusMap[visit.status] || 'pending_approval',
-    communicationChannels: (visit.communicationChannels || ['email']) as ('email' | 'sms' | 'whatsapp' | 'qr_code')[],
-    parkingType: (visit.parkingType || 'none') as ParkingType,
-    parkingSlot: (hasValidData(visit.parkingAllocation) || hasValidData(visit.parkingSlot)) ? {
-      id: visit.parkingAllocation?.id || visit.parkingSlot?.id || '',
-      location: ((visit.parkingAllocation?.location || visit.parkingSlot?.location)?.toLowerCase() === 'skbc_basement' ? 'skbc_basement' : (visit.parkingAllocation?.location || visit.parkingSlot?.location || '')) as ParkingLocation,
-      slotNumber: visit.parkingAllocation?.spotNumber || visit.parkingSlot?.slotNumber || '',
-      floor: visit.parkingAllocation?.floor || visit.parkingSlot?.floor,
-      status: visit.parkingAllocation?.status,
-    } : undefined,
-    parkingPending: (isEmptyObject(visit.parkingAllocation) || isEmptyObject(visit.parkingSlot)) && !hasValidData(visit.parkingAllocation) && !hasValidData(visit.parkingSlot),
-    meetingRoom: (hasValidData(visit.meetingBooking) || hasValidData(visit.meetingRoom)) ? {
-      id: visit.meetingBooking?.roomId || visit.meetingRoom?.id || '',
-      name: visit.meetingBooking?.roomName || visit.meetingRoom?.name || '',
-      capacity: visit.meetingRoom?.capacity || 10,
-      floor: visit.meetingRoom?.floor || '1',
-      timeSlot: visit.meetingBooking ? `${visit.meetingBooking.startTime} - ${visit.meetingBooking.endTime}` : (visit.meetingRoom?.timeSlot || ''),
-    } : undefined,
-    meetingRoomPending: (isEmptyObject(visit.meetingBooking) || isEmptyObject(visit.meetingRoom)) && !hasValidData(visit.meetingBooking) && !hasValidData(visit.meetingRoom),
-    buffet: visit.buffet ? {
-      id: visit.buffet.id,
-      mealType: visit.buffet.mealType as 'breakfast' | 'lunch' | 'dinner' | 'snacks',
-      location: visit.buffet.location,
-    } : undefined,
-    valet: undefined,
-    qrCode: visit.qrCode,
-    approval: {
-      requiresApproval: visit.approval.requiresApproval,
-      autoApproved: visit.approval.autoApproved,
-      managerId: visit.approval.managerId,
-      managerName: visit.approval.managerName,
-      approvedAt: visit.approval.approvedAt,
-      rejectedAt: visit.approval.rejectedAt,
-      rejectionReason: visit.approval.rejectionReason,
-      managerComment: visit.approval.managerComment,
-    },
-    reminders: visit.reminders ? {
-      firstReminderAt: visit.reminders.firstReminderAt,
-      secondReminderAt: visit.reminders.secondReminderAt,
-      autoCancelAt: visit.reminders.autoCancelAt,
-      firstReminderSent: visit.reminders.firstReminderSent,
-      secondReminderSent: visit.reminders.secondReminderSent,
-    } : {},
-    createdAt: visit.createdAt,
-    updatedAt: visit.updatedAt,
-    isWalkIn: visit.isWalkIn ?? false,
-  };
-};
-
-const calculateDuration = (startTime: string, endTime: string): string => {
-  const start = new Date(startTime);
-  const end = new Date(endTime);
-  const diffMs = end.getTime() - start.getTime();
-  const diffHours = diffMs / (1000 * 60 * 60);
-  
-  if (diffHours <= 0.5) return '30 minutes';
-  if (diffHours <= 1) return '1 hour';
-  if (diffHours <= 1.5) return '1.5 hours';
-  if (diffHours <= 2) return '2 hours';
-  if (diffHours <= 3) return '3 hours';
-  return '4 hours';
-};
-
-const getDurationOptions = (t: (key: string) => string) => [
-  { label: t('durations.thirtyMinutes'), value: '30 minutes' },
-  { label: t('durations.oneHour'), value: '1 hour' },
-  { label: t('durations.oneAndHalfHours'), value: '1.5 hours' },
-  { label: t('durations.twoHours'), value: '2 hours' },
-  { label: t('durations.threeHours'), value: '3 hours' },
-  { label: t('durations.fourHours'), value: '4 hours' },
-];
-
-export default function RequestDetailsScreen({ navigation, route }: RequestDetailsScreenProps) {
+export default function RequestDetailsScreen({
+  navigation,
+  route,
+  userRole = 'employee',
+}: RequestDetailsScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { formatDate, formatDateShort, formatTime, formatDateTime: fmtDateTime, toLocalNumerals, parseISODuration, parseTimeString } = useFormatters();
+  const { user } = useAuth();
+  const { 
+    formatDateForApi, 
+    formatTimeForApi,
+    formatTime24ForApi,
+    formatDateForDisplay,
+    formatTimeForDisplay,
+    parseDateTime,
+  } = useServerDateTime();
+  const {
+    formatDate,
+    formatDateShort,
+    formatTime,
+    formatDateTime: fmtDateTime,
+    formatTimeRange,
+    formatVisitTimeRange,
+    toLocalNumerals,
+    parseISODuration,
+    parseTimeString,
+    formatTimeFromString,
+  } = useFormatters();
   const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   const { requestId } = route.params;
   const [showCancelModal, setShowCancelModal] = useState(false);
-  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showHostRejectModal, setShowHostRejectModal] = useState(false);
-  const [hostRejectReason, setHostRejectReason] = useState('');
-  const [rescheduleDate, setRescheduleDate] = useState(new Date());
-  const [rescheduleTime, setRescheduleTime] = useState(new Date());
-  const [rescheduleDuration, setRescheduleDuration] = useState<string | undefined>(undefined);
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showTimePicker, setShowTimePicker] = useState(false);
-  const [showDurationPicker, setShowDurationPicker] = useState(false);
-  
-  const [editPurpose, setEditPurpose] = useState('');
+  const [hostRejectReason, setHostRejectReason] = useState("");
+  const [showManagerRejectModal, setShowManagerRejectModal] = useState(false);
+  const [managerRejectReason, setManagerRejectReason] = useState("");
+
+  const [editPurpose, setEditPurpose] = useState("");
   const [editDate, setEditDate] = useState(new Date());
   const [editTime, setEditTime] = useState(new Date());
-  const [editDuration, setEditDuration] = useState<string>('1 hour');
+  const [editDuration, setEditDuration] = useState<string>("1 hour");
   const [editRequiresParking, setEditRequiresParking] = useState(false);
   const [editRequiresMeetingRoom, setEditRequiresMeetingRoom] = useState(false);
   const [editRequiresBuffet, setEditRequiresBuffet] = useState(false);
   const [editRequiresValet, setEditRequiresValet] = useState(false);
-  const [editNotes, setEditNotes] = useState('');
+  const [editNotes, setEditNotes] = useState("");
+  const [editEndTime, setEditEndTime] = useState<Date>(() => {
+    const now = new Date();
+    return new Date(now.getTime() + 60 * 60 * 1000);
+  });
   const [showEditDatePicker, setShowEditDatePicker] = useState(false);
   const [showEditTimePicker, setShowEditTimePicker] = useState(false);
-  const [showEditDurationPicker, setShowEditDurationPicker] = useState(false);
+  const [showEditEndTimePicker, setShowEditEndTimePicker] = useState(false);
+  const [showPurposePicker, setShowPurposePicker] = useState(false);
+  const [editSendWhatsApp, setEditSendWhatsApp] = useState(false);
+  const [editSendSMS, setEditSendSMS] = useState(false);
+  const [editModalMode, setEditModalMode] = useState<"full" | "services-only">("full");
+  const [isApprovalFlow, setIsApprovalFlow] = useState(false);
+  const [approvalStartTime, setApprovalStartTime] = useState<Date | null>(null);
+
 
   // Success modal states
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState("");
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
 
-  const { data: visitData, isLoading, isFetching, error, refetch } = useVisitDetailsQuery(requestId);
+  const {
+    data: visitData,
+    isLoading,
+    isFetching,
+    error,
+    refetch,
+  } = useVisitDetailsQuery(requestId);
   const cancelMutation = useCancelVisitMutation();
   const updateMutation = useUpdateVisitMutation();
   const hostApproveMutation = useHostApproveVisitMutation();
   const hostRejectMutation = useHostRejectVisitMutation();
+  const managerApproveMutation = useApproveVisitMutation();
+  const managerRejectMutation = useRejectVisitMutation();
+
+  // Room availability check for edit modal
+  const formatDateForApiLocal = (date: Date): string => {
+    return formatDateForApi(date);
+  };
+
+  const formatTimeForQuery = (time: Date): string => {
+    return formatTime24ForApi(time);
+  };
+
+  const editRoomAvailabilityParams: RoomAvailabilityParams | null = 
+    showEditModal && editRequiresMeetingRoom && editDate && editTime && editEndTime
+      ? {
+          date: formatDateForApiLocal(editDate),
+          startTime: formatTimeForQuery(editTime),
+          endTime: formatTimeForQuery(editEndTime),
+        }
+      : null;
+
+  const { data: editRoomAvailability, isLoading: isLoadingEditRooms } = 
+    useRoomAvailabilityQuery(editRoomAvailabilityParams);
+  
+  const isEditRoomAvailable = editRoomAvailability?.available === true;
+  const hasCheckedEditAvailability = editRoomAvailability !== undefined && !isLoadingEditRooms;
 
   const request = useMemo(() => {
     if (!visitData) return null;
     return mapVisitDetailsToVisitorRequest(visitData);
   }, [visitData]);
 
-  const scrollContentStyle = {
-    paddingHorizontal: Spacing.xl,
-    paddingTop: insets.top + Spacing.xl,
-    paddingBottom: insets.bottom + Spacing.xl
+  // Helper to parse duration string to milliseconds for expiration check (supports various formats)
+  const parseDurationToMsForExpiry = (duration: string): number => {
+    if (!duration) return 60 * 60 * 1000; // default 1 hour
+    
+    const durationStr = String(duration).trim();
+    
+    // Handle "Full Day" or similar
+    if (/full\s*day/i.test(durationStr)) {
+      return 24 * 60 * 60 * 1000;
+    }
+    
+    // Parse ISO 8601 duration (e.g., "PT1H30M", "PT24H", "P1D")
+    if (durationStr.startsWith("P")) {
+      let totalMs = 0;
+      const daysMatch = durationStr.match(/(\d+)D/i);
+      const hoursMatch = durationStr.match(/(\d+)H/i);
+      const minutesMatch = durationStr.match(/(\d+)M(?!O)/i); // M but not MO (month)
+      if (daysMatch) totalMs += parseInt(daysMatch[1]) * 24 * 60 * 60 * 1000;
+      if (hoursMatch) totalMs += parseInt(hoursMatch[1]) * 60 * 60 * 1000;
+      if (minutesMatch) totalMs += parseInt(minutesMatch[1]) * 60 * 1000;
+      return totalMs > 0 ? totalMs : 60 * 60 * 1000;
+    }
+    
+    // Parse human-readable format (e.g., "2 hours 10 minutes", "1.5 hours", "1 day", "30 minutes")
+    let totalMs = 0;
+    const daysMatch = durationStr.match(/(\d+(?:\.\d+)?)\s*days?/i);
+    const hoursMatch = durationStr.match(/(\d+(?:\.\d+)?)\s*(?:hours?|h\b)/i);
+    const minutesMatch = durationStr.match(/(\d+)\s*(?:minutes?|mins?|m\b)/i);
+    
+    if (daysMatch) totalMs += parseFloat(daysMatch[1]) * 24 * 60 * 60 * 1000;
+    if (hoursMatch) totalMs += parseFloat(hoursMatch[1]) * 60 * 60 * 1000;
+    if (minutesMatch) totalMs += parseInt(minutesMatch[1]) * 60 * 1000;
+    
+    return totalMs > 0 ? totalMs : 60 * 60 * 1000; // Default 1 hour if parsing fails
   };
 
-  const isProcessing = cancelMutation.isPending || updateMutation.isPending || hostApproveMutation.isPending || hostRejectMutation.isPending;
+  // Check if the visit date/time has passed - disable approval actions for expired visits
+  // Uses mapped request object for consistency with display data
+  // A visit is only expired when the END time has passed, not the start time
+  const isVisitExpired = useMemo(() => {
+    if (!request?.visitDate) return false;
+    
+    try {
+      const now = new Date();
+      
+      // Priority 1: Check end time if available (endTime field)
+      const endTimeStr = request.endTime;
+      if (endTimeStr && request.visitDate) {
+        const visitEndDateTime = parseDateTime(request.visitDate, endTimeStr);
+        if (!isNaN(visitEndDateTime.getTime())) {
+          return visitEndDateTime < now;
+        }
+      }
+      
+      // Priority 2: Calculate end time from start time + duration
+      if (request.visitTime && request.duration) {
+        const startDateTime = parseDateTime(request.visitDate, request.visitTime);
+        if (!isNaN(startDateTime.getTime())) {
+          const durationMs = parseDurationToMsForExpiry(request.duration);
+          const calculatedEndTime = new Date(startDateTime.getTime() + durationMs);
+          return calculatedEndTime < now;
+        }
+      }
+      
+      // Fallback: check if the visit date (end of day) has passed
+      const [year, month, day] = request.visitDate.split('-').map(Number);
+      if (year && month && day) {
+        const visitDateEndOfDay = new Date(year, month - 1, day, 23, 59, 59);
+        if (visitDateEndOfDay < now) {
+          return true;
+        }
+      }
+      
+      return false;
+    } catch {
+      return false;
+    }
+  }, [request?.visitDate, request?.visitTime, request?.endTime, request?.duration, parseDateTime]);
+
+  const isTerminalStatus = useMemo(() => {
+    if (!request) return false;
+    const terminalStatuses = [
+      REQUEST_STATUS.COMPLETED,
+      REQUEST_STATUS.CANCELLED,
+      REQUEST_STATUS.REJECTED,
+      REQUEST_STATUS.VISITOR_REJECTED,
+      REQUEST_STATUS.AUTO_CANCELLED,
+    ];
+    return terminalStatuses.includes(request.status as any);
+  }, [request]);
+
+  const scrollContentStyle = {
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.lg,
+    paddingBottom: insets.bottom + Spacing.xl,
+  };
+
+  const isProcessing =
+    cancelMutation.isPending ||
+    updateMutation.isPending ||
+    hostApproveMutation.isPending ||
+    hostRejectMutation.isPending ||
+    managerApproveMutation.isPending ||
+    managerRejectMutation.isPending;
+
+  const timelineData: TimelineData = useMemo(() => ({
+    createdAt: request?.createdAt || '',
+    status: request?.status || '',
+    approval: {
+      requiresApproval: request?.approval?.requiresApproval ?? false,
+      autoApproved: request?.approval?.autoApproved ?? false,
+      approvedAt: request?.approval?.approvedAt,
+      rejectedAt: request?.approval?.rejectedAt,
+      rejectionReason: request?.approval?.rejectionReason,
+    },
+    hostApproval: (request as any)?.hostApproval ? {
+      required: true,
+      approvedAt: (request as any).hostApproval.approvedAt,
+      rejectedAt: (request as any).hostApproval.rejectedAt,
+    } : undefined,
+    acceptedAt: request?.acceptedAt,
+    checkedInAt: request?.checkedInAt,
+    checkedOutAt: (request as any)?.checkedOutAt,
+    completedAt: request?.completedAt,
+    cancelledAt: request?.cancelledAt,
+  }), [request]);
+
+  const handleHostApproveForTimeline = () => {
+    const approvalTime = new Date();
+    hostApproveMutation.mutate(
+      { id: requestId },
+      {
+        onSuccess: () => {
+          if (visitData) {
+            setEditPurpose(visitData.purpose || "");
+            setEditRequiresParking(visitData.parkingType !== "none");
+            setEditRequiresValet(visitData.parkingType === "valet");
+            setEditRequiresMeetingRoom(!!visitData.meetingRoom);
+            setEditRequiresBuffet(!!visitData.buffet);
+            const channels = (visitData.communicationChannels || []).map(c => c.toLowerCase());
+            setEditSendWhatsApp(channels.includes('whatsapp'));
+            setEditSendSMS(channels.includes('sms'));
+            if (visitData.isWalkIn) {
+              setApprovalStartTime(approvalTime);
+              const defaultEndTime = new Date(approvalTime.getTime() + 60 * 60 * 1000);
+              setEditEndTime(defaultEndTime);
+            }
+          }
+          setIsApprovalFlow(true);
+          setEditModalMode("services-only");
+          setShowEditModal(true);
+          refetch();
+        },
+        onError: (error: any) => {
+          Alert.alert(t("errors.somethingWentWrong"), error.message);
+        },
+      }
+    );
+  };
+
+  const timelineActionCallbacks: TimelineActionCallbacks | undefined = 
+    request?.status === 'pending_host_approval' ? {
+      onAccept: handleHostApproveForTimeline,
+      onReject: () => setShowHostRejectModal(true),
+      isAcceptLoading: hostApproveMutation.isPending,
+      isRejectLoading: hostRejectMutation.isPending,
+    } : undefined;
+
+  const timelineSteps = useTimelineSteps({
+    data: timelineData,
+    role: 'employee',
+    flowType: 'standard',
+    actions: timelineActionCallbacks,
+    showActions: request?.status === 'pending_host_approval',
+  });
 
   // Success modal animation effect
   useEffect(() => {
@@ -239,53 +396,90 @@ export default function RequestDetailsScreen({ navigation, route }: RequestDetai
   if (error || !request) {
     return (
       <ScreenScrollView contentContainerStyle={scrollContentStyle}>
-        <ThemedText style={[Typography.title]}>{t('errors.requestNotFound')}</ThemedText>
+        <ThemedText style={[Typography.title]}>
+          {t("errors.requestNotFound")}
+        </ThemedText>
         <Spacer height={Spacing.lg} />
         <Pressable
           onPress={() => refetch()}
-          style={[{ backgroundColor: theme.primary, padding: Spacing.md, borderRadius: BorderRadius.md, alignItems: 'center' }]}
+          style={[
+            {
+              backgroundColor: theme.primary,
+              padding: Spacing.md,
+              borderRadius: BorderRadius.md,
+              alignItems: "center",
+            },
+          ]}
         >
-          <ThemedText style={{ color: theme.buttonText, fontWeight: '600' }}>{t('actions.retry')}</ThemedText>
+          <ThemedText style={{ color: theme.buttonText, fontWeight: "600" }}>
+            {t("common.retry")}
+          </ThemedText>
         </Pressable>
       </ScreenScrollView>
     );
   }
 
-  const formatDateTimeLocal = (isoString: string) => {
+  const formatDateTimeLocal = (isoString: string, timezone?: string) => {
     const date = new Date(isoString);
-    return fmtDateTime(date);
+    return fmtDateTime(date, timezone);
   };
 
   const handleCancelRequest = () => {
+    if (isTerminalStatus) return;
     cancelMutation.mutate(requestId, {
       onSuccess: () => {
         setShowCancelModal(false);
         navigation.goBack();
       },
       onError: (error) => {
-        Alert.alert(t('errors.somethingWentWrong'), error.message);
+        Alert.alert(t("errors.somethingWentWrong"), error.message);
       },
     });
   };
 
   const handleHostApprove = () => {
+    // Capture approval start time NOW for walk-in requests
+    const approvalTime = new Date();
+    
     hostApproveMutation.mutate(
       { id: requestId },
       {
         onSuccess: () => {
-          setSuccessMessage(t('notifications.walkInApproved'));
-          setShowSuccessModal(true);
+          // Approval successful, now open edit modal in services-only mode for service selection
+          if (visitData) {
+            setEditPurpose(visitData.purpose || "");
+            setEditRequiresParking(visitData.parkingType !== "none");
+            setEditRequiresValet(visitData.parkingType === "valet");
+            setEditRequiresMeetingRoom(!!visitData.meetingRoom);
+            setEditRequiresBuffet(!!visitData.buffet);
+            
+            // Initialize communication channels from existing request data
+            const channels = (visitData.communicationChannels || []).map(c => c.toLowerCase());
+            setEditSendWhatsApp(channels.includes('whatsapp'));
+            setEditSendSMS(channels.includes('sms'));
+            
+            // For walk-in approval: store approval start time and set default end time to 1 hour later
+            if (visitData.isWalkIn) {
+              setApprovalStartTime(approvalTime);
+              const defaultEndTime = new Date(approvalTime.getTime() + 60 * 60 * 1000); // 1 hour from approval time
+              setEditEndTime(defaultEndTime);
+            }
+          }
+          setIsApprovalFlow(true);
+          setEditModalMode("services-only");
+          setShowEditModal(true);
         },
         onError: (error) => {
-          Alert.alert(t('errors.somethingWentWrong'), error.message);
+          Alert.alert(t("errors.somethingWentWrong"), error.message);
         },
-      }
+      },
     );
   };
 
+
   const handleHostReject = () => {
     if (!hostRejectReason.trim()) {
-      Alert.alert(t('errors.validation'), t('errors.reasonRequired'));
+      Alert.alert(t("errors.validation"), t("errors.reasonRequired"));
       return;
     }
     hostRejectMutation.mutate(
@@ -293,132 +487,225 @@ export default function RequestDetailsScreen({ navigation, route }: RequestDetai
       {
         onSuccess: () => {
           setShowHostRejectModal(false);
-          setHostRejectReason('');
-          setSuccessMessage(t('notifications.walkInRejected'));
+          setHostRejectReason("");
+          setSuccessMessage(t("notifications.walkInRejected"));
           setShowSuccessModal(true);
         },
         onError: (error) => {
-          Alert.alert(t('errors.somethingWentWrong'), error.message);
+          Alert.alert(t("errors.somethingWentWrong"), error.message);
         },
-      }
+      },
     );
   };
 
-  const openRescheduleModal = () => {
-    const now = new Date();
-    setRescheduleDate(now);
-    setRescheduleTime(now);
-    setRescheduleDuration(request?.duration);
-    setShowRescheduleModal(true);
+  const handleManagerApprove = () => {
+    managerApproveMutation.mutate(
+      { id: requestId, payload: {} },
+      {
+        onSuccess: () => {
+          setSuccessMessage(t("notifications.requestApproved"));
+          setShowSuccessModal(true);
+        },
+        onError: (error) => {
+          Alert.alert(t("errors.somethingWentWrong"), error.message);
+        },
+      },
+    );
   };
 
-  const formatDateForApi = (date: Date): string => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+  const handleManagerReject = () => {
+    if (!managerRejectReason.trim()) {
+      Alert.alert(t("errors.validation"), t("errors.reasonRequired"));
+      return;
+    }
+    managerRejectMutation.mutate(
+      { id: requestId, payload: { reason: managerRejectReason.trim() } },
+      {
+        onSuccess: () => {
+          setShowManagerRejectModal(false);
+          setManagerRejectReason("");
+          setSuccessMessage(t("notifications.requestRejected"));
+          setShowSuccessModal(true);
+        },
+        onError: (error) => {
+          Alert.alert(t("errors.somethingWentWrong"), error.message);
+        },
+      },
+    );
   };
 
-  const formatTimeForApi = (time: Date): string => {
-    const hours = time.getHours();
-    const minutes = time.getMinutes();
-    const period = hours >= 12 ? 'PM' : 'AM';
-    const hour12 = hours % 12 || 12;
-    const minuteStr = String(minutes).padStart(2, '0');
-    return `${hour12}:${minuteStr} ${period}`;
+  const formatTimeForApiLocal = (time: Date): string => {
+    return formatTimeForApi(time);
   };
 
+  // Display formatters for picker values - use server timezone from API
   const formatDisplayDate = (date: Date): string => {
-    return formatDate(date);
+    return formatDateForDisplay(date, isRTL);
   };
 
   const formatDisplayTime = (time: Date): string => {
-    return formatTime(time);
+    return formatTimeForDisplay(time, isRTL);
   };
 
-  const handleRescheduleConfirm = () => {
-    if (!request) return;
-    
-    const payload = {
-      visitDate: formatDateForApi(rescheduleDate),
-      visitTime: formatTimeForApi(rescheduleTime),
-      duration: rescheduleDuration || request.duration,
-    };
-
-    console.log('[RequestDetails] Submitting reschedule with payload:', JSON.stringify(payload, null, 2));
-
-    updateMutation.mutate(
-      { id: requestId, data: payload },
-      {
-        onSuccess: () => {
-          console.log('[RequestDetails] Reschedule successful');
-          setShowRescheduleModal(false);
-          setSuccessMessage(t('notifications.visitUpdated'));
-          setShowSuccessModal(true);
-        },
-        onError: (error) => {
-          console.log('[RequestDetails] Reschedule failed:', error.message);
-          Alert.alert(t('errors.somethingWentWrong'), error.message);
-        },
-      }
-    );
-  };
-  
   const getDurationHours = (duration: string): number => {
     switch (duration) {
-      case '30 minutes': return 0.5;
-      case '1 hour': return 1;
-      case '1.5 hours': return 1.5;
-      case '2 hours': return 2;
-      case '3 hours': return 3;
-      case '4 hours': return 4;
-      default: return 1;
+      case "30 minutes":
+        return 0.5;
+      case "1 hour":
+        return 1;
+      case "1.5 hours":
+        return 1.5;
+      case "2 hours":
+        return 2;
+      case "3 hours":
+        return 3;
+      case "4 hours":
+        return 4;
+      default:
+        return 1;
     }
   };
 
-  const handleDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
-    if (Platform.OS === 'android') {
-      setShowDatePicker(false);
-    }
-    if (selectedDate) {
-      setRescheduleDate(selectedDate);
-    }
-  };
+  const openEditModal = (mode: "full" | "services-only" = "full") => {
+    if (!visitData || isTerminalStatus) return;
 
-  const handleTimeChange = (event: DateTimePickerEvent, selectedTime?: Date) => {
-    if (Platform.OS === 'android') {
-      setShowTimePicker(false);
-    }
-    if (selectedTime) {
-      setRescheduleTime(selectedTime);
-    }
-  };
-
-  const handleRescheduleDateSelect = (date: Date) => {
-    setRescheduleDate(date);
-  };
-
-  const handleRescheduleTimeSelect = (time: Date) => {
-    setRescheduleTime(time);
-  };
-
-  const openEditModal = () => {
-    if (!visitData) return;
+    setIsApprovalFlow(false);
+    setEditModalMode(mode);
+    setEditPurpose(visitData.purpose || "");
+    const visitDateStr = visitData.visitDate || formatDateForApi(new Date());
+    const visitDate = new Date(visitDateStr);
+    setEditDate(visitDate);
+    const visitTimeStr = visitData.visitTime || formatTimeForApi(new Date());
+    const startTime = parseDateTime(visitDateStr, visitTimeStr);
+    setEditTime(startTime);
     
-    setEditPurpose(visitData.purpose || '');
-    setEditDate(visitData.visitDate ? new Date(visitData.visitDate) : new Date());
-    setEditTime(parseTimeString(visitData.visitTime || '', visitData.visitDate));
-    setEditDuration(parseISODuration(request?.duration || '1 hour'));
-    setEditRequiresParking(visitData.parkingType !== 'none');
+    // For walk-ins, use the stored end time if available; otherwise calculate from duration
+    if (visitData.isWalkIn && visitData.endTime) {
+      // Try to parse endTime - it could be "HH:MM", "HH:MM AM/PM", or ISO format
+      let endTime: Date;
+      if (visitData.endTime.includes('T') || visitData.endTime.includes('Z')) {
+        // ISO format - parse directly
+        endTime = new Date(visitData.endTime);
+        if (isNaN(endTime.getTime())) {
+          // Invalid ISO, fall back to duration calculation
+          const rawDuration = visitData.duration || "1 hour";
+          const durationMs = parseDurationToMs(rawDuration);
+          endTime = new Date(startTime.getTime() + durationMs);
+        }
+      } else {
+        // Time string format - use parseDateTime for consistency
+        endTime = parseDateTime(visitDateStr, visitData.endTime);
+      }
+      setEditEndTime(endTime);
+    } else {
+      // Calculate end time from duration - parse API duration (supports both ISO and human-readable formats)
+      const rawDuration = visitData.duration || "1 hour";
+      const durationMs = parseDurationToMs(rawDuration);
+      const endTime = new Date(startTime.getTime() + durationMs);
+      setEditEndTime(endTime);
+    }
+    
+    const rawDuration = visitData.duration || "1 hour";
+    setEditDuration(parseISODuration(rawDuration));
+    
+    setEditRequiresParking(visitData.parkingType !== "none");
     setEditRequiresMeetingRoom(!!visitData.meetingRoom);
     setEditRequiresBuffet(!!visitData.buffet);
-    setEditRequiresValet(visitData.parkingType === 'valet');
-    setEditNotes('');
+    setEditRequiresValet(visitData.parkingType === "valet");
+    
+    // Pre-select communication channels from existing request data (normalize to lowercase for comparison)
+    const channels = (visitData.communicationChannels || []).map(c => c.toLowerCase());
+    console.log('[openEditModal] visitData.communicationChannels:', visitData.communicationChannels);
+    console.log('[openEditModal] Normalized channels:', channels);
+    console.log('[openEditModal] includes whatsapp:', channels.includes('whatsapp'));
+    console.log('[openEditModal] includes sms:', channels.includes('sms'));
+    setEditSendWhatsApp(channels.includes('whatsapp'));
+    setEditSendSMS(channels.includes('sms'));
+    
+    setEditNotes("");
     setShowEditModal(true);
   };
 
-  const handleEditDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
-    if (Platform.OS === 'android') {
+  const closeEditModal = () => {
+    setShowEditModal(false);
+    setIsApprovalFlow(false);
+  };
+  
+  const parseDurationToMs = (duration: string): number => {
+    // Parse ISO 8601 duration (e.g., "PT1H30M")
+    if (duration.startsWith("PT")) {
+      const hoursMatch = duration.match(/(\d+)H/);
+      const minutesMatch = duration.match(/(\d+)M/);
+      const hours = hoursMatch ? parseInt(hoursMatch[1]) : 0;
+      const minutes = minutesMatch ? parseInt(minutesMatch[1]) : 0;
+      return (hours * 60 + minutes) * 60 * 1000;
+    }
+    // Parse human-readable format (e.g., "2 hours 10 minutes", "1hour", "30 minutes", "1h 30m")
+    let totalMs = 0;
+    const hoursMatch = duration.match(/(\d+)\s*(?:hours?|h\b)/i);
+    const minutesMatch = duration.match(/(\d+)\s*(?:minutes?|mins?|m\b)/i);
+    if (hoursMatch) {
+      totalMs += parseInt(hoursMatch[1]) * 60 * 60 * 1000;
+    }
+    if (minutesMatch) {
+      totalMs += parseInt(minutesMatch[1]) * 60 * 1000;
+    }
+    return totalMs > 0 ? totalMs : 60 * 60 * 1000; // Default 1 hour if parsing fails
+  };
+  
+  const calculateEditDuration = (): string => {
+    const startMs = editTime.getTime();
+    const endMs = editEndTime.getTime();
+    const diffMs = endMs - startMs;
+    
+    if (diffMs <= 0) return "--";
+    
+    const diffMinutes = Math.round(diffMs / (1000 * 60));
+    const hours = Math.floor(diffMinutes / 60);
+    const minutes = diffMinutes % 60;
+    
+    if (hours === 0) {
+      return `${toLocalNumerals(String(minutes))} ${t("time.min")}`;
+    } else if (minutes === 0) {
+      return `${toLocalNumerals(String(hours))} ${hours === 1 ? t("time.hour") : t("time.hours")}`;
+    } else {
+      return `${toLocalNumerals(String(hours))}${t("time.hourShort")} ${toLocalNumerals(String(minutes))}${t("time.minShort")}`;
+    }
+  };
+  
+  const isEditEndTimeBeforeStartTime = (): boolean => {
+    return editEndTime.getTime() <= editTime.getTime();
+  };
+  
+  const isWalkInEndTimeBeforeNow = (): boolean => {
+    return editEndTime.getTime() <= new Date().getTime();
+  };
+  
+  const calculateWalkInDuration = (): string => {
+    const now = new Date();
+    const endMs = editEndTime.getTime();
+    const diffMs = endMs - now.getTime();
+    
+    if (diffMs <= 0) return "--";
+    
+    const diffMinutes = Math.round(diffMs / (1000 * 60));
+    const hours = Math.floor(diffMinutes / 60);
+    const minutes = diffMinutes % 60;
+    
+    if (hours === 0) {
+      return `${toLocalNumerals(String(minutes))} ${t("time.min")}`;
+    } else if (minutes === 0) {
+      return `${toLocalNumerals(String(hours))} ${hours === 1 ? t("time.hour") : t("time.hours")}`;
+    } else {
+      return `${toLocalNumerals(String(hours))}${t("time.hourShort")} ${toLocalNumerals(String(minutes))}${t("time.minShort")}`;
+    }
+  };
+
+  const handleEditDateChange = (
+    event: DateTimePickerEvent,
+    selectedDate?: Date,
+  ) => {
+    if (Platform.OS === "android") {
       setShowEditDatePicker(false);
     }
     if (selectedDate) {
@@ -426,8 +713,11 @@ export default function RequestDetailsScreen({ navigation, route }: RequestDetai
     }
   };
 
-  const handleEditTimeChange = (event: DateTimePickerEvent, selectedTime?: Date) => {
-    if (Platform.OS === 'android') {
+  const handleEditTimeChange = (
+    event: DateTimePickerEvent,
+    selectedTime?: Date,
+  ) => {
+    if (Platform.OS === "android") {
       setShowEditTimePicker(false);
     }
     if (selectedTime) {
@@ -435,90 +725,199 @@ export default function RequestDetailsScreen({ navigation, route }: RequestDetai
     }
   };
 
+  const handleEditEndTimeChange = (
+    event: DateTimePickerEvent,
+    selectedTime?: Date,
+  ) => {
+    if (Platform.OS === "android") {
+      setShowEditEndTimePicker(false);
+    }
+    if (selectedTime) {
+      setEditEndTime(selectedTime);
+    }
+  };
+
   const handleEditConfirm = () => {
-    const payload = {
-      visitDate: formatDateForApi(editDate),
-      visitTime: formatTimeForApi(editTime),
-      duration: editDuration,
+    // Build communication channels array - always include email and qr_code
+    const communicationChannels: ('email' | 'sms' | 'whatsapp' | 'qr_code')[] = ['email', 'qr_code'];
+    if (editSendSMS) communicationChannels.push('sms');
+    if (editSendWhatsApp) communicationChannels.push('whatsapp');
+
+    const payload: Record<string, unknown> = {
       purpose: editPurpose,
-      requiresParking: editRequiresParking,
-      requiresMeetingRoom: editRequiresMeetingRoom,
-      requiresBuffet: editRequiresBuffet,
-      requiresValet: editRequiresValet,
-      notes: editNotes || undefined,
+      needsParking: editRequiresParking,
+      needsMeetingRoom: editRequiresMeetingRoom,
+      needsBuffet: editRequiresBuffet,
+      needsValet: editRequiresValet,
+      communicationChannels,
     };
 
-    console.log('[RequestDetails] Submitting edit with payload:', JSON.stringify(payload, null, 2));
+    if (editModalMode === "full") {
+      // Full mode: use the edited date/time values
+      payload.visitDate = formatDateForApiLocal(editDate);
+      payload.visitTime = formatTimeForApiLocal(editTime);
+      
+      // Calculate human-readable duration from start and end times
+      payload.duration = calculateServerDuration(editTime, editEndTime);
+    } else if (editModalMode === "services-only" && visitData) {
+      // Services-only mode
+      if (isApprovalFlow && visitData.isWalkIn) {
+        // Walk-in approval: validate end time is after current time
+        if (isWalkInEndTimeBeforeNow()) {
+          Alert.alert(t("errors.validation"), t("errors.endTimeMustBeLater"));
+          return;
+        }
+        
+        // Use the captured approval start time (or fallback to now)
+        const startTime = approvalStartTime || new Date();
+        payload.visitDate = formatDateForApiLocal(startTime);
+        payload.visitTime = formatTimeForApiLocal(startTime);
+        
+        // Add end time to payload (format as HH:mm AM/PM)
+        payload.endTime = formatTimeForApiLocal(editEndTime);
+        
+        // Calculate duration from approval start time to selected end time using timezone utility
+        payload.duration = calculateServerDuration(startTime, editEndTime);
+        
+        // Clear approvalStartTime after use
+        setApprovalStartTime(null);
+      } else if (visitData.isWalkIn) {
+        // Walk-in edit (not approval flow): validate end time is after current time
+        if (isWalkInEndTimeBeforeNow()) {
+          Alert.alert(t("errors.validation"), t("errors.endTimeMustBeLater"));
+          return;
+        }
+        
+        // Use existing visit date and time
+        const existingVisitDate = visitData.visitDate || formatDateForApiLocal(new Date());
+        const existingVisitTime = visitData.visitTime || formatTimeForApiLocal(new Date());
+        payload.visitDate = existingVisitDate;
+        payload.visitTime = existingVisitTime;
+        
+        // Add updated end time to payload
+        payload.endTime = formatTimeForApiLocal(editEndTime);
+        
+        // Calculate duration from existing start time to new end time using parseDateTime for consistency
+        const existingStartTime = parseDateTime(existingVisitDate, existingVisitTime);
+        payload.duration = calculateServerDuration(existingStartTime, editEndTime);
+      } else {
+        // Non-walk-in services-only edit: use existing schedule fields
+        payload.visitDate = visitData.visitDate || formatDateForApiLocal(new Date());
+        payload.visitTime = visitData.visitTime || formatTimeForApiLocal(new Date());
+        payload.duration = visitData.duration || "1 hour";
+      }
+    }
+
+    console.log(
+      "[RequestDetails] Submitting edit with payload (mode: " + editModalMode + "):",
+      JSON.stringify(payload, null, 2),
+    );
 
     updateMutation.mutate(
       { id: requestId, data: payload },
       {
         onSuccess: () => {
-          console.log('[RequestDetails] Edit successful');
+          console.log("[RequestDetails] Edit successful");
           setShowEditModal(false);
-          setSuccessMessage(t('notifications.visitUpdated'));
+          let message = t("notifications.visitUpdated");
+          if (isApprovalFlow) {
+            const hasAutoApproval = user?.autoApproval === true;
+            message = hasAutoApproval
+              ? t("notifications.walkInApproved")
+              : t("notifications.walkInForwardedToManager");
+          }
+          setSuccessMessage(message);
           setShowSuccessModal(true);
+          setIsApprovalFlow(false);
         },
         onError: (error) => {
-          console.log('[RequestDetails] Edit failed:', error.message);
-          Alert.alert(t('errors.somethingWentWrong'), error.message);
+          console.log("[RequestDetails] Edit failed:", error.message);
+          Alert.alert(t("errors.somethingWentWrong"), error.message);
         },
-      }
+      },
     );
   };
 
   const statusConfig = getStatusStyle(theme, request.status, t);
 
-  const timelineData: VisitTimelineData = {
-    createdAt: request.createdAt,
-    status: request.status,
-    approval: {
-      requiresApproval: request.approval.requiresApproval,
-      autoApproved: request.approval.autoApproved ?? false,
-      approvedAt: request.approval.approvedAt,
-      rejectedAt: request.approval.rejectedAt,
-    },
-    acceptedAt: request.acceptedAt,
-    checkedInAt: request.checkedInAt,
-    completedAt: request.completedAt,
-    cancelledAt: request.cancelledAt,
+  const getServiceStatusVariant = (status?: string): 'success' | 'warning' | 'error' | 'info' | 'muted' => {
+    if (!status) return 'muted';
+    const lowerStatus = status.toLowerCase();
+    if (['active', 'scheduled', 'allocated', 'confirmed', 'in_progress', 'ready', 'served'].includes(lowerStatus)) return 'success';
+    if (['pending', 'awaiting', 'preparing'].includes(lowerStatus)) return 'warning';
+    if (['cancelled', 'expired', 'no_show', 'released'].includes(lowerStatus)) return 'error';
+    if (['completed', 'checked_out', 'checked_in'].includes(lowerStatus)) return 'info';
+    return 'muted';
   };
-  const timelineSteps = useVisitTimelineSteps(timelineData);
+
+  const formatServiceStatus = (status?: string): string => {
+    if (!status) return '';
+    return status.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
+  };
+
+  const showStickyFooter = 
+    (request.isWalkIn && request.status === REQUEST_STATUS.PENDING_HOST_APPROVAL) ||
+    (request.status === REQUEST_STATUS.PENDING_APPROVAL && userRole === 'manager' && !isVisitExpired) ||
+    (request.status !== REQUEST_STATUS.PENDING_HOST_APPROVAL &&
+     !(request.status === REQUEST_STATUS.PENDING_APPROVAL && userRole === 'manager') &&
+     request.status !== REQUEST_STATUS.COMPLETED &&
+     request.status !== REQUEST_STATUS.CANCELLED &&
+     request.status !== REQUEST_STATUS.REJECTED &&
+     request.status !== REQUEST_STATUS.VISITOR_REJECTED &&
+     request.status !== REQUEST_STATUS.AUTO_CANCELLED);
 
   return (
-    <ScreenScrollView contentContainerStyle={scrollContentStyle}>
-      {/* Header with Status Badge */}
-      <View style={styles.headerRow}>
-        <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12 }]}>
-          {t('visitor.requestId')}: {request.id}
-        </ThemedText>
-        <View style={[styles.statusBadgeNew, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: 1 }]}>
-          <ThemedText style={[Typography.caption, { color: statusConfig.text, fontWeight: '600', fontSize: 10 }]}>
-            {statusConfig.label}
-          </ThemedText>
-        </View>
-      </View>
-
-      <Spacer height={Spacing.xl} />
+    <>
+    <ScreenScrollView contentContainerStyle={[scrollContentStyle, showStickyFooter && { paddingBottom: insets.bottom + 120 }]}>
 
       {/* Rejection/Decline Reason */}
       {request.approval.rejectedAt && request.approval.rejectionReason ? (
         <>
-          <ThemedView style={[styles.alertBox, { backgroundColor: applyOpacity(theme.error, '10'), borderStartColor: theme.error, borderStartWidth: 4 }]}>
+          <ThemedView
+            style={[
+              styles.alertBox,
+              {
+                backgroundColor: applyOpacity(theme.error, "10"),
+                borderStartColor: theme.error,
+                borderStartWidth: 4,
+              },
+            ]}
+          >
             <DDIcon name="alert-circle" size={16} variant="danger" />
-            <ThemedText style={[Typography.bodySmall, { marginStart: Spacing.sm, flex: 1, color: theme.error }]}>
-              {t('form.reason')}: {request.approval.rejectionReason}
+            <ThemedText
+              style={[
+                Typography.bodySmall,
+                { marginStart: Spacing.sm, flex: 1, color: theme.error, textAlign: isRTL ? 'right' : 'left' },
+              ]}
+            >
+              {t("form.reason")}: {request.approval.rejectionReason}
             </ThemedText>
           </ThemedView>
           <Spacer height={Spacing.lg} />
         </>
       ) : null}
-      {request.visitorDecision && !request.visitorDecision.accepted && request.visitorDecision.reason ? (
+      {request.visitorDecision &&
+      !request.visitorDecision.accepted &&
+      request.visitorDecision.reason ? (
         <>
-          <ThemedView style={[styles.alertBox, { backgroundColor: applyOpacity(theme.warning, '10'), borderStartColor: theme.warning, borderStartWidth: 4 }]}>
-            <DDIcon name="info" size={16} variant="warning" />
-            <ThemedText style={[Typography.bodySmall, { marginStart: Spacing.sm, flex: 1, color: theme.warning }]}>
-              {t('visitor.visitorReason')}: {request.visitorDecision.reason}
+          <ThemedView
+            style={[
+              styles.alertBox,
+              {
+                backgroundColor: applyOpacity(theme.error, "10"),
+                borderStartColor: theme.error,
+                borderStartWidth: 4,
+              },
+            ]}
+          >
+            <DDIcon name="user-x" size={16} variant="danger" />
+            <ThemedText
+              style={[
+                Typography.bodySmall,
+                { marginStart: Spacing.sm, flex: 1, color: theme.error, textAlign: isRTL ? 'right' : 'left' },
+              ]}
+            >
+              {t("visitor.visitorDeclineReason")}: {request.visitorDecision.reason}
             </ThemedText>
           </ThemedView>
           <Spacer height={Spacing.lg} />
@@ -526,36 +925,81 @@ export default function RequestDetailsScreen({ navigation, route }: RequestDetai
       ) : null}
 
       {/* Manager Comment - Only show for employee requests (not auto-approved) */}
-      {request.approval.managerComment && (request.approval.approvedAt || request.approval.rejectedAt) && !request.approval.autoApproved ? (
+      {request.approval.managerComment &&
+      (request.approval.approvedAt || request.approval.rejectedAt) &&
+      !request.approval.autoApproved ? (
         <>
-          <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
+          <ThemedView
+            style={[styles.cardNew, { backgroundColor: theme.surface }]}
+          >
             <View style={styles.managerCommentHeader}>
-              <DDIcon 
-                name={request.approval.approvedAt ? "check-circle" : "x-circle"} 
-                size={16} 
-                color={request.approval.approvedAt ? theme.secondary : theme.error} 
+              <DDIcon
+                name={request.approval.approvedAt ? "check-circle" : "x-circle"}
+                size={16}
+                color={
+                  request.approval.approvedAt ? theme.secondary : theme.error
+                }
               />
-              <ThemedText style={[Typography.subtitle, { marginStart: Spacing.sm, fontSize: 14, fontWeight: '600', color: theme.text }]}>
-                {t('visitor.managerComment')}
+              <ThemedText
+                style={[
+                  Typography.subtitle,
+                  {
+                    marginStart: Spacing.sm,
+                    fontSize: 14,
+                    fontWeight: "600",
+                    color: theme.text,
+                    textAlign: isRTL ? 'right' : 'left',
+                  },
+                ]}
+              >
+                {t("visitor.managerComment")}
               </ThemedText>
             </View>
             <Spacer height={Spacing.sm} />
-            <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, lineHeight: 20 }]}>
+            <ThemedText
+              style={[
+                Typography.body,
+                { color: theme.textSecondary, fontSize: 14, lineHeight: 20, textAlign: isRTL ? 'right' : 'left' },
+              ]}
+            >
               {request.approval.managerComment}
             </ThemedText>
             {request.approval.managerName && (
               <>
                 <Spacer height={Spacing.md} />
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <View style={{ flexDirection: 'row', alignItems: "center" }}>
                   <DDIcon name="user" size={12} variant="muted" />
-                  <ThemedText style={[Typography.caption, { marginStart: 6, color: theme.textSecondary, fontSize: 11 }]}>
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      {
+                        marginStart: 6,
+                        color: theme.textSecondary,
+                        fontSize: 11,
+                      },
+                    ]}
+                  >
                     {request.approval.managerName}
                   </ThemedText>
-                  <ThemedText style={[Typography.caption, { marginHorizontal: 6, color: theme.border }]}>
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      { marginHorizontal: 6, color: theme.border },
+                    ]}
+                  >
                     •
                   </ThemedText>
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 11 }]}>
-                    {formatDateTimeLocal(request.approval.approvedAt || request.approval.rejectedAt || '')}
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      { color: theme.textSecondary, fontSize: 11 },
+                    ]}
+                  >
+                    {formatDateTimeLocal(
+                      request.approval.approvedAt ||
+                        request.approval.rejectedAt ||
+                        "",
+                    )}
                   </ThemedText>
                 </View>
               </>
@@ -565,42 +1009,150 @@ export default function RequestDetailsScreen({ navigation, route }: RequestDetai
         </>
       ) : null}
 
+      {/* Walk-in Notes */}
+      {request.isWalkIn && request.notes ? (
+        <>
+          <ThemedView
+            style={[styles.cardNew, { backgroundColor: theme.surface }]}
+          >
+            <View style={{ flexDirection: 'row', alignItems: "center" }}>
+              <DDIcon name="file-text" size={16} color={theme.info} />
+              <ThemedText
+                style={[
+                  Typography.subtitle,
+                  {
+                    marginStart: Spacing.sm,
+                    fontSize: 14,
+                    fontWeight: "600",
+                    color: theme.text,
+                    textAlign: isRTL ? 'right' : 'left',
+                  },
+                ]}
+              >
+                {t("form.notes")}
+              </ThemedText>
+            </View>
+            <Spacer height={Spacing.sm} />
+            <ThemedText
+              style={[
+                Typography.body,
+                { color: theme.textSecondary, fontSize: 14, lineHeight: 20 },
+              ]}
+            >
+              {request.notes}
+            </ThemedText>
+          </ThemedView>
+          <Spacer height={Spacing.lg} />
+        </>
+      ) : null}
+
       <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
-        <View style={{ alignItems: 'center' }}>
-          <View style={[styles.avatarNew, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
-            <ThemedText style={[styles.avatarText, { color: theme.primary, fontSize: 32, fontWeight: '700' }]}>
-              {request.visitor.fullName.split(' ').map(n => n[0]).join('')}
+        <View style={{ alignItems: "center" }}>
+          <View
+            style={[
+              styles.avatarNew,
+              { backgroundColor: applyOpacity(theme.primary, "15") },
+            ]}
+          >
+            <ThemedText
+              style={[
+                styles.avatarText,
+                { color: theme.primary, fontSize: 32, lineHeight: 40, fontWeight: "700" },
+              ]}
+            >
+              {request.visitor.fullName
+                .split(" ")
+                .map((n) => n[0])
+                .join("")}
             </ThemedText>
           </View>
 
           <Spacer height={Spacing.lg} />
 
-          <ThemedText style={[Typography.title, { fontWeight: '600', fontSize: 22, color: theme.text }]}>
+          <ThemedText
+            style={[
+              Typography.title,
+              { fontWeight: "600", fontSize: 22, color: theme.text },
+            ]}
+          >
             {request.visitor.fullName}
           </ThemedText>
-          <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, marginTop: 4 }]}>
+          <ThemedText
+            style={[
+              Typography.body,
+              { color: theme.textSecondary, fontSize: 14, marginTop: 4 },
+            ]}
+          >
             {request.visitor.company}
           </ThemedText>
+
+          <Spacer height={Spacing.sm} />
+
+          <View
+            style={{
+              alignSelf: 'center',
+              backgroundColor: statusConfig.bg,
+              borderColor: statusConfig.border,
+              borderWidth: StyleSheet.hairlineWidth,
+              paddingHorizontal: Spacing.md,
+              paddingVertical: 6,
+              borderRadius: BorderRadius.full,
+            }}
+          >
+            <ThemedText
+              style={[
+                Typography.caption,
+                { color: statusConfig.text, fontWeight: "600", fontSize: 12 },
+              ]}
+            >
+              {statusConfig.label}
+            </ThemedText>
+          </View>
         </View>
 
         <Spacer height={Spacing.xl} />
-        
+
         <View style={[styles.divider, { backgroundColor: theme.border }]} />
-        
+
         <Spacer height={Spacing.lg} />
 
-        <View style={styles.infoRowNew}>
-          <DDIcon name="mail" size={16} variant="muted" />
-          <ThemedText style={[Typography.body, { marginStart: Spacing.md, color: theme.textSecondary, flex: 1, fontSize: 14 }]}>
+        <View style={[styles.infoRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+            <DDIcon name="mail" size={18} color={theme.text} />
+          </View>
+          <ThemedText
+            style={[
+              Typography.body,
+              {
+                marginStart: Spacing.md,
+                color: theme.textSecondary,
+                flex: 1,
+                fontSize: 14,
+                textAlign: isRTL ? 'right' : 'left',
+              },
+            ]}
+          >
             {request.visitor.email}
           </ThemedText>
         </View>
 
         <Spacer height={Spacing.md} />
 
-        <View style={styles.infoRowNew}>
-          <DDIcon name="phone" size={16} variant="muted" />
-          <ThemedText style={[Typography.body, { marginStart: Spacing.md, color: theme.textSecondary, fontSize: 14 }]}>
+        <View style={[styles.infoRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+            <DDIcon name="phone" size={18} color={theme.text} />
+          </View>
+          <ThemedText
+            style={[
+              Typography.body,
+              {
+                marginStart: Spacing.md,
+                color: theme.textSecondary,
+                fontSize: 14,
+                textAlign: isRTL ? 'right' : 'left',
+              },
+            ]}
+          >
             {request.visitor.phone}
           </ThemedText>
         </View>
@@ -609,237 +1161,349 @@ export default function RequestDetailsScreen({ navigation, route }: RequestDetai
       <Spacer height={Spacing.lg} />
 
       <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
-        <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text }]}>{t('visitor.visitDetails')}</ThemedText>
+        <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <ThemedText
+            style={[
+              Typography.subtitle,
+              { fontSize: 16, fontWeight: "600", color: theme.text, textAlign: isRTL ? 'right' : 'left' },
+            ]}
+          >
+            {t("visitor.visitDetails")}
+          </ThemedText>
+          {request.isWalkIn ? (
+            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', backgroundColor: applyOpacity(theme.warning, '15'), paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: BorderRadius.sm }}>
+              <DDIcon name="user-check" size={14} color={theme.warning} />
+              <ThemedText style={[Typography.caption, { color: theme.warning, fontWeight: '600', marginStart: Spacing.xs, fontSize: 11 }]}>
+                {t("reception.walkInVisitor")}
+              </ThemedText>
+            </View>
+          ) : null}
+        </View>
         <Spacer height={Spacing.xl} />
 
-        <View style={styles.detailRowNew}>
-          <DDIcon name="calendar" size={16} variant="muted" />
-          <ThemedText style={[Typography.body, { color: theme.textSecondary, marginStart: Spacing.md, fontSize: 13, minWidth: 90 }]}>
-            {t('time.dateAndTime')}
-          </ThemedText>
-          <ThemedText style={[Typography.body, { fontWeight: '600', color: theme.text, flex: 1, fontSize: 14 }]}>
-            {formatDateShort(request.visitDate)} {t('time.at')} {request.visitTime}
-          </ThemedText>
+        <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+            <DDIcon name="calendar" size={18} color={theme.text} />
+          </View>
+          <View style={{ flex: 1, marginStart: Spacing.md }}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+              {t("time.dateAndTime")}
+            </ThemedText>
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+              {formatDateShort(request.visitDate)} • {formatVisitTimeRange(request.visitTime, request.endTime)}
+            </ThemedText>
+          </View>
         </View>
 
         <Spacer height={Spacing.lg} />
 
-        <View style={styles.detailRowNew}>
-          <DDIcon name="clock" size={16} variant="muted" />
-          <ThemedText style={[Typography.body, { color: theme.textSecondary, marginStart: Spacing.md, fontSize: 13, minWidth: 90 }]}>
-            {t('form.duration')}
-          </ThemedText>
-          <ThemedText style={[Typography.body, { fontWeight: '600', color: theme.text, flex: 1, fontSize: 14 }]}>
-            {parseISODuration(request.duration)}
-          </ThemedText>
+        <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+            <DDIcon name="clock" size={18} color={theme.text} />
+          </View>
+          <View style={{ flex: 1, marginStart: Spacing.md }}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+              {t("form.duration")}
+            </ThemedText>
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+              {parseISODuration(request.duration)}
+            </ThemedText>
+          </View>
         </View>
 
         <Spacer height={Spacing.lg} />
 
-        <View style={styles.detailRowNew}>
-          <DDIcon name="briefcase" size={16} variant="muted" />
-          <ThemedText style={[Typography.body, { color: theme.textSecondary, marginStart: Spacing.md, fontSize: 13, minWidth: 90 }]}>
-            {t('form.purpose')}
-          </ThemedText>
-          <ThemedText style={[Typography.body, { color: theme.text, flex: 1, fontSize: 14 }]}>
-            {request.purpose}
-          </ThemedText>
+        <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+            <DDIcon name="briefcase" size={18} color={theme.text} />
+          </View>
+          <View style={{ flex: 1, marginStart: Spacing.md }}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+              {t("form.purpose")}
+            </ThemedText>
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, lineHeight: 20, textAlign: isRTL ? 'right' : 'left' }]}>
+              {request.purpose}
+            </ThemedText>
+          </View>
         </View>
       </ThemedView>
 
       <Spacer height={Spacing.lg} />
 
       <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
-        <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text }]}>{t('services.additionalServices')}</ThemedText>
+        <ThemedText
+          style={[
+            Typography.subtitle,
+            { fontSize: 16, fontWeight: "600", color: theme.text },
+          ]}
+        >
+          {t("services.additionalServices")}
+        </ThemedText>
         <Spacer height={Spacing.xl} />
 
-        <View style={[styles.serviceItemNew, { backgroundColor: theme.surfaceSecondary }]}>
-          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(request.meetingRoom ? theme.secondary : theme.textSecondary, '15') }]}>
-            <DDIcon name="briefcase" size={18} color={request.meetingRoom ? theme.secondary : theme.textSecondary} />
+        <View
+          style={[
+            styles.serviceItemNew,
+            { backgroundColor: theme.surfaceSecondary, flexDirection: isRTL ? 'row-reverse' : 'row' },
+          ]}
+        >
+          <View
+            style={[
+              styles.serviceIcon,
+              {
+                backgroundColor: applyOpacity(
+                  (request.meetingRoom || request.isMeetingRoom) ? theme.secondary : theme.textSecondary,
+                  "15",
+                ),
+              },
+            ]}
+          >
+            <DDIcon
+              name="briefcase"
+              size={18}
+              color={
+                (request.meetingRoom || request.isMeetingRoom) ? theme.secondary : theme.textSecondary
+              }
+            />
           </View>
           <View style={{ flex: 1, marginStart: Spacing.md }}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 14, color: theme.text }]}>
-              {t('services.meetingRoom')}
+            <ThemedText
+              style={[
+                Typography.body,
+                { fontWeight: "600", fontSize: 14, color: theme.text, textAlign: isRTL ? 'right' : 'left' },
+              ]}
+            >
+              {t("services.meetingRoom")}
             </ThemedText>
-            {request.meetingRoom ? (
+            {(request.meetingRoom || request.isMeetingRoom || (request as any).meetingRoomPending) && (request.status === REQUEST_STATUS.REJECTED || request.status === REQUEST_STATUS.CANCELLED) ? (
+              <ThemedText
+                style={[
+                  Typography.caption,
+                  { color: theme.error, fontSize: 12, marginTop: 2 },
+                ]}
+              >
+                {t("status.cancelled")}
+              </ThemedText>
+            ) : request.meetingRoom ? (
               <>
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12, marginTop: 2 }]}>
+                <ThemedText
+                  style={[
+                    Typography.caption,
+                    { color: theme.textSecondary, fontSize: 12, marginTop: 2 },
+                  ]}
+                >
                   {request.meetingRoom.name} - {request.meetingRoom.floor}
                 </ThemedText>
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12 }]}>
-                  {request.meetingRoom.timeSlot}
+                <ThemedText
+                  style={[
+                    Typography.caption,
+                    { color: theme.textSecondary, fontSize: 12 },
+                  ]}
+                >
+                  {formatDateShort(request.visitDate)} • {formatVisitTimeRange(request.visitTime, request.endTime)}
                 </ThemedText>
               </>
+            ) : request.isMeetingRoom ? (
+              <ThemedText
+                style={[
+                  Typography.caption,
+                  { color: theme.warning, fontSize: 12, marginTop: 2 },
+                ]}
+              >
+                {t("status.pending")}
+              </ThemedText>
             ) : (request as any).meetingRoomPending ? (
-              <ThemedText style={[Typography.caption, { color: theme.warning, fontSize: 12, marginTop: 2 }]}>
-                {t('status.pending')}
+              <ThemedText
+                style={[
+                  Typography.caption,
+                  { color: theme.warning, fontSize: 12, marginTop: 2 },
+                ]}
+              >
+                {t("status.pending")}
               </ThemedText>
             ) : (
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12, marginTop: 2, fontStyle: 'italic' }]}>
-                {t('common.notRequested')}
+              <ThemedText
+                style={[
+                  Typography.caption,
+                  {
+                    color: theme.textSecondary,
+                    fontSize: 12,
+                    marginTop: 2,
+                    fontStyle: "italic",
+                  },
+                ]}
+              >
+                {t("common.notRequested")}
               </ThemedText>
             )}
           </View>
+          {request.meetingRoom?.status ? (
+            <StatusBadge
+              label={formatServiceStatus(request.meetingRoom.status)}
+              variant={getServiceStatusVariant(request.meetingRoom.status)}
+              size="sm"
+            />
+          ) : null}
         </View>
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.serviceItemNew, { backgroundColor: theme.surfaceSecondary }]}>
-          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(request.parkingSlot ? theme.info : theme.textSecondary, '15') }]}>
-            <DDIcon name="map-pin" size={18} color={request.parkingSlot ? theme.info : theme.textSecondary} />
+        <View
+          style={[
+            styles.serviceItemNew,
+            { backgroundColor: theme.surfaceSecondary, flexDirection: isRTL ? 'row-reverse' : 'row' },
+          ]}
+        >
+          <View
+            style={[
+              styles.serviceIcon,
+              {
+                backgroundColor: applyOpacity(
+                  (request.buffet || request.isBuffet || (request as any).buffetPending) ? theme.secondary : theme.textSecondary,
+                  "15",
+                ),
+              },
+            ]}
+          >
+            <DDIcon
+              name="cloche"
+              size={18}
+              color={(request.buffet || request.isBuffet || (request as any).buffetPending) ? theme.secondary : theme.textSecondary}
+            />
           </View>
           <View style={{ flex: 1, marginStart: Spacing.md }}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 14, color: theme.text }]}>
-              {t('services.parking')}
+            <ThemedText
+              style={[
+                Typography.body,
+                { fontWeight: "600", fontSize: 14, color: theme.text, textAlign: isRTL ? 'right' : 'left' },
+              ]}
+            >
+              {t("buffet.buffetService")}
             </ThemedText>
-            {request.parkingSlot ? (
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12, marginTop: 2 }]}>
-                {request.parkingSlot.location === 'skbc_basement' || request.parkingSlot.location === 'SKBC_basement' ? 'SKBC Basement' : request.parkingSlot.location} - {t('parking.slotNumber')} {request.parkingSlot.slotNumber}
+            {(request.buffet || request.isBuffet || (request as any).buffetPending) && (request.status === REQUEST_STATUS.REJECTED || request.status === REQUEST_STATUS.CANCELLED) ? (
+              <ThemedText
+                style={[
+                  Typography.caption,
+                  { color: theme.error, fontSize: 12, marginTop: 2 },
+                ]}
+              >
+                {t("status.cancelled")}
               </ThemedText>
-            ) : (request as any).parkingPending ? (
-              <ThemedText style={[Typography.caption, { color: theme.warning, fontSize: 12, marginTop: 2 }]}>
-                {t('status.pending')}
+            ) : request.buffet && request.buffet.mealType ? (
+              <ThemedText
+                style={[
+                  Typography.caption,
+                  { color: theme.textSecondary, fontSize: 12, marginTop: 2 },
+                ]}
+              >
+                {request.buffet.location} -{" "}
+                {request.buffet.mealType.charAt(0).toUpperCase() +
+                  request.buffet.mealType.slice(1)}
+              </ThemedText>
+            ) : request.isBuffet ? (
+              <ThemedText
+                style={[
+                  Typography.caption,
+                  { color: theme.warning, fontSize: 12, marginTop: 2 },
+                ]}
+              >
+                {t("status.pending")}
+              </ThemedText>
+            ) : (request as any).buffetPending ? (
+              <ThemedText
+                style={[
+                  Typography.caption,
+                  { color: theme.warning, fontSize: 12, marginTop: 2 },
+                ]}
+              >
+                {t("status.pending")}
               </ThemedText>
             ) : (
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12, marginTop: 2, fontStyle: 'italic' }]}>
-                {t('common.notRequested')}
+              <ThemedText
+                style={[
+                  Typography.caption,
+                  {
+                    color: theme.textSecondary,
+                    fontSize: 12,
+                    marginTop: 2,
+                    fontStyle: "italic",
+                  },
+                ]}
+              >
+                {t("common.notRequested")}
               </ThemedText>
             )}
           </View>
-        </View>
-        <Spacer height={Spacing.md} />
-
-        <View style={[styles.serviceItemNew, { backgroundColor: theme.surfaceSecondary }]}>
-          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(request.buffet ? theme.warning : theme.textSecondary, '15') }]}>
-            <DDIcon name="coffee" size={18} color={request.buffet ? theme.warning : theme.textSecondary} />
-          </View>
-          <View style={{ flex: 1, marginStart: Spacing.md }}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 14, color: theme.text }]}>
-              {t('buffet.buffetService')}
-            </ThemedText>
-            {request.buffet && request.buffet.mealType ? (
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12, marginTop: 2 }]}>
-                {request.buffet.location} - {request.buffet.mealType.charAt(0).toUpperCase() + request.buffet.mealType.slice(1)}
-              </ThemedText>
-            ) : request.buffet ? (
-              <ThemedText style={[Typography.caption, { color: theme.warning, fontSize: 12, marginTop: 2 }]}>
-                {t('status.pending')}
-              </ThemedText>
-            ) : (
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12, marginTop: 2, fontStyle: 'italic' }]}>
-                {t('common.notRequested')}
-              </ThemedText>
-            )}
-          </View>
+          {request.buffet?.status ? (
+            <StatusBadge
+              label={formatServiceStatus(request.buffet.status)}
+              variant={getServiceStatusVariant(request.buffet.status)}
+              size="sm"
+            />
+          ) : null}
         </View>
       </ThemedView>
       <Spacer height={Spacing.lg} />
 
-      <VisitTimeline steps={timelineSteps} />
+      <RequestTimeline steps={timelineSteps} />
 
       <Spacer height={Spacing.lg} />
 
-      <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface, alignItems: 'center' }]}>
-        <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text }]}>{t('invitation.qrCode')}</ThemedText>
+      <ThemedView
+        style={[
+          styles.cardNew,
+          { backgroundColor: theme.surface, alignItems: "center" },
+        ]}
+      >
+        <ThemedText
+          style={[
+            Typography.subtitle,
+            { fontSize: 16, fontWeight: "600", color: theme.text },
+          ]}
+        >
+          {t("invitation.qrCode")}
+        </ThemedText>
         <Spacer height={Spacing.xl} />
 
-        <View style={[styles.qrContainerNew, { backgroundColor: theme.surfaceSecondary, borderColor: theme.border }]}>
-          <View style={[styles.qrPlaceholder, { borderColor: theme.border }]}>
-            <DDIcon name="maximize" size={80} color={theme.border} />
-          </View>
+        <View
+          style={[
+            styles.qrContainerNew,
+            {
+              backgroundColor: theme.surfaceSecondary,
+              borderColor: theme.border,
+            },
+          ]}
+        >
+          {request.qrCode ? (
+            <QRCode
+              value={request.qrCode}
+              size={150}
+              backgroundColor={theme.surfaceSecondary}
+              color={theme.text}
+            />
+          ) : (
+            <View style={[styles.qrPlaceholder, { borderColor: theme.border }]}>
+              <DDIcon name="maximize" size={80} color={theme.border} />
+            </View>
+          )}
         </View>
 
-        <Spacer height={Spacing.md} />
-
-        <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: 'center', fontSize: 12 }]}>
-          {t('invitation.shareQrCodeDescription')}
-        </ThemedText>
-
-        <Spacer height={Spacing.xl} />
-
-        <Pressable
-          style={[styles.shareButtonNew, { backgroundColor: theme.primary }]}
-        >
-          <DDIcon name="share-2" size={18} color={theme.buttonText} />
-          <ThemedText style={[Typography.body, { color: theme.buttonText, marginStart: Spacing.sm, fontWeight: '600', fontSize: 14 }]}>
-            {t('invitation.shareQrCode')}
-          </ThemedText>
-        </Pressable>
       </ThemedView>
 
       <Spacer height={Spacing.xl} />
 
-      {/* Walk-in request: Show Approve/Reject buttons */}
-      {request.isWalkIn && request.status === 'pending_approval' ? (
-        <>
-          <View style={styles.actionButtonsRow}>
-            <Pressable
-              style={[styles.actionButtonHalf, { backgroundColor: theme.secondary }]}
-              onPress={handleHostApprove}
-              disabled={hostApproveMutation.isPending}
-            >
-              {hostApproveMutation.isPending ? (
-                <ActivityIndicator size="small" color={theme.buttonText} />
-              ) : (
-                <>
-                  <DDIcon name="check" size={18} color={theme.buttonText} />
-                  <ThemedText style={[Typography.body, { color: theme.buttonText, marginStart: Spacing.sm, fontWeight: '600', fontSize: 14 }]}>
-                    {t('actions.approve')}
-                  </ThemedText>
-                </>
-              )}
-            </Pressable>
-            <Spacer width={Spacing.md} />
-            <Pressable
-              style={[styles.actionButtonHalf, { borderColor: theme.error, backgroundColor: theme.surface }]}
-              onPress={() => setShowHostRejectModal(true)}
-              disabled={hostRejectMutation.isPending}
-            >
-              <DDIcon name="x" size={18} variant="danger" />
-              <ThemedText style={[Typography.body, { color: theme.error, marginStart: Spacing.sm, fontWeight: '600', fontSize: 14 }]}>
-                {t('actions.reject')}
-              </ThemedText>
-            </Pressable>
-          </View>
-          <Spacer height={Spacing.xl} />
-        </>
-      ) : null}
-
-      {/* Non-walk-in request: Show Edit, Reschedule, Cancel buttons */}
-      {!request.isWalkIn && (request.status === 'pending_approval' || request.status === 'approved' || request.status === 'visitor_accepted') ? (
-        <>
-          <Pressable
-            style={[styles.actionButtonFull, { backgroundColor: theme.primary }]}
-            onPress={openEditModal}
-          >
-            <DDIcon name="edit-2" size={18} color={theme.buttonText} />
-            <ThemedText style={[Typography.body, { color: theme.buttonText, marginStart: Spacing.sm, fontWeight: '600', fontSize: 14 }]}>
-              {t('actions.editRequest')}
+      {/* Expired visit message for managers - inline display */}
+      {request.status === REQUEST_STATUS.PENDING_APPROVAL && userRole === 'manager' && isVisitExpired ? (
+        <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: Spacing.sm, paddingHorizontal: Spacing.md }}>
+          <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.xs }}>
+            <DDIcon name="alert-circle" size={16} color={theme.warning} />
+            <ThemedText style={[Typography.caption, { color: theme.warning, fontWeight: '600', textAlign: 'center' }]}>
+              {t('status.visitExpired')}
             </ThemedText>
-          </Pressable>
-          <Spacer height={Spacing.md} />
-          <View style={styles.actionButtonsRow}>
-            <Pressable
-              style={[styles.actionButtonHalf, { borderColor: theme.primary, backgroundColor: theme.surface }]}
-              onPress={openRescheduleModal}
-            >
-              <DDIcon name="calendar" size={18} color={theme.primary} />
-              <ThemedText style={[Typography.body, { color: theme.primary, marginStart: Spacing.sm, fontWeight: '600', fontSize: 14 }]}>
-                {t('actions.reschedule')}
-              </ThemedText>
-            </Pressable>
-            <Spacer width={Spacing.md} />
-            <Pressable
-              style={[styles.actionButtonHalf, { borderColor: theme.error, backgroundColor: theme.surface }]}
-              onPress={() => setShowCancelModal(true)}
-            >
-              <DDIcon name="x" size={18} variant="danger" />
-              <ThemedText style={[Typography.body, { color: theme.error, marginStart: Spacing.sm, fontWeight: '600', fontSize: 14 }]}>
-                {t('actions.cancel')}
-              </ThemedText>
-            </Pressable>
           </View>
-          <Spacer height={Spacing.xl} />
-        </>
+          <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: 'center', marginTop: 2, fontSize: 12 }]}>
+            {t('errors.visitDatePassed')}
+          </ThemedText>
+        </View>
       ) : null}
 
       <Modal
@@ -849,14 +1513,21 @@ export default function RequestDetailsScreen({ navigation, route }: RequestDetai
         onRequestClose={() => setShowCancelModal(false)}
       >
         <View style={styles.modalOverlay}>
-          <Pressable 
-            style={[styles.modalBackdrop, createModalOverlayStyle(theme, '50')]}
+          <Pressable
+            style={[styles.modalBackdrop, createModalOverlayStyle(theme, "50")]}
             onPress={() => setShowCancelModal(false)}
           />
-          <View style={[styles.modalContent, { backgroundColor: theme.surface }]}>
-            <View style={styles.modalHeader}>
-              <ThemedText style={[Typography.subtitle, { fontSize: 18, fontWeight: '600', color: theme.text }]}>
-                {t('actions.confirmCancel')}
+          <View
+            style={[styles.modalContent, { backgroundColor: theme.surface }]}
+          >
+            <View style={[styles.modalHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <ThemedText
+                style={[
+                  Typography.subtitle,
+                  { fontSize: 18, fontWeight: "600", color: theme.text, textAlign: isRTL ? 'right' : 'left' },
+                ]}
+              >
+                {t("actions.confirmCancel")}
               </ThemedText>
               <Pressable onPress={() => setShowCancelModal(false)}>
                 <DDIcon name="x" size={22} variant="muted" />
@@ -865,8 +1536,13 @@ export default function RequestDetailsScreen({ navigation, route }: RequestDetai
 
             <Spacer height={20} />
 
-            <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, lineHeight: 20 }]}>
-              {t('actions.cancelConfirmMessage')}
+            <ThemedText
+              style={[
+                Typography.body,
+                { color: theme.textSecondary, fontSize: 14, lineHeight: 20 },
+              ]}
+            >
+              {t("actions.cancelConfirmMessage")}
             </ThemedText>
 
             <Spacer height={24} />
@@ -878,7 +1554,7 @@ export default function RequestDetailsScreen({ navigation, route }: RequestDetai
                 size="medium"
                 style={{ flex: 1 }}
               >
-                {t('common.goBack')}
+                {t("common.goBack")}
               </LoadingButton>
 
               <Spacer width={12} />
@@ -889,10 +1565,10 @@ export default function RequestDetailsScreen({ navigation, route }: RequestDetai
                 disabled={cancelMutation.isPending}
                 variant="danger"
                 size="medium"
-                loadingText={t('common.loading')}
+                loadingText={t("common.loading")}
                 style={{ flex: 1 }}
               >
-                {t('actions.cancel')}
+                {t("actions.cancel")}
               </LoadingButton>
             </View>
           </View>
@@ -906,14 +1582,21 @@ export default function RequestDetailsScreen({ navigation, route }: RequestDetai
         onRequestClose={() => setShowHostRejectModal(false)}
       >
         <View style={styles.modalOverlay}>
-          <Pressable 
-            style={[styles.modalBackdrop, createModalOverlayStyle(theme, '50')]}
+          <Pressable
+            style={[styles.modalBackdrop, createModalOverlayStyle(theme, "50")]}
             onPress={() => setShowHostRejectModal(false)}
           />
-          <View style={[styles.modalContent, { backgroundColor: theme.surface }]}>
+          <View
+            style={[styles.modalContent, { backgroundColor: theme.surface }]}
+          >
             <View style={styles.modalHeader}>
-              <ThemedText style={[Typography.subtitle, { fontSize: 18, fontWeight: '600', color: theme.text }]}>
-                {t('actions.rejectWalkIn')}
+              <ThemedText
+                style={[
+                  Typography.subtitle,
+                  { fontSize: 18, fontWeight: "600", color: theme.text },
+                ]}
+              >
+                {t("actions.rejectWalkIn")}
               </ThemedText>
               <Pressable onPress={() => setShowHostRejectModal(false)}>
                 <DDIcon name="x" size={22} variant="muted" />
@@ -922,20 +1605,37 @@ export default function RequestDetailsScreen({ navigation, route }: RequestDetai
 
             <Spacer height={20} />
 
-            <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, lineHeight: 20 }]}>
-              {t('actions.rejectWalkInMessage')}
+            <ThemedText
+              style={[
+                Typography.body,
+                { color: theme.textSecondary, fontSize: 14, lineHeight: 20 },
+              ]}
+            >
+              {t("actions.rejectWalkInMessage")}
             </ThemedText>
 
             <Spacer height={Spacing.lg} />
 
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12, marginBottom: 8 }]}>
-              {t('form.reason')} *
+            <ThemedText
+              style={[
+                Typography.caption,
+                { color: theme.textSecondary, fontSize: 12, marginBottom: 8 },
+              ]}
+            >
+              {t("form.reason")} *
             </ThemedText>
             <TextInput
-              style={[styles.textAreaField, { backgroundColor: theme.surfaceSecondary, borderColor: theme.border, color: theme.text }]}
+              style={[
+                styles.textAreaField,
+                {
+                  backgroundColor: theme.surfaceSecondary,
+                  borderColor: theme.border,
+                  color: theme.text,
+                },
+              ]}
               value={hostRejectReason}
               onChangeText={setHostRejectReason}
-              placeholder={t('form.enterReason')}
+              placeholder={t("form.enterReason")}
               placeholderTextColor={theme.textSecondary}
               multiline
               numberOfLines={3}
@@ -948,13 +1648,13 @@ export default function RequestDetailsScreen({ navigation, route }: RequestDetai
               <LoadingButton
                 onPress={() => {
                   setShowHostRejectModal(false);
-                  setHostRejectReason('');
+                  setHostRejectReason("");
                 }}
                 variant="secondary"
                 size="medium"
                 style={{ flex: 1 }}
               >
-                {t('common.cancel')}
+                {t("common.cancel")}
               </LoadingButton>
 
               <Spacer width={12} />
@@ -962,153 +1662,118 @@ export default function RequestDetailsScreen({ navigation, route }: RequestDetai
               <LoadingButton
                 onPress={handleHostReject}
                 loading={hostRejectMutation.isPending}
-                disabled={hostRejectMutation.isPending || !hostRejectReason.trim()}
+                disabled={
+                  hostRejectMutation.isPending || !hostRejectReason.trim()
+                }
                 variant="danger"
                 size="medium"
-                loadingText={t('common.loading')}
+                loadingText={t("common.loading")}
                 style={{ flex: 1 }}
               >
-                {t('actions.reject')}
+                {t("actions.reject")}
               </LoadingButton>
             </View>
           </View>
         </View>
       </Modal>
 
+      {/* Manager Reject Modal */}
       <Modal
-        visible={showRescheduleModal}
+        visible={showManagerRejectModal}
         transparent
         animationType="fade"
-        onRequestClose={() => setShowRescheduleModal(false)}
+        onRequestClose={() => setShowManagerRejectModal(false)}
       >
         <View style={styles.modalOverlay}>
-          <Pressable 
-            style={[styles.modalBackdrop, createModalOverlayStyle(theme, '50')]}
-            onPress={() => setShowRescheduleModal(false)}
+          <Pressable
+            style={[styles.modalBackdrop, createModalOverlayStyle(theme, "50")]}
+            onPress={() => setShowManagerRejectModal(false)}
           />
-          <View style={[styles.modalContent, { backgroundColor: theme.surface }]}>
+          <View
+            style={[styles.modalContent, { backgroundColor: theme.surface }]}
+          >
             <View style={styles.modalHeader}>
-              <ThemedText style={[Typography.subtitle, { fontSize: 18, fontWeight: '600', color: theme.text }]}>
-                {t('actions.rescheduleVisit')}
+              <ThemedText
+                style={[
+                  Typography.subtitle,
+                  { fontSize: 18, fontWeight: "600", color: theme.text },
+                ]}
+              >
+                {t("actions.rejectRequest")}
               </ThemedText>
-              <Pressable onPress={() => setShowRescheduleModal(false)}>
+              <Pressable onPress={() => setShowManagerRejectModal(false)}>
                 <DDIcon name="x" size={22} variant="muted" />
               </Pressable>
             </View>
 
-            <Spacer height={Spacing.lg} />
+            <Spacer height={20} />
 
-            <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14 }]}>
-              {t('actions.selectNewDateTime')}
-            </ThemedText>
-
-            <Spacer height={Spacing.md} />
-
-            <ThemedView style={[styles.currentScheduleBox, { backgroundColor: theme.surfaceSecondary, borderColor: theme.border }]}>
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 11, marginBottom: 4 }]}>
-                {t('actions.currentSchedule')}
-              </ThemedText>
-              <ThemedText style={[Typography.body, { color: theme.text, fontWeight: '600', fontSize: 14 }]}>
-                {request?.visitDate} {t('time.at')} {request?.visitTime}
-              </ThemedText>
-            </ThemedView>
-
-            <Spacer height={Spacing.xl} />
-
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12, marginBottom: 8 }]}>
-              {t('actions.newDate')}
-            </ThemedText>
-            <Pressable 
-              style={[styles.pickerButton, { backgroundColor: theme.surfaceSecondary, borderColor: theme.border }]}
-              onPress={() => setShowDatePicker(true)}
+            <ThemedText
+              style={[
+                Typography.body,
+                { color: theme.textSecondary, fontSize: 14, lineHeight: 20 },
+              ]}
             >
-              <DDIcon name="calendar" size={16} variant="muted" />
-              <ThemedText style={[Typography.body, { marginStart: Spacing.sm, color: theme.text, fontSize: 14 }]}>
-                {formatDisplayDate(rescheduleDate)}
-              </ThemedText>
-            </Pressable>
+              {t("actions.rejectRequestMessage")}
+            </ThemedText>
 
             <Spacer height={Spacing.lg} />
 
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12, marginBottom: 8 }]}>
-              {t('actions.newTime')}
-            </ThemedText>
-            <Pressable 
-              style={[styles.pickerButton, { backgroundColor: theme.surfaceSecondary, borderColor: theme.border }]}
-              onPress={() => setShowTimePicker(true)}
+            <ThemedText
+              style={[
+                Typography.caption,
+                { color: theme.textSecondary, fontSize: 12, marginBottom: 8 },
+              ]}
             >
-              <DDIcon name="clock" size={16} variant="muted" />
-              <ThemedText style={[Typography.body, { marginStart: Spacing.sm, color: theme.text, fontSize: 14 }]}>
-                {formatDisplayTime(rescheduleTime)}
-              </ThemedText>
-            </Pressable>
-
-            <Spacer height={Spacing.lg} />
-
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12, marginBottom: 8 }]}>
-              {t('actions.newDuration')} ({t('form.optional')})
+              {t("form.reason")} *
             </ThemedText>
-            <Pressable 
-              style={[styles.pickerButton, { backgroundColor: theme.surfaceSecondary, borderColor: theme.border }]}
-              onPress={() => setShowDurationPicker(!showDurationPicker)}
-            >
-              <DDIcon name="clock" size={16} variant="muted" />
-              <ThemedText style={[Typography.body, { marginStart: Spacing.sm, color: theme.text, fontSize: 14, flex: 1 }]}>
-                {rescheduleDuration || t('form.selectDuration')}
-              </ThemedText>
-              <DDIcon name={showDurationPicker ? 'chevron-up' : 'chevron-down'} size={16} variant="muted" />
-            </Pressable>
+            <TextInput
+              style={[
+                styles.textAreaField,
+                {
+                  backgroundColor: theme.surfaceSecondary,
+                  borderColor: theme.border,
+                  color: theme.text,
+                },
+              ]}
+              value={managerRejectReason}
+              onChangeText={setManagerRejectReason}
+              placeholder={t("form.enterReason")}
+              placeholderTextColor={theme.textSecondary}
+              multiline
+              numberOfLines={3}
+              textAlignVertical="top"
+            />
 
-            {showDurationPicker && (
-              <View style={[styles.durationDropdown, { backgroundColor: theme.surfaceSecondary, borderColor: theme.border }]}>
-                {getDurationOptions(t).map((option) => (
-                  <Pressable
-                    key={option.value}
-                    style={[
-                      styles.durationOption,
-                      rescheduleDuration === option.value && { backgroundColor: applyOpacity(theme.primary, '10') }
-                    ]}
-                    onPress={() => {
-                      setRescheduleDuration(option.value);
-                      setShowDurationPicker(false);
-                    }}
-                  >
-                    <ThemedText style={[Typography.body, { 
-                      color: rescheduleDuration === option.value ? theme.primary : theme.text, 
-                      fontSize: 14,
-                      fontWeight: rescheduleDuration === option.value ? '600' : '400'
-                    }]}>
-                      {option.label}
-                    </ThemedText>
-                  </Pressable>
-                ))}
-              </View>
-            )}
-
-            <Spacer height={Spacing.xl} />
+            <Spacer height={24} />
 
             <View style={styles.modalActions}>
               <LoadingButton
-                onPress={() => setShowRescheduleModal(false)}
+                onPress={() => {
+                  setShowManagerRejectModal(false);
+                  setManagerRejectReason("");
+                }}
                 variant="secondary"
                 size="medium"
                 style={{ flex: 1 }}
               >
-                {t('common.cancel')}
+                {t("common.cancel")}
               </LoadingButton>
 
               <Spacer width={12} />
 
               <LoadingButton
-                onPress={handleRescheduleConfirm}
-                loading={updateMutation.isPending}
-                disabled={updateMutation.isPending}
-                variant="primary"
+                onPress={handleManagerReject}
+                loading={managerRejectMutation.isPending}
+                disabled={
+                  managerRejectMutation.isPending || !managerRejectReason.trim()
+                }
+                variant="danger"
                 size="medium"
-                loadingText={t('common.saving')}
+                loadingText={t("common.loading")}
                 style={{ flex: 1 }}
               >
-                {t('actions.confirmReschedule')}
+                {t("actions.reject")}
               </LoadingButton>
             </View>
           </View>
@@ -1119,221 +1784,599 @@ export default function RequestDetailsScreen({ navigation, route }: RequestDetai
         visible={showEditModal}
         transparent
         animationType="fade"
-        onRequestClose={() => setShowEditModal(false)}
+        onRequestClose={closeEditModal}
       >
         <View style={styles.modalOverlay}>
-          <Pressable 
-            style={[styles.modalBackdrop, createModalOverlayStyle(theme, '50')]}
-            onPress={() => setShowEditModal(false)}
+          <Pressable
+            style={[styles.modalBackdrop, createModalOverlayStyle(theme, "50")]}
+            onPress={closeEditModal}
           />
-          <View style={[styles.editModalContent, { backgroundColor: theme.surface }]}>
+          <View
+            style={[
+              styles.editModalContent,
+              { backgroundColor: theme.surface },
+            ]}
+          >
             <View style={styles.modalHeader}>
-              <ThemedText style={[Typography.subtitle, { fontSize: 18, fontWeight: '600', color: theme.text }]}>
-                {t('actions.editRequest')}
+              <ThemedText
+                style={[
+                  Typography.subtitle,
+                  { fontSize: 18, fontWeight: "600", color: theme.text },
+                ]}
+              >
+                {isApprovalFlow
+                  ? t("services.additionalServices")
+                  : editModalMode === "services-only"
+                  ? t("actions.editServices")
+                  : t("actions.editRequest")}
               </ThemedText>
-              <Pressable onPress={() => setShowEditModal(false)}>
+              <Pressable onPress={closeEditModal}>
                 <DDIcon name="x" size={22} variant="muted" />
               </Pressable>
             </View>
 
             <Spacer height={Spacing.lg} />
 
-            <ScrollView style={styles.editModalScroll} showsVerticalScrollIndicator={false}>
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12, marginBottom: 8 }]}>
-                {t('form.purpose')} *
-              </ThemedText>
-              <TextInput
-                style={[styles.textInputField, { backgroundColor: theme.surfaceSecondary, borderColor: theme.border, color: theme.text }]}
-                value={editPurpose}
-                onChangeText={setEditPurpose}
-                placeholder={t('form.enterPurpose')}
-                placeholderTextColor={theme.textSecondary}
-              />
-
-              <Spacer height={Spacing.lg} />
-
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12, marginBottom: 8 }]}>
-                {t('form.date')}
-              </ThemedText>
-              <Pressable 
-                style={[styles.pickerButton, { backgroundColor: theme.surfaceSecondary, borderColor: theme.border }]}
-                onPress={() => setShowEditDatePicker(true)}
+            <ScrollView
+              style={styles.editModalScroll}
+              showsVerticalScrollIndicator={false}
+            >
+              <ThemedText
+                style={[
+                  Typography.caption,
+                  { color: theme.textSecondary, fontSize: 12, marginBottom: 8, textAlign: isRTL ? 'right' : 'left' },
+                ]}
               >
-                <DDIcon name="calendar" size={16} variant="muted" />
-                <ThemedText style={[Typography.body, { marginStart: Spacing.sm, color: theme.text, fontSize: 14 }]}>
-                  {formatDisplayDate(editDate)}
+                {t("form.purpose")} *
+              </ThemedText>
+              <Pressable
+                style={[
+                  styles.pickerButton,
+                  {
+                    backgroundColor: theme.surfaceSecondary,
+                    borderColor: theme.border,
+                    flexDirection: isRTL ? 'row-reverse' : 'row',
+                  },
+                ]}
+                onPress={() => setShowPurposePicker(true)}
+              >
+                <DDIcon name="clipboard" size={16} variant="muted" />
+                <ThemedText
+                  style={[
+                    Typography.body,
+                    {
+                      marginStart: Spacing.sm,
+                      color: editPurpose ? theme.text : theme.textSecondary,
+                      fontSize: 14,
+                      flex: 1,
+                      textAlign: isRTL ? 'right' : 'left',
+                    },
+                  ]}
+                >
+                  {editPurpose || t("visitor.selectVisitType")}
                 </ThemedText>
+                <DDIcon name="chevron-down" size={16} variant="muted" />
               </Pressable>
 
-              {showEditDatePicker && (
-                <DateTimePicker
-                  value={editDate}
-                  mode="date"
-                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                  onChange={handleEditDateChange}
-                  minimumDate={new Date()}
-                />
-              )}
+              {/* Walk-in: Start Time (disabled/read-only) and End Time picker (only in services-only mode) */}
+              {visitData?.isWalkIn && editModalMode === "services-only" ? (
+                <>
+                  <Spacer height={Spacing.lg} />
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      { color: theme.textSecondary, fontSize: 12, marginBottom: 8, textAlign: isRTL ? 'right' : 'left' },
+                    ]}
+                  >
+                    {t("form.startTime")}
+                  </ThemedText>
+                  <View
+                    style={[
+                      styles.pickerButton,
+                      {
+                        backgroundColor: applyOpacity(theme.surfaceSecondary, '50'),
+                        borderColor: theme.border,
+                        opacity: 0.7,
+                        flexDirection: isRTL ? 'row-reverse' : 'row',
+                      },
+                    ]}
+                  >
+                    <DDIcon name="clock" size={16} variant="muted" />
+                    <ThemedText
+                      style={[
+                        Typography.body,
+                        {
+                          marginStart: Spacing.sm,
+                          color: theme.textSecondary,
+                          fontSize: 14,
+                          flex: 1,
+                          textAlign: isRTL ? 'right' : 'left',
+                        },
+                      ]}
+                    >
+                      {isApprovalFlow && approvalStartTime 
+                        ? formatDisplayTime(approvalStartTime)
+                        : formatDisplayTime(editTime)
+                      }
+                    </ThemedText>
+                    <DDIcon name="lock" size={14} variant="muted" />
+                  </View>
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      { color: theme.textSecondary, marginTop: Spacing.xs, fontSize: 11, textAlign: isRTL ? 'right' : 'left' },
+                    ]}
+                  >
+                    {t("form.startTimeReadOnly")}
+                  </ThemedText>
+
+                  <Spacer height={Spacing.lg} />
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      { color: theme.textSecondary, fontSize: 12, marginBottom: 8, textAlign: isRTL ? 'right' : 'left' },
+                    ]}
+                  >
+                    {t("form.endTime")} *
+                  </ThemedText>
+                  <Pressable
+                    style={[
+                      styles.pickerButton,
+                      {
+                        backgroundColor: theme.surfaceSecondary,
+                        borderColor: isWalkInEndTimeBeforeNow() ? theme.error : theme.border,
+                        flexDirection: isRTL ? 'row-reverse' : 'row',
+                      },
+                    ]}
+                    onPress={() => setShowEditEndTimePicker(true)}
+                  >
+                    <DDIcon name="clock" size={16} color={isWalkInEndTimeBeforeNow() ? theme.error : theme.textSecondary} />
+                    <ThemedText
+                      style={[
+                        Typography.body,
+                        {
+                          marginStart: Spacing.sm,
+                          color: isWalkInEndTimeBeforeNow() ? theme.error : theme.text,
+                          fontSize: 14,
+                          flex: 1,
+                          textAlign: isRTL ? 'right' : 'left',
+                        },
+                      ]}
+                    >
+                      {formatDisplayTime(editEndTime)}
+                    </ThemedText>
+                    <DDIcon name="chevron-down" size={16} variant="muted" />
+                  </Pressable>
+                  {isWalkInEndTimeBeforeNow() ? (
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.error, marginTop: Spacing.xs, fontSize: 11, textAlign: isRTL ? 'right' : 'left' },
+                      ]}
+                    >
+                      {t("errors.endTimeMustBeLater")}
+                    </ThemedText>
+                  ) : (
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.textSecondary, marginTop: Spacing.xs, fontSize: 11, textAlign: isRTL ? 'right' : 'left' },
+                      ]}
+                    >
+                      {t("form.duration")}: {calculateWalkInDuration()}
+                    </ThemedText>
+                  )}
+                </>
+              ) : null}
+
+              {editModalMode === "full" ? (
+                <>
+                  <Spacer height={Spacing.lg} />
+
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      { color: theme.textSecondary, fontSize: 12, marginBottom: 8, textAlign: isRTL ? 'right' : 'left' },
+                    ]}
+                  >
+                    {t("form.date")}
+                  </ThemedText>
+                  <Pressable
+                    style={[
+                      styles.pickerButton,
+                      {
+                        backgroundColor: theme.surfaceSecondary,
+                        borderColor: theme.border,
+                        flexDirection: isRTL ? 'row-reverse' : 'row',
+                      },
+                    ]}
+                    onPress={() => setShowEditDatePicker(true)}
+                  >
+                    <DDIcon name="calendar" size={16} variant="muted" />
+                    <ThemedText
+                      style={[
+                        Typography.body,
+                        {
+                          marginStart: Spacing.sm,
+                          color: theme.text,
+                          fontSize: 14,
+                          flex: 1,
+                          textAlign: isRTL ? 'right' : 'left',
+                        },
+                      ]}
+                    >
+                      {formatDisplayDate(editDate)}
+                    </ThemedText>
+                  </Pressable>
 
               <Spacer height={Spacing.lg} />
 
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12, marginBottom: 8 }]}>
-                {t('form.time')}
+              <ThemedText
+                style={[
+                  Typography.caption,
+                  { color: theme.textSecondary, fontSize: 12, marginBottom: 8, textAlign: isRTL ? 'right' : 'left' },
+                ]}
+              >
+                {t("form.time")}
               </ThemedText>
-              <Pressable 
-                style={[styles.pickerButton, { backgroundColor: theme.surfaceSecondary, borderColor: theme.border }]}
+              <Pressable
+                style={[
+                  styles.pickerButton,
+                  {
+                    backgroundColor: theme.surfaceSecondary,
+                    borderColor: theme.border,
+                    flexDirection: isRTL ? 'row-reverse' : 'row',
+                  },
+                ]}
                 onPress={() => setShowEditTimePicker(true)}
               >
                 <DDIcon name="clock" size={16} variant="muted" />
-                <ThemedText style={[Typography.body, { marginStart: Spacing.sm, color: theme.text, fontSize: 14 }]}>
+                <ThemedText
+                  style={[
+                    Typography.body,
+                    {
+                      marginStart: Spacing.sm,
+                      color: theme.text,
+                      fontSize: 14,
+                      flex: 1,
+                      textAlign: isRTL ? 'right' : 'left',
+                    },
+                  ]}
+                >
                   {formatDisplayTime(editTime)}
                 </ThemedText>
               </Pressable>
 
-              {showEditTimePicker && (
-                <DateTimePicker
-                  value={editTime}
-                  mode="time"
-                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                  onChange={handleEditTimeChange}
-                />
-              )}
-
               <Spacer height={Spacing.lg} />
 
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12, marginBottom: 8 }]}>
-                {t('form.duration')}
+              <ThemedText
+                style={[
+                  Typography.caption,
+                  { color: theme.textSecondary, fontSize: 12, marginBottom: 8, textAlign: isRTL ? 'right' : 'left' },
+                ]}
+              >
+                {t("form.endTime")}
               </ThemedText>
-              <Pressable 
-                style={[styles.pickerButton, { backgroundColor: theme.surfaceSecondary, borderColor: theme.border }]}
-                onPress={() => setShowEditDurationPicker(!showEditDurationPicker)}
+              <Pressable
+                style={[
+                  styles.pickerButton,
+                  {
+                    backgroundColor: theme.surfaceSecondary,
+                    borderColor: theme.border,
+                    flexDirection: isRTL ? 'row-reverse' : 'row',
+                  },
+                ]}
+                onPress={() => setShowEditEndTimePicker(true)}
               >
                 <DDIcon name="clock" size={16} variant="muted" />
-                <ThemedText style={[Typography.body, { marginStart: Spacing.sm, color: theme.text, fontSize: 14, flex: 1 }]}>
-                  {editDuration}
+                <ThemedText
+                  style={[
+                    Typography.body,
+                    {
+                      marginStart: Spacing.sm,
+                      color: theme.text,
+                      fontSize: 14,
+                      flex: 1,
+                      textAlign: isRTL ? 'right' : 'left',
+                    },
+                  ]}
+                >
+                  {formatDisplayTime(editEndTime)}
                 </ThemedText>
-                <DDIcon name={showEditDurationPicker ? 'chevron-up' : 'chevron-down'} size={16} variant="muted" />
               </Pressable>
-
-              {showEditDurationPicker && (
-                <View style={[styles.durationDropdown, { backgroundColor: theme.surfaceSecondary, borderColor: theme.border }]}>
-                  {getDurationOptions(t).map((option) => (
-                    <Pressable
-                      key={option.value}
-                      style={[
-                        styles.durationOption,
-                        editDuration === option.value && { backgroundColor: applyOpacity(theme.primary, '10') }
-                      ]}
-                      onPress={() => {
-                        setEditDuration(option.value);
-                        setShowEditDurationPicker(false);
-                      }}
-                    >
-                      <ThemedText style={[Typography.body, { 
-                        color: editDuration === option.value ? theme.primary : theme.text, 
-                        fontSize: 14,
-                        fontWeight: editDuration === option.value ? '600' : '400'
-                      }]}>
-                        {option.label}
-                      </ThemedText>
-                    </Pressable>
-                  ))}
-                </View>
-              )}
-
-              <Spacer height={Spacing.xl} />
-
-              <ThemedText style={[Typography.subtitle, { fontSize: 14, fontWeight: '600', color: theme.text, marginBottom: Spacing.md }]}>
-                {t('services.additionalServices')}
-              </ThemedText>
-
-              <View style={[styles.serviceToggleRow, { borderColor: theme.border }]}>
-                <View style={styles.serviceToggleLabel}>
-                  <DDIcon name="map-pin" size={18} variant="muted" />
-                  <ThemedText style={[Typography.body, { marginStart: Spacing.sm, color: theme.text, fontSize: 14 }]}>
-                    {t('services.parking')}
-                  </ThemedText>
-                </View>
-                <Switch
-                  value={editRequiresParking}
-                  onValueChange={setEditRequiresParking}
-                  trackColor={{ false: theme.border, true: theme.primary }}
-                  thumbColor={theme.buttonText}
-                />
-              </View>
-
-              <View style={[styles.serviceToggleRow, { borderColor: theme.border }]}>
-                <View style={styles.serviceToggleLabel}>
-                  <DDIcon name="home" size={18} variant="muted" />
-                  <ThemedText style={[Typography.body, { marginStart: Spacing.sm, color: theme.text, fontSize: 14 }]}>
-                    {t('services.meetingRoom')}
-                  </ThemedText>
-                </View>
-                <Switch
-                  value={editRequiresMeetingRoom}
-                  onValueChange={setEditRequiresMeetingRoom}
-                  trackColor={{ false: theme.border, true: theme.primary }}
-                  thumbColor={theme.buttonText}
-                />
-              </View>
-
-              <View style={[styles.serviceToggleRow, { borderColor: theme.border }]}>
-                <View style={styles.serviceToggleLabel}>
-                  <DDIcon name="coffee" size={18} variant="muted" />
-                  <ThemedText style={[Typography.body, { marginStart: Spacing.sm, color: theme.text, fontSize: 14 }]}>
-                    {t('buffet.buffetService')}
-                  </ThemedText>
-                </View>
-                <Switch
-                  value={editRequiresBuffet}
-                  onValueChange={setEditRequiresBuffet}
-                  trackColor={{ false: theme.border, true: theme.primary }}
-                  thumbColor={theme.buttonText}
-                />
-              </View>
-
-              <View style={[styles.serviceToggleRow, { borderColor: theme.border }]}>
-                <View style={styles.serviceToggleLabel}>
-                  <DDIcon name="truck" size={18} variant="muted" />
-                  <ThemedText style={[Typography.body, { marginStart: Spacing.sm, color: theme.text, fontSize: 14 }]}>
-                    {t('valet.valetService')}
-                  </ThemedText>
-                </View>
-                <Switch
-                  value={editRequiresValet}
-                  onValueChange={setEditRequiresValet}
-                  trackColor={{ false: theme.border, true: theme.primary }}
-                  thumbColor={theme.buttonText}
-                />
-              </View>
 
               <Spacer height={Spacing.lg} />
 
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12, marginBottom: 8 }]}>
-                {t('form.notes')} ({t('form.optional')})
+              <ThemedText
+                style={[
+                  Typography.caption,
+                  { color: theme.textSecondary, fontSize: 12, marginBottom: 8, textAlign: isRTL ? 'right' : 'left' },
+                ]}
+              >
+                {t("form.duration")}
               </ThemedText>
-              <TextInput
-                style={[styles.textAreaField, { backgroundColor: theme.surfaceSecondary, borderColor: theme.border, color: theme.text }]}
-                value={editNotes}
-                onChangeText={setEditNotes}
-                placeholder={t('form.additionalNotes')}
-                placeholderTextColor={theme.textSecondary}
-                multiline
-                numberOfLines={3}
-                textAlignVertical="top"
-              />
+              <View
+                style={[
+                  styles.pickerButton,
+                  {
+                    backgroundColor: theme.surface,
+                    borderColor: theme.border,
+                    opacity: 0.7,
+                    flexDirection: isRTL ? 'row-reverse' : 'row',
+                  },
+                ]}
+              >
+                <DDIcon name="clock" size={16} variant="muted" />
+                <ThemedText
+                  style={[
+                    Typography.body,
+                    {
+                      marginStart: Spacing.sm,
+                      color: isEditEndTimeBeforeStartTime() ? theme.error : theme.textSecondary,
+                      fontSize: 14,
+                      flex: 1,
+                      textAlign: isRTL ? 'right' : 'left',
+                    },
+                  ]}
+                >
+                  {calculateEditDuration()}
+                </ThemedText>
+                <DDIcon name="lock" size={16} variant="muted" />
+              </View>
+              <ThemedText
+                style={[
+                  Typography.caption,
+                  { color: theme.textSecondary, marginTop: Spacing.xs, fontSize: 11, textAlign: isRTL ? 'right' : 'left' },
+                ]}
+              >
+                {t("form.calculatedAutomatically")}
+              </ThemedText>
+                </>
+              ) : null}
 
               <Spacer height={Spacing.xl} />
+
+              <ThemedText
+                style={[
+                  Typography.subtitle,
+                  {
+                    fontSize: 14,
+                    fontWeight: "600",
+                    color: theme.text,
+                    marginBottom: Spacing.md,
+                    textAlign: isRTL ? 'right' : 'left',
+                  },
+                ]}
+              >
+                {t("services.optionalServices")}
+              </ThemedText>
+
+              <View style={getGridStyle()}>
+                <View style={getCardWrapper3ColStyle()}>
+                  <SelectableCard
+                    onPress={() => setEditRequiresMeetingRoom(!editRequiresMeetingRoom)}
+                    selected={editRequiresMeetingRoom}
+                  >
+                    <View style={[styles.compactServiceIcon, { backgroundColor: applyOpacity(theme.cardIcon, "15") }]}>
+                      <DDIcon name="users" size={20} color={theme.cardIcon} />
+                    </View>
+                    <ThemedText style={[Typography.caption, { fontWeight: "600", marginTop: Spacing.xs, textAlign: "center", color: theme.text, fontSize: 11 }]}>
+                      {t("services.meetingRoom")}
+                    </ThemedText>
+                  </SelectableCard>
+                </View>
+
+                <View style={getCardWrapper3ColStyle()}>
+                  <SelectableCard
+                    onPress={() => setEditRequiresBuffet(!editRequiresBuffet)}
+                    selected={editRequiresBuffet}
+                  >
+                    <View style={[styles.compactServiceIcon, { backgroundColor: applyOpacity(theme.cardIcon, "15") }]}>
+                      <DDIcon name="cloche" size={20} color={theme.cardIcon} />
+                    </View>
+                    <ThemedText style={[Typography.caption, { fontWeight: "600", marginTop: Spacing.xs, textAlign: "center", color: theme.text, fontSize: 11 }]}>
+                      {t("buffet.buffet")}
+                    </ThemedText>
+                  </SelectableCard>
+                </View>
+              </View>
+
+              {/* Meeting Room Availability Badge */}
+              {editRequiresMeetingRoom ? (
+                <View style={{ marginTop: Spacing.md }}>
+                  {hasCheckedEditAvailability ? (
+                    <View 
+                      style={[
+                        styles.availabilityBadge, 
+                        { 
+                          flexDirection: isRTL ? 'row-reverse' : 'row',
+                          backgroundColor: isEditRoomAvailable 
+                            ? applyOpacity(theme.success, '15') 
+                            : applyOpacity(theme.error, '15'),
+                          borderColor: isEditRoomAvailable ? theme.success : theme.error,
+                        }
+                      ]}
+                    >
+                      <DDIcon 
+                        name={isEditRoomAvailable ? "check-circle" : "alert-circle"} 
+                        size={16} 
+                        color={isEditRoomAvailable ? theme.success : theme.error} 
+                      />
+                      <ThemedText 
+                        style={[
+                          Typography.bodySmall, 
+                          { 
+                            color: isEditRoomAvailable ? theme.success : theme.error,
+                            marginStart: Spacing.xs,
+                            fontWeight: '500'
+                          }
+                        ]}
+                      >
+                        {isEditRoomAvailable 
+                          ? t('form.meetingRoomAvailable')
+                          : t('errors.noRoomsAvailableForTime')
+                        }
+                      </ThemedText>
+                    </View>
+                  ) : isLoadingEditRooms ? (
+                    <View style={[styles.availabilityBadge, { flexDirection: isRTL ? 'row-reverse' : 'row', backgroundColor: theme.surface, borderColor: theme.border }]}>
+                      <ActivityIndicator size="small" color={theme.primary} style={{ marginEnd: Spacing.xs }} />
+                      <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
+                        {t('common.checkingAvailability')}...
+                      </ThemedText>
+                    </View>
+                  ) : null}
+                </View>
+              ) : null}
+
+              {/* Communication Channels - Hide for walk-in requests */}
+              {!request?.isWalkIn ? (
+                <>
+                  <Spacer height={Spacing.xl} />
+
+                  <ThemedText
+                    style={[
+                      Typography.subtitle,
+                      {
+                        fontSize: 14,
+                        fontWeight: "600",
+                        color: theme.text,
+                        marginBottom: Spacing.md,
+                      },
+                    ]}
+                  >
+                    {t("invitation.communicationChannels")}
+                  </ThemedText>
+
+                  <View style={styles.channelsContainer}>
+                    <Pressable
+                      style={[
+                        styles.channelChip,
+                        {
+                          backgroundColor: theme.surface,
+                          borderColor: editSendWhatsApp ? theme.primary : theme.border,
+                        },
+                      ]}
+                      onPress={() => setEditSendWhatsApp(!editSendWhatsApp)}
+                    >
+                      <View
+                        style={[
+                          styles.channelChipIcon,
+                          { backgroundColor: applyOpacity(theme.success, "15") },
+                        ]}
+                      >
+                        <DDIcon name="message-circle" size={16} variant="success" />
+                      </View>
+                      <ThemedText
+                        style={[
+                          Typography.bodySmall,
+                          { fontWeight: "500", marginStart: Spacing.xs },
+                        ]}
+                      >
+                        {t("services.whatsapp")}
+                      </ThemedText>
+                      {editSendWhatsApp ? (
+                        <View
+                          style={[
+                            styles.chipCheckmark,
+                            { backgroundColor: theme.primary },
+                          ]}
+                        >
+                          <DDIcon name="check" size={10} color={theme.buttonText} />
+                        </View>
+                      ) : null}
+                    </Pressable>
+
+                    <Pressable
+                      style={[
+                        styles.channelChip,
+                        {
+                          backgroundColor: theme.surface,
+                          borderColor: editSendSMS ? theme.primary : theme.border,
+                        },
+                      ]}
+                      onPress={() => setEditSendSMS(!editSendSMS)}
+                    >
+                      <View
+                        style={[
+                          styles.channelChipIcon,
+                          { backgroundColor: applyOpacity(theme.info, "15") },
+                        ]}
+                      >
+                        <DDIcon name="smartphone" size={16} color={theme.info} />
+                      </View>
+                      <ThemedText
+                        style={[
+                          Typography.bodySmall,
+                          { fontWeight: "500", marginStart: Spacing.xs },
+                        ]}
+                      >
+                        {t("services.sms")}
+                      </ThemedText>
+                      {editSendSMS ? (
+                        <View
+                          style={[
+                            styles.chipCheckmark,
+                            { backgroundColor: theme.primary },
+                          ]}
+                        >
+                          <DDIcon name="check" size={10} color={theme.buttonText} />
+                        </View>
+                      ) : null}
+                    </Pressable>
+
+                    <View
+                      style={[
+                        styles.channelChip,
+                        {
+                          backgroundColor: theme.surface,
+                          borderColor: theme.primary,
+                          opacity: 0.8,
+                        },
+                      ]}
+                    >
+                      <View
+                        style={[
+                          styles.channelChipIcon,
+                          { backgroundColor: applyOpacity(theme.warning, "15") },
+                        ]}
+                      >
+                        <DDIcon name="mail" size={16} color={theme.warning} />
+                      </View>
+                      <ThemedText
+                        style={[
+                          Typography.bodySmall,
+                          { fontWeight: "500", marginStart: Spacing.xs },
+                        ]}
+                      >
+                        {t("services.email")}
+                      </ThemedText>
+                      <View
+                        style={[
+                          styles.chipCheckmark,
+                          { backgroundColor: theme.primary },
+                        ]}
+                      >
+                        <DDIcon name="check" size={10} color={theme.buttonText} />
+                      </View>
+                    </View>
+                  </View>
+
+                  <Spacer height={Spacing.lg} />
+                </>
+              ) : null}
+
+              <Spacer height={Spacing.md} />
             </ScrollView>
 
             <View style={styles.modalActions}>
               <LoadingButton
-                onPress={() => setShowEditModal(false)}
+                onPress={closeEditModal}
                 variant="secondary"
                 size="medium"
                 style={{ flex: 1 }}
               >
-                {t('common.cancel')}
+                {t("common.cancel")}
               </LoadingButton>
 
               <Spacer width={12} />
@@ -1342,14 +2385,133 @@ export default function RequestDetailsScreen({ navigation, route }: RequestDetai
                 onPress={handleEditConfirm}
                 loading={updateMutation.isPending}
                 disabled={updateMutation.isPending}
-                variant="primary"
+                variant={isApprovalFlow ? "success" : "primary"}
                 size="medium"
-                loadingText={t('common.saving')}
+                icon={isApprovalFlow ? "check" : undefined}
+                loadingText={isApprovalFlow ? t("common.approving") : t("common.saving")}
                 style={{ flex: 1 }}
               >
-                {t('common.save')}
+                {isApprovalFlow ? t("actions.approve") : t("common.save")}
               </LoadingButton>
             </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Date/Time Picker Modals for Edit */}
+      <CalendarDatePicker
+        visible={showEditDatePicker}
+        onClose={() => setShowEditDatePicker(false)}
+        selectedDate={editDate}
+        onDateSelect={(date) => {
+          setEditDate(date);
+          setShowEditDatePicker(false);
+        }}
+        mode="single"
+        minimumDate={new Date()}
+      />
+
+      <TimePicker
+        visible={showEditTimePicker}
+        onClose={() => setShowEditTimePicker(false)}
+        selectedTime={editTime}
+        onTimeSelect={(time) => {
+          setEditTime(time);
+          setShowEditTimePicker(false);
+        }}
+        minuteInterval={5}
+      />
+
+      <TimePicker
+        visible={showEditEndTimePicker}
+        onClose={() => setShowEditEndTimePicker(false)}
+        selectedTime={editEndTime}
+        onTimeSelect={(time) => {
+          setEditEndTime(time);
+          setShowEditEndTimePicker(false);
+        }}
+        minuteInterval={5}
+      />
+
+      {/* Purpose Picker Modal */}
+      <Modal
+        visible={showPurposePicker}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowPurposePicker(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <Pressable
+            style={[styles.modalBackdrop, createModalOverlayStyle(theme, "50")]}
+            onPress={() => setShowPurposePicker(false)}
+          />
+          <View
+            style={[
+              styles.modalContent,
+              { backgroundColor: theme.surface, maxHeight: "60%" },
+            ]}
+          >
+            <View style={styles.modalHeader}>
+              <ThemedText
+                style={[
+                  Typography.subtitle,
+                  { fontSize: 18, fontWeight: "600", color: theme.text },
+                ]}
+              >
+                {t("visitor.selectVisitType")}
+              </ThemedText>
+              <Pressable onPress={() => setShowPurposePicker(false)}>
+                <DDIcon name="x" size={22} variant="muted" />
+              </Pressable>
+            </View>
+
+            <ScrollView style={{ marginTop: Spacing.md }}>
+              {PURPOSE_OPTIONS.map((option) => (
+                <Pressable
+                  key={option.value}
+                  style={[
+                    styles.purposePickerItem,
+                    {
+                      borderBottomColor: theme.border,
+                      backgroundColor:
+                        editPurpose === t(option.labelKey as any)
+                          ? applyOpacity(theme.primary, "10")
+                          : "transparent",
+                    },
+                  ]}
+                  onPress={() => {
+                    setEditPurpose(t(option.labelKey as any));
+                    setShowPurposePicker(false);
+                  }}
+                >
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <ThemedText
+                      style={[
+                        Typography.body,
+                        {
+                          color: theme.text,
+                          fontWeight:
+                            editPurpose === t(option.labelKey as any)
+                              ? "600"
+                              : "400",
+                        },
+                      ]}
+                    >
+                      {t(option.labelKey as any)}
+                    </ThemedText>
+                    {editPurpose === t(option.labelKey as any) ? (
+                      <DDIcon name="check" size={18} variant="primary" />
+                    ) : null}
+                  </View>
+                </Pressable>
+              ))}
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -1361,82 +2523,162 @@ export default function RequestDetailsScreen({ navigation, route }: RequestDetai
         animationType="none"
         onRequestClose={handleCloseSuccessModal}
       >
-        <Pressable 
-          style={[styles.successModalOverlay, createModalOverlayStyle(theme, '50')]}
+        <Pressable
+          style={[
+            styles.successModalOverlay,
+            createModalOverlayStyle(theme, "50"),
+          ]}
           onPress={handleCloseSuccessModal}
         >
-          <Animated.View 
+          <Animated.View
             style={[
               styles.successModalContent,
               {
                 opacity: fadeAnim,
                 transform: [{ scale: scaleAnim }],
                 backgroundColor: theme.surface,
-              }
+              },
             ]}
           >
-            <View style={[styles.successIconContainer, { backgroundColor: applyOpacity(theme.success, '15') }]}>
+            <View
+              style={[
+                styles.successIconContainer,
+                { backgroundColor: applyOpacity(theme.success, "15") },
+              ]}
+            >
               <DDIcon name="check-circle" size={48} variant="success" />
             </View>
-            
+
             <Spacer height={Spacing.lg} />
-            
-            <ThemedText style={[Typography.subtitle, { fontSize: 18, fontWeight: '700', color: theme.text, textAlign: 'center' }]}>
-              {t('common.success')}
+
+            <ThemedText
+              style={[
+                Typography.subtitle,
+                {
+                  fontSize: 18,
+                  fontWeight: "700",
+                  color: theme.text,
+                  textAlign: "center",
+                },
+              ]}
+            >
+              {t("common.success")}
             </ThemedText>
-            
+
             <Spacer height={Spacing.sm} />
-            
-            <ThemedText style={[Typography.body, { color: theme.textSecondary, textAlign: 'center', lineHeight: 22 }]}>
+
+            <ThemedText
+              style={[
+                Typography.body,
+                {
+                  color: theme.textSecondary,
+                  textAlign: "center",
+                  lineHeight: 22,
+                },
+              ]}
+            >
               {successMessage}
             </ThemedText>
-            
+
             <Spacer height={Spacing.xl} />
-            
+
             <LoadingButton
               onPress={handleCloseSuccessModal}
               variant="success"
               size="medium"
               fullWidth
             >
-              {t('common.close')}
+              {t("common.close")}
             </LoadingButton>
           </Animated.View>
         </Pressable>
       </Modal>
 
-      <CalendarDatePicker
-        visible={showDatePicker}
-        onClose={() => setShowDatePicker(false)}
-        selectedDate={rescheduleDate}
-        onDateSelect={handleRescheduleDateSelect}
-        mode="single"
-        minimumDate={new Date()}
-      />
-
-      <TimePicker
-        visible={showTimePicker}
-        onClose={() => setShowTimePicker(false)}
-        selectedTime={rescheduleTime}
-        onTimeSelect={handleRescheduleTimeSelect}
-        minuteInterval={5}
-      />
     </ScreenScrollView>
+
+    {/* Sticky Footer for Actions */}
+    {request.isWalkIn && request.status === REQUEST_STATUS.PENDING_HOST_APPROVAL ? (
+      <View style={[styles.stickyFooter, { backgroundColor: theme.background, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.lg }]}>
+        <ApprovalActionGroup
+          onApprove={handleHostApprove}
+          onReject={() => setShowHostRejectModal(true)}
+          approveLoading={hostApproveMutation.isPending}
+          rejectLoading={hostRejectMutation.isPending}
+          size="large"
+          showIcons={true}
+        />
+      </View>
+    ) : null}
+
+    {request.status === REQUEST_STATUS.PENDING_APPROVAL && userRole === 'manager' && !isVisitExpired ? (
+      <View style={[styles.stickyFooter, { backgroundColor: theme.background, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.lg }]}>
+        <ApprovalActionGroup
+          onApprove={handleManagerApprove}
+          onReject={() => setShowManagerRejectModal(true)}
+          approveLoading={managerApproveMutation.isPending}
+          rejectLoading={managerRejectMutation.isPending}
+          size="large"
+          showIcons={true}
+        />
+      </View>
+    ) : null}
+
+    {request.status !== REQUEST_STATUS.PENDING_HOST_APPROVAL &&
+     !(request.status === REQUEST_STATUS.PENDING_APPROVAL && userRole === 'manager') &&
+     request.status !== REQUEST_STATUS.COMPLETED &&
+     request.status !== REQUEST_STATUS.CANCELLED &&
+     request.status !== REQUEST_STATUS.REJECTED &&
+     request.status !== REQUEST_STATUS.VISITOR_REJECTED &&
+     request.status !== REQUEST_STATUS.AUTO_CANCELLED ? (
+      <View style={[styles.stickyFooter, { backgroundColor: theme.background, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.lg }]}>
+        <View style={[styles.actionButtonsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <LoadingButton
+            onPress={() => openEditModal(request.isWalkIn ? "services-only" : "full")}
+            variant="primary"
+            size="large"
+            icon={request.isWalkIn ? "settings" : "edit-2"}
+            iconPosition="left"
+            style={{ flex: 1 }}
+          >
+            {request.isWalkIn ? t("actions.editServices") : t("common.edit")}
+          </LoadingButton>
+          <View style={{ width: Spacing.md }} />
+          <LoadingButton
+            onPress={() => setShowCancelModal(true)}
+            variant="danger-outline"
+            size="large"
+            icon="x-circle"
+            iconPosition="left"
+            style={{ flex: 1 }}
+          >
+            {t("common.cancel")}
+          </LoadingButton>
+        </View>
+      </View>
+    ) : null}
+    </>
   );
 }
 
 const styles = StyleSheet.create({
+  stickyFooter: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.lg,
+    borderTopWidth: 1,
+  },
   container: {
     paddingHorizontal: Spacing.lg,
   },
   headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: "center",
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.xs,
     borderRadius: BorderRadius.full,
@@ -1447,14 +2689,14 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.full,
   },
   alertBox: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    alignItems: "flex-start",
     padding: Spacing.md,
     borderRadius: BorderRadius.sm,
   },
   managerCommentHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   card: {
     padding: Spacing.lg,
@@ -1463,7 +2705,7 @@ const styles = StyleSheet.create({
   cardNew: {
     padding: 20,
     borderRadius: 10,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
@@ -1471,74 +2713,76 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    width: '100%',
+    width: "100%",
   },
   avatar: {
     width: 72,
     height: 72,
     borderRadius: BorderRadius.full,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   avatarNew: {
     width: 80,
     height: 80,
     borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   avatarText: {
     fontSize: 28,
-    fontWeight: '600',
+    lineHeight: 36,
+    fontWeight: "600",
   },
   infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: "center",
   },
   infoRowNew: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: "center",
   },
   detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   detailRowNew: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: "center",
+  },
+  detailRowStacked: {
+    flexDirection: "column",
+    alignItems: "flex-start",
   },
   serviceItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: "center",
     padding: Spacing.md,
     borderRadius: BorderRadius.sm,
   },
   serviceItemNew: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: "center",
     padding: Spacing.md,
     borderRadius: 8,
+  },
+  serviceRowNew: {
+    alignItems: "flex-start",
   },
   serviceIcon: {
     width: 40,
     height: 40,
     borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   timelineItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    position: 'relative',
+    flexDirection: "row",
+    alignItems: "flex-start",
+    position: "relative",
   },
   timelineItemNew: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    alignItems: "flex-start",
   },
   timelineIconContainer: {
-    alignItems: 'center',
-    position: 'relative',
+    alignItems: "center",
+    position: "relative",
   },
   timelineDot: {
     width: 12,
@@ -1551,18 +2795,18 @@ const styles = StyleSheet.create({
     height: 28,
     borderRadius: BorderRadius.full,
     borderWidth: 2,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   timelineLine: {
-    position: 'absolute',
+    position: "absolute",
     left: 5.5,
     top: 20,
     width: 1,
     height: 40,
   },
   timelineLineNew: {
-    position: 'absolute',
+    position: "absolute",
     top: 32,
     width: 2,
     height: 36,
@@ -1570,57 +2814,52 @@ const styles = StyleSheet.create({
   qrContainer: {
     padding: Spacing.lg,
     borderRadius: BorderRadius.md,
-    alignItems: 'center',
+    alignItems: "center",
   },
   qrContainerNew: {
     padding: Spacing.xl,
     borderRadius: 12,
-    alignItems: 'center',
+    alignItems: "center",
     borderWidth: 1,
   },
   qrPlaceholder: {
     width: 180,
     height: 180,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 2,
     borderRadius: 10,
-    borderStyle: 'dashed',
+    borderStyle: "dashed",
   },
   shareButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.xl,
     borderRadius: BorderRadius.sm,
   },
   shareButtonNew: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.xl,
     borderRadius: 10,
-    width: '100%',
+    width: "100%",
   },
   cancelButtonNew: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.xl,
     borderRadius: 10,
     borderWidth: 1.5,
   },
   actionButtonsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: "center",
   },
   actionButtonHalf: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: Spacing.md,
     borderRadius: 10,
     borderWidth: 1.5,
@@ -1631,8 +2870,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   pickerButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.md,
     borderRadius: 8,
@@ -1642,7 +2880,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
     borderRadius: 8,
     borderWidth: 1,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   durationOption: {
     paddingVertical: Spacing.md,
@@ -1652,16 +2890,15 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
   },
   actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     height: Spacing.buttonHeight,
     borderRadius: BorderRadius.sm,
   },
   modalOverlay: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalBackdrop: {
     ...StyleSheet.absoluteFillObject,
@@ -1669,22 +2906,22 @@ const styles = StyleSheet.create({
   modalContent: {
     borderRadius: 12,
     padding: 24,
-    width: '85%',
+    width: "85%",
     maxWidth: 400,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 16,
     elevation: 5,
   },
   modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   modalActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
+    flexDirection: "row",
+    justifyContent: "flex-end",
   },
   modalCancelButton: {
     paddingVertical: 12,
@@ -1698,19 +2935,18 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   actionButtonFull: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: Spacing.md,
     borderRadius: 10,
   },
   editModalContent: {
     borderRadius: 12,
     padding: 24,
-    width: '90%',
+    width: "90%",
     maxWidth: 450,
-    maxHeight: '80%',
-    shadowColor: '#000',
+    maxHeight: "80%",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 16,
@@ -1733,35 +2969,40 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     fontSize: 14,
     minHeight: 80,
+    width: '100%',
   },
   serviceToggleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingVertical: Spacing.md,
     borderBottomWidth: 1,
   },
   serviceToggleLabel: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: "center",
+  },
+  compactServiceIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
   },
   buttonLoadingContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   successModalOverlay: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   successModalContent: {
     borderRadius: 16,
     padding: 28,
-    width: '85%',
+    width: "85%",
     maxWidth: 340,
-    alignItems: 'center',
-    shadowColor: '#000',
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 16,
@@ -1771,13 +3012,54 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   successButton: {
-    width: '100%',
+    width: "100%",
     paddingVertical: 14,
     borderRadius: 10,
-    alignItems: 'center',
+    alignItems: "center",
+  },
+  channelsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: Spacing.sm,
+  },
+  channelChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+  },
+  channelChipIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  chipCheckmark: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    marginStart: Spacing.xs,
+  },
+  purposePickerItem: {
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    borderBottomWidth: 1,
+  },
+  availabilityBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
   },
 });

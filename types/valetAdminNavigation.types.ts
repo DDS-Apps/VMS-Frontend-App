@@ -1,5 +1,5 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import type { ValetRequest } from "@/services/mock/valetAdminState";
+import type { ValetRequest } from "@/services/state/valetAdminState";
 
 export type ValetAdminStackParamList = {
   ValetAdminDashboard: undefined;

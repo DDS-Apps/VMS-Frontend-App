@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, StyleSheet, Pressable, I18nManager, useWindowDimensions, Image, Modal, Switch } from "react-native";
+import { View, StyleSheet, Pressable, I18nManager, useWindowDimensions, Image, Modal, Switch, Platform } from "react-native";
 import { GestureDetector, Gesture } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, {
@@ -12,6 +12,7 @@ import Sidebar from "@/components/Sidebar";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { DDIcon } from "@/components/DDIcon";
+import { EnableNotificationsPrompt } from "@/components/shared/EnableNotificationsPrompt";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -36,6 +37,7 @@ interface DashboardLayoutProps {
   canGoBack?: boolean;
   onGoBack?: () => void;
   unreadNotificationCount?: number;
+  isSSOUser?: boolean;
 }
 
 export default function DashboardLayout({
@@ -52,22 +54,25 @@ export default function DashboardLayout({
   canGoBack = false,
   onGoBack,
   unreadNotificationCount = 0,
+  isSSOUser = false,
 }: DashboardLayoutProps) {
   const { theme, isDark, toggleTheme } = useTheme();
-  const { locale, setLocale } = useLanguage();
+  const { locale, setLocale, isRTL } = useLanguage();
   const { t } = useTranslation();
   const { width } = useWindowDimensions();
-  const isRTL = I18nManager.isRTL;
   const insets = useSafeAreaInsets();
   
   const [profileMenuVisible, setProfileMenuVisible] = useState(false);
   
-  const getInitials = (name: string): string => {
-    const words = name.trim().split(' ');
-    if (words.length >= 2) {
+  const getInitials = (name: string | undefined | null): string => {
+    if (!name) return '??';
+    const trimmedName = name.trim();
+    if (!trimmedName) return '??';
+    const words = trimmedName.split(' ').filter(w => w.length > 0);
+    if (words.length >= 2 && words[0] && words[1]) {
       return (words[0][0] + words[1][0]).toUpperCase();
     }
-    return name.slice(0, 2).toUpperCase();
+    return trimmedName.slice(0, 2).toUpperCase();
   };
   
   const handleLanguageToggle = async () => {
@@ -140,8 +145,10 @@ export default function DashboardLayout({
     ? { left: -(width - EDGE_SWIPE_THRESHOLD), right: 0, top: 0, bottom: 0 }
     : { left: 0, right: -(width - EDGE_SWIPE_THRESHOLD), top: 0, bottom: 0 };
 
+  const isWeb = Platform.OS === 'web';
+  
   const edgeSwipeGesture = Gesture.Pan()
-    .enabled(!isLargeScreen && !sidebarOpen && !canGoBack)
+    .enabled(!isWeb && !isLargeScreen && !sidebarOpen && !canGoBack)
     .hitSlop(edgeHitSlop)
     .activeOffsetX(isRTL ? [-30, 0] : [0, 30])
     .failOffsetY([-20, 20])
@@ -178,7 +185,7 @@ export default function DashboardLayout({
     });
 
   const sidebarSwipeGesture = Gesture.Pan()
-    .enabled(!isLargeScreen && sidebarOpen)
+    .enabled(!isWeb && !isLargeScreen && sidebarOpen)
     .minDistance(30)
     .onUpdate((event) => {
       if (isRTL) {
@@ -239,7 +246,8 @@ export default function DashboardLayout({
               borderBottomColor: theme.border, 
               backgroundColor: theme.background,
               paddingTop: insets.top + Spacing.sm,
-            }
+            },
+            isRTL && { flexDirection: 'row-reverse' },
           ]}>
             {canGoBack && onGoBack ? (
               <Pressable 
@@ -362,18 +370,20 @@ export default function DashboardLayout({
                 </ThemedText>
               </Pressable>
               
-              <Pressable 
-                style={({ pressed }) => [styles.dropdownItem, { opacity: pressed ? 0.6 : 1 }]}
-                onPress={() => {
-                  setProfileMenuVisible(false);
-                  onNavigate('ChangePassword');
-                }}
-              >
-                <DDIcon name="lock" size={20} variant="muted" />
-                <ThemedText style={[Typography.body, { marginStart: Spacing.md }]}>
-                  {t('settings.changePassword')}
-                </ThemedText>
-              </Pressable>
+              {!isSSOUser ? (
+                <Pressable 
+                  style={({ pressed }) => [styles.dropdownItem, { opacity: pressed ? 0.6 : 1 }]}
+                  onPress={() => {
+                    setProfileMenuVisible(false);
+                    onNavigate('ChangePassword');
+                  }}
+                >
+                  <DDIcon name="lock" size={20} variant="muted" />
+                  <ThemedText style={[Typography.body, { marginStart: Spacing.md }]}>
+                    {t('settings.changePassword')}
+                  </ThemedText>
+                </Pressable>
+              ) : null}
               
               <View style={[styles.dropdownDivider, { backgroundColor: theme.border }]} />
               
@@ -441,7 +451,7 @@ export default function DashboardLayout({
           </Pressable>
         </Modal>
 
-        <View style={styles.mainContainer}>
+        <View style={[styles.mainContainer, isRTL && { flexDirection: 'row-reverse' }]}>
           {/* Mobile Overlay - Rendered first so sidebar appears on top */}
           {!isLargeScreen && sidebarOpen && (
             <Animated.View
@@ -513,9 +523,10 @@ export default function DashboardLayout({
                 { 
                   borderBottomColor: theme.border, 
                   backgroundColor: theme.background,
-                }
+                },
+                isRTL && { flexDirection: 'row-reverse' },
               ]}>
-                <View style={styles.desktopHeaderLeft}>
+                <View style={[styles.desktopHeaderLeft, isRTL && { flexDirection: 'row-reverse' }]}>
                   {canGoBack && onGoBack ? (
                     <Pressable 
                       onPress={onGoBack} 
@@ -543,7 +554,7 @@ export default function DashboardLayout({
                   ) : null}
                 </View>
                 
-                <View style={styles.desktopHeaderRight}>
+                <View style={[styles.desktopHeaderRight, isRTL && { flexDirection: 'row-reverse' }]}>
                   <Pressable 
                     onPress={() => onNavigate('Notifications')} 
                     style={({ pressed }) => [
@@ -588,6 +599,7 @@ export default function DashboardLayout({
             )}
             
             <View style={styles.contentInner}>
+              {Platform.OS === 'web' && <EnableNotificationsPrompt />}
               {children}
             </View>
           </View>
@@ -612,6 +624,7 @@ const styles = StyleSheet.create({
   },
   menuButton: {
     padding: Spacing.xs,
+    marginEnd: Spacing.xs,
   },
   mainContainer: {
     flex: 1,
@@ -686,7 +699,7 @@ const styles = StyleSheet.create({
   headerLogo: {
     width: 32,
     height: 32,
-    marginStart: Spacing.sm,
+    marginStart: Spacing.md,
   },
   avatarButton: {
     marginStart: Spacing.sm,

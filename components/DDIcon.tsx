@@ -1,7 +1,7 @@
 import React from 'react';
-import { I18nManager } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useTheme } from '@/hooks/useTheme';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { ICON_PATHS, IconName } from '@/constants/iconPaths';
 
 export type { IconName } from '@/constants/iconPaths';
@@ -33,6 +33,7 @@ export const DDIcon: React.FC<DDIconProps> = ({
   directionAware = false,
 }) => {
   const { theme } = useTheme();
+  const { isRTL } = useLanguage();
 
   const getVariantColor = (): string => {
     if (color) return color;
@@ -59,7 +60,7 @@ export const DDIcon: React.FC<DDIconProps> = ({
   const getIconName = (): IconName => {
     let iconName = name;
     
-    if (directionAware && I18nManager.isRTL) {
+    if (directionAware && isRTL) {
       const rtlName = DIRECTIONAL_ICONS[name];
       if (rtlName && rtlName in ICON_PATHS) {
         iconName = rtlName as IconName;

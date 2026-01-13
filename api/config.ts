@@ -1,21 +1,34 @@
 import Constants from "expo-constants";
 
-const API_BASE_URL =
+const API_BASE_URL = 
+  process.env.EXPO_PUBLIC_API_BASE_URL || 
   Constants.expoConfig?.extra?.apiBaseUrl ||
-  process.env.EXPO_PUBLIC_VMS_API_BASE_URL;
+  'https://vms-backend-folio3.replit.app';
+
+const MICROSOFT_AUTH_BASE_URL = 
+  process.env.EXPO_PUBLIC_MICROSOFT_AUTH_URL || 
+  Constants.expoConfig?.extra?.microsoftAuthUrl ||
+  'https://vms-backend-folio3.replit.app';
+
+console.log('[API Config] Using API Base URL:', API_BASE_URL);
+console.log('[API Config] Source: process.env =', process.env.EXPO_PUBLIC_API_BASE_URL, ', Constants.extra =', Constants.expoConfig?.extra?.apiBaseUrl);
 
 export const apiConfig = {
   baseUrl: API_BASE_URL,
+  microsoftAuthUrl: MICROSOFT_AUTH_BASE_URL,
   timeout: 30000,
   endpoints: {
     health: "/api/health",
     healthDb: "/api/health/db",
     auth: {
       base: "/api/v1/auth",
+      health: "/api/v1/auth/health",
       config: "/api/v1/auth/config",
       login: "/api/v1/auth/login",
       azureLogin: "/api/v1/auth/azure/login",
       azureCallback: "/api/v1/auth/azure/callback",
+      microsoftLogin: "/auth/microsoft/login",
+      microsoftCallback: "/auth/microsoft/callback",
       refresh: "/api/v1/auth/refresh",
       logout: "/api/v1/auth/logout",
       password: "/api/v1/auth/password",
@@ -25,7 +38,7 @@ export const apiConfig = {
       sendOtp: "/api/v1/auth/send-otp",
       verifyOtp: "/api/v1/auth/verify-otp",
       resendOtp: "/api/v1/auth/resend-otp",
-      notificationPreferences: "/api/v1/auth/notification-preferences",
+      notificationPreferences: "/api/v1/users/me/notification-preferences",
       biometric: {
         register: "/api/v1/auth/biometric/register",
         devices: "/api/v1/auth/biometric/devices",
@@ -38,7 +51,6 @@ export const apiConfig = {
       base: "/api/v1/users",
       me: "/api/v1/users/me",
       mePhoto: "/api/v1/users/me/photo",
-      managers: "/api/v1/users/managers",
       onVacation: "/api/v1/users/on-vacation",
       byId: (id: string) => `/api/v1/users/${id}`,
       byRole: (role: string) => `/api/v1/users/by-role/${role}`,
@@ -105,6 +117,8 @@ export const apiConfig = {
       allocationCheckIn: (id: string) => `/api/v1/parking/allocations/${id}/check-in`,
       allocationCheckOut: (id: string) => `/api/v1/parking/allocations/${id}/check-out`,
       allocationRelease: (id: string) => `/api/v1/parking/allocations/${id}/release`,
+      spots: "/api/v1/parking/spots",
+      spotById: (id: string) => `/api/v1/parking/spots/${id}`,
     },
     meetingRooms: {
       base: "/api/v1/meeting-rooms",
@@ -141,6 +155,7 @@ export const apiConfig = {
       taskStatus: (id: string) => `/api/v1/buffet-admin/tasks/${id}/status`,
       locations: "/api/v1/buffet-admin/locations",
       staff: "/api/v1/buffet-admin/staff",
+      staffDuty: (id: string) => `/api/v1/buffet-admin/staff/${id}/duty`,
       loadSummary: "/api/v1/buffet-admin/load-summary",
     },
     valet: {
@@ -163,6 +178,7 @@ export const apiConfig = {
       drivers: "/api/v1/valet-admin/drivers",
       driversLoad: "/api/v1/valet-admin/drivers/load",
       zones: "/api/v1/valet-admin/zones",
+      parkingDashboard: "/api/v1/valet-admin/parking-dashboard",
       assignTask: (id: string, type: string) => `/api/v1/valet-admin/tasks/${id}/assign?type=${type}`,
     },
     valetDriver: {
@@ -176,6 +192,13 @@ export const apiConfig = {
       byId: (id: string) => `/api/v1/valet/self-service/${id}`,
     },
     notifications: "/api/v1/notifications",
+    devices: {
+      token: "/api/v1/devices/token",
+      tokenUnregister: "/api/v1/devices/token/unregister",
+      tokens: "/api/v1/devices/tokens",
+      status: "/api/v1/devices/status",
+      test: "/api/v1/devices/test",
+    },
     gates: {
       base: "/api/v1/gates",
       config: "/api/v1/gates/config",
@@ -207,6 +230,7 @@ export const apiConfig = {
       walkIn: "/api/v1/reception/walk-in",
       communicationOverride: "/api/v1/reception/communication-override",
       visits: "/api/v1/reception/visits",
+      requests: "/api/v1/reception/requests",
     },
     admin: {
       base: "/api/v1/admin",
@@ -219,6 +243,7 @@ export const apiConfig = {
       notifications: {
         send: "/api/v1/admin/notifications/send",
       },
+      reminderRules: "/api/v1/admin/reminder-rules",
     },
   },
 };

@@ -14,6 +14,7 @@ export interface BaseListParams {
 
 export type VisitStatus =
   | 'pending_approval'
+  | 'pending_host_approval'
   | 'approved'
   | 'rejected'
   | 'cancelled'

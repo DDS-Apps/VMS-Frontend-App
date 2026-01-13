@@ -1,8 +1,12 @@
-export type UserRole = 'employee' | 'manager' | 'building_admin' | 'buffet_admin' | 'buffet_staff' | 'valet_admin' | 'valet_driver' | 'security' | 'visitor' | 'receptionist';
+import { UserRole as UserRoleType, USER_ROLES, isValidRole } from '@/constants/roles';
+
+export type UserRole = UserRoleType;
+export { USER_ROLES, isValidRole };
 
 export type RequestStatus = 
   | 'draft' 
-  | 'pending_approval' 
+  | 'pending_approval'
+  | 'pending_host_approval'
   | 'approved' 
   | 'rejected' 
   | 'visitor_pending'
@@ -34,6 +38,7 @@ export interface MeetingRoom {
   capacity: number;
   floor: string;
   timeSlot: string;
+  status?: string;
 }
 
 export interface ParkingSlot {
@@ -49,6 +54,7 @@ export interface BuffetService {
   mealType: 'breakfast' | 'lunch' | 'dinner' | 'snacks';
   location: string;
   dietaryPreferences?: string[];
+  status?: string;
 }
 
 export interface ValetDriver {
@@ -114,6 +120,7 @@ export interface VisitorRequest {
   };
   createdAt: string;
   updatedAt: string;
+  timezone?: string;
   acceptedAt?: string;
   checkedInAt?: string;
   completedAt?: string;
@@ -122,6 +129,14 @@ export interface VisitorRequest {
   cancelledAt?: string;
   isWalkIn?: boolean;
   needsResourceReallocation?: boolean;
+  notes?: string;
+  isBuffet?: boolean;
+  isMeetingRoom?: boolean;
+  isVisitorNeedsParking?: boolean;
+  visitorNeedsParking?: boolean;
+  licensePlate?: string;
+  carModel?: string;
+  carColor?: string;
 }
 
 export interface DashboardStats {

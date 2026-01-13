@@ -3,7 +3,7 @@ import {
   meetingRoomApiService, 
   type ListMeetingRoomsParams, 
   type ListMeetingBookingsParams 
-} from '@/services/meetingRoomApiService';
+} from '@/services/api/meetingRoomApiService';
 import type {
   MeetingRoomDto,
   MeetingBookingDto,

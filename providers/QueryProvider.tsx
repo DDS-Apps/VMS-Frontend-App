@@ -45,12 +45,7 @@ const queryClient = new QueryClient({
       refetchOnReconnect: true,
     },
     mutations: {
-      retry: (failureCount, error) => {
-        if (isUnauthorizedError(error)) {
-          return false;
-        }
-        return failureCount < 1;
-      },
+      retry: false,
     },
   },
 });

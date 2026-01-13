@@ -1,5 +1,5 @@
-import React, { useMemo } from "react";
-import { View, StyleSheet, ActivityIndicator } from "react-native";
+import React, { useMemo, useState } from "react";
+import { View, StyleSheet, ActivityIndicator, Pressable } from "react-native";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -7,10 +7,11 @@ import Spacer from "@/components/Spacer";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { applyOpacity } from "@/utils/statusStyles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useBuffetAdminStaffQuery } from "@/hooks/queries/useBuffetQueries";
+import { useBuffetAdminStaffQuery, useUpdateStaffDutyMutation } from "@/hooks/queries/useBuffetQueries";
 import type { BuffetAdminStaffDto } from "@/types/api.types";
 
 interface KPICardProps {
@@ -49,9 +50,25 @@ function KPICard({ title, value, icon, iconBgColor, iconColor, cardBgColor }: KP
 export default function BuffetAdminStaffScreen() {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
+  const [togglingStaffId, setTogglingStaffId] = useState<string | null>(null);
   
   const { data: staffResponse, isLoading, isFetching } = useBuffetAdminStaffQuery();
+  const updateDutyMutation = useUpdateStaffDutyMutation();
+
+  const handleToggleDuty = (staffId: string, currentStatus: 'on_duty' | 'off_duty') => {
+    const newStatus = currentStatus === 'on_duty' ? 'off_duty' : 'on_duty';
+    setTogglingStaffId(staffId);
+    updateDutyMutation.mutate(
+      { id: staffId, data: { dutyStatus: newStatus } },
+      {
+        onSettled: () => {
+          setTogglingStaffId(null);
+        },
+      }
+    );
+  };
 
   const staff = useMemo(() => {
     const responseData = staffResponse?.data as { data?: BuffetAdminStaffDto[] } | BuffetAdminStaffDto[] | undefined;
@@ -59,8 +76,8 @@ export default function BuffetAdminStaffScreen() {
   }, [staffResponse]);
 
   const stats = useMemo(() => {
-    const onDuty = staff.filter(s => s.status === 'on_duty').length;
-    const offDuty = staff.filter(s => s.status === 'off_duty').length;
+    const onDuty = staff.filter(s => s.dutyStatus === 'on_duty').length;
+    const offDuty = staff.filter(s => s.dutyStatus === 'off_duty').length;
     return {
       total: staff.length,
       onDuty,
@@ -96,7 +113,7 @@ export default function BuffetAdminStaffScreen() {
       case 'Coordinator':
         return 'clipboard';
       case 'Server':
-        return 'coffee';
+        return 'disc';
       case 'Kitchen Staff':
         return 'tool';
       default:
@@ -105,7 +122,7 @@ export default function BuffetAdminStaffScreen() {
   };
 
   const renderStaffCard = (item: BuffetAdminStaffDto) => {
-    const isOnDuty = item.status === 'on_duty';
+    const isOnDuty = item.dutyStatus === 'on_duty';
     const initials = item.name.split(' ').map(n => n[0]).join('').slice(0, 2);
     const roleColor = getRoleColor(item.role);
     
@@ -120,7 +137,7 @@ export default function BuffetAdminStaffScreen() {
           },
         ]}
       >
-        <View style={styles.cardHeader}>
+        <View style={[styles.cardHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <View style={[styles.avatar, { backgroundColor: applyOpacity(roleColor, '12') }]}>
             <ThemedText style={[styles.avatarText, { color: roleColor }]}>
               {initials}
@@ -143,7 +160,7 @@ export default function BuffetAdminStaffScreen() {
 
         <Spacer height={Spacing.md} />
 
-        <View style={styles.metaRow}>
+        <View style={[styles.metaRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <DDIcon name="briefcase" size={14} color={theme.textSecondary} />
           <ThemedText style={[styles.metaText, { color: theme.textSecondary }]}>
             {item.currentTasks} {t('dashboard.activeTasks')}
@@ -152,8 +169,8 @@ export default function BuffetAdminStaffScreen() {
 
         <Spacer height={Spacing.md} />
 
-        <View style={styles.cardFooter}>
-          <View style={styles.statusContainer}>
+        <View style={[styles.cardFooter, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.statusContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <View 
               style={[
                 styles.statusIndicator, 
@@ -164,6 +181,33 @@ export default function BuffetAdminStaffScreen() {
               {isOnDuty ? t('dashboard.onDuty') : t('status.inactive')}
             </ThemedText>
           </View>
+
+          <Pressable
+            style={[
+              styles.toggleButton,
+              { 
+                backgroundColor: isOnDuty ? applyOpacity(theme.textSecondary, '12') : applyOpacity(theme.success, '12'),
+                opacity: togglingStaffId === item.id ? 0.6 : 1,
+              }
+            ]}
+            onPress={() => handleToggleDuty(item.id, item.dutyStatus)}
+            disabled={togglingStaffId === item.id}
+          >
+            {togglingStaffId === item.id ? (
+              <ActivityIndicator size="small" color={isOnDuty ? theme.textSecondary : theme.success} />
+            ) : (
+              <>
+                <DDIcon 
+                  name={isOnDuty ? "user-x" : "user-check"} 
+                  size={14} 
+                  color={isOnDuty ? theme.textSecondary : theme.success} 
+                />
+                <ThemedText style={[styles.toggleButtonText, { color: isOnDuty ? theme.textSecondary : theme.success }]}>
+                  {isOnDuty ? t('buffet.markOffDuty') : t('buffet.markOnDuty')}
+                </ThemedText>
+              </>
+            )}
+          </Pressable>
         </View>
       </View>
     );
@@ -179,7 +223,7 @@ export default function BuffetAdminStaffScreen() {
 
   return (
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
-      <View style={styles.kpiRow}>
+      <View style={[styles.kpiRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <KPICard 
           title={t('dashboard.totalStaff')} 
           value={String(stats.total)} 
@@ -265,6 +309,7 @@ const styles = StyleSheet.create({
   },
   kpiValue: {
     fontSize: 28,
+    lineHeight: 36,
     fontWeight: '700',
     letterSpacing: -0.5,
   },
@@ -298,7 +343,7 @@ const styles = StyleSheet.create({
   avatar: {
     width: 48,
     height: 48,
-    borderRadius: 24,
+    borderRadius: BorderRadius.md - 2,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -359,6 +404,18 @@ const styles = StyleSheet.create({
   },
   statusLabel: {
     fontSize: 13,
+    fontWeight: '600',
+  },
+  toggleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.sm,
+    gap: 4,
+  },
+  toggleButtonText: {
+    fontSize: 12,
     fontWeight: '600',
   },
   emptyState: {

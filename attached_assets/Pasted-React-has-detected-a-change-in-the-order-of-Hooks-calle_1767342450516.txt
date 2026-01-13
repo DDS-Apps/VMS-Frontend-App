@@ -1,0 +1,122 @@
+React has detected a change in the order of Hooks called by VisitorDetailScreen. This will lead to bugs and errors if not fixed. For more information, read the Rules of Hooks: https://react.dev/link/rules-of-hooks
+
+   Previous render            Next render
+   ------------------------------------------------------
+1. useContext                 useContext
+2. useState                   useState
+3. useEffect                  useEffect
+4. useState                   useState
+5. useEffect                  useEffect
+6. useMemo                    useMemo
+7. useContext                 useContext
+8. useCallback                useCallback
+9. useContext                 useContext
+10. useMemo                   useMemo
+11. useContext                useContext
+12. useContext                useContext
+13. useContext                useContext
+14. useContext                useContext
+15. useContext                useContext
+16. useEffect                 useEffect
+17. useState                  useState
+18. useCallback               useCallback
+19. useSyncExternalStore      useSyncExternalStore
+20. useEffect                 useEffect
+21. useContext                useContext
+22. useContext                useContext
+23. useState                  useState
+24. useEffect                 useEffect
+25. useCallback               useCallback
+26. useSyncExternalStore      useSyncExternalStore
+27. useCallback               useCallback
+28. useContext                useContext
+29. useContext                useContext
+30. useState                  useState
+31. useEffect                 useEffect
+32. useCallback               useCallback
+33. useSyncExternalStore      useSyncExternalStore
+34. useCallback               useCallback
+35. useState                  useState
+36. useState                  useState
+37. useState                  useState
+38. useState                  useState
+39. useState                  useState
+40. useState                  useState
+41. undefined                 useMemo
+   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+index.bundle:8017:19
+    updateHookTypesDev https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:8017
+    useMemo https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:17195
+    useMemo https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:19644
+    VisitorDetailScreen https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:215831
+    frame https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:17840
+    renderWithHooks https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:8050
+    updateFunctionComponent https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:9743
+    beginWork https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:10329
+    runWithFiberInDEV https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:5822
+    performUnitOfWork https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:12402
+    workLoopSync https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:12295
+    renderRootSync https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:12279
+    performWorkOnRoot https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:12019
+    performSyncWorkOnRoot https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:13007
+    flushSyncWorkAcrossRoots_impl https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:12926
+    processRootScheduleInMicrotask https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:12946
+    scheduleImmediateRootScheduleTask https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:13018
+    (Async: VoidFunction)
+    scheduleImmediateRootScheduleTask https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:13017
+    ensureRootIsScheduled https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:12908
+    scheduleUpdateOnFiber https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:12014
+    forceStoreRerender https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:8424
+    subscribeToStore https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:8409
+    batchCalls https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:121797
+    notifyFn https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:121749
+    flush https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:121771
+    flush https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:121770
+    batchNotifyFn https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:121752
+    flush https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:121769
+    (Async: setTimeout handler)
+    systemSetTimeoutZero https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:120837
+    flush https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:121768
+    batch https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:121786
+    _dispatch2 https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:122258
+    setData https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:121928
+    fetch https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:122168
+    _executeFetch2 https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:121600
+    onSubscribe https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:121307
+    subscribe https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:120353
+    useBaseQuery https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:124492
+    subscribeToStore https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:8408
+    frame https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:17903
+    runWithFiberInDEV https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:5822
+    commitHookEffectListMount https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:10812
+    commitHookPassiveMountEffects https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:10849
+    commitPassiveMountOnFiber https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:11751
+    recursivelyTraversePassiveMountEffects https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:11742
+    commitPassiveMountOnFiber https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:11791
+    recursivelyTraversePassiveMountEffects https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:11742
+    commitPassiveMountOnFiber https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:11750
+    recursivelyTraversePassiveMountEffects https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:11742
+    commitPassiveMountOnFiber https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:11791
+    recursivelyTraversePassiveMountEffects https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:11742
+    commitPassiveMountOnFiber https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:11750
+    recursivelyTraversePassiveMountEffects https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:11742
+    commitPassiveMountOnFiber https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:11791
+    recursivelyTraversePassiveMountEffects https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:11742
+    commitPassiveMountOnFiber https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:11750
+    recursivelyTraversePassiveMountEffects https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:11742
+    commitPassiveMountOnFiber https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:11791
+    recursivelyTraversePassiveMountEffects https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:11742
+    commitPassiveMountOnFiber https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:11750
+    recursivelyTraversePassiveMountEffects https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:11742
+    commitPassiveMountOnFiber https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:11750
+    recursivelyTraversePassiveMountEffects https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:11742
+    commitPassiveMountOnFiber https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:11791
+Error: Rendered more hooks than during the previous render.
+    updateWorkInProgressHook https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:8164
+    updateMemo https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:8761
+    useMemo https://8ab63794-1e97-440a-9498-f5291c633e76-00-27czfikf18z7a.worf.replit.dev:5000/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:17199
+ 
+
+The above error occurred in the <VisitorDetailScreen> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, ErrorBoundary.

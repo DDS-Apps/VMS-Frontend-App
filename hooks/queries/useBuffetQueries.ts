@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { buffetApiService, type ListBuffetRequestsParams } from '@/services/buffetApiService';
+import { buffetApiService, type ListBuffetRequestsParams } from '@/services/api/buffetApiService';
 import type { PaginatedResponse } from '@/types';
 import type {
   BuffetLocationDto,
@@ -15,10 +15,16 @@ import type {
   BuffetAdminTaskDto,
   ListBuffetAdminTasksParams,
   AssignBuffetTaskDto,
+  AssignBuffetTaskResponseDto,
   UpdateBuffetAdminTaskStatusDto,
+  UpdateBuffetAdminTaskStatusResponseDto,
   BuffetAdminLocationDto,
   BuffetAdminStaffDto,
   BuffetLoadSummaryDto,
+  UpdateStaffDutyDto,
+  UpdateStaffDutyResponseDto,
+  CreateBuffetAdminLocationDto,
+  CreateBuffetAdminLocationResponseDto,
 } from '@/types/api.types';
 
 export const buffetKeys = {
@@ -197,7 +203,7 @@ export function useHandleBuffetRequestMutation() {
 // ========== Buffet Staff Queries ==========
 
 export function useMyBuffetTasksQuery(params?: ListBuffetStaffTasksParams, enabled = true) {
-  return useQuery<{ data: BuffetStaffTaskDto[] }>({
+  return useQuery<BuffetStaffTaskDto[]>({
     queryKey: buffetKeys.myTasks(params),
     queryFn: () => buffetApiService.getMyBuffetTasks(params),
     enabled,
@@ -245,7 +251,7 @@ export function useBuffetAdminTaskQuery(id: string, enabled = true) {
 export function useAssignBuffetTaskMutation() {
   const queryClient = useQueryClient();
 
-  return useMutation<BuffetAdminTaskDto, Error, { id: string; data: AssignBuffetTaskDto }>({
+  return useMutation<AssignBuffetTaskResponseDto, Error, { id: string; data: AssignBuffetTaskDto }>({
     mutationFn: ({ id, data }) => buffetApiService.assignBuffetTask(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -260,7 +266,7 @@ export function useAssignBuffetTaskMutation() {
 export function useUpdateBuffetAdminTaskStatusMutation() {
   const queryClient = useQueryClient();
 
-  return useMutation<BuffetAdminTaskDto, Error, { id: string; data: UpdateBuffetAdminTaskStatusDto }>({
+  return useMutation<UpdateBuffetAdminTaskStatusResponseDto, Error, { id: string; data: UpdateBuffetAdminTaskStatusDto }>({
     mutationFn: ({ id, data }) => buffetApiService.updateBuffetAdminTaskStatus(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -280,11 +286,41 @@ export function useBuffetAdminLocationsQuery(enabled = true) {
   });
 }
 
+export function useCreateBuffetAdminLocationMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation<CreateBuffetAdminLocationResponseDto, Error, CreateBuffetAdminLocationDto>({
+    mutationFn: (data) => buffetApiService.createBuffetAdminLocation(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        predicate: (query) =>
+          query.queryKey[0] === 'buffet' &&
+          (query.queryKey[1] === 'admin-locations' || query.queryKey[1] === 'locations'),
+      });
+    },
+  });
+}
+
 export function useBuffetAdminStaffQuery(enabled = true) {
   return useQuery<{ data: BuffetAdminStaffDto[] }>({
     queryKey: buffetKeys.adminStaff(),
     queryFn: () => buffetApiService.getBuffetAdminStaff(),
     enabled,
+  });
+}
+
+export function useUpdateStaffDutyMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation<UpdateStaffDutyResponseDto, Error, { id: string; data: UpdateStaffDutyDto }>({
+    mutationFn: ({ id, data }) => buffetApiService.updateStaffDutyStatus(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        predicate: (query) =>
+          query.queryKey[0] === 'buffet' &&
+          (query.queryKey[1] === 'admin-staff' || query.queryKey[1] === 'staff'),
+      });
+    },
   });
 }
 

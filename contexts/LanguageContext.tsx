@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { I18nManager, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { reloadAppAsync } from 'expo';
 import { SupportedLocale, localeConfig, defaultLocale } from '@/constants/i18n';
 
 const LANGUAGE_STORAGE_KEY = '@vms_language';
@@ -53,11 +54,21 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
   const setLocale = useCallback(async (newLocale: SupportedLocale) => {
     try {
       await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, newLocale);
-      setLocaleState(newLocale);
       
       const needsRTL = localeConfig[newLocale].isRTL;
-      I18nManager.allowRTL(needsRTL);
-      I18nManager.forceRTL(needsRTL);
+      const currentRTL = I18nManager.isRTL;
+      
+      if (currentRTL !== needsRTL) {
+        I18nManager.allowRTL(needsRTL);
+        I18nManager.forceRTL(needsRTL);
+        
+        if (Platform.OS !== 'web') {
+          await reloadAppAsync();
+          return;
+        }
+      }
+      
+      setLocaleState(newLocale);
     } catch (error) {
       console.error('Failed to save language preference:', error);
     }

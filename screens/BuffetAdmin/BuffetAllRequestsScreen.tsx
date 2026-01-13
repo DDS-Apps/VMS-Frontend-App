@@ -1,5 +1,7 @@
 import React, { useState, useMemo } from "react";
-import { View, StyleSheet, Pressable, ScrollView, Modal, GestureResponderEvent, ActivityIndicator } from "react-native";
+import { View, StyleSheet, Pressable, ScrollView, Modal, GestureResponderEvent, ActivityIndicator, Platform } from "react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { ROUTES } from "@/constants";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
@@ -8,8 +10,10 @@ import { ScreenFlatList } from "@/components/ScreenFlatList";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
 import { applyOpacity, getStatusConfig as getStatusStyle } from "@/utils/statusStyles";
+import { formatDateForApi, formatDate as formatDateDisplay } from "@/utils/dateTimeUtils";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { LoadingButton } from "@/components/shared/LoadingButton";
@@ -55,8 +59,8 @@ const mapAdminStaffDto = (staff: BuffetAdminStaffDto): BuffetStaff => {
     id: staff.id,
     name: staff.name,
     role: staff.role,
-    shift: staff.status === 'on_duty' ? 'On Duty' : 'Off Duty',
-    status: staff.status,
+    shift: staff.dutyStatus === 'on_duty' ? 'On Duty' : 'Off Duty',
+    status: staff.dutyStatus,
     currentTasks: staff.currentTasks,
   };
 };
@@ -83,7 +87,7 @@ const StatusAccent = ({ color }: { color: string }) => (
 );
 
 const VisitorAvatar = ({ name, theme, size = 44 }: { name: string; theme: Theme; size?: number }) => {
-  const initials = name.split(' ').map(n => n[0]).join('');
+  const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   return (
     <View style={[
       styles.avatar, 
@@ -101,12 +105,13 @@ const VisitorAvatar = ({ name, theme, size = 44 }: { name: string; theme: Theme;
   );
 };
 
-const DateTimeDisplay = ({ date, time, theme, compact = false }: { date: string; time: string; theme: Theme; compact?: boolean }) => {
+const DateTimeDisplay = ({ date, time, theme, compact = false, isRTL = false }: { date: string; time: string; theme: Theme; compact?: boolean; isRTL?: boolean }) => {
+  const formattedDate = formatDateDisplay(date, { isRTL, includeYear: true });
   return (
     <View style={styles.dateTimeRow}>
       <DDIcon name="calendar" size={compact ? 13 : 14} variant="muted" />
       <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
-        {date}
+        {formattedDate}
       </ThemedText>
       <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
       <DDIcon name="clock" size={compact ? 13 : 14} variant="muted" />
@@ -140,7 +145,7 @@ const StatsCards = ({ totalRequests, inProgress, completed, theme, t }: { totalR
         <DDIcon name="clipboard" size={24} variant="primary" />
       </View>
       <Spacer height={Spacing.sm} />
-      <ThemedText style={[Typography.title, { fontSize: 32 }]}>
+      <ThemedText style={[Typography.title, { fontSize: 32, lineHeight: 40 }]}>
         {totalRequests}
       </ThemedText>
       <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: 'center' }]}>
@@ -153,7 +158,7 @@ const StatsCards = ({ totalRequests, inProgress, completed, theme, t }: { totalR
         <DDIcon name="loader" size={24} variant="warning" />
       </View>
       <Spacer height={Spacing.sm} />
-      <ThemedText style={[Typography.title, { fontSize: 32 }]}>
+      <ThemedText style={[Typography.title, { fontSize: 32, lineHeight: 40 }]}>
         {inProgress}
       </ThemedText>
       <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: 'center' }]}>
@@ -166,7 +171,7 @@ const StatsCards = ({ totalRequests, inProgress, completed, theme, t }: { totalR
         <DDIcon name="check-circle" size={24} variant="success" />
       </View>
       <Spacer height={Spacing.sm} />
-      <ThemedText style={[Typography.title, { fontSize: 32 }]}>
+      <ThemedText style={[Typography.title, { fontSize: 32, lineHeight: 40 }]}>
         {completed}
       </ThemedText>
       <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: 'center' }]}>
@@ -176,7 +181,7 @@ const StatsCards = ({ totalRequests, inProgress, completed, theme, t }: { totalR
   </View>
 );
 
-type StatusFilter = 'all' | 'pending' | 'in_progress' | 'completed';
+type StatusFilter = 'all' | 'pending' | 'preparing' | 'ready' | 'served' | 'completed';
 
 const getFilterPillColors = (filterKey: StatusFilter, isActive: boolean, theme: Theme) => {
   if (!isActive) {
@@ -196,12 +201,26 @@ const getFilterPillColors = (filterKey: StatusFilter, isActive: boolean, theme: 
         countBg: applyOpacity(theme.primary, '25'),
         countText: theme.primary,
       };
-    case 'in_progress':
+    case 'preparing':
       return {
         bg: applyOpacity(theme.warning, '15'),
         text: theme.warning,
         countBg: applyOpacity(theme.warning, '25'),
         countText: theme.warning,
+      };
+    case 'ready':
+      return {
+        bg: applyOpacity('#10B981', '15'),
+        text: '#10B981',
+        countBg: applyOpacity('#10B981', '25'),
+        countText: '#10B981',
+      };
+    case 'served':
+      return {
+        bg: applyOpacity(theme.success, '15'),
+        text: theme.success,
+        countBg: applyOpacity(theme.success, '25'),
+        countText: theme.success,
       };
     case 'completed':
       return {
@@ -227,7 +246,8 @@ const SectionHeader = ({
   onViewModeChange, 
   statusCounts,
   theme,
-  t
+  t,
+  isRTL = false
 }: { 
   filterStatus: string; 
   onFilterChange: (status: string) => void;
@@ -236,17 +256,20 @@ const SectionHeader = ({
   statusCounts: Record<StatusFilter, number>;
   theme: Theme;
   t: (key: string) => string;
+  isRTL?: boolean;
 }) => {
   const filterOptions: { key: StatusFilter; label: string }[] = [
     { key: 'all', label: t('common.all') },
     { key: 'pending', label: t('status.pending') },
-    { key: 'in_progress', label: t('status.inProgress') },
+    { key: 'preparing', label: t('buffet.preparing') },
+    { key: 'ready', label: t('buffet.ready') },
+    { key: 'served', label: t('buffet.served') },
     { key: 'completed', label: t('status.completed') },
   ];
 
   return (
     <>
-      <View style={[styles.sectionTitleRow, styles.paddedContent]}>
+      <View style={[styles.sectionTitleRow, styles.paddedContent, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <ThemedText style={[Typography.subtitle]}>
           {t('navigation.buffetRequests')}
         </ThemedText>
@@ -338,6 +361,7 @@ const BuffetRequestCard = React.memo(({
   theme: Theme;
 }) => {
   const { t } = useTranslation();
+  const { isRTL } = useLanguage();
   const statusConfig = getStatusStyle(theme, request.status, t);
 
   return (
@@ -346,11 +370,11 @@ const BuffetRequestCard = React.memo(({
 
       <Pressable onPress={onPress} android_ripple={{ color: applyOpacity(theme.primary, '10') }}>
         <View style={styles.cardMainSection}>
-          <View style={styles.cardHeaderRow}>
+          <View style={[styles.cardHeaderRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <VisitorAvatar name={request.visitorName} theme={theme} />
             
             <View style={styles.cardNameSection}>
-              <View style={styles.nameWithBadgeRow}>
+              <View style={[styles.nameWithBadgeRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 16, flex: 1 }]} numberOfLines={1}>
                   {request.visitorName}
                 </ThemedText>
@@ -364,8 +388,8 @@ const BuffetRequestCard = React.memo(({
 
           <Spacer height={LAYOUT.contentGap} />
 
-          <View style={styles.detailsRow}>
-            <View style={styles.detailItem}>
+          <View style={[styles.detailsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.detailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <DDIcon name="map-pin" size={14} variant="muted" />
               <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
                 {request.location}
@@ -375,13 +399,13 @@ const BuffetRequestCard = React.memo(({
 
           <Spacer height={Spacing.sm} />
 
-          <DateTimeDisplay date={request.visitDate} time={request.timeSlot} theme={theme} />
+          <DateTimeDisplay date={request.visitDate} time={request.timeSlot} theme={theme} isRTL={isRTL} />
 
           {request.assignedStaff ? (
             <>
               <Spacer height={Spacing.sm} />
-              <View style={styles.detailsRow}>
-                <View style={styles.detailItem}>
+              <View style={[styles.detailsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                <View style={[styles.detailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                   <DDIcon name="user-check" size={14} variant="success" />
                   <ThemedText style={[styles.detailText, { color: theme.success }]}>
                     {request.assignedStaff}
@@ -394,7 +418,7 @@ const BuffetRequestCard = React.memo(({
           {request.status !== 'completed' && request.status !== 'cancelled' ? (
             <>
               <Spacer height={LAYOUT.contentGap} />
-              <View style={styles.actionsRow}>
+              <View style={[styles.actionsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <Pressable
                   style={[styles.actionButton, { backgroundColor: applyOpacity(theme.warning, '12') }]}
                   onPress={(e) => onAssignStaff(e)}
@@ -404,17 +428,6 @@ const BuffetRequestCard = React.memo(({
                     {request.assignedStaff ? t('buffet.reassign') : t('actions.assign')}
                   </ThemedText>
                 </Pressable>
-                <LoadingButton
-                  variant="success"
-                  size="small"
-                  icon="check"
-                  loading={isCompleting}
-                  onPress={onComplete}
-                  fullWidth={false}
-                  style={styles.cardLoadingButton}
-                >
-                  {t('actions.markAsComplete')}
-                </LoadingButton>
               </View>
             </>
           ) : null}
@@ -479,6 +492,7 @@ const BuffetRequestTableRow = React.memo(({
   theme: Theme;
 }) => {
   const { t } = useTranslation();
+  const { isRTL } = useLanguage();
   const statusConfig = getStatusStyle(theme, request.status, t);
 
   return (
@@ -501,7 +515,8 @@ const BuffetRequestTableRow = React.memo(({
                 date={request.visitDate} 
                 time={request.timeSlot} 
                 theme={theme} 
-                compact 
+                compact
+                isRTL={isRTL}
               />
             </View>
           </View>
@@ -513,6 +528,7 @@ const BuffetRequestTableRow = React.memo(({
           style={styles.scrollableColumns}
           contentContainerStyle={styles.scrollableContent}
           persistentScrollbar={true}
+          nestedScrollEnabled={true}
         >
           <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
             <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
@@ -554,7 +570,7 @@ const BuffetRequestTableRow = React.memo(({
                 {t('dashboard.quickActions').toUpperCase()}
               </ThemedText>
               <Spacer height={10} />
-              <View style={styles.tableActionsRow}>
+              <View style={[styles.tableActionsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <Pressable
                   style={[styles.tableActionButton, { backgroundColor: applyOpacity(theme.warning, '12') }]}
                   onPress={onAssignStaff}
@@ -564,17 +580,6 @@ const BuffetRequestTableRow = React.memo(({
                     {request.assignedStaff ? t('buffet.reassign') : t('actions.assign')}
                   </ThemedText>
                 </Pressable>
-                <LoadingButton
-                  variant="success"
-                  size="small"
-                  icon="check"
-                  loading={isCompleting}
-                  onPress={onComplete}
-                  fullWidth={false}
-                  style={styles.tableLoadingButton}
-                >
-                  {t('status.completed')}
-                </LoadingButton>
               </View>
             </View>
           ) : null}
@@ -627,6 +632,7 @@ function getStatusLabel(status: string, t: (key: string) => string) {
 export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequestsScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   const { showSuccess, showError } = useToast();
   const [filterStatus, setFilterStatus] = useState<string>('all');
@@ -636,8 +642,41 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
   const [selectedRequest, setSelectedRequest] = useState<BuffetRequest | null>(null);
   const [assigningStaffId, setAssigningStaffId] = useState<string | null>(null);
   const [completingRequestId, setCompletingRequestId] = useState<string | null>(null);
+  
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [tempDate, setTempDate] = useState<Date>(new Date());
 
-  const { data: tasksData, isLoading: isLoadingTasks, refetch: refetchTasks } = useBuffetAdminTasksQuery();
+  const dateParam = formatDateForApi(selectedDate);
+  const { data: tasksData, isLoading: isLoadingTasks, refetch: refetchTasks } = useBuffetAdminTasksQuery({ date: dateParam });
+  
+  const handlePrevDay = () => {
+    const newDate = new Date(selectedDate);
+    newDate.setDate(newDate.getDate() - 1);
+    setSelectedDate(newDate);
+  };
+  
+  const handleNextDay = () => {
+    const newDate = new Date(selectedDate);
+    newDate.setDate(newDate.getDate() + 1);
+    setSelectedDate(newDate);
+  };
+  
+  const handleDateChange = (_event: unknown, date?: Date) => {
+    setShowDatePicker(false);
+    if (date) {
+      setSelectedDate(date);
+    }
+  };
+  
+  const isToday = formatDateForApi(selectedDate) === formatDateForApi(new Date());
+  
+  const getDisplayDate = () => {
+    if (isToday) {
+      return t('common.today');
+    }
+    return formatDateDisplay(selectedDate, { isRTL });
+  };
   const { data: staffData } = useBuffetAdminStaffQuery();
   const updateStatusMutation = useUpdateBuffetAdminTaskStatusMutation();
   const assignTaskMutation = useAssignBuffetTaskMutation();
@@ -658,20 +697,33 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
     const tasks = Array.isArray(responseData) ? responseData : (Array.isArray((responseData as { data?: BuffetAdminTaskDto[] })?.data) ? (responseData as { data: BuffetAdminTaskDto[] }).data : []);
     const mapped = tasks.map(mapTaskToRequest);
     return [...mapped].sort((a, b) => {
-      if (a.status === 'completed' && b.status !== 'completed') return 1;
-      if (a.status !== 'completed' && b.status === 'completed') return -1;
-      return parseTimeSlot(a.timeSlot) - parseTimeSlot(b.timeSlot);
+      const statusOrder: Record<string, number> = { 
+        pending: 0, 
+        preparing: 1, 
+        ready: 2, 
+        served: 3, 
+        completed: 4, 
+        cancelled: 5 
+      };
+      const statusA = statusOrder[a.status] ?? 99;
+      const statusB = statusOrder[b.status] ?? 99;
+      if (statusA !== statusB) return statusA - statusB;
+      const dateA = new Date(a.visitDate + 'T' + (a.timeSlot?.replace(/\s*(AM|PM)/i, '') || '00:00')).getTime();
+      const dateB = new Date(b.visitDate + 'T' + (b.timeSlot?.replace(/\s*(AM|PM)/i, '') || '00:00')).getTime();
+      return dateB - dateA;
     });
   }, [tasksData]);
 
   const availableStaff = useMemo(() => {
     const responseData = staffData?.data as { data?: BuffetAdminStaffDto[] } | BuffetAdminStaffDto[] | undefined;
     const staffList = Array.isArray(responseData) ? responseData : (Array.isArray((responseData as { data?: BuffetAdminStaffDto[] })?.data) ? (responseData as { data: BuffetAdminStaffDto[] }).data : []);
-    return staffList.map(mapAdminStaffDto);
+    return staffList
+      .filter(s => s.dutyStatus === 'on_duty')
+      .map(mapAdminStaffDto);
   }, [staffData]);
 
   const handleViewDetails = (request: BuffetRequest) => {
-    navigation.navigate('BuffetRequestDetails', { request });
+    navigation.navigate(ROUTES.BUFFET_REQUEST_DETAILS as never, { request: request as any } as never);
   };
 
   const handleOpenAssignModal = (request: BuffetRequest, event?: GestureResponderEvent) => {
@@ -732,13 +784,15 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
     : requests.filter(r => r.status === filterStatus);
 
   const totalRequests = requests.length;
-  const inProgressCount = requests.filter(r => r.status === 'in_progress' || r.status === 'pending').length;
+  const activeCount = requests.filter(r => ['pending', 'preparing', 'ready', 'served'].includes(r.status)).length;
   const completedCount = requests.filter(r => r.status === 'completed').length;
 
   const statusCounts: Record<StatusFilter, number> = {
     all: requests.length,
     pending: requests.filter(r => r.status === 'pending').length,
-    in_progress: requests.filter(r => r.status === 'in_progress').length,
+    preparing: requests.filter(r => r.status === 'preparing').length,
+    ready: requests.filter(r => r.status === 'ready').length,
+    served: requests.filter(r => r.status === 'served').length,
     completed: requests.filter(r => r.status === 'completed').length,
   };
 
@@ -820,7 +874,7 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
                   ) : (
                     <View style={[styles.staffAvatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
                       <ThemedText style={[styles.staffAvatarText, { color: theme.primary }]}>
-                        {staff.name.split(' ').map(n => n[0]).join('')}
+                        {staff.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
                       </ThemedText>
                     </View>
                   )}
@@ -868,6 +922,7 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
         <ScreenFlatList
           data={filteredRequests}
           keyExtractor={(item) => item.id}
+          contentContainerStyle={{ paddingTop: Spacing.xl }}
           renderItem={({ item }) => (
             <BuffetRequestTableRow 
               request={item} 
@@ -880,10 +935,48 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
           )}
           ListHeaderComponent={
             <>
+              <View style={[styles.paddedContent, styles.dateNavRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                <Pressable
+                  style={[styles.dateNavButton, { backgroundColor: theme.surfaceSecondary }]}
+                  onPress={handlePrevDay}
+                >
+                  <DDIcon name={isRTL ? "chevron-right" : "chevron-left"} size={20} color={theme.text} />
+                </Pressable>
+                
+                <Pressable
+                  style={[styles.dateDisplay, { backgroundColor: theme.surfaceSecondary }]}
+                  onPress={() => { setTempDate(selectedDate); setShowDatePicker(true); }}
+                >
+                  <DDIcon name="calendar" size={18} color={theme.primary} />
+                  <ThemedText style={[Typography.body, { fontWeight: '600', marginStart: Spacing.sm }]}>
+                    {getDisplayDate()}
+                  </ThemedText>
+                  {isToday ? null : (
+                    <Pressable
+                      style={[styles.todayBadge, { backgroundColor: applyOpacity(theme.primary, '15') }]}
+                      onPress={() => setSelectedDate(new Date())}
+                    >
+                      <ThemedText style={[Typography.caption, { color: theme.primary, fontSize: 10, fontWeight: '600' }]}>
+                        {t('common.today')}
+                      </ThemedText>
+                    </Pressable>
+                  )}
+                </Pressable>
+                
+                <Pressable
+                  style={[styles.dateNavButton, { backgroundColor: theme.surfaceSecondary }]}
+                  onPress={handleNextDay}
+                >
+                  <DDIcon name={isRTL ? "chevron-left" : "chevron-right"} size={20} color={theme.text} />
+                </Pressable>
+              </View>
+
+              <Spacer height={Spacing.lg} />
+
               <View style={styles.paddedContent}>
                 <StatsCards 
                   totalRequests={totalRequests} 
-                  inProgress={inProgressCount} 
+                  inProgress={activeCount} 
                   completed={completedCount} 
                   theme={theme}
                   t={t}
@@ -900,6 +993,7 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
                 statusCounts={statusCounts}
                 theme={theme}
                 t={t}
+                isRTL={isRTL}
               />
 
               <Spacer height={Spacing.lg} />
@@ -909,6 +1003,58 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
           ItemSeparatorComponent={() => <Spacer height={Spacing.md} />}
         />
         {renderStaffAssignModal()}
+        {showDatePicker ? (
+          Platform.OS === 'ios' ? (
+            <Modal
+              visible={showDatePicker}
+              transparent
+              animationType="fade"
+              onRequestClose={() => setShowDatePicker(false)}
+            >
+              <Pressable
+                style={styles.datePickerModalOverlay}
+                onPress={() => setShowDatePicker(false)}
+              >
+                <Pressable style={[styles.datePickerModalContent, { backgroundColor: theme.surface }]}>
+                  <View style={[styles.datePickerHeader, { borderBottomColor: theme.border }]}>
+                    <Pressable onPress={() => setShowDatePicker(false)}>
+                      <ThemedText style={[Typography.body, { color: theme.textSecondary }]}>
+                        {t('common.cancel')}
+                      </ThemedText>
+                    </Pressable>
+                    <ThemedText style={[Typography.body, { fontWeight: '600' }]}>
+                      {t('common.selectDate')}
+                    </ThemedText>
+                    <Pressable onPress={() => {
+                      setSelectedDate(tempDate);
+                      setShowDatePicker(false);
+                    }}>
+                      <ThemedText style={[Typography.body, { color: theme.primary, fontWeight: '600' }]}>
+                        {t('common.done')}
+                      </ThemedText>
+                    </Pressable>
+                  </View>
+                  <DateTimePicker
+                    value={tempDate}
+                    mode="date"
+                    display="spinner"
+                    onChange={(_event, date) => {
+                      if (date) setTempDate(date);
+                    }}
+                    style={{ height: 200 }}
+                  />
+                </Pressable>
+              </Pressable>
+            </Modal>
+          ) : (
+            <DateTimePicker
+              value={selectedDate}
+              mode="date"
+              display="default"
+              onChange={handleDateChange}
+            />
+          )
+        ) : null}
       </>
     );
   }
@@ -918,10 +1064,48 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
       <ScreenScrollView>
         <Spacer height={Spacing.xl} />
 
+        <View style={[styles.paddedContent, styles.dateNavRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <Pressable
+            style={[styles.dateNavButton, { backgroundColor: theme.surfaceSecondary }]}
+            onPress={handlePrevDay}
+          >
+            <DDIcon name={isRTL ? "chevron-right" : "chevron-left"} size={20} color={theme.text} />
+          </Pressable>
+          
+          <Pressable
+            style={[styles.dateDisplay, { backgroundColor: theme.surfaceSecondary }]}
+            onPress={() => { setTempDate(selectedDate); setShowDatePicker(true); }}
+          >
+            <DDIcon name="calendar" size={18} color={theme.primary} />
+            <ThemedText style={[Typography.body, { fontWeight: '600', marginStart: Spacing.sm }]}>
+              {getDisplayDate()}
+            </ThemedText>
+            {isToday ? null : (
+              <Pressable 
+                style={[styles.todayBadge, { backgroundColor: applyOpacity(theme.primary, '15') }]}
+                onPress={() => setSelectedDate(new Date())}
+              >
+                <ThemedText style={[Typography.caption, { color: theme.primary, fontSize: 10, fontWeight: '600' }]}>
+                  {t('common.today')}
+                </ThemedText>
+              </Pressable>
+            )}
+          </Pressable>
+          
+          <Pressable
+            style={[styles.dateNavButton, { backgroundColor: theme.surfaceSecondary }]}
+            onPress={handleNextDay}
+          >
+            <DDIcon name={isRTL ? "chevron-left" : "chevron-right"} size={20} color={theme.text} />
+          </Pressable>
+        </View>
+
+        <Spacer height={Spacing.lg} />
+
         <View style={styles.paddedContent}>
           <StatsCards 
             totalRequests={totalRequests} 
-            inProgress={inProgressCount} 
+            inProgress={activeCount} 
             completed={completedCount} 
             theme={theme}
             t={t}
@@ -938,6 +1122,7 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
           statusCounts={statusCounts}
           theme={theme}
           t={t}
+          isRTL={isRTL}
         />
 
         <Spacer height={Spacing.lg} />
@@ -967,6 +1152,58 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
         <Spacer height={LAYOUT.sectionSpacing} />
       </ScreenScrollView>
       {renderStaffAssignModal()}
+      {showDatePicker ? (
+        Platform.OS === 'ios' ? (
+          <Modal
+            visible={showDatePicker}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setShowDatePicker(false)}
+          >
+            <Pressable
+              style={styles.datePickerModalOverlay}
+              onPress={() => setShowDatePicker(false)}
+            >
+              <Pressable style={[styles.datePickerModalContent, { backgroundColor: theme.surface }]}>
+                <View style={[styles.datePickerHeader, { borderBottomColor: theme.border }]}>
+                  <Pressable onPress={() => setShowDatePicker(false)}>
+                    <ThemedText style={[Typography.body, { color: theme.textSecondary }]}>
+                      {t('common.cancel')}
+                    </ThemedText>
+                  </Pressable>
+                  <ThemedText style={[Typography.body, { fontWeight: '600' }]}>
+                    {t('common.selectDate')}
+                  </ThemedText>
+                  <Pressable onPress={() => {
+                    setSelectedDate(tempDate);
+                    setShowDatePicker(false);
+                  }}>
+                    <ThemedText style={[Typography.body, { color: theme.primary, fontWeight: '600' }]}>
+                      {t('common.done')}
+                    </ThemedText>
+                  </Pressable>
+                </View>
+                <DateTimePicker
+                  value={tempDate}
+                  mode="date"
+                  display="spinner"
+                  onChange={(_event, date) => {
+                    if (date) setTempDate(date);
+                  }}
+                  style={{ height: 200 }}
+                />
+              </Pressable>
+            </Pressable>
+          </Modal>
+        ) : (
+          <DateTimePicker
+            value={selectedDate}
+            mode="date"
+            display="default"
+            onChange={handleDateChange}
+          />
+        )
+      ) : null}
     </>
   );
 }
@@ -974,6 +1211,51 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
 const styles = StyleSheet.create({
   paddedContent: {
     paddingHorizontal: Spacing.xl,
+  },
+  dateNavRow: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+  },
+  dateNavButton: {
+    width: 40,
+    height: 40,
+    borderRadius: BorderRadius.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dateDisplay: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
+    flex: 1,
+    justifyContent: 'center',
+  },
+  todayBadge: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.sm,
+    marginStart: Spacing.sm,
+  },
+  datePickerModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  datePickerModalContent: {
+    borderTopLeftRadius: BorderRadius.lg,
+    borderTopRightRadius: BorderRadius.lg,
+    paddingBottom: Spacing.xl,
+  },
+  datePickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   statsGrid: {
     flexDirection: 'row',

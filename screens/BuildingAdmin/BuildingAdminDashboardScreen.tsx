@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { View, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { ROUTES } from "@/constants";
 import { DDIcon, IconName } from '@/components/DDIcon';
 import { ScreenScrollView } from '@/components/ScreenScrollView';
 import { ThemedText } from '@/components/ThemedText';
@@ -9,6 +10,7 @@ import Spacer from '@/components/Spacer';
 import { Spacing, BorderRadius, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { applyOpacity } from '@/utils/statusStyles';
 import { 
   getSystemStats, 
@@ -17,7 +19,7 @@ import {
   SystemStats,
   StaffOverview,
   RecentActivity,
-} from '@/services/mock/buildingAdminState';
+} from '@/services/state/buildingAdminState';
 import type { BuildingAdminDashboardScreenProps } from '@/types/buildingAdminNavigation.types';
 
 interface KPICardProps {
@@ -34,7 +36,7 @@ function KPICard({ title, value, icon, iconBgColor, iconColor, cardBgColor, subt
   const { theme } = useTheme();
   
   return (
-    <View style={[styles.kpiCard, { backgroundColor: cardBgColor, borderWidth: 1, borderColor: applyOpacity(iconColor, '15') }]}>
+    <View style={[styles.kpiCard, { backgroundColor: cardBgColor, borderWidth: StyleSheet.hairlineWidth, borderColor: applyOpacity(iconColor, '15') }]}>
       <View style={[styles.kpiIconContainer, { backgroundColor: iconBgColor }]}>
         <DDIcon name={icon as IconName} size={28} color={iconColor} />
       </View>
@@ -142,6 +144,7 @@ function StaffCard({ title, icon, total, details, onPress }: StaffCardProps) {
 export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdminDashboardScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { isRTL } = useLanguage();
   const [stats, setStats] = useState<SystemStats | null>(null);
   const [staffOverview, setStaffOverview] = useState<StaffOverview | null>(null);
   const [activities, setActivities] = useState<RecentActivity[]>([]);
@@ -167,7 +170,7 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
 
       <Spacer height={Spacing.xl} />
 
-      <View style={styles.kpiRow}>
+      <View style={[styles.kpiRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <KPICard 
           title={t('dashboard.totalVisitors')} 
           value={String(stats.totalVisitors)} 
@@ -189,7 +192,7 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
 
       <Spacer height={Spacing.md} />
 
-      <View style={styles.kpiRow}>
+      <View style={[styles.kpiRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <KPICard 
           title={t('status.approved')} 
           value={String(stats.approvedRequests)} 
@@ -210,11 +213,11 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
 
       <Spacer height={Spacing.md} />
 
-      <View style={styles.kpiRow}>
+      <View style={[styles.kpiRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <KPICard 
           title={t('buffet.buffetService')} 
           value={String(stats.ongoingBuffets)} 
-          icon="coffee" 
+          icon="disc" 
           iconBgColor={applyOpacity('#FF6B35', '20')}
           iconColor="#FF6B35"
           cardBgColor={applyOpacity('#FF6B35', '06')}
@@ -237,13 +240,13 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
 
       <Spacer height={Spacing.md} />
 
-      <View style={styles.quickActionsRow}>
+      <View style={[styles.quickActionsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <QuickActionButton
           icon="users"
           label={t('navigation.manageUsers')}
           iconBgColor={applyOpacity(theme.primary, '12')}
           iconColor={theme.primary}
-          onPress={() => navigation.navigate('UsersRoles')}
+          onPress={() => navigation.navigate(ROUTES.USERS_ROLES as never)}
           badge={stats.totalUsers}
         />
         <QuickActionButton
@@ -251,7 +254,7 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
           label={t('navigation.allRequests')}
           iconBgColor={applyOpacity(theme.warning, '12')}
           iconColor={theme.warning}
-          onPress={() => navigation.navigate('AllRequests')}
+          onPress={() => navigation.navigate(ROUTES.ALL_REQUESTS as never)}
           badge={stats.pendingRequests}
         />
         <QuickActionButton
@@ -259,14 +262,14 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
           label={t('navigation.locations')}
           iconBgColor={applyOpacity(theme.success, '12')}
           iconColor={theme.success}
-          onPress={() => navigation.navigate('AllLocations')}
+          onPress={() => navigation.navigate(ROUTES.ALL_LOCATIONS as never)}
         />
         <QuickActionButton
           icon="activity"
           label={t('navigation.reportsAndLogs')}
           iconBgColor={applyOpacity(theme.info, '12')}
           iconColor={theme.info}
-          onPress={() => navigation.navigate('Reports')}
+          onPress={() => navigation.navigate(ROUTES.REPORTS as never)}
         />
       </View>
 
@@ -282,16 +285,17 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
         horizontal 
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.staffScrollContent}
+        nestedScrollEnabled={true}
       >
         <StaffCard
           title={t('dashboard.buffetStaff')}
-          icon="coffee"
+          icon="disc"
           total={staffOverview.buffetStaff.total}
           details={[
             { label: t('dashboard.onDuty'), value: staffOverview.buffetStaff.onDuty, color: theme.success },
             { label: t('status.inactive'), value: staffOverview.buffetStaff.offDuty, color: theme.textSecondary },
           ]}
-          onPress={() => navigation.navigate('BuffetOversight')}
+          onPress={() => navigation.navigate(ROUTES.BUFFET_OVERSIGHT as never)}
         />
         <Spacer width={Spacing.md} />
         <StaffCard
@@ -303,7 +307,7 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
             { label: t('status.occupied'), value: staffOverview.valetDrivers.busy, color: theme.warning },
             { label: t('status.inactive'), value: staffOverview.valetDrivers.offDuty, color: theme.textSecondary },
           ]}
-          onPress={() => navigation.navigate('ValetOversight')}
+          onPress={() => navigation.navigate(ROUTES.VALET_OVERSIGHT as never)}
         />
         <Spacer width={Spacing.md} />
         <StaffCard
@@ -327,12 +331,12 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
 
       <Spacer height={Spacing.xxl} />
 
-      <View style={styles.sectionHeader}>
+      <View style={[styles.sectionHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <ThemedText style={[Typography.subtitle, { color: theme.text }]}>
           {t('dashboard.recentActivity')}
         </ThemedText>
         <Pressable 
-          onPress={() => navigation.navigate('Notifications')}
+          onPress={() => navigation.navigate(ROUTES.NOTIFICATIONS as never)}
           style={({ pressed }) => [
             styles.viewAllButton,
             { opacity: pressed ? 0.7 : 1 }
@@ -351,7 +355,7 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
         <View style={styles.activitiesList}>
           {activities.slice(0, 5).map((activity) => (
             <View key={activity.id}>
-              <ThemedView style={[styles.activityCard, { backgroundColor: theme.surface }]}>
+              <ThemedView style={[styles.activityCard, { backgroundColor: theme.surface, flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <View style={[
                   styles.activityIconContainer, 
                   { backgroundColor: applyOpacity(

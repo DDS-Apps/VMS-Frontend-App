@@ -1,25 +1,24 @@
-import { useState, useCallback, useEffect } from 'react';
-import * as WebBrowser from 'expo-web-browser';
-import * as AuthSession from 'expo-auth-session';
+import { useState, useCallback } from 'react';
 import { Platform } from 'react-native';
-import Constants from 'expo-constants';
+import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
+import { apiConfig } from '@/api/config';
+import { parseAuthUrl } from '@/utils/authTokenParser';
 
 WebBrowser.maybeCompleteAuthSession();
 
-const AZURE_TENANT_ID = 'common';
-const AZURE_CLIENT_ID = process.env.EXPO_PUBLIC_AZURE_CLIENT_ID || '';
-
-const discovery: AuthSession.DiscoveryDocument = {
-  authorizationEndpoint: `https://login.microsoftonline.com/${AZURE_TENANT_ID}/oauth2/v2.0/authorize`,
-  tokenEndpoint: `https://login.microsoftonline.com/${AZURE_TENANT_ID}/oauth2/v2.0/token`,
-  revocationEndpoint: `https://login.microsoftonline.com/${AZURE_TENANT_ID}/oauth2/v2.0/logout`,
-};
-
 export type AzureErrorType = 'not_configured' | 'no_token' | 'auth_failed' | 'cancelled' | null;
 
-interface AzureAuthResult {
+export interface MicrosoftAuthResult {
   accessToken: string;
-  idToken?: string;
+  refreshToken?: string;
+  expiresIn?: number;
+  user?: {
+    id: string;
+    email: string;
+    name: string;
+    role: string;
+  };
   errorType?: AzureErrorType;
 }
 
@@ -27,44 +26,32 @@ interface UseAzureAuthReturn {
   isLoading: boolean;
   errorType: AzureErrorType;
   isConfigured: boolean;
-  promptAsync: () => Promise<AzureAuthResult | null>;
+  promptAsync: () => Promise<MicrosoftAuthResult | null>;
   clearError: () => void;
+}
+
+const MOBILE_SCHEME = 'dallahvms';
+const MOBILE_CALLBACK_PATH = 'auth/callback';
+
+function getMobileRedirectUrl(): string {
+  return `${MOBILE_SCHEME}://${MOBILE_CALLBACK_PATH}`;
+}
+
+function getMicrosoftLoginUrl(platform: 'web' | 'mobile'): string {
+  const baseUrl = apiConfig.microsoftAuthUrl;
+  const loginEndpoint = apiConfig.endpoints.auth.microsoftLogin;
+  return `${baseUrl}${loginEndpoint}?platform=${platform}`;
 }
 
 export function useAzureAuth(): UseAzureAuthReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [errorType, setErrorType] = useState<AzureErrorType>(null);
   
-  const isConfigured = Boolean(AZURE_CLIENT_ID);
+  const microsoftAuthBaseUrl = apiConfig.microsoftAuthUrl;
+  const isConfigured = Boolean(microsoftAuthBaseUrl);
 
-  const redirectUri = AuthSession.makeRedirectUri({
-    scheme: 'dallahvms',
-    path: 'auth',
-  });
-
-  const [request, response, promptAsyncInternal] = AuthSession.useAuthRequest(
-    {
-      clientId: AZURE_CLIENT_ID || 'placeholder',
-      scopes: ['openid', 'profile', 'email', 'User.Read'],
-      redirectUri,
-      responseType: AuthSession.ResponseType.Token,
-      prompt: AuthSession.Prompt.SelectAccount,
-      extraParams: {
-        nonce: Math.random().toString(36).substring(2),
-      },
-    },
-    discovery
-  );
-
-  useEffect(() => {
-    if (response?.type === 'error') {
-      setErrorType('auth_failed');
-      setIsLoading(false);
-    }
-  }, [response]);
-
-  const promptAsync = useCallback(async (): Promise<AzureAuthResult | null> => {
-    if (!AZURE_CLIENT_ID) {
+  const promptAsync = useCallback(async (): Promise<MicrosoftAuthResult | null> => {
+    if (!microsoftAuthBaseUrl) {
       setErrorType('not_configured');
       return { accessToken: '', errorType: 'not_configured' };
     }
@@ -73,39 +60,91 @@ export function useAzureAuth(): UseAzureAuthReturn {
     setErrorType(null);
 
     try {
-      const result = await promptAsyncInternal();
-
-      if (result?.type === 'success') {
-        const { access_token, id_token } = result.params;
+      if (Platform.OS === 'web') {
+        const microsoftLoginUrl = getMicrosoftLoginUrl('web');
+        console.log('[AzureAuth] Web: Redirecting to Microsoft login:', microsoftLoginUrl);
         
-        if (!access_token) {
-          setErrorType('no_token');
-          setIsLoading(false);
-          return { accessToken: '', errorType: 'no_token' };
+        if (typeof window !== 'undefined') {
+          window.location.href = microsoftLoginUrl;
         }
+        
+        return null;
+      } else {
+        const mobileRedirectUrl = getMobileRedirectUrl();
+        const microsoftLoginUrl = getMicrosoftLoginUrl('mobile');
+        
+        console.log('[AzureAuth] Mobile: Starting Microsoft login flow');
+        console.log('[AzureAuth] Mobile: Login URL:', microsoftLoginUrl);
+        console.log('[AzureAuth] Mobile: Redirect URL:', mobileRedirectUrl);
 
-        setIsLoading(false);
-        return {
-          accessToken: access_token,
-          idToken: id_token,
-        };
-      } else if (result?.type === 'cancel' || result?.type === 'dismiss') {
-        setIsLoading(false);
-        return { accessToken: '', errorType: 'cancelled' };
-      } else if (result?.type === 'error') {
-        setErrorType('auth_failed');
-        setIsLoading(false);
-        return { accessToken: '', errorType: 'auth_failed' };
+        const result = await WebBrowser.openAuthSessionAsync(
+          microsoftLoginUrl,
+          mobileRedirectUrl,
+          {
+            showInRecents: true,
+            preferEphemeralSession: true,
+          }
+        );
+
+        console.log('[AzureAuth] Mobile: Auth session result type:', result.type);
+
+        if (result.type === 'success' && result.url) {
+          console.log('[AzureAuth] Mobile: Success URL:', result.url);
+          const parsedResponse = parseAuthUrl(result.url);
+          
+          console.log('[AzureAuth] Mobile: Parsed response:', {
+            hasAccessToken: !!parsedResponse.accessToken,
+            accessTokenLength: parsedResponse.accessToken?.length || 0,
+            hasRefreshToken: !!parsedResponse.refreshToken,
+            hasExpiresIn: !!parsedResponse.expiresIn,
+            expiresIn: parsedResponse.expiresIn,
+            hasUser: !!parsedResponse.user,
+            hasError: !!parsedResponse.error,
+            error: parsedResponse.error,
+            errorDescription: parsedResponse.errorDescription,
+          });
+
+          if (parsedResponse.error) {
+            console.log('[AzureAuth] Mobile: Error from callback:', parsedResponse.error, parsedResponse.errorDescription);
+            setErrorType('auth_failed');
+            setIsLoading(false);
+            return { accessToken: '', errorType: 'auth_failed' };
+          }
+
+          if (!parsedResponse.accessToken) {
+            console.log('[AzureAuth] Mobile: No access token received in response');
+            console.log('[AzureAuth] Mobile: Full URL for debugging:', result.url);
+            setErrorType('no_token');
+            setIsLoading(false);
+            return { accessToken: '', errorType: 'no_token' };
+          }
+
+          console.log('[AzureAuth] Mobile: Successfully received token, length:', parsedResponse.accessToken.length);
+          setIsLoading(false);
+          return {
+            accessToken: parsedResponse.accessToken,
+            refreshToken: parsedResponse.refreshToken,
+            expiresIn: parsedResponse.expiresIn,
+            user: parsedResponse.user,
+          };
+        } else if (result.type === 'cancel' || result.type === 'dismiss') {
+          console.log('[AzureAuth] Mobile: Auth cancelled by user');
+          setIsLoading(false);
+          return { accessToken: '', errorType: 'cancelled' };
+        } else {
+          console.log('[AzureAuth] Mobile: Auth failed with type:', result.type);
+          setErrorType('auth_failed');
+          setIsLoading(false);
+          return { accessToken: '', errorType: 'auth_failed' };
+        }
       }
-
-      setIsLoading(false);
-      return null;
     } catch (err) {
+      console.error('[AzureAuth] Error during auth:', err);
       setErrorType('auth_failed');
       setIsLoading(false);
       return { accessToken: '', errorType: 'auth_failed' };
     }
-  }, [promptAsyncInternal]);
+  }, [microsoftAuthBaseUrl]);
 
   const clearError = useCallback(() => {
     setErrorType(null);

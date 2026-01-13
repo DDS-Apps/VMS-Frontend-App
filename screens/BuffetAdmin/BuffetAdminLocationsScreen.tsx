@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { View, StyleSheet, Pressable, Modal, TextInput, Alert, GestureResponderEvent, ActivityIndicator } from "react-native";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
+import { ROUTES } from "@/constants";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { LoadingButton } from "@/components/shared/LoadingButton";
@@ -8,6 +9,7 @@ import Spacer from "@/components/Spacer";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { applyOpacity } from "@/utils/statusStyles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -16,6 +18,7 @@ import {
   useBuffetLoadSummaryQuery,
 } from "@/hooks/queries/useBuffetQueries";
 import type { BuffetAdminLocationDto, BuffetLocationLoadDto } from "@/types/api.types";
+import type { BuffetAdminLocationsScreenProps } from "@/types/buffetAdminNavigation.types";
 
 interface KPICardProps {
   title: string;
@@ -61,9 +64,10 @@ interface LocationDisplayItem {
   currentRequests: number;
 }
 
-export default function BuffetAdminLocationsScreen() {
+export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLocationsScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   
   const { data: locationsResponse, isLoading: isLoadingLocations } = useBuffetAdminLocationsQuery();
@@ -163,7 +167,7 @@ export default function BuffetAdminLocationsScreen() {
           },
         ]}
       >
-        <View style={styles.cardHeader}>
+        <View style={[styles.cardHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <View style={[styles.iconContainer, { backgroundColor: applyOpacity(theme.primary, '12') }]}>
             <DDIcon name="map-pin" size={20} color={theme.primary} />
           </View>
@@ -175,26 +179,17 @@ export default function BuffetAdminLocationsScreen() {
               {item.building} - {item.floor}
             </ThemedText>
           </View>
-          <View style={styles.headerActions}>
-            <View style={[styles.statusBadge, { backgroundColor: applyOpacity(isActive ? theme.success : theme.textSecondary, '15') }]}>
-              <ThemedText style={[styles.statusText, { color: isActive ? theme.success : theme.textSecondary }]}>
-                {isActive ? t('status.active') : t('status.inactive')}
-              </ThemedText>
-            </View>
-            <Pressable
-              style={styles.editIconButton}
-              onPress={(e) => handleEditLocation(item, e)}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <DDIcon name="edit-2" size={18} color={theme.primary} />
-            </Pressable>
+          <View style={[styles.statusBadge, { backgroundColor: applyOpacity(isActive ? theme.success : theme.textSecondary, '15') }]}>
+            <ThemedText style={[styles.statusText, { color: isActive ? theme.success : theme.textSecondary }]}>
+              {isActive ? t('status.active') : t('status.inactive')}
+            </ThemedText>
           </View>
         </View>
 
         <Spacer height={Spacing.lg} />
 
-        <View style={styles.statsRow}>
-          <View style={styles.statItem}>
+        <View style={[styles.statsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.statItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <View style={[styles.statIconBg, { backgroundColor: applyOpacity(theme.info, '12') }]}>
               <DDIcon name="users" size={16} color={theme.info} />
             </View>
@@ -208,7 +203,7 @@ export default function BuffetAdminLocationsScreen() {
             </View>
           </View>
 
-          <View style={styles.statItem}>
+          <View style={[styles.statItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <View style={[styles.statIconBg, { backgroundColor: applyOpacity(theme.success, '12') }]}>
               <DDIcon name="user-check" size={16} color={theme.success} />
             </View>
@@ -222,9 +217,9 @@ export default function BuffetAdminLocationsScreen() {
             </View>
           </View>
 
-          <View style={styles.statItem}>
+          <View style={[styles.statItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <View style={[styles.statIconBg, { backgroundColor: applyOpacity(theme.warning, '12') }]}>
-              <DDIcon name="coffee" size={16} color={theme.warning} />
+              <DDIcon name="cloche" size={16} color={theme.warning} />
             </View>
             <View style={styles.statInfo}>
               <ThemedText style={[styles.statValue, { color: theme.text }]}>
@@ -244,7 +239,7 @@ export default function BuffetAdminLocationsScreen() {
   return (
     <>
       <ScreenScrollView contentContainerStyle={scrollContentStyle}>
-        <View style={styles.kpiRow}>
+        <View style={[styles.kpiRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <KPICard 
             title={t('status.active')} 
             value={String(stats.active)} 
@@ -304,6 +299,20 @@ export default function BuffetAdminLocationsScreen() {
         <Spacer height={Spacing.xl} />
       </ScreenScrollView>
 
+      <Pressable
+        style={[
+          styles.fab,
+          {
+            backgroundColor: theme.primary,
+            [isRTL ? 'left' : 'right']: Spacing.lg,
+            bottom: insets.bottom + 80,
+          }
+        ]}
+        onPress={() => navigation.navigate(ROUTES.BUFFET_CREATE_LOCATION as never)}
+      >
+        <DDIcon name="plus" size={24} color="#FFFFFF" />
+      </Pressable>
+
       <Modal
         visible={showEditModal}
         transparent
@@ -318,7 +327,7 @@ export default function BuffetAdminLocationsScreen() {
             style={[styles.modalContent, { backgroundColor: theme.background }]}
             onPress={(e) => e.stopPropagation()}
           >
-            <View style={styles.modalHeader}>
+            <View style={[styles.modalHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <ThemedText style={[Typography.subtitle, { fontWeight: '600' }]}>
                 {t('common.edit')}
               </ThemedText>
@@ -390,7 +399,7 @@ export default function BuffetAdminLocationsScreen() {
 
             <Spacer height={Spacing.xl} />
 
-            <View style={styles.modalActions}>
+            <View style={[styles.modalActions, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <LoadingButton
                 onPress={() => setShowEditModal(false)}
                 variant="secondary"
@@ -445,6 +454,7 @@ const styles = StyleSheet.create({
   },
   kpiValue: {
     fontSize: 28,
+    lineHeight: 36,
     fontWeight: '700',
     letterSpacing: -0.5,
   },
@@ -599,5 +609,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  fab: {
+    position: 'absolute',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 6,
   },
 });

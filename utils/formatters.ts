@@ -1,7 +1,10 @@
 export type LocaleCode = 'ar-SA' | 'en-US';
 export type DateFormat = 'short' | 'medium' | 'long';
 
-export const formatDate = (date: Date, locale: LocaleCode = 'en-US', format: DateFormat = 'medium'): string => {
+// Default server timezone
+const DEFAULT_TIMEZONE = 'Asia/Riyadh';
+
+export const formatDate = (date: Date, locale: LocaleCode = 'en-US', format: DateFormat = 'medium', timezone?: string): string => {
   const options: Intl.DateTimeFormatOptions = {
     day: 'numeric',
     month: format === 'short' ? 'short' : 'long',
@@ -15,18 +18,119 @@ export const formatDate = (date: Date, locale: LocaleCode = 'en-US', format: Dat
     options.weekday = 'long';
   }
   
-  return date.toLocaleDateString(locale, options);
+  // Add timezone if provided
+  if (timezone) {
+    options.timeZone = timezone;
+  }
+  
+  try {
+    return date.toLocaleDateString(locale, options);
+  } catch (error) {
+    // Fallback without timezone if invalid
+    delete options.timeZone;
+    return date.toLocaleDateString(locale, options);
+  }
 };
 
-export const formatTime = (date: Date, locale: LocaleCode = 'en-US'): string => {
-  return date.toLocaleTimeString(locale, {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+export const formatTime = (date: Date, locale: LocaleCode = 'en-US', timezone?: string): string => {
+  try {
+    // Use Intl.DateTimeFormat with timezone for accurate timezone conversion
+    if (timezone) {
+      const formatter = new Intl.DateTimeFormat(locale, {
+        timeZone: timezone,
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+      });
+      
+      const parts = formatter.formatToParts(date);
+      const hourPart = parts.find(p => p.type === 'hour')?.value || '12';
+      const minutePart = parts.find(p => p.type === 'minute')?.value || '00';
+      const periodPart = parts.find(p => p.type === 'dayPeriod')?.value || 'AM';
+      
+      if (locale === 'ar-SA') {
+        const arabicNumerals = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+        const arabicHours = hourPart.split('').map(d => /\d/.test(d) ? arabicNumerals[parseInt(d)] : d).join('');
+        const arabicMinutes = minutePart.split('').map(d => /\d/.test(d) ? arabicNumerals[parseInt(d)] : d).join('');
+        const arabicPeriod = periodPart.toLowerCase().includes('am') ? 'ص' : 'م';
+        return `${arabicHours}:${arabicMinutes} ${arabicPeriod}`;
+      }
+      
+      return `${hourPart}:${minutePart} ${periodPart.toUpperCase()}`;
+    }
+  } catch (error) {
+    // Fall through to default implementation
+  }
+  
+  // Default implementation without timezone
+  let hours = date.getHours();
+  const minutes = date.getMinutes();
+  const period = hours >= 12 ? 'PM' : 'AM';
+  
+  hours = hours % 12;
+  if (hours === 0) hours = 12;
+  
+  const minuteStr = minutes.toString().padStart(2, '0');
+  
+  if (locale === 'ar-SA') {
+    const arabicNumerals = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+    const arabicHours = hours.toString().split('').map(d => arabicNumerals[parseInt(d)]).join('');
+    const arabicMinutes = minuteStr.split('').map(d => arabicNumerals[parseInt(d)]).join('');
+    const arabicPeriod = period === 'AM' ? 'ص' : 'م';
+    return `${arabicHours}:${arabicMinutes} ${arabicPeriod}`;
+  }
+  
+  return `${hours}:${minuteStr} ${period}`;
 };
 
-export const formatDateTime = (date: Date, locale: LocaleCode = 'en-US'): string => {
-  return `${formatDate(date, locale)} ${formatTime(date, locale)}`;
+export const formatTimeFromString = (timeString: string, locale: LocaleCode = 'en-US', timezone?: string): string => {
+  if (!timeString) return '';
+  
+  const upperStr = timeString.toUpperCase();
+  const hasAMPM = upperStr.includes('AM') || upperStr.includes('PM');
+  
+  if (timeString.includes(':') && !timeString.includes('T')) {
+    if (hasAMPM) {
+      const isPM = upperStr.includes('PM');
+      const timePart = timeString.replace(/\s*(AM|PM)\s*/i, '');
+      const [hoursStr, minutesStr] = timePart.split(':');
+      let hour = parseInt(hoursStr, 10);
+      const min = parseInt(minutesStr, 10);
+      
+      if (!isNaN(hour) && !isNaN(min)) {
+        if (isPM && hour !== 12) hour += 12;
+        if (!isPM && hour === 12) hour = 0;
+        
+        const tempDate = new Date();
+        tempDate.setHours(hour, min, 0, 0);
+        return formatTime(tempDate, locale, timezone);
+      }
+    } else {
+      const [hours, minutes] = timeString.split(':');
+      const hour = parseInt(hours, 10);
+      const min = parseInt(minutes, 10);
+      
+      if (!isNaN(hour) && !isNaN(min)) {
+        const tempDate = new Date();
+        tempDate.setHours(hour, min, 0, 0);
+        return formatTime(tempDate, locale, timezone);
+      }
+    }
+  }
+  
+  const date = new Date(timeString);
+  if (!isNaN(date.getTime())) {
+    return formatTime(date, locale, timezone);
+  }
+  
+  return timeString;
+};
+
+export const formatDateTime = (date: Date, locale: LocaleCode = 'en-US', timezone?: string): string => {
+  if (!date || isNaN(date.getTime())) {
+    return '';
+  }
+  return `${formatDateShortMonth(date, locale, timezone)} \u2022 ${formatTime(date, locale, timezone)}`;
 };
 
 export const formatCurrency = (amount: number, currency: string = 'USD', locale: LocaleCode = 'en-US'): string => {
@@ -97,11 +201,108 @@ export const parseISODuration = (isoDuration: string): string => {
   return `${hourPart} ${minutePart}`;
 };
 
-export const formatDateShortMonth = (date: Date, locale: LocaleCode = 'en-US'): string => {
-  const day = date.getDate();
-  const month = date.toLocaleDateString(locale, { month: 'short' });
-  const year = date.getFullYear();
-  return `${month} ${day}, ${year}`;
+export const formatDateShortMonth = (date: Date, locale: LocaleCode = 'en-US', timezone?: string): string => {
+  try {
+    const options: Intl.DateTimeFormatOptions = { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
+    };
+    if (timezone) {
+      options.timeZone = timezone;
+    }
+    return date.toLocaleDateString(locale, options);
+  } catch (error) {
+    const day = date.getDate();
+    const month = date.toLocaleDateString(locale, { month: 'short' });
+    const year = date.getFullYear();
+    return `${month} ${day}, ${year}`;
+  }
+};
+
+const extractTimeFromIso = (isoString: string, locale: LocaleCode = 'en-US'): string => {
+  const match = isoString.match(/T(\d{2}):(\d{2})/);
+  if (match) {
+    const hours = parseInt(match[1], 10);
+    const minutes = parseInt(match[2], 10);
+    // Route through formatTime for locale awareness
+    const tempDate = new Date();
+    tempDate.setHours(hours, minutes, 0, 0);
+    return formatTime(tempDate, locale);
+  }
+  return isoString;
+};
+
+// Extract time from ugly Date.toString() format like "Wed Dec 24 2025 14:07:00 GMT+0000 (Coordinated Universal Time)"
+const extractTimeFromDateString = (dateStr: string, locale: LocaleCode = 'en-US'): string | null => {
+  // Match pattern like "Wed Dec 24 2025 14:07:00 GMT" or similar
+  const match = dateStr.match(/\w+\s+\w+\s+\d+\s+\d+\s+(\d{2}):(\d{2}):\d{2}/);
+  if (match) {
+    const hours = parseInt(match[1], 10);
+    const minutes = parseInt(match[2], 10);
+    // Route through formatTime for locale awareness
+    const tempDate = new Date();
+    tempDate.setHours(hours, minutes, 0, 0);
+    return formatTime(tempDate, locale);
+  }
+  return null;
+};
+
+export const formatTimeRange = (timeRange: string, locale: LocaleCode = 'en-US', timezone?: string): string => {
+  if (!timeRange) return '';
+  
+  // Check for ugly Date.toString() range format like "Wed Dec 24 2025 14:07:00 GMT+0000 ... - Wed Dec 24 2025 15:07:00 GMT+0000 ..."
+  if (timeRange.includes('GMT') && timeRange.match(/\w{3}\s+\w{3}\s+\d+\s+\d+/)) {
+    const parts = timeRange.split(/\s*[-–]\s*/);
+    if (parts.length === 2) {
+      const startTime = extractTimeFromDateString(parts[0].trim(), locale);
+      const endTime = extractTimeFromDateString(parts[1].trim(), locale);
+      if (startTime && endTime) {
+        return `${startTime} - ${endTime}`;
+      }
+    }
+    // Single ugly date string
+    const singleTime = extractTimeFromDateString(timeRange, locale);
+    if (singleTime) return singleTime;
+  }
+  
+  // Check if this is an ISO timestamp range (e.g., "2024-01-01T12:00:00.000Z - 2024-01-01T13:00:00.000Z")
+  const isoRangeMatch = timeRange.match(/^(.+?T[\d:]+(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?)\s*[-–]\s*(.+?T[\d:]+(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?)$/);
+  if (isoRangeMatch) {
+    const startFormatted = extractTimeFromIso(isoRangeMatch[1].trim(), locale);
+    const endFormatted = extractTimeFromIso(isoRangeMatch[2].trim(), locale);
+    return `${startFormatted} - ${endFormatted}`;
+  }
+  
+  // If already a formatted AM/PM time range, return as-is to avoid timezone re-conversion
+  const ampmRangeMatch = timeRange.match(/^\d{1,2}:\d{2}\s*(?:AM|PM)\s*[-–]\s*\d{1,2}:\d{2}\s*(?:AM|PM)$/i);
+  if (ampmRangeMatch) {
+    return timeRange;
+  }
+  
+  // For simple time ranges like "09:00 - 10:00" (24-hour format without AM/PM)
+  const parts = timeRange.split(/\s*[-–]\s*/);
+  if (parts.length !== 2) {
+    return formatTimeFromString(timeRange, locale, timezone);
+  }
+  
+  const startTime = formatTimeFromString(parts[0].trim(), locale, timezone);
+  const endTime = formatTimeFromString(parts[1].trim(), locale, timezone);
+  
+  return `${startTime} - ${endTime}`;
+};
+
+export const formatVisitTimeRange = (
+  visitTime: string,
+  endTime?: string,
+  locale: LocaleCode = 'en-US'
+): string => {
+  const formattedStart = formatTimeFromString(visitTime, locale);
+  if (endTime) {
+    const formattedEnd = formatTimeFromString(endTime, locale);
+    return `${formattedStart} - ${formattedEnd}`;
+  }
+  return formattedStart;
 };
 
 export const parseTimeString = (timeStr: string, dateStr?: string): Date => {

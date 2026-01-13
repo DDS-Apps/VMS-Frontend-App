@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from "react";
 import { View, StyleSheet, TextInput, Pressable, Switch, Platform, Alert, Modal, Animated, ScrollView } from "react-native";
+import { CommonActions } from "@react-navigation/native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DDIcon } from "@/components/DDIcon";
 import { ScreenKeyboardAwareScrollView } from "@/components/ScreenKeyboardAwareScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { SelectableCard, CardGridStyles } from "@/components/SelectableCard";
+import { SelectableCard, CardGridStyles, getGridStyle, getCardWrapper2ColStyle } from "@/components/SelectableCard";
 import { LoadingButton } from "@/components/shared/LoadingButton";
 import Spacer from "@/components/Spacer";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
@@ -24,6 +25,9 @@ import { applyOpacity, createModalOverlayStyle } from "@/utils/statusStyles";
 import { CalendarDatePicker } from "@/components/CalendarDatePicker";
 import { TimePicker } from "@/components/TimePicker";
 import type { VisitorRequestFormScreenProps } from "@/types/employeeNavigation.types";
+import { calculateServerDuration } from "@/utils/dateTimeUtils";
+import { useServerDateTime } from "@/hooks/useServerDateTime";
+import { PURPOSE_OPTIONS } from "@/constants/requestConstants";
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -47,9 +51,17 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
   const { theme, isDark } = useTheme();
   const { t } = useTranslation();
   const { isRTL } = useLanguage();
-  const { formatDate: fmtDate, formatTime: fmtTime, toLocalNumerals } = useFormatters();
+  const { toLocalNumerals } = useFormatters();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
+  const { 
+    formatDateForApi, 
+    formatTimeForApi,
+    formatTime24ForApi,
+    formatDateForDisplay,
+    formatTimeForDisplay,
+    getNowForPicker 
+  } = useServerDateTime();
   const createVisitMutation = useCreateVisitMutation();
   const walkInMutation = useRegisterWalkInMutation();
   const { data: usersData, isLoading: isLoadingUsers } = useUsersQuery(
@@ -58,29 +70,29 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
   );
   const visitType = route?.params?.visitType || t('visitor.generalVisit');
 
+  const FOOTER_HEIGHT = 100;
   const scrollContentStyle = {
     paddingTop: insets.top + Spacing.xl,
-    paddingBottom: insets.bottom + Spacing.xl
+    paddingBottom: FOOTER_HEIGHT + Spacing.xl
   };
   
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [company, setCompany] = useState('');
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [selectedTime, setSelectedTime] = useState<Date>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
+  const [selectedTime, setSelectedTime] = useState<Date>(() => new Date());
   const [selectedEndTime, setSelectedEndTime] = useState<Date>(() => {
-    const endTime = new Date();
-    endTime.setHours(endTime.getHours() + 1);
-    return endTime;
+    const now = new Date();
+    return new Date(now.getTime() + 60 * 60 * 1000);
   });
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [showEndTimePicker, setShowEndTimePicker] = useState(false);
-  const [purpose, setPurpose] = useState(visitType);
+  const [purposeValue, setPurposeValue] = useState('general');
+  const [purposeLabel, setPurposeLabel] = useState(visitType);
   
   const [needsMeetingRoom, setNeedsMeetingRoom] = useState(false);
-  const [needsParking, setNeedsParking] = useState(false);
   const [needsBuffet, setNeedsBuffet] = useState(false);
 
   const [sendWhatsApp, setSendWhatsApp] = useState(false);
@@ -94,6 +106,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
   const [idType, setIdType] = useState<VisitorIdType>('national_id');
   const [idNumber, setIdNumber] = useState('');
   const [showIdTypePicker, setShowIdTypePicker] = useState(false);
+  const [showPurposePicker, setShowPurposePicker] = useState(false);
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -103,22 +116,17 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
 
-  const formatDateForApi = (date: Date): string => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+  const formatDateForApiLocal = (date: Date): string => {
+    return formatDateForApi(date);
   };
 
   const formatTimeForQuery = (time: Date): string => {
-    const hours = String(time.getHours()).padStart(2, '0');
-    const minutes = String(time.getMinutes()).padStart(2, '0');
-    return `${hours}:${minutes}`;
+    return formatTime24ForApi(time);
   };
 
   const roomAvailabilityParams: RoomAvailabilityParams | null = needsMeetingRoom && selectedDate && selectedTime && selectedEndTime
     ? {
-        date: formatDateForApi(selectedDate),
+        date: formatDateForApiLocal(selectedDate),
         startTime: formatTimeForQuery(selectedTime),
         endTime: formatTimeForQuery(selectedEndTime),
       }
@@ -167,11 +175,13 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
       }),
     ]).start(() => {
       setShowSuccessModal(false);
-      if (isWalkIn) {
-        navigation.navigate('WalkInVisitors' as never);
-      } else {
-        navigation.navigate('Dashboard' as never);
-      }
+      const targetScreen = isWalkIn ? 'AllVisitors' : 'Dashboard';
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: targetScreen }],
+        })
+      );
     });
   };
 
@@ -246,29 +256,30 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
     }
   };
 
-  const formatCalendarDate = (date: Date): string => {
-    const today = new Date();
-    if (date.toDateString() === today.toDateString()) {
+  // Display formatter for picker values - uses server timezone from API
+  const formatPickerDate = (date: Date): string => {
+    // Check if today using server timezone comparison
+    const todayStr = formatDateForDisplay(new Date(), isRTL);
+    const dateStr = formatDateForDisplay(date, isRTL);
+    if (todayStr === dateStr) {
       return t('time.today');
     }
-    return fmtDate(date, 'short');
+    return dateStr;
   };
 
+  // Display formatter for picker time values - uses server timezone from API
+  const formatPickerTime = (date: Date): string => {
+    return formatTimeForDisplay(date, isRTL);
+  };
+
+  // API formatter - formats device-local date for submission
   const formatDate = (date: Date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    return formatDateForApi(date);
   };
 
-  const formatTime = (date: Date) => {
-    return fmtTime(date);
-  };
-
-  const formatTimeForApi = (date: Date): string => {
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    return `${hours}:${minutes}`;
+  // API formatter - formats device-local time for submission
+  const formatTimeForApiLocal = (date: Date): string => {
+    return formatTimeForApi(date);
   };
 
   const handleDateSelect = (date: Date) => {
@@ -431,8 +442,8 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
           visitorPhone: phone.trim() || undefined,
           hostId: selectedEmployeeId,
           hostName: hostEmployee,
-          visitType: visitType || 'Walk-in',
-          purpose: purpose.trim() || 'Walk-in visit',
+          visitType: purposeLabel || t('visitor.generalVisit'),
+          purpose: purposeLabel || t('visitor.generalVisit'),
           idType: idType,
           idNumber: idNumber.trim(),
         };
@@ -449,25 +460,15 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
         return;
       }
 
-      // Handle regular visit request
+      // Handle regular visit request - always include email and qr_code
       const communicationChannels: ('email' | 'sms' | 'whatsapp' | 'qr_code')[] = ['email', 'qr_code'];
       if (sendSMS) communicationChannels.push('sms');
       if (sendWhatsApp) communicationChannels.push('whatsapp');
 
-      // Calculate ISO-8601 duration (e.g., "PT1H30M")
-      const startMs = selectedTime.getTime();
-      const endMs = selectedEndTime.getTime();
-      const diffMs = endMs - startMs;
-      const diffMinutes = Math.max(0, Math.round(diffMs / (1000 * 60)));
-      const hours = Math.floor(diffMinutes / 60);
-      const minutes = diffMinutes % 60;
-      let isoDuration = 'PT';
-      if (hours > 0) isoDuration += `${hours}H`;
-      if (minutes > 0) isoDuration += `${minutes}M`;
-      if (hours === 0 && minutes === 0) isoDuration = 'PT0M';
+      // Calculate human-readable duration using timezone utility
+      const duration = calculateServerDuration(selectedTime, selectedEndTime);
 
       const payload: CreateVisitPayload = {
-        hostId: asReceptionist ? selectedEmployeeId : user.id,
         visitor: {
           fullName: fullName.trim(),
           email: email.trim(),
@@ -477,14 +478,11 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
         visitDate: formatDate(selectedDate),
         visitTime: formatTimeForApi(selectedTime),
         endTime: formatTimeForApi(selectedEndTime),
-        duration: isoDuration,
-        purpose: purpose.trim() || 'General visit',
+        duration: duration,
+        purpose: purposeLabel || t('visitor.generalVisit'),
         communicationChannels,
-        needsParking: asReceptionist ? false : needsParking,
-        needsMeetingRoom: asReceptionist ? false : true,
+        needsMeetingRoom: asReceptionist ? false : needsMeetingRoom,
         needsBuffet: asReceptionist ? false : needsBuffet,
-        needsValet: false,
-        parkingPreference: asReceptionist ? 'none' : (needsParking ? 'auto' : 'none'),
       };
 
       console.log('[VisitorRequestForm] Submitting request with payload:', JSON.stringify(payload, null, 2));
@@ -533,12 +531,13 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
   };
 
   return (
+    <>
     <ScreenKeyboardAwareScrollView contentContainerStyle={scrollContentStyle}>
       {visitType && visitType !== t('visitor.generalVisit') && (
         <>
-          <ThemedView style={[styles.visitTypeBanner, { backgroundColor: applyOpacity(theme.primary, '15'), borderStartColor: theme.primary, borderStartWidth: 4 }]}>
+          <ThemedView style={[styles.visitTypeBanner, { backgroundColor: applyOpacity(theme.primary, '15'), borderStartColor: theme.primary, borderStartWidth: 4, flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <DDIcon name="info" size={20} variant="primary" />
-            <ThemedText style={[Typography.body, { marginStart: Spacing.md, fontWeight: '600', color: theme.primary }]}>
+            <ThemedText style={[Typography.body, { marginStart: Spacing.md, fontWeight: '600', color: theme.primary, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('visitor.typeOfVisit')}: {visitType}
             </ThemedText>
           </ThemedView>
@@ -547,7 +546,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
       )}
       
       <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
-        <ThemedText style={[Typography.subtitle]}>{t('visitor.visitorInformation')}</ThemedText>
+        <ThemedText style={[Typography.subtitle, { textAlign: isRTL ? 'right' : 'left' }]}>{t('visitor.visitorInformation')}</ThemedText>
         <Spacer height={Spacing.lg} />
 
         <ThemedText style={[Typography.label, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
@@ -680,13 +679,14 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                 styles.iconInputButton, 
                 { 
                   backgroundColor: theme.background, 
-                  borderColor: errors.hostEmployee ? theme.error : theme.border
+                  borderColor: errors.hostEmployee ? theme.error : theme.border,
+                  flexDirection: isRTL ? 'row-reverse' : 'row'
                 }
               ]}
               onPress={() => setShowEmployeePicker(true)}
             >
               <DDIcon name="user" size={20} variant="muted" />
-              <ThemedText style={[Typography.body, { color: hostEmployee ? theme.text : theme.textSecondary, marginStart: Spacing.md, flex: 1 }]}>
+              <ThemedText style={[Typography.body, { color: hostEmployee ? theme.text : theme.textSecondary, flex: 1, marginStart: Spacing.md, marginEnd: Spacing.md, textAlign: isRTL ? 'right' : 'left' }]}>
                 {hostEmployee || t('visitor.selectHost')}
               </ThemedText>
               <DDIcon name="chevron-down" size={20} variant="muted" />
@@ -714,13 +714,14 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                 styles.iconInputButton, 
                 { 
                   backgroundColor: theme.background, 
-                  borderColor: theme.border
+                  borderColor: theme.border,
+                  flexDirection: isRTL ? 'row-reverse' : 'row'
                 }
               ]}
               onPress={() => setShowIdTypePicker(true)}
             >
               <DDIcon name="credit-card" size={20} variant="muted" />
-              <ThemedText style={[Typography.body, { color: theme.text, marginStart: Spacing.md, flex: 1 }]}>
+              <ThemedText style={[Typography.body, { color: theme.text, flex: 1, marginStart: Spacing.md, marginEnd: Spacing.md, textAlign: isRTL ? 'right' : 'left' }]}>
                 {t(ID_TYPE_OPTIONS.find(opt => opt.value === idType)?.labelKey || 'visitor.nationalId')}
               </ThemedText>
               <DDIcon name="chevron-down" size={20} variant="muted" />
@@ -762,6 +763,29 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                 </ThemedText>
               </>
             ) : null}
+
+            <Spacer height={Spacing.lg} />
+            <ThemedText style={[Typography.label, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+              {t('form.purpose').toUpperCase()}
+            </ThemedText>
+            <Spacer height={Spacing.xs} />
+            <Pressable 
+              style={[
+                styles.iconInputButton, 
+                { 
+                  backgroundColor: theme.background, 
+                  borderColor: theme.border,
+                  flexDirection: isRTL ? 'row-reverse' : 'row'
+                }
+              ]}
+              onPress={() => setShowPurposePicker(true)}
+            >
+              <DDIcon name="clipboard" size={20} variant="muted" />
+              <ThemedText style={[Typography.body, { color: theme.text, flex: 1, marginStart: Spacing.md, marginEnd: Spacing.md, textAlign: isRTL ? 'right' : 'left' }]}>
+                {purposeLabel || t('form.selectPurpose')}
+              </ThemedText>
+              <DDIcon name="chevron-down" size={20} variant="muted" />
+            </Pressable>
           </>
         ) : null}
       </ThemedView>
@@ -771,13 +795,13 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
           <Spacer height={Spacing.lg} />
 
           <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
-            <View style={styles.sectionHeader}>
+            <View style={[styles.sectionHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <View style={[styles.sectionIconContainer, { backgroundColor: theme.primary + '20' }]}>
                 <DDIcon name="calendar" size={20} variant="primary" />
               </View>
               <View style={{ marginStart: Spacing.md }}>
-                <ThemedText style={[Typography.subtitle]}>{t('visitor.visitSchedule')}</ThemedText>
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
+                <ThemedText style={[Typography.subtitle, { textAlign: isRTL ? 'right' : 'left' }]}>{t('visitor.visitSchedule')}</ThemedText>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
                   {t('visitor.whenVisitorComing')}
                 </ThemedText>
               </View>
@@ -785,7 +809,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
 
             <Spacer height={Spacing.lg} />
 
-            <ThemedText style={[Typography.label, { color: theme.textSecondary }]}>
+            <ThemedText style={[Typography.label, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('form.visitDate')} *
             </ThemedText>
             <Spacer height={Spacing.xs} />
@@ -794,14 +818,15 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                 styles.iconInputButton, 
                 { 
                   backgroundColor: theme.background, 
-                  borderColor: errors.visitDate ? theme.error : theme.border
+                  borderColor: errors.visitDate ? theme.error : theme.border,
+                  flexDirection: isRTL ? 'row-reverse' : 'row'
                 }
               ]}
               onPress={() => setShowDatePicker(true)}
             >
               <DDIcon name="calendar" size={20} variant="primary" />
-              <ThemedText style={[Typography.body, { color: theme.text, marginStart: Spacing.md, flex: 1 }]}>
-                {formatCalendarDate(selectedDate)}
+              <ThemedText style={[Typography.body, { color: theme.text, flex: 1, marginStart: Spacing.md, marginEnd: Spacing.md, textAlign: isRTL ? 'right' : 'left' }]}>
+                {formatPickerDate(selectedDate)}
               </ThemedText>
               <DDIcon name="chevron-down" size={20} variant="muted" />
             </Pressable>
@@ -816,7 +841,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
 
             <Spacer height={Spacing.lg} />
 
-            <ThemedText style={[Typography.label, { color: theme.textSecondary }]}>
+            <ThemedText style={[Typography.label, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('form.visitTime')} *
             </ThemedText>
             <Spacer height={Spacing.xs} />
@@ -825,14 +850,15 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                 styles.iconInputButton, 
                 { 
                   backgroundColor: theme.background, 
-                  borderColor: errors.visitTime ? theme.error : theme.border
+                  borderColor: errors.visitTime ? theme.error : theme.border,
+                  flexDirection: isRTL ? 'row-reverse' : 'row'
                 }
               ]}
               onPress={() => setShowTimePicker(true)}
             >
               <DDIcon name="clock" size={20} variant="primary" />
-              <ThemedText style={[Typography.body, { color: theme.text, marginStart: Spacing.md, flex: 1 }]}>
-                {formatTime(selectedTime)}
+              <ThemedText style={[Typography.body, { color: theme.text, flex: 1, marginStart: Spacing.md, marginEnd: Spacing.md, textAlign: isRTL ? 'right' : 'left' }]}>
+                {formatPickerTime(selectedTime)}
               </ThemedText>
               <DDIcon name="chevron-down" size={20} variant="muted" />
             </Pressable>
@@ -847,7 +873,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
 
             <Spacer height={Spacing.lg} />
 
-            <ThemedText style={[Typography.label, { color: theme.textSecondary }]}>
+            <ThemedText style={[Typography.label, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('form.endTime')} *
             </ThemedText>
             <Spacer height={Spacing.xs} />
@@ -856,14 +882,15 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                 styles.iconInputButton, 
                 { 
                   backgroundColor: theme.background, 
-                  borderColor: errors.endTime ? theme.error : theme.border
+                  borderColor: errors.endTime ? theme.error : theme.border,
+                  flexDirection: isRTL ? 'row-reverse' : 'row'
                 }
               ]}
               onPress={() => setShowEndTimePicker(true)}
             >
               <DDIcon name="clock" size={20} variant="primary" />
-              <ThemedText style={[Typography.body, { color: theme.text, marginStart: Spacing.md, flex: 1 }]}>
-                {formatTime(selectedEndTime)}
+              <ThemedText style={[Typography.body, { color: theme.text, flex: 1, marginStart: Spacing.md, marginEnd: Spacing.md, textAlign: isRTL ? 'right' : 'left' }]}>
+                {formatPickerTime(selectedEndTime)}
               </ThemedText>
               <DDIcon name="chevron-down" size={20} variant="muted" />
             </Pressable>
@@ -878,7 +905,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
 
             <Spacer height={Spacing.lg} />
 
-            <ThemedText style={[Typography.label, { color: theme.textSecondary }]}>
+            <ThemedText style={[Typography.label, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('form.duration').toUpperCase()}
             </ThemedText>
             <Spacer height={Spacing.xs} />
@@ -888,12 +915,13 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                 { 
                   backgroundColor: theme.surface, 
                   borderColor: theme.border,
-                  opacity: 0.7
+                  opacity: 0.7,
+                  flexDirection: isRTL ? 'row-reverse' : 'row'
                 }
               ]}
             >
               <DDIcon name="clock" size={20} variant="muted" />
-              <ThemedText style={[Typography.body, { color: isEndTimeBeforeStartTime() ? theme.error : theme.textSecondary, marginStart: Spacing.md, flex: 1 }]}>
+              <ThemedText style={[Typography.body, { color: isEndTimeBeforeStartTime() ? theme.error : theme.textSecondary, flex: 1, marginStart: Spacing.md, marginEnd: Spacing.md, textAlign: isRTL ? 'right' : 'left' }]}>
                 {calculateDuration()}
               </ThemedText>
               <DDIcon name="lock" size={16} variant="muted" />
@@ -902,46 +930,9 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
               {t('form.calculatedAutomatically')}
             </ThemedText>
 
-            <Spacer height={Spacing.lg} />
-
-            <ThemedText style={[Typography.label, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-              {t('form.purpose').toUpperCase()}
-            </ThemedText>
-            <Spacer height={Spacing.xs} />
-            <TextInput
-              style={[styles.textArea, { backgroundColor: theme.background, borderColor: theme.border, color: theme.text, textAlign: isRTL ? 'right' : 'left', writingDirection: isRTL ? 'rtl' : 'ltr' }]}
-              placeholder={t('form.purposePlaceholder')}
-              placeholderTextColor={theme.textSecondary}
-              value={purpose}
-              onChangeText={setPurpose}
-              multiline
-              numberOfLines={4}
-              textAlignVertical="top"
-            />
           </ThemedView>
         </>
-      ) : (
-        <>
-          <Spacer height={Spacing.lg} />
-
-          <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
-            <ThemedText style={[Typography.label, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-              {t('form.purpose').toUpperCase()}
-            </ThemedText>
-            <Spacer height={Spacing.xs} />
-            <TextInput
-              style={[styles.textArea, { backgroundColor: theme.background, borderColor: theme.border, color: theme.text, textAlign: isRTL ? 'right' : 'left', writingDirection: isRTL ? 'rtl' : 'ltr' }]}
-              placeholder={t('form.purposePlaceholder')}
-              placeholderTextColor={theme.textSecondary}
-              value={purpose}
-              onChangeText={setPurpose}
-              multiline
-              numberOfLines={4}
-              textAlignVertical="top"
-            />
-          </ThemedView>
-        </>
-      )}
+      ) : null}
 
       {!asReceptionist && !isWalkIn ? (
         <>
@@ -951,8 +942,8 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
             {t('services.optionalServices')}
           </ThemedText>
 
-          <View style={CardGridStyles.grid}>
-            <View style={CardGridStyles.cardWrapper3Col}>
+          <View style={[getGridStyle(), { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={getCardWrapper2ColStyle()}>
               <SelectableCard
                 onPress={() => setNeedsMeetingRoom(!needsMeetingRoom)}
                 selected={needsMeetingRoom}
@@ -966,27 +957,13 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
               </SelectableCard>
             </View>
 
-            <View style={CardGridStyles.cardWrapper3Col}>
-              <SelectableCard
-                onPress={() => setNeedsParking(!needsParking)}
-                selected={needsParking}
-              >
-                <View style={[styles.compactServiceIcon, { backgroundColor: applyOpacity(theme.cardIcon, '15') }]}>
-                  <DDIcon name="map-pin" size={20} color={theme.cardIcon} />
-                </View>
-                <ThemedText style={[Typography.caption, { fontWeight: '600', marginTop: Spacing.xs, textAlign: 'center', color: theme.text, fontSize: 11 }]}>
-                  {t('parking.parking')}
-                </ThemedText>
-              </SelectableCard>
-            </View>
-
-            <View style={CardGridStyles.cardWrapper3Col}>
+            <View style={getCardWrapper2ColStyle()}>
               <SelectableCard
                 onPress={() => setNeedsBuffet(!needsBuffet)}
                 selected={needsBuffet}
               >
                 <View style={[styles.compactServiceIcon, { backgroundColor: applyOpacity(theme.cardIcon, '15') }]}>
-                  <DDIcon name="coffee" size={20} color={theme.cardIcon} />
+                  <DDIcon name="cloche" size={20} color={theme.cardIcon} />
                 </View>
                 <ThemedText style={[Typography.caption, { fontWeight: '600', marginTop: Spacing.xs, textAlign: 'center', color: theme.text, fontSize: 11 }]}>
                   {t('buffet.buffet')}
@@ -1006,6 +983,8 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                         ? applyOpacity(theme.success, '15') 
                         : applyOpacity(theme.error, '15'),
                       borderColor: isRoomAvailable ? theme.success : theme.error,
+                      flexDirection: isRTL ? 'row-reverse' : 'row',
+                      justifyContent: 'flex-start',
                     }
                   ]}
                 >
@@ -1031,8 +1010,8 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                   </ThemedText>
                 </View>
               ) : isLoadingRooms ? (
-                <View style={[styles.availabilityBadge, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-                  <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
+                <View style={[styles.availabilityBadge, { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: isRTL ? 'row-reverse' : 'row', justifyContent: 'flex-start' }]}>
+                  <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
                     {t('common.checkingAvailability')}...
                   </ThemedText>
                 </View>
@@ -1048,69 +1027,55 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
         {t('invitation.communicationChannels')}
       </ThemedText>
 
-      <View style={styles.channelsContainer}>
+      <View style={[styles.channelsContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <Pressable
-          style={[styles.channelChip, { backgroundColor: theme.surface, borderColor: sendWhatsApp ? theme.primary : theme.border }]}
+          style={[styles.channelChip, { backgroundColor: theme.surface, borderColor: sendWhatsApp ? theme.primary : theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
           onPress={() => setSendWhatsApp(!sendWhatsApp)}
         >
           <View style={[styles.channelChipIcon, { backgroundColor: theme.success + '15' }]}>
             <DDIcon name="message-circle" size={16} variant="success" />
           </View>
-          <ThemedText style={[Typography.bodySmall, { fontWeight: '500', marginStart: Spacing.xs }]}>
+          <ThemedText style={[Typography.bodySmall, { fontWeight: '500', marginHorizontal: Spacing.xs }]}>
             {t('services.whatsapp')}
           </ThemedText>
-          {sendWhatsApp && (
+          {sendWhatsApp ? (
             <View style={[styles.chipCheckmark, { backgroundColor: theme.primary }]}>
               <DDIcon name="check" size={10} color={theme.buttonText} />
             </View>
-          )}
+          ) : null}
         </Pressable>
 
         <Pressable
-          style={[styles.channelChip, { backgroundColor: theme.surface, borderColor: sendSMS ? theme.primary : theme.border }]}
+          style={[styles.channelChip, { backgroundColor: theme.surface, borderColor: sendSMS ? theme.primary : theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
           onPress={() => setSendSMS(!sendSMS)}
         >
           <View style={[styles.channelChipIcon, { backgroundColor: theme.info + '15' }]}>
             <DDIcon name="smartphone" size={16} color={theme.info} />
           </View>
-          <ThemedText style={[Typography.bodySmall, { fontWeight: '500', marginStart: Spacing.xs }]}>
+          <ThemedText style={[Typography.bodySmall, { fontWeight: '500', marginHorizontal: Spacing.xs }]}>
             {t('services.sms')}
           </ThemedText>
-          {sendSMS && (
+          {sendSMS ? (
             <View style={[styles.chipCheckmark, { backgroundColor: theme.primary }]}>
               <DDIcon name="check" size={10} color={theme.buttonText} />
             </View>
-          )}
+          ) : null}
         </Pressable>
-      </View>
 
-      <Spacer height={Spacing.xl} />
-
-      <View style={styles.buttonRow}>
-        <LoadingButton
-          onPress={() => navigation.goBack()}
-          variant="outline"
-          size="large"
-          style={styles.actionButton}
+        <View
+          style={[styles.channelChip, { backgroundColor: theme.surface, borderColor: theme.primary, opacity: 0.8, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
         >
-          {t('actions.cancel')}
-        </LoadingButton>
-
-        <Spacer width={Spacing.md} />
-
-        <LoadingButton
-          onPress={handleSubmit}
-          loading={isSubmitting}
-          disabled={isSubmitting}
-          variant="primary"
-          size="large"
-          style={styles.actionButton}
-        >
-          {t('actions.submitRequest')}
-        </LoadingButton>
+          <View style={[styles.channelChipIcon, { backgroundColor: theme.warning + '15' }]}>
+            <DDIcon name="mail" size={16} color={theme.warning} />
+          </View>
+          <ThemedText style={[Typography.bodySmall, { fontWeight: '500', marginHorizontal: Spacing.xs }]}>
+            {t('services.email')}
+          </ThemedText>
+          <View style={[styles.chipCheckmark, { backgroundColor: theme.primary }]}>
+            <DDIcon name="check" size={10} color={theme.buttonText} />
+          </View>
+        </View>
       </View>
-
-      <Spacer height={Spacing.xl} />
 
       <CalendarDatePicker
         visible={showDatePicker}
@@ -1160,7 +1125,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                 <DDIcon name="x" size={24} variant="muted" />
               </Pressable>
             </View>
-            <View style={[styles.searchContainer, { backgroundColor: theme.background, borderBottomColor: theme.border }]}>
+            <View style={[styles.searchContainer, { backgroundColor: theme.background, borderBottomColor: theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <DDIcon name="search" size={20} variant="muted" />
               <TextInput
                 style={[styles.searchInput, { color: theme.text }]}
@@ -1184,7 +1149,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                     key={employee.id}
                     style={[
                       styles.employeeOption,
-                      { borderBottomColor: theme.border },
+                      { borderBottomColor: theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' },
                       selectedEmployeeId === employee.id && { backgroundColor: applyOpacity(theme.primary, '10') }
                     ]}
                     onPress={() => handleEmployeeSelect(employee)}
@@ -1194,11 +1159,11 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                         {employee.name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() || '?'}
                       </ThemedText>
                     </View>
-                    <View style={{ flex: 1, marginStart: Spacing.md }}>
-                      <ThemedText style={[Typography.body, { fontWeight: '500' }]}>
+                    <View style={{ flex: 1, marginStart: Spacing.md, alignItems: isRTL ? 'flex-end' : 'flex-start' }}>
+                      <ThemedText style={[Typography.body, { fontWeight: '500', textAlign: isRTL ? 'right' : 'left' }]}>
                         {employee.name || 'Unknown'}
                       </ThemedText>
-                      <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
+                      <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
                         {employee.department || ''}
                       </ThemedText>
                     </View>
@@ -1276,6 +1241,63 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
         </View>
       </Modal>
 
+      {/* Purpose Picker Modal */}
+      <Modal
+        visible={showPurposePicker}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowPurposePicker(false)}
+      >
+        <View style={styles.iosModalContainer}>
+          <Pressable 
+            style={[styles.iosModalBackdrop, createModalOverlayStyle(theme, '50')]}
+            onPress={() => setShowPurposePicker(false)}
+          />
+          <View style={[styles.employeePickerModal, { backgroundColor: theme.surface }]}>
+            <View style={[styles.iosPickerHeader, { borderBottomColor: theme.border }]}>
+              <View style={{ width: 60 }} />
+              <ThemedText style={[Typography.subtitle]}>{t('visitor.selectVisitType')}</ThemedText>
+              <Pressable 
+                onPress={() => setShowPurposePicker(false)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                style={{ width: 60, alignItems: 'flex-end' }}
+              >
+                <DDIcon name="x" size={24} variant="muted" />
+              </Pressable>
+            </View>
+            <ScrollView style={{ maxHeight: 300 }}>
+              {PURPOSE_OPTIONS.map((option) => (
+                <Pressable
+                  key={option.value}
+                  style={[
+                    styles.employeeOption,
+                    { borderBottomColor: theme.border },
+                    purposeValue === option.value && { backgroundColor: applyOpacity(theme.primary, '10') }
+                  ]}
+                  onPress={() => {
+                    setPurposeValue(option.value);
+                    setPurposeLabel(t(option.labelKey as any));
+                    setShowPurposePicker(false);
+                  }}
+                >
+                  <View style={[styles.employeeAvatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
+                    <DDIcon name="clipboard" size={20} color={theme.primary} />
+                  </View>
+                  <View style={{ flex: 1, marginStart: Spacing.md }}>
+                    <ThemedText style={[Typography.body, { fontWeight: '500' }]}>
+                      {t(option.labelKey as any)}
+                    </ThemedText>
+                  </View>
+                  {purposeValue === option.value ? (
+                    <DDIcon name="check-circle" size={24} variant="primary" />
+                  ) : null}
+                </Pressable>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
       <Modal
         visible={showSuccessModal}
         transparent
@@ -1326,10 +1348,47 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
         </Pressable>
       </Modal>
     </ScreenKeyboardAwareScrollView>
+
+    {/* Sticky Footer for Action Buttons */}
+    <View style={[styles.stickyFooter, { backgroundColor: theme.background, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.lg }]}>
+      <View style={[styles.buttonRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <LoadingButton
+          onPress={() => navigation.goBack()}
+          variant="outline"
+          size="large"
+          style={styles.actionButton}
+        >
+          {t('actions.cancel')}
+        </LoadingButton>
+
+        <View style={{ width: Spacing.md }} />
+
+        <LoadingButton
+          onPress={handleSubmit}
+          loading={isSubmitting}
+          disabled={isSubmitting}
+          variant="primary"
+          size="large"
+          style={styles.actionButton}
+        >
+          {t('actions.submitRequest')}
+        </LoadingButton>
+      </View>
+    </View>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
+  stickyFooter: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.lg,
+    borderTopWidth: 1,
+  },
   container: {
   },
   section: {
@@ -1341,7 +1400,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: BorderRadius.sm,
     paddingHorizontal: Spacing.md,
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     fontFamily: 'Inter_400Regular',
@@ -1352,7 +1410,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: BorderRadius.sm,
     paddingHorizontal: Spacing.md,
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
@@ -1361,11 +1418,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: BorderRadius.sm,
     paddingHorizontal: Spacing.md,
-    flexDirection: 'row',
     alignItems: 'center',
   },
   sectionHeader: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
   sectionIconContainer: {
@@ -1385,7 +1440,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   row: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
   compactServiceIcon: {
@@ -1401,7 +1455,6 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
   },
   serviceHeader: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
   serviceIcon: {
@@ -1433,14 +1486,12 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   modalHeader: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: Spacing.lg,
     borderBottomWidth: 1,
   },
   durationOption: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: Spacing.lg,
@@ -1483,7 +1534,6 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   webPickerHeader: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: Spacing.xl,
@@ -1503,7 +1553,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,
-    position: 'relative',
   },
   channelChipIcon: {
     width: 24,
@@ -1521,7 +1570,6 @@ const styles = StyleSheet.create({
     marginStart: Spacing.xs,
   },
   channelRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: Spacing.md,
@@ -1529,7 +1577,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   channelContent: {
-    flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
   },
@@ -1549,7 +1596,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   visitTypeBanner: {
-    flexDirection: 'row',
     alignItems: 'center',
     padding: Spacing.md,
     borderRadius: BorderRadius.md,
@@ -1592,7 +1638,6 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   availabilityBadge: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,

@@ -1,9 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, StyleSheet, Pressable, ViewStyle } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
+import { ThemedView } from "@/components/ThemedView";
 import { DDIcon } from "@/components/DDIcon";
 import Spacer from "@/components/Spacer";
-import { Spacing, BorderRadius } from "@/constants/theme";
+import { SelectionCheckbox } from "@/components/shared/SelectionCheckbox";
+import { ApprovalActionGroup } from "@/components/shared/ApprovalActionGroup";
+import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
@@ -11,14 +14,80 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { VisitorRequest } from "@/types/vms.types";
 import { getStatusConfig as getStatusStyle, applyOpacity } from "@/utils/statusStyles";
 
+type CardVariant = 'default' | 'compact' | 'actions' | 'selectable';
+
 interface VisitorRequestCardProps {
   request: VisitorRequest;
   onPress: () => void;
   width?: number;
   accentColor?: string;
   showRequestedBy?: boolean;
+  hostName?: string;
+  location?: string;
   style?: ViewStyle;
+  variant?: CardVariant;
+  showActions?: boolean;
+  onApprove?: () => void;
+  onReject?: () => void;
+  isProcessing?: boolean;
+  isExpired?: boolean;
+  isSelectionMode?: boolean;
+  isSelected?: boolean;
+  onToggleSelection?: () => void;
+  onLongPress?: () => void;
 }
+
+const LAYOUT = {
+  cardRadius: BorderRadius.md,
+  avatarSize: 44,
+  accentWidth: 4,
+};
+
+const ServiceIconsRow = ({ request, size = 14, showWalkIn = false }: { request: VisitorRequest; size?: number; showWalkIn?: boolean }) => {
+  const { theme } = useTheme();
+  const { isRTL } = useLanguage();
+  
+  const showParking = request.isVisitorNeedsParking === true || request.visitorNeedsParking === true || !!request.parkingSlot;
+  const showMeetingRoom = request.isMeetingRoom === true || !!request.meetingRoom;
+  const showBuffet = request.isBuffet === true || !!request.buffet;
+  const showValet = !!request.valet;
+  
+  const hasServices = showParking || showMeetingRoom || showBuffet || showValet || (showWalkIn && request.isWalkIn);
+  
+  if (!hasServices) {
+    return null;
+  }
+
+  return (
+    <View style={[styles.servicesRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      {showWalkIn && request.isWalkIn ? (
+        <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.secondary, '15') }]}>
+          <DDIcon name="user-plus" size={size} color={theme.secondary} />
+        </View>
+      ) : null}
+      {showParking ? (
+        <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '20') }]}>
+          <DDIcon name="map-pin" size={size} color={theme.info} />
+        </View>
+      ) : null}
+      {showMeetingRoom ? (
+        <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.secondary, '20') }]}>
+          <DDIcon name="briefcase" size={size} color={theme.secondary} />
+        </View>
+      ) : null}
+      {showBuffet ? (
+        <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.warning, '20') }]}>
+          <DDIcon name="cloche" size={size} color={theme.warning} />
+        </View>
+      ) : null}
+      {showValet ? (
+        <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.primary, '20') }]}>
+          <DDIcon name="truck" size={size} color={theme.primary} />
+        </View>
+      ) : null}
+    </View>
+  );
+};
 
 export function VisitorRequestCard({
   request,
@@ -26,12 +95,25 @@ export function VisitorRequestCard({
   width,
   accentColor,
   showRequestedBy = false,
+  hostName,
+  location,
   style,
+  variant = 'default',
+  showActions = false,
+  onApprove,
+  onReject,
+  isProcessing = false,
+  isExpired = false,
+  isSelectionMode = false,
+  isSelected = false,
+  onToggleSelection,
+  onLongPress,
 }: VisitorRequestCardProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { formatDateShort, toLocalNumerals } = useFormatters();
+  const { formatDateShort, formatTimeFromString, toLocalNumerals } = useFormatters();
   const { isRTL } = useLanguage();
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const statusConfig = getStatusStyle(theme, request.status, t);
   const borderColor = accentColor || statusConfig.borderColor;
@@ -42,7 +124,7 @@ export function VisitorRequestCard({
   };
 
   const formatTime = (timeString: string): string => {
-    return toLocalNumerals(timeString);
+    return formatTimeFromString(timeString);
   };
 
   const formatDuration = (durationStr: string): string => {
@@ -78,10 +160,232 @@ export function VisitorRequestCard({
   const initials = request.visitor.fullName
     .split(' ')
     .map(n => n[0])
-    .join('');
+    .join('')
+    .substring(0, 2)
+    .toUpperCase();
+
+  const handlePress = () => {
+    if (isSelectionMode && onToggleSelection) {
+      onToggleSelection();
+    } else {
+      onPress();
+    }
+  };
+
+  const toggleExpanded = () => {
+    setIsExpanded(!isExpanded);
+  };
+
+  const renderAvatar = () => (
+    <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
+      <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
+        {initials}
+      </ThemedText>
+    </View>
+  );
+
+  const renderStatusBadge = () => (
+    <View
+      style={[
+        styles.statusBadge,
+        { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: 1 },
+      ]}
+    >
+      <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
+        {statusConfig.label}
+      </ThemedText>
+    </View>
+  );
+
+  const renderHeader = () => (
+    <View style={[styles.cardHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      {renderAvatar()}
+      <View style={styles.nameSection}>
+        <ThemedText style={[styles.visitorName, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+          {request.visitor.fullName}
+        </ThemedText>
+        {request.visitor.company ? (
+          <ThemedText style={[styles.companyText, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+            {request.visitor.company}
+          </ThemedText>
+        ) : null}
+      </View>
+    </View>
+  );
+
+  const renderDateTime = () => (
+    <View style={[styles.dateTimeRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <View style={[styles.dateTimeItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <DDIcon name="calendar" size={13} color={theme.textSecondary} />
+        <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
+          {formatDate(request.visitDate)}
+        </ThemedText>
+      </View>
+      <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
+      <View style={[styles.dateTimeItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <DDIcon name="clock" size={13} color={theme.textSecondary} />
+        <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
+          {formatTime(request.visitTime)}
+        </ThemedText>
+      </View>
+      {request.duration ? (
+        <>
+          <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
+          <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
+            {formatDuration(request.duration)}
+          </ThemedText>
+        </>
+      ) : null}
+    </View>
+  );
+
+  const renderServicesAndStatus = () => (
+    <View style={[styles.servicesStatusRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <View style={styles.servicesContainer}>
+        <ServiceIconsRow request={request} showWalkIn={true} />
+      </View>
+      {renderStatusBadge()}
+    </View>
+  );
+
+  const renderExpandedDetails = () => {
+    if (!isExpanded) return null;
+
+    const hasDetails = request.purpose || request.visitor.email || request.visitor.phone;
+    if (!hasDetails) return null;
+
+    return (
+      <View style={styles.expandedSection}>
+        {request.purpose ? (
+          <View style={[styles.detailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <DDIcon name="briefcase" size={14} color={theme.textSecondary} />
+            <ThemedText style={[styles.detailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={2}>
+              {request.purpose}
+            </ThemedText>
+          </View>
+        ) : null}
+        {request.visitor.email ? (
+          <View style={[styles.detailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <DDIcon name="mail" size={14} color={theme.textSecondary} />
+            <ThemedText style={[styles.detailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+              {request.visitor.email}
+            </ThemedText>
+          </View>
+        ) : null}
+        {request.visitor.phone ? (
+          <View style={[styles.detailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <DDIcon name="phone" size={14} color={theme.textSecondary} />
+            <ThemedText style={[styles.detailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+              {request.visitor.phone}
+            </ThemedText>
+          </View>
+        ) : null}
+      </View>
+    );
+  };
+
+  const renderDetailsToggle = () => {
+    const hasDetails = request.purpose || request.visitor.email || request.visitor.phone;
+    if (!hasDetails) return null;
+
+    return (
+      <Pressable onPress={toggleExpanded} style={styles.toggleContainer}>
+        <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
+          {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
+        </ThemedText>
+        <DDIcon 
+          name={isExpanded ? 'chevron-up' : 'chevron-down'} 
+          size={16} 
+          color={theme.primary} 
+        />
+      </Pressable>
+    );
+  };
+
+  const renderRequestedBy = () => {
+    if (!showRequestedBy || !request.employeeName) return null;
+    return (
+      <>
+        <Spacer height={Spacing.sm} />
+        <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <DDIcon name="user" size={12} variant="muted" />
+          <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>
+            {t('dashboard.requestedBy')}
+          </ThemedText>
+          <ThemedText style={[styles.infoValue, { color: theme.text }]}>
+            {request.employeeName}
+          </ThemedText>
+          {request.employeeDepartment ? (
+            <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>
+              ({request.employeeDepartment})
+            </ThemedText>
+          ) : null}
+        </View>
+      </>
+    );
+  };
+
+  const renderHost = () => {
+    if (!hostName || hostName.toLowerCase() === 'unknown host' || hostName.trim() === '') return null;
+    return (
+      <>
+        <Spacer height={Spacing.xs} />
+        <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <DDIcon name="user" size={12} variant="muted" />
+          <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>
+            {t('reception.hostName')}:
+          </ThemedText>
+          <ThemedText style={[styles.infoValue, { color: theme.text }]}>
+            {hostName}
+          </ThemedText>
+        </View>
+      </>
+    );
+  };
+
+  const renderActions = () => {
+    if (!showActions || isSelectionMode) return null;
+    
+    if (isExpired) {
+      return (
+        <>
+          <Spacer height={Spacing.md} />
+          <View style={[styles.expiredBanner, { backgroundColor: applyOpacity(theme.textSecondary, '10'), borderColor: theme.border }]}>
+            <DDIcon name="clock" size={14} color={theme.textSecondary} />
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: Spacing.xs }]}>
+              {t('visitor.visitExpired')}
+            </ThemedText>
+          </View>
+        </>
+      );
+    }
+    
+    return (
+      <>
+        <Spacer height={Spacing.md} />
+        <ApprovalActionGroup
+          onApprove={onApprove || (() => {})}
+          onReject={onReject || (() => {})}
+          disabled={isProcessing}
+          size="medium"
+        />
+      </>
+    );
+  };
+
+  const renderSelectionCheckbox = () => {
+    if (!isSelectionMode) return null;
+    return (
+      <View style={styles.checkboxContainer}>
+        <SelectionCheckbox isSelected={isSelected} onToggle={onToggleSelection || (() => {})} />
+      </View>
+    );
+  };
 
   return (
     <Pressable
+      onPress={handlePress}
+      onLongPress={onLongPress}
       style={({ pressed }) => [
         styles.container,
         {
@@ -91,144 +395,69 @@ export function VisitorRequestCard({
         },
         style,
       ]}
-      onPress={onPress}
     >
-      <View style={[styles.statusBorderLine, { backgroundColor: borderColor }]} />
+      <ThemedView style={[styles.cardInner, { backgroundColor: theme.surface }]}>
+        <View style={[styles.accentLine, { backgroundColor: borderColor }]} />
+        
+        {renderSelectionCheckbox()}
 
-      <View style={styles.cardHeader}>
-        <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
-          <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
-            {initials}
-          </ThemedText>
-        </View>
-        <View style={styles.nameSection}>
-          <View style={styles.nameRow}>
-            <ThemedText style={[styles.visitorName, { color: theme.text }]} numberOfLines={1}>
-              {request.visitor.fullName}
-            </ThemedText>
-            <View
-              style={[
-                styles.statusBadge,
-                { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: 1 },
-              ]}
-            >
-              <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
-                {statusConfig.label}
-              </ThemedText>
-            </View>
-          </View>
-          {request.visitor.company ? (
-            <ThemedText style={[styles.companyText, { color: theme.textSecondary }]}>
-              {request.visitor.company}
-            </ThemedText>
-          ) : null}
-        </View>
-      </View>
-
-      {showRequestedBy && request.employeeName ? (
-        <>
+        <View style={styles.mainContent}>
+          {renderHeader()}
+          {renderRequestedBy()}
+          {renderHost()}
+          
           <Spacer height={Spacing.sm} />
-          <View style={[styles.employeeRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <ThemedText style={[styles.employeeLabel, { color: theme.textSecondary }]}>
-              {t('dashboard.requestedBy')}:
-            </ThemedText>
-            <ThemedText style={[styles.employeeName, { color: theme.text }]}>
-              {request.employeeName}
-            </ThemedText>
-            {request.employeeDepartment ? (
-              <ThemedText style={[styles.employeeLabel, { color: theme.textSecondary }]}>
-                ({request.employeeDepartment})
-              </ThemedText>
-            ) : null}
-          </View>
-        </>
-      ) : null}
+          
+          {renderDateTime()}
+          
+          <Spacer height={Spacing.sm} />
+          
+          {renderServicesAndStatus()}
 
-      <Spacer height={Spacing.md} />
-
-      <View style={styles.dateTimeRow}>
-        <View style={[styles.dateTimeLeft, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-          <DDIcon name="calendar" size={13} color={theme.textSecondary} />
-          <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
-            {formatDate(request.visitDate)}
-          </ThemedText>
+          {renderExpandedDetails()}
+          
+          {renderDetailsToggle()}
+          
+          {renderActions()}
         </View>
-        <View style={[styles.dateTimeRight, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-          <DDIcon name="clock" size={13} color={theme.textSecondary} />
-          <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
-            {formatTime(request.visitTime)}
-          </ThemedText>
-          {request.duration ? (
-            <>
-              <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
-              <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
-                {formatDuration(request.duration)}
-              </ThemedText>
-            </>
-          ) : null}
-        </View>
-      </View>
 
-      <Spacer height={Spacing.md} />
-
-      <View style={styles.servicesRow}>
-        {request.parkingSlot ? (
-          <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '20') }]}>
-            <DDIcon name="map-pin" size={14} color={theme.info} />
-          </View>
-        ) : null}
-        {request.meetingRoom ? (
-          <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.secondary, '20') }]}>
-            <DDIcon name="briefcase" size={14} color={theme.secondary} />
-          </View>
-        ) : null}
-        {request.buffet ? (
-          <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.warning, '20') }]}>
-            <DDIcon name="coffee" size={14} color={theme.warning} />
-          </View>
-        ) : null}
-        {request.valet ? (
-          <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.primary, '20') }]}>
-            <DDIcon name="truck" size={14} color={theme.primary} />
-          </View>
-        ) : null}
-      </View>
+      </ThemedView>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 10,
-    paddingTop: Spacing.lg,
-    paddingBottom: Spacing.lg,
-    paddingEnd: Spacing.lg,
-    paddingStart: Spacing.lg + 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
+    borderRadius: LAYOUT.cardRadius,
     overflow: 'hidden',
-    position: 'relative',
   },
-  statusBorderLine: {
+  cardInner: {
+    borderRadius: LAYOUT.cardRadius,
+    overflow: 'hidden',
+  },
+  accentLine: {
     position: 'absolute',
     start: 0,
     top: 0,
     bottom: 0,
-    width: 4,
-    borderTopStartRadius: 10,
-    borderBottomStartRadius: 10,
+    width: LAYOUT.accentWidth,
+    borderTopStartRadius: LAYOUT.cardRadius,
+    borderBottomStartRadius: LAYOUT.cardRadius,
+  },
+  mainContent: {
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.lg,
+    paddingEnd: Spacing.lg,
+    paddingStart: Spacing.lg + LAYOUT.accentWidth,
   },
   cardHeader: {
-    flexDirection: 'row',
     alignItems: 'center',
+    gap: Spacing.md,
   },
   avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 10,
+    width: LAYOUT.avatarSize,
+    height: LAYOUT.avatarSize,
+    borderRadius: LAYOUT.avatarSize / 2,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -238,49 +467,47 @@ const styles = StyleSheet.create({
   },
   nameSection: {
     flex: 1,
-    marginStart: Spacing.md,
   },
   nameRow: {
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: Spacing.sm,
+    gap: Spacing.xs,
   },
   visitorName: {
     fontSize: 15,
     fontWeight: '600',
-    flex: 1,
   },
   companyText: {
     fontSize: 12,
     marginTop: 2,
   },
-  employeeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
+  statusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.sm,
   },
-  employeeLabel: {
+  statusText: {
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  infoRow: {
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  infoLabel: {
     fontSize: 11,
   },
-  employeeName: {
+  infoValue: {
     fontSize: 11,
     fontWeight: '600',
   },
   dateTimeRow: {
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: Spacing.xs,
   },
-  dateTimeLeft: {
-    flexDirection: 'row',
+  dateTimeItem: {
     alignItems: 'center',
-    gap: 6,
-  },
-  dateTimeRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
+    gap: 4,
   },
   dateTimeText: {
     fontSize: 13,
@@ -288,9 +515,16 @@ const styles = StyleSheet.create({
   separator: {
     fontSize: 13,
   },
+  servicesStatusRow: {
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  servicesContainer: {
+    flex: 1,
+  },
   servicesRow: {
-    flexDirection: 'row',
     gap: Spacing.sm,
+    alignItems: 'center',
   },
   servicePill: {
     width: 32,
@@ -299,13 +533,42 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  statusBadge: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    borderRadius: BorderRadius.full,
+  expandedSection: {
+    marginTop: Spacing.md,
+    gap: Spacing.sm,
   },
-  statusText: {
-    fontSize: 10,
-    fontWeight: '600',
+  detailRow: {
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  detailText: {
+    fontSize: 13,
+    flex: 1,
+  },
+  toggleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: Spacing.md,
+    gap: Spacing.xs,
+  },
+  toggleText: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  checkboxContainer: {
+    position: 'absolute',
+    top: Spacing.md,
+    end: Spacing.md,
+    zIndex: 1,
+  },
+  expiredBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
   },
 });

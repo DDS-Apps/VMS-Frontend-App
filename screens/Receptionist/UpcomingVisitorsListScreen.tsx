@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from "react";
+import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { View, StyleSheet, Pressable, Alert } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SkeletonList } from "@/components/shared/Skeleton";
@@ -10,6 +10,8 @@ import Spacer from "@/components/Spacer";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useFormatters } from "@/hooks/useFormatters";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
 import { applyOpacity } from "@/utils/statusStyles";
 import { useTodayVisitorsQuery } from "@/hooks/queries/useReceptionQueries";
@@ -18,8 +20,23 @@ import type { TodayVisitorDto } from "@/types";
 export default function UpcomingVisitorsListScreen() {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { formatTimeFromString } = useFormatters();
+  const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
+  const [expandedVisitors, setExpandedVisitors] = useState<Set<string>>(new Set());
+
+  const toggleExpand = useCallback((visitorId: string) => {
+    setExpandedVisitors(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(visitorId)) {
+        newSet.delete(visitorId);
+      } else {
+        newSet.add(visitorId);
+      }
+      return newSet;
+    });
+  }, []);
 
   const { data: todayResponse, isLoading, isFetching, isError, error } = useTodayVisitorsQuery();
 
@@ -93,14 +110,14 @@ export default function UpcomingVisitorsListScreen() {
   const renderVisitorCard = (item: TodayVisitorDto) => {
     const statusConfig = getStatusConfig(item.status);
     const visitorName = item.visitor.fullName;
-    const initials = visitorName.split(' ').map(n => n[0]).join('');
+    const initials = visitorName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
     
     return (
       <ThemedView key={item.id} style={[styles.visitorCard, { backgroundColor: theme.surface }]}>
         <View style={[styles.statusBorderLine, { backgroundColor: statusConfig.border }]} />
         
         <View style={styles.cardMainSection}>
-          <View style={styles.cardHeaderRow}>
+          <View style={[styles.cardHeaderRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
               <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
                 {initials}
@@ -119,10 +136,10 @@ export default function UpcomingVisitorsListScreen() {
 
           <Spacer height={Spacing.md} />
 
-          <View style={styles.dateTimeRow}>
+          <View style={[styles.dateTimeRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <DDIcon name="clock" size={13} variant="muted" />
             <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
-              {item.visitTime}
+              {formatTimeFromString(item.visitTime)}
             </ThemedText>
             <ThemedText style={[styles.separator, { color: theme.border }]}>-</ThemedText>
             <DDIcon name="user" size={13} variant="muted" />
@@ -133,8 +150,8 @@ export default function UpcomingVisitorsListScreen() {
 
           <Spacer height={Spacing.md} />
 
-          <View style={styles.bottomRow}>
-            <View style={styles.servicesRow}>
+          <View style={[styles.bottomRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.servicesRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               {item.parkingSlot ? (
                 <View style={[styles.servicePillRounded, { backgroundColor: applyOpacity(theme.info, '20') }]}>
                   <DDIcon name="map-pin" size={14} color={theme.info} />
@@ -147,6 +164,43 @@ export default function UpcomingVisitorsListScreen() {
               </ThemedText>
             </View>
           </View>
+
+          {expandedVisitors.has(item.id) && (item.visitor.phone || item.visitor.email) ? (
+            <>
+              <Spacer height={Spacing.md} />
+              <View style={[styles.expandedSection, { backgroundColor: applyOpacity(theme.border, '30') }]}>
+                {item.visitor.phone ? (
+                  <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                    <DDIcon name="phone" size={14} variant="muted" />
+                    <ThemedText style={[styles.expandedDetailText, { color: theme.textSecondary }]}>
+                      {item.visitor.phone}
+                    </ThemedText>
+                  </View>
+                ) : null}
+                {item.visitor.email ? (
+                  <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                    <DDIcon name="mail" size={14} variant="muted" />
+                    <ThemedText style={[styles.expandedDetailText, { color: theme.textSecondary }]}>
+                      {item.visitor.email}
+                    </ThemedText>
+                  </View>
+                ) : null}
+              </View>
+            </>
+          ) : null}
+
+          {(item.visitor.phone || item.visitor.email) ? (
+            <Pressable onPress={() => toggleExpand(item.id)} style={styles.toggleContainer}>
+              <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
+                {expandedVisitors.has(item.id) ? t('common.lessDetails') : t('common.moreDetails')}
+              </ThemedText>
+              <DDIcon 
+                name={expandedVisitors.has(item.id) ? "chevron-up" : "chevron-down"} 
+                size={14} 
+                color={theme.primary} 
+              />
+            </Pressable>
+          ) : null}
         </View>
       </ThemedView>
     );
@@ -226,7 +280,7 @@ const styles = StyleSheet.create({
   avatar: {
     width: 40,
     height: 40,
-    borderRadius: BorderRadius.full,
+    borderRadius: BorderRadius.md - 2,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -287,5 +341,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: Spacing.xxl * 2,
+  },
+  expandedSection: {
+    padding: Spacing.md,
+    borderRadius: BorderRadius.sm,
+    gap: Spacing.sm,
+  },
+  expandedDetailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  expandedDetailText: {
+    fontSize: 13,
+  },
+  toggleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.xs,
+    paddingTop: Spacing.md,
+  },
+  toggleText: {
+    fontSize: 13,
+    fontWeight: '500',
   },
 });

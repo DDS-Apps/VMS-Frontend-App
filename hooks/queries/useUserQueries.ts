@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { userApiService, type ListUsersParams } from '@/services/userApiService';
+import { userApiService, type ListUsersParams } from '@/services/api/userApiService';
 import type { 
   UserDto, 
   CreateUserDto, 
@@ -21,7 +21,6 @@ export const userKeys = {
   detail: (id: string) => [...userKeys.details(), id] as const,
   adminDetails: () => [...userKeys.all, 'admin-detail'] as const,
   adminDetail: (id: string) => [...userKeys.adminDetails(), id] as const,
-  managers: () => [...userKeys.all, 'managers'] as const,
   onVacation: () => [...userKeys.all, 'on-vacation'] as const,
   byRole: (role: UserRole) => [...userKeys.all, 'by-role', role] as const,
   team: (managerId: string) => [...userKeys.all, 'team', managerId] as const,
@@ -59,13 +58,6 @@ export function useUserQuery(id: string, enabled = true) {
     queryKey: userKeys.detail(id),
     queryFn: () => userApiService.getById(id),
     enabled: enabled && !!id,
-  });
-}
-
-export function useManagersQuery() {
-  return useQuery<UserDto[]>({
-    queryKey: userKeys.managers(),
-    queryFn: () => userApiService.getManagers(),
   });
 }
 
@@ -121,12 +113,19 @@ export function useDeleteUserMutation() {
   const queryClient = useQueryClient();
 
   return useMutation<void, Error, string>({
-    mutationFn: (id) => userApiService.delete(id),
+    mutationFn: (id) => {
+      console.log('[useDeleteUserMutation] Deleting user with ID:', id);
+      return userApiService.delete(id);
+    },
     onSuccess: (_, id) => {
+      console.log('[useDeleteUserMutation] Successfully deleted user:', id);
       queryClient.removeQueries({ queryKey: userKeys.detail(id) });
       queryClient.removeQueries({ queryKey: userKeys.adminDetail(id) });
       queryClient.invalidateQueries({ queryKey: userKeys.lists() });
       queryClient.invalidateQueries({ queryKey: userKeys.adminLists() });
+    },
+    onError: (error, id) => {
+      console.error('[useDeleteUserMutation] Failed to delete user:', id, error);
     },
   });
 }

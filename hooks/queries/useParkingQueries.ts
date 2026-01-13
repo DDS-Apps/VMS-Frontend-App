@@ -3,17 +3,17 @@ import {
   parkingApiService, 
   type ListParkingSpacesParams, 
   type ListParkingAllocationsParams 
-} from '@/services/parkingApiService';
+} from '@/services/api/parkingApiService';
 import type {
   ParkingSpaceDto,
   ParkingAllocationDto,
   CreateParkingSpaceDto,
   UpdateParkingSpaceDto,
   AllocateParkingDto,
-  PaginatedResponse,
   ParkingStatsDto,
   ParkingLocation,
 } from '@/types/api.types';
+import type { PaginatedResponse } from '@/types';
 
 export const parkingKeys = {
   all: ['parking'] as const,

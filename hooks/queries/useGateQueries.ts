@@ -1,13 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { gateApiService, type ListGateLogsParams } from '@/services/gateApiService';
+import { gateApiService, type ListGateLogsParams } from '@/services/api/gateApiService';
 import type {
   GateAccessLogDto,
   VerifyGateAccessDto,
   GateVerificationResponse,
-  PaginatedResponse,
   GateConfigDto,
   GateStatsDto,
 } from '@/types/api.types';
+import type { PaginatedResponse } from '@/types';
 
 export const gateKeys = {
   all: ['gates'] as const,

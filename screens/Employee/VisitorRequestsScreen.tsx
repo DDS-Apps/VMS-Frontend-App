@@ -5,10 +5,12 @@ import { SkeletonList } from "@/components/shared/Skeleton";
 import { useNavigation, useRoute, RouteProp, useFocusEffect } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ScreenFlatList } from "@/components/ScreenFlatList";
+import { ROUTES } from "@/constants";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
+import { REQUEST_STATUS, UPCOMING_STATUSES, CANCELLED_STATUSES } from "@/constants/requestConstants";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
@@ -16,65 +18,14 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { VisitorRequest } from "@/types/vms.types";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@/contexts/AuthContext";
-import { useInfiniteVisitsQuery, usePendingHostWalkInsQuery, mapPendingHostWalkInToVisitorRequest } from "@/hooks/queries/useApprovalQueries";
-import { ListLoadingFooter } from "@/components/shared";
-import type { VisitListItemDto, PendingHostWalkInDto } from "@/types/api.types";
+import { useInfiniteVisitsQuery, usePendingHostWalkInsQuery } from "@/hooks/queries/useApprovalQueries";
+import { ListLoadingFooter, VisitorRequestCard } from "@/components/shared";
+import type { VisitListItemDto } from "@/types/api.types";
 import { getStatusConfig as getStatusStyle, applyOpacity, StatusConfig } from "@/utils/statusStyles";
 import type { Theme } from "@/types/theme.types";
 import type { EmployeeStackParamList } from "@/types/employeeNavigation.types";
 import type { ManagerStackParamList } from "@/types/managerNavigation.types";
-
-const mapVisitToVisitorRequest = (visit: VisitListItemDto): VisitorRequest => {
-  const statusMap: Record<string, VisitorRequest['status']> = {
-    pending: 'pending_approval',
-    pending_approval: 'pending_approval',
-    approved: 'approved',
-    rejected: 'rejected',
-    checked_in: 'checked_in',
-    checked_out: 'completed',
-    cancelled: 'cancelled',
-    expired: 'auto_cancelled',
-    awaiting_visitor: 'visitor_pending',
-    visitor_pending: 'visitor_pending',
-    visitor_accepted: 'visitor_accepted',
-    visitor_rejected: 'visitor_rejected',
-  };
-  
-  return {
-    id: visit.id,
-    employeeId: '',
-    employeeName: visit.employeeName || 'Unknown Host',
-    employeeDepartment: undefined,
-    visitor: {
-      id: '',
-      fullName: visit.visitor?.fullName || 'Unknown Visitor',
-      email: visit.visitor?.email || '',
-      phone: visit.visitor?.phone || '',
-      company: visit.visitor?.company,
-    },
-    visitDate: visit.visitDate,
-    visitTime: visit.visitTime || '',
-    duration: '1 hour',
-    purpose: visit.purpose || '',
-    status: statusMap[visit.status] || 'pending_approval',
-    communicationChannels: ['email'],
-    parkingType: visit.hasParking ? 'auto' : 'none',
-    parkingSlot: visit.hasParking ? { id: 'auto', location: 'SKBC_basement', slotNumber: 'TBD' } : undefined,
-    meetingRoom: visit.hasMeetingRoom ? { id: 'auto', name: 'TBD', capacity: 10, floor: '1', timeSlot: visit.visitTime || '' } : undefined,
-    buffet: visit.hasBuffet ? { id: 'auto', mealType: 'lunch', location: 'Main Buffet' } : undefined,
-    valet: visit.hasValet ? { id: 'auto', pickupTime: visit.visitTime || '', returnTime: '', status: 'pending' } : undefined,
-    qrCode: undefined,
-    approval: {
-      requiresApproval: true,
-      autoApproved: false,
-      approvedAt: visit.approvedAt,
-    },
-    reminders: {},
-    createdAt: visit.createdAt || new Date().toISOString(),
-    updatedAt: visit.createdAt || new Date().toISOString(),
-    isWalkIn: visit.isWalkIn,
-  };
-};
+import { mapVisitListItemToVisitorRequest, mapPendingHostWalkInToVisitorRequest } from "@/utils/requestMappers";
 
 
 // Unified Layout Tokens
@@ -106,30 +57,38 @@ const StatusAccent = ({ color }: { color: string }) => (
 );
 
 // Shared: Service Icons Component
-const ServiceIcons = ({ request, theme, size = 16 }: { request: VisitorRequest; theme: Theme; size?: number }) => (
-  <View style={styles.servicesRow}>
-    {request.parkingSlot && (
-      <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '20'), width: size * 2, height: size * 2, borderRadius: size }]}>
-        <DDIcon name="map-pin" size={size} color={theme.info} />
-      </View>
-    )}
-    {request.meetingRoom && (
-      <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.secondary, '20'), width: size * 2, height: size * 2, borderRadius: size }]}>
-        <DDIcon name="briefcase" size={size} color={theme.secondary} />
-      </View>
-    )}
-    {request.buffet && (
-      <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.warning, '20'), width: size * 2, height: size * 2, borderRadius: size }]}>
-        <DDIcon name="coffee" size={size} variant="warning" />
-      </View>
-    )}
-    {request.valet && (
-      <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.primary, '20'), width: size * 2, height: size * 2, borderRadius: size }]}>
-        <DDIcon name="truck" size={size} variant="primary" />
-      </View>
-    )}
-  </View>
-);
+const ServiceIcons = ({ request, theme, size = 16 }: { request: VisitorRequest; theme: Theme; size?: number }) => {
+  const hasServices = request.parkingSlot || request.meetingRoom || request.buffet || request.valet;
+  
+  if (!hasServices) {
+    return <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>-</ThemedText>;
+  }
+  
+  return (
+    <View style={styles.servicesRow}>
+      {request.parkingSlot ? (
+        <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '20'), width: size * 2, height: size * 2, borderRadius: size }]}>
+          <DDIcon name="map-pin" size={size} color={theme.info} />
+        </View>
+      ) : null}
+      {request.meetingRoom ? (
+        <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.secondary, '20'), width: size * 2, height: size * 2, borderRadius: size }]}>
+          <DDIcon name="briefcase" size={size} color={theme.secondary} />
+        </View>
+      ) : null}
+      {request.buffet ? (
+        <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.warning, '20'), width: size * 2, height: size * 2, borderRadius: size }]}>
+          <DDIcon name="cloche" size={size} variant="warning" />
+        </View>
+      ) : null}
+      {request.valet ? (
+        <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.primary, '20'), width: size * 2, height: size * 2, borderRadius: size }]}>
+          <DDIcon name="truck" size={size} variant="primary" />
+        </View>
+      ) : null}
+    </View>
+  );
+};
 
 // Shared: Status Badge Component - matches shared VisitorRequestCard styling
 const StatusBadge = ({ statusConfig, compact = false }: { statusConfig: StatusConfig; compact?: boolean }) => (
@@ -150,7 +109,7 @@ const StatusBadge = ({ statusConfig, compact = false }: { statusConfig: StatusCo
 
 // Shared: Visitor Avatar Component
 const VisitorAvatar = ({ name, theme, size = 44 }: { name: string; theme: Theme; size?: number }) => {
-  const initials = name.split(' ').map(n => n[0]).join('');
+  const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   return (
     <View style={[
       styles.avatar, 
@@ -170,7 +129,7 @@ const VisitorAvatar = ({ name, theme, size = 44 }: { name: string; theme: Theme;
 
 // Shared: Date/Time Display Component
 const DateTimeDisplay = ({ date, time, duration, theme, compact = false }: { date: string; time: string; duration?: string; theme: Theme; compact?: boolean }) => {
-  const { formatDateShort, toLocalNumerals } = useFormatters();
+  const { formatDateShort, toLocalNumerals, formatTimeFromString } = useFormatters();
   const { t } = useTranslation();
   const { isRTL } = useLanguage();
 
@@ -205,7 +164,7 @@ const DateTimeDisplay = ({ date, time, duration, theme, compact = false }: { dat
       <View style={[styles.dateTimeRight, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <DDIcon name="clock" size={compact ? 13 : 14} variant="muted" />
         <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
-          {toLocalNumerals(time)}
+          {formatTimeFromString(time)}
         </ThemedText>
         {duration ? (
           <>
@@ -246,9 +205,14 @@ const VisitorRequestTableRow = React.memo(({
         <View style={[styles.fixedColumn, { width: LAYOUT.tableFixedColumnWidth }]}>
           <View style={styles.fixedColumnContent}>
             <View style={{ flex: 1 }}>
-              <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]} numberOfLines={2}>
-                {request.visitor.fullName}
-              </ThemedText>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, flexShrink: 1 }]} numberOfLines={2}>
+                  {request.visitor.fullName}
+                </ThemedText>
+                {request.isWalkIn ? (
+                  <DDIcon name="user-check" size={14} color={theme.warning} />
+                ) : null}
+              </View>
               <Spacer height={6} />
               <DateTimeDisplay 
                 date={request.visitDate} 
@@ -267,6 +231,7 @@ const VisitorRequestTableRow = React.memo(({
           style={styles.scrollableColumns}
           contentContainerStyle={styles.scrollableContent}
           persistentScrollbar={true}
+          nestedScrollEnabled={true}
         >
           {/* Company Column */}
           <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
@@ -342,129 +307,6 @@ const VisitorRequestTableRow = React.memo(({
   );
 });
 
-// Card View: Request Card Component
-const VisitorRequestCard = React.memo(({ 
-  request, 
-  isExpanded,
-  onPress,
-  onToggleExpand,
-  theme,
-  t 
-}: { 
-  request: VisitorRequest; 
-  isExpanded: boolean;
-  onPress: () => void;
-  onToggleExpand: () => void;
-  theme: Theme;
-  t: (key: string) => string;
-}) => {
-  const statusConfig = getStatusStyle(theme, request.status, t);
-
-  return (
-    <ThemedView style={[styles.requestCard, { backgroundColor: theme.surface }]}>
-      <StatusAccent color={statusConfig.borderColor} />
-
-      {/* Main Card Content - Clickable to navigate */}
-      <Pressable
-        onPress={onPress}
-        android_ripple={{ color: applyOpacity(theme.primary, '10') }}
-      >
-        <View style={styles.cardMainSection}>
-          {/* Header: Avatar + Name + Status Badge */}
-          <View style={styles.cardHeaderRow}>
-            <VisitorAvatar name={request.visitor.fullName} theme={theme} />
-            
-            <View style={styles.cardNameSection}>
-              <View style={styles.nameWithBadgeRow}>
-                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 16, flex: 1 }]} numberOfLines={1}>
-                  {request.visitor.fullName}
-                </ThemedText>
-                <StatusBadge statusConfig={statusConfig} />
-              </View>
-              {request.visitor.company ? (
-                <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 2 }]}>
-                  {request.visitor.company}
-                </ThemedText>
-              ) : null}
-            </View>
-          </View>
-
-          <Spacer height={LAYOUT.contentGap} />
-
-          {/* Date and Time Row */}
-          <DateTimeDisplay 
-            date={request.visitDate} 
-            time={request.visitTime} 
-            duration={request.duration}
-            theme={theme} 
-          />
-
-          <Spacer height={LAYOUT.contentGap} />
-
-          {/* Bottom Row: Services Icons only */}
-          <ServiceIcons request={request} theme={theme} />
-        </View>
-      </Pressable>
-
-      {/* Expandable Secondary Details - Inside Same Card */}
-      {isExpanded && (
-        <>
-          <View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
-          <View style={styles.expandedContentInside}>
-            <View style={styles.secondaryDetail}>
-              <DDIcon name="briefcase" size={14} variant="muted" />
-              <ThemedText style={[Typography.caption, { marginStart: 6, color: theme.textSecondary, flex: 1, fontSize: 12 }]}>
-                {request.purpose}
-              </ThemedText>
-            </View>
-
-            <Spacer height={Spacing.sm} />
-
-            <View style={styles.contactSection}>
-              {request.visitor.email ? (
-                <View style={styles.secondaryDetail}>
-                  <DDIcon name="mail" size={13} variant="muted" />
-                  <ThemedText style={[Typography.caption, { marginStart: 6, color: theme.textSecondary, fontSize: 11 }]}>
-                    {request.visitor.email}
-                  </ThemedText>
-                </View>
-              ) : null}
-
-              {request.visitor.email && request.visitor.phone ? (
-                <Spacer height={Spacing.xs} />
-              ) : null}
-
-              {request.visitor.phone ? (
-                <View style={styles.secondaryDetail}>
-                  <DDIcon name="phone" size={13} variant="muted" />
-                  <ThemedText style={[Typography.caption, { marginStart: 6, color: theme.textSecondary, fontSize: 11 }]}>
-                    {request.visitor.phone}
-                  </ThemedText>
-                </View>
-              ) : null}
-            </View>
-          </View>
-        </>
-      )}
-
-      {/* More Details Button - Inside Same Card */}
-      <Pressable
-        style={styles.moreDetailsButton}
-        onPress={onToggleExpand}
-        android_ripple={{ color: applyOpacity(theme.primary, '10') }}
-      >
-        <ThemedText style={[styles.moreDetailsText, { color: theme.primary }]}>
-          {isExpanded ? t('common.close') : t('actions.viewDetails')}
-        </ThemedText>
-        <DDIcon 
-          name={isExpanded ? "chevron-up" : "chevron-down"} 
-          size={16} 
-          variant="primary" 
-        />
-      </Pressable>
-    </ThemedView>
-  );
-});
 
 // Shared: Stats Cards Component
 const StatsCards = ({ totalVisitors, todaysVisitors, theme, t }: { totalVisitors: number; todaysVisitors: number; theme: Theme; t: (key: string) => string }) => (
@@ -474,7 +316,7 @@ const StatsCards = ({ totalVisitors, todaysVisitors, theme, t }: { totalVisitors
         <DDIcon name="users" size={24} color={theme.info} />
       </View>
       <Spacer height={Spacing.md} />
-      <ThemedText style={[Typography.title, { fontSize: 28, fontWeight: '700' }]}>
+      <ThemedText style={[Typography.title, { fontSize: 28, lineHeight: 36, fontWeight: '700' }]}>
         {totalVisitors}
       </ThemedText>
       <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: 'center', marginTop: 4 }]}>
@@ -487,7 +329,7 @@ const StatsCards = ({ totalVisitors, todaysVisitors, theme, t }: { totalVisitors
         <DDIcon name="calendar" size={24} color={theme.success} />
       </View>
       <Spacer height={Spacing.md} />
-      <ThemedText style={[Typography.title, { fontSize: 28, fontWeight: '700' }]}>
+      <ThemedText style={[Typography.title, { fontSize: 28, lineHeight: 36, fontWeight: '700' }]}>
         {todaysVisitors}
       </ThemedText>
       <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: 'center', marginTop: 4 }]}>
@@ -543,7 +385,7 @@ const SectionHeader = ({
 
   const tabs: TabType[] = userRole === 'manager' 
     ? ['all', 'pending', 'awaiting', 'walkin']
-    : ['upcoming', 'waiting', 'past', 'all', 'walkin'];
+    : ['all', 'upcoming', 'waiting', 'past', 'walkin'];
 
   return (
   <>
@@ -645,6 +487,7 @@ type VisitorRequestsRouteParams = {
 export default function VisitorRequestsScreen({ navigation: navProp, userRole = 'employee' }: VisitorRequestsScreenProps = {}) {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   const navigationHook = useNavigation<NativeStackNavigationProp<EmployeeStackParamList>>();
   const navigation = navProp || navigationHook;
@@ -654,11 +497,11 @@ export default function VisitorRequestsScreen({ navigation: navProp, userRole = 
   const isManager = userRole === 'manager';
   
   const validManagerTabs: ManagerTab[] = ['all', 'pending', 'awaiting', 'walkin'];
-  const validEmployeeTabs: EmployeeTab[] = ['upcoming', 'waiting', 'past', 'all', 'walkin'];
+  const validEmployeeTabs: EmployeeTab[] = ['all', 'upcoming', 'waiting', 'past', 'walkin'];
   const isValidManagerTab = (tab: string): tab is ManagerTab => validManagerTabs.includes(tab as ManagerTab);
   const isValidEmployeeTab = (tab: string): tab is EmployeeTab => validEmployeeTabs.includes(tab as EmployeeTab);
   
-  const defaultTab: TabType = isManager ? 'all' : 'upcoming';
+  const defaultTab: TabType = isManager ? 'all' : 'all';
   const getInitialTab = (): TabType | undefined => {
     const paramTab = routeParams?.initialTab;
     if (!paramTab) return undefined;
@@ -670,7 +513,6 @@ export default function VisitorRequestsScreen({ navigation: navProp, userRole = 
   
   const [selectedTab, setSelectedTab] = useState<TabType>(initialTabFromParams || defaultTab);
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
-  const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const [lastInitialTab, setLastInitialTab] = useState<string | undefined>(initialTabFromParams);
 
   useEffect(() => {
@@ -739,7 +581,7 @@ export default function VisitorRequestsScreen({ navigation: navProp, userRole = 
       return pendingHostWalkInsData.data.map(mapPendingHostWalkInToVisitorRequest);
     }
     if (!visitsData?.pages) return [];
-    return visitsData.pages.flatMap(page => page.data.map(mapVisitToVisitorRequest));
+    return visitsData.pages.flatMap(page => page.data.map(mapVisitListItemToVisitorRequest));
   }, [isWalkInTab, visitsData?.pages, pendingHostWalkInsData?.data]);
 
   const handleLoadMore = useCallback(() => {
@@ -770,7 +612,7 @@ export default function VisitorRequestsScreen({ navigation: navProp, userRole = 
           onPress={() => refetch()}
         >
           <ThemedText style={{ color: theme.buttonText, fontWeight: '600' }}>
-            {t('actions.retry')}
+            {t('common.retry')}
           </ThemedText>
         </Pressable>
       </View>
@@ -794,18 +636,18 @@ export default function VisitorRequestsScreen({ navigation: navProp, userRole = 
       case 'upcoming':
         filtered = requests.filter(request => {
           const visitDate = new Date(request.visitDate);
-          return visitDate >= today && (['approved', 'visitor_accepted', 'pending_approval'].includes(request.status));
+          return visitDate >= today && (UPCOMING_STATUSES as readonly string[]).includes(request.status);
         });
         break;
       case 'waiting':
         filtered = requests.filter(request => {
-          return request.status === 'visitor_pending';
+          return request.status === REQUEST_STATUS.VISITOR_PENDING;
         });
         break;
       case 'past':
         filtered = requests.filter(request => {
           const visitDate = new Date(request.visitDate);
-          return visitDate < today || ['completed', 'cancelled', 'auto_cancelled', 'rejected', 'visitor_rejected'].includes(request.status);
+          return visitDate < today || request.status === REQUEST_STATUS.COMPLETED || (CANCELLED_STATUSES as readonly string[]).includes(request.status);
         });
         break;
       case 'walkin':
@@ -834,7 +676,7 @@ export default function VisitorRequestsScreen({ navigation: navProp, userRole = 
             <View style={styles.paddedContent}>
               <VisitorRequestTableRow 
                 request={item} 
-                onPress={() => navigation.navigate('RequestDetails', { requestId: item.id })}
+                onPress={() => navigation.navigate(ROUTES.REQUEST_DETAILS as never, { requestId: item.id } as never)}
                 theme={theme}
                 t={t}
               />
@@ -878,7 +720,7 @@ export default function VisitorRequestsScreen({ navigation: navProp, userRole = 
               bottom: insets.bottom + 80 + Spacing.lg,
             },
           ]}
-          onPress={() => navigation.navigate('VisitTypeSelection')}
+          onPress={() => navigation.navigate(ROUTES.VISIT_TYPE_SELECTION as never)}
         >
           <DDIcon name="user-plus" size={24} color={theme.buttonText} />
         </Pressable>
@@ -896,11 +738,7 @@ export default function VisitorRequestsScreen({ navigation: navProp, userRole = 
           <View style={styles.paddedContent}>
             <VisitorRequestCard
               request={item}
-              isExpanded={expandedCard === item.id}
-              onPress={() => navigation.navigate('RequestDetails', { requestId: item.id })}
-              onToggleExpand={() => setExpandedCard(expandedCard === item.id ? null : item.id)}
-              theme={theme}
-              t={t}
+              onPress={() => navigation.navigate(ROUTES.REQUEST_DETAILS as never, { requestId: item.id } as never)}
             />
           </View>
         )}
@@ -944,7 +782,7 @@ export default function VisitorRequestsScreen({ navigation: navProp, userRole = 
             bottom: insets.bottom + 80 + Spacing.lg,
           },
         ]}
-        onPress={() => navigation.navigate('VisitTypeSelection')}
+        onPress={() => navigation.navigate(ROUTES.VISIT_TYPE_SELECTION as never)}
       >
         <DDIcon name="user-plus" size={24} color={theme.buttonText} />
       </Pressable>
@@ -1037,7 +875,7 @@ const styles = StyleSheet.create({
   servicesRow: {
     flexDirection: 'row',
     gap: 8,
-    flexWrap: 'wrap',
+    flexWrap: 'wrap-reverse',
   },
   servicePill: {
     alignItems: 'center',
@@ -1051,29 +889,25 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   nameWithBadgeRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: Spacing.sm,
   },
   dateTimeRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
     flexWrap: 'wrap',
   },
   dateTimeRowSplit: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: 4,
   },
   dateTimeLeft: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
   dateTimeRight: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
@@ -1111,12 +945,11 @@ const styles = StyleSheet.create({
     // Container for main card content
   },
   cardHeaderRow: {
-    flexDirection: 'row',
     alignItems: 'center',
+    gap: LAYOUT.contentGap,
   },
   cardNameSection: {
     flex: 1,
-    marginStart: LAYOUT.contentGap,
   },
   dividerLine: {
     height: 1,
@@ -1126,14 +959,12 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.xs,
   },
   secondaryDetail: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
   contactSection: {
     // Container for contact details
   },
   moreDetailsButton: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingTop: LAYOUT.contentGap,
@@ -1163,7 +994,6 @@ const styles = StyleSheet.create({
     borderEndColor: 'rgba(0,0,0,0.06)',
   },
   fixedColumnContent: {
-    flexDirection: 'row',
     alignItems: 'center',
     padding: Spacing.md,
   },
@@ -1192,7 +1022,6 @@ const styles = StyleSheet.create({
     // Container for contact info
   },
   contactRow: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
 

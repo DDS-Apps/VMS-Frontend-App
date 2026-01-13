@@ -1,4 +1,5 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import type { UserRole } from '@/types/vms.types';
 
 export type EmployeeStackParamList = {
   Dashboard: undefined;
@@ -6,17 +7,11 @@ export type EmployeeStackParamList = {
   VisitTypeSelection: undefined;
   VisitorRequestForm: { visitType?: string };
   RequestDetails: { requestId: string };
-  ParkMyCar: undefined;
   MyValetRequests: undefined;
   ValetRequestDetails: { requestId: string };
   Notifications: undefined;
   Settings: undefined;
 };
-
-export type ParkMyCarScreenProps = NativeStackScreenProps<
-  EmployeeStackParamList,
-  "ParkMyCar"
->;
 
 export type EmployeeDashboardScreenProps = NativeStackScreenProps<
   EmployeeStackParamList,
@@ -41,7 +36,9 @@ export type VisitorRequestFormScreenProps = NativeStackScreenProps<
 export type RequestDetailsScreenProps = NativeStackScreenProps<
   EmployeeStackParamList,
   "RequestDetails"
->;
+> & {
+  userRole?: UserRole;
+};
 
 export type MyValetRequestsScreenProps = NativeStackScreenProps<
   EmployeeStackParamList,

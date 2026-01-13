@@ -73,7 +73,7 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run dev:web"
+args = "npm run dev:web -- --clear"
 waitForPort = 5000
 
 [agent]
@@ -82,8 +82,9 @@ expertMode = true
 
 [deployment]
 deploymentTarget = "autoscale"
-build = ["sh", "-c", "npx expo export --platform web"]
+build = ["bash", "scripts/build-and-verify.sh"]
 run = ["node", "server.js"]
+publicDir = "dist"
 
 [[deployment.responseHeaders]]
 path = "/*"
@@ -98,4 +99,22 @@ value = "0"
 [userenv]
 
 [userenv.shared]
-EXPO_PUBLIC_VMS_API_BASE_URL = "https://vms-backend-folio3.replit.app"
+EXPO_PUBLIC_API_BASE_URL = "https://vms-backend-folio3.replit.app"
+EXPO_PUBLIC_FIREBASE_API_KEY = "AIzaSyDYMIEEPJLFkpZIkhxmHDcMhfL-BNkSdjw"
+EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN = "dallahdigital-vms.firebaseapp.com"
+EXPO_PUBLIC_FIREBASE_PROJECT_ID = "dallahdigital-vms"
+EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET = "dallahdigital-vms.firebasestorage.app"
+EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID = "224821384776"
+EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID = "G-27R412QL3Q"
+EXPO_PUBLIC_FIREBASE_APP_ID_WEB = "1:224821384776:web:f759f8d4805d5965d0aa7d"
+EXPO_PUBLIC_FIREBASE_APP_ID_ANDROID = "1:224821384776:android:ce145b6bbcbf94ecd0aa7d"
+EXPO_PUBLIC_FIREBASE_APP_ID_IOS = "1:224821384776:ios:fd73944c70ae83e5d0aa7d"
+EXPO_PUBLIC_FIREBASE_VAPID_KEY = "BKVbpaIfbFwy4mf6bsA6dDNONAjM8gIVQsYd8mLCo1RPwOc9miHHeKK4vOsAOMP5LOViNnYA9X2YnM85Tfoq984"
+
+[userenv.production]
+EXPO_PUBLIC_VMS_API_BASE_URL = "https://vms-backend-folio3.replit.app/api"
+EXPO_PUBLIC_MICROSOFT_AUTH_URL = "https://vms-backend-folio3.replit.app"
+
+[userenv.development]
+EXPO_PUBLIC_VMS_API_BASE_URL = "https://vms-backend-folio3.replit.app/api"
+EXPO_PUBLIC_MICROSOFT_AUTH_URL = "https://vms-backend-folio3.replit.app"

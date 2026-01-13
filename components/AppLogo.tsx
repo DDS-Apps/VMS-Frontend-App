@@ -21,9 +21,7 @@ export function AppLogo({ size = "medium", style, variant = "horizontal" }: AppL
   
   const dimensions = LOGO_SIZES[size];
   
-  const logoSource = isRTL 
-    ? require("@/assets/images/logo-arabic.png")
-    : require("@/assets/images/logo-english.png");
+  const logoSource = require("@/assets/images/logo.png");
 
   return (
     <View style={[styles.container, style]}>

@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { valetApiService, type ListValetAssignmentsParams } from '@/services/valetApiService';
+import { valetApiService, type ListValetAssignmentsParams } from '@/services/api/valetApiService';
 import type { PaginatedResponse } from '@/types';
 import type {
   ValetDriverDto,
@@ -19,6 +19,7 @@ import type {
   ListDriverTasksParams,
   UpdateDriverTaskStatusDto,
   UpdateDriverTaskStatusResponseDto,
+  ParkingDashboardDto,
 } from '@/types/api.types';
 
 export const valetKeys = {
@@ -37,6 +38,7 @@ export const valetKeys = {
   adminDrivers: (params?: ListValetAdminDriversParams) => [...valetKeys.admin(), 'drivers', params] as const,
   driverLoad: () => [...valetKeys.admin(), 'driver-load'] as const,
   zones: () => [...valetKeys.admin(), 'zones'] as const,
+  parkingDashboard: () => [...valetKeys.admin(), 'parking-dashboard'] as const,
   // Valet Driver keys
   driver: () => [...valetKeys.all, 'driver'] as const,
   myTasks: (params?: ListDriverTasksParams) => [...valetKeys.driver(), 'my-tasks', params] as const,
@@ -233,6 +235,15 @@ export function useValetZonesQuery() {
   return useQuery<{ data: ValetZoneDto[] }>({
     queryKey: valetKeys.zones(),
     queryFn: () => valetApiService.listZones(),
+  });
+}
+
+export function useParkingDashboardQuery(enabled = true) {
+  return useQuery<ParkingDashboardDto>({
+    queryKey: valetKeys.parkingDashboard(),
+    queryFn: () => valetApiService.getParkingDashboard(),
+    enabled,
+    staleTime: 30 * 1000,
   });
 }
 

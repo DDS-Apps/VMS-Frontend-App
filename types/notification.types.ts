@@ -87,17 +87,52 @@ export interface UpdateNotificationPreferencesDto {
 }
 
 export interface RegisterDeviceTokenDto {
-  token: string;
+  deviceToken: string;
   platform: DevicePlatform;
-  deviceId?: string;
   deviceName?: string;
+  deviceModel?: string;
+  appVersion?: string;
 }
 
 export interface DeviceTokenResponse {
   id: string;
-  token: string;
   platform: DevicePlatform;
-  createdAt: string;
+  deviceName?: string;
+  isActive: boolean;
+  registeredAt: string;
+}
+
+export interface DeviceListResponse {
+  devices: DeviceTokenResponse[];
+  count: number;
+}
+
+export interface PushStatusResponse {
+  pushEnabled: boolean;
+  registeredDevices: number;
+  platforms: DevicePlatform[];
+}
+
+export interface TestNotificationPayload {
+  title?: string;
+  body?: string;
+  data?: Record<string, unknown>;
+}
+
+export interface NotificationPayload {
+  notification?: {
+    title?: string;
+    body?: string;
+  };
+  data?: {
+    type?: string;
+    requestId?: string;
+    visitorName?: string;
+    notificationId?: string;
+    timestamp?: string;
+    screen?: string;
+    [key: string]: unknown;
+  };
 }
 
 export interface SendNotificationPayload {

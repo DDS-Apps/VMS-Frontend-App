@@ -27,6 +27,7 @@ export interface TranslationKeys {
     filter: string;
     all: string;
     none: string;
+    manager: string;
     yes: string;
     no: string;
     ok: string;
@@ -50,6 +51,7 @@ export interface TranslationKeys {
     auto: string;
     addUser: string;
     userSource: string;
+    newest: string;
     role: string;
     selectRole: string;
     appCreated: string;
@@ -59,11 +61,14 @@ export interface TranslationKeys {
     selected: string;
     enableAuto: string;
     disableAuto: string;
+    autoApprovalEnabled: string;
+    autoApprovalDisabled: string;
     source: string;
     actions: string;
     active: string;
     inactive: string;
     add: string;
+    create: string;
     walkIn: string;
     searchPlaceholder: string;
     page: string;
@@ -73,6 +78,13 @@ export interface TranslationKeys {
     loadError: string;
     comingSoon: string;
     notRequested: string;
+    filters: string;
+    reset: string;
+    apply: string;
+    clear: string;
+    savedSuccessfully: string;
+    errorOccurred: string;
+    errorLoadingData: string;
   };
   bulkActions: {
     selectMode: string;
@@ -93,7 +105,9 @@ export interface TranslationKeys {
     logs: string;
     management: string;
     meetings: string;
+    parking: string;
     parkingValet: string;
+    valet: string;
     servicesAdmin: string;
     usersConfig: string;
     reportsLogs: string;
@@ -205,12 +219,15 @@ export interface TranslationKeys {
     valetZones: string;
     employeeParkingAssignment: string;
     parkingOccupancy: string;
+    parkingSpots: string;
+    priorityRules: string;
     notificationTemplates: string;
     biometricSettings: string;
     reminderRules: string;
     integrationsHealth: string;
     globalAnalytics: string;
-    parkMyCar: string;
+    myValetRequests: string;
+    parkingDashboard: string;
   };
   visitor: {
     guest: string;
@@ -261,6 +278,7 @@ export interface TranslationKeys {
     timeline: string;
     visitDetails: string;
     visitorReason: string;
+    visitorDeclineReason: string;
     acceptInvitation: string;
     declineInvitation: string;
     optionalNotes: string;
@@ -279,6 +297,10 @@ export interface TranslationKeys {
     nationalId: string;
     passport: string;
     driverLicense: string;
+    selectEndTime: string;
+    walkIn: string;
+    visitExpired: string;
+    meetingRoom: string;
   };
   form: {
     fullName: string;
@@ -296,6 +318,7 @@ export interface TranslationKeys {
     company: string;
     companyPlaceholder: string;
     date: string;
+    requestDateTime: string;
     time: string;
     duration: string;
     durationPlaceholder: string;
@@ -307,7 +330,9 @@ export interface TranslationKeys {
     meetingRoomAvailable: string;
     visitDate: string;
     visitTime: string;
+    startTime: string;
     endTime: string;
+    startTimeReadOnly: string;
     calculatedAutomatically: string;
     notes: string;
     additionalNotes: string;
@@ -325,12 +350,15 @@ export interface TranslationKeys {
     invalidEmail: string;
     invalidPhone: string;
     fieldRequired: string;
+    passwordRequired: string;
     fillRequiredFields: string;
     readOnly: string;
     reason: string;
     enterReason: string;
+    building: string;
   };
   services: {
+    visitor: string;
     meetingRoom: string;
     needsMeetingRoom: string;
     parking: string;
@@ -340,6 +368,7 @@ export interface TranslationKeys {
     valet: string;
     needsValet: string;
     additionalServices: string;
+    selectServicesForVisitor: string;
     communication: string;
     sendWhatsApp: string;
     sendSMS: string;
@@ -347,10 +376,13 @@ export interface TranslationKeys {
     optionalServices: string;
     whatsapp: string;
     sms: string;
+    email: string;
   };
   status: {
+    expected: string;
     pending: string;
     pendingApproval: string;
+    pendingHostApproval: string;
     approved: string;
     rejected: string;
     cancelled: string;
@@ -378,6 +410,10 @@ export interface TranslationKeys {
     preparing: string;
     ready: string;
     served: string;
+    confirmed: string;
+    delivered: string;
+    selectStatus: string;
+    visitExpired: string;
   };
   actions: {
     approve: string;
@@ -387,6 +423,8 @@ export interface TranslationKeys {
     checkOut: string;
     viewDetails: string;
     editRequest: string;
+    editServices: string;
+    editServicesDescription: string;
     deleteRequest: string;
     sendReminder: string;
     resendInvitation: string;
@@ -415,6 +453,10 @@ export interface TranslationKeys {
     confirm: string;
     accept: string;
     decline: string;
+    verifyAndCheckIn: string;
+    recordExit: string;
+    rejectRequest: string;
+    rejectRequestMessage: string;
   };
   notifications: {
     title: string;
@@ -431,6 +473,7 @@ export interface TranslationKeys {
     visitorCheckedOut: string;
     reminderSent: string;
     walkInApproved: string;
+    walkInForwardedToManager: string;
     walkInRejected: string;
     visitUpdated: string;
     push: string;
@@ -448,6 +491,11 @@ export interface TranslationKeys {
     enablePushDescription: string;
     permissionGranted: string;
     permissionDenied: string;
+    enablePromptTitle: string;
+    enablePromptDescription: string;
+    enableButton: string;
+    enableLater: string;
+    enablingNotifications: string;
     types: {
       requestSubmitted: string;
       requestApproved: string;
@@ -499,6 +547,11 @@ export interface TranslationKeys {
     notificationSettings: string;
     pushNotifications: string;
     pushNotificationsDesc: string;
+    testNotification: string;
+    sendingTest: string;
+    testSent: string;
+    testFailed: string;
+    testNotificationHint: string;
     emailNotifications: string;
     emailNotificationsDesc: string;
     emailSummaryFrequency: string;
@@ -588,6 +641,7 @@ export interface TranslationKeys {
     last7Days: string;
     walkIns: string;
     registeredToday: string;
+    pending: string;
     pendingAwaiting: string;
     awaitingArrival: string;
     myVisit: string;
@@ -645,6 +699,7 @@ export interface TranslationKeys {
     fullDay: string;
     at: string;
     dateAndTime: string;
+    selectDate: string;
     justNow: string;
     minutesAgo: string;
     hoursAgo: string;
@@ -692,8 +747,10 @@ export interface TranslationKeys {
     noRoomsAvailableForTime: string;
     pastTimeNotAllowed: string;
     endTimeBeforeStartTime: string;
+    endTimeMustBeLater: string;
     connectionError: string;
     serverUnavailable: string;
+    visitDatePassed: string;
   };
   splash: {
     checkingConnection: string;
@@ -725,6 +782,7 @@ export interface TranslationKeys {
   reception: {
     welcomeDesk: string;
     walkInVisitor: string;
+    walkInOnly: string;
     registerWalkIn: string;
     searchVisitor: string;
     verifyVisitor: string;
@@ -782,6 +840,10 @@ export interface TranslationKeys {
     noParking: string;
     noValet: string;
     valetService: string;
+    parkingAssigned: string;
+    valetAssigned: string;
+    needsParking: string;
+    parkingDetailsPending: string;
   };
   parking: {
     parkingManagement: string;
@@ -824,6 +886,25 @@ export interface TranslationKeys {
     autoAllocationEnabled: string;
     autoAllocationDisabled: string;
     priorityRulesInfo: string;
+    cannotDeleteOccupied: string;
+    spotDeleted: string;
+    spotUpdated: string;
+    spotCreated: string;
+    spotActivated: string;
+    spotDeactivated: string;
+    confirmDelete: string;
+    expectedVisitors: string;
+    withCarInfo: string;
+    checkedIn: string;
+    readOnlyNote: string;
+    noParking: string;
+    parkingPending: string;
+    todaysParkingStatus: string;
+    noVisitorsExpected: string;
+    withParking: string;
+    withoutParking: string;
+    carInfoProvided: string;
+    carInfoPending: string;
   };
   valet: {
     valetService: string;
@@ -878,6 +959,10 @@ export interface TranslationKeys {
     driverLoadDistribution: string;
     overloaded: string;
     underutilized: string;
+    todaysVisitors: string;
+    noVisitorsToday: string;
+    noRequests: string;
+    noMatchingRequests: string;
   };
   buffet: {
     buffetService: string;
@@ -897,6 +982,8 @@ export interface TranslationKeys {
     hasBeenAssigned: string;
     reassign: string;
     noStaffOnDuty: string;
+    markOnDuty: string;
+    markOffDuty: string;
     assigningStaffFor: string;
     currentlyAssigned: string;
     selectFromAvailable: string;
@@ -906,9 +993,11 @@ export interface TranslationKeys {
     buffet: string;
     onDuty: string;
     selectFromAvailableStaff: string;
+    pending: string;
     preparing: string;
     ready: string;
     served: string;
+    completed: string;
     mealType: string;
     meetingRoom: string;
     breakfast: string;
@@ -926,6 +1015,20 @@ export interface TranslationKeys {
     locationBreakdown: string;
     activeOrders: string;
     noEvents: string;
+    createLocation: string;
+    locationName: string;
+    locationNamePlaceholder: string;
+    locationNameRequired: string;
+    building: string;
+    buildingPlaceholder: string;
+    floor: string;
+    floorPlaceholder: string;
+    capacity: string;
+    capacityPlaceholder: string;
+    description: string;
+    descriptionPlaceholder: string;
+    addLocation: string;
+    locationCreated: string;
   };
   months: {
     january: string;
@@ -1018,6 +1121,11 @@ export interface TranslationKeys {
     officeStartTime: string;
     officeEndTime: string;
     workingDays: string;
+    systemActive: string;
+    enableAutomatedReminders: string;
+    afterOfficeHoursStart: string;
+    afterFirstReminder: string;
+    afterSecondReminder: string;
     minutes: string;
     hours: string;
     integrationsHealth: string;
@@ -1141,6 +1249,20 @@ export interface TranslationKeys {
     hours: string;
     minute: string;
     minutes: string;
+    hostNotified: string;
+    parkingPreference: string;
+    noParking: string;
+    needsParking: string;
+    needsParkingInfoLater: string;
+    licensePlate: string;
+    carModel: string;
+    carColor: string;
+    noParkingDescription: string;
+    needsParkingDescription: string;
+    needsParkingInfoLaterDescription: string;
+    enterLicensePlate: string;
+    enterCarModel: string;
+    enterCarColor: string;
   };
   calendar: {
     chooseDate: string;
@@ -1198,18 +1320,30 @@ export interface TranslationKeys {
     };
   };
   timeline: {
+    requestCreated: string;
     requestSubmitted: string;
     autoApproved: string;
     managerApproved: string;
     pendingApproval: string;
+    pendingHostApproval: string;
+    hostApproved: string;
+    hostRejected: string;
     rejected: string;
     visitorAccepted: string;
     visitorDeclined: string;
     awaitingVisitor: string;
     visitorCheckedIn: string;
+    visitorCheckedOut: string;
     visitCompleted: string;
     cancelled: string;
+    autoCancelled: string;
     rescheduled: string;
+    visitorScheduled: string;
+    walkInArrived: string;
+    visitorArrived: string;
+    identityVerified: string;
+    entryGranted: string;
+    exitRecorded: string;
   };
   toast: {
     errorTitle: string;
@@ -1241,6 +1375,21 @@ export interface TranslationKeys {
     details: string;
     status: string;
     history: string;
+  };
+  requests: {
+    tryDifferentFilters: string;
+    selectDate: string;
+    viewOnlyMode: string;
+    noAccessToData: string;
+  };
+  approvals: {
+    confirmApprove: string;
+    enterRejectReason: string;
+    rejectReasonPlaceholder: string;
+    approved: string;
+    rejected: string;
+    approvalSuccess: string;
+    rejectionSuccess: string;
   };
 }
 

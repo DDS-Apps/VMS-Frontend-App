@@ -4,6 +4,7 @@ import { useNavigation, ParamListBase, useFocusEffect } from "@react-navigation/
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
+import { ROUTES } from "@/constants";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { DDIcon, IconName } from "@/components/DDIcon";
@@ -12,125 +13,16 @@ import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
-import { UserRole, VisitorRequest, RequestStatus } from "@/types/vms.types";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { UserRole, VisitorRequest } from "@/types/vms.types";
 import { SkeletonDashboard, VisitorRequestCard } from "@/components/shared";
 import { useVisitsQuery, usePendingApprovalsQuery, useAwaitingVisitorQuery, usePendingHostWalkInsQuery } from "@/hooks/queries/useApprovalQueries";
-import { mapPendingHostWalkInToVisitorRequest } from "@/hooks/queries/useApprovalQueries";
-import type { VisitListItemDto, AwaitingVisitorDto, PendingApprovalDto } from "@/types/api.types";
-
-const statusMap: Record<string, RequestStatus> = {
-  pending: 'pending_approval',
-  pending_approval: 'pending_approval',
-  approved: 'approved',
-  rejected: 'rejected',
-  checked_in: 'checked_in',
-  checked_out: 'completed',
-  cancelled: 'cancelled',
-  expired: 'auto_cancelled',
-  awaiting_visitor: 'visitor_pending',
-  visitor_pending: 'visitor_pending',
-  visitor_accepted: 'visitor_accepted',
-  visitor_rejected: 'visitor_rejected',
-  completed: 'completed',
-};
-
-const mapVisitToVisitorRequest = (visit: VisitListItemDto): VisitorRequest => {
-  return {
-    id: visit.id,
-    employeeId: '',
-    employeeName: visit.employeeName || 'Unknown Host',
-    employeeDepartment: undefined,
-    visitor: {
-      id: '',
-      fullName: visit.visitor?.fullName || 'Unknown Visitor',
-      email: visit.visitor?.email || '',
-      phone: visit.visitor?.phone || '',
-      company: visit.visitor?.company,
-    },
-    visitDate: visit.visitDate,
-    visitTime: visit.visitTime || '',
-    duration: '1 hour',
-    purpose: visit.purpose || '',
-    status: statusMap[visit.status] || 'pending_approval',
-    communicationChannels: ['email'],
-    parkingType: visit.hasParking ? 'auto' : 'none',
-    meetingRoom: visit.hasMeetingRoom ? { id: 'auto', name: 'TBD', capacity: 10, floor: '1', timeSlot: visit.visitTime || '' } : undefined,
-    buffet: visit.hasBuffet ? { id: 'auto', mealType: 'lunch', location: 'Main Buffet' } : undefined,
-    valet: visit.hasValet ? { id: 'auto', pickupTime: visit.visitTime || '', returnTime: '', status: 'pending' } : undefined,
-    approval: {
-      requiresApproval: true,
-      approvedAt: visit.approvedAt,
-    },
-    reminders: {},
-    createdAt: visit.createdAt,
-    updatedAt: visit.approvedAt || visit.createdAt,
-    isWalkIn: visit.isWalkIn,
-  };
-};
-
-const mapAwaitingToVisitorRequest = (awaiting: AwaitingVisitorDto): VisitorRequest => {
-  return {
-    id: awaiting.id,
-    employeeId: '',
-    employeeName: awaiting.employeeName || 'Unknown Host',
-    employeeDepartment: undefined,
-    visitor: {
-      id: awaiting.visitor?.id || '',
-      fullName: awaiting.visitor?.fullName || 'Unknown Visitor',
-      email: awaiting.visitor?.email || '',
-      phone: awaiting.visitor?.phone || '',
-      company: awaiting.visitor?.company,
-    },
-    visitDate: awaiting.visitDate,
-    visitTime: awaiting.visitTime || '',
-    duration: '1 hour',
-    purpose: '',
-    status: statusMap[awaiting.status] || 'visitor_pending',
-    communicationChannels: ['email'],
-    parkingType: 'none',
-    approval: {
-      requiresApproval: true,
-      approvedAt: awaiting.approvedAt,
-    },
-    reminders: {},
-    createdAt: awaiting.approvedAt,
-    updatedAt: awaiting.approvedAt,
-    isWalkIn: false,
-  };
-};
-
-const mapPendingApprovalToVisitorRequest = (item: PendingApprovalDto): VisitorRequest => {
-  return {
-    id: item.id,
-    employeeId: '',
-    employeeName: item.employeeName || 'Unknown Host',
-    employeeDepartment: item.employeeDepartment,
-    visitor: {
-      id: item.visitor?.id || '',
-      fullName: item.visitor?.fullName || 'Unknown Visitor',
-      email: item.visitor?.email || '',
-      phone: item.visitor?.phone || '',
-      company: item.visitor?.company,
-    },
-    visitDate: item.visitDate,
-    visitTime: item.visitTime || '',
-    duration: item.duration || '1 hour',
-    purpose: item.purpose || '',
-    status: 'pending_approval' as RequestStatus,
-    communicationChannels: ['email'],
-    parkingType: item.hasParking ? 'auto' : 'none',
-    meetingRoom: item.hasMeetingRoom ? { id: 'auto', name: 'TBD', capacity: 10, floor: '1', timeSlot: item.visitTime || '' } : undefined,
-    buffet: item.hasBuffet ? { id: 'auto', mealType: 'lunch', location: 'Main Buffet' } : undefined,
-    valet: item.hasValet ? { id: 'auto', pickupTime: item.visitTime || '', returnTime: '', status: 'pending' } : undefined,
-    approval: {
-      requiresApproval: true,
-    },
-    reminders: {},
-    createdAt: item.createdAt,
-    updatedAt: item.createdAt,
-    isWalkIn: item.isWalkIn,
-  };
-};
+import {
+  mapVisitListItemToVisitorRequest,
+  mapAwaitingVisitorToVisitorRequest,
+  mapPendingApprovalToVisitorRequest,
+  mapPendingHostWalkInToVisitorRequest,
+} from "@/utils/requestMappers";
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -147,10 +39,11 @@ interface KPICardProps {
 
 function KPICard({ title, value, subtitle, icon, iconColor, backgroundColor, trend, trendUp }: KPICardProps) {
   const { theme } = useTheme();
+  const { isRTL } = useLanguage();
   
   return (
     <View style={[styles.kpiCard, { backgroundColor: theme.surface }]}>
-      <View style={[styles.iconContainer, { backgroundColor: iconColor }]}>
+      <View style={[styles.iconContainer, { backgroundColor: iconColor, alignSelf: 'center' }]}>
         <DDIcon name={icon as IconName} size={24} color={theme.buttonText} />
       </View>
 
@@ -177,6 +70,7 @@ interface OverviewScreenProps {
 export default function OverviewScreen({ userRole, userName }: OverviewScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { isRTL } = useLanguage();
   const { formatDate: fmtDate } = useFormatters();
   const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
   const insets = useSafeAreaInsets();
@@ -215,7 +109,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
   );
 
   const visitorRequests = useMemo(() => {
-    return visitsData?.data?.map(mapVisitToVisitorRequest) || [];
+    return visitsData?.data?.map(mapVisitListItemToVisitorRequest) || [];
   }, [visitsData]);
 
   const pendingApprovals = useMemo(() => {
@@ -223,7 +117,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
   }, [pendingData]);
 
   const awaitingVisitorAcceptance = useMemo(() => {
-    return awaitingData?.data?.map(mapAwaitingToVisitorRequest) || [];
+    return awaitingData?.data?.map(mapAwaitingVisitorToVisitorRequest) || [];
   }, [awaitingData]);
 
   const walkInVisitors = useMemo(() => {
@@ -294,7 +188,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
       ]
     : userRole === 'buffet_admin'
     ? [
-        { title: t('dashboard.totalVisitors'), value: '4', subtitle: `0 ${t('dashboard.upcomingVisitors').toLowerCase()}`, icon: 'coffee', iconColor: theme.primary, backgroundColor: theme.primary },
+        { title: t('dashboard.totalVisitors'), value: '4', subtitle: `0 ${t('dashboard.upcomingVisitors').toLowerCase()}`, icon: 'disc', iconColor: theme.primary, backgroundColor: theme.primary },
         { title: t('dashboard.buffetLocations'), value: '6', subtitle: `6 ${t('dashboard.activeLocations')}`, icon: 'map', iconColor: theme.info, backgroundColor: theme.info },
         { title: t('dashboard.buffetStaff'), value: '0', subtitle: `0 ${t('dashboard.onDuty')}`, icon: 'users', iconColor: theme.secondary, backgroundColor: theme.secondary },
         { title: t('notifications.title'), value: '0', subtitle: t('dashboard.unreadAlerts'), icon: 'bell', iconColor: theme.chartPurple, backgroundColor: theme.chartPurple },
@@ -355,30 +249,30 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
       {(userRole === 'employee' || userRole === 'manager') && (
         <>
           <View>
-            <View style={styles.header}>
-              <View>
-                <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
+            <View style={[styles.header, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={{ alignItems: isRTL ? 'flex-end' : 'flex-start' }}>
+                <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
                   {t('dashboard.upcomingVisitors')}
                 </ThemedText>
-                <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 4, fontSize: 12 }]}>
+                <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 4, fontSize: 12, textAlign: isRTL ? 'right' : 'left' }]}>
                   {t('dashboard.thisWeek')}
                 </ThemedText>
               </View>
               {upcomingThisWeek.length > 0 && (
                 <Pressable 
                   onPress={() => navigation.navigate(
-                    'VisitorRequests', 
-                    { initialTab: userRole === 'manager' ? 'all' : 'upcoming' }
+                    ROUTES.VISITOR_REQUESTS as never, 
+                    { initialTab: userRole === 'manager' ? 'all' : 'upcoming' } as never
                   )}
                   style={({ pressed }) => [
                     styles.viewAllButton,
-                    { opacity: pressed ? 0.7 : 1 }
+                    { opacity: pressed ? 0.7 : 1, flexDirection: isRTL ? 'row-reverse' : 'row' }
                   ]}
                 >
                   <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
                     {t('common.viewAll')}
                   </ThemedText>
-                  <DDIcon name="chevron-right" size={16} color={theme.primary} />
+                  <DDIcon name={isRTL ? "chevron-left" : "chevron-right"} size={16} color={theme.primary} />
                 </Pressable>
               )}
             </View>
@@ -392,14 +286,15 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                 contentContainerStyle={styles.carouselContainer}
                 snapToInterval={cardWidth + Spacing.md}
                 decelerationRate="fast"
+                nestedScrollEnabled={true}
               >
                 {upcomingThisWeek.map((request, index) => (
                   <VisitorRequestCard
                     key={request.id}
                     request={request}
-                    onPress={() => navigation.navigate('RequestDetails', { requestId: request.id })}
+                    onPress={() => navigation.navigate(ROUTES.REQUEST_DETAILS as never, { requestId: request.id } as never)}
                     width={cardWidth}
-                    style={index > 0 ? { marginStart: Spacing.md } : undefined}
+                    style={index > 0 ? (isRTL ? { marginEnd: Spacing.md } : { marginStart: Spacing.md }) : undefined}
                   />
                 ))}
               </ScrollView>
@@ -422,27 +317,27 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
       {userRole === 'employee' && (
         <>
           <View>
-            <View style={styles.header}>
-              <View>
-                <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
+            <View style={[styles.header, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={{ alignItems: isRTL ? 'flex-end' : 'flex-start' }}>
+                <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
                   {t('dashboard.recentRequests')}
                 </ThemedText>
-                <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 4, fontSize: 12 }]}>
+                <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 4, fontSize: 12, textAlign: isRTL ? 'right' : 'left' }]}>
                   {t('dashboard.yourLatestRequests')}
                 </ThemedText>
               </View>
               {recentRequests.length > 0 && (
                 <Pressable 
-                  onPress={() => navigation.navigate('VisitorRequests', { initialTab: 'all' })}
+                  onPress={() => navigation.navigate(ROUTES.VISITOR_REQUESTS as never, { initialTab: 'all' } as never)}
                   style={({ pressed }) => [
                     styles.viewAllButton,
-                    { opacity: pressed ? 0.7 : 1 }
+                    { opacity: pressed ? 0.7 : 1, flexDirection: isRTL ? 'row-reverse' : 'row' }
                   ]}
                 >
                   <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
                     {t('common.viewAll')}
                   </ThemedText>
-                  <DDIcon name="chevron-right" size={16} color={theme.primary} />
+                  <DDIcon name={isRTL ? "chevron-left" : "chevron-right"} size={16} color={theme.primary} />
                 </Pressable>
               )}
             </View>
@@ -456,14 +351,15 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                 contentContainerStyle={styles.carouselContainer}
                 snapToInterval={cardWidth + Spacing.md}
                 decelerationRate="fast"
+                nestedScrollEnabled={true}
               >
                 {recentRequests.map((request, index) => (
                   <VisitorRequestCard
                     key={request.id}
                     request={request}
-                    onPress={() => navigation.navigate('RequestDetails', { requestId: request.id })}
+                    onPress={() => navigation.navigate(ROUTES.REQUEST_DETAILS as never, { requestId: request.id } as never)}
                     width={cardWidth}
-                    style={index > 0 ? { marginStart: Spacing.md } : undefined}
+                    style={index > 0 ? (isRTL ? { marginEnd: Spacing.md } : { marginStart: Spacing.md }) : undefined}
                   />
                 ))}
               </ScrollView>
@@ -486,25 +382,25 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
       {userRole === 'manager' && (
         <>
           <View>
-            <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
+            <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('dashboard.pendingApprovals')}
             </ThemedText>
-            <View style={[styles.header, { alignItems: 'center', marginTop: 4 }]}>
-              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, fontSize: 12 }]}>
+            <View style={[styles.header, { flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', marginTop: 4 }]}>
+              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, fontSize: 12, textAlign: isRTL ? 'right' : 'left' }]}>
                 {t('dashboard.requestsAwaitingApproval')}
               </ThemedText>
               {pendingApprovals.length > 0 && (
                 <Pressable 
-                  onPress={() => navigation.navigate('Approvals')}
+                  onPress={() => navigation.navigate(ROUTES.APPROVALS as never)}
                   style={({ pressed }) => [
                     styles.viewAllButton,
-                    { opacity: pressed ? 0.7 : 1 }
+                    { opacity: pressed ? 0.7 : 1, flexDirection: isRTL ? 'row-reverse' : 'row' }
                   ]}
                 >
                   <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
                     {t('common.viewAll')}
                   </ThemedText>
-                  <DDIcon name="chevron-right" size={16} color={theme.primary} />
+                  <DDIcon name={isRTL ? "chevron-left" : "chevron-right"} size={16} color={theme.primary} />
                 </Pressable>
               )}
             </View>
@@ -518,16 +414,17 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                 contentContainerStyle={styles.carouselContainer}
                 snapToInterval={cardWidth + Spacing.md}
                 decelerationRate="fast"
+                nestedScrollEnabled={true}
               >
                 {pendingApprovals.slice(0, 5).map((request, index) => (
                   <VisitorRequestCard
                     key={request.id}
                     request={request}
-                    onPress={() => navigation.navigate('ManagerApprovalDetail', { requestId: request.id })}
+                    onPress={() => navigation.navigate(ROUTES.MANAGER_APPROVAL_DETAIL as never, { requestId: request.id } as never)}
                     width={cardWidth}
                     accentColor={theme.primary}
                     showRequestedBy={true}
-                    style={index > 0 ? { marginStart: Spacing.md } : undefined}
+                    style={index > 0 ? (isRTL ? { marginEnd: Spacing.md } : { marginStart: Spacing.md }) : undefined}
                   />
                 ))}
               </ScrollView>
@@ -550,11 +447,11 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
       {(userRole === 'manager' || userRole === 'employee') && (
         <>
           <View>
-            <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
+            <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('navigation.awaitingVisitor')}
             </ThemedText>
-            <View style={[styles.header, { alignItems: 'center', marginTop: 4 }]}>
-              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, fontSize: 12 }]}>
+            <View style={[styles.header, { flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', marginTop: 4 }]}>
+              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, fontSize: 12, textAlign: isRTL ? 'right' : 'left' }]}>
                 {t('dashboard.awaitingResponse')}
               </ThemedText>
               {awaitingVisitorAcceptance.length > 0 && (
@@ -565,13 +462,13 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                   )}
                   style={({ pressed }) => [
                     styles.viewAllButton,
-                    { opacity: pressed ? 0.7 : 1 }
+                    { opacity: pressed ? 0.7 : 1, flexDirection: isRTL ? 'row-reverse' : 'row' }
                   ]}
                 >
                   <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
                     {t('common.viewAll')}
                   </ThemedText>
-                  <DDIcon name="chevron-right" size={16} color={theme.primary} />
+                  <DDIcon name={isRTL ? "chevron-left" : "chevron-right"} size={16} color={theme.primary} />
                 </Pressable>
               )}
             </View>
@@ -585,16 +482,17 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                 contentContainerStyle={styles.carouselContainer}
                 snapToInterval={cardWidth + Spacing.md}
                 decelerationRate="fast"
+                nestedScrollEnabled={true}
               >
                 {awaitingVisitorAcceptance.slice(0, 5).map((request, index) => (
                   <VisitorRequestCard
                     key={request.id}
                     request={request}
-                    onPress={() => navigation.navigate('RequestDetails', { requestId: request.id })}
+                    onPress={() => navigation.navigate(ROUTES.REQUEST_DETAILS as never, { requestId: request.id } as never)}
                     width={cardWidth}
                     accentColor={theme.warning}
                     showRequestedBy={true}
-                    style={index > 0 ? { marginStart: Spacing.md } : undefined}
+                    style={index > 0 ? (isRTL ? { marginEnd: Spacing.md } : { marginStart: Spacing.md }) : undefined}
                   />
                 ))}
               </ScrollView>
@@ -617,25 +515,25 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
       {(userRole === 'manager' || userRole === 'employee') && (
         <>
           <View>
-            <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
+            <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('navigation.walkInVisitors')}
             </ThemedText>
-            <View style={[styles.header, { alignItems: 'center', marginTop: 4 }]}>
-              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, fontSize: 12 }]}>
+            <View style={[styles.header, { flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', marginTop: 4 }]}>
+              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, fontSize: 12, textAlign: isRTL ? 'right' : 'left' }]}>
                 {t('dashboard.walkIns')}
               </ThemedText>
               {walkInVisitors.length > 0 && (userRole === 'manager' || userRole === 'employee') && (
                 <Pressable 
-                  onPress={() => navigation.navigate('VisitorRequests', { initialTab: 'walkin' })}
+                  onPress={() => navigation.navigate(ROUTES.VISITOR_REQUESTS as never, { initialTab: 'walkin' } as never)}
                   style={({ pressed }) => [
                     styles.viewAllButton,
-                    { opacity: pressed ? 0.7 : 1 }
+                    { opacity: pressed ? 0.7 : 1, flexDirection: isRTL ? 'row-reverse' : 'row' }
                   ]}
                 >
                   <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
                     {t('common.viewAll')}
                   </ThemedText>
-                  <DDIcon name="chevron-right" size={16} color={theme.primary} />
+                  <DDIcon name={isRTL ? "chevron-left" : "chevron-right"} size={16} color={theme.primary} />
                 </Pressable>
               )}
             </View>
@@ -649,16 +547,17 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                 contentContainerStyle={styles.carouselContainer}
                 snapToInterval={cardWidth + Spacing.md}
                 decelerationRate="fast"
+                nestedScrollEnabled={true}
               >
                 {walkInVisitors.slice(0, 5).map((request, index) => (
                   <VisitorRequestCard
                     key={request.id}
                     request={request}
-                    onPress={() => navigation.navigate('RequestDetails', { requestId: request.id })}
+                    onPress={() => navigation.navigate(ROUTES.REQUEST_DETAILS as never, { requestId: request.id } as never)}
                     width={cardWidth}
                     accentColor={theme.info}
                     showRequestedBy={true}
-                    style={index > 0 ? { marginStart: Spacing.md } : undefined}
+                    style={index > 0 ? (isRTL ? { marginEnd: Spacing.md } : { marginStart: Spacing.md }) : undefined}
                   />
                 ))}
               </ScrollView>
@@ -699,19 +598,19 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                   <View style={{ alignItems: 'center' }}>
                     <DDIcon name="calendar" size={24} color={theme.primary} />
                     <Spacer height={Spacing.xs} />
-                    <ThemedText style={[Typography.display, { fontSize: 28, fontWeight: '600' }]}>2</ThemedText>
+                    <ThemedText style={[Typography.display, { fontSize: 28, lineHeight: 36, fontWeight: '600' }]}>2</ThemedText>
                     <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>{t('time.today')}</ThemedText>
                   </View>
                   <View style={{ alignItems: 'center' }}>
                     <DDIcon name="clock" size={24} color={theme.info} />
                     <Spacer height={Spacing.xs} />
-                    <ThemedText style={[Typography.display, { fontSize: 28, fontWeight: '600' }]}>1</ThemedText>
+                    <ThemedText style={[Typography.display, { fontSize: 28, lineHeight: 36, fontWeight: '600' }]}>1</ThemedText>
                     <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>{t('time.tomorrow')}</ThemedText>
                   </View>
                   <View style={{ alignItems: 'center' }}>
                     <DDIcon name="trending-up" size={24} color={theme.success} />
                     <Spacer height={Spacing.xs} />
-                    <ThemedText style={[Typography.display, { fontSize: 28, fontWeight: '600' }]}>1</ThemedText>
+                    <ThemedText style={[Typography.display, { fontSize: 28, lineHeight: 36, fontWeight: '600' }]}>1</ThemedText>
                     <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>{t('dashboard.next7Days')}</ThemedText>
                   </View>
                 </View>
@@ -739,19 +638,19 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                   <View style={{ alignItems: 'center' }}>
                     <DDIcon name="users" size={24} color={theme.primary} />
                     <Spacer height={Spacing.xs} />
-                    <ThemedText style={[Typography.display, { fontSize: 28, fontWeight: '600' }]}>12</ThemedText>
+                    <ThemedText style={[Typography.display, { fontSize: 28, lineHeight: 36, fontWeight: '600' }]}>12</ThemedText>
                     <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>{t('dashboard.totalStaff')}</ThemedText>
                   </View>
                   <View style={{ alignItems: 'center' }}>
                     <DDIcon name="user-check" size={24} color={theme.success} />
                     <Spacer height={Spacing.xs} />
-                    <ThemedText style={[Typography.display, { fontSize: 28, fontWeight: '600' }]}>8</ThemedText>
+                    <ThemedText style={[Typography.display, { fontSize: 28, lineHeight: 36, fontWeight: '600' }]}>8</ThemedText>
                     <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>{t('dashboard.active')}</ThemedText>
                   </View>
                   <View style={{ alignItems: 'center' }}>
                     <DDIcon name="briefcase" size={24} color={theme.info} />
                     <Spacer height={Spacing.xs} />
-                    <ThemedText style={[Typography.display, { fontSize: 28, fontWeight: '600' }]}>6</ThemedText>
+                    <ThemedText style={[Typography.display, { fontSize: 28, lineHeight: 36, fontWeight: '600' }]}>6</ThemedText>
                     <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>{t('dashboard.onDuty')}</ThemedText>
                   </View>
                 </View>
@@ -771,7 +670,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
               bottom: insets.bottom + 80 + Spacing.lg,
             },
           ]}
-          onPress={() => navigation.navigate('VisitTypeSelection')}
+          onPress={() => navigation.navigate(ROUTES.VISIT_TYPE_SELECTION as never)}
         >
           <DDIcon name="user-plus" size={24} color={theme.buttonText} />
         </Pressable>
@@ -868,6 +767,7 @@ const styles = StyleSheet.create({
   },
   kpiValue: {
     fontSize: 28,
+    lineHeight: 36,
     fontWeight: '700',
     letterSpacing: -0.5,
   },
@@ -978,7 +878,7 @@ const styles = StyleSheet.create({
   listItem: {
     padding: Spacing.md,
     borderRadius: BorderRadius.md,
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
   },
   listItemMain: {
     flexDirection: 'row',

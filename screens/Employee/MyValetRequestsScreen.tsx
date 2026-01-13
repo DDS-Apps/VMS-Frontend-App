@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { View, StyleSheet, Pressable, Alert, RefreshControl } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ROUTES } from "@/constants";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { SearchInput } from "@/components/SearchInput";
 import { DDIcon } from "@/components/DDIcon";
@@ -12,6 +13,8 @@ import { SkeletonList } from "@/components/shared/Skeleton";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useFormatters } from "@/hooks/useFormatters";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useMyValetRequestsQuery } from "@/hooks/queries/useValetSelfServiceQueries";
 import { applyOpacity } from "@/utils/statusStyles";
 import type { MyValetRequestsScreenProps } from "@/types/employeeNavigation.types";
@@ -100,11 +103,17 @@ const StatusAccent = ({ color }: { color: string }) => (
 const ValetRequestCard = React.memo(({ 
   request, 
   theme, 
-  onPress
+  onPress,
+  formatTime,
+  formatDateLocale,
+  isRTL
 }: { 
   request: SelfValetRequestDto; 
   theme: Theme;
   onPress: () => void;
+  formatTime: (date: Date) => string;
+  formatDateLocale: (date: Date, format: 'short' | 'medium' | 'long') => string;
+  isRTL: boolean;
 }) => {
   const status = request.valet?.status || 'pending';
   const statusConfig = getValetStatusConfig(theme, status);
@@ -115,30 +124,30 @@ const ValetRequestCard = React.memo(({
     if (d.toDateString() === today.toDateString()) {
       return 'Today';
     }
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return formatDateLocale(d, 'short');
   };
 
-  const formatTime = (dateString: string) => {
+  const formatTimeStr = (dateString: string) => {
     const d = new Date(dateString);
-    return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    return formatTime(d);
   };
 
   return (
     <Pressable onPress={onPress}>
-      <Card style={styles.taskCard}>
+      <Card style={[styles.taskCard, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <StatusAccent color={statusConfig.borderColor} />
         <View style={styles.taskCardContent}>
-          <View style={styles.taskHeaderRow}>
+          <View style={[styles.taskHeaderRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <View style={styles.vehicleIconContainer}>
               <View style={[styles.vehicleIcon, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
                 <DDIcon name="truck" size={20} variant="primary" />
               </View>
             </View>
             <View style={styles.taskHeaderInfo}>
-              <ThemedText style={[Typography.body, { fontWeight: '600' }]}>
+              <ThemedText style={[Typography.body, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
                 {request.vehicleInfo.plateNumber}
               </ThemedText>
-              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
+              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
                 {request.vehicleInfo.make} {request.vehicleInfo.model} - {request.vehicleInfo.color}
               </ThemedText>
             </View>
@@ -147,14 +156,14 @@ const ValetRequestCard = React.memo(({
 
           <Spacer height={Spacing.md} />
 
-          <View style={styles.taskDetailsRow}>
-            <View style={styles.taskDetailItem}>
+          <View style={[styles.taskDetailsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.taskDetailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <DDIcon name="map-pin" size={14} variant="muted" />
               <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6 }]}>
                 {request.dropOffLocation}
               </ThemedText>
             </View>
-            <View style={styles.taskDetailItem}>
+            <View style={[styles.taskDetailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <DDIcon name="clock" size={14} variant="muted" />
               <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6 }]}>
                 Return: {request.requestedReturnTime}
@@ -165,7 +174,7 @@ const ValetRequestCard = React.memo(({
           {request.valet?.driver ? (
             <>
               <Spacer height={Spacing.sm} />
-              <View style={[styles.driverRow, { backgroundColor: applyOpacity(theme.success, '08') }]}>
+              <View style={[styles.driverRow, { backgroundColor: applyOpacity(theme.success, '08'), flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <DDIcon name="user" size={14} color={theme.success} />
                 <ThemedText style={[Typography.caption, { color: theme.success, marginStart: 6, fontWeight: '500' }]}>
                   Driver: {request.valet.driver.name}
@@ -177,9 +186,9 @@ const ValetRequestCard = React.memo(({
           {request.notes ? (
             <>
               <Spacer height={Spacing.sm} />
-              <View style={styles.notesRow}>
+              <View style={[styles.notesRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <DDIcon name="file-text" size={14} variant="muted" />
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6, flex: 1 }]} numberOfLines={2}>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6, flex: 1, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={2}>
                   {request.notes}
                 </ThemedText>
               </View>
@@ -187,10 +196,10 @@ const ValetRequestCard = React.memo(({
           ) : null}
 
           <Spacer height={Spacing.sm} />
-          <View style={styles.taskFooterRow}>
+          <View style={[styles.taskFooterRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <DDIcon name="calendar" size={12} variant="muted" />
             <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 4, fontSize: 11 }]}>
-              {formatDate(request.createdAt)} at {formatTime(request.createdAt)}
+              {formatDate(request.createdAt)} at {formatTimeStr(request.createdAt)}
             </ThemedText>
           </View>
         </View>
@@ -209,6 +218,8 @@ const FILTER_OPTIONS: { key: StatusFilter; label: string }[] = [
 export default function MyValetRequestsScreen({ navigation }: MyValetRequestsScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { isRTL } = useLanguage();
+  const { formatTime, formatDate: formatDateLocale } = useFormatters();
   const insets = useSafeAreaInsets();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -229,24 +240,29 @@ export default function MyValetRequestsScreen({ navigation }: MyValetRequestsScr
   }, [isError, error, t]);
 
   const filteredRequests = useMemo(() => {
-    // Safely extract requests array from various possible API response shapes
     let requests: SelfValetRequestDto[] = [];
-    if (response) {
-      if (Array.isArray(response)) {
-        requests = response;
-      } else if (typeof response === 'object' && 'data' in response && Array.isArray((response as SelfValetRequestsResponse).data)) {
-        requests = (response as SelfValetRequestsResponse).data;
-      } else {
-        console.warn('[MyValetRequestsScreen] Unexpected response structure:', JSON.stringify(response));
+    
+    if (!response) {
+      return [];
+    }
+    
+    if (Array.isArray(response)) {
+      requests = response;
+    } else if (typeof response === 'object' && 'data' in response) {
+      const responseData = (response as SelfValetRequestsResponse).data;
+      if (Array.isArray(responseData)) {
+        requests = responseData;
+      } else if (typeof responseData === 'object' && responseData !== null && 'data' in responseData && Array.isArray((responseData as { data: SelfValetRequestDto[] }).data)) {
+        requests = (responseData as { data: SelfValetRequestDto[] }).data;
       }
     }
     
     return requests
       .filter(request => {
-        if (!request?.vehicleInfo) return false;
-        const plateNumber = (request.vehicleInfo.plateNumber || '').toLowerCase();
-        const make = (request.vehicleInfo.make || '').toLowerCase();
-        const model = (request.vehicleInfo.model || '').toLowerCase();
+        if (!searchQuery.trim()) return true;
+        const plateNumber = (request.vehicleInfo?.plateNumber || '').toLowerCase();
+        const make = (request.vehicleInfo?.make || '').toLowerCase();
+        const model = (request.vehicleInfo?.model || '').toLowerCase();
         const query = searchQuery.toLowerCase();
         return plateNumber.includes(query) || make.includes(query) || model.includes(query);
       })
@@ -266,12 +282,9 @@ export default function MyValetRequestsScreen({ navigation }: MyValetRequestsScr
   };
 
   const handleRequestPress = (requestId: string) => {
-    navigation.navigate('ValetRequestDetails', { requestId });
+    navigation.navigate(ROUTES.VALET_REQUEST_DETAILS as never, { requestId } as never);
   };
 
-  const handleCreateNew = () => {
-    navigation.navigate('ParkMyCar');
-  };
 
   if (isLoading || isRefetching) {
     return (
@@ -301,22 +314,13 @@ export default function MyValetRequestsScreen({ navigation }: MyValetRequestsScr
           <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.primary} />
         }
       >
-        <View style={styles.headerRow}>
+        <View style={[styles.headerRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <View>
-            <ThemedText style={[Typography.h2]}>My Valet Requests</ThemedText>
-            <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
-              {filteredRequests.length} request{filteredRequests.length !== 1 ? 's' : ''}
+            <ThemedText style={[Typography.h2, { textAlign: isRTL ? 'right' : 'left' }]}>{t('navigation.myValetRequests')}</ThemedText>
+            <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+              {filteredRequests.length} {t('sidebar.requests')}
             </ThemedText>
           </View>
-          <Pressable
-            style={[styles.createButton, { backgroundColor: theme.primary }]}
-            onPress={handleCreateNew}
-          >
-            <DDIcon name="plus" size={20} color="#FFFFFF" />
-            <ThemedText style={[Typography.bodySmall, { color: '#FFFFFF', marginStart: 6, fontWeight: '600' }]}>
-              New Request
-            </ThemedText>
-          </Pressable>
         </View>
 
         <Spacer height={Spacing.lg} />
@@ -329,7 +333,7 @@ export default function MyValetRequestsScreen({ navigation }: MyValetRequestsScr
 
         <Spacer height={Spacing.md} />
 
-        <View style={styles.filterRow}>
+        <View style={[styles.filterRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           {FILTER_OPTIONS.map((option) => (
             <Pressable
               key={option.key}
@@ -363,22 +367,9 @@ export default function MyValetRequestsScreen({ navigation }: MyValetRequestsScr
             <Spacer height={Spacing.md} />
             <ThemedText style={[Typography.body, { color: theme.textSecondary, textAlign: 'center' }]}>
               {searchQuery || statusFilter !== 'all' 
-                ? 'No matching valet requests found'
-                : 'No valet requests yet'}
+                ? t('valet.noMatchingRequests')
+                : t('valet.noRequests')}
             </ThemedText>
-            {!searchQuery && statusFilter === 'all' ? (
-              <>
-                <Spacer height={Spacing.md} />
-                <Pressable
-                  style={[styles.emptyCreateButton, { borderColor: theme.primary }]}
-                  onPress={handleCreateNew}
-                >
-                  <ThemedText style={[Typography.body, { color: theme.primary, fontWeight: '600' }]}>
-                    Park My Car
-                  </ThemedText>
-                </Pressable>
-              </>
-            ) : null}
           </View>
         ) : (
           filteredRequests.map((request) => (
@@ -387,6 +378,9 @@ export default function MyValetRequestsScreen({ navigation }: MyValetRequestsScr
                 request={request}
                 theme={theme}
                 onPress={() => handleRequestPress(request.id)}
+                formatTime={formatTime}
+                formatDateLocale={formatDateLocale}
+                isRTL={isRTL}
               />
               <Spacer height={Spacing.md} />
             </React.Fragment>
@@ -405,19 +399,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerRow: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   createButton: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.md,
   },
   filterRow: {
-    flexDirection: 'row',
     flexWrap: 'wrap',
     gap: Spacing.sm,
   },
@@ -439,7 +430,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   taskCard: {
-    flexDirection: 'row',
     overflow: 'hidden',
   },
   statusAccent: {
@@ -452,7 +442,6 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
   },
   taskHeaderRow: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
   vehicleIconContainer: {
@@ -479,27 +468,22 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   taskDetailsRow: {
-    flexDirection: 'row',
     flexWrap: 'wrap',
     gap: Spacing.md,
   },
   taskDetailItem: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
   driverRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.sm,
     paddingVertical: Spacing.xs,
     borderRadius: BorderRadius.sm,
   },
   notesRow: {
-    flexDirection: 'row',
     alignItems: 'flex-start',
   },
   taskFooterRow: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
 });

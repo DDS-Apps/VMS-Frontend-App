@@ -10,7 +10,9 @@ import SidebarGroup from "@/components/SidebarGroup";
 import { Colors, Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { UserRole } from "@/types/vms.types";
+import Constants from 'expo-constants';
 
 interface MenuItem {
   id: string;
@@ -63,14 +65,6 @@ const getMenuGroups = (role: UserRole): { groups: MenuGroup[]; standalone: MenuI
           { id: 'visitor_requests', labelKey: 'navigation.myRequests', icon: 'list', screen: 'VisitorRequests' },
         ],
       },
-      {
-        id: 'services',
-        labelKey: 'sidebar.services',
-        icon: 'truck',
-        items: [
-          { id: 'my_valet_requests', labelKey: 'navigation.parkMyCar', icon: 'truck', screen: 'MyValetRequests' },
-        ],
-      },
     ];
   } else if (role === 'manager') {
     result.standalone = [
@@ -102,7 +96,6 @@ const getMenuGroups = (role: UserRole): { groups: MenuGroup[]; standalone: MenuI
         items: [
           { id: 'todays_visitors', labelKey: 'navigation.todaysVisitors', icon: 'clock', screen: 'AllVisitorsToday' },
           { id: 'all_visitors', labelKey: 'navigation.allVisitors', icon: 'users', screen: 'AllVisitors' },
-          { id: 'walk_in_visitors', labelKey: 'navigation.walkInVisitors', icon: 'user-check', screen: 'WalkInVisitors' },
         ],
       },
       {
@@ -123,14 +116,6 @@ const getMenuGroups = (role: UserRole): { groups: MenuGroup[]; standalone: MenuI
         icon: 'shield',
         items: [
           { id: 'check_in', labelKey: 'navigation.visitorVerification', icon: 'shield', screen: 'CheckIn' },
-        ],
-      },
-      {
-        id: 'logs',
-        labelKey: 'sidebar.logs',
-        icon: 'activity',
-        items: [
-          { id: 'gate_events', labelKey: 'security.gateEventsLog', icon: 'activity', screen: 'GateEventsLog' },
         ],
       },
     ];
@@ -169,31 +154,11 @@ const getMenuGroups = (role: UserRole): { groups: MenuGroup[]; standalone: MenuI
     ];
   } else if (role === 'valet_admin') {
     result.standalone = [
-      { id: 'dashboard', labelKey: 'navigation.dashboard', icon: 'grid', screen: 'ValetAdminDashboard' },
+      { id: 'parking_dashboard', labelKey: 'navigation.parkingDashboard', icon: 'truck', screen: 'ValetAllRequests' },
     ];
-    result.groups = [
-      {
-        id: 'operations',
-        labelKey: 'sidebar.operations',
-        icon: 'truck',
-        items: [
-          { id: 'valet_requests', labelKey: 'navigation.allRequests', icon: 'list', screen: 'ValetAllRequests' },
-        ],
-      },
-      {
-        id: 'management',
-        labelKey: 'sidebar.management',
-        icon: 'settings',
-        items: [
-          { id: 'valet_drivers', labelKey: 'navigation.drivers', icon: 'users', screen: 'ValetDrivers' },
-          { id: 'valet_parking', labelKey: 'navigation.parkingSlots', icon: 'map-pin', screen: 'ValetParking' },
-        ],
-      },
-    ];
+    result.groups = [];
   } else if (role === 'building_admin') {
-    result.standalone = [
-      { id: 'dashboard', labelKey: 'navigation.controlCenter', icon: 'grid', screen: 'BuildingAdminDashboard' },
-    ];
+    result.standalone = [];
     result.groups = [
       {
         id: 'requests',
@@ -204,63 +169,12 @@ const getMenuGroups = (role: UserRole): { groups: MenuGroup[]; standalone: MenuI
         ],
       },
       {
-        id: 'meetings',
-        labelKey: 'sidebar.meetings',
-        icon: 'calendar',
-        items: [
-          { id: 'meeting_catalog', labelKey: 'navigation.meetingRoomCatalog', icon: 'home', screen: 'MeetingRoomCatalog' },
-          { id: 'meeting_calendar', labelKey: 'navigation.meetingCalendar', icon: 'calendar', screen: 'MeetingCalendar' },
-          { id: 'meeting_ops', labelKey: 'navigation.meetingOperations', icon: 'monitor', screen: 'MeetingOperations' },
-        ],
-      },
-      {
-        id: 'parking_valet',
-        labelKey: 'sidebar.parkingValet',
-        icon: 'truck',
-        items: [
-          { id: 'parking_assignment', labelKey: 'navigation.employeeParkingAssignment', icon: 'truck', screen: 'EmployeeParkingAssignment' },
-          { id: 'parking_occupancy', labelKey: 'navigation.parkingOccupancy', icon: 'pie-chart', screen: 'ParkingOccupancy' },
-          { id: 'valet_oversight', labelKey: 'navigation.valetOversight', icon: 'navigation', screen: 'ValetOversight' },
-          { id: 'valet_zones', labelKey: 'navigation.valetZones', icon: 'map', screen: 'ValetZones' },
-        ],
-      },
-      {
-        id: 'services_admin',
-        labelKey: 'sidebar.servicesAdmin',
-        icon: 'coffee',
-        items: [
-          { id: 'buffet_oversight', labelKey: 'navigation.buffetOversight', icon: 'coffee', screen: 'BuffetOversight' },
-          { id: 'all_locations', labelKey: 'navigation.locations', icon: 'map-pin', screen: 'AllLocations' },
-        ],
-      },
-      {
         id: 'users_config',
         labelKey: 'sidebar.usersConfig',
         icon: 'users',
         items: [
           { id: 'users_roles', labelKey: 'navigation.manageUsers', icon: 'users', screen: 'UsersRoles' },
-          { id: 'notification_templates', labelKey: 'navigation.notificationTemplates', icon: 'mail', screen: 'NotificationTemplates' },
-          { id: 'biometric_settings', labelKey: 'navigation.biometricSettings', icon: 'lock', screen: 'BiometricSettings' },
           { id: 'reminder_rules', labelKey: 'navigation.reminderRules', icon: 'clock', screen: 'ReminderRules' },
-        ],
-      },
-      {
-        id: 'reports_logs',
-        labelKey: 'sidebar.reportsLogs',
-        icon: 'trending-up',
-        items: [
-          { id: 'global_analytics', labelKey: 'navigation.globalAnalytics', icon: 'trending-up', screen: 'GlobalAnalytics' },
-          { id: 'system_event_log', labelKey: 'admin.systemEventLog', icon: 'file-text', screen: 'SystemEventLog' },
-          { id: 'reminder_schedule', labelKey: 'admin.reminderSchedule', icon: 'clock', screen: 'ReminderSchedule' },
-        ],
-      },
-      {
-        id: 'system',
-        labelKey: 'sidebar.system',
-        icon: 'settings',
-        items: [
-          { id: 'integrations', labelKey: 'navigation.integrationsHealth', icon: 'link', screen: 'IntegrationsStatus' },
-          { id: 'system_rules', labelKey: 'navigation.systemSettings', icon: 'settings', screen: 'SystemRules' },
         ],
       },
     ];
@@ -290,6 +204,7 @@ export default function Sidebar({
 }: SidebarProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { isRTL } = useLanguage();
   const { groups, standalone } = getMenuGroups(userRole);
   const { width } = Dimensions.get('window');
   const isLargeScreen = width >= 768;
@@ -357,6 +272,7 @@ export default function Sidebar({
         key={item.id}
         style={({ pressed }) => [
           styles.menuItem,
+          isRTL && { flexDirection: 'row-reverse' },
           isActive && [styles.menuItemActive, { backgroundColor: theme.sidebarActive }],
           pressed && { opacity: 0.7 },
         ]}
@@ -389,6 +305,7 @@ export default function Sidebar({
         key={item.id}
         style={({ pressed }) => [
           styles.standaloneItem,
+          isRTL && { flexDirection: 'row-reverse' },
           isActive && [styles.menuItemActive, { backgroundColor: theme.sidebarActive }],
           pressed && { opacity: 0.7 },
         ]}
@@ -432,11 +349,14 @@ export default function Sidebar({
       { 
         backgroundColor: theme.sidebarBg, 
         borderRightColor: theme.border,
-        paddingTop: insets.top + Spacing.lg,
+        borderLeftColor: theme.border,
+        borderRightWidth: isRTL ? 0 : 1,
+        borderLeftWidth: isRTL ? 1 : 0,
+        paddingTop: insets.top + Spacing.sm,
       },
     ]}>
       <Pressable 
-        style={({ pressed }) => [styles.profileHeader, pressed && { opacity: 0.7 }]}
+        style={({ pressed }) => [styles.profileHeader, isRTL && { flexDirection: 'row-reverse' }, pressed && { opacity: 0.7 }]}
         onPress={() => handleItemPress('Dashboard')}
       >
         {userPhotoUrl ? (
@@ -491,6 +411,15 @@ export default function Sidebar({
         {renderStandaloneItem(settingsItem)}
       </ScrollView>
 
+      <View style={styles.appInfo}>
+        <ThemedText style={[styles.appName, { color: theme.sidebarTextMuted }]}>
+          {t('common.brandName')} {t('common.appName')}
+        </ThemedText>
+        <ThemedText style={[styles.appVersion, { color: theme.sidebarTextMuted }]}>
+          v{Constants.expoConfig?.version || '1.0.0'}
+        </ThemedText>
+      </View>
+
       <View style={[styles.footer, { borderTopColor: theme.border }]}>
         <View style={styles.footerActions}>
           <Pressable 
@@ -530,7 +459,6 @@ const styles = StyleSheet.create({
   sidebar: {
     width: '100%',
     height: '100%',
-    borderRightWidth: 1,
     paddingBottom: Spacing.lg,
   },
   profileHeader: {
@@ -561,9 +489,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     borderRadius: BorderRadius.sm,
     marginBottom: Spacing.xs,
+    gap: Spacing.md,
   },
   standaloneText: {
-    marginStart: Spacing.md,
     fontSize: 15,
     fontWeight: '500',
   },
@@ -573,13 +501,13 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm + 2,
     paddingHorizontal: Spacing.sm,
     borderRadius: BorderRadius.sm,
+    gap: Spacing.md,
     marginBottom: 2,
   },
   menuItemActive: {
     backgroundColor: 'transparent',
   },
   menuText: {
-    marginStart: Spacing.md,
     fontSize: 14,
   },
   footer: {
@@ -598,5 +526,19 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.sm,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  appInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+  },
+  appName: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  appVersion: {
+    fontSize: 12,
+    marginStart: Spacing.xs,
   },
 });

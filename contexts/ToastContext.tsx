@@ -6,6 +6,7 @@ import {
   Pressable,
   Dimensions,
   Platform,
+  Modal,
 } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -22,6 +23,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { registerToastMethods, unregisterToastMethods, setGlobalLocale } from '@/utils/globalToast';
 import { LanguageContext } from '@/contexts/LanguageContext';
 import { defaultLocale } from '@/constants/i18n';
+import { Portal } from '@/contexts/PortalContext';
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
 
@@ -220,20 +222,40 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     setGlobalLocale(locale, isLocaleReady);
   }, [locale, isLocaleReady]);
 
+  const toastContent = toasts.length > 0 ? (
+    <View style={styles.toastWrapper} pointerEvents="box-none">
+      {toasts.map((toast, index) => (
+        <ToastItem
+          key={toast.id}
+          toast={toast}
+          onDismiss={hideToast}
+          index={index}
+        />
+      ))}
+    </View>
+  ) : null;
+
   return (
     <ToastContext.Provider value={{ showToast, showError, showSuccess, showWarning, showInfo, hideToast }}>
       {children}
       {toasts.length > 0 ? (
-        <View style={styles.toastWrapper}>
-          {toasts.map((toast, index) => (
-            <ToastItem
-              key={toast.id}
-              toast={toast}
-              onDismiss={hideToast}
-              index={index}
-            />
-          ))}
-        </View>
+        Platform.OS === 'web' ? (
+          <Portal>
+            {toastContent}
+          </Portal>
+        ) : (
+          <Modal
+            visible={true}
+            transparent
+            animationType="none"
+            statusBarTranslucent
+            presentationStyle="overFullScreen"
+            hardwareAccelerated
+            onRequestClose={() => {}}
+          >
+            {toastContent}
+          </Modal>
+        )
       ) : null}
     </ToastContext.Provider>
   );
@@ -249,13 +271,20 @@ export function useToast() {
 
 const styles = StyleSheet.create({
   toastWrapper: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 9999,
-    elevation: 9999,
-    pointerEvents: 'box-none',
+    ...Platform.select({
+      web: {
+        position: 'fixed' as 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 2147483647,
+        pointerEvents: 'box-none',
+      },
+      default: {
+        flex: 1,
+        backgroundColor: 'transparent',
+      },
+    }),
   },
   toastContainer: {
     position: 'absolute',

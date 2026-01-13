@@ -1,0 +1,19 @@
+[Firebase Web] Background messages may not work, but foreground messaging should still function index-bd256a9a48ee94981a87b048b82106a8.js:1170:4512
+[Firebase Web] Service worker registered: false index-bd256a9a48ee94981a87b048b82106a8.js:1170:819
+[Firebase Web] ========== INITIALIZE SUCCESS ========== index-bd256a9a48ee94981a87b048b82106a8.js:1170:880
+[Firebase Web] Replit detected, using base URL: https://vms-frontend-folio3.replit.app index-bd256a9a48ee94981a87b048b82106a8.js:1170:3661
+[Firebase Web] Attempting to register service worker at: https://vms-frontend-folio3.replit.app/firebase-messaging-sw.js index-bd256a9a48ee94981a87b048b82106a8.js:1170:3961
+[Firebase Web] Service worker registration failed: TypeError: ServiceWorker script at https://vms-frontend-folio3.replit.app/firebase-messaging-sw.js for scope https://vms-frontend-folio3.replit.app/firebase-cloud-messaging-push-scope encountered an error during installation. index-bd256a9a48ee94981a87b048b82106a8.js:1170:4443
+[Firebase Web] Background messages may not work, but foreground messaging should still function index-bd256a9a48ee94981a87b048b82106a8.js:1170:4512
+[Firebase Web] ========== GET FCM TOKEN START ========== index-bd256a9a48ee94981a87b048b82106a8.js:1170:1235
+[Firebase Web] Platform: web index-bd256a9a48ee94981a87b048b82106a8.js:1170:1307
+[Firebase Web] Messaging available: true index-bd256a9a48ee94981a87b048b82106a8.js:1170:1353
+[Firebase Web] Service worker registered: false index-bd256a9a48ee94981a87b048b82106a8.js:1170:1408
+[Firebase Web] VAPID key configured: true index-bd256a9a48ee94981a87b048b82106a8.js:1170:1469
+[Firebase Web] Requesting notification permission... index-bd256a9a48ee94981a87b048b82106a8.js:1170:1627
+The Notification permission may only be requested from inside a short running user-generated event handler. vms-frontend-folio3.replit.app
+[Firebase Web] Permission result: default index-bd256a9a48ee94981a87b048b82106a8.js:1170:1745
+[Firebase Web] Notification permission denied index-bd256a9a48ee94981a87b048b82106a8.js:1170:1817
+[Push Web] No token obtained index-bd256a9a48ee94981a87b048b82106a8.js:1016:2800
+[Push] Initialization result: false index-bd256a9a48ee94981a87b048b82106a8.js:1016:2004
+[Push] ========== INITIALIZE END ==========

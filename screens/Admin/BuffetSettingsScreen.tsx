@@ -79,7 +79,7 @@ const MOCK_BUFFET_LOCATIONS: BuffetLocation[] = [
 
 export default function BuffetSettingsScreen() {
   const { theme } = useTheme();
-  const { t } = useTranslation();
+  const { t, isRTL } = useTranslation();
   const insets = useSafeAreaInsets();
   const [locations, setLocations] = useState<BuffetLocation[]>(MOCK_BUFFET_LOCATIONS);
   const [showModal, setShowModal] = useState(false);
@@ -143,10 +143,10 @@ export default function BuffetSettingsScreen() {
               style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}
               onPress={() => handleEditLocation(location)}
             >
-              <View style={styles.cardHeader}>
+              <View style={[styles.cardHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <View style={{ flex: 1 }}>
-                  <ThemedText style={[Typography.subtitle, { fontWeight: '600' }]}>{location.name}</ThemedText>
-                  <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: Spacing.xs }]}>
+                  <ThemedText style={[Typography.subtitle, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>{location.name}</ThemedText>
+                  <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: Spacing.xs, textAlign: isRTL ? 'right' : 'left' }]}>
                     {location.building} • {location.floor}
                   </ThemedText>
                 </View>
@@ -174,18 +174,18 @@ export default function BuffetSettingsScreen() {
               </View>
 
               <View style={styles.cardContent}>
-                <View style={styles.infoRow}>
+                <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                   <DDIcon name="users" variant="muted" size={16} />
-                  <ThemedText style={[Typography.body, { color: theme.textSecondary, marginStart: Spacing.sm }]}>
+                  <ThemedText style={[Typography.body, { color: theme.textSecondary, marginStart: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
                     {t('buffet.numberOfGuests')}: {location.capacity}
                   </ThemedText>
                 </View>
 
                 {location.amenities.length > 0 ? (
-                  <View style={[styles.infoRow, { marginTop: Spacing.sm }]}>
+                  <View style={[styles.infoRow, { marginTop: Spacing.sm, flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                     <DDIcon name="check-circle" variant="muted" size={16} />
                     <View style={{ flex: 1, marginStart: Spacing.sm }}>
-                      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                      <ScrollView horizontal showsHorizontalScrollIndicator={false} nestedScrollEnabled={true}>
                         <View style={styles.amenitiesContainer}>
                           {location.amenities.map((amenity, idx) => (
                             <View
@@ -202,8 +202,8 @@ export default function BuffetSettingsScreen() {
                 ) : null}
               </View>
 
-              <View style={[styles.cardFooter, { borderTopColor: theme.border }]}>
-                <Pressable style={styles.actionButton}>
+              <View style={[styles.cardFooter, { borderTopColor: theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                <Pressable style={[styles.actionButton, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                   <DDIcon name="edit-2" size={16} variant="primary" />
                   <ThemedText style={[Typography.body, { color: theme.primary, marginStart: Spacing.xs }]}>
                     {t('common.edit')}
@@ -215,7 +215,7 @@ export default function BuffetSettingsScreen() {
 
           {locations.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <DDIcon name="coffee" variant="muted" size={48} />
+              <DDIcon name="cloche" variant="muted" size={48} />
               <Spacer height={Spacing.md} />
               <ThemedText style={[Typography.body, { color: theme.textSecondary, textAlign: 'center' }]}>
                 {t('common.noResults')}
@@ -240,7 +240,7 @@ export default function BuffetSettingsScreen() {
               style={[styles.modalContent, { backgroundColor: theme.background, paddingBottom: insets.bottom + Spacing.xl }]}
               showsVerticalScrollIndicator={false}
             >
-              <View style={styles.modalHeader}>
+              <View style={[styles.modalHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <ThemedText style={[Typography.subtitle, { fontWeight: '600' }]}>
                   {editingLocation ? t('common.edit') : t('common.save')}
                 </ThemedText>
@@ -302,7 +302,7 @@ export default function BuffetSettingsScreen() {
                 <Spacer height={Spacing.md} />
 
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginBottom: Spacing.xs }]}>{t('status.active')}</ThemedText>
-                <View style={styles.statusOptions}>
+                <View style={[styles.statusOptions, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                   <Pressable
                     style={[
                       styles.statusOption,
@@ -369,7 +369,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   cardHeader: {
-    flexDirection: 'row',
     alignItems: 'flex-start',
     padding: Spacing.lg,
   },
@@ -383,7 +382,6 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.md,
   },
   infoRow: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
   amenitiesContainer: {
@@ -400,11 +398,9 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
-    flexDirection: 'row',
     justifyContent: 'flex-end',
   },
   actionButton: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
   emptyContainer: {
@@ -440,7 +436,6 @@ const styles = StyleSheet.create({
     maxHeight: '75%',
   },
   modalHeader: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: Spacing.xl,
@@ -458,7 +453,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   statusOptions: {
-    flexDirection: 'row',
   },
   statusOption: {
     flex: 1,

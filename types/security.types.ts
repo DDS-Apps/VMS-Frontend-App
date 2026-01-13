@@ -8,9 +8,9 @@ export type SecurityAlertType =
   | 'emergency'
   | 'system';
 
-export type GateAction = 'scan' | 'check_in' | 'check_out' | 'denied' | 'manual_override';
+export type GateAction = 'scan' | 'check_in' | 'check_out' | 'denied' | 'access_denied' | 'manual_override';
 
-export type GateResult = 'success' | 'failed' | 'blocked';
+export type GateResult = 'success' | 'failed' | 'blocked' | 'allowed' | 'denied';
 
 export interface SecurityVisitorDto {
   id: string;
@@ -32,6 +32,14 @@ export interface SecurityVisitorDto {
   accessAreas?: string[];
   parkingAssigned?: boolean;
   parkingSpot?: string;
+  isVisitorNeedsParking?: boolean;
+  visitorNeedsParking?: boolean;
+  licensePlate?: string | null;
+  carModel?: string | null;
+  carColor?: string | null;
+  valetAssigned?: boolean;
+  valetDriverName?: string;
+  valetStatus?: string;
   qrCode?: string;
   checkInTime?: string;
   checkOutTime?: string;

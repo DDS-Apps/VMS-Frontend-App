@@ -2,6 +2,29 @@ import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'ax
 import { apiConfig } from './config';
 import { ApiException, mapAxiosErrorToApiError } from './errors';
 
+interface WrappedApiResponse<T> {
+  success: boolean;
+  message?: string;
+  data: T;
+}
+
+function isWrappedResponse<T>(response: unknown): response is WrappedApiResponse<T> {
+  return (
+    typeof response === 'object' &&
+    response !== null &&
+    'success' in response &&
+    'data' in response &&
+    typeof (response as WrappedApiResponse<T>).success === 'boolean'
+  );
+}
+
+function unwrapResponse<T>(responseData: unknown): T {
+  if (isWrappedResponse<T>(responseData)) {
+    return responseData.data;
+  }
+  return responseData as T;
+}
+
 let accessToken: string | null = null;
 let refreshToken: string | null = null;
 let onTokenRefreshFailed: (() => void) | null = null;
@@ -58,18 +81,27 @@ const httpClient: AxiosInstance = axios.create({
 
 httpClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
+    const method = config.method?.toUpperCase() || 'UNKNOWN';
+    const url = `${config.baseURL || ''}${config.url || ''}`;
+    const hasAuth = !!accessToken;
+    console.log(`[HTTP Request] ${method} ${url} | Auth: ${hasAuth ? 'yes' : 'no'}`);
+    
     if (accessToken && config.headers) {
       config.headers.Authorization = `Bearer ${accessToken}`;
     }
     return config;
   },
   (error) => {
+    console.error('[HTTP Request Error]', error);
     return Promise.reject(error);
   }
 );
 
 httpClient.interceptors.response.use(
   (response) => {
+    const method = response.config.method?.toUpperCase() || 'UNKNOWN';
+    const url = response.config.url || '';
+    console.log(`[HTTP Response] ${method} ${url} | Status: ${response.status}`);
     return response;
   },
   async (error: AxiosError) => {
@@ -97,7 +129,8 @@ httpClient.interceptors.response.use(
           { headers: { 'Content-Type': 'application/json' } }
         );
 
-        const { accessToken: newAccessToken, refreshToken: newRefreshToken } = response.data;
+        const unwrappedData = unwrapResponse<{ accessToken: string; refreshToken: string }>(response.data);
+        const { accessToken: newAccessToken, refreshToken: newRefreshToken } = unwrappedData;
         setAccessToken(newAccessToken);
         setRefreshToken(newRefreshToken);
 
@@ -127,16 +160,16 @@ httpClient.interceptors.response.use(
 export { httpClient };
 
 export async function get<T>(url: string, params?: Record<string, unknown>): Promise<T> {
-  const response = await httpClient.get<T>(url, { params });
-  return response.data;
+  const response = await httpClient.get(url, { params });
+  return unwrapResponse<T>(response.data);
 }
 
 export async function post<T, D = unknown>(url: string, data?: D): Promise<T> {
   console.log('[httpClient.post] Making POST request to:', url);
   try {
-    const response = await httpClient.post<T>(url, data);
+    const response = await httpClient.post(url, data);
     console.log('[httpClient.post] Response status:', response.status);
-    return response.data;
+    return unwrapResponse<T>(response.data);
   } catch (error) {
     console.error('[httpClient.post] Request failed:', error);
     throw error;
@@ -144,18 +177,28 @@ export async function post<T, D = unknown>(url: string, data?: D): Promise<T> {
 }
 
 export async function patch<T, D = unknown>(url: string, data?: D): Promise<T> {
-  const response = await httpClient.patch<T>(url, data);
-  return response.data;
+  const response = await httpClient.patch(url, data);
+  return unwrapResponse<T>(response.data);
 }
 
 export async function put<T, D = unknown>(url: string, data?: D): Promise<T> {
-  const response = await httpClient.put<T>(url, data);
-  return response.data;
+  const response = await httpClient.put(url, data);
+  return unwrapResponse<T>(response.data);
 }
 
-export async function del<T>(url: string): Promise<T> {
-  const response = await httpClient.delete<T>(url);
-  return response.data;
+export async function del<T, D = unknown>(url: string, data?: D): Promise<T | undefined> {
+  console.log('[httpClient.del] Making DELETE request to:', url);
+  try {
+    const response = await httpClient.delete(url, { data });
+    console.log('[httpClient.del] Response status:', response.status);
+    if (response.status === 204) {
+      return undefined as T;
+    }
+    return unwrapResponse<T>(response.data);
+  } catch (error) {
+    console.error('[httpClient.del] Request failed:', error);
+    throw error;
+  }
 }
 
 export default httpClient;

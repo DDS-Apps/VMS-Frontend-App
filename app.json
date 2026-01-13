@@ -1,27 +1,33 @@
 {
   "expo": {
-    "name": "Dallah Digital VMS",
+    "name": "Dallah Albaraka VMS",
     "slug": "dallah-vms",
-    "version": "1.0.0",
+    "version": "1.0.5",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "dallahvms",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.dallah.vms"
-    },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#0e2342",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#FFFFFF",
+        "foregroundImage": "./assets/images/android-icon-foreground.png"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.dallah.vms"
+      "package": "com.dallah.vms",
+      "googleServicesFile": "./google-services.json"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.dallah.vms",
+      "appleTeamId": "SNJM77V43A",
+      "buildNumber": "7",
+      "googleServicesFile": "./GoogleService-Info.plist",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "UIBackgroundModes": ["remote-notification"]
+      }
     },
     "web": {
       "output": "single",
@@ -31,19 +37,35 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-logo.png",
-          "imageWidth": 320,
+          "image": "./assets/images/logo.png",
+          "imageWidth": 400,
           "resizeMode": "contain",
-          "backgroundColor": "#0e2342",
+          "backgroundColor": "#FFFFFF",
           "dark": {
-            "backgroundColor": "#0e2342"
+            "backgroundColor": "#FFFFFF"
           }
         }
       ],
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/notification-icon.png",
+          "color": "#F58423",
+          "defaultChannel": "default"
+        }
+      ]
     ],
     "experiments": {
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "apiBaseUrl": "https://vms-backend-folio3.replit.app",
+      "microsoftAuthUrl": "https://vms-backend-folio3.replit.app",
+      "eas": {
+        "projectId": "33b6baff-6c89-44be-905f-006d0da4434d"
+      }
+    },
+    "owner": "ahsanshafiq"
   }
 }
