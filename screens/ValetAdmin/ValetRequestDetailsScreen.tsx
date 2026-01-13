@@ -613,7 +613,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   completedContainer: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: Spacing.lg,
@@ -632,7 +631,6 @@ const styles = StyleSheet.create({
     maxHeight: '70%',
   },
   modalHeader: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
@@ -640,7 +638,6 @@ const styles = StyleSheet.create({
     maxHeight: 400,
   },
   driverItem: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: Spacing.md,
     borderBottomWidth: 1,

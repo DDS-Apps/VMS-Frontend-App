@@ -528,7 +528,6 @@ const styles = StyleSheet.create({
     paddingStart: Spacing.lg,
   },
   cardHeader: {
-    flexDirection: 'row',
     alignItems: 'center',
     marginBottom: Spacing.sm,
   },
@@ -556,13 +555,11 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   detailsRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.md,
     marginBottom: Spacing.sm,
   },
   detailItem: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
   },
@@ -570,13 +567,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   servicesStatusRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: Spacing.sm,
   },
   servicesIconsRow: {
-    flexDirection: 'row',
     gap: Spacing.sm,
     alignItems: 'center',
   },
@@ -601,7 +596,6 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   expandedDetailRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
   },
@@ -610,7 +604,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   toggleContainer: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: Spacing.sm,
@@ -621,13 +614,11 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   cardFooter: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     minHeight: 28,
   },
   servicesRow: {
-    flexDirection: 'row',
     gap: Spacing.xs,
   },
   servicePill: {
@@ -643,7 +634,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   actionButtons: {
-    flexDirection: 'row',
     gap: Spacing.xs,
   },
   actionBtn: {

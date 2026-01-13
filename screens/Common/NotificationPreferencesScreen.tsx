@@ -263,13 +263,11 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   row: {
-    flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingVertical: Spacing.sm,
   },
   rowLeft: {
-    flexDirection: "row",
     alignItems: "center",
     flex: 1,
   },
@@ -278,7 +276,6 @@ const styles = StyleSheet.create({
     marginVertical: Spacing.sm,
   },
   permissionCard: {
-    flexDirection: "row",
     alignItems: "center",
     padding: Spacing.md,
     borderRadius: BorderRadius.lg,

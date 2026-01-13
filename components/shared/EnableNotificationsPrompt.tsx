@@ -105,7 +105,7 @@ export function EnableNotificationsPrompt({
           {t('notifications.enablePromptDescription')}
         </ThemedText>
         
-        <View style={styles.buttonRow}>
+        <View style={[styles.buttonRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <Pressable
             onPress={handleEnable}
             disabled={isLoading}
@@ -164,7 +164,6 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
   },
   buttonRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.md,
   },

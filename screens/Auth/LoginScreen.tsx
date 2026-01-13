@@ -463,9 +463,9 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
 
             <Spacer height={Spacing.lg} />
 
-            <View style={styles.rememberForgotRow}>
+            <View style={[styles.rememberForgotRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <Pressable
-                style={styles.rememberRow}
+                style={[styles.rememberRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
                 onPress={() => setRememberMe(!rememberMe)}
               >
                 <View
@@ -509,6 +509,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                   {
                     backgroundColor: `${theme.error}15`,
                     borderColor: theme.error,
+                    flexDirection: isRTL ? 'row-reverse' : 'row',
                   },
                 ]}
               >
@@ -536,7 +537,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
               {t("auth.signIn")}
             </LoadingButton>
 
-            <View style={styles.dividerContainer}>
+            <View style={[styles.dividerContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <View
                 style={[styles.dividerLine, { backgroundColor: theme.border }]}
               />
@@ -560,6 +561,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                   backgroundColor: theme.surface,
                   borderColor: theme.border,
                   opacity: isMicrosoftSubmitting || isAzureLoading ? 0.7 : 1,
+                  flexDirection: isRTL ? 'row-reverse' : 'row',
                 },
               ]}
               onPress={handleMicrosoftLogin}
@@ -632,12 +634,10 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   rememberForgotRow: {
-    flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
   rememberRow: {
-    flexDirection: "row",
     alignItems: "center",
   },
   checkbox: {
@@ -654,13 +654,11 @@ const styles = StyleSheet.create({
   microsoftButton: {
     height: INPUT_HEIGHT,
     borderRadius: 10,
-    flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1,
   },
   dividerContainer: {
-    flexDirection: "row",
     alignItems: "center",
     marginVertical: Spacing.lg,
   },
@@ -669,7 +667,6 @@ const styles = StyleSheet.create({
     height: 1,
   },
   errorContainer: {
-    flexDirection: "row",
     alignItems: "center",
     padding: Spacing.md,
     borderRadius: BorderRadius.sm,

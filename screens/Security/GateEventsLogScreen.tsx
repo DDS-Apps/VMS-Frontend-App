@@ -364,23 +364,19 @@ export default function GateEventsLogScreen({ navigation }: GateEventsLogScreenP
 
 const styles = StyleSheet.create({
   summaryRow: {
-    flexDirection: 'row',
     gap: Spacing.md,
   },
   summaryCard: {
     flex: 1,
-    flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
     padding: Spacing.md,
     borderRadius: BorderRadius.lg,
   },
   filtersContainer: {
-    flexDirection: 'row',
     gap: Spacing.sm,
   },
   filterPill: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,
@@ -408,7 +404,6 @@ const styles = StyleSheet.create({
   eventCard: {
     borderRadius: BorderRadius.lg,
     overflow: 'hidden',
-    flexDirection: 'row',
   },
   resultBorderLine: {
     width: 4,
@@ -419,7 +414,6 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   cardHeader: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
   },
@@ -428,7 +422,6 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   resultBadge: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,
@@ -440,19 +433,16 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   reasonBox: {
-    flexDirection: 'row',
     alignItems: 'flex-start',
     gap: Spacing.xs,
     padding: Spacing.sm,
     borderRadius: BorderRadius.md,
   },
   metaRow: {
-    flexDirection: 'row',
     flexWrap: 'wrap',
     gap: Spacing.sm,
   },
   metaChip: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,

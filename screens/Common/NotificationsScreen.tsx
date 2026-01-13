@@ -313,7 +313,6 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
 
 const styles = StyleSheet.create({
   header: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
@@ -330,7 +329,6 @@ const styles = StyleSheet.create({
   },
   activeTab: {},
   notificationCard: {
-    flexDirection: 'row',
     padding: Spacing.lg,
     paddingStart: Spacing.xl,
     borderRadius: BorderRadius.md,
@@ -363,7 +361,6 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   timeContainer: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     alignSelf: 'flex-end',

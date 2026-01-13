@@ -10,6 +10,7 @@ import Animated, {
   cancelAnimation,
 } from "react-native-reanimated";
 import { useTheme } from "@/hooks/useTheme";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Spacing, BorderRadius } from "@/constants/theme";
 
 interface SkeletonProps {
@@ -149,6 +150,7 @@ export const SkeletonListItem = ({
   style,
 }: SkeletonListItemProps) => {
   const { theme } = useTheme();
+  const { isRTL } = useLanguage();
 
   return (
     <View
@@ -157,6 +159,7 @@ export const SkeletonListItem = ({
         {
           backgroundColor: theme.surface,
           borderBottomColor: theme.border,
+          flexDirection: isRTL ? 'row-reverse' : 'row',
         },
         style,
       ]}
@@ -241,11 +244,12 @@ export const SkeletonDashboard = ({
   style,
 }: SkeletonDashboardProps) => {
   const { theme } = useTheme();
+  const { isRTL } = useLanguage();
 
   return (
     <View style={style}>
       <Skeleton width="50%" height={24} style={{ marginBottom: Spacing.lg }} />
-      <View style={styles.statsRow}>
+      <View style={[styles.statsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         {Array.from({ length: Math.min(cards, 4) }).map((_, index) => (
           <View
             key={index}
@@ -287,7 +291,6 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
   },
   listItem: {
-    flexDirection: "row",
     alignItems: "center",
     padding: Spacing.lg,
     borderBottomWidth: 1,
@@ -299,7 +302,6 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
   },
   statsRow: {
-    flexDirection: "row",
     flexWrap: "wrap",
     marginHorizontal: -Spacing.sm,
   },

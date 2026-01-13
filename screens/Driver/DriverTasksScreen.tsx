@@ -624,7 +624,7 @@ export default function DriverTasksScreen({ onNavigateToDetail }: DriverTasksScr
 
         <Spacer height={Spacing.md} />
 
-        <View style={styles.searchBarWrapper}>
+        <View style={[styles.searchBarWrapper, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <SearchInput
             placeholder={t('common.search')}
             value={searchQuery}
@@ -716,12 +716,10 @@ export default function DriverTasksScreen({ onNavigateToDetail }: DriverTasksScr
 
 const styles = StyleSheet.create({
   dateDisplayRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   searchBarWrapper: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
   },
@@ -786,7 +784,6 @@ const styles = StyleSheet.create({
     paddingStart: Spacing.lg + 4,
   },
   cardHeader: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
   },
@@ -808,7 +805,6 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
   },
   infoRow: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
   dotSeparator: {
@@ -818,7 +814,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   actionButton: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: Spacing.md,
@@ -850,7 +845,6 @@ const styles = StyleSheet.create({
     maxHeight: '70%',
   },
   modalHeader: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
@@ -858,7 +852,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   slotCard: {
-    flexDirection: 'row',
     alignItems: 'center',
     padding: Spacing.lg,
     borderRadius: BorderRadius.lg,

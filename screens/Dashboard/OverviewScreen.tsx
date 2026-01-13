@@ -249,7 +249,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
       {(userRole === 'employee' || userRole === 'manager') && (
         <>
           <View>
-            <View style={styles.header}>
+            <View style={[styles.header, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <View>
                 <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
                   {t('dashboard.upcomingVisitors')}
@@ -266,7 +266,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                   )}
                   style={({ pressed }) => [
                     styles.viewAllButton,
-                    { opacity: pressed ? 0.7 : 1 }
+                    { opacity: pressed ? 0.7 : 1, flexDirection: isRTL ? 'row-reverse' : 'row' }
                   ]}
                 >
                   <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
@@ -317,7 +317,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
       {userRole === 'employee' && (
         <>
           <View>
-            <View style={styles.header}>
+            <View style={[styles.header, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <View>
                 <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
                   {t('dashboard.recentRequests')}
@@ -331,7 +331,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                   onPress={() => navigation.navigate(ROUTES.VISITOR_REQUESTS as never, { initialTab: 'all' } as never)}
                   style={({ pressed }) => [
                     styles.viewAllButton,
-                    { opacity: pressed ? 0.7 : 1 }
+                    { opacity: pressed ? 0.7 : 1, flexDirection: isRTL ? 'row-reverse' : 'row' }
                   ]}
                 >
                   <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
@@ -385,7 +385,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
             <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
               {t('dashboard.pendingApprovals')}
             </ThemedText>
-            <View style={[styles.header, { alignItems: 'center', marginTop: 4 }]}>
+            <View style={[styles.header, { alignItems: 'center', marginTop: 4, flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, fontSize: 12 }]}>
                 {t('dashboard.requestsAwaitingApproval')}
               </ThemedText>
@@ -394,7 +394,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                   onPress={() => navigation.navigate(ROUTES.APPROVALS as never)}
                   style={({ pressed }) => [
                     styles.viewAllButton,
-                    { opacity: pressed ? 0.7 : 1 }
+                    { opacity: pressed ? 0.7 : 1, flexDirection: isRTL ? 'row-reverse' : 'row' }
                   ]}
                 >
                   <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
@@ -450,7 +450,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
             <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
               {t('navigation.awaitingVisitor')}
             </ThemedText>
-            <View style={[styles.header, { alignItems: 'center', marginTop: 4 }]}>
+            <View style={[styles.header, { alignItems: 'center', marginTop: 4, flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, fontSize: 12 }]}>
                 {t('dashboard.awaitingResponse')}
               </ThemedText>
@@ -462,7 +462,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                   )}
                   style={({ pressed }) => [
                     styles.viewAllButton,
-                    { opacity: pressed ? 0.7 : 1 }
+                    { opacity: pressed ? 0.7 : 1, flexDirection: isRTL ? 'row-reverse' : 'row' }
                   ]}
                 >
                   <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
@@ -518,7 +518,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
             <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
               {t('navigation.walkInVisitors')}
             </ThemedText>
-            <View style={[styles.header, { alignItems: 'center', marginTop: 4 }]}>
+            <View style={[styles.header, { alignItems: 'center', marginTop: 4, flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, fontSize: 12 }]}>
                 {t('dashboard.walkIns')}
               </ThemedText>
@@ -527,7 +527,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                   onPress={() => navigation.navigate(ROUTES.VISITOR_REQUESTS as never, { initialTab: 'walkin' } as never)}
                   style={({ pressed }) => [
                     styles.viewAllButton,
-                    { opacity: pressed ? 0.7 : 1 }
+                    { opacity: pressed ? 0.7 : 1, flexDirection: isRTL ? 'row-reverse' : 'row' }
                   ]}
                 >
                   <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
@@ -700,7 +700,6 @@ const styles = StyleSheet.create({
     marginTop: Spacing.xs,
   },
   header: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
   },
@@ -918,7 +917,6 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.sm,
   },
   viewAllButton: {
-    flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-end',
   },

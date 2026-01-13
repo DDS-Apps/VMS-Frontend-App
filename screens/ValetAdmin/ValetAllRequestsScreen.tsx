@@ -406,7 +406,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sectionTitleRow: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
@@ -426,7 +425,6 @@ const styles = StyleSheet.create({
   visitorCard: {
     borderRadius: LAYOUT.cardRadius,
     overflow: 'hidden',
-    flexDirection: 'row',
   },
   cardAccent: {
     width: 4,
@@ -436,7 +434,6 @@ const styles = StyleSheet.create({
     padding: LAYOUT.cardPadding,
   },
   cardHeaderRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.md,
   },
@@ -451,7 +448,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   statusBadge: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.sm,
     paddingVertical: 6,
@@ -463,13 +459,11 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   detailsRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     flexWrap: 'wrap',
     gap: Spacing.md,
   },
   detailItem: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },

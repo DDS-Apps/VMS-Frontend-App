@@ -581,7 +581,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   photoButtons: {
-    flexDirection: 'row',
     gap: Spacing.sm,
   },
   avatarInfo: {
@@ -596,7 +595,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   infoRow: {
-    flexDirection: 'row',
     gap: Spacing.lg,
   },
   infoItem: {
@@ -615,7 +613,6 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
   },
   labelRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
@@ -624,7 +621,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   readOnlyBadge: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.sm,
     paddingVertical: 2,

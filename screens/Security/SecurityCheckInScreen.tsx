@@ -644,12 +644,10 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
 
 const styles = StyleSheet.create({
   dateDisplayRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   searchBarWrapper: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
   },
@@ -665,12 +663,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   filtersContainer: {
-    flexDirection: 'row',
     gap: Spacing.sm,
     paddingEnd: Spacing.sm,
   },
   filterPill: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
@@ -700,7 +696,6 @@ const styles = StyleSheet.create({
   visitorCard: {
     borderRadius: BorderRadius.md,
     overflow: 'hidden',
-    flexDirection: 'row',
   },
   cardAccent: {
     width: 4,
@@ -710,7 +705,6 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
   },
   cardHeaderRow: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
   avatar: {
@@ -737,7 +731,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_600SemiBold',
   },
   compactDetailsRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
@@ -747,7 +740,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   compactServiceRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.sm,
     paddingVertical: Spacing.xs,
@@ -760,7 +752,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   valetBadge: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.sm,
     paddingVertical: 2,

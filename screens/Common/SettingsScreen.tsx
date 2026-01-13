@@ -263,10 +263,10 @@ export default function SettingsScreen({
               style={({ pressed }) => [
                 styles.languageButton,
                 { 
+                  flexDirection: isRTL ? 'row-reverse' : 'row',
                   backgroundColor: locale === lang.code ? applyOpacity(theme.primary, '15') : theme.background,
                   borderColor: locale === lang.code ? theme.primary : theme.border,
                   opacity: pressed ? 0.8 : 1,
-                  flexDirection: isRTL ? 'row-reverse' : 'row',
                 },
               ]}
               onPress={() => handleLanguageChange(lang.code)}
@@ -446,7 +446,6 @@ const styles = StyleSheet.create({
     marginVertical: Spacing.md,
   },
   profileContainer: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
   avatar: {
@@ -468,7 +467,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   editProfileButton: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
@@ -482,7 +480,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   settingItem: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
@@ -498,7 +495,6 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   languageButton: {
-    flexDirection: 'row',
     alignItems: 'center',
     padding: Spacing.md,
     borderRadius: 10,
@@ -575,14 +571,12 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.xs,
   },
   logoutButton: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     padding: Spacing.lg,
     borderRadius: BorderRadius.md,
   },
   testNotificationButton: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: Spacing.md,

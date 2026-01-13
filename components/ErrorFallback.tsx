@@ -12,6 +12,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { DDIcon } from "@/components/DDIcon";
 import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Spacing, BorderRadius, Fonts } from "@/constants/theme";
 
 export type ErrorFallbackProps = {
@@ -21,6 +22,7 @@ export type ErrorFallbackProps = {
 
 export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
   const { theme } = useTheme();
+  const { isRTL } = useLanguage();
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const handleRestart = async () => {
@@ -95,7 +97,7 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
         >
           <View style={styles.modalOverlay}>
             <ThemedView style={styles.modalContainer}>
-              <View style={styles.modalHeader}>
+              <View style={[styles.modalHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <ThemedText type="h2" style={styles.modalTitle}>
                   Error Details
                 </ThemedText>
@@ -211,7 +213,6 @@ const styles = StyleSheet.create({
     borderTopRightRadius: BorderRadius.lg,
   },
   modalHeader: {
-    flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: Spacing.lg,

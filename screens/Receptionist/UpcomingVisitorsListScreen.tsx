@@ -190,7 +190,7 @@ export default function UpcomingVisitorsListScreen() {
           ) : null}
 
           {(item.visitor.phone || item.visitor.email) ? (
-            <Pressable onPress={() => toggleExpand(item.id)} style={styles.toggleContainer}>
+            <Pressable onPress={() => toggleExpand(item.id)} style={[styles.toggleContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
                 {expandedVisitors.has(item.id) ? t('common.lessDetails') : t('common.moreDetails')}
               </ThemedText>
@@ -274,7 +274,6 @@ const styles = StyleSheet.create({
     
   },
   cardHeaderRow: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
   avatar: {
@@ -301,7 +300,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   dateTimeRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
@@ -312,12 +310,10 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   bottomRow: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   servicesRow: {
-    flexDirection: 'row',
     gap: Spacing.sm,
   },
   servicePillRounded: {
@@ -348,7 +344,6 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   expandedDetailRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
   },
@@ -356,7 +351,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   toggleContainer: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing.xs,

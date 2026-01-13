@@ -319,7 +319,7 @@ export default function DriverTaskDetailScreen({
         <Spacer height={Spacing.xl} />
 
         {showAssignedActions ? (
-          <View style={styles.actionsContainer}>
+          <View style={[styles.actionsContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <LoadingButton
               onPress={handleOpenParkingModal}
               disabled={isUpdating}
@@ -331,8 +331,6 @@ export default function DriverTaskDetailScreen({
             >
               {t('valet.parkVehicle')}
             </LoadingButton>
-
-            <View style={{ width: Spacing.md }} />
 
             <LoadingButton
               onPress={handleComplete}
@@ -432,11 +430,9 @@ export default function DriverTaskDetailScreen({
 
 const styles = StyleSheet.create({
   backButton: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
   headerSection: {
-    flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
   },
@@ -458,14 +454,12 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
   },
   infoRow: {
-    flexDirection: 'row',
     alignItems: 'flex-start',
   },
   actionsContainer: {
-    flexDirection: 'row',
+    gap: Spacing.md,
   },
   actionButton: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: Spacing.lg,
@@ -473,7 +467,6 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.lg,
   },
   statusCard: {
-    flexDirection: 'row',
     alignItems: 'center',
     padding: Spacing.lg,
     borderRadius: BorderRadius.lg,
@@ -498,7 +491,6 @@ const styles = StyleSheet.create({
     maxHeight: '70%',
   },
   modalHeader: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
@@ -506,7 +498,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   slotCard: {
-    flexDirection: 'row',
     alignItems: 'center',
     padding: Spacing.lg,
     borderRadius: BorderRadius.lg,

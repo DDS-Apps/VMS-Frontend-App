@@ -9,6 +9,7 @@ import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { LoadingButton } from "@/components/shared/LoadingButton";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { BorderRadius, Spacing, Typography } from "@/constants/theme";
 
 type ModalTone = "danger" | "warning" | "info";
@@ -51,6 +52,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
 }) => {
   const { theme, isDark } = useTheme();
   const { t } = useTranslation();
+  const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   const [status, setStatus] = useState<ModalStatus>("idle");
   const [errorMessage, setErrorMessage] = useState<string>("");
@@ -136,7 +138,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           <ThemedText style={[Typography.bodySmall, styles.errorMessage, { color: theme.textSecondary }]}>
             {errorMessage}
           </ThemedText>
-          <View style={styles.errorActions}>
+          <View style={[styles.errorActions, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <LoadingButton
               onPress={handleRetry}
               variant="outline"
@@ -180,7 +182,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           </ThemedText>
         ) : null}
 
-        <View style={styles.buttonContainer}>
+        <View style={[styles.buttonContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <LoadingButton
             onPress={handleCancel}
             variant="outline"
@@ -276,7 +278,6 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.xl,
   },
   buttonContainer: {
-    flexDirection: "row",
     width: "100%",
     marginTop: Spacing.md,
   },
@@ -305,7 +306,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
   },
   errorActions: {
-    flexDirection: "row",
     width: "100%",
     marginTop: Spacing.sm,
   },

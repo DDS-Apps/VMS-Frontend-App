@@ -130,7 +130,7 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
         resizeMode="contain"
       />
       {splashState !== 'loading' && splashState !== 'ready' ? (
-        <View style={styles.statusContainer}>
+        <View style={[styles.statusContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <ActivityIndicator size="small" color="#FFFFFF" />
           <ThemedText style={styles.statusText}>
             {getStatusMessage()}
@@ -155,7 +155,6 @@ const styles = StyleSheet.create({
   statusContainer: {
     position: 'absolute',
     bottom: 100,
-    flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
   },

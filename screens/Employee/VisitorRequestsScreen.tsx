@@ -58,6 +58,7 @@ const StatusAccent = ({ color }: { color: string }) => (
 
 // Shared: Service Icons Component
 const ServiceIcons = ({ request, theme, size = 16 }: { request: VisitorRequest; theme: Theme; size?: number }) => {
+  const { isRTL } = useLanguage();
   const hasServices = request.parkingSlot || request.meetingRoom || request.buffet || request.valet;
   
   if (!hasServices) {
@@ -65,7 +66,7 @@ const ServiceIcons = ({ request, theme, size = 16 }: { request: VisitorRequest; 
   }
   
   return (
-    <View style={styles.servicesRow}>
+    <View style={[styles.servicesRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
       {request.parkingSlot ? (
         <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '20'), width: size * 2, height: size * 2, borderRadius: size }]}>
           <DDIcon name="map-pin" size={size} color={theme.info} />
@@ -155,13 +156,13 @@ const DateTimeDisplay = ({ date, time, duration, theme, compact = false }: { dat
 
   return (
     <View style={styles.dateTimeRowSplit}>
-      <View style={styles.dateTimeLeft}>
+      <View style={[styles.dateTimeLeft, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <DDIcon name="calendar" size={compact ? 13 : 14} variant="muted" />
         <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
           {formatVisitDate(date)}
         </ThemedText>
       </View>
-      <View style={styles.dateTimeRight}>
+      <View style={[styles.dateTimeRight, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <DDIcon name="clock" size={compact ? 13 : 14} variant="muted" />
         <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
           {formatTimeFromString(time)}
@@ -309,8 +310,10 @@ const VisitorRequestTableRow = React.memo(({
 
 
 // Shared: Stats Cards Component
-const StatsCards = ({ totalVisitors, todaysVisitors, theme, t }: { totalVisitors: number; todaysVisitors: number; theme: Theme; t: (key: string) => string }) => (
-  <View style={styles.statsGrid}>
+const StatsCards = ({ totalVisitors, todaysVisitors, theme, t }: { totalVisitors: number; todaysVisitors: number; theme: Theme; t: (key: string) => string }) => {
+  const { isRTL } = useLanguage();
+  return (
+  <View style={[styles.statsGrid, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
     <ThemedView style={[styles.statCard, { backgroundColor: theme.surface, borderColor: theme.border, borderWidth: 1 }]}>
       <View style={[styles.statIconContainer, { backgroundColor: applyOpacity(theme.info, '15') }]}>
         <DDIcon name="users" size={24} color={theme.info} />
@@ -337,7 +340,8 @@ const StatsCards = ({ totalVisitors, todaysVisitors, theme, t }: { totalVisitors
       </ThemedText>
     </ThemedView>
   </View>
-);
+  );
+};
 
 // Shared: Header with Tabs and View Toggle
 const SectionHeader = ({ 
@@ -357,6 +361,7 @@ const SectionHeader = ({
   t: (key: string) => string;
   userRole?: 'employee' | 'manager';
 }) => {
+  const { isRTL } = useLanguage();
   const getEmployeeTabLabel = (tab: EmployeeTab) => {
     switch (tab) {
       case 'upcoming': return t('visitor.upcomingVisitors');
@@ -389,11 +394,11 @@ const SectionHeader = ({
 
   return (
   <>
-    <View style={[styles.sectionTitleRow, styles.paddedContent]}>
+    <View style={[styles.sectionTitleRow, styles.paddedContent, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
       <ThemedText style={[Typography.subtitle]}>
         {t('navigation.myRequests')}
       </ThemedText>
-      <View style={styles.viewToggle}>
+      <View style={[styles.viewToggle, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <Pressable
           style={[
             styles.viewToggleButton,
@@ -438,7 +443,7 @@ const SectionHeader = ({
     <ScrollView 
       horizontal 
       showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.tabsContainer}
+      contentContainerStyle={[styles.tabsContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
       nestedScrollEnabled={true}
     >
       {tabs.map((tab) => (
@@ -797,7 +802,6 @@ const styles = StyleSheet.create({
   },
   // Shared: Layout
   statsGrid: {
-    flexDirection: 'row',
     gap: LAYOUT.contentGap,
   },
   statCard: {
@@ -814,12 +818,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sectionTitleRow: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   tabsContainer: {
-    flexDirection: 'row',
     gap: Spacing.lg,
   },
   tab: {
@@ -827,7 +829,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xs,
   },
   viewToggle: {
-    flexDirection: 'row',
     borderRadius: BorderRadius.sm,
     overflow: 'hidden',
   },
@@ -873,7 +874,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   servicesRow: {
-    flexDirection: 'row',
     gap: 8,
     flexWrap: 'wrap-reverse',
   },
@@ -904,12 +904,10 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   dateTimeLeft: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
   dateTimeRight: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },

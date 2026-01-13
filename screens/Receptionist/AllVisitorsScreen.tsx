@@ -667,7 +667,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   filtersRow: {
-    flexDirection: 'row',
     flexWrap: 'wrap',
     gap: Spacing.sm,
   },
@@ -752,14 +751,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   detailsRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.xs,
     marginBottom: Spacing.sm,
     flexWrap: 'wrap',
   },
   detailItem: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
   },
@@ -767,13 +764,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   servicesStatusRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: Spacing.sm,
   },
   servicesRow: {
-    flexDirection: 'row',
     gap: Spacing.sm,
     alignItems: 'center',
   },
@@ -811,7 +806,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   toggleContainer: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingTop: Spacing.md,
@@ -822,14 +816,12 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   cardFooter: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
     marginTop: Spacing.sm,
     minHeight: 28,
   },
   actionButtons: {
-    flexDirection: 'row',
     gap: Spacing.xs,
   },
   emptyState: {
