@@ -97,8 +97,8 @@ const ServiceIconsRow = ({ request, size = 14, showWalkIn = false }: { request: 
   }
 
   return (
-    <View style={[styles.servicesRow, { flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start' }]}>
-      {isRTL ? serviceItems.reverse() : serviceItems}
+    <View style={[styles.servicesRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      {serviceItems}
     </View>
   );
 };
@@ -231,7 +231,7 @@ export function VisitorRequestCard({
 
   const renderIconText = (icon: string, text: string, iconSize: number = 13) => {
     return (
-      <View style={[styles.dateTimeItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <View style={[styles.dateTimeItem, { flexDirection: 'row' }]}>
         <DDIcon name={icon} size={iconSize} color={theme.textSecondary} />
         <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
           {text}
@@ -241,23 +241,19 @@ export function VisitorRequestCard({
   };
 
   const renderDateTime = () => {
-    const dateItem = renderIconText('calendar', formatDate(request.visitDate));
-    const timeItem = renderIconText('clock', formatTime(request.visitTime));
-    const separator = <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>;
-    const durationItem = request.duration ? (
-      <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
-        {formatDuration(request.duration)}
-      </ThemedText>
-    ) : null;
-
-    const items = [dateItem, separator, timeItem];
-    if (durationItem) {
-      items.push(separator, durationItem);
-    }
-
     return (
-      <View style={[styles.dateTimeRow, { flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start' }]}>
-        {isRTL ? items.reverse().map((item, i) => <React.Fragment key={i}>{item}</React.Fragment>) : items}
+      <View style={[styles.dateTimeRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        {renderIconText('calendar', formatDate(request.visitDate))}
+        <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
+        {renderIconText('clock', formatTime(request.visitTime))}
+        {request.duration ? (
+          <>
+            <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
+            <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
+              {formatDuration(request.duration)}
+            </ThemedText>
+          </>
+        ) : null}
       </View>
     );
   };
