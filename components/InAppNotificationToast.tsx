@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DDIcon } from '@/components/DDIcon';
 import { ThemedText } from '@/components/ThemedText';
 import { useTheme } from '@/hooks/useTheme';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Spacing, BorderRadius } from '@/constants/theme';
 
 interface InAppNotificationToastProps {
@@ -24,6 +25,7 @@ export function InAppNotificationToast({
   type = 'info',
 }: InAppNotificationToastProps) {
   const { theme } = useTheme();
+  const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   const translateY = useRef(new Animated.Value(-100)).current;
   const opacity = useRef(new Animated.Value(0)).current;
@@ -113,8 +115,9 @@ export function InAppNotificationToast({
           styles.toast,
           {
             backgroundColor: theme.surface,
-            borderLeftColor: getAccentColor(),
+            borderStartColor: getAccentColor(),
             shadowColor: theme.text,
+            flexDirection: isRTL ? 'row-reverse' : 'row',
           },
         ]}
         onPress={hideToast}
@@ -154,7 +157,6 @@ const styles = StyleSheet.create({
     }),
   },
   toast: {
-    flexDirection: 'row',
     alignItems: 'center',
     padding: Spacing.md,
     borderRadius: BorderRadius.md,

@@ -13,6 +13,7 @@ import { DDIcon } from '@/components/DDIcon';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
 import { pushNotificationService } from '@/services/push';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { BorderRadius, Spacing } from '@/constants/theme';
 
 interface EnableNotificationsPromptProps {
@@ -26,6 +27,7 @@ export function EnableNotificationsPrompt({
 }: EnableNotificationsPromptProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { isRTL } = useLanguage();
   const [isVisible, setIsVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const scale = useSharedValue(1);
@@ -83,6 +85,7 @@ export function EnableNotificationsPrompt({
         { 
           backgroundColor: theme.softOrange,
           borderColor: theme.primary,
+          flexDirection: isRTL ? 'row-reverse' : 'row',
         }
       ]}
     >
@@ -140,7 +143,6 @@ export function EnableNotificationsPrompt({
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
     padding: Spacing.md,
     borderRadius: BorderRadius.md,
     borderWidth: 1,

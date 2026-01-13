@@ -65,6 +65,7 @@ export function VisitorActionButton({ type, onPress, disabled = false, fullWidth
           borderWidth: type === 'completed' ? 1 : 0,
           borderColor: theme.border,
           flex: flex,
+          flexDirection: isRTL ? 'row-reverse' : 'row',
         }
       ]}>
         <DDIcon 
@@ -88,6 +89,7 @@ export function VisitorActionButton({ type, onPress, disabled = false, fullWidth
           backgroundColor: config.bgColor, 
           opacity: isDisabled ? 0.6 : pressed ? 0.8 : 1,
           flex: flex,
+          flexDirection: isRTL ? 'row-reverse' : 'row',
         }
       ]}
       onPress={onPress}
@@ -112,7 +114,6 @@ export function VisitorActionButton({ type, onPress, disabled = false, fullWidth
 
 const styles = StyleSheet.create({
   button: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 8,
@@ -127,7 +128,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   fullWidthButton: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: Spacing.md,

@@ -6,6 +6,7 @@ import { DDIcon } from "@/components/DDIcon";
 import Spacer from "@/components/Spacer";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { ParkingType, ParkingSlot, ValetService } from "@/types/vms.types";
 import { applyOpacity } from "@/utils/statusStyles";
 
@@ -23,12 +24,13 @@ export function ParkingSection({
   variant = 'detailed' 
 }: ParkingSectionProps) {
   const { theme } = useTheme();
+  const { isRTL } = useLanguage();
 
   // State: No Parking
   if (parkingType === 'none') {
     return (
       <ThemedView style={[styles.parkingCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-        <View style={styles.parkingHeader}>
+        <View style={[styles.parkingHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <View style={[styles.iconBadge, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="slash" size={20} variant="muted" />
           </View>
@@ -56,7 +58,7 @@ export function ParkingSection({
         borderColor: isPending ? theme.warning : theme.primary,
         borderWidth: 1.5,
       }]}>
-        <View style={styles.parkingHeader}>
+        <View style={[styles.parkingHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <View style={[styles.iconBadge, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
             <DDIcon name="truck" size={20} variant="primary" />
           </View>
@@ -89,7 +91,7 @@ export function ParkingSection({
             <View style={[styles.divider, { backgroundColor: theme.border }]} />
             <Spacer height={Spacing.lg} />
 
-            <View style={styles.detailRow}>
+            <View style={[styles.detailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <DDIcon name="user" size={16} variant="muted" />
               <View style={{ flex: 1, marginStart: Spacing.md }}>
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12 }]}>
@@ -103,7 +105,7 @@ export function ParkingSection({
 
             <Spacer height={Spacing.md} />
 
-            <View style={styles.detailRow}>
+            <View style={[styles.detailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <DDIcon name="phone" size={16} variant="muted" />
               <View style={{ flex: 1, marginStart: Spacing.md }}>
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12 }]}>
@@ -142,7 +144,7 @@ export function ParkingSection({
         borderColor: isPending ? theme.warning : theme.info,
         borderWidth: 1.5,
       }]}>
-        <View style={styles.parkingHeader}>
+        <View style={[styles.parkingHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <View style={[styles.iconBadge, { backgroundColor: applyOpacity(theme.info, '15') }]}>
             <DDIcon name="map-pin" size={20} color={theme.info} />
           </View>
@@ -175,7 +177,7 @@ export function ParkingSection({
             <View style={[styles.divider, { backgroundColor: theme.border }]} />
             <Spacer height={Spacing.lg} />
 
-            <View style={styles.detailRow}>
+            <View style={[styles.detailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <DDIcon name="map" size={16} variant="muted" />
               <View style={{ flex: 1, marginStart: Spacing.md }}>
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12 }]}>
@@ -189,7 +191,7 @@ export function ParkingSection({
 
             <Spacer height={Spacing.md} />
 
-            <View style={styles.detailRow}>
+            <View style={[styles.detailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <DDIcon name="hash" size={16} variant="muted" />
               <View style={{ flex: 1, marginStart: Spacing.md }}>
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12 }]}>
@@ -204,7 +206,7 @@ export function ParkingSection({
             {parkingSlot.floor && (
               <>
                 <Spacer height={Spacing.md} />
-                <View style={styles.detailRow}>
+                <View style={[styles.detailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                   <DDIcon name="layers" size={16} variant="muted" />
                   <View style={{ flex: 1, marginStart: Spacing.md }}>
                     <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12 }]}>
@@ -233,7 +235,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   parkingHeader: {
-    flexDirection: 'row',
     alignItems: 'flex-start',
   },
   iconBadge: {
@@ -253,7 +254,6 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   detailRow: {
-    flexDirection: 'row',
     alignItems: 'flex-start',
   },
 });
