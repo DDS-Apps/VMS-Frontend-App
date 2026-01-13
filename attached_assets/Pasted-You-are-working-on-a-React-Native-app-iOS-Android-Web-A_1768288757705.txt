@@ -1,0 +1,122 @@
+You are working on a React Native app (iOS + Android + Web). Arabic RTL works on Web but NOT on the native mobile apps. Your job:
+
+## Goal
+Make layout + text direction correct across ALL platforms:
+- Arabic => RTL
+- English => LTR
+- Must work on iOS + Android + Web
+- Switching language must update direction reliably (including on already-mounted screens).
+
+---
+
+## Step 1 — Identify why RTL is not working on mobile
+Inspect the codebase and report findings for each point below:
+
+1) Check if we’re relying on CSS-only / web-only RTL (e.g. `dir="rtl"`, HTML attributes, web styles) that do not apply to native.
+
+2) Search for any RTL logic currently implemented:
+   - `I18nManager`, `allowRTL`, `forceRTL`, `swapLeftAndRightInRTL`
+   - any `writingDirection`, `textAlign`, `flexDirection` logic
+   - language state (i18n / localization library) and how language is determined
+
+3) Check fonts:
+   - Confirm Arabic font supports proper glyph shaping on native (common issue if using a font that doesn’t support Arabic well)
+   - Verify `Text` components are using the correct font family for Arabic.
+
+4) Check if the app is using:
+   - Expo / bare RN
+   - React Navigation
+   - any cached layout direction that requires reload on direction change
+
+5) Check platform differences:
+   - On Android, RTL sometimes needs `I18nManager.allowRTL(true)` + `forceRTL(true)` and often requires a reload.
+   - On iOS, RTL can still require reload depending on when you force direction.
+   - On Web, direction can be solved by `dir` or CSS, which hides native issues.
+
+Output a short root-cause summary: "Why it works on web, why it fails on mobile".
+
+---
+
+## Step 2 — Implement the proper RTL/LTR solution (correct approach)
+Implement a unified direction system that works across platforms:
+
+### A) Create a single source of truth for language + direction
+- Use our existing i18n setup (or create minimal if missing).
+- Add helper:
+  - `isRTL(languageCode)` returns true for `ar` (and optionally `ur`, `fa` etc if needed).
+  - `getDirection(languageCode)` returns `'rtl' | 'ltr'`.
+
+### B) Apply direction on Web
+- Set document direction properly when language changes:
+  - `document.documentElement.dir = direction`
+  - `document.documentElement.lang = languageCode`
+
+### C) Apply direction on Native (iOS/Android)
+Use `I18nManager` correctly:
+
+- On app startup (before rendering screens), apply:
+  - `I18nManager.allowRTL(true)`
+  - `I18nManager.swapLeftAndRightInRTL(true)` (optional but recommended for some layouts)
+  - If current direction differs from desired direction:
+    - `I18nManager.forceRTL(isRtl)`
+    - then hard-reload the app (required on native for layout direction changes)
+
+For reload:
+- If Expo: use `Updates.reloadAsync()` or `DevSettings.reload()` depending on availability
+- If bare RN: use `react-native-restart` (only if already installed; otherwise use DevSettings in dev and provide guidance)
+
+### D) Ensure Text direction is correct even when layout reload isn’t possible
+Add a global default for text:
+- Prefer `writingDirection: direction`
+- and `textAlign: direction === 'rtl' ? 'right' : 'left'`
+
+Implement a wrapper component:
+- `<AppText>` that automatically sets:
+  - `writingDirection`
+  - `textAlign`
+  - correct font family for Arabic vs English
+Replace critical text usages or ensure a global style is applied.
+
+### E) Ensure layout direction is correct
+For view/layout direction:
+- Use `direction` and `I18nManager.isRTL` to set `flexDirection` where needed:
+  - For row layouts: `flexDirection: isRTL ? 'row-reverse' : 'row'`
+Only do this in places where UI breaks; avoid blindly flipping everything if `I18nManager` is already handling it.
+
+---
+
+## Step 3 — Add a language switch flow that updates direction reliably
+When user switches language:
+1) persist language in storage
+2) set i18n language
+3) compute desired direction
+4) on web: set `document.dir`
+5) on native: if direction changed, forceRTL + reload app
+6) show a small toast/loading state while reloading
+
+---
+
+## Step 4 — Verification checklist (must pass)
+Add a quick manual test checklist:
+- Arabic screens show:
+  - navigation headers aligned correctly
+  - back arrow direction correct
+  - lists align right
+  - icons that should flip (chevrons) flip appropriately
+- English screens show normal LTR
+- Mixed content (Arabic + numbers + English words) renders correctly
+- Works in release mode (not just dev)
+
+---
+
+## Deliverables
+1) Root cause explanation (web vs mobile)
+2) Code changes:
+   - direction utilities
+   - web dir/lang setter
+   - native RTL initializer (startup)
+   - language switch handler with reload when needed
+   - optional AppText wrapper for writingDirection + font
+3) Short notes on any limitations (e.g. reload required on native)
+
+Now do the full audit and implement the fixes in the repo.
