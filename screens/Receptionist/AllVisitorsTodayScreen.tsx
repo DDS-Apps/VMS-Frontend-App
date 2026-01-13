@@ -199,9 +199,22 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
       case 'checked_in':
         return { label: t('status.checkedIn'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: theme.success };
       case 'completed':
+      case 'checked_out':
         return { label: t('status.checkedOut'), bg: applyOpacity(theme.textSecondary, '15'), text: theme.textSecondary, border: theme.textSecondary };
+      case 'pending_approval':
+        return { label: t('status.pendingApproval'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: theme.warning };
+      case 'pending_host_approval':
+        return { label: t('status.pendingHostApproval'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: theme.warning };
+      case 'approved':
+      case 'visitor_accepted':
+      case 'expected':
+        return { label: t('visitor.expectedVisitors'), bg: applyOpacity(theme.info, '15'), text: theme.info, border: theme.info };
+      case 'rejected':
+        return { label: t('status.rejected'), bg: applyOpacity(theme.error, '15'), text: theme.error, border: theme.error };
+      case 'cancelled':
+        return { label: t('status.cancelled'), bg: applyOpacity(theme.textSecondary, '15'), text: theme.textSecondary, border: theme.textSecondary };
       default:
-        return { label: t('visitor.expectedVisitors'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: theme.warning };
+        return { label: t('status.pending'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: theme.warning };
     }
   };
 
@@ -230,8 +243,9 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
     const statusConfig = getStatusConfig(item.status);
     const visitorName = item.visitor.fullName;
     const initials = visitorName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-    const showCheckIn = item.status === 'pending' || item.status === 'expected';
+    const showCheckIn = item.status === 'approved' || item.status === 'visitor_accepted' || item.status === 'expected';
     const showCheckOut = item.status === 'checked_in';
+    const showCompleted = item.status === 'completed' || item.status === 'checked_out';
     const isExpanded = expandedVisitors.has(item.id);
     const hasDetails = item.visitor.phone;
     
@@ -328,9 +342,9 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
                     type="check_out" 
                     onPress={(e) => handleCheckOut(item.id, visitorName, e)} 
                   />
-                ) : (
+                ) : showCompleted ? (
                   <VisitorActionButton type="completed" />
-                )}
+                ) : null}
               </View>
             </View>
           </View>
