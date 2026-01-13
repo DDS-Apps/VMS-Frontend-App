@@ -509,24 +509,34 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
             {t('actions.cancelRequest')}
           </LoadingButton>
           <View style={{ width: Spacing.md }} />
-          <VisitorActionButton 
-            type="check_in" 
-            onPress={handleCheckIn} 
+          <LoadingButton
+            onPress={handleCheckIn}
+            variant="success"
+            size="large"
+            icon="log-in"
+            iconPosition="left"
             loading={checkInMutation.isPending}
-            flex={1}
-          />
+            style={{ flex: 1 }}
+          >
+            {t('visitor.checkIn')}
+          </LoadingButton>
         </View>
       </View>
     )}
 
     {visitor.status === 'checked_in' && (
       <View style={[styles.stickyFooter, { backgroundColor: theme.background, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.lg }]}>
-        <VisitorActionButton 
-          type="check_out" 
-          onPress={handleCheckOut} 
-          fullWidth 
+        <LoadingButton
+          onPress={handleCheckOut}
+          variant="primary"
+          size="large"
+          icon="log-out"
+          iconPosition="left"
           loading={checkOutMutation.isPending}
-        />
+          fullWidth
+        >
+          {t('visitor.checkOut')}
+        </LoadingButton>
       </View>
     )}
     </>
