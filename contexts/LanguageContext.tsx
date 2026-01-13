@@ -90,6 +90,15 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
       if (Platform.OS === 'web') {
         setWebDocumentDirection(newLocale);
         console.log('[LanguageContext] Web: Setting locale to', newLocale, 'isRTL:', newIsRTL);
+        
+        // Force full page reload on web to ensure RTL layout is applied correctly
+        // This matches the native behavior which requires app reload for RTL changes
+        if (typeof window !== 'undefined') {
+          console.log('[LanguageContext] Forcing page reload for RTL change on web');
+          window.location.reload();
+          return;
+        }
+        
         setLocaleState(newLocale);
         setIsRTL(newIsRTL);
         setLayoutNonce(prev => prev + 1);
