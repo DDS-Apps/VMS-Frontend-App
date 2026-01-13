@@ -67,41 +67,71 @@ export default function SidebarGroup({
       <Pressable
         style={({ pressed }) => [
           styles.header,
-          rtlStyles.row,
           { 
             backgroundColor: pressed ? theme.sidebarActive : 'transparent',
           },
         ]}
         onPress={handleToggle}
       >
-        <View style={[styles.headerLeft, rtlStyles.row]}>
-          <DDIcon name={icon} size={18} color={theme.sidebarTextMuted} />
-          <ThemedText
-            style={[
-              styles.headerTitle,
-              { color: theme.sidebarText },
-            ]}
-            numberOfLines={1}
-          >
-            {title}
-          </ThemedText>
-        </View>
-        <View style={[styles.headerRight, rtlStyles.row]}>
-          {badge !== undefined && badge > 0 ? (
-            <View style={[styles.badge, { backgroundColor: theme.primary }]}>
-              <ThemedText style={styles.badgeText}>
-                {badge > 99 ? '99+' : badge}
+        {isRTL ? (
+          <>
+            <View style={styles.headerRight}>
+              <Animated.View style={chevronStyle}>
+                <DDIcon name="chevron-right" size={16} color={theme.sidebarTextMuted} />
+              </Animated.View>
+              {badge !== undefined && badge > 0 ? (
+                <View style={[styles.badge, { backgroundColor: theme.primary }]}>
+                  <ThemedText style={styles.badgeText}>
+                    {badge > 99 ? '99+' : badge}
+                  </ThemedText>
+                </View>
+              ) : null}
+            </View>
+            <View style={[styles.headerLeft, { justifyContent: 'flex-end' }]}>
+              <ThemedText
+                style={[
+                  styles.headerTitle,
+                  { color: theme.sidebarText, textAlign: 'right' },
+                ]}
+                numberOfLines={1}
+              >
+                {title}
+              </ThemedText>
+              <DDIcon name={icon} size={18} color={theme.sidebarTextMuted} />
+            </View>
+          </>
+        ) : (
+          <>
+            <View style={styles.headerLeft}>
+              <DDIcon name={icon} size={18} color={theme.sidebarTextMuted} />
+              <ThemedText
+                style={[
+                  styles.headerTitle,
+                  { color: theme.sidebarText },
+                ]}
+                numberOfLines={1}
+              >
+                {title}
               </ThemedText>
             </View>
-          ) : null}
-          <Animated.View style={chevronStyle}>
-            <DDIcon name="chevron-right" size={16} color={theme.sidebarTextMuted} />
-          </Animated.View>
-        </View>
+            <View style={styles.headerRight}>
+              {badge !== undefined && badge > 0 ? (
+                <View style={[styles.badge, { backgroundColor: theme.primary }]}>
+                  <ThemedText style={styles.badgeText}>
+                    {badge > 99 ? '99+' : badge}
+                  </ThemedText>
+                </View>
+              ) : null}
+              <Animated.View style={chevronStyle}>
+                <DDIcon name="chevron-right" size={16} color={theme.sidebarTextMuted} />
+              </Animated.View>
+            </View>
+          </>
+        )}
       </Pressable>
 
       {isExpanded ? (
-        <View style={styles.content}>
+        <View style={[styles.content, isRTL && { paddingStart: 0, paddingEnd: Spacing.lg }]}>
           {children}
         </View>
       ) : null}
