@@ -15,6 +15,22 @@ const LANGUAGE_STORAGE_KEY = '@vms_language';
 
 export type LocaleCode = 'ar-SA' | 'en-US';
 
+// Read initial locale from localStorage synchronously on web
+// This ensures the first render has the correct RTL state
+function getInitialLocale(): SupportedLocale {
+  if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
+    try {
+      const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+      if (stored === 'ar' || stored === 'en') {
+        return stored as SupportedLocale;
+      }
+    } catch (e) {
+      // localStorage not available
+    }
+  }
+  return defaultLocale;
+}
+
 interface LanguageContextType {
   locale: SupportedLocale;
   localeCode: LocaleCode;
@@ -31,8 +47,9 @@ interface LanguageProviderProps {
 }
 
 export function LanguageProvider({ children }: LanguageProviderProps) {
-  const [locale, setLocaleState] = useState<SupportedLocale>(defaultLocale);
-  const [isRTL, setIsRTL] = useState<boolean>(localeConfig[defaultLocale].isRTL);
+  const initialLocale = getInitialLocale();
+  const [locale, setLocaleState] = useState<SupportedLocale>(initialLocale);
+  const [isRTL, setIsRTL] = useState<boolean>(localeConfig[initialLocale].isRTL);
   const [layoutNonce, setLayoutNonce] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
 

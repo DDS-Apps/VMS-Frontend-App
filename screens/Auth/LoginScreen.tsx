@@ -19,6 +19,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
 import { LoadingButton } from "@/components/shared/LoadingButton";
+import { DirectionalRow } from "@/components/DirectionalRow";
 import { UserRole } from "@/types/vms.types";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
@@ -339,10 +340,9 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
             >
               {t("form.emailAddress").toUpperCase()}
             </ThemedText>
-            <View
+            <DirectionalRow
               style={[
-                getInputContainerStyle("email"),
-                { flexDirection: isRTL ? "row-reverse" : "row" },
+                ...getInputContainerStyle("email"),
               ]}
             >
               <DDIcon name="mail" size={INPUT_ICON_SIZE} variant="muted" />
@@ -372,7 +372,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                 autoCorrect={false}
                 returnKeyType="next"
               />
-            </View>
+            </DirectionalRow>
             {errors.email ? (
               <ThemedText
                 style={[
@@ -402,10 +402,9 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
             >
               {t("auth.password").toUpperCase()}
             </ThemedText>
-            <View
+            <DirectionalRow
               style={[
-                getInputContainerStyle("password"),
-                { flexDirection: isRTL ? "row-reverse" : "row" },
+                ...getInputContainerStyle("password"),
               ]}
             >
               <DDIcon name="lock" size={INPUT_ICON_SIZE} variant="muted" />
@@ -445,7 +444,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                   variant="muted"
                 />
               </Pressable>
-            </View>
+            </DirectionalRow>
             {errors.password ? (
               <ThemedText
                 style={[
@@ -463,53 +462,44 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
 
             <Spacer height={Spacing.lg} />
 
-            <View style={[styles.rememberForgotRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <DirectionalRow style={styles.rememberForgotRow}>
               <Pressable
-                style={[styles.rememberRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
                 onPress={() => setRememberMe(!rememberMe)}
               >
-                <View
-                  style={[
-                    styles.checkbox,
-                    {
-                      borderColor: rememberMe ? theme.primary : theme.border,
-                      backgroundColor: rememberMe
-                        ? theme.primary
-                        : "transparent",
-                    },
-                  ]}
-                >
-                  {rememberMe ? (
-                    <DDIcon name="check" size={14} color="#FFFFFF" />
-                  ) : null}
-                </View>
-                <ThemedText
-                  style={[Typography.bodySmall, { marginStart: Spacing.sm }]}
-                >
-                  {t("auth.rememberMe")}
-                </ThemedText>
+                <DirectionalRow style={styles.rememberRow}>
+                  <View
+                    style={[
+                      styles.checkbox,
+                      {
+                        borderColor: rememberMe ? theme.primary : theme.border,
+                        backgroundColor: rememberMe
+                          ? theme.primary
+                          : "transparent",
+                      },
+                    ]}
+                  >
+                    {rememberMe ? (
+                      <DDIcon name="check" size={14} color="#FFFFFF" />
+                    ) : null}
+                  </View>
+                  <ThemedText
+                    style={[Typography.bodySmall, { marginStart: Spacing.sm }]}
+                  >
+                    {t("auth.rememberMe")}
+                  </ThemedText>
+                </DirectionalRow>
               </Pressable>
-              {/* Forgot password hidden per user request
-              <Pressable onPress={onForgotPassword}>
-                <ThemedText
-                  style={[Typography.bodySmall, { color: theme.primary }]}
-                >
-                  {t("auth.forgotPassword")}
-                </ThemedText>
-              </Pressable>
-*/}
-            </View>
+            </DirectionalRow>
 
             <Spacer height={Spacing.xl} />
 
             {errors.general ? (
-              <View
+              <DirectionalRow
                 style={[
                   styles.errorContainer,
                   {
                     backgroundColor: `${theme.error}15`,
                     borderColor: theme.error,
-                    flexDirection: isRTL ? 'row-reverse' : 'row',
                   },
                 ]}
               >
@@ -522,7 +512,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                 >
                   {errors.general}
                 </ThemedText>
-              </View>
+              </DirectionalRow>
             ) : null}
 
             <LoadingButton
@@ -537,7 +527,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
               {t("auth.signIn")}
             </LoadingButton>
 
-            <View style={[styles.dividerContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <DirectionalRow style={styles.dividerContainer}>
               <View
                 style={[styles.dividerLine, { backgroundColor: theme.border }]}
               />
@@ -552,7 +542,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
               <View
                 style={[styles.dividerLine, { backgroundColor: theme.border }]}
               />
-            </View>
+            </DirectionalRow>
 
             <Pressable
               style={[

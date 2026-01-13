@@ -14,7 +14,7 @@ initializeRTLSync();
 ExpoSplashScreen.preventAutoHideAsync().catch(() => {});
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { LanguageProvider } from "@/contexts/LanguageContext";
+import { LanguageProvider, useLanguage } from "@/contexts/LanguageContext";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
@@ -83,6 +83,7 @@ function getInviteTokenFromUrl(): string | null {
 
 function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
   const { user, isAuthenticated, isLoading: authLoading, logout } = useAuth();
+  const { layoutKey } = useLanguage();
   const [showSplash, setShowSplash] = useState(true);
   const [inviteToken, setInviteToken] = useState<string | null>(null);
 
@@ -133,7 +134,7 @@ function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
   }
 
   if (!isAuthenticated || !user) {
-    return <LoginScreen onLoginSuccess={handleLoginSuccess} />;
+    return <LoginScreen key={layoutKey} onLoginSuccess={handleLoginSuccess} />;
   }
 
   const userName = user.name || user.email;
@@ -142,6 +143,7 @@ function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
 
   return (
     <DashboardContainer 
+      key={layoutKey}
       userRole={userRole} 
       userName={userName}
       userEmail={user.email}
