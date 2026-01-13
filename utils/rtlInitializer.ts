@@ -79,6 +79,11 @@ export function initializeRTLSync(): void {
     } catch (error) {
       console.warn('[RTL] Failed to initialize RTL sync on web:', error);
     }
+  } else {
+    // On mobile (iOS/Android), I18nManager state persists across reloads
+    // The actual locale will be determined by initializeRTLAsync after AsyncStorage read
+    // But we ensure RTL is allowed from the start
+    console.log('[RTL] initializeRTLSync on mobile - RTL allowed, waiting for async init');
   }
 }
 
