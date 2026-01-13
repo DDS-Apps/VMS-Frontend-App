@@ -13,12 +13,14 @@ export function DirectionalRow({ children, style, gap }: DirectionalRowProps) {
   
   const childArray = Children.toArray(children);
   
-  // On WEB: document.dir='rtl' already reverses flex flow, so we don't reverse children
-  // On MOBILE: I18nManager doesn't flip flexDirection, so we need to reverse children
+  // Platform-aware RTL handling:
+  // - On WEB: Browser's document.dir='rtl' automatically reverses flex layouts,
+  //   so we keep DOM order and let the browser handle visual reversal
+  // - On MOBILE: I18nManager doesn't flip flexDirection, so we reverse children manually
   const shouldReverseChildren = isRTL && Platform.OS !== 'web';
   const orderedChildren = shouldReverseChildren ? [...childArray].reverse() : childArray;
   
-  // Flatten styles and ensure flexDirection is correct
+  // Flatten styles and set flexDirection
   const flattenedStyle = StyleSheet.flatten([style]);
   const finalStyle: ViewStyle = {
     ...flattenedStyle,

@@ -12,6 +12,7 @@ import Sidebar from "@/components/Sidebar";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { DDIcon } from "@/components/DDIcon";
+import { DirectionalRow } from "@/components/DirectionalRow";
 import { EnableNotificationsPrompt } from "@/components/shared/EnableNotificationsPrompt";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
@@ -237,8 +238,6 @@ export default function DashboardLayout({
     };
   });
 
-  console.log('[DashboardLayout] Rendering with isRTL:', isRTL, 'layoutKey:', layoutKey, 'isLargeScreen:', isLargeScreen);
-
   return (
     <GestureDetector gesture={edgeSwipeGesture}>
       <ThemedView key={layoutKey} style={[styles.container, { direction: isRTL ? 'rtl' : 'ltr' }]}>
@@ -252,171 +251,86 @@ export default function DashboardLayout({
               paddingTop: insets.top + Spacing.sm,
             },
           ]}>
-            {/* In RTL: notification+avatar on LEFT, menu+logo on RIGHT */}
-            {/* In LTR: menu+logo on LEFT, notification+avatar on RIGHT */}
-            <View style={styles.headerCluster}>
-              {isRTL ? (
-                <>
-                  <Pressable 
-                    onPress={() => onNavigate('Notifications')} 
-                    style={({ pressed }) => [
-                      styles.menuButton,
-                      { opacity: pressed ? 0.5 : 1 }
-                    ]}
-                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                  >
-                    <View>
-                      <DDIcon
-                        name="bell"
-                        size={20}
-                        color={theme.textSecondary}
-                      />
-                      {unreadNotificationCount > 0 && (
-                        <View style={styles.notificationBadge}>
-                          <View style={[styles.notificationDot, { backgroundColor: theme.error }]} />
-                        </View>
-                      )}
-                    </View>
-                  </Pressable>
-                  
-                  <Pressable 
-                    onPress={() => setProfileMenuVisible(true)} 
-                    style={({ pressed }) => [
-                      styles.avatarButton,
-                      { opacity: pressed ? 0.7 : 1 }
-                    ]}
-                  >
-                    <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
-                      <ThemedText style={[Typography.caption, { color: '#FFFFFF', fontWeight: '700' }]}>
-                        {getInitials(userName)}
-                      </ThemedText>
-                    </View>
-                  </Pressable>
-                </>
+            {/* Left cluster in LTR: menu/back + logo */}
+            {/* DirectionalRow handles platform-specific RTL reversal */}
+            <DirectionalRow style={styles.headerCluster} gap={Spacing.sm}>
+              {canGoBack && onGoBack ? (
+                <Pressable 
+                  onPress={onGoBack} 
+                  style={styles.menuButton}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <DDIcon 
+                    name={isRTL ? "arrow-right" : "arrow-left"} 
+                    size={24} 
+                    color={theme.text} 
+                  />
+                </Pressable>
               ) : (
-                <>
-                  {canGoBack && onGoBack ? (
-                    <Pressable 
-                      onPress={onGoBack} 
-                      style={styles.menuButton}
-                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                    >
-                      <DDIcon 
-                        name="arrow-left" 
-                        size={24} 
-                        color={theme.text} 
-                      />
-                    </Pressable>
-                  ) : (
-                    <Pressable onPress={openSidebar} style={styles.menuButton}>
-                      <DDIcon name="menu" size={24} color={theme.text} />
-                    </Pressable>
-                  )}
-                  
-                  <Pressable 
-                    onPress={() => {
-                      if (onNavigateHome) {
-                        onNavigateHome();
-                      } else {
-                        onNavigate('Dashboard');
-                      }
-                    }}
-                    style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
-                  >
-                    <Image
-                      source={isDark 
-                        ? require("../assets/images/header-icon-dark.png")
-                        : require("../assets/images/header-icon-light.png")
-                      }
-                      style={styles.headerLogo}
-                      resizeMode="contain"
-                    />
-                  </Pressable>
-                </>
+                <Pressable onPress={openSidebar} style={styles.menuButton}>
+                  <DDIcon name="menu" size={24} color={theme.text} />
+                </Pressable>
               )}
-            </View>
+              
+              <Pressable 
+                onPress={() => {
+                  if (onNavigateHome) {
+                    onNavigateHome();
+                  } else {
+                    onNavigate('Dashboard');
+                  }
+                }}
+                style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+              >
+                <Image
+                  source={isDark 
+                    ? require("../assets/images/header-icon-dark.png")
+                    : require("../assets/images/header-icon-light.png")
+                  }
+                  style={styles.headerLogo}
+                  resizeMode="contain"
+                />
+              </Pressable>
+            </DirectionalRow>
             
-            <View style={styles.headerCluster}>
-              {isRTL ? (
-                <>
-                  <Pressable 
-                    onPress={() => {
-                      if (onNavigateHome) {
-                        onNavigateHome();
-                      } else {
-                        onNavigate('Dashboard');
-                      }
-                    }}
-                    style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
-                  >
-                    <Image
-                      source={isDark 
-                        ? require("../assets/images/header-icon-dark.png")
-                        : require("../assets/images/header-icon-light.png")
-                      }
-                      style={styles.headerLogo}
-                      resizeMode="contain"
-                    />
-                  </Pressable>
-                  
-                  {canGoBack && onGoBack ? (
-                    <Pressable 
-                      onPress={onGoBack} 
-                      style={styles.menuButton}
-                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                    >
-                      <DDIcon 
-                        name="arrow-right" 
-                        size={24} 
-                        color={theme.text} 
-                      />
-                    </Pressable>
-                  ) : (
-                    <Pressable onPress={openSidebar} style={styles.menuButton}>
-                      <DDIcon name="menu" size={24} color={theme.text} />
-                    </Pressable>
+            {/* Right cluster in LTR: bell + avatar */}
+            <DirectionalRow style={styles.headerCluster} gap={Spacing.sm}>
+              <Pressable 
+                onPress={() => onNavigate('Notifications')} 
+                style={({ pressed }) => [
+                  styles.menuButton,
+                  { opacity: pressed ? 0.5 : 1 }
+                ]}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <View>
+                  <DDIcon
+                    name="bell"
+                    size={20}
+                    color={theme.textSecondary}
+                  />
+                  {unreadNotificationCount > 0 && (
+                    <View style={styles.notificationBadge}>
+                      <View style={[styles.notificationDot, { backgroundColor: theme.error }]} />
+                    </View>
                   )}
-                </>
-              ) : (
-                <>
-                  <Pressable 
-                    onPress={() => onNavigate('Notifications')} 
-                    style={({ pressed }) => [
-                      styles.menuButton,
-                      { opacity: pressed ? 0.5 : 1 }
-                    ]}
-                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                  >
-                    <View>
-                      <DDIcon
-                        name="bell"
-                        size={20}
-                        color={theme.textSecondary}
-                      />
-                      {unreadNotificationCount > 0 && (
-                        <View style={styles.notificationBadge}>
-                          <View style={[styles.notificationDot, { backgroundColor: theme.error }]} />
-                        </View>
-                      )}
-                    </View>
-                  </Pressable>
-                  
-                  <Pressable 
-                    onPress={() => setProfileMenuVisible(true)} 
-                    style={({ pressed }) => [
-                      styles.avatarButton,
-                      { opacity: pressed ? 0.7 : 1 }
-                    ]}
-                  >
-                    <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
-                      <ThemedText style={[Typography.caption, { color: '#FFFFFF', fontWeight: '700' }]}>
-                        {getInitials(userName)}
-                      </ThemedText>
-                    </View>
-                  </Pressable>
-                </>
-              )}
-            </View>
+                </View>
+              </Pressable>
+              
+              <Pressable 
+                onPress={() => setProfileMenuVisible(true)} 
+                style={({ pressed }) => [
+                  styles.avatarButton,
+                  { opacity: pressed ? 0.7 : 1 }
+                ]}
+              >
+                <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
+                  <ThemedText style={[Typography.caption, { color: '#FFFFFF', fontWeight: '700' }]}>
+                    {getInitials(userName)}
+                  </ThemedText>
+                </View>
+              </Pressable>
+            </DirectionalRow>
           </ThemedView>
         )}
         

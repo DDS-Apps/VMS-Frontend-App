@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, StyleSheet, Pressable, ScrollView, Platform, Dimensions } from "react-native";
 import { Image } from "expo-image";
 import { DDIcon, IconName } from "@/components/DDIcon";
+import { DirectionalRow } from "@/components/DirectionalRow";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -206,9 +207,6 @@ export default function Sidebar({
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { isRTL, layoutKey } = useLanguage();
-  
-  console.log('[Sidebar] Received from useLanguage:', { isRTL, layoutKey });
-  
   const rtlStyles = useRTLStyles();
   const { groups, standalone } = getMenuGroups(userRole);
   const { width } = Dimensions.get('window');
@@ -282,44 +280,24 @@ export default function Sidebar({
         ]}
         onPress={() => handleItemPress(item.screen, item.params)}
       >
-        {isRTL ? (
-          <>
-            <ThemedText
-              style={[
-                styles.menuText,
-                { flex: 1, textAlign: 'right' },
-                isActive && { color: theme.primary, fontWeight: '600' },
-                !isActive && { color: theme.sidebarText },
-              ]}
-            >
-              {t(item.labelKey)}
-            </ThemedText>
-            <DDIcon
-              name={item.icon}
-              size={18}
-              color={isActive ? theme.primary : theme.sidebarTextMuted}
-              directionAware={item.icon === 'log-in' || item.icon === 'log-out'}
-            />
-          </>
-        ) : (
-          <>
-            <DDIcon
-              name={item.icon}
-              size={18}
-              color={isActive ? theme.primary : theme.sidebarTextMuted}
-              directionAware={item.icon === 'log-in' || item.icon === 'log-out'}
-            />
-            <ThemedText
-              style={[
-                styles.menuText,
-                isActive && { color: theme.primary, fontWeight: '600' },
-                !isActive && { color: theme.sidebarText },
-              ]}
-            >
-              {t(item.labelKey)}
-            </ThemedText>
-          </>
-        )}
+        <DirectionalRow style={{ flex: 1 }} gap={Spacing.md}>
+          <DDIcon
+            name={item.icon}
+            size={18}
+            color={isActive ? theme.primary : theme.sidebarTextMuted}
+            directionAware={item.icon === 'log-in' || item.icon === 'log-out'}
+          />
+          <ThemedText
+            style={[
+              styles.menuText,
+              { flex: 1, textAlign: isRTL ? 'right' : 'left' },
+              isActive && { color: theme.primary, fontWeight: '600' },
+              !isActive && { color: theme.sidebarText },
+            ]}
+          >
+            {t(item.labelKey)}
+          </ThemedText>
+        </DirectionalRow>
       </Pressable>
     );
   };
@@ -337,42 +315,23 @@ export default function Sidebar({
         ]}
         onPress={() => handleItemPress(item.screen, item.params)}
       >
-        {isRTL ? (
-          <>
-            <ThemedText
-              style={[
-                styles.standaloneText,
-                { flex: 1, textAlign: 'right' },
-                isActive && { color: theme.primary, fontWeight: '600' },
-                !isActive && { color: theme.sidebarText },
-              ]}
-            >
-              {t(item.labelKey)}
-            </ThemedText>
-            <DDIcon
-              name={item.icon}
-              size={20}
-              color={isActive ? theme.primary : theme.sidebarTextMuted}
-            />
-          </>
-        ) : (
-          <>
-            <DDIcon
-              name={item.icon}
-              size={20}
-              color={isActive ? theme.primary : theme.sidebarTextMuted}
-            />
-            <ThemedText
-              style={[
-                styles.standaloneText,
-                isActive && { color: theme.primary, fontWeight: '600' },
-                !isActive && { color: theme.sidebarText },
-              ]}
-            >
-              {t(item.labelKey)}
-            </ThemedText>
-          </>
-        )}
+        <DirectionalRow style={{ flex: 1 }} gap={Spacing.md}>
+          <DDIcon
+            name={item.icon}
+            size={20}
+            color={isActive ? theme.primary : theme.sidebarTextMuted}
+          />
+          <ThemedText
+            style={[
+              styles.standaloneText,
+              { flex: 1, textAlign: isRTL ? 'right' : 'left' },
+              isActive && { color: theme.primary, fontWeight: '600' },
+              !isActive && { color: theme.sidebarText },
+            ]}
+          >
+            {t(item.labelKey)}
+          </ThemedText>
+        </DirectionalRow>
       </Pressable>
     );
   };
@@ -410,57 +369,30 @@ export default function Sidebar({
         style={({ pressed }) => [styles.profileHeader, pressed && { opacity: 0.7 }]}
         onPress={() => handleItemPress('Dashboard')}
       >
-        {isRTL ? (
-          <>
-            <DDIcon name="chevron-left" size={18} color={theme.sidebarTextMuted} />
-            <View style={{ marginEnd: Spacing.md, flex: 1 }}>
-              <ThemedText style={[Typography.body, { fontWeight: '600', color: theme.sidebarText, textAlign: 'right' }]} numberOfLines={1}>
-                {userName}
-              </ThemedText>
-              <ThemedText style={[Typography.caption, { color: theme.sidebarTextMuted, textTransform: 'capitalize', textAlign: 'right' }]}>
-                {userRole.replace('_', ' ')}
-              </ThemedText>
-            </View>
-            {userPhotoUrl ? (
-              <Image
-                source={{ uri: userPhotoUrl }}
-                style={styles.profileAvatar}
-                contentFit="cover"
-              />
-            ) : (
-              <View style={[styles.profileAvatar, { backgroundColor: theme.primary }]}>
-                <ThemedText style={[Typography.title, { color: Colors.light.buttonText, fontWeight: '600', fontSize: 20 }]}>
-                  {userName.split(' ').map(n => n[0]).join('')}
-                </ThemedText>
-              </View>
-            )}
-          </>
-        ) : (
-          <>
-            {userPhotoUrl ? (
-              <Image
-                source={{ uri: userPhotoUrl }}
-                style={styles.profileAvatar}
-                contentFit="cover"
-              />
-            ) : (
-              <View style={[styles.profileAvatar, { backgroundColor: theme.primary }]}>
-                <ThemedText style={[Typography.title, { color: Colors.light.buttonText, fontWeight: '600', fontSize: 20 }]}>
-                  {userName.split(' ').map(n => n[0]).join('')}
-                </ThemedText>
-              </View>
-            )}
-            <View style={{ marginStart: Spacing.md, flex: 1 }}>
-              <ThemedText style={[Typography.body, { fontWeight: '600', color: theme.sidebarText }]} numberOfLines={1}>
-                {userName}
-              </ThemedText>
-              <ThemedText style={[Typography.caption, { color: theme.sidebarTextMuted, textTransform: 'capitalize' }]}>
-                {userRole.replace('_', ' ')}
+        <DirectionalRow style={{ flex: 1 }} gap={Spacing.md}>
+          {userPhotoUrl ? (
+            <Image
+              source={{ uri: userPhotoUrl }}
+              style={styles.profileAvatar}
+              contentFit="cover"
+            />
+          ) : (
+            <View style={[styles.profileAvatar, { backgroundColor: theme.primary }]}>
+              <ThemedText style={[Typography.title, { color: Colors.light.buttonText, fontWeight: '600', fontSize: 20 }]}>
+                {userName.split(' ').map(n => n[0]).join('')}
               </ThemedText>
             </View>
-            <DDIcon name="chevron-right" size={18} color={theme.sidebarTextMuted} />
-          </>
-        )}
+          )}
+          <View style={{ flex: 1 }}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', color: theme.sidebarText, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+              {userName}
+            </ThemedText>
+            <ThemedText style={[Typography.caption, { color: theme.sidebarTextMuted, textTransform: 'capitalize', textAlign: isRTL ? 'right' : 'left' }]}>
+              {userRole.replace('_', ' ')}
+            </ThemedText>
+          </View>
+          <DDIcon name={isRTL ? "chevron-left" : "chevron-right"} size={18} color={theme.sidebarTextMuted} />
+        </DirectionalRow>
       </Pressable>
 
       <Spacer height={Spacing.xl} />
@@ -491,92 +423,45 @@ export default function Sidebar({
         {renderStandaloneItem(settingsItem)}
       </ScrollView>
 
-      <View style={[styles.appInfo, { justifyContent: isRTL ? 'flex-end' : 'flex-start' }]}>
-        {isRTL ? (
-          <>
-            <ThemedText style={[styles.appVersion, { color: theme.sidebarTextMuted }]}>
-              v{Constants.expoConfig?.version || '1.0.0'}
-            </ThemedText>
-            <ThemedText style={[styles.appName, { color: theme.sidebarTextMuted, marginStart: Spacing.xs }]}>
-              {t('common.brandName')} {t('common.appName')}
-            </ThemedText>
-          </>
-        ) : (
-          <>
-            <ThemedText style={[styles.appName, { color: theme.sidebarTextMuted }]}>
-              {t('common.brandName')} {t('common.appName')}
-            </ThemedText>
-            <ThemedText style={[styles.appVersion, { color: theme.sidebarTextMuted }]}>
-              v{Constants.expoConfig?.version || '1.0.0'}
-            </ThemedText>
-          </>
-        )}
-      </View>
+      <DirectionalRow style={styles.appInfo} gap={Spacing.xs}>
+        <ThemedText style={[styles.appName, { color: theme.sidebarTextMuted }]}>
+          {t('common.brandName')} {t('common.appName')}
+        </ThemedText>
+        <ThemedText style={[styles.appVersion, { color: theme.sidebarTextMuted }]}>
+          v{Constants.expoConfig?.version || '1.0.0'}
+        </ThemedText>
+      </DirectionalRow>
 
       <View style={[styles.footer, { borderTopColor: theme.border }]}>
-        <View style={[styles.footerActions, { justifyContent: isRTL ? 'flex-end' : 'flex-start' }]}>
-          {isRTL ? (
-            <>
-              <Pressable 
-                onPress={onLogout} 
-                style={({ pressed }) => [
-                  styles.footerButton,
-                  { backgroundColor: theme.surfaceSecondary, opacity: pressed ? 0.7 : 1 }
-                ]}
-              >
-                <DDIcon
-                  name="log-out"
-                  size={20}
-                  color={theme.error}
-                  directionAware
-                />
-              </Pressable>
-              <Pressable 
-                onPress={onToggleDarkMode} 
-                style={({ pressed }) => [
-                  styles.footerButton,
-                  { backgroundColor: theme.surfaceSecondary, opacity: pressed ? 0.7 : 1 }
-                ]}
-              >
-                <DDIcon
-                  name={isDarkMode ? 'sun' : 'moon'}
-                  size={20}
-                  color={theme.sidebarTextMuted}
-                />
-              </Pressable>
-            </>
-          ) : (
-            <>
-              <Pressable 
-                onPress={onToggleDarkMode} 
-                style={({ pressed }) => [
-                  styles.footerButton,
-                  { backgroundColor: theme.surfaceSecondary, opacity: pressed ? 0.7 : 1 }
-                ]}
-              >
-                <DDIcon
-                  name={isDarkMode ? 'sun' : 'moon'}
-                  size={20}
-                  color={theme.sidebarTextMuted}
-                />
-              </Pressable>
-              <Pressable 
-                onPress={onLogout} 
-                style={({ pressed }) => [
-                  styles.footerButton,
-                  { backgroundColor: theme.surfaceSecondary, opacity: pressed ? 0.7 : 1 }
-                ]}
-              >
-                <DDIcon
-                  name="log-out"
-                  size={20}
-                  color={theme.error}
-                  directionAware
-                />
-              </Pressable>
-            </>
-          )}
-        </View>
+        <DirectionalRow style={styles.footerActions} gap={Spacing.sm}>
+          <Pressable 
+            onPress={onToggleDarkMode} 
+            style={({ pressed }) => [
+              styles.footerButton,
+              { backgroundColor: theme.surfaceSecondary, opacity: pressed ? 0.7 : 1 }
+            ]}
+          >
+            <DDIcon
+              name={isDarkMode ? 'sun' : 'moon'}
+              size={20}
+              color={theme.sidebarTextMuted}
+            />
+          </Pressable>
+          <Pressable 
+            onPress={onLogout} 
+            style={({ pressed }) => [
+              styles.footerButton,
+              { backgroundColor: theme.surfaceSecondary, opacity: pressed ? 0.7 : 1 }
+            ]}
+          >
+            <DDIcon
+              name="log-out"
+              size={20}
+              color={theme.error}
+              directionAware
+            />
+          </Pressable>
+        </DirectionalRow>
       </View>
     </ThemedView>
   );

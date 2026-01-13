@@ -7,6 +7,7 @@ import Animated, {
   interpolate,
 } from "react-native-reanimated";
 import { DDIcon, IconName } from "@/components/DDIcon";
+import { DirectionalRow } from "@/components/DirectionalRow";
 import { ThemedText } from "@/components/ThemedText";
 import { Spacing, BorderRadius } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
@@ -73,61 +74,28 @@ export default function SidebarGroup({
         ]}
         onPress={handleToggle}
       >
-        {isRTL ? (
-          <>
-            <View style={styles.headerRight}>
-              <Animated.View style={chevronStyle}>
-                <DDIcon name="chevron-right" size={16} color={theme.sidebarTextMuted} />
-              </Animated.View>
-              {badge !== undefined && badge > 0 ? (
-                <View style={[styles.badge, { backgroundColor: theme.primary }]}>
-                  <ThemedText style={styles.badgeText}>
-                    {badge > 99 ? '99+' : badge}
-                  </ThemedText>
-                </View>
-              ) : null}
-            </View>
-            <View style={[styles.headerLeft, { justifyContent: 'flex-end' }]}>
-              <ThemedText
-                style={[
-                  styles.headerTitle,
-                  { color: theme.sidebarText, textAlign: 'right' },
-                ]}
-                numberOfLines={1}
-              >
-                {title}
-              </ThemedText>
-              <DDIcon name={icon} size={18} color={theme.sidebarTextMuted} />
-            </View>
-          </>
-        ) : (
-          <>
-            <View style={styles.headerLeft}>
-              <DDIcon name={icon} size={18} color={theme.sidebarTextMuted} />
-              <ThemedText
-                style={[
-                  styles.headerTitle,
-                  { color: theme.sidebarText },
-                ]}
-                numberOfLines={1}
-              >
-                {title}
+        <DirectionalRow style={{ flex: 1 }} gap={Spacing.md}>
+          <DDIcon name={icon} size={18} color={theme.sidebarTextMuted} />
+          <ThemedText
+            style={[
+              styles.headerTitle,
+              { color: theme.sidebarText, flex: 1, textAlign: isRTL ? 'right' : 'left' },
+            ]}
+            numberOfLines={1}
+          >
+            {title}
+          </ThemedText>
+          {badge !== undefined && badge > 0 ? (
+            <View style={[styles.badge, { backgroundColor: theme.primary }]}>
+              <ThemedText style={styles.badgeText}>
+                {badge > 99 ? '99+' : badge}
               </ThemedText>
             </View>
-            <View style={styles.headerRight}>
-              {badge !== undefined && badge > 0 ? (
-                <View style={[styles.badge, { backgroundColor: theme.primary }]}>
-                  <ThemedText style={styles.badgeText}>
-                    {badge > 99 ? '99+' : badge}
-                  </ThemedText>
-                </View>
-              ) : null}
-              <Animated.View style={chevronStyle}>
-                <DDIcon name="chevron-right" size={16} color={theme.sidebarTextMuted} />
-              </Animated.View>
-            </View>
-          </>
-        )}
+          ) : null}
+          <Animated.View style={chevronStyle}>
+            <DDIcon name="chevron-right" size={16} color={theme.sidebarTextMuted} />
+          </Animated.View>
+        </DirectionalRow>
       </Pressable>
 
       {isExpanded ? (
