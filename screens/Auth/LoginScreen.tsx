@@ -620,7 +620,6 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   inputContainer: {
-    flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: Spacing.md,
     borderRadius: BorderRadius.sm,
@@ -639,6 +638,7 @@ const styles = StyleSheet.create({
   },
   rememberRow: {
     alignItems: "center",
+    gap: Spacing.sm,
   },
   checkbox: {
     width: 22,
@@ -657,6 +657,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1,
+    gap: Spacing.md,
   },
   dividerContainer: {
     alignItems: "center",
