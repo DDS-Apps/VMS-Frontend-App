@@ -17,6 +17,7 @@ import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useRTLStyles } from "@/hooks/useRTLStyles";
 import { UserRole } from "@/types/vms.types";
 
 const SIDEBAR_WIDTH_DESKTOP = 280;
@@ -59,6 +60,7 @@ export default function DashboardLayout({
   const { theme, isDark, toggleTheme } = useTheme();
   const { locale, setLocale, isRTL } = useLanguage();
   const { t } = useTranslation();
+  const rtlStyles = useRTLStyles();
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   
@@ -242,6 +244,7 @@ export default function DashboardLayout({
         {!isLargeScreen && (
           <ThemedView style={[
             styles.mobileHeader, 
+            rtlStyles.row,
             { 
               borderBottomColor: theme.border, 
               backgroundColor: theme.background,
@@ -519,12 +522,13 @@ export default function DashboardLayout({
             {isLargeScreen && (
               <View style={[
                 styles.desktopHeader,
+                rtlStyles.row,
                 { 
                   borderBottomColor: theme.border, 
                   backgroundColor: theme.background,
                 },
               ]}>
-                <View style={styles.desktopHeaderLeft}>
+                <View style={[styles.desktopHeaderLeft, rtlStyles.row]}>
                   {canGoBack && onGoBack ? (
                     <Pressable 
                       onPress={onGoBack} 
@@ -552,7 +556,7 @@ export default function DashboardLayout({
                   ) : null}
                 </View>
                 
-                <View style={styles.desktopHeaderRight}>
+                <View style={[styles.desktopHeaderRight, rtlStyles.row]}>
                   <Pressable 
                     onPress={() => onNavigate('Notifications')} 
                     style={({ pressed }) => [
@@ -579,6 +583,7 @@ export default function DashboardLayout({
                     onPress={() => setProfileMenuVisible(true)} 
                     style={({ pressed }) => [
                       styles.desktopAvatarButton,
+                      rtlStyles.row,
                       { opacity: pressed ? 0.7 : 1 }
                     ]}
                   >

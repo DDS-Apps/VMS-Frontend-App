@@ -11,6 +11,7 @@ import { Colors, Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useRTLStyles } from "@/hooks/useRTLStyles";
 import { UserRole } from "@/types/vms.types";
 import Constants from 'expo-constants';
 
@@ -205,6 +206,7 @@ export default function Sidebar({
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { isRTL } = useLanguage();
+  const rtlStyles = useRTLStyles();
   const { groups, standalone } = getMenuGroups(userRole);
   const { width } = Dimensions.get('window');
   const isLargeScreen = width >= 768;
@@ -272,7 +274,7 @@ export default function Sidebar({
         key={item.id}
         style={({ pressed }) => [
           styles.menuItem,
-          isRTL && { flexDirection: 'row-reverse' },
+          rtlStyles.row,
           isActive && [styles.menuItemActive, { backgroundColor: theme.sidebarActive }],
           pressed && { opacity: 0.7 },
         ]}
@@ -305,7 +307,7 @@ export default function Sidebar({
         key={item.id}
         style={({ pressed }) => [
           styles.standaloneItem,
-          isRTL && { flexDirection: 'row-reverse' },
+          rtlStyles.row,
           isActive && [styles.menuItemActive, { backgroundColor: theme.sidebarActive }],
           pressed && { opacity: 0.7 },
         ]}
@@ -356,7 +358,7 @@ export default function Sidebar({
       },
     ]}>
       <Pressable 
-        style={({ pressed }) => [styles.profileHeader, isRTL && { flexDirection: 'row-reverse' }, pressed && { opacity: 0.7 }]}
+        style={({ pressed }) => [styles.profileHeader, rtlStyles.row, pressed && { opacity: 0.7 }]}
         onPress={() => handleItemPress('Dashboard')}
       >
         {userPhotoUrl ? (
@@ -411,7 +413,7 @@ export default function Sidebar({
         {renderStandaloneItem(settingsItem)}
       </ScrollView>
 
-      <View style={[styles.appInfo, isRTL && { flexDirection: 'row-reverse' }]}>
+      <View style={[styles.appInfo, rtlStyles.row]}>
         <ThemedText style={[styles.appName, { color: theme.sidebarTextMuted }]}>
           {t('common.brandName')} {t('common.appName')}
         </ThemedText>
@@ -421,7 +423,7 @@ export default function Sidebar({
       </View>
 
       <View style={[styles.footer, { borderTopColor: theme.border }]}>
-        <View style={[styles.footerActions, isRTL && { flexDirection: 'row-reverse', justifyContent: 'flex-end' }]}>
+        <View style={[styles.footerActions, rtlStyles.row]}>
           <Pressable 
             onPress={onToggleDarkMode} 
             style={({ pressed }) => [
