@@ -20,6 +20,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useRTLStyles } from "@/hooks/useRTLStyles";
 import { UserRole } from "@/types/vms.types";
+import { authService } from "@/services/api/authService";
 
 const SIDEBAR_WIDTH_DESKTOP = 280;
 const EDGE_SWIPE_THRESHOLD = 24;
@@ -98,8 +99,18 @@ export default function DashboardLayout({
   
   const handleLanguageToggle = async () => {
     const newLocale = locale === 'en' ? 'ar' : 'en';
-    await setLocale(newLocale);
-    setProfileMenuVisible(false);
+    // Persist language preference to server first
+    try {
+      await authService.updateProfile({ language: newLocale });
+      console.log('[DashboardLayout] Language preference saved to server:', newLocale);
+      // Only apply locally if server update succeeded
+      await setLocale(newLocale);
+      setProfileMenuVisible(false);
+    } catch (error) {
+      console.warn('[DashboardLayout] Failed to save language to server:', error);
+      // Keep menu open so user knows something failed
+      // Note: In a future enhancement, we could add a toast notification here
+    }
   };
   
   // Calculate responsive values

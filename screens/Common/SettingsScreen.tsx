@@ -7,6 +7,7 @@ import { DDIcon } from "@/components/DDIcon";
 import { ROUTES } from "@/constants";
 import Constants from "expo-constants";
 import { pushNotificationService } from "@/services/push";
+import { authService } from "@/services/api/authService";
 import { InAppNotificationToast } from "@/components/InAppNotificationToast";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { ThemedText } from "@/components/ThemedText";
@@ -78,7 +79,21 @@ export default function SettingsScreen({
   };
 
   const handleLanguageChange = async (langCode: SupportedLocale) => {
-    await setLocale(langCode);
+    // Persist language preference to server first
+    try {
+      await authService.updateProfile({ language: langCode });
+      console.log('[Settings] Language preference saved to server:', langCode);
+      // Only apply locally if server update succeeded
+      await setLocale(langCode);
+    } catch (error) {
+      console.warn('[Settings] Failed to save language to server:', error);
+      // Show error to user
+      setToastMessage({
+        title: t('common.error'),
+        body: t('settings.languageSaveError') || 'Failed to save language preference. Please try again.',
+      });
+      setShowInAppToast(true);
+    }
   };
 
   const handlePushToggle = (enabled: boolean) => {
