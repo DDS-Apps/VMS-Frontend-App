@@ -11,17 +11,17 @@
       body { overflow: hidden; }
       #root { display: flex; height: 100%; flex: 1; }
       
-      /* RTL layout support - force row-reverse on main container when RTL */
-      /* Target by data-rtl attribute (most reliable for React Native Web) */
+      /* RTL layout support for main dashboard container */
+      /* Prevent double-reversal: dir="rtl" on html already reverses flex, 
+         so we set direction:ltr on main-container to control layout explicitly */
       [data-rtl="true"] {
-        flex-direction: row-reverse !important;
+        direction: ltr !important; /* Prevent flex reversal inheritance */
+        flex-direction: row-reverse !important; /* Our explicit RTL layout */
       }
-      /* Target by id (from nativeID) */
-      [dir="rtl"] #main-container {
-        flex-direction: row-reverse !important;
-      }
-      /* Target by data-testid (from testID) */
+      /* Fallback selectors */
+      [dir="rtl"] #main-container,
       [dir="rtl"] [data-testid="main-container"] {
+        direction: ltr !important;
         flex-direction: row-reverse !important;
       }
     </style>
