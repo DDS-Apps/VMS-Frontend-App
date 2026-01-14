@@ -86,6 +86,48 @@ export function EnableNotificationsPrompt({
     return null;
   }
 
+  const bellIcon = (
+    <View style={styles.iconContainer}>
+      <DDIcon name="bell" size={24} color={theme.primary} />
+    </View>
+  );
+
+  const closeButton = (
+    <Pressable onPress={handleDismiss} style={styles.closeButton}>
+      <DDIcon name="x" size={18} color={theme.textSecondary} />
+    </Pressable>
+  );
+
+  const enableButton = (
+    <Pressable
+      onPress={handleEnable}
+      disabled={isLoading}
+      style={[
+        styles.enableButton,
+        { backgroundColor: theme.primary },
+        isLoading && styles.buttonDisabled,
+      ]}
+    >
+      <ThemedText variant="bodySmall" color="#FFFFFF">
+        {isLoading 
+          ? t('notifications.enablingNotifications') 
+          : t('notifications.enableButton')
+        }
+      </ThemedText>
+    </Pressable>
+  );
+
+  const laterButton = (
+    <Pressable
+      onPress={handleDismiss}
+      style={styles.dismissButton}
+    >
+      <ThemedText variant="bodySmall" color={theme.textSecondary}>
+        {t('notifications.enableLater')}
+      </ThemedText>
+    </Pressable>
+  );
+
   return (
     <Animated.View 
       entering={FadeIn.duration(300)}
@@ -95,58 +137,55 @@ export function EnableNotificationsPrompt({
         { 
           backgroundColor: theme.softOrange,
           borderColor: theme.primary,
-          flexDirection: isRTL ? 'row-reverse' : 'row',
+          flexDirection: 'row',
         }
       ]}
     >
-      <View style={styles.iconContainer}>
-        <DDIcon name="bell" size={24} color={theme.primary} />
-      </View>
-      
-      <View style={styles.content}>
-        <ThemedText variant="bodySmall" style={[styles.title, { textAlign: isRTL ? 'right' : 'left' }]}>
-          {t('notifications.enablePromptTitle')}
-        </ThemedText>
-        <ThemedText 
-          variant="caption" 
-          color={theme.textSecondary}
-          style={[styles.description, { textAlign: isRTL ? 'right' : 'left' }]}
-        >
-          {t('notifications.enablePromptDescription')}
-        </ThemedText>
-        
-        <View style={[styles.buttonRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-          <Pressable
-            onPress={handleEnable}
-            disabled={isLoading}
-            style={[
-              styles.enableButton,
-              { backgroundColor: theme.primary },
-              isLoading && styles.buttonDisabled,
-            ]}
-          >
-            <ThemedText variant="bodySmall" color="#FFFFFF">
-              {isLoading 
-                ? t('notifications.enablingNotifications') 
-                : t('notifications.enableButton')
-              }
+      {isRTL ? (
+        <>
+          {closeButton}
+          <View style={styles.content}>
+            <ThemedText variant="bodySmall" style={[styles.title, { textAlign: 'right' }]}>
+              {t('notifications.enablePromptTitle')}
             </ThemedText>
-          </Pressable>
-          
-          <Pressable
-            onPress={handleDismiss}
-            style={styles.dismissButton}
-          >
-            <ThemedText variant="bodySmall" color={theme.textSecondary}>
-              {t('notifications.enableLater')}
+            <ThemedText 
+              variant="caption" 
+              color={theme.textSecondary}
+              style={[styles.description, { textAlign: 'right' }]}
+            >
+              {t('notifications.enablePromptDescription')}
             </ThemedText>
-          </Pressable>
-        </View>
-      </View>
-      
-      <Pressable onPress={handleDismiss} style={styles.closeButton}>
-        <DDIcon name="x" size={18} color={theme.textSecondary} />
-      </Pressable>
+            
+            <View style={[styles.buttonRow, { flexDirection: 'row', justifyContent: 'flex-end' }]}>
+              {laterButton}
+              {enableButton}
+            </View>
+          </View>
+          {bellIcon}
+        </>
+      ) : (
+        <>
+          {bellIcon}
+          <View style={styles.content}>
+            <ThemedText variant="bodySmall" style={[styles.title, { textAlign: 'left' }]}>
+              {t('notifications.enablePromptTitle')}
+            </ThemedText>
+            <ThemedText 
+              variant="caption" 
+              color={theme.textSecondary}
+              style={[styles.description, { textAlign: 'left' }]}
+            >
+              {t('notifications.enablePromptDescription')}
+            </ThemedText>
+            
+            <View style={[styles.buttonRow, { flexDirection: 'row', justifyContent: 'flex-start' }]}>
+              {enableButton}
+              {laterButton}
+            </View>
+          </View>
+          {closeButton}
+        </>
+      )}
     </Animated.View>
   );
 }
@@ -157,6 +196,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
     borderWidth: 1,
     marginHorizontal: Spacing.md,
+    marginTop: Spacing.md,
     marginBottom: Spacing.md,
     gap: Spacing.sm,
   },
