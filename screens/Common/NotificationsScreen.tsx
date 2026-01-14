@@ -285,7 +285,7 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
                   <DDIcon name={icon} size={20} color={accentColor} />
                 </View>
 
-                <View style={[styles.notificationContent, { marginStart: Spacing.md }]}>
+                <View style={styles.notificationContent}>
                   <ThemedText style={[styles.notificationTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
                     {getLocalizedTitle(notification)}
                   </ThemedText>
@@ -339,6 +339,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 1,
     borderWidth: StyleSheet.hairlineWidth,
+    gap: Spacing.md,
   },
   iconContainer: {
     width: 44,
