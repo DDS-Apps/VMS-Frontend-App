@@ -60,9 +60,19 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
       markAsReadMutation.mutate(notification.id);
     }
     
+    const notificationAny = notification as Record<string, unknown>;
+    const mergedData: Record<string, unknown> = {
+      ...notification.data,
+      requestId: notificationAny.requestId || notification.data?.requestId,
+      visitId: notificationAny.visitId || notification.data?.visitId,
+      roomId: notificationAny.roomId || notification.data?.roomId,
+      orderId: notificationAny.orderId || notification.data?.orderId,
+      taskId: notificationAny.taskId || notification.data?.taskId,
+    };
+    
     navigateFromInAppNotification({
       type: notification.type,
-      data: notification.data,
+      data: mergedData,
     });
   }, [markAsReadMutation]);
 
