@@ -296,12 +296,12 @@ export default function EditProfileScreen({
     editable: boolean = true
   ) => (
     <View style={styles.inputContainer}>
-      <View style={[styles.labelRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-        <ThemedText style={[styles.inputLabel, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+      <View style={[styles.labelRow, { flexDirection: 'row', justifyContent: 'space-between' }]}>
+        <ThemedText style={[styles.inputLabel, { color: theme.text, textAlign: isRTL ? 'right' : 'left', flex: 1 }]}>
           {label}
         </ThemedText>
         {!editable ? (
-          <View style={[styles.readOnlyBadge, { backgroundColor: applyOpacity(theme.textSecondary, '15'), flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.readOnlyBadge, { backgroundColor: applyOpacity(theme.textSecondary, '15'), flexDirection: 'row', gap: 4 }]}>
             <DDIcon name="lock" size={10} color={theme.textSecondary} />
             <ThemedText style={[styles.readOnlyText, { color: theme.textSecondary }]}>
               {t('form.readOnly')}
@@ -506,7 +506,7 @@ export default function EditProfileScreen({
 
       <Spacer height={Spacing.lg} />
 
-      <View style={styles.buttonRow}>
+      <View style={[styles.buttonRow, { direction: 'ltr' }]}>
         <LoadingButton
           onPress={handleCancel}
           variant="outline"
