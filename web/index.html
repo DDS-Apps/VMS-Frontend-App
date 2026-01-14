@@ -11,31 +11,26 @@
       body { overflow: hidden; }
       #root { display: flex; height: 100%; flex: 1; }
       
-      /* RTL layout support for main dashboard container */
-      /* Prevent double-reversal: dir="rtl" on html already reverses flex, 
-         so we set direction:ltr on main-container to control layout explicitly */
+      /* RTL layout support - using data-locale and data-rtl attributes */
+      /* Main container uses row-reverse for Arabic layout */
       [data-rtl="true"] {
-        direction: ltr !important; /* Prevent flex reversal inheritance */
-        flex-direction: row-reverse !important; /* Our explicit RTL layout */
-      }
-      /* Fallback selectors */
-      [dir="rtl"] #main-container,
-      [dir="rtl"] [data-testid="main-container"] {
-        direction: ltr !important;
         flex-direction: row-reverse !important;
       }
-      /* Restore RTL text direction for content area inside main-container */
+      /* Content area gets RTL text direction for proper Arabic text alignment */
       [data-content="true"][data-rtl="true"] {
         direction: rtl !important;
       }
     </style>
     <script>
-      // Set RTL direction before first paint based on stored language
+      // Set language before first paint based on stored language
+      // Always keep dir="ltr" to prevent double-reversal of flex layouts
+      // RTL layout is handled explicitly via flexDirection in components
       (function() {
         try {
           var lang = localStorage.getItem('@vms_language');
+          document.documentElement.dir = 'ltr'; // Always LTR
+          document.documentElement.setAttribute('data-locale', lang || 'en');
           if (lang === 'ar') {
-            document.documentElement.dir = 'rtl';
             document.documentElement.lang = 'ar';
           }
         } catch(e) {}
