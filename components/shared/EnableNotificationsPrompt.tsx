@@ -142,51 +142,38 @@ export function EnableNotificationsPrompt({
         }
       ]}
     >
-      {isRTL ? (
-        <>
-          {closeButton}
-          <View style={styles.content}>
-            <ThemedText variant="bodySmall" style={[styles.title, { textAlign: 'right' }]}>
-              {t('notifications.enablePromptTitle')}
-            </ThemedText>
-            <ThemedText 
-              variant="caption" 
-              color={theme.textSecondary}
-              style={[styles.description, { textAlign: 'right' }]}
-            >
-              {t('notifications.enablePromptDescription')}
-            </ThemedText>
-            
-            <View style={[styles.buttonRow, { flexDirection: 'row', justifyContent: 'flex-end' }]}>
+      {isRTL && closeButton}
+      {!isRTL && bellIcon}
+      
+      <View style={styles.content}>
+        <ThemedText variant="bodySmall" style={[styles.title, { textAlign: isRTL ? 'right' : 'left' }]}>
+          {t('notifications.enablePromptTitle')}
+        </ThemedText>
+        <ThemedText 
+          variant="caption" 
+          color={theme.textSecondary}
+          style={[styles.description, { textAlign: isRTL ? 'right' : 'left' }]}
+        >
+          {t('notifications.enablePromptDescription')}
+        </ThemedText>
+        
+        <View style={[styles.buttonRow, { flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start' }]}>
+          {isRTL ? (
+            <>
               {laterButton}
               {enableButton}
-            </View>
-          </View>
-          {bellIcon}
-        </>
-      ) : (
-        <>
-          {bellIcon}
-          <View style={styles.content}>
-            <ThemedText variant="bodySmall" style={[styles.title, { textAlign: 'left' }]}>
-              {t('notifications.enablePromptTitle')}
-            </ThemedText>
-            <ThemedText 
-              variant="caption" 
-              color={theme.textSecondary}
-              style={[styles.description, { textAlign: 'left' }]}
-            >
-              {t('notifications.enablePromptDescription')}
-            </ThemedText>
-            
-            <View style={[styles.buttonRow, { flexDirection: 'row', justifyContent: 'flex-start' }]}>
+            </>
+          ) : (
+            <>
               {enableButton}
               {laterButton}
-            </View>
-          </View>
-          {closeButton}
-        </>
-      )}
+            </>
+          )}
+        </View>
+      </View>
+      
+      {isRTL && bellIcon}
+      {!isRTL && closeButton}
     </Animated.View>
   );
 }
