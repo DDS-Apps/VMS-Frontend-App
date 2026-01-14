@@ -261,7 +261,7 @@ export function TimePicker({
           style={[styles.webPickerContainer, { backgroundColor: theme.surface }]}
           onPress={(e) => e.stopPropagation()}
         >
-          <View style={[styles.headerCompact, { borderBottomColor: theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.headerCompact, { borderBottomColor: theme.border, flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}>
             <DDIcon name="clock" size={18} color={theme.primary} />
             <ThemedText style={[Typography.body, { fontWeight: '600', marginStart: Spacing.sm, flex: 1 }]}>Select Time</ThemedText>
             <Pressable onPress={handleCancel} hitSlop={8}>
@@ -419,7 +419,7 @@ export function TimePicker({
             </ScrollView>
           </View>
 
-          <View style={[styles.footerButtonsCompact, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.footerButtonsCompact, { flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}>
             <Pressable 
               onPress={handleCancel}
               style={[styles.actionButton, styles.cancelButtonStyle, { borderColor: theme.border }]}
