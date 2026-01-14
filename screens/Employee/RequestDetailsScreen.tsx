@@ -1140,7 +1140,7 @@ export default function RequestDetailsScreen({
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.infoRowNew, { flexDirection: 'row' }]}>
+        <View style={[styles.infoRowNew, { flexDirection: 'row', gap: Spacing.md }]}>
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="phone" size={18} color={theme.text} />
           </View>
@@ -1148,10 +1148,10 @@ export default function RequestDetailsScreen({
             style={[
               Typography.body,
               {
-                marginStart: Spacing.md,
                 color: theme.textSecondary,
                 fontSize: 14,
                 textAlign: isRTL ? 'right' : 'left',
+                flex: 1,
               },
             ]}
           >
@@ -1163,19 +1163,19 @@ export default function RequestDetailsScreen({
       <Spacer height={Spacing.lg} />
 
       <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
-        <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <ThemedText
             style={[
               Typography.subtitle,
-              { fontSize: 16, fontWeight: "600", color: theme.text, textAlign: isRTL ? 'right' : 'left' },
+              { fontSize: 16, fontWeight: "600", color: theme.text, textAlign: isRTL ? 'right' : 'left', flex: 1 },
             ]}
           >
             {t("visitor.visitDetails")}
           </ThemedText>
           {request.isWalkIn ? (
-            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', backgroundColor: applyOpacity(theme.warning, '15'), paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: BorderRadius.sm }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.xs, backgroundColor: applyOpacity(theme.warning, '15'), paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: BorderRadius.sm }}>
               <DDIcon name="user-check" size={14} color={theme.warning} />
-              <ThemedText style={[Typography.caption, { color: theme.warning, fontWeight: '600', marginStart: Spacing.xs, fontSize: 11 }]}>
+              <ThemedText style={[Typography.caption, { color: theme.warning, fontWeight: '600', fontSize: 11 }]}>
                 {t("reception.walkInVisitor")}
               </ThemedText>
             </View>
