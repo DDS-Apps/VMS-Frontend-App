@@ -264,7 +264,7 @@ export function RequestTimeline({
           : null;
 
         const contentColumnEl = (
-          <View style={[styles.contentColumn, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
+          <View style={[styles.contentColumn]}>
             <ThemedText
               style={[
                 Typography.body,
@@ -272,6 +272,7 @@ export function RequestTimeline({
                   fontWeight: isCompleted || isCurrent ? '600' : '400',
                   color: isCompleted || isCurrent || isError ? theme.text : theme.textSecondary,
                   textAlign: isRTL ? 'right' : 'left',
+                  width: '100%',
                 },
               ]}
             >
