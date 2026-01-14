@@ -470,7 +470,8 @@ export default function DashboardLayout({
         </Modal>
 
         <View 
-          data-testid="main-container"
+          testID="main-container"
+          nativeID="main-container"
           style={[styles.mainContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
         >
           {/* Mobile Overlay - Rendered first so sidebar appears on top */}
