@@ -2768,6 +2768,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: Spacing.md,
     borderRadius: 8,
+    gap: Spacing.md,
   },
   serviceRowNew: {
     alignItems: "flex-start",
