@@ -271,7 +271,7 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
           <View style={[styles.statusBorderLine, { backgroundColor: statusConfig.border }]} />
           
           <View style={styles.cardContent}>
-            <View style={[styles.cardHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.cardHeader, { flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}>
               <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
                 <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
                   {initials}
@@ -279,7 +279,7 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
               </View>
               
               <View style={[styles.nameSection, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
-                <View style={[styles.nameRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                <View style={[styles.nameRow, { flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}>
                   <ThemedText style={[styles.visitorName, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
                     {visitorName}
                   </ThemedText>
@@ -290,22 +290,22 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
               </View>
             </View>
 
-            <View style={[styles.detailsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <View style={[styles.detailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.detailsRow, { flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.detailItem, { flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}>
                 <DDIcon name="calendar" size={12} color={theme.textSecondary} />
                 <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
                   {formatDateShort(item.visitDate)}
                 </ThemedText>
               </View>
               <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
-              <View style={[styles.detailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.detailItem, { flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}>
                 <DDIcon name="clock" size={12} color={theme.textSecondary} />
                 <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
                   {formatTimeFromString(item.visitTime)}
                 </ThemedText>
               </View>
               <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
-              <View style={[styles.detailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.detailItem, { flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}>
                 <DDIcon name="user" size={12} color={theme.textSecondary} />
                 <ThemedText style={[styles.detailText, { color: theme.textSecondary }]} numberOfLines={1}>
                   {item.employeeName}
@@ -313,8 +313,8 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
               </View>
             </View>
 
-            <View style={[styles.servicesStatusRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <View style={[styles.servicesRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.servicesStatusRow, { flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.servicesRow, { flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}>
                 {item.isWalkIn ? <WalkInBadge size="sm" /> : null}
                 {item.hasParking ? (
                   <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '20') }]}>
@@ -343,7 +343,7 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
             {isExpanded && hasDetails ? (
               <View style={styles.expandedSection}>
                 {item.purpose ? (
-                  <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                  <View style={[styles.expandedDetailRow, { flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}>
                     <DDIcon name="briefcase" size={14} color={theme.textSecondary} />
                     <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={2}>
                       {item.purpose}
@@ -351,7 +351,7 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
                   </View>
                 ) : null}
                 {item.visitor.email ? (
-                  <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                  <View style={[styles.expandedDetailRow, { flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}>
                     <DDIcon name="mail" size={14} color={theme.textSecondary} />
                     <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
                       {item.visitor.email}
@@ -359,7 +359,7 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
                   </View>
                 ) : null}
                 {item.visitor.phone ? (
-                  <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                  <View style={[styles.expandedDetailRow, { flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}>
                     <DDIcon name="phone" size={14} color={theme.textSecondary} />
                     <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
                       {item.visitor.phone}
@@ -372,7 +372,7 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
             {hasDetails ? (
               <Pressable 
                 onPress={(e) => { e.stopPropagation(); toggleCardExpanded(item.id); }} 
-                style={[styles.toggleContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
+                style={[styles.toggleContainer, { flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}
               >
                 <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
                   {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
@@ -385,7 +385,7 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
               </Pressable>
             ) : null}
 
-            <View style={[styles.cardFooter, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.cardFooter, { flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}>
               <View style={styles.actionButtons}>
                 {showCheckIn ? (
                   <VisitorActionButton 
@@ -501,9 +501,9 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
 
       <Spacer height={Spacing.md} />
 
-      <View style={[styles.filtersRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <View style={[styles.filtersRow, { flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}>
         <Pressable
-          style={[styles.filterDropdown, { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
+          style={[styles.filterDropdown, { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}
           onPress={() => setShowDatePicker(true)}
         >
           <DDIcon name="calendar" size={14} variant="muted" />
@@ -514,7 +514,7 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
         </Pressable>
 
         <Pressable
-          style={[styles.filterDropdown, { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
+          style={[styles.filterDropdown, { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}
           onPress={() => setShowStatusPicker(true)}
         >
           <DDIcon name="filter" size={14} variant="muted" />
@@ -528,14 +528,14 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
 
       <Spacer height={Spacing.sm} />
 
-      <View style={[styles.filtersRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <View style={[styles.filtersRow, { flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}>
         <Pressable
           style={[
             styles.filterChip,
             { 
               backgroundColor: activeQuickFilter === 'walk_in' ? applyOpacity(theme.warning, '15') : theme.surface,
               borderColor: activeQuickFilter === 'walk_in' ? theme.warning : theme.border,
-              flexDirection: isRTL ? 'row-reverse' : 'row'
+              flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row'
             }
           ]}
           onPress={() => setActiveQuickFilter(activeQuickFilter === 'walk_in' ? null : 'walk_in')}
@@ -555,7 +555,7 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
             { 
               backgroundColor: activeQuickFilter === 'awaiting_visitor' ? applyOpacity(theme.info, '15') : theme.surface,
               borderColor: activeQuickFilter === 'awaiting_visitor' ? theme.info : theme.border,
-              flexDirection: isRTL ? 'row-reverse' : 'row'
+              flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row'
             }
           ]}
           onPress={() => setActiveQuickFilter(activeQuickFilter === 'awaiting_visitor' ? null : 'awaiting_visitor')}
@@ -575,7 +575,7 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
             { 
               backgroundColor: activeQuickFilter === 'pending_approval' ? applyOpacity(theme.primary, '15') : theme.surface,
               borderColor: activeQuickFilter === 'pending_approval' ? theme.primary : theme.border,
-              flexDirection: isRTL ? 'row-reverse' : 'row'
+              flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row'
             }
           ]}
           onPress={() => setActiveQuickFilter(activeQuickFilter === 'pending_approval' ? null : 'pending_approval')}
