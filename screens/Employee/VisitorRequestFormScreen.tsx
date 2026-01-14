@@ -537,11 +537,22 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
       {visitType && visitType !== t('visitor.generalVisit') && (
         <>
           <ThemedView style={[styles.visitTypeBanner, { backgroundColor: applyOpacity(theme.primary, '15'), borderStartColor: theme.primary, borderStartWidth: 4 }]}>
-            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.md }}>
-              <DDIcon name="info" size={20} variant="primary" />
-              <ThemedText style={[Typography.body, { flex: 1, fontWeight: '600', color: theme.primary, textAlign: isRTL ? 'right' : 'left' }]}>
-                {t('visitor.typeOfVisit')}: {visitType}
-              </ThemedText>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
+              {isRTL ? (
+                <>
+                  <ThemedText style={[Typography.body, { flex: 1, fontWeight: '600', color: theme.primary, textAlign: 'right' }]}>
+                    {t('visitor.typeOfVisit')}: {visitType}
+                  </ThemedText>
+                  <DDIcon name="info" size={20} variant="primary" />
+                </>
+              ) : (
+                <>
+                  <DDIcon name="info" size={20} variant="primary" />
+                  <ThemedText style={[Typography.body, { flex: 1, fontWeight: '600', color: theme.primary, textAlign: 'left' }]}>
+                    {t('visitor.typeOfVisit')}: {visitType}
+                  </ThemedText>
+                </>
+              )}
             </View>
           </ThemedView>
           <Spacer height={Spacing.lg} />
@@ -782,12 +793,24 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
               ]}
               onPress={() => setShowPurposePicker(true)}
             >
-              <View style={{ flex: 1, flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.md }}>
-                <DDIcon name="clipboard" size={20} variant="muted" />
-                <ThemedText style={[Typography.body, { color: theme.text, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
-                  {purposeLabel || t('form.selectPurpose')}
-                </ThemedText>
-                <DDIcon name="chevron-down" size={20} variant="muted" />
+              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
+                {isRTL ? (
+                  <>
+                    <DDIcon name="chevron-down" size={20} variant="muted" />
+                    <ThemedText style={[Typography.body, { color: theme.text, flex: 1, textAlign: 'right' }]}>
+                      {purposeLabel || t('form.selectPurpose')}
+                    </ThemedText>
+                    <DDIcon name="clipboard" size={20} variant="muted" />
+                  </>
+                ) : (
+                  <>
+                    <DDIcon name="clipboard" size={20} variant="muted" />
+                    <ThemedText style={[Typography.body, { color: theme.text, flex: 1, textAlign: 'left' }]}>
+                      {purposeLabel || t('form.selectPurpose')}
+                    </ThemedText>
+                    <DDIcon name="chevron-down" size={20} variant="muted" />
+                  </>
+                )}
               </View>
             </Pressable>
           </>
@@ -799,16 +822,32 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
           <Spacer height={Spacing.lg} />
 
           <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
-            <View style={[styles.sectionHeader, { flexDirection: isRTL ? 'row-reverse' : 'row', gap: Spacing.md }]}>
-              <View style={[styles.sectionIconContainer, { backgroundColor: theme.primary + '20' }]}>
-                <DDIcon name="calendar" size={20} variant="primary" />
-              </View>
-              <View style={{ flex: 1, alignItems: isRTL ? 'flex-end' : 'flex-start' }}>
-                <ThemedText style={[Typography.subtitle, { textAlign: isRTL ? 'right' : 'left' }]}>{t('visitor.visitSchedule')}</ThemedText>
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-                  {t('visitor.whenVisitorComing')}
-                </ThemedText>
-              </View>
+            <View style={[styles.sectionHeader, { flexDirection: 'row', gap: Spacing.md }]}>
+              {isRTL ? (
+                <>
+                  <View style={{ flex: 1, alignItems: 'flex-end' }}>
+                    <ThemedText style={[Typography.subtitle, { textAlign: 'right' }]}>{t('visitor.visitSchedule')}</ThemedText>
+                    <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: 'right' }]}>
+                      {t('visitor.whenVisitorComing')}
+                    </ThemedText>
+                  </View>
+                  <View style={[styles.sectionIconContainer, { backgroundColor: theme.primary + '20' }]}>
+                    <DDIcon name="calendar" size={20} variant="primary" />
+                  </View>
+                </>
+              ) : (
+                <>
+                  <View style={[styles.sectionIconContainer, { backgroundColor: theme.primary + '20' }]}>
+                    <DDIcon name="calendar" size={20} variant="primary" />
+                  </View>
+                  <View style={{ flex: 1, alignItems: 'flex-start' }}>
+                    <ThemedText style={[Typography.subtitle, { textAlign: 'left' }]}>{t('visitor.visitSchedule')}</ThemedText>
+                    <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: 'left' }]}>
+                      {t('visitor.whenVisitorComing')}
+                    </ThemedText>
+                  </View>
+                </>
+              )}
             </View>
 
             <Spacer height={Spacing.lg} />
@@ -827,12 +866,24 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
               ]}
               onPress={() => setShowDatePicker(true)}
             >
-              <View style={{ flex: 1, flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.md }}>
-                <DDIcon name="calendar" size={20} variant="primary" />
-                <ThemedText style={[Typography.body, { color: theme.text, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
-                  {formatPickerDate(selectedDate)}
-                </ThemedText>
-                <DDIcon name="chevron-down" size={20} variant="muted" />
+              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
+                {isRTL ? (
+                  <>
+                    <DDIcon name="chevron-down" size={20} variant="muted" />
+                    <ThemedText style={[Typography.body, { color: theme.text, flex: 1, textAlign: 'right' }]}>
+                      {formatPickerDate(selectedDate)}
+                    </ThemedText>
+                    <DDIcon name="calendar" size={20} variant="primary" />
+                  </>
+                ) : (
+                  <>
+                    <DDIcon name="calendar" size={20} variant="primary" />
+                    <ThemedText style={[Typography.body, { color: theme.text, flex: 1, textAlign: 'left' }]}>
+                      {formatPickerDate(selectedDate)}
+                    </ThemedText>
+                    <DDIcon name="chevron-down" size={20} variant="muted" />
+                  </>
+                )}
               </View>
             </Pressable>
             {errors.visitDate ? (
@@ -860,12 +911,24 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
               ]}
               onPress={() => setShowTimePicker(true)}
             >
-              <View style={{ flex: 1, flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.md }}>
-                <DDIcon name="clock" size={20} variant="primary" />
-                <ThemedText style={[Typography.body, { color: theme.text, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
-                  {formatPickerTime(selectedTime)}
-                </ThemedText>
-                <DDIcon name="chevron-down" size={20} variant="muted" />
+              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
+                {isRTL ? (
+                  <>
+                    <DDIcon name="chevron-down" size={20} variant="muted" />
+                    <ThemedText style={[Typography.body, { color: theme.text, flex: 1, textAlign: 'right' }]}>
+                      {formatPickerTime(selectedTime)}
+                    </ThemedText>
+                    <DDIcon name="clock" size={20} variant="primary" />
+                  </>
+                ) : (
+                  <>
+                    <DDIcon name="clock" size={20} variant="primary" />
+                    <ThemedText style={[Typography.body, { color: theme.text, flex: 1, textAlign: 'left' }]}>
+                      {formatPickerTime(selectedTime)}
+                    </ThemedText>
+                    <DDIcon name="chevron-down" size={20} variant="muted" />
+                  </>
+                )}
               </View>
             </Pressable>
             {errors.visitTime ? (
@@ -893,12 +956,24 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
               ]}
               onPress={() => setShowEndTimePicker(true)}
             >
-              <View style={{ flex: 1, flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.md }}>
-                <DDIcon name="clock" size={20} variant="primary" />
-                <ThemedText style={[Typography.body, { color: theme.text, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
-                  {formatPickerTime(selectedEndTime)}
-                </ThemedText>
-                <DDIcon name="chevron-down" size={20} variant="muted" />
+              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
+                {isRTL ? (
+                  <>
+                    <DDIcon name="chevron-down" size={20} variant="muted" />
+                    <ThemedText style={[Typography.body, { color: theme.text, flex: 1, textAlign: 'right' }]}>
+                      {formatPickerTime(selectedEndTime)}
+                    </ThemedText>
+                    <DDIcon name="clock" size={20} variant="primary" />
+                  </>
+                ) : (
+                  <>
+                    <DDIcon name="clock" size={20} variant="primary" />
+                    <ThemedText style={[Typography.body, { color: theme.text, flex: 1, textAlign: 'left' }]}>
+                      {formatPickerTime(selectedEndTime)}
+                    </ThemedText>
+                    <DDIcon name="chevron-down" size={20} variant="muted" />
+                  </>
+                )}
               </View>
             </Pressable>
             {errors.endTime ? (
@@ -926,12 +1001,24 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                 }
               ]}
             >
-              <View style={{ flex: 1, flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.md }}>
-                <DDIcon name="clock" size={20} variant="muted" />
-                <ThemedText style={[Typography.body, { color: isEndTimeBeforeStartTime() ? theme.error : theme.textSecondary, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
-                  {calculateDuration()}
-                </ThemedText>
-                <DDIcon name="lock" size={16} variant="muted" />
+              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
+                {isRTL ? (
+                  <>
+                    <DDIcon name="lock" size={16} variant="muted" />
+                    <ThemedText style={[Typography.body, { color: isEndTimeBeforeStartTime() ? theme.error : theme.textSecondary, flex: 1, textAlign: 'right' }]}>
+                      {calculateDuration()}
+                    </ThemedText>
+                    <DDIcon name="clock" size={20} variant="muted" />
+                  </>
+                ) : (
+                  <>
+                    <DDIcon name="clock" size={20} variant="muted" />
+                    <ThemedText style={[Typography.body, { color: isEndTimeBeforeStartTime() ? theme.error : theme.textSecondary, flex: 1, textAlign: 'left' }]}>
+                      {calculateDuration()}
+                    </ThemedText>
+                    <DDIcon name="lock" size={16} variant="muted" />
+                  </>
+                )}
               </View>
             </View>
             <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: Spacing.xs }]}>
