@@ -537,10 +537,10 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
       {visitType && visitType !== t('visitor.generalVisit') && (
         <>
           <ThemedView style={[styles.visitTypeBanner, { backgroundColor: applyOpacity(theme.primary, '15'), borderStartColor: theme.primary, borderStartWidth: 4 }]}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md, justifyContent: isRTL ? 'flex-end' : 'flex-start' }}>
               {isRTL ? (
                 <>
-                  <ThemedText style={[Typography.body, { flex: 1, fontWeight: '600', color: theme.primary, textAlign: 'right' }]}>
+                  <ThemedText style={[Typography.body, { fontWeight: '600', color: theme.primary }]}>
                     {t('visitor.typeOfVisit')}: {visitType}
                   </ThemedText>
                   <DDIcon name="info" size={20} variant="primary" />
@@ -548,7 +548,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
               ) : (
                 <>
                   <DDIcon name="info" size={20} variant="primary" />
-                  <ThemedText style={[Typography.body, { flex: 1, fontWeight: '600', color: theme.primary, textAlign: 'left' }]}>
+                  <ThemedText style={[Typography.body, { fontWeight: '600', color: theme.primary }]}>
                     {t('visitor.typeOfVisit')}: {visitType}
                   </ThemedText>
                 </>
