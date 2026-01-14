@@ -4,6 +4,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Typography, FontFamily } from "@/constants/theme";
 import { getTextAlign } from "@/utils/rtlInitializer";
+import { arabicFontSize, arabicLineHeight, TextCategory } from "@/utils/rtlStyles";
 
 export type TextVariant = 
   | "h1" 
@@ -69,31 +70,63 @@ export function ThemedText({
     return theme.text;
   };
 
+  // Map text variants to categories for Arabic scaling
+  const getCategory = (variant: TextVariant): TextCategory => {
+    switch (variant) {
+      case "h1":
+      case "h2":
+      case "h3":
+        return 'heading';
+      case "caption":
+      case "label":
+        return 'caption';
+      case "bodyL":
+      case "body":
+      case "bodySmall":
+      case "link":
+      default:
+        return 'body';
+    }
+  };
+
   const getTypeStyle = () => {
+    const category = getCategory(textVariant);
+    
+    // Helper to apply Arabic scaling to typography styles
+    type TypographyStyle = { fontSize: number; lineHeight: number; fontWeight: string; fontFamily: string; letterSpacing: number };
+    const scaleForArabic = <T extends TypographyStyle>(baseStyle: T): T => {
+      if (!isRTL) return baseStyle;
+      return {
+        ...baseStyle,
+        fontSize: arabicFontSize(baseStyle.fontSize, isRTL, category),
+        lineHeight: arabicLineHeight(baseStyle.lineHeight, isRTL, category),
+      };
+    };
+
     switch (textVariant) {
       case "h1":
-        return Typography.h1;
+        return scaleForArabic(Typography.h1);
       case "h2":
-        return Typography.h2;
+        return scaleForArabic(Typography.h2);
       case "h3":
-        return Typography.h3;
+        return scaleForArabic(Typography.h3);
       case "bodyL":
-        return Typography.bodyL;
+        return scaleForArabic(Typography.bodyL);
       case "body":
-        return Typography.body;
+        return scaleForArabic(Typography.body);
       case "bodySmall":
-        return Typography.bodySmall;
+        return scaleForArabic(Typography.bodySmall);
       case "caption":
-        return Typography.caption;
+        return scaleForArabic(Typography.caption);
       case "label":
-        return Typography.label;
+        return scaleForArabic(Typography.label);
       case "link":
-        return {
+        return scaleForArabic({
           ...Typography.body,
           fontFamily: FontFamily.latinMedium,
-        };
+        });
       default:
-        return Typography.body;
+        return scaleForArabic(Typography.body);
     }
   };
 
