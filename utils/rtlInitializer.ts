@@ -16,15 +16,12 @@ export function setWebDocumentDirection(locale: SupportedLocale): void {
   if (Platform.OS !== 'web') return;
   
   try {
+    const direction = getDirection(locale);
     const lang = locale === 'ar' ? 'ar' : 'en';
     
     if (typeof document !== 'undefined') {
-      // Always use dir="ltr" on html to prevent double-reversal of flex layouts
-      // RTL layout is handled explicitly via flexDirection: 'row-reverse' in components
-      document.documentElement.dir = 'ltr';
+      document.documentElement.dir = direction;
       document.documentElement.lang = lang;
-      // Add data attribute for CSS targeting
-      document.documentElement.setAttribute('data-locale', locale);
     }
   } catch (error) {
     console.warn('[RTL] Failed to set web document direction:', error);

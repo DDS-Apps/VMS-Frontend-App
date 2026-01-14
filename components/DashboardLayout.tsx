@@ -503,9 +503,16 @@ export default function DashboardLayout({
         <View 
           testID="main-container"
           nativeID="main-container"
-          // @ts-ignore - dataSet is supported by React Native Web
-          dataSet={{ rtl: isRTL ? 'true' : 'false' }}
-          style={[styles.mainContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
+          style={[
+            styles.mainContainer, 
+            { 
+              // On web: dir="rtl" on html already reverses flex, so use 'row'
+              // On native: no dir attribute, so use 'row-reverse' explicitly
+              flexDirection: isRTL 
+                ? (Platform.OS === 'web' ? 'row' : 'row-reverse') 
+                : 'row' 
+            }
+          ]}
         >
           {/* Mobile Overlay - Rendered first so sidebar appears on top */}
           {!isLargeScreen && sidebarOpen && (
@@ -571,11 +578,7 @@ export default function DashboardLayout({
           )}
 
           {/* Main Content */}
-          <View 
-            // @ts-ignore - dataSet is supported by React Native Web
-            dataSet={{ content: 'true', rtl: isRTL ? 'true' : 'false' }}
-            style={styles.content}
-          >
+          <View style={styles.content}>
             {/* Desktop Header Bar */}
             {isLargeScreen && (
               <View style={[

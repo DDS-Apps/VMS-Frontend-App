@@ -10,27 +10,14 @@
       html, body { height: 100%; }
       body { overflow: hidden; }
       #root { display: flex; height: 100%; flex: 1; }
-      
-      /* RTL layout support - using data-locale and data-rtl attributes */
-      /* Main container uses row-reverse for Arabic layout */
-      [data-rtl="true"] {
-        flex-direction: row-reverse !important;
-      }
-      /* Content area gets RTL text direction for proper Arabic text alignment */
-      [data-content="true"][data-rtl="true"] {
-        direction: rtl !important;
-      }
     </style>
     <script>
-      // Set language before first paint based on stored language
-      // Always keep dir="ltr" to prevent double-reversal of flex layouts
-      // RTL layout is handled explicitly via flexDirection in components
+      // Set RTL direction before first paint based on stored language
       (function() {
         try {
           var lang = localStorage.getItem('@vms_language');
-          document.documentElement.dir = 'ltr'; // Always LTR
-          document.documentElement.setAttribute('data-locale', lang || 'en');
           if (lang === 'ar') {
+            document.documentElement.dir = 'rtl';
             document.documentElement.lang = 'ar';
           }
         } catch(e) {}
