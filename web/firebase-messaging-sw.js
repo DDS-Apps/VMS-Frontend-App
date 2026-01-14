@@ -2,12 +2,12 @@ importScripts('https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js'
 importScripts('https://www.gstatic.com/firebasejs/10.7.0/firebase-messaging-compat.js');
 
 firebase.initializeApp({
-  apiKey: "AIzaSyDYMIEEPJLFkpZIkhxmHDcMhfL-BNkSdjw",
-  authDomain: "dallahdigital-vms.firebaseapp.com",
-  projectId: "dallahdigital-vms",
-  storageBucket: "dallahdigital-vms.firebasestorage.app",
-  messagingSenderId: "224821384776",
-  appId: "1:224821384776:web:f759f8d4805d5965d0aa7d"
+  apiKey: "AIzaSyAY6g-50Gu5zlB3sbkKHuuG5DpBOLZd_xo",
+  authDomain: "dallah-albaraka-vms.firebaseapp.com",
+  projectId: "dallah-albaraka-vms",
+  storageBucket: "dallah-albaraka-vms.firebasestorage.app",
+  messagingSenderId: "913604772710",
+  appId: "1:913604772710:web:46c93bf8fbcd061362bea7"
 });
 
 const messaging = firebase.messaging();
