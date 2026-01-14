@@ -12,6 +12,106 @@ import { ViewStyle, TextStyle } from 'react-native';
  * 3. Use rtlText() on all visible text to ensure proper alignment on iOS
  */
 
+// ============================================
+// Arabic Font Scaling Configuration
+// ============================================
+
+/**
+ * Font size scaling factors for Arabic text.
+ * Arabic script often requires slightly larger sizes for optimal readability.
+ * Adjust these values to fine-tune Arabic typography across the app.
+ */
+export const ArabicFontScaling = {
+  /** Scaling factor for body text (10% larger = 1.10) */
+  body: 1.10,
+  /** Scaling factor for headings (can be adjusted separately if needed) */
+  heading: 1.05,
+  /** Scaling factor for captions/small text (may need more boost for readability) */
+  caption: 1.12,
+  /** Default scaling factor for any text type not specified */
+  default: 1.10,
+};
+
+/**
+ * Text category types for font scaling
+ */
+export type TextCategory = 'body' | 'heading' | 'caption' | 'default';
+
+/**
+ * Returns a scaled font size for Arabic text.
+ * Use this function to ensure Arabic text is properly sized for readability.
+ * 
+ * @param baseFontSize - The base font size (for English/Latin text)
+ * @param isRTL - Whether the current language is RTL (Arabic)
+ * @param category - The text category to determine scaling factor
+ * @returns Scaled font size (rounded to 1 decimal place)
+ * 
+ * @example
+ * // In a component:
+ * const fontSize = arabicFontSize(16, isRTL, 'body'); // Returns 17.6 for Arabic, 16 for English
+ */
+export function arabicFontSize(
+  baseFontSize: number,
+  isRTL: boolean,
+  category: TextCategory = 'default'
+): number {
+  if (!isRTL) {
+    return baseFontSize;
+  }
+  const scaleFactor = ArabicFontScaling[category];
+  return Math.round(baseFontSize * scaleFactor * 10) / 10;
+}
+
+/**
+ * Returns a scaled line height for Arabic text.
+ * Line height should scale proportionally with font size.
+ * 
+ * @param baseLineHeight - The base line height
+ * @param isRTL - Whether the current language is RTL (Arabic)
+ * @param category - The text category to determine scaling factor
+ * @returns Scaled line height (rounded to nearest integer)
+ */
+export function arabicLineHeight(
+  baseLineHeight: number,
+  isRTL: boolean,
+  category: TextCategory = 'default'
+): number {
+  if (!isRTL) {
+    return baseLineHeight;
+  }
+  const scaleFactor = ArabicFontScaling[category];
+  return Math.round(baseLineHeight * scaleFactor);
+}
+
+/**
+ * Returns complete text style with Arabic-aware font sizing.
+ * Combines RTL text alignment with scaled font size and line height.
+ * 
+ * @param baseFontSize - Base font size
+ * @param baseLineHeight - Base line height
+ * @param isRTL - Whether RTL mode is active
+ * @param category - Text category for scaling
+ * @returns TextStyle with fontSize, lineHeight, textAlign, and writingDirection
+ * 
+ * @example
+ * <ThemedText style={[styles.body, arabicTextStyle(16, 24, isRTL, 'body')]}>
+ *   {t('some.text')}
+ * </ThemedText>
+ */
+export function arabicTextStyle(
+  baseFontSize: number,
+  baseLineHeight: number,
+  isRTL: boolean,
+  category: TextCategory = 'default'
+): TextStyle {
+  return {
+    fontSize: arabicFontSize(baseFontSize, isRTL, category),
+    lineHeight: arabicLineHeight(baseLineHeight, isRTL, category),
+    textAlign: isRTL ? 'right' : 'left',
+    writingDirection: isRTL ? 'rtl' : 'ltr',
+  };
+}
+
 /**
  * Returns RTL-aware row styles for horizontal layouts
  * Use this on the OUTERMOST container only - do NOT nest
