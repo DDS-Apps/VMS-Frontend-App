@@ -22,14 +22,14 @@ import { ViewStyle, TextStyle } from 'react-native';
  * Adjust these values to fine-tune Arabic typography across the app.
  */
 export const ArabicFontScaling = {
-  /** Scaling factor for body text (10% larger = 1.10) */
-  body: 1.10,
+  /** Scaling factor for body text (20% larger = 1.20) */
+  body: 1.20,
   /** Scaling factor for headings (can be adjusted separately if needed) */
   heading: 1.05,
-  /** Scaling factor for captions/small text (may need more boost for readability) */
-  caption: 1.12,
+  /** Scaling factor for captions/small text (16% larger = 1.16) */
+  caption: 1.16,
   /** Default scaling factor for any text type not specified */
-  default: 1.10,
+  default: 1.20,
 };
 
 /**
