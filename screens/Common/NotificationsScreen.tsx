@@ -191,8 +191,8 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
 
   return (
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
-      <View style={[styles.header, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-        <ThemedText style={[Typography.title]}>
+      <View style={[styles.header, { flexDirection: 'row' }]}>
+        <ThemedText style={[Typography.title, { flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
           {t('notifications.title')}
         </ThemedText>
         <Pressable 
@@ -271,21 +271,21 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
                     opacity: pressed ? 0.95 : 1,
                     borderColor: theme.border,
                     shadowColor: '#000',
-                    flexDirection: isRTL ? 'row-reverse' : 'row',
+                    flexDirection: 'row',
                   },
                 ]}
               >
                 <StatusAccent color={accentColor} width={4} />
 
                 {!notification.isRead ? (
-                  <View style={[styles.unreadDot, { backgroundColor: theme.primary }]} />
+                  <View style={[styles.unreadDot, { backgroundColor: theme.primary, start: isRTL ? Spacing.md : undefined, end: isRTL ? undefined : Spacing.md }]} />
                 ) : null}
 
                 <View style={[styles.iconContainer, { backgroundColor: applyOpacity(accentColor, '15') }]}>
                   <DDIcon name={icon} size={20} color={accentColor} />
                 </View>
 
-                <View style={styles.notificationContent}>
+                <View style={[styles.notificationContent, { marginStart: Spacing.md }]}>
                   <ThemedText style={[styles.notificationTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
                     {getLocalizedTitle(notification)}
                   </ThemedText>
@@ -294,7 +294,7 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
                     {notification.body}
                   </ThemedText>
                   <Spacer height={Spacing.sm} />
-                  <View style={[styles.timeContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                  <View style={[styles.timeContainer, { flexDirection: 'row', gap: 4, alignSelf: isRTL ? 'flex-start' : 'flex-end' }]}>
                     <DDIcon name="clock" size={12} variant="muted" />
                     <ThemedText style={[styles.timeText, { color: theme.textSecondary }]}>
                       {formatTime(notification.createdAt)}
@@ -349,7 +349,6 @@ const styles = StyleSheet.create({
   },
   notificationContent: {
     flex: 1,
-    marginStart: Spacing.md,
   },
   notificationTitle: {
     fontSize: 15,
@@ -362,8 +361,6 @@ const styles = StyleSheet.create({
   },
   timeContainer: {
     alignItems: 'center',
-    gap: 4,
-    alignSelf: 'flex-end',
   },
   timeText: {
     fontSize: 11,
@@ -372,7 +369,6 @@ const styles = StyleSheet.create({
   unreadDot: {
     position: 'absolute',
     top: Spacing.md,
-    end: Spacing.md,
     width: 8,
     height: 8,
     borderRadius: BorderRadius.full,
