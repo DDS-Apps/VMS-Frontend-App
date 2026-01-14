@@ -1037,7 +1037,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
             {t('services.optionalServices')}
           </ThemedText>
 
-          <View style={[getGridStyle(), { flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start' }]}>
+          <View style={getGridStyle(isRTL)}>
             <View style={getCardWrapper2ColStyle()}>
               <SelectableCard
                 onPress={() => setNeedsMeetingRoom(!needsMeetingRoom)}
@@ -1493,7 +1493,7 @@ const styles = StyleSheet.create({
   container: {
   },
   section: {
-    paddingVertical: Spacing.lg,
+    padding: Spacing.lg,
     borderRadius: BorderRadius.md,
   },
   input: {

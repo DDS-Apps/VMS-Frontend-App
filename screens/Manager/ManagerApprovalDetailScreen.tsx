@@ -1366,7 +1366,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
                       {t('services.additionalServices')}
                     </ThemedText>
                     
-                    <View style={getGridStyle()}>
+                    <View style={getGridStyle(isRTL)}>
                       <View style={getCardWrapper3ColStyle()}>
                         <SelectableCard
                           onPress={() => setWalkInRequiresMeetingRoom(!walkInRequiresMeetingRoom)}

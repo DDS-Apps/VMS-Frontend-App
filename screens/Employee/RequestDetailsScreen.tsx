@@ -2153,7 +2153,7 @@ export default function RequestDetailsScreen({
                 {t("services.optionalServices")}
               </ThemedText>
 
-              <View style={getGridStyle()}>
+              <View style={getGridStyle(isRTL)}>
                 <View style={getCardWrapper3ColStyle()}>
                   <SelectableCard
                     onPress={() => setEditRequiresMeetingRoom(!editRequiresMeetingRoom)}
