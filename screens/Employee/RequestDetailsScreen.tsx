@@ -879,6 +879,7 @@ export default function RequestDetailsScreen({
             style={[
               styles.alertBox,
               {
+                flexDirection: isRTL ? 'row-reverse' : 'row',
                 backgroundColor: applyOpacity(theme.error, "10"),
                 borderStartColor: theme.error,
                 borderStartWidth: 4,
@@ -906,6 +907,7 @@ export default function RequestDetailsScreen({
             style={[
               styles.alertBox,
               {
+                flexDirection: isRTL ? 'row-reverse' : 'row',
                 backgroundColor: applyOpacity(theme.error, "10"),
                 borderStartColor: theme.error,
                 borderStartWidth: 4,

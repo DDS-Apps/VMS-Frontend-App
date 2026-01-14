@@ -1698,7 +1698,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   visitTypeBanner: {
-    alignItems: 'center',
     padding: Spacing.md,
     borderRadius: BorderRadius.md,
   },
