@@ -1118,7 +1118,7 @@ export default function RequestDetailsScreen({
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.infoRowNew, { flexDirection: 'row' }]}>
+        <View style={[styles.infoRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row', justifyContent: 'flex-start' }]}>
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="mail" size={18} color={theme.text} />
           </View>
@@ -1128,7 +1128,6 @@ export default function RequestDetailsScreen({
               {
                 marginStart: Spacing.md,
                 color: theme.textSecondary,
-                flex: 1,
                 fontSize: 14,
                 textAlign: isRTL ? 'right' : 'left',
               },
@@ -1140,7 +1139,7 @@ export default function RequestDetailsScreen({
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.infoRowNew, { flexDirection: 'row', gap: Spacing.md }]}>
+        <View style={[styles.infoRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row', justifyContent: 'flex-start', gap: Spacing.md }]}>
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="phone" size={18} color={theme.text} />
           </View>
@@ -1151,7 +1150,6 @@ export default function RequestDetailsScreen({
                 color: theme.textSecondary,
                 fontSize: 14,
                 textAlign: isRTL ? 'right' : 'left',
-                flex: 1,
               },
             ]}
           >

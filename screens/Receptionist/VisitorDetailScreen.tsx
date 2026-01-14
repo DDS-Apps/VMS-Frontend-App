@@ -276,7 +276,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.infoRowNew, { flexDirection: 'row' }]}>
+        <View style={[styles.infoRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row', justifyContent: 'flex-start' }]}>
           <DDIcon name="phone" size={16} variant="muted" />
           <ThemedText
             style={[
@@ -284,7 +284,6 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
               {
                 marginStart: Spacing.md,
                 color: theme.textSecondary,
-                flex: 1,
                 fontSize: 14,
                 textAlign: isRTL ? 'right' : 'left',
               },
