@@ -822,10 +822,10 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
           <Spacer height={Spacing.lg} />
 
           <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
-            <View style={[styles.sectionHeader, { flexDirection: 'row', gap: Spacing.md }]}>
+            <View style={[styles.sectionHeader, { flexDirection: 'row', gap: Spacing.md, justifyContent: isRTL ? 'flex-end' : 'flex-start' }]}>
               {isRTL ? (
                 <>
-                  <View style={{ flex: 1, alignItems: 'flex-end' }}>
+                  <View style={{ alignItems: 'flex-end' }}>
                     <ThemedText style={[Typography.subtitle, { textAlign: 'right' }]}>{t('visitor.visitSchedule')}</ThemedText>
                     <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: 'right' }]}>
                       {t('visitor.whenVisitorComing')}
