@@ -1,10 +1,10 @@
-import { Text, type TextProps, TextStyle } from "react-native";
+import { Text, type TextProps, TextStyle, StyleSheet } from "react-native";
 
 import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Typography, FontFamily } from "@/constants/theme";
 import { getTextAlign } from "@/utils/rtlInitializer";
-import { arabicFontSize, arabicLineHeight, TextCategory } from "@/utils/rtlStyles";
+import { arabicFontSize, arabicLineHeight, TextCategory, ArabicFontScaling } from "@/utils/rtlStyles";
 
 export type TextVariant = 
   | "h1" 
@@ -136,12 +136,39 @@ export function ThemedText({
     textAlign,
   };
 
+  // Extract and scale custom fontSize from style prop for Arabic
+  const getScaledCustomStyle = (): TextStyle | null => {
+    if (!style || !isRTL) return null;
+    
+    // Flatten style array if needed
+    const flatStyle = StyleSheet.flatten(style);
+    if (!flatStyle) return null;
+    
+    const scaledStyle: TextStyle = {};
+    const category = getCategory(textVariant);
+    
+    // Scale custom fontSize if present
+    if (typeof flatStyle.fontSize === 'number') {
+      scaledStyle.fontSize = Math.round(flatStyle.fontSize * ArabicFontScaling[category] * 10) / 10;
+    }
+    
+    // Scale custom lineHeight if present
+    if (typeof flatStyle.lineHeight === 'number') {
+      scaledStyle.lineHeight = Math.round(flatStyle.lineHeight * ArabicFontScaling[category]);
+    }
+    
+    return Object.keys(scaledStyle).length > 0 ? scaledStyle : null;
+  };
+
+  const scaledCustomStyle = getScaledCustomStyle();
+
   return (
     <Text 
       style={[
         baseStyle, 
         getTypeStyle(), 
-        style
+        style,
+        scaledCustomStyle, // Apply scaled custom fontSize last to override
       ]} 
       {...rest} 
     />
