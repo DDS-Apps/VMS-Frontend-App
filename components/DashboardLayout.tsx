@@ -468,7 +468,7 @@ export default function DashboardLayout({
           </Pressable>
         </Modal>
 
-        <View style={[styles.mainContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.mainContainer, { flexDirection: 'row' }]}>
           {/* Mobile Overlay - Rendered first so sidebar appears on top */}
           {!isLargeScreen && sidebarOpen && (
             <Animated.View
@@ -482,19 +482,21 @@ export default function DashboardLayout({
             </Animated.View>
           )}
 
-          {/* Sidebar */}
-          {(sidebarOpen || isLargeScreen) && (
-            isLargeScreen ? (
-              <View
+          {/* Mobile Sidebar - absolute positioned */}
+          {!isLargeScreen && sidebarOpen && (
+            <GestureDetector gesture={sidebarSwipeGesture}>
+              <Animated.View
                 style={[
                   styles.sidebarContainer,
-                  { width: SIDEBAR_WIDTH_DESKTOP, zIndex: 10 },
+                  styles.sidebarMobile,
+                  { width: sidebarWidthMobile },
+                  sidebarAnimatedStyle,
+                  isRTL && { left: 'auto', right: 0 },
                 ]}
               >
                 <Sidebar
                   userRole={userRole}
                   userName={userName}
-                  userPhotoUrl={userPhotoUrl}
                   currentScreen={currentScreen}
                   onNavigate={onNavigate}
                   onLogout={onLogout}
@@ -503,32 +505,31 @@ export default function DashboardLayout({
                   isOpen={sidebarOpen}
                   onClose={closeSidebar}
                 />
-              </View>
-            ) : (
-              <GestureDetector gesture={sidebarSwipeGesture}>
-                <Animated.View
-                  style={[
-                    styles.sidebarContainer,
-                    styles.sidebarMobile,
-                    { width: sidebarWidthMobile },
-                    sidebarAnimatedStyle,
-                    isRTL && { left: 'auto', right: 0 },
-                  ]}
-                >
-                  <Sidebar
-                    userRole={userRole}
-                    userName={userName}
-                    currentScreen={currentScreen}
-                    onNavigate={onNavigate}
-                    onLogout={onLogout}
-                    onToggleDarkMode={toggleTheme}
-                    isDarkMode={isDark}
-                    isOpen={sidebarOpen}
-                    onClose={closeSidebar}
-                  />
-                </Animated.View>
-              </GestureDetector>
-            )
+              </Animated.View>
+            </GestureDetector>
+          )}
+
+          {/* Desktop Sidebar - LTR: on left (rendered first) */}
+          {isLargeScreen && !isRTL && (
+            <View
+              style={[
+                styles.sidebarContainer,
+                { width: SIDEBAR_WIDTH_DESKTOP, zIndex: 10 },
+              ]}
+            >
+              <Sidebar
+                userRole={userRole}
+                userName={userName}
+                userPhotoUrl={userPhotoUrl}
+                currentScreen={currentScreen}
+                onNavigate={onNavigate}
+                onLogout={onLogout}
+                onToggleDarkMode={toggleTheme}
+                isDarkMode={isDark}
+                isOpen={sidebarOpen}
+                onClose={closeSidebar}
+              />
+            </View>
           )}
 
           {/* Main Content */}
@@ -697,6 +698,29 @@ export default function DashboardLayout({
               {children}
             </View>
           </View>
+
+          {/* Desktop Sidebar - RTL: on right (rendered after content) */}
+          {isLargeScreen && isRTL && (
+            <View
+              style={[
+                styles.sidebarContainer,
+                { width: SIDEBAR_WIDTH_DESKTOP, zIndex: 10 },
+              ]}
+            >
+              <Sidebar
+                userRole={userRole}
+                userName={userName}
+                userPhotoUrl={userPhotoUrl}
+                currentScreen={currentScreen}
+                onNavigate={onNavigate}
+                onLogout={onLogout}
+                onToggleDarkMode={toggleTheme}
+                isDarkMode={isDark}
+                isOpen={sidebarOpen}
+                onClose={closeSidebar}
+              />
+            </View>
+          )}
         </View>
       </ThemedView>
     </GestureDetector>
