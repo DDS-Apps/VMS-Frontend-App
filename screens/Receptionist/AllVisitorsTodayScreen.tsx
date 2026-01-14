@@ -42,7 +42,7 @@ const ServiceIconsRow = ({ visitor, size = 14 }: { visitor: TodayVisitorDto; siz
   }
 
   return (
-    <View style={[styles.servicesIconsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+    <View style={[styles.servicesIconsRow, { flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}>
       {showBuffet ? (
         <View style={[styles.serviceIconPill, { backgroundColor: applyOpacity(theme.warning, '20') }]}>
           <DDIcon name="coffee" size={size} color={theme.warning} />
@@ -260,7 +260,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
           <View style={[styles.statusBorderLine, { backgroundColor: statusConfig.border }]} />
           
           <View style={styles.cardContent}>
-            <View style={[styles.cardHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.cardHeader, { flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}>
               <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
                 <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
                   {initials}
@@ -277,14 +277,14 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
               </View>
             </View>
 
-            <View style={[styles.detailsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <View style={[styles.detailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.detailsRow, { flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.detailItem, { flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}>
                 <DDIcon name="clock" size={12} variant="muted" />
                 <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
                   {formatTimeFromString(item.visitTime)}
                 </ThemedText>
               </View>
-              <View style={[styles.detailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.detailItem, { flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}>
                 <DDIcon name="user" size={12} variant="muted" />
                 <ThemedText style={[styles.detailText, { color: theme.textSecondary }]} numberOfLines={1}>
                   {item.hostName}{item.hostDepartment ? ` - ${item.hostDepartment}` : ''}
@@ -292,7 +292,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
               </View>
             </View>
 
-            <View style={[styles.servicesStatusRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.servicesStatusRow, { flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}>
               <ServiceIconsRow visitor={item} />
               <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: 1 }]}>
                 <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
@@ -304,7 +304,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
             {isExpanded && hasDetails ? (
               <View style={styles.expandedSection}>
                 {item.visitor.phone ? (
-                  <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                  <View style={[styles.expandedDetailRow, { flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}>
                     <DDIcon name="phone" size={14} color={theme.textSecondary} />
                     <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
                       {formatPhoneNumber(item.visitor.phone)}
@@ -317,7 +317,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
             {hasDetails ? (
               <Pressable 
                 onPress={(e) => { e.stopPropagation(); toggleVisitorExpanded(item.id); }} 
-                style={[styles.toggleContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
+                style={[styles.toggleContainer, { flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}
               >
                 <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
                   {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
@@ -330,9 +330,9 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
               </Pressable>
             ) : null}
 
-            <View style={[styles.cardFooter, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.cardFooter, { flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}>
               <View />
-              <View style={[styles.actionButtons, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.actionButtons, { flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}>
                 {showCheckIn ? (
                   <VisitorActionButton 
                     type="check_in" 
@@ -378,7 +378,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
 
       <Spacer height={Spacing.md} />
 
-      <View style={[styles.summaryRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <View style={[styles.summaryRow, { flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}>
         {renderSummaryCard(t('visitor.expectedVisitors'), summary.expected, theme.warning, 'clock')}
         {renderSummaryCard(t('status.checkedIn'), summary.checkedIn, theme.success, 'log-in')}
         {renderSummaryCard(t('status.checkedOut'), summary.completed, theme.textSecondary, 'log-out')}
