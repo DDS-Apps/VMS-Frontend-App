@@ -38,6 +38,7 @@ export interface AuthUser {
   lastLogin?: string;
   isSSOUser?: boolean;
   timezone?: string;
+  language?: 'en' | 'ar';
 }
 
 interface AuthState {
@@ -69,9 +70,10 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 interface AuthProviderProps {
   children: ReactNode;
   onLogout?: () => void;
+  onUserLanguageChanged?: (language: 'en' | 'ar') => void;
 }
 
-export function AuthProvider({ children, onLogout }: AuthProviderProps) {
+export function AuthProvider({ children, onLogout, onUserLanguageChanged }: AuthProviderProps) {
   const [state, setState] = useState<AuthState>({
     user: null,
     isLoading: true,
@@ -162,6 +164,7 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
       createdAt: userDto.createdAt,
       lastLogin: userDto.lastLogin,
       timezone: userDto.timezone,
+      language: userDto.language,
     };
   };
 
@@ -184,6 +187,7 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
       autoApproval: loginUser.autoApproval,
       department: loginUser.department,
       timezone: loginUser.timezone,
+      language: loginUser.language,
     };
   };
 
@@ -410,8 +414,14 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
       console.warn('[AuthContext] Failed to set crashlytics user attributes:', error);
     });
 
+    // Sync language preference from server
+    if (user.language && onUserLanguageChanged) {
+      console.log('[AuthContext] User language from server:', user.language);
+      onUserLanguageChanged(user.language);
+    }
+
     return response;
-  }, [persistTokens]);
+  }, [persistTokens, onUserLanguageChanged]);
 
   const login = useCallback(async (email: string, password: string): Promise<AuthTokenResponse> => {
     setState((prev) => ({ ...prev, error: null }));
@@ -509,6 +519,12 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
         console.warn('[AuthContext] Failed to set crashlytics user attributes:', crashlyticsError);
       });
 
+      // Sync language preference from server
+      if (user.language && onUserLanguageChanged) {
+        console.log('[AuthContext] SSO User language from server:', user.language);
+        onUserLanguageChanged(user.language);
+      }
+
       return user;
     } catch (error) {
       console.error('[AuthContext] ssoLogin error:', error);
@@ -521,7 +537,7 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
       }));
       throw error;
     }
-  }, [persistTokens]);
+  }, [persistTokens, onUserLanguageChanged]);
 
   const logout = useCallback(async () => {
     await handleLogout();

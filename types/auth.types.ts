@@ -34,6 +34,7 @@ export interface AuthUserDto {
   photoUrl?: string | null;
   thumbnailUrl?: string | null;
   timezone?: string;
+  language?: 'en' | 'ar';
 }
 
 export interface AuthTokenResponse {
@@ -48,6 +49,7 @@ export interface AuthTokenResponse {
     department?: string;
     autoApproval?: boolean;
     timezone?: string;
+    language?: 'en' | 'ar';
   };
 }
 
@@ -74,6 +76,7 @@ export interface UpdateProfilePayload {
   name?: string;
   phoneNumber?: string;
   department?: string;
+  language?: 'en' | 'ar';
 }
 
 export interface PhotoUploadResponse {

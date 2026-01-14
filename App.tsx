@@ -83,9 +83,10 @@ function getInviteTokenFromUrl(): string | null {
 
 function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
   const { user, isAuthenticated, isLoading: authLoading, logout } = useAuth();
-  const { layoutKey, isLoading: languageLoading, isRTL } = useLanguage();
+  const { layoutKey, isLoading: languageLoading, isRTL, locale, setLocale } = useLanguage();
   const [showSplash, setShowSplash] = useState(true);
   const [inviteToken, setInviteToken] = useState<string | null>(null);
+  const [hasAppliedUserLanguage, setHasAppliedUserLanguage] = useState(false);
 
   useEffect(() => {
     const token = getInviteTokenFromUrl();
@@ -94,6 +95,25 @@ function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
       // Don't hide splash yet - wait for language to load
     }
   }, []);
+
+  // Sync language from user profile when authenticated
+  useEffect(() => {
+    if (isAuthenticated && user?.language && !hasAppliedUserLanguage) {
+      const userLang = user.language;
+      // Only change if different from current locale
+      if (userLang !== locale) {
+        console.log('[AppContent] Syncing user language from server:', userLang);
+        setLocale(userLang);
+        setHasAppliedUserLanguage(true);
+      } else {
+        setHasAppliedUserLanguage(true);
+      }
+    }
+    // Reset when user logs out
+    if (!isAuthenticated) {
+      setHasAppliedUserLanguage(false);
+    }
+  }, [isAuthenticated, user?.language, locale, setLocale, hasAppliedUserLanguage]);
 
   const handleSplashFinish = () => {
     // Only hide splash if language loading is complete
