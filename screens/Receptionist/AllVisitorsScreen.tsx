@@ -279,12 +279,12 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
               </View>
               
               <View style={[styles.nameSection, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
-                <View style={[styles.nameRow, { flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}>
-                  <ThemedText style={[styles.visitorName, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+                <View style={[styles.nameRow, { flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row', width: '100%' }]}>
+                  <ThemedText style={[styles.visitorName, { color: theme.text, textAlign: isRTL ? 'right' : 'left', width: '100%' }]} numberOfLines={1}>
                     {visitorName}
                   </ThemedText>
                 </View>
-                <ThemedText style={[styles.companyText, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+                <ThemedText style={[styles.companyText, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left', width: '100%' }]} numberOfLines={1}>
                   {item.visitor.company ?? ''}
                 </ThemedText>
               </View>
