@@ -63,6 +63,8 @@ class PushNotificationService {
   async initialize(
     onNotificationReceived?: NotificationCallback
   ): Promise<boolean> {
+    console.log('[Push] Initialize called, platform:', Platform.OS, 'already init:', this.isInitialized);
+    
     if (this.isInitialized) {
       return true;
     }
@@ -70,7 +72,9 @@ class PushNotificationService {
     try {
       let result: boolean;
       if (Platform.OS === 'web') {
+        console.log('[Push] Calling initializeWeb...');
         result = await this.initializeWeb(onNotificationReceived);
+        console.log('[Push] initializeWeb result:', result);
       } else {
         result = await this.initializeMobile(onNotificationReceived);
       }
@@ -84,18 +88,26 @@ class PushNotificationService {
   private async initializeWeb(
     onNotificationReceived?: NotificationCallback
   ): Promise<boolean> {
+    console.log('[Push Web] Step 1: initializeFirebaseWeb...');
     const initialized = await initializeFirebaseWeb();
+    console.log('[Push Web] Firebase initialized:', initialized);
     if (!initialized) {
+      console.log('[Push Web] Firebase init failed, stopping');
       return false;
     }
 
+    console.log('[Push Web] Step 2: registerServiceWorker...');
     await registerServiceWorker();
 
+    console.log('[Push Web] Step 3: getWebFcmToken...');
     this.token = await getWebFcmToken();
+    console.log('[Push Web] Token obtained:', !!this.token);
     if (!this.token) {
+      console.log('[Push Web] No token, stopping');
       return false;
     }
 
+    console.log('[Push Web] Step 4: registerTokenWithBackend...');
     await this.registerTokenWithBackend();
 
     this.webUnsubscribe = onWebForegroundMessage((payload: unknown) => {
