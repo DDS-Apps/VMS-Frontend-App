@@ -60,6 +60,7 @@ export default function DashboardLayout({
 }: DashboardLayoutProps) {
   const { theme, isDark, toggleTheme } = useTheme();
   const { locale, setLocale, isRTL, layoutKey } = useLanguage();
+  console.log('[DashboardLayout] isRTL:', isRTL, 'locale:', locale);
   const { t } = useTranslation();
   const rtlStyles = useRTLStyles();
   const { width } = useWindowDimensions();
@@ -468,7 +469,7 @@ export default function DashboardLayout({
           </Pressable>
         </Modal>
 
-        <View style={[styles.mainContainer, { flexDirection: 'row' }]}>
+        <View style={[styles.mainContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           {/* Mobile Overlay - Rendered first so sidebar appears on top */}
           {!isLargeScreen && sidebarOpen && (
             <Animated.View
@@ -509,8 +510,8 @@ export default function DashboardLayout({
             </GestureDetector>
           )}
 
-          {/* Desktop Sidebar - LTR: on left (rendered first) */}
-          {isLargeScreen && !isRTL && (
+          {/* Desktop Sidebar */}
+          {isLargeScreen && (
             <View
               style={[
                 styles.sidebarContainer,
@@ -698,29 +699,6 @@ export default function DashboardLayout({
               {children}
             </View>
           </View>
-
-          {/* Desktop Sidebar - RTL: on right (rendered after content) */}
-          {isLargeScreen && isRTL && (
-            <View
-              style={[
-                styles.sidebarContainer,
-                { width: SIDEBAR_WIDTH_DESKTOP, zIndex: 10 },
-              ]}
-            >
-              <Sidebar
-                userRole={userRole}
-                userName={userName}
-                userPhotoUrl={userPhotoUrl}
-                currentScreen={currentScreen}
-                onNavigate={onNavigate}
-                onLogout={onLogout}
-                onToggleDarkMode={toggleTheme}
-                isDarkMode={isDark}
-                isOpen={sidebarOpen}
-                onClose={closeSidebar}
-              />
-            </View>
-          )}
         </View>
       </ThemedView>
     </GestureDetector>
