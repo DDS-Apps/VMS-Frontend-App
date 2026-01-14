@@ -503,6 +503,8 @@ export default function DashboardLayout({
         <View 
           testID="main-container"
           nativeID="main-container"
+          // @ts-ignore - dataSet is supported by React Native Web
+          dataSet={{ rtl: isRTL ? 'true' : 'false' }}
           style={[styles.mainContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
         >
           {/* Mobile Overlay - Rendered first so sidebar appears on top */}
