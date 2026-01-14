@@ -15,6 +15,24 @@
       [dir="rtl"] #main-container {
         flex-direction: row-reverse !important;
       }
+      /* Backup selector using nativeID as data attribute */
+      [dir="rtl"] [id="main-container"] {
+        flex-direction: row-reverse !important;
+      }
+    </style>
+    <script>
+      // Set RTL direction before first paint based on stored language
+      (function() {
+        try {
+          var lang = localStorage.getItem('@vms_language');
+          if (lang === 'ar') {
+            document.documentElement.dir = 'rtl';
+            document.documentElement.lang = 'ar';
+          }
+        } catch(e) {}
+      })();
+    </script>
+    <style>
     </style>
   </head>
   <body>
