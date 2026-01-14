@@ -15,6 +15,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { Spacing, BorderRadius, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { ArabicFontScaling } from '@/utils/rtlStyles';
 
 const INPUT_ICON_SIZE = 22;
 const INPUT_FONT_SIZE = 17;
@@ -87,12 +88,22 @@ export const StyledInput = forwardRef<TextInput, StyledInputProps>(({
             <DDIcon name={leftIcon} size={INPUT_ICON_SIZE} variant="muted" />
           ) : null;
           
+          // Scale font size for Arabic
+          const scaledFontSize = isRTL 
+            ? Math.round(INPUT_FONT_SIZE * ArabicFontScaling.body * 10) / 10 
+            : INPUT_FONT_SIZE;
+          
           const inputEl = (
             <TextInput
               ref={ref}
               style={[
                 styles.input,
-                { color: theme.text, textAlign: isRTL ? 'right' : 'left', writingDirection: isRTL ? 'rtl' : 'ltr' },
+                { 
+                  color: theme.text, 
+                  textAlign: isRTL ? 'right' : 'left', 
+                  writingDirection: isRTL ? 'rtl' : 'ltr',
+                  fontSize: scaledFontSize,
+                },
                 Platform.OS === 'web' ? { outlineStyle: 'none' } as any : {},
                 !leftIcon ? { paddingStart: 0 } : null,
               ]}

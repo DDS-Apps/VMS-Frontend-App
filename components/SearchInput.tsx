@@ -4,6 +4,7 @@ import { DDIcon } from '@/components/DDIcon';
 import { Spacing, BorderRadius } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { ArabicFontScaling } from '@/utils/rtlStyles';
 
 const INPUT_HEIGHT = 56;
 const INPUT_FONT_SIZE = 17;
@@ -45,6 +46,11 @@ export function SearchInput({
     onClear?.();
   };
 
+  // Scale font size for Arabic
+  const scaledFontSize = isRTL 
+    ? Math.round(INPUT_FONT_SIZE * ArabicFontScaling.body * 10) / 10 
+    : INPUT_FONT_SIZE;
+
   const searchIcon = <DDIcon name="search" size={ICON_SIZE} variant="muted" />;
   const inputEl = (
     <TextInput
@@ -54,6 +60,7 @@ export function SearchInput({
           color: theme.text,
           textAlign: isRTL ? 'right' : 'left',
           writingDirection: isRTL ? 'rtl' : 'ltr',
+          fontSize: scaledFontSize,
         },
         Platform.OS === 'web' ? { outlineStyle: 'none' } as any : {},
       ]}
