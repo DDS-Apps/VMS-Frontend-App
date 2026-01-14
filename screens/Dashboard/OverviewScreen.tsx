@@ -249,12 +249,12 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
       {(userRole === 'employee' || userRole === 'manager') && (
         <>
           <View>
-            <View style={[styles.header, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <View>
-                <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
+            <View style={[styles.header, { flexDirection: 'row' }]}>
+              <View style={{ flex: 1 }}>
+                <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
                   {t('dashboard.upcomingVisitors')}
                 </ThemedText>
-                <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 4, fontSize: 12 }]}>
+                <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 4, fontSize: 12, textAlign: isRTL ? 'right' : 'left' }]}>
                   {t('dashboard.thisWeek')}
                 </ThemedText>
               </View>
@@ -266,13 +266,12 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                   )}
                   style={({ pressed }) => [
                     styles.viewAllButton,
-                    { opacity: pressed ? 0.7 : 1, flexDirection: isRTL ? 'row-reverse' : 'row' }
+                    { opacity: pressed ? 0.7 : 1, flexDirection: 'row', gap: Spacing.xs }
                   ]}
                 >
                   <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
                     {t('common.viewAll')}
                   </ThemedText>
-                  <View style={{ width: Spacing.xs }} />
                   <DDIcon name={isRTL ? "chevron-left" : "chevron-right"} size={16} color={theme.primary} />
                 </Pressable>
               )}
