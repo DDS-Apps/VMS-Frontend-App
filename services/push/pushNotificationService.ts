@@ -38,21 +38,17 @@ class PushNotificationService {
 
   setQueryClient(client: QueryClient): void {
     this.queryClient = client;
-    console.log('[Push] QueryClient set for automatic data refresh');
   }
 
   private handleNotificationReceived(data: Record<string, unknown>): void {
     if (!this.queryClient) {
-      console.log('[Push] QueryClient not set, skipping data refresh');
       return;
     }
 
     const notificationType = data?.type as string;
     if (notificationType) {
-      console.log(`[Push] Refreshing data for notification type: ${notificationType}`);
       invalidateQueriesForNotification(this.queryClient, notificationType);
     } else {
-      console.log('[Push] No notification type, refreshing all notification data');
       refreshAllNotificationData(this.queryClient);
     }
   }
@@ -67,31 +63,19 @@ class PushNotificationService {
   async initialize(
     onNotificationReceived?: NotificationCallback
   ): Promise<boolean> {
-    console.log('[Push] ========== INITIALIZE START ==========');
-    console.log('[Push] Platform:', Platform.OS);
-    console.log('[Push] Already initialized:', this.isInitialized);
-    console.log('[Push] Current token exists:', !!this.token);
-    
     if (this.isInitialized) {
-      console.log('[Push] Already initialized, skipping re-initialization');
-      console.log('[Push] ========== INITIALIZE SKIPPED (already done) ==========');
       return true;
     }
 
     try {
       let result: boolean;
       if (Platform.OS === 'web') {
-        console.log('[Push] Calling initializeWeb()...');
         result = await this.initializeWeb(onNotificationReceived);
       } else {
-        console.log('[Push] Calling initializeMobile()...');
         result = await this.initializeMobile(onNotificationReceived);
       }
-      console.log('[Push] Initialization result:', result);
-      console.log('[Push] ========== INITIALIZE END ==========');
       return result;
     } catch (error) {
-      console.error('[Push] ========== INITIALIZE FAILED ==========');
       console.error('[Push] Initialization error:', error);
       return false;
     }
@@ -102,7 +86,6 @@ class PushNotificationService {
   ): Promise<boolean> {
     const initialized = await initializeFirebaseWeb();
     if (!initialized) {
-      console.log('[Push Web] Firebase not available');
       return false;
     }
 
@@ -110,14 +93,12 @@ class PushNotificationService {
 
     this.token = await getWebFcmToken();
     if (!this.token) {
-      console.log('[Push Web] No token obtained');
       return false;
     }
 
     await this.registerTokenWithBackend();
 
     this.webUnsubscribe = onWebForegroundMessage((payload: unknown) => {
-      console.log('[Push Web] Foreground message:', payload);
       const typedPayload = payload as Record<string, unknown>;
       const data = typedPayload.data as Record<string, unknown> || {};
       
@@ -138,77 +119,55 @@ class PushNotificationService {
     });
 
     this.isInitialized = true;
-    console.log('[Push Web] Initialized successfully');
     return true;
   }
 
   private async initializeMobile(
     onNotificationReceived?: NotificationCallback
   ): Promise<boolean> {
-    console.log('[Push Mobile] ========== INITIALIZE MOBILE START ==========');
-    console.log('[Push Mobile] Is physical device:', Device.isDevice);
-    
     if (!Device.isDevice) {
-      console.log('[Push Mobile] Push notifications require a physical device, skipping');
-      console.log('[Push Mobile] ========== INITIALIZE MOBILE SKIPPED ==========');
       return false;
     }
 
-    console.log('[Push Mobile] Checking notification permissions...');
     const { status: existingStatus } = await Notifications.getPermissionsAsync();
-    console.log('[Push Mobile] Existing permission status:', existingStatus);
     let finalStatus = existingStatus;
 
     if (existingStatus !== 'granted') {
-      console.log('[Push Mobile] Requesting notification permissions...');
       const { status } = await Notifications.requestPermissionsAsync();
       finalStatus = status;
-      console.log('[Push Mobile] New permission status:', finalStatus);
     }
 
     if (finalStatus !== 'granted') {
-      console.log('[Push Mobile] Permission denied, cannot proceed');
-      console.log('[Push Mobile] ========== INITIALIZE MOBILE FAILED (no permission) ==========');
       return false;
     }
 
-    console.log('[Push Mobile] Permission granted, getting device push token...');
     try {
       const tokenData = await Notifications.getDevicePushTokenAsync();
-      const tokenValue = tokenData.data;
-      this.token = tokenValue;
-      console.log('[Push Mobile] Token obtained successfully');
-      console.log('[Push Mobile] Token (first 30 chars):', tokenValue.substring(0, 30) + '...');
+      this.token = tokenData.data;
     } catch (error) {
-      console.error('[Push Mobile] Error getting token:', error);
-      console.log('[Push Mobile] ========== INITIALIZE MOBILE FAILED (token error) ==========');
+      console.error('[Push] Error getting mobile token:', error);
       return false;
     }
 
     if (Platform.OS === 'android') {
-      console.log('[Push Mobile] Setting up Android notification channels...');
       await this.setupAndroidChannels();
     }
 
-    console.log('[Push Mobile] Registering token with backend...');
     await this.registerTokenWithBackend();
 
     this.notificationListener = Notifications.addNotificationReceivedListener((notification) => {
-      console.log('[Push Mobile] Notification received:', notification);
       const data = notification.request.content.data as Record<string, unknown>;
       this.handleNotificationReceived(data);
       onNotificationReceived?.(notification);
     });
 
     this.responseListener = Notifications.addNotificationResponseReceivedListener((response) => {
-      console.log('[Push Mobile] Notification tapped:', response);
       const data = response.notification.request.content.data as Record<string, unknown>;
       this.handleNotificationReceived(data);
       handleNotificationTap(response);
     });
 
     this.isInitialized = true;
-    console.log('[Push Mobile] Initialized successfully');
     return true;
   }
 
@@ -246,13 +205,7 @@ class PushNotificationService {
   }
 
   private async registerTokenWithBackend(): Promise<void> {
-    console.log('[Push] ========== REGISTER TOKEN WITH BACKEND START ==========');
-    console.log('[Push] Token exists:', !!this.token);
-    console.log('[Push] Token value (first 30 chars):', this.token ? this.token.substring(0, 30) + '...' : 'null');
-    
     if (!this.token) {
-      console.log('[Push] No token to register, skipping API call');
-      console.log('[Push] ========== REGISTER TOKEN WITH BACKEND SKIPPED ==========');
       return;
     }
 
@@ -261,28 +214,16 @@ class PushNotificationService {
     const deviceModel = Device.modelName || undefined;
     const appVersion = Constants.expoConfig?.version || '1.0.0';
 
-    console.log('[Push] Preparing registration request:', {
-      platform,
-      deviceName,
-      deviceModel,
-      appVersion,
-      tokenPrefix: this.token.substring(0, 30) + '...',
-    });
-
     try {
-      console.log('[Push] Calling deviceApiService.registerToken()...');
-      const result = await deviceApiService.registerToken({
+      await deviceApiService.registerToken({
         deviceToken: this.token,
         platform,
         deviceName,
         deviceModel,
         appVersion,
       });
-      console.log('[Push] Token registered with backend successfully, result:', JSON.stringify(result));
-      console.log('[Push] ========== REGISTER TOKEN WITH BACKEND SUCCESS ==========');
     } catch (error) {
-      console.error('[Push] ========== REGISTER TOKEN WITH BACKEND FAILED ==========');
-      console.error('[Push] Error:', error);
+      console.error('[Push] Token registration failed:', error);
       throw error;
     }
   }
@@ -300,13 +241,7 @@ class PushNotificationService {
   }
 
   async unregister(): Promise<void> {
-    console.log('[Push] ========== UNREGISTER START ==========');
-    console.log('[Push] Token exists:', !!this.token);
-    console.log('[Push] Token value (first 30 chars):', this.token ? this.token.substring(0, 30) + '...' : 'null');
-    
     if (!this.token) {
-      console.log('[Push] No token to unregister, skipping API call');
-      console.log('[Push] ========== UNREGISTER SKIPPED ==========');
       this.cleanup();
       return;
     }
@@ -314,13 +249,9 @@ class PushNotificationService {
     const tokenToUnregister = this.token;
 
     try {
-      console.log('[Push] Calling deviceApiService.unregisterToken()...');
       await deviceApiService.unregisterToken(tokenToUnregister);
-      console.log('[Push] Token unregistered from backend successfully');
-      console.log('[Push] ========== UNREGISTER SUCCESS ==========');
     } catch (error) {
-      console.error('[Push] ========== UNREGISTER FAILED ==========');
-      console.error('[Push] Error:', error);
+      console.error('[Push] Unregister failed:', error);
     }
 
     this.cleanup();
@@ -359,27 +290,18 @@ class PushNotificationService {
     debugInfo.push(`Token exists: ${!!this.token}`);
     debugInfo.push(`Token (first 20 chars): ${this.token?.substring(0, 20) || 'none'}...`);
     
-    console.log('[Push Debug] ===== SEND TEST NOTIFICATION =====');
-    console.log('[Push Debug] Platform:', Platform.OS);
-    console.log('[Push Debug] Initialized:', this.isInitialized);
-    console.log('[Push Debug] Token exists:', !!this.token);
-    
     if (!this.token) {
       const msg = 'No push token available. Push notifications not initialized.';
-      console.warn('[Push Debug]', msg);
       debugInfo.push(`Error: ${msg}`);
       return { success: false, debugInfo: debugInfo.join('\n') };
     }
     
     try {
-      console.log('[Push Debug] Calling backend API to send test notification...');
       const result = await deviceApiService.sendTestNotification();
-      console.log('[Push Debug] Backend response:', result);
       debugInfo.push(`Backend response: ${JSON.stringify(result)}`);
       return { success: result.success, debugInfo: debugInfo.join('\n') };
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
-      console.error('[Push Debug] Failed to send test notification:', errorMsg);
       debugInfo.push(`Error: ${errorMsg}`);
       return { success: false, debugInfo: debugInfo.join('\n') };
     }
