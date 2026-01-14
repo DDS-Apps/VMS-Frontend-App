@@ -52,6 +52,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
   const { theme, isDark } = useTheme();
   const { t } = useTranslation();
   const { isRTL } = useLanguage();
+  console.log('[VisitorRequestForm] isRTL value:', isRTL);
   const { toLocalNumerals } = useFormatters();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
