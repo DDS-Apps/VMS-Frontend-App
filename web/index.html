@@ -12,11 +12,16 @@
       #root { display: flex; height: 100%; flex: 1; }
       
       /* RTL layout support - force row-reverse on main container when RTL */
+      /* Target by id (from nativeID) */
       [dir="rtl"] #main-container {
         flex-direction: row-reverse !important;
       }
-      /* Backup selector using nativeID as data attribute */
-      [dir="rtl"] [id="main-container"] {
+      /* Target by data-testid (from testID) */
+      [dir="rtl"] [data-testid="main-container"] {
+        flex-direction: row-reverse !important;
+      }
+      /* Also target any direct child of root that is a flex row */
+      [dir="rtl"] #root > div > div[style*="flex-direction: row"] {
         flex-direction: row-reverse !important;
       }
     </style>

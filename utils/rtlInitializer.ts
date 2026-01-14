@@ -22,7 +22,7 @@ export function setWebDocumentDirection(locale: SupportedLocale): void {
     if (typeof document !== 'undefined') {
       document.documentElement.dir = direction;
       document.documentElement.lang = lang;
-      document.body.dir = direction;
+      // Note: Only set dir on html element, not body (to avoid duplicate)
     }
   } catch (error) {
     console.warn('[RTL] Failed to set web document direction:', error);
