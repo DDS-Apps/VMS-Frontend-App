@@ -25,6 +25,19 @@ const SIDEBAR_WIDTH_DESKTOP = 280;
 const EDGE_SWIPE_THRESHOLD = 24;
 const SWIPE_VELOCITY_THRESHOLD = 500;
 
+// Synchronously determine RTL state for first render on web
+function getInitialRTLState(): boolean {
+  if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
+    try {
+      const stored = localStorage.getItem('@vms_language');
+      return stored === 'ar';
+    } catch {
+      return false;
+    }
+  }
+  return I18nManager.isRTL;
+}
+
 interface DashboardLayoutProps {
   userRole: UserRole;
   userName: string;
@@ -59,8 +72,12 @@ export default function DashboardLayout({
   isSSOUser = false,
 }: DashboardLayoutProps) {
   const { theme, isDark, toggleTheme } = useTheme();
-  const { locale, setLocale, isRTL, layoutKey } = useLanguage();
-  console.log('[DashboardLayout] isRTL:', isRTL, 'locale:', locale);
+  const { locale, setLocale, isRTL: contextIsRTL, layoutKey } = useLanguage();
+  
+  // Use synchronous localStorage check for first render, then context value
+  const isRTL = Platform.OS === 'web' ? getInitialRTLState() || contextIsRTL : contextIsRTL;
+  console.log('[DashboardLayout] isRTL:', isRTL, 'contextIsRTL:', contextIsRTL, 'locale:', locale);
+  
   const { t } = useTranslation();
   const rtlStyles = useRTLStyles();
   const { width } = useWindowDimensions();
@@ -241,7 +258,10 @@ export default function DashboardLayout({
 
   return (
     <GestureDetector gesture={edgeSwipeGesture}>
-      <ThemedView key={layoutKey} style={[styles.container, { direction: isRTL ? 'rtl' : 'ltr' }]}>
+      <View 
+        key={layoutKey} 
+        style={[styles.container, { backgroundColor: theme.background }]}
+      >
         {/* Mobile Header Bar */}
         {!isLargeScreen && (
           <ThemedView style={[
@@ -704,7 +724,7 @@ export default function DashboardLayout({
             </View>
           </View>
         </View>
-      </ThemedView>
+      </View>
     </GestureDetector>
   );
 }
