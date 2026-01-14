@@ -40,6 +40,7 @@ export const NeutralColors = {
   grey300: "#C7CCD3", // Borders, dividers, input outlines
   grey200: "#D4D4D4", // Card borders, subtle surfaces (brandGrey20)
   grey50: "#F5F7FA", // Light backgrounds
+  offWhite: "#fafafa", // Content/sidebar backgrounds
   white: "#FFFFFF", // Surfaces, cards, modals, inputs
 };
 
@@ -73,8 +74,8 @@ export const Colors = {
     secondary: BrandColors.brandGreen,
     accent: BrandColors.softOrange,
 
-    // Backgrounds - Light mode uses white
-    background: NeutralColors.white,
+    // Backgrounds - Light mode uses off-white for content/sidebar
+    background: NeutralColors.offWhite,
     surface: NeutralColors.white,
     surfaceSecondary: NeutralColors.grey50,
 
@@ -109,13 +110,13 @@ export const Colors = {
     cardIcon: BrandColors.brandGrey,
 
     // Additional backgrounds
-    backgroundRoot: NeutralColors.white,
-    backgroundDefault: NeutralColors.white,
+    backgroundRoot: NeutralColors.offWhite,
+    backgroundDefault: NeutralColors.offWhite,
     backgroundSecondary: NeutralColors.grey50,
     backgroundTertiary: NeutralColors.grey200,
 
     // Sidebar (light background with grey text in light mode)
-    sidebarBg: NeutralColors.grey50,
+    sidebarBg: NeutralColors.offWhite,
     sidebarActive: NeutralColors.white,
     sidebarText: BrandColors.brandGrey,
     sidebarTextMuted: NeutralColors.grey900,
