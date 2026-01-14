@@ -1525,6 +1525,7 @@ const styles = StyleSheet.create({
   visitorRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: Spacing.md,
   },
   avatar: {
     width: 56,
@@ -1544,12 +1545,14 @@ const styles = StyleSheet.create({
   contactRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: Spacing.md,
   },
 
   detailRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: Spacing.md,
   },
   detailRowStacked: {
     flexDirection: 'column',

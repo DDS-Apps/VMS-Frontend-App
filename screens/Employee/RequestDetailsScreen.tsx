@@ -2740,16 +2740,20 @@ const styles = StyleSheet.create({
   },
   infoRow: {
     alignItems: "center",
+    gap: Spacing.md,
   },
   infoRowNew: {
     alignItems: "center",
+    gap: Spacing.md,
   },
   detailRow: {
     justifyContent: "space-between",
     alignItems: "center",
+    gap: Spacing.md,
   },
   detailRowNew: {
     alignItems: "center",
+    gap: Spacing.md,
   },
   detailRowStacked: {
     flexDirection: "column",
