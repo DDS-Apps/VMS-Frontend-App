@@ -4,6 +4,21 @@ import { localeConfig, defaultLocale, SupportedLocale } from '@/constants/i18n';
 
 const LANGUAGE_STORAGE_KEY = '@vms_language';
 
+// Detect browser language preference (web only)
+function getBrowserLanguage(): SupportedLocale {
+  if (Platform.OS === 'web' && typeof navigator !== 'undefined') {
+    try {
+      const browserLang = navigator.language || (navigator as any).userLanguage || '';
+      if (browserLang.toLowerCase().startsWith('ar')) {
+        return 'ar';
+      }
+    } catch (e) {
+      // navigator not available
+    }
+  }
+  return 'en';
+}
+
 export function isRTLLanguage(locale: SupportedLocale): boolean {
   return localeConfig[locale]?.isRTL ?? false;
 }
@@ -36,9 +51,10 @@ export interface RTLAsyncResult {
 export async function initializeRTLAsync(): Promise<RTLAsyncResult> {
   try {
     const storedLocale = await AsyncStorage.getItem(LANGUAGE_STORAGE_KEY);
+    // Use stored locale if valid, otherwise fall back to browser language detection, then defaultLocale
     const locale = (storedLocale === 'en' || storedLocale === 'ar') 
       ? storedLocale as SupportedLocale 
-      : defaultLocale;
+      : (Platform.OS === 'web' ? getBrowserLanguage() : defaultLocale);
     
     const needsRTL = isRTLLanguage(locale);
     const currentRTL = I18nManager.isRTL;
@@ -81,9 +97,10 @@ export function initializeRTLSync(): void {
     try {
       if (typeof localStorage !== 'undefined') {
         const storedLocale = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+        // Use stored locale if valid, otherwise fall back to browser language detection
         const locale = (storedLocale === 'en' || storedLocale === 'ar') 
           ? storedLocale as SupportedLocale 
-          : defaultLocale;
+          : getBrowserLanguage();
         const needsRTL = isRTLLanguage(locale);
         
         console.log('[RTL] initializeRTLSync on web:', { locale, needsRTL });

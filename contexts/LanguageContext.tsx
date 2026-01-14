@@ -15,8 +15,25 @@ const LANGUAGE_STORAGE_KEY = '@vms_language';
 
 export type LocaleCode = 'ar-SA' | 'en-US';
 
+// Detect browser language preference
+function getBrowserLanguage(): SupportedLocale {
+  if (Platform.OS === 'web' && typeof navigator !== 'undefined') {
+    try {
+      const browserLang = navigator.language || (navigator as any).userLanguage || '';
+      // Check if browser language starts with 'ar' (Arabic)
+      if (browserLang.toLowerCase().startsWith('ar')) {
+        return 'ar';
+      }
+    } catch (e) {
+      // navigator not available
+    }
+  }
+  return 'en'; // Default to English
+}
+
 // Read initial locale from localStorage synchronously on web
 // This ensures the first render has the correct RTL state
+// Falls back to browser language detection, then to English
 function getInitialLocale(): SupportedLocale {
   if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
     try {
@@ -24,6 +41,8 @@ function getInitialLocale(): SupportedLocale {
       if (stored === 'ar' || stored === 'en') {
         return stored as SupportedLocale;
       }
+      // No stored preference - use browser language detection
+      return getBrowserLanguage();
     } catch (e) {
       // localStorage not available
     }
