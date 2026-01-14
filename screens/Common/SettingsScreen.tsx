@@ -174,13 +174,13 @@ export default function SettingsScreen({
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.profileContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.profileContainer, { flexDirection: 'row', gap: Spacing.md }]}>
           <View style={[styles.avatar, { backgroundColor: theme.primary + '20' }]}>
             <ThemedText style={[Typography.subtitle, { color: theme.primary, fontWeight: '700' }]}>
               {userName.split(' ').map(n => n[0]).join('')}
             </ThemedText>
           </View>
-          <View style={{ flex: 1, marginStart: Spacing.md }}>
+          <View style={{ flex: 1 }}>
             <ThemedText style={[styles.userName, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
               {userName}
             </ThemedText>
@@ -204,7 +204,8 @@ export default function SettingsScreen({
             { 
               borderColor: theme.primary,
               opacity: pressed ? 0.7 : 1,
-              flexDirection: isRTL ? 'row-reverse' : 'row',
+              flexDirection: 'row',
+              gap: Spacing.xs,
             },
           ]}
           onPress={() => navigation.navigate(ROUTES.EDIT_PROFILE as never)}
@@ -223,7 +224,7 @@ export default function SettingsScreen({
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.settingItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.settingItem, { flexDirection: 'row', gap: Spacing.md }]}>
           <View style={{ flex: 1 }}>
             <ThemedText style={[styles.settingLabel, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('settings.darkMode')}
@@ -243,7 +244,7 @@ export default function SettingsScreen({
 
         <View style={[styles.sectionDivider, { backgroundColor: theme.surfaceSecondary }]} />
 
-        <View style={[styles.settingItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.settingItem, { flexDirection: 'row' }]}>
           <View style={{ flex: 1 }}>
             <ThemedText style={[styles.settingLabel, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('settings.language')}
@@ -263,7 +264,8 @@ export default function SettingsScreen({
               style={({ pressed }) => [
                 styles.languageButton,
                 { 
-                  flexDirection: isRTL ? 'row-reverse' : 'row',
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
                   backgroundColor: locale === lang.code ? applyOpacity(theme.primary, '15') : theme.background,
                   borderColor: locale === lang.code ? theme.primary : theme.border,
                   opacity: pressed ? 0.8 : 1,
@@ -271,7 +273,7 @@ export default function SettingsScreen({
               ]}
               onPress={() => handleLanguageChange(lang.code)}
             >
-              <ThemedText style={[styles.languageLabel, { color: locale === lang.code ? theme.primary : theme.text }]}>
+              <ThemedText style={[styles.languageLabel, { color: locale === lang.code ? theme.primary : theme.text, textAlign: isRTL ? 'right' : 'left', flex: 1 }]}>
                 {lang.nativeName}
               </ThemedText>
               {locale === lang.code ? (
@@ -289,7 +291,7 @@ export default function SettingsScreen({
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.settingItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.settingItem, { flexDirection: 'row', gap: Spacing.md }]}>
           <View style={{ flex: 1 }}>
             <ThemedText style={[styles.settingLabel, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('settings.pushNotifications')}
@@ -323,7 +325,8 @@ export default function SettingsScreen({
                   ? theme.error 
                   : theme.primary,
               opacity: pressed ? 0.8 : 1,
-              flexDirection: isRTL ? 'row-reverse' : 'row',
+              flexDirection: 'row',
+              gap: Spacing.sm,
             },
           ]}
           onPress={handleTestNotification}
@@ -338,7 +341,7 @@ export default function SettingsScreen({
           ) : (
             <DDIcon name="bell" size={18} color={theme.buttonText} />
           )}
-          <ThemedText style={[styles.testNotificationText, { color: theme.buttonText, marginStart: Spacing.sm }]}>
+          <ThemedText style={[styles.testNotificationText, { color: theme.buttonText }]}>
             {isSendingTest 
               ? t('settings.sendingTest') 
               : testResult === 'success' 
