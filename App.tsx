@@ -83,7 +83,7 @@ function getInviteTokenFromUrl(): string | null {
 
 function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
   const { user, isAuthenticated, isLoading: authLoading, logout } = useAuth();
-  const { layoutKey } = useLanguage();
+  const { layoutKey, isLoading: languageLoading, isRTL } = useLanguage();
   const [showSplash, setShowSplash] = useState(true);
   const [inviteToken, setInviteToken] = useState<string | null>(null);
 
@@ -91,13 +91,24 @@ function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
     const token = getInviteTokenFromUrl();
     if (token) {
       setInviteToken(token);
-      setShowSplash(false);
+      // Don't hide splash yet - wait for language to load
     }
   }, []);
 
   const handleSplashFinish = () => {
-    setShowSplash(false);
+    // Only hide splash if language loading is complete
+    if (!languageLoading) {
+      setShowSplash(false);
+    }
   };
+
+  // Keep splash visible while language is loading
+  useEffect(() => {
+    if (!languageLoading && !showSplash) {
+      // Language loaded and splash was dismissed - ensure RTL is applied
+      console.log('[AppContent] Language ready, isRTL:', isRTL);
+    }
+  }, [languageLoading, showSplash, isRTL]);
 
   const handleLoginSuccess = (role: UserRole) => {
     if (role === 'buffet_staff') {
@@ -113,16 +124,17 @@ function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
     await logout();
   };
 
+  // Show splash while language is loading OR while splash animation is still showing
+  if (showSplash || languageLoading) {
+    return <SplashScreen onFinish={handleSplashFinish} />;
+  }
+
   if (inviteToken) {
     return (
       <VisitorInviteScreen 
         route={{ params: { token: inviteToken } }} 
       />
     );
-  }
-
-  if (showSplash) {
-    return <SplashScreen onFinish={handleSplashFinish} />;
   }
 
   if (authLoading) {
