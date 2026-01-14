@@ -24,6 +24,10 @@
         direction: ltr !important;
         flex-direction: row-reverse !important;
       }
+      /* Restore RTL text direction for content area inside main-container */
+      [data-content="true"][data-rtl="true"] {
+        direction: rtl !important;
+      }
     </style>
     <script>
       // Set RTL direction before first paint based on stored language

@@ -571,7 +571,11 @@ export default function DashboardLayout({
           )}
 
           {/* Main Content */}
-          <View style={styles.content}>
+          <View 
+            // @ts-ignore - dataSet is supported by React Native Web
+            dataSet={{ content: 'true', rtl: isRTL ? 'true' : 'false' }}
+            style={styles.content}
+          >
             {/* Desktop Header Bar */}
             {isLargeScreen && (
               <View style={[
