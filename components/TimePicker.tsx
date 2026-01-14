@@ -158,7 +158,7 @@ export function TimePicker({
           <View style={[styles.pickerModal, { backgroundColor: theme.surface }]}>
             <View style={[styles.headerCompact, { borderBottomColor: theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <DDIcon name="clock" size={18} color={theme.primary} />
-              <ThemedText style={[Typography.body, { fontWeight: '600', marginStart: Spacing.sm }]}>Select Time</ThemedText>
+              <ThemedText style={[Typography.body, { fontWeight: '600', marginStart: Spacing.sm }]}>{t('time.selectTime')}</ThemedText>
             </View>
             <DateTimePicker
               value={pendingTime}
@@ -207,7 +207,9 @@ export function TimePicker({
                         { color: theme.text },
                         isSelected && { color: theme.buttonText }
                       ]}>
-                        {preset.label}
+                        {isRTL 
+                          ? `${t(`time.${preset.period.toLowerCase()}`)} ${toArabicNumerals(String(preset.hour))}:${toArabicNumerals(String(preset.minute).padStart(2, '0'))}`
+                          : preset.label}
                       </ThemedText>
                     </Pressable>
                   );
@@ -219,13 +221,13 @@ export function TimePicker({
                 onPress={handleCancel}
                 style={[styles.actionButton, styles.cancelButtonStyle, { borderColor: theme.border }]}
               >
-                <ThemedText style={[Typography.body, { color: theme.textSecondary, fontWeight: '600' }]}>Cancel</ThemedText>
+                <ThemedText style={[Typography.body, { color: theme.textSecondary, fontWeight: '600' }]}>{t('common.cancel')}</ThemedText>
               </Pressable>
               <Pressable 
                 onPress={handleConfirm}
                 style={[styles.actionButton, styles.confirmButtonStyle, { backgroundColor: theme.primary }]}
               >
-                <ThemedText style={[Typography.body, { color: theme.buttonText, fontWeight: '600' }]}>Confirm</ThemedText>
+                <ThemedText style={[Typography.body, { color: theme.buttonText, fontWeight: '600' }]}>{t('common.confirm')}</ThemedText>
               </Pressable>
             </View>
           </View>
@@ -263,7 +265,7 @@ export function TimePicker({
         >
           <View style={[styles.headerCompact, { borderBottomColor: theme.border, flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}>
             <DDIcon name="clock" size={18} color={theme.primary} />
-            <ThemedText style={[Typography.body, { fontWeight: '600', marginStart: Spacing.sm, flex: 1 }]}>Select Time</ThemedText>
+            <ThemedText style={[Typography.body, { fontWeight: '600', marginStart: Spacing.sm, flex: 1 }]}>{t('time.selectTime')}</ThemedText>
             <Pressable onPress={handleCancel} hitSlop={8}>
               <DDIcon name="x" size={18} variant="muted" />
             </Pressable>
@@ -284,7 +286,7 @@ export function TimePicker({
                   { color: theme.text },
                   activeSelector === 'hour' && { color: theme.primary }
                 ]}>
-                  {String(selectedHour).padStart(2, '0')}
+                  {isRTL ? toArabicNumerals(String(selectedHour).padStart(2, '0')) : String(selectedHour).padStart(2, '0')}
                 </ThemedText>
               </Pressable>
               
@@ -303,7 +305,7 @@ export function TimePicker({
                   { color: theme.text },
                   activeSelector === 'minute' && { color: theme.primary }
                 ]}>
-                  {String(selectedMinute).padStart(2, '0')}
+                  {isRTL ? toArabicNumerals(String(selectedMinute).padStart(2, '0')) : String(selectedMinute).padStart(2, '0')}
                 </ThemedText>
               </Pressable>
 
@@ -319,7 +321,7 @@ export function TimePicker({
                     styles.periodOptionText,
                     { color: theme.textSecondary },
                     selectedPeriod === 'AM' && { color: theme.buttonText }
-                  ]}>AM</ThemedText>
+                  ]}>{t('time.am')}</ThemedText>
                 </View>
                 <View style={[
                   styles.periodOption,
@@ -329,7 +331,7 @@ export function TimePicker({
                     styles.periodOptionText,
                     { color: theme.textSecondary },
                     selectedPeriod === 'PM' && { color: theme.buttonText }
-                  ]}>PM</ThemedText>
+                  ]}>{t('time.pm')}</ThemedText>
                 </View>
               </Pressable>
             </View>
@@ -356,7 +358,7 @@ export function TimePicker({
                         { color: theme.text },
                         selectedHour === hour && { color: theme.buttonText, fontWeight: '600' }
                       ]}>
-                        {hour}
+                        {isRTL ? toArabicNumerals(String(hour)) : hour}
                       </ThemedText>
                     </Pressable>
                   ))
@@ -376,7 +378,7 @@ export function TimePicker({
                         { color: theme.text },
                         selectedMinute === minute && { color: theme.buttonText, fontWeight: '600' }
                       ]}>
-                        {String(minute).padStart(2, '0')}
+                        {isRTL ? toArabicNumerals(String(minute).padStart(2, '0')) : String(minute).padStart(2, '0')}
                       </ThemedText>
                     </Pressable>
                   ))
@@ -386,7 +388,7 @@ export function TimePicker({
           </View>
 
           <View style={styles.quickSelectSection}>
-            <ThemedText style={[styles.quickSelectLabel, { color: theme.textSecondary }]}>Quick Select</ThemedText>
+            <ThemedText style={[styles.quickSelectLabel, { color: theme.textSecondary }]}>{t('time.quickSelect')}</ThemedText>
             <ScrollView 
               horizontal 
               showsHorizontalScrollIndicator={false}
@@ -411,7 +413,9 @@ export function TimePicker({
                       { color: theme.text },
                       isSelected && { color: theme.buttonText }
                     ]}>
-                      {preset.label}
+                      {isRTL 
+                        ? `${t(`time.${preset.period.toLowerCase()}`)} ${toArabicNumerals(String(preset.hour))}:${toArabicNumerals(String(preset.minute).padStart(2, '0'))}`
+                        : preset.label}
                     </ThemedText>
                   </Pressable>
                 );
@@ -424,13 +428,13 @@ export function TimePicker({
               onPress={handleCancel}
               style={[styles.actionButton, styles.cancelButtonStyle, { borderColor: theme.border }]}
             >
-              <ThemedText style={[Typography.body, { color: theme.textSecondary, fontWeight: '600' }]}>Cancel</ThemedText>
+              <ThemedText style={[Typography.body, { color: theme.textSecondary, fontWeight: '600' }]}>{t('common.cancel')}</ThemedText>
             </Pressable>
             <Pressable 
               onPress={handleConfirm}
               style={[styles.actionButton, styles.confirmButtonStyle, { backgroundColor: theme.primary }]}
             >
-              <ThemedText style={[Typography.body, { color: theme.buttonText, fontWeight: '600' }]}>Confirm</ThemedText>
+              <ThemedText style={[Typography.body, { color: theme.buttonText, fontWeight: '600' }]}>{t('common.confirm')}</ThemedText>
             </Pressable>
           </View>
         </Pressable>

@@ -700,6 +700,10 @@ export interface TranslationKeys {
     at: string;
     dateAndTime: string;
     selectDate: string;
+    selectTime: string;
+    am: string;
+    pm: string;
+    quickSelect: string;
     justNow: string;
     minutesAgo: string;
     hoursAgo: string;
