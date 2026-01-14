@@ -265,11 +265,9 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
         clearUrlHash();
         console.log('[AuthContext] SSO login successful');
 
-        if (Platform.OS !== 'web') {
-          pushNotificationService.initialize().catch((pushError) => {
-            console.warn('[AuthContext] Failed to initialize push notifications:', pushError);
-          });
-        }
+        pushNotificationService.initialize().catch((pushError) => {
+          console.warn('[AuthContext] Failed to initialize push notifications:', pushError);
+        });
 
         crashlyticsService.setUserAttributes({
           id: user.id,
@@ -323,11 +321,9 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
             });
             await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
 
-            if (Platform.OS !== 'web') {
-              pushNotificationService.initialize().catch((pushError) => {
-                console.warn('[AuthContext] Failed to initialize push notifications:', pushError);
-              });
-            }
+            pushNotificationService.initialize().catch((pushError) => {
+              console.warn('[AuthContext] Failed to initialize push notifications:', pushError);
+            });
 
             crashlyticsService.setUserAttributes({
               id: user.id,
@@ -399,11 +395,9 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
       error: null,
     });
 
-    if (Platform.OS !== 'web') {
-      pushNotificationService.initialize().catch((error) => {
-        console.warn('[AuthContext] Failed to initialize push notifications:', error);
-      });
-    }
+    pushNotificationService.initialize().catch((error) => {
+      console.warn('[AuthContext] Failed to initialize push notifications:', error);
+    });
 
     crashlyticsService.setUserAttributes({
       id: user.id,
@@ -504,11 +498,9 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
 
       console.log('[AuthContext] SSO login complete, user:', user.email, 'role:', user.role);
 
-      if (Platform.OS !== 'web') {
-        pushNotificationService.initialize().catch((pushError) => {
-          console.warn('[AuthContext] Failed to initialize push notifications:', pushError);
-        });
-      }
+      pushNotificationService.initialize().catch((pushError) => {
+        console.warn('[AuthContext] Failed to initialize push notifications:', pushError);
+      });
 
       crashlyticsService.setUserAttributes({
         id: user.id,
