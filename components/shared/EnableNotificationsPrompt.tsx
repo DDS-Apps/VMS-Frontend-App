@@ -31,6 +31,7 @@ export function EnableNotificationsPrompt({
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { isRTL } = useLanguage();
+  console.log('[EnableNotificationsPrompt] isRTL:', isRTL);
   const [isVisible, setIsVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const scale = useSharedValue(1);
