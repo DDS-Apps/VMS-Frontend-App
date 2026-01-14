@@ -591,6 +591,7 @@ const styles = StyleSheet.create({
   },
   infoRowNew: {
     alignItems: 'center',
+    gap: Spacing.md,
   },
   serviceRowNew: {
     alignItems: 'flex-start',
