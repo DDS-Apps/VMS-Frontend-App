@@ -469,7 +469,10 @@ export default function DashboardLayout({
           </Pressable>
         </Modal>
 
-        <View style={[styles.mainContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View 
+          data-testid="main-container"
+          style={[styles.mainContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
+        >
           {/* Mobile Overlay - Rendered first so sidebar appears on top */}
           {!isLargeScreen && sidebarOpen && (
             <Animated.View
