@@ -1037,7 +1037,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
             {t('services.optionalServices')}
           </ThemedText>
 
-          <View style={[getGridStyle(), { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[getGridStyle(), { flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start' }]}>
             <View style={getCardWrapper2ColStyle()}>
               <SelectableCard
                 onPress={() => setNeedsMeetingRoom(!needsMeetingRoom)}
