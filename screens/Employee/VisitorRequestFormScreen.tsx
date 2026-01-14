@@ -822,7 +822,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
           <Spacer height={Spacing.lg} />
 
           <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
-            <View style={[styles.sectionHeader, { flexDirection: 'row', gap: Spacing.md, justifyContent: isRTL ? 'flex-end' : 'flex-start' }]}>
+            <View style={[styles.sectionHeader, { flexDirection: 'row', gap: Spacing.md, width: '100%', justifyContent: isRTL ? 'flex-end' : 'flex-start' }]}>
               {isRTL ? (
                 <>
                   <View style={{ alignItems: 'flex-end' }}>
@@ -840,7 +840,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                   <View style={[styles.sectionIconContainer, { backgroundColor: theme.primary + '20' }]}>
                     <DDIcon name="calendar" size={20} variant="primary" />
                   </View>
-                  <View style={{ flex: 1, alignItems: 'flex-start' }}>
+                  <View style={{ alignItems: 'flex-start' }}>
                     <ThemedText style={[Typography.subtitle, { textAlign: 'left' }]}>{t('visitor.visitSchedule')}</ThemedText>
                     <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: 'left' }]}>
                       {t('visitor.whenVisitorComing')}
