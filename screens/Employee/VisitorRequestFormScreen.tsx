@@ -811,17 +811,15 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
           <Spacer height={Spacing.lg} />
 
           <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
-            <View style={{ width: '100%', flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start' }}>
-              <View style={[styles.sectionHeader, { flexDirection: 'row', gap: Spacing.md }]}>
-                <View style={[styles.sectionIconContainer, { backgroundColor: theme.primary + '20' }]}>
-                  <DDIcon name="calendar" size={20} variant="primary" />
-                </View>
-                <View style={{ alignItems: isRTL ? 'flex-end' : 'flex-start' }}>
-                  <ThemedText style={[Typography.subtitle, { textAlign: isRTL ? 'right' : 'left' }]}>{t('visitor.visitSchedule')}</ThemedText>
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-                    {t('visitor.whenVisitorComing')}
-                  </ThemedText>
-                </View>
+            <View style={[styles.sectionHeader, { flexDirection: 'row', gap: Spacing.md, marginLeft: isRTL ? 'auto' : 0, marginRight: isRTL ? 0 : 'auto' }]}>
+              <View style={[styles.sectionIconContainer, { backgroundColor: theme.primary + '20' }]}>
+                <DDIcon name="calendar" size={20} variant="primary" />
+              </View>
+              <View style={{ alignItems: isRTL ? 'flex-end' : 'flex-start' }}>
+                <ThemedText style={[Typography.subtitle, { textAlign: isRTL ? 'right' : 'left' }]}>{t('visitor.visitSchedule')}</ThemedText>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {t('visitor.whenVisitorComing')}
+                </ThemedText>
               </View>
             </View>
 
