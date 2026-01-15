@@ -278,42 +278,50 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.infoRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row', gap: Spacing.md, alignSelf: isRTL ? 'flex-end' : 'flex-start' }]}>
-          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-            <DDIcon name="mail" size={16} color={theme.text} />
-          </View>
-          <ThemedText
-            style={[
-              Typography.body,
-              {
-                color: theme.textSecondary,
-                fontSize: 14,
-                textAlign: isRTL ? 'right' : 'left',
-              },
-            ]}
-          >
-            {visitor.email || '-'}
-          </ThemedText>
+        <View style={[styles.infoRowNew, { flexDirection: 'row', gap: Spacing.md, alignSelf: isRTL ? 'flex-end' : 'flex-start' }]}>
+          {isRTL ? (
+            <>
+              <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, textAlign: 'right' }]}>
+                {visitor.email || '-'}
+              </ThemedText>
+              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                <DDIcon name="mail" size={16} color={theme.text} />
+              </View>
+            </>
+          ) : (
+            <>
+              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                <DDIcon name="mail" size={16} color={theme.text} />
+              </View>
+              <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, textAlign: 'left' }]}>
+                {visitor.email || '-'}
+              </ThemedText>
+            </>
+          )}
         </View>
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.infoRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row', gap: Spacing.md, alignSelf: isRTL ? 'flex-end' : 'flex-start' }]}>
-          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-            <DDIcon name="phone" size={16} color={theme.text} />
-          </View>
-          <ThemedText
-            style={[
-              Typography.body,
-              {
-                color: theme.textSecondary,
-                fontSize: 14,
-                textAlign: isRTL ? 'right' : 'left',
-              },
-            ]}
-          >
-            {visitor.phone || '-'}
-          </ThemedText>
+        <View style={[styles.infoRowNew, { flexDirection: 'row', gap: Spacing.md, alignSelf: isRTL ? 'flex-end' : 'flex-start' }]}>
+          {isRTL ? (
+            <>
+              <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, textAlign: 'right' }]}>
+                {visitor.phone || '-'}
+              </ThemedText>
+              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                <DDIcon name="phone" size={16} color={theme.text} />
+              </View>
+            </>
+          ) : (
+            <>
+              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                <DDIcon name="phone" size={16} color={theme.text} />
+              </View>
+              <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, textAlign: 'left' }]}>
+                {visitor.phone || '-'}
+              </ThemedText>
+            </>
+          )}
         </View>
       </ThemedView>
 
