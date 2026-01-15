@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { localeConfig, defaultLocale, SupportedLocale } from '@/constants/i18n';
 
 const LANGUAGE_STORAGE_KEY = '@vms_language';
+const RTL_RELOAD_GUARD_KEY = '@vms_rtl_reload_guard';
 
 // Detect browser language preference (web only)
 function getBrowserLanguage(): SupportedLocale {
@@ -50,6 +51,14 @@ export interface RTLAsyncResult {
 
 export async function initializeRTLAsync(): Promise<RTLAsyncResult> {
   try {
+    // Check if we just reloaded for RTL - prevent infinite reload loop
+    const reloadGuard = await AsyncStorage.getItem(RTL_RELOAD_GUARD_KEY);
+    if (reloadGuard === 'pending') {
+      console.log('[RTL] Reload guard detected - clearing and skipping reload to prevent loop');
+      await AsyncStorage.removeItem(RTL_RELOAD_GUARD_KEY);
+      // Continue with initialization but don't trigger another reload
+    }
+    
     const storedLocale = await AsyncStorage.getItem(LANGUAGE_STORAGE_KEY);
     // Use stored locale if valid, otherwise fall back to browser language detection, then defaultLocale
     const locale = (storedLocale === 'en' || storedLocale === 'ar') 
@@ -59,7 +68,7 @@ export async function initializeRTLAsync(): Promise<RTLAsyncResult> {
     const needsRTL = isRTLLanguage(locale);
     const currentRTL = I18nManager.isRTL;
     
-    console.log('[RTL] initializeRTLAsync:', { locale, needsRTL, currentRTL });
+    console.log('[RTL] initializeRTLAsync:', { locale, needsRTL, currentRTL, reloadGuard });
     
     if (Platform.OS === 'web') {
       setWebDocumentDirection(locale);
@@ -68,10 +77,13 @@ export async function initializeRTLAsync(): Promise<RTLAsyncResult> {
     
     // On mobile, check if stored locale implies different RTL than current state
     // This handles fresh installs where I18nManager defaults to LTR but user's stored locale is Arabic
-    if (currentRTL !== needsRTL) {
+    // Only request reload if we haven't just reloaded (guard was not set)
+    if (currentRTL !== needsRTL && reloadGuard !== 'pending') {
       console.log('[RTL] Mismatch detected, forcing RTL and requesting reload');
       I18nManager.allowRTL(true);
       I18nManager.forceRTL(needsRTL);
+      // Set reload guard before requesting reload
+      await AsyncStorage.setItem(RTL_RELOAD_GUARD_KEY, 'pending');
       return { locale, needsReload: true };
     }
     
