@@ -1082,16 +1082,14 @@ export default function UsersRolesScreen() {
     );
     
     if (viewMode === 'table') {
-      const TABLE_WIDTH = bulkMode ? 680 : 730;
-      
       const tableListHeader = () => (
-        <View style={{ width: TABLE_WIDTH }}>
+        <View style={{ width: '100%' }}>
           {renderTableHeader()}
         </View>
       );
       
       const tableListItem = ({ item, index }: { item: DisplayUser; index: number }) => (
-        <View style={{ width: TABLE_WIDTH }}>
+        <View style={{ width: '100%' }}>
           {renderTableRow({ item, index })}
         </View>
       );
@@ -1101,7 +1099,7 @@ export default function UsersRolesScreen() {
         const someSelected = section.data.some(user => selectedUserIds.has(user.id));
         
         return (
-          <View style={[styles.tableSectionHeader, { backgroundColor: theme.background, width: TABLE_WIDTH }]}>
+          <View style={[styles.tableSectionHeader, { backgroundColor: theme.background, width: '100%' }]}>
             {bulkMode ? (
               <Pressable
                 style={[
@@ -1136,50 +1134,36 @@ export default function UsersRolesScreen() {
 
       if (groupBy === 'role' && groupedUsers && groupedUsers.length > 0) {
         return (
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={true}
-            contentContainerStyle={{ flexGrow: 1, minWidth: TABLE_WIDTH }}
-            nestedScrollEnabled={true}
-          >
-            <SectionList
-              sections={groupedUsers}
-              renderItem={tableListItem}
-              renderSectionHeader={renderTableSectionHeader}
-              keyExtractor={(item) => item.id}
-              ListHeaderComponent={tableListHeader}
-              ListFooterComponent={listFooter}
-              ListEmptyComponent={renderEmptyComponent}
-              stickySectionHeadersEnabled={false}
-              style={{ flex: 1, width: TABLE_WIDTH }}
-              nestedScrollEnabled={true}
-            />
-          </ScrollView>
-        );
-      }
-      
-      return (
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={true}
-          contentContainerStyle={{ flexGrow: 1, minWidth: TABLE_WIDTH }}
-          nestedScrollEnabled={true}
-        >
-          <FlatList
-            data={filteredAndSortedUsers}
+          <SectionList
+            sections={groupedUsers}
             renderItem={tableListItem}
+            renderSectionHeader={renderTableSectionHeader}
             keyExtractor={(item) => item.id}
             ListHeaderComponent={tableListHeader}
             ListFooterComponent={listFooter}
             ListEmptyComponent={renderEmptyComponent}
-            style={{ flex: 1, width: TABLE_WIDTH }}
+            stickySectionHeadersEnabled={false}
+            style={{ flex: 1, width: '100%' }}
             nestedScrollEnabled={true}
-            removeClippedSubviews={true}
-            initialNumToRender={10}
-            maxToRenderPerBatch={10}
-            windowSize={5}
           />
-        </ScrollView>
+        );
+      }
+      
+      return (
+        <FlatList
+          data={filteredAndSortedUsers}
+          renderItem={tableListItem}
+          keyExtractor={(item) => item.id}
+          ListHeaderComponent={tableListHeader}
+          ListFooterComponent={listFooter}
+          ListEmptyComponent={renderEmptyComponent}
+          style={{ flex: 1, width: '100%' }}
+          nestedScrollEnabled={true}
+          removeClippedSubviews={true}
+          initialNumToRender={10}
+          maxToRenderPerBatch={10}
+          windowSize={5}
+        />
       );
     }
 
