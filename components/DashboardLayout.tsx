@@ -653,7 +653,7 @@ export default function DashboardLayout({
                             ]}
                           >
                             <DDIcon name="chevron-down" size={16} color={theme.textSecondary} />
-                            <ThemedText style={[Typography.body, { marginEnd: Spacing.sm, fontWeight: '500' }]}>
+                            <ThemedText style={[Typography.body, { marginHorizontal: Spacing.sm, fontWeight: '500' }]}>
                               {userName}
                             </ThemedText>
                             <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
@@ -676,7 +676,7 @@ export default function DashboardLayout({
                             ]}
                           >
                             <DDIcon name="chevron-down" size={16} color={theme.textSecondary} />
-                            <ThemedText style={[Typography.body, { marginEnd: Spacing.sm, fontWeight: '500' }]}>
+                            <ThemedText style={[Typography.body, { marginHorizontal: Spacing.sm, fontWeight: '500' }]}>
                               {userName}
                             </ThemedText>
                             <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
