@@ -811,7 +811,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
           <Spacer height={Spacing.lg} />
 
           <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
-            <View style={[styles.sectionHeader, { flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start', gap: Spacing.md }]}>
+            <View style={[styles.sectionHeader, { flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start', width: '100%', gap: Spacing.md }]}>
               <View style={[styles.sectionIconContainer, { backgroundColor: theme.primary + '20' }]}>
                 <DDIcon name="calendar" size={20} variant="primary" />
               </View>
