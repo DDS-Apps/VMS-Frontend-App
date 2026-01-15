@@ -35,6 +35,7 @@ interface LegacyVisitor {
   hostDepartment?: string;
   status: 'pending' | 'approved' | 'checked_in' | 'completed' | 'rejected' | 'cancelled' | 'pending_approval' | 'pending_host_approval' | 'visitor_accepted';
   isWalkIn: boolean;
+  email: string;
   phone: string;
   parking?: string;
   valet?: string;
@@ -78,6 +79,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
     hostDepartment: visitDetails.employeeDepartment,
     status: mapVisitStatus(visitDetails.status),
     isWalkIn: visitDetails.isWalkIn ?? false,
+    email: visitDetails.visitor.email ?? '',
     phone: visitDetails.visitor.phone ?? '',
     parking: visitDetails.parkingSlot?.slotNumber,
     valet: visitDetails.parkingAllocation?.status,
@@ -276,24 +278,42 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
 
         <Spacer height={Spacing.lg} />
 
-        <View style={{ width: '100%', flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start' }}>
-          <View style={[styles.infoRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row', gap: Spacing.md }]}>
-            <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-              <DDIcon name="phone" size={16} color={theme.text} />
-            </View>
-            <ThemedText
-              style={[
-                Typography.body,
-                {
-                  color: theme.textSecondary,
-                  fontSize: 14,
-                  textAlign: isRTL ? 'right' : 'left',
-                },
-              ]}
-            >
-              {visitor.phone || '-'}
-            </ThemedText>
+        <View style={[styles.infoRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row', gap: Spacing.md, alignSelf: isRTL ? 'flex-end' : 'flex-start' }]}>
+          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+            <DDIcon name="mail" size={16} color={theme.text} />
           </View>
+          <ThemedText
+            style={[
+              Typography.body,
+              {
+                color: theme.textSecondary,
+                fontSize: 14,
+                textAlign: isRTL ? 'right' : 'left',
+              },
+            ]}
+          >
+            {visitor.email || '-'}
+          </ThemedText>
+        </View>
+
+        <Spacer height={Spacing.md} />
+
+        <View style={[styles.infoRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row', gap: Spacing.md, alignSelf: isRTL ? 'flex-end' : 'flex-start' }]}>
+          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+            <DDIcon name="phone" size={16} color={theme.text} />
+          </View>
+          <ThemedText
+            style={[
+              Typography.body,
+              {
+                color: theme.textSecondary,
+                fontSize: 14,
+                textAlign: isRTL ? 'right' : 'left',
+              },
+            ]}
+          >
+            {visitor.phone || '-'}
+          </ThemedText>
         </View>
       </ThemedView>
 

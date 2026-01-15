@@ -703,28 +703,24 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
             <Spacer height={Spacing.lg} />
 
-            <View style={{ width: '100%', flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start' }}>
-              <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.md }}>
-                <View style={[styles.contactIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-                  <DDIcon name="mail" size={18} color={theme.text} />
-                </View>
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
-                  {request.visitor.email}
-                </ThemedText>
+            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.md, alignSelf: isRTL ? 'flex-end' : 'flex-start' }}>
+              <View style={[styles.contactIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                <DDIcon name="mail" size={18} color={theme.text} />
               </View>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+                {request.visitor.email}
+              </ThemedText>
             </View>
 
             <Spacer height={Spacing.md} />
 
-            <View style={{ width: '100%', flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start' }}>
-              <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.md }}>
-                <View style={[styles.contactIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-                  <DDIcon name="phone" size={18} color={theme.text} />
-                </View>
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
-                  {request.visitor.phone}
-                </ThemedText>
+            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.md, alignSelf: isRTL ? 'flex-end' : 'flex-start' }}>
+              <View style={[styles.contactIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                <DDIcon name="phone" size={18} color={theme.text} />
               </View>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+                {request.visitor.phone}
+              </ThemedText>
             </View>
           </View>
         </ThemedView>
