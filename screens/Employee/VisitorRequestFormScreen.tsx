@@ -811,16 +811,32 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
           <Spacer height={Spacing.lg} />
 
           <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
-            <View style={[styles.sectionHeader, { flexDirection: isRTL ? 'row-reverse' : 'row', justifyContent: 'flex-start', gap: Spacing.md, width: '100%' }]}>
-              <View style={[styles.sectionIconContainer, { backgroundColor: theme.primary + '20' }]}>
-                <DDIcon name="calendar" size={20} variant="primary" />
-              </View>
-              <View style={{ alignItems: isRTL ? 'flex-end' : 'flex-start', flex: 1 }}>
-                <ThemedText style={[Typography.subtitle, { textAlign: isRTL ? 'right' : 'left', width: '100%' }]}>{t('visitor.visitSchedule')}</ThemedText>
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left', width: '100%' }]}>
-                  {t('visitor.whenVisitorComing')}
-                </ThemedText>
-              </View>
+            <View style={[styles.sectionHeader, { flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start', gap: Spacing.md, width: '100%' }]}>
+              {isRTL ? (
+                <>
+                  <View style={{ alignItems: 'flex-end', flex: 1 }}>
+                    <ThemedText style={[Typography.subtitle, { textAlign: 'right', width: '100%' }]}>{t('visitor.visitSchedule')}</ThemedText>
+                    <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: 'right', width: '100%' }]}>
+                      {t('visitor.whenVisitorComing')}
+                    </ThemedText>
+                  </View>
+                  <View style={[styles.sectionIconContainer, { backgroundColor: theme.primary + '20' }]}>
+                    <DDIcon name="calendar" size={20} variant="primary" />
+                  </View>
+                </>
+              ) : (
+                <>
+                  <View style={[styles.sectionIconContainer, { backgroundColor: theme.primary + '20' }]}>
+                    <DDIcon name="calendar" size={20} variant="primary" />
+                  </View>
+                  <View style={{ alignItems: 'flex-start', flex: 1 }}>
+                    <ThemedText style={[Typography.subtitle, { textAlign: 'left', width: '100%' }]}>{t('visitor.visitSchedule')}</ThemedText>
+                    <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: 'left', width: '100%' }]}>
+                      {t('visitor.whenVisitorComing')}
+                    </ThemedText>
+                  </View>
+                </>
+              )}
             </View>
 
             <Spacer height={Spacing.lg} />
