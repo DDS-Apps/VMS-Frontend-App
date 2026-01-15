@@ -11,7 +11,7 @@ import { ThemedView } from '@/components/ThemedView';
 import Spacer from '@/components/Spacer';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { CalendarDatePicker } from '@/components/CalendarDatePicker';
-import { Spacing, BorderRadius, Typography } from '@/constants/theme';
+import { Spacing, BorderRadius, Typography, StatusCardColors } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useFormatters } from '@/hooks/useFormatters';
@@ -727,7 +727,7 @@ export default function AllRequestsScreen() {
           <StatCard
             value={stats.total}
             label={t('common.all')}
-            color={theme.primary}
+            color={StatusCardColors.all}
             isActive={statusFilter === 'all'}
             onPress={() => handleStatPress('all')}
             theme={theme}
@@ -735,7 +735,7 @@ export default function AllRequestsScreen() {
           <StatCard
             value={stats.pending}
             label={t('status.pending')}
-            color={theme.warning}
+            color={StatusCardColors.pending}
             isActive={statusFilter === 'pending'}
             onPress={() => handleStatPress('pending')}
             theme={theme}
@@ -743,7 +743,7 @@ export default function AllRequestsScreen() {
           <StatCard
             value={stats.approved}
             label={t('status.approved')}
-            color={theme.success}
+            color={StatusCardColors.approved}
             isActive={statusFilter === 'approved'}
             onPress={() => handleStatPress('approved')}
             theme={theme}
@@ -751,7 +751,7 @@ export default function AllRequestsScreen() {
           <StatCard
             value={stats.completed}
             label={t('common.done')}
-            color={theme.info}
+            color={StatusCardColors.done}
             isActive={statusFilter === 'completed'}
             onPress={() => handleStatPress('completed')}
             theme={theme}

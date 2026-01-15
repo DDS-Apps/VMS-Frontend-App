@@ -47,9 +47,20 @@ export const NeutralColors = {
 // Status Colors
 export const StatusColors = {
   success: "#009933", // Dallah Green for Approve/Accept buttons
-  warning: "#F58423", // Dallah Orange for warnings
+  warning: "#E5A000", // Distinct amber/gold for pending states (different from orange)
   error: "#E53935", // Keep red for errors
-  info: "#F58423", // Dallah Orange for info
+  info: "#3B82F6", // Blue for informational states
+};
+
+// Status Card Colors - Distinct colors for dashboard stat cards
+export const StatusCardColors = {
+  all: "#F58423", // Brand Orange for "All" totals
+  pending: "#E5A000", // Distinct Amber/Gold for pending
+  approved: "#009933", // Brand Green for approved
+  done: "#3B82F6", // Blue for completed/done
+  rejected: "#E53935", // Red for rejected
+  cancelled: "#E53935", // Red for cancelled
+  inProgress: "#8B5CF6", // Purple for in-progress
 };
 
 // Gradient (for rare hero/CTA use)
@@ -66,6 +77,7 @@ export const Colors = {
   brand: BrandColors,
   neutral: NeutralColors,
   status: StatusColors,
+  statusCard: StatusCardColors,
   gradient: GradientColors,
 
   light: {
@@ -91,7 +103,7 @@ export const Colors = {
     success: StatusColors.success,
     warning: StatusColors.warning,
     error: StatusColors.error,
-    info: BrandColors.brandOrange,
+    info: StatusColors.info,
 
     // Buttons - White text on orange buttons for proper contrast
     buttonText: NeutralColors.white,
@@ -160,7 +172,7 @@ export const Colors = {
     success: BrandColors.brandGreen80,
     warning: BrandColors.brandOrange80,
     error: "#F87171",
-    info: BrandColors.brandOrange80,
+    info: "#60A5FA", // Lighter blue for dark mode
 
     // Buttons - Dark text on orange buttons for better contrast
     buttonText: BrandColors.brandGrey,
