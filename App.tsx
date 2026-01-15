@@ -132,15 +132,18 @@ function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
 
   // Safety timeout: force splash to hide if language loading takes too long
   // This prevents the app from being stuck on splash screen indefinitely
+  const [forceBypassLanguageLoading, setForceBypassLanguageLoading] = useState(false);
+  
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      if (languageLoading) {
-        console.warn('[AppContent] Language loading timeout - forcing splash hide');
+      if (languageLoading || showSplash) {
+        console.warn('[AppContent] Initialization timeout - forcing app to proceed');
         setShowSplash(false);
+        setForceBypassLanguageLoading(true);
       }
     }, 5000); // 5 second timeout
     return () => clearTimeout(timeoutId);
-  }, [languageLoading]);
+  }, []);
 
   const handleLoginSuccess = (role: UserRole) => {
     if (role === 'buffet_staff') {
@@ -157,7 +160,9 @@ function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
   };
 
   // Show splash while language is loading OR while splash animation is still showing
-  if (showSplash || languageLoading) {
+  // Unless we've timed out and need to force bypass
+  const effectiveLanguageLoading = languageLoading && !forceBypassLanguageLoading;
+  if (showSplash || effectiveLanguageLoading) {
     return <SplashScreen onFinish={handleSplashFinish} />;
   }
 
