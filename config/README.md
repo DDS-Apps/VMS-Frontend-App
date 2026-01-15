@@ -38,9 +38,9 @@ Since Replit only supports one deployment per project, you need to create a sepa
 ### QA Environment
 | Variable | Value |
 |----------|-------|
-| `EXPO_PUBLIC_API_BASE_URL` | `https://vms-backend-folio3.replit.app` |
-| `EXPO_PUBLIC_VMS_API_BASE_URL` | `https://vms-backend-folio3.replit.app/api` |
-| `EXPO_PUBLIC_MICROSOFT_AUTH_URL` | `https://vms-backend-folio3.replit.app` |
+| `EXPO_PUBLIC_API_BASE_URL` | `https://vms-backend-app-qa.replit.app` |
+| `EXPO_PUBLIC_VMS_API_BASE_URL` | `https://vms-backend-app-qa.replit.app/api` |
+| `EXPO_PUBLIC_MICROSOFT_AUTH_URL` | `https://vms-backend-app-qa.replit.app` |
 | `EXPO_PUBLIC_FIREBASE_PROJECT_ID` | `dallah-albaraka-vms` |
 
 ## Required Environment Variables

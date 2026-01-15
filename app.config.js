@@ -1,4 +1,4 @@
-const QA_BACKEND_URL = process.env.EXPO_PUBLIC_API_BASE_URL || "https://vms-backend-folio3.replit.app";
+const QA_BACKEND_URL = process.env.EXPO_PUBLIC_API_BASE_URL || "https://vms-backend-app-qa.replit.app";
 
 export default ({ config }) => ({
   ...config,
