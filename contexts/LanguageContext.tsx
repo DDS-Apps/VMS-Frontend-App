@@ -117,7 +117,14 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
       // we need to reload the app to apply the RTL change
       if (needsReload && Platform.OS !== 'web') {
         console.log('[LanguageContext] RTL mismatch detected, reloading app...');
-        await reloadAppAsync();
+        // Set loading false BEFORE reload so if reload fails, app doesn't freeze
+        setIsLoading(false);
+        try {
+          await reloadAppAsync();
+        } catch (error) {
+          console.warn('[LanguageContext] reloadAppAsync failed:', error);
+          // Continue without reload - user can manually restart
+        }
         return;
       }
       

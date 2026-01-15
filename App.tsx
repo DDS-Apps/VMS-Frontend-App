@@ -130,6 +130,18 @@ function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
     }
   }, [languageLoading, showSplash, isRTL]);
 
+  // Safety timeout: force splash to hide if language loading takes too long
+  // This prevents the app from being stuck on splash screen indefinitely
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (languageLoading) {
+        console.warn('[AppContent] Language loading timeout - forcing splash hide');
+        setShowSplash(false);
+      }
+    }, 5000); // 5 second timeout
+    return () => clearTimeout(timeoutId);
+  }, [languageLoading]);
+
   const handleLoginSuccess = (role: UserRole) => {
     if (role === 'buffet_staff') {
       setCurrentStaff('staff_001', user?.name || 'Staff');
