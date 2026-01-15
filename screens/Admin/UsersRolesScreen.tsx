@@ -620,7 +620,7 @@ export default function UsersRolesScreen() {
             {renderCheckbox(item.id)}
           </View>
         ) : null}
-        <View style={[styles.tableCell, { flex: 2, minWidth: 150 }]}>
+        <View style={[styles.tableCell, { flex: 3 }]}>
           <ThemedText style={[Typography.bodySmall, { fontWeight: '600' }]} numberOfLines={1}>
             {item.name}
           </ThemedText>
@@ -628,19 +628,19 @@ export default function UsersRolesScreen() {
             {item.email}
           </ThemedText>
         </View>
-        <View style={[styles.tableCell, { width: 100 }]}>
+        <View style={[styles.tableCell, { flex: 1.5 }]}>
           <View style={[styles.roleBadge, { backgroundColor: theme.primary + '20' }]}>
             <ThemedText style={[Typography.caption, { color: theme.primary, fontWeight: '600' }]} numberOfLines={1}>
               {getRoleLabel(item.role)}
             </ThemedText>
           </View>
         </View>
-        <View style={[styles.tableCell, { width: 120 }]}>
+        <View style={[styles.tableCell, { flex: 2 }]}>
           <ThemedText style={[Typography.caption, { color: theme.textSecondary }]} numberOfLines={1}>
             {item.department || '-'}
           </ThemedText>
         </View>
-        <View style={[styles.tableCell, { width: 80, alignItems: 'center' }]}>
+        <View style={[styles.tableCell, { flex: 1, alignItems: 'center' }]}>
           {item.autoApproval ? (
             <DDIcon name="check-circle" size={18} color={theme.success} />
           ) : (
@@ -648,7 +648,7 @@ export default function UsersRolesScreen() {
           )}
         </View>
         {!bulkMode ? (
-          <View style={[styles.tableCell, { width: 80, flexDirection: 'row', justifyContent: 'center', gap: Spacing.xs }]}>
+          <View style={[styles.tableCell, { flex: 1.5, flexDirection: 'row', justifyContent: 'center', gap: Spacing.xs }]}>
             <Pressable
               style={[styles.tableActionButton, { backgroundColor: theme.primary + '15' }]}
               onPress={() => handleEditUser(item)}
@@ -687,28 +687,28 @@ export default function UsersRolesScreen() {
           </Pressable>
         </View>
       ) : null}
-      <View style={[styles.tableHeaderCell, { flex: 2, minWidth: 150 }]}>
+      <View style={[styles.tableHeaderCell, { flex: 3 }]}>
         <ThemedText style={[Typography.caption, { fontWeight: '600', color: theme.textSecondary }]}>
           {t('form.fullName').toUpperCase()}
         </ThemedText>
       </View>
-      <View style={[styles.tableHeaderCell, { width: 100 }]}>
+      <View style={[styles.tableHeaderCell, { flex: 1.5 }]}>
         <ThemedText style={[Typography.caption, { fontWeight: '600', color: theme.textSecondary }]}>
           {t('common.role').toUpperCase()}
         </ThemedText>
       </View>
-      <View style={[styles.tableHeaderCell, { width: 120 }]}>
+      <View style={[styles.tableHeaderCell, { flex: 2 }]}>
         <ThemedText style={[Typography.caption, { fontWeight: '600', color: theme.textSecondary }]}>
           {t('form.company').toUpperCase()}
         </ThemedText>
       </View>
-      <View style={[styles.tableHeaderCell, { width: 80, alignItems: 'center' }]}>
+      <View style={[styles.tableHeaderCell, { flex: 1, alignItems: 'center' }]}>
         <ThemedText style={[Typography.caption, { fontWeight: '600', color: theme.textSecondary }]}>
           {t('common.auto').toUpperCase()}
         </ThemedText>
       </View>
       {!bulkMode ? (
-        <View style={[styles.tableHeaderCell, { width: 80, alignItems: 'center' }]}>
+        <View style={[styles.tableHeaderCell, { flex: 1.5, alignItems: 'center' }]}>
           <ThemedText style={[Typography.caption, { fontWeight: '600', color: theme.textSecondary }]}>
             {t('common.actions').toUpperCase()}
           </ThemedText>
@@ -899,19 +899,6 @@ export default function UsersRolesScreen() {
             onPress={() => setViewMode('list')}
           >
             <DDIcon name="menu" size={16} color={viewMode === 'list' ? theme.buttonText : theme.textSecondary} />
-          </Pressable>
-          <Pressable
-            style={[
-              styles.viewToggleButton,
-              styles.viewToggleButtonMiddle,
-              { 
-                backgroundColor: viewMode === 'grid' ? theme.primary : theme.surface,
-                borderColor: viewMode === 'grid' ? theme.primary : theme.border,
-              }
-            ]}
-            onPress={() => setViewMode('grid')}
-          >
-            <DDIcon name="grid" size={16} color={viewMode === 'grid' ? theme.buttonText : theme.textSecondary} />
           </Pressable>
           <Pressable
             style={[
@@ -1655,10 +1642,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   userCard: {
-    padding: Spacing.lg,
+    padding: Spacing.xl,
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.lg,
   },
   userCardGrid: {
     padding: Spacing.md,
@@ -1791,20 +1778,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: HORIZONTAL_PADDING,
     paddingVertical: Spacing.md,
     borderBottomWidth: 1,
-    minWidth: 700,
+    width: '100%',
   },
   tableHeaderCell: {
-    paddingHorizontal: Spacing.sm,
+    paddingHorizontal: Spacing.md,
     justifyContent: 'center',
   },
   tableRow: {
     flexDirection: 'row',
     paddingHorizontal: HORIZONTAL_PADDING,
-    paddingVertical: Spacing.md,
-    minWidth: 700,
+    paddingVertical: Spacing.lg,
+    width: '100%',
   },
   tableCell: {
-    paddingHorizontal: Spacing.sm,
+    paddingHorizontal: Spacing.md,
     justifyContent: 'center',
   },
   tableActionButton: {
