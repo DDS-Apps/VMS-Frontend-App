@@ -24,6 +24,31 @@
       })();
     </script>
     <style>
+      /* Override browser default blue focus ring with Dallah Orange theme */
+      /* Always provide a visible focus indicator for accessibility */
+      input:focus,
+      textarea:focus,
+      select:focus,
+      button:focus {
+        outline: 2px solid #F58423 !important;
+        outline-offset: -2px;
+      }
+      
+      /* Remove default webkit appearance for inputs */
+      input,
+      textarea,
+      select {
+        -webkit-tap-highlight-color: rgba(245, 132, 35, 0.2);
+      }
+      
+      /* Override any blue selection/highlight colors */
+      ::selection {
+        background-color: rgba(245, 132, 35, 0.3);
+      }
+      
+      ::-moz-selection {
+        background-color: rgba(245, 132, 35, 0.3);
+      }
     </style>
   </head>
   <body>
