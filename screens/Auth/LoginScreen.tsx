@@ -286,7 +286,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   const hasErrors = errors.email !== undefined || errors.password !== undefined;
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={[styles.container, { backgroundColor: isDark ? theme.background : '#FFFFFF' }]}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={[
