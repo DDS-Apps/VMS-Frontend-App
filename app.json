@@ -4,14 +4,14 @@
     "slug": "dallah-vms",
     "version": "1.0.10",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/header-icon-dark.png",
     "scheme": "dallahvms",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#FFFFFF",
-        "foregroundImage": "./assets/images/android-icon-foreground.png"
+        "foregroundImage": "./assets/images/header-icon-dark.png"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
@@ -31,7 +31,7 @@
     },
     "web": {
       "output": "single",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/header-icon-dark.png"
     },
     "plugins": [
       [
