@@ -1195,13 +1195,18 @@ export default function RequestDetailsScreen({
         <Spacer height={Spacing.xl} />
 
         <View style={[styles.serviceRowNew, { flexDirection: 'row' }]}>
-          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-            <DDIcon name="calendar" size={18} color={theme.text} />
+          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(isVisitExpired ? theme.secondary : theme.textSecondary, '15') }]}>
+            <DDIcon name={isVisitExpired ? "check-circle" : "calendar"} size={18} color={isVisitExpired ? theme.secondary : theme.text} />
           </View>
           <View style={{ flex: 1 }}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
-              {t("time.dateAndTime")}
-            </ThemedText>
+            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.xs }}>
+              <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+                {t("time.dateAndTime")}
+              </ThemedText>
+              {isVisitExpired ? (
+                <DDIcon name="check" size={14} color={theme.secondary} />
+              ) : null}
+            </View>
             <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
               {formatDateShort(request.visitDate)} • {formatVisitTimeRange(request.visitTime, request.endTime)}
             </ThemedText>
