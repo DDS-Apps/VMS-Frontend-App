@@ -971,7 +971,7 @@ export default function RequestDetailsScreen({
             {request.approval.managerName && (
               <>
                 <Spacer height={Spacing.md} />
-                <View style={{ flexDirection: 'row', alignItems: "center" }}>
+                <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: "center" }}>
                   <DDIcon name="user" size={12} variant="muted" />
                   <ThemedText
                     style={[
@@ -1019,7 +1019,7 @@ export default function RequestDetailsScreen({
           <ThemedView
             style={[styles.cardNew, { backgroundColor: theme.surface }]}
           >
-            <View style={{ flexDirection: 'row', alignItems: "center" }}>
+            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: "center" }}>
               <DDIcon name="file-text" size={16} color={theme.info} />
               <ThemedText
                 style={[
@@ -1174,7 +1174,7 @@ export default function RequestDetailsScreen({
       <Spacer height={Spacing.lg} />
 
       <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <ThemedText
             style={[
               Typography.subtitle,
@@ -1184,7 +1184,7 @@ export default function RequestDetailsScreen({
             {t("visitor.visitDetails")}
           </ThemedText>
           {request.isWalkIn ? (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.xs, backgroundColor: applyOpacity(theme.warning, '15'), paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: BorderRadius.sm }}>
+            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.xs, backgroundColor: applyOpacity(theme.warning, '15'), paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: BorderRadius.sm }}>
               <DDIcon name="user-check" size={14} color={theme.warning} />
               <ThemedText style={[Typography.caption, { color: theme.warning, fontWeight: '600', fontSize: 11 }]}>
                 {t("reception.walkInVisitor")}

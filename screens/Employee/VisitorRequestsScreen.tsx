@@ -185,12 +185,14 @@ const VisitorRequestTableRow = React.memo(({
   request, 
   onPress,
   theme,
-  t 
+  t,
+  isRTL = false
 }: { 
   request: VisitorRequest; 
   onPress: () => void;
   theme: Theme;
   t: (key: string) => string;
+  isRTL?: boolean;
 }) => {
   const statusConfig = getStatusStyle(theme, request.status, t);
 
@@ -206,7 +208,7 @@ const VisitorRequestTableRow = React.memo(({
         <View style={[styles.fixedColumn, { width: LAYOUT.tableFixedColumnWidth }]}>
           <View style={styles.fixedColumnContent}>
             <View style={{ flex: 1 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: 6 }}>
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, flexShrink: 1 }]} numberOfLines={2}>
                   {request.visitor.fullName}
                 </ThemedText>
@@ -684,6 +686,7 @@ export default function VisitorRequestsScreen({ navigation: navProp, userRole = 
                 onPress={() => navigation.navigate(ROUTES.REQUEST_DETAILS as never, { requestId: item.id } as never)}
                 theme={theme}
                 t={t}
+                isRTL={isRTL}
               />
             </View>
           )}

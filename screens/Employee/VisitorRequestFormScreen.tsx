@@ -811,7 +811,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
           <Spacer height={Spacing.lg} />
 
           <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
-            <View style={[styles.sectionHeader, { flexDirection: 'row', gap: Spacing.md, marginLeft: isRTL ? 'auto' : 0, marginRight: isRTL ? 0 : 'auto' }]}>
+            <View style={[styles.sectionHeader, { flexDirection: isRTL ? 'row-reverse' : 'row', gap: Spacing.md }]}>
               <View style={[styles.sectionIconContainer, { backgroundColor: theme.primary + '20' }]}>
                 <DDIcon name="calendar" size={20} variant="primary" />
               </View>
@@ -839,7 +839,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
               ]}
               onPress={() => setShowDatePicker(true)}
             >
-              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
+              <View style={{ flex: 1, flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.md }}>
                 <DDIcon name="calendar" size={20} variant="primary" />
                 <ThemedText style={[Typography.body, { color: theme.text, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                   {formatPickerDate(selectedDate)}
@@ -872,7 +872,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
               ]}
               onPress={() => setShowTimePicker(true)}
             >
-              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
+              <View style={{ flex: 1, flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.md }}>
                 <DDIcon name="clock" size={20} variant="primary" />
                 <ThemedText style={[Typography.body, { color: theme.text, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                   {formatPickerTime(selectedTime)}
@@ -905,7 +905,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
               ]}
               onPress={() => setShowEndTimePicker(true)}
             >
-              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
+              <View style={{ flex: 1, flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.md }}>
                 <DDIcon name="clock" size={20} variant="primary" />
                 <ThemedText style={[Typography.body, { color: theme.text, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                   {formatPickerTime(selectedEndTime)}
@@ -938,7 +938,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                 }
               ]}
             >
-              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
+              <View style={{ flex: 1, flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.md }}>
                 <DDIcon name="clock" size={20} variant="muted" />
                 <ThemedText style={[Typography.body, { color: isEndTimeBeforeStartTime() ? theme.error : theme.textSecondary, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                   {calculateDuration()}
