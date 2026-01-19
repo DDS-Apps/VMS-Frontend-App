@@ -1,4 +1,4 @@
-import React, { ReactNode, Children } from 'react';
+import React, { ReactNode } from 'react';
 import { View, ViewStyle, StyleProp, StyleSheet, Platform } from 'react-native';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -6,35 +6,42 @@ interface DirectionalRowProps {
   children: ReactNode;
   style?: StyleProp<ViewStyle>;
   gap?: number;
-  forceReverse?: boolean;
 }
 
-export function DirectionalRow({ children, style, gap, forceReverse = false }: DirectionalRowProps) {
+/**
+ * A row container that handles RTL layout correctly across web and mobile.
+ * 
+ * RTL Handling Strategy:
+ * - WEB: Browser automatically reverses flexbox layouts when document.dir='rtl'.
+ *   We keep flexDirection='row' and let the browser handle the visual reversal.
+ * 
+ * - MOBILE (iOS/Android): We use flexDirection='row-reverse' for RTL to achieve
+ *   the correct visual order. React Native's I18nManager handles logical properties
+ *   (start/end) but we explicitly set row-reverse for consistent row layouts.
+ * 
+ * This approach avoids potential double-reversal issues while ensuring correct
+ * RTL behavior on all platforms.
+ */
+export function DirectionalRow({ children, style, gap }: DirectionalRowProps) {
   const { isRTL } = useLanguage();
   
-  const childArray = Children.toArray(children);
+  // On web, browser handles RTL via document.dir - use 'row' always
+  // On mobile RTL, use 'row-reverse' to achieve correct visual order
+  const flexDirection = Platform.OS === 'web' 
+    ? 'row' 
+    : (isRTL ? 'row-reverse' : 'row');
   
-  // RTL handling strategy:
-  // - On WEB: Browser's document.dir='rtl' should reverse flex layouts automatically,
-  //   BUT some containers (with borders/overflow) have React Native Web bugs.
-  //   Use forceReverse=true for those problematic containers to manually reverse children.
-  // - On MOBILE: I18nManager doesn't flip flexDirection, so we always reverse children.
-  const isWeb = Platform.OS === 'web';
-  const shouldReverseChildren = isRTL && (!isWeb || forceReverse);
-  const orderedChildren = shouldReverseChildren ? [...childArray].reverse() : childArray;
-  
-  // Flatten styles and set flexDirection
   const flattenedStyle = StyleSheet.flatten([style]);
   const finalStyle: ViewStyle = {
     ...flattenedStyle,
-    flexDirection: 'row',
+    flexDirection,
     alignItems: flattenedStyle?.alignItems ?? 'center',
     gap: gap ?? flattenedStyle?.gap,
   };
   
   return (
     <View style={finalStyle}>
-      {orderedChildren}
+      {children}
     </View>
   );
 }

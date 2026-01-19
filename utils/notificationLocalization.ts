@@ -86,10 +86,14 @@ export function localizeNotification(
     };
   }
 
+  // IMPORTANT: Always prioritize the localized template over fallback.
+  // The fallback (from API) is typically in English.
+  // Only use fallback if the template itself is missing.
+  // When params are empty/missing, use the template's static text.
   if (!params || Object.keys(params).length === 0) {
     return {
-      title: fallbackTitle || template.title,
-      message: fallbackMessage || template.message,
+      title: template.title,
+      message: template.message,
     };
   }
 

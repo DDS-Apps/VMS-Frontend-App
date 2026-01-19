@@ -2,6 +2,7 @@ import React, { useState, useCallback } from "react";
 import { View, StyleSheet, Pressable, ActivityIndicator } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DDIcon, IconName } from "@/components/DDIcon";
+import { DirectionalRow } from "@/components/DirectionalRow";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -17,6 +18,7 @@ import type { NotificationItemDto, NotificationEventType } from "@/types/notific
 import { applyOpacity } from "@/utils/statusStyles";
 import { navigateFromInAppNotification } from "@/utils/notificationNavigator";
 import { localizeNotification } from "@/utils/notificationLocalization";
+import { getPlatformTextAlign } from "@/utils/rtlInitializer";
 import { 
   useNotificationsQuery, 
   useMarkNotificationAsReadMutation, 
@@ -166,8 +168,8 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
 
   return (
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
-      <View style={[styles.header, { flexDirection: 'row' }]}>
-        <ThemedText style={[Typography.title, { flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
+      <DirectionalRow style={styles.header}>
+        <ThemedText style={[Typography.title, { flex: 1, textAlign: getPlatformTextAlign(isRTL, 'start') }]}>
           {t('notifications.title')}
         </ThemedText>
         <Pressable 
@@ -178,7 +180,7 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
             {markAllAsReadMutation.isPending ? t('common.loading') : t('notifications.markAllRead')}
           </ThemedText>
         </Pressable>
-      </View>
+      </DirectionalRow>
 
       <Spacer height={Spacing.lg} />
 
@@ -262,11 +264,11 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
                 </View>
 
                 <View style={styles.notificationContent}>
-                  <ThemedText style={[styles.notificationTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+                  <ThemedText style={[styles.notificationTitle, { color: theme.text, textAlign: getPlatformTextAlign(isRTL, 'start') }]}>
                     {localizedTitle}
                   </ThemedText>
                   <Spacer height={Spacing.xs} />
-                  <ThemedText style={[styles.notificationMessage, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={3}>
+                  <ThemedText style={[styles.notificationMessage, { color: theme.textSecondary, textAlign: getPlatformTextAlign(isRTL, 'start') }]} numberOfLines={3}>
                     {localizedMessage}
                   </ThemedText>
                   <Spacer height={Spacing.sm} />

@@ -233,3 +233,173 @@ export function getRTLStyles(isRTL: boolean) {
     writingDirection: { writingDirection: isRTL ? 'rtl' : 'ltr' as 'rtl' | 'ltr' },
   };
 }
+
+/**
+ * ============================================================================
+ * PLATFORM-AWARE RTL UTILITIES
+ * ============================================================================
+ * These utilities handle the difference between web and mobile RTL behavior:
+ * - Web: Browser automatically handles RTL via document.dir='rtl'
+ * - Mobile: Requires explicit RTL handling in component styles
+ * 
+ * Use these utilities to ensure consistent RTL behavior across all platforms
+ * without double-reversing on web or missing reversals on mobile.
+ */
+
+const isWeb = Platform.OS === 'web';
+
+/**
+ * Check if manual RTL handling is needed.
+ * On web, the browser handles RTL automatically, so we don't need manual handling.
+ * On mobile, we need to manually adjust styles for RTL.
+ */
+export function needsManualRTLHandling(isRTL: boolean): boolean {
+  return isRTL && !isWeb;
+}
+
+/**
+ * Position style types for absolute positioning
+ */
+export type PositionStyle = { left: number } | { right: number };
+export type FullPositionStyle = { left?: number; right?: number; start?: number; end?: number };
+
+/**
+ * Returns the correct position style for "start" edge (where content begins).
+ * - LTR: left side
+ * - RTL: right side (on both web and mobile)
+ * 
+ * Note: CSS left/right are physical properties that don't auto-swap with dir="rtl".
+ * We must explicitly swap them for RTL on all platforms.
+ * 
+ * Use this for absolute positioning of elements that should be at the "start" edge.
+ */
+export function getStartPosition(isRTL: boolean, value: number = 0): FullPositionStyle {
+  return isRTL ? { right: value } : { left: value };
+}
+
+/**
+ * Returns the correct position style for "end" edge (opposite of start).
+ * - LTR: right side
+ * - RTL: left side (on both web and mobile)
+ * 
+ * Note: CSS left/right are physical properties that don't auto-swap with dir="rtl".
+ * We must explicitly swap them for RTL on all platforms.
+ * 
+ * Use this for absolute positioning of elements that should be at the "end" edge.
+ */
+export function getEndPosition(isRTL: boolean, value: number = 0): FullPositionStyle {
+  return isRTL ? { left: value } : { right: value };
+}
+
+/**
+ * Platform-aware flex direction.
+ * 
+ * For web RTL: Browser's document.dir='rtl' auto-reverses flexbox rows,
+ * so we use 'row' and let the browser handle it.
+ * 
+ * For mobile RTL: React Native's I18nManager doesn't auto-reverse flexDirection,
+ * so we explicitly use 'row-reverse' to achieve the correct visual order.
+ */
+export function getPlatformFlexDirection(isRTL: boolean, base: 'row' | 'column' = 'row'): FlexDirection {
+  if (base === 'column') return base;
+  if (isWeb) {
+    // On web, browser handles flex direction reversal via document.dir
+    return 'row';
+  }
+  // On mobile, we need to explicitly reverse
+  return isRTL ? 'row-reverse' : 'row';
+}
+
+/**
+ * Platform-aware text alignment.
+ * Returns the correct text-align value based on RTL state.
+ * 
+ * Note: CSS text-align values (left/right) are physical and don't auto-swap
+ * with dir="rtl" in React Native (even on web). We must explicitly swap them.
+ * 
+ * - 'start' → 'left' in LTR, 'right' in RTL
+ * - 'end' → 'right' in LTR, 'left' in RTL
+ * - 'center' → 'center' always
+ */
+export function getPlatformTextAlign(isRTL: boolean, align: 'start' | 'end' | 'center' = 'start'): TextAlign {
+  if (align === 'center') return 'center';
+  
+  // Swap alignment based on RTL state (same for web and mobile)
+  if (align === 'start') return isRTL ? 'right' : 'left';
+  return isRTL ? 'left' : 'right'; // 'end'
+}
+
+/**
+ * Platform-aware margin for start edge.
+ * - LTR: marginLeft
+ * - RTL: marginRight (on all platforms)
+ * 
+ * Note: CSS margins are physical properties that don't auto-swap.
+ */
+export function getStartMargin(isRTL: boolean, value: number): { marginLeft?: number; marginRight?: number } {
+  return isRTL ? { marginRight: value } : { marginLeft: value };
+}
+
+/**
+ * Platform-aware margin for end edge.
+ * - LTR: marginRight
+ * - RTL: marginLeft (on all platforms)
+ * 
+ * Note: CSS margins are physical properties that don't auto-swap.
+ */
+export function getEndMargin(isRTL: boolean, value: number): { marginLeft?: number; marginRight?: number } {
+  return isRTL ? { marginLeft: value } : { marginRight: value };
+}
+
+/**
+ * Comprehensive platform-aware RTL styles object.
+ * Use this to get all RTL-aware styles in one call.
+ */
+export function getPlatformRTLStyles(isRTL: boolean) {
+  return {
+    // Flex direction
+    row: { flexDirection: getPlatformFlexDirection(isRTL, 'row') as FlexDirection },
+    
+    // Text alignment
+    textStart: { textAlign: getPlatformTextAlign(isRTL, 'start') as TextAlign },
+    textEnd: { textAlign: getPlatformTextAlign(isRTL, 'end') as TextAlign },
+    textCenter: { textAlign: 'center' as TextAlign },
+    
+    // Position (for absolute positioning)
+    positionStart: getStartPosition(isRTL, 0),
+    positionEnd: getEndPosition(isRTL, 0),
+    
+    // Writing direction (always set based on RTL)
+    writingDirection: { writingDirection: isRTL ? 'rtl' : 'ltr' as 'rtl' | 'ltr' },
+    
+    // Helper to check if manual handling needed
+    needsManualHandling: needsManualRTLHandling(isRTL),
+  };
+}
+
+/**
+ * Hook-friendly helper that returns all platform-aware utilities
+ * bound to the current RTL state.
+ */
+export function createRTLHelpers(isRTL: boolean) {
+  return {
+    isRTL,
+    isWeb,
+    needsManualHandling: needsManualRTLHandling(isRTL),
+    
+    // Position helpers
+    startPosition: (value?: number) => getStartPosition(isRTL, value),
+    endPosition: (value?: number) => getEndPosition(isRTL, value),
+    
+    // Flex/alignment helpers
+    flexDirection: (base?: 'row' | 'column') => getPlatformFlexDirection(isRTL, base),
+    textAlign: (align?: 'start' | 'end' | 'center') => getPlatformTextAlign(isRTL, align),
+    
+    // Margin helpers
+    startMargin: (value: number) => getStartMargin(isRTL, value),
+    endMargin: (value: number) => getEndMargin(isRTL, value),
+    
+    // Full styles object
+    styles: getPlatformRTLStyles(isRTL),
+  };
+}

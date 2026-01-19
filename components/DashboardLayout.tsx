@@ -19,6 +19,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useRTLStyles } from "@/hooks/useRTLStyles";
+import { getStartPosition } from "@/utils/rtlInitializer";
 import { UserRole } from "@/types/vms.types";
 import { authService } from "@/services/api/authService";
 
@@ -536,7 +537,7 @@ export default function DashboardLayout({
                   styles.sidebarMobile,
                   { width: sidebarWidthMobile },
                   sidebarAnimatedStyle,
-                  isRTL && { left: 'auto', right: 0 },
+                  getStartPosition(isRTL, 0),
                 ]}
               >
                 <Sidebar
@@ -859,7 +860,6 @@ const styles = StyleSheet.create({
   sidebarMobile: {
     position: 'absolute',
     top: 0,
-    left: 0,
     bottom: 0,
     zIndex: 100,
     elevation: 8,
