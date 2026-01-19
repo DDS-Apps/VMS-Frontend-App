@@ -45,10 +45,12 @@ function normalizeVisitStatus(status: string): UnifiedStatus {
     case 'pending':
     case 'pending_approval':
     case 'pending_host_approval':
+    case 'visitor_pending':
       return 'pending';
     case 'approved':
     case 'confirmed':
     case 'accepted':
+    case 'visitor_accepted':
       return 'approved';
     case 'checked_in':
     case 'in_progress':
@@ -57,8 +59,10 @@ function normalizeVisitStatus(status: string): UnifiedStatus {
     case 'completed':
       return 'completed';
     case 'cancelled':
+    case 'auto_cancelled':
       return 'cancelled';
     case 'rejected':
+    case 'visitor_rejected':
     case 'expired':
       return 'rejected';
     default:
