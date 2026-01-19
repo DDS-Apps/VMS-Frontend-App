@@ -33,6 +33,13 @@
       "android": {
         "buildType": "app-bundle"
       }
+    },
+    "production-preview": {
+      "distribution": "internal",
+      "autoIncrement": true,
+      "android": {
+        "buildType": "app-bundle"
+      }
     }
   },
   "submit": {
