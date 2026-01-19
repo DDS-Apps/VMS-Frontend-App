@@ -2016,6 +2016,8 @@ export default function RequestDetailsScreen({
                       console.log('[Edit Modal] Date picker button pressed');
                       setShowEditDatePicker(true);
                     }}
+                    android_ripple={{ color: theme.border }}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                   >
                     <DDIcon name="calendar" size={16} variant="muted" />
                     <ThemedText
@@ -2057,6 +2059,8 @@ export default function RequestDetailsScreen({
                   console.log('[Edit Modal] Time picker button pressed');
                   setShowEditTimePicker(true);
                 }}
+                android_ripple={{ color: theme.border }}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
                 <DDIcon name="clock" size={16} variant="muted" />
                 <ThemedText
@@ -2098,6 +2102,8 @@ export default function RequestDetailsScreen({
                   console.log('[Edit Modal] End time picker button pressed');
                   setShowEditEndTimePicker(true);
                 }}
+                android_ripple={{ color: theme.border }}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
                 <DDIcon name="clock" size={16} variant="muted" />
                 <ThemedText
@@ -2939,6 +2945,7 @@ const styles = StyleSheet.create({
   },
   modalBackdrop: {
     ...StyleSheet.absoluteFillObject,
+    zIndex: 1,
   },
   modalContent: {
     borderRadius: 12,
@@ -2987,7 +2994,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 16,
-    elevation: 5,
+    elevation: 10,
+    zIndex: 10,
   },
   editModalScroll: {
     maxHeight: 400,
