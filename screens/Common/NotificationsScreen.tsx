@@ -16,6 +16,7 @@ import { UserRole } from "@/types/vms.types";
 import type { NotificationItemDto, NotificationEventType } from "@/types/notification.types";
 import { applyOpacity } from "@/utils/statusStyles";
 import { navigateFromInAppNotification } from "@/utils/notificationNavigator";
+import { localizeNotification } from "@/utils/notificationLocalization";
 import { 
   useNotificationsQuery, 
   useMarkNotificationAsReadMutation, 
@@ -32,7 +33,7 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { toLocalNumerals } = useFormatters();
-  const { isRTL } = useLanguage();
+  const { isRTL, locale } = useLanguage();
   const insets = useSafeAreaInsets();
   const [selectedTab, setSelectedTab] = useState<'all' | 'unread'>('all');
 
@@ -152,52 +153,16 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
     return t('time.daysAgo', { count: toLocalNumerals(String(diffDays)) });
   };
 
-  const getLocalizedTitle = (notification: NotificationItemDto): string => {
-    const typeToTitleKey: Record<string, string> = {
-      'request_created': 'notifications.types.requestSubmitted',
-      'request_approved': 'notifications.types.requestApproved',
-      'request_rejected': 'notifications.types.requestRejected',
-      'request_cancelled': 'notifications.types.requestCancelled',
-      'request_updated': 'notifications.types.requestModified',
-      'visitor_accepted': 'notifications.types.visitorAccepted',
-      'visitor_rejected': 'notifications.types.visitorDeclined',
-      'visitor_arrival': 'notifications.types.visitorArrival',
-      'visitor_no_show': 'notifications.types.visitorNoShow',
-      'check_in': 'notifications.types.checkIn',
-      'check_out': 'notifications.types.checkOut',
-      'auto_cancelled': 'notifications.types.autoCancelled',
-      'pending_approval': 'notifications.types.pendingApproval',
-      'expected_today': 'notifications.types.expectedToday',
-      'reminder_tomorrow': 'notifications.types.reminderTomorrow',
-      'reminder_2hours': 'notifications.types.reminder2Hours',
-      'reminder_30min': 'notifications.types.reminder30Min',
-      'reminder_now': 'notifications.types.reminderNow',
-      'room_booked': 'notifications.types.roomBooked',
-      'room_reminder': 'notifications.types.roomReminder',
-      'room_cancelled': 'notifications.types.roomCancelled',
-      'room_conflict': 'notifications.types.roomConflict',
-      'room_reassigned': 'notifications.types.roomReassigned',
-      'parking_assigned': 'notifications.types.parkingAssigned',
-      'parking_full': 'notifications.types.parkingFull',
-      'buffet_new_request': 'notifications.types.buffetNewRequest',
-      'buffet_request_created': 'notifications.types.buffetRequestCreated',
-      'buffet_task_assigned': 'notifications.types.buffetTaskAssigned',
-      'buffet_scheduled': 'notifications.types.buffetScheduled',
-      'buffet_status_update': 'notifications.types.buffetStatusUpdate',
-      'buffet_staff_update': 'notifications.types.buffetStaffUpdate',
-      'buffet_completed': 'notifications.types.buffetCompleted',
-      'valet_new_request': 'notifications.types.valetNewRequest',
-      'valet_task_assigned': 'notifications.types.valetTaskAssigned',
-      'valet_scheduled': 'notifications.types.valetScheduled',
-      'valet_completed': 'notifications.types.valetCompleted',
-      'valet_cancelled': 'notifications.types.valetCancelled',
-      'security_access_update': 'notifications.types.securityAccessUpdate',
-      'security_gate_pass': 'notifications.types.securityGatePass',
-    };
-    
-    const key = typeToTitleKey[notification.type];
-    return key ? t(key) : notification.title;
-  };
+  const getLocalizedContent = useCallback((notification: NotificationItemDto): { title: string; message: string } => {
+    const localized = localizeNotification(
+      notification.type,
+      notification.params,
+      locale,
+      notification.title,
+      notification.body
+    );
+    return localized;
+  }, [locale]);
 
   return (
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
@@ -270,6 +235,7 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
         notifications.map((notification) => {
           const { icon, variant } = getNotificationConfig(notification.type);
           const accentColor = getVariantColor(variant);
+          const { title: localizedTitle, message: localizedMessage } = getLocalizedContent(notification);
           return (
             <View key={notification.id}>
               <Pressable
@@ -297,11 +263,11 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
 
                 <View style={styles.notificationContent}>
                   <ThemedText style={[styles.notificationTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
-                    {getLocalizedTitle(notification)}
+                    {localizedTitle}
                   </ThemedText>
                   <Spacer height={Spacing.xs} />
                   <ThemedText style={[styles.notificationMessage, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={3}>
-                    {notification.body}
+                    {localizedMessage}
                   </ThemedText>
                   <Spacer height={Spacing.sm} />
                   <View style={[styles.timeContainer, { flexDirection: 'row', gap: 4, alignSelf: isRTL ? 'flex-start' : 'flex-end' }]}>

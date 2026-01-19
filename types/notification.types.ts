@@ -45,6 +45,35 @@ export type NotificationChannel = 'push' | 'email' | 'sms' | 'whatsapp' | 'in_ap
 
 export type DevicePlatform = 'ios' | 'android' | 'web';
 
+export interface NotificationParams {
+  visitorName?: string;
+  managerName?: string;
+  hostName?: string;
+  company?: string;
+  reason?: string;
+  cancelledBy?: string;
+  updatedBy?: string;
+  visitDate?: string;
+  visitTime?: string;
+  visitorCount?: string;
+  reminderType?: 'first' | 'final';
+  roomName?: string;
+  conflictTime?: string;
+  oldRoom?: string;
+  newRoom?: string;
+  spotNumber?: string;
+  guestCount?: string;
+  taskType?: string;
+  location?: string;
+  scheduledTime?: string;
+  vehicleInfo?: string;
+  driverName?: string;
+  accessLevel?: string;
+  gateNumber?: string;
+  status?: string;
+  staffName?: string;
+}
+
 export interface NotificationItemDto {
   id: string;
   userId: string;
@@ -58,6 +87,7 @@ export interface NotificationItemDto {
   readAt?: string;
   createdAt: string;
   expiresAt?: string;
+  params?: NotificationParams;
 }
 
 export interface UnreadCountResponse {

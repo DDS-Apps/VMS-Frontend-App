@@ -180,6 +180,35 @@ export type NotificationType =
   | 'security_access_update'
   | 'security_gate_pass';
 
+export interface NotificationParams {
+  visitorName?: string;
+  managerName?: string;
+  hostName?: string;
+  company?: string;
+  reason?: string;
+  cancelledBy?: string;
+  updatedBy?: string;
+  visitDate?: string;
+  visitTime?: string;
+  visitorCount?: string;
+  reminderType?: 'first' | 'final';
+  roomName?: string;
+  conflictTime?: string;
+  oldRoom?: string;
+  newRoom?: string;
+  spotNumber?: string;
+  guestCount?: string;
+  taskType?: string;
+  location?: string;
+  scheduledTime?: string;
+  vehicleInfo?: string;
+  driverName?: string;
+  accessLevel?: string;
+  gateNumber?: string;
+  status?: string;
+  staffName?: string;
+}
+
 export interface Notification {
   id: string;
   type: NotificationType;
@@ -192,6 +221,7 @@ export interface Notification {
   priority?: 'low' | 'medium' | 'high';
   targetRoles?: UserRole[];
   sourceRole?: UserRole;
+  params?: NotificationParams;
 }
 
 export interface Employee {

@@ -531,6 +531,174 @@ export const ar: TranslationKeys = {
       securityAccessUpdate: 'تحديث صلاحيات الأمان',
       securityGatePass: 'تصريح البوابة الأمنية',
     },
+    templates: {
+      request_created: {
+        title: 'طلب زيارة جديد',
+        message: 'تم إنشاء طلب زيارة جديد لـ {{visitorName}} لمقابلة {{hostName}}',
+      },
+      request_approved: {
+        title: 'تمت الموافقة على الطلب',
+        message: 'تمت الموافقة على طلب زيارتك لـ {{visitorName}} من قبل {{managerName}}',
+      },
+      request_rejected: {
+        title: 'تم رفض الطلب',
+        message: 'تم رفض طلب زيارتك لـ {{visitorName}} من قبل {{managerName}}. السبب: {{reason}}',
+      },
+      request_cancelled: {
+        title: 'تم إلغاء الزيارة',
+        message: 'تم إلغاء طلب زيارة {{visitorName}} بواسطة {{cancelledBy}}',
+      },
+      request_updated: {
+        title: 'تم تحديث الزيارة',
+        message: 'تم تحديث طلب زيارة {{visitorName}} بواسطة {{updatedBy}}',
+      },
+      pending_approval: {
+        title: 'مطلوب موافقة',
+        message: 'طلب زيارة من {{visitorName}} لـ {{hostName}} بانتظار موافقتك',
+      },
+      visitor_accepted: {
+        title: 'تم قبول الدعوة',
+        message: '{{visitorName}} قبل دعوة الزيارة',
+      },
+      visitor_rejected: {
+        title: 'تم رفض الدعوة',
+        message: '{{visitorName}} رفض دعوة الزيارة',
+      },
+      visitor_arrival: {
+        title: 'وصول الزائر',
+        message: '{{visitorName}} وصل إلى الاستقبال',
+      },
+      visitor_no_show: {
+        title: 'عدم حضور الزائر',
+        message: '{{visitorName}} لم يحضر للزيارة المجدولة',
+      },
+      walk_in_registered: {
+        title: 'زائر بدون موعد',
+        message: '{{visitorName}} من {{company}} في الاستقبال لمقابلتك. يرجى الموافقة أو الرفض',
+      },
+      check_in: {
+        title: 'تسجيل دخول الزائر',
+        message: '{{visitorName}} قام بتسجيل الدخول',
+      },
+      check_out: {
+        title: 'تسجيل خروج الزائر',
+        message: '{{visitorName}} قام بتسجيل الخروج',
+      },
+      reminder_tomorrow: {
+        title: 'تذكير بالزيارة',
+        message: 'تذكير: {{visitorName}} مجدول للزيارة غداً ({{visitDate}})',
+      },
+      reminder_2hours: {
+        title: 'تذكير بالزيارة',
+        message: 'تذكير: {{visitorName}} سيصل خلال ساعتين في {{visitTime}}',
+      },
+      reminder_30min: {
+        title: 'تذكير بالزيارة',
+        message: 'تذكير: {{visitorName}} سيصل خلال 30 دقيقة في {{visitTime}}',
+      },
+      reminder_now: {
+        title: 'وصول الزائر',
+        message: '{{visitorName}} من المتوقع وصوله الآن',
+      },
+      expected_today: {
+        title: 'جدول اليوم',
+        message: 'لديك {{visitorCount}} زائر(ين) متوقع(ين) اليوم',
+      },
+      visitor_reminder: {
+        title: 'تم إرسال تذكير للزائر',
+        titleFinal: 'تذكير نهائي للزائر',
+        message: 'تم إرسال التذكير الأول لـ {{visitorName}} للرد على الزيارة المعلقة',
+        messageFinal: 'تم إرسال التذكير النهائي لـ {{visitorName}}. سيتم الإلغاء التلقائي في حال عدم الرد',
+      },
+      auto_cancelled: {
+        title: 'إلغاء تلقائي',
+        message: 'تم إلغاء طلب زيارة {{visitorName}} تلقائياً بسبب عدم الرد. تم تحرير الموارد',
+      },
+      room_booked: {
+        title: 'تم حجز القاعة',
+        message: 'تم حجز قاعة الاجتماعات {{roomName}} في {{visitDate}} الساعة {{visitTime}}',
+      },
+      room_reminder: {
+        title: 'تذكير بالاجتماع',
+        message: 'تذكير: اجتماع في {{roomName}} الساعة {{visitTime}}',
+      },
+      room_cancelled: {
+        title: 'إلغاء حجز القاعة',
+        message: 'تم إلغاء حجز قاعة الاجتماعات {{roomName}}',
+      },
+      room_conflict: {
+        title: 'تعارض في القاعة',
+        message: 'تم اكتشاف تعارض في {{roomName}} الساعة {{conflictTime}}',
+      },
+      room_reassigned: {
+        title: 'تغيير القاعة',
+        message: 'تم نقل اجتماعك من {{oldRoom}} إلى {{newRoom}}',
+      },
+      parking_assigned: {
+        title: 'تم تخصيص موقف',
+        message: 'تم تخصيص موقف السيارات {{spotNumber}} لـ {{visitorName}}',
+      },
+      parking_full: {
+        title: 'المواقف ممتلئة',
+        message: 'المواقف ممتلئة حالياً. الزائر {{visitorName}} سيحتاج ترتيبات بديلة',
+      },
+      buffet_new_request: {
+        title: 'طلب بوفيه جديد',
+        message: 'طلب بوفيه جديد من {{hostName}} لـ {{guestCount}} ضيف',
+      },
+      buffet_task_assigned: {
+        title: 'تم تعيين مهمة البوفيه',
+        message: 'مهمة {{taskType}} جديدة تم تعيينها في {{location}}',
+      },
+      buffet_scheduled: {
+        title: 'تم جدولة البوفيه',
+        message: 'تم جدولة خدمة البوفيه في {{scheduledTime}} في {{location}}',
+      },
+      buffet_completed: {
+        title: 'اكتمل البوفيه',
+        message: 'اكتملت خدمة البوفيه في {{location}}',
+      },
+      buffet_request_created: {
+        title: 'تم إنشاء طلب البوفيه',
+        message: 'تم إنشاء طلب بوفيه لـ {{hostName}} مع {{guestCount}} ضيوف',
+      },
+      buffet_status_update: {
+        title: 'تحديث حالة البوفيه',
+        message: 'تم تحديث حالة خدمة البوفيه في {{location}}',
+      },
+      buffet_staff_update: {
+        title: 'تحديث طاقم البوفيه',
+        message: 'تم تحديث تعيين الموظفين لخدمة البوفيه في {{location}}',
+      },
+      valet_new_request: {
+        title: 'طلب صف سيارات جديد',
+        message: 'طلب صف سيارات جديد لـ {{visitorName}} - {{vehicleInfo}}',
+      },
+      valet_task_assigned: {
+        title: 'تم تعيين مهمة صف السيارات',
+        message: 'تم تعيين مهمة صف سيارات {{visitorName}} لـ {{driverName}}',
+      },
+      valet_scheduled: {
+        title: 'جدولة صف السيارات',
+        message: 'تمت جدولة خدمة صف السيارات لـ {{visitorName}} في {{scheduledTime}}',
+      },
+      valet_completed: {
+        title: 'اكتمل صف السيارات',
+        message: 'اكتملت خدمة صف السيارات لـ {{visitorName}}',
+      },
+      valet_cancelled: {
+        title: 'إلغاء صف السيارات',
+        message: 'تم إلغاء خدمة صف السيارات لـ {{visitorName}}',
+      },
+      security_access_update: {
+        title: 'تحديث الصلاحيات',
+        message: 'تم تحديث مستوى الوصول لـ {{visitorName}} إلى {{accessLevel}}',
+      },
+      security_gate_pass: {
+        title: 'إصدار تصريح البوابة',
+        message: 'تم إصدار تصريح بوابة لـ {{visitorName}} عند البوابة {{gateNumber}}',
+      },
+    },
   },
   settings: {
     title: 'الإعدادات',
