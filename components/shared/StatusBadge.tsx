@@ -6,7 +6,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { applyOpacity } from "@/utils/statusStyles";
 import { Spacing, BorderRadius } from "@/constants/theme";
-import { getPlatformFlexDirection } from '@/utils/rtlInitializer';
+import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
 
 interface StatusBadgeProps {
   label: string;
@@ -23,6 +23,7 @@ export const StatusBadge = ({
 }: StatusBadgeProps) => {
   const { theme } = useTheme();
   const { isRTL } = useLanguage();
+  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
   
   const getColor = () => {
     switch (variant) {
@@ -66,11 +67,14 @@ export const StatusBadge = ({
         backgroundColor: applyOpacity(color, '15'),
         paddingHorizontal: isSmall ? Spacing.sm : Spacing.md,
         paddingVertical: isSmall ? Spacing.xs / 2 : Spacing.xs,
-        flexDirection: getPlatformFlexDirection(isRTL),
+        flexDirection: 'row',
       }
     ]}>
-      {iconEl}
-      {textEl}
+      {shouldSwap ? (
+        <>{textEl}{iconEl}</>
+      ) : (
+        <>{iconEl}{textEl}</>
+      )}
     </View>
   );
 };

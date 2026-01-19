@@ -22,7 +22,7 @@ import {
 import type { ValetService, ValetDriver } from '@/types/vms.types';
 import { useAuth } from '@/contexts/AuthContext';
 import { applyOpacity } from '@/utils/statusStyles';
-import { getPlatformFlexDirection } from '@/utils/rtlInitializer';
+import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
 
 interface ValetTaskDetailScreenProps {
   taskId: string;
@@ -46,6 +46,7 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { isRTL } = useLanguage();
+  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const isReadOnlyRole = user?.role === 'building_admin';
@@ -147,86 +148,179 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
         </ThemedText>
         <Spacer height={Spacing.xl} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-            <DDIcon name="briefcase" size={18} color={theme.text} />
-          </View>
-          <View style={{ flex: 1, marginStart: Spacing.md }}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
-              {t('reception.hostName')}
-            </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
-              {task.hostName}
-            </ThemedText>
-          </View>
+        <View style={[styles.serviceRowNew, { flexDirection: 'row' }]}>
+          {shouldSwap ? (
+            <>
+              <View style={{ flex: 1, marginEnd: Spacing.md }}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {t('reception.hostName')}
+                </ThemedText>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {task.hostName}
+                </ThemedText>
+              </View>
+              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                <DDIcon name="briefcase" size={18} color={theme.text} />
+              </View>
+            </>
+          ) : (
+            <>
+              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                <DDIcon name="briefcase" size={18} color={theme.text} />
+              </View>
+              <View style={{ flex: 1, marginStart: Spacing.md }}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {t('reception.hostName')}
+                </ThemedText>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {task.hostName}
+                </ThemedText>
+              </View>
+            </>
+          )}
         </View>
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-            <DDIcon name="calendar" size={18} color={theme.text} />
-          </View>
-          <View style={{ flex: 1, marginStart: Spacing.md }}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
-              {t('visitor.visitDate')}
-            </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
-              {task.visitDate}
-            </ThemedText>
-          </View>
+        <View style={[styles.serviceRowNew, { flexDirection: 'row' }]}>
+          {shouldSwap ? (
+            <>
+              <View style={{ flex: 1, marginEnd: Spacing.md }}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {t('visitor.visitDate')}
+                </ThemedText>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {task.visitDate}
+                </ThemedText>
+              </View>
+              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                <DDIcon name="calendar" size={18} color={theme.text} />
+              </View>
+            </>
+          ) : (
+            <>
+              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                <DDIcon name="calendar" size={18} color={theme.text} />
+              </View>
+              <View style={{ flex: 1, marginStart: Spacing.md }}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {t('visitor.visitDate')}
+                </ThemedText>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {task.visitDate}
+                </ThemedText>
+              </View>
+            </>
+          )}
         </View>
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-            <DDIcon name="clock" size={18} color={theme.text} />
-          </View>
-          <View style={{ flex: 1, marginStart: Spacing.md }}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
-              {t('visitor.visitTime')}
-            </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
-              {task.pickupTime} - {task.returnTime}
-            </ThemedText>
-          </View>
+        <View style={[styles.serviceRowNew, { flexDirection: 'row' }]}>
+          {shouldSwap ? (
+            <>
+              <View style={{ flex: 1, marginEnd: Spacing.md }}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {t('visitor.visitTime')}
+                </ThemedText>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {task.pickupTime} - {task.returnTime}
+                </ThemedText>
+              </View>
+              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                <DDIcon name="clock" size={18} color={theme.text} />
+              </View>
+            </>
+          ) : (
+            <>
+              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                <DDIcon name="clock" size={18} color={theme.text} />
+              </View>
+              <View style={{ flex: 1, marginStart: Spacing.md }}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {t('visitor.visitTime')}
+                </ThemedText>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {task.pickupTime} - {task.returnTime}
+                </ThemedText>
+              </View>
+            </>
+          )}
         </View>
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-            <DDIcon name="map-pin" size={18} color={theme.text} />
-          </View>
-          <View style={{ flex: 1, marginStart: Spacing.md }}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
-              {t('invitation.location')}
-            </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
-              {task.location}
-            </ThemedText>
-          </View>
+        <View style={[styles.serviceRowNew, { flexDirection: 'row' }]}>
+          {shouldSwap ? (
+            <>
+              <View style={{ flex: 1, marginEnd: Spacing.md }}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {t('invitation.location')}
+                </ThemedText>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {task.location}
+                </ThemedText>
+              </View>
+              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                <DDIcon name="map-pin" size={18} color={theme.text} />
+              </View>
+            </>
+          ) : (
+            <>
+              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                <DDIcon name="map-pin" size={18} color={theme.text} />
+              </View>
+              <View style={{ flex: 1, marginStart: Spacing.md }}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {t('invitation.location')}
+                </ThemedText>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {task.location}
+                </ThemedText>
+              </View>
+            </>
+          )}
         </View>
 
         {task.vehicleInfo ? (
           <>
             <Spacer height={Spacing.lg} />
-            <View style={[styles.serviceRowNew, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.info, '15') }]}>
-                <DDIcon name="truck" size={18} color={theme.info} />
-              </View>
-              <View style={{ flex: 1, marginStart: Spacing.md }}>
-                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
-                  {t('valet.vehiclePlate')}
-                </ThemedText>
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
-                  {task.vehicleInfo.color} {task.vehicleInfo.make} {task.vehicleInfo.model}
-                </ThemedText>
-                <ThemedText style={[Typography.caption, { color: theme.info, marginTop: 2, fontSize: 12, fontWeight: '500', textAlign: isRTL ? 'right' : 'left' }]}>
-                  {task.vehicleInfo.plateNumber}
-                </ThemedText>
-              </View>
+            <View style={[styles.serviceRowNew, { flexDirection: 'row' }]}>
+              {shouldSwap ? (
+                <>
+                  <View style={{ flex: 1, marginEnd: Spacing.md }}>
+                    <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+                      {t('valet.vehiclePlate')}
+                    </ThemedText>
+                    <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+                      {task.vehicleInfo.color} {task.vehicleInfo.make} {task.vehicleInfo.model}
+                    </ThemedText>
+                    <ThemedText style={[Typography.caption, { color: theme.info, marginTop: 2, fontSize: 12, fontWeight: '500', textAlign: isRTL ? 'right' : 'left' }]}>
+                      {task.vehicleInfo.plateNumber}
+                    </ThemedText>
+                  </View>
+                  <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.info, '15') }]}>
+                    <DDIcon name="truck" size={18} color={theme.info} />
+                  </View>
+                </>
+              ) : (
+                <>
+                  <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.info, '15') }]}>
+                    <DDIcon name="truck" size={18} color={theme.info} />
+                  </View>
+                  <View style={{ flex: 1, marginStart: Spacing.md }}>
+                    <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+                      {t('valet.vehiclePlate')}
+                    </ThemedText>
+                    <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+                      {task.vehicleInfo.color} {task.vehicleInfo.make} {task.vehicleInfo.model}
+                    </ThemedText>
+                    <ThemedText style={[Typography.caption, { color: theme.info, marginTop: 2, fontSize: 12, fontWeight: '500', textAlign: isRTL ? 'right' : 'left' }]}>
+                      {task.vehicleInfo.plateNumber}
+                    </ThemedText>
+                  </View>
+                </>
+              )}
             </View>
           </>
         ) : null}
@@ -236,11 +330,22 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
         <>
           <Spacer height={Spacing.lg} />
           <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
-            <View style={[styles.notesHeader, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-              <DDIcon name="file-text" size={16} color={theme.info} />
-              <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginStart: Spacing.sm, fontSize: 14, color: theme.text }]}>
-                {t('form.notes')}
-              </ThemedText>
+            <View style={[styles.notesHeader, { flexDirection: 'row' }]}>
+              {shouldSwap ? (
+                <>
+                  <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginEnd: Spacing.sm, fontSize: 14, color: theme.text }]}>
+                    {t('form.notes')}
+                  </ThemedText>
+                  <DDIcon name="file-text" size={16} color={theme.info} />
+                </>
+              ) : (
+                <>
+                  <DDIcon name="file-text" size={16} color={theme.info} />
+                  <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginStart: Spacing.sm, fontSize: 14, color: theme.text }]}>
+                    {t('form.notes')}
+                  </ThemedText>
+                </>
+              )}
             </View>
             <Spacer height={Spacing.sm} />
             <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, lineHeight: 20, textAlign: isRTL ? 'right' : 'left' }]}>
@@ -264,28 +369,52 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
               {
                 backgroundColor: applyOpacity(statusColor, '15'),
                 borderColor: statusColor,
-                flexDirection: getPlatformFlexDirection(isRTL),
+                flexDirection: 'row',
               },
             ]}
           >
-            <View style={{ flexDirection: getPlatformFlexDirection(isRTL), alignItems: 'center', flex: 1 }}>
-              <DDIcon
-                name={currentStatusOption?.icon as IconName}
-                size={20}
-                color={statusColor}
-              />
-              <ThemedText
-                style={[
-                  Typography.body,
-                  {
-                    color: statusColor,
-                    fontWeight: '600',
-                    marginStart: Spacing.md,
-                  },
-                ]}
-              >
-                {currentStatusOption?.label}
-              </ThemedText>
+            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+              {shouldSwap ? (
+                <>
+                  <ThemedText
+                    style={[
+                      Typography.body,
+                      {
+                        color: statusColor,
+                        fontWeight: '600',
+                        marginEnd: Spacing.md,
+                      },
+                    ]}
+                  >
+                    {currentStatusOption?.label}
+                  </ThemedText>
+                  <DDIcon
+                    name={currentStatusOption?.icon as IconName}
+                    size={20}
+                    color={statusColor}
+                  />
+                </>
+              ) : (
+                <>
+                  <DDIcon
+                    name={currentStatusOption?.icon as IconName}
+                    size={20}
+                    color={statusColor}
+                  />
+                  <ThemedText
+                    style={[
+                      Typography.body,
+                      {
+                        color: statusColor,
+                        fontWeight: '600',
+                        marginStart: Spacing.md,
+                      },
+                    ]}
+                  >
+                    {currentStatusOption?.label}
+                  </ThemedText>
+                </>
+              )}
             </View>
           </View>
         ) : (
@@ -297,28 +426,52 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
                 backgroundColor: applyOpacity(statusColor, '15'),
                 borderColor: statusColor,
                 opacity: pressed ? 0.7 : 1,
-                flexDirection: getPlatformFlexDirection(isRTL),
+                flexDirection: 'row',
               },
             ]}
           >
-            <View style={{ flexDirection: getPlatformFlexDirection(isRTL), alignItems: 'center', flex: 1 }}>
-              <DDIcon
-                name={currentStatusOption?.icon as IconName}
-                size={20}
-                color={statusColor}
-              />
-              <ThemedText
-                style={[
-                  Typography.body,
-                  {
-                    color: statusColor,
-                    fontWeight: '600',
-                    marginStart: Spacing.md,
-                  },
-                ]}
-              >
-                {currentStatusOption?.label}
-              </ThemedText>
+            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+              {shouldSwap ? (
+                <>
+                  <ThemedText
+                    style={[
+                      Typography.body,
+                      {
+                        color: statusColor,
+                        fontWeight: '600',
+                        marginEnd: Spacing.md,
+                      },
+                    ]}
+                  >
+                    {currentStatusOption?.label}
+                  </ThemedText>
+                  <DDIcon
+                    name={currentStatusOption?.icon as IconName}
+                    size={20}
+                    color={statusColor}
+                  />
+                </>
+              ) : (
+                <>
+                  <DDIcon
+                    name={currentStatusOption?.icon as IconName}
+                    size={20}
+                    color={statusColor}
+                  />
+                  <ThemedText
+                    style={[
+                      Typography.body,
+                      {
+                        color: statusColor,
+                        fontWeight: '600',
+                        marginStart: Spacing.md,
+                      },
+                    ]}
+                  >
+                    {currentStatusOption?.label}
+                  </ThemedText>
+                </>
+              )}
             </View>
             <DDIcon name="chevron-down" size={20} color={statusColor} directionAware />
           </Pressable>
@@ -328,7 +481,7 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
       <Spacer height={Spacing.lg} />
 
       <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
-        <View style={[{ flexDirection: getPlatformFlexDirection(isRTL), alignItems: 'center', justifyContent: 'space-between', marginBottom: Spacing.lg }]}>
+        <View style={[{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: Spacing.lg }]}>
           <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text }]}>
             {t('actions.assignDriver')}
           </ThemedText>
@@ -346,32 +499,64 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
         </View>
 
         {task.valet.driver ? (
-          <View style={[styles.serviceRowNew, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-            <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.success, '15') }]}>
-              <DDIcon name="truck" size={18} color={theme.success} />
-            </View>
-            <View style={{ flex: 1, marginStart: Spacing.md }}>
-              <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
-                {task.valet.driver.name}
-              </ThemedText>
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
-                {task.valet.driver.phone}
-              </ThemedText>
-              <View style={{ flexDirection: getPlatformFlexDirection(isRTL), alignItems: 'center', marginTop: 4 }}>
-                <View
-                  style={[
-                    styles.statusDot,
-                    {
-                      backgroundColor:
-                        task.valet.driver.status === 'available' ? theme.success : theme.warning,
-                    },
-                  ]}
-                />
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12 }]}>
-                  {task.valet.driver.status === 'available' ? t('status.available') : t('status.occupied')} - {task.valet.driver.currentTasks} {t('valet.assignedTasks').toLowerCase()}
-                </ThemedText>
-              </View>
-            </View>
+          <View style={[styles.serviceRowNew, { flexDirection: 'row' }]}>
+            {shouldSwap ? (
+              <>
+                <View style={{ flex: 1, marginEnd: Spacing.md }}>
+                  <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+                    {task.valet.driver.name}
+                  </ThemedText>
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+                    {task.valet.driver.phone}
+                  </ThemedText>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+                    <View
+                      style={[
+                        styles.statusDot,
+                        {
+                          backgroundColor:
+                            task.valet.driver.status === 'available' ? theme.success : theme.warning,
+                        },
+                      ]}
+                    />
+                    <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12 }]}>
+                      {task.valet.driver.status === 'available' ? t('status.available') : t('status.occupied')} - {task.valet.driver.currentTasks} {t('valet.assignedTasks').toLowerCase()}
+                    </ThemedText>
+                  </View>
+                </View>
+                <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.success, '15') }]}>
+                  <DDIcon name="truck" size={18} color={theme.success} />
+                </View>
+              </>
+            ) : (
+              <>
+                <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.success, '15') }]}>
+                  <DDIcon name="truck" size={18} color={theme.success} />
+                </View>
+                <View style={{ flex: 1, marginStart: Spacing.md }}>
+                  <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+                    {task.valet.driver.name}
+                  </ThemedText>
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+                    {task.valet.driver.phone}
+                  </ThemedText>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+                    <View
+                      style={[
+                        styles.statusDot,
+                        {
+                          backgroundColor:
+                            task.valet.driver.status === 'available' ? theme.success : theme.warning,
+                        },
+                      ]}
+                    />
+                    <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12 }]}>
+                      {task.valet.driver.status === 'available' ? t('status.available') : t('status.occupied')} - {task.valet.driver.currentTasks} {t('valet.assignedTasks').toLowerCase()}
+                    </ThemedText>
+                  </View>
+                </View>
+              </>
+            )}
           </View>
         ) : isReadOnlyRole ? (
           <View style={styles.noDriverState}>
@@ -427,7 +612,7 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
                     onPress={() => handleAssignDriver(driver.id)}
                     style={({ pressed }) => [
                       styles.driverOption,
-                      { borderColor: theme.border, opacity: pressed ? 0.7 : 1, flexDirection: getPlatformFlexDirection(isRTL) },
+                      { borderColor: theme.border, opacity: pressed ? 0.7 : 1, flexDirection: 'row' },
                     ]}
                   >
                     <View style={{ flex: 1 }}>
@@ -438,7 +623,7 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
                         {driver.phone}
                       </ThemedText>
                       <Spacer height={Spacing.xs} />
-                      <View style={{ flexDirection: getPlatformFlexDirection(isRTL), alignItems: 'center' }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                         <View style={[styles.statusDot, { backgroundColor: theme.success }]} />
                         <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
                           {t('status.available')} - {driver.currentTasks} {t('valet.assignedTasks').toLowerCase()}
@@ -501,7 +686,7 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
                     backgroundColor: task.valet.status === option.value ? applyOpacity(option.color, '15') : 'transparent',
                     borderColor: theme.border,
                     opacity: pressed ? 0.7 : 1,
-                    flexDirection: getPlatformFlexDirection(isRTL),
+                    flexDirection: 'row',
                   },
                 ]}
               >

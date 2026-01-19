@@ -20,7 +20,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { authService } from "@/services/api/authService";
 import { useToast } from "@/contexts/ToastContext";
 import { ApiException } from "@/api/errors";
-import { getPlatformFlexDirection } from "@/utils/rtlInitializer";
+import { shouldSwapChildrenForRTL } from "@/utils/rtlInitializer";
 
 interface EditProfileScreenProps {
   userRole?: UserRole;
@@ -36,6 +36,7 @@ export default function EditProfileScreen({
 }: EditProfileScreenProps) {
   const { theme } = useTheme();
   const { t, isRTL } = useTranslation();
+  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
   const { formatDate: fmtDate } = useFormatters();
   const insets = useSafeAreaInsets();
   const { user, refreshUser } = useAuth();
@@ -385,7 +386,7 @@ export default function EditProfileScreen({
               </View>
             ) : null}
           </View>
-          <View style={[styles.photoButtons, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+          <View style={[styles.photoButtons, { flexDirection: 'row' }]}>
             <LoadingButton
               onPress={handlePickPhoto}
               loading={isUploadingPhoto}
@@ -426,7 +427,7 @@ export default function EditProfileScreen({
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.infoRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+        <View style={[styles.infoRow, { flexDirection: 'row' }]}>
           <View style={styles.infoItem}>
             <ThemedText style={[styles.infoLabel, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('settings.status')}

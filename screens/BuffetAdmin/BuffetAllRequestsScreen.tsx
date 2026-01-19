@@ -14,7 +14,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
 import { applyOpacity, getStatusConfig as getStatusStyle } from "@/utils/statusStyles";
 import { formatDateForApi, formatDate as formatDateDisplay } from "@/utils/dateTimeUtils";
-import { getPlatformFlexDirection } from "@/utils/rtlInitializer";
+import { shouldSwapChildrenForRTL } from "@/utils/rtlInitializer";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { LoadingButton } from "@/components/shared/LoadingButton";
@@ -270,7 +270,7 @@ const SectionHeader = ({
 
   return (
     <>
-      <View style={[styles.sectionTitleRow, styles.paddedContent, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+      <View style={[styles.sectionTitleRow, styles.paddedContent, { flexDirection: 'row' }]}>
         <ThemedText style={[Typography.subtitle]}>
           {t('navigation.buffetRequests')}
         </ThemedText>
@@ -363,6 +363,7 @@ const BuffetRequestCard = React.memo(({
 }) => {
   const { t } = useTranslation();
   const { isRTL } = useLanguage();
+  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
   const statusConfig = getStatusStyle(theme, request.status, t);
 
   return (
@@ -371,11 +372,11 @@ const BuffetRequestCard = React.memo(({
 
       <Pressable onPress={onPress} android_ripple={{ color: applyOpacity(theme.primary, '10') }}>
         <View style={styles.cardMainSection}>
-          <View style={[styles.cardHeaderRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+          <View style={[styles.cardHeaderRow, { flexDirection: 'row' }]}>
             <VisitorAvatar name={request.visitorName} theme={theme} />
             
             <View style={styles.cardNameSection}>
-              <View style={[styles.nameWithBadgeRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+              <View style={[styles.nameWithBadgeRow, { flexDirection: 'row' }]}>
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 16, flex: 1 }]} numberOfLines={1}>
                   {request.visitorName}
                 </ThemedText>
@@ -389,8 +390,8 @@ const BuffetRequestCard = React.memo(({
 
           <Spacer height={LAYOUT.contentGap} />
 
-          <View style={[styles.detailsRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-            <View style={[styles.detailItem, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+          <View style={[styles.detailsRow, { flexDirection: 'row' }]}>
+            <View style={[styles.detailItem, { flexDirection: 'row' }]}>
               <DDIcon name="map-pin" size={14} variant="muted" />
               <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
                 {request.location}
@@ -405,8 +406,8 @@ const BuffetRequestCard = React.memo(({
           {request.assignedStaff ? (
             <>
               <Spacer height={Spacing.sm} />
-              <View style={[styles.detailsRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-                <View style={[styles.detailItem, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+              <View style={[styles.detailsRow, { flexDirection: 'row' }]}>
+                <View style={[styles.detailItem, { flexDirection: 'row' }]}>
                   <DDIcon name="user-check" size={14} variant="success" />
                   <ThemedText style={[styles.detailText, { color: theme.success }]}>
                     {request.assignedStaff}
@@ -419,7 +420,7 @@ const BuffetRequestCard = React.memo(({
           {request.status !== 'completed' && request.status !== 'cancelled' ? (
             <>
               <Spacer height={LAYOUT.contentGap} />
-              <View style={[styles.actionsRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+              <View style={[styles.actionsRow, { flexDirection: 'row' }]}>
                 <Pressable
                   style={[styles.actionButton, { backgroundColor: applyOpacity(theme.warning, '12') }]}
                   onPress={(e) => onAssignStaff(e)}
@@ -494,6 +495,7 @@ const BuffetRequestTableRow = React.memo(({
 }) => {
   const { t } = useTranslation();
   const { isRTL } = useLanguage();
+  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
   const statusConfig = getStatusStyle(theme, request.status, t);
 
   return (
@@ -571,7 +573,7 @@ const BuffetRequestTableRow = React.memo(({
                 {t('dashboard.quickActions').toUpperCase()}
               </ThemedText>
               <Spacer height={10} />
-              <View style={[styles.tableActionsRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+              <View style={[styles.tableActionsRow, { flexDirection: 'row' }]}>
                 <Pressable
                   style={[styles.tableActionButton, { backgroundColor: applyOpacity(theme.warning, '12') }]}
                   onPress={onAssignStaff}
@@ -634,6 +636,7 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { isRTL } = useLanguage();
+  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
   const insets = useSafeAreaInsets();
   const { showSuccess, showError } = useToast();
   const [filterStatus, setFilterStatus] = useState<string>('all');
@@ -936,7 +939,7 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
           )}
           ListHeaderComponent={
             <>
-              <View style={[styles.paddedContent, styles.dateNavRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+              <View style={[styles.paddedContent, styles.dateNavRow, { flexDirection: 'row' }]}>
                 <Pressable
                   style={[styles.dateNavButton, { backgroundColor: theme.surfaceSecondary }]}
                   onPress={handlePrevDay}
@@ -1065,7 +1068,7 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
       <ScreenScrollView>
         <Spacer height={Spacing.xl} />
 
-        <View style={[styles.paddedContent, styles.dateNavRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+        <View style={[styles.paddedContent, styles.dateNavRow, { flexDirection: 'row' }]}>
           <Pressable
             style={[styles.dateNavButton, { backgroundColor: theme.surfaceSecondary }]}
             onPress={handlePrevDay}

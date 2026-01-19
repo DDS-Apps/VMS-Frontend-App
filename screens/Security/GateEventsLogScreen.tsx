@@ -16,7 +16,7 @@ import { useSecurityGateLogsQuery } from "@/hooks/queries/useSecurityQueries";
 import type { GateLogEntry, GateAction, GateResult } from "@/types";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { SecurityStackParamList } from "@/types/securityNavigation.types";
-import { getPlatformFlexDirection } from '@/utils/rtlInitializer';
+import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
 
 type GateEventsLogScreenProps = NativeStackScreenProps<SecurityStackParamList, "GateEventsLog">;
 
@@ -26,6 +26,7 @@ export default function GateEventsLogScreen({ navigation }: GateEventsLogScreenP
   const { theme } = useTheme();
   const { t, isRTL } = useTranslation();
   const insets = useSafeAreaInsets();
+  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
   const [searchQuery, setSearchQuery] = useState('');
   const [resultFilter, setResultFilter] = useState<ResultFilter>('all');
 
@@ -187,12 +188,12 @@ export default function GateEventsLogScreen({ navigation }: GateEventsLogScreenP
     return (
       <ThemedView
         key={event.id}
-        style={[styles.eventCard, { backgroundColor: theme.surface, flexDirection: getPlatformFlexDirection(isRTL) }]}
+        style={[styles.eventCard, { backgroundColor: theme.surface, flexDirection: 'row' }]}
       >
         <View style={[styles.resultBorderLine, { backgroundColor: resultConfig.color }]} />
         
         <View style={styles.cardContent}>
-          <View style={[styles.cardHeader, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+          <View style={[styles.cardHeader, { flexDirection: 'row' }]}>
             <View style={styles.visitorInfo}>
               <ThemedText style={[Typography.body, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
                 {event.visitorName || t('common.unknown')}
@@ -201,35 +202,79 @@ export default function GateEventsLogScreen({ navigation }: GateEventsLogScreenP
                 {event.gateName}
               </ThemedText>
             </View>
-            <View style={[styles.resultBadge, { backgroundColor: resultConfig.bgColor, flexDirection: getPlatformFlexDirection(isRTL) }]}>
-              <DDIcon name={resultConfig.icon} size={12} color={resultConfig.color} />
-              <ThemedText style={[styles.resultText, { color: resultConfig.color }]}>
-                {resultConfig.label}
-              </ThemedText>
+            <View style={[styles.resultBadge, { backgroundColor: resultConfig.bgColor, flexDirection: 'row' }]}>
+              {shouldSwap ? (
+                <>
+                  <ThemedText style={[styles.resultText, { color: resultConfig.color }]}>
+                    {resultConfig.label}
+                  </ThemedText>
+                  <DDIcon name={resultConfig.icon} size={12} color={resultConfig.color} />
+                </>
+              ) : (
+                <>
+                  <DDIcon name={resultConfig.icon} size={12} color={resultConfig.color} />
+                  <ThemedText style={[styles.resultText, { color: resultConfig.color }]}>
+                    {resultConfig.label}
+                  </ThemedText>
+                </>
+              )}
             </View>
           </View>
 
           {event.reason ? (
-            <View style={[styles.reasonBox, { backgroundColor: applyOpacity(theme.error, '08'), flexDirection: getPlatformFlexDirection(isRTL) }]}>
-              <DDIcon name="alert-circle" size={14} color={theme.error} />
-              <ThemedText style={[Typography.caption, { color: theme.error, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
-                {event.reason}
-              </ThemedText>
+            <View style={[styles.reasonBox, { backgroundColor: applyOpacity(theme.error, '08'), flexDirection: 'row' }]}>
+              {shouldSwap ? (
+                <>
+                  <ThemedText style={[Typography.caption, { color: theme.error, flex: 1, textAlign: 'right' }]}>
+                    {event.reason}
+                  </ThemedText>
+                  <DDIcon name="alert-circle" size={14} color={theme.error} />
+                </>
+              ) : (
+                <>
+                  <DDIcon name="alert-circle" size={14} color={theme.error} />
+                  <ThemedText style={[Typography.caption, { color: theme.error, flex: 1, textAlign: 'left' }]}>
+                    {event.reason}
+                  </ThemedText>
+                </>
+              )}
             </View>
           ) : null}
 
-          <View style={[styles.metaRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-            <View style={[styles.metaChip, { backgroundColor: applyOpacity(theme.primary, '10'), flexDirection: getPlatformFlexDirection(isRTL) }]}>
-              <DDIcon name={methodConfig.icon} size={12} color={theme.primary} />
-              <ThemedText style={[styles.metaText, { color: theme.primary }]}>
-                {methodConfig.label}
-              </ThemedText>
+          <View style={[styles.metaRow, { flexDirection: 'row' }]}>
+            <View style={[styles.metaChip, { backgroundColor: applyOpacity(theme.primary, '10'), flexDirection: 'row' }]}>
+              {shouldSwap ? (
+                <>
+                  <ThemedText style={[styles.metaText, { color: theme.primary }]}>
+                    {methodConfig.label}
+                  </ThemedText>
+                  <DDIcon name={methodConfig.icon} size={12} color={theme.primary} />
+                </>
+              ) : (
+                <>
+                  <DDIcon name={methodConfig.icon} size={12} color={theme.primary} />
+                  <ThemedText style={[styles.metaText, { color: theme.primary }]}>
+                    {methodConfig.label}
+                  </ThemedText>
+                </>
+              )}
             </View>
-            <View style={[styles.metaChip, { backgroundColor: applyOpacity(theme.textSecondary, '10'), flexDirection: getPlatformFlexDirection(isRTL) }]}>
-              <DDIcon name="clock" size={12} color={theme.textSecondary} />
-              <ThemedText style={[styles.metaText, { color: theme.textSecondary }]}>
-                {timestamp.date}, {timestamp.time}
-              </ThemedText>
+            <View style={[styles.metaChip, { backgroundColor: applyOpacity(theme.textSecondary, '10'), flexDirection: 'row' }]}>
+              {shouldSwap ? (
+                <>
+                  <ThemedText style={[styles.metaText, { color: theme.textSecondary }]}>
+                    {timestamp.date}, {timestamp.time}
+                  </ThemedText>
+                  <DDIcon name="clock" size={12} color={theme.textSecondary} />
+                </>
+              ) : (
+                <>
+                  <DDIcon name="clock" size={12} color={theme.textSecondary} />
+                  <ThemedText style={[styles.metaText, { color: theme.textSecondary }]}>
+                    {timestamp.date}, {timestamp.time}
+                  </ThemedText>
+                </>
+              )}
             </View>
           </View>
         </View>
@@ -278,28 +323,60 @@ export default function GateEventsLogScreen({ navigation }: GateEventsLogScreenP
       
       <Spacer height={Spacing.sm} />
       
-      <View style={[styles.summaryRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-        <View style={[styles.summaryCard, { backgroundColor: applyOpacity(theme.success, '12'), flexDirection: getPlatformFlexDirection(isRTL) }]}>
-          <DDIcon name="check-circle" size={20} color={theme.success} />
-          <View>
-            <ThemedText style={[Typography.title, { fontSize: 20, fontWeight: '700', color: theme.success, textAlign: isRTL ? 'right' : 'left' }]}>
-              {eventCounts.allowed}
-            </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.success, textAlign: isRTL ? 'right' : 'left' }]}>
-              {t('security.allowed')}
-            </ThemedText>
-          </View>
+      <View style={[styles.summaryRow, { flexDirection: 'row' }]}>
+        <View style={[styles.summaryCard, { backgroundColor: applyOpacity(theme.success, '12'), flexDirection: 'row' }]}>
+          {shouldSwap ? (
+            <>
+              <View>
+                <ThemedText style={[Typography.title, { fontSize: 20, fontWeight: '700', color: theme.success, textAlign: 'right' }]}>
+                  {eventCounts.allowed}
+                </ThemedText>
+                <ThemedText style={[Typography.caption, { color: theme.success, textAlign: 'right' }]}>
+                  {t('security.allowed')}
+                </ThemedText>
+              </View>
+              <DDIcon name="check-circle" size={20} color={theme.success} />
+            </>
+          ) : (
+            <>
+              <DDIcon name="check-circle" size={20} color={theme.success} />
+              <View>
+                <ThemedText style={[Typography.title, { fontSize: 20, fontWeight: '700', color: theme.success, textAlign: 'left' }]}>
+                  {eventCounts.allowed}
+                </ThemedText>
+                <ThemedText style={[Typography.caption, { color: theme.success, textAlign: 'left' }]}>
+                  {t('security.allowed')}
+                </ThemedText>
+              </View>
+            </>
+          )}
         </View>
-        <View style={[styles.summaryCard, { backgroundColor: applyOpacity(theme.error, '12'), flexDirection: getPlatformFlexDirection(isRTL) }]}>
-          <DDIcon name="x-circle" size={20} color={theme.error} />
-          <View>
-            <ThemedText style={[Typography.title, { fontSize: 20, fontWeight: '700', color: theme.error, textAlign: isRTL ? 'right' : 'left' }]}>
-              {eventCounts.denied}
-            </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.error, textAlign: isRTL ? 'right' : 'left' }]}>
-              {t('security.denied')}
-            </ThemedText>
-          </View>
+        <View style={[styles.summaryCard, { backgroundColor: applyOpacity(theme.error, '12'), flexDirection: 'row' }]}>
+          {shouldSwap ? (
+            <>
+              <View>
+                <ThemedText style={[Typography.title, { fontSize: 20, fontWeight: '700', color: theme.error, textAlign: 'right' }]}>
+                  {eventCounts.denied}
+                </ThemedText>
+                <ThemedText style={[Typography.caption, { color: theme.error, textAlign: 'right' }]}>
+                  {t('security.denied')}
+                </ThemedText>
+              </View>
+              <DDIcon name="x-circle" size={20} color={theme.error} />
+            </>
+          ) : (
+            <>
+              <DDIcon name="x-circle" size={20} color={theme.error} />
+              <View>
+                <ThemedText style={[Typography.title, { fontSize: 20, fontWeight: '700', color: theme.error, textAlign: 'left' }]}>
+                  {eventCounts.denied}
+                </ThemedText>
+                <ThemedText style={[Typography.caption, { color: theme.error, textAlign: 'left' }]}>
+                  {t('security.denied')}
+                </ThemedText>
+              </View>
+            </>
+          )}
         </View>
       </View>
 

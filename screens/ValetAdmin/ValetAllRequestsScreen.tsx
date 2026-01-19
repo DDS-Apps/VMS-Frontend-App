@@ -10,7 +10,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
 import { applyOpacity } from "@/utils/statusStyles";
-import { getPlatformFlexDirection } from '@/utils/rtlInitializer';
+import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
 import { useValetParkingDashboard } from "@/hooks/queries/useValetAdminQueries";
 import type { ValetParkingVisitorDto } from "@/types/api.types";
 import type { Theme } from "@/types/theme.types";
@@ -262,6 +262,7 @@ export default function ValetAllRequestsScreen() {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { isRTL } = useLanguage();
+  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
   const [filterType, setFilterType] = useState<'all' | 'with_parking' | 'without_parking'>('all');
   
   const today = new Date().toISOString().split('T')[0];
@@ -318,7 +319,7 @@ export default function ValetAllRequestsScreen() {
 
       <Spacer height={LAYOUT.sectionSpacing} />
 
-      <View style={[styles.sectionTitleRow, styles.paddedContent, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+      <View style={[styles.sectionTitleRow, styles.paddedContent, { flexDirection: 'row' }]}>
         <ThemedText style={[Typography.subtitle, { textAlign: isRTL ? 'right' : 'left' }]}>
           {t('valet.todaysVisitors')}
         </ThemedText>

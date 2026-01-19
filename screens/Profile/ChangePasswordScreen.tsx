@@ -13,7 +13,7 @@ import { DDIcon } from "@/components/DDIcon";
 import { useChangePasswordMutation } from "@/hooks/queries/useAuthQueries";
 import { useToast } from "@/contexts/ToastContext";
 import { ApiException } from "@/api/errors";
-import { getPlatformFlexDirection } from "@/utils/rtlInitializer";
+import { shouldSwapChildrenForRTL } from "@/utils/rtlInitializer";
 
 interface ChangePasswordScreenProps {
   onSuccess: () => void;
@@ -29,6 +29,7 @@ type FieldName = 'currentPassword' | 'newPassword' | 'confirmPassword';
 export default function ChangePasswordScreen({ onSuccess, onCancel }: ChangePasswordScreenProps) {
   const { theme } = useTheme();
   const { t, isRTL } = useTranslation();
+  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
   const insets = useSafeAreaInsets();
   const { showSuccess, showError } = useToast();
   const changePasswordMutation = useChangePasswordMutation();
@@ -151,28 +152,56 @@ export default function ChangePasswordScreen({ onSuccess, onCancel }: ChangePass
           <ThemedText style={[Typography.label, { color: theme.textSecondary, marginBottom: Spacing.xs }]}>
             {t('auth.currentPassword')}
           </ThemedText>
-          <View style={[getInputContainerStyle('currentPassword'), { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-            <DDIcon name="lock" size={INPUT_ICON_SIZE} variant="muted" />
-            <TextInput
-              style={[
-                styles.input,
-                { color: theme.text, textAlign: isRTL ? 'right' : 'left' },
-              ]}
-              placeholder={t('auth.currentPasswordPlaceholder')}
-              placeholderTextColor={theme.textSecondary}
-              value={currentPassword}
-              onChangeText={(text) => {
-                setCurrentPassword(text);
-                if (errors.currentPassword) setErrors({ ...errors, currentPassword: undefined });
-              }}
-              secureTextEntry={!showCurrentPassword}
-              autoCapitalize="none"
-              onFocus={() => setFocusedField('currentPassword')}
-              onBlur={() => setFocusedField(null)}
-            />
-            <Pressable onPress={() => setShowCurrentPassword(!showCurrentPassword)}>
-              <DDIcon name={showCurrentPassword ? "eye" : "eye-off"} size={INPUT_ICON_SIZE} variant="muted" />
-            </Pressable>
+          <View style={[getInputContainerStyle('currentPassword'), { flexDirection: 'row' }]}>
+            {shouldSwap ? (
+              <>
+                <Pressable onPress={() => setShowCurrentPassword(!showCurrentPassword)}>
+                  <DDIcon name={showCurrentPassword ? "eye" : "eye-off"} size={INPUT_ICON_SIZE} variant="muted" />
+                </Pressable>
+                <TextInput
+                  style={[
+                    styles.input,
+                    { color: theme.text, textAlign: 'right' },
+                  ]}
+                  placeholder={t('auth.currentPasswordPlaceholder')}
+                  placeholderTextColor={theme.textSecondary}
+                  value={currentPassword}
+                  onChangeText={(text) => {
+                    setCurrentPassword(text);
+                    if (errors.currentPassword) setErrors({ ...errors, currentPassword: undefined });
+                  }}
+                  secureTextEntry={!showCurrentPassword}
+                  autoCapitalize="none"
+                  onFocus={() => setFocusedField('currentPassword')}
+                  onBlur={() => setFocusedField(null)}
+                />
+                <DDIcon name="lock" size={INPUT_ICON_SIZE} variant="muted" />
+              </>
+            ) : (
+              <>
+                <DDIcon name="lock" size={INPUT_ICON_SIZE} variant="muted" />
+                <TextInput
+                  style={[
+                    styles.input,
+                    { color: theme.text, textAlign: 'left' },
+                  ]}
+                  placeholder={t('auth.currentPasswordPlaceholder')}
+                  placeholderTextColor={theme.textSecondary}
+                  value={currentPassword}
+                  onChangeText={(text) => {
+                    setCurrentPassword(text);
+                    if (errors.currentPassword) setErrors({ ...errors, currentPassword: undefined });
+                  }}
+                  secureTextEntry={!showCurrentPassword}
+                  autoCapitalize="none"
+                  onFocus={() => setFocusedField('currentPassword')}
+                  onBlur={() => setFocusedField(null)}
+                />
+                <Pressable onPress={() => setShowCurrentPassword(!showCurrentPassword)}>
+                  <DDIcon name={showCurrentPassword ? "eye" : "eye-off"} size={INPUT_ICON_SIZE} variant="muted" />
+                </Pressable>
+              </>
+            )}
           </View>
           {errors.currentPassword ? (
             <ThemedText style={[Typography.caption, { color: theme.error, marginTop: Spacing.xs }]}>
@@ -187,28 +216,56 @@ export default function ChangePasswordScreen({ onSuccess, onCancel }: ChangePass
           <ThemedText style={[Typography.label, { color: theme.textSecondary, marginBottom: Spacing.xs }]}>
             {t('auth.newPassword')}
           </ThemedText>
-          <View style={[getInputContainerStyle('newPassword'), { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-            <DDIcon name="lock" size={INPUT_ICON_SIZE} variant="muted" />
-            <TextInput
-              style={[
-                styles.input,
-                { color: theme.text, textAlign: isRTL ? 'right' : 'left' },
-              ]}
-              placeholder={t('auth.enterNewPassword')}
-              placeholderTextColor={theme.textSecondary}
-              value={newPassword}
-              onChangeText={(text) => {
-                setNewPassword(text);
-                if (errors.newPassword) setErrors({ ...errors, newPassword: undefined });
-              }}
-              secureTextEntry={!showNewPassword}
-              autoCapitalize="none"
-              onFocus={() => setFocusedField('newPassword')}
-              onBlur={() => setFocusedField(null)}
-            />
-            <Pressable onPress={() => setShowNewPassword(!showNewPassword)}>
-              <DDIcon name={showNewPassword ? "eye" : "eye-off"} size={INPUT_ICON_SIZE} variant="muted" />
-            </Pressable>
+          <View style={[getInputContainerStyle('newPassword'), { flexDirection: 'row' }]}>
+            {shouldSwap ? (
+              <>
+                <Pressable onPress={() => setShowNewPassword(!showNewPassword)}>
+                  <DDIcon name={showNewPassword ? "eye" : "eye-off"} size={INPUT_ICON_SIZE} variant="muted" />
+                </Pressable>
+                <TextInput
+                  style={[
+                    styles.input,
+                    { color: theme.text, textAlign: 'right' },
+                  ]}
+                  placeholder={t('auth.enterNewPassword')}
+                  placeholderTextColor={theme.textSecondary}
+                  value={newPassword}
+                  onChangeText={(text) => {
+                    setNewPassword(text);
+                    if (errors.newPassword) setErrors({ ...errors, newPassword: undefined });
+                  }}
+                  secureTextEntry={!showNewPassword}
+                  autoCapitalize="none"
+                  onFocus={() => setFocusedField('newPassword')}
+                  onBlur={() => setFocusedField(null)}
+                />
+                <DDIcon name="lock" size={INPUT_ICON_SIZE} variant="muted" />
+              </>
+            ) : (
+              <>
+                <DDIcon name="lock" size={INPUT_ICON_SIZE} variant="muted" />
+                <TextInput
+                  style={[
+                    styles.input,
+                    { color: theme.text, textAlign: 'left' },
+                  ]}
+                  placeholder={t('auth.enterNewPassword')}
+                  placeholderTextColor={theme.textSecondary}
+                  value={newPassword}
+                  onChangeText={(text) => {
+                    setNewPassword(text);
+                    if (errors.newPassword) setErrors({ ...errors, newPassword: undefined });
+                  }}
+                  secureTextEntry={!showNewPassword}
+                  autoCapitalize="none"
+                  onFocus={() => setFocusedField('newPassword')}
+                  onBlur={() => setFocusedField(null)}
+                />
+                <Pressable onPress={() => setShowNewPassword(!showNewPassword)}>
+                  <DDIcon name={showNewPassword ? "eye" : "eye-off"} size={INPUT_ICON_SIZE} variant="muted" />
+                </Pressable>
+              </>
+            )}
           </View>
           {errors.newPassword ? (
             <ThemedText style={[Typography.caption, { color: theme.error, marginTop: Spacing.xs }]}>
@@ -223,28 +280,56 @@ export default function ChangePasswordScreen({ onSuccess, onCancel }: ChangePass
           <ThemedText style={[Typography.label, { color: theme.textSecondary, marginBottom: Spacing.xs }]}>
             {t('auth.confirmNewPassword')}
           </ThemedText>
-          <View style={[getInputContainerStyle('confirmPassword'), { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-            <DDIcon name="lock" size={INPUT_ICON_SIZE} variant="muted" />
-            <TextInput
-              style={[
-                styles.input,
-                { color: theme.text, textAlign: isRTL ? 'right' : 'left' },
-              ]}
-              placeholder={t('auth.confirmNewPasswordPlaceholder')}
-              placeholderTextColor={theme.textSecondary}
-              value={confirmPassword}
-              onChangeText={(text) => {
-                setConfirmPassword(text);
-                if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: undefined });
-              }}
-              secureTextEntry={!showConfirmPassword}
-              autoCapitalize="none"
-              onFocus={() => setFocusedField('confirmPassword')}
-              onBlur={() => setFocusedField(null)}
-            />
-            <Pressable onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
-              <DDIcon name={showConfirmPassword ? "eye" : "eye-off"} size={INPUT_ICON_SIZE} variant="muted" />
-            </Pressable>
+          <View style={[getInputContainerStyle('confirmPassword'), { flexDirection: 'row' }]}>
+            {shouldSwap ? (
+              <>
+                <Pressable onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+                  <DDIcon name={showConfirmPassword ? "eye" : "eye-off"} size={INPUT_ICON_SIZE} variant="muted" />
+                </Pressable>
+                <TextInput
+                  style={[
+                    styles.input,
+                    { color: theme.text, textAlign: 'right' },
+                  ]}
+                  placeholder={t('auth.confirmNewPasswordPlaceholder')}
+                  placeholderTextColor={theme.textSecondary}
+                  value={confirmPassword}
+                  onChangeText={(text) => {
+                    setConfirmPassword(text);
+                    if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: undefined });
+                  }}
+                  secureTextEntry={!showConfirmPassword}
+                  autoCapitalize="none"
+                  onFocus={() => setFocusedField('confirmPassword')}
+                  onBlur={() => setFocusedField(null)}
+                />
+                <DDIcon name="lock" size={INPUT_ICON_SIZE} variant="muted" />
+              </>
+            ) : (
+              <>
+                <DDIcon name="lock" size={INPUT_ICON_SIZE} variant="muted" />
+                <TextInput
+                  style={[
+                    styles.input,
+                    { color: theme.text, textAlign: 'left' },
+                  ]}
+                  placeholder={t('auth.confirmNewPasswordPlaceholder')}
+                  placeholderTextColor={theme.textSecondary}
+                  value={confirmPassword}
+                  onChangeText={(text) => {
+                    setConfirmPassword(text);
+                    if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: undefined });
+                  }}
+                  secureTextEntry={!showConfirmPassword}
+                  autoCapitalize="none"
+                  onFocus={() => setFocusedField('confirmPassword')}
+                  onBlur={() => setFocusedField(null)}
+                />
+                <Pressable onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+                  <DDIcon name={showConfirmPassword ? "eye" : "eye-off"} size={INPUT_ICON_SIZE} variant="muted" />
+                </Pressable>
+              </>
+            )}
           </View>
           {errors.confirmPassword ? (
             <ThemedText style={[Typography.caption, { color: theme.error, marginTop: Spacing.xs }]}>

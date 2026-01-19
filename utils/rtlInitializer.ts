@@ -292,7 +292,32 @@ export function getEndPosition(isRTL: boolean, value: number = 0): FullPositionS
 }
 
 /**
+ * ============================================================================
+ * CHILD SWAPPING PATTERN (RECOMMENDED)
+ * ============================================================================
+ * The child swapping pattern is the recommended approach for RTL on mobile.
+ * Instead of using row-reverse (which can cause double-inversion bugs on Android),
+ * use flexDirection: 'row' always and swap children order on mobile RTL.
+ * 
+ * Usage:
+ *   const shouldSwap = shouldSwapChildrenForRTL(isRTL);
+ *   <View style={{ flexDirection: 'row' }}>
+ *     {shouldSwap ? (
+ *       <><Text>Right</Text><Icon /></>
+ *     ) : (
+ *       <><Icon /><Text>Left</Text></>
+ *     )}
+ *   </View>
+ */
+export function shouldSwapChildrenForRTL(isRTL: boolean): boolean {
+  return isRTL && Platform.OS !== 'web';
+}
+
+/**
  * Platform-aware flex direction.
+ * 
+ * @deprecated Use child swapping pattern instead to prevent double-inversion bugs.
+ * See shouldSwapChildrenForRTL() and DirectionalRow component.
  * 
  * For web RTL: Browser's document.dir='rtl' auto-reverses flexbox rows,
  * so we use 'row' and let the browser handle it.

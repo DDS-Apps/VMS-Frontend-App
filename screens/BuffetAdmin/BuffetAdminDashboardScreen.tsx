@@ -12,7 +12,7 @@ import { useFormatters } from "@/hooks/useFormatters";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { applyOpacity, getStatusConfig } from "@/utils/statusStyles";
-import { getPlatformFlexDirection } from "@/utils/rtlInitializer";
+import { shouldSwapChildrenForRTL } from "@/utils/rtlInitializer";
 import type { StatusConfig } from "@/types/theme.types";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
@@ -127,6 +127,7 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
   const { t } = useTranslation();
   const { formatTimeFromString } = useFormatters();
   const { isRTL } = useLanguage();
+  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
   const insets = useSafeAreaInsets();
   const { showSuccess, showError } = useToast();
 
@@ -477,7 +478,7 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
 
   return (
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
-      <View style={[styles.kpiRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+      <View style={[styles.kpiRow, { flexDirection: 'row' }]}>
         <KPICard 
           title={t('time.today')} 
           value={String(stats.total)} 
@@ -513,7 +514,7 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
       <Spacer height={Spacing.md} />
 
       <View style={styles.quickActionsGrid}>
-        <View style={[styles.quickActionsRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+        <View style={[styles.quickActionsRow, { flexDirection: 'row' }]}>
           <QuickActionButton
             icon="bar-chart-2"
             label={t('buffet.capacityOverview')}
@@ -529,7 +530,7 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
             onPress={() => navigation.navigate(ROUTES.BUFFET_STAFF as never)}
           />
         </View>
-        <View style={[styles.quickActionsRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+        <View style={[styles.quickActionsRow, { flexDirection: 'row' }]}>
           <QuickActionButton
             icon="map-pin"
             label={t('navigation.locations')}
@@ -549,7 +550,7 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
 
       <Spacer height={Spacing.xl} />
 
-      <View style={[styles.sectionHeader, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+      <View style={[styles.sectionHeader, { flexDirection: 'row' }]}>
         <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
           {t('buffet.buffetService')}
         </ThemedText>

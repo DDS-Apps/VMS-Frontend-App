@@ -14,7 +14,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { getPlatformFlexDirection } from '@/utils/rtlInitializer';
+import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
 import { UserRole, VisitorRequest } from "@/types/vms.types";
 import { SkeletonDashboard, VisitorRequestCard } from "@/components/shared";
 import { useVisitsQuery, usePendingApprovalsQuery, useAwaitingVisitorQuery, usePendingHostWalkInsQuery } from "@/hooks/queries/useApprovalQueries";
@@ -72,6 +72,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { isRTL } = useLanguage();
+  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
   const { formatDate: fmtDate } = useFormatters();
   const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
   const insets = useSafeAreaInsets();
@@ -318,7 +319,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
       {userRole === 'employee' && (
         <>
           <View>
-            <View style={[styles.header, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+            <View style={[styles.header, { flexDirection: 'row' }]}>
               <View>
                 <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
                   {t('dashboard.recentRequests')}
@@ -332,7 +333,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                   onPress={() => navigation.navigate(ROUTES.VISITOR_REQUESTS as never, { initialTab: 'all' } as never)}
                   style={({ pressed }) => [
                     styles.viewAllButton,
-                    { opacity: pressed ? 0.7 : 1, flexDirection: getPlatformFlexDirection(isRTL) }
+                    { opacity: pressed ? 0.7 : 1, flexDirection: 'row' }
                   ]}
                 >
                   <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
@@ -387,7 +388,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
             <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
               {t('dashboard.pendingApprovals')}
             </ThemedText>
-            <View style={[styles.header, { alignItems: 'center', marginTop: 4, flexDirection: getPlatformFlexDirection(isRTL) }]}>
+            <View style={[styles.header, { alignItems: 'center', marginTop: 4, flexDirection: 'row' }]}>
               <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, fontSize: 12 }]}>
                 {t('dashboard.requestsAwaitingApproval')}
               </ThemedText>
@@ -396,7 +397,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                   onPress={() => navigation.navigate(ROUTES.APPROVALS as never)}
                   style={({ pressed }) => [
                     styles.viewAllButton,
-                    { opacity: pressed ? 0.7 : 1, flexDirection: getPlatformFlexDirection(isRTL) }
+                    { opacity: pressed ? 0.7 : 1, flexDirection: 'row' }
                   ]}
                 >
                   <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
@@ -453,7 +454,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
             <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
               {t('navigation.awaitingVisitor')}
             </ThemedText>
-            <View style={[styles.header, { alignItems: 'center', marginTop: 4, flexDirection: getPlatformFlexDirection(isRTL) }]}>
+            <View style={[styles.header, { alignItems: 'center', marginTop: 4, flexDirection: 'row' }]}>
               <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, fontSize: 12 }]}>
                 {t('dashboard.awaitingResponse')}
               </ThemedText>
@@ -465,7 +466,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                   )}
                   style={({ pressed }) => [
                     styles.viewAllButton,
-                    { opacity: pressed ? 0.7 : 1, flexDirection: getPlatformFlexDirection(isRTL) }
+                    { opacity: pressed ? 0.7 : 1, flexDirection: 'row' }
                   ]}
                 >
                   <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
@@ -522,7 +523,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
             <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
               {t('navigation.walkInVisitors')}
             </ThemedText>
-            <View style={[styles.header, { alignItems: 'center', marginTop: 4, flexDirection: getPlatformFlexDirection(isRTL) }]}>
+            <View style={[styles.header, { alignItems: 'center', marginTop: 4, flexDirection: 'row' }]}>
               <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, fontSize: 12 }]}>
                 {t('dashboard.walkIns')}
               </ThemedText>
@@ -531,7 +532,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                   onPress={() => navigation.navigate(ROUTES.VISITOR_REQUESTS as never, { initialTab: 'walkin' } as never)}
                   style={({ pressed }) => [
                     styles.viewAllButton,
-                    { opacity: pressed ? 0.7 : 1, flexDirection: getPlatformFlexDirection(isRTL) }
+                    { opacity: pressed ? 0.7 : 1, flexDirection: 'row' }
                   ]}
                 >
                   <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>

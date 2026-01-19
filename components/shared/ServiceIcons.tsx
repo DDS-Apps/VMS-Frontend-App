@@ -5,7 +5,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { applyOpacity } from "@/utils/statusStyles";
 import { Spacing } from "@/constants/theme";
-import { getPlatformFlexDirection } from '@/utils/rtlInitializer';
+import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
 
 interface ServiceIconsProps {
   parkingSlot?: unknown;
@@ -24,6 +24,7 @@ export const ServiceIcons = ({
 }: ServiceIconsProps) => {
   const { theme } = useTheme();
   const { isRTL } = useLanguage();
+  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
   const iconContainerSize = size * 2;
   
   const items: React.ReactNode[] = [];
@@ -89,9 +90,11 @@ export const ServiceIcons = ({
     );
   }
   
+  const displayItems = shouldSwap ? [...items].reverse() : items;
+  
   return (
-    <View style={[styles.container, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-      {items}
+    <View style={[styles.container, { flexDirection: 'row' }]}>
+      {displayItems}
     </View>
   );
 };

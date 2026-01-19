@@ -17,7 +17,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { useFormatters } from '@/hooks/useFormatters';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { applyOpacity } from '@/utils/statusStyles';
-import { getPlatformFlexDirection } from '@/utils/rtlInitializer';
+import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
 import { 
   useAllRequestsQuery,
   type UnifiedRequest,
@@ -135,6 +135,7 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
   const typeColor = getTypeColor(request.type, theme);
   const statusColor = getStatusColor(request.status, theme);
   const typeIcon = getTypeIcon(request.type);
+  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
 
   const hasExpandableDetails = useMemo(() => {
     if (request.type === 'visitor') {
@@ -161,19 +162,41 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
       return (
         <View style={styles.expandedSection}>
           {originalData?.visitor?.email ? (
-            <View style={[styles.expandedDetailRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-              <DDIcon name="mail" size={14} color={theme.textSecondary} />
-              <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
-                {originalData.visitor.email}
-              </ThemedText>
+            <View style={[styles.expandedDetailRow, { flexDirection: 'row' }]}>
+              {shouldSwap ? (
+                <>
+                  <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+                    {originalData.visitor.email}
+                  </ThemedText>
+                  <DDIcon name="mail" size={14} color={theme.textSecondary} />
+                </>
+              ) : (
+                <>
+                  <DDIcon name="mail" size={14} color={theme.textSecondary} />
+                  <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+                    {originalData.visitor.email}
+                  </ThemedText>
+                </>
+              )}
             </View>
           ) : null}
           {originalData?.visitor?.phone ? (
-            <View style={[styles.expandedDetailRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-              <DDIcon name="phone" size={14} color={theme.textSecondary} />
-              <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
-                {originalData.visitor.phone}
-              </ThemedText>
+            <View style={[styles.expandedDetailRow, { flexDirection: 'row' }]}>
+              {shouldSwap ? (
+                <>
+                  <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+                    {originalData.visitor.phone}
+                  </ThemedText>
+                  <DDIcon name="phone" size={14} color={theme.textSecondary} />
+                </>
+              ) : (
+                <>
+                  <DDIcon name="phone" size={14} color={theme.textSecondary} />
+                  <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+                    {originalData.visitor.phone}
+                  </ThemedText>
+                </>
+              )}
             </View>
           ) : null}
         </View>
@@ -183,18 +206,40 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
     if (request.type === 'buffet' && request.guestCount) {
       return (
         <View style={styles.expandedSection}>
-          <View style={[styles.expandedDetailRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-            <DDIcon name="users" size={14} color={theme.textSecondary} />
-            <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
-              {t('buffet.guestCount')}: {request.guestCount}
-            </ThemedText>
+          <View style={[styles.expandedDetailRow, { flexDirection: 'row' }]}>
+            {shouldSwap ? (
+              <>
+                <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {t('buffet.guestCount')}: {request.guestCount}
+                </ThemedText>
+                <DDIcon name="users" size={14} color={theme.textSecondary} />
+              </>
+            ) : (
+              <>
+                <DDIcon name="users" size={14} color={theme.textSecondary} />
+                <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {t('buffet.guestCount')}: {request.guestCount}
+                </ThemedText>
+              </>
+            )}
           </View>
           {request.mealType ? (
-            <View style={[styles.expandedDetailRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-              <DDIcon name="cloche" size={14} color={theme.textSecondary} />
-              <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
-                {request.mealType}
-              </ThemedText>
+            <View style={[styles.expandedDetailRow, { flexDirection: 'row' }]}>
+              {shouldSwap ? (
+                <>
+                  <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+                    {request.mealType}
+                  </ThemedText>
+                  <DDIcon name="cloche" size={14} color={theme.textSecondary} />
+                </>
+              ) : (
+                <>
+                  <DDIcon name="cloche" size={14} color={theme.textSecondary} />
+                  <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+                    {request.mealType}
+                  </ThemedText>
+                </>
+              )}
             </View>
           ) : null}
         </View>
@@ -206,27 +251,60 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
       return (
         <View style={styles.expandedSection}>
           {vehicle.plateNumber ? (
-            <View style={[styles.expandedDetailRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-              <DDIcon name="hash" size={14} color={theme.textSecondary} />
-              <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
-                {t('valet.plateNumber')}: {vehicle.plateNumber}
-              </ThemedText>
+            <View style={[styles.expandedDetailRow, { flexDirection: 'row' }]}>
+              {shouldSwap ? (
+                <>
+                  <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+                    {t('valet.plateNumber')}: {vehicle.plateNumber}
+                  </ThemedText>
+                  <DDIcon name="hash" size={14} color={theme.textSecondary} />
+                </>
+              ) : (
+                <>
+                  <DDIcon name="hash" size={14} color={theme.textSecondary} />
+                  <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+                    {t('valet.plateNumber')}: {vehicle.plateNumber}
+                  </ThemedText>
+                </>
+              )}
             </View>
           ) : null}
           {(vehicle.make || vehicle.model) ? (
-            <View style={[styles.expandedDetailRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-              <DDIcon name="truck" size={14} color={theme.textSecondary} />
-              <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
-                {[vehicle.make, vehicle.model].filter(Boolean).join(' ')}
-              </ThemedText>
+            <View style={[styles.expandedDetailRow, { flexDirection: 'row' }]}>
+              {shouldSwap ? (
+                <>
+                  <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+                    {[vehicle.make, vehicle.model].filter(Boolean).join(' ')}
+                  </ThemedText>
+                  <DDIcon name="truck" size={14} color={theme.textSecondary} />
+                </>
+              ) : (
+                <>
+                  <DDIcon name="truck" size={14} color={theme.textSecondary} />
+                  <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+                    {[vehicle.make, vehicle.model].filter(Boolean).join(' ')}
+                  </ThemedText>
+                </>
+              )}
             </View>
           ) : null}
           {vehicle.color ? (
-            <View style={[styles.expandedDetailRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-              <DDIcon name="droplet" size={14} color={theme.textSecondary} />
-              <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
-                {t('valet.color')}: {vehicle.color}
-              </ThemedText>
+            <View style={[styles.expandedDetailRow, { flexDirection: 'row' }]}>
+              {shouldSwap ? (
+                <>
+                  <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+                    {t('valet.color')}: {vehicle.color}
+                  </ThemedText>
+                  <DDIcon name="droplet" size={14} color={theme.textSecondary} />
+                </>
+              ) : (
+                <>
+                  <DDIcon name="droplet" size={14} color={theme.textSecondary} />
+                  <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+                    {t('valet.color')}: {vehicle.color}
+                  </ThemedText>
+                </>
+              )}
             </View>
           ) : null}
         </View>
@@ -242,7 +320,7 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
         <View style={[styles.typeAccent, { backgroundColor: statusColor }]} />
         
         <View style={styles.cardContent}>
-          <View style={[styles.cardHeader, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+          <View style={[styles.cardHeader, { flexDirection: 'row' }]}>
             <ThemedText style={[Typography.body, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left', flex: 1 }]} numberOfLines={1}>
               {request.visitorName}
             </ThemedText>
@@ -254,48 +332,100 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
 
           <Spacer height={Spacing.sm} />
 
-          <View style={[styles.detailsRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-            <View style={[styles.detailItem, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-              <DDIcon name="calendar" size={14} variant="muted" />
-              <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
-                {formatDate(request.date)}
-              </ThemedText>
+          <View style={[styles.detailsRow, { flexDirection: 'row' }]}>
+            <View style={[styles.detailItem, { flexDirection: 'row' }]}>
+              {shouldSwap ? (
+                <>
+                  <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
+                    {formatDate(request.date)}
+                  </ThemedText>
+                  <DDIcon name="calendar" size={14} variant="muted" />
+                </>
+              ) : (
+                <>
+                  <DDIcon name="calendar" size={14} variant="muted" />
+                  <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
+                    {formatDate(request.date)}
+                  </ThemedText>
+                </>
+              )}
             </View>
-            <View style={[styles.detailItem, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-              <DDIcon name="clock" size={14} variant="muted" />
-              <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
-                {formatTimeFromString(request.time)}
-              </ThemedText>
+            <View style={[styles.detailItem, { flexDirection: 'row' }]}>
+              {shouldSwap ? (
+                <>
+                  <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
+                    {formatTimeFromString(request.time)}
+                  </ThemedText>
+                  <DDIcon name="clock" size={14} variant="muted" />
+                </>
+              ) : (
+                <>
+                  <DDIcon name="clock" size={14} variant="muted" />
+                  <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
+                    {formatTimeFromString(request.time)}
+                  </ThemedText>
+                </>
+              )}
             </View>
           </View>
 
           {request.location ? (
             <>
               <Spacer height={Spacing.xs} />
-              <View style={[styles.detailItem, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-                <DDIcon name="map-pin" size={14} variant="muted" />
-                <ThemedText style={[styles.detailText, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
-                  {request.location}
-                </ThemedText>
+              <View style={[styles.detailItem, { flexDirection: 'row' }]}>
+                {shouldSwap ? (
+                  <>
+                    <ThemedText style={[styles.detailText, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+                      {request.location}
+                    </ThemedText>
+                    <DDIcon name="map-pin" size={14} variant="muted" />
+                  </>
+                ) : (
+                  <>
+                    <DDIcon name="map-pin" size={14} variant="muted" />
+                    <ThemedText style={[styles.detailText, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+                      {request.location}
+                    </ThemedText>
+                  </>
+                )}
               </View>
             </>
           ) : null}
 
           <Spacer height={Spacing.sm} />
 
-          <View style={[styles.badgesRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-            <View style={[styles.typeBadge, { backgroundColor: applyOpacity(typeColor, '12') }]}>
-              <DDIcon name={typeIcon} size={12} color={typeColor} />
-              <ThemedText style={[styles.typeBadgeText, { color: typeColor }]}>
-                {request.type === 'visitor' ? t('services.visitor') : 
-                 request.type === 'buffet' ? t('services.buffet') : t('services.valet')}
-              </ThemedText>
-            </View>
-            <View style={[styles.statusBadge, { backgroundColor: applyOpacity(statusColor, '12'), borderColor: statusColor }]}>
-              <ThemedText style={[styles.statusText, { color: statusColor }]}>
-                {getStatusLabel(request.status, t)}
-              </ThemedText>
-            </View>
+          <View style={[styles.badgesRow, { flexDirection: 'row' }]}>
+            {shouldSwap ? (
+              <>
+                <View style={[styles.statusBadge, { backgroundColor: applyOpacity(statusColor, '12'), borderColor: statusColor }]}>
+                  <ThemedText style={[styles.statusText, { color: statusColor }]}>
+                    {getStatusLabel(request.status, t)}
+                  </ThemedText>
+                </View>
+                <View style={[styles.typeBadge, { backgroundColor: applyOpacity(typeColor, '12') }]}>
+                  <DDIcon name={typeIcon} size={12} color={typeColor} />
+                  <ThemedText style={[styles.typeBadgeText, { color: typeColor }]}>
+                    {request.type === 'visitor' ? t('services.visitor') : 
+                     request.type === 'buffet' ? t('services.buffet') : t('services.valet')}
+                  </ThemedText>
+                </View>
+              </>
+            ) : (
+              <>
+                <View style={[styles.typeBadge, { backgroundColor: applyOpacity(typeColor, '12') }]}>
+                  <DDIcon name={typeIcon} size={12} color={typeColor} />
+                  <ThemedText style={[styles.typeBadgeText, { color: typeColor }]}>
+                    {request.type === 'visitor' ? t('services.visitor') : 
+                     request.type === 'buffet' ? t('services.buffet') : t('services.valet')}
+                  </ThemedText>
+                </View>
+                <View style={[styles.statusBadge, { backgroundColor: applyOpacity(statusColor, '12'), borderColor: statusColor }]}>
+                  <ThemedText style={[styles.statusText, { color: statusColor }]}>
+                    {getStatusLabel(request.status, t)}
+                  </ThemedText>
+                </View>
+              </>
+            )}
           </View>
 
           {renderExpandedDetails()}
@@ -322,33 +452,55 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
           {(request.canApprove || request.canCancel) ? (
             <>
               <Spacer height={Spacing.md} />
-              <View style={[styles.actionsRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+              <View style={[styles.actionsRow, { flexDirection: 'row' }]}>
                 {request.canApprove ? (
                   <Pressable
-                    style={[styles.approveButton, { backgroundColor: '#22C55E', flexDirection: getPlatformFlexDirection(isRTL) }]}
+                    style={[styles.approveButton, { backgroundColor: '#22C55E', flexDirection: 'row' }]}
                     onPress={(e) => {
                       e.stopPropagation();
                       onApprove?.();
                     }}
                   >
-                    <DDIcon name="check" size={14} color="#FFFFFF" />
-                    <ThemedText style={[styles.actionButtonText, { color: '#FFFFFF' }]}>
-                      {t('actions.approve')}
-                    </ThemedText>
+                    {shouldSwap ? (
+                      <>
+                        <ThemedText style={[styles.actionButtonText, { color: '#FFFFFF' }]}>
+                          {t('actions.approve')}
+                        </ThemedText>
+                        <DDIcon name="check" size={14} color="#FFFFFF" />
+                      </>
+                    ) : (
+                      <>
+                        <DDIcon name="check" size={14} color="#FFFFFF" />
+                        <ThemedText style={[styles.actionButtonText, { color: '#FFFFFF' }]}>
+                          {t('actions.approve')}
+                        </ThemedText>
+                      </>
+                    )}
                   </Pressable>
                 ) : null}
                 {request.canCancel ? (
                   <Pressable
-                    style={[styles.rejectButton, { borderColor: theme.error, flexDirection: getPlatformFlexDirection(isRTL) }]}
+                    style={[styles.rejectButton, { borderColor: theme.error, flexDirection: 'row' }]}
                     onPress={(e) => {
                       e.stopPropagation();
                       onReject?.();
                     }}
                   >
-                    <DDIcon name="x" size={14} color={theme.error} />
-                    <ThemedText style={[styles.actionButtonText, { color: theme.error }]}>
-                      {t('actions.reject')}
-                    </ThemedText>
+                    {shouldSwap ? (
+                      <>
+                        <ThemedText style={[styles.actionButtonText, { color: theme.error }]}>
+                          {t('actions.reject')}
+                        </ThemedText>
+                        <DDIcon name="x" size={14} color={theme.error} />
+                      </>
+                    ) : (
+                      <>
+                        <DDIcon name="x" size={14} color={theme.error} />
+                        <ThemedText style={[styles.actionButtonText, { color: theme.error }]}>
+                          {t('actions.reject')}
+                        </ThemedText>
+                      </>
+                    )}
                   </Pressable>
                 ) : null}
               </View>
@@ -384,6 +536,7 @@ export default function AllRequestsScreen() {
   const { width } = useWindowDimensions();
   const isLargeScreen = width >= 768;
   const queryClient = useQueryClient();
+  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
   
   const [typeFilter, setTypeFilter] = useState<RequestFilter>('visitor');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -729,7 +882,7 @@ export default function AllRequestsScreen() {
         <Spacer height={Spacing.lg} />
 
         {isLargeScreen ? (
-          <View style={[styles.statsRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+          <View style={[styles.statsRow, { flexDirection: 'row' }]}>
             <StatCard
               value={stats.total}
               label={t('common.all')}
@@ -798,7 +951,7 @@ export default function AllRequestsScreen() {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={[styles.statsScrollContent, { flexDirection: getPlatformFlexDirection(isRTL) }]}
+            contentContainerStyle={[styles.statsScrollContent, { flexDirection: 'row' }]}
             nestedScrollEnabled={true}
           >
             <StatCard
@@ -862,30 +1015,60 @@ export default function AllRequestsScreen() {
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.searchRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-          <View style={styles.searchInputWrapper}>
-            <SearchInput
-              placeholder={t('common.search')}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-          </View>
-          <Pressable 
-            style={[
-              styles.dateFilterButton, 
-              { 
-                backgroundColor: selectedDate ? applyOpacity(theme.primary, '12') : theme.surface,
-                borderColor: selectedDate ? theme.primary : theme.border,
-              }
-            ]}
-            onPress={() => setShowDatePicker(true)}
-          >
-            <DDIcon 
-              name="calendar" 
-              size={18} 
-              color={selectedDate ? theme.primary : theme.textSecondary} 
-            />
-          </Pressable>
+        <View style={[styles.searchRow, { flexDirection: 'row' }]}>
+          {shouldSwap ? (
+            <>
+              <Pressable 
+                style={[
+                  styles.dateFilterButton, 
+                  { 
+                    backgroundColor: selectedDate ? applyOpacity(theme.primary, '12') : theme.surface,
+                    borderColor: selectedDate ? theme.primary : theme.border,
+                  }
+                ]}
+                onPress={() => setShowDatePicker(true)}
+              >
+                <DDIcon 
+                  name="calendar" 
+                  size={18} 
+                  color={selectedDate ? theme.primary : theme.textSecondary} 
+                />
+              </Pressable>
+              <View style={styles.searchInputWrapper}>
+                <SearchInput
+                  placeholder={t('common.search')}
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                />
+              </View>
+            </>
+          ) : (
+            <>
+              <View style={styles.searchInputWrapper}>
+                <SearchInput
+                  placeholder={t('common.search')}
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                />
+              </View>
+              <Pressable 
+                style={[
+                  styles.dateFilterButton, 
+                  { 
+                    backgroundColor: selectedDate ? applyOpacity(theme.primary, '12') : theme.surface,
+                    borderColor: selectedDate ? theme.primary : theme.border,
+                  }
+                ]}
+                onPress={() => setShowDatePicker(true)}
+              >
+                <DDIcon 
+                  name="calendar" 
+                  size={18} 
+                  color={selectedDate ? theme.primary : theme.textSecondary} 
+                />
+              </Pressable>
+            </>
+          )}
         </View>
 
         {selectedDate ? (

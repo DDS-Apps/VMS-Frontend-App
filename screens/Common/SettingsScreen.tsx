@@ -19,7 +19,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { UserRole } from "@/types/vms.types";
 import { applyOpacity } from "@/utils/statusStyles";
 import { SupportedLocale } from "@/constants/i18n";
-import { getPlatformFlexDirection } from "@/utils/rtlInitializer";
+import { shouldSwapChildrenForRTL } from "@/utils/rtlInitializer";
 import {
   useNotificationPreferencesQuery,
   useUpdateNotificationPreferencesMutation,
@@ -42,6 +42,7 @@ export default function SettingsScreen({
 }: SettingsScreenProps) {
   const { theme, isDark, toggleTheme } = useTheme();
   const { t, locale, setLocale, locales, isRTL } = useTranslation();
+  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NativeStackNavigationProp<{ EditProfile: undefined }>>();
   
@@ -190,7 +191,7 @@ export default function SettingsScreen({
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.profileContainer, { flexDirection: getPlatformFlexDirection(isRTL), gap: Spacing.md }]}>
+        <View style={[styles.profileContainer, { flexDirection: 'row', gap: Spacing.md }]}>
           <View style={[styles.avatar, { backgroundColor: theme.primary + '20' }]}>
             <ThemedText style={[Typography.subtitle, { color: theme.primary, fontWeight: '700' }]}>
               {userName.split(' ').map(n => n[0]).join('')}
@@ -240,7 +241,7 @@ export default function SettingsScreen({
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.settingItem, { flexDirection: getPlatformFlexDirection(isRTL), gap: Spacing.md }]}>
+        <View style={[styles.settingItem, { flexDirection: 'row', gap: Spacing.md }]}>
           <View style={{ flex: 1 }}>
             <ThemedText style={[styles.settingLabel, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('settings.darkMode')}
@@ -260,7 +261,7 @@ export default function SettingsScreen({
 
         <View style={[styles.sectionDivider, { backgroundColor: theme.surfaceSecondary }]} />
 
-        <View style={[styles.settingItem, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+        <View style={[styles.settingItem, { flexDirection: 'row' }]}>
           <View style={{ flex: 1 }}>
             <ThemedText style={[styles.settingLabel, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('settings.language')}
@@ -307,7 +308,7 @@ export default function SettingsScreen({
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.settingItem, { flexDirection: getPlatformFlexDirection(isRTL), gap: Spacing.md }]}>
+        <View style={[styles.settingItem, { flexDirection: 'row', gap: Spacing.md }]}>
           <View style={{ flex: 1 }}>
             <ThemedText style={[styles.settingLabel, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('settings.pushNotifications')}
@@ -417,7 +418,7 @@ export default function SettingsScreen({
             { 
               backgroundColor: theme.error,
               opacity: pressed ? 0.8 : 1,
-              flexDirection: getPlatformFlexDirection(isRTL),
+              flexDirection: 'row',
             },
           ]}
           onPress={onLogout}

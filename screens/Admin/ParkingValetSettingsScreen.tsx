@@ -10,7 +10,7 @@ import Spacer from '@/components/Spacer';
 import { Spacing, BorderRadius, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
-import { getPlatformFlexDirection } from '@/utils/rtlInitializer';
+import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
 
 interface ParkingArea {
   id: string;
@@ -45,6 +45,7 @@ const MOCK_VALET_ZONES: ValetZone[] = [
 export default function ParkingValetSettingsScreen() {
   const { theme } = useTheme();
   const { t, isRTL } = useTranslation();
+  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
   const insets = useSafeAreaInsets();
   const [tab, setTab] = useState<'parking' | 'valet'>('parking');
   const [parkingAreas, setParkingAreas] = useState<ParkingArea[]>(MOCK_PARKING_AREAS);
@@ -120,7 +121,7 @@ export default function ParkingValetSettingsScreen() {
 
   const renderParkingArea = ({ item }: { item: ParkingArea }) => (
     <ThemedView style={[styles.card, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
-      <View style={[styles.cardHeader, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+      <View style={[styles.cardHeader, { flexDirection: 'row' }]}>
         <View style={{ flex: 1 }}>
           <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginBottom: Spacing.xs, textAlign: isRTL ? 'right' : 'left' }]}>
             {item.name}
@@ -135,16 +136,27 @@ export default function ParkingValetSettingsScreen() {
 
       <Spacer height={Spacing.md} />
 
-      <View style={[styles.infoRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-        <DDIcon name="map-pin" variant="muted" size={16} />
-        <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginStart: Spacing.xs, textAlign: isRTL ? 'right' : 'left' }]}>
-          {item.location}
-        </ThemedText>
+      <View style={[styles.infoRow, { flexDirection: 'row' }]}>
+        {shouldSwap ? (
+          <>
+            <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginEnd: Spacing.xs, textAlign: isRTL ? 'right' : 'left' }]}>
+              {item.location}
+            </ThemedText>
+            <DDIcon name="map-pin" variant="muted" size={16} />
+          </>
+        ) : (
+          <>
+            <DDIcon name="map-pin" variant="muted" size={16} />
+            <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginStart: Spacing.xs, textAlign: isRTL ? 'right' : 'left' }]}>
+              {item.location}
+            </ThemedText>
+          </>
+        )}
       </View>
 
       <Spacer height={Spacing.sm} />
 
-      <View style={[styles.statsRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+      <View style={[styles.statsRow, { flexDirection: 'row' }]}>
         <View style={styles.stat}>
           <ThemedText style={[Typography.title, { fontWeight: '700', color: theme.text }]}>
             {item.totalSpots}
@@ -175,7 +187,7 @@ export default function ParkingValetSettingsScreen() {
 
   const renderValetZone = ({ item }: { item: ValetZone }) => (
     <ThemedView style={[styles.card, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
-      <View style={[styles.cardHeader, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+      <View style={[styles.cardHeader, { flexDirection: 'row' }]}>
         <View style={{ flex: 1 }}>
           <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginBottom: Spacing.xs, textAlign: isRTL ? 'right' : 'left' }]}>
             {item.name}
@@ -185,16 +197,27 @@ export default function ParkingValetSettingsScreen() {
 
       <Spacer height={Spacing.md} />
 
-      <View style={[styles.infoRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-        <DDIcon name="map-pin" variant="muted" size={16} />
-        <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginStart: Spacing.xs, textAlign: isRTL ? 'right' : 'left' }]}>
-          {item.location}
-        </ThemedText>
+      <View style={[styles.infoRow, { flexDirection: 'row' }]}>
+        {shouldSwap ? (
+          <>
+            <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginEnd: Spacing.xs, textAlign: isRTL ? 'right' : 'left' }]}>
+              {item.location}
+            </ThemedText>
+            <DDIcon name="map-pin" variant="muted" size={16} />
+          </>
+        ) : (
+          <>
+            <DDIcon name="map-pin" variant="muted" size={16} />
+            <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginStart: Spacing.xs, textAlign: isRTL ? 'right' : 'left' }]}>
+              {item.location}
+            </ThemedText>
+          </>
+        )}
       </View>
 
       <Spacer height={Spacing.sm} />
 
-      <View style={[styles.statsRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+      <View style={[styles.statsRow, { flexDirection: 'row' }]}>
         <View style={styles.stat}>
           <ThemedText style={[Typography.title, { fontWeight: '700', color: theme.text }]}>
             {item.capacity}
@@ -223,7 +246,7 @@ export default function ParkingValetSettingsScreen() {
         </ThemedText>
       </View>
 
-      <View style={[styles.tabContainer, { backgroundColor: theme.background, borderBottomColor: theme.border, flexDirection: getPlatformFlexDirection(isRTL) }]}>
+      <View style={[styles.tabContainer, { backgroundColor: theme.background, borderBottomColor: theme.border, flexDirection: 'row' }]}>
         <Pressable
           style={[styles.tab, tab === 'parking' && { borderBottomColor: theme.primary, borderBottomWidth: 2 }]}
           onPress={() => setTab('parking')}
@@ -286,7 +309,7 @@ export default function ParkingValetSettingsScreen() {
             style={{ flex: 1, justifyContent: 'flex-end' }}
           >
             <View style={[styles.modalContent, { backgroundColor: theme.background, paddingBottom: insets.bottom + Spacing.xl }]}>
-              <View style={[styles.modalHeader, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+              <View style={[styles.modalHeader, { flexDirection: 'row' }]}>
                 <ThemedText style={[Typography.subtitle, { fontWeight: '600' }]}>
                   {modalType === 'parking' ? t('navigation.parkingSlots') : t('navigation.valetService')}
                 </ThemedText>

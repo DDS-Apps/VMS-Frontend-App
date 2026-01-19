@@ -9,7 +9,7 @@ import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { UserRole, AdminDashboardKPI } from "@/types/vms.types";
-import { getPlatformFlexDirection } from '@/utils/rtlInitializer';
+import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
 
 interface AdminDashboardScreenProps {
   role: UserRole;
@@ -170,6 +170,7 @@ export default function AdminDashboardScreen({
 }: AdminDashboardScreenProps) {
   const { theme } = useTheme();
   const { t, isRTL } = useTranslation();
+  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
   const { title, kpis } = getDashboardData(role, theme, t);
 
   const recentActivity = [
@@ -247,7 +248,7 @@ export default function AdminDashboardScreen({
 
       <Spacer height={Spacing.xl} />
 
-      <View style={[styles.sectionHeader, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+      <View style={[styles.sectionHeader, { flexDirection: 'row' }]}>
         <ThemedText style={[Typography.subtitle, { textAlign: isRTL ? 'right' : 'left' }]}>{t('dashboard.recentActivity')}</ThemedText>
         <Pressable>
           <ThemedText style={[Typography.bodySmall, { color: theme.primary }]}>
@@ -261,35 +262,69 @@ export default function AdminDashboardScreen({
       {recentActivity.map((activity) => (
         <View key={activity.id}>
           <ThemedView
-            style={[styles.activityCard, { backgroundColor: theme.surface, flexDirection: getPlatformFlexDirection(isRTL) }]}
+            style={[styles.activityCard, { backgroundColor: theme.surface, flexDirection: 'row' }]}
           >
-            <View
-              style={[
-                styles.activityIcon,
-                { backgroundColor: theme.primary + "20" },
-              ]}
-            >
-              <DDIcon
-                name={activity.icon as IconName}
-                size={20}
-                variant="primary"
-              />
-            </View>
-            <View style={{ flex: 1, marginStart: Spacing.md }}>
-              <ThemedText style={[Typography.body, { fontWeight: "600", textAlign: isRTL ? 'right' : 'left' }]}>
-                {activity.title}
-              </ThemedText>
-              <ThemedText
-                style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}
-              >
-                {activity.subtitle}
-              </ThemedText>
-            </View>
-            <ThemedText
-              style={[Typography.caption, { color: theme.textSecondary }]}
-            >
-              {activity.time}
-            </ThemedText>
+            {shouldSwap ? (
+              <>
+                <ThemedText
+                  style={[Typography.caption, { color: theme.textSecondary }]}
+                >
+                  {activity.time}
+                </ThemedText>
+                <View style={{ flex: 1, marginEnd: Spacing.md }}>
+                  <ThemedText style={[Typography.body, { fontWeight: "600", textAlign: isRTL ? 'right' : 'left' }]}>
+                    {activity.title}
+                  </ThemedText>
+                  <ThemedText
+                    style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}
+                  >
+                    {activity.subtitle}
+                  </ThemedText>
+                </View>
+                <View
+                  style={[
+                    styles.activityIcon,
+                    { backgroundColor: theme.primary + "20" },
+                  ]}
+                >
+                  <DDIcon
+                    name={activity.icon as IconName}
+                    size={20}
+                    variant="primary"
+                  />
+                </View>
+              </>
+            ) : (
+              <>
+                <View
+                  style={[
+                    styles.activityIcon,
+                    { backgroundColor: theme.primary + "20" },
+                  ]}
+                >
+                  <DDIcon
+                    name={activity.icon as IconName}
+                    size={20}
+                    variant="primary"
+                  />
+                </View>
+                <View style={{ flex: 1, marginStart: Spacing.md }}>
+                  <ThemedText style={[Typography.body, { fontWeight: "600", textAlign: isRTL ? 'right' : 'left' }]}>
+                    {activity.title}
+                  </ThemedText>
+                  <ThemedText
+                    style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}
+                  >
+                    {activity.subtitle}
+                  </ThemedText>
+                </View>
+                <ThemedText
+                  style={[Typography.caption, { color: theme.textSecondary }]}
+                >
+                  {activity.time}
+                </ThemedText>
+              </>
+            )}
           </ThemedView>
           <Spacer height={Spacing.sm} />
         </View>

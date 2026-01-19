@@ -7,7 +7,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
 import { LoadingButton } from "@/components/shared/LoadingButton";
-import { getPlatformFlexDirection } from "@/utils/rtlInitializer";
+import { shouldSwapChildrenForRTL } from "@/utils/rtlInitializer";
 
 type SplashState = 'loading' | 'checking_health' | 'checking_auth' | 'error' | 'ready';
 
@@ -23,6 +23,7 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
   const [splashState, setSplashState] = useState<SplashState>('loading');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [isRetrying, setIsRetrying] = useState(false);
+  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
 
   const logoSource = require("@/assets/images/logo.png");
 
@@ -131,11 +132,22 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
         resizeMode="contain"
       />
       {splashState !== 'loading' && splashState !== 'ready' ? (
-        <View style={[styles.statusContainer, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-          <ActivityIndicator size="small" color="#FFFFFF" />
-          <ThemedText style={styles.statusText}>
-            {getStatusMessage()}
-          </ThemedText>
+        <View style={[styles.statusContainer, { flexDirection: 'row' }]}>
+          {shouldSwap ? (
+            <>
+              <ThemedText style={styles.statusText}>
+                {getStatusMessage()}
+              </ThemedText>
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            </>
+          ) : (
+            <>
+              <ActivityIndicator size="small" color="#FFFFFF" />
+              <ThemedText style={styles.statusText}>
+                {getStatusMessage()}
+              </ThemedText>
+            </>
+          )}
         </View>
       ) : null}
     </View>

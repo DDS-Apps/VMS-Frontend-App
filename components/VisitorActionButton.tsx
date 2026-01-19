@@ -6,7 +6,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { applyOpacity } from "@/utils/statusStyles";
 import { Spacing, BorderRadius } from "@/constants/theme";
-import { getPlatformFlexDirection } from '@/utils/rtlInitializer';
+import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
 
 type ActionType = 'check_in' | 'check_out' | 'completed';
 
@@ -22,6 +22,7 @@ interface VisitorActionButtonProps {
 export function VisitorActionButton({ type, onPress, disabled = false, fullWidth = false, loading = false, flex }: VisitorActionButtonProps) {
   const { theme } = useTheme();
   const { t, isRTL } = useTranslation();
+  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
 
   const getConfig = (): { label: string; icon: IconName; bgColor: string; textColor: string; isButton: boolean } => {
     switch (type) {
@@ -57,6 +58,21 @@ export function VisitorActionButton({ type, onPress, disabled = false, fullWidth
   const buttonStyle = fullWidth ? styles.fullWidthButton : styles.button;
   const isDisabled = disabled || loading;
 
+  const iconEl = (
+    <DDIcon 
+      name={config.icon} 
+      size={fullWidth ? 18 : 14} 
+      color={config.textColor} 
+      directionAware={config.icon === 'log-in' || config.icon === 'log-out'}
+    />
+  );
+
+  const textEl = (
+    <ThemedText style={[fullWidth ? styles.fullWidthButtonText : styles.buttonText, { color: config.textColor }]}>
+      {config.label}
+    </ThemedText>
+  );
+
   if (!config.isButton || disabled) {
     return (
       <View style={[
@@ -66,21 +82,21 @@ export function VisitorActionButton({ type, onPress, disabled = false, fullWidth
           borderWidth: type === 'completed' ? 1 : 0,
           borderColor: theme.border,
           flex: flex,
-          flexDirection: getPlatformFlexDirection(isRTL),
+          flexDirection: 'row',
         }
       ]}>
-        <DDIcon 
-          name={config.icon} 
-          size={fullWidth ? 18 : 14} 
-          color={config.textColor} 
-          directionAware={config.icon === 'log-in' || config.icon === 'log-out'}
-        />
-        <ThemedText style={[fullWidth ? styles.fullWidthButtonText : styles.buttonText, { color: config.textColor }]}>
-          {config.label}
-        </ThemedText>
+        {shouldSwap ? (
+          <>{textEl}{iconEl}</>
+        ) : (
+          <>{iconEl}{textEl}</>
+        )}
       </View>
     );
   }
+
+  const loadingOrIconEl = loading ? (
+    <ActivityIndicator size="small" color={config.textColor} />
+  ) : iconEl;
 
   return (
     <Pressable
@@ -90,25 +106,17 @@ export function VisitorActionButton({ type, onPress, disabled = false, fullWidth
           backgroundColor: config.bgColor, 
           opacity: isDisabled ? 0.6 : pressed ? 0.8 : 1,
           flex: flex,
-          flexDirection: getPlatformFlexDirection(isRTL),
+          flexDirection: 'row',
         }
       ]}
       onPress={onPress}
       disabled={isDisabled}
     >
-      {loading ? (
-        <ActivityIndicator size="small" color={config.textColor} />
+      {shouldSwap ? (
+        <>{textEl}{loadingOrIconEl}</>
       ) : (
-        <DDIcon 
-          name={config.icon} 
-          size={fullWidth ? 18 : 14} 
-          color={config.textColor}
-          directionAware={config.icon === 'log-in' || config.icon === 'log-out'}
-        />
+        <>{loadingOrIconEl}{textEl}</>
       )}
-      <ThemedText style={[fullWidth ? styles.fullWidthButtonText : styles.buttonText, { color: config.textColor }]}>
-        {config.label}
-      </ThemedText>
     </Pressable>
   );
 }

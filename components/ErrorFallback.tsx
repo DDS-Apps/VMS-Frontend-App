@@ -14,7 +14,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Spacing, BorderRadius, Fonts } from "@/constants/theme";
-import { getPlatformFlexDirection } from '@/utils/rtlInitializer';
+import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
 
 export type ErrorFallbackProps = {
   error: Error;
@@ -24,6 +24,7 @@ export type ErrorFallbackProps = {
 export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
   const { theme } = useTheme();
   const { isRTL } = useLanguage();
+  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const handleRestart = async () => {
@@ -98,19 +99,38 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
         >
           <View style={styles.modalOverlay}>
             <ThemedView style={styles.modalContainer}>
-              <View style={[styles.modalHeader, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-                <ThemedText type="h2" style={styles.modalTitle}>
-                  Error Details
-                </ThemedText>
-                <Pressable
-                  onPress={() => setIsModalVisible(false)}
-                  style={({ pressed }) => [
-                    styles.closeButton,
-                    { opacity: pressed ? 0.6 : 1 },
-                  ]}
-                >
-                  <DDIcon name="x" size={24} color={theme.text} />
-                </Pressable>
+              <View style={[styles.modalHeader, { flexDirection: 'row' }]}>
+                {shouldSwap ? (
+                  <>
+                    <Pressable
+                      onPress={() => setIsModalVisible(false)}
+                      style={({ pressed }) => [
+                        styles.closeButton,
+                        { opacity: pressed ? 0.6 : 1 },
+                      ]}
+                    >
+                      <DDIcon name="x" size={24} color={theme.text} />
+                    </Pressable>
+                    <ThemedText type="h2" style={styles.modalTitle}>
+                      Error Details
+                    </ThemedText>
+                  </>
+                ) : (
+                  <>
+                    <ThemedText type="h2" style={styles.modalTitle}>
+                      Error Details
+                    </ThemedText>
+                    <Pressable
+                      onPress={() => setIsModalVisible(false)}
+                      style={({ pressed }) => [
+                        styles.closeButton,
+                        { opacity: pressed ? 0.6 : 1 },
+                      ]}
+                    >
+                      <DDIcon name="x" size={24} color={theme.text} />
+                    </Pressable>
+                  </>
+                )}
               </View>
 
               <ScrollView

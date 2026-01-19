@@ -9,7 +9,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslation } from "@/hooks/useTranslation";
 import { toArabicNumerals } from "@/utils/formatters";
 import { applyOpacity, createModalOverlayStyle } from "@/utils/statusStyles";
-import { getPlatformFlexDirection } from '@/utils/rtlInitializer';
+import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
 
 interface TimePickerProps {
   visible: boolean;
@@ -37,6 +37,7 @@ export function TimePicker({
   const { theme } = useTheme();
   const { isRTL } = useLanguage();
   const { t } = useTranslation();
+  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
   const [pendingTime, setPendingTime] = useState<Date>(selectedTime);
   const [selectedHour, setSelectedHour] = useState<number>(12);
   const [selectedMinute, setSelectedMinute] = useState<number>(0);
@@ -197,9 +198,18 @@ export function TimePicker({
             onPress={handleCancel}
           />
           <View style={[styles.pickerModal, { backgroundColor: theme.surface }]}>
-            <View style={[styles.headerCompact, { borderBottomColor: theme.border, flexDirection: getPlatformFlexDirection(isRTL) }]}>
-              <DDIcon name="clock" size={18} color={theme.primary} />
-              <ThemedText style={[Typography.body, { fontWeight: '600', marginStart: Spacing.sm }]}>{t('time.selectTime')}</ThemedText>
+            <View style={[styles.headerCompact, { borderBottomColor: theme.border, flexDirection: 'row' }]}>
+              {shouldSwap ? (
+                <>
+                  <ThemedText style={[Typography.body, { fontWeight: '600', marginStart: Spacing.sm }]}>{t('time.selectTime')}</ThemedText>
+                  <DDIcon name="clock" size={18} color={theme.primary} />
+                </>
+              ) : (
+                <>
+                  <DDIcon name="clock" size={18} color={theme.primary} />
+                  <ThemedText style={[Typography.body, { fontWeight: '600', marginStart: Spacing.sm }]}>{t('time.selectTime')}</ThemedText>
+                </>
+              )}
             </View>
             <DateTimePicker
               value={pendingTime}
@@ -257,19 +267,38 @@ export function TimePicker({
                 })}
               </ScrollView>
             </View>
-            <View style={[styles.footerButtonsCompact, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-              <Pressable 
-                onPress={handleCancel}
-                style={[styles.actionButton, styles.cancelButtonStyle, { borderColor: theme.border }]}
-              >
-                <ThemedText style={[Typography.body, { color: theme.textSecondary, fontWeight: '600' }]}>{t('common.cancel')}</ThemedText>
-              </Pressable>
-              <Pressable 
-                onPress={handleConfirm}
-                style={[styles.actionButton, styles.confirmButtonStyle, { backgroundColor: theme.primary }]}
-              >
-                <ThemedText style={[Typography.body, { color: theme.buttonText, fontWeight: '600' }]}>{t('common.confirm')}</ThemedText>
-              </Pressable>
+            <View style={[styles.footerButtonsCompact, { flexDirection: 'row' }]}>
+              {shouldSwap ? (
+                <>
+                  <Pressable 
+                    onPress={handleConfirm}
+                    style={[styles.actionButton, styles.confirmButtonStyle, { backgroundColor: theme.primary }]}
+                  >
+                    <ThemedText style={[Typography.body, { color: theme.buttonText, fontWeight: '600' }]}>{t('common.confirm')}</ThemedText>
+                  </Pressable>
+                  <Pressable 
+                    onPress={handleCancel}
+                    style={[styles.actionButton, styles.cancelButtonStyle, { borderColor: theme.border }]}
+                  >
+                    <ThemedText style={[Typography.body, { color: theme.textSecondary, fontWeight: '600' }]}>{t('common.cancel')}</ThemedText>
+                  </Pressable>
+                </>
+              ) : (
+                <>
+                  <Pressable 
+                    onPress={handleCancel}
+                    style={[styles.actionButton, styles.cancelButtonStyle, { borderColor: theme.border }]}
+                  >
+                    <ThemedText style={[Typography.body, { color: theme.textSecondary, fontWeight: '600' }]}>{t('common.cancel')}</ThemedText>
+                  </Pressable>
+                  <Pressable 
+                    onPress={handleConfirm}
+                    style={[styles.actionButton, styles.confirmButtonStyle, { backgroundColor: theme.primary }]}
+                  >
+                    <ThemedText style={[Typography.body, { color: theme.buttonText, fontWeight: '600' }]}>{t('common.confirm')}</ThemedText>
+                  </Pressable>
+                </>
+              )}
             </View>
           </View>
         </View>
@@ -304,7 +333,7 @@ export function TimePicker({
           style={[styles.webPickerContainer, { backgroundColor: theme.surface }]}
           onPress={(e) => e.stopPropagation()}
         >
-          <View style={[styles.headerCompact, { borderBottomColor: theme.border, flexDirection: getPlatformFlexDirection(isRTL && Platform.OS !== 'web') }]}>
+          <View style={[styles.headerCompact, { borderBottomColor: theme.border, flexDirection: 'row' }]}>
             <DDIcon name="clock" size={18} color={theme.primary} />
             <ThemedText style={[Typography.body, { fontWeight: '600', marginStart: Spacing.sm, flex: 1 }]}>{t('time.selectTime')}</ThemedText>
             <Pressable onPress={handleCancel} hitSlop={8}>
@@ -377,7 +406,7 @@ export function TimePicker({
               </Pressable>
             </View>
 
-            <View style={[styles.scrollWithArrows, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+            <View style={[styles.scrollWithArrows, { flexDirection: 'row' }]}>
               <Pressable 
                 onPress={isRTL ? scrollSelectorRight : scrollSelectorLeft} 
                 style={[
@@ -457,7 +486,7 @@ export function TimePicker({
 
           <View style={styles.quickSelectSection}>
             <ThemedText style={[styles.quickSelectLabel, { color: theme.textSecondary }]}>{t('time.quickSelect')}</ThemedText>
-            <View style={[styles.scrollWithArrows, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+            <View style={[styles.scrollWithArrows, { flexDirection: 'row' }]}>
               <Pressable 
                 onPress={isRTL ? scrollQuickSelectRight : scrollQuickSelectLeft} 
                 style={[
@@ -519,7 +548,7 @@ export function TimePicker({
             </View>
           </View>
 
-          <View style={[styles.footerButtonsCompact, { flexDirection: getPlatformFlexDirection(isRTL && Platform.OS !== 'web') }]}>
+          <View style={[styles.footerButtonsCompact, { flexDirection: 'row' }]}>
             <Pressable 
               onPress={handleCancel}
               style={[styles.actionButton, styles.cancelButtonStyle, { borderColor: theme.border }]}

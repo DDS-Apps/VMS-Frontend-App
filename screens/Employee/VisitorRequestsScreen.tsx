@@ -26,7 +26,7 @@ import type { Theme } from "@/types/theme.types";
 import type { EmployeeStackParamList } from "@/types/employeeNavigation.types";
 import type { ManagerStackParamList } from "@/types/managerNavigation.types";
 import { mapVisitListItemToVisitorRequest, mapPendingHostWalkInToVisitorRequest } from "@/utils/requestMappers";
-import { getPlatformFlexDirection } from "@/utils/rtlInitializer";
+import { shouldSwapChildrenForRTL } from "@/utils/rtlInitializer";
 
 
 // Unified Layout Tokens
@@ -67,7 +67,7 @@ const ServiceIcons = ({ request, theme, size = 16 }: { request: VisitorRequest; 
   }
   
   return (
-    <View style={[styles.servicesRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+    <View style={[styles.servicesRow, { flexDirection: 'row' }]}>
       {request.parkingSlot ? (
         <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '20'), width: size * 2, height: size * 2, borderRadius: size }]}>
           <DDIcon name="map-pin" size={size} color={theme.info} />
@@ -155,27 +155,58 @@ const DateTimeDisplay = ({ date, time, duration, theme, compact = false }: { dat
     return toLocalNumerals(durationStr);
   };
 
+  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
   return (
     <View style={styles.dateTimeRowSplit}>
-      <View style={[styles.dateTimeLeft, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-        <DDIcon name="calendar" size={compact ? 13 : 14} variant="muted" />
-        <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
-          {formatVisitDate(date)}
-        </ThemedText>
-      </View>
-      <View style={[styles.dateTimeRight, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-        <DDIcon name="clock" size={compact ? 13 : 14} variant="muted" />
-        <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
-          {formatTimeFromString(time)}
-        </ThemedText>
-        {duration ? (
+      <View style={[styles.dateTimeLeft, { flexDirection: 'row' }]}>
+        {shouldSwap ? (
           <>
-            <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
+            <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13, marginEnd: 4 }]}>
+              {formatVisitDate(date)}
+            </ThemedText>
+            <DDIcon name="calendar" size={compact ? 13 : 14} variant="muted" />
+          </>
+        ) : (
+          <>
+            <DDIcon name="calendar" size={compact ? 13 : 14} variant="muted" />
             <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
-              {formatDuration(duration)}
+              {formatVisitDate(date)}
             </ThemedText>
           </>
-        ) : null}
+        )}
+      </View>
+      <View style={[styles.dateTimeRight, { flexDirection: 'row' }]}>
+        {shouldSwap ? (
+          <>
+            {duration ? (
+              <>
+                <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
+                  {formatDuration(duration)}
+                </ThemedText>
+                <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
+              </>
+            ) : null}
+            <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13, marginEnd: 4 }]}>
+              {formatTimeFromString(time)}
+            </ThemedText>
+            <DDIcon name="clock" size={compact ? 13 : 14} variant="muted" />
+          </>
+        ) : (
+          <>
+            <DDIcon name="clock" size={compact ? 13 : 14} variant="muted" />
+            <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
+              {formatTimeFromString(time)}
+            </ThemedText>
+            {duration ? (
+              <>
+                <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
+                <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
+                  {formatDuration(duration)}
+                </ThemedText>
+              </>
+            ) : null}
+          </>
+        )}
       </View>
     </View>
   );
@@ -196,6 +227,7 @@ const VisitorRequestTableRow = React.memo(({
   isRTL?: boolean;
 }) => {
   const statusConfig = getStatusStyle(theme, request.status, t);
+  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
 
   return (
     <Pressable 
@@ -209,7 +241,7 @@ const VisitorRequestTableRow = React.memo(({
         <View style={[styles.fixedColumn, { width: LAYOUT.tableFixedColumnWidth }]}>
           <View style={styles.fixedColumnContent}>
             <View style={{ flex: 1 }}>
-              <View style={{ flexDirection: getPlatformFlexDirection(isRTL), alignItems: 'center', gap: 6 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, flexShrink: 1 }]} numberOfLines={2}>
                   {request.visitor.fullName}
                 </ThemedText>
@@ -316,7 +348,7 @@ const VisitorRequestTableRow = React.memo(({
 const StatsCards = ({ totalVisitors, todaysVisitors, theme, t }: { totalVisitors: number; todaysVisitors: number; theme: Theme; t: (key: string) => string }) => {
   const { isRTL } = useLanguage();
   return (
-  <View style={[styles.statsGrid, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+  <View style={[styles.statsGrid, { flexDirection: 'row' }]}>
     <ThemedView style={[styles.statCard, { backgroundColor: theme.surface, borderColor: theme.border, borderWidth: 1 }]}>
       <View style={[styles.statIconContainer, { backgroundColor: applyOpacity(theme.info, '15') }]}>
         <DDIcon name="users" size={24} color={theme.info} />
@@ -397,11 +429,11 @@ const SectionHeader = ({
 
   return (
   <>
-    <View style={[styles.sectionTitleRow, styles.paddedContent, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+    <View style={[styles.sectionTitleRow, styles.paddedContent, { flexDirection: 'row' }]}>
       <ThemedText style={[Typography.subtitle]}>
         {t('navigation.myRequests')}
       </ThemedText>
-      <View style={[styles.viewToggle, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+      <View style={[styles.viewToggle, { flexDirection: 'row' }]}>
         <Pressable
           style={[
             styles.viewToggleButton,
@@ -446,7 +478,7 @@ const SectionHeader = ({
     <ScrollView 
       horizontal 
       showsHorizontalScrollIndicator={false}
-      contentContainerStyle={[styles.tabsContainer, { flexDirection: getPlatformFlexDirection(isRTL) }]}
+      contentContainerStyle={[styles.tabsContainer, { flexDirection: 'row' }]}
       nestedScrollEnabled={true}
     >
       {tabs.map((tab) => (

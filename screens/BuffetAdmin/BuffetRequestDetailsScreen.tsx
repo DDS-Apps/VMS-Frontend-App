@@ -10,7 +10,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
 import { applyOpacity } from "@/utils/statusStyles";
-import { getPlatformFlexDirection } from "@/utils/rtlInitializer";
+import { shouldSwapChildrenForRTL } from "@/utils/rtlInitializer";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LoadingButton } from "@/components/shared/LoadingButton";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
@@ -130,6 +130,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { isRTL } = useLanguage();
+  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
   const insets = useSafeAreaInsets();
   const { showSuccess } = useToast();
   const { user } = useAuth();
@@ -398,7 +399,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
         </ThemedText>
         <Spacer height={Spacing.xl} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+        <View style={[styles.serviceRowNew, { flexDirection: 'row' }]}>
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="user" size={18} color={theme.text} />
           </View>
@@ -414,7 +415,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+        <View style={[styles.serviceRowNew, { flexDirection: 'row' }]}>
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="map-pin" size={18} color={theme.text} />
           </View>
@@ -430,7 +431,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+        <View style={[styles.serviceRowNew, { flexDirection: 'row' }]}>
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="clock" size={18} color={theme.text} />
           </View>
@@ -451,7 +452,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
           <Spacer height={Spacing.lg} />
 
           <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
-            <View style={[styles.notesHeader, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+            <View style={[styles.notesHeader, { flexDirection: 'row' }]}>
               <DDIcon name="file-text" size={16} color={theme.info} />
               <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginStart: Spacing.sm, fontSize: 14, color: theme.text }]}>
                 {t('form.notes')}
@@ -468,7 +469,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
       <Spacer height={Spacing.lg} />
 
       <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
-        <View style={[styles.sectionHeaderRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+        <View style={[styles.sectionHeaderRow, { flexDirection: 'row' }]}>
           <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text }]}>
             {t('navigation.staffManagement')}
           </ThemedText>
@@ -488,7 +489,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
         <Spacer height={Spacing.lg} />
 
         {request.assignedStaff ? (
-          <View style={[styles.serviceRowNew, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+          <View style={[styles.serviceRowNew, { flexDirection: 'row' }]}>
             <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.success, '15') }]}>
               <DDIcon name="user-check" size={18} color={theme.success} />
             </View>
@@ -551,7 +552,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
         onPress={() => setShowAssignModal(false)}
       >
         <Pressable style={[styles.modalContent, { backgroundColor: theme.surface }]}>
-          <View style={[styles.modalHeader, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+          <View style={[styles.modalHeader, { flexDirection: 'row' }]}>
             <ThemedText style={[Typography.subtitle, { fontWeight: '600' }]}>
               {request.assignedStaff ? t('buffet.reassignStaff') : t('buffet.assignStaff')}
             </ThemedText>

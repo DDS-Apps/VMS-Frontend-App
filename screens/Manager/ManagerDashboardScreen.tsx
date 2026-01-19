@@ -27,7 +27,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { VisitorRequest } from "@/types/vms.types";
 import type { PendingApprovalDto } from "@/types/api.types";
 import { applyOpacity } from "@/utils/statusStyles";
-import { getPlatformFlexDirection } from "@/utils/rtlInitializer";
+import { shouldSwapChildrenForRTL } from "@/utils/rtlInitializer";
 import type { ManagerDashboardScreenProps } from "@/types/managerNavigation.types";
 import type { Theme } from "@/types/theme.types";
 import { mapPendingApprovalToVisitorRequest } from "@/utils/requestMappers";
@@ -46,25 +46,56 @@ const LAYOUT = {
 
 
 const DateTimeDisplay = ({ date, time, duration, theme, compact = false, fmtDate, fmtTime, isRTL = false }: { date: string; time: string; duration?: string; theme: Theme; compact?: boolean; fmtDate: (d: Date | string) => string; fmtTime: (t: string) => string; isRTL?: boolean }) => {
+  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
+  const calendarIcon = <DDIcon name="calendar" size={compact ? 13 : 14} variant="muted" />;
+  const dateText = (
+    <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
+      {fmtDate(date)}
+    </ThemedText>
+  );
+  const clockIcon = <DDIcon name="clock" size={compact ? 13 : 14} variant="muted" />;
+  const timeText = (
+    <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
+      {fmtTime(time)}
+    </ThemedText>
+  );
+  const durationText = duration ? (
+    <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
+      {duration}
+    </ThemedText>
+  ) : null;
+  
   return (
-    <View style={[styles.dateTimeRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-      <DDIcon name="calendar" size={compact ? 13 : 14} variant="muted" />
-      <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
-        {fmtDate(date)}
-      </ThemedText>
-      <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
-      <DDIcon name="clock" size={compact ? 13 : 14} variant="muted" />
-      <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
-        {fmtTime(time)}
-      </ThemedText>
-      {duration ? (
+    <View style={[styles.dateTimeRow, { flexDirection: 'row' }]}>
+      {shouldSwap ? (
         <>
+          {dateText}
+          {calendarIcon}
           <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
-          <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
-            {duration}
-          </ThemedText>
+          {timeText}
+          {clockIcon}
+          {duration ? (
+            <>
+              <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
+              {durationText}
+            </>
+          ) : null}
         </>
-      ) : null}
+      ) : (
+        <>
+          {calendarIcon}
+          {dateText}
+          <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
+          {clockIcon}
+          {timeText}
+          {duration ? (
+            <>
+              <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
+              {durationText}
+            </>
+          ) : null}
+        </>
+      )}
     </View>
   );
 };
@@ -85,8 +116,10 @@ const SectionHeader = ({
   theme: Theme;
   t: (key: string) => string;
   isRTL?: boolean;
-}) => (
-  <View style={[styles.header, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+}) => {
+  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
+  
+  const titleContent = (
     <View style={{ alignItems: isRTL ? 'flex-end' : 'flex-start' }}>
       <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
         {t('navigation.pendingApprovals')}
@@ -95,58 +128,102 @@ const SectionHeader = ({
         {t('dashboard.requestsAwaitingApproval')}
       </ThemedText>
     </View>
-    <View style={[styles.headerActions, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-      <Pressable
-        onPress={onToggleSelectionMode}
+  );
+  
+  const selectButton = (
+    <Pressable
+      onPress={onToggleSelectionMode}
+      style={[
+        styles.selectButton,
+        { 
+          backgroundColor: isSelectionMode ? theme.primary : theme.surfaceSecondary,
+          borderColor: isSelectionMode ? theme.primary : theme.border,
+        }
+      ]}
+    >
+      <ThemedText 
         style={[
-          styles.selectButton,
-          { 
-            backgroundColor: isSelectionMode ? theme.primary : theme.surfaceSecondary,
-            borderColor: isSelectionMode ? theme.primary : theme.border,
-          }
+          styles.selectButtonText, 
+          { color: isSelectionMode ? theme.buttonText : theme.text }
         ]}
       >
-        <ThemedText 
-          style={[
-            styles.selectButtonText, 
-            { color: isSelectionMode ? theme.buttonText : theme.text }
-          ]}
-        >
-          {isSelectionMode ? t('bulkActions.cancelSelection') : t('bulkActions.selectMode')}
-        </ThemedText>
-      </Pressable>
-      <Spacer width={Spacing.sm} />
-      <View style={[styles.viewModeToggle, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-        <Pressable
-          onPress={() => onViewModeChange('card')}
-          style={[
-            styles.toggleButton,
-            { backgroundColor: viewMode === 'card' ? theme.primary : 'transparent' }
-          ]}
-        >
-          <DDIcon 
-            name="grid" 
-            size={18} 
-            color={viewMode === 'card' ? theme.buttonText : theme.textSecondary} 
-          />
-        </Pressable>
-        <Pressable
-          onPress={() => onViewModeChange('list')}
-          style={[
-            styles.toggleButton,
-            { backgroundColor: viewMode === 'list' ? theme.primary : 'transparent' }
-          ]}
-        >
-          <DDIcon 
-            name="list" 
-            size={18} 
-            color={viewMode === 'list' ? theme.buttonText : theme.textSecondary} 
-          />
-        </Pressable>
-      </View>
+        {isSelectionMode ? t('bulkActions.cancelSelection') : t('bulkActions.selectMode')}
+      </ThemedText>
+    </Pressable>
+  );
+  
+  const gridButton = (
+    <Pressable
+      onPress={() => onViewModeChange('card')}
+      style={[
+        styles.toggleButton,
+        { backgroundColor: viewMode === 'card' ? theme.primary : 'transparent' }
+      ]}
+    >
+      <DDIcon 
+        name="grid" 
+        size={18} 
+        color={viewMode === 'card' ? theme.buttonText : theme.textSecondary} 
+      />
+    </Pressable>
+  );
+  
+  const listButton = (
+    <Pressable
+      onPress={() => onViewModeChange('list')}
+      style={[
+        styles.toggleButton,
+        { backgroundColor: viewMode === 'list' ? theme.primary : 'transparent' }
+      ]}
+    >
+      <DDIcon 
+        name="list" 
+        size={18} 
+        color={viewMode === 'list' ? theme.buttonText : theme.textSecondary} 
+      />
+    </Pressable>
+  );
+  
+  const actionsContent = (
+    <View style={[styles.headerActions, { flexDirection: 'row' }]}>
+      {shouldSwap ? (
+        <>
+          <View style={[styles.viewModeToggle, { flexDirection: 'row' }]}>
+            {listButton}
+            {gridButton}
+          </View>
+          <Spacer width={Spacing.sm} />
+          {selectButton}
+        </>
+      ) : (
+        <>
+          {selectButton}
+          <Spacer width={Spacing.sm} />
+          <View style={[styles.viewModeToggle, { flexDirection: 'row' }]}>
+            {gridButton}
+            {listButton}
+          </View>
+        </>
+      )}
     </View>
-  </View>
-);
+  );
+  
+  return (
+    <View style={[styles.header, { flexDirection: 'row' }]}>
+      {shouldSwap ? (
+        <>
+          {actionsContent}
+          {titleContent}
+        </>
+      ) : (
+        <>
+          {titleContent}
+          {actionsContent}
+        </>
+      )}
+    </View>
+  );
+};
 
 const SelectAllBar = ({
   allSelected,
@@ -160,17 +237,35 @@ const SelectAllBar = ({
   theme: Theme;
   t: (key: string) => string;
   isRTL?: boolean;
-}) => (
-  <View style={[styles.selectAllBar, { backgroundColor: theme.surfaceSecondary, flexDirection: getPlatformFlexDirection(isRTL) }]}>
-    <Pressable onPress={onToggleAll} style={[styles.selectAllButton, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-      <SelectionCheckbox isSelected={allSelected} onToggle={onToggleAll} />
-      <Spacer width={Spacing.sm} />
-      <ThemedText style={[Typography.body, { color: theme.text }]}>
-        {allSelected ? t('bulkActions.deselectAll') : t('bulkActions.selectAll')}
-      </ThemedText>
-    </Pressable>
-  </View>
-);
+}) => {
+  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
+  const checkbox = <SelectionCheckbox isSelected={allSelected} onToggle={onToggleAll} />;
+  const labelText = (
+    <ThemedText style={[Typography.body, { color: theme.text }]}>
+      {allSelected ? t('bulkActions.deselectAll') : t('bulkActions.selectAll')}
+    </ThemedText>
+  );
+  
+  return (
+    <View style={[styles.selectAllBar, { backgroundColor: theme.surfaceSecondary, flexDirection: 'row' }]}>
+      <Pressable onPress={onToggleAll} style={[styles.selectAllButton, { flexDirection: 'row' }]}>
+        {shouldSwap ? (
+          <>
+            {labelText}
+            <Spacer width={Spacing.sm} />
+            {checkbox}
+          </>
+        ) : (
+          <>
+            {checkbox}
+            <Spacer width={Spacing.sm} />
+            {labelText}
+          </>
+        )}
+      </Pressable>
+    </View>
+  );
+};
 
 const BulkActionBar = ({
   selectedCount,
@@ -192,57 +287,110 @@ const BulkActionBar = ({
   isProcessing?: boolean;
   processingAction?: 'approve' | 'reject' | null;
   isRTL?: boolean;
-}) => (
-  <View 
-    style={[
-      styles.bulkActionBar,
-      { 
-        bottom: bottomInset + Spacing.md,
-        backgroundColor: theme.surface,
-        borderColor: theme.border,
-      }
-    ]}
-  >
-    <View style={[styles.bulkActionContent, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-      <ThemedText style={[Typography.body, { fontWeight: '600', color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
-        {isProcessing ? t('common.processing') : `${selectedCount} ${t('bulkActions.selected')}`}
-      </ThemedText>
-      <View style={[styles.bulkActionButtons, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-        <Pressable
-          style={[styles.bulkRejectButton, { borderColor: theme.error, opacity: isProcessing ? 0.6 : 1, flexDirection: getPlatformFlexDirection(isRTL) }]}
-          onPress={onReject}
-          disabled={isProcessing}
-        >
-          {isProcessing && processingAction === 'reject' ? (
-            <LoadingSpinner size="small" color={theme.error} inline />
-          ) : (
-            <DDIcon name="x" size={16} color={theme.error} />
-          )}
-          <Spacer width={6} />
-          <ThemedText style={[styles.bulkButtonText, { color: theme.error }]}>
-            {t('actions.reject')}
-          </ThemedText>
-        </Pressable>
-        <Spacer width={Spacing.sm} />
-        <Pressable
-          style={[styles.bulkApproveButton, { backgroundColor: theme.success, opacity: isProcessing ? 0.6 : 1, flexDirection: getPlatformFlexDirection(isRTL) }]}
-          onPress={onApprove}
-          disabled={isProcessing}
-        >
-          {isProcessing && processingAction === 'approve' ? (
-            <LoadingSpinner size="small" color={theme.buttonText} inline />
-          ) : (
-            <DDIcon name="check" size={16} color={theme.buttonText} />
-          )}
-          <Spacer width={6} />
-          <ThemedText style={[styles.bulkButtonText, { color: theme.buttonText }]}>
-            {t('actions.approve')}
-          </ThemedText>
-        </Pressable>
+}) => {
+  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
+  
+  const countText = (
+    <ThemedText style={[Typography.body, { fontWeight: '600', color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+      {isProcessing ? t('common.processing') : `${selectedCount} ${t('bulkActions.selected')}`}
+    </ThemedText>
+  );
+  
+  const rejectIcon = isProcessing && processingAction === 'reject' ? (
+    <LoadingSpinner size="small" color={theme.error} inline />
+  ) : (
+    <DDIcon name="x" size={16} color={theme.error} />
+  );
+  const rejectText = (
+    <ThemedText style={[styles.bulkButtonText, { color: theme.error }]}>
+      {t('actions.reject')}
+    </ThemedText>
+  );
+  
+  const approveIcon = isProcessing && processingAction === 'approve' ? (
+    <LoadingSpinner size="small" color={theme.buttonText} inline />
+  ) : (
+    <DDIcon name="check" size={16} color={theme.buttonText} />
+  );
+  const approveText = (
+    <ThemedText style={[styles.bulkButtonText, { color: theme.buttonText }]}>
+      {t('actions.approve')}
+    </ThemedText>
+  );
+  
+  const rejectButton = (
+    <Pressable
+      style={[styles.bulkRejectButton, { borderColor: theme.error, opacity: isProcessing ? 0.6 : 1, flexDirection: 'row' }]}
+      onPress={onReject}
+      disabled={isProcessing}
+    >
+      {shouldSwap ? (
+        <>{rejectText}<Spacer width={6} />{rejectIcon}</>
+      ) : (
+        <>{rejectIcon}<Spacer width={6} />{rejectText}</>
+      )}
+    </Pressable>
+  );
+  
+  const approveButton = (
+    <Pressable
+      style={[styles.bulkApproveButton, { backgroundColor: theme.success, opacity: isProcessing ? 0.6 : 1, flexDirection: 'row' }]}
+      onPress={onApprove}
+      disabled={isProcessing}
+    >
+      {shouldSwap ? (
+        <>{approveText}<Spacer width={6} />{approveIcon}</>
+      ) : (
+        <>{approveIcon}<Spacer width={6} />{approveText}</>
+      )}
+    </Pressable>
+  );
+  
+  const buttonsContent = (
+    <View style={[styles.bulkActionButtons, { flexDirection: 'row' }]}>
+      {shouldSwap ? (
+        <>
+          {approveButton}
+          <Spacer width={Spacing.sm} />
+          {rejectButton}
+        </>
+      ) : (
+        <>
+          {rejectButton}
+          <Spacer width={Spacing.sm} />
+          {approveButton}
+        </>
+      )}
+    </View>
+  );
+  
+  return (
+    <View 
+      style={[
+        styles.bulkActionBar,
+        { 
+          bottom: bottomInset + Spacing.md,
+          backgroundColor: theme.surface,
+          borderColor: theme.border,
+        }
+      ]}
+    >
+      <View style={[styles.bulkActionContent, { flexDirection: 'row' }]}>
+        {shouldSwap ? (
+          <>
+            {buttonsContent}
+            {countText}
+          </>
+        ) : (
+          <>
+            {countText}
+            {buttonsContent}
+          </>
+        )}
       </View>
     </View>
-  </View>
-);
+  );
+};
 
 const ApprovalTableRow = React.memo(({ 
   request, 
@@ -277,119 +425,170 @@ const ApprovalTableRow = React.memo(({
   fmtTime: (t: string) => string;
   isRTL?: boolean;
 }) => {
-  return (
-    <Pressable onLongPress={onLongPress}>
-      <ThemedView style={[styles.tableRow, { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: getPlatformFlexDirection(isRTL) }]}>
-        <StatusAccent color={theme.primary} />
-        
-        {isSelectionMode ? (
-          <View style={styles.tableCheckboxColumn}>
-            <SelectionCheckbox isSelected={isSelected} onToggle={onToggleSelection} />
+  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
+  
+  const nameText = (
+    <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, flex: 1, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={2}>
+      {request.visitor.fullName}
+    </ThemedText>
+  );
+  const walkInBadge = request.isWalkIn ? <WalkInBadge /> : null;
+  
+  const rejectBtn = (
+    <Pressable
+      style={[styles.actionButton, styles.rejectActionButton, { borderColor: theme.error, opacity: isProcessing || isExpired ? 0.5 : 1 }]}
+      onPress={onReject}
+      disabled={isProcessing || isExpired}
+    >
+      <DDIcon name="x" size={16} color={theme.error} />
+    </Pressable>
+  );
+  const approveBtn = (
+    <Pressable
+      style={[styles.actionButton, styles.approveActionButton, { backgroundColor: theme.success, opacity: isProcessing || isExpired ? 0.5 : 1 }]}
+      onPress={onApprove}
+      disabled={isProcessing || isExpired}
+    >
+      <DDIcon name="check" size={16} color={theme.buttonText} />
+    </Pressable>
+  );
+  const detailsBtn = (
+    <Pressable
+      style={[styles.actionButton, styles.detailsActionButton, { borderColor: theme.border }]}
+      onPress={onViewDetails}
+    >
+      <DDIcon name="eye" size={16} variant="muted" />
+    </Pressable>
+  );
+  
+  const statusAccent = <StatusAccent color={theme.primary} />;
+  const checkboxColumn = isSelectionMode ? (
+    <View style={styles.tableCheckboxColumn}>
+      <SelectionCheckbox isSelected={isSelected} onToggle={onToggleSelection} />
+    </View>
+  ) : null;
+  
+  const fixedColumnContent = (
+    <View style={[styles.fixedColumn, { width: isSelectionMode ? LAYOUT.tableFixedColumnWidth - 40 : LAYOUT.tableFixedColumnWidth }]}>
+      <View style={styles.fixedColumnContent}>
+        <View style={{ flex: 1 }}>
+          <View style={[styles.nameWithBadge, { flexDirection: 'row' }]}>
+            {shouldSwap ? (
+              <>{walkInBadge}{nameText}</>
+            ) : (
+              <>{nameText}{walkInBadge}</>
+            )}
           </View>
-        ) : null}
-        
-        <View style={[styles.fixedColumn, { width: isSelectionMode ? LAYOUT.tableFixedColumnWidth - 40 : LAYOUT.tableFixedColumnWidth }]}>
-          <View style={styles.fixedColumnContent}>
-            <View style={{ flex: 1 }}>
-              <View style={[styles.nameWithBadge, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, flex: 1, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={2}>
-                  {request.visitor.fullName}
-                </ThemedText>
-                {request.isWalkIn ? <WalkInBadge /> : null}
-              </View>
-              <Spacer height={6} />
-              <DateTimeDisplay 
-                date={request.visitDate} 
-                time={request.visitTime} 
-                theme={theme} 
-                compact 
-                fmtDate={fmtDate}
-                fmtTime={fmtTime}
-                isRTL={isRTL}
-              />
-            </View>
+          <Spacer height={6} />
+          <DateTimeDisplay 
+            date={request.visitDate} 
+            time={request.visitTime} 
+            theme={theme} 
+            compact 
+            fmtDate={fmtDate}
+            fmtTime={fmtTime}
+            isRTL={isRTL}
+          />
+        </View>
+      </View>
+    </View>
+  );
+  
+  const scrollableContent = (
+    <ScrollView 
+      horizontal 
+      showsHorizontalScrollIndicator={true}
+      style={styles.scrollableColumns}
+      contentContainerStyle={styles.scrollableColumnsContent}
+      persistentScrollbar={true}
+      nestedScrollEnabled={true}
+    >
+      <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
+        <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
+          {t('form.company').toUpperCase()}
+        </ThemedText>
+        <Spacer height={10} />
+        <ThemedText style={[styles.columnValue, { fontSize: 15 }]} numberOfLines={2}>
+          {request.visitor.company || '-'}
+        </ThemedText>
+      </View>
+
+      <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
+        <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
+          {t('dashboard.requestedBy').toUpperCase()}
+        </ThemedText>
+        <Spacer height={10} />
+        <ThemedText style={[styles.columnValue, { fontSize: 15 }]} numberOfLines={2}>
+          {request.employeeName}
+        </ThemedText>
+      </View>
+
+      <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
+        <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
+          {t('form.purpose').toUpperCase()}
+        </ThemedText>
+        <Spacer height={10} />
+        <ThemedText style={[styles.columnValue, { fontSize: 15 }]} numberOfLines={3}>
+          {request.purpose}
+        </ThemedText>
+      </View>
+
+      <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
+        <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
+          {t('services.additionalServices').toUpperCase()}
+        </ThemedText>
+        <Spacer height={10} />
+        <ServiceIcons parkingSlot={request.parkingSlot} meetingRoom={request.meetingRoom} buffet={request.buffet} valet={request.valet} size={16} />
+      </View>
+
+      {!isSelectionMode ? (
+        <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
+          <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
+            {t('common.actions').toUpperCase()}
+          </ThemedText>
+          <Spacer height={10} />
+          <View style={[styles.actionsRow, { flexDirection: 'row' }]}>
+            {shouldSwap ? (
+              <>
+                {detailsBtn}
+                <Spacer width={Spacing.sm} />
+                {approveBtn}
+                <Spacer width={Spacing.sm} />
+                {rejectBtn}
+              </>
+            ) : (
+              <>
+                {rejectBtn}
+                <Spacer width={Spacing.sm} />
+                {approveBtn}
+                <Spacer width={Spacing.sm} />
+                {detailsBtn}
+              </>
+            )}
           </View>
         </View>
-
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={true}
-          style={styles.scrollableColumns}
-          contentContainerStyle={styles.scrollableColumnsContent}
-          persistentScrollbar={true}
-          nestedScrollEnabled={true}
-        >
-          <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
-            <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
-              {t('form.company').toUpperCase()}
-            </ThemedText>
-            <Spacer height={10} />
-            <ThemedText style={[styles.columnValue, { fontSize: 15 }]} numberOfLines={2}>
-              {request.visitor.company || '-'}
-            </ThemedText>
-          </View>
-
-          <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
-            <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
-              {t('dashboard.requestedBy').toUpperCase()}
-            </ThemedText>
-            <Spacer height={10} />
-            <ThemedText style={[styles.columnValue, { fontSize: 15 }]} numberOfLines={2}>
-              {request.employeeName}
-            </ThemedText>
-          </View>
-
-          <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
-            <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
-              {t('form.purpose').toUpperCase()}
-            </ThemedText>
-            <Spacer height={10} />
-            <ThemedText style={[styles.columnValue, { fontSize: 15 }]} numberOfLines={3}>
-              {request.purpose}
-            </ThemedText>
-          </View>
-
-          <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
-            <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
-              {t('services.additionalServices').toUpperCase()}
-            </ThemedText>
-            <Spacer height={10} />
-            <ServiceIcons parkingSlot={request.parkingSlot} meetingRoom={request.meetingRoom} buffet={request.buffet} valet={request.valet} size={16} />
-          </View>
-
-          {!isSelectionMode ? (
-            <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
-              <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
-                {t('common.actions').toUpperCase()}
-              </ThemedText>
-              <Spacer height={10} />
-              <View style={[styles.actionsRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-                <Pressable
-                  style={[styles.actionButton, styles.rejectActionButton, { borderColor: theme.error, opacity: isProcessing || isExpired ? 0.5 : 1 }]}
-                  onPress={onReject}
-                  disabled={isProcessing || isExpired}
-                >
-                  <DDIcon name="x" size={16} color={theme.error} />
-                </Pressable>
-                <Spacer width={Spacing.sm} />
-                <Pressable
-                  style={[styles.actionButton, styles.approveActionButton, { backgroundColor: theme.success, opacity: isProcessing || isExpired ? 0.5 : 1 }]}
-                  onPress={onApprove}
-                  disabled={isProcessing || isExpired}
-                >
-                  <DDIcon name="check" size={16} color={theme.buttonText} />
-                </Pressable>
-                <Spacer width={Spacing.sm} />
-                <Pressable
-                  style={[styles.actionButton, styles.detailsActionButton, { borderColor: theme.border }]}
-                  onPress={onViewDetails}
-                >
-                  <DDIcon name="eye" size={16} variant="muted" />
-                </Pressable>
-              </View>
-            </View>
-          ) : null}
-        </ScrollView>
+      ) : null}
+    </ScrollView>
+  );
+  
+  return (
+    <Pressable onLongPress={onLongPress}>
+      <ThemedView style={[styles.tableRow, { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: 'row' }]}>
+        {shouldSwap ? (
+          <>
+            {scrollableContent}
+            {fixedColumnContent}
+            {checkboxColumn}
+            {statusAccent}
+          </>
+        ) : (
+          <>
+            {statusAccent}
+            {checkboxColumn}
+            {fixedColumnContent}
+            {scrollableContent}
+          </>
+        )}
       </ThemedView>
     </Pressable>
   );
@@ -512,28 +711,56 @@ const RejectRequestModal = ({
 
             <Spacer height={Spacing.xl} />
 
-            <View style={[styles.rejectModalActions, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-              <LoadingButton
-                onPress={handleCancel}
-                variant="outline"
-                size="medium"
-                fullWidth={false}
-                disabled={isProcessing}
-                style={{ flex: 1, marginEnd: Spacing.sm }}
-              >
-                {t('common.cancel')}
-              </LoadingButton>
-              <LoadingButton
-                onPress={handleSubmit}
-                variant="primary"
-                size="medium"
-                fullWidth={false}
-                loading={isProcessing}
-                disabled={isProcessing}
-                style={{ flex: 1, backgroundColor: theme.warning }}
-              >
-                {t('common.confirm')}
-              </LoadingButton>
+            <View style={[styles.rejectModalActions, { flexDirection: 'row' }]}>
+              {shouldSwapChildrenForRTL(isRTL) ? (
+                <>
+                  <LoadingButton
+                    onPress={handleSubmit}
+                    variant="primary"
+                    size="medium"
+                    fullWidth={false}
+                    loading={isProcessing}
+                    disabled={isProcessing}
+                    style={{ flex: 1, backgroundColor: theme.warning }}
+                  >
+                    {t('common.confirm')}
+                  </LoadingButton>
+                  <LoadingButton
+                    onPress={handleCancel}
+                    variant="outline"
+                    size="medium"
+                    fullWidth={false}
+                    disabled={isProcessing}
+                    style={{ flex: 1, marginStart: Spacing.sm }}
+                  >
+                    {t('common.cancel')}
+                  </LoadingButton>
+                </>
+              ) : (
+                <>
+                  <LoadingButton
+                    onPress={handleCancel}
+                    variant="outline"
+                    size="medium"
+                    fullWidth={false}
+                    disabled={isProcessing}
+                    style={{ flex: 1, marginEnd: Spacing.sm }}
+                  >
+                    {t('common.cancel')}
+                  </LoadingButton>
+                  <LoadingButton
+                    onPress={handleSubmit}
+                    variant="primary"
+                    size="medium"
+                    fullWidth={false}
+                    loading={isProcessing}
+                    disabled={isProcessing}
+                    style={{ flex: 1, backgroundColor: theme.warning }}
+                  >
+                    {t('common.confirm')}
+                  </LoadingButton>
+                </>
+              )}
             </View>
           </ThemedView>
         </Pressable>

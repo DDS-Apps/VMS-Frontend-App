@@ -20,7 +20,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
 import { LoadingButton } from "@/components/shared/LoadingButton";
 import { DirectionalRow } from "@/components/DirectionalRow";
-import { getPlatformFlexDirection } from "@/utils/rtlInitializer";
+import { shouldSwapChildrenForRTL } from "@/utils/rtlInitializer";
 import { UserRole } from "@/types/vms.types";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
@@ -67,6 +67,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isMicrosoftSubmitting, setIsMicrosoftSubmitting] = useState(false);
+  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -552,31 +553,57 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                   backgroundColor: theme.surface,
                   borderColor: theme.border,
                   opacity: isMicrosoftSubmitting || isAzureLoading ? 0.7 : 1,
-                  flexDirection: getPlatformFlexDirection(isRTL),
+                  flexDirection: 'row',
                 },
               ]}
               onPress={handleMicrosoftLogin}
               disabled={isMicrosoftSubmitting || isAzureLoading || isSubmitting}
             >
-              {isMicrosoftSubmitting || isAzureLoading ? (
-                <ActivityIndicator size="small" color={theme.primary} />
+              {shouldSwap ? (
+                <>
+                  <ThemedText
+                    style={[
+                      Typography.body,
+                      {
+                        color: theme.text,
+                        fontWeight: "600",
+                        marginEnd: Spacing.sm,
+                      },
+                    ]}
+                  >
+                    {isMicrosoftSubmitting || isAzureLoading
+                      ? t("auth.signingIn")
+                      : t("auth.signInWithMicrosoft")}
+                  </ThemedText>
+                  {isMicrosoftSubmitting || isAzureLoading ? (
+                    <ActivityIndicator size="small" color={theme.primary} />
+                  ) : (
+                    <DDIcon name="globe" size={INPUT_ICON_SIZE} variant="primary" />
+                  )}
+                </>
               ) : (
-                <DDIcon name="globe" size={INPUT_ICON_SIZE} variant="primary" />
+                <>
+                  {isMicrosoftSubmitting || isAzureLoading ? (
+                    <ActivityIndicator size="small" color={theme.primary} />
+                  ) : (
+                    <DDIcon name="globe" size={INPUT_ICON_SIZE} variant="primary" />
+                  )}
+                  <ThemedText
+                    style={[
+                      Typography.body,
+                      {
+                        color: theme.text,
+                        fontWeight: "600",
+                        marginStart: Spacing.sm,
+                      },
+                    ]}
+                  >
+                    {isMicrosoftSubmitting || isAzureLoading
+                      ? t("auth.signingIn")
+                      : t("auth.signInWithMicrosoft")}
+                  </ThemedText>
+                </>
               )}
-              <ThemedText
-                style={[
-                  Typography.body,
-                  {
-                    color: theme.text,
-                    fontWeight: "600",
-                    marginStart: Spacing.sm,
-                  },
-                ]}
-              >
-                {isMicrosoftSubmitting || isAzureLoading
-                  ? t("auth.signingIn")
-                  : t("auth.signInWithMicrosoft")}
-              </ThemedText>
             </Pressable>
           </View>
         </View>

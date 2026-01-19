@@ -48,10 +48,21 @@ The VMS app employs a Clean Architecture pattern, segmenting the application int
 - **Core Technologies:** React Native, Expo, TypeScript.
 - **Iconography & RTL Support:** `DDIcon` component for theme-aware icons with automatic RTL mirroring. Full RTL compatibility.
 - **RTL Pattern for Android:** Critical pattern to prevent double-inversion bugs on Android mobile:
-  - **Child Swapping Pattern:** For simple icon + text rows, use `flexDirection: 'row'` always (never 'row-reverse'), then swap children order when `isRTL && Platform.OS !== 'web'`
+  - **Child Swapping Pattern:** For icon + text rows, use `flexDirection: 'row'` always (never 'row-reverse'), then swap children order when `shouldSwapChildrenForRTL(isRTL)` returns true
   - **Web:** Relies on browser's dir="rtl" for automatic layout reversal
   - **Mobile:** Manual child swapping prevents React Native's built-in I18nManager from double-reversing layouts
-  - **Components:** `RTLInfoRow` and `RTLSimpleRow` implement this pattern; use them for consistent RTL behavior
+  - **Helper Functions:** 
+    - `shouldSwapChildrenForRTL(isRTL)` - returns true when child swapping is needed (mobile RTL only)
+    - `DirectionalRow` component - automatically handles child swapping for its children
+    - `RTLInfoRow` / `RTLSimpleRow` - specialized row components with built-in child swapping
+  - **Usage Pattern:**
+    ```tsx
+    const shouldSwap = shouldSwapChildrenForRTL(isRTL);
+    <View style={{ flexDirection: 'row' }}>
+      {shouldSwap ? (<><Text>Text</Text><Icon /></>) : (<><Icon /><Text>Text</Text></>)}
+    </View>
+    ```
+  - **Deprecated:** `getPlatformFlexDirection()` - do not use; causes double-inversion bugs
   - **Avoid:** Never mix flex-direction reversal with child order manipulation in the same component layer
 - **State Management:** Centralized state service using mutable mock data and `useFocusEffect` for reactive updates.
 - **Role-Based Access:** Specialized interfaces and navigation for nine distinct user roles.

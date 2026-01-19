@@ -18,7 +18,7 @@ import { useSecurityVisitorsQuery } from "@/hooks/queries/useSecurityQueries";
 import type { SecurityVisitorDto } from "@/types";
 import type { SecurityCheckInScreenProps } from "@/types/securityNavigation.types";
 import type { Theme } from "@/types/theme.types";
-import { getPlatformFlexDirection } from '@/utils/rtlInitializer';
+import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
 
 const LAYOUT = {
   cardPadding: Spacing.lg,
@@ -133,6 +133,7 @@ interface DateRange {
 export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScreenProps) {
   const { theme } = useTheme();
   const { t, isRTL } = useTranslation();
+  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
   const { formatTimeFromString } = useFormatters();
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
@@ -443,7 +444,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
           <View style={[styles.cardAccent, { backgroundColor: statusConfig.borderColor }]} />
           
           <View style={styles.cardMainSection}>
-            <View style={[styles.cardHeaderRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+            <View style={[styles.cardHeaderRow, { flexDirection: 'row' }]}>
               <VisitorAvatar name={visitor.name} theme={theme} size={LAYOUT.avatarSize} />
               
               <View style={[styles.cardNameSection, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
@@ -466,27 +467,53 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
 
             <Spacer height={Spacing.sm} />
 
-            <View style={[styles.compactDetailsRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
-              <DDIcon name="user" size={14} variant="muted" />
-              <ThemedText style={[styles.compactDetailText, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
-                {detailParts.join('  |  ')}
-              </ThemedText>
+            <View style={[styles.compactDetailsRow, { flexDirection: 'row' }]}>
+              {shouldSwap ? (
+                <>
+                  <ThemedText style={[styles.compactDetailText, { color: theme.textSecondary, textAlign: 'right', marginEnd: 8 }]} numberOfLines={1}>
+                    {detailParts.join('  |  ')}
+                  </ThemedText>
+                  <DDIcon name="user" size={14} variant="muted" />
+                </>
+              ) : (
+                <>
+                  <DDIcon name="user" size={14} variant="muted" />
+                  <ThemedText style={[styles.compactDetailText, { color: theme.textSecondary, textAlign: 'left' }]} numberOfLines={1}>
+                    {detailParts.join('  |  ')}
+                  </ThemedText>
+                </>
+              )}
             </View>
 
             <Spacer height={Spacing.sm} />
 
             <View style={[styles.compactServiceRow, { 
               backgroundColor: hasParking ? applyOpacity(theme.success, '08') : applyOpacity(theme.textSecondary, '08'),
-              flexDirection: getPlatformFlexDirection(isRTL)
+              flexDirection: 'row'
             }]}>
-              <DDIcon 
-                name={hasParking ? "map-pin" : "x-circle"} 
-                size={14} 
-                color={hasParking ? theme.success : theme.textSecondary} 
-              />
-              <ThemedText style={[styles.compactServiceText, { color: hasParking ? theme.success : theme.textSecondary }]}>
-                {serviceParts.join('  |  ')}
-              </ThemedText>
+              {shouldSwap ? (
+                <>
+                  <ThemedText style={[styles.compactServiceText, { color: hasParking ? theme.success : theme.textSecondary, marginEnd: 8 }]}>
+                    {serviceParts.join('  |  ')}
+                  </ThemedText>
+                  <DDIcon 
+                    name={hasParking ? "map-pin" : "x-circle"} 
+                    size={14} 
+                    color={hasParking ? theme.success : theme.textSecondary} 
+                  />
+                </>
+              ) : (
+                <>
+                  <DDIcon 
+                    name={hasParking ? "map-pin" : "x-circle"} 
+                    size={14} 
+                    color={hasParking ? theme.success : theme.textSecondary} 
+                  />
+                  <ThemedText style={[styles.compactServiceText, { color: hasParking ? theme.success : theme.textSecondary }]}>
+                    {serviceParts.join('  |  ')}
+                  </ThemedText>
+                </>
+              )}
             </View>
           </View>
         </ThemedView>
@@ -563,7 +590,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
         
         <Spacer height={Spacing.sm} />
         
-        <View style={[styles.dateDisplayRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+        <View style={[styles.dateDisplayRow, { flexDirection: 'row' }]}>
           <ThemedText style={[Typography.bodySmall, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
             {formatDisplayDate()}
           </ThemedText>
@@ -574,7 +601,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.searchBarWrapper, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+        <View style={[styles.searchBarWrapper, { flexDirection: 'row' }]}>
           <SearchInput
             placeholder={t('common.search')}
             value={searchQuery}
