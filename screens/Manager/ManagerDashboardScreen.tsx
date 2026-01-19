@@ -27,6 +27,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { VisitorRequest } from "@/types/vms.types";
 import type { PendingApprovalDto } from "@/types/api.types";
 import { applyOpacity } from "@/utils/statusStyles";
+import { getPlatformFlexDirection } from "@/utils/rtlInitializer";
 import type { ManagerDashboardScreenProps } from "@/types/managerNavigation.types";
 import type { Theme } from "@/types/theme.types";
 import { mapPendingApprovalToVisitorRequest } from "@/utils/requestMappers";
@@ -46,7 +47,7 @@ const LAYOUT = {
 
 const DateTimeDisplay = ({ date, time, duration, theme, compact = false, fmtDate, fmtTime, isRTL = false }: { date: string; time: string; duration?: string; theme: Theme; compact?: boolean; fmtDate: (d: Date | string) => string; fmtTime: (t: string) => string; isRTL?: boolean }) => {
   return (
-    <View style={[styles.dateTimeRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+    <View style={[styles.dateTimeRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
       <DDIcon name="calendar" size={compact ? 13 : 14} variant="muted" />
       <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
         {fmtDate(date)}
@@ -85,7 +86,7 @@ const SectionHeader = ({
   t: (key: string) => string;
   isRTL?: boolean;
 }) => (
-  <View style={[styles.header, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+  <View style={[styles.header, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
     <View style={{ alignItems: isRTL ? 'flex-end' : 'flex-start' }}>
       <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
         {t('navigation.pendingApprovals')}
@@ -94,7 +95,7 @@ const SectionHeader = ({
         {t('dashboard.requestsAwaitingApproval')}
       </ThemedText>
     </View>
-    <View style={[styles.headerActions, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+    <View style={[styles.headerActions, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
       <Pressable
         onPress={onToggleSelectionMode}
         style={[
@@ -115,7 +116,7 @@ const SectionHeader = ({
         </ThemedText>
       </Pressable>
       <Spacer width={Spacing.sm} />
-      <View style={[styles.viewModeToggle, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <View style={[styles.viewModeToggle, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
         <Pressable
           onPress={() => onViewModeChange('card')}
           style={[
@@ -160,8 +161,8 @@ const SelectAllBar = ({
   t: (key: string) => string;
   isRTL?: boolean;
 }) => (
-  <View style={[styles.selectAllBar, { backgroundColor: theme.surfaceSecondary, flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-    <Pressable onPress={onToggleAll} style={[styles.selectAllButton, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+  <View style={[styles.selectAllBar, { backgroundColor: theme.surfaceSecondary, flexDirection: getPlatformFlexDirection(isRTL) }]}>
+    <Pressable onPress={onToggleAll} style={[styles.selectAllButton, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
       <SelectionCheckbox isSelected={allSelected} onToggle={onToggleAll} />
       <Spacer width={Spacing.sm} />
       <ThemedText style={[Typography.body, { color: theme.text }]}>
@@ -202,13 +203,13 @@ const BulkActionBar = ({
       }
     ]}
   >
-    <View style={[styles.bulkActionContent, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+    <View style={[styles.bulkActionContent, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
       <ThemedText style={[Typography.body, { fontWeight: '600', color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
         {isProcessing ? t('common.processing') : `${selectedCount} ${t('bulkActions.selected')}`}
       </ThemedText>
-      <View style={[styles.bulkActionButtons, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <View style={[styles.bulkActionButtons, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
         <Pressable
-          style={[styles.bulkRejectButton, { borderColor: theme.error, opacity: isProcessing ? 0.6 : 1, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
+          style={[styles.bulkRejectButton, { borderColor: theme.error, opacity: isProcessing ? 0.6 : 1, flexDirection: getPlatformFlexDirection(isRTL) }]}
           onPress={onReject}
           disabled={isProcessing}
         >
@@ -224,7 +225,7 @@ const BulkActionBar = ({
         </Pressable>
         <Spacer width={Spacing.sm} />
         <Pressable
-          style={[styles.bulkApproveButton, { backgroundColor: theme.success, opacity: isProcessing ? 0.6 : 1, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
+          style={[styles.bulkApproveButton, { backgroundColor: theme.success, opacity: isProcessing ? 0.6 : 1, flexDirection: getPlatformFlexDirection(isRTL) }]}
           onPress={onApprove}
           disabled={isProcessing}
         >
@@ -278,7 +279,7 @@ const ApprovalTableRow = React.memo(({
 }) => {
   return (
     <Pressable onLongPress={onLongPress}>
-      <ThemedView style={[styles.tableRow, { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <ThemedView style={[styles.tableRow, { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: getPlatformFlexDirection(isRTL) }]}>
         <StatusAccent color={theme.primary} />
         
         {isSelectionMode ? (
@@ -290,7 +291,7 @@ const ApprovalTableRow = React.memo(({
         <View style={[styles.fixedColumn, { width: isSelectionMode ? LAYOUT.tableFixedColumnWidth - 40 : LAYOUT.tableFixedColumnWidth }]}>
           <View style={styles.fixedColumnContent}>
             <View style={{ flex: 1 }}>
-              <View style={[styles.nameWithBadge, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.nameWithBadge, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, flex: 1, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={2}>
                   {request.visitor.fullName}
                 </ThemedText>
@@ -362,7 +363,7 @@ const ApprovalTableRow = React.memo(({
                 {t('common.actions').toUpperCase()}
               </ThemedText>
               <Spacer height={10} />
-              <View style={[styles.actionsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.actionsRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                 <Pressable
                   style={[styles.actionButton, styles.rejectActionButton, { borderColor: theme.error, opacity: isProcessing || isExpired ? 0.5 : 1 }]}
                   onPress={onReject}
@@ -511,7 +512,7 @@ const RejectRequestModal = ({
 
             <Spacer height={Spacing.xl} />
 
-            <View style={[styles.rejectModalActions, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.rejectModalActions, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
               <LoadingButton
                 onPress={handleCancel}
                 variant="outline"

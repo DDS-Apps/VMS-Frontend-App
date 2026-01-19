@@ -16,6 +16,7 @@ import { useSecurityGateLogsQuery } from "@/hooks/queries/useSecurityQueries";
 import type { GateLogEntry, GateAction, GateResult } from "@/types";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { SecurityStackParamList } from "@/types/securityNavigation.types";
+import { getPlatformFlexDirection } from '@/utils/rtlInitializer';
 
 type GateEventsLogScreenProps = NativeStackScreenProps<SecurityStackParamList, "GateEventsLog">;
 
@@ -186,12 +187,12 @@ export default function GateEventsLogScreen({ navigation }: GateEventsLogScreenP
     return (
       <ThemedView
         key={event.id}
-        style={[styles.eventCard, { backgroundColor: theme.surface, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
+        style={[styles.eventCard, { backgroundColor: theme.surface, flexDirection: getPlatformFlexDirection(isRTL) }]}
       >
         <View style={[styles.resultBorderLine, { backgroundColor: resultConfig.color }]} />
         
         <View style={styles.cardContent}>
-          <View style={[styles.cardHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.cardHeader, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
             <View style={styles.visitorInfo}>
               <ThemedText style={[Typography.body, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
                 {event.visitorName || t('common.unknown')}
@@ -200,7 +201,7 @@ export default function GateEventsLogScreen({ navigation }: GateEventsLogScreenP
                 {event.gateName}
               </ThemedText>
             </View>
-            <View style={[styles.resultBadge, { backgroundColor: resultConfig.bgColor, flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.resultBadge, { backgroundColor: resultConfig.bgColor, flexDirection: getPlatformFlexDirection(isRTL) }]}>
               <DDIcon name={resultConfig.icon} size={12} color={resultConfig.color} />
               <ThemedText style={[styles.resultText, { color: resultConfig.color }]}>
                 {resultConfig.label}
@@ -209,7 +210,7 @@ export default function GateEventsLogScreen({ navigation }: GateEventsLogScreenP
           </View>
 
           {event.reason ? (
-            <View style={[styles.reasonBox, { backgroundColor: applyOpacity(theme.error, '08'), flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.reasonBox, { backgroundColor: applyOpacity(theme.error, '08'), flexDirection: getPlatformFlexDirection(isRTL) }]}>
               <DDIcon name="alert-circle" size={14} color={theme.error} />
               <ThemedText style={[Typography.caption, { color: theme.error, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                 {event.reason}
@@ -217,14 +218,14 @@ export default function GateEventsLogScreen({ navigation }: GateEventsLogScreenP
             </View>
           ) : null}
 
-          <View style={[styles.metaRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <View style={[styles.metaChip, { backgroundColor: applyOpacity(theme.primary, '10'), flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.metaRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+            <View style={[styles.metaChip, { backgroundColor: applyOpacity(theme.primary, '10'), flexDirection: getPlatformFlexDirection(isRTL) }]}>
               <DDIcon name={methodConfig.icon} size={12} color={theme.primary} />
               <ThemedText style={[styles.metaText, { color: theme.primary }]}>
                 {methodConfig.label}
               </ThemedText>
             </View>
-            <View style={[styles.metaChip, { backgroundColor: applyOpacity(theme.textSecondary, '10'), flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.metaChip, { backgroundColor: applyOpacity(theme.textSecondary, '10'), flexDirection: getPlatformFlexDirection(isRTL) }]}>
               <DDIcon name="clock" size={12} color={theme.textSecondary} />
               <ThemedText style={[styles.metaText, { color: theme.textSecondary }]}>
                 {timestamp.date}, {timestamp.time}
@@ -277,8 +278,8 @@ export default function GateEventsLogScreen({ navigation }: GateEventsLogScreenP
       
       <Spacer height={Spacing.sm} />
       
-      <View style={[styles.summaryRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-        <View style={[styles.summaryCard, { backgroundColor: applyOpacity(theme.success, '12'), flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <View style={[styles.summaryRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+        <View style={[styles.summaryCard, { backgroundColor: applyOpacity(theme.success, '12'), flexDirection: getPlatformFlexDirection(isRTL) }]}>
           <DDIcon name="check-circle" size={20} color={theme.success} />
           <View>
             <ThemedText style={[Typography.title, { fontSize: 20, fontWeight: '700', color: theme.success, textAlign: isRTL ? 'right' : 'left' }]}>
@@ -289,7 +290,7 @@ export default function GateEventsLogScreen({ navigation }: GateEventsLogScreenP
             </ThemedText>
           </View>
         </View>
-        <View style={[styles.summaryCard, { backgroundColor: applyOpacity(theme.error, '12'), flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.summaryCard, { backgroundColor: applyOpacity(theme.error, '12'), flexDirection: getPlatformFlexDirection(isRTL) }]}>
           <DDIcon name="x-circle" size={20} color={theme.error} />
           <View>
             <ThemedText style={[Typography.title, { fontSize: 20, fontWeight: '700', color: theme.error, textAlign: isRTL ? 'right' : 'left' }]}>

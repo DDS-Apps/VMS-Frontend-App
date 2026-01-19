@@ -20,6 +20,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { authService } from "@/services/api/authService";
 import { useToast } from "@/contexts/ToastContext";
 import { ApiException } from "@/api/errors";
+import { getPlatformFlexDirection } from "@/utils/rtlInitializer";
 
 interface EditProfileScreenProps {
   userRole?: UserRole;
@@ -384,7 +385,7 @@ export default function EditProfileScreen({
               </View>
             ) : null}
           </View>
-          <View style={[styles.photoButtons, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.photoButtons, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
             <LoadingButton
               onPress={handlePickPhoto}
               loading={isUploadingPhoto}
@@ -425,7 +426,7 @@ export default function EditProfileScreen({
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.infoRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
           <View style={styles.infoItem}>
             <ThemedText style={[styles.infoLabel, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('settings.status')}

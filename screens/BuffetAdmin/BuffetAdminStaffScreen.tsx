@@ -10,6 +10,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { applyOpacity } from "@/utils/statusStyles";
+import { getPlatformFlexDirection } from "@/utils/rtlInitializer";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useBuffetAdminStaffQuery, useUpdateStaffDutyMutation } from "@/hooks/queries/useBuffetQueries";
 import type { BuffetAdminStaffDto } from "@/types/api.types";
@@ -137,7 +138,7 @@ export default function BuffetAdminStaffScreen() {
           },
         ]}
       >
-        <View style={[styles.cardHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.cardHeader, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
           <View style={[styles.avatar, { backgroundColor: applyOpacity(roleColor, '12') }]}>
             <ThemedText style={[styles.avatarText, { color: roleColor }]}>
               {initials}
@@ -160,7 +161,7 @@ export default function BuffetAdminStaffScreen() {
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.metaRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.metaRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
           <DDIcon name="briefcase" size={14} color={theme.textSecondary} />
           <ThemedText style={[styles.metaText, { color: theme.textSecondary }]}>
             {item.currentTasks} {t('dashboard.activeTasks')}
@@ -169,8 +170,8 @@ export default function BuffetAdminStaffScreen() {
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.cardFooter, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-          <View style={[styles.statusContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.cardFooter, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+          <View style={[styles.statusContainer, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
             <View 
               style={[
                 styles.statusIndicator, 
@@ -223,7 +224,7 @@ export default function BuffetAdminStaffScreen() {
 
   return (
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
-      <View style={[styles.kpiRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <View style={[styles.kpiRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
         <KPICard 
           title={t('dashboard.totalStaff')} 
           value={String(stats.total)} 

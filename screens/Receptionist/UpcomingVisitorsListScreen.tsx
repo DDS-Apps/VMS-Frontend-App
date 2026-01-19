@@ -14,6 +14,7 @@ import { useFormatters } from "@/hooks/useFormatters";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
 import { applyOpacity } from "@/utils/statusStyles";
+import { getPlatformFlexDirection } from "@/utils/rtlInitializer";
 import { useTodayVisitorsQuery } from "@/hooks/queries/useReceptionQueries";
 import type { TodayVisitorDto } from "@/types";
 
@@ -117,7 +118,7 @@ export default function UpcomingVisitorsListScreen() {
         <View style={[styles.statusBorderLine, { backgroundColor: statusConfig.border }]} />
         
         <View style={styles.cardMainSection}>
-          <View style={[styles.cardHeaderRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.cardHeaderRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
             <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
               <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
                 {initials}
@@ -136,7 +137,7 @@ export default function UpcomingVisitorsListScreen() {
 
           <Spacer height={Spacing.md} />
 
-          <View style={[styles.dateTimeRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.dateTimeRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
             <DDIcon name="clock" size={13} variant="muted" />
             <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
               {formatTimeFromString(item.visitTime)}
@@ -150,8 +151,8 @@ export default function UpcomingVisitorsListScreen() {
 
           <Spacer height={Spacing.md} />
 
-          <View style={[styles.bottomRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <View style={[styles.servicesRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.bottomRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+            <View style={[styles.servicesRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
               {item.parkingSlot ? (
                 <View style={[styles.servicePillRounded, { backgroundColor: applyOpacity(theme.info, '20') }]}>
                   <DDIcon name="map-pin" size={14} color={theme.info} />
@@ -170,7 +171,7 @@ export default function UpcomingVisitorsListScreen() {
               <Spacer height={Spacing.md} />
               <View style={[styles.expandedSection, { backgroundColor: applyOpacity(theme.border, '30') }]}>
                 {item.visitor.phone ? (
-                  <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                  <View style={[styles.expandedDetailRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                     <DDIcon name="phone" size={14} variant="muted" />
                     <ThemedText style={[styles.expandedDetailText, { color: theme.textSecondary }]}>
                       {item.visitor.phone}
@@ -178,7 +179,7 @@ export default function UpcomingVisitorsListScreen() {
                   </View>
                 ) : null}
                 {item.visitor.email ? (
-                  <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                  <View style={[styles.expandedDetailRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                     <DDIcon name="mail" size={14} variant="muted" />
                     <ThemedText style={[styles.expandedDetailText, { color: theme.textSecondary }]}>
                       {item.visitor.email}
@@ -190,7 +191,7 @@ export default function UpcomingVisitorsListScreen() {
           ) : null}
 
           {(item.visitor.phone || item.visitor.email) ? (
-            <Pressable onPress={() => toggleExpand(item.id)} style={[styles.toggleContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <Pressable onPress={() => toggleExpand(item.id)} style={[styles.toggleContainer, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
               <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
                 {expandedVisitors.has(item.id) ? t('common.lessDetails') : t('common.moreDetails')}
               </ThemedText>

@@ -10,6 +10,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { applyOpacity } from "@/utils/statusStyles";
+import { getPlatformFlexDirection } from "@/utils/rtlInitializer";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   useBuffetLoadSummaryQuery,
@@ -199,7 +200,7 @@ export default function BuffetOverviewScreen({ navigation }: BuffetOverviewScree
           }
         ]}
       >
-        <View style={[styles.locationHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.locationHeader, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
           <View style={styles.locationInfo}>
             <ThemedText style={[styles.locationName, { color: theme.text }]}>
               {location.locationName}
@@ -228,7 +229,7 @@ export default function BuffetOverviewScreen({ navigation }: BuffetOverviewScree
           <>
             <Spacer height={Spacing.md} />
 
-            <View style={[styles.statsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.statsRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
               <View style={styles.statItem}>
                 <DDIcon name="users" size={16} variant="muted" />
                 <ThemedText style={[styles.statValue, { color: theme.text }]}>
@@ -277,7 +278,7 @@ export default function BuffetOverviewScreen({ navigation }: BuffetOverviewScree
 
             <Spacer height={Spacing.sm} />
 
-            <View style={[styles.legendRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.legendRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
               {location.statusBreakdown.pending > 0 ? (
                 <View style={styles.legendItem}>
                   <View style={[styles.legendDot, { backgroundColor: theme.primary }]} />
@@ -319,7 +320,7 @@ export default function BuffetOverviewScreen({ navigation }: BuffetOverviewScree
 
   return (
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
-      <View style={[styles.kpiRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <View style={[styles.kpiRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
         <KPICard 
           title={t('buffet.eventsToday')} 
           value={String(stats.totalEvents)} 
@@ -355,7 +356,7 @@ export default function BuffetOverviewScreen({ navigation }: BuffetOverviewScree
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.summaryStatsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.summaryStatsRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
           <View style={styles.summaryStatItem}>
             <View style={[styles.summaryStatDot, { backgroundColor: theme.primary }]} />
             <ThemedText style={[styles.summaryStatLabel, { color: theme.textSecondary }]}>

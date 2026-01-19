@@ -12,6 +12,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
 import { applyOpacity } from "@/utils/statusStyles";
 import { useSecurityVisitorQuery } from "@/hooks/queries/useSecurityQueries";
+import { getPlatformFlexDirection } from '@/utils/rtlInitializer';
 import type { SecurityVisitorDetailScreenProps } from "@/types/securityNavigation.types";
 
 export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDetailScreenProps) {
@@ -141,7 +142,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.infoRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.infoRowNew, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
           <DDIcon name="mail" size={16} variant="muted" />
           <ThemedText
             style={[
@@ -161,7 +162,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.infoRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.infoRowNew, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
           <DDIcon name="phone" size={16} variant="muted" />
           <ThemedText
             style={[
@@ -187,7 +188,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
         </ThemedText>
         <Spacer height={Spacing.xl} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.serviceRowNew, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="calendar" size={18} color={theme.text} />
           </View>
@@ -203,7 +204,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.serviceRowNew, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="clock" size={18} color={theme.text} />
           </View>
@@ -219,7 +220,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.serviceRowNew, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="user" size={18} color={theme.text} />
           </View>
@@ -237,7 +238,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
           <>
             <Spacer height={Spacing.lg} />
 
-            <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.serviceRowNew, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
               <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
                 <DDIcon name="briefcase" size={18} color={theme.text} />
               </View>
@@ -262,7 +263,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
         </ThemedText>
         <Spacer height={Spacing.xl} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.serviceRowNew, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
           <View style={[styles.serviceIcon, { backgroundColor: hasParking ? applyOpacity(theme.primary, '15') : applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="map-pin" size={18} color={hasParking ? theme.primary : theme.text} />
           </View>
@@ -275,7 +276,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                 {parkingInfo.text}
               </ThemedText>
             ) : (
-              <View style={[styles.noBadge, { backgroundColor: applyOpacity(theme.textSecondary, '12'), flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.noBadge, { backgroundColor: applyOpacity(theme.textSecondary, '12'), flexDirection: getPlatformFlexDirection(isRTL) }]}>
                 <DDIcon name="x-circle" size={12} color={theme.textSecondary} />
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontWeight: '500', marginStart: 4, fontSize: 12 }]}>
                   {parkingInfo.text}
@@ -298,7 +299,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
             <Spacer height={Spacing.xl} />
 
             {visitorData.checkInTime ? (
-              <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.serviceRowNew, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                 <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.success, '15') }]}>
                   <DDIcon name="log-in" size={18} color={theme.success} />
                 </View>
@@ -318,7 +319,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
             ) : null}
 
             {visitorData.checkOutTime ? (
-              <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.serviceRowNew, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                 <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
                   <DDIcon name="log-out" size={18} color={theme.textSecondary} />
                 </View>
@@ -341,7 +342,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
           <Spacer height={Spacing.lg} />
 
           <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
-            <View style={[styles.notesHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.notesHeader, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
               <DDIcon name="file-text" size={16} color={theme.info} />
               <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginStart: Spacing.sm, fontSize: 14, color: theme.text }]}>
                 {t('form.notes')}

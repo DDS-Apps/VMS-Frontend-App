@@ -12,6 +12,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { ReminderRules } from "@/types/vms.types";
 import { useReminderRulesQuery, useUpdateReminderRulesMutation } from "@/hooks/queries/useAdminQueries";
+import { getPlatformFlexDirection } from '@/utils/rtlInitializer';
 
 const HORIZONTAL_PADDING = Spacing.md;
 
@@ -224,7 +225,7 @@ export default function ReminderRulesScreen() {
         </View>
 
         <View style={[styles.section, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <View style={[styles.sectionHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.sectionHeader, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
             <View style={[styles.iconContainer, { backgroundColor: theme.primary + "15" }]}>
               <DDIcon name="power" size={24} color={theme.primary} />
             </View>
@@ -246,7 +247,7 @@ export default function ReminderRulesScreen() {
         </View>
 
         <View style={[styles.section, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <View style={[styles.sectionTitle, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.sectionTitle, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
             <DDIcon name="bell" size={20} color={theme.text} />
             <ThemedText style={[Typography.subtitle, { fontWeight: "600", marginStart: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
               {t("admin.reminderRules")}
@@ -254,7 +255,7 @@ export default function ReminderRulesScreen() {
           </View>
 
           <View style={styles.ruleCard}>
-            <View style={[styles.ruleHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.ruleHeader, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
               <View style={[styles.ruleBadge, { backgroundColor: theme.info + "20" }]}>
                 <ThemedText style={[Typography.caption, { color: theme.info, fontWeight: "600" }]}>1st</ThemedText>
               </View>
@@ -276,7 +277,7 @@ export default function ReminderRulesScreen() {
           </View>
 
           <View style={styles.ruleCard}>
-            <View style={[styles.ruleHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.ruleHeader, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
               <View style={[styles.ruleBadge, { backgroundColor: theme.warning + "20" }]}>
                 <ThemedText style={[Typography.caption, { color: theme.warning, fontWeight: "600" }]}>2nd</ThemedText>
               </View>
@@ -298,7 +299,7 @@ export default function ReminderRulesScreen() {
           </View>
 
           <View style={styles.ruleCard}>
-            <View style={[styles.ruleHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.ruleHeader, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
               <View style={[styles.ruleBadge, { backgroundColor: theme.error + "20" }]}>
                 <DDIcon name="x-circle" size={14} color={theme.error} />
               </View>
@@ -321,20 +322,20 @@ export default function ReminderRulesScreen() {
         </View>
 
         <View style={[styles.section, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <View style={[styles.sectionTitle, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.sectionTitle, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
             <DDIcon name="clock" size={20} color={theme.text} />
             <ThemedText style={[Typography.subtitle, { fontWeight: "600", marginStart: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
               {t("admin.officeHours")}
             </ThemedText>
           </View>
 
-          <View style={[styles.timeInputs, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.timeInputs, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
             <View style={styles.timeField}>
               <ThemedText style={[Typography.label, { marginBottom: Spacing.sm }]}>
                 {t("admin.officeStartTime")}
               </ThemedText>
               <Pressable
-                style={[styles.timeButton, { backgroundColor: theme.background, borderColor: theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
+                style={[styles.timeButton, { backgroundColor: theme.background, borderColor: theme.border, flexDirection: getPlatformFlexDirection(isRTL) }]}
                 onPress={() => setShowStartTimePicker(true)}
               >
                 <View style={{ marginEnd: Spacing.sm }}>
@@ -351,7 +352,7 @@ export default function ReminderRulesScreen() {
                 {t("admin.officeEndTime")}
               </ThemedText>
               <Pressable
-                style={[styles.timeButton, { backgroundColor: theme.background, borderColor: theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
+                style={[styles.timeButton, { backgroundColor: theme.background, borderColor: theme.border, flexDirection: getPlatformFlexDirection(isRTL) }]}
                 onPress={() => setShowEndTimePicker(true)}
               >
                 <View style={{ marginEnd: Spacing.sm }}>
@@ -383,7 +384,7 @@ export default function ReminderRulesScreen() {
         </View>
 
         <View style={[styles.section, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <View style={[styles.sectionTitle, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.sectionTitle, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
             <DDIcon name="calendar" size={20} color={theme.text} />
             <ThemedText style={[Typography.subtitle, { fontWeight: "600", marginStart: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
               {t("admin.workingDays")}

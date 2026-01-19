@@ -18,6 +18,7 @@ import { useSecurityVisitorsQuery } from "@/hooks/queries/useSecurityQueries";
 import type { SecurityVisitorDto } from "@/types";
 import type { SecurityCheckInScreenProps } from "@/types/securityNavigation.types";
 import type { Theme } from "@/types/theme.types";
+import { getPlatformFlexDirection } from '@/utils/rtlInitializer';
 
 const LAYOUT = {
   cardPadding: Spacing.lg,
@@ -442,7 +443,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
           <View style={[styles.cardAccent, { backgroundColor: statusConfig.borderColor }]} />
           
           <View style={styles.cardMainSection}>
-            <View style={[styles.cardHeaderRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.cardHeaderRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
               <VisitorAvatar name={visitor.name} theme={theme} size={LAYOUT.avatarSize} />
               
               <View style={[styles.cardNameSection, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
@@ -465,7 +466,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
 
             <Spacer height={Spacing.sm} />
 
-            <View style={[styles.compactDetailsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.compactDetailsRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
               <DDIcon name="user" size={14} variant="muted" />
               <ThemedText style={[styles.compactDetailText, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
                 {detailParts.join('  |  ')}
@@ -476,7 +477,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
 
             <View style={[styles.compactServiceRow, { 
               backgroundColor: hasParking ? applyOpacity(theme.success, '08') : applyOpacity(theme.textSecondary, '08'),
-              flexDirection: isRTL ? 'row-reverse' : 'row'
+              flexDirection: getPlatformFlexDirection(isRTL)
             }]}>
               <DDIcon 
                 name={hasParking ? "map-pin" : "x-circle"} 
@@ -562,7 +563,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
         
         <Spacer height={Spacing.sm} />
         
-        <View style={[styles.dateDisplayRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.dateDisplayRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
           <ThemedText style={[Typography.bodySmall, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
             {formatDisplayDate()}
           </ThemedText>
@@ -573,7 +574,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.searchBarWrapper, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.searchBarWrapper, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
           <SearchInput
             placeholder={t('common.search')}
             value={searchQuery}

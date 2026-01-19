@@ -26,6 +26,7 @@ import type { Theme } from "@/types/theme.types";
 import type { EmployeeStackParamList } from "@/types/employeeNavigation.types";
 import type { ManagerStackParamList } from "@/types/managerNavigation.types";
 import { mapVisitListItemToVisitorRequest, mapPendingHostWalkInToVisitorRequest } from "@/utils/requestMappers";
+import { getPlatformFlexDirection } from "@/utils/rtlInitializer";
 
 
 // Unified Layout Tokens
@@ -66,7 +67,7 @@ const ServiceIcons = ({ request, theme, size = 16 }: { request: VisitorRequest; 
   }
   
   return (
-    <View style={[styles.servicesRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+    <View style={[styles.servicesRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
       {request.parkingSlot ? (
         <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '20'), width: size * 2, height: size * 2, borderRadius: size }]}>
           <DDIcon name="map-pin" size={size} color={theme.info} />
@@ -156,13 +157,13 @@ const DateTimeDisplay = ({ date, time, duration, theme, compact = false }: { dat
 
   return (
     <View style={styles.dateTimeRowSplit}>
-      <View style={[styles.dateTimeLeft, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <View style={[styles.dateTimeLeft, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
         <DDIcon name="calendar" size={compact ? 13 : 14} variant="muted" />
         <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
           {formatVisitDate(date)}
         </ThemedText>
       </View>
-      <View style={[styles.dateTimeRight, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <View style={[styles.dateTimeRight, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
         <DDIcon name="clock" size={compact ? 13 : 14} variant="muted" />
         <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
           {formatTimeFromString(time)}
@@ -208,7 +209,7 @@ const VisitorRequestTableRow = React.memo(({
         <View style={[styles.fixedColumn, { width: LAYOUT.tableFixedColumnWidth }]}>
           <View style={styles.fixedColumnContent}>
             <View style={{ flex: 1 }}>
-              <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: 6 }}>
+              <View style={{ flexDirection: getPlatformFlexDirection(isRTL), alignItems: 'center', gap: 6 }}>
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, flexShrink: 1 }]} numberOfLines={2}>
                   {request.visitor.fullName}
                 </ThemedText>
@@ -315,7 +316,7 @@ const VisitorRequestTableRow = React.memo(({
 const StatsCards = ({ totalVisitors, todaysVisitors, theme, t }: { totalVisitors: number; todaysVisitors: number; theme: Theme; t: (key: string) => string }) => {
   const { isRTL } = useLanguage();
   return (
-  <View style={[styles.statsGrid, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+  <View style={[styles.statsGrid, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
     <ThemedView style={[styles.statCard, { backgroundColor: theme.surface, borderColor: theme.border, borderWidth: 1 }]}>
       <View style={[styles.statIconContainer, { backgroundColor: applyOpacity(theme.info, '15') }]}>
         <DDIcon name="users" size={24} color={theme.info} />
@@ -396,11 +397,11 @@ const SectionHeader = ({
 
   return (
   <>
-    <View style={[styles.sectionTitleRow, styles.paddedContent, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+    <View style={[styles.sectionTitleRow, styles.paddedContent, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
       <ThemedText style={[Typography.subtitle]}>
         {t('navigation.myRequests')}
       </ThemedText>
-      <View style={[styles.viewToggle, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <View style={[styles.viewToggle, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
         <Pressable
           style={[
             styles.viewToggleButton,
@@ -445,7 +446,7 @@ const SectionHeader = ({
     <ScrollView 
       horizontal 
       showsHorizontalScrollIndicator={false}
-      contentContainerStyle={[styles.tabsContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
+      contentContainerStyle={[styles.tabsContainer, { flexDirection: getPlatformFlexDirection(isRTL) }]}
       nestedScrollEnabled={true}
     >
       {tabs.map((tab) => (

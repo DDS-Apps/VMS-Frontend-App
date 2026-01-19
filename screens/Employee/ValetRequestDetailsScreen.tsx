@@ -18,6 +18,7 @@ import { useMyValetRequestDetailQuery } from "@/hooks/queries/useValetSelfServic
 import type { ValetRequestDetailsScreenProps } from "@/types/employeeNavigation.types";
 import type { Theme } from "@/types/theme.types";
 import type { SelfValetRequestDto } from "@/types/api.types";
+import { getPlatformFlexDirection } from "@/utils/rtlInitializer";
 
 function getStatusColor(status: string, theme: Theme) {
   switch (status) {
@@ -54,7 +55,7 @@ function getStatusLabel(status: string): string {
 }
 
 const InfoRow = ({ icon, label, value, theme, isRTL }: { icon: string; label: string; value: string; theme: Theme; isRTL: boolean }) => (
-  <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+  <View style={[styles.infoRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
     <View style={[styles.infoIconContainer, { backgroundColor: applyOpacity(theme.primary, '10') }]}>
       <DDIcon name={icon as any} size={16} color={theme.primary} />
     </View>
@@ -158,7 +159,7 @@ export default function ValetRequestDetailsScreen({ route }: ValetRequestDetails
       >
         <Card style={styles.headerCard}>
           <View style={[styles.statusContainer, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
-            <View style={[styles.statusBadge, { backgroundColor: applyOpacity(statusColor, '15'), borderColor: applyOpacity(statusColor, '30'), flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.statusBadge, { backgroundColor: applyOpacity(statusColor, '15'), borderColor: applyOpacity(statusColor, '30'), flexDirection: getPlatformFlexDirection(isRTL) }]}>
               <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
               <ThemedText style={[Typography.bodySmall, { color: statusColor, fontWeight: '600' }]}>
                 {statusLabel}
@@ -168,7 +169,7 @@ export default function ValetRequestDetailsScreen({ route }: ValetRequestDetails
           
           <Spacer height={Spacing.lg} />
           
-          <View style={[styles.vehicleInfo, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.vehicleInfo, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
             <DDIcon name="truck" size={24} color={theme.primary} />
             <View style={styles.vehicleDetails}>
               <ThemedText style={[Typography.h3, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
@@ -232,7 +233,7 @@ export default function ValetRequestDetailsScreen({ route }: ValetRequestDetails
               Assigned Driver
             </ThemedText>
             <Card style={styles.driverCard}>
-              <View style={[styles.driverInfo, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.driverInfo, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                 <View style={[styles.driverAvatar, { backgroundColor: applyOpacity(theme.success, '15') }]}>
                   <DDIcon name="user" size={20} color={theme.success} />
                 </View>

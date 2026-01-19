@@ -17,6 +17,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
 import { VisitorActionButton } from "@/components/VisitorActionButton";
 import { applyOpacity } from "@/utils/statusStyles";
+import { getPlatformFlexDirection } from "@/utils/rtlInitializer";
 import { useTodayVisitorsQuery, useReceptionCheckInMutation, useReceptionCheckOutMutation } from "@/hooks/queries/useReceptionQueries";
 import type { TodayVisitorDto } from "@/types";
 
@@ -206,7 +207,7 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
           <View style={[styles.statusBorderLine, { backgroundColor: statusConfig.border }]} />
           
           <View style={styles.cardContent}>
-            <View style={[styles.cardHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.cardHeader, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
               <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
                 <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
                   {initials}
@@ -223,8 +224,8 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
               </View>
             </View>
 
-            <View style={[styles.detailsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <View style={[styles.detailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.detailsRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+              <View style={[styles.detailItem, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                 <DDIcon name="clock" size={12} color={theme.textSecondary} />
                 <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
                   {formatTimeFromString(item.visitTime)}
@@ -232,8 +233,8 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
               </View>
             </View>
 
-            <View style={[styles.servicesStatusRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <View style={[styles.servicesRowContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.servicesStatusRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+              <View style={[styles.servicesRowContainer, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                 <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.secondary, '15') }]}>
                   <DDIcon name="user-plus" size={12} color={theme.secondary} />
                 </View>
@@ -254,7 +255,7 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
             {isExpanded && hasDetails ? (
               <View style={styles.expandedSection}>
                 {(item as any).purpose ? (
-                  <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                  <View style={[styles.expandedDetailRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                     <DDIcon name="briefcase" size={14} color={theme.textSecondary} />
                     <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={2}>
                       {(item as any).purpose}
@@ -262,7 +263,7 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
                   </View>
                 ) : null}
                 {item.visitor.email ? (
-                  <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                  <View style={[styles.expandedDetailRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                     <DDIcon name="mail" size={14} color={theme.textSecondary} />
                     <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
                       {item.visitor.email}
@@ -270,7 +271,7 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
                   </View>
                 ) : null}
                 {item.visitor.phone ? (
-                  <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                  <View style={[styles.expandedDetailRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                     <DDIcon name="phone" size={14} color={theme.textSecondary} />
                     <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
                       {item.visitor.phone}
@@ -283,7 +284,7 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
             {hasDetails ? (
               <Pressable 
                 onPress={(e) => { e.stopPropagation(); toggleCardExpanded(item.id); }} 
-                style={[styles.toggleContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
+                style={[styles.toggleContainer, { flexDirection: getPlatformFlexDirection(isRTL) }]}
               >
                 <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
                   {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
@@ -296,8 +297,8 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
               </Pressable>
             ) : null}
 
-            <View style={[styles.cardFooter, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <View style={[styles.actionButtons, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.cardFooter, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+              <View style={[styles.actionButtons, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                 {showCheckIn ? (
                   <VisitorActionButton 
                     type="check_in" 

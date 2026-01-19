@@ -9,6 +9,7 @@ import Spacer from '@/components/Spacer';
 import { Spacing, BorderRadius, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
+import { getPlatformFlexDirection } from '@/utils/rtlInitializer';
 
 interface BuffetLocation {
   id: string;
@@ -143,7 +144,7 @@ export default function BuffetSettingsScreen() {
               style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}
               onPress={() => handleEditLocation(location)}
             >
-              <View style={[styles.cardHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.cardHeader, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                 <View style={{ flex: 1 }}>
                   <ThemedText style={[Typography.subtitle, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>{location.name}</ThemedText>
                   <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: Spacing.xs, textAlign: isRTL ? 'right' : 'left' }]}>
@@ -174,7 +175,7 @@ export default function BuffetSettingsScreen() {
               </View>
 
               <View style={styles.cardContent}>
-                <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                <View style={[styles.infoRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                   <DDIcon name="users" variant="muted" size={16} />
                   <ThemedText style={[Typography.body, { color: theme.textSecondary, marginStart: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
                     {t('buffet.numberOfGuests')}: {location.capacity}
@@ -182,7 +183,7 @@ export default function BuffetSettingsScreen() {
                 </View>
 
                 {location.amenities.length > 0 ? (
-                  <View style={[styles.infoRow, { marginTop: Spacing.sm, flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                  <View style={[styles.infoRow, { marginTop: Spacing.sm, flexDirection: getPlatformFlexDirection(isRTL) }]}>
                     <DDIcon name="check-circle" variant="muted" size={16} />
                     <View style={{ flex: 1, marginStart: Spacing.sm }}>
                       <ScrollView horizontal showsHorizontalScrollIndicator={false} nestedScrollEnabled={true}>
@@ -202,8 +203,8 @@ export default function BuffetSettingsScreen() {
                 ) : null}
               </View>
 
-              <View style={[styles.cardFooter, { borderTopColor: theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                <Pressable style={[styles.actionButton, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.cardFooter, { borderTopColor: theme.border, flexDirection: getPlatformFlexDirection(isRTL) }]}>
+                <Pressable style={[styles.actionButton, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                   <DDIcon name="edit-2" size={16} variant="primary" />
                   <ThemedText style={[Typography.body, { color: theme.primary, marginStart: Spacing.xs }]}>
                     {t('common.edit')}
@@ -240,7 +241,7 @@ export default function BuffetSettingsScreen() {
               style={[styles.modalContent, { backgroundColor: theme.background, paddingBottom: insets.bottom + Spacing.xl }]}
               showsVerticalScrollIndicator={false}
             >
-              <View style={[styles.modalHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.modalHeader, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                 <ThemedText style={[Typography.subtitle, { fontWeight: '600' }]}>
                   {editingLocation ? t('common.edit') : t('common.save')}
                 </ThemedText>
@@ -302,7 +303,7 @@ export default function BuffetSettingsScreen() {
                 <Spacer height={Spacing.md} />
 
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginBottom: Spacing.xs }]}>{t('status.active')}</ThemedText>
-                <View style={[styles.statusOptions, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                <View style={[styles.statusOptions, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                   <Pressable
                     style={[
                       styles.statusOption,

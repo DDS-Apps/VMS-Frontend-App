@@ -20,6 +20,7 @@ import { applyOpacity } from "@/utils/statusStyles";
 import type { MyValetRequestsScreenProps } from "@/types/employeeNavigation.types";
 import type { SelfValetRequestDto, SelfValetRequestsResponse } from "@/types/api.types";
 import type { Theme } from "@/types/theme.types";
+import { getPlatformFlexDirection } from "@/utils/rtlInitializer";
 
 type StatusFilter = 'all' | 'pending' | 'in_progress' | 'completed';
 
@@ -134,10 +135,10 @@ const ValetRequestCard = React.memo(({
 
   return (
     <Pressable onPress={onPress}>
-      <Card style={[styles.taskCard, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <Card style={[styles.taskCard, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
         <StatusAccent color={statusConfig.borderColor} />
         <View style={styles.taskCardContent}>
-          <View style={[styles.taskHeaderRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.taskHeaderRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
             <View style={styles.vehicleIconContainer}>
               <View style={[styles.vehicleIcon, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
                 <DDIcon name="truck" size={20} variant="primary" />
@@ -156,14 +157,14 @@ const ValetRequestCard = React.memo(({
 
           <Spacer height={Spacing.md} />
 
-          <View style={[styles.taskDetailsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <View style={[styles.taskDetailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.taskDetailsRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+            <View style={[styles.taskDetailItem, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
               <DDIcon name="map-pin" size={14} variant="muted" />
               <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6 }]}>
                 {request.dropOffLocation}
               </ThemedText>
             </View>
-            <View style={[styles.taskDetailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.taskDetailItem, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
               <DDIcon name="clock" size={14} variant="muted" />
               <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6 }]}>
                 Return: {request.requestedReturnTime}
@@ -174,7 +175,7 @@ const ValetRequestCard = React.memo(({
           {request.valet?.driver ? (
             <>
               <Spacer height={Spacing.sm} />
-              <View style={[styles.driverRow, { backgroundColor: applyOpacity(theme.success, '08'), flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.driverRow, { backgroundColor: applyOpacity(theme.success, '08'), flexDirection: getPlatformFlexDirection(isRTL) }]}>
                 <DDIcon name="user" size={14} color={theme.success} />
                 <ThemedText style={[Typography.caption, { color: theme.success, marginStart: 6, fontWeight: '500' }]}>
                   Driver: {request.valet.driver.name}
@@ -186,7 +187,7 @@ const ValetRequestCard = React.memo(({
           {request.notes ? (
             <>
               <Spacer height={Spacing.sm} />
-              <View style={[styles.notesRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.notesRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                 <DDIcon name="file-text" size={14} variant="muted" />
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6, flex: 1, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={2}>
                   {request.notes}
@@ -196,7 +197,7 @@ const ValetRequestCard = React.memo(({
           ) : null}
 
           <Spacer height={Spacing.sm} />
-          <View style={[styles.taskFooterRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.taskFooterRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
             <DDIcon name="calendar" size={12} variant="muted" />
             <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 4, fontSize: 11 }]}>
               {formatDate(request.createdAt)} at {formatTimeStr(request.createdAt)}
@@ -314,7 +315,7 @@ export default function MyValetRequestsScreen({ navigation }: MyValetRequestsScr
           <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.primary} />
         }
       >
-        <View style={[styles.headerRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.headerRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
           <View>
             <ThemedText style={[Typography.h2, { textAlign: isRTL ? 'right' : 'left' }]}>{t('navigation.myValetRequests')}</ThemedText>
             <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
@@ -333,7 +334,7 @@ export default function MyValetRequestsScreen({ navigation }: MyValetRequestsScr
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.filterRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.filterRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
           {FILTER_OPTIONS.map((option) => (
             <Pressable
               key={option.key}

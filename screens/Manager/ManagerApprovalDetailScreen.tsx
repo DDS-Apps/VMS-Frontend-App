@@ -28,6 +28,7 @@ import { useVisitDetailsQuery, useApproveVisitMutation, useRejectVisitMutation, 
 import { useAuth } from "@/contexts/AuthContext";
 import { VisitorRequest } from "@/types/vms.types";
 import { applyOpacity, createModalOverlayStyle } from "@/utils/statusStyles";
+import { getPlatformFlexDirection } from "@/utils/rtlInitializer";
 import { ManagerApprovalDetailScreenProps } from "@/types/managerNavigation.types";
 import { Theme } from "@/types/theme.types";
 import { mapVisitDetailsToVisitorRequest } from "@/utils/requestMappers";
@@ -668,7 +669,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
             <Spacer height={Spacing.sm} />
 
-            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.sm }}>
+            <View style={{ flexDirection: getPlatformFlexDirection(isRTL), alignItems: 'center', gap: Spacing.sm }}>
               <View
                 style={{
                   backgroundColor: applyOpacity(statusColor, '15'),
@@ -704,7 +705,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
             <Spacer height={Spacing.lg} />
 
             <View style={{ flexDirection: 'row', width: '100%', justifyContent: isRTL ? 'flex-end' : 'flex-start' }}>
-              <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.md }}>
+              <View style={{ flexDirection: getPlatformFlexDirection(isRTL), alignItems: 'center', gap: Spacing.md }}>
                 {isRTL ? (
                   <>
                     <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 13, textAlign: 'right' }]}>
@@ -730,7 +731,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
             <Spacer height={Spacing.md} />
 
             <View style={{ flexDirection: 'row', width: '100%', justifyContent: isRTL ? 'flex-end' : 'flex-start' }}>
-              <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.md }}>
+              <View style={{ flexDirection: getPlatformFlexDirection(isRTL), alignItems: 'center', gap: Spacing.md }}>
                 {isRTL ? (
                   <>
                     <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 13, textAlign: 'right' }]}>
@@ -759,7 +760,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
           <>
             <Spacer height={Spacing.lg} />
             <ThemedView style={[styles.cardNew, { backgroundColor: applyOpacity(theme.error, '08') }]}>
-              <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'flex-start', gap: Spacing.sm }}>
+              <View style={{ flexDirection: getPlatformFlexDirection(isRTL), alignItems: 'flex-start', gap: Spacing.sm }}>
                 <View style={{ marginTop: 2 }}>
                   <DDIcon name="message-circle" size={18} color={theme.error} />
                 </View>
@@ -780,7 +781,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
           <>
             <Spacer height={Spacing.lg} />
             <ThemedView style={[styles.cardNew, { backgroundColor: applyOpacity(theme.error, '08') }]}>
-              <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'flex-start', gap: Spacing.sm }}>
+              <View style={{ flexDirection: getPlatformFlexDirection(isRTL), alignItems: 'flex-start', gap: Spacing.sm }}>
                 <View style={{ marginTop: 2 }}>
                   <DDIcon name="user-x" size={18} color={theme.error} />
                 </View>
@@ -803,7 +804,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
           <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text, textAlign: isRTL ? 'right' : 'left', marginBottom: Spacing.xl }]}>
             {t('visitor.visitorRequest')}
           </ThemedText>
-          <View style={[styles.serviceRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.serviceRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
             <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
               <DDIcon name="user" size={18} color={theme.text} />
             </View>
@@ -819,7 +820,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
           <Spacer height={Spacing.lg} />
 
-          <View style={[styles.serviceRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.serviceRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
             <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
               <DDIcon name="calendar" size={18} color={theme.text} />
             </View>
@@ -835,7 +836,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
           <Spacer height={Spacing.lg} />
 
-          <View style={[styles.serviceRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.serviceRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
             <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
               <DDIcon name="clock" size={18} color={theme.text} />
             </View>
@@ -853,7 +854,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
           {request.isWalkIn ? (
             <>
               <Spacer height={Spacing.lg} />
-              <View style={[styles.serviceRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.serviceRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                 <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
                   <DDIcon name="log-out" size={18} color={theme.text} />
                 </View>
@@ -862,7 +863,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
                     {t('form.endTime')}
                   </ThemedText>
                   {inlineEndTime !== null ? (
-                    <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.sm, marginTop: 2 }}>
+                    <View style={{ flexDirection: getPlatformFlexDirection(isRTL), alignItems: 'center', gap: Spacing.sm, marginTop: 2 }}>
                       <Pressable
                         onPress={() => setShowInlineEndTimePicker(true)}
                         style={[styles.inlineTimeButton, { backgroundColor: applyOpacity(theme.primary, '10'), borderColor: theme.primary }]}
@@ -880,7 +881,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
                       </Pressable>
                     </View>
                   ) : (
-                    <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.sm, marginTop: 2 }}>
+                    <View style={{ flexDirection: getPlatformFlexDirection(isRTL), alignItems: 'center', gap: Spacing.sm, marginTop: 2 }}>
                       <ThemedText style={[Typography.caption, { color: request.endTime ? theme.textSecondary : theme.warning, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
                         {request.endTime ? formatTimeFromString(request.endTime) : t('common.notRequested')}
                       </ThemedText>
@@ -898,7 +899,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
           <Spacer height={Spacing.lg} />
 
-          <View style={[styles.serviceRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.serviceRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
             <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
               <DDIcon name="file-text" size={18} color={theme.text} />
             </View>
@@ -916,7 +917,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
           {request.isWalkIn && request.notes ? (
             <>
               <Spacer height={Spacing.lg} />
-              <View style={[styles.serviceRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.serviceRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                 <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
                   <DDIcon name="edit-3" size={18} color={theme.text} />
                 </View>
@@ -940,12 +941,12 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
             {t('services.additionalServices')}
           </ThemedText>
           {/* Meeting Room */}
-          <View style={[styles.serviceRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.serviceRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
             <View style={[styles.serviceIcon, { backgroundColor: applyOpacity((request.meetingRoom || request.isMeetingRoom) ? theme.secondary : theme.textSecondary, '20') }]}>
               <DDIcon name="briefcase" size={18} color={(request.meetingRoom || request.isMeetingRoom) ? theme.secondary : theme.textSecondary} />
             </View>
             <View style={[styles.serviceInfo, { flex: 1 }]}>
-              <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <View style={{ flexDirection: getPlatformFlexDirection(isRTL), justifyContent: 'space-between', alignItems: 'center' }}>
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
                   {t('services.meetingRoom')}
                 </ThemedText>
@@ -984,12 +985,12 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
           <Spacer height={Spacing.lg} />
 
           {/* Buffet */}
-          <View style={[styles.serviceRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.serviceRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
             <View style={[styles.serviceIcon, { backgroundColor: applyOpacity((request.buffet || request.isBuffet || (request as any).buffetPending) ? theme.secondary : theme.textSecondary, '20') }]}>
               <DDIcon name="cloche" size={18} color={(request.buffet || request.isBuffet || (request as any).buffetPending) ? theme.secondary : theme.textSecondary} />
             </View>
             <View style={[styles.serviceInfo, { flex: 1 }]}>
-              <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <View style={{ flexDirection: getPlatformFlexDirection(isRTL), justifyContent: 'space-between', alignItems: 'center' }}>
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
                   {t('services.buffet')}
                 </ThemedText>
@@ -1059,7 +1060,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
       {!isReadOnlyRole && (request.status === REQUEST_STATUS.APPROVED || request.status === REQUEST_STATUS.VISITOR_ACCEPTED) && (
         <View style={[styles.actionBar, { backgroundColor: theme.background, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.lg }]}>
           {request.isWalkIn && isManagerTheHost ? (
-            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', gap: Spacing.md }}>
+            <View style={{ flexDirection: getPlatformFlexDirection(isRTL), gap: Spacing.md }}>
               <LoadingButton
                 onPress={handleEditWalkInServices}
                 loading={false}
@@ -1146,7 +1147,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
               <Spacer height={Spacing.xl} />
 
-              <View style={[styles.modalActions, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.modalActions, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                 <LoadingButton
                   onPress={() => setShowCancelModal(false)}
                   disabled={isProcessing}
@@ -1239,7 +1240,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
               <Spacer height={Spacing.xl} />
 
-              <View style={[styles.modalActions, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.modalActions, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                 <LoadingButton
                   onPress={() => setShowRejectModal(false)}
                   disabled={isProcessing}
@@ -1445,7 +1446,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
               <Spacer height={Spacing.xl} />
 
-              <View style={[styles.modalActions, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.modalActions, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                 <LoadingButton
                   onPress={() => setShowWalkInApprovalModal(false)}
                   disabled={isProcessing}

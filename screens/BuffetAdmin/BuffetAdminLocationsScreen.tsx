@@ -12,6 +12,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { applyOpacity } from "@/utils/statusStyles";
+import { getPlatformFlexDirection } from "@/utils/rtlInitializer";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   useBuffetAdminLocationsQuery,
@@ -167,7 +168,7 @@ export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLo
           },
         ]}
       >
-        <View style={[styles.cardHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.cardHeader, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
           <View style={[styles.iconContainer, { backgroundColor: applyOpacity(theme.primary, '12') }]}>
             <DDIcon name="map-pin" size={20} color={theme.primary} />
           </View>
@@ -188,8 +189,8 @@ export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLo
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.statsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-          <View style={[styles.statItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.statsRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+          <View style={[styles.statItem, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
             <View style={[styles.statIconBg, { backgroundColor: applyOpacity(theme.info, '12') }]}>
               <DDIcon name="users" size={16} color={theme.info} />
             </View>
@@ -203,7 +204,7 @@ export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLo
             </View>
           </View>
 
-          <View style={[styles.statItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.statItem, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
             <View style={[styles.statIconBg, { backgroundColor: applyOpacity(theme.success, '12') }]}>
               <DDIcon name="user-check" size={16} color={theme.success} />
             </View>
@@ -217,7 +218,7 @@ export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLo
             </View>
           </View>
 
-          <View style={[styles.statItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.statItem, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
             <View style={[styles.statIconBg, { backgroundColor: applyOpacity(theme.warning, '12') }]}>
               <DDIcon name="cloche" size={16} color={theme.warning} />
             </View>
@@ -239,7 +240,7 @@ export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLo
   return (
     <>
       <ScreenScrollView contentContainerStyle={scrollContentStyle}>
-        <View style={[styles.kpiRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.kpiRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
           <KPICard 
             title={t('status.active')} 
             value={String(stats.active)} 
@@ -327,7 +328,7 @@ export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLo
             style={[styles.modalContent, { backgroundColor: theme.background }]}
             onPress={(e) => e.stopPropagation()}
           >
-            <View style={[styles.modalHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.modalHeader, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
               <ThemedText style={[Typography.subtitle, { fontWeight: '600' }]}>
                 {t('common.edit')}
               </ThemedText>
@@ -399,7 +400,7 @@ export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLo
 
             <Spacer height={Spacing.xl} />
 
-            <View style={[styles.modalActions, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.modalActions, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
               <LoadingButton
                 onPress={() => setShowEditModal(false)}
                 variant="secondary"

@@ -17,6 +17,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { useFormatters } from '@/hooks/useFormatters';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { applyOpacity } from '@/utils/statusStyles';
+import { getPlatformFlexDirection } from '@/utils/rtlInitializer';
 import { 
   useAllRequestsQuery,
   type UnifiedRequest,
@@ -160,7 +161,7 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
       return (
         <View style={styles.expandedSection}>
           {originalData?.visitor?.email ? (
-            <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.expandedDetailRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
               <DDIcon name="mail" size={14} color={theme.textSecondary} />
               <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
                 {originalData.visitor.email}
@@ -168,7 +169,7 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
             </View>
           ) : null}
           {originalData?.visitor?.phone ? (
-            <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.expandedDetailRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
               <DDIcon name="phone" size={14} color={theme.textSecondary} />
               <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
                 {originalData.visitor.phone}
@@ -182,14 +183,14 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
     if (request.type === 'buffet' && request.guestCount) {
       return (
         <View style={styles.expandedSection}>
-          <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.expandedDetailRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
             <DDIcon name="users" size={14} color={theme.textSecondary} />
             <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('buffet.guestCount')}: {request.guestCount}
             </ThemedText>
           </View>
           {request.mealType ? (
-            <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.expandedDetailRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
               <DDIcon name="cloche" size={14} color={theme.textSecondary} />
               <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
                 {request.mealType}
@@ -205,7 +206,7 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
       return (
         <View style={styles.expandedSection}>
           {vehicle.plateNumber ? (
-            <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.expandedDetailRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
               <DDIcon name="hash" size={14} color={theme.textSecondary} />
               <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
                 {t('valet.plateNumber')}: {vehicle.plateNumber}
@@ -213,7 +214,7 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
             </View>
           ) : null}
           {(vehicle.make || vehicle.model) ? (
-            <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.expandedDetailRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
               <DDIcon name="truck" size={14} color={theme.textSecondary} />
               <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
                 {[vehicle.make, vehicle.model].filter(Boolean).join(' ')}
@@ -221,7 +222,7 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
             </View>
           ) : null}
           {vehicle.color ? (
-            <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.expandedDetailRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
               <DDIcon name="droplet" size={14} color={theme.textSecondary} />
               <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
                 {t('valet.color')}: {vehicle.color}
@@ -241,7 +242,7 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
         <View style={[styles.typeAccent, { backgroundColor: statusColor }]} />
         
         <View style={styles.cardContent}>
-          <View style={[styles.cardHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.cardHeader, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
             <ThemedText style={[Typography.body, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left', flex: 1 }]} numberOfLines={1}>
               {request.visitorName}
             </ThemedText>
@@ -253,14 +254,14 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
 
           <Spacer height={Spacing.sm} />
 
-          <View style={[styles.detailsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <View style={[styles.detailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.detailsRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
+            <View style={[styles.detailItem, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
               <DDIcon name="calendar" size={14} variant="muted" />
               <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
                 {formatDate(request.date)}
               </ThemedText>
             </View>
-            <View style={[styles.detailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.detailItem, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
               <DDIcon name="clock" size={14} variant="muted" />
               <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
                 {formatTimeFromString(request.time)}
@@ -271,7 +272,7 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
           {request.location ? (
             <>
               <Spacer height={Spacing.xs} />
-              <View style={[styles.detailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.detailItem, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                 <DDIcon name="map-pin" size={14} variant="muted" />
                 <ThemedText style={[styles.detailText, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
                   {request.location}
@@ -282,7 +283,7 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
 
           <Spacer height={Spacing.sm} />
 
-          <View style={[styles.badgesRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.badgesRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
             <View style={[styles.typeBadge, { backgroundColor: applyOpacity(typeColor, '12') }]}>
               <DDIcon name={typeIcon} size={12} color={typeColor} />
               <ThemedText style={[styles.typeBadgeText, { color: typeColor }]}>
@@ -321,10 +322,10 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
           {(request.canApprove || request.canCancel) ? (
             <>
               <Spacer height={Spacing.md} />
-              <View style={[styles.actionsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.actionsRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                 {request.canApprove ? (
                   <Pressable
-                    style={[styles.approveButton, { backgroundColor: '#22C55E', flexDirection: isRTL ? 'row-reverse' : 'row' }]}
+                    style={[styles.approveButton, { backgroundColor: '#22C55E', flexDirection: getPlatformFlexDirection(isRTL) }]}
                     onPress={(e) => {
                       e.stopPropagation();
                       onApprove?.();
@@ -338,7 +339,7 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
                 ) : null}
                 {request.canCancel ? (
                   <Pressable
-                    style={[styles.rejectButton, { borderColor: theme.error, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
+                    style={[styles.rejectButton, { borderColor: theme.error, flexDirection: getPlatformFlexDirection(isRTL) }]}
                     onPress={(e) => {
                       e.stopPropagation();
                       onReject?.();
@@ -728,7 +729,7 @@ export default function AllRequestsScreen() {
         <Spacer height={Spacing.lg} />
 
         {isLargeScreen ? (
-          <View style={[styles.statsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.statsRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
             <StatCard
               value={stats.total}
               label={t('common.all')}
@@ -797,7 +798,7 @@ export default function AllRequestsScreen() {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={[styles.statsScrollContent, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
+            contentContainerStyle={[styles.statsScrollContent, { flexDirection: getPlatformFlexDirection(isRTL) }]}
             nestedScrollEnabled={true}
           >
             <StatCard
@@ -861,7 +862,7 @@ export default function AllRequestsScreen() {
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.searchRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.searchRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
           <View style={styles.searchInputWrapper}>
             <SearchInput
               placeholder={t('common.search')}

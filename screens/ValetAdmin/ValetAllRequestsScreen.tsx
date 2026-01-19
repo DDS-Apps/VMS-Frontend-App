@@ -10,6 +10,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
 import { applyOpacity } from "@/utils/statusStyles";
+import { getPlatformFlexDirection } from '@/utils/rtlInitializer';
 import { useValetParkingDashboard } from "@/hooks/queries/useValetAdminQueries";
 import type { ValetParkingVisitorDto } from "@/types/api.types";
 import type { Theme } from "@/types/theme.types";
@@ -317,7 +318,7 @@ export default function ValetAllRequestsScreen() {
 
       <Spacer height={LAYOUT.sectionSpacing} />
 
-      <View style={[styles.sectionTitleRow, styles.paddedContent, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <View style={[styles.sectionTitleRow, styles.paddedContent, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
         <ThemedText style={[Typography.subtitle, { textAlign: isRTL ? 'right' : 'left' }]}>
           {t('valet.todaysVisitors')}
         </ThemedText>

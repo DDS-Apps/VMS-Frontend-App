@@ -22,6 +22,7 @@ import {
 import type { ValetService, ValetDriver } from '@/types/vms.types';
 import { useAuth } from '@/contexts/AuthContext';
 import { applyOpacity } from '@/utils/statusStyles';
+import { getPlatformFlexDirection } from '@/utils/rtlInitializer';
 
 interface ValetTaskDetailScreenProps {
   taskId: string;
@@ -146,7 +147,7 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
         </ThemedText>
         <Spacer height={Spacing.xl} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.serviceRowNew, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="briefcase" size={18} color={theme.text} />
           </View>
@@ -162,7 +163,7 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.serviceRowNew, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="calendar" size={18} color={theme.text} />
           </View>
@@ -178,7 +179,7 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.serviceRowNew, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="clock" size={18} color={theme.text} />
           </View>
@@ -194,7 +195,7 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.serviceRowNew, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="map-pin" size={18} color={theme.text} />
           </View>
@@ -211,7 +212,7 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
         {task.vehicleInfo ? (
           <>
             <Spacer height={Spacing.lg} />
-            <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.serviceRowNew, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
               <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.info, '15') }]}>
                 <DDIcon name="truck" size={18} color={theme.info} />
               </View>
@@ -235,7 +236,7 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
         <>
           <Spacer height={Spacing.lg} />
           <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
-            <View style={[styles.notesHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.notesHeader, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
               <DDIcon name="file-text" size={16} color={theme.info} />
               <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginStart: Spacing.sm, fontSize: 14, color: theme.text }]}>
                 {t('form.notes')}
@@ -263,11 +264,11 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
               {
                 backgroundColor: applyOpacity(statusColor, '15'),
                 borderColor: statusColor,
-                flexDirection: isRTL ? 'row-reverse' : 'row',
+                flexDirection: getPlatformFlexDirection(isRTL),
               },
             ]}
           >
-            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', flex: 1 }}>
+            <View style={{ flexDirection: getPlatformFlexDirection(isRTL), alignItems: 'center', flex: 1 }}>
               <DDIcon
                 name={currentStatusOption?.icon as IconName}
                 size={20}
@@ -296,11 +297,11 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
                 backgroundColor: applyOpacity(statusColor, '15'),
                 borderColor: statusColor,
                 opacity: pressed ? 0.7 : 1,
-                flexDirection: isRTL ? 'row-reverse' : 'row',
+                flexDirection: getPlatformFlexDirection(isRTL),
               },
             ]}
           >
-            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', flex: 1 }}>
+            <View style={{ flexDirection: getPlatformFlexDirection(isRTL), alignItems: 'center', flex: 1 }}>
               <DDIcon
                 name={currentStatusOption?.icon as IconName}
                 size={20}
@@ -327,7 +328,7 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
       <Spacer height={Spacing.lg} />
 
       <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
-        <View style={[{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: Spacing.lg }]}>
+        <View style={[{ flexDirection: getPlatformFlexDirection(isRTL), alignItems: 'center', justifyContent: 'space-between', marginBottom: Spacing.lg }]}>
           <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text }]}>
             {t('actions.assignDriver')}
           </ThemedText>
@@ -345,7 +346,7 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
         </View>
 
         {task.valet.driver ? (
-          <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.serviceRowNew, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
             <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.success, '15') }]}>
               <DDIcon name="truck" size={18} color={theme.success} />
             </View>
@@ -356,7 +357,7 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
               <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
                 {task.valet.driver.phone}
               </ThemedText>
-              <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', marginTop: 4 }}>
+              <View style={{ flexDirection: getPlatformFlexDirection(isRTL), alignItems: 'center', marginTop: 4 }}>
                 <View
                   style={[
                     styles.statusDot,
@@ -426,7 +427,7 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
                     onPress={() => handleAssignDriver(driver.id)}
                     style={({ pressed }) => [
                       styles.driverOption,
-                      { borderColor: theme.border, opacity: pressed ? 0.7 : 1, flexDirection: isRTL ? 'row-reverse' : 'row' },
+                      { borderColor: theme.border, opacity: pressed ? 0.7 : 1, flexDirection: getPlatformFlexDirection(isRTL) },
                     ]}
                   >
                     <View style={{ flex: 1 }}>
@@ -437,7 +438,7 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
                         {driver.phone}
                       </ThemedText>
                       <Spacer height={Spacing.xs} />
-                      <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center' }}>
+                      <View style={{ flexDirection: getPlatformFlexDirection(isRTL), alignItems: 'center' }}>
                         <View style={[styles.statusDot, { backgroundColor: theme.success }]} />
                         <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
                           {t('status.available')} - {driver.currentTasks} {t('valet.assignedTasks').toLowerCase()}
@@ -500,7 +501,7 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
                     backgroundColor: task.valet.status === option.value ? applyOpacity(option.color, '15') : 'transparent',
                     borderColor: theme.border,
                     opacity: pressed ? 0.7 : 1,
-                    flexDirection: isRTL ? 'row-reverse' : 'row',
+                    flexDirection: getPlatformFlexDirection(isRTL),
                   },
                 ]}
               >

@@ -9,6 +9,7 @@ import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { UserRole, AdminDashboardKPI } from "@/types/vms.types";
+import { getPlatformFlexDirection } from '@/utils/rtlInitializer';
 
 interface AdminDashboardScreenProps {
   role: UserRole;
@@ -246,7 +247,7 @@ export default function AdminDashboardScreen({
 
       <Spacer height={Spacing.xl} />
 
-      <View style={[styles.sectionHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <View style={[styles.sectionHeader, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
         <ThemedText style={[Typography.subtitle, { textAlign: isRTL ? 'right' : 'left' }]}>{t('dashboard.recentActivity')}</ThemedText>
         <Pressable>
           <ThemedText style={[Typography.bodySmall, { color: theme.primary }]}>
@@ -260,7 +261,7 @@ export default function AdminDashboardScreen({
       {recentActivity.map((activity) => (
         <View key={activity.id}>
           <ThemedView
-            style={[styles.activityCard, { backgroundColor: theme.surface, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
+            style={[styles.activityCard, { backgroundColor: theme.surface, flexDirection: getPlatformFlexDirection(isRTL) }]}
           >
             <View
               style={[

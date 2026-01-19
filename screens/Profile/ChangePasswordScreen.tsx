@@ -13,6 +13,7 @@ import { DDIcon } from "@/components/DDIcon";
 import { useChangePasswordMutation } from "@/hooks/queries/useAuthQueries";
 import { useToast } from "@/contexts/ToastContext";
 import { ApiException } from "@/api/errors";
+import { getPlatformFlexDirection } from "@/utils/rtlInitializer";
 
 interface ChangePasswordScreenProps {
   onSuccess: () => void;
@@ -150,7 +151,7 @@ export default function ChangePasswordScreen({ onSuccess, onCancel }: ChangePass
           <ThemedText style={[Typography.label, { color: theme.textSecondary, marginBottom: Spacing.xs }]}>
             {t('auth.currentPassword')}
           </ThemedText>
-          <View style={[getInputContainerStyle('currentPassword'), { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[getInputContainerStyle('currentPassword'), { flexDirection: getPlatformFlexDirection(isRTL) }]}>
             <DDIcon name="lock" size={INPUT_ICON_SIZE} variant="muted" />
             <TextInput
               style={[
@@ -186,7 +187,7 @@ export default function ChangePasswordScreen({ onSuccess, onCancel }: ChangePass
           <ThemedText style={[Typography.label, { color: theme.textSecondary, marginBottom: Spacing.xs }]}>
             {t('auth.newPassword')}
           </ThemedText>
-          <View style={[getInputContainerStyle('newPassword'), { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[getInputContainerStyle('newPassword'), { flexDirection: getPlatformFlexDirection(isRTL) }]}>
             <DDIcon name="lock" size={INPUT_ICON_SIZE} variant="muted" />
             <TextInput
               style={[
@@ -222,7 +223,7 @@ export default function ChangePasswordScreen({ onSuccess, onCancel }: ChangePass
           <ThemedText style={[Typography.label, { color: theme.textSecondary, marginBottom: Spacing.xs }]}>
             {t('auth.confirmNewPassword')}
           </ThemedText>
-          <View style={[getInputContainerStyle('confirmPassword'), { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[getInputContainerStyle('confirmPassword'), { flexDirection: getPlatformFlexDirection(isRTL) }]}>
             <DDIcon name="lock" size={INPUT_ICON_SIZE} variant="muted" />
             <TextInput
               style={[

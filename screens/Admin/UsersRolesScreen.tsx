@@ -24,6 +24,7 @@ import {
 } from '@/hooks/queries/useUserQueries';
 import type { UserDto, CreateUserDto, UpdateUserDto, UserRole as ApiUserRole } from '@/types/api.types';
 import { UserRole, USER_ROLES } from '@/types/vms.types';
+import { getPlatformFlexDirection } from '@/utils/rtlInitializer';
 
 type UserSource = 'microsoft_ad' | 'app_created';
 
@@ -504,14 +505,14 @@ export default function UsersRolesScreen() {
           }
         ]}
       >
-        <View style={[styles.userHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.userHeader, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
           {bulkMode ? (
             <View style={{ marginEnd: Spacing.md }}>
               {renderCheckbox(item.id)}
             </View>
           ) : null}
           <View style={{ flex: 1 }}>
-            <View style={[styles.nameRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.nameRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
               <ThemedText style={[Typography.subtitle, { fontWeight: '600', flex: 1, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
                 {item.name}
               </ThemedText>
@@ -519,7 +520,7 @@ export default function UsersRolesScreen() {
             <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginBottom: Spacing.xs }]} numberOfLines={1}>
               {item.email}
             </ThemedText>
-            <View style={[styles.badgeRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.badgeRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
               <View style={[styles.roleBadge, { backgroundColor: theme.primary + '20' }]}>
                 <ThemedText style={[Typography.caption, { color: theme.primary, fontWeight: '600' }]}>
                   {getRoleLabel(item.role)}
@@ -536,7 +537,7 @@ export default function UsersRolesScreen() {
             </View>
           </View>
           {!isGrid && !bulkMode ? (
-            <View style={[styles.actions, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.actions, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
               <Pressable
                 style={[styles.actionButton, { backgroundColor: theme.primary + '15' }]}
                 onPress={() => handleEditUser(item)}
@@ -558,7 +559,7 @@ export default function UsersRolesScreen() {
           <>
             <Spacer height={Spacing.md} />
             {item.department ? (
-              <View style={[styles.infoRow, bulkMode ? { marginStart: 32 } : null, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.infoRow, bulkMode ? { marginStart: 32 } : null, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                 <DDIcon name="briefcase" variant="muted" size={14} />
                 <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginStart: Spacing.xs }]}>
                   {item.department}
@@ -568,7 +569,7 @@ export default function UsersRolesScreen() {
             {item.phoneNumber ? (
               <>
                 <Spacer height={Spacing.xs} />
-                <View style={[styles.infoRow, bulkMode ? { marginStart: 32 } : null, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                <View style={[styles.infoRow, bulkMode ? { marginStart: 32 } : null, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                   <DDIcon name="phone" variant="muted" size={14} />
                   <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginStart: Spacing.xs }]}>
                     {item.phoneNumber}

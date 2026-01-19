@@ -29,6 +29,7 @@ import type { VisitorRequestFormScreenProps } from "@/types/employeeNavigation.t
 import { calculateServerDuration } from "@/utils/dateTimeUtils";
 import { useServerDateTime } from "@/hooks/useServerDateTime";
 import { PURPOSE_OPTIONS } from "@/constants/requestConstants";
+import { getPlatformFlexDirection } from "@/utils/rtlInitializer";
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -537,7 +538,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
       {visitType && visitType !== t('visitor.generalVisit') && (
         <>
           <ThemedView style={[styles.visitTypeBanner, { backgroundColor: applyOpacity(theme.primary, '15'), borderStartColor: theme.primary, borderStartWidth: 4, alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
-            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.sm }}>
+            <View style={{ flexDirection: getPlatformFlexDirection(isRTL), alignItems: 'center', gap: Spacing.sm }}>
               <DDIcon name="info" size={18} variant="primary" />
               <ThemedText style={[Typography.body, { fontWeight: '600', color: theme.primary }]}>
                 {t('visitor.typeOfVisit')}: {visitType}
@@ -683,7 +684,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                 { 
                   backgroundColor: theme.background, 
                   borderColor: errors.hostEmployee ? theme.error : theme.border,
-                  flexDirection: isRTL ? 'row-reverse' : 'row'
+                  flexDirection: getPlatformFlexDirection(isRTL)
                 }
               ]}
               onPress={() => setShowEmployeePicker(true)}
@@ -718,7 +719,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                 { 
                   backgroundColor: theme.background, 
                   borderColor: theme.border,
-                  flexDirection: isRTL ? 'row-reverse' : 'row'
+                  flexDirection: getPlatformFlexDirection(isRTL)
                 }
               ]}
               onPress={() => setShowIdTypePicker(true)}
@@ -811,7 +812,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
           <Spacer height={Spacing.lg} />
 
           <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
-            <View style={[styles.sectionHeader, { flexDirection: isRTL ? 'row-reverse' : 'row', gap: Spacing.md }]}>
+            <View style={[styles.sectionHeader, { flexDirection: getPlatformFlexDirection(isRTL), gap: Spacing.md }]}>
               <View style={[styles.sectionIconContainer, { backgroundColor: theme.primary + '20' }]}>
                 <DDIcon name="calendar" size={20} variant="primary" />
               </View>
@@ -839,7 +840,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
               ]}
               onPress={() => setShowDatePicker(true)}
             >
-              <View style={{ flex: 1, flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.md }}>
+              <View style={{ flex: 1, flexDirection: getPlatformFlexDirection(isRTL), alignItems: 'center', gap: Spacing.md }}>
                 <DDIcon name="calendar" size={20} variant="primary" />
                 <ThemedText style={[Typography.body, { color: theme.text, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                   {formatPickerDate(selectedDate)}
@@ -872,7 +873,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
               ]}
               onPress={() => setShowTimePicker(true)}
             >
-              <View style={{ flex: 1, flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.md }}>
+              <View style={{ flex: 1, flexDirection: getPlatformFlexDirection(isRTL), alignItems: 'center', gap: Spacing.md }}>
                 <DDIcon name="clock" size={20} variant="primary" />
                 <ThemedText style={[Typography.body, { color: theme.text, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                   {formatPickerTime(selectedTime)}
@@ -905,7 +906,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
               ]}
               onPress={() => setShowEndTimePicker(true)}
             >
-              <View style={{ flex: 1, flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.md }}>
+              <View style={{ flex: 1, flexDirection: getPlatformFlexDirection(isRTL), alignItems: 'center', gap: Spacing.md }}>
                 <DDIcon name="clock" size={20} variant="primary" />
                 <ThemedText style={[Typography.body, { color: theme.text, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                   {formatPickerTime(selectedEndTime)}
@@ -938,7 +939,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                 }
               ]}
             >
-              <View style={{ flex: 1, flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.md }}>
+              <View style={{ flex: 1, flexDirection: getPlatformFlexDirection(isRTL), alignItems: 'center', gap: Spacing.md }}>
                 <DDIcon name="clock" size={20} variant="muted" />
                 <ThemedText style={[Typography.body, { color: isEndTimeBeforeStartTime() ? theme.error : theme.textSecondary, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                   {calculateDuration()}
@@ -1003,7 +1004,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                         ? applyOpacity(theme.success, '15') 
                         : applyOpacity(theme.error, '15'),
                       borderColor: isRoomAvailable ? theme.success : theme.error,
-                      flexDirection: isRTL ? 'row-reverse' : 'row',
+                      flexDirection: getPlatformFlexDirection(isRTL),
                       justifyContent: 'flex-start',
                     }
                   ]}
@@ -1030,7 +1031,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                   </ThemedText>
                 </View>
               ) : isLoadingRooms ? (
-                <View style={[styles.availabilityBadge, { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: isRTL ? 'row-reverse' : 'row', justifyContent: 'flex-start' }]}>
+                <View style={[styles.availabilityBadge, { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: getPlatformFlexDirection(isRTL), justifyContent: 'flex-start' }]}>
                   <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
                     {t('common.checkingAvailability')}...
                   </ThemedText>
@@ -1052,7 +1053,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
           style={[styles.channelChip, { backgroundColor: theme.surface, borderColor: sendWhatsApp ? theme.primary : theme.border }]}
           onPress={() => setSendWhatsApp(!sendWhatsApp)}
         >
-          <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.xs }}>
+          <View style={{ flexDirection: getPlatformFlexDirection(isRTL), alignItems: 'center', gap: Spacing.xs }}>
             <View style={[styles.channelChipIcon, { backgroundColor: theme.success + '15' }]}>
               <DDIcon name="message-circle" size={16} variant="success" />
             </View>
@@ -1071,7 +1072,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
           style={[styles.channelChip, { backgroundColor: theme.surface, borderColor: sendSMS ? theme.primary : theme.border }]}
           onPress={() => setSendSMS(!sendSMS)}
         >
-          <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.xs }}>
+          <View style={{ flexDirection: getPlatformFlexDirection(isRTL), alignItems: 'center', gap: Spacing.xs }}>
             <View style={[styles.channelChipIcon, { backgroundColor: theme.info + '15' }]}>
               <DDIcon name="smartphone" size={16} color={theme.info} />
             </View>
@@ -1089,7 +1090,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
         <View
           style={[styles.channelChip, { backgroundColor: theme.surface, borderColor: theme.primary, opacity: 0.8 }]}
         >
-          <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.xs }}>
+          <View style={{ flexDirection: getPlatformFlexDirection(isRTL), alignItems: 'center', gap: Spacing.xs }}>
             <View style={[styles.channelChipIcon, { backgroundColor: theme.warning + '15' }]}>
               <DDIcon name="mail" size={16} color={theme.warning} />
             </View>
@@ -1151,7 +1152,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                 <DDIcon name="x" size={24} variant="muted" />
               </Pressable>
             </View>
-            <View style={[styles.searchContainer, { backgroundColor: theme.background, borderBottomColor: theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.searchContainer, { backgroundColor: theme.background, borderBottomColor: theme.border, flexDirection: getPlatformFlexDirection(isRTL) }]}>
               <DDIcon name="search" size={20} variant="muted" />
               <TextInput
                 style={[styles.searchInput, { color: theme.text }]}
@@ -1175,7 +1176,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                     key={employee.id}
                     style={[
                       styles.employeeOption,
-                      { borderBottomColor: theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' },
+                      { borderBottomColor: theme.border, flexDirection: getPlatformFlexDirection(isRTL) },
                       selectedEmployeeId === employee.id && { backgroundColor: applyOpacity(theme.primary, '10') }
                     ]}
                     onPress={() => handleEmployeeSelect(employee)}
@@ -1377,7 +1378,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
 
     {/* Sticky Footer for Action Buttons */}
     <View style={[styles.stickyFooter, { backgroundColor: theme.background, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.lg }]}>
-      <View style={[styles.buttonRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <View style={[styles.buttonRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
         <LoadingButton
           onPress={() => navigation.goBack()}
           variant="outline"

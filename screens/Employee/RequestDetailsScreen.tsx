@@ -67,6 +67,7 @@ import {
 import { calculateServerDuration } from "@/utils/dateTimeUtils";
 import { useServerDateTime } from "@/hooks/useServerDateTime";
 import { useAuth } from "@/contexts/AuthContext";
+import { getPlatformFlexDirection } from "@/utils/rtlInitializer";
 
 export default function RequestDetailsScreen({
   navigation,
@@ -879,7 +880,7 @@ export default function RequestDetailsScreen({
             style={[
               styles.alertBox,
               {
-                flexDirection: isRTL ? 'row-reverse' : 'row',
+                flexDirection: getPlatformFlexDirection(isRTL),
                 backgroundColor: applyOpacity(theme.error, "10"),
                 borderStartColor: theme.error,
                 borderStartWidth: 4,
@@ -907,7 +908,7 @@ export default function RequestDetailsScreen({
             style={[
               styles.alertBox,
               {
-                flexDirection: isRTL ? 'row-reverse' : 'row',
+                flexDirection: getPlatformFlexDirection(isRTL),
                 backgroundColor: applyOpacity(theme.error, "10"),
                 borderStartColor: theme.error,
                 borderStartWidth: 4,
@@ -971,7 +972,7 @@ export default function RequestDetailsScreen({
             {request.approval.managerName && (
               <>
                 <Spacer height={Spacing.md} />
-                <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: "center" }}>
+                <View style={{ flexDirection: getPlatformFlexDirection(isRTL), alignItems: "center" }}>
                   <DDIcon name="user" size={12} variant="muted" />
                   <ThemedText
                     style={[
@@ -1019,7 +1020,7 @@ export default function RequestDetailsScreen({
           <ThemedView
             style={[styles.cardNew, { backgroundColor: theme.surface }]}
           >
-            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: "center" }}>
+            <View style={{ flexDirection: getPlatformFlexDirection(isRTL), alignItems: "center" }}>
               <DDIcon name="file-text" size={16} color={theme.info} />
               <ThemedText
                 style={[
@@ -1121,7 +1122,7 @@ export default function RequestDetailsScreen({
         <Spacer height={Spacing.lg} />
 
         <View style={{ flexDirection: 'row', width: '100%', justifyContent: isRTL ? 'flex-end' : 'flex-start' }}>
-          <View style={[styles.infoRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row', gap: Spacing.md }]}>
+          <View style={[styles.infoRowNew, { flexDirection: getPlatformFlexDirection(isRTL), gap: Spacing.md }]}>
             {isRTL ? (
               <>
                 <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, textAlign: 'right' }]}>
@@ -1147,7 +1148,7 @@ export default function RequestDetailsScreen({
         <Spacer height={Spacing.md} />
 
         <View style={{ flexDirection: 'row', width: '100%', justifyContent: isRTL ? 'flex-end' : 'flex-start' }}>
-          <View style={[styles.infoRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row', gap: Spacing.md }]}>
+          <View style={[styles.infoRowNew, { flexDirection: getPlatformFlexDirection(isRTL), gap: Spacing.md }]}>
             {isRTL ? (
               <>
                 <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, textAlign: 'right' }]}>
@@ -1174,7 +1175,7 @@ export default function RequestDetailsScreen({
       <Spacer height={Spacing.lg} />
 
       <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
-        <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <View style={{ flexDirection: getPlatformFlexDirection(isRTL), alignItems: 'center', justifyContent: 'space-between' }}>
           <ThemedText
             style={[
               Typography.subtitle,
@@ -1184,7 +1185,7 @@ export default function RequestDetailsScreen({
             {t("visitor.visitDetails")}
           </ThemedText>
           {request.isWalkIn ? (
-            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.xs, backgroundColor: applyOpacity(theme.warning, '15'), paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: BorderRadius.sm }}>
+            <View style={{ flexDirection: getPlatformFlexDirection(isRTL), alignItems: 'center', gap: Spacing.xs, backgroundColor: applyOpacity(theme.warning, '15'), paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: BorderRadius.sm }}>
               <DDIcon name="user-check" size={14} color={theme.warning} />
               <ThemedText style={[Typography.caption, { color: theme.warning, fontWeight: '600', fontSize: 11 }]}>
                 {t("reception.walkInVisitor")}
@@ -1194,12 +1195,12 @@ export default function RequestDetailsScreen({
         </View>
         <Spacer height={Spacing.xl} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.serviceRowNew, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(isVisitExpired ? theme.secondary : theme.textSecondary, '15') }]}>
             <DDIcon name={isVisitExpired ? "check-circle" : "calendar"} size={18} color={isVisitExpired ? theme.secondary : theme.text} />
           </View>
           <View style={{ flex: 1 }}>
-            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.xs }}>
+            <View style={{ flexDirection: getPlatformFlexDirection(isRTL), alignItems: 'center', gap: Spacing.xs }}>
               <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
                 {t("time.dateAndTime")}
               </ThemedText>
@@ -1215,7 +1216,7 @@ export default function RequestDetailsScreen({
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.serviceRowNew, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="clock" size={18} color={theme.text} />
           </View>
@@ -1231,7 +1232,7 @@ export default function RequestDetailsScreen({
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.serviceRowNew, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="briefcase" size={18} color={theme.text} />
           </View>
@@ -1514,7 +1515,7 @@ export default function RequestDetailsScreen({
       {/* Expired visit message for managers - inline display */}
       {request.status === REQUEST_STATUS.PENDING_APPROVAL && userRole === 'manager' && isVisitExpired ? (
         <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: Spacing.sm, paddingHorizontal: Spacing.md }}>
-          <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.xs }}>
+          <View style={{ flexDirection: getPlatformFlexDirection(isRTL), alignItems: 'center', justifyContent: 'center', gap: Spacing.xs }}>
             <DDIcon name="alert-circle" size={16} color={theme.warning} />
             <ThemedText style={[Typography.caption, { color: theme.warning, fontWeight: '600', textAlign: 'center' }]}>
               {t('status.visitExpired')}
@@ -1540,7 +1541,7 @@ export default function RequestDetailsScreen({
           <View
             style={[styles.modalContent, { backgroundColor: theme.surface }]}
           >
-            <View style={[styles.modalHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.modalHeader, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
               <ThemedText
                 style={[
                   Typography.subtitle,
@@ -1857,7 +1858,7 @@ export default function RequestDetailsScreen({
                   {
                     backgroundColor: theme.surfaceSecondary,
                     borderColor: theme.border,
-                    flexDirection: isRTL ? 'row-reverse' : 'row',
+                    flexDirection: getPlatformFlexDirection(isRTL),
                   },
                 ]}
                 onPress={() => setShowPurposePicker(true)}
@@ -1899,7 +1900,7 @@ export default function RequestDetailsScreen({
                         backgroundColor: applyOpacity(theme.surfaceSecondary, '50'),
                         borderColor: theme.border,
                         opacity: 0.7,
-                        flexDirection: isRTL ? 'row-reverse' : 'row',
+                        flexDirection: getPlatformFlexDirection(isRTL),
                       },
                     ]}
                   >
@@ -1947,7 +1948,7 @@ export default function RequestDetailsScreen({
                       {
                         backgroundColor: theme.surfaceSecondary,
                         borderColor: isWalkInEndTimeBeforeNow() ? theme.error : theme.border,
-                        flexDirection: isRTL ? 'row-reverse' : 'row',
+                        flexDirection: getPlatformFlexDirection(isRTL),
                       },
                     ]}
                     onPress={() => setShowEditEndTimePicker(true)}
@@ -2009,7 +2010,7 @@ export default function RequestDetailsScreen({
                       {
                         backgroundColor: theme.surfaceSecondary,
                         borderColor: theme.border,
-                        flexDirection: isRTL ? 'row-reverse' : 'row',
+                        flexDirection: getPlatformFlexDirection(isRTL),
                       },
                     ]}
                     onPress={() => {
@@ -2052,7 +2053,7 @@ export default function RequestDetailsScreen({
                   {
                     backgroundColor: theme.surfaceSecondary,
                     borderColor: theme.border,
-                    flexDirection: isRTL ? 'row-reverse' : 'row',
+                    flexDirection: getPlatformFlexDirection(isRTL),
                   },
                 ]}
                 onPress={() => {
@@ -2095,7 +2096,7 @@ export default function RequestDetailsScreen({
                   {
                     backgroundColor: theme.surfaceSecondary,
                     borderColor: theme.border,
-                    flexDirection: isRTL ? 'row-reverse' : 'row',
+                    flexDirection: getPlatformFlexDirection(isRTL),
                   },
                 ]}
                 onPress={() => {
@@ -2139,7 +2140,7 @@ export default function RequestDetailsScreen({
                     backgroundColor: theme.surface,
                     borderColor: theme.border,
                     opacity: 0.7,
-                    flexDirection: isRTL ? 'row-reverse' : 'row',
+                    flexDirection: getPlatformFlexDirection(isRTL),
                   },
                 ]}
               >
@@ -2226,7 +2227,7 @@ export default function RequestDetailsScreen({
                       style={[
                         styles.availabilityBadge, 
                         { 
-                          flexDirection: isRTL ? 'row-reverse' : 'row',
+                          flexDirection: getPlatformFlexDirection(isRTL),
                           backgroundColor: isEditRoomAvailable 
                             ? applyOpacity(theme.success, '15') 
                             : applyOpacity(theme.error, '15'),
@@ -2256,7 +2257,7 @@ export default function RequestDetailsScreen({
                       </ThemedText>
                     </View>
                   ) : isLoadingEditRooms ? (
-                    <View style={[styles.availabilityBadge, { flexDirection: isRTL ? 'row-reverse' : 'row', backgroundColor: theme.surface, borderColor: theme.border }]}>
+                    <View style={[styles.availabilityBadge, { flexDirection: getPlatformFlexDirection(isRTL), backgroundColor: theme.surface, borderColor: theme.border }]}>
                       <ActivityIndicator size="small" color={theme.primary} style={{ marginEnd: Spacing.xs }} />
                       <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
                         {t('common.checkingAvailability')}...
@@ -2668,7 +2669,7 @@ export default function RequestDetailsScreen({
      request.status !== REQUEST_STATUS.VISITOR_REJECTED &&
      request.status !== REQUEST_STATUS.AUTO_CANCELLED ? (
       <View style={[styles.stickyFooter, { backgroundColor: theme.background, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.lg }]}>
-        <View style={[styles.actionButtonsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.actionButtonsRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
           <LoadingButton
             onPress={() => openEditModal(request.isWalkIn ? "services-only" : "full")}
             variant="primary"

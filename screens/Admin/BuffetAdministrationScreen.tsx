@@ -10,6 +10,7 @@ import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { createModalOverlayStyle } from "@/utils/statusStyles";
+import { getPlatformFlexDirection } from '@/utils/rtlInitializer';
 
 const { width } = Dimensions.get('window');
 const isLargeScreen = width >= 768;
@@ -216,7 +217,7 @@ export default function BuffetAdministrationScreen() {
 
       <Spacer height={Spacing.xl} />
 
-      <View style={[styles.tabContainer, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <View style={[styles.tabContainer, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border, flexDirection: getPlatformFlexDirection(isRTL) }]}>
         <Pressable
           style={[
             styles.tab,
@@ -267,7 +268,7 @@ export default function BuffetAdministrationScreen() {
 
       {activeTab === 'locations' ? (
         <>
-          <View style={[styles.statsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.statsRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
             <ThemedView style={[styles.statCard, { backgroundColor: theme.surface }]}>
               <DDIcon name="map" size={24} variant="primary" />
               <Spacer height={Spacing.sm} />
@@ -293,7 +294,7 @@ export default function BuffetAdministrationScreen() {
           <Spacer height={Spacing.xl} />
 
           <ThemedView style={[styles.locationsCard, { backgroundColor: theme.surface }]}>
-            <View style={[styles.locationsHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.locationsHeader, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
               <ThemedText style={[Typography.subtitle]}>
                 {t('navigation.buffetLocations')}
               </ThemedText>
@@ -376,7 +377,7 @@ export default function BuffetAdministrationScreen() {
         </>
       ) : (
         <>
-          <View style={[styles.statsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.statsRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
             <ThemedView style={[styles.statCard, { backgroundColor: theme.surface }]}>
               <DDIcon name="users" size={24} variant="primary" />
               <Spacer height={Spacing.sm} />
@@ -414,7 +415,7 @@ export default function BuffetAdministrationScreen() {
           {MOCK_STAFF.map((staff, index) => (
             <View key={staff.id}>
               <ThemedView style={[styles.staffCard, { backgroundColor: theme.surface }]}>
-                <View style={[styles.staffHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                <View style={[styles.staffHeader, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                   <View style={[styles.staffAvatar, { backgroundColor: theme.primary + '20' }]}>
                     <ThemedText style={[Typography.subtitle, { color: theme.primary }]}>
                       {staff.name.split(' ').map(n => n[0]).join('')}
@@ -451,21 +452,21 @@ export default function BuffetAdministrationScreen() {
                 <Spacer height={Spacing.md} />
 
                 <View style={styles.staffDetails}>
-                  <View style={[styles.staffDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                  <View style={[styles.staffDetailRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                     <DDIcon name="map-pin" size={16} variant="muted" />
                     <Spacer width={Spacing.xs} />
                     <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
                       {staff.assignedLocation}
                     </ThemedText>
                   </View>
-                  <View style={[styles.staffDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                  <View style={[styles.staffDetailRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                     <DDIcon name="clock" size={16} variant="muted" />
                     <Spacer width={Spacing.xs} />
                     <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
                       {staff.shift}
                     </ThemedText>
                   </View>
-                  <View style={[styles.staffDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                  <View style={[styles.staffDetailRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                     <DDIcon name="phone" size={16} variant="muted" />
                     <Spacer width={Spacing.xs} />
                     <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
@@ -492,7 +493,7 @@ export default function BuffetAdministrationScreen() {
           <ThemedView style={[styles.modalContent, { backgroundColor: theme.background }]}>
             {Platform.OS === 'web' ? (
               <ScrollView showsVerticalScrollIndicator={false}>
-                <View style={[styles.modalHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                <View style={[styles.modalHeader, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                   <ThemedText style={[Typography.subtitle]}>
                     {editingLocation ? t('common.edit') : t('common.save')}
                   </ThemedText>
@@ -616,7 +617,7 @@ export default function BuffetAdministrationScreen() {
               </ScrollView>
             ) : (
               <KeyboardAwareScrollView showsVerticalScrollIndicator={false}>
-                <View style={[styles.modalHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                <View style={[styles.modalHeader, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                   <ThemedText style={[Typography.subtitle]}>
                     {editingLocation ? t('common.edit') : t('common.save')}
                   </ThemedText>

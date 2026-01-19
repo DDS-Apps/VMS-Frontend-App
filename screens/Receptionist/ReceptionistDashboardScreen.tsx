@@ -13,6 +13,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { VisitorActionButton } from "@/components/VisitorActionButton";
 import { applyOpacity } from "@/utils/statusStyles";
+import { getPlatformFlexDirection } from "@/utils/rtlInitializer";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTodayVisitorsQuery, useRoomsTodayQuery, useReceptionCheckInMutation, useReceptionCheckOutMutation } from "@/hooks/queries/useReceptionQueries";
 import type { TodayVisitorDto, RoomStatusDto } from "@/types";
@@ -100,7 +101,7 @@ const ServiceIconsRow = ({ visitor, size = 14 }: { visitor: TodayVisitorDto; siz
   }
 
   return (
-    <View style={[styles.servicesRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+    <View style={[styles.servicesRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
       {showBuffet ? (
         <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.warning, '20') }]}>
           <DDIcon name="coffee" size={size} color={theme.warning} />
@@ -285,14 +286,14 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
           },
         ]}
       >
-        <View style={[styles.visitorCardHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.visitorCardHeader, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
           <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '12') }]}>
             <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
               {initials}
             </ThemedText>
           </View>
           <View style={styles.visitorHeaderInfo}>
-            <View style={[styles.nameRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.nameRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
               <ThemedText style={[styles.visitorName, { color: theme.text }]} numberOfLines={1}>
                 {visitorName}
               </ThemedText>
@@ -306,7 +307,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.visitorMetaRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.visitorMetaRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
           <DDIcon name="clock" size={14} color={theme.textSecondary} />
           <ThemedText style={[styles.visitorMetaText, { color: theme.textSecondary }]}>
             {formatTimeFromString(item.visitTime)}
@@ -320,7 +321,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.servicesStatusRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.servicesStatusRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
           <ServiceIconsRow visitor={item} />
           <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: 1 }]}>
             <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
@@ -332,7 +333,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
         {isExpanded && hasDetails ? (
           <View style={styles.expandedSection}>
             {item.visitor.phone ? (
-              <View style={[styles.detailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.detailRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                 <DDIcon name="phone" size={14} color={theme.textSecondary} />
                 <ThemedText style={[styles.detailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
                   {item.visitor.phone}
@@ -360,7 +361,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.visitorCardFooter, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.visitorCardFooter, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
           <View />
           {showCheckIn ? (
             <VisitorActionButton 
@@ -405,7 +406,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
   return (
     <>
       <ScreenScrollView contentContainerStyle={scrollContentStyle}>
-        <View style={[styles.kpiRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.kpiRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
           <KPICard 
             title={t('dashboard.expectedToday')} 
             value={String(expectedCount)} 
@@ -440,7 +441,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.quickActionsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.quickActionsRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
           <QuickActionButton
             icon="users"
             label={t('navigation.allVisitors')}
@@ -488,10 +489,10 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
                   style={[styles.roomCard, { backgroundColor: theme.surface }]}
                 >
                   <Pressable
-                    style={[styles.roomHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
+                    style={[styles.roomHeader, { flexDirection: getPlatformFlexDirection(isRTL) }]}
                     onPress={() => toggleRoomExpanded(room.id)}
                   >
-                    <View style={[styles.roomHeaderLeft, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                    <View style={[styles.roomHeaderLeft, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                       <View style={[styles.roomIconContainer, { backgroundColor: applyOpacity(theme.info, '12') }]}>
                         <DDIcon name="home" size={20} color={theme.info} />
                       </View>
@@ -504,7 +505,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
                         </ThemedText>
                       </View>
                     </View>
-                    <View style={[styles.roomHeaderRight, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                    <View style={[styles.roomHeaderRight, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                       <View style={[styles.meetingCountBadge, { backgroundColor: applyOpacity(statusColor, '12') }]}>
                         <ThemedText style={[styles.meetingCountText, { color: statusColor }]}>
                           {room.status}
@@ -524,7 +525,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
                     <View style={[styles.meetingsList, { borderTopColor: theme.border }]}>
                       {room.currentBooking ? (
                         <View style={styles.meetingItem}>
-                          <View style={[styles.meetingTimeSlot, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                          <View style={[styles.meetingTimeSlot, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                             <DDIcon name="clock" size={14} color={theme.textSecondary} />
                             <ThemedText style={[styles.meetingTime, { color: theme.textSecondary }]}>
                               {room.currentBooking.startTime} - {room.currentBooking.endTime ?? t('common.ongoing')}
@@ -534,7 +535,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
                             {room.currentBooking.visitorName}
                           </ThemedText>
                           {room.currentBooking.hostName ? (
-                            <View style={[styles.meetingMeta, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                            <View style={[styles.meetingMeta, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                               <DDIcon name="user" size={12} color={theme.textSecondary} />
                               <ThemedText style={[styles.meetingHost, { color: theme.textSecondary }]} numberOfLines={1}>
                                 {room.currentBooking.hostName}
@@ -545,7 +546,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
                       ) : null}
                       {room.nextBooking ? (
                         <View style={[styles.meetingItem, room.currentBooking && { borderTopWidth: 1, borderTopColor: applyOpacity(theme.border, '50') }]}>
-                          <View style={[styles.meetingTimeSlot, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                          <View style={[styles.meetingTimeSlot, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                             <DDIcon name="clock" size={14} color={theme.textSecondary} />
                             <ThemedText style={[styles.meetingTime, { color: theme.textSecondary }]}>
                               {t('reception.next')}: {room.nextBooking.startTime}
@@ -574,7 +575,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
 
         <Spacer height={Spacing.xl} />
 
-        <View style={[styles.sectionHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.sectionHeader, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
           <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
             {t('navigation.todaysVisitors')}
           </ThemedText>
@@ -583,7 +584,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
               onPress={() => navigation.navigate(ROUTES.ALL_VISITORS_TODAY as never)}
               style={({ pressed }) => [
                 styles.viewAllButton,
-                { opacity: pressed ? 0.7 : 1, flexDirection: isRTL ? 'row-reverse' : 'row' }
+                { opacity: pressed ? 0.7 : 1, flexDirection: getPlatformFlexDirection(isRTL) }
               ]}
             >
               <ThemedText style={[styles.viewAllText, { color: theme.primary }]}>

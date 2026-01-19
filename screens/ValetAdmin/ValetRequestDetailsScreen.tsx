@@ -13,6 +13,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useFormatters } from "@/hooks/useFormatters";
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { applyOpacity } from "@/utils/statusStyles";
+import { getPlatformFlexDirection } from '@/utils/rtlInitializer';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   getValetRequestById,
@@ -185,7 +186,7 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
           </ThemedText>
           <Spacer height={Spacing.xl} />
 
-          <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.serviceRowNew, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
             <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
               <DDIcon name="user" size={18} color={theme.text} />
             </View>
@@ -201,7 +202,7 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
 
           <Spacer height={Spacing.lg} />
 
-          <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.serviceRowNew, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
             <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
               <DDIcon name="map-pin" size={18} color={theme.text} />
             </View>
@@ -217,7 +218,7 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
 
           <Spacer height={Spacing.lg} />
 
-          <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.serviceRowNew, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
             <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
               <DDIcon name="calendar" size={18} color={theme.text} />
             </View>
@@ -233,7 +234,7 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
 
           <Spacer height={Spacing.lg} />
 
-          <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.serviceRowNew, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
             <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
               <DDIcon name="clock" size={18} color={theme.text} />
             </View>
@@ -258,7 +259,7 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
               </ThemedText>
               <Spacer height={Spacing.xl} />
 
-              <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.serviceRowNew, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                 <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.info, '15') }]}>
                   <DDIcon name="truck" size={18} color={theme.info} />
                 </View>
@@ -274,7 +275,7 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
 
               <Spacer height={Spacing.lg} />
 
-              <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.serviceRowNew, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                 <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.info, '15') }]}>
                   <DDIcon name="droplet" size={18} color={theme.info} />
                 </View>
@@ -290,7 +291,7 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
 
               <Spacer height={Spacing.lg} />
 
-              <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.serviceRowNew, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                 <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.info, '15') }]}>
                   <DDIcon name="tag" size={18} color={theme.info} />
                 </View>
@@ -317,7 +318,7 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
 
           {request.assignedDriver ? (
             <>
-              <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.serviceRowNew, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                 <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.success, '15') }]}>
                   <DDIcon name="user" size={18} color={theme.success} />
                 </View>
@@ -333,7 +334,7 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
 
               <Spacer height={Spacing.lg} />
 
-              <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.serviceRowNew, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                 <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
                   <DDIcon name="phone" size={18} color={theme.text} />
                 </View>
@@ -370,7 +371,7 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
           {request.parkingSlot ? (
             <>
               <Spacer height={Spacing.lg} />
-              <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.serviceRowNew, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                 <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.info, '15') }]}>
                   <DDIcon name="map-pin" size={18} color={theme.info} />
                 </View>
@@ -391,7 +392,7 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
           <>
             <Spacer height={Spacing.lg} />
             <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
-              <View style={[styles.notesHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.notesHeader, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                 <DDIcon name="file-text" size={16} color={theme.info} />
                 <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginStart: Spacing.sm, fontSize: 14, color: theme.text }]}>
                   {t('form.notes')}
@@ -470,7 +471,7 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
             </LoadingButton>
           </View>
         ) : (
-          <View style={[styles.completedContainer, { backgroundColor: applyOpacity(statusColor, '10'), flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.completedContainer, { backgroundColor: applyOpacity(statusColor, '10'), flexDirection: getPlatformFlexDirection(isRTL) }]}>
             <DDIcon 
               name={request.status === 'completed' ? 'check-circle' : 'x-circle'} 
               size={24} 
@@ -493,7 +494,7 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
       >
         <View style={[styles.modalOverlay, { backgroundColor: applyOpacity(theme.overlay, '50') }]}>
           <View style={[styles.modalContent, { backgroundColor: theme.surface }]}>
-            <View style={[styles.modalHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.modalHeader, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
               <ThemedText style={[Typography.subtitle, { fontWeight: '600' }]}>
                 {t('actions.assignDriver')}
               </ThemedText>
@@ -509,7 +510,7 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
                 drivers.map((driver) => (
                   <Pressable
                     key={driver.id}
-                    style={[styles.driverItem, { borderColor: theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
+                    style={[styles.driverItem, { borderColor: theme.border, flexDirection: getPlatformFlexDirection(isRTL) }]}
                     onPress={() => handleAssignDriver(driver.id)}
                   >
                     <View style={[styles.driverAvatar, { backgroundColor: applyOpacity(theme.success, '15') }]}>
