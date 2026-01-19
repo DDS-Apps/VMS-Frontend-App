@@ -1309,7 +1309,7 @@ export default function RequestDetailsScreen({
         </View>
         <Spacer height={Spacing.xl} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start' }]}>
+        <View style={[styles.serviceRowNew, { flexDirection: 'row', justifyContent: 'flex-start' }]}>
           {isRTL ? (
             <>
               <View>
@@ -1353,7 +1353,7 @@ export default function RequestDetailsScreen({
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start' }]}>
+        <View style={[styles.serviceRowNew, { flexDirection: 'row', justifyContent: 'flex-start' }]}>
           {isRTL ? (
             <>
               <View>
@@ -1387,7 +1387,7 @@ export default function RequestDetailsScreen({
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start' }]}>
+        <View style={[styles.serviceRowNew, { flexDirection: 'row', justifyContent: 'flex-start' }]}>
           {isRTL ? (
             <>
               <View>
