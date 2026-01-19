@@ -704,54 +704,50 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
             <Spacer height={Spacing.lg} />
 
-            <View style={{ flexDirection: 'row', width: '100%', justifyContent: isRTL ? 'flex-end' : 'flex-start' }}>
-              <View style={{ flexDirection: getPlatformFlexDirection(isRTL), alignItems: 'center', gap: Spacing.md }}>
-                {isRTL ? (
-                  <>
-                    <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 13, textAlign: 'right' }]}>
-                      {request.visitor.email}
-                    </ThemedText>
-                    <View style={[styles.contactIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-                      <DDIcon name="mail" size={18} color={theme.text} />
-                    </View>
-                  </>
-                ) : (
-                  <>
-                    <View style={[styles.contactIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-                      <DDIcon name="mail" size={18} color={theme.text} />
-                    </View>
-                    <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 13, textAlign: 'left' }]}>
-                      {request.visitor.email}
-                    </ThemedText>
-                  </>
-                )}
-              </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
+              {isRTL && Platform.OS !== 'web' ? (
+                <>
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 13, flex: 1, textAlign: 'right' }]}>
+                    {request.visitor.email}
+                  </ThemedText>
+                  <View style={[styles.contactIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                    <DDIcon name="mail" size={18} color={theme.text} />
+                  </View>
+                </>
+              ) : (
+                <>
+                  <View style={[styles.contactIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                    <DDIcon name="mail" size={18} color={theme.text} />
+                  </View>
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 13, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
+                    {request.visitor.email}
+                  </ThemedText>
+                </>
+              )}
             </View>
 
             <Spacer height={Spacing.md} />
 
-            <View style={{ flexDirection: 'row', width: '100%', justifyContent: isRTL ? 'flex-end' : 'flex-start' }}>
-              <View style={{ flexDirection: getPlatformFlexDirection(isRTL), alignItems: 'center', gap: Spacing.md }}>
-                {isRTL ? (
-                  <>
-                    <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 13, textAlign: 'right' }]}>
-                      {request.visitor.phone}
-                    </ThemedText>
-                    <View style={[styles.contactIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-                      <DDIcon name="phone" size={18} color={theme.text} />
-                    </View>
-                  </>
-                ) : (
-                  <>
-                    <View style={[styles.contactIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-                      <DDIcon name="phone" size={18} color={theme.text} />
-                    </View>
-                    <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 13, textAlign: 'left' }]}>
-                      {request.visitor.phone}
-                    </ThemedText>
-                  </>
-                )}
-              </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
+              {isRTL && Platform.OS !== 'web' ? (
+                <>
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 13, flex: 1, textAlign: 'right' }]}>
+                    {request.visitor.phone}
+                  </ThemedText>
+                  <View style={[styles.contactIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                    <DDIcon name="phone" size={18} color={theme.text} />
+                  </View>
+                </>
+              ) : (
+                <>
+                  <View style={[styles.contactIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                    <DDIcon name="phone" size={18} color={theme.text} />
+                  </View>
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 13, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
+                    {request.visitor.phone}
+                  </ThemedText>
+                </>
+              )}
             </View>
           </View>
         </ThemedView>

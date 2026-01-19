@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from "react";
-import { View, StyleSheet, Pressable, ActivityIndicator } from "react-native";
+import { View, StyleSheet, Pressable, ActivityIndicator, Platform } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { DirectionalRow } from "@/components/DirectionalRow";
@@ -238,6 +238,45 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
           const { icon, variant } = getNotificationConfig(notification.type);
           const accentColor = getVariantColor(variant);
           const { title: localizedTitle, message: localizedMessage } = getLocalizedContent(notification);
+          // Use child swapping on mobile RTL instead of row-reverse to avoid conflicts
+          const shouldSwapChildren = isRTL && Platform.OS !== 'web';
+          
+          const iconElement = (
+            <View style={[styles.iconContainer, { backgroundColor: applyOpacity(accentColor, '15') }]}>
+              <DDIcon name={icon} size={20} color={accentColor} />
+            </View>
+          );
+          
+          const contentElement = (
+            <View style={styles.notificationContent}>
+              <ThemedText style={[styles.notificationTitle, { color: theme.text, textAlign: getPlatformTextAlign(isRTL, 'start') }]}>
+                {localizedTitle}
+              </ThemedText>
+              <Spacer height={Spacing.xs} />
+              <ThemedText style={[styles.notificationMessage, { color: theme.textSecondary, textAlign: getPlatformTextAlign(isRTL, 'start') }]} numberOfLines={3}>
+                {localizedMessage}
+              </ThemedText>
+              <Spacer height={Spacing.sm} />
+              <View style={[styles.timeContainer, { flexDirection: 'row', gap: 4, alignSelf: 'flex-end' }]}>
+                {shouldSwapChildren ? (
+                  <>
+                    <ThemedText style={[styles.timeText, { color: theme.textSecondary }]}>
+                      {formatTime(notification.createdAt)}
+                    </ThemedText>
+                    <DDIcon name="clock" size={12} variant="muted" />
+                  </>
+                ) : (
+                  <>
+                    <DDIcon name="clock" size={12} variant="muted" />
+                    <ThemedText style={[styles.timeText, { color: theme.textSecondary }]}>
+                      {formatTime(notification.createdAt)}
+                    </ThemedText>
+                  </>
+                )}
+              </View>
+            </View>
+          );
+          
           return (
             <View key={notification.id}>
               <Pressable
@@ -259,26 +298,17 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
                   <View style={[styles.unreadDot, { backgroundColor: theme.primary, start: isRTL ? Spacing.md : undefined, end: isRTL ? undefined : Spacing.md }]} />
                 ) : null}
 
-                <View style={[styles.iconContainer, { backgroundColor: applyOpacity(accentColor, '15') }]}>
-                  <DDIcon name={icon} size={20} color={accentColor} />
-                </View>
-
-                <View style={styles.notificationContent}>
-                  <ThemedText style={[styles.notificationTitle, { color: theme.text, textAlign: getPlatformTextAlign(isRTL, 'start') }]}>
-                    {localizedTitle}
-                  </ThemedText>
-                  <Spacer height={Spacing.xs} />
-                  <ThemedText style={[styles.notificationMessage, { color: theme.textSecondary, textAlign: getPlatformTextAlign(isRTL, 'start') }]} numberOfLines={3}>
-                    {localizedMessage}
-                  </ThemedText>
-                  <Spacer height={Spacing.sm} />
-                  <View style={[styles.timeContainer, { flexDirection: 'row', gap: 4, alignSelf: isRTL ? 'flex-start' : 'flex-end' }]}>
-                    <DDIcon name="clock" size={12} variant="muted" />
-                    <ThemedText style={[styles.timeText, { color: theme.textSecondary }]}>
-                      {formatTime(notification.createdAt)}
-                    </ThemedText>
-                  </View>
-                </View>
+                {shouldSwapChildren ? (
+                  <>
+                    {contentElement}
+                    {iconElement}
+                  </>
+                ) : (
+                  <>
+                    {iconElement}
+                    {contentElement}
+                  </>
+                )}
               </Pressable>
               <Spacer height={Spacing.md} />
             </View>

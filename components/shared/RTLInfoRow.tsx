@@ -1,8 +1,9 @@
 import React, { ReactNode } from 'react';
-import { View, ViewStyle, StyleProp } from 'react-native';
+import { View, ViewStyle, StyleProp, Platform } from 'react-native';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Spacing } from '@/constants/theme';
-import { getPlatformFlexDirection } from '@/utils/rtlInitializer';
+
+const isWeb = Platform.OS === 'web';
 
 interface RTLInfoRowProps {
   icon: ReactNode;
@@ -12,6 +13,11 @@ interface RTLInfoRowProps {
   alignItems?: 'flex-start' | 'center' | 'flex-end';
 }
 
+/**
+ * RTL-aware info row with icon and content.
+ * Uses child swapping on mobile to achieve correct RTL layout.
+ * Web relies on browser's dir="rtl" for automatic reversal.
+ */
 export function RTLInfoRow({ 
   icon, 
   children, 
@@ -21,17 +27,30 @@ export function RTLInfoRow({
 }: RTLInfoRowProps) {
   const { isRTL } = useLanguage();
   
+  // On mobile RTL, swap children order to achieve icon-on-right layout
+  // On web, browser handles this via dir="rtl"
+  const shouldSwapChildren = isRTL && !isWeb;
+  
   return (
     <View style={[
       { 
-        flexDirection: getPlatformFlexDirection(isRTL), 
+        flexDirection: 'row',
         alignItems,
         gap,
       }, 
       style
     ]}>
-      {icon}
-      <View style={{ flex: 1, alignItems: isRTL ? 'flex-end' : 'flex-start' }}>{children}</View>
+      {shouldSwapChildren ? (
+        <>
+          <View style={{ flex: 1 }}>{children}</View>
+          {icon}
+        </>
+      ) : (
+        <>
+          {icon}
+          <View style={{ flex: 1 }}>{children}</View>
+        </>
+      )}
     </View>
   );
 }
@@ -43,6 +62,10 @@ interface RTLSimpleRowProps {
   gap?: number;
 }
 
+/**
+ * Simple RTL-aware row with icon and text.
+ * Uses child swapping on mobile to achieve correct RTL layout.
+ */
 export function RTLSimpleRow({ 
   icon, 
   text, 
@@ -51,17 +74,29 @@ export function RTLSimpleRow({
 }: RTLSimpleRowProps) {
   const { isRTL } = useLanguage();
   
+  // On mobile RTL, swap children order
+  const shouldSwapChildren = isRTL && !isWeb;
+  
   return (
     <View style={[
       { 
-        flexDirection: getPlatformFlexDirection(isRTL), 
+        flexDirection: 'row',
         alignItems: 'center',
         gap,
       }, 
       style
     ]}>
-      {icon}
-      <View style={{ flex: 1 }}>{text}</View>
+      {shouldSwapChildren ? (
+        <>
+          <View style={{ flex: 1 }}>{text}</View>
+          {icon}
+        </>
+      ) : (
+        <>
+          {icon}
+          <View style={{ flex: 1 }}>{text}</View>
+        </>
+      )}
     </View>
   );
 }
