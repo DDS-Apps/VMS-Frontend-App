@@ -1840,6 +1840,8 @@ export default function RequestDetailsScreen({
             <ScrollView
               style={styles.editModalScroll}
               showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              nestedScrollEnabled={true}
             >
               <ThemedText
                 style={[
@@ -2010,7 +2012,10 @@ export default function RequestDetailsScreen({
                         flexDirection: isRTL ? 'row-reverse' : 'row',
                       },
                     ]}
-                    onPress={() => setShowEditDatePicker(true)}
+                    onPress={() => {
+                      console.log('[Edit Modal] Date picker button pressed');
+                      setShowEditDatePicker(true);
+                    }}
                   >
                     <DDIcon name="calendar" size={16} variant="muted" />
                     <ThemedText
@@ -2048,7 +2053,10 @@ export default function RequestDetailsScreen({
                     flexDirection: isRTL ? 'row-reverse' : 'row',
                   },
                 ]}
-                onPress={() => setShowEditTimePicker(true)}
+                onPress={() => {
+                  console.log('[Edit Modal] Time picker button pressed');
+                  setShowEditTimePicker(true);
+                }}
               >
                 <DDIcon name="clock" size={16} variant="muted" />
                 <ThemedText
@@ -2086,7 +2094,10 @@ export default function RequestDetailsScreen({
                     flexDirection: isRTL ? 'row-reverse' : 'row',
                   },
                 ]}
-                onPress={() => setShowEditEndTimePicker(true)}
+                onPress={() => {
+                  console.log('[Edit Modal] End time picker button pressed');
+                  setShowEditEndTimePicker(true);
+                }}
               >
                 <DDIcon name="clock" size={16} variant="muted" />
                 <ThemedText
@@ -2485,7 +2496,7 @@ export default function RequestDetailsScreen({
               </Pressable>
             </View>
 
-            <ScrollView style={{ marginTop: Spacing.md }}>
+            <ScrollView style={{ marginTop: Spacing.md }} keyboardShouldPersistTaps="handled">
               {PURPOSE_OPTIONS.map((option) => (
                 <Pressable
                   key={option.value}
