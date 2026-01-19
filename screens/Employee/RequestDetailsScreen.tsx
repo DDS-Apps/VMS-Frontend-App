@@ -888,7 +888,7 @@ export default function RequestDetailsScreen({
               },
             ]}
           >
-            {shouldSwap ? (
+            {isRTL ? (
               <>
                 <ThemedText
                   style={[
@@ -932,7 +932,7 @@ export default function RequestDetailsScreen({
               },
             ]}
           >
-            {shouldSwap ? (
+            {isRTL ? (
               <>
                 <ThemedText
                   style={[
@@ -1006,7 +1006,7 @@ export default function RequestDetailsScreen({
               <>
                 <Spacer height={Spacing.md} />
                 <View style={{ flexDirection: 'row', alignItems: "center" }}>
-                  {shouldSwap ? (
+                  {isRTL ? (
                     <>
                       <ThemedText
                         style={[
@@ -1094,7 +1094,7 @@ export default function RequestDetailsScreen({
             style={[styles.cardNew, { backgroundColor: theme.surface }]}
           >
             <View style={{ flexDirection: 'row', alignItems: "center" }}>
-              {shouldSwap ? (
+              {isRTL ? (
                 <>
                   <ThemedText
                     style={[
@@ -1267,7 +1267,7 @@ export default function RequestDetailsScreen({
 
       <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          {shouldSwap ? (
+          {isRTL ? (
             <>
               {request.isWalkIn ? (
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.xs, backgroundColor: applyOpacity(theme.warning, '15'), paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: BorderRadius.sm }}>
@@ -1310,7 +1310,7 @@ export default function RequestDetailsScreen({
         <Spacer height={Spacing.xl} />
 
         <View style={[styles.serviceRowNew, { flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start' }]}>
-          {shouldSwap ? (
+          {isRTL ? (
             <>
               <View>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.xs, justifyContent: 'flex-end' }}>
@@ -1354,7 +1354,7 @@ export default function RequestDetailsScreen({
         <Spacer height={Spacing.lg} />
 
         <View style={[styles.serviceRowNew, { flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start' }]}>
-          {shouldSwap ? (
+          {isRTL ? (
             <>
               <View>
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: 'right' }]}>
@@ -1388,7 +1388,7 @@ export default function RequestDetailsScreen({
         <Spacer height={Spacing.lg} />
 
         <View style={[styles.serviceRowNew, { flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start' }]}>
-          {shouldSwap ? (
+          {isRTL ? (
             <>
               <View>
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: 'right' }]}>
@@ -1689,7 +1689,7 @@ export default function RequestDetailsScreen({
       {request.status === REQUEST_STATUS.PENDING_APPROVAL && userRole === 'manager' && isVisitExpired ? (
         <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: Spacing.sm, paddingHorizontal: Spacing.md }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.xs }}>
-            {shouldSwap ? (
+            {isRTL ? (
               <>
                 <ThemedText style={[Typography.caption, { color: theme.warning, fontWeight: '600', textAlign: 'center' }]}>
                   {t('status.visitExpired')}
@@ -1726,7 +1726,7 @@ export default function RequestDetailsScreen({
             style={[styles.modalContent, { backgroundColor: theme.surface }]}
           >
             <View style={[styles.modalHeader, { flexDirection: 'row' }]}>
-              {shouldSwap ? (
+              {isRTL ? (
                 <>
                   <Pressable onPress={() => setShowCancelModal(false)}>
                     <DDIcon name="x" size={22} variant="muted" />
@@ -2021,7 +2021,7 @@ export default function RequestDetailsScreen({
             ]}
           >
             <View style={[styles.modalHeader, { flexDirection: 'row' }]}>
-              {shouldSwap ? (
+              {isRTL ? (
                 <>
                   <Pressable onPress={closeEditModal}>
                     <DDIcon name="x" size={22} variant="muted" />
@@ -2087,7 +2087,7 @@ export default function RequestDetailsScreen({
                 ]}
                 onPress={() => setShowPurposePicker(true)}
               >
-                {shouldSwap ? (
+                {isRTL ? (
                   <>
                     <DDIcon name="chevron-down" size={16} variant="muted" />
                     <ThemedText
@@ -2151,7 +2151,7 @@ export default function RequestDetailsScreen({
                       },
                     ]}
                   >
-                    {shouldSwap ? (
+                    {isRTL ? (
                       <>
                         <DDIcon name="lock" size={14} variant="muted" />
                         <ThemedText
@@ -2226,7 +2226,7 @@ export default function RequestDetailsScreen({
                     ]}
                     onPress={() => setShowEditEndTimePicker(true)}
                   >
-                    {shouldSwap ? (
+                    {isRTL ? (
                       <>
                         <DDIcon name="chevron-down" size={16} variant="muted" />
                         <ThemedText
@@ -2316,7 +2316,7 @@ export default function RequestDetailsScreen({
                     android_ripple={{ color: theme.border }}
                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                   >
-                    {shouldSwap ? (
+                    {isRTL ? (
                       <>
                         <ThemedText
                           style={[
@@ -2381,7 +2381,7 @@ export default function RequestDetailsScreen({
                 android_ripple={{ color: theme.border }}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
-                {shouldSwap ? (
+                {isRTL ? (
                   <>
                     <ThemedText
                       style={[
@@ -2446,7 +2446,7 @@ export default function RequestDetailsScreen({
                 android_ripple={{ color: theme.border }}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
-                {shouldSwap ? (
+                {isRTL ? (
                   <>
                     <ThemedText
                       style={[
@@ -2506,7 +2506,7 @@ export default function RequestDetailsScreen({
                   },
                 ]}
               >
-                {shouldSwap ? (
+                {isRTL ? (
                   <>
                     <DDIcon name="lock" size={16} variant="muted" />
                     <ThemedText
@@ -2620,7 +2620,7 @@ export default function RequestDetailsScreen({
                         }
                       ]}
                     >
-                      {shouldSwap ? (
+                      {isRTL ? (
                         <>
                           <ThemedText 
                             style={[
@@ -2670,7 +2670,7 @@ export default function RequestDetailsScreen({
                     </View>
                   ) : isLoadingEditRooms ? (
                     <View style={[styles.availabilityBadge, { flexDirection: 'row', backgroundColor: theme.surface, borderColor: theme.border }]}>
-                      {shouldSwap ? (
+                      {isRTL ? (
                         <>
                           <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
                             {t('common.checkingAvailability')}...
@@ -3093,7 +3093,7 @@ export default function RequestDetailsScreen({
      request.status !== REQUEST_STATUS.AUTO_CANCELLED ? (
       <View style={[styles.stickyFooter, { backgroundColor: theme.background, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.lg }]}>
         <View style={[styles.actionButtonsRow, { flexDirection: 'row' }]}>
-          {shouldSwap ? (
+          {isRTL ? (
             <>
               <LoadingButton
                 onPress={() => setShowCancelModal(true)}
