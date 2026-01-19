@@ -45,6 +45,18 @@ interface ApiNotificationItem {
   createdAt?: string;
   expiresAt?: string;
   actionRequired?: boolean;
+  params?: {
+    visitorName?: string;
+    hostName?: string;
+    managerName?: string;
+    reason?: string;
+    cancelledBy?: string;
+    updatedBy?: string;
+    company?: string;
+    roomName?: string;
+    error?: string;
+    [key: string]: string | undefined;
+  };
 }
 
 interface ApiPaginatedNotifications {
@@ -87,6 +99,7 @@ function mapApiNotificationToDto(item: ApiNotificationItem): NotificationItemDto
     readAt: item.readAt,
     createdAt: item.createdAt || item.timestamp || new Date().toISOString(),
     expiresAt: item.expiresAt,
+    params: item.params,
   };
 }
 
