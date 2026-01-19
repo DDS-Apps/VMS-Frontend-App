@@ -86,6 +86,29 @@ const typeMapping: Record<string, NotificationEventType> = {
 function mapApiNotificationToDto(item: ApiNotificationItem): NotificationItemDto {
   const mappedType = typeMapping[item.type] || (item.type as NotificationEventType);
   
+  const dataParams: Record<string, string | undefined> = {};
+  if (item.data) {
+    if (item.data.visitorName) dataParams.visitorName = String(item.data.visitorName);
+    if (item.data.hostName) dataParams.hostName = String(item.data.hostName);
+    if (item.data.managerName) dataParams.managerName = String(item.data.managerName);
+    if (item.data.reason) dataParams.reason = String(item.data.reason);
+    if (item.data.cancelledBy) dataParams.cancelledBy = String(item.data.cancelledBy);
+    if (item.data.updatedBy) dataParams.updatedBy = String(item.data.updatedBy);
+    if (item.data.company) dataParams.company = String(item.data.company);
+    if (item.data.roomName) dataParams.roomName = String(item.data.roomName);
+    if (item.data.visitDate) dataParams.visitDate = String(item.data.visitDate);
+    if (item.data.visitTime) dataParams.visitTime = String(item.data.visitTime);
+    if (item.data.visitorCount) dataParams.visitorCount = String(item.data.visitorCount);
+    if (item.data.error) dataParams.error = String(item.data.error);
+  }
+  
+  const mergedParams = {
+    ...dataParams,
+    ...item.params,
+  };
+  
+  const hasParams = Object.values(mergedParams).some(v => v !== undefined);
+  
   return {
     id: item.id,
     userId: item.userId || '',
@@ -99,7 +122,7 @@ function mapApiNotificationToDto(item: ApiNotificationItem): NotificationItemDto
     readAt: item.readAt,
     createdAt: item.createdAt || item.timestamp || new Date().toISOString(),
     expiresAt: item.expiresAt,
-    params: item.params,
+    params: hasParams ? mergedParams : item.params,
   };
 }
 

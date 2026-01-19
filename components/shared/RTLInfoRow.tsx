@@ -2,6 +2,7 @@ import React, { ReactNode } from 'react';
 import { View, ViewStyle, StyleProp } from 'react-native';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Spacing } from '@/constants/theme';
+import { getPlatformFlexDirection } from '@/utils/rtlInitializer';
 
 interface RTLInfoRowProps {
   icon: ReactNode;
@@ -23,24 +24,14 @@ export function RTLInfoRow({
   return (
     <View style={[
       { 
-        flexDirection: 'row', 
+        flexDirection: getPlatformFlexDirection(isRTL), 
         alignItems,
-        justifyContent: isRTL ? 'flex-end' : 'flex-start',
         gap,
       }, 
       style
     ]}>
-      {isRTL ? (
-        <>
-          <View style={{ flex: 1, alignItems: 'flex-end' }}>{children}</View>
-          {icon}
-        </>
-      ) : (
-        <>
-          {icon}
-          <View style={{ flex: 1 }}>{children}</View>
-        </>
-      )}
+      {icon}
+      <View style={{ flex: 1, alignItems: isRTL ? 'flex-end' : 'flex-start' }}>{children}</View>
     </View>
   );
 }
@@ -63,24 +54,14 @@ export function RTLSimpleRow({
   return (
     <View style={[
       { 
-        flexDirection: 'row', 
+        flexDirection: getPlatformFlexDirection(isRTL), 
         alignItems: 'center',
-        justifyContent: isRTL ? 'flex-end' : 'flex-start',
         gap,
       }, 
       style
     ]}>
-      {isRTL ? (
-        <>
-          <View>{text}</View>
-          {icon}
-        </>
-      ) : (
-        <>
-          {icon}
-          <View style={{ flex: 1 }}>{text}</View>
-        </>
-      )}
+      {icon}
+      <View style={{ flex: 1 }}>{text}</View>
     </View>
   );
 }
