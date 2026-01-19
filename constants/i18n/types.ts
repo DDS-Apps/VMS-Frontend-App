@@ -552,6 +552,12 @@ export interface TranslationKeys {
         title: string;
         message: string;
       };
+      request_modified: {
+        title: string;
+        titleError: string;
+        message: string;
+        messageError: string;
+      };
       pending_approval: {
         title: string;
         message: string;

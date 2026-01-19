@@ -4,6 +4,7 @@ export type NotificationEventType =
   | 'request_rejected'
   | 'request_cancelled'
   | 'request_updated'
+  | 'request_modified'
   | 'pending_approval'
   | 'visitor_accepted'
   | 'visitor_rejected'
@@ -72,6 +73,7 @@ export interface NotificationParams {
   gateNumber?: string;
   status?: string;
   staffName?: string;
+  error?: string;
 }
 
 export interface NotificationItemDto {

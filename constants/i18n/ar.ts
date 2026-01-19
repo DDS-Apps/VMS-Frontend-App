@@ -552,6 +552,12 @@ export const ar: TranslationKeys = {
         title: 'تم تحديث الزيارة',
         message: 'تم تحديث طلب زيارة {{visitorName}} بواسطة {{updatedBy}}',
       },
+      request_modified: {
+        title: 'تم حجز قاعة الاجتماعات',
+        titleError: 'فشل حجز قاعة الاجتماعات',
+        message: 'تم حجز قاعة الاجتماعات "{{roomName}}" لزيارتك',
+        messageError: 'تعذر حجز قاعة اجتماعات: {{error}}. يرجى تحديث طلبك',
+      },
       pending_approval: {
         title: 'مطلوب موافقة',
         message: 'طلب زيارة من {{visitorName}} لـ {{hostName}} بانتظار موافقتك',

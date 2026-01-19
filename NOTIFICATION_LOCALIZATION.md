@@ -57,6 +57,7 @@ To enable frontend localization of notifications, the backend API needs to inclu
 | `request_rejected` | Visit request rejected by manager | `visitorName`, `managerName`, `reason` | "Your visit request for {visitorName} has been rejected by {managerName}. Reason: {reason}" |
 | `request_cancelled` | Visit request cancelled | `visitorName`, `cancelledBy` | "Visit request for {visitorName} has been cancelled by {cancelledBy}" |
 | `request_updated` | Visit request updated | `visitorName`, `updatedBy` | "Visit request for {visitorName} has been updated by {updatedBy}" |
+| `request_modified` | Meeting room booked/failed | `roomName` OR `error` | Success: "Meeting room \"{roomName}\" has been booked for your visit" / Error: "Unable to book a meeting room: {error}. Please update your request" |
 | `pending_approval` | Visit awaiting approval | `visitorName`, `hostName` | "Visit request from {visitorName} to {hostName} is awaiting your approval" |
 
 ### Visitor Response Notifications

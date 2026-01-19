@@ -16,6 +16,7 @@ type NotificationType =
   | 'request_rejected'
   | 'request_cancelled'
   | 'request_updated'
+  | 'request_modified'
   | 'pending_approval'
   | 'visitor_accepted'
   | 'visitor_rejected'
@@ -99,6 +100,12 @@ export function localizeNotification(
     const visitorReminderTemplate = template as typeof templates.visitor_reminder;
     title = visitorReminderTemplate.titleFinal || template.title;
     message = visitorReminderTemplate.messageFinal || template.message;
+  }
+
+  if (notificationType === 'request_modified' && params.error) {
+    const requestModifiedTemplate = template as typeof templates.request_modified;
+    title = requestModifiedTemplate.titleError || template.title;
+    message = requestModifiedTemplate.messageError || template.message;
   }
 
   return {

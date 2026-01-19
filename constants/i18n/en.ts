@@ -552,6 +552,12 @@ export const en: TranslationKeys = {
         title: 'Visit Updated',
         message: 'Visit request for {{visitorName}} has been updated by {{updatedBy}}',
       },
+      request_modified: {
+        title: 'Meeting Room Booked',
+        titleError: 'Meeting Room Booking Failed',
+        message: 'Meeting room "{{roomName}}" has been booked for your visit',
+        messageError: 'Unable to book a meeting room: {{error}}. Please update your request',
+      },
       pending_approval: {
         title: 'Approval Required',
         message: 'Visit request from {{visitorName}} to {{hostName}} is awaiting your approval',

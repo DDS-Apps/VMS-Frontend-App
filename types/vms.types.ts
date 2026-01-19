@@ -207,6 +207,7 @@ export interface NotificationParams {
   gateNumber?: string;
   status?: string;
   staffName?: string;
+  error?: string;
 }
 
 export interface Notification {
