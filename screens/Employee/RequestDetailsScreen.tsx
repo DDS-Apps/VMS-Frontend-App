@@ -1309,11 +1309,11 @@ export default function RequestDetailsScreen({
         </View>
         <Spacer height={Spacing.xl} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: 'row' }]}>
+        <View style={[styles.serviceRowNew, { flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start' }]}>
           {shouldSwap ? (
             <>
-              <View style={{ flex: 1 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.xs }}>
+              <View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.xs, justifyContent: 'flex-end' }}>
                   {isVisitExpired ? (
                     <DDIcon name="check" size={14} color={theme.secondary} />
                   ) : null}
@@ -1334,7 +1334,7 @@ export default function RequestDetailsScreen({
               <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(isVisitExpired ? theme.secondary : theme.textSecondary, '15') }]}>
                 <DDIcon name={isVisitExpired ? "check-circle" : "calendar"} size={18} color={isVisitExpired ? theme.secondary : theme.text} />
               </View>
-              <View style={{ flex: 1 }}>
+              <View>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.xs }}>
                   <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: 'left' }]}>
                     {t("time.dateAndTime")}
@@ -1353,10 +1353,10 @@ export default function RequestDetailsScreen({
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: 'row' }]}>
+        <View style={[styles.serviceRowNew, { flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start' }]}>
           {shouldSwap ? (
             <>
-              <View style={{ flex: 1 }}>
+              <View>
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: 'right' }]}>
                   {t("form.duration")}
                 </ThemedText>
@@ -1373,7 +1373,7 @@ export default function RequestDetailsScreen({
               <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
                 <DDIcon name="clock" size={18} color={theme.text} />
               </View>
-              <View style={{ flex: 1 }}>
+              <View>
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: 'left' }]}>
                   {t("form.duration")}
                 </ThemedText>
@@ -1387,10 +1387,10 @@ export default function RequestDetailsScreen({
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: 'row' }]}>
+        <View style={[styles.serviceRowNew, { flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start' }]}>
           {shouldSwap ? (
             <>
-              <View style={{ flex: 1 }}>
+              <View>
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: 'right' }]}>
                   {t("form.purpose")}
                 </ThemedText>
@@ -1407,7 +1407,7 @@ export default function RequestDetailsScreen({
               <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
                 <DDIcon name="briefcase" size={18} color={theme.text} />
               </View>
-              <View style={{ flex: 1 }}>
+              <View>
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: 'left' }]}>
                   {t("form.purpose")}
                 </ThemedText>
