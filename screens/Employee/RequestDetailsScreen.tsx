@@ -1216,10 +1216,10 @@ export default function RequestDetailsScreen({
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.infoRowNew, { flexDirection: 'row', gap: Spacing.md }]}>
-          {isRTL && Platform.OS !== 'web' ? (
+        <View style={[styles.infoRowNew, { flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start', gap: Spacing.md }]}>
+          {isRTL ? (
             <>
-              <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, flex: 1, textAlign: 'right' }]}>
+              <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14 }]}>
                 {request.visitor.email}
               </ThemedText>
               <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
@@ -1231,7 +1231,7 @@ export default function RequestDetailsScreen({
               <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
                 <DDIcon name="mail" size={18} color={theme.text} />
               </View>
-              <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14 }]}>
                 {request.visitor.email}
               </ThemedText>
             </>
@@ -1240,10 +1240,10 @@ export default function RequestDetailsScreen({
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.infoRowNew, { flexDirection: 'row', gap: Spacing.md }]}>
-          {isRTL && Platform.OS !== 'web' ? (
+        <View style={[styles.infoRowNew, { flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start', gap: Spacing.md }]}>
+          {isRTL ? (
             <>
-              <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, flex: 1, textAlign: 'right' }]}>
+              <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14 }]}>
                 {request.visitor.phone}
               </ThemedText>
               <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
@@ -1255,7 +1255,7 @@ export default function RequestDetailsScreen({
               <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
                 <DDIcon name="phone" size={18} color={theme.text} />
               </View>
-              <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14 }]}>
                 {request.visitor.phone}
               </ThemedText>
             </>
