@@ -1,6 +1,7 @@
 import React, { ReactNode } from 'react';
 import { View, ViewStyle, StyleProp, StyleSheet, Platform } from 'react-native';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { getPlatformFlexDirection } from '@/utils/rtlInitializer';
 
 interface DirectionalRowProps {
   children: ReactNode;
@@ -27,9 +28,7 @@ export function DirectionalRow({ children, style, gap }: DirectionalRowProps) {
   
   // On web, browser handles RTL via document.dir - use 'row' always
   // On mobile RTL, use 'row-reverse' to achieve correct visual order
-  const flexDirection = Platform.OS === 'web' 
-    ? 'row' 
-    : (isRTL ? 'row-reverse' : 'row');
+  const flexDirection = getPlatformFlexDirection(isRTL);
   
   const flattenedStyle = StyleSheet.flatten([style]);
   const finalStyle: ViewStyle = {

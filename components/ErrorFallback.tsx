@@ -14,6 +14,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Spacing, BorderRadius, Fonts } from "@/constants/theme";
+import { getPlatformFlexDirection } from '@/utils/rtlInitializer';
 
 export type ErrorFallbackProps = {
   error: Error;
@@ -97,7 +98,7 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
         >
           <View style={styles.modalOverlay}>
             <ThemedView style={styles.modalContainer}>
-              <View style={[styles.modalHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.modalHeader, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
                 <ThemedText type="h2" style={styles.modalTitle}>
                   Error Details
                 </ThemedText>

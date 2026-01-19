@@ -12,6 +12,7 @@ import Animated, {
 import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Spacing, BorderRadius } from "@/constants/theme";
+import { getPlatformFlexDirection } from '@/utils/rtlInitializer';
 
 interface SkeletonProps {
   width?: number | `${number}%`;
@@ -159,7 +160,7 @@ export const SkeletonListItem = ({
         {
           backgroundColor: theme.surface,
           borderBottomColor: theme.border,
-          flexDirection: isRTL ? 'row-reverse' : 'row',
+          flexDirection: getPlatformFlexDirection(isRTL),
         },
         style,
       ]}
@@ -249,7 +250,7 @@ export const SkeletonDashboard = ({
   return (
     <View style={style}>
       <Skeleton width="50%" height={24} style={{ marginBottom: Spacing.lg }} />
-      <View style={[styles.statsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <View style={[styles.statsRow, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
         {Array.from({ length: Math.min(cards, 4) }).map((_, index) => (
           <View
             key={index}

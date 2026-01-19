@@ -11,6 +11,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { BorderRadius, Spacing, Typography } from "@/constants/theme";
+import { getPlatformFlexDirection } from '@/utils/rtlInitializer';
 
 type ModalTone = "danger" | "warning" | "info";
 type ModalStatus = "idle" | "loading" | "success" | "error";
@@ -138,7 +139,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           <ThemedText style={[Typography.bodySmall, styles.errorMessage, { color: theme.textSecondary }]}>
             {errorMessage}
           </ThemedText>
-          <View style={[styles.errorActions, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.errorActions, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
             <LoadingButton
               onPress={handleRetry}
               variant="outline"
@@ -182,7 +183,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           </ThemedText>
         ) : null}
 
-        <View style={[styles.buttonContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.buttonContainer, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
           <LoadingButton
             onPress={handleCancel}
             variant="outline"

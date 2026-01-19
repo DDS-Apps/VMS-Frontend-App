@@ -8,6 +8,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { applyOpacity } from "@/utils/statusStyles";
 import { toArabicNumerals } from "@/utils/formatters";
+import { getPlatformFlexDirection } from '@/utils/rtlInitializer';
 
 interface DateRange {
   startDate: Date | null;
@@ -216,7 +217,7 @@ export function CalendarDatePicker({
           style={[styles.container, { backgroundColor: theme.surface }]}
           onPress={(e) => e.stopPropagation()}
         >
-          <View style={[styles.header, { borderBottomColor: theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.header, { borderBottomColor: theme.border, flexDirection: getPlatformFlexDirection(isRTL) }]}>
             <View style={[styles.calendarIcon, { backgroundColor: applyOpacity(theme.primary, '10') }]}>
               <DDIcon name="calendar" size={20} color={theme.primary} />
             </View>
@@ -234,7 +235,7 @@ export function CalendarDatePicker({
           </View>
 
           <View style={styles.calendarContainer}>
-            <View style={[styles.monthNavigation, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.monthNavigation, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
               <Pressable onPress={isRTL ? nextMonth : prevMonth} hitSlop={12}>
                 <DDIcon name="chevron-left" size={20} variant="muted" directionAware />
               </Pressable>
@@ -246,7 +247,7 @@ export function CalendarDatePicker({
               </Pressable>
             </View>
 
-            <View style={[styles.weekDays, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.weekDays, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
               {localizedDays.map((day, index) => (
                 <View key={DAYS_KEYS[index]} style={styles.weekDayCell}>
                   <ThemedText style={[styles.weekDayText, { color: theme.textSecondary }]}>
@@ -256,7 +257,7 @@ export function CalendarDatePicker({
               ))}
             </View>
 
-            <View style={[styles.daysGrid, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.daysGrid, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
               {calendarDays.map((day, index) => {
                 if (day === null) {
                   return <View key={`empty-${index}`} style={styles.dayCell} />;

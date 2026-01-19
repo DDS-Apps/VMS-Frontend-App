@@ -5,6 +5,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { applyOpacity } from "@/utils/statusStyles";
 import { Spacing } from "@/constants/theme";
+import { getPlatformFlexDirection } from '@/utils/rtlInitializer';
 
 interface ServiceIconsProps {
   parkingSlot?: unknown;
@@ -89,7 +90,7 @@ export const ServiceIcons = ({
   }
   
   return (
-    <View style={[styles.container, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+    <View style={[styles.container, { flexDirection: getPlatformFlexDirection(isRTL) }]}>
       {items}
     </View>
   );

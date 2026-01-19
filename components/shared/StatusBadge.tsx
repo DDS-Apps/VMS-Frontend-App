@@ -6,6 +6,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { applyOpacity } from "@/utils/statusStyles";
 import { Spacing, BorderRadius } from "@/constants/theme";
+import { getPlatformFlexDirection } from '@/utils/rtlInitializer';
 
 interface StatusBadgeProps {
   label: string;
@@ -65,7 +66,7 @@ export const StatusBadge = ({
         backgroundColor: applyOpacity(color, '15'),
         paddingHorizontal: isSmall ? Spacing.sm : Spacing.md,
         paddingVertical: isSmall ? Spacing.xs / 2 : Spacing.xs,
-        flexDirection: isRTL ? 'row-reverse' : 'row',
+        flexDirection: getPlatformFlexDirection(isRTL),
       }
     ]}>
       {iconEl}

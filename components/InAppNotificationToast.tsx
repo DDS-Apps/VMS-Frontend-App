@@ -6,6 +6,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { useTheme } from '@/hooks/useTheme';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Spacing, BorderRadius } from '@/constants/theme';
+import { getPlatformFlexDirection } from '@/utils/rtlInitializer';
 
 interface InAppNotificationToastProps {
   visible: boolean;
@@ -117,7 +118,7 @@ export function InAppNotificationToast({
             backgroundColor: theme.surface,
             borderStartColor: getAccentColor(),
             shadowColor: theme.text,
-            flexDirection: isRTL ? 'row-reverse' : 'row',
+            flexDirection: getPlatformFlexDirection(isRTL),
           },
         ]}
         onPress={hideToast}
