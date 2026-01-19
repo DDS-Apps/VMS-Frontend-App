@@ -160,16 +160,10 @@ const getMenuGroups = (role: UserRole): { groups: MenuGroup[]; standalone: MenuI
     ];
     result.groups = [];
   } else if (role === 'building_admin') {
-    result.standalone = [];
+    result.standalone = [
+      { id: 'all_requests', labelKey: 'navigation.allRequests', icon: 'file-text', screen: 'AllRequests' },
+    ];
     result.groups = [
-      {
-        id: 'requests',
-        labelKey: 'sidebar.visitsRequests',
-        icon: 'file-text',
-        items: [
-          { id: 'all_requests', labelKey: 'navigation.allRequests', icon: 'file-text', screen: 'AllRequests' },
-        ],
-      },
       {
         id: 'users_config',
         labelKey: 'sidebar.usersConfig',
