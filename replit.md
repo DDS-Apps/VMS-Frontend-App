@@ -47,6 +47,12 @@ The VMS app employs a Clean Architecture pattern, segmenting the application int
 **Technical Implementations:**
 - **Core Technologies:** React Native, Expo, TypeScript.
 - **Iconography & RTL Support:** `DDIcon` component for theme-aware icons with automatic RTL mirroring. Full RTL compatibility.
+- **RTL Pattern for Android:** Critical pattern to prevent double-inversion bugs on Android mobile:
+  - **Child Swapping Pattern:** For simple icon + text rows, use `flexDirection: 'row'` always (never 'row-reverse'), then swap children order when `isRTL && Platform.OS !== 'web'`
+  - **Web:** Relies on browser's dir="rtl" for automatic layout reversal
+  - **Mobile:** Manual child swapping prevents React Native's built-in I18nManager from double-reversing layouts
+  - **Components:** `RTLInfoRow` and `RTLSimpleRow` implement this pattern; use them for consistent RTL behavior
+  - **Avoid:** Never mix flex-direction reversal with child order manipulation in the same component layer
 - **State Management:** Centralized state service using mutable mock data and `useFocusEffect` for reactive updates.
 - **Role-Based Access:** Specialized interfaces and navigation for nine distinct user roles.
 - **Internationalization (i18n):** Bilingual support for English (LTR) and Arabic (RTL) across all 40+ screens using type-safe translation keys, a `LanguageContext`, and `useTranslation` hook.
