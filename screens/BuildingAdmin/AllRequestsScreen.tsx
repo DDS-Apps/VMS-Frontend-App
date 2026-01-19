@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { View, StyleSheet, Pressable, ScrollView, RefreshControl, ActivityIndicator, Modal, TextInput, Alert, Platform } from 'react-native';
+import { View, StyleSheet, Pressable, ScrollView, RefreshControl, ActivityIndicator, Modal, TextInput, Alert, Platform, useWindowDimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ROUTES } from "@/constants";
 import type { NavigationProp } from '@react-navigation/native';
@@ -91,14 +91,16 @@ interface StatCardProps {
   isActive: boolean;
   onPress: () => void;
   theme: Theme;
+  isLargeScreen?: boolean;
 }
 
-function StatCard({ value, label, color, isActive, onPress, theme }: StatCardProps) {
+function StatCard({ value, label, color, isActive, onPress, theme, isLargeScreen }: StatCardProps) {
   return (
     <Pressable 
       onPress={onPress}
       style={[
         styles.statCard, 
+        isLargeScreen && styles.statCardFlex,
         { 
           backgroundColor: isActive ? applyOpacity(color, '20') : applyOpacity(color, '08'),
           borderWidth: isActive ? 2 : 0,
@@ -378,6 +380,8 @@ export default function AllRequestsScreen() {
   const { t } = useTranslation();
   const { formatDate, formatTimeFromString } = useFormatters();
   const { isRTL } = useLanguage();
+  const { width } = useWindowDimensions();
+  const isLargeScreen = width >= 768;
   const queryClient = useQueryClient();
   
   const [typeFilter, setTypeFilter] = useState<RequestFilter>('visitor');
@@ -723,69 +727,137 @@ export default function AllRequestsScreen() {
 
         <Spacer height={Spacing.lg} />
 
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={[styles.statsScrollContent, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
-          nestedScrollEnabled={true}
-        >
-          <StatCard
-            value={stats.total}
-            label={t('common.all')}
-            color={StatusCardColors.all}
-            isActive={statusFilter === 'all'}
-            onPress={() => handleStatPress('all')}
-            theme={theme}
-          />
-          <StatCard
-            value={stats.pending}
-            label={t('status.pending')}
-            color={StatusCardColors.pending}
-            isActive={statusFilter === 'pending'}
-            onPress={() => handleStatPress('pending')}
-            theme={theme}
-          />
-          <StatCard
-            value={stats.approved}
-            label={t('status.approved')}
-            color={StatusCardColors.approved}
-            isActive={statusFilter === 'approved'}
-            onPress={() => handleStatPress('approved')}
-            theme={theme}
-          />
-          <StatCard
-            value={stats.inProgress}
-            label={t('status.checkedIn')}
-            color={StatusCardColors.inProgress}
-            isActive={statusFilter === 'in_progress'}
-            onPress={() => handleStatPress('in_progress')}
-            theme={theme}
-          />
-          <StatCard
-            value={stats.completed}
-            label={t('status.checkedOut')}
-            color={StatusCardColors.done}
-            isActive={statusFilter === 'completed'}
-            onPress={() => handleStatPress('completed')}
-            theme={theme}
-          />
-          <StatCard
-            value={stats.cancelled}
-            label={t('status.cancelled')}
-            color={StatusCardColors.cancelled}
-            isActive={statusFilter === 'cancelled'}
-            onPress={() => handleStatPress('cancelled')}
-            theme={theme}
-          />
-          <StatCard
-            value={stats.rejected}
-            label={t('status.rejected')}
-            color={StatusCardColors.rejected}
-            isActive={statusFilter === 'rejected'}
-            onPress={() => handleStatPress('rejected')}
-            theme={theme}
-          />
-        </ScrollView>
+        {isLargeScreen ? (
+          <View style={[styles.statsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <StatCard
+              value={stats.total}
+              label={t('common.all')}
+              color={StatusCardColors.all}
+              isActive={statusFilter === 'all'}
+              onPress={() => handleStatPress('all')}
+              theme={theme}
+              isLargeScreen
+            />
+            <StatCard
+              value={stats.pending}
+              label={t('status.pending')}
+              color={StatusCardColors.pending}
+              isActive={statusFilter === 'pending'}
+              onPress={() => handleStatPress('pending')}
+              theme={theme}
+              isLargeScreen
+            />
+            <StatCard
+              value={stats.approved}
+              label={t('status.approved')}
+              color={StatusCardColors.approved}
+              isActive={statusFilter === 'approved'}
+              onPress={() => handleStatPress('approved')}
+              theme={theme}
+              isLargeScreen
+            />
+            <StatCard
+              value={stats.inProgress}
+              label={t('status.checkedIn')}
+              color={StatusCardColors.inProgress}
+              isActive={statusFilter === 'in_progress'}
+              onPress={() => handleStatPress('in_progress')}
+              theme={theme}
+              isLargeScreen
+            />
+            <StatCard
+              value={stats.completed}
+              label={t('status.checkedOut')}
+              color={StatusCardColors.done}
+              isActive={statusFilter === 'completed'}
+              onPress={() => handleStatPress('completed')}
+              theme={theme}
+              isLargeScreen
+            />
+            <StatCard
+              value={stats.cancelled}
+              label={t('status.cancelled')}
+              color={StatusCardColors.cancelled}
+              isActive={statusFilter === 'cancelled'}
+              onPress={() => handleStatPress('cancelled')}
+              theme={theme}
+              isLargeScreen
+            />
+            <StatCard
+              value={stats.rejected}
+              label={t('status.rejected')}
+              color={StatusCardColors.rejected}
+              isActive={statusFilter === 'rejected'}
+              onPress={() => handleStatPress('rejected')}
+              theme={theme}
+              isLargeScreen
+            />
+          </View>
+        ) : (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={[styles.statsScrollContent, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
+            nestedScrollEnabled={true}
+          >
+            <StatCard
+              value={stats.total}
+              label={t('common.all')}
+              color={StatusCardColors.all}
+              isActive={statusFilter === 'all'}
+              onPress={() => handleStatPress('all')}
+              theme={theme}
+            />
+            <StatCard
+              value={stats.pending}
+              label={t('status.pending')}
+              color={StatusCardColors.pending}
+              isActive={statusFilter === 'pending'}
+              onPress={() => handleStatPress('pending')}
+              theme={theme}
+            />
+            <StatCard
+              value={stats.approved}
+              label={t('status.approved')}
+              color={StatusCardColors.approved}
+              isActive={statusFilter === 'approved'}
+              onPress={() => handleStatPress('approved')}
+              theme={theme}
+            />
+            <StatCard
+              value={stats.inProgress}
+              label={t('status.checkedIn')}
+              color={StatusCardColors.inProgress}
+              isActive={statusFilter === 'in_progress'}
+              onPress={() => handleStatPress('in_progress')}
+              theme={theme}
+            />
+            <StatCard
+              value={stats.completed}
+              label={t('status.checkedOut')}
+              color={StatusCardColors.done}
+              isActive={statusFilter === 'completed'}
+              onPress={() => handleStatPress('completed')}
+              theme={theme}
+            />
+            <StatCard
+              value={stats.cancelled}
+              label={t('status.cancelled')}
+              color={StatusCardColors.cancelled}
+              isActive={statusFilter === 'cancelled'}
+              onPress={() => handleStatPress('cancelled')}
+              theme={theme}
+            />
+            <StatCard
+              value={stats.rejected}
+              label={t('status.rejected')}
+              color={StatusCardColors.rejected}
+              isActive={statusFilter === 'rejected'}
+              onPress={() => handleStatPress('rejected')}
+              theme={theme}
+            />
+          </ScrollView>
+        )}
 
         <Spacer height={Spacing.lg} />
 
@@ -1069,6 +1141,10 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     borderRadius: BorderRadius.md,
     alignItems: 'center',
+  },
+  statCardFlex: {
+    flex: 1,
+    minWidth: 0,
   },
   statValue: {
     fontSize: 22,
