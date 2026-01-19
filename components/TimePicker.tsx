@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { View, StyleSheet, Pressable, Modal, Platform, ScrollView } from "react-native";
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { ThemedText } from "@/components/ThemedText";
@@ -41,6 +41,18 @@ export function TimePicker({
   const [selectedMinute, setSelectedMinute] = useState<number>(0);
   const [selectedPeriod, setSelectedPeriod] = useState<'AM' | 'PM'>('AM');
   const [activeSelector, setActiveSelector] = useState<'hour' | 'minute'>('hour');
+  
+  // Refs and state for web arrow navigation
+  const selectorScrollRef = useRef<ScrollView>(null);
+  const quickSelectScrollRef = useRef<ScrollView>(null);
+  const [selectorScrollOffset, setSelectorScrollOffset] = useState(0);
+  const [quickSelectScrollOffset, setQuickSelectScrollOffset] = useState(0);
+  const [selectorContentWidth, setSelectorContentWidth] = useState(0);
+  const [quickSelectContentWidth, setQuickSelectContentWidth] = useState(0);
+  const [selectorContainerWidth, setSelectorContainerWidth] = useState(0);
+  const [quickSelectContainerWidth, setQuickSelectContainerWidth] = useState(0);
+  
+  const SCROLL_AMOUNT = 100; // pixels to scroll per arrow click
 
   useEffect(() => {
     if (visible) {
@@ -140,6 +152,34 @@ export function TimePicker({
     const hours = String(selectedHour).padStart(2, '0');
     const minutes = String(selectedMinute).padStart(2, '0');
     return `${hours}:${minutes}`;
+  };
+
+  // Web arrow navigation helpers
+  const canScrollSelectorLeft = selectorScrollOffset > 0;
+  const canScrollSelectorRight = selectorScrollOffset < (selectorContentWidth - selectorContainerWidth - 5);
+  const canScrollQuickSelectLeft = quickSelectScrollOffset > 0;
+  const canScrollQuickSelectRight = quickSelectScrollOffset < (quickSelectContentWidth - quickSelectContainerWidth - 5);
+
+  const scrollSelectorLeft = () => {
+    const newOffset = Math.max(0, selectorScrollOffset - SCROLL_AMOUNT);
+    selectorScrollRef.current?.scrollTo({ x: newOffset, animated: true });
+  };
+
+  const scrollSelectorRight = () => {
+    const maxOffset = selectorContentWidth - selectorContainerWidth;
+    const newOffset = Math.min(maxOffset, selectorScrollOffset + SCROLL_AMOUNT);
+    selectorScrollRef.current?.scrollTo({ x: newOffset, animated: true });
+  };
+
+  const scrollQuickSelectLeft = () => {
+    const newOffset = Math.max(0, quickSelectScrollOffset - SCROLL_AMOUNT);
+    quickSelectScrollRef.current?.scrollTo({ x: newOffset, animated: true });
+  };
+
+  const scrollQuickSelectRight = () => {
+    const maxOffset = quickSelectContentWidth - quickSelectContainerWidth;
+    const newOffset = Math.min(maxOffset, quickSelectScrollOffset + SCROLL_AMOUNT);
+    quickSelectScrollRef.current?.scrollTo({ x: newOffset, animated: true });
   };
 
   if (Platform.OS === 'ios') {
@@ -337,90 +377,136 @@ export function TimePicker({
             </View>
 
             <View style={[styles.selectorGrid, { borderColor: theme.border }]}>
-              <ScrollView 
-                horizontal 
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.selectorScrollContent}
-              >
-                {activeSelector === 'hour' ? (
-                  hoursArray.map((hour) => (
-                    <Pressable
-                      key={`hour-${hour}`}
-                      style={[
-                        styles.selectorItem,
-                        { borderColor: theme.border },
-                        selectedHour === hour && { backgroundColor: theme.primary, borderColor: theme.primary }
-                      ]}
-                      onPress={() => handleHourSelect(hour)}
-                    >
-                      <ThemedText style={[
-                        styles.selectorItemText,
-                        { color: theme.text },
-                        selectedHour === hour && { color: theme.buttonText, fontWeight: '600' }
-                      ]}>
-                        {isRTL ? toArabicNumerals(String(hour)) : hour}
-                      </ThemedText>
-                    </Pressable>
-                  ))
-                ) : (
-                  minutesArray.map((minute) => (
-                    <Pressable
-                      key={`minute-${minute}`}
-                      style={[
-                        styles.selectorItem,
-                        { borderColor: theme.border },
-                        selectedMinute === minute && { backgroundColor: theme.primary, borderColor: theme.primary }
-                      ]}
-                      onPress={() => handleMinuteSelect(minute)}
-                    >
-                      <ThemedText style={[
-                        styles.selectorItemText,
-                        { color: theme.text },
-                        selectedMinute === minute && { color: theme.buttonText, fontWeight: '600' }
-                      ]}>
-                        {isRTL ? toArabicNumerals(String(minute).padStart(2, '0')) : String(minute).padStart(2, '0')}
-                      </ThemedText>
-                    </Pressable>
-                  ))
+              <View style={styles.scrollWithArrows}>
+                {canScrollSelectorLeft && (
+                  <Pressable 
+                    onPress={scrollSelectorLeft} 
+                    style={[styles.scrollArrow, styles.scrollArrowLeft, { backgroundColor: theme.surface }]}
+                  >
+                    <DDIcon name="chevron-left" size={16} color={theme.textSecondary} />
+                  </Pressable>
                 )}
-              </ScrollView>
+                <ScrollView 
+                  ref={selectorScrollRef}
+                  horizontal 
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.selectorScrollContent}
+                  onScroll={(e) => setSelectorScrollOffset(e.nativeEvent.contentOffset.x)}
+                  scrollEventThrottle={16}
+                  onContentSizeChange={(w) => setSelectorContentWidth(w)}
+                  onLayout={(e) => setSelectorContainerWidth(e.nativeEvent.layout.width)}
+                >
+                  {activeSelector === 'hour' ? (
+                    hoursArray.map((hour) => (
+                      <Pressable
+                        key={`hour-${hour}`}
+                        style={[
+                          styles.selectorItem,
+                          { borderColor: theme.border },
+                          selectedHour === hour && { backgroundColor: theme.primary, borderColor: theme.primary }
+                        ]}
+                        onPress={() => handleHourSelect(hour)}
+                      >
+                        <ThemedText style={[
+                          styles.selectorItemText,
+                          { color: theme.text },
+                          selectedHour === hour && { color: theme.buttonText, fontWeight: '600' }
+                        ]}>
+                          {isRTL ? toArabicNumerals(String(hour)) : hour}
+                        </ThemedText>
+                      </Pressable>
+                    ))
+                  ) : (
+                    minutesArray.map((minute) => (
+                      <Pressable
+                        key={`minute-${minute}`}
+                        style={[
+                          styles.selectorItem,
+                          { borderColor: theme.border },
+                          selectedMinute === minute && { backgroundColor: theme.primary, borderColor: theme.primary }
+                        ]}
+                        onPress={() => handleMinuteSelect(minute)}
+                      >
+                        <ThemedText style={[
+                          styles.selectorItemText,
+                          { color: theme.text },
+                          selectedMinute === minute && { color: theme.buttonText, fontWeight: '600' }
+                        ]}>
+                          {isRTL ? toArabicNumerals(String(minute).padStart(2, '0')) : String(minute).padStart(2, '0')}
+                        </ThemedText>
+                      </Pressable>
+                    ))
+                  )}
+                </ScrollView>
+                {canScrollSelectorRight && (
+                  <Pressable 
+                    onPress={scrollSelectorRight} 
+                    style={[styles.scrollArrow, styles.scrollArrowRight, { backgroundColor: theme.surface }]}
+                  >
+                    <DDIcon name="chevron-right" size={16} color={theme.textSecondary} />
+                  </Pressable>
+                )}
+              </View>
             </View>
           </View>
 
           <View style={styles.quickSelectSection}>
             <ThemedText style={[styles.quickSelectLabel, { color: theme.textSecondary }]}>{t('time.quickSelect')}</ThemedText>
-            <ScrollView 
-              horizontal 
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.quickSelectScrollContent}
-            >
-              {QUICK_TIMES.map((preset) => {
-                const isSelected = selectedHour === preset.hour && 
-                                   selectedMinute === preset.minute && 
-                                   selectedPeriod === preset.period;
-                return (
-                  <Pressable
-                    key={preset.label}
-                    style={[
-                      styles.quickPill,
-                      { borderColor: theme.border },
-                      isSelected && { backgroundColor: theme.primary, borderColor: theme.primary }
-                    ]}
-                    onPress={() => handleQuickSelect(preset)}
-                  >
-                    <ThemedText style={[
-                      styles.quickPillText,
-                      { color: theme.text },
-                      isSelected && { color: theme.buttonText }
-                    ]}>
-                      {isRTL 
-                        ? `${t(`time.${preset.period.toLowerCase()}`)} ${toArabicNumerals(String(preset.hour))}:${toArabicNumerals(String(preset.minute).padStart(2, '0'))}`
-                        : preset.label}
-                    </ThemedText>
-                  </Pressable>
-                );
-              })}
-            </ScrollView>
+            <View style={styles.scrollWithArrows}>
+              {canScrollQuickSelectLeft && (
+                <Pressable 
+                  onPress={scrollQuickSelectLeft} 
+                  style={[styles.scrollArrow, styles.scrollArrowLeft, { backgroundColor: theme.surface }]}
+                >
+                  <DDIcon name="chevron-left" size={16} color={theme.textSecondary} />
+                </Pressable>
+              )}
+              <ScrollView 
+                ref={quickSelectScrollRef}
+                horizontal 
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.quickSelectScrollContent}
+                onScroll={(e) => setQuickSelectScrollOffset(e.nativeEvent.contentOffset.x)}
+                scrollEventThrottle={16}
+                onContentSizeChange={(w) => setQuickSelectContentWidth(w)}
+                onLayout={(e) => setQuickSelectContainerWidth(e.nativeEvent.layout.width)}
+              >
+                {QUICK_TIMES.map((preset) => {
+                  const isSelected = selectedHour === preset.hour && 
+                                     selectedMinute === preset.minute && 
+                                     selectedPeriod === preset.period;
+                  return (
+                    <Pressable
+                      key={preset.label}
+                      style={[
+                        styles.quickPill,
+                        { borderColor: theme.border },
+                        isSelected && { backgroundColor: theme.primary, borderColor: theme.primary }
+                      ]}
+                      onPress={() => handleQuickSelect(preset)}
+                    >
+                      <ThemedText style={[
+                        styles.quickPillText,
+                        { color: theme.text },
+                        isSelected && { color: theme.buttonText }
+                      ]}>
+                        {isRTL 
+                          ? `${t(`time.${preset.period.toLowerCase()}`)} ${toArabicNumerals(String(preset.hour))}:${toArabicNumerals(String(preset.minute).padStart(2, '0'))}`
+                          : preset.label}
+                      </ThemedText>
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
+              {canScrollQuickSelectRight && (
+                <Pressable 
+                  onPress={scrollQuickSelectRight} 
+                  style={[styles.scrollArrow, styles.scrollArrowRight, { backgroundColor: theme.surface }]}
+                >
+                  <DDIcon name="chevron-right" size={16} color={theme.textSecondary} />
+                </Pressable>
+              )}
+            </View>
           </View>
 
           <View style={[styles.footerButtonsCompact, { flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}>
@@ -595,6 +681,31 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   confirmButtonStyle: {},
+  scrollWithArrows: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  scrollArrow: {
+    position: 'absolute',
+    zIndex: 10,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  scrollArrowLeft: {
+    left: 4,
+  },
+  scrollArrowRight: {
+    right: 4,
+  },
 });
 
 export default TimePicker;
