@@ -385,9 +385,9 @@ export function TimePicker({
                 ]}
                 disabled={isRTL ? !canScrollSelectorRight : !canScrollSelectorLeft}
               >
-                <DDIcon name="chevron-left" size={18} color={theme.textSecondary} />
+                <DDIcon name="chevron-left" size={20} color={theme.textSecondary} />
               </Pressable>
-              <View style={[styles.selectorGrid, { borderColor: theme.border, flex: 1 }]}>
+              <View style={[styles.selectorGrid, { flex: 1 }]}>
                 <ScrollView 
                   ref={selectorScrollRef}
                   horizontal 
@@ -449,7 +449,7 @@ export function TimePicker({
                 ]}
                 disabled={isRTL ? !canScrollSelectorLeft : !canScrollSelectorRight}
               >
-                <DDIcon name="chevron-right" size={18} color={theme.textSecondary} />
+                <DDIcon name="chevron-right" size={20} color={theme.textSecondary} />
               </Pressable>
             </View>
           </View>
@@ -465,7 +465,7 @@ export function TimePicker({
                 ]}
                 disabled={isRTL ? !canScrollQuickSelectRight : !canScrollQuickSelectLeft}
               >
-                <DDIcon name="chevron-left" size={18} color={theme.textSecondary} />
+                <DDIcon name="chevron-left" size={20} color={theme.textSecondary} />
               </Pressable>
               <ScrollView 
                 ref={quickSelectScrollRef}
@@ -513,7 +513,7 @@ export function TimePicker({
                 ]}
                 disabled={isRTL ? !canScrollQuickSelectLeft : !canScrollQuickSelectRight}
               >
-                <DDIcon name="chevron-right" size={18} color={theme.textSecondary} />
+                <DDIcon name="chevron-right" size={20} color={theme.textSecondary} />
               </Pressable>
             </View>
           </View>
@@ -626,7 +626,6 @@ const styles = StyleSheet.create({
   },
   selectorGrid: {
     borderRadius: BorderRadius.lg,
-    borderWidth: 1,
     paddingVertical: Spacing.sm,
   },
   selectorScrollContent: {
