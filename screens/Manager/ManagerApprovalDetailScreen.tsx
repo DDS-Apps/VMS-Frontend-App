@@ -668,7 +668,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
             <Spacer height={Spacing.sm} />
 
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
+            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.sm }}>
               <View
                 style={{
                   backgroundColor: applyOpacity(statusColor, '15'),
@@ -759,7 +759,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
           <>
             <Spacer height={Spacing.lg} />
             <ThemedView style={[styles.cardNew, { backgroundColor: applyOpacity(theme.error, '08') }]}>
-              <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.sm }}>
+              <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'flex-start', gap: Spacing.sm }}>
                 <View style={{ marginTop: 2 }}>
                   <DDIcon name="message-circle" size={18} color={theme.error} />
                 </View>
@@ -780,7 +780,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
           <>
             <Spacer height={Spacing.lg} />
             <ThemedView style={[styles.cardNew, { backgroundColor: applyOpacity(theme.error, '08') }]}>
-              <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.sm }}>
+              <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'flex-start', gap: Spacing.sm }}>
                 <View style={{ marginTop: 2 }}>
                   <DDIcon name="user-x" size={18} color={theme.error} />
                 </View>
@@ -862,7 +862,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
                     {t('form.endTime')}
                   </ThemedText>
                   {inlineEndTime !== null ? (
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginTop: 2 }}>
+                    <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.sm, marginTop: 2 }}>
                       <Pressable
                         onPress={() => setShowInlineEndTimePicker(true)}
                         style={[styles.inlineTimeButton, { backgroundColor: applyOpacity(theme.primary, '10'), borderColor: theme.primary }]}
@@ -880,7 +880,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
                       </Pressable>
                     </View>
                   ) : (
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginTop: 2 }}>
+                    <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.sm, marginTop: 2 }}>
                       <ThemedText style={[Typography.caption, { color: request.endTime ? theme.textSecondary : theme.warning, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
                         {request.endTime ? formatTimeFromString(request.endTime) : t('common.notRequested')}
                       </ThemedText>
@@ -945,7 +945,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
               <DDIcon name="briefcase" size={18} color={(request.meetingRoom || request.isMeetingRoom) ? theme.secondary : theme.textSecondary} />
             </View>
             <View style={[styles.serviceInfo, { flex: 1 }]}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
                   {t('services.meetingRoom')}
                 </ThemedText>
@@ -989,7 +989,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
               <DDIcon name="cloche" size={18} color={(request.buffet || request.isBuffet || (request as any).buffetPending) ? theme.secondary : theme.textSecondary} />
             </View>
             <View style={[styles.serviceInfo, { flex: 1 }]}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
                   {t('services.buffet')}
                 </ThemedText>

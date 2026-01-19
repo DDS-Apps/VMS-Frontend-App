@@ -38,6 +38,7 @@ interface RejectModalProps {
   onCancel: () => void;
   onConfirm: (reason: string) => void;
   isLoading: boolean;
+  isRTL?: boolean;
   translations: {
     title: string;
     subtitle: string;
@@ -52,6 +53,7 @@ const RejectModal = memo(function RejectModal({
   onCancel,
   onConfirm,
   isLoading,
+  isRTL = false,
   translations,
 }: RejectModalProps) {
   const [localReason, setLocalReason] = useState('');
@@ -117,7 +119,7 @@ const RejectModal = memo(function RejectModal({
               disabled={isLoading}
             >
               {isLoading ? (
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: 8 }}>
                   <DDIcon name="loader" size={16} color="#FFFFFF" />
                   <ThemedText style={modalStyles.confirmText}>{translations.confirm}</ThemedText>
                 </View>
@@ -217,6 +219,7 @@ interface ParkingSelectionModalProps {
     carColor?: string;
   }) => void;
   isLoading: boolean;
+  isRTL?: boolean;
   translations: {
     title: string;
     noParking: string;
@@ -235,6 +238,7 @@ const ParkingSelectionModal = memo(function ParkingSelectionModal({
   onCancel,
   onConfirm,
   isLoading,
+  isRTL = false,
   translations,
 }: ParkingSelectionModalProps) {
   const [selectedOption, setSelectedOption] = useState<VisitorParkingOption | null>(null);
@@ -381,7 +385,7 @@ const ParkingSelectionModal = memo(function ParkingSelectionModal({
                 disabled={!selectedOption || isLoading}
               >
                 {isLoading ? (
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: 8 }}>
                     <DDIcon name="loader" size={16} color="#FFFFFF" />
                     <ThemedText style={modalStyles.confirmText}>{translations.confirm}</ThemedText>
                   </View>
@@ -1479,6 +1483,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
         onCancel={handleCancelReject}
         onConfirm={handleReject}
         isLoading={rejectMutation.isPending}
+        isRTL={isRTL}
         translations={rejectModalTranslations}
       />
       </ContentWrapper>

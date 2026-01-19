@@ -333,7 +333,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
         <>
           <Spacer height={Spacing.lg} />
           <ThemedView style={[styles.cardNew, { backgroundColor: applyOpacity(theme.error, '08') }]}>
-            <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.sm }}>
+            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'flex-start', gap: Spacing.sm }}>
               <View style={{ marginTop: 2 }}>
                 <DDIcon name="message-circle" size={18} color={theme.error} />
               </View>
@@ -353,12 +353,12 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
       <Spacer height={Spacing.lg} />
 
       <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
-        <View style={[{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}>
+        <View style={[{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', justifyContent: 'space-between' }]}>
           <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
             {t('visitor.visitorDetails')}
           </ThemedText>
           {visitor.isWalkIn ? (
-            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: applyOpacity(theme.warning, '15'), paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: BorderRadius.sm }}>
+            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', backgroundColor: applyOpacity(theme.warning, '15'), paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: BorderRadius.sm }}>
               <DDIcon name="user-check" size={14} color={theme.warning} />
               <ThemedText style={[Typography.caption, { color: theme.warning, fontWeight: '600', marginStart: Spacing.xs, fontSize: 11 }]}>
                 {t('reception.walkInVisitor')}
@@ -454,7 +454,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
 
       {visitor.status === 'pending_approval' && (
         <ThemedView style={[styles.pendingApprovalBanner, { backgroundColor: applyOpacity(theme.warning, '10'), borderColor: theme.warning }]}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
+          <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: Spacing.sm }}>
             <DDIcon name="clock" size={20} color={theme.warning} />
             <ThemedText style={[Typography.body, { color: theme.warning, fontWeight: '600', flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('status.pendingApproval')}
@@ -483,7 +483,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
           />
           <View style={styles.modalContainer}>
             <ThemedView style={[styles.modalContent, { backgroundColor: theme.surface }]}>
-              <View style={[styles.modalHeader, { flexDirection: 'row' }]}>
+              <View style={[styles.modalHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <ThemedText style={[Typography.subtitle, { fontSize: 18, fontWeight: '600', color: theme.text }]}>
                   {t('actions.cancelRequest')}
                 </ThemedText>
