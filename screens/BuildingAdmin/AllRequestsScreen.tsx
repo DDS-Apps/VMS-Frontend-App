@@ -723,7 +723,12 @@ export default function AllRequestsScreen() {
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.statsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={[styles.statsScrollContent, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
+          nestedScrollEnabled={true}
+        >
           <StatCard
             value={stats.total}
             label={t('common.all')}
@@ -749,14 +754,38 @@ export default function AllRequestsScreen() {
             theme={theme}
           />
           <StatCard
+            value={stats.inProgress}
+            label={t('status.checkedIn')}
+            color={StatusCardColors.inProgress}
+            isActive={statusFilter === 'in_progress'}
+            onPress={() => handleStatPress('in_progress')}
+            theme={theme}
+          />
+          <StatCard
             value={stats.completed}
-            label={t('common.done')}
+            label={t('status.checkedOut')}
             color={StatusCardColors.done}
             isActive={statusFilter === 'completed'}
             onPress={() => handleStatPress('completed')}
             theme={theme}
           />
-        </View>
+          <StatCard
+            value={stats.cancelled}
+            label={t('status.cancelled')}
+            color={StatusCardColors.cancelled}
+            isActive={statusFilter === 'cancelled'}
+            onPress={() => handleStatPress('cancelled')}
+            theme={theme}
+          />
+          <StatCard
+            value={stats.rejected}
+            label={t('status.rejected')}
+            color={StatusCardColors.rejected}
+            isActive={statusFilter === 'rejected'}
+            onPress={() => handleStatPress('rejected')}
+            theme={theme}
+          />
+        </ScrollView>
 
         <Spacer height={Spacing.lg} />
 
@@ -1031,8 +1060,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: Spacing.sm,
   },
+  statsScrollContent: {
+    gap: Spacing.sm,
+    paddingHorizontal: Spacing.lg,
+  },
   statCard: {
-    flex: 1,
+    minWidth: 90,
     padding: Spacing.md,
     borderRadius: BorderRadius.md,
     alignItems: 'center',

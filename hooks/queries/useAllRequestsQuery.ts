@@ -312,7 +312,8 @@ export function useAllRequestsQuery(filters: AllRequestsFilters = {}) {
     approved: allRequests.filter(r => r.status === 'approved').length,
     inProgress: allRequests.filter(r => r.status === 'in_progress').length,
     completed: allRequests.filter(r => r.status === 'completed').length,
-    cancelled: allRequests.filter(r => r.status === 'cancelled' || r.status === 'rejected').length,
+    cancelled: allRequests.filter(r => r.status === 'cancelled').length,
+    rejected: allRequests.filter(r => r.status === 'rejected').length,
     byType: {
       visitor: allRequests.filter(r => r.type === 'visitor').length,
       buffet: allRequests.filter(r => r.type === 'buffet').length,
