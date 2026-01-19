@@ -376,16 +376,18 @@ export function TimePicker({
               </Pressable>
             </View>
 
-            <View style={[styles.selectorGrid, { borderColor: theme.border }]}>
-              <View style={styles.scrollWithArrows}>
-                {canScrollSelectorLeft && (
-                  <Pressable 
-                    onPress={scrollSelectorLeft} 
-                    style={[styles.scrollArrow, styles.scrollArrowLeft, { backgroundColor: theme.surface }]}
-                  >
-                    <DDIcon name="chevron-left" size={16} color={theme.textSecondary} />
-                  </Pressable>
-                )}
+            <View style={[styles.scrollWithArrows, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <Pressable 
+                onPress={isRTL ? scrollSelectorRight : scrollSelectorLeft} 
+                style={[
+                  styles.scrollArrowOutside, 
+                  { opacity: (isRTL ? canScrollSelectorRight : canScrollSelectorLeft) ? 1 : 0 }
+                ]}
+                disabled={isRTL ? !canScrollSelectorRight : !canScrollSelectorLeft}
+              >
+                <DDIcon name="chevron-left" size={18} color={theme.textSecondary} />
+              </Pressable>
+              <View style={[styles.selectorGrid, { borderColor: theme.border, flex: 1 }]}>
                 <ScrollView 
                   ref={selectorScrollRef}
                   horizontal 
@@ -438,34 +440,39 @@ export function TimePicker({
                     ))
                   )}
                 </ScrollView>
-                {canScrollSelectorRight && (
-                  <Pressable 
-                    onPress={scrollSelectorRight} 
-                    style={[styles.scrollArrow, styles.scrollArrowRight, { backgroundColor: theme.surface }]}
-                  >
-                    <DDIcon name="chevron-right" size={16} color={theme.textSecondary} />
-                  </Pressable>
-                )}
               </View>
+              <Pressable 
+                onPress={isRTL ? scrollSelectorLeft : scrollSelectorRight} 
+                style={[
+                  styles.scrollArrowOutside, 
+                  { opacity: (isRTL ? canScrollSelectorLeft : canScrollSelectorRight) ? 1 : 0 }
+                ]}
+                disabled={isRTL ? !canScrollSelectorLeft : !canScrollSelectorRight}
+              >
+                <DDIcon name="chevron-right" size={18} color={theme.textSecondary} />
+              </Pressable>
             </View>
           </View>
 
           <View style={styles.quickSelectSection}>
             <ThemedText style={[styles.quickSelectLabel, { color: theme.textSecondary }]}>{t('time.quickSelect')}</ThemedText>
-            <View style={styles.scrollWithArrows}>
-              {canScrollQuickSelectLeft && (
-                <Pressable 
-                  onPress={scrollQuickSelectLeft} 
-                  style={[styles.scrollArrow, styles.scrollArrowLeft, { backgroundColor: theme.surface }]}
-                >
-                  <DDIcon name="chevron-left" size={16} color={theme.textSecondary} />
-                </Pressable>
-              )}
+            <View style={[styles.scrollWithArrows, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <Pressable 
+                onPress={isRTL ? scrollQuickSelectRight : scrollQuickSelectLeft} 
+                style={[
+                  styles.scrollArrowOutside, 
+                  { opacity: (isRTL ? canScrollQuickSelectRight : canScrollQuickSelectLeft) ? 1 : 0 }
+                ]}
+                disabled={isRTL ? !canScrollQuickSelectRight : !canScrollQuickSelectLeft}
+              >
+                <DDIcon name="chevron-left" size={18} color={theme.textSecondary} />
+              </Pressable>
               <ScrollView 
                 ref={quickSelectScrollRef}
                 horizontal 
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.quickSelectScrollContent}
+                style={{ flex: 1 }}
                 onScroll={(e) => setQuickSelectScrollOffset(e.nativeEvent.contentOffset.x)}
                 scrollEventThrottle={16}
                 onContentSizeChange={(w) => setQuickSelectContentWidth(w)}
@@ -498,14 +505,16 @@ export function TimePicker({
                   );
                 })}
               </ScrollView>
-              {canScrollQuickSelectRight && (
-                <Pressable 
-                  onPress={scrollQuickSelectRight} 
-                  style={[styles.scrollArrow, styles.scrollArrowRight, { backgroundColor: theme.surface }]}
-                >
-                  <DDIcon name="chevron-right" size={16} color={theme.textSecondary} />
-                </Pressable>
-              )}
+              <Pressable 
+                onPress={isRTL ? scrollQuickSelectLeft : scrollQuickSelectRight} 
+                style={[
+                  styles.scrollArrowOutside, 
+                  { opacity: (isRTL ? canScrollQuickSelectLeft : canScrollQuickSelectRight) ? 1 : 0 }
+                ]}
+                disabled={isRTL ? !canScrollQuickSelectLeft : !canScrollQuickSelectRight}
+              >
+                <DDIcon name="chevron-right" size={18} color={theme.textSecondary} />
+              </Pressable>
             </View>
           </View>
 
@@ -684,27 +693,13 @@ const styles = StyleSheet.create({
   scrollWithArrows: {
     flexDirection: 'row',
     alignItems: 'center',
-    position: 'relative',
+    paddingHorizontal: Spacing.sm,
   },
-  scrollArrow: {
-    position: 'absolute',
-    zIndex: 10,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+  scrollArrowOutside: {
+    width: 32,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.15,
-    shadowRadius: 3,
-    elevation: 3,
-  },
-  scrollArrowLeft: {
-    left: 4,
-  },
-  scrollArrowRight: {
-    right: 4,
   },
 });
 
