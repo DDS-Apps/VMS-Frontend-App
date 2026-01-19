@@ -1121,7 +1121,7 @@ export default function RequestDetailsScreen({
         <Spacer height={Spacing.lg} />
 
         <View style={{ flexDirection: 'row', width: '100%', justifyContent: isRTL ? 'flex-end' : 'flex-start' }}>
-          <View style={[styles.infoRowNew, { flexDirection: 'row', gap: Spacing.md }]}>
+          <View style={[styles.infoRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row', gap: Spacing.md }]}>
             {isRTL ? (
               <>
                 <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, textAlign: 'right' }]}>
@@ -1147,7 +1147,7 @@ export default function RequestDetailsScreen({
         <Spacer height={Spacing.md} />
 
         <View style={{ flexDirection: 'row', width: '100%', justifyContent: isRTL ? 'flex-end' : 'flex-start' }}>
-          <View style={[styles.infoRowNew, { flexDirection: 'row', gap: Spacing.md }]}>
+          <View style={[styles.infoRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row', gap: Spacing.md }]}>
             {isRTL ? (
               <>
                 <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, textAlign: 'right' }]}>
@@ -1194,7 +1194,7 @@ export default function RequestDetailsScreen({
         </View>
         <Spacer height={Spacing.xl} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: 'row' }]}>
+        <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(isVisitExpired ? theme.secondary : theme.textSecondary, '15') }]}>
             <DDIcon name={isVisitExpired ? "check-circle" : "calendar"} size={18} color={isVisitExpired ? theme.secondary : theme.text} />
           </View>
@@ -1215,7 +1215,7 @@ export default function RequestDetailsScreen({
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: 'row' }]}>
+        <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="clock" size={18} color={theme.text} />
           </View>
@@ -1231,7 +1231,7 @@ export default function RequestDetailsScreen({
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: 'row' }]}>
+        <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="briefcase" size={18} color={theme.text} />
           </View>
