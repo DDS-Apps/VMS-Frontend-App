@@ -1,10 +1,10 @@
 import React from 'react';
-import { View, ViewStyle, StyleProp, StyleSheet } from 'react-native';
+import { View, ViewStyle, StyleProp, StyleSheet, Platform } from 'react-native';
 import { DDIcon } from '@/components/DDIcon';
 import { ThemedText } from '@/components/ThemedText';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/hooks/useTheme';
-import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
+import { shouldSwapChildrenForRTL, getFlexDirection } from '@/utils/rtlInitializer';
 import { Spacing } from '@/constants/theme';
 
 interface DirectionalIconLabelProps {
@@ -33,14 +33,17 @@ export function DirectionalIconLabel({
   const { isRTL } = useLanguage();
   const { theme } = useTheme();
   
-  // Use shouldSwapChildrenForRTL for consistent RTL handling across all components
-  // forceReverse only applies when in RTL mode (to handle specific web quirks)
-  const shouldReverse = shouldSwapChildrenForRTL(isRTL) || (isRTL && forceReverse);
+  // Use shouldSwapChildrenForRTL for consistent RTL handling across all components (mobile only)
+  // On web, we use row-reverse via getFlexDirection
+  const shouldReverse = shouldSwapChildrenForRTL(isRTL);
+  
+  // On web RTL, use row-reverse. On mobile, use row (I18nManager or child swap handles RTL).
+  const flexDirection = Platform.OS === 'web' ? getFlexDirection(isRTL) : 'row';
   
   const flattenedStyle = StyleSheet.flatten([style]);
   const containerStyle: ViewStyle = {
     ...flattenedStyle,
-    flexDirection: 'row',
+    flexDirection,
     alignItems: flattenedStyle?.alignItems ?? 'center',
     gap,
   };

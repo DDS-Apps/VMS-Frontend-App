@@ -532,7 +532,7 @@ const styles = StyleSheet.create({
   },
   dateTimeRow: {
     alignItems: 'center',
-    flexWrap: 'wrap',
+    flexWrap: 'nowrap',
     gap: Spacing.xs,
   },
   dateTimeItem: {
