@@ -75,7 +75,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
 
   const FOOTER_HEIGHT = 100;
   const scrollContentStyle = {
-    paddingTop: insets.top + Spacing.xl,
+    paddingTop: Spacing.lg,
     paddingBottom: FOOTER_HEIGHT + Spacing.xl
   };
   
@@ -848,7 +848,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
           <Spacer height={Spacing.lg} />
 
           <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
-            <View style={[styles.sectionHeader, { flexDirection: 'row', gap: Spacing.md }]}>
+            <View style={[styles.sectionHeader, { flexDirection: 'row', gap: Spacing.md, justifyContent: isRTL ? 'flex-end' : 'flex-start' }]}>
               {shouldSwap ? (
                 <>
                   <View style={{ alignItems: isRTL ? 'flex-end' : 'flex-start' }}>
