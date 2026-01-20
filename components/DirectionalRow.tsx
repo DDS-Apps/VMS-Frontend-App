@@ -75,19 +75,10 @@ function browserWillAutoFlip(): boolean {
 }
 
 /**
- * Check if React Native's I18nManager will auto-flip layout on mobile
- * When I18nManager.isRTL is true, RN internally swaps row <-> row-reverse
- * 
- * This means if we apply 'row-reverse' for RTL, I18nManager swaps it back to 'row'!
- * So on mobile with I18nManager.isRTL=true, we should use 'row' and let RN flip it.
- */
-function mobileWillAutoFlip(): boolean {
-  if (Platform.OS === 'web') return false;
-  return I18nManager.isRTL;
-}
-
-/**
  * Calculate the correct flex direction based on RTL state and context
+ * 
+ * TESTING: Always use row-reverse for RTL on all platforms
+ * (Bypassing I18nManager auto-flip detection for now)
  * 
  * @param isRTL - Whether current locale is RTL
  * @param isNested - Whether this is inside another DirectionalRow
@@ -102,11 +93,11 @@ export function calculateFlexDirection(
     return 'row';
   }
   
-  // Check if platform will auto-flip
-  const autoFlip = browserWillAutoFlip() || mobileWillAutoFlip();
+  // Check if browser will auto-flip (web only, when <html dir="rtl"> is set)
+  const autoFlip = browserWillAutoFlip();
   
-  // If platform will auto-flip, use 'row' (platform handles it)
-  // Otherwise, use 'row-reverse' for RTL
+  // If browser will auto-flip, use 'row' (browser handles it)
+  // Otherwise, use 'row-reverse' for RTL on ALL platforms including mobile
   if (autoFlip) {
     return 'row';
   }
