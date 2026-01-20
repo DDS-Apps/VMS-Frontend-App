@@ -24,29 +24,30 @@ import { restartApp } from "@/utils/restartApp";
 // Step 1: Synchronous bootstrap (enables RTL, applies web direction)
 // This runs immediately before any async code
 const syncResult = bootstrapLocaleSync();
-console.log('[index.js] Sync bootstrap result:', syncResult);
 
 // Step 2: Async bootstrap to check if restart is needed (mobile)
 async function startApp() {
   try {
     // Full async bootstrap - loads stored locale and checks for direction mismatch
     const result = await bootstrapLocale();
-    console.log('[index.js] Async bootstrap result:', result);
+    
+    // RTL DIAGNOSTIC - Check I18nManager state after bootstrap
+    const { I18nManager } = require('react-native');
+    console.log('🔄 [RTL_DEBUG] After bootstrap - I18nManager.isRTL:', I18nManager.isRTL);
     
     if (result.needsRestart) {
-      console.log('[index.js] Direction mismatch detected, restarting app...');
-      // Restart immediately - don't render the app in wrong direction
+      console.log('🔄 [RTL_DEBUG] Restart needed, calling restartApp...');
       await restartApp(result.locale);
-      return; // App will restart, don't continue
+      return;
     }
     
     // Step 3: Direction is correct, now render the app
-    console.log('[index.js] Bootstrap complete, rendering app...');
+    console.log('🔄 [RTL_DEBUG] Rendering app with isRTL:', I18nManager.isRTL);
     const App = require("@/App").default;
     registerRootComponent(App);
     
   } catch (error) {
-    console.error('[index.js] Bootstrap error:', error);
+    console.error('[RTL_DEBUG] Bootstrap error:', error);
     // Fallback: render app anyway to avoid blank screen
     const App = require("@/App").default;
     registerRootComponent(App);

@@ -40,11 +40,11 @@ function isDevelopment(): boolean {
  * @param locale - Current locale for localized alert messages
  */
 export async function restartApp(locale: 'en' | 'ar' = 'en'): Promise<void> {
-  console.log('[RestartApp] Initiating restart...');
-  console.log('[RestartApp] Environment:', {
+  console.log('🔄 [RTL_DEBUG] restartApp called:', {
     platform: Platform.OS,
     isExpoGo: isExpoGo(),
     isDev: isDevelopment(),
+    locale,
   });
   
   if (Platform.OS === 'web') {
@@ -60,16 +60,15 @@ export async function restartApp(locale: 'en' | 'ar' = 'en'): Promise<void> {
   // In Expo Go or development mode, expo-updates doesn't work
   // Use DevSettings.reload() instead, or show an alert
   if (isExpoGo() || isDevelopment()) {
-    console.log('[RestartApp] Running in Expo Go/dev mode, using DevSettings');
-    
     try {
       const DevSettings = NativeModules.DevSettings;
       if (DevSettings?.reload) {
+        console.log('🔄 [RTL_DEBUG] Calling DevSettings.reload()...');
         DevSettings.reload();
         return;
       }
     } catch (error) {
-      console.log('[RestartApp] DevSettings.reload() not available:', error);
+      console.log('🔄 [RTL_DEBUG] DevSettings.reload() not available');
     }
     
     // Fallback: Show alert asking user to manually restart
@@ -114,8 +113,6 @@ export async function restartApp(locale: 'en' | 'ar' = 'en'): Promise<void> {
  * @param locale - Current locale for localized alert messages
  */
 export async function restartAppWithDelay(delayMs: number = 100, locale: 'en' | 'ar' = 'en'): Promise<void> {
-  console.log('[RestartApp] Scheduling restart in', delayMs, 'ms');
-  
   return new Promise((resolve) => {
     setTimeout(async () => {
       await restartApp(locale);

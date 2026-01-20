@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from "react";
-import { View, StyleSheet, Pressable, ActivityIndicator } from "react-native";
+import React, { useState, useCallback, useEffect } from "react";
+import { View, StyleSheet, Pressable, ActivityIndicator, I18nManager } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
@@ -33,9 +33,17 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { toLocalNumerals } = useFormatters();
-  const { isRTL, locale } = useLanguage();
+  const { locale } = useLanguage();
   const insets = useSafeAreaInsets();
   const [selectedTab, setSelectedTab] = useState<'all' | 'unread'>('all');
+
+  // RTL DIAGNOSTIC - Log I18nManager state on this screen
+  useEffect(() => {
+    console.log('🔄 [RTL_DEBUG] NotificationsScreen render:', {
+      locale,
+      'I18nManager.isRTL': I18nManager.isRTL,
+    });
+  }, [locale]);
 
   const scrollContentStyle = {
     paddingHorizontal: Spacing.xl,
@@ -167,7 +175,7 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
   return (
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
       <View style={[styles.header, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
-        <ThemedText style={[Typography.title, { textAlign: isRTL ? 'right' : 'left' }]}>
+        <ThemedText style={Typography.title}>
           {t('notifications.title')}
         </ThemedText>
         <Pressable 
@@ -244,12 +252,12 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
           );
           
           const contentElement = (
-            <View style={[styles.notificationContent, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
-              <ThemedText style={[styles.notificationTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left', width: '100%' }]}>
+            <View style={styles.notificationContent}>
+              <ThemedText style={[styles.notificationTitle, { color: theme.text }]}>
                 {localizedTitle}
               </ThemedText>
               <Spacer height={Spacing.xs} />
-              <ThemedText style={[styles.notificationMessage, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left', width: '100%' }]} numberOfLines={3}>
+              <ThemedText style={[styles.notificationMessage, { color: theme.textSecondary }]} numberOfLines={3}>
                 {localizedMessage}
               </ThemedText>
               <Spacer height={Spacing.sm} />
@@ -274,15 +282,13 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
                     borderColor: theme.border,
                     shadowColor: '#000',
                     flexDirection: 'row',
-                    paddingStart: isRTL ? Spacing.lg : Spacing.xl,
-                    paddingEnd: isRTL ? Spacing.xl : Spacing.lg,
                   },
                 ]}
               >
                 <StatusAccent color={accentColor} width={4} />
 
                 {!notification.isRead ? (
-                  <View style={[styles.unreadDot, { backgroundColor: theme.primary, start: isRTL ? Spacing.md : undefined, end: isRTL ? undefined : Spacing.md }]} />
+                  <View style={[styles.unreadDot, { backgroundColor: theme.primary }]} />
                 ) : null}
 
                 {iconElement}
@@ -355,6 +361,7 @@ const styles = StyleSheet.create({
   unreadDot: {
     position: 'absolute',
     top: Spacing.md,
+    end: Spacing.md,
     width: 8,
     height: 8,
     borderRadius: BorderRadius.full,

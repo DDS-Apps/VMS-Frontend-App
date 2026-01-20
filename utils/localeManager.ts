@@ -107,10 +107,8 @@ export async function saveLocale(locale: SupportedLocale): Promise<void> {
     if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
       localStorage.setItem(LANGUAGE_STORAGE_KEY, locale);
     }
-    
-    console.log('[LocaleManager] Saved locale:', locale);
   } catch (error) {
-    console.error('[LocaleManager] Error saving locale:', error);
+    console.error('[RTL_DEBUG] Error saving locale:', error);
     throw error;
   }
 }
@@ -120,8 +118,6 @@ export async function saveLocale(locale: SupportedLocale): Promise<void> {
  * IMPORTANT: This MUST be called before React renders on mobile
  */
 export function applyI18nManagerSettings(isRTL: boolean): void {
-  console.log('[LocaleManager] Applying I18nManager settings, isRTL:', isRTL);
-  
   // Enable RTL support
   I18nManager.allowRTL(true);
   
@@ -145,11 +141,6 @@ export function applyWebDocumentDirection(locale: SupportedLocale): void {
   const isRTL = isRTLLocale(locale);
   document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
   document.documentElement.lang = locale === 'ar' ? 'ar' : 'en';
-  
-  console.log('[LocaleManager] Applied web document direction:', { 
-    dir: document.documentElement.dir, 
-    lang: document.documentElement.lang 
-  });
 }
 
 // ============================================================================
@@ -171,10 +162,6 @@ export interface BootstrapResult {
  * - If needsRestart is true, app must restart before rendering
  */
 export async function bootstrapLocale(): Promise<BootstrapResult> {
-  console.log('[LocaleManager] Bootstrap starting...');
-  console.log('[LocaleManager] Platform:', Platform.OS);
-  console.log('[LocaleManager] Current I18nManager.isRTL:', I18nManager.isRTL);
-  
   // Step 1: Enable RTL support immediately
   I18nManager.allowRTL(true);
   if (typeof I18nManager.swapLeftAndRightInRTL === 'function') {
@@ -186,9 +173,14 @@ export async function bootstrapLocale(): Promise<BootstrapResult> {
   const shouldBeRTL = isRTLLocale(locale);
   const currentlyRTL = I18nManager.isRTL;
   
-  console.log('[LocaleManager] Stored locale:', locale);
-  console.log('[LocaleManager] Should be RTL:', shouldBeRTL);
-  console.log('[LocaleManager] Currently RTL:', currentlyRTL);
+  // RTL DIAGNOSTIC LOG - Single consolidated log
+  console.log('🔄 [RTL_DEBUG] bootstrapLocale:', {
+    platform: Platform.OS,
+    storedLocale: locale,
+    shouldBeRTL,
+    currentlyRTL,
+    mismatch: shouldBeRTL !== currentlyRTL,
+  });
   
   // Step 3: Check if direction change is needed
   const directionMismatch = shouldBeRTL !== currentlyRTL;
@@ -197,20 +189,15 @@ export async function bootstrapLocale(): Promise<BootstrapResult> {
     // Web: Apply direction immediately (no restart needed, just reload)
     I18nManager.forceRTL(shouldBeRTL);
     applyWebDocumentDirection(locale);
-    
-    console.log('[LocaleManager] Web bootstrap complete');
     return { locale, isRTL: shouldBeRTL, needsRestart: false };
   }
   
   // Mobile: If direction mismatch, apply and signal restart
   if (directionMismatch) {
-    console.log('[LocaleManager] Direction mismatch detected, applying forceRTL and signaling restart');
     I18nManager.forceRTL(shouldBeRTL);
-    
     return { locale, isRTL: shouldBeRTL, needsRestart: true };
   }
   
-  console.log('[LocaleManager] Mobile bootstrap complete, no restart needed');
   return { locale, isRTL: currentlyRTL, needsRestart: false };
 }
 
@@ -221,8 +208,6 @@ export async function bootstrapLocale(): Promise<BootstrapResult> {
  * On mobile, just enables RTL support (full bootstrap must be async)
  */
 export function bootstrapLocaleSync(): { locale: SupportedLocale; isRTL: boolean } {
-  console.log('[LocaleManager] Sync bootstrap starting...');
-  
   // Enable RTL support immediately
   I18nManager.allowRTL(true);
   if (typeof I18nManager.swapLeftAndRightInRTL === 'function') {
@@ -236,8 +221,6 @@ export function bootstrapLocaleSync(): { locale: SupportedLocale; isRTL: boolean
     
     I18nManager.forceRTL(isRTL);
     applyWebDocumentDirection(locale);
-    
-    console.log('[LocaleManager] Web sync bootstrap complete:', { locale, isRTL });
     return { locale, isRTL };
   }
   
@@ -245,7 +228,7 @@ export function bootstrapLocaleSync(): { locale: SupportedLocale; isRTL: boolean
   const isRTL = I18nManager.isRTL;
   const locale = isRTL ? 'ar' : 'en'; // Derive from current I18nManager state
   
-  console.log('[LocaleManager] Mobile sync bootstrap complete:', { locale, isRTL });
+  console.log('🔄 [RTL_DEBUG] bootstrapLocaleSync (mobile):', { locale, isRTL });
   return { locale, isRTL };
 }
 
@@ -271,7 +254,7 @@ export async function changeLanguage(newLocale: SupportedLocale): Promise<Change
   const currentIsRTL = I18nManager.isRTL;
   const directionChanged = newIsRTL !== currentIsRTL;
   
-  console.log('[LocaleManager] Changing language:', { 
+  console.log('🔄 [RTL_DEBUG] changeLanguage:', { 
     from: currentIsRTL ? 'ar' : 'en', 
     to: newLocale,
     directionChanged 
