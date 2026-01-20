@@ -249,7 +249,10 @@ export function VisitorRequestCard({
 
   const renderDateTime = () => {
     return (
-      <DirectionalRow style={styles.dateTimeRow}>
+      <DirectionalRow 
+        style={styles.dateTimeRow}
+        justifyContent={isRTL ? 'flex-end' : 'flex-start'}
+      >
         {renderIconText('calendar', formatDate(request.visitDate))}
         <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
         {renderIconText('clock', formatTime(request.visitTime))}
@@ -411,6 +414,8 @@ export function VisitorRequestCard({
     <Pressable
       onPress={handlePress}
       onLongPress={onLongPress}
+      delayPressIn={0}
+      hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
       style={({ pressed }) => [
         styles.container,
         {

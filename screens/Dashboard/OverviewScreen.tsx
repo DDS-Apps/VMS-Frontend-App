@@ -252,30 +252,62 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
         <>
           <View>
             <View style={[styles.header, { flexDirection: 'row' }]}>
-              <View style={{ flex: 1 }}>
-                <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
-                  {t('dashboard.upcomingVisitors')}
-                </ThemedText>
-                <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 4, fontSize: 12, textAlign: isRTL ? 'right' : 'left' }]}>
-                  {t('dashboard.thisWeek')}
-                </ThemedText>
-              </View>
-              {upcomingThisWeek.length > 0 && (
-                <Pressable 
-                  onPress={() => navigation.navigate(
-                    ROUTES.VISITOR_REQUESTS as never, 
-                    { initialTab: userRole === 'manager' ? 'all' : 'upcoming' } as never
+              {shouldSwap ? (
+                <>
+                  {upcomingThisWeek.length > 0 && (
+                    <Pressable 
+                      onPress={() => navigation.navigate(
+                        ROUTES.VISITOR_REQUESTS as never, 
+                        { initialTab: userRole === 'manager' ? 'all' : 'upcoming' } as never
+                      )}
+                      style={({ pressed }) => [
+                        styles.viewAllButton,
+                        { opacity: pressed ? 0.7 : 1, flexDirection: 'row', gap: Spacing.xs }
+                      ]}
+                    >
+                      <DDIcon name="chevron-left" size={16} color={theme.primary} />
+                      <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
+                        {t('common.viewAll')}
+                      </ThemedText>
+                    </Pressable>
                   )}
-                  style={({ pressed }) => [
-                    styles.viewAllButton,
-                    { opacity: pressed ? 0.7 : 1, flexDirection: 'row', gap: Spacing.xs }
-                  ]}
-                >
-                  <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
-                    {t('common.viewAll')}
-                  </ThemedText>
-                  <DDIcon name={isRTL ? "chevron-left" : "chevron-right"} size={16} color={theme.primary} />
-                </Pressable>
+                  <View style={{ flex: 1 }}>
+                    <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: 'right' }]}>
+                      {t('dashboard.upcomingVisitors')}
+                    </ThemedText>
+                    <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 4, fontSize: 12, textAlign: 'right' }]}>
+                      {t('dashboard.thisWeek')}
+                    </ThemedText>
+                  </View>
+                </>
+              ) : (
+                <>
+                  <View style={{ flex: 1 }}>
+                    <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: 'left' }]}>
+                      {t('dashboard.upcomingVisitors')}
+                    </ThemedText>
+                    <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 4, fontSize: 12, textAlign: 'left' }]}>
+                      {t('dashboard.thisWeek')}
+                    </ThemedText>
+                  </View>
+                  {upcomingThisWeek.length > 0 && (
+                    <Pressable 
+                      onPress={() => navigation.navigate(
+                        ROUTES.VISITOR_REQUESTS as never, 
+                        { initialTab: userRole === 'manager' ? 'all' : 'upcoming' } as never
+                      )}
+                      style={({ pressed }) => [
+                        styles.viewAllButton,
+                        { opacity: pressed ? 0.7 : 1, flexDirection: 'row', gap: Spacing.xs }
+                      ]}
+                    >
+                      <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
+                        {t('common.viewAll')}
+                      </ThemedText>
+                      <DDIcon name="chevron-right" size={16} color={theme.primary} />
+                    </Pressable>
+                  )}
+                </>
               )}
             </View>
 
@@ -321,28 +353,58 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
         <>
           <View>
             <View style={[styles.header, { flexDirection: 'row' }]}>
-              <View style={{ flex: 1 }}>
-                <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
-                  {t('dashboard.recentRequests')}
-                </ThemedText>
-                <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 4, fontSize: 12, textAlign: isRTL ? 'right' : 'left' }]}>
-                  {t('dashboard.yourLatestRequests')}
-                </ThemedText>
-              </View>
-              {recentRequests.length > 0 && (
-                <Pressable 
-                  onPress={() => navigation.navigate(ROUTES.VISITOR_REQUESTS as never, { initialTab: 'all' } as never)}
-                  style={({ pressed }) => [
-                    styles.viewAllButton,
-                    { opacity: pressed ? 0.7 : 1, flexDirection: 'row' }
-                  ]}
-                >
-                  <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
-                    {t('common.viewAll')}
-                  </ThemedText>
-                  <View style={{ width: Spacing.xs }} />
-                  <DDIcon name={isRTL ? "chevron-left" : "chevron-right"} size={16} color={theme.primary} />
-                </Pressable>
+              {shouldSwap ? (
+                <>
+                  {recentRequests.length > 0 && (
+                    <Pressable 
+                      onPress={() => navigation.navigate(ROUTES.VISITOR_REQUESTS as never, { initialTab: 'all' } as never)}
+                      style={({ pressed }) => [
+                        styles.viewAllButton,
+                        { opacity: pressed ? 0.7 : 1, flexDirection: 'row' }
+                      ]}
+                    >
+                      <DDIcon name="chevron-left" size={16} color={theme.primary} />
+                      <View style={{ width: Spacing.xs }} />
+                      <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
+                        {t('common.viewAll')}
+                      </ThemedText>
+                    </Pressable>
+                  )}
+                  <View style={{ flex: 1 }}>
+                    <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: 'right' }]}>
+                      {t('dashboard.recentRequests')}
+                    </ThemedText>
+                    <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 4, fontSize: 12, textAlign: 'right' }]}>
+                      {t('dashboard.yourLatestRequests')}
+                    </ThemedText>
+                  </View>
+                </>
+              ) : (
+                <>
+                  <View style={{ flex: 1 }}>
+                    <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: 'left' }]}>
+                      {t('dashboard.recentRequests')}
+                    </ThemedText>
+                    <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 4, fontSize: 12, textAlign: 'left' }]}>
+                      {t('dashboard.yourLatestRequests')}
+                    </ThemedText>
+                  </View>
+                  {recentRequests.length > 0 && (
+                    <Pressable 
+                      onPress={() => navigation.navigate(ROUTES.VISITOR_REQUESTS as never, { initialTab: 'all' } as never)}
+                      style={({ pressed }) => [
+                        styles.viewAllButton,
+                        { opacity: pressed ? 0.7 : 1, flexDirection: 'row' }
+                      ]}
+                    >
+                      <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
+                        {t('common.viewAll')}
+                      </ThemedText>
+                      <View style={{ width: Spacing.xs }} />
+                      <DDIcon name="chevron-right" size={16} color={theme.primary} />
+                    </Pressable>
+                  )}
+                </>
               )}
             </View>
 
@@ -387,27 +449,59 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
       {userRole === 'manager' && (
         <>
           <View>
-            <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
-              {t('dashboard.pendingApprovals')}
-            </ThemedText>
-            <View style={[styles.header, { alignItems: 'center', marginTop: 4, flexDirection: 'row' }]}>
-              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, fontSize: 12, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
-                {t('dashboard.requestsAwaitingApproval')}
-              </ThemedText>
-              {pendingApprovals.length > 0 && (
-                <Pressable 
-                  onPress={() => navigation.navigate(ROUTES.APPROVALS as never)}
-                  style={({ pressed }) => [
-                    styles.viewAllButton,
-                    { opacity: pressed ? 0.7 : 1, flexDirection: 'row' }
-                  ]}
-                >
-                  <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
-                    {t('common.viewAll')}
-                  </ThemedText>
-                  <View style={{ width: Spacing.xs }} />
-                  <DDIcon name={isRTL ? "chevron-left" : "chevron-right"} size={16} color={theme.primary} />
-                </Pressable>
+            <View style={[styles.header, { flexDirection: 'row' }]}>
+              {shouldSwap ? (
+                <>
+                  {pendingApprovals.length > 0 && (
+                    <Pressable 
+                      onPress={() => navigation.navigate(ROUTES.APPROVALS as never)}
+                      style={({ pressed }) => [
+                        styles.viewAllButton,
+                        { opacity: pressed ? 0.7 : 1, flexDirection: 'row' }
+                      ]}
+                    >
+                      <DDIcon name="chevron-left" size={16} color={theme.primary} />
+                      <View style={{ width: Spacing.xs }} />
+                      <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
+                        {t('common.viewAll')}
+                      </ThemedText>
+                    </Pressable>
+                  )}
+                  <View style={{ flex: 1 }}>
+                    <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: 'right' }]}>
+                      {t('dashboard.pendingApprovals')}
+                    </ThemedText>
+                    <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 4, fontSize: 12, textAlign: 'right' }]}>
+                      {t('dashboard.requestsAwaitingApproval')}
+                    </ThemedText>
+                  </View>
+                </>
+              ) : (
+                <>
+                  <View style={{ flex: 1 }}>
+                    <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: 'left' }]}>
+                      {t('dashboard.pendingApprovals')}
+                    </ThemedText>
+                    <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 4, fontSize: 12, textAlign: 'left' }]}>
+                      {t('dashboard.requestsAwaitingApproval')}
+                    </ThemedText>
+                  </View>
+                  {pendingApprovals.length > 0 && (
+                    <Pressable 
+                      onPress={() => navigation.navigate(ROUTES.APPROVALS as never)}
+                      style={({ pressed }) => [
+                        styles.viewAllButton,
+                        { opacity: pressed ? 0.7 : 1, flexDirection: 'row' }
+                      ]}
+                    >
+                      <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
+                        {t('common.viewAll')}
+                      </ThemedText>
+                      <View style={{ width: Spacing.xs }} />
+                      <DDIcon name="chevron-right" size={16} color={theme.primary} />
+                    </Pressable>
+                  )}
+                </>
               )}
             </View>
 
@@ -454,30 +548,65 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
       {(userRole === 'manager' || userRole === 'employee') && (
         <>
           <View>
-            <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
-              {t('navigation.awaitingVisitor')}
-            </ThemedText>
-            <View style={[styles.header, { alignItems: 'center', marginTop: 4, flexDirection: 'row' }]}>
-              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, fontSize: 12, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
-                {t('dashboard.awaitingResponse')}
-              </ThemedText>
-              {awaitingVisitorAcceptance.length > 0 && (
-                <Pressable 
-                  onPress={() => navigation.navigate(
-                    'VisitorRequests', 
-                    { initialTab: userRole === 'manager' ? 'awaiting' : 'waiting' }
+            <View style={[styles.header, { flexDirection: 'row' }]}>
+              {shouldSwap ? (
+                <>
+                  {awaitingVisitorAcceptance.length > 0 && (
+                    <Pressable 
+                      onPress={() => navigation.navigate(
+                        'VisitorRequests', 
+                        { initialTab: userRole === 'manager' ? 'awaiting' : 'waiting' }
+                      )}
+                      style={({ pressed }) => [
+                        styles.viewAllButton,
+                        { opacity: pressed ? 0.7 : 1, flexDirection: 'row' }
+                      ]}
+                    >
+                      <DDIcon name="chevron-left" size={16} color={theme.primary} />
+                      <View style={{ width: Spacing.xs }} />
+                      <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
+                        {t('common.viewAll')}
+                      </ThemedText>
+                    </Pressable>
                   )}
-                  style={({ pressed }) => [
-                    styles.viewAllButton,
-                    { opacity: pressed ? 0.7 : 1, flexDirection: 'row' }
-                  ]}
-                >
-                  <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
-                    {t('common.viewAll')}
-                  </ThemedText>
-                  <View style={{ width: Spacing.xs }} />
-                  <DDIcon name={isRTL ? "chevron-left" : "chevron-right"} size={16} color={theme.primary} />
-                </Pressable>
+                  <View style={{ flex: 1 }}>
+                    <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: 'right' }]}>
+                      {t('navigation.awaitingVisitor')}
+                    </ThemedText>
+                    <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 4, fontSize: 12, textAlign: 'right' }]}>
+                      {t('dashboard.awaitingResponse')}
+                    </ThemedText>
+                  </View>
+                </>
+              ) : (
+                <>
+                  <View style={{ flex: 1 }}>
+                    <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: 'left' }]}>
+                      {t('navigation.awaitingVisitor')}
+                    </ThemedText>
+                    <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 4, fontSize: 12, textAlign: 'left' }]}>
+                      {t('dashboard.awaitingResponse')}
+                    </ThemedText>
+                  </View>
+                  {awaitingVisitorAcceptance.length > 0 && (
+                    <Pressable 
+                      onPress={() => navigation.navigate(
+                        'VisitorRequests', 
+                        { initialTab: userRole === 'manager' ? 'awaiting' : 'waiting' }
+                      )}
+                      style={({ pressed }) => [
+                        styles.viewAllButton,
+                        { opacity: pressed ? 0.7 : 1, flexDirection: 'row' }
+                      ]}
+                    >
+                      <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
+                        {t('common.viewAll')}
+                      </ThemedText>
+                      <View style={{ width: Spacing.xs }} />
+                      <DDIcon name="chevron-right" size={16} color={theme.primary} />
+                    </Pressable>
+                  )}
+                </>
               )}
             </View>
 
@@ -524,27 +653,59 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
       {(userRole === 'manager' || userRole === 'employee') && (
         <>
           <View>
-            <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
-              {t('navigation.walkInVisitors')}
-            </ThemedText>
-            <View style={[styles.header, { alignItems: 'center', marginTop: 4, flexDirection: 'row' }]}>
-              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, fontSize: 12, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
-                {t('dashboard.walkIns')}
-              </ThemedText>
-              {walkInVisitors.length > 0 && (userRole === 'manager' || userRole === 'employee') && (
-                <Pressable 
-                  onPress={() => navigation.navigate(ROUTES.VISITOR_REQUESTS as never, { initialTab: 'walkin' } as never)}
-                  style={({ pressed }) => [
-                    styles.viewAllButton,
-                    { opacity: pressed ? 0.7 : 1, flexDirection: 'row' }
-                  ]}
-                >
-                  <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
-                    {t('common.viewAll')}
-                  </ThemedText>
-                  <View style={{ width: Spacing.xs }} />
-                  <DDIcon name={isRTL ? "chevron-left" : "chevron-right"} size={16} color={theme.primary} />
-                </Pressable>
+            <View style={[styles.header, { flexDirection: 'row' }]}>
+              {shouldSwap ? (
+                <>
+                  {walkInVisitors.length > 0 && (userRole === 'manager' || userRole === 'employee') && (
+                    <Pressable 
+                      onPress={() => navigation.navigate(ROUTES.VISITOR_REQUESTS as never, { initialTab: 'walkin' } as never)}
+                      style={({ pressed }) => [
+                        styles.viewAllButton,
+                        { opacity: pressed ? 0.7 : 1, flexDirection: 'row' }
+                      ]}
+                    >
+                      <DDIcon name="chevron-left" size={16} color={theme.primary} />
+                      <View style={{ width: Spacing.xs }} />
+                      <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
+                        {t('common.viewAll')}
+                      </ThemedText>
+                    </Pressable>
+                  )}
+                  <View style={{ flex: 1 }}>
+                    <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: 'right' }]}>
+                      {t('navigation.walkInVisitors')}
+                    </ThemedText>
+                    <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 4, fontSize: 12, textAlign: 'right' }]}>
+                      {t('dashboard.walkIns')}
+                    </ThemedText>
+                  </View>
+                </>
+              ) : (
+                <>
+                  <View style={{ flex: 1 }}>
+                    <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: 'left' }]}>
+                      {t('navigation.walkInVisitors')}
+                    </ThemedText>
+                    <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 4, fontSize: 12, textAlign: 'left' }]}>
+                      {t('dashboard.walkIns')}
+                    </ThemedText>
+                  </View>
+                  {walkInVisitors.length > 0 && (userRole === 'manager' || userRole === 'employee') && (
+                    <Pressable 
+                      onPress={() => navigation.navigate(ROUTES.VISITOR_REQUESTS as never, { initialTab: 'walkin' } as never)}
+                      style={({ pressed }) => [
+                        styles.viewAllButton,
+                        { opacity: pressed ? 0.7 : 1, flexDirection: 'row' }
+                      ]}
+                    >
+                      <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
+                        {t('common.viewAll')}
+                      </ThemedText>
+                      <View style={{ width: Spacing.xs }} />
+                      <DDIcon name="chevron-right" size={16} color={theme.primary} />
+                    </Pressable>
+                  )}
+                </>
               )}
             </View>
 
