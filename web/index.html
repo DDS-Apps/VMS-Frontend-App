@@ -1,79 +1,64 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
-  <head>
-    <meta charset="utf-8" />
-    <meta httpequiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <title>Dallah Digital VMS</title>
-    <link rel="icon" href="/favicon.png" type="image/png" />
-    <style>
-      html, body { height: 100%; }
-      body { overflow: hidden; }
-      #root { display: flex; height: 100%; flex: 1; }
-    </style>
-    <script>
-      /**
-       * RTL Bootstrap Script - MUST run before React
-       * 
-       * Single Source of Truth: Language stored in localStorage
-       * Direction derived: ar = RTL, en = LTR
-       * 
-       * This script sets document.dir and document.lang BEFORE
-       * any CSS or React code runs, preventing layout flash.
-       */
-      (function() {
-        var STORAGE_KEY = '@vms_language';
-        var DEFAULT_LOCALE = 'en';
-        
-        try {
-          var storedLang = localStorage.getItem(STORAGE_KEY);
-          var lang = (storedLang === 'ar' || storedLang === 'en') ? storedLang : DEFAULT_LOCALE;
-          var isRTL = lang === 'ar';
-          
-          // Apply direction and language
-          document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
-          document.documentElement.lang = lang;
-          
-          // Log for debugging
-          console.log('[index.html] RTL bootstrap:', { lang: lang, dir: document.documentElement.dir });
-        } catch(e) {
-          // Fallback to LTR if localStorage fails
-          console.warn('[index.html] RTL bootstrap error:', e);
-          document.documentElement.dir = 'ltr';
-          document.documentElement.lang = 'en';
-        }
-      })();
-    </script>
-    <style>
-      /* Override browser default blue focus ring with Dallah Orange theme */
-      /* Always provide a visible focus indicator for accessibility */
-      input:focus,
-      textarea:focus,
-      select:focus,
-      button:focus {
-        outline: 2px solid #F58423 !important;
-        outline-offset: -2px;
-      }
-      
-      /* Remove default webkit appearance for inputs */
-      input,
-      textarea,
-      select {
-        -webkit-tap-highlight-color: rgba(245, 132, 35, 0.2);
-      }
-      
-      /* Override any blue selection/highlight colors */
-      ::selection {
-        background-color: rgba(245, 132, 35, 0.3);
-      }
-      
-      ::-moz-selection {
-        background-color: rgba(245, 132, 35, 0.3);
-      }
-    </style>
-  </head>
-  <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
-  </body>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta httpequiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <title>Dallah Digital VMS</title>
+  <link rel="icon" href="/favicon.png" type="image/png" />
+  <style>
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      overflow: hidden;
+    }
+
+    #root {
+      display: flex;
+      height: 100%;
+      flex: 1;
+    }
+  </style>
+  <!-- 
+      RTL is handled purely by DirectionalRow component in JavaScript.
+      No document.dir='rtl' needed - this ensures single source of truth.
+    -->
+  <style>
+    /* Override browser default blue focus ring with Dallah Orange theme */
+    /* Always provide a visible focus indicator for accessibility */
+    input:focus,
+    textarea:focus,
+    select:focus,
+    button:focus {
+      outline: 2px solid #F58423 !important;
+      outline-offset: -2px;
+    }
+
+    /* Remove default webkit appearance for inputs */
+    input,
+    textarea,
+    select {
+      -webkit-tap-highlight-color: rgba(245, 132, 35, 0.2);
+    }
+
+    /* Override any blue selection/highlight colors */
+    ::selection {
+      background-color: rgba(245, 132, 35, 0.3);
+    }
+
+    ::-moz-selection {
+      background-color: rgba(245, 132, 35, 0.3);
+    }
+  </style>
+</head>
+
+<body>
+  <noscript>You need to enable JavaScript to run this app.</noscript>
+  <div id="root"></div>
+</body>
+
 </html>

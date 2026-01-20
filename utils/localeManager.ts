@@ -132,15 +132,23 @@ export function applyI18nManagerSettings(isRTL: boolean): void {
 
 /**
  * Applies direction to web document
+ * 
+ * NOTE: We no longer set document.dir='rtl' because DirectionalRow
+ * handles RTL purely via JavaScript (row-reverse). This ensures
+ * single source of truth across web and mobile.
+ * 
+ * We only set document.lang for accessibility.
  */
 export function applyWebDocumentDirection(locale: SupportedLocale): void {
   if (Platform.OS !== 'web' || typeof document === 'undefined') {
     return;
   }
   
-  const isRTL = isRTLLocale(locale);
-  document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
+  // Only set lang for accessibility, NOT dir
+  // DirectionalRow handles RTL via flexDirection: 'row-reverse'
   document.documentElement.lang = locale === 'ar' ? 'ar' : 'en';
+  
+  console.log('[localeManager] Web document lang set:', document.documentElement.lang);
 }
 
 // ============================================================================
