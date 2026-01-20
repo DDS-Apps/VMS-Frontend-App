@@ -7,13 +7,9 @@
  * HOW IT WORKS:
  * =============
  * 
- * Always uses flexDirection: 'row'. I18nManager handles the visual RTL flip
- * on ALL platforms when initialized correctly before first render:
- * 
- * - MOBILE: I18nManager.forceRTL(true) flips layouts automatically
- * - WEB: I18nManager + document.dir='rtl' enables React Native Web's RTL handling
- * 
- * NO child swapping or row-reverse needed!
+ * Uses flexDirection: 'row' and relies on I18nManager for RTL flip.
+ * When I18nManager hasn't applied RTL yet (Expo Go hot reload), it falls back
+ * to manual child swapping via shouldSwapChildrenForRTL.
  * 
  * USAGE:
  * ======
@@ -23,11 +19,13 @@
  * </DirectionalRow>
  * 
  * In LTR: [Icon] [Username]
- * In RTL: [Username] [Icon]  (I18nManager handles the flip)
+ * In RTL: [Username] [Icon]
  */
 
-import React, { ReactNode } from 'react';
+import React, { ReactNode, Children } from 'react';
 import { View, ViewStyle, StyleProp, StyleSheet } from 'react-native';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
 
 interface DirectionalRowProps {
   children: ReactNode;
@@ -46,19 +44,25 @@ export function DirectionalRow({
   alignItems = 'center',
   justifyContent = 'flex-start',
 }: DirectionalRowProps) {
+  const { isRTL } = useLanguage();
+  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
   const flattenedStyle = StyleSheet.flatten([style]) || {};
   
   const finalStyle: ViewStyle = {
     ...flattenedStyle,
-    flexDirection: 'row', // I18nManager handles RTL flip on all platforms
+    flexDirection: 'row',
     alignItems: flattenedStyle.alignItems ?? alignItems,
     justifyContent: flattenedStyle.justifyContent ?? justifyContent,
     gap: gap ?? flattenedStyle.gap,
   };
   
+  // Convert children to array and reverse if swapping needed
+  const childArray = Children.toArray(children);
+  const renderedChildren = shouldSwap ? [...childArray].reverse() : childArray;
+  
   return (
     <View style={finalStyle}>
-      {children}
+      {renderedChildren}
     </View>
   );
 }

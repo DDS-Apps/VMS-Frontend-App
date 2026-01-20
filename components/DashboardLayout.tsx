@@ -19,7 +19,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useRTLStyles } from "@/hooks/useRTLStyles";
-import { getStartPosition } from "@/utils/rtlInitializer";
+import { shouldSwapChildrenForRTL } from "@/utils/rtlInitializer";
 import { UserRole } from "@/types/vms.types";
 import { authService } from "@/services/api/authService";
 
@@ -275,17 +275,10 @@ export default function DashboardLayout({
         style={[styles.container, { backgroundColor: theme.background }]}
       >
         {/* Mobile Header Bar */}
-        {!isLargeScreen && (
-          <ThemedView style={[
-            styles.mobileHeader, 
-            { 
-              borderBottomColor: theme.border, 
-              backgroundColor: theme.background,
-              paddingTop: insets.top + Spacing.sm,
-            },
-          ]}>
-            {/* Left cluster in LTR: menu/back + logo */}
-            {/* DirectionalRow handles platform-specific RTL reversal */}
+        {!isLargeScreen && (() => {
+          const shouldSwap = shouldSwapChildrenForRTL(isRTL);
+          
+          const leftCluster = (
             <DirectionalRow style={styles.headerCluster} gap={Spacing.sm}>
               {canGoBack && onGoBack ? (
                 <Pressable 
@@ -325,8 +318,9 @@ export default function DashboardLayout({
                 />
               </Pressable>
             </DirectionalRow>
-            
-            {/* Right cluster in LTR: bell + avatar */}
+          );
+          
+          const rightCluster = (
             <DirectionalRow style={styles.headerCluster} gap={Spacing.sm}>
               <Pressable 
                 onPress={() => onNavigate('Notifications')} 
@@ -364,8 +358,31 @@ export default function DashboardLayout({
                 </View>
               </Pressable>
             </DirectionalRow>
-          </ThemedView>
-        )}
+          );
+          
+          return (
+            <ThemedView style={[
+              styles.mobileHeader, 
+              { 
+                borderBottomColor: theme.border, 
+                backgroundColor: theme.background,
+                paddingTop: insets.top + Spacing.sm,
+              },
+            ]}>
+              {shouldSwap ? (
+                <>
+                  {rightCluster}
+                  {leftCluster}
+                </>
+              ) : (
+                <>
+                  {leftCluster}
+                  {rightCluster}
+                </>
+              )}
+            </ThemedView>
+          );
+        })()}
         
         <Modal
           visible={profileMenuVisible}
@@ -535,7 +552,7 @@ export default function DashboardLayout({
                   styles.sidebarMobile,
                   { width: sidebarWidthMobile },
                   sidebarAnimatedStyle,
-                  getStartPosition(isRTL, 0),
+                  { [isRTL ? 'right' : 'left']: 0 },
                 ]}
               >
                 <Sidebar

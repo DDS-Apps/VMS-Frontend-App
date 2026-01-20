@@ -112,13 +112,20 @@ interface StatusAccentProps {
 
 export const StatusAccent = ({ color, width = 4 }: StatusAccentProps) => {
   const { isRTL } = useLanguage();
+  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
+  
+  // Position on the "start" side: left in LTR, right in RTL
+  // Use isRTL for I18nManager-based RTL, or shouldSwap for manual fallback
+  const shouldPositionOnRight = isRTL || shouldSwap;
+  
   return (
     <View style={[
       styles.accent, 
       { 
         backgroundColor: color, 
         width,
-        ...(isRTL ? { left: 'auto', right: 0 } : { left: 0, right: 'auto' }),
+        left: shouldPositionOnRight ? undefined : 0,
+        right: shouldPositionOnRight ? 0 : undefined,
       }
     ]} />
   );
