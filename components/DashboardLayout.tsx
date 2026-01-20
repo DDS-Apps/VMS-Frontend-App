@@ -12,7 +12,7 @@ import Sidebar from "@/components/Sidebar";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { DDIcon } from "@/components/DDIcon";
-import { DirectionalRow } from "@/components/DirectionalRow";
+import { DirectionalRow, useDirectionalStyle } from "@/components/DirectionalRow";
 import { EnableNotificationsPrompt } from "@/components/shared/EnableNotificationsPrompt";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
@@ -80,6 +80,7 @@ export default function DashboardLayout({
   console.log('[DashboardLayout] isRTL:', isRTL, 'contextIsRTL:', contextIsRTL, 'locale:', locale);
   
   const { t } = useTranslation();
+  const headerDirectionalStyle = useDirectionalStyle();
   const rtlStyles = useRTLStyles();
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -277,6 +278,7 @@ export default function DashboardLayout({
         {!isLargeScreen && (
           <ThemedView style={[
             styles.mobileHeader, 
+            headerDirectionalStyle,
             { 
               borderBottomColor: theme.border, 
               backgroundColor: theme.background,
@@ -402,9 +404,9 @@ export default function DashboardLayout({
                   onNavigate('Settings');
                 }}
               >
-                <DirectionalRow gap={Spacing.md}>
+                <DirectionalRow gap={Spacing.md} style={{ flex: 1 }}>
                   <DDIcon name="user" size={20} variant="muted" />
-                  <ThemedText style={Typography.body}>
+                  <ThemedText style={[Typography.body, { flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                     {t('settings.profile')}
                   </ThemedText>
                 </DirectionalRow>
@@ -418,9 +420,9 @@ export default function DashboardLayout({
                     onNavigate('ChangePassword');
                   }}
                 >
-                  <DirectionalRow gap={Spacing.md}>
+                  <DirectionalRow gap={Spacing.md} style={{ flex: 1 }}>
                     <DDIcon name="lock" size={20} variant="muted" />
-                    <ThemedText style={Typography.body}>
+                    <ThemedText style={[Typography.body, { flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                       {t('settings.changePassword')}
                     </ThemedText>
                   </DirectionalRow>
@@ -432,7 +434,7 @@ export default function DashboardLayout({
               <View style={styles.dropdownItem}>
                 <DirectionalRow gap={Spacing.md} style={{ flex: 1 }}>
                   <DDIcon name="globe" size={20} variant="muted" />
-                  <ThemedText style={[Typography.body, { flex: 1 }]}>
+                  <ThemedText style={[Typography.body, { flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                     {t('settings.language')}
                   </ThemedText>
                   <View style={styles.languageToggle}>
@@ -465,7 +467,7 @@ export default function DashboardLayout({
               <View style={styles.dropdownItem}>
                 <DirectionalRow gap={Spacing.md} style={{ flex: 1 }}>
                   <DDIcon name={isDark ? "moon" : "sun"} size={20} variant="muted" />
-                  <ThemedText style={[Typography.body, { flex: 1 }]}>
+                  <ThemedText style={[Typography.body, { flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                     {t('settings.darkMode')}
                   </ThemedText>
                   <Switch
@@ -488,9 +490,9 @@ export default function DashboardLayout({
                   onLogout();
                 }}
               >
-                <DirectionalRow gap={Spacing.md}>
+                <DirectionalRow gap={Spacing.md} style={{ flex: 1 }}>
                   <DDIcon name="log-out" size={20} color={theme.error} directionAware />
-                  <ThemedText style={[Typography.body, { color: theme.error }]}>
+                  <ThemedText style={[Typography.body, { color: theme.error, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                     {t('auth.signOut')}
                   </ThemedText>
                 </DirectionalRow>
@@ -678,7 +680,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   mobileHeader: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.lg,
@@ -687,7 +688,6 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   headerCluster: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.xs,
   },
@@ -807,8 +807,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   dropdownItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'stretch',
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.lg,
   },

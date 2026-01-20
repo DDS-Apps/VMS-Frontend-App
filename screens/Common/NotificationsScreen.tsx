@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect } from "react";
 import { View, StyleSheet, Pressable, ActivityIndicator, I18nManager } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DDIcon, IconName } from "@/components/DDIcon";
-import { DirectionalRow, useDirectionalStyle } from "@/components/DirectionalRow";
+import { DirectionalRow } from "@/components/DirectionalRow";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -35,7 +35,6 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
   const { t } = useTranslation();
   const { toLocalNumerals } = useFormatters();
   const { locale, isRTL } = useLanguage();
-  const directionalStyle = useDirectionalStyle();
   const insets = useSafeAreaInsets();
   const [selectedTab, setSelectedTab] = useState<'all' | 'unread'>('all');
 
@@ -176,8 +175,8 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
 
   return (
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
-      <DirectionalRow style={[styles.header, { justifyContent: 'space-between' }]}>
-        <ThemedText style={Typography.title}>
+      <DirectionalRow style={styles.header}>
+        <ThemedText style={[Typography.title, { flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
           {t('notifications.title')}
         </ThemedText>
         <Pressable 
@@ -283,7 +282,6 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
                     opacity: pressed ? 0.95 : 1,
                     borderColor: theme.border,
                     shadowColor: '#000',
-                    ...directionalStyle,
                   },
                 ]}
               >
@@ -293,8 +291,10 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
                   <View style={[styles.unreadDot, { backgroundColor: theme.primary }]} />
                 ) : null}
 
-                {iconElement}
-                {contentElement}
+                <DirectionalRow style={styles.cardContent} gap={Spacing.md}>
+                  {iconElement}
+                  {contentElement}
+                </DirectionalRow>
               </Pressable>
               <Spacer height={Spacing.md} />
             </View>
@@ -331,7 +331,9 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 1,
     borderWidth: StyleSheet.hairlineWidth,
-    gap: Spacing.md,
+  },
+  cardContent: {
+    alignItems: 'flex-start',
   },
   iconContainer: {
     width: 44,

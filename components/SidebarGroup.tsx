@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.xs,
   },
   header: {
-    alignItems: 'center',
+    alignItems: 'stretch',
     paddingVertical: Spacing.sm + 2,
     paddingHorizontal: Spacing.md,
     borderRadius: BorderRadius.sm,

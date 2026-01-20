@@ -468,7 +468,7 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.lg,
   },
   profileHeader: {
-    alignItems: 'center',
+    alignItems: 'stretch',
     paddingHorizontal: Spacing.lg,
   },
   profileAvatar: {
@@ -488,7 +488,7 @@ const styles = StyleSheet.create({
     marginHorizontal: Spacing.sm,
   },
   standaloneItem: {
-    alignItems: 'center',
+    alignItems: 'stretch',
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.md,
     borderRadius: BorderRadius.sm,
@@ -499,7 +499,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   menuItem: {
-    alignItems: 'center',
+    alignItems: 'stretch',
     paddingVertical: Spacing.sm + 2,
     paddingHorizontal: Spacing.sm,
     borderRadius: BorderRadius.sm,
