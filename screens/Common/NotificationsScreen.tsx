@@ -192,7 +192,7 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
 
       <Spacer height={Spacing.md} />
 
-      <View style={styles.tabsContainer}>
+      <DirectionalRow style={styles.tabsContainer} gap={Spacing.md}>
         <Pressable
           style={[
             styles.tab,
@@ -225,7 +225,7 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
             {t('notifications.unread')} ({toLocalNumerals(String(unreadCount))})
           </ThemedText>
         </Pressable>
-      </View>
+      </DirectionalRow>
 
       <Spacer height={Spacing.lg} />
 
@@ -311,8 +311,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   tabsContainer: {
-    flexDirection: 'row',
-    gap: Spacing.md,
+    // DirectionalRow handles flexDirection
   },
   tab: {
     flex: 1,

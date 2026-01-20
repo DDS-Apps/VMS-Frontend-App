@@ -468,7 +468,6 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.lg,
   },
   profileHeader: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.lg,
   },
@@ -489,25 +488,21 @@ const styles = StyleSheet.create({
     marginHorizontal: Spacing.sm,
   },
   standaloneItem: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.md,
     borderRadius: BorderRadius.sm,
     marginBottom: Spacing.xs,
-    gap: Spacing.md,
   },
   standaloneText: {
     fontSize: 15,
     fontWeight: '500',
   },
   menuItem: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: Spacing.sm + 2,
     paddingHorizontal: Spacing.sm,
     borderRadius: BorderRadius.sm,
-    gap: Spacing.md,
     marginBottom: 2,
   },
   menuItemActive: {
@@ -522,9 +517,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
   },
   footerActions: {
-    flexDirection: 'row',
     justifyContent: 'flex-start',
-    gap: Spacing.sm,
   },
   footerButton: {
     width: 40,
@@ -534,7 +527,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   appInfo: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,

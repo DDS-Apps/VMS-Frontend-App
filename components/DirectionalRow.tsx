@@ -49,6 +49,9 @@ export function DirectionalRow({
   const { isRTL } = useLanguage();
   const flattenedStyle = StyleSheet.flatten([style]) || {};
   
+  // Debug log
+  console.log('[DirectionalRow] isRTL:', isRTL, 'applying flexDirection:', isRTL ? 'row-reverse' : 'row');
+  
   // Use row-reverse for RTL to ensure proper layout
   // This is needed because I18nManager.forceRTL() may not work
   // correctly on iOS if called after initial bundle load
