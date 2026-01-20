@@ -9,7 +9,7 @@ import Spacer from '@/components/Spacer';
 import { Spacing, BorderRadius, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
-import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
+import { DirectionalRow } from '@/components/DirectionalRow';
 
 interface BuffetLocation {
   id: string;
@@ -80,9 +80,7 @@ const MOCK_BUFFET_LOCATIONS: BuffetLocation[] = [
 
 export default function BuffetSettingsScreen() {
   const { theme } = useTheme();
-  const { t, isRTL } = useTranslation();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  const insets = useSafeAreaInsets();
+  const { t, isRTL } = useTranslation(); const insets = useSafeAreaInsets();
   const [locations, setLocations] = useState<BuffetLocation[]>(MOCK_BUFFET_LOCATIONS);
   const [showModal, setShowModal] = useState(false);
   const [editingLocation, setEditingLocation] = useState<BuffetLocation | null>(null);
@@ -177,83 +175,43 @@ export default function BuffetSettingsScreen() {
 
               <View style={styles.cardContent}>
                 <View style={[styles.infoRow, { flexDirection: 'row' }]}>
-                  {shouldSwap ? (
-                    <>
-                      <ThemedText style={[Typography.body, { color: theme.textSecondary, marginEnd: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
-                        {t('buffet.numberOfGuests')}: {location.capacity}
-                      </ThemedText>
-                      <DDIcon name="users" variant="muted" size={16} />
-                    </>
-                  ) : (
-                    <>
-                      <DDIcon name="users" variant="muted" size={16} />
-                      <ThemedText style={[Typography.body, { color: theme.textSecondary, marginStart: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
-                        {t('buffet.numberOfGuests')}: {location.capacity}
-                      </ThemedText>
-                    </>
-                  )}
+                  <DirectionalRow>
+                    <DDIcon name="users" variant="muted" size={16} />
+                    <ThemedText style={[Typography.body, { color: theme.textSecondary, marginEnd: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
+                      {t('buffet.numberOfGuests')}: {location.capacity}
+                    </ThemedText>
+                  </DirectionalRow>
                 </View>
 
                 {location.amenities.length > 0 ? (
                   <View style={[styles.infoRow, { marginTop: Spacing.sm, flexDirection: 'row' }]}>
-                    {shouldSwap ? (
-                      <>
-                        <View style={{ flex: 1, marginEnd: Spacing.sm }}>
-                          <ScrollView horizontal showsHorizontalScrollIndicator={false} nestedScrollEnabled={true}>
-                            <View style={styles.amenitiesContainer}>
-                              {location.amenities.map((amenity, idx) => (
-                                <View
-                                  key={idx}
-                                  style={[styles.amenityTag, { backgroundColor: theme.background, borderColor: theme.border }]}
-                                >
-                                  <ThemedText style={[Typography.caption, { fontSize: 11 }]}>{amenity}</ThemedText>
-                                </View>
-                              ))}
+                    <DDIcon name="check-circle" variant="muted" size={16} />
+                    <View style={{ flex: 1, marginStart: Spacing.sm }}>
+                      <ScrollView horizontal showsHorizontalScrollIndicator={false} nestedScrollEnabled={true}>
+                        <View style={styles.amenitiesContainer}>
+                          {location.amenities.map((amenity, idx) => (
+                            <View
+                              key={idx}
+                              style={[styles.amenityTag, { backgroundColor: theme.background, borderColor: theme.border }]}
+                            >
+                              <ThemedText style={[Typography.caption, { fontSize: 11 }]}>{amenity}</ThemedText>
                             </View>
-                          </ScrollView>
+                          ))}
                         </View>
-                        <DDIcon name="check-circle" variant="muted" size={16} />
-                      </>
-                    ) : (
-                      <>
-                        <DDIcon name="check-circle" variant="muted" size={16} />
-                        <View style={{ flex: 1, marginStart: Spacing.sm }}>
-                          <ScrollView horizontal showsHorizontalScrollIndicator={false} nestedScrollEnabled={true}>
-                            <View style={styles.amenitiesContainer}>
-                              {location.amenities.map((amenity, idx) => (
-                                <View
-                                  key={idx}
-                                  style={[styles.amenityTag, { backgroundColor: theme.background, borderColor: theme.border }]}
-                                >
-                                  <ThemedText style={[Typography.caption, { fontSize: 11 }]}>{amenity}</ThemedText>
-                                </View>
-                              ))}
-                            </View>
-                          </ScrollView>
-                        </View>
-                      </>
-                    )}
+                      </ScrollView>
+                    </View>
                   </View>
                 ) : null}
               </View>
 
               <View style={[styles.cardFooter, { borderTopColor: theme.border, flexDirection: 'row' }]}>
                 <Pressable style={[styles.actionButton, { flexDirection: 'row' }]}>
-                  {shouldSwap ? (
-                    <>
-                      <ThemedText style={[Typography.body, { color: theme.primary, marginEnd: Spacing.xs }]}>
-                        {t('common.edit')}
-                      </ThemedText>
-                      <DDIcon name="edit-2" size={16} variant="primary" />
-                    </>
-                  ) : (
-                    <>
-                      <DDIcon name="edit-2" size={16} variant="primary" />
-                      <ThemedText style={[Typography.body, { color: theme.primary, marginStart: Spacing.xs }]}>
-                        {t('common.edit')}
-                      </ThemedText>
-                    </>
-                  )}
+                  <DirectionalRow>
+                    <DDIcon name="edit-2" size={16} variant="primary" />
+                    <ThemedText style={[Typography.body, { color: theme.primary, marginEnd: Spacing.xs }]}>
+                      {t('common.edit')}
+                    </ThemedText>
+                  </DirectionalRow>
                 </Pressable>
               </View>
             </Pressable>

@@ -27,7 +27,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { VisitorRequest } from "@/types/vms.types";
 import type { PendingApprovalDto } from "@/types/api.types";
 import { applyOpacity } from "@/utils/statusStyles";
-import { shouldSwapChildrenForRTL } from "@/utils/rtlInitializer";
 import type { ManagerDashboardScreenProps } from "@/types/managerNavigation.types";
 import type { Theme } from "@/types/theme.types";
 import { mapPendingApprovalToVisitorRequest } from "@/utils/requestMappers";
@@ -45,9 +44,7 @@ const LAYOUT = {
 };
 
 
-const DateTimeDisplay = ({ date, time, duration, theme, compact = false, fmtDate, fmtTime, isRTL = false }: { date: string; time: string; duration?: string; theme: Theme; compact?: boolean; fmtDate: (d: Date | string) => string; fmtTime: (t: string) => string; isRTL?: boolean }) => {
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  const calendarIcon = <DDIcon name="calendar" size={compact ? 13 : 14} variant="muted" />;
+const DateTimeDisplay = ({ date, time, duration, theme, compact = false, fmtDate, fmtTime, isRTL = false }: { date: string; time: string; duration?: string; theme: Theme; compact?: boolean; fmtDate: (d: Date | string) => string; fmtTime: (t: string) => string; isRTL?: boolean }) => {  const calendarIcon = <DDIcon name="calendar" size={compact ? 13 : 14} variant="muted" />;
   const dateText = (
     <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
       {fmtDate(date)}
@@ -67,35 +64,17 @@ const DateTimeDisplay = ({ date, time, duration, theme, compact = false, fmtDate
   
   return (
     <View style={[styles.dateTimeRow, { flexDirection: 'row' }]}>
-      {shouldSwap ? (
+      {calendarIcon}
+      {dateText}
+      <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
+      {clockIcon}
+      {timeText}
+      {duration ? (
         <>
-          {dateText}
-          {calendarIcon}
           <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
-          {timeText}
-          {clockIcon}
-          {duration ? (
-            <>
-              <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
-              {durationText}
-            </>
-          ) : null}
+          {durationText}
         </>
-      ) : (
-        <>
-          {calendarIcon}
-          {dateText}
-          <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
-          {clockIcon}
-          {timeText}
-          {duration ? (
-            <>
-              <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
-              {durationText}
-            </>
-          ) : null}
-        </>
-      )}
+      ) : null}
     </View>
   );
 };
@@ -116,9 +95,7 @@ const SectionHeader = ({
   theme: Theme;
   t: (key: string) => string;
   isRTL?: boolean;
-}) => {
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  
+}) => {  
   const titleContent = (
     <View style={{ alignItems: isRTL ? 'flex-end' : 'flex-start' }}>
       <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
@@ -186,41 +163,19 @@ const SectionHeader = ({
   
   const actionsContent = (
     <View style={[styles.headerActions, { flexDirection: 'row' }]}>
-      {shouldSwap ? (
-        <>
-          <View style={[styles.viewModeToggle, { flexDirection: 'row' }]}>
-            {listButton}
-            {gridButton}
-          </View>
-          <Spacer width={Spacing.sm} />
-          {selectButton}
-        </>
-      ) : (
-        <>
-          {selectButton}
-          <Spacer width={Spacing.sm} />
-          <View style={[styles.viewModeToggle, { flexDirection: 'row' }]}>
-            {gridButton}
-            {listButton}
-          </View>
-        </>
-      )}
+      {selectButton}
+      <Spacer width={Spacing.sm} />
+      <View style={[styles.viewModeToggle, { flexDirection: 'row' }]}>
+        {gridButton}
+        {listButton}
+      </View>
     </View>
   );
   
   return (
     <View style={[styles.header, { flexDirection: 'row' }]}>
-      {shouldSwap ? (
-        <>
-          {actionsContent}
-          {titleContent}
-        </>
-      ) : (
-        <>
-          {titleContent}
-          {actionsContent}
-        </>
-      )}
+      {titleContent}
+      {actionsContent}
     </View>
   );
 };
@@ -238,30 +193,14 @@ const SelectAllBar = ({
   t: (key: string) => string;
   isRTL?: boolean;
 }) => {
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  const checkbox = <SelectionCheckbox isSelected={allSelected} onToggle={onToggleAll} />;
-  const labelText = (
-    <ThemedText style={[Typography.body, { color: theme.text }]}>
-      {allSelected ? t('bulkActions.deselectAll') : t('bulkActions.selectAll')}
-    </ThemedText>
-  );
-  
   return (
     <View style={[styles.selectAllBar, { backgroundColor: theme.surfaceSecondary, flexDirection: 'row' }]}>
       <Pressable onPress={onToggleAll} style={[styles.selectAllButton, { flexDirection: 'row' }]}>
-        {shouldSwap ? (
-          <>
-            {labelText}
-            <Spacer width={Spacing.sm} />
-            {checkbox}
-          </>
-        ) : (
-          <>
-            {checkbox}
-            <Spacer width={Spacing.sm} />
-            {labelText}
-          </>
-        )}
+        <SelectionCheckbox isSelected={allSelected} onToggle={onToggleAll} />
+        <Spacer width={Spacing.sm} />
+        <ThemedText style={[Typography.body, { color: theme.text }]}>
+          {allSelected ? t('bulkActions.deselectAll') : t('bulkActions.selectAll')}
+        </ThemedText>
       </Pressable>
     </View>
   );
@@ -287,83 +226,7 @@ const BulkActionBar = ({
   isProcessing?: boolean;
   processingAction?: 'approve' | 'reject' | null;
   isRTL?: boolean;
-}) => {
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  
-  const countText = (
-    <ThemedText style={[Typography.body, { fontWeight: '600', color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
-      {isProcessing ? t('common.processing') : `${selectedCount} ${t('bulkActions.selected')}`}
-    </ThemedText>
-  );
-  
-  const rejectIcon = isProcessing && processingAction === 'reject' ? (
-    <LoadingSpinner size="small" color={theme.error} inline />
-  ) : (
-    <DDIcon name="x" size={16} color={theme.error} />
-  );
-  const rejectText = (
-    <ThemedText style={[styles.bulkButtonText, { color: theme.error }]}>
-      {t('actions.reject')}
-    </ThemedText>
-  );
-  
-  const approveIcon = isProcessing && processingAction === 'approve' ? (
-    <LoadingSpinner size="small" color={theme.buttonText} inline />
-  ) : (
-    <DDIcon name="check" size={16} color={theme.buttonText} />
-  );
-  const approveText = (
-    <ThemedText style={[styles.bulkButtonText, { color: theme.buttonText }]}>
-      {t('actions.approve')}
-    </ThemedText>
-  );
-  
-  const rejectButton = (
-    <Pressable
-      style={[styles.bulkRejectButton, { borderColor: theme.error, opacity: isProcessing ? 0.6 : 1, flexDirection: 'row' }]}
-      onPress={onReject}
-      disabled={isProcessing}
-    >
-      {shouldSwap ? (
-        <>{rejectText}<Spacer width={6} />{rejectIcon}</>
-      ) : (
-        <>{rejectIcon}<Spacer width={6} />{rejectText}</>
-      )}
-    </Pressable>
-  );
-  
-  const approveButton = (
-    <Pressable
-      style={[styles.bulkApproveButton, { backgroundColor: theme.success, opacity: isProcessing ? 0.6 : 1, flexDirection: 'row' }]}
-      onPress={onApprove}
-      disabled={isProcessing}
-    >
-      {shouldSwap ? (
-        <>{approveText}<Spacer width={6} />{approveIcon}</>
-      ) : (
-        <>{approveIcon}<Spacer width={6} />{approveText}</>
-      )}
-    </Pressable>
-  );
-  
-  const buttonsContent = (
-    <View style={[styles.bulkActionButtons, { flexDirection: 'row' }]}>
-      {shouldSwap ? (
-        <>
-          {approveButton}
-          <Spacer width={Spacing.sm} />
-          {rejectButton}
-        </>
-      ) : (
-        <>
-          {rejectButton}
-          <Spacer width={Spacing.sm} />
-          {approveButton}
-        </>
-      )}
-    </View>
-  );
-  
+}) => {  
   return (
     <View 
       style={[
@@ -376,17 +239,42 @@ const BulkActionBar = ({
       ]}
     >
       <View style={[styles.bulkActionContent, { flexDirection: 'row' }]}>
-        {shouldSwap ? (
-          <>
-            {buttonsContent}
-            {countText}
-          </>
-        ) : (
-          <>
-            {countText}
-            {buttonsContent}
-          </>
-        )}
+        <ThemedText style={[Typography.body, { fontWeight: '600', color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+          {isProcessing ? t('common.processing') : `${selectedCount} ${t('bulkActions.selected')}`}
+        </ThemedText>
+        <View style={[styles.bulkActionButtons, { flexDirection: 'row' }]}>
+          <Pressable
+            style={[styles.bulkRejectButton, { borderColor: theme.error, opacity: isProcessing ? 0.6 : 1, flexDirection: 'row' }]}
+            onPress={onReject}
+            disabled={isProcessing}
+          >
+            {isProcessing && processingAction === 'reject' ? (
+              <LoadingSpinner size="small" color={theme.error} inline />
+            ) : (
+              <DDIcon name="x" size={16} color={theme.error} />
+            )}
+            <Spacer width={6} />
+            <ThemedText style={[styles.bulkButtonText, { color: theme.error }]}>
+              {t('actions.reject')}
+            </ThemedText>
+          </Pressable>
+          <Spacer width={Spacing.sm} />
+          <Pressable
+            style={[styles.bulkApproveButton, { backgroundColor: theme.success, opacity: isProcessing ? 0.6 : 1, flexDirection: 'row' }]}
+            onPress={onApprove}
+            disabled={isProcessing}
+          >
+            {isProcessing && processingAction === 'approve' ? (
+              <LoadingSpinner size="small" color={theme.buttonText} inline />
+            ) : (
+              <DDIcon name="check" size={16} color={theme.buttonText} />
+            )}
+            <Spacer width={6} />
+            <ThemedText style={[styles.bulkButtonText, { color: theme.buttonText }]}>
+              {t('actions.approve')}
+            </ThemedText>
+          </Pressable>
+        </View>
       </View>
     </View>
   );
@@ -424,9 +312,7 @@ const ApprovalTableRow = React.memo(({
   fmtDate: (d: Date | string) => string;
   fmtTime: (t: string) => string;
   isRTL?: boolean;
-}) => {
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  
+}) => {  
   const nameText = (
     <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, flex: 1, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={2}>
       {request.visitor.fullName}
@@ -473,11 +359,8 @@ const ApprovalTableRow = React.memo(({
       <View style={styles.fixedColumnContent}>
         <View style={{ flex: 1 }}>
           <View style={[styles.nameWithBadge, { flexDirection: 'row' }]}>
-            {shouldSwap ? (
-              <>{walkInBadge}{nameText}</>
-            ) : (
-              <>{nameText}{walkInBadge}</>
-            )}
+            {nameText}
+            {walkInBadge}
           </View>
           <Spacer height={6} />
           <DateTimeDisplay 
@@ -548,23 +431,11 @@ const ApprovalTableRow = React.memo(({
           </ThemedText>
           <Spacer height={10} />
           <View style={[styles.actionsRow, { flexDirection: 'row' }]}>
-            {shouldSwap ? (
-              <>
-                {detailsBtn}
-                <Spacer width={Spacing.sm} />
-                {approveBtn}
-                <Spacer width={Spacing.sm} />
-                {rejectBtn}
-              </>
-            ) : (
-              <>
-                {rejectBtn}
-                <Spacer width={Spacing.sm} />
-                {approveBtn}
-                <Spacer width={Spacing.sm} />
-                {detailsBtn}
-              </>
-            )}
+            {rejectBtn}
+            <Spacer width={Spacing.sm} />
+            {approveBtn}
+            <Spacer width={Spacing.sm} />
+            {detailsBtn}
           </View>
         </View>
       ) : null}
@@ -574,21 +445,10 @@ const ApprovalTableRow = React.memo(({
   return (
     <Pressable onLongPress={onLongPress}>
       <ThemedView style={[styles.tableRow, { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: 'row' }]}>
-        {shouldSwap ? (
-          <>
-            {scrollableContent}
-            {fixedColumnContent}
-            {checkboxColumn}
-            {statusAccent}
-          </>
-        ) : (
-          <>
-            {statusAccent}
-            {checkboxColumn}
-            {fixedColumnContent}
-            {scrollableContent}
-          </>
-        )}
+        {statusAccent}
+        {checkboxColumn}
+        {fixedColumnContent}
+        {scrollableContent}
       </ThemedView>
     </Pressable>
   );
@@ -712,55 +572,27 @@ const RejectRequestModal = ({
             <Spacer height={Spacing.xl} />
 
             <View style={[styles.rejectModalActions, { flexDirection: 'row' }]}>
-              {shouldSwapChildrenForRTL(isRTL) ? (
-                <>
-                  <LoadingButton
-                    onPress={handleSubmit}
-                    variant="primary"
-                    size="medium"
-                    fullWidth={false}
-                    loading={isProcessing}
-                    disabled={isProcessing}
-                    style={{ flex: 1, backgroundColor: theme.warning }}
-                  >
-                    {t('common.confirm')}
-                  </LoadingButton>
-                  <LoadingButton
-                    onPress={handleCancel}
-                    variant="outline"
-                    size="medium"
-                    fullWidth={false}
-                    disabled={isProcessing}
-                    style={{ flex: 1, marginStart: Spacing.sm }}
-                  >
-                    {t('common.cancel')}
-                  </LoadingButton>
-                </>
-              ) : (
-                <>
-                  <LoadingButton
-                    onPress={handleCancel}
-                    variant="outline"
-                    size="medium"
-                    fullWidth={false}
-                    disabled={isProcessing}
-                    style={{ flex: 1, marginEnd: Spacing.sm }}
-                  >
-                    {t('common.cancel')}
-                  </LoadingButton>
-                  <LoadingButton
-                    onPress={handleSubmit}
-                    variant="primary"
-                    size="medium"
-                    fullWidth={false}
-                    loading={isProcessing}
-                    disabled={isProcessing}
-                    style={{ flex: 1, backgroundColor: theme.warning }}
-                  >
-                    {t('common.confirm')}
-                  </LoadingButton>
-                </>
-              )}
+              <LoadingButton
+                onPress={handleCancel}
+                variant="outline"
+                size="medium"
+                fullWidth={false}
+                disabled={isProcessing}
+                style={{ flex: 1, marginEnd: Spacing.sm }}
+              >
+                {t('common.cancel')}
+              </LoadingButton>
+              <LoadingButton
+                onPress={handleSubmit}
+                variant="primary"
+                size="medium"
+                fullWidth={false}
+                loading={isProcessing}
+                disabled={isProcessing}
+                style={{ flex: 1, backgroundColor: theme.warning }}
+              >
+                {t('common.confirm')}
+              </LoadingButton>
             </View>
           </ThemedView>
         </Pressable>

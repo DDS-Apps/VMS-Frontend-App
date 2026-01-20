@@ -9,7 +9,6 @@ import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ParkingType, ParkingSlot, ValetService } from "@/types/vms.types";
 import { applyOpacity } from "@/utils/statusStyles";
-import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
 
 interface ParkingSectionProps {
   parkingType: ParkingType;
@@ -26,8 +25,6 @@ export function ParkingSection({
 }: ParkingSectionProps) {
   const { theme } = useTheme();
   const { isRTL } = useLanguage();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-
   const renderIconBadge = (iconName: string, variant: string, color?: string) => (
     <View style={[styles.iconBadge, { backgroundColor: applyOpacity(color || theme.textSecondary, '15') }]}>
       <DDIcon name={iconName as any} size={20} variant={variant as any} color={color} />
@@ -51,11 +48,8 @@ export function ParkingSection({
     return (
       <ThemedView style={[styles.parkingCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
         <View style={[styles.parkingHeader, { flexDirection: 'row' }]}>
-          {shouldSwap ? (
-            <>{contentEl}{iconEl}</>
-          ) : (
-            <>{iconEl}{contentEl}</>
-          )}
+          {iconEl}
+          {contentEl}
         </View>
       </ThemedView>
     );
@@ -109,11 +103,8 @@ export function ParkingSection({
       );
       return (
         <View style={[styles.detailRow, { flexDirection: 'row' }]}>
-          {shouldSwap ? (
-            <>{detailContentEl}{detailIconEl}</>
-          ) : (
-            <>{detailIconEl}{detailContentEl}</>
-          )}
+          {detailIconEl}
+          {detailContentEl}
         </View>
       );
     };
@@ -125,11 +116,8 @@ export function ParkingSection({
         borderWidth: 1.5,
       }]}>
         <View style={[styles.parkingHeader, { flexDirection: 'row' }]}>
-          {shouldSwap ? (
-            <>{valetContentEl}{valetIconEl}</>
-          ) : (
-            <>{valetIconEl}{valetContentEl}</>
-          )}
+          {valetIconEl}
+          {valetContentEl}
         </View>
 
         {hasDriver && variant === 'detailed' && (
@@ -208,11 +196,8 @@ export function ParkingSection({
       );
       return (
         <View style={[styles.detailRow, { flexDirection: 'row' }]}>
-          {shouldSwap ? (
-            <>{detailContentEl}{detailIconEl}</>
-          ) : (
-            <>{detailIconEl}{detailContentEl}</>
-          )}
+          {detailIconEl}
+          {detailContentEl}
         </View>
       );
     };
@@ -224,11 +209,8 @@ export function ParkingSection({
         borderWidth: 1.5,
       }]}>
         <View style={[styles.parkingHeader, { flexDirection: 'row' }]}>
-          {shouldSwap ? (
-            <>{autoContentEl}{autoIconEl}</>
-          ) : (
-            <>{autoIconEl}{autoContentEl}</>
-          )}
+          {autoIconEl}
+          {autoContentEl}
         </View>
 
         {hasSlot && variant === 'detailed' && (

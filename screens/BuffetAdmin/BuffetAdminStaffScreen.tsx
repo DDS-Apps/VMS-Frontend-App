@@ -10,7 +10,6 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { applyOpacity } from "@/utils/statusStyles";
-import { shouldSwapChildrenForRTL } from "@/utils/rtlInitializer";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useBuffetAdminStaffQuery, useUpdateStaffDutyMutation } from "@/hooks/queries/useBuffetQueries";
 import type { BuffetAdminStaffDto } from "@/types/api.types";
@@ -51,9 +50,7 @@ function KPICard({ title, value, icon, iconBgColor, iconColor, cardBgColor }: KP
 export default function BuffetAdminStaffScreen() {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { isRTL } = useLanguage();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  const insets = useSafeAreaInsets();
+  const { isRTL } = useLanguage();  const insets = useSafeAreaInsets();
   const [togglingStaffId, setTogglingStaffId] = useState<string | null>(null);
   
   const { data: staffResponse, isLoading, isFetching } = useBuffetAdminStaffQuery();

@@ -26,7 +26,7 @@ import type { Theme } from "@/types/theme.types";
 import type { EmployeeStackParamList } from "@/types/employeeNavigation.types";
 import type { ManagerStackParamList } from "@/types/managerNavigation.types";
 import { mapVisitListItemToVisitorRequest, mapPendingHostWalkInToVisitorRequest } from "@/utils/requestMappers";
-import { shouldSwapChildrenForRTL } from "@/utils/rtlInitializer";
+import { DirectionalRow } from '@/components/DirectionalRow';
 
 
 // Unified Layout Tokens
@@ -153,60 +153,29 @@ const DateTimeDisplay = ({ date, time, duration, theme, compact = false }: { dat
       }
     }
     return toLocalNumerals(durationStr);
-  };
-
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  return (
+  };  return (
     <View style={[styles.dateTimeRowSplit, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
       <View style={[styles.dateTimeLeft, { flexDirection: 'row' }]}>
-        {shouldSwap ? (
-          <>
-            <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13, marginEnd: 4 }]}>
-              {formatVisitDate(date)}
-            </ThemedText>
-            <DDIcon name="calendar" size={compact ? 13 : 14} variant="muted" />
-          </>
-        ) : (
-          <>
-            <DDIcon name="calendar" size={compact ? 13 : 14} variant="muted" />
-            <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
-              {formatVisitDate(date)}
-            </ThemedText>
-          </>
-        )}
+        <DirectionalRow>
+          <DDIcon name="calendar" size={compact ? 13 : 14} variant="muted" />
+          <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13, marginEnd: 4 }]}>
+            {formatVisitDate(date)}
+          </ThemedText>
+        </DirectionalRow>
       </View>
       <View style={[styles.dateTimeRight, { flexDirection: 'row' }]}>
-        {shouldSwap ? (
+        <DDIcon name="clock" size={compact ? 13 : 14} variant="muted" />
+        <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
+          {formatTimeFromString(time)}
+        </ThemedText>
+        {duration ? (
           <>
-            {duration ? (
-              <>
-                <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
-                  {formatDuration(duration)}
-                </ThemedText>
-                <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
-              </>
-            ) : null}
-            <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13, marginEnd: 4 }]}>
-              {formatTimeFromString(time)}
-            </ThemedText>
-            <DDIcon name="clock" size={compact ? 13 : 14} variant="muted" />
-          </>
-        ) : (
-          <>
-            <DDIcon name="clock" size={compact ? 13 : 14} variant="muted" />
+            <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
             <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
-              {formatTimeFromString(time)}
+              {formatDuration(duration)}
             </ThemedText>
-            {duration ? (
-              <>
-                <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
-                <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
-                  {formatDuration(duration)}
-                </ThemedText>
-              </>
-            ) : null}
           </>
-        )}
+        ) : null}
       </View>
     </View>
   );
@@ -227,8 +196,6 @@ const VisitorRequestTableRow = React.memo(({
   isRTL?: boolean;
 }) => {
   const statusConfig = getStatusStyle(theme, request.status, t);
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-
   return (
     <Pressable 
       onPress={onPress}
@@ -425,10 +392,7 @@ const SectionHeader = ({
 
   const tabs: TabType[] = userRole === 'manager' 
     ? ['all', 'pending', 'awaiting', 'walkin']
-    : ['all', 'upcoming', 'waiting', 'past', 'walkin'];
-
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  
+    : ['all', 'upcoming', 'waiting', 'past', 'walkin'];  
   const titleElement = (
     <ThemedText style={[Typography.subtitle, { textAlign: isRTL ? 'right' : 'left' }]}>
       {t('navigation.myRequests')}
@@ -482,17 +446,8 @@ const SectionHeader = ({
   return (
   <>
     <View style={[styles.sectionTitleRow, styles.paddedContent, { flexDirection: 'row' }]}>
-      {shouldSwap ? (
-        <>
-          {viewToggleElement}
-          {titleElement}
-        </>
-      ) : (
-        <>
-          {titleElement}
-          {viewToggleElement}
-        </>
-      )}
+      {titleElement}
+      {viewToggleElement}
     </View>
 
     <Spacer height={LAYOUT.contentGap} />

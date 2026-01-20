@@ -16,7 +16,8 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.dallah.vms",
-      "googleServicesFile": "./config/qa/google-services.json"
+      "googleServicesFile": "./config/qa/google-services.json",
+      "supportsRTL": true
     },
     "ios": {
       "supportsTablet": true,

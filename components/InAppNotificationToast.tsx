@@ -6,7 +6,6 @@ import { ThemedText } from '@/components/ThemedText';
 import { useTheme } from '@/hooks/useTheme';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Spacing, BorderRadius } from '@/constants/theme';
-import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
 
 interface InAppNotificationToastProps {
   visible: boolean;
@@ -26,9 +25,7 @@ export function InAppNotificationToast({
   type = 'info',
 }: InAppNotificationToastProps) {
   const { theme } = useTheme();
-  const { isRTL } = useLanguage();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  const insets = useSafeAreaInsets();
+  const { isRTL } = useLanguage();  const insets = useSafeAreaInsets();
   const translateY = useRef(new Animated.Value(-100)).current;
   const opacity = useRef(new Animated.Value(0)).current;
 
@@ -124,41 +121,20 @@ export function InAppNotificationToast({
         ]}
         onPress={hideToast}
       >
-        {shouldSwap ? (
-          <>
-            <Pressable onPress={hideToast} style={styles.closeButton}>
-              <DDIcon name="x" size={18} color={theme.textSecondary} />
-            </Pressable>
-            <View style={styles.content}>
-              <ThemedText style={[styles.title, { color: theme.text }]} numberOfLines={1}>
-                {title}
-              </ThemedText>
-              <ThemedText style={[styles.body, { color: theme.textSecondary }]} numberOfLines={2}>
-                {body}
-              </ThemedText>
-            </View>
-            <View style={[styles.iconContainer, { backgroundColor: getAccentColor() + '20' }]}>
-              <DDIcon name={getIconName()} size={20} color={getAccentColor()} />
-            </View>
-          </>
-        ) : (
-          <>
-            <View style={[styles.iconContainer, { backgroundColor: getAccentColor() + '20' }]}>
-              <DDIcon name={getIconName()} size={20} color={getAccentColor()} />
-            </View>
-            <View style={styles.content}>
-              <ThemedText style={[styles.title, { color: theme.text }]} numberOfLines={1}>
-                {title}
-              </ThemedText>
-              <ThemedText style={[styles.body, { color: theme.textSecondary }]} numberOfLines={2}>
-                {body}
-              </ThemedText>
-            </View>
-            <Pressable onPress={hideToast} style={styles.closeButton}>
-              <DDIcon name="x" size={18} color={theme.textSecondary} />
-            </Pressable>
-          </>
-        )}
+        <View style={[styles.iconContainer, { backgroundColor: getAccentColor() + '20' }]}>
+          <DDIcon name={getIconName()} size={20} color={getAccentColor()} />
+        </View>
+        <View style={styles.content}>
+          <ThemedText style={[styles.title, { color: theme.text }]} numberOfLines={1}>
+            {title}
+          </ThemedText>
+          <ThemedText style={[styles.body, { color: theme.textSecondary }]} numberOfLines={2}>
+            {body}
+          </ThemedText>
+        </View>
+        <Pressable onPress={hideToast} style={styles.closeButton}>
+          <DDIcon name="x" size={18} color={theme.textSecondary} />
+        </Pressable>
       </Pressable>
     </Animated.View>
   );

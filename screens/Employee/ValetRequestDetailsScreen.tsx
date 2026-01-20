@@ -18,7 +18,6 @@ import { useMyValetRequestDetailQuery } from "@/hooks/queries/useValetSelfServic
 import type { ValetRequestDetailsScreenProps } from "@/types/employeeNavigation.types";
 import type { Theme } from "@/types/theme.types";
 import type { SelfValetRequestDto } from "@/types/api.types";
-import { shouldSwapChildrenForRTL } from "@/utils/rtlInitializer";
 
 function getStatusColor(status: string, theme: Theme) {
   switch (status) {
@@ -55,21 +54,15 @@ function getStatusLabel(status: string): string {
 }
 
 const InfoRow = ({ icon, label, value, theme, isRTL }: { icon: string; label: string; value: string; theme: Theme; isRTL: boolean }) => {
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  const iconElement = (
-    <View style={[styles.infoIconContainer, { backgroundColor: applyOpacity(theme.primary, '10') }]}>
-      <DDIcon name={icon as any} size={16} color={theme.primary} />
-    </View>
-  );
-  const contentElement = (
-    <View style={[styles.infoContent, shouldSwap && { marginStart: 0, marginEnd: Spacing.md }]}>
-      <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>{label}</ThemedText>
-      <ThemedText style={[Typography.body, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>{value}</ThemedText>
-    </View>
-  );
   return (
     <View style={[styles.infoRow, { flexDirection: 'row' }]}>
-      {shouldSwap ? <>{contentElement}{iconElement}</> : <>{iconElement}{contentElement}</>}
+      <View style={[styles.infoIconContainer, { backgroundColor: applyOpacity(theme.primary, '10') }]}>
+        <DDIcon name={icon as any} size={16} color={theme.primary} />
+      </View>
+      <View style={styles.infoContent}>
+        <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>{label}</ThemedText>
+        <ThemedText style={[Typography.body, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>{value}</ThemedText>
+      </View>
     </View>
   );
 };
@@ -81,8 +74,6 @@ export default function ValetRequestDetailsScreen({ route }: ValetRequestDetails
   const { isRTL } = useLanguage();
   const { formatTime: formatTimeUtil, formatDate: fmtDateLong } = useFormatters();
   const insets = useSafeAreaInsets();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-
   const { data: response, isLoading, isError, refetch, isRefetching } = useMyValetRequestDetailQuery(requestId);
 
   const scrollContentStyle = {
@@ -169,52 +160,25 @@ export default function ValetRequestDetailsScreen({ route }: ValetRequestDetails
         <Card style={styles.headerCard}>
           <View style={[styles.statusContainer, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
             <View style={[styles.statusBadge, { backgroundColor: applyOpacity(statusColor, '15'), borderColor: applyOpacity(statusColor, '30'), flexDirection: 'row' }]}>
-              {shouldSwap ? (
-                <>
-                  <ThemedText style={[Typography.bodySmall, { color: statusColor, fontWeight: '600' }]}>
-                    {statusLabel}
-                  </ThemedText>
-                  <View style={[styles.statusDot, { backgroundColor: statusColor, marginEnd: 0, marginStart: Spacing.sm }]} />
-                </>
-              ) : (
-                <>
-                  <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
-                  <ThemedText style={[Typography.bodySmall, { color: statusColor, fontWeight: '600' }]}>
-                    {statusLabel}
-                  </ThemedText>
-                </>
-              )}
+              <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
+              <ThemedText style={[Typography.bodySmall, { color: statusColor, fontWeight: '600' }]}>
+                {statusLabel}
+              </ThemedText>
             </View>
           </View>
           
           <Spacer height={Spacing.lg} />
           
           <View style={[styles.vehicleInfo, { flexDirection: 'row' }]}>
-            {shouldSwap ? (
-              <>
-                <View style={[styles.vehicleDetails, { marginStart: 0, marginEnd: Spacing.md }]}>
-                  <ThemedText style={[Typography.h3, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
-                    {request.vehicleInfo?.make} {request.vehicleInfo?.model}
-                  </ThemedText>
-                  <ThemedText style={[Typography.body, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-                    {request.vehicleInfo?.plateNumber} - {request.vehicleInfo?.color}
-                  </ThemedText>
-                </View>
-                <DDIcon name="truck" size={24} color={theme.primary} />
-              </>
-            ) : (
-              <>
-                <DDIcon name="truck" size={24} color={theme.primary} />
-                <View style={styles.vehicleDetails}>
-                  <ThemedText style={[Typography.h3, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
-                    {request.vehicleInfo?.make} {request.vehicleInfo?.model}
-                  </ThemedText>
-                  <ThemedText style={[Typography.body, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-                    {request.vehicleInfo?.plateNumber} - {request.vehicleInfo?.color}
-                  </ThemedText>
-                </View>
-              </>
-            )}
+            <DDIcon name="truck" size={24} color={theme.primary} />
+            <View style={styles.vehicleDetails}>
+              <ThemedText style={[Typography.h3, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+                {request.vehicleInfo?.make} {request.vehicleInfo?.model}
+              </ThemedText>
+              <ThemedText style={[Typography.body, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+                {request.vehicleInfo?.plateNumber} - {request.vehicleInfo?.color}
+              </ThemedText>
+            </View>
           </View>
         </Card>
 
@@ -270,39 +234,19 @@ export default function ValetRequestDetailsScreen({ route }: ValetRequestDetails
             </ThemedText>
             <Card style={styles.driverCard}>
               <View style={[styles.driverInfo, { flexDirection: 'row' }]}>
-                {shouldSwap ? (
-                  <>
-                    <View style={[styles.driverDetails, { marginStart: 0, marginEnd: Spacing.md }]}>
-                      <ThemedText style={[Typography.body, { color: theme.text, fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
-                        {request.valet.driver.name}
-                      </ThemedText>
-                      {request.valet.driver.phone ? (
-                        <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-                          {request.valet.driver.phone}
-                        </ThemedText>
-                      ) : null}
-                    </View>
-                    <View style={[styles.driverAvatar, { backgroundColor: applyOpacity(theme.success, '15') }]}>
-                      <DDIcon name="user" size={20} color={theme.success} />
-                    </View>
-                  </>
-                ) : (
-                  <>
-                    <View style={[styles.driverAvatar, { backgroundColor: applyOpacity(theme.success, '15') }]}>
-                      <DDIcon name="user" size={20} color={theme.success} />
-                    </View>
-                    <View style={styles.driverDetails}>
-                      <ThemedText style={[Typography.body, { color: theme.text, fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
-                        {request.valet.driver.name}
-                      </ThemedText>
-                      {request.valet.driver.phone ? (
-                        <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-                          {request.valet.driver.phone}
-                        </ThemedText>
-                      ) : null}
-                    </View>
-                  </>
-                )}
+                <View style={[styles.driverAvatar, { backgroundColor: applyOpacity(theme.success, '15') }]}>
+                  <DDIcon name="user" size={20} color={theme.success} />
+                </View>
+                <View style={styles.driverDetails}>
+                  <ThemedText style={[Typography.body, { color: theme.text, fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
+                    {request.valet.driver.name}
+                  </ThemedText>
+                  {request.valet.driver.phone ? (
+                    <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+                      {request.valet.driver.phone}
+                    </ThemedText>
+                  ) : null}
+                </View>
               </View>
             </Card>
           </>

@@ -141,8 +141,7 @@ export function EnableNotificationsPrompt({
         }
       ]}
     >
-      {isRTL && closeButton}
-      {!isRTL && bellIcon}
+      {bellIcon}
       
       <View style={styles.content}>
         <ThemedText variant="bodySmall" style={[styles.title, { textAlign: isRTL ? 'right' : 'left' }]}>
@@ -156,23 +155,13 @@ export function EnableNotificationsPrompt({
           {t('notifications.enablePromptDescription')}
         </ThemedText>
         
-        <View style={[styles.buttonRow, { flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start' }]}>
-          {isRTL ? (
-            <>
-              {laterButton}
-              {enableButton}
-            </>
-          ) : (
-            <>
-              {enableButton}
-              {laterButton}
-            </>
-          )}
+        <View style={[styles.buttonRow, { flexDirection: 'row' }]}>
+          {enableButton}
+          {laterButton}
         </View>
       </View>
       
-      {isRTL && bellIcon}
-      {!isRTL && closeButton}
+      {closeButton}
     </Animated.View>
   );
 }

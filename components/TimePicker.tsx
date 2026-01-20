@@ -9,7 +9,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslation } from "@/hooks/useTranslation";
 import { toArabicNumerals } from "@/utils/formatters";
 import { applyOpacity, createModalOverlayStyle } from "@/utils/statusStyles";
-import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
+import { DirectionalRow } from '@/components/DirectionalRow';
 
 interface TimePickerProps {
   visible: boolean;
@@ -36,9 +36,7 @@ export function TimePicker({
 }: TimePickerProps) {
   const { theme } = useTheme();
   const { isRTL } = useLanguage();
-  const { t } = useTranslation();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  const [pendingTime, setPendingTime] = useState<Date>(selectedTime);
+  const { t } = useTranslation();  const [pendingTime, setPendingTime] = useState<Date>(selectedTime);
   const [selectedHour, setSelectedHour] = useState<number>(12);
   const [selectedMinute, setSelectedMinute] = useState<number>(0);
   const [selectedPeriod, setSelectedPeriod] = useState<'AM' | 'PM'>('AM');
@@ -199,17 +197,10 @@ export function TimePicker({
           />
           <View style={[styles.pickerModal, { backgroundColor: theme.surface }]}>
             <View style={[styles.headerCompact, { borderBottomColor: theme.border, flexDirection: 'row' }]}>
-              {shouldSwap ? (
-                <>
-                  <ThemedText style={[Typography.body, { fontWeight: '600', marginStart: Spacing.sm }]}>{t('time.selectTime')}</ThemedText>
-                  <DDIcon name="clock" size={18} color={theme.primary} />
-                </>
-              ) : (
-                <>
-                  <DDIcon name="clock" size={18} color={theme.primary} />
-                  <ThemedText style={[Typography.body, { fontWeight: '600', marginStart: Spacing.sm }]}>{t('time.selectTime')}</ThemedText>
-                </>
-              )}
+              <DirectionalRow>
+                <DDIcon name="clock" size={18} color={theme.primary} />
+                <ThemedText style={[Typography.body, { fontWeight: '600', marginStart: Spacing.sm }]}>{t('time.selectTime')}</ThemedText>
+              </DirectionalRow>
             </View>
             <DateTimePicker
               value={pendingTime}
@@ -268,37 +259,18 @@ export function TimePicker({
               </ScrollView>
             </View>
             <View style={[styles.footerButtonsCompact, { flexDirection: 'row' }]}>
-              {shouldSwap ? (
-                <>
-                  <Pressable 
-                    onPress={handleConfirm}
-                    style={[styles.actionButton, styles.confirmButtonStyle, { backgroundColor: theme.primary }]}
-                  >
-                    <ThemedText style={[Typography.body, { color: theme.buttonText, fontWeight: '600' }]}>{t('common.confirm')}</ThemedText>
-                  </Pressable>
-                  <Pressable 
-                    onPress={handleCancel}
-                    style={[styles.actionButton, styles.cancelButtonStyle, { borderColor: theme.border }]}
-                  >
-                    <ThemedText style={[Typography.body, { color: theme.textSecondary, fontWeight: '600' }]}>{t('common.cancel')}</ThemedText>
-                  </Pressable>
-                </>
-              ) : (
-                <>
-                  <Pressable 
-                    onPress={handleCancel}
-                    style={[styles.actionButton, styles.cancelButtonStyle, { borderColor: theme.border }]}
-                  >
-                    <ThemedText style={[Typography.body, { color: theme.textSecondary, fontWeight: '600' }]}>{t('common.cancel')}</ThemedText>
-                  </Pressable>
-                  <Pressable 
-                    onPress={handleConfirm}
-                    style={[styles.actionButton, styles.confirmButtonStyle, { backgroundColor: theme.primary }]}
-                  >
-                    <ThemedText style={[Typography.body, { color: theme.buttonText, fontWeight: '600' }]}>{t('common.confirm')}</ThemedText>
-                  </Pressable>
-                </>
-              )}
+              <Pressable 
+                onPress={handleCancel}
+                style={[styles.actionButton, styles.cancelButtonStyle, { borderColor: theme.border }]}
+              >
+                <ThemedText style={[Typography.body, { color: theme.textSecondary, fontWeight: '600' }]}>{t('common.cancel')}</ThemedText>
+              </Pressable>
+              <Pressable 
+                onPress={handleConfirm}
+                style={[styles.actionButton, styles.confirmButtonStyle, { backgroundColor: theme.primary }]}
+              >
+                <ThemedText style={[Typography.body, { color: theme.buttonText, fontWeight: '600' }]}>{t('common.confirm')}</ThemedText>
+              </Pressable>
             </View>
           </View>
         </View>

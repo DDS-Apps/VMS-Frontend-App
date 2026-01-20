@@ -20,7 +20,6 @@ import { applyOpacity } from "@/utils/statusStyles";
 import type { MyValetRequestsScreenProps } from "@/types/employeeNavigation.types";
 import type { SelfValetRequestDto, SelfValetRequestsResponse } from "@/types/api.types";
 import type { Theme } from "@/types/theme.types";
-import { shouldSwapChildrenForRTL } from "@/utils/rtlInitializer";
 
 type StatusFilter = 'all' | 'pending' | 'in_progress' | 'completed';
 
@@ -117,9 +116,7 @@ const ValetRequestCard = React.memo(({
   isRTL: boolean;
 }) => {
   const status = request.valet?.status || 'pending';
-  const statusConfig = getValetStatusConfig(theme, status);
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  
+  const statusConfig = getValetStatusConfig(theme, status);  
   const formatDate = (dateString: string) => {
     const d = new Date(dateString);
     const today = new Date();
@@ -154,182 +151,64 @@ const ValetRequestCard = React.memo(({
 
   return (
     <Pressable onPress={onPress}>
-      <Card style={[styles.taskCard, { flexDirection: 'row' }]}>
-        {shouldSwap ? (
-          <>
-            <View style={styles.taskCardContent}>
-              <View style={[styles.taskHeaderRow, { flexDirection: 'row' }]}>
-                {shouldSwap ? <>{headerInfo}{iconContent}</> : <>{iconContent}{headerInfo}</>}
-                <StatusBadge status={status} theme={theme} />
-              </View>
+      <Card style={styles.taskCard}>
+        <StatusAccent color={statusConfig.borderColor} />
+        <View style={styles.taskCardContent}>
+          <View style={[styles.taskHeaderRow, { flexDirection: 'row' }]}>
+            {iconContent}
+            {headerInfo}
+            <StatusBadge status={status} theme={theme} />
+          </View>
 
-              <Spacer height={Spacing.md} />
+          <Spacer height={Spacing.md} />
 
-              <View style={[styles.taskDetailsRow, { flexDirection: 'row' }]}>
-                <View style={[styles.taskDetailItem, { flexDirection: 'row' }]}>
-                  {shouldSwap ? (
-                    <>
-                      <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginEnd: 6 }]}>
-                        {request.dropOffLocation}
-                      </ThemedText>
-                      <DDIcon name="map-pin" size={14} variant="muted" />
-                    </>
-                  ) : (
-                    <>
-                      <DDIcon name="map-pin" size={14} variant="muted" />
-                      <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6 }]}>
-                        {request.dropOffLocation}
-                      </ThemedText>
-                    </>
-                  )}
-                </View>
-                <View style={[styles.taskDetailItem, { flexDirection: 'row' }]}>
-                  {shouldSwap ? (
-                    <>
-                      <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginEnd: 6 }]}>
-                        Return: {request.requestedReturnTime}
-                      </ThemedText>
-                      <DDIcon name="clock" size={14} variant="muted" />
-                    </>
-                  ) : (
-                    <>
-                      <DDIcon name="clock" size={14} variant="muted" />
-                      <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6 }]}>
-                        Return: {request.requestedReturnTime}
-                      </ThemedText>
-                    </>
-                  )}
-                </View>
-              </View>
-
-              {request.valet?.driver ? (
-                <>
-                  <Spacer height={Spacing.sm} />
-                  <View style={[styles.driverRow, { backgroundColor: applyOpacity(theme.success, '08'), flexDirection: 'row' }]}>
-                    {shouldSwap ? (
-                      <>
-                        <ThemedText style={[Typography.caption, { color: theme.success, marginEnd: 6, fontWeight: '500' }]}>
-                          Driver: {request.valet.driver.name}
-                        </ThemedText>
-                        <DDIcon name="user" size={14} color={theme.success} />
-                      </>
-                    ) : (
-                      <>
-                        <DDIcon name="user" size={14} color={theme.success} />
-                        <ThemedText style={[Typography.caption, { color: theme.success, marginStart: 6, fontWeight: '500' }]}>
-                          Driver: {request.valet.driver.name}
-                        </ThemedText>
-                      </>
-                    )}
-                  </View>
-                </>
-              ) : null}
-
-              {request.notes ? (
-                <>
-                  <Spacer height={Spacing.sm} />
-                  <View style={[styles.notesRow, { flexDirection: 'row' }]}>
-                    {shouldSwap ? (
-                      <>
-                        <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginEnd: 6, flex: 1, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={2}>
-                          {request.notes}
-                        </ThemedText>
-                        <DDIcon name="file-text" size={14} variant="muted" />
-                      </>
-                    ) : (
-                      <>
-                        <DDIcon name="file-text" size={14} variant="muted" />
-                        <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6, flex: 1, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={2}>
-                          {request.notes}
-                        </ThemedText>
-                      </>
-                    )}
-                  </View>
-                </>
-              ) : null}
-
-              <Spacer height={Spacing.sm} />
-              <View style={[styles.taskFooterRow, { flexDirection: 'row' }]}>
-                {shouldSwap ? (
-                  <>
-                    <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginEnd: 4, fontSize: 11 }]}>
-                      {formatDate(request.createdAt)} at {formatTimeStr(request.createdAt)}
-                    </ThemedText>
-                    <DDIcon name="calendar" size={12} variant="muted" />
-                  </>
-                ) : (
-                  <>
-                    <DDIcon name="calendar" size={12} variant="muted" />
-                    <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 4, fontSize: 11 }]}>
-                      {formatDate(request.createdAt)} at {formatTimeStr(request.createdAt)}
-                    </ThemedText>
-                  </>
-                )}
-              </View>
+          <View style={[styles.taskDetailsRow, { flexDirection: 'row' }]}>
+            <View style={[styles.taskDetailItem, { flexDirection: 'row' }]}>
+              <DDIcon name="map-pin" size={14} variant="muted" />
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6 }]}>
+                {request.dropOffLocation}
+              </ThemedText>
             </View>
-            <StatusAccent color={statusConfig.borderColor} />
-          </>
-        ) : (
-          <>
-            <StatusAccent color={statusConfig.borderColor} />
-            <View style={styles.taskCardContent}>
-              <View style={[styles.taskHeaderRow, { flexDirection: 'row' }]}>
-                {iconContent}
-                {headerInfo}
-                <StatusBadge status={status} theme={theme} />
-              </View>
+            <View style={[styles.taskDetailItem, { flexDirection: 'row' }]}>
+              <DDIcon name="clock" size={14} variant="muted" />
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6 }]}>
+                Return: {request.requestedReturnTime}
+              </ThemedText>
+            </View>
+          </View>
 
-              <Spacer height={Spacing.md} />
-
-              <View style={[styles.taskDetailsRow, { flexDirection: 'row' }]}>
-                <View style={[styles.taskDetailItem, { flexDirection: 'row' }]}>
-                  <DDIcon name="map-pin" size={14} variant="muted" />
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6 }]}>
-                    {request.dropOffLocation}
-                  </ThemedText>
-                </View>
-                <View style={[styles.taskDetailItem, { flexDirection: 'row' }]}>
-                  <DDIcon name="clock" size={14} variant="muted" />
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6 }]}>
-                    Return: {request.requestedReturnTime}
-                  </ThemedText>
-                </View>
-              </View>
-
-              {request.valet?.driver ? (
-                <>
-                  <Spacer height={Spacing.sm} />
-                  <View style={[styles.driverRow, { backgroundColor: applyOpacity(theme.success, '08'), flexDirection: 'row' }]}>
-                    <DDIcon name="user" size={14} color={theme.success} />
-                    <ThemedText style={[Typography.caption, { color: theme.success, marginStart: 6, fontWeight: '500' }]}>
-                      Driver: {request.valet.driver.name}
-                    </ThemedText>
-                  </View>
-                </>
-              ) : null}
-
-              {request.notes ? (
-                <>
-                  <Spacer height={Spacing.sm} />
-                  <View style={[styles.notesRow, { flexDirection: 'row' }]}>
-                    <DDIcon name="file-text" size={14} variant="muted" />
-                    <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6, flex: 1, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={2}>
-                      {request.notes}
-                    </ThemedText>
-                  </View>
-                </>
-              ) : null}
-
+          {request.valet?.driver ? (
+            <>
               <Spacer height={Spacing.sm} />
-              <View style={[styles.taskFooterRow, { flexDirection: 'row' }]}>
-                <DDIcon name="calendar" size={12} variant="muted" />
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 4, fontSize: 11 }]}>
-                  {formatDate(request.createdAt)} at {formatTimeStr(request.createdAt)}
+              <View style={[styles.driverRow, { backgroundColor: applyOpacity(theme.success, '08'), flexDirection: 'row' }]}>
+                <DDIcon name="user" size={14} color={theme.success} />
+                <ThemedText style={[Typography.caption, { color: theme.success, marginStart: 6, fontWeight: '500' }]}>
+                  Driver: {request.valet.driver.name}
                 </ThemedText>
               </View>
-            </View>
-          </>
-        )}
+            </>
+          ) : null}
+
+          {request.notes ? (
+            <>
+              <Spacer height={Spacing.sm} />
+              <View style={[styles.notesRow, { flexDirection: 'row' }]}>
+                <DDIcon name="file-text" size={14} variant="muted" />
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6, flex: 1, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={2}>
+                  {request.notes}
+                </ThemedText>
+              </View>
+            </>
+          ) : null}
+
+          <Spacer height={Spacing.sm} />
+          <View style={[styles.taskFooterRow, { flexDirection: 'row' }]}>
+            <DDIcon name="calendar" size={12} variant="muted" />
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 4, fontSize: 11 }]}>
+              {formatDate(request.createdAt)} at {formatTimeStr(request.createdAt)}
+            </ThemedText>
+          </View>
+        </View>
       </Card>
     </Pressable>
   );
@@ -348,8 +227,6 @@ export default function MyValetRequestsScreen({ navigation }: MyValetRequestsScr
   const { isRTL } = useLanguage();
   const { formatTime, formatDate: formatDateLocale } = useFormatters();
   const insets = useSafeAreaInsets();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
@@ -559,6 +436,7 @@ const styles = StyleSheet.create({
   },
   taskCard: {
     overflow: 'hidden',
+    flexDirection: 'row' as const,
   },
   statusAccent: {
     width: 4,

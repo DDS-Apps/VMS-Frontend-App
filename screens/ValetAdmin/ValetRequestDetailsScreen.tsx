@@ -13,8 +13,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useFormatters } from "@/hooks/useFormatters";
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { applyOpacity } from "@/utils/statusStyles";
-import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { DirectionalRow } from '@/components/DirectionalRow';
 import {
   getValetRequestById,
   updateValetRequestStatus,
@@ -78,10 +78,7 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
     paddingHorizontal: Spacing.lg,
     paddingTop: insets.top + Spacing.xl,
     paddingBottom: insets.bottom + Spacing.xl + 80
-  };
-  
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  
+  };  
   const ServiceRow = ({ iconName, iconColor, iconBg, label, value, valueColor }: { iconName: IconName; iconColor: string; iconBg: string; label: string; value: string; valueColor?: string }) => {
     const iconElement = (
       <View style={[styles.serviceIcon, { backgroundColor: iconBg }]}>
@@ -89,7 +86,7 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
       </View>
     );
     const textElement = (
-      <View style={{ flex: 1, marginStart: shouldSwap ? 0 : Spacing.md, marginEnd: shouldSwap ? Spacing.md : 0 }}>
+      <View style={{ flex: 1, marginStart: Spacing.md }}>
         <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
           {label}
         </ThemedText>
@@ -99,9 +96,10 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
       </View>
     );
     return (
-      <View style={[styles.serviceRowNew, { flexDirection: 'row' }]}>
-        {shouldSwap ? <>{textElement}{iconElement}</> : <>{iconElement}{textElement}</>}
-      </View>
+      <DirectionalRow style={styles.serviceRowNew}>
+        {iconElement}
+        {textElement}
+      </DirectionalRow>
     );
   };
 
@@ -359,23 +357,12 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
           <>
             <Spacer height={Spacing.lg} />
             <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
-              <View style={[styles.notesHeader, { flexDirection: 'row' }]}>
-                {shouldSwap ? (
-                  <>
-                    <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginEnd: Spacing.sm, fontSize: 14, color: theme.text }]}>
-                      {t('form.notes')}
-                    </ThemedText>
-                    <DDIcon name="file-text" size={16} color={theme.info} />
-                  </>
-                ) : (
-                  <>
-                    <DDIcon name="file-text" size={16} color={theme.info} />
-                    <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginStart: Spacing.sm, fontSize: 14, color: theme.text }]}>
-                      {t('form.notes')}
-                    </ThemedText>
-                  </>
-                )}
-              </View>
+              <DirectionalRow style={styles.notesHeader}>
+                <DDIcon name="file-text" size={16} color={theme.info} />
+                <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginStart: Spacing.sm, fontSize: 14, color: theme.text }]}>
+                  {t('form.notes')}
+                </ThemedText>
+              </DirectionalRow>
               <Spacer height={Spacing.sm} />
               <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, lineHeight: 20, textAlign: isRTL ? 'right' : 'left' }]}>
                 {request.notes}
@@ -449,31 +436,16 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
             </LoadingButton>
           </View>
         ) : (
-          <View style={[styles.completedContainer, { backgroundColor: applyOpacity(statusColor, '10'), flexDirection: 'row' }]}>
-            {shouldSwap ? (
-              <>
-                <ThemedText style={[Typography.body, { color: statusColor, fontWeight: '600', marginEnd: Spacing.sm }]}>
-                  {request.status === 'completed' ? t('status.completed') : t('status.cancelled')}
-                </ThemedText>
-                <DDIcon 
-                  name={request.status === 'completed' ? 'check-circle' : 'x-circle'} 
-                  size={24} 
-                  color={statusColor} 
-                />
-              </>
-            ) : (
-              <>
-                <DDIcon 
-                  name={request.status === 'completed' ? 'check-circle' : 'x-circle'} 
-                  size={24} 
-                  color={statusColor} 
-                />
-                <ThemedText style={[Typography.body, { color: statusColor, fontWeight: '600', marginStart: Spacing.sm }]}>
-                  {request.status === 'completed' ? t('status.completed') : t('status.cancelled')}
-                </ThemedText>
-              </>
-            )}
-          </View>
+          <DirectionalRow style={[styles.completedContainer, { backgroundColor: applyOpacity(statusColor, '10') }]}>
+            <DDIcon 
+              name={request.status === 'completed' ? 'check-circle' : 'x-circle'} 
+              size={24} 
+              color={statusColor} 
+            />
+            <ThemedText style={[Typography.body, { color: statusColor, fontWeight: '600', marginStart: Spacing.sm }]}>
+              {request.status === 'completed' ? t('status.completed') : t('status.cancelled')}
+            </ThemedText>
+          </DirectionalRow>
         )}
 
         <Spacer height={Spacing.xl} />
@@ -487,27 +459,14 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
       >
         <View style={[styles.modalOverlay, { backgroundColor: applyOpacity(theme.overlay, '50') }]}>
           <View style={[styles.modalContent, { backgroundColor: theme.surface }]}>
-            <View style={[styles.modalHeader, { flexDirection: 'row' }]}>
-              {shouldSwap ? (
-                <>
-                  <Pressable onPress={() => setShowDriverModal(false)}>
-                    <DDIcon name="x" size={24} variant="muted" />
-                  </Pressable>
-                  <ThemedText style={[Typography.subtitle, { fontWeight: '600' }]}>
-                    {t('actions.assignDriver')}
-                  </ThemedText>
-                </>
-              ) : (
-                <>
-                  <ThemedText style={[Typography.subtitle, { fontWeight: '600' }]}>
-                    {t('actions.assignDriver')}
-                  </ThemedText>
-                  <Pressable onPress={() => setShowDriverModal(false)}>
-                    <DDIcon name="x" size={24} variant="muted" />
-                  </Pressable>
-                </>
-              )}
-            </View>
+            <DirectionalRow style={styles.modalHeader}>
+              <ThemedText style={[Typography.subtitle, { fontWeight: '600' }]}>
+                {t('actions.assignDriver')}
+              </ThemedText>
+              <Pressable onPress={() => setShowDriverModal(false)}>
+                <DDIcon name="x" size={24} variant="muted" />
+              </Pressable>
+            </DirectionalRow>
 
             <Spacer height={Spacing.md} />
 
@@ -516,44 +475,25 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
                 drivers.map((driver) => (
                   <Pressable
                     key={driver.id}
-                    style={[styles.driverItem, { borderColor: theme.border, flexDirection: 'row' }]}
+                    style={[styles.driverItem, { borderColor: theme.border }]}
                     onPress={() => handleAssignDriver(driver.id)}
                   >
-                    {shouldSwap ? (
-                      <>
-                        <DDIcon name="chevron-right" size={20} variant="muted" directionAware />
-                        <View style={styles.driverInfo}>
-                          <ThemedText style={[Typography.body, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
-                            {driver.name}
-                          </ThemedText>
-                          <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-                            {driver.phone} - {driver.shift}
-                          </ThemedText>
-                        </View>
-                        <View style={[styles.driverAvatar, { backgroundColor: applyOpacity(theme.success, '15') }]}>
-                          <ThemedText style={[styles.driverInitials, { color: theme.success }]}>
-                            {driver.name.split(' ').map(n => n[0]).join('')}
-                          </ThemedText>
-                        </View>
-                      </>
-                    ) : (
-                      <>
-                        <View style={[styles.driverAvatar, { backgroundColor: applyOpacity(theme.success, '15') }]}>
-                          <ThemedText style={[styles.driverInitials, { color: theme.success }]}>
-                            {driver.name.split(' ').map(n => n[0]).join('')}
-                          </ThemedText>
-                        </View>
-                        <View style={styles.driverInfo}>
-                          <ThemedText style={[Typography.body, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
-                            {driver.name}
-                          </ThemedText>
-                          <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-                            {driver.phone} - {driver.shift}
-                          </ThemedText>
-                        </View>
-                        <DDIcon name="chevron-right" size={20} variant="muted" directionAware />
-                      </>
-                    )}
+                    <DirectionalRow style={{ flex: 1, alignItems: 'center' }}>
+                      <View style={[styles.driverAvatar, { backgroundColor: applyOpacity(theme.success, '15') }]}>
+                        <ThemedText style={[styles.driverInitials, { color: theme.success }]}>
+                          {driver.name.split(' ').map(n => n[0]).join('')}
+                        </ThemedText>
+                      </View>
+                      <View style={styles.driverInfo}>
+                        <ThemedText style={[Typography.body, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
+                          {driver.name}
+                        </ThemedText>
+                        <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+                          {driver.phone} - {driver.shift}
+                        </ThemedText>
+                      </View>
+                      <DDIcon name="chevron-right" size={20} variant="muted" directionAware />
+                    </DirectionalRow>
                   </Pressable>
                 ))
               ) : (

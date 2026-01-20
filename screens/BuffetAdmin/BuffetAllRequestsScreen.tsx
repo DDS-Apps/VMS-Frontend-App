@@ -13,8 +13,6 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
 import { applyOpacity, getStatusConfig as getStatusStyle } from "@/utils/statusStyles";
-import { formatDateForApi, formatDate as formatDateDisplay } from "@/utils/dateTimeUtils";
-import { shouldSwapChildrenForRTL } from "@/utils/rtlInitializer";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { LoadingButton } from "@/components/shared/LoadingButton";
@@ -362,9 +360,7 @@ const BuffetRequestCard = React.memo(({
   theme: Theme;
 }) => {
   const { t } = useTranslation();
-  const { isRTL } = useLanguage();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  const statusConfig = getStatusStyle(theme, request.status, t);
+  const { isRTL } = useLanguage();  const statusConfig = getStatusStyle(theme, request.status, t);
 
   return (
     <ThemedView style={[styles.requestCard, { backgroundColor: theme.surface }]}>
@@ -494,9 +490,7 @@ const BuffetRequestTableRow = React.memo(({
   theme: Theme;
 }) => {
   const { t } = useTranslation();
-  const { isRTL } = useLanguage();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  const statusConfig = getStatusStyle(theme, request.status, t);
+  const { isRTL } = useLanguage();  const statusConfig = getStatusStyle(theme, request.status, t);
 
   return (
     <Pressable onPress={onPress}>
@@ -635,9 +629,7 @@ function getStatusLabel(status: string, t: (key: string) => string) {
 export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequestsScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { isRTL } = useLanguage();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  const insets = useSafeAreaInsets();
+  const { isRTL } = useLanguage();  const insets = useSafeAreaInsets();
   const { showSuccess, showError } = useToast();
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');

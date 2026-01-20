@@ -10,7 +10,6 @@ import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { createModalOverlayStyle } from "@/utils/statusStyles";
-import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
 
 const { width } = Dimensions.get('window');
 const isLargeScreen = width >= 768;
@@ -70,9 +69,7 @@ interface LocationFormData {
 
 export default function BuffetAdministrationScreen() {
   const { theme } = useTheme();
-  const { t, isRTL } = useTranslation();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  const [activeTab, setActiveTab] = useState<TabType>('locations');
+  const { t, isRTL } = useTranslation();  const [activeTab, setActiveTab] = useState<TabType>('locations');
   const [locations, setLocations] = useState<BuffetLocation[]>(INITIAL_LOCATIONS);
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [editingLocation, setEditingLocation] = useState<BuffetLocation | null>(null);
@@ -454,61 +451,25 @@ export default function BuffetAdministrationScreen() {
 
                 <View style={styles.staffDetails}>
                   <View style={[styles.staffDetailRow, { flexDirection: 'row' }]}>
-                    {shouldSwap ? (
-                      <>
-                        <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-                          {staff.assignedLocation}
-                        </ThemedText>
-                        <Spacer width={Spacing.xs} />
-                        <DDIcon name="map-pin" size={16} variant="muted" />
-                      </>
-                    ) : (
-                      <>
-                        <DDIcon name="map-pin" size={16} variant="muted" />
-                        <Spacer width={Spacing.xs} />
-                        <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-                          {staff.assignedLocation}
-                        </ThemedText>
-                      </>
-                    )}
+                    <DDIcon name="map-pin" size={16} variant="muted" />
+                    <Spacer width={Spacing.xs} />
+                    <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+                      {staff.assignedLocation}
+                    </ThemedText>
                   </View>
                   <View style={[styles.staffDetailRow, { flexDirection: 'row' }]}>
-                    {shouldSwap ? (
-                      <>
-                        <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-                          {staff.shift}
-                        </ThemedText>
-                        <Spacer width={Spacing.xs} />
-                        <DDIcon name="clock" size={16} variant="muted" />
-                      </>
-                    ) : (
-                      <>
-                        <DDIcon name="clock" size={16} variant="muted" />
-                        <Spacer width={Spacing.xs} />
-                        <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-                          {staff.shift}
-                        </ThemedText>
-                      </>
-                    )}
+                    <DDIcon name="clock" size={16} variant="muted" />
+                    <Spacer width={Spacing.xs} />
+                    <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+                      {staff.shift}
+                    </ThemedText>
                   </View>
                   <View style={[styles.staffDetailRow, { flexDirection: 'row' }]}>
-                    {shouldSwap ? (
-                      <>
-                        <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-                          {staff.phone}
-                        </ThemedText>
-                        <Spacer width={Spacing.xs} />
-                        <DDIcon name="phone" size={16} variant="muted" />
-                      </>
-                    ) : (
-                      <>
-                        <DDIcon name="phone" size={16} variant="muted" />
-                        <Spacer width={Spacing.xs} />
-                        <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-                          {staff.phone}
-                        </ThemedText>
-                      </>
-                    )}
+                    <DDIcon name="phone" size={16} variant="muted" />
+                    <Spacer width={Spacing.xs} />
+                    <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+                      {staff.phone}
+                    </ThemedText>
                   </View>
                 </View>
               </ThemedView>

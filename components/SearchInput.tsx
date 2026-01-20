@@ -91,19 +91,9 @@ export function SearchInput({
         containerStyle,
       ]}
     >
-      {isRTL ? (
-        <>
-          {clearButton}
-          {inputEl}
-          {searchIcon}
-        </>
-      ) : (
-        <>
-          {searchIcon}
-          {inputEl}
-          {clearButton}
-        </>
-      )}
+      {searchIcon}
+      {inputEl}
+      {clearButton}
     </View>
   );
 }

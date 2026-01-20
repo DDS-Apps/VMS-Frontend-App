@@ -8,8 +8,12 @@
  * =============
  * 
  * Uses flexDirection: 'row' and relies on I18nManager for RTL flip.
- * When I18nManager hasn't applied RTL yet (Expo Go hot reload), it falls back
- * to manual child swapping via shouldSwapChildrenForRTL.
+ * 
+ * IMPORTANT: I18nManager MUST be initialized correctly BEFORE React renders.
+ * This is done in index.js via bootstrapLocale(). When initialized correctly:
+ * - flexDirection: 'row' automatically appears as right-to-left on mobile RTL
+ * - No manual child swapping is needed
+ * - Web uses the same 'row' direction (document.dir='rtl' handles the flip)
  * 
  * USAGE:
  * ======
@@ -19,13 +23,12 @@
  * </DirectionalRow>
  * 
  * In LTR: [Icon] [Username]
- * In RTL: [Username] [Icon]
+ * In RTL: [Username] [Icon]  ← I18nManager handles this automatically!
  */
 
-import React, { ReactNode, Children } from 'react';
-import { View, ViewStyle, StyleProp, StyleSheet, Platform } from 'react-native';
+import React, { ReactNode } from 'react';
+import { View, ViewStyle, StyleProp, StyleSheet } from 'react-native';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { shouldSwapChildrenForRTL, getFlexDirection as getRTLFlexDirection } from '@/utils/rtlInitializer';
 
 interface DirectionalRowProps {
   children: ReactNode;
@@ -44,28 +47,22 @@ export function DirectionalRow({
   alignItems = 'center',
   justifyContent = 'flex-start',
 }: DirectionalRowProps) {
-  const { isRTL } = useLanguage();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
   const flattenedStyle = StyleSheet.flatten([style]) || {};
   
-  // On web RTL, use row-reverse. On mobile, use row (child swap handles RTL).
-  const flexDirection = Platform.OS === 'web' ? getRTLFlexDirection(isRTL) : 'row';
-  
+  // ALWAYS use 'row' - I18nManager handles RTL on ALL platforms
+  // when initialized correctly before first render
   const finalStyle: ViewStyle = {
     ...flattenedStyle,
-    flexDirection,
+    flexDirection: 'row',
     alignItems: flattenedStyle.alignItems ?? alignItems,
     justifyContent: flattenedStyle.justifyContent ?? justifyContent,
     gap: gap ?? flattenedStyle.gap,
   };
   
-  // Convert children to array and reverse if swapping needed (mobile RTL)
-  const childArray = Children.toArray(children);
-  const renderedChildren = shouldSwap ? [...childArray].reverse() : childArray;
-  
+  // NO child swapping needed - I18nManager handles RTL flip
   return (
     <View style={finalStyle}>
-      {renderedChildren}
+      {children}
     </View>
   );
 }

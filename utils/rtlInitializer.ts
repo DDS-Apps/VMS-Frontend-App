@@ -2,64 +2,77 @@
  * RTL Initializer - BACKWARDS COMPATIBILITY LAYER
  * ================================================
  * 
- * This file re-exports from the new utils/rtl.ts module for backwards compatibility.
- * New code should import from '@/utils/rtl' directly.
+ * This file provides backwards compatibility with old RTL code.
  * 
- * @deprecated Use '@/utils/rtl' instead
+ * @deprecated Use '@/utils/localeManager' instead for all new code
+ * 
+ * KEY CHANGE:
+ * ===========
+ * The old shouldSwapChildrenForRTL() workaround is NO LONGER NEEDED.
+ * When I18nManager is initialized correctly BEFORE first render (which
+ * is now done in index.js via bootstrapLocale()), flexDirection: 'row'
+ * works correctly on ALL platforms including mobile RTL.
+ * 
+ * This function now always returns FALSE to disable the old workaround.
  */
 
 import { Platform, I18nManager } from 'react-native';
-import { SupportedLocale, localeConfig } from '@/constants/i18n';
+import { SupportedLocale, LOCALE_CONFIG, isRTLLocale, applyWebDocumentDirection } from './localeManager';
 
-// Re-export everything from the new rtl module
-export {
-  LANGUAGE_STORAGE_KEY,
-  initializeRTL as initializeRTLSync,
-  loadStoredLocale as initializeRTLAsync,
-  changeLanguage as setLocaleWithRTL,
-  isRTL as getCurrentRTLState,
-  createTextStyle,
-  marginHorizontal,
-  paddingHorizontal,
-  mirrorForRTL,
-  getDirectionalIcon,
-} from './rtl';
-
-// Additional exports for compatibility with existing code
+// Re-export from localeManager for backwards compatibility
+export { LANGUAGE_STORAGE_KEY, DEFAULT_LOCALE } from './localeManager';
+export { isRTLLocale as isRTL } from './localeManager';
 
 /**
- * Determines if children should be swapped for RTL layout.
- * 
- * Returns TRUE when:
- * - The context says isRTL is true (app is in Arabic mode)
- * - We're on mobile (not web)
- * 
- * IMPORTANT: I18nManager.forceRTL() does NOT automatically flip flexDirection: 'row'.
- * It only affects start/end properties. Therefore, we must always swap children
- * on mobile when in RTL mode.
- * 
- * Web uses document.dir='rtl' combined with row-reverse in flexbox.
+ * @deprecated Use bootstrapLocale() from localeManager instead
  */
-export function shouldSwapChildrenForRTL(isRTL: boolean): boolean {
-  // Web: browser handles RTL via row-reverse in components, no swapping needed
-  if (Platform.OS === 'web') {
-    return false;
+export function initializeRTLSync(): void {
+  console.warn('[rtlInitializer] initializeRTLSync is deprecated. Use bootstrapLocale() from localeManager.');
+  I18nManager.allowRTL(true);
+  if (typeof I18nManager.swapLeftAndRightInRTL === 'function') {
+    I18nManager.swapLeftAndRightInRTL(true);
   }
-  
-  // Mobile: Always swap children when in RTL mode since I18nManager
-  // doesn't flip flexDirection: 'row'
-  return isRTL;
+}
+
+/**
+ * @deprecated Use bootstrapLocale() from localeManager instead
+ */
+export async function initializeRTLAsync(): Promise<{ locale: SupportedLocale; isRTL: boolean; needsReload: boolean }> {
+  console.warn('[rtlInitializer] initializeRTLAsync is deprecated. Use bootstrapLocale() from localeManager.');
+  const { bootstrapLocale } = await import('./localeManager');
+  const result = await bootstrapLocale();
+  return { locale: result.locale, isRTL: result.isRTL, needsReload: result.needsRestart };
+}
+
+/**
+ * @deprecated Use changeLanguage() from localeManager instead
+ */
+export async function setLocaleWithRTL(locale: SupportedLocale): Promise<boolean> {
+  console.warn('[rtlInitializer] setLocaleWithRTL is deprecated. Use changeLanguage() from localeManager.');
+  const { changeLanguage } = await import('./localeManager');
+  const result = await changeLanguage(locale);
+  return result.needsRestart;
+}
+
+/**
+ * @deprecated NO LONGER NEEDED - I18nManager handles RTL when initialized correctly
+ * 
+ * This function used to return TRUE on mobile RTL to trigger manual child swapping.
+ * Now that I18nManager is initialized correctly BEFORE first render, this workaround
+ * is no longer needed. The function now always returns FALSE.
+ */
+export function shouldSwapChildrenForRTL(_isRTL: boolean): boolean {
+  // NO LONGER NEEDED - I18nManager handles RTL when initialized correctly
+  // Keeping this function for backwards compatibility but it always returns false
+  return false;
 }
 
 /**
  * Sets the document direction on web platform.
+ * @deprecated Use applyWebDocumentDirection() from localeManager instead
  */
 export function setWebDocumentDirection(locale: SupportedLocale): void {
-  if (Platform.OS === 'web' && typeof document !== 'undefined') {
-    const isRTL = localeConfig[locale]?.isRTL ?? false;
-    document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
-    document.documentElement.lang = locale === 'ar' ? 'ar' : 'en';
-  }
+  applyWebDocumentDirection(locale);
 }
 
 /**
@@ -72,13 +85,7 @@ export function getPlatformTextAlign(
   if (alignment === 'center') return 'center';
   if (alignment === 'left' || alignment === 'right') return alignment;
 
-  // 'start' and 'end' are logical values
-  if (Platform.OS === 'web') {
-    // Web: browser handles RTL via document.dir
-    return alignment === 'start' ? 'left' : 'right';
-  }
-
-  // Mobile: resolve based on RTL state
+  // 'start' and 'end' are logical values - resolve based on RTL state
   if (alignment === 'start') {
     return isRTL ? 'right' : 'left';
   }
@@ -88,12 +95,14 @@ export function getPlatformTextAlign(
 /**
  * Returns the flex direction for horizontal layouts.
  * 
- * PLATFORM BEHAVIOR:
- * - Mobile: Returns 'row'. I18nManager handles layout flipping.
- * - Web: Returns 'row-reverse' when RTL (browser doesn't auto-flip).
+ * IMPORTANT: Now always returns 'row' on ALL platforms.
+ * I18nManager handles RTL when initialized correctly before first render.
+ * 
+ * @deprecated Just use flexDirection: 'row' directly
  */
-export function getFlexDirection(isRTL: boolean = I18nManager.isRTL): 'row' | 'row-reverse' {
-  return Platform.OS === 'web' && isRTL ? 'row-reverse' : 'row';
+export function getFlexDirection(_isRTL: boolean = I18nManager.isRTL): 'row' {
+  // Always return 'row' - I18nManager handles RTL on all platforms
+  return 'row';
 }
 
 /**
@@ -101,6 +110,25 @@ export function getFlexDirection(isRTL: boolean = I18nManager.isRTL): 'row' | 'r
  */
 export function getCurrentRTLStateFromI18n(): boolean {
   return I18nManager.isRTL;
+}
+
+/**
+ * Gets the current RTL state
+ * @deprecated Use isRTLLocale() or useLanguage().isRTL instead
+ */
+export function getCurrentRTLState(): boolean {
+  return I18nManager.isRTL;
+}
+
+/**
+ * Create RTL-aware text style
+ */
+export function createTextStyle(isRTL: boolean, additionalStyles?: any) {
+  return {
+    textAlign: isRTL ? 'right' : 'left',
+    writingDirection: isRTL ? 'rtl' : 'ltr',
+    ...additionalStyles,
+  };
 }
 
 /**

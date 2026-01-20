@@ -14,7 +14,6 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { useFormatters } from '@/hooks/useFormatters';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { applyOpacity } from '@/utils/statusStyles';
-import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
 import { useMyBuffetTasksQuery, useUpdateBuffetTaskStatusMutation } from '@/hooks/queries/useBuffetQueries';
 import type { BuffetStaffTaskDto, BuffetStaffTaskStatus } from '@/types/api.types';
 
@@ -29,9 +28,7 @@ export default function BuffetBoardScreen() {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { formatDate: formatDateUtil } = useFormatters();
-  const { isRTL } = useLanguage();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  const insets = useSafeAreaInsets();
+  const { isRTL } = useLanguage();  const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [selectedDate, setSelectedDate] = useState(new Date());

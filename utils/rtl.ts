@@ -2,6 +2,8 @@
  * RTL (Right-to-Left) Layout Utilities
  * =====================================
  * 
+ * @deprecated This file is deprecated. Use '@/utils/localeManager' instead.
+ * 
  * THE SIMPLE SOLUTION:
  * ====================
  * Always use flexDirection: 'row'. I18nManager handles RTL on ALL platforms
@@ -25,125 +27,19 @@
  * ❌ Never swap children manually
  */
 
-import { Platform, I18nManager, ViewStyle, TextStyle } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { SupportedLocale, defaultLocale, localeConfig } from '@/constants/i18n';
+import { I18nManager, ViewStyle, TextStyle } from 'react-native';
 
-// ============================================================================
-// CONSTANTS
-// ============================================================================
-
-export const LANGUAGE_STORAGE_KEY = '@vms_language';
-
-// ============================================================================
-// INITIALIZATION (Call once at app startup in index.js)
-// ============================================================================
-
-/**
- * Synchronous RTL initialization - MUST be called BEFORE registerRootComponent()
- * 
- * This is THE critical step. If called too late, RTL won't work properly.
- */
-export function initializeRTL(): void {
-    console.log('[RTL] Initializing, Platform:', Platform.OS);
-
-    // Step 1: Enable RTL support
-    I18nManager.allowRTL(true);
-
-    // Step 2: Enable automatic left/right property swapping
-    if (typeof I18nManager.swapLeftAndRightInRTL === 'function') {
-        I18nManager.swapLeftAndRightInRTL(true);
-    }
-
-    // Step 3: Set RTL state based on stored preference
-    if (Platform.OS === 'web') {
-        // Web: Must read synchronously from localStorage
-        try {
-            const stored = typeof localStorage !== 'undefined'
-                ? localStorage.getItem(LANGUAGE_STORAGE_KEY)
-                : null;
-            const isArabic = stored === 'ar';
-
-            I18nManager.forceRTL(isArabic);
-
-            // Also set document direction for CSS
-            if (typeof document !== 'undefined') {
-                document.documentElement.dir = isArabic ? 'rtl' : 'ltr';
-                document.documentElement.lang = isArabic ? 'ar' : 'en';
-            }
-
-            console.log('[RTL] Web initialized, isRTL:', isArabic);
-        } catch (e) {
-            console.warn('[RTL] Web init error:', e);
-        }
-    } else {
-        // Mobile: I18nManager state persists across app launches
-        // Just log the current state - it's already set from previous forceRTL call
-        console.log('[RTL] Mobile initialized, I18nManager.isRTL:', I18nManager.isRTL);
-    }
-}
-
-/**
- * Async initialization for LanguageContext - loads stored preference
- */
-export async function loadStoredLocale(): Promise<{
-    locale: SupportedLocale;
-    isRTL: boolean;
-    needsRestart: boolean;
-}> {
-    try {
-        const stored = await AsyncStorage.getItem(LANGUAGE_STORAGE_KEY);
-        const locale = (stored === 'ar' || stored === 'en') ? stored : defaultLocale;
-        const shouldBeRTL = locale === 'ar';
-        const currentlyRTL = I18nManager.isRTL;
-
-        // Check if restart is needed (stored preference differs from current state)
-        const needsRestart = shouldBeRTL !== currentlyRTL && Platform.OS !== 'web';
-
-        if (needsRestart) {
-            // Apply the change - will take effect after restart
-            I18nManager.forceRTL(shouldBeRTL);
-        }
-
-        return { locale, isRTL: shouldBeRTL, needsRestart };
-    } catch (e) {
-        console.error('[RTL] loadStoredLocale error:', e);
-        return { locale: defaultLocale, isRTL: false, needsRestart: false };
-    }
-}
-
-/**
- * Change language and apply RTL settings
- * Returns true if app restart is required
- */
-export async function changeLanguage(newLocale: SupportedLocale): Promise<boolean> {
-    const newIsRTL = newLocale === 'ar';
-    const currentIsRTL = I18nManager.isRTL;
-
-    // Save preference
-    await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, newLocale);
-
-    if (Platform.OS === 'web') {
-        // Web: Also save to localStorage for sync access
-        if (typeof localStorage !== 'undefined') {
-            localStorage.setItem(LANGUAGE_STORAGE_KEY, newLocale);
-        }
-        // Web can apply immediately with page reload
-        I18nManager.forceRTL(newIsRTL);
-        if (typeof document !== 'undefined') {
-            document.documentElement.dir = newIsRTL ? 'rtl' : 'ltr';
-            document.documentElement.lang = newIsRTL ? 'ar' : 'en';
-        }
-        return newIsRTL !== currentIsRTL; // Needs reload
-    } else {
-        // Mobile: Apply and signal restart
-        if (newIsRTL !== currentIsRTL) {
-            I18nManager.forceRTL(newIsRTL);
-            return true; // Needs restart
-        }
-        return false;
-    }
-}
+// Re-export from localeManager for backwards compatibility
+export {
+    LANGUAGE_STORAGE_KEY,
+    DEFAULT_LOCALE as defaultLocale,
+    SupportedLocale,
+    bootstrapLocaleSync as initializeRTL,
+    bootstrapLocale as loadStoredLocale,
+    changeLanguage,
+    isRTLLocale,
+    getStoredLocale,
+} from './localeManager';
 
 // ============================================================================
 // STYLE HELPERS (Use these in components)
@@ -225,16 +121,6 @@ export function getDirectionalIcon(
 // EXPORTS
 // ============================================================================
 
-export default {
-    initializeRTL,
-    loadStoredLocale,
-    changeLanguage,
-    isRTL,
-    createRowStyle,
-    createTextStyle,
-    marginHorizontal,
-    paddingHorizontal,
-    mirrorForRTL,
-    getDirectionalIcon,
-    LANGUAGE_STORAGE_KEY,
-};
+// Note: Default export removed since re-exported items can't be used in object shorthand.
+// Import individual functions instead:
+// import { isRTL, createRowStyle, createTextStyle, ... } from '@/utils/rtl';

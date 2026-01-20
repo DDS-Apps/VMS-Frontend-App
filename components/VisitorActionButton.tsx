@@ -6,7 +6,6 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { applyOpacity } from "@/utils/statusStyles";
 import { Spacing, BorderRadius } from "@/constants/theme";
-import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
 
 type ActionType = 'check_in' | 'check_out' | 'completed';
 
@@ -22,8 +21,6 @@ interface VisitorActionButtonProps {
 export function VisitorActionButton({ type, onPress, disabled = false, fullWidth = false, loading = false, flex }: VisitorActionButtonProps) {
   const { theme } = useTheme();
   const { t, isRTL } = useTranslation();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-
   const getConfig = (): { label: string; icon: IconName; bgColor: string; textColor: string; isButton: boolean } => {
     switch (type) {
       case 'check_in':
@@ -85,11 +82,8 @@ export function VisitorActionButton({ type, onPress, disabled = false, fullWidth
           flexDirection: 'row',
         }
       ]}>
-        {shouldSwap ? (
-          <>{textEl}{iconEl}</>
-        ) : (
-          <>{iconEl}{textEl}</>
-        )}
+        {iconEl}
+        {textEl}
       </View>
     );
   }
@@ -112,11 +106,8 @@ export function VisitorActionButton({ type, onPress, disabled = false, fullWidth
       onPress={onPress}
       disabled={isDisabled}
     >
-      {shouldSwap ? (
-        <>{textEl}{loadingOrIconEl}</>
-      ) : (
-        <>{loadingOrIconEl}{textEl}</>
-      )}
+      {loadingOrIconEl}
+      {textEl}
     </Pressable>
   );
 }

@@ -11,7 +11,6 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { BorderRadius, Spacing, Typography } from "@/constants/theme";
-import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
 
 type ModalTone = "danger" | "warning" | "info";
 type ModalStatus = "idle" | "loading" | "success" | "error";
@@ -53,9 +52,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
 }) => {
   const { theme, isDark } = useTheme();
   const { t } = useTranslation();
-  const { isRTL } = useLanguage();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  const insets = useSafeAreaInsets();
+  const { isRTL } = useLanguage();  const insets = useSafeAreaInsets();
   const [status, setStatus] = useState<ModalStatus>("idle");
   const [errorMessage, setErrorMessage] = useState<string>("");
 
@@ -141,49 +138,24 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
             {errorMessage}
           </ThemedText>
           <View style={[styles.errorActions, { flexDirection: 'row' }]}>
-            {shouldSwap ? (
-              <>
-                <LoadingButton
-                  onPress={handleCancel}
-                  variant="ghost"
-                  size="medium"
-                  fullWidth={false}
-                  style={{ flex: 1, marginEnd: Spacing.sm }}
-                >
-                  {cancelLabel || t("common.cancel")}
-                </LoadingButton>
-                <LoadingButton
-                  onPress={handleRetry}
-                  variant="outline"
-                  size="medium"
-                  fullWidth={false}
-                  style={{ flex: 1 }}
-                >
-                  {t("common.tryAgain")}
-                </LoadingButton>
-              </>
-            ) : (
-              <>
-                <LoadingButton
-                  onPress={handleRetry}
-                  variant="outline"
-                  size="medium"
-                  fullWidth={false}
-                  style={{ flex: 1, marginEnd: Spacing.sm }}
-                >
-                  {t("common.tryAgain")}
-                </LoadingButton>
-                <LoadingButton
-                  onPress={handleCancel}
-                  variant="ghost"
-                  size="medium"
-                  fullWidth={false}
-                  style={{ flex: 1 }}
-                >
-                  {cancelLabel || t("common.cancel")}
-                </LoadingButton>
-              </>
-            )}
+            <LoadingButton
+              onPress={handleRetry}
+              variant="outline"
+              size="medium"
+              fullWidth={false}
+              style={{ flex: 1, marginEnd: Spacing.sm }}
+            >
+              {t("common.tryAgain")}
+            </LoadingButton>
+            <LoadingButton
+              onPress={handleCancel}
+              variant="ghost"
+              size="medium"
+              fullWidth={false}
+              style={{ flex: 1 }}
+            >
+              {cancelLabel || t("common.cancel")}
+            </LoadingButton>
           </View>
         </View>
       );
@@ -210,49 +182,24 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
         ) : null}
 
         <View style={[styles.buttonContainer, { flexDirection: 'row' }]}>
-          {shouldSwap ? (
-            <>
-              <LoadingButton
-                onPress={handleConfirm}
-                variant={getConfirmButtonVariant()}
-                size="medium"
-                fullWidth={false}
-                style={{ flex: 1, marginEnd: Spacing.sm }}
-              >
-                {confirmLabel || t("common.confirm")}
-              </LoadingButton>
-              <LoadingButton
-                onPress={handleCancel}
-                variant="outline"
-                size="medium"
-                fullWidth={false}
-                style={{ flex: 1 }}
-              >
-                {cancelLabel || t("common.cancel")}
-              </LoadingButton>
-            </>
-          ) : (
-            <>
-              <LoadingButton
-                onPress={handleCancel}
-                variant="outline"
-                size="medium"
-                fullWidth={false}
-                style={{ flex: 1, marginEnd: Spacing.sm }}
-              >
-                {cancelLabel || t("common.cancel")}
-              </LoadingButton>
-              <LoadingButton
-                onPress={handleConfirm}
-                variant={getConfirmButtonVariant()}
-                size="medium"
-                fullWidth={false}
-                style={{ flex: 1 }}
-              >
-                {confirmLabel || t("common.confirm")}
-              </LoadingButton>
-            </>
-          )}
+          <LoadingButton
+            onPress={handleCancel}
+            variant="outline"
+            size="medium"
+            fullWidth={false}
+            style={{ flex: 1, marginEnd: Spacing.sm }}
+          >
+            {cancelLabel || t("common.cancel")}
+          </LoadingButton>
+          <LoadingButton
+            onPress={handleConfirm}
+            variant={getConfirmButtonVariant()}
+            size="medium"
+            fullWidth={false}
+            style={{ flex: 1 }}
+          >
+            {confirmLabel || t("common.confirm")}
+          </LoadingButton>
         </View>
       </>
     );

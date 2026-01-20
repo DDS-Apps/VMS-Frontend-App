@@ -10,7 +10,7 @@ import Spacer from '@/components/Spacer';
 import { Spacing, BorderRadius, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
-import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
+import { DirectionalRow } from '@/components/DirectionalRow';
 
 interface ParkingArea {
   id: string;
@@ -44,9 +44,7 @@ const MOCK_VALET_ZONES: ValetZone[] = [
 
 export default function ParkingValetSettingsScreen() {
   const { theme } = useTheme();
-  const { t, isRTL } = useTranslation();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  const insets = useSafeAreaInsets();
+  const { t, isRTL } = useTranslation();  const insets = useSafeAreaInsets();
   const [tab, setTab] = useState<'parking' | 'valet'>('parking');
   const [parkingAreas, setParkingAreas] = useState<ParkingArea[]>(MOCK_PARKING_AREAS);
   const [valetZones, setValetZones] = useState<ValetZone[]>(MOCK_VALET_ZONES);
@@ -137,21 +135,12 @@ export default function ParkingValetSettingsScreen() {
       <Spacer height={Spacing.md} />
 
       <View style={[styles.infoRow, { flexDirection: 'row' }]}>
-        {shouldSwap ? (
-          <>
-            <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginEnd: Spacing.xs, textAlign: isRTL ? 'right' : 'left' }]}>
-              {item.location}
-            </ThemedText>
-            <DDIcon name="map-pin" variant="muted" size={16} />
-          </>
-        ) : (
-          <>
-            <DDIcon name="map-pin" variant="muted" size={16} />
-            <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginStart: Spacing.xs, textAlign: isRTL ? 'right' : 'left' }]}>
-              {item.location}
-            </ThemedText>
-          </>
-        )}
+        <DirectionalRow>
+          <DDIcon name="map-pin" variant="muted" size={16} />
+          <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginEnd: Spacing.xs, textAlign: isRTL ? 'right' : 'left' }]}>
+            {item.location}
+          </ThemedText>
+        </DirectionalRow>
       </View>
 
       <Spacer height={Spacing.sm} />
@@ -198,21 +187,12 @@ export default function ParkingValetSettingsScreen() {
       <Spacer height={Spacing.md} />
 
       <View style={[styles.infoRow, { flexDirection: 'row' }]}>
-        {shouldSwap ? (
-          <>
-            <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginEnd: Spacing.xs, textAlign: isRTL ? 'right' : 'left' }]}>
-              {item.location}
-            </ThemedText>
-            <DDIcon name="map-pin" variant="muted" size={16} />
-          </>
-        ) : (
-          <>
-            <DDIcon name="map-pin" variant="muted" size={16} />
-            <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginStart: Spacing.xs, textAlign: isRTL ? 'right' : 'left' }]}>
-              {item.location}
-            </ThemedText>
-          </>
-        )}
+        <DirectionalRow>
+          <DDIcon name="map-pin" variant="muted" size={16} />
+          <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginEnd: Spacing.xs, textAlign: isRTL ? 'right' : 'left' }]}>
+            {item.location}
+          </ThemedText>
+        </DirectionalRow>
       </View>
 
       <Spacer height={Spacing.sm} />

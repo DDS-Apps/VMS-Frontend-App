@@ -90,19 +90,9 @@ export const ApprovalActionGroup = ({
 
   return (
     <View style={[containerStyle, style]}>
-      {isRTL && layout === "row" ? (
-        <>
-          {approveButton}
-          {spacer}
-          {rejectButton}
-        </>
-      ) : (
-        <>
-          {rejectButton}
-          {spacer}
-          {approveButton}
-        </>
-      )}
+      {rejectButton}
+      {spacer}
+      {approveButton}
     </View>
   );
 };

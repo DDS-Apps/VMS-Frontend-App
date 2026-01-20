@@ -13,7 +13,6 @@ import { Spacing, BorderRadius, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
 import { applyOpacity } from '@/utils/statusStyles';
 import {
   getRequestsByDriverId,
@@ -41,9 +40,7 @@ interface DriverTasksScreenProps {
 export default function DriverTasksScreen({ onNavigateToDetail }: DriverTasksScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { isRTL } = useLanguage();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  const insets = useSafeAreaInsets();
+  const { isRTL } = useLanguage();  const insets = useSafeAreaInsets();
   const [tasks, setTasks] = useState<ValetRequest[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');

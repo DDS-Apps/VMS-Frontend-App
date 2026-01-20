@@ -14,7 +14,7 @@ import { useFormatters } from "@/hooks/useFormatters";
 import { DDIcon } from "@/components/DDIcon";
 import { usePublicInviteQuery, useAcceptInviteMutation, useRejectInviteMutation } from "@/hooks/queries";
 import type { PublicInviteDto, VisitorParkingOption } from "@/types/api.types";
-import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
+import { DirectionalRow } from '@/components/DirectionalRow';
 
 // Dallah Albaraka Light Theme Colors for this page
 const PageColors = {
@@ -59,8 +59,6 @@ const RejectModal = memo(function RejectModal({
 }: RejectModalProps) {
   const [localReason, setLocalReason] = useState('');
   const wasLoadingRef = React.useRef(false);
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-
   // Only reset localReason when modal closes AND we're not in loading state
   // This prevents clearing the input during submission
   useEffect(() => {
@@ -122,17 +120,10 @@ const RejectModal = memo(function RejectModal({
             >
               {isLoading ? (
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                  {shouldSwap ? (
-                    <>
-                      <ThemedText style={modalStyles.confirmText}>{translations.confirm}</ThemedText>
-                      <DDIcon name="loader" size={16} color="#FFFFFF" />
-                    </>
-                  ) : (
-                    <>
-                      <DDIcon name="loader" size={16} color="#FFFFFF" />
-                      <ThemedText style={modalStyles.confirmText}>{translations.confirm}</ThemedText>
-                    </>
-                  )}
+                  <DirectionalRow>
+                    <DDIcon name="loader" size={16} color="#FFFFFF" />
+                    <ThemedText style={modalStyles.confirmText}>{translations.confirm}</ThemedText>
+                  </DirectionalRow>
                 </View>
               ) : (
                 <ThemedText style={modalStyles.confirmText}>{translations.confirm}</ThemedText>
@@ -624,9 +615,7 @@ const helperStyles = StyleSheet.create({
 export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { isRTL } = useLanguage();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  const { formatDate: fmtDate, formatDateShort, formatTimeFromString, formatDateTime } = useFormatters();
+  const { isRTL } = useLanguage();  const { formatDate: fmtDate, formatDateShort, formatTimeFromString, formatDateTime } = useFormatters();
   const insets = useSafeAreaInsets();
   const token = route?.params?.token || route?.params?.visitId;
   

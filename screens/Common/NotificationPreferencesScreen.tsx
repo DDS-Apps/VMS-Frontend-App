@@ -14,7 +14,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/contexts/ToastContext";
 import { useNotifications } from "@/contexts/NotificationContext";
-import { shouldSwapChildrenForRTL } from "@/utils/rtlInitializer";
+import { DirectionalRow } from '@/components/DirectionalRow';
 import {
   useNotificationPreferencesQuery,
   useUpdateNotificationPreferencesMutation,
@@ -27,9 +27,7 @@ import type {
 export default function NotificationPreferencesScreen() {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { isRTL } = useLanguage();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  const insets = useSafeAreaInsets();
+  const { isRTL } = useLanguage();  const insets = useSafeAreaInsets();
   const { showSuccess, showError } = useToast();
   const { requestPermission, permissionStatus } = useNotifications();
 
@@ -150,45 +148,22 @@ export default function NotificationPreferencesScreen() {
       {permissionStatus !== "granted" && (
         <>
           <ThemedView style={[styles.permissionCard, { backgroundColor: theme.warning + "20", flexDirection: 'row' }]}>
-            {shouldSwap ? (
-              <>
-                <LoadingButton
-                  onPress={handleRequestPushPermission}
-                  variant="primary"
-                  size="small"
-                >
-                  {t('common.enable')}
-                </LoadingButton>
-                <View style={styles.permissionText}>
-                  <ThemedText style={[Typography.bodySmall, { fontWeight: "600", textAlign: 'right' }]}>
-                    {t('notifications.pushDisabled')}
-                  </ThemedText>
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: 'right' }]}>
-                    {t('notifications.enablePushDescription')}
-                  </ThemedText>
-                </View>
-                <DDIcon name="bell-off" size={24} color={theme.warning} />
-              </>
-            ) : (
-              <>
-                <DDIcon name="bell-off" size={24} color={theme.warning} />
-                <View style={styles.permissionText}>
-                  <ThemedText style={[Typography.bodySmall, { fontWeight: "600", textAlign: 'left' }]}>
-                    {t('notifications.pushDisabled')}
-                  </ThemedText>
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: 'left' }]}>
-                    {t('notifications.enablePushDescription')}
-                  </ThemedText>
-                </View>
-                <LoadingButton
-                  onPress={handleRequestPushPermission}
-                  variant="primary"
-                  size="small"
-                >
-                  {t('common.enable')}
-                </LoadingButton>
-              </>
-            )}
+            <DDIcon name="bell-off" size={24} color={theme.warning} />
+            <View style={styles.permissionText}>
+              <ThemedText style={[Typography.bodySmall, { fontWeight: "600", textAlign: isRTL ? 'right' : 'left' }]}>
+                {t('notifications.pushDisabled')}
+              </ThemedText>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+                {t('notifications.enablePushDescription')}
+              </ThemedText>
+            </View>
+            <LoadingButton
+              onPress={handleRequestPushPermission}
+              variant="primary"
+              size="small"
+            >
+              {t('common.enable')}
+            </LoadingButton>
           </ThemedView>
           <Spacer height={Spacing.lg} />
         </>
@@ -205,21 +180,12 @@ export default function NotificationPreferencesScreen() {
           <React.Fragment key={setting.field}>
             <View style={[styles.row, { flexDirection: 'row' }]}>
               <View style={[styles.rowLeft, { flexDirection: 'row' }]}>
-                {shouldSwap ? (
-                  <>
-                    <ThemedText style={[Typography.body, { marginEnd: Spacing.sm, textAlign: 'right' }]}>
-                      {setting.label}
-                    </ThemedText>
-                    <DDIcon name={setting.icon as any} size={20} color={theme.primary} />
-                  </>
-                ) : (
-                  <>
-                    <DDIcon name={setting.icon as any} size={20} color={theme.primary} />
-                    <ThemedText style={[Typography.body, { marginStart: Spacing.sm, textAlign: 'left' }]}>
-                      {setting.label}
-                    </ThemedText>
-                  </>
-                )}
+                <DirectionalRow>
+                  <DDIcon name={setting.icon as any} size={20} color={theme.primary} />
+                  <ThemedText style={[Typography.body, { marginEnd: Spacing.sm, textAlign: 'right' }]}>
+                    {setting.label}
+                  </ThemedText>
+                </DirectionalRow>
               </View>
               <Switch
                 value={localPrefs[setting.field]}
@@ -251,21 +217,12 @@ export default function NotificationPreferencesScreen() {
           <React.Fragment key={setting.field}>
             <View style={[styles.row, { flexDirection: 'row' }]}>
               <View style={[styles.rowLeft, { flexDirection: 'row' }]}>
-                {shouldSwap ? (
-                  <>
-                    <ThemedText style={[Typography.body, { marginEnd: Spacing.sm, textAlign: 'right' }]}>
-                      {setting.label}
-                    </ThemedText>
-                    <DDIcon name={setting.icon as any} size={20} color={theme.primary} />
-                  </>
-                ) : (
-                  <>
-                    <DDIcon name={setting.icon as any} size={20} color={theme.primary} />
-                    <ThemedText style={[Typography.body, { marginStart: Spacing.sm, textAlign: 'left' }]}>
-                      {setting.label}
-                    </ThemedText>
-                  </>
-                )}
+                <DirectionalRow>
+                  <DDIcon name={setting.icon as any} size={20} color={theme.primary} />
+                  <ThemedText style={[Typography.body, { marginEnd: Spacing.sm, textAlign: 'right' }]}>
+                    {setting.label}
+                  </ThemedText>
+                </DirectionalRow>
               </View>
               <Switch
                 value={localPrefs[setting.field]}

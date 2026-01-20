@@ -10,7 +10,6 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { applyOpacity } from "@/utils/statusStyles";
-import { shouldSwapChildrenForRTL } from "@/utils/rtlInitializer";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   useBuffetLoadSummaryQuery,
@@ -107,9 +106,7 @@ function StatusBreakdownBar({ pending, preparing, ready, served, completed, tota
 export default function BuffetOverviewScreen({ navigation }: BuffetOverviewScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { isRTL } = useLanguage();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  const insets = useSafeAreaInsets();
+  const { isRTL } = useLanguage();  const insets = useSafeAreaInsets();
   
   const { data: loadSummary, isLoading: isLoadingLoadSummary } = useBuffetLoadSummaryQuery();
   const { data: locationsResponse, isLoading: isLoadingLocations } = useBuffetAdminLocationsQuery();

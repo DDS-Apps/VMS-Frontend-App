@@ -13,7 +13,6 @@ import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useFormatters } from '@/hooks/useFormatters';
-import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
 import { applyOpacity } from '@/utils/statusStyles';
 import {
   getValetRequestById,
@@ -37,9 +36,7 @@ export default function DriverTaskDetailScreen({
 }: DriverTaskDetailScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { isRTL } = useLanguage();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  const { formatDate, formatTime } = useFormatters();
+  const { isRTL } = useLanguage();  const { formatDate, formatTime } = useFormatters();
   const insets = useSafeAreaInsets();
   const [task, setTask] = useState<ValetRequest | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);

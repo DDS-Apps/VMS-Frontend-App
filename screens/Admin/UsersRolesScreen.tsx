@@ -15,7 +15,8 @@ import { Spacing, BorderRadius, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useToast } from '@/contexts/ToastContext';
-import { 
+import { DirectionalRow } from '@/components/DirectionalRow';
+import {
   useUsersQuery, 
   useCreateUserMutation, 
   useUpdateUserMutation, 
@@ -24,7 +25,6 @@ import {
 } from '@/hooks/queries/useUserQueries';
 import type { UserDto, CreateUserDto, UpdateUserDto, UserRole as ApiUserRole } from '@/types/api.types';
 import { UserRole, USER_ROLES } from '@/types/vms.types';
-import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
 
 type UserSource = 'microsoft_ad' | 'app_created';
 
@@ -107,9 +107,7 @@ function useDebounce<T>(value: T, delay: number): T {
 
 export default function UsersRolesScreen() {
   const { theme } = useTheme();
-  const { t, isRTL } = useTranslation();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  const insets = useSafeAreaInsets();
+  const { t, isRTL } = useTranslation();  const insets = useSafeAreaInsets();
   const { showError, showSuccess } = useToast();
   const navigation = useNavigation<NavigationProp>();
   
@@ -561,42 +559,24 @@ export default function UsersRolesScreen() {
             <Spacer height={Spacing.md} />
             {item.department ? (
               <View style={[styles.infoRow, bulkMode ? { marginStart: 32 } : null, { flexDirection: 'row' }]}>
-                {shouldSwap ? (
-                  <>
-                    <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginEnd: Spacing.xs }]}>
-                      {item.department}
-                    </ThemedText>
-                    <DDIcon name="briefcase" variant="muted" size={14} />
-                  </>
-                ) : (
-                  <>
-                    <DDIcon name="briefcase" variant="muted" size={14} />
-                    <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginStart: Spacing.xs }]}>
-                      {item.department}
-                    </ThemedText>
-                  </>
-                )}
+                <DirectionalRow>
+                  <DDIcon name="briefcase" variant="muted" size={14} />
+                  <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginEnd: Spacing.xs }]}>
+                    {item.department}
+                  </ThemedText>
+                </DirectionalRow>
               </View>
             ) : null}
             {item.phoneNumber ? (
               <>
                 <Spacer height={Spacing.xs} />
                 <View style={[styles.infoRow, bulkMode ? { marginStart: 32 } : null, { flexDirection: 'row' }]}>
-                  {shouldSwap ? (
-                    <>
-                      <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginEnd: Spacing.xs }]}>
-                        {item.phoneNumber}
-                      </ThemedText>
-                      <DDIcon name="phone" variant="muted" size={14} />
-                    </>
-                  ) : (
-                    <>
-                      <DDIcon name="phone" variant="muted" size={14} />
-                      <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginStart: Spacing.xs }]}>
-                        {item.phoneNumber}
-                      </ThemedText>
-                    </>
-                  )}
+                  <DirectionalRow>
+                    <DDIcon name="phone" variant="muted" size={14} />
+                    <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginEnd: Spacing.xs }]}>
+                      {item.phoneNumber}
+                    </ThemedText>
+                  </DirectionalRow>
                 </View>
               </>
             ) : null}

@@ -18,7 +18,7 @@ import { useSecurityVisitorsQuery } from "@/hooks/queries/useSecurityQueries";
 import type { SecurityVisitorDto } from "@/types";
 import type { SecurityCheckInScreenProps } from "@/types/securityNavigation.types";
 import type { Theme } from "@/types/theme.types";
-import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
+import { DirectionalRow } from '@/components/DirectionalRow';
 
 const LAYOUT = {
   cardPadding: Spacing.lg,
@@ -132,9 +132,7 @@ interface DateRange {
 
 export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScreenProps) {
   const { theme } = useTheme();
-  const { t, isRTL } = useTranslation();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  const { formatTimeFromString } = useFormatters();
+  const { t, isRTL } = useTranslation();  const { formatTimeFromString } = useFormatters();
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -468,21 +466,12 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
             <Spacer height={Spacing.sm} />
 
             <View style={[styles.compactDetailsRow, { flexDirection: 'row' }]}>
-              {shouldSwap ? (
-                <>
-                  <ThemedText style={[styles.compactDetailText, { color: theme.textSecondary, textAlign: 'right', marginEnd: 8 }]} numberOfLines={1}>
-                    {detailParts.join('  |  ')}
-                  </ThemedText>
-                  <DDIcon name="user" size={14} variant="muted" />
-                </>
-              ) : (
-                <>
-                  <DDIcon name="user" size={14} variant="muted" />
-                  <ThemedText style={[styles.compactDetailText, { color: theme.textSecondary, textAlign: 'left' }]} numberOfLines={1}>
-                    {detailParts.join('  |  ')}
-                  </ThemedText>
-                </>
-              )}
+              <DirectionalRow>
+                <DDIcon name="user" size={14} variant="muted" />
+                <ThemedText style={[styles.compactDetailText, { color: theme.textSecondary, textAlign: 'right', marginEnd: 8 }]} numberOfLines={1}>
+                  {detailParts.join('  |  ')}
+                </ThemedText>
+              </DirectionalRow>
             </View>
 
             <Spacer height={Spacing.sm} />
@@ -491,29 +480,16 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
               backgroundColor: hasParking ? applyOpacity(theme.success, '08') : applyOpacity(theme.textSecondary, '08'),
               flexDirection: 'row'
             }]}>
-              {shouldSwap ? (
-                <>
-                  <ThemedText style={[styles.compactServiceText, { color: hasParking ? theme.success : theme.textSecondary, marginEnd: 8 }]}>
-                    {serviceParts.join('  |  ')}
-                  </ThemedText>
-                  <DDIcon 
-                    name={hasParking ? "map-pin" : "x-circle"} 
-                    size={14} 
-                    color={hasParking ? theme.success : theme.textSecondary} 
-                  />
-                </>
-              ) : (
-                <>
-                  <DDIcon 
-                    name={hasParking ? "map-pin" : "x-circle"} 
-                    size={14} 
-                    color={hasParking ? theme.success : theme.textSecondary} 
-                  />
-                  <ThemedText style={[styles.compactServiceText, { color: hasParking ? theme.success : theme.textSecondary }]}>
-                    {serviceParts.join('  |  ')}
-                  </ThemedText>
-                </>
-              )}
+              <DirectionalRow>
+                <DDIcon 
+                  name={hasParking ? "map-pin" : "x-circle"} 
+                  size={14} 
+                  color={hasParking ? theme.success : theme.textSecondary} 
+                />
+                <ThemedText style={[styles.compactServiceText, { color: hasParking ? theme.success : theme.textSecondary, marginEnd: 8 }]}>
+                  {serviceParts.join('  |  ')}
+                </ThemedText>
+              </DirectionalRow>
             </View>
           </View>
         </ThemedView>

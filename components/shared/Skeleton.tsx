@@ -12,7 +12,6 @@ import Animated, {
 import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Spacing, BorderRadius } from "@/constants/theme";
-import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
 
 interface SkeletonProps {
   width?: number | `${number}%`;
@@ -152,8 +151,6 @@ export const SkeletonListItem = ({
 }: SkeletonListItemProps) => {
   const { theme } = useTheme();
   const { isRTL } = useLanguage();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-
   const avatarEl = showAvatar ? (
     <Skeleton
       width={avatarSize}
@@ -186,11 +183,9 @@ export const SkeletonListItem = ({
         style,
       ]}
     >
-      {shouldSwap ? (
-        <>{actionEl}{contentEl}{avatarEl}</>
-      ) : (
-        <>{avatarEl}{contentEl}{actionEl}</>
-      )}
+      {avatarEl}
+      {contentEl}
+      {actionEl}
     </View>
   );
 };
@@ -257,8 +252,6 @@ export const SkeletonDashboard = ({
 }: SkeletonDashboardProps) => {
   const { theme } = useTheme();
   const { isRTL } = useLanguage();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-
   const cardElements = Array.from({ length: Math.min(cards, 4) }).map((_, index) => (
     <View
       key={index}
@@ -280,7 +273,7 @@ export const SkeletonDashboard = ({
     <View style={style}>
       <Skeleton width="50%" height={24} style={{ marginBottom: Spacing.lg }} />
       <View style={[styles.statsRow, { flexDirection: 'row' }]}>
-        {shouldSwap ? cardElements.reverse() : cardElements}
+        {cardElements}
       </View>
       <Skeleton width="40%" height={20} style={{ marginTop: Spacing.xl, marginBottom: Spacing.md }} />
       <SkeletonList count={3} />

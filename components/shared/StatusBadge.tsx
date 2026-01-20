@@ -3,10 +3,8 @@ import { View, StyleSheet } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { useTheme } from "@/hooks/useTheme";
-import { useLanguage } from "@/contexts/LanguageContext";
 import { applyOpacity } from "@/utils/statusStyles";
 import { Spacing, BorderRadius } from "@/constants/theme";
-import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
 
 interface StatusBadgeProps {
   label: string;
@@ -22,8 +20,6 @@ export const StatusBadge = ({
   size = 'md' 
 }: StatusBadgeProps) => {
   const { theme } = useTheme();
-  const { isRTL } = useLanguage();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
   
   const getColor = () => {
     switch (variant) {
@@ -70,11 +66,8 @@ export const StatusBadge = ({
         flexDirection: 'row',
       }
     ]}>
-      {shouldSwap ? (
-        <>{textEl}{iconEl}</>
-      ) : (
-        <>{iconEl}{textEl}</>
-      )}
+      {iconEl}
+      {textEl}
     </View>
   );
 };
@@ -111,21 +104,13 @@ interface StatusAccentProps {
 }
 
 export const StatusAccent = ({ color, width = 4 }: StatusAccentProps) => {
-  const { isRTL } = useLanguage();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  
-  // Position on the "start" side: left in LTR, right in RTL
-  // Use isRTL for I18nManager-based RTL, or shouldSwap for manual fallback
-  const shouldPositionOnRight = isRTL || shouldSwap;
-  
+  // Use start positioning - I18nManager handles RTL automatically
   return (
     <View style={[
       styles.accent, 
       { 
         backgroundColor: color, 
         width,
-        left: shouldPositionOnRight ? undefined : 0,
-        right: shouldPositionOnRight ? 0 : undefined,
       }
     ]} />
   );
@@ -157,6 +142,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     bottom: 0,
+    start: 0,
     borderTopStartRadius: BorderRadius.md,
     borderBottomStartRadius: BorderRadius.md,
   },

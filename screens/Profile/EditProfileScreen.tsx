@@ -20,7 +20,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { authService } from "@/services/api/authService";
 import { useToast } from "@/contexts/ToastContext";
 import { ApiException } from "@/api/errors";
-import { shouldSwapChildrenForRTL } from "@/utils/rtlInitializer";
 
 interface EditProfileScreenProps {
   userRole?: UserRole;
@@ -35,9 +34,7 @@ export default function EditProfileScreen({
   onCancel
 }: EditProfileScreenProps) {
   const { theme } = useTheme();
-  const { t, isRTL } = useTranslation();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  const { formatDate: fmtDate } = useFormatters();
+  const { t, isRTL } = useTranslation();  const { formatDate: fmtDate } = useFormatters();
   const insets = useSafeAreaInsets();
   const { user, refreshUser } = useAuth();
   const { showSuccess, showError } = useToast();

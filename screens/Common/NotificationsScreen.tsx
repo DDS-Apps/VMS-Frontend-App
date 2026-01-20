@@ -1,6 +1,5 @@
 import React, { useState, useCallback } from "react";
 import { View, StyleSheet, Pressable, ActivityIndicator } from "react-native";
-import { shouldSwapChildrenForRTL } from "@/utils/rtlInitializer";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
@@ -168,35 +167,17 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
   return (
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
       <View style={[styles.header, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
-        {shouldSwapChildrenForRTL(isRTL) ? (
-          <>
-            <Pressable 
-              onPress={handleMarkAllAsRead}
-              disabled={markAllAsReadMutation.isPending}
-            >
-              <ThemedText style={[Typography.bodySmall, { color: theme.primary }]}>
-                {markAllAsReadMutation.isPending ? t('common.loading') : t('notifications.markAllRead')}
-              </ThemedText>
-            </Pressable>
-            <ThemedText style={[Typography.title, { textAlign: isRTL ? 'right' : 'left' }]}>
-              {t('notifications.title')}
-            </ThemedText>
-          </>
-        ) : (
-          <>
-            <ThemedText style={[Typography.title, { textAlign: isRTL ? 'right' : 'left' }]}>
-              {t('notifications.title')}
-            </ThemedText>
-            <Pressable 
-              onPress={handleMarkAllAsRead}
-              disabled={markAllAsReadMutation.isPending}
-            >
-              <ThemedText style={[Typography.bodySmall, { color: theme.primary }]}>
-                {markAllAsReadMutation.isPending ? t('common.loading') : t('notifications.markAllRead')}
-              </ThemedText>
-            </Pressable>
-          </>
-        )}
+        <ThemedText style={[Typography.title, { textAlign: isRTL ? 'right' : 'left' }]}>
+          {t('notifications.title')}
+        </ThemedText>
+        <Pressable 
+          onPress={handleMarkAllAsRead}
+          disabled={markAllAsReadMutation.isPending}
+        >
+          <ThemedText style={[Typography.bodySmall, { color: theme.primary }]}>
+            {markAllAsReadMutation.isPending ? t('common.loading') : t('notifications.markAllRead')}
+          </ThemedText>
+        </Pressable>
       </View>
 
       <Spacer height={Spacing.lg} />
@@ -255,7 +236,6 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
           const { icon, variant } = getNotificationConfig(notification.type);
           const accentColor = getVariantColor(variant);
           const { title: localizedTitle, message: localizedMessage } = getLocalizedContent(notification);
-          const shouldSwapChildren = shouldSwapChildrenForRTL(isRTL);
           
           const iconElement = (
             <View style={[styles.iconContainer, { backgroundColor: applyOpacity(accentColor, '15') }]}>
@@ -274,21 +254,10 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
               </ThemedText>
               <Spacer height={Spacing.sm} />
               <View style={[styles.timeContainer, { flexDirection: 'row', gap: 4 }]}>
-                {shouldSwapChildren ? (
-                  <>
-                    <ThemedText style={[styles.timeText, { color: theme.textSecondary }]}>
-                      {formatTime(notification.createdAt)}
-                    </ThemedText>
-                    <DDIcon name="clock" size={12} variant="muted" />
-                  </>
-                ) : (
-                  <>
-                    <DDIcon name="clock" size={12} variant="muted" />
-                    <ThemedText style={[styles.timeText, { color: theme.textSecondary }]}>
-                      {formatTime(notification.createdAt)}
-                    </ThemedText>
-                  </>
-                )}
+                <DDIcon name="clock" size={12} variant="muted" />
+                <ThemedText style={[styles.timeText, { color: theme.textSecondary }]}>
+                  {formatTime(notification.createdAt)}
+                </ThemedText>
               </View>
             </View>
           );
@@ -316,17 +285,8 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
                   <View style={[styles.unreadDot, { backgroundColor: theme.primary, start: isRTL ? Spacing.md : undefined, end: isRTL ? undefined : Spacing.md }]} />
                 ) : null}
 
-                {shouldSwapChildren ? (
-                  <>
-                    {contentElement}
-                    {iconElement}
-                  </>
-                ) : (
-                  <>
-                    {iconElement}
-                    {contentElement}
-                  </>
-                )}
+                {iconElement}
+                {contentElement}
               </Pressable>
               <Spacer height={Spacing.md} />
             </View>

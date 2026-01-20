@@ -12,7 +12,6 @@ import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { applyOpacity } from '@/utils/statusStyles';
-import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
 import { 
   getSystemStats, 
   getStaffOverview, 
@@ -145,9 +144,7 @@ function StaffCard({ title, icon, total, details, onPress }: StaffCardProps) {
 export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdminDashboardScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { isRTL } = useLanguage();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  const [stats, setStats] = useState<SystemStats | null>(null);
+  const { isRTL } = useLanguage();  const [stats, setStats] = useState<SystemStats | null>(null);
   const [staffOverview, setStaffOverview] = useState<StaffOverview | null>(null);
   const [activities, setActivities] = useState<RecentActivity[]>([]);
 
