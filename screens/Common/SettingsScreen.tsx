@@ -20,6 +20,7 @@ import { UserRole } from "@/types/vms.types";
 import { applyOpacity } from "@/utils/statusStyles";
 import { SupportedLocale } from "@/constants/i18n";
 import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
+import { LanguageChangeOverlay } from '@/components/LanguageChangeOverlay';
 import {
   useNotificationPreferencesQuery,
   useUpdateNotificationPreferencesMutation,
@@ -41,7 +42,8 @@ export default function SettingsScreen({
   onLogout 
 }: SettingsScreenProps) {
   const { theme, isDark, toggleTheme } = useTheme();
-  const { t, locale, setLocale, locales, isRTL } = useTranslation();  const insets = useSafeAreaInsets();
+  const { t, locale, setLocale, locales, isRTL, isChangingLanguage } = useTranslation();
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<NativeStackNavigationProp<{ EditProfile: undefined }>>();
   
   const { data: preferences, isLoading: isLoadingPrefs } = useNotificationPreferencesQuery();
@@ -164,6 +166,7 @@ export default function SettingsScreen({
 
   return (
     <>
+      <LanguageChangeOverlay visible={isChangingLanguage} />
       <InAppNotificationToast
         visible={showInAppToast}
         title={toastMessage.title}

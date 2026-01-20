@@ -101,6 +101,14 @@ export function resolveBootstrapPromise(result: { locale: SupportedLocale; isRTL
   // This is expected - bootstrap should only complete once
 }
 
+/**
+ * Check if bootstrap has already completed
+ * Used to determine if we're in an initial load or reload scenario
+ */
+export function isBootstrapResolved(): boolean {
+  return bootstrapResolve === null;
+}
+
 export const LOCALE_CONFIG: Record<SupportedLocale, { isRTL: boolean; name: string; nativeName: string }> = {
   en: { isRTL: false, name: 'English', nativeName: 'English' },
   ar: { isRTL: true, name: 'Arabic', nativeName: 'العربية' },

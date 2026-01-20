@@ -7,11 +7,12 @@ interface UseTranslationReturn {
   locale: SupportedLocale;
   isRTL: boolean;
   setLocale: (locale: SupportedLocale) => Promise<void>;
+  isChangingLanguage: boolean;
   locales: Array<{ code: SupportedLocale; name: string; nativeName: string; isRTL: boolean }>;
 }
 
 export function useTranslation(): UseTranslationReturn {
-  const { locale, isRTL, setLocale } = useLanguage();
+  const { locale, isRTL, setLocale, isChangingLanguage } = useLanguage();
 
   const t = useCallback(
     (key: string, params?: Record<string, string | number>): string => {
@@ -34,6 +35,7 @@ export function useTranslation(): UseTranslationReturn {
     locale,
     isRTL,
     setLocale,
+    isChangingLanguage,
     locales,
   };
 }

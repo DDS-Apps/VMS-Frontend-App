@@ -41,6 +41,7 @@ interface LanguageContextType {
   isRTL: boolean;
   setLocale: (locale: SupportedLocale) => Promise<void>;
   isLoading: boolean;
+  isChangingLanguage: boolean;
   layoutKey: string;
 }
 
@@ -77,6 +78,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
   
   const [locale, setLocaleState] = useState<SupportedLocale>(initialLocale);
   const [isLoading, setIsLoading] = useState(true);
+  const [isChangingLanguage, setIsChangingLanguage] = useState(false);
   const [layoutKey, setLayoutKey] = useState<string>(`${initialLocale}-${initialIsRTL ? 'rtl' : 'ltr'}-0`);
 
   // Verify locale matches stored preference on mount
@@ -132,6 +134,9 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
     if (newLocale === locale) return;
 
     console.log('[LanguageContext] Changing locale:', { from: locale, to: newLocale });
+    
+    // Show loading overlay
+    setIsChangingLanguage(true);
 
     try {
       // Use localeManager to change language
@@ -145,10 +150,15 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
       // If restart/reload is needed, trigger it
       if (result.needsRestart) {
         console.log('[LanguageContext] Triggering restart/reload...');
+        // Keep the loading overlay visible until restart completes
         await restartApp(newLocale);
+      } else {
+        // No restart needed, hide loading overlay
+        setIsChangingLanguage(false);
       }
     } catch (error) {
       console.error('[LanguageContext] Error changing locale:', error);
+      setIsChangingLanguage(false);
     }
   }, [locale]);
 
@@ -158,6 +168,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
     isRTL,
     setLocale: handleSetLocale,
     isLoading,
+    isChangingLanguage,
     layoutKey,
   };
 

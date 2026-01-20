@@ -717,6 +717,9 @@ export interface TranslationKeys {
     darkModeDesc: string;
     language: string;
     languageDesc: string;
+    changingLanguage: string;
+    pageWillReload: string;
+    appWillRestart: string;
     appName: string;
     companyName: string;
     notificationSettings: string;
