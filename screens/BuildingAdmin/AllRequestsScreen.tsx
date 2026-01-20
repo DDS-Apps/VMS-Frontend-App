@@ -245,7 +245,7 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
             <ThemedText style={[Typography.body, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left', flex: 1 }]} numberOfLines={1}>
               {request.visitorName}
             </ThemedText>
-          </View>
+          </DirectionalRow>
 
           <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
             {t('reception.hostName')}: {request.hostName}

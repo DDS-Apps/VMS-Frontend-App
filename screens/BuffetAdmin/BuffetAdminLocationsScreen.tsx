@@ -264,7 +264,7 @@ export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLo
             iconColor={theme.primary}
             cardBgColor={applyOpacity(theme.primary, '06')}
           />
-        </View>
+        </DirectionalRow>
 
         <Spacer height={Spacing.xl} />
 

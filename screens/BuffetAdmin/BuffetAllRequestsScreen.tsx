@@ -301,7 +301,7 @@ const SectionHeader = ({
             />
           </Pressable>
         </View>
-      </View>
+      </DirectionalRow>
 
       <Spacer height={Spacing.md} />
 

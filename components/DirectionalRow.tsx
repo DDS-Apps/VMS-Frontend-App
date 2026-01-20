@@ -119,6 +119,10 @@ interface DirectionalRowProps {
   justifyContent?: ViewStyle['justifyContent'];
   /** Force a specific direction, ignoring RTL context */
   forceDirection?: 'row' | 'row-reverse';
+  /** Test ID for testing purposes */
+  testID?: string;
+  /** Native ID for native accessibility */
+  nativeID?: string;
 }
 
 export function DirectionalRow({ 
@@ -128,6 +132,8 @@ export function DirectionalRow({
   alignItems = 'center',
   justifyContent = 'flex-start',
   forceDirection,
+  testID,
+  nativeID,
 }: DirectionalRowProps) {
   const { isRTL } = useLanguage();
   const { isInsideDirectionalRow, depth } = useDirectionalContext();
@@ -147,7 +153,7 @@ export function DirectionalRow({
   // Wrap children in context to track nesting
   return (
     <DirectionalContext.Provider value={{ isInsideDirectionalRow: true, depth: depth + 1 }}>
-      <View style={finalStyle}>
+      <View style={finalStyle} testID={testID} nativeID={nativeID}>
         {children}
       </View>
     </DirectionalContext.Provider>

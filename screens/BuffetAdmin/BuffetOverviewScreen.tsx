@@ -344,7 +344,7 @@ export default function BuffetOverviewScreen({ navigation }: BuffetOverviewScree
           iconColor={theme.warning}
           cardBgColor={applyOpacity(theme.warning, '06')}
         />
-      </View>
+      </DirectionalRow>
 
       <Spacer height={Spacing.xl} />
 
@@ -401,7 +401,7 @@ export default function BuffetOverviewScreen({ navigation }: BuffetOverviewScree
               {stats.statusCounts.completed}
             </ThemedText>
           </View>
-        </View>
+        </DirectionalRow>
       </View>
 
       <Spacer height={Spacing.xl} />

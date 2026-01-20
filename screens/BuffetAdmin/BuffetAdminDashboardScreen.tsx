@@ -501,7 +501,7 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
           iconColor={theme.success}
           cardBgColor={applyOpacity(theme.success, '06')}
         />
-      </View>
+      </DirectionalRow>
 
       <Spacer height={Spacing.xl} />
 

@@ -156,7 +156,7 @@ export default function BuffetAdminStaffScreen() {
               </View>
             </View>
           </View>
-        </View>
+        </DirectionalRow>
 
         <Spacer height={Spacing.md} />
 
@@ -165,7 +165,7 @@ export default function BuffetAdminStaffScreen() {
           <ThemedText style={[styles.metaText, { color: theme.textSecondary }]}>
             {item.currentTasks} {t('dashboard.activeTasks')}
           </ThemedText>
-        </View>
+        </DirectionalRow>
 
         <Spacer height={Spacing.md} />
 
@@ -180,7 +180,7 @@ export default function BuffetAdminStaffScreen() {
             <ThemedText style={[styles.statusLabel, { color: isOnDuty ? theme.success : theme.textSecondary }]}>
               {isOnDuty ? t('dashboard.onDuty') : t('status.inactive')}
             </ThemedText>
-          </View>
+          </DirectionalRow>
 
           <Pressable
             style={[
@@ -208,7 +208,7 @@ export default function BuffetAdminStaffScreen() {
               </>
             )}
           </Pressable>
-        </View>
+        </DirectionalRow>
       </View>
     );
   };
@@ -248,7 +248,7 @@ export default function BuffetAdminStaffScreen() {
           iconColor={theme.textSecondary}
           cardBgColor={applyOpacity(theme.textSecondary, '06')}
         />
-      </View>
+      </DirectionalRow>
 
       <Spacer height={Spacing.xl} />
 
