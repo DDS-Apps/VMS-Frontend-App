@@ -322,6 +322,8 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                 decelerationRate="fast"
                 nestedScrollEnabled={true}
                 keyboardShouldPersistTaps="handled"
+                directionalLockEnabled={true}
+                scrollEventThrottle={16}
               >
                 {upcomingThisWeek.map((request, index) => (
                   <VisitorRequestCard
@@ -419,6 +421,8 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                 decelerationRate="fast"
                 nestedScrollEnabled={true}
                 keyboardShouldPersistTaps="handled"
+                directionalLockEnabled={true}
+                scrollEventThrottle={16}
               >
                 {recentRequests.map((request, index) => (
                   <VisitorRequestCard
@@ -516,6 +520,8 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                 decelerationRate="fast"
                 nestedScrollEnabled={true}
                 keyboardShouldPersistTaps="handled"
+                directionalLockEnabled={true}
+                scrollEventThrottle={16}
               >
                 {pendingApprovals.slice(0, 5).map((request, index) => (
                   <VisitorRequestCard
@@ -621,6 +627,8 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                 decelerationRate="fast"
                 nestedScrollEnabled={true}
                 keyboardShouldPersistTaps="handled"
+                directionalLockEnabled={true}
+                scrollEventThrottle={16}
               >
                 {awaitingVisitorAcceptance.slice(0, 5).map((request, index) => (
                   <VisitorRequestCard
@@ -720,6 +728,8 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                 decelerationRate="fast"
                 nestedScrollEnabled={true}
                 keyboardShouldPersistTaps="handled"
+                directionalLockEnabled={true}
+                scrollEventThrottle={16}
               >
                 {walkInVisitors.slice(0, 5).map((request, index) => (
                   <VisitorRequestCard

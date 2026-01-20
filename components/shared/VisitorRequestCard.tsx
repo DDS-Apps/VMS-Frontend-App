@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { View, StyleSheet, Pressable, ViewStyle } from "react-native";
+import { View, StyleSheet, ViewStyle, Pressable } from "react-native";
+import { TouchableOpacity } from "react-native-gesture-handler";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { DDIcon } from "@/components/DDIcon";
@@ -411,17 +412,16 @@ export function VisitorRequestCard({
   };
 
   return (
-    <Pressable
+    <TouchableOpacity
       onPress={handlePress}
       onLongPress={onLongPress}
-      delayPressIn={0}
+      activeOpacity={0.9}
       hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
-      style={({ pressed }) => [
+      style={[
         styles.container,
         {
           backgroundColor: theme.surface,
           width: width,
-          opacity: pressed ? 0.9 : 1,
         },
         style,
       ]}
@@ -452,7 +452,7 @@ export function VisitorRequestCard({
         </View>
 
       </ThemedView>
-    </Pressable>
+    </TouchableOpacity>
   );
 }
 

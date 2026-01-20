@@ -168,17 +168,35 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
   return (
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
       <View style={[styles.header, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
-        <ThemedText style={[Typography.title, { textAlign: isRTL ? 'right' : 'left' }]}>
-          {t('notifications.title')}
-        </ThemedText>
-        <Pressable 
-          onPress={handleMarkAllAsRead}
-          disabled={markAllAsReadMutation.isPending}
-        >
-          <ThemedText style={[Typography.bodySmall, { color: theme.primary, textAlign: isRTL ? 'left' : 'right' }]}>
-            {markAllAsReadMutation.isPending ? t('common.loading') : t('notifications.markAllRead')}
-          </ThemedText>
-        </Pressable>
+        {shouldSwapChildrenForRTL(isRTL) ? (
+          <>
+            <Pressable 
+              onPress={handleMarkAllAsRead}
+              disabled={markAllAsReadMutation.isPending}
+            >
+              <ThemedText style={[Typography.bodySmall, { color: theme.primary }]}>
+                {markAllAsReadMutation.isPending ? t('common.loading') : t('notifications.markAllRead')}
+              </ThemedText>
+            </Pressable>
+            <ThemedText style={[Typography.title, { textAlign: isRTL ? 'right' : 'left' }]}>
+              {t('notifications.title')}
+            </ThemedText>
+          </>
+        ) : (
+          <>
+            <ThemedText style={[Typography.title, { textAlign: isRTL ? 'right' : 'left' }]}>
+              {t('notifications.title')}
+            </ThemedText>
+            <Pressable 
+              onPress={handleMarkAllAsRead}
+              disabled={markAllAsReadMutation.isPending}
+            >
+              <ThemedText style={[Typography.bodySmall, { color: theme.primary }]}>
+                {markAllAsReadMutation.isPending ? t('common.loading') : t('notifications.markAllRead')}
+              </ThemedText>
+            </Pressable>
+          </>
+        )}
       </View>
 
       <Spacer height={Spacing.lg} />
@@ -287,6 +305,8 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
                     borderColor: theme.border,
                     shadowColor: '#000',
                     flexDirection: 'row',
+                    paddingStart: isRTL ? Spacing.lg : Spacing.xl,
+                    paddingEnd: isRTL ? Spacing.xl : Spacing.lg,
                   },
                 ]}
               >
@@ -336,7 +356,6 @@ const styles = StyleSheet.create({
   activeTab: {},
   notificationCard: {
     padding: Spacing.lg,
-    paddingStart: Spacing.xl,
     borderRadius: BorderRadius.md,
     position: 'relative',
     overflow: 'hidden',
