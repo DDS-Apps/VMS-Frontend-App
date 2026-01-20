@@ -116,17 +116,21 @@ export async function saveLocale(locale: SupportedLocale): Promise<void> {
 /**
  * Applies I18nManager settings for RTL
  * IMPORTANT: This MUST be called before React renders on mobile
+ * 
+ * NOTE: swapLeftAndRightInRTL is set to FALSE to prevent RN from auto-swapping
+ * row <-> row-reverse. DirectionalRow handles this explicitly instead.
+ * This prevents double-flip issues and ensures single source of truth.
  */
 export function applyI18nManagerSettings(isRTL: boolean): void {
   // Enable RTL support
   I18nManager.allowRTL(true);
   
-  // Enable automatic left/right property swapping
+  // DISABLE automatic row/row-reverse swapping - DirectionalRow handles this
   if (typeof I18nManager.swapLeftAndRightInRTL === 'function') {
-    I18nManager.swapLeftAndRightInRTL(true);
+    I18nManager.swapLeftAndRightInRTL(false);
   }
   
-  // Apply the RTL direction
+  // Apply the RTL direction (for text, start/end properties, etc.)
   I18nManager.forceRTL(isRTL);
 }
 
@@ -172,8 +176,9 @@ export interface BootstrapResult {
 export async function bootstrapLocale(): Promise<BootstrapResult> {
   // Step 1: Enable RTL support immediately
   I18nManager.allowRTL(true);
+  // DISABLE auto-swap - DirectionalRow handles row/row-reverse explicitly
   if (typeof I18nManager.swapLeftAndRightInRTL === 'function') {
-    I18nManager.swapLeftAndRightInRTL(true);
+    I18nManager.swapLeftAndRightInRTL(false);
   }
   
   // Step 2: Load stored locale
@@ -218,8 +223,9 @@ export async function bootstrapLocale(): Promise<BootstrapResult> {
 export function bootstrapLocaleSync(): { locale: SupportedLocale; isRTL: boolean } {
   // Enable RTL support immediately
   I18nManager.allowRTL(true);
+  // DISABLE auto-swap - DirectionalRow handles row/row-reverse explicitly
   if (typeof I18nManager.swapLeftAndRightInRTL === 'function') {
-    I18nManager.swapLeftAndRightInRTL(true);
+    I18nManager.swapLeftAndRightInRTL(false);
   }
   
   if (Platform.OS === 'web') {
