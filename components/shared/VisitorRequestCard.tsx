@@ -267,7 +267,7 @@ export function VisitorRequestCard({
 
   const renderServicesAndStatus = () => (
     <DirectionalRow style={styles.servicesStatusRow}>
-      <View style={styles.servicesContainer}>
+      <View style={[styles.servicesContainer, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
         <ServiceIconsRow request={request} showWalkIn={true} />
       </View>
       {renderStatusBadge()}

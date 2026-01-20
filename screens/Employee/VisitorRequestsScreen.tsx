@@ -157,7 +157,7 @@ const DateTimeDisplay = ({ date, time, duration, theme, compact = false }: { dat
 
   const shouldSwap = shouldSwapChildrenForRTL(isRTL);
   return (
-    <View style={styles.dateTimeRowSplit}>
+    <View style={[styles.dateTimeRowSplit, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
       <View style={[styles.dateTimeLeft, { flexDirection: 'row' }]}>
         {shouldSwap ? (
           <>
@@ -427,50 +427,72 @@ const SectionHeader = ({
     ? ['all', 'pending', 'awaiting', 'walkin']
     : ['all', 'upcoming', 'waiting', 'past', 'walkin'];
 
+  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
+  
+  const titleElement = (
+    <ThemedText style={[Typography.subtitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+      {t('navigation.myRequests')}
+    </ThemedText>
+  );
+  
+  const viewToggleElement = (
+    <View style={[styles.viewToggle, { flexDirection: 'row' }]}>
+      <Pressable
+        style={[
+          styles.viewToggleButton,
+          styles.viewToggleButtonLeft,
+          { 
+            backgroundColor: viewMode === 'card' ? theme.primary : theme.surface,
+            borderColor: theme.border,
+          },
+        ]}
+        onPress={() => onViewModeChange('card')}
+        android_ripple={{ color: applyOpacity(theme.primary, '10') }}
+      >
+        <DDIcon 
+          name="grid" 
+          size={16} 
+          color={viewMode === 'card' ? theme.buttonText : theme.textSecondary} 
+        />
+      </Pressable>
+      <Pressable
+        style={[
+          styles.viewToggleButton,
+          styles.viewToggleButtonRight,
+          { 
+            backgroundColor: viewMode === 'list' ? theme.primary : theme.surface,
+            borderColor: theme.border,
+          },
+        ]}
+        onPress={() => onViewModeChange('list')}
+        android_ripple={{ color: applyOpacity(theme.primary, '10') }}
+      >
+        <DDIcon 
+          name="menu" 
+          size={16} 
+          color={viewMode === 'list' ? theme.buttonText : theme.textSecondary} 
+        />
+      </Pressable>
+    </View>
+  );
+  
+  // For RTL: reverse tabs order so they start from right
+  const displayTabs = isRTL ? [...tabs].reverse() : tabs;
+  
   return (
   <>
     <View style={[styles.sectionTitleRow, styles.paddedContent, { flexDirection: 'row' }]}>
-      <ThemedText style={[Typography.subtitle]}>
-        {t('navigation.myRequests')}
-      </ThemedText>
-      <View style={[styles.viewToggle, { flexDirection: 'row' }]}>
-        <Pressable
-          style={[
-            styles.viewToggleButton,
-            styles.viewToggleButtonLeft,
-            { 
-              backgroundColor: viewMode === 'card' ? theme.primary : theme.surface,
-              borderColor: theme.border,
-            },
-          ]}
-          onPress={() => onViewModeChange('card')}
-          android_ripple={{ color: applyOpacity(theme.primary, '10') }}
-        >
-          <DDIcon 
-            name="grid" 
-            size={16} 
-            color={viewMode === 'card' ? theme.buttonText : theme.textSecondary} 
-          />
-        </Pressable>
-        <Pressable
-          style={[
-            styles.viewToggleButton,
-            styles.viewToggleButtonRight,
-            { 
-              backgroundColor: viewMode === 'list' ? theme.primary : theme.surface,
-              borderColor: theme.border,
-            },
-          ]}
-          onPress={() => onViewModeChange('list')}
-          android_ripple={{ color: applyOpacity(theme.primary, '10') }}
-        >
-          <DDIcon 
-            name="menu" 
-            size={16} 
-            color={viewMode === 'list' ? theme.buttonText : theme.textSecondary} 
-          />
-        </Pressable>
-      </View>
+      {shouldSwap ? (
+        <>
+          {viewToggleElement}
+          {titleElement}
+        </>
+      ) : (
+        <>
+          {titleElement}
+          {viewToggleElement}
+        </>
+      )}
     </View>
 
     <Spacer height={LAYOUT.contentGap} />
@@ -480,8 +502,9 @@ const SectionHeader = ({
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={[styles.tabsContainer, { flexDirection: 'row' }]}
       nestedScrollEnabled={true}
+      keyboardShouldPersistTaps="handled"
     >
-      {tabs.map((tab) => (
+      {displayTabs.map((tab) => (
         <Pressable
           key={tab}
           style={[
