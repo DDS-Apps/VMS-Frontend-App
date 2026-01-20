@@ -162,11 +162,23 @@ function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
   // Show splash while language is loading OR while splash animation is still showing
   // Unless we've timed out and need to force bypass
   const effectiveLanguageLoading = languageLoading && !forceBypassLanguageLoading;
+  
+  console.log('[AppContent] Render state:', { 
+    showSplash, 
+    effectiveLanguageLoading, 
+    authLoading, 
+    isAuthenticated,
+    hasUser: !!user,
+    inviteToken: !!inviteToken
+  });
+  
   if (showSplash || effectiveLanguageLoading) {
+    console.log('[AppContent] Showing SplashScreen');
     return <SplashScreen onFinish={handleSplashFinish} />;
   }
 
   if (inviteToken) {
+    console.log('[AppContent] Showing VisitorInviteScreen');
     return (
       <VisitorInviteScreen 
         route={{ params: { token: inviteToken } }} 
@@ -175,6 +187,7 @@ function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
   }
 
   if (authLoading) {
+    console.log('[AppContent] Showing auth loading spinner');
     return (
       <View style={[styles.loadingContainer, { backgroundColor: isDarkMode ? Colors.dark.background : Colors.light.background }]}>
         <ActivityIndicator size="large" color={isDarkMode ? Colors.dark.primary : Colors.light.primary} />
@@ -183,6 +196,7 @@ function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
   }
 
   if (!isAuthenticated || !user) {
+    console.log('[AppContent] Showing LoginScreen');
     return <LoginScreen key={layoutKey} onLoginSuccess={handleLoginSuccess} />;
   }
 
