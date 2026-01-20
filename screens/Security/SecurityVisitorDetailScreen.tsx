@@ -141,19 +141,21 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.infoRowNew, { flexDirection: 'row', gap: Spacing.md }]}>
-          <DirectionalRow><DDIcon name="mail" size={16} variant="muted" /><ThemedText style={[Typography.body, { color: theme.textSecondary, flex: 1, fontSize: 14, textAlign: 'right' }]}>
-                {visitorData.visitorEmail || '-'}
-              </ThemedText></DirectionalRow>
-        </View>
+        <DirectionalRow style={[styles.infoRowNew, { gap: Spacing.md }]}>
+          <DDIcon name="mail" size={16} variant="muted" />
+          <ThemedText style={[Typography.body, { color: theme.textSecondary, flex: 1, fontSize: 14, textAlign: 'right' }]}>
+            {visitorData.visitorEmail || '-'}
+          </ThemedText>
+        </DirectionalRow>
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.infoRowNew, { flexDirection: 'row', gap: Spacing.md }]}>
-          <DirectionalRow><DDIcon name="phone" size={16} variant="muted" /><ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, textAlign: 'right' }]}>
-                {visitorData.visitorPhone || '-'}
-              </ThemedText></DirectionalRow>
-        </View>
+        <DirectionalRow style={[styles.infoRowNew, { gap: Spacing.md }]}>
+          <DDIcon name="phone" size={16} variant="muted" />
+          <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, textAlign: 'right' }]}>
+            {visitorData.visitorPhone || '-'}
+          </ThemedText>
+        </DirectionalRow>
       </ThemedView>
 
       <Spacer height={Spacing.lg} />
@@ -164,7 +166,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
         </ThemedText>
         <Spacer height={Spacing.xl} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: 'row' }]}>
+        <DirectionalRow style={styles.serviceRowNew}>
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="calendar" size={18} color={theme.text} />
           </View>
@@ -176,11 +178,11 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
               {formatDate(new Date(visitorData.scheduledDate), 'long')}
             </ThemedText>
           </View>
-        </View>
+        </DirectionalRow>
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: 'row' }]}>
+        <DirectionalRow style={styles.serviceRowNew}>
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="clock" size={18} color={theme.text} />
           </View>
@@ -192,11 +194,11 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
               {formatTimeFromString(visitorData.scheduledTime)}
             </ThemedText>
           </View>
-        </View>
+        </DirectionalRow>
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: 'row' }]}>
+        <DirectionalRow style={styles.serviceRowNew}>
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="user" size={18} color={theme.text} />
           </View>
@@ -208,13 +210,13 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
               {visitorData.hostName}{visitorData.hostDepartment ? ` - ${visitorData.hostDepartment}` : ''}
             </ThemedText>
           </View>
-        </View>
+        </DirectionalRow>
 
         {visitorData.purpose ? (
           <>
             <Spacer height={Spacing.lg} />
 
-            <View style={[styles.serviceRowNew, { flexDirection: 'row' }]}>
+            <DirectionalRow style={styles.serviceRowNew}>
               <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
                 <DDIcon name="briefcase" size={18} color={theme.text} />
               </View>
@@ -226,7 +228,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                   {visitorData.purpose}
                 </ThemedText>
               </View>
-            </View>
+            </DirectionalRow>
           </>
         ) : null}
       </ThemedView>
@@ -239,7 +241,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
         </ThemedText>
         <Spacer height={Spacing.xl} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: 'row' }]}>
+        <DirectionalRow style={styles.serviceRowNew}>
           <View style={[styles.serviceIcon, { backgroundColor: hasParking ? applyOpacity(theme.primary, '15') : applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="map-pin" size={18} color={hasParking ? theme.primary : theme.text} />
           </View>
@@ -252,15 +254,15 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                 {parkingInfo.text}
               </ThemedText>
             ) : (
-              <View style={[styles.noBadge, { backgroundColor: applyOpacity(theme.textSecondary, '12'), flexDirection: 'row' }]}>
+              <DirectionalRow style={[styles.noBadge, { backgroundColor: applyOpacity(theme.textSecondary, '12') }]}>
                 <DDIcon name="x-circle" size={12} color={theme.textSecondary} />
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontWeight: '500', marginStart: 4, fontSize: 12 }]}>
                   {parkingInfo.text}
                 </ThemedText>
-              </View>
+              </DirectionalRow>
             )}
           </View>
-        </View>
+        </DirectionalRow>
 
       </ThemedView>
 
@@ -275,7 +277,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
             <Spacer height={Spacing.xl} />
 
             {visitorData.checkInTime ? (
-              <View style={[styles.serviceRowNew, { flexDirection: 'row' }]}>
+              <DirectionalRow style={styles.serviceRowNew}>
                 <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.success, '15') }]}>
                   <DDIcon name="log-in" size={18} color={theme.success} />
                 </View>
@@ -287,7 +289,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                     {formatTimeFromString(visitorData.checkInTime)}
                   </ThemedText>
                 </View>
-              </View>
+              </DirectionalRow>
             ) : null}
 
             {visitorData.checkInTime && visitorData.checkOutTime ? (
@@ -295,7 +297,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
             ) : null}
 
             {visitorData.checkOutTime ? (
-              <View style={[styles.serviceRowNew, { flexDirection: 'row' }]}>
+              <DirectionalRow style={styles.serviceRowNew}>
                 <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
                   <DDIcon name="log-out" size={18} color={theme.textSecondary} />
                 </View>
@@ -307,7 +309,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                     {formatTimeFromString(visitorData.checkOutTime)}
                   </ThemedText>
                 </View>
-              </View>
+              </DirectionalRow>
             ) : null}
           </ThemedView>
         </>
@@ -318,14 +320,12 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
           <Spacer height={Spacing.lg} />
 
           <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
-            <View style={[styles.notesHeader, { flexDirection: 'row' }]}>
-              <DirectionalRow>
-                <DDIcon name="file-text" size={16} color={theme.info} />
-                <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginEnd: Spacing.sm, fontSize: 14, color: theme.text }]}>
-                  {t('form.notes')}
-                </ThemedText>
-              </DirectionalRow>
-            </View>
+            <DirectionalRow style={styles.notesHeader}>
+              <DDIcon name="file-text" size={16} color={theme.info} />
+              <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginEnd: Spacing.sm, fontSize: 14, color: theme.text }]}>
+                {t('form.notes')}
+              </ThemedText>
+            </DirectionalRow>
             <Spacer height={Spacing.sm} />
             <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, lineHeight: 20, textAlign: isRTL ? 'right' : 'left' }]}>
               {visitorData.notes}

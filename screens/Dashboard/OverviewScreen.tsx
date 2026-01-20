@@ -23,6 +23,7 @@ import {
   mapPendingApprovalToVisitorRequest,
   mapPendingHostWalkInToVisitorRequest,
 } from "@/utils/requestMappers";
+import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -249,7 +250,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
       {(userRole === 'employee' || userRole === 'manager') && (
         <>
           <View>
-            <View style={[styles.header, { flexDirection: 'row' }]}>
+            <DirectionalRow style={styles.header}>
               <View style={{ flex: 1 }}>
                 <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
                   {t('dashboard.upcomingVisitors')}
@@ -266,7 +267,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                   )}
                   style={({ pressed }) => [
                     styles.viewAllButton,
-                    { opacity: pressed ? 0.7 : 1, flexDirection: 'row', gap: Spacing.xs }
+                    { opacity: pressed ? 0.7 : 1, flexDirection: getFlexDirection(isRTL), gap: Spacing.xs }
                   ]}
                 >
                   <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
@@ -275,7 +276,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                   <DDIcon name="chevron-right" size={16} color={theme.primary} directionAware />
                 </Pressable>
               )}
-            </View>
+            </DirectionalRow>
 
             <Spacer height={Spacing.lg} />
 
@@ -320,7 +321,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
       {userRole === 'employee' && (
         <>
           <View>
-            <View style={[styles.header, { flexDirection: 'row' }]}>
+            <DirectionalRow style={styles.header}>
               <View style={{ flex: 1 }}>
                 <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
                   {t('dashboard.recentRequests')}
@@ -334,7 +335,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                   onPress={() => navigation.navigate(ROUTES.VISITOR_REQUESTS as never, { initialTab: 'all' } as never)}
                   style={({ pressed }) => [
                     styles.viewAllButton,
-                    { opacity: pressed ? 0.7 : 1, flexDirection: 'row', gap: Spacing.xs }
+                    { opacity: pressed ? 0.7 : 1, flexDirection: getFlexDirection(isRTL), gap: Spacing.xs }
                   ]}
                 >
                   <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
@@ -343,7 +344,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                   <DDIcon name="chevron-right" size={16} color={theme.primary} directionAware />
                 </Pressable>
               )}
-            </View>
+            </DirectionalRow>
 
             <Spacer height={Spacing.lg} />
 
@@ -388,7 +389,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
       {userRole === 'manager' && (
         <>
           <View>
-            <View style={[styles.header, { flexDirection: 'row' }]}>
+            <DirectionalRow style={styles.header}>
               <View style={{ flex: 1 }}>
                 <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
                   {t('dashboard.pendingApprovals')}
@@ -402,7 +403,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                   onPress={() => navigation.navigate(ROUTES.APPROVALS as never)}
                   style={({ pressed }) => [
                     styles.viewAllButton,
-                    { opacity: pressed ? 0.7 : 1, flexDirection: 'row', gap: Spacing.xs }
+                    { opacity: pressed ? 0.7 : 1, flexDirection: getFlexDirection(isRTL), gap: Spacing.xs }
                   ]}
                 >
                   <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
@@ -411,7 +412,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                   <DDIcon name="chevron-right" size={16} color={theme.primary} directionAware />
                 </Pressable>
               )}
-            </View>
+            </DirectionalRow>
 
             <Spacer height={Spacing.lg} />
 
@@ -458,7 +459,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
       {(userRole === 'manager' || userRole === 'employee') && (
         <>
           <View>
-            <View style={[styles.header, { flexDirection: 'row' }]}>
+            <DirectionalRow style={styles.header}>
               <View style={{ flex: 1 }}>
                 <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
                   {t('navigation.awaitingVisitor')}
@@ -475,7 +476,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                   )}
                   style={({ pressed }) => [
                     styles.viewAllButton,
-                    { opacity: pressed ? 0.7 : 1, flexDirection: 'row', gap: Spacing.xs }
+                    { opacity: pressed ? 0.7 : 1, flexDirection: getFlexDirection(isRTL), gap: Spacing.xs }
                   ]}
                 >
                   <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
@@ -484,7 +485,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                   <DDIcon name="chevron-right" size={16} color={theme.primary} directionAware />
                 </Pressable>
               )}
-            </View>
+            </DirectionalRow>
 
             <Spacer height={Spacing.lg} />
 
@@ -531,7 +532,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
       {(userRole === 'manager' || userRole === 'employee') && (
         <>
           <View>
-            <View style={[styles.header, { flexDirection: 'row' }]}>
+            <DirectionalRow style={styles.header}>
               <View style={{ flex: 1 }}>
                 <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
                   {t('navigation.walkInVisitors')}
@@ -545,7 +546,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                   onPress={() => navigation.navigate(ROUTES.VISITOR_REQUESTS as never, { initialTab: 'walkin' } as never)}
                   style={({ pressed }) => [
                     styles.viewAllButton,
-                    { opacity: pressed ? 0.7 : 1, flexDirection: 'row', gap: Spacing.xs }
+                    { opacity: pressed ? 0.7 : 1, flexDirection: getFlexDirection(isRTL), gap: Spacing.xs }
                   ]}
                 >
                   <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '500', fontSize: 13 }]}>
@@ -554,7 +555,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                   <DDIcon name="chevron-right" size={16} color={theme.primary} directionAware />
                 </Pressable>
               )}
-            </View>
+            </DirectionalRow>
 
             <Spacer height={Spacing.lg} />
 
@@ -615,7 +616,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
               <Spacer height={Spacing.lg} />
 
               <View style={{ padding: Spacing.md }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
+                <DirectionalRow style={{ justifyContent: 'space-around' }}>
                   <View style={{ alignItems: 'center' }}>
                     <DDIcon name="calendar" size={24} color={theme.primary} />
                     <Spacer height={Spacing.xs} />
@@ -634,7 +635,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                     <ThemedText style={[Typography.display, { fontSize: 28, lineHeight: 36, fontWeight: '600' }]}>1</ThemedText>
                     <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>{t('dashboard.next7Days')}</ThemedText>
                   </View>
-                </View>
+                </DirectionalRow>
               </View>
             </ThemedView>
 
@@ -655,7 +656,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
               <Spacer height={Spacing.lg} />
 
               <View style={{ padding: Spacing.md }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
+                <DirectionalRow style={{ justifyContent: 'space-around' }}>
                   <View style={{ alignItems: 'center' }}>
                     <DDIcon name="users" size={24} color={theme.primary} />
                     <Spacer height={Spacing.xs} />
@@ -674,7 +675,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                     <ThemedText style={[Typography.display, { fontSize: 28, lineHeight: 36, fontWeight: '600' }]}>6</ThemedText>
                     <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>{t('dashboard.onDuty')}</ThemedText>
                   </View>
-                </View>
+                </DirectionalRow>
               </View>
             </ThemedView>
           </View>

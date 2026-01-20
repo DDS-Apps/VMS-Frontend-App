@@ -1,6 +1,7 @@
 import React, { ReactNode } from 'react';
 import { View, ViewStyle, StyleProp } from 'react-native';
 import { Spacing } from '@/constants/theme';
+import DirectionalRow from '@/components/DirectionalRow';
 
 interface RTLInfoRowProps {
   icon: ReactNode;
@@ -12,7 +13,7 @@ interface RTLInfoRowProps {
 
 /**
  * RTL-aware info row with icon and content.
- * I18nManager handles flexDirection reversal automatically in RTL mode.
+ * Uses DirectionalRow for automatic RTL layout handling.
  */
 export function RTLInfoRow({ 
   icon, 
@@ -22,17 +23,14 @@ export function RTLInfoRow({
   alignItems = 'flex-start'
 }: RTLInfoRowProps) {
   return (
-    <View style={[
-      { 
-        flexDirection: 'row',
-        alignItems,
-        gap,
-      }, 
-      style
-    ]}>
+    <DirectionalRow
+      gap={gap}
+      alignItems={alignItems}
+      style={style}
+    >
       {icon}
       <View style={{ flex: 1 }}>{children}</View>
-    </View>
+    </DirectionalRow>
   );
 }
 
@@ -45,7 +43,7 @@ interface RTLSimpleRowProps {
 
 /**
  * Simple RTL-aware row with icon and text.
- * I18nManager handles flexDirection reversal automatically in RTL mode.
+ * Uses DirectionalRow for automatic RTL layout handling.
  */
 export function RTLSimpleRow({ 
   icon, 
@@ -54,16 +52,13 @@ export function RTLSimpleRow({
   gap = Spacing.md 
 }: RTLSimpleRowProps) {
   return (
-    <View style={[
-      { 
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap,
-      }, 
-      style
-    ]}>
+    <DirectionalRow
+      gap={gap}
+      alignItems="center"
+      style={style}
+    >
       {icon}
       <View style={{ flex: 1 }}>{text}</View>
-    </View>
+    </DirectionalRow>
   );
 }

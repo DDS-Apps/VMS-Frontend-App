@@ -16,7 +16,7 @@ import { useToast } from '@/contexts/ToastContext';
 import { useUserQuery, useDeleteUserMutation } from '@/hooks/queries/useUserQueries';
 import { useFormatters } from '@/hooks/useFormatters';
 import { UserRole } from '@/types/vms.types';
-import { DirectionalRow } from '@/components/DirectionalRow';
+import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 
 type RootStackParamList = {
   UserDetail: { userId: string };
@@ -105,7 +105,7 @@ export default function UserDetailScreen() {
         </ThemedText>
         <Spacer height={Spacing.lg} />
         <Pressable
-          style={[styles.retryButton, { backgroundColor: theme.primary, flexDirection: 'row' }]}
+          style={[styles.retryButton, { backgroundColor: theme.primary, flexDirection: getFlexDirection(isRTL) }]}
           onPress={() => refetch()}
         >
           <DDIcon name="refresh-cw" size={16} color={theme.buttonText} />
@@ -143,13 +143,13 @@ export default function UserDetailScreen() {
             {user.email}
           </ThemedText>
           <Spacer height={Spacing.md} />
-          <View style={[styles.badgeRow, { flexDirection: 'row' }]}>
+          <DirectionalRow style={styles.badgeRow}>
             <View style={[styles.roleBadge, { backgroundColor: theme.primary + '20' }]}>
               <ThemedText style={[Typography.caption, { color: theme.primary, fontWeight: '600' }]}>
                 {getRoleLabel(user.role)}
               </ThemedText>
             </View>
-            <View style={[styles.statusBadge, { backgroundColor: isUserActive ? theme.success + '20' : theme.error + '20', flexDirection: 'row' }]}>
+            <DirectionalRow style={[styles.statusBadge, { backgroundColor: isUserActive ? theme.success + '20' : theme.error + '20' }]}>
               <DDIcon 
                 name={isUserActive ? 'check-circle' : 'x-circle'} 
                 size={12} 
@@ -158,8 +158,8 @@ export default function UserDetailScreen() {
               <ThemedText style={[Typography.caption, { color: isUserActive ? theme.success : theme.error, fontWeight: '600', marginStart: 4 }]}>
                 {isUserActive ? t('common.active') : t('common.inactive')}
               </ThemedText>
-            </View>
-          </View>
+            </DirectionalRow>
+          </DirectionalRow>
         </View>
 
         <Spacer height={Spacing.lg} />
@@ -169,7 +169,7 @@ export default function UserDetailScreen() {
             {t('common.viewDetails')}
           </ThemedText>
 
-          <View style={[styles.infoRow, { flexDirection: 'row' }]}>
+          <DirectionalRow style={styles.infoRow}>
             <DDIcon name="user" size={18} variant="muted" />
             <View style={[styles.infoContent, { marginEnd: Spacing.md }]}>
               <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
@@ -177,11 +177,11 @@ export default function UserDetailScreen() {
               </ThemedText>
               <ThemedText style={[Typography.body, { textAlign: isRTL ? 'right' : 'left' }]}>{userName}</ThemedText>
             </View>
-          </View>
+          </DirectionalRow>
 
           <View style={[styles.separator, { backgroundColor: theme.border }]} />
 
-          <View style={[styles.infoRow, { flexDirection: 'row' }]}>
+          <DirectionalRow style={styles.infoRow}>
             <DDIcon name="mail" size={18} variant="muted" />
             <View style={[styles.infoContent, { marginEnd: Spacing.md }]}>
               <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
@@ -189,12 +189,12 @@ export default function UserDetailScreen() {
               </ThemedText>
               <ThemedText style={[Typography.body, { textAlign: isRTL ? 'right' : 'left' }]}>{user.email}</ThemedText>
             </View>
-          </View>
+          </DirectionalRow>
 
           {userPhone ? (
             <>
               <View style={[styles.separator, { backgroundColor: theme.border }]} />
-              <View style={[styles.infoRow, { flexDirection: 'row' }]}>
+              <DirectionalRow style={styles.infoRow}>
                 <DDIcon name="phone" size={18} variant="muted" />
                 <View style={[styles.infoContent, { marginEnd: Spacing.md }]}>
                   <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
@@ -202,14 +202,14 @@ export default function UserDetailScreen() {
                   </ThemedText>
                   <ThemedText style={[Typography.body, { textAlign: isRTL ? 'right' : 'left' }]}>{userPhone}</ThemedText>
                 </View>
-              </View>
+              </DirectionalRow>
             </>
           ) : null}
 
           {user.department ? (
             <>
               <View style={[styles.separator, { backgroundColor: theme.border }]} />
-              <View style={[styles.infoRow, { flexDirection: 'row' }]}>
+              <DirectionalRow style={styles.infoRow}>
                 <DDIcon name="briefcase" size={18} variant="muted" />
                 <View style={[styles.infoContent, { marginEnd: Spacing.md }]}>
                   <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
@@ -217,7 +217,7 @@ export default function UserDetailScreen() {
                   </ThemedText>
                   <ThemedText style={[Typography.body, { textAlign: isRTL ? 'right' : 'left' }]}>{user.department}</ThemedText>
                 </View>
-              </View>
+              </DirectionalRow>
             </>
           ) : null}
         </View>
@@ -229,7 +229,7 @@ export default function UserDetailScreen() {
             {t('settings.title')}
           </ThemedText>
 
-          <View style={[styles.infoRow, { flexDirection: 'row' }]}>
+          <DirectionalRow style={styles.infoRow}>
             <DDIcon name="shield" size={18} variant="muted" />
             <View style={[styles.infoContent, { marginEnd: Spacing.md }]}>
               <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
@@ -237,11 +237,11 @@ export default function UserDetailScreen() {
               </ThemedText>
               <ThemedText style={[Typography.body, { textAlign: isRTL ? 'right' : 'left' }]}>{getRoleLabel(user.role)}</ThemedText>
             </View>
-          </View>
+          </DirectionalRow>
 
           <View style={[styles.separator, { backgroundColor: theme.border }]} />
 
-          <View style={[styles.infoRow, { flexDirection: 'row' }]}>
+          <DirectionalRow style={styles.infoRow}>
             <DDIcon name="check-circle" size={18} variant="muted" />
             <View style={[styles.infoContent, { marginEnd: Spacing.md }]}>
               <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
@@ -249,27 +249,27 @@ export default function UserDetailScreen() {
               </ThemedText>
               <View style={styles.autoApprovalValue}>
                 {(user.canBypassApproval || user.autoApproval) ? (
-                  <View style={[styles.enabledBadge, { backgroundColor: theme.success + '20', flexDirection: 'row' }]}>
+                  <DirectionalRow style={[styles.enabledBadge, { backgroundColor: theme.success + '20' }]}>
                     <DDIcon name="check" size={12} color={theme.success} />
                     <ThemedText style={[Typography.caption, { color: theme.success, fontWeight: '600', marginStart: 4 }]}>
                       {t('common.autoApprovalEnabled')}
                     </ThemedText>
-                  </View>
+                  </DirectionalRow>
                 ) : (
-                  <View style={[styles.enabledBadge, { backgroundColor: theme.textSecondary + '20', flexDirection: 'row' }]}>
+                  <DirectionalRow style={[styles.enabledBadge, { backgroundColor: theme.textSecondary + '20' }]}>
                     <DDIcon name="x" size={12} color={theme.textSecondary} />
                     <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontWeight: '600', marginStart: 4 }]}>
                       {t('common.autoApprovalDisabled')}
                     </ThemedText>
-                  </View>
+                  </DirectionalRow>
                 )}
               </View>
             </View>
-          </View>
+          </DirectionalRow>
 
           <View style={[styles.separator, { backgroundColor: theme.border }]} />
 
-          <View style={[styles.infoRow, { flexDirection: 'row' }]}>
+          <DirectionalRow style={styles.infoRow}>
             <DDIcon name={source === 'microsoft_ad' ? 'globe' : 'monitor'} size={18} variant="muted" />
             <View style={[styles.infoContent, { marginEnd: Spacing.md }]}>
               <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
@@ -279,11 +279,11 @@ export default function UserDetailScreen() {
                 {source === 'microsoft_ad' ? t('common.microsoftAD') : t('common.appCreated')}
               </ThemedText>
             </View>
-          </View>
+          </DirectionalRow>
 
           <View style={[styles.separator, { backgroundColor: theme.border }]} />
 
-          <View style={[styles.infoRow, { flexDirection: 'row' }]}>
+          <DirectionalRow style={styles.infoRow}>
             <DDIcon name="user" size={18} variant="muted" />
             <View style={[styles.infoContent, { marginEnd: Spacing.md }]}>
               <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
@@ -298,7 +298,7 @@ export default function UserDetailScreen() {
                 </ThemedText>
               ) : null}
             </View>
-          </View>
+          </DirectionalRow>
         </View>
 
         <Spacer height={Spacing.lg} />
@@ -308,7 +308,7 @@ export default function UserDetailScreen() {
             {t('visitor.timeline')}
           </ThemedText>
 
-          <View style={[styles.infoRow, { flexDirection: 'row' }]}>
+          <DirectionalRow style={styles.infoRow}>
             <DDIcon name="calendar" size={18} variant="muted" />
             <View style={[styles.infoContent, { marginEnd: Spacing.md }]}>
               <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
@@ -316,11 +316,11 @@ export default function UserDetailScreen() {
               </ThemedText>
               <ThemedText style={[Typography.body, { textAlign: isRTL ? 'right' : 'left' }]}>{formatDate(user.createdAt)}</ThemedText>
             </View>
-          </View>
+          </DirectionalRow>
 
           <View style={[styles.separator, { backgroundColor: theme.border }]} />
 
-          <View style={[styles.infoRow, { flexDirection: 'row' }]}>
+          <DirectionalRow style={styles.infoRow}>
             <DDIcon name="clock" size={18} variant="muted" />
             <View style={[styles.infoContent, { marginEnd: Spacing.md }]}>
               <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
@@ -328,21 +328,19 @@ export default function UserDetailScreen() {
               </ThemedText>
               <ThemedText style={[Typography.body, { textAlign: isRTL ? 'right' : 'left' }]}>{formatDate(user.updatedAt)}</ThemedText>
             </View>
-          </View>
+          </DirectionalRow>
         </View>
 
         <Spacer height={Spacing.xl} />
 
         <Pressable
-          style={[styles.deleteButton, { backgroundColor: theme.error + '15', borderColor: theme.error, flexDirection: 'row' }]}
+          style={[styles.deleteButton, { backgroundColor: theme.error + '15', borderColor: theme.error, flexDirection: getFlexDirection(isRTL) }]}
           onPress={handleDelete}
         >
-          <DirectionalRow>
-            <DDIcon name="trash-2" size={18} variant="danger" />
-            <ThemedText style={[Typography.body, { color: theme.error, fontWeight: '600', marginEnd: Spacing.sm }]}>
-              {t('common.delete')}
-            </ThemedText>
-          </DirectionalRow>
+          <DDIcon name="trash-2" size={18} variant="danger" />
+          <ThemedText style={[Typography.body, { color: theme.error, fontWeight: '600', marginEnd: Spacing.sm }]}>
+            {t('common.delete')}
+          </ThemedText>
         </Pressable>
 
         <Spacer height={Spacing.xl} />

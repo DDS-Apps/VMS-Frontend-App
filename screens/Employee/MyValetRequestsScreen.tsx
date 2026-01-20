@@ -17,6 +17,7 @@ import { useFormatters } from "@/hooks/useFormatters";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useMyValetRequestsQuery } from "@/hooks/queries/useValetSelfServiceQueries";
 import { applyOpacity } from "@/utils/statusStyles";
+import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
 import type { MyValetRequestsScreenProps } from "@/types/employeeNavigation.types";
 import type { SelfValetRequestDto, SelfValetRequestsResponse } from "@/types/api.types";
 import type { Theme } from "@/types/theme.types";
@@ -154,60 +155,60 @@ const ValetRequestCard = React.memo(({
       <Card style={styles.taskCard}>
         <StatusAccent color={statusConfig.borderColor} />
         <View style={styles.taskCardContent}>
-          <View style={[styles.taskHeaderRow, { flexDirection: 'row' }]}>
+          <DirectionalRow style={styles.taskHeaderRow}>
             {iconContent}
             {headerInfo}
             <StatusBadge status={status} theme={theme} />
-          </View>
+          </DirectionalRow>
 
           <Spacer height={Spacing.md} />
 
-          <View style={[styles.taskDetailsRow, { flexDirection: 'row' }]}>
-            <View style={[styles.taskDetailItem, { flexDirection: 'row' }]}>
+          <DirectionalRow style={styles.taskDetailsRow}>
+            <DirectionalRow style={styles.taskDetailItem}>
               <DDIcon name="map-pin" size={14} variant="muted" />
               <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6 }]}>
                 {request.dropOffLocation}
               </ThemedText>
-            </View>
-            <View style={[styles.taskDetailItem, { flexDirection: 'row' }]}>
+            </DirectionalRow>
+            <DirectionalRow style={styles.taskDetailItem}>
               <DDIcon name="clock" size={14} variant="muted" />
               <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6 }]}>
                 Return: {request.requestedReturnTime}
               </ThemedText>
-            </View>
-          </View>
+            </DirectionalRow>
+          </DirectionalRow>
 
           {request.valet?.driver ? (
             <>
               <Spacer height={Spacing.sm} />
-              <View style={[styles.driverRow, { backgroundColor: applyOpacity(theme.success, '08'), flexDirection: 'row' }]}>
+              <DirectionalRow style={[styles.driverRow, { backgroundColor: applyOpacity(theme.success, '08') }]}>
                 <DDIcon name="user" size={14} color={theme.success} />
                 <ThemedText style={[Typography.caption, { color: theme.success, marginStart: 6, fontWeight: '500' }]}>
                   Driver: {request.valet.driver.name}
                 </ThemedText>
-              </View>
+              </DirectionalRow>
             </>
           ) : null}
 
           {request.notes ? (
             <>
               <Spacer height={Spacing.sm} />
-              <View style={[styles.notesRow, { flexDirection: 'row' }]}>
+              <DirectionalRow style={styles.notesRow}>
                 <DDIcon name="file-text" size={14} variant="muted" />
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6, flex: 1, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={2}>
                   {request.notes}
                 </ThemedText>
-              </View>
+              </DirectionalRow>
             </>
           ) : null}
 
           <Spacer height={Spacing.sm} />
-          <View style={[styles.taskFooterRow, { flexDirection: 'row' }]}>
+          <DirectionalRow style={styles.taskFooterRow}>
             <DDIcon name="calendar" size={12} variant="muted" />
             <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 4, fontSize: 11 }]}>
               {formatDate(request.createdAt)} at {formatTimeStr(request.createdAt)}
             </ThemedText>
-          </View>
+          </DirectionalRow>
         </View>
       </Card>
     </Pressable>
@@ -319,14 +320,14 @@ export default function MyValetRequestsScreen({ navigation }: MyValetRequestsScr
           <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.primary} />
         }
       >
-        <View style={[styles.headerRow, { flexDirection: 'row' }]}>
+        <DirectionalRow style={styles.headerRow}>
           <View>
             <ThemedText style={[Typography.h2, { textAlign: isRTL ? 'right' : 'left' }]}>{t('navigation.myValetRequests')}</ThemedText>
             <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
               {filteredRequests.length} {t('sidebar.requests')}
             </ThemedText>
           </View>
-        </View>
+        </DirectionalRow>
 
         <Spacer height={Spacing.lg} />
 
@@ -338,7 +339,7 @@ export default function MyValetRequestsScreen({ navigation }: MyValetRequestsScr
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.filterRow, { flexDirection: 'row' }]}>
+        <DirectionalRow style={styles.filterRow}>
           {FILTER_OPTIONS.map((option) => (
             <Pressable
               key={option.key}
@@ -362,7 +363,7 @@ export default function MyValetRequestsScreen({ navigation }: MyValetRequestsScr
               </ThemedText>
             </Pressable>
           ))}
-        </View>
+        </DirectionalRow>
 
         <Spacer height={Spacing.lg} />
 

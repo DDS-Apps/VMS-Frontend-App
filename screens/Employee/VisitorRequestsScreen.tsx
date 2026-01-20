@@ -26,7 +26,7 @@ import type { Theme } from "@/types/theme.types";
 import type { EmployeeStackParamList } from "@/types/employeeNavigation.types";
 import type { ManagerStackParamList } from "@/types/managerNavigation.types";
 import { mapVisitListItemToVisitorRequest, mapPendingHostWalkInToVisitorRequest } from "@/utils/requestMappers";
-import { DirectionalRow } from '@/components/DirectionalRow';
+import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 
 
 // Unified Layout Tokens
@@ -67,7 +67,7 @@ const ServiceIcons = ({ request, theme, size = 16 }: { request: VisitorRequest; 
   }
   
   return (
-    <View style={[styles.servicesRow, { flexDirection: 'row' }]}>
+    <DirectionalRow style={styles.servicesRow}>
       {request.parkingSlot ? (
         <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '20'), width: size * 2, height: size * 2, borderRadius: size }]}>
           <DDIcon name="map-pin" size={size} color={theme.info} />
@@ -88,7 +88,7 @@ const ServiceIcons = ({ request, theme, size = 16 }: { request: VisitorRequest; 
           <DDIcon name="truck" size={size} variant="primary" />
         </View>
       ) : null}
-    </View>
+    </DirectionalRow>
   );
 };
 
@@ -155,15 +155,15 @@ const DateTimeDisplay = ({ date, time, duration, theme, compact = false }: { dat
     return toLocalNumerals(durationStr);
   };  return (
     <View style={[styles.dateTimeRowSplit, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
-      <View style={[styles.dateTimeLeft, { flexDirection: 'row' }]}>
+      <DirectionalRow style={styles.dateTimeLeft}>
         <DirectionalRow>
           <DDIcon name="calendar" size={compact ? 13 : 14} variant="muted" />
           <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13, marginEnd: 4 }]}>
             {formatVisitDate(date)}
           </ThemedText>
         </DirectionalRow>
-      </View>
-      <View style={[styles.dateTimeRight, { flexDirection: 'row' }]}>
+      </DirectionalRow>
+      <DirectionalRow style={styles.dateTimeRight}>
         <DDIcon name="clock" size={compact ? 13 : 14} variant="muted" />
         <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
           {formatTimeFromString(time)}
@@ -176,7 +176,7 @@ const DateTimeDisplay = ({ date, time, duration, theme, compact = false }: { dat
             </ThemedText>
           </>
         ) : null}
-      </View>
+      </DirectionalRow>
     </View>
   );
 };
@@ -208,14 +208,14 @@ const VisitorRequestTableRow = React.memo(({
         <View style={[styles.fixedColumn, { width: LAYOUT.tableFixedColumnWidth }]}>
           <View style={styles.fixedColumnContent}>
             <View style={{ flex: 1 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <DirectionalRow style={{ alignItems: 'center', gap: 6 }}>
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, flexShrink: 1 }]} numberOfLines={2}>
                   {request.visitor.fullName}
                 </ThemedText>
                 {request.isWalkIn ? (
                   <DDIcon name="user-check" size={14} color={theme.warning} />
                 ) : null}
-              </View>
+              </DirectionalRow>
               <Spacer height={6} />
               <DateTimeDisplay 
                 date={request.visitDate} 
@@ -315,7 +315,7 @@ const VisitorRequestTableRow = React.memo(({
 const StatsCards = ({ totalVisitors, todaysVisitors, theme, t }: { totalVisitors: number; todaysVisitors: number; theme: Theme; t: (key: string) => string }) => {
   const { isRTL } = useLanguage();
   return (
-  <View style={[styles.statsGrid, { flexDirection: 'row' }]}>
+  <DirectionalRow style={styles.statsGrid}>
     <ThemedView style={[styles.statCard, { backgroundColor: theme.surface, borderColor: theme.border, borderWidth: 1 }]}>
       <View style={[styles.statIconContainer, { backgroundColor: applyOpacity(theme.info, '15') }]}>
         <DDIcon name="users" size={24} color={theme.info} />
@@ -341,7 +341,7 @@ const StatsCards = ({ totalVisitors, todaysVisitors, theme, t }: { totalVisitors
         {t('dashboard.todaysVisitors')}
       </ThemedText>
     </ThemedView>
-  </View>
+  </DirectionalRow>
   );
 };
 
@@ -400,7 +400,7 @@ const SectionHeader = ({
   );
   
   const viewToggleElement = (
-    <View style={[styles.viewToggle, { flexDirection: 'row' }]}>
+    <DirectionalRow style={styles.viewToggle}>
       <Pressable
         style={[
           styles.viewToggleButton,
@@ -437,7 +437,7 @@ const SectionHeader = ({
           color={viewMode === 'list' ? theme.buttonText : theme.textSecondary} 
         />
       </Pressable>
-    </View>
+    </DirectionalRow>
   );
   
   // For RTL: reverse tabs order so they start from right
@@ -445,17 +445,17 @@ const SectionHeader = ({
   
   return (
   <>
-    <View style={[styles.sectionTitleRow, styles.paddedContent, { flexDirection: 'row' }]}>
+    <DirectionalRow style={[styles.sectionTitleRow, styles.paddedContent]}>
       {titleElement}
       {viewToggleElement}
-    </View>
+    </DirectionalRow>
 
     <Spacer height={LAYOUT.contentGap} />
 
     <ScrollView 
       horizontal 
       showsHorizontalScrollIndicator={false}
-      contentContainerStyle={[styles.tabsContainer, { flexDirection: 'row' }]}
+      contentContainerStyle={[styles.tabsContainer, { flexDirection: getFlexDirection(isRTL) }]}
       nestedScrollEnabled={true}
       keyboardShouldPersistTaps="handled"
     >

@@ -9,7 +9,7 @@ import Spacer from '@/components/Spacer';
 import { Spacing, BorderRadius, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
-import { DirectionalRow } from '@/components/DirectionalRow';
+import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 
 interface BuffetLocation {
   id: string;
@@ -143,7 +143,7 @@ export default function BuffetSettingsScreen() {
               style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}
               onPress={() => handleEditLocation(location)}
             >
-              <View style={[styles.cardHeader, { flexDirection: 'row' }]}>
+              <DirectionalRow style={styles.cardHeader}>
                 <View style={{ flex: 1 }}>
                   <ThemedText style={[Typography.subtitle, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>{location.name}</ThemedText>
                   <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: Spacing.xs, textAlign: isRTL ? 'right' : 'left' }]}>
@@ -171,20 +171,18 @@ export default function BuffetSettingsScreen() {
                     {location.status === 'active' ? t('status.active') : t('status.inactive')}
                   </ThemedText>
                 </View>
-              </View>
+              </DirectionalRow>
 
               <View style={styles.cardContent}>
-                <View style={[styles.infoRow, { flexDirection: 'row' }]}>
-                  <DirectionalRow>
-                    <DDIcon name="users" variant="muted" size={16} />
-                    <ThemedText style={[Typography.body, { color: theme.textSecondary, marginEnd: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
-                      {t('buffet.numberOfGuests')}: {location.capacity}
-                    </ThemedText>
-                  </DirectionalRow>
-                </View>
+                <DirectionalRow style={styles.infoRow}>
+                  <DDIcon name="users" variant="muted" size={16} />
+                  <ThemedText style={[Typography.body, { color: theme.textSecondary, marginEnd: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
+                    {t('buffet.numberOfGuests')}: {location.capacity}
+                  </ThemedText>
+                </DirectionalRow>
 
                 {location.amenities.length > 0 ? (
-                  <View style={[styles.infoRow, { marginTop: Spacing.sm, flexDirection: 'row' }]}>
+                  <DirectionalRow style={[styles.infoRow, { marginTop: Spacing.sm }]}>
                     <DDIcon name="check-circle" variant="muted" size={16} />
                     <View style={{ flex: 1, marginStart: Spacing.sm }}>
                       <ScrollView horizontal showsHorizontalScrollIndicator={false} nestedScrollEnabled={true}>
@@ -200,20 +198,18 @@ export default function BuffetSettingsScreen() {
                         </View>
                       </ScrollView>
                     </View>
-                  </View>
+                  </DirectionalRow>
                 ) : null}
               </View>
 
-              <View style={[styles.cardFooter, { borderTopColor: theme.border, flexDirection: 'row' }]}>
-                <Pressable style={[styles.actionButton, { flexDirection: 'row' }]}>
-                  <DirectionalRow>
-                    <DDIcon name="edit-2" size={16} variant="primary" />
-                    <ThemedText style={[Typography.body, { color: theme.primary, marginEnd: Spacing.xs }]}>
-                      {t('common.edit')}
-                    </ThemedText>
-                  </DirectionalRow>
+              <DirectionalRow style={[styles.cardFooter, { borderTopColor: theme.border }]}>
+                <Pressable style={[styles.actionButton, { flexDirection: getFlexDirection(isRTL) }]}>
+                  <DDIcon name="edit-2" size={16} variant="primary" />
+                  <ThemedText style={[Typography.body, { color: theme.primary, marginEnd: Spacing.xs }]}>
+                    {t('common.edit')}
+                  </ThemedText>
                 </Pressable>
-              </View>
+              </DirectionalRow>
             </Pressable>
           ))}
 
@@ -244,14 +240,14 @@ export default function BuffetSettingsScreen() {
               style={[styles.modalContent, { backgroundColor: theme.background, paddingBottom: insets.bottom + Spacing.xl }]}
               showsVerticalScrollIndicator={false}
             >
-              <View style={[styles.modalHeader, { flexDirection: 'row' }]}>
+              <DirectionalRow style={styles.modalHeader}>
                 <ThemedText style={[Typography.subtitle, { fontWeight: '600' }]}>
                   {editingLocation ? t('common.edit') : t('common.save')}
                 </ThemedText>
                 <Pressable onPress={() => setShowModal(false)}>
                   <DDIcon name="x" size={24} variant="muted" />
                 </Pressable>
-              </View>
+              </DirectionalRow>
 
               <View style={styles.formContainer}>
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginBottom: Spacing.xs }]}>
@@ -306,7 +302,7 @@ export default function BuffetSettingsScreen() {
                 <Spacer height={Spacing.md} />
 
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginBottom: Spacing.xs }]}>{t('status.active')}</ThemedText>
-                <View style={[styles.statusOptions, { flexDirection: 'row' }]}>
+                <DirectionalRow style={styles.statusOptions}>
                   <Pressable
                     style={[
                       styles.statusOption,
@@ -336,7 +332,7 @@ export default function BuffetSettingsScreen() {
                       {t('status.inactive')}
                     </ThemedText>
                   </Pressable>
-                </View>
+                </DirectionalRow>
 
                 <Spacer height={Spacing.lg} />
 

@@ -8,6 +8,7 @@ import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
+import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 import {
   RequestTimeline,
   useTimelineSteps,
@@ -277,32 +278,32 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.infoRowNew, { flexDirection: 'row', gap: Spacing.md, justifyContent: 'flex-start' }]}>
+        <DirectionalRow style={styles.infoRowNew} gap={Spacing.md}>
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="mail" size={16} color={theme.text} />
           </View>
           <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, textAlign: isRTL ? 'right' : 'left' }]}>
             {visitor.email || '-'}
           </ThemedText>
-        </View>
+        </DirectionalRow>
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.infoRowNew, { flexDirection: 'row', gap: Spacing.md, justifyContent: 'flex-start' }]}>
+        <DirectionalRow style={styles.infoRowNew} gap={Spacing.md}>
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="phone" size={16} color={theme.text} />
           </View>
           <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, textAlign: isRTL ? 'right' : 'left' }]}>
             {visitor.phone || '-'}
           </ThemedText>
-        </View>
+        </DirectionalRow>
       </ThemedView>
 
       {visitor.status === 'rejected' && visitor.rejectionReason ? (
         <>
           <Spacer height={Spacing.lg} />
           <ThemedView style={[styles.cardNew, { backgroundColor: applyOpacity(theme.error, '08') }]}>
-            <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.sm }}>
+            <DirectionalRow alignItems="flex-start" gap={Spacing.sm}>
               <View style={{ marginTop: 2 }}>
                 <DDIcon name="message-circle" size={18} color={theme.error} />
               </View>
@@ -314,7 +315,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
                   {visitor.rejectionReason}
                 </ThemedText>
               </View>
-            </View>
+            </DirectionalRow>
           </ThemedView>
         </>
       ) : null}
@@ -322,22 +323,22 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
       <Spacer height={Spacing.lg} />
 
       <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
-        <View style={[{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}>
+        <DirectionalRow justifyContent="space-between">
           <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
             {t('visitor.visitorDetails')}
           </ThemedText>
           {visitor.isWalkIn ? (
-            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: applyOpacity(theme.warning, '15'), paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: BorderRadius.sm }}>
+            <DirectionalRow style={{ backgroundColor: applyOpacity(theme.warning, '15'), paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: BorderRadius.sm }}>
               <DDIcon name="user-check" size={14} color={theme.warning} />
               <ThemedText style={[Typography.caption, { color: theme.warning, fontWeight: '600', marginStart: Spacing.xs, fontSize: 11 }]}>
                 {t('reception.walkInVisitor')}
               </ThemedText>
-            </View>
+            </DirectionalRow>
           ) : null}
-        </View>
+        </DirectionalRow>
         <Spacer height={Spacing.xl} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: 'row', justifyContent: 'flex-start' }]}>
+        <DirectionalRow style={styles.serviceRowNew}>
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="clock" size={18} color={theme.text} />
           </View>
@@ -349,11 +350,11 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
               {visitor.time}
             </ThemedText>
           </View>
-        </View>
+        </DirectionalRow>
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: 'row', justifyContent: 'flex-start' }]}>
+        <DirectionalRow style={styles.serviceRowNew}>
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="user" size={18} color={theme.text} />
           </View>
@@ -365,13 +366,13 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
               {visitor.host}{visitor.hostDepartment ? ` - ${visitor.hostDepartment}` : ''}
             </ThemedText>
           </View>
-        </View>
+        </DirectionalRow>
 
         {visitor.meetingRoom ? (
           <>
             <Spacer height={Spacing.lg} />
 
-            <View style={[styles.serviceRowNew, { flexDirection: 'row', justifyContent: 'flex-start' }]}>
+            <DirectionalRow style={styles.serviceRowNew}>
               <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
                 <DDIcon name="home" size={18} color={theme.text} />
               </View>
@@ -383,7 +384,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
                   {visitor.meetingRoom.name}{visitor.meetingRoom.floor ? ` (${visitor.meetingRoom.floor})` : ''}
                 </ThemedText>
               </View>
-            </View>
+            </DirectionalRow>
           </>
         ) : null}
       </ThemedView>
@@ -398,7 +399,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
             </ThemedText>
             <Spacer height={Spacing.xl} />
 
-            <View style={[styles.serviceRowNew, { flexDirection: 'row', justifyContent: 'flex-start' }]}>
+            <DirectionalRow style={styles.serviceRowNew}>
               <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.info, '15') }]}>
                 <DDIcon name="map-pin" size={18} color={theme.info} />
               </View>
@@ -410,7 +411,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
                   {visitor.parking}
                 </ThemedText>
               </View>
-            </View>
+            </DirectionalRow>
           </ThemedView>
         </>
       ) : null}
@@ -423,12 +424,12 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
 
       {visitor.status === 'pending_approval' && (
         <ThemedView style={[styles.pendingApprovalBanner, { backgroundColor: applyOpacity(theme.warning, '10'), borderColor: theme.warning }]}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
+          <DirectionalRow gap={Spacing.sm}>
             <DDIcon name="clock" size={20} color={theme.warning} />
             <ThemedText style={[Typography.body, { color: theme.warning, fontWeight: '600', flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('status.pendingApproval')}
             </ThemedText>
-          </View>
+          </DirectionalRow>
         </ThemedView>
       )}
 
@@ -452,14 +453,14 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
           />
           <View style={styles.modalContainer}>
             <ThemedView style={[styles.modalContent, { backgroundColor: theme.surface }]}>
-              <View style={[styles.modalHeader, { flexDirection: 'row' }]}>
+              <DirectionalRow style={styles.modalHeader} justifyContent="space-between">
                 <ThemedText style={[Typography.subtitle, { fontSize: 18, fontWeight: '600', color: theme.text }]}>
                   {t('actions.cancelRequest')}
                 </ThemedText>
                 <Pressable onPress={() => setShowCancelModal(false)}>
                   <DDIcon name="x" size={22} variant="muted" />
                 </Pressable>
-              </View>
+              </DirectionalRow>
 
               <Spacer height={20} />
 
@@ -469,7 +470,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
 
               <Spacer height={24} />
 
-              <View style={[styles.modalActions, { flexDirection: 'row' }]}>
+              <DirectionalRow style={styles.modalActions}>
                 <Pressable
                   style={({ pressed }) => [
                     styles.modalCancelButton,
@@ -495,7 +496,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
                     {t('actions.cancelRequest')}
                   </ThemedText>
                 </Pressable>
-              </View>
+              </DirectionalRow>
             </ThemedView>
           </View>
         </View>
@@ -505,7 +506,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
     {/* Sticky Footer for Actions */}
     {(visitor.status === 'approved' || visitor.status === 'visitor_accepted') && (
       <View style={[styles.stickyFooter, { backgroundColor: theme.background, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.lg }]}>
-        <View style={[styles.buttonRow, { flexDirection: 'row' }]}>
+        <DirectionalRow style={styles.buttonRow}>
           <LoadingButton
             onPress={() => setShowCancelModal(true)}
             variant="danger-outline"
@@ -528,7 +529,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
           >
             {t('visitor.checkIn')}
           </LoadingButton>
-        </View>
+        </DirectionalRow>
       </View>
     )}
 

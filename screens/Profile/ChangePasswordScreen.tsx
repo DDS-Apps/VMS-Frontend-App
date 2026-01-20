@@ -6,6 +6,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { LoadingButton } from "@/components/shared/LoadingButton";
 import Spacer from "@/components/Spacer";
+import { DirectionalRow } from "@/components/DirectionalRow";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -149,7 +150,7 @@ export default function ChangePasswordScreen({ onSuccess, onCancel }: ChangePass
           <ThemedText style={[Typography.label, { color: theme.textSecondary, marginBottom: Spacing.xs }]}>
             {t('auth.currentPassword')}
           </ThemedText>
-          <View style={[getInputContainerStyle('currentPassword'), { flexDirection: 'row' }]}>
+          <DirectionalRow style={getInputContainerStyle('currentPassword')}>
             <DDIcon name="lock" size={INPUT_ICON_SIZE} variant="muted" />
             <TextInput
               style={[
@@ -171,7 +172,7 @@ export default function ChangePasswordScreen({ onSuccess, onCancel }: ChangePass
             <Pressable onPress={() => setShowCurrentPassword(!showCurrentPassword)}>
               <DDIcon name={showCurrentPassword ? "eye" : "eye-off"} size={INPUT_ICON_SIZE} variant="muted" />
             </Pressable>
-          </View>
+          </DirectionalRow>
           {errors.currentPassword ? (
             <ThemedText style={[Typography.caption, { color: theme.error, marginTop: Spacing.xs }]}>
               {errors.currentPassword}
@@ -185,7 +186,7 @@ export default function ChangePasswordScreen({ onSuccess, onCancel }: ChangePass
           <ThemedText style={[Typography.label, { color: theme.textSecondary, marginBottom: Spacing.xs }]}>
             {t('auth.newPassword')}
           </ThemedText>
-          <View style={[getInputContainerStyle('newPassword'), { flexDirection: 'row' }]}>
+          <DirectionalRow style={getInputContainerStyle('newPassword')}>
             <DDIcon name="lock" size={INPUT_ICON_SIZE} variant="muted" />
             <TextInput
               style={[
@@ -207,7 +208,7 @@ export default function ChangePasswordScreen({ onSuccess, onCancel }: ChangePass
             <Pressable onPress={() => setShowNewPassword(!showNewPassword)}>
               <DDIcon name={showNewPassword ? "eye" : "eye-off"} size={INPUT_ICON_SIZE} variant="muted" />
             </Pressable>
-          </View>
+          </DirectionalRow>
           {errors.newPassword ? (
             <ThemedText style={[Typography.caption, { color: theme.error, marginTop: Spacing.xs }]}>
               {errors.newPassword}
@@ -221,7 +222,7 @@ export default function ChangePasswordScreen({ onSuccess, onCancel }: ChangePass
           <ThemedText style={[Typography.label, { color: theme.textSecondary, marginBottom: Spacing.xs }]}>
             {t('auth.confirmNewPassword')}
           </ThemedText>
-          <View style={[getInputContainerStyle('confirmPassword'), { flexDirection: 'row' }]}>
+          <DirectionalRow style={getInputContainerStyle('confirmPassword')}>
             <DDIcon name="lock" size={INPUT_ICON_SIZE} variant="muted" />
             <TextInput
               style={[
@@ -243,7 +244,7 @@ export default function ChangePasswordScreen({ onSuccess, onCancel }: ChangePass
             <Pressable onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
               <DDIcon name={showConfirmPassword ? "eye" : "eye-off"} size={INPUT_ICON_SIZE} variant="muted" />
             </Pressable>
-          </View>
+          </DirectionalRow>
           {errors.confirmPassword ? (
             <ThemedText style={[Typography.caption, { color: theme.error, marginTop: Spacing.xs }]}>
               {errors.confirmPassword}

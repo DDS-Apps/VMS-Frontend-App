@@ -58,6 +58,7 @@ import {
   applyOpacity,
   createModalOverlayStyle,
 } from "@/utils/statusStyles";
+import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
 import { RequestDetailsScreenProps } from "@/types/employeeNavigation.types";
 import {
   mapVisitDetailsToVisitorRequest,
@@ -878,7 +879,7 @@ export default function RequestDetailsScreen({
             style={[
               styles.alertBox,
               {
-                flexDirection: 'row',
+                flexDirection: getFlexDirection(isRTL),
                 backgroundColor: applyOpacity(theme.error, "10"),
                 borderStartColor: theme.error,
                 borderStartWidth: 4,
@@ -922,7 +923,7 @@ export default function RequestDetailsScreen({
             style={[
               styles.alertBox,
               {
-                flexDirection: 'row',
+                flexDirection: getFlexDirection(isRTL),
                 backgroundColor: applyOpacity(theme.error, "10"),
                 borderStartColor: theme.error,
                 borderStartWidth: 4,
@@ -1002,7 +1003,7 @@ export default function RequestDetailsScreen({
             {request.approval.managerName && (
               <>
                 <Spacer height={Spacing.md} />
-                <View style={{ flexDirection: 'row', alignItems: "center" }}>
+                <DirectionalRow style={{ alignItems: "center" }}>
                   {isRTL ? (
                     <>
                       <ThemedText
@@ -1076,7 +1077,7 @@ export default function RequestDetailsScreen({
                       </ThemedText>
                     </>
                   )}
-                </View>
+                </DirectionalRow>
               </>
             )}
           </ThemedView>
@@ -1090,7 +1091,7 @@ export default function RequestDetailsScreen({
           <ThemedView
             style={[styles.cardNew, { backgroundColor: theme.surface }]}
           >
-            <View style={{ flexDirection: 'row', alignItems: "center" }}>
+            <DirectionalRow style={{ alignItems: "center" }}>
               {isRTL ? (
                 <>
                   <ThemedText
@@ -1128,7 +1129,7 @@ export default function RequestDetailsScreen({
                   </ThemedText>
                 </>
               )}
-            </View>
+            </DirectionalRow>
             <Spacer height={Spacing.sm} />
             <ThemedText
               style={[
@@ -1213,40 +1214,40 @@ export default function RequestDetailsScreen({
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.infoRowNew, { flexDirection: 'row', justifyContent: 'flex-start', gap: Spacing.md }]}>
+        <DirectionalRow style={[styles.infoRowNew, { justifyContent: 'flex-start', gap: Spacing.md }]}>
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="mail" size={18} color={theme.text} />
           </View>
           <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14 }]}>
             {request.visitor.email}
           </ThemedText>
-        </View>
+        </DirectionalRow>
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.infoRowNew, { flexDirection: 'row', justifyContent: 'flex-start', gap: Spacing.md }]}>
+        <DirectionalRow style={[styles.infoRowNew, { justifyContent: 'flex-start', gap: Spacing.md }]}>
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="phone" size={18} color={theme.text} />
           </View>
           <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14 }]}>
             {request.visitor.phone}
           </ThemedText>
-        </View>
+        </DirectionalRow>
       </ThemedView>
 
       <Spacer height={Spacing.lg} />
 
       <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <DirectionalRow style={{ alignItems: 'center', justifyContent: 'space-between' }}>
           {isRTL ? (
             <>
               {request.isWalkIn ? (
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.xs, backgroundColor: applyOpacity(theme.warning, '15'), paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: BorderRadius.sm }}>
+                <DirectionalRow style={{ alignItems: 'center', gap: Spacing.xs, backgroundColor: applyOpacity(theme.warning, '15'), paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: BorderRadius.sm }}>
                   <ThemedText style={[Typography.caption, { color: theme.warning, fontWeight: '600', fontSize: 11 }]}>
                     {t("reception.walkInVisitor")}
                   </ThemedText>
                   <DDIcon name="user-check" size={14} color={theme.warning} />
-                </View>
+                </DirectionalRow>
               ) : null}
               <ThemedText
                 style={[
@@ -1268,33 +1269,33 @@ export default function RequestDetailsScreen({
                 {t("visitor.visitDetails")}
               </ThemedText>
               {request.isWalkIn ? (
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.xs, backgroundColor: applyOpacity(theme.warning, '15'), paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: BorderRadius.sm }}>
+                <DirectionalRow style={{ alignItems: 'center', gap: Spacing.xs, backgroundColor: applyOpacity(theme.warning, '15'), paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: BorderRadius.sm }}>
                   <DDIcon name="user-check" size={14} color={theme.warning} />
                   <ThemedText style={[Typography.caption, { color: theme.warning, fontWeight: '600', fontSize: 11 }]}>
                     {t("reception.walkInVisitor")}
                   </ThemedText>
-                </View>
+                </DirectionalRow>
               ) : null}
             </>
           )}
-        </View>
+        </DirectionalRow>
         <Spacer height={Spacing.xl} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: 'row', justifyContent: 'flex-start' }]}>
+        <DirectionalRow style={[styles.serviceRowNew, { justifyContent: 'flex-start' }]}>
           {isRTL ? (
             <>
               <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(isVisitExpired ? theme.secondary : theme.textSecondary, '15') }]}>
                 <DDIcon name={isVisitExpired ? "check-circle" : "calendar"} size={18} color={isVisitExpired ? theme.secondary : theme.text} />
               </View>
               <View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.xs, justifyContent: 'flex-end' }}>
+                <DirectionalRow style={{ alignItems: 'center', gap: Spacing.xs, justifyContent: 'flex-end' }}>
                   {isVisitExpired ? (
                     <DDIcon name="check" size={14} color={theme.secondary} />
                   ) : null}
                   <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: 'right' }]}>
                     {t("time.dateAndTime")}
                   </ThemedText>
-                </View>
+                </DirectionalRow>
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: 'right' }]}>
                   {formatDateShort(request.visitDate)} • {formatVisitTimeRange(request.visitTime, request.endTime)}
                 </ThemedText>
@@ -1306,25 +1307,25 @@ export default function RequestDetailsScreen({
                 <DDIcon name={isVisitExpired ? "check-circle" : "calendar"} size={18} color={isVisitExpired ? theme.secondary : theme.text} />
               </View>
               <View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.xs }}>
+                <DirectionalRow style={{ alignItems: 'center', gap: Spacing.xs }}>
                   <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: 'left' }]}>
                     {t("time.dateAndTime")}
                   </ThemedText>
                   {isVisitExpired ? (
                     <DDIcon name="check" size={14} color={theme.secondary} />
                   ) : null}
-                </View>
+                </DirectionalRow>
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: 'left' }]}>
                   {formatDateShort(request.visitDate)} • {formatVisitTimeRange(request.visitTime, request.endTime)}
                 </ThemedText>
               </View>
             </>
           )}
-        </View>
+        </DirectionalRow>
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: 'row', justifyContent: 'flex-start' }]}>
+        <DirectionalRow style={[styles.serviceRowNew, { justifyContent: 'flex-start' }]}>
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="clock" size={18} color={theme.text} />
           </View>
@@ -1336,11 +1337,11 @@ export default function RequestDetailsScreen({
               {parseISODuration(request.duration)}
             </ThemedText>
           </View>
-        </View>
+        </DirectionalRow>
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: 'row', justifyContent: 'flex-start' }]}>
+        <DirectionalRow style={[styles.serviceRowNew, { justifyContent: 'flex-start' }]}>
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="briefcase" size={18} color={theme.text} />
           </View>
@@ -1352,7 +1353,7 @@ export default function RequestDetailsScreen({
               {request.purpose}
             </ThemedText>
           </View>
-        </View>
+        </DirectionalRow>
       </ThemedView>
 
       <Spacer height={Spacing.lg} />
@@ -1368,10 +1369,10 @@ export default function RequestDetailsScreen({
         </ThemedText>
         <Spacer height={Spacing.xl} />
 
-        <View
+        <DirectionalRow
           style={[
             styles.serviceItemNew,
-            { backgroundColor: theme.surfaceSecondary, flexDirection: 'row' },
+            { backgroundColor: theme.surfaceSecondary },
           ]}
         >
           <View
@@ -1472,13 +1473,13 @@ export default function RequestDetailsScreen({
               size="sm"
             />
           ) : null}
-        </View>
+        </DirectionalRow>
         <Spacer height={Spacing.md} />
 
-        <View
+        <DirectionalRow
           style={[
             styles.serviceItemNew,
-            { backgroundColor: theme.surfaceSecondary, flexDirection: 'row' },
+            { backgroundColor: theme.surfaceSecondary },
           ]}
         >
           <View
@@ -1569,7 +1570,7 @@ export default function RequestDetailsScreen({
               size="sm"
             />
           ) : null}
-        </View>
+        </DirectionalRow>
       </ThemedView>
       <Spacer height={Spacing.lg} />
 
@@ -1623,12 +1624,12 @@ export default function RequestDetailsScreen({
       {/* Expired visit message for managers - inline display */}
       {request.status === REQUEST_STATUS.PENDING_APPROVAL && userRole === 'manager' && isVisitExpired ? (
         <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: Spacing.sm, paddingHorizontal: Spacing.md }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.xs }}>
+          <DirectionalRow style={{ alignItems: 'center', justifyContent: 'center', gap: Spacing.xs }}>
             <DDIcon name="alert-circle" size={16} color={theme.warning} />
             <ThemedText style={[Typography.caption, { color: theme.warning, fontWeight: '600', textAlign: 'center' }]}>
               {t('status.visitExpired')}
             </ThemedText>
-          </View>
+          </DirectionalRow>
           <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: 'center', marginTop: 2, fontSize: 12 }]}>
             {t('errors.visitDatePassed')}
           </ThemedText>
@@ -1649,7 +1650,7 @@ export default function RequestDetailsScreen({
           <View
             style={[styles.modalContent, { backgroundColor: theme.surface }]}
           >
-            <View style={[styles.modalHeader, { flexDirection: 'row' }]}>
+            <DirectionalRow style={styles.modalHeader}>
               <ThemedText
                 style={[
                   Typography.subtitle,
@@ -1661,7 +1662,7 @@ export default function RequestDetailsScreen({
               <Pressable onPress={() => setShowCancelModal(false)}>
                 <DDIcon name="x" size={22} variant="muted" />
               </Pressable>
-            </View>
+            </DirectionalRow>
 
             <Spacer height={20} />
 
@@ -1926,7 +1927,7 @@ export default function RequestDetailsScreen({
               { backgroundColor: theme.surface },
             ]}
           >
-            <View style={[styles.modalHeader, { flexDirection: 'row' }]}>
+            <DirectionalRow style={styles.modalHeader}>
               <ThemedText
                 style={[
                   Typography.subtitle,
@@ -1942,7 +1943,7 @@ export default function RequestDetailsScreen({
               <Pressable onPress={closeEditModal}>
                 <DDIcon name="x" size={22} variant="muted" />
               </Pressable>
-            </View>
+            </DirectionalRow>
 
             <Spacer height={Spacing.lg} />
 
@@ -1966,7 +1967,7 @@ export default function RequestDetailsScreen({
                   {
                     backgroundColor: theme.surfaceSecondary,
                     borderColor: theme.border,
-                    flexDirection: 'row',
+                    flexDirection: getFlexDirection(isRTL),
                   },
                 ]}
                 onPress={() => setShowPurposePicker(true)}
@@ -2001,14 +2002,13 @@ export default function RequestDetailsScreen({
                   >
                     {t("form.startTime")}
                   </ThemedText>
-                  <View
+                  <DirectionalRow
                     style={[
                       styles.pickerButton,
                       {
                         backgroundColor: applyOpacity(theme.surfaceSecondary, '50'),
                         borderColor: theme.border,
                         opacity: 0.7,
-                        flexDirection: 'row',
                       },
                     ]}
                   >
@@ -2031,7 +2031,7 @@ export default function RequestDetailsScreen({
                       }
                     </ThemedText>
                     <DDIcon name="lock" size={14} variant="muted" />
-                  </View>
+                  </DirectionalRow>
                   <ThemedText
                     style={[
                       Typography.caption,
@@ -2056,7 +2056,7 @@ export default function RequestDetailsScreen({
                       {
                         backgroundColor: theme.surfaceSecondary,
                         borderColor: isWalkInEndTimeBeforeNow() ? theme.error : theme.border,
-                        flexDirection: 'row',
+                        flexDirection: getFlexDirection(isRTL),
                       },
                     ]}
                     onPress={() => setShowEditEndTimePicker(true)}
@@ -2118,7 +2118,7 @@ export default function RequestDetailsScreen({
                       {
                         backgroundColor: theme.surfaceSecondary,
                         borderColor: theme.border,
-                        flexDirection: 'row',
+                        flexDirection: getFlexDirection(isRTL),
                       },
                     ]}
                     onPress={() => {
@@ -2161,7 +2161,7 @@ export default function RequestDetailsScreen({
                   {
                     backgroundColor: theme.surfaceSecondary,
                     borderColor: theme.border,
-                    flexDirection: 'row',
+                    flexDirection: getFlexDirection(isRTL),
                   },
                 ]}
                 onPress={() => {
@@ -2204,7 +2204,7 @@ export default function RequestDetailsScreen({
                   {
                     backgroundColor: theme.surfaceSecondary,
                     borderColor: theme.border,
-                    flexDirection: 'row',
+                    flexDirection: getFlexDirection(isRTL),
                   },
                 ]}
                 onPress={() => {
@@ -2241,14 +2241,13 @@ export default function RequestDetailsScreen({
               >
                 {t("form.duration")}
               </ThemedText>
-              <View
+              <DirectionalRow
                 style={[
                   styles.pickerButton,
                   {
                     backgroundColor: theme.surface,
                     borderColor: theme.border,
                     opacity: 0.7,
-                    flexDirection: 'row',
                   },
                 ]}
               >
@@ -2268,7 +2267,7 @@ export default function RequestDetailsScreen({
                   {calculateEditDuration()}
                 </ThemedText>
                 <DDIcon name="lock" size={16} variant="muted" />
-              </View>
+              </DirectionalRow>
               <ThemedText
                 style={[
                   Typography.caption,
@@ -2331,11 +2330,10 @@ export default function RequestDetailsScreen({
               {editRequiresMeetingRoom ? (
                 <View style={{ marginTop: Spacing.md }}>
                   {hasCheckedEditAvailability ? (
-                    <View 
+                    <DirectionalRow 
                       style={[
                         styles.availabilityBadge, 
                         { 
-                          flexDirection: 'row',
                           backgroundColor: isEditRoomAvailable 
                             ? applyOpacity(theme.success, '15') 
                             : applyOpacity(theme.error, '15'),
@@ -2363,14 +2361,14 @@ export default function RequestDetailsScreen({
                           : t('errors.noRoomsAvailableForTime')
                         }
                       </ThemedText>
-                    </View>
+                    </DirectionalRow>
                   ) : isLoadingEditRooms ? (
-                    <View style={[styles.availabilityBadge, { flexDirection: 'row', backgroundColor: theme.surface, borderColor: theme.border }]}>
+                    <DirectionalRow style={[styles.availabilityBadge, { backgroundColor: theme.surface, borderColor: theme.border }]}>
                       <ActivityIndicator size="small" color={theme.primary} style={{ marginEnd: Spacing.xs }} />
                       <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
                         {t('common.checkingAvailability')}...
                       </ThemedText>
-                    </View>
+                    </DirectionalRow>
                   ) : null}
                 </View>
               ) : null}
@@ -2777,7 +2775,7 @@ export default function RequestDetailsScreen({
      request.status !== REQUEST_STATUS.VISITOR_REJECTED &&
      request.status !== REQUEST_STATUS.AUTO_CANCELLED ? (
       <View style={[styles.stickyFooter, { backgroundColor: theme.background, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.lg }]}>
-        <View style={[styles.actionButtonsRow, { flexDirection: 'row' }]}>
+        <DirectionalRow style={styles.actionButtonsRow}>
           <LoadingButton
             onPress={() => openEditModal(request.isWalkIn ? "services-only" : "full")}
             variant="primary"
@@ -2799,7 +2797,7 @@ export default function RequestDetailsScreen({
           >
             {t("common.cancel")}
           </LoadingButton>
-        </View>
+        </DirectionalRow>
       </View>
     ) : null}
     </>

@@ -12,6 +12,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
+import { DirectionalRow } from "@/components/DirectionalRow";
 import { applyOpacity } from "@/utils/statusStyles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useMyValetRequestDetailQuery } from "@/hooks/queries/useValetSelfServiceQueries";
@@ -55,7 +56,7 @@ function getStatusLabel(status: string): string {
 
 const InfoRow = ({ icon, label, value, theme, isRTL }: { icon: string; label: string; value: string; theme: Theme; isRTL: boolean }) => {
   return (
-    <View style={[styles.infoRow, { flexDirection: 'row' }]}>
+    <DirectionalRow style={styles.infoRow}>
       <View style={[styles.infoIconContainer, { backgroundColor: applyOpacity(theme.primary, '10') }]}>
         <DDIcon name={icon as any} size={16} color={theme.primary} />
       </View>
@@ -63,7 +64,7 @@ const InfoRow = ({ icon, label, value, theme, isRTL }: { icon: string; label: st
         <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>{label}</ThemedText>
         <ThemedText style={[Typography.body, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>{value}</ThemedText>
       </View>
-    </View>
+    </DirectionalRow>
   );
 };
 
@@ -159,17 +160,17 @@ export default function ValetRequestDetailsScreen({ route }: ValetRequestDetails
       >
         <Card style={styles.headerCard}>
           <View style={[styles.statusContainer, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
-            <View style={[styles.statusBadge, { backgroundColor: applyOpacity(statusColor, '15'), borderColor: applyOpacity(statusColor, '30'), flexDirection: 'row' }]}>
+            <DirectionalRow style={[styles.statusBadge, { backgroundColor: applyOpacity(statusColor, '15'), borderColor: applyOpacity(statusColor, '30') }]}>
               <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
               <ThemedText style={[Typography.bodySmall, { color: statusColor, fontWeight: '600' }]}>
                 {statusLabel}
               </ThemedText>
-            </View>
+            </DirectionalRow>
           </View>
           
           <Spacer height={Spacing.lg} />
           
-          <View style={[styles.vehicleInfo, { flexDirection: 'row' }]}>
+          <DirectionalRow style={styles.vehicleInfo}>
             <DDIcon name="truck" size={24} color={theme.primary} />
             <View style={styles.vehicleDetails}>
               <ThemedText style={[Typography.h3, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
@@ -179,7 +180,7 @@ export default function ValetRequestDetailsScreen({ route }: ValetRequestDetails
                 {request.vehicleInfo?.plateNumber} - {request.vehicleInfo?.color}
               </ThemedText>
             </View>
-          </View>
+          </DirectionalRow>
         </Card>
 
         <Spacer height={Spacing.lg} />
@@ -233,7 +234,7 @@ export default function ValetRequestDetailsScreen({ route }: ValetRequestDetails
               Assigned Driver
             </ThemedText>
             <Card style={styles.driverCard}>
-              <View style={[styles.driverInfo, { flexDirection: 'row' }]}>
+              <DirectionalRow style={styles.driverInfo}>
                 <View style={[styles.driverAvatar, { backgroundColor: applyOpacity(theme.success, '15') }]}>
                   <DDIcon name="user" size={20} color={theme.success} />
                 </View>
@@ -247,7 +248,7 @@ export default function ValetRequestDetailsScreen({ route }: ValetRequestDetails
                     </ThemedText>
                   ) : null}
                 </View>
-              </View>
+              </DirectionalRow>
             </Card>
           </>
         ) : null}

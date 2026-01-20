@@ -13,6 +13,7 @@ import { applyOpacity } from "@/utils/statusStyles";
 import { useValetParkingDashboard } from "@/hooks/queries/useValetAdminQueries";
 import type { ValetParkingVisitorDto } from "@/types/api.types";
 import type { Theme } from "@/types/theme.types";
+import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 
 const LAYOUT = {
   cardPadding: Spacing.lg,
@@ -316,11 +317,11 @@ export default function ValetAllRequestsScreen() {
 
       <Spacer height={LAYOUT.sectionSpacing} />
 
-      <View style={[styles.sectionTitleRow, styles.paddedContent, { flexDirection: 'row' }]}>
+      <DirectionalRow style={[styles.sectionTitleRow, styles.paddedContent]}>
         <ThemedText style={[Typography.subtitle, { textAlign: isRTL ? 'right' : 'left' }]}>
           {t('valet.todaysVisitors')}
         </ThemedText>
-      </View>
+      </DirectionalRow>
 
       <Spacer height={Spacing.md} />
 

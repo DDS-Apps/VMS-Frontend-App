@@ -12,7 +12,7 @@ import { Spacing, BorderRadius, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { DirectionalRow } from '@/components/DirectionalRow';
+import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 import {
   getValetTaskById,
   assignDriverToTask,
@@ -295,7 +295,7 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
                 backgroundColor: applyOpacity(statusColor, '15'),
                 borderColor: statusColor,
                 opacity: pressed ? 0.7 : 1,
-                flexDirection: 'row',
+                flexDirection: getFlexDirection(isRTL),
               },
             ]}
           >
@@ -327,14 +327,14 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
       <Spacer height={Spacing.lg} />
 
       <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
-        <View style={[{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: Spacing.lg }]}>
+        <DirectionalRow style={{ alignItems: 'center', justifyContent: 'space-between', marginBottom: Spacing.lg }}>
           <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text }]}>
             {t('actions.assignDriver')}
           </ThemedText>
           {task.valet.driver && !isReadOnlyRole ? (
             <Pressable
               onPress={() => setShowDriverPicker(true)}
-              style={[styles.editButton, { backgroundColor: applyOpacity(theme.warning, '12') }]}
+              style={[styles.editButton, { backgroundColor: applyOpacity(theme.warning, '12'), flexDirection: getFlexDirection(isRTL) }]}
             >
               <DDIcon name="edit-2" size={14} color={theme.warning} />
               <ThemedText style={[styles.editButtonText, { color: theme.warning }]}>
@@ -342,7 +342,7 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
               </ThemedText>
             </Pressable>
           ) : null}
-        </View>
+        </DirectionalRow>
 
         {task.valet.driver ? (
           <DirectionalRow style={styles.serviceRowNew}>
@@ -356,7 +356,7 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
               <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
                 {task.valet.driver.phone}
               </ThemedText>
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+              <DirectionalRow style={{ alignItems: 'center', marginTop: 4 }}>
                 <View
                   style={[
                     styles.statusDot,
@@ -369,7 +369,7 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12 }]}>
                   {task.valet.driver.status === 'available' ? t('status.available') : t('status.occupied')} - {task.valet.driver.currentTasks} {t('valet.assignedTasks').toLowerCase()}
                 </ThemedText>
-              </View>
+              </DirectionalRow>
             </View>
           </DirectionalRow>
         ) : isReadOnlyRole ? (
@@ -426,7 +426,7 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
                     onPress={() => handleAssignDriver(driver.id)}
                     style={({ pressed }) => [
                       styles.driverOption,
-                      { borderColor: theme.border, opacity: pressed ? 0.7 : 1, flexDirection: 'row' },
+                      { borderColor: theme.border, opacity: pressed ? 0.7 : 1, flexDirection: getFlexDirection(isRTL) },
                     ]}
                   >
                     <View style={{ flex: 1 }}>
@@ -437,12 +437,12 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
                         {driver.phone}
                       </ThemedText>
                       <Spacer height={Spacing.xs} />
-                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <DirectionalRow style={{ alignItems: 'center' }}>
                         <View style={[styles.statusDot, { backgroundColor: theme.success }]} />
                         <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
                           {t('status.available')} - {driver.currentTasks} {t('valet.assignedTasks').toLowerCase()}
                         </ThemedText>
-                      </View>
+                      </DirectionalRow>
                     </View>
                     <DDIcon name="chevron-right" size={20} variant="muted" directionAware />
                   </Pressable>
@@ -500,7 +500,7 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
                     backgroundColor: task.valet.status === option.value ? applyOpacity(option.color, '15') : 'transparent',
                     borderColor: theme.border,
                     opacity: pressed ? 0.7 : 1,
-                    flexDirection: 'row',
+                    flexDirection: getFlexDirection(isRTL),
                   },
                 ]}
               >

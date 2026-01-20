@@ -14,7 +14,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/contexts/ToastContext";
 import { useNotifications } from "@/contexts/NotificationContext";
-import { DirectionalRow } from '@/components/DirectionalRow';
+import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 import {
   useNotificationPreferencesQuery,
   useUpdateNotificationPreferencesMutation,
@@ -147,7 +147,7 @@ export default function NotificationPreferencesScreen() {
 
       {permissionStatus !== "granted" && (
         <>
-          <ThemedView style={[styles.permissionCard, { backgroundColor: theme.warning + "20", flexDirection: 'row' }]}>
+          <DirectionalRow style={[styles.permissionCard, { backgroundColor: theme.warning + "20" }]}>
             <DDIcon name="bell-off" size={24} color={theme.warning} />
             <View style={styles.permissionText}>
               <ThemedText style={[Typography.bodySmall, { fontWeight: "600", textAlign: isRTL ? 'right' : 'left' }]}>
@@ -164,7 +164,7 @@ export default function NotificationPreferencesScreen() {
             >
               {t('common.enable')}
             </LoadingButton>
-          </ThemedView>
+          </DirectionalRow>
           <Spacer height={Spacing.lg} />
         </>
       )}
@@ -178,22 +178,20 @@ export default function NotificationPreferencesScreen() {
 
         {channelSettings.map((setting, index) => (
           <React.Fragment key={setting.field}>
-            <View style={[styles.row, { flexDirection: 'row' }]}>
-              <View style={[styles.rowLeft, { flexDirection: 'row' }]}>
-                <DirectionalRow>
-                  <DDIcon name={setting.icon as any} size={20} color={theme.primary} />
-                  <ThemedText style={[Typography.body, { marginEnd: Spacing.sm, textAlign: 'right' }]}>
-                    {setting.label}
-                  </ThemedText>
-                </DirectionalRow>
-              </View>
+            <DirectionalRow style={styles.row}>
+              <DirectionalRow style={styles.rowLeft}>
+                <DDIcon name={setting.icon as any} size={20} color={theme.primary} />
+                <ThemedText style={[Typography.body, { marginEnd: Spacing.sm, textAlign: 'right' }]}>
+                  {setting.label}
+                </ThemedText>
+              </DirectionalRow>
               <Switch
                 value={localPrefs[setting.field]}
                 onValueChange={(value) => handleToggle(setting.field, value)}
                 trackColor={{ false: theme.border, true: theme.primary + "80" }}
                 thumbColor={localPrefs[setting.field] ? theme.primary : theme.textSecondary}
               />
-            </View>
+            </DirectionalRow>
             {index < channelSettings.length - 1 && (
               <View style={[styles.divider, { backgroundColor: theme.border }]} />
             )}
@@ -215,22 +213,20 @@ export default function NotificationPreferencesScreen() {
 
         {eventSettings.map((setting, index) => (
           <React.Fragment key={setting.field}>
-            <View style={[styles.row, { flexDirection: 'row' }]}>
-              <View style={[styles.rowLeft, { flexDirection: 'row' }]}>
-                <DirectionalRow>
-                  <DDIcon name={setting.icon as any} size={20} color={theme.primary} />
-                  <ThemedText style={[Typography.body, { marginEnd: Spacing.sm, textAlign: 'right' }]}>
-                    {setting.label}
-                  </ThemedText>
-                </DirectionalRow>
-              </View>
+            <DirectionalRow style={styles.row}>
+              <DirectionalRow style={styles.rowLeft}>
+                <DDIcon name={setting.icon as any} size={20} color={theme.primary} />
+                <ThemedText style={[Typography.body, { marginEnd: Spacing.sm, textAlign: 'right' }]}>
+                  {setting.label}
+                </ThemedText>
+              </DirectionalRow>
               <Switch
                 value={localPrefs[setting.field]}
                 onValueChange={(value) => handleToggle(setting.field, value)}
                 trackColor={{ false: theme.border, true: theme.primary + "80" }}
                 thumbColor={localPrefs[setting.field] ? theme.primary : theme.textSecondary}
               />
-            </View>
+            </DirectionalRow>
             {index < eventSettings.length - 1 && (
               <View style={[styles.divider, { backgroundColor: theme.border }]} />
             )}

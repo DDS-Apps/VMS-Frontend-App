@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScreenScrollView } from '@/components/ScreenScrollView';
 import { SearchInput } from '@/components/SearchInput';
 import { DDIcon, IconName } from '@/components/DDIcon';
+import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import Spacer from '@/components/Spacer';
@@ -387,7 +388,7 @@ export default function BuffetBoardScreen() {
           <View style={[styles.statusBorderLine, { backgroundColor: statusConfig.borderColor }]} />
           
           <View style={styles.cardContent}>
-            <View style={[styles.cardHeader, { flexDirection: 'row' }]}>
+            <DirectionalRow style={styles.cardHeader}>
               <View style={styles.nameSection}>
                 <ThemedText style={[Typography.body, { fontWeight: '600' }]}>
                   {task.visitorName}
@@ -406,19 +407,19 @@ export default function BuffetBoardScreen() {
                   {statusConfig.label}
                 </ThemedText>
               </View>
-            </View>
+            </DirectionalRow>
 
             <Spacer height={Spacing.md} />
 
             <View style={styles.infoGrid}>
-              <View style={[styles.infoRow, { flexDirection: 'row' }]}>
+              <DirectionalRow style={styles.infoRow}>
                 <DDIcon name="users" size={14} variant="muted" />
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6 }]}>
                   {task.guestCount} {t('buffet.guestCount').toLowerCase()}
                 </ThemedText>
-              </View>
+              </DirectionalRow>
 
-              <View style={[styles.infoRow, { flexDirection: 'row' }]}>
+              <DirectionalRow style={styles.infoRow}>
                 <DDIcon name="calendar" size={14} variant="muted" />
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6 }]}>
                   {formatDateUtil(task.visitDate, 'short')}
@@ -430,40 +431,40 @@ export default function BuffetBoardScreen() {
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 4 }]}>
                   {task.visitTime}
                 </ThemedText>
-              </View>
+              </DirectionalRow>
 
-              <View style={[styles.infoRow, { flexDirection: 'row' }]}>
+              <DirectionalRow style={styles.infoRow}>
                 <DDIcon name="map-pin" size={14} variant="muted" />
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6 }]}>
                   {task.location}
                 </ThemedText>
-              </View>
+              </DirectionalRow>
 
               {task.mealType ? (
-                <View style={[styles.infoRow, { flexDirection: 'row' }]}>
+                <DirectionalRow style={styles.infoRow}>
                   <DDIcon name="coffee" size={14} variant="muted" />
                   <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6 }]}>
                     {task.mealType.charAt(0).toUpperCase() + task.mealType.slice(1)}
                   </ThemedText>
-                </View>
+                </DirectionalRow>
               ) : null}
 
               {task.dietaryRequirements && task.dietaryRequirements.length > 0 ? (
-                <View style={[styles.infoRow, { flexDirection: 'row' }]}>
+                <DirectionalRow style={styles.infoRow}>
                   <DDIcon name="alert-circle" size={14} variant="muted" />
                   <ThemedText style={[Typography.caption, { color: theme.warning, marginStart: 6 }]}>
                     {task.dietaryRequirements.join(', ')}
                   </ThemedText>
-                </View>
+                </DirectionalRow>
               ) : null}
 
               {task.notes ? (
-                <View style={[styles.infoRow, { flexDirection: 'row' }]}>
+                <DirectionalRow style={styles.infoRow}>
                   <DDIcon name="file-text" size={14} variant="muted" />
                   <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6 }]}>
                     {task.notes}
                   </ThemedText>
-                </View>
+                </DirectionalRow>
               ) : null}
             </View>
 
@@ -549,18 +550,18 @@ export default function BuffetBoardScreen() {
         
         <Spacer height={Spacing.md} />
         
-        <View style={[styles.dateDisplayRow, { flexDirection: 'row' }]}>
+        <DirectionalRow style={styles.dateDisplayRow}>
           <ThemedText style={[Typography.bodySmall, { fontWeight: '600' }]}>
             {formatDisplayDate()}
           </ThemedText>
           <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
             {tasks.length} {t('navigation.myTasks').toLowerCase()}
           </ThemedText>
-        </View>
+        </DirectionalRow>
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.searchBarWrapper, { flexDirection: 'row' }]}>
+        <DirectionalRow style={styles.searchBarWrapper}>
           <SearchInput
             placeholder={t('common.search')}
             value={searchQuery}
@@ -575,7 +576,7 @@ export default function BuffetBoardScreen() {
           >
             <DDIcon name="calendar" size={20} color={theme.primary} />
           </Pressable>
-        </View>
+        </DirectionalRow>
 
         <Spacer height={Spacing.lg} />
 

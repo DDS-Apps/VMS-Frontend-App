@@ -17,7 +17,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { useFormatters } from '@/hooks/useFormatters';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { applyOpacity } from '@/utils/statusStyles';
-import { DirectionalRow } from '@/components/DirectionalRow';
+import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 import { 
   useAllRequestsQuery,
   type UnifiedRequest,
@@ -160,24 +160,20 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
       return (
         <View style={styles.expandedSection}>
           {originalData?.visitor?.email ? (
-            <View style={[styles.expandedDetailRow, { flexDirection: 'row' }]}>
-              <DirectionalRow>
+            <DirectionalRow style={styles.expandedDetailRow}>
                 <DDIcon name="mail" size={14} color={theme.textSecondary} />
                 <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
                   {originalData.visitor.email}
                 </ThemedText>
               </DirectionalRow>
-            </View>
           ) : null}
           {originalData?.visitor?.phone ? (
-            <View style={[styles.expandedDetailRow, { flexDirection: 'row' }]}>
-              <DirectionalRow>
+            <DirectionalRow style={styles.expandedDetailRow}>
                 <DDIcon name="phone" size={14} color={theme.textSecondary} />
                 <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
                   {originalData.visitor.phone}
                 </ThemedText>
               </DirectionalRow>
-            </View>
           ) : null}
         </View>
       );
@@ -186,23 +182,19 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
     if (request.type === 'buffet' && request.guestCount) {
       return (
         <View style={styles.expandedSection}>
-          <View style={[styles.expandedDetailRow, { flexDirection: 'row' }]}>
-            <DirectionalRow>
+          <DirectionalRow style={styles.expandedDetailRow}>
               <DDIcon name="users" size={14} color={theme.textSecondary} />
               <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
                 {t('buffet.guestCount')}: {request.guestCount}
               </ThemedText>
-            </DirectionalRow>
-          </View>
+          </DirectionalRow>
           {request.mealType ? (
-            <View style={[styles.expandedDetailRow, { flexDirection: 'row' }]}>
-              <DirectionalRow>
+            <DirectionalRow style={styles.expandedDetailRow}>
                 <DDIcon name="cloche" size={14} color={theme.textSecondary} />
                 <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
                   {request.mealType}
                 </ThemedText>
               </DirectionalRow>
-            </View>
           ) : null}
         </View>
       );
@@ -213,34 +205,28 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
       return (
         <View style={styles.expandedSection}>
           {vehicle.plateNumber ? (
-            <View style={[styles.expandedDetailRow, { flexDirection: 'row' }]}>
-              <DirectionalRow>
+            <DirectionalRow style={styles.expandedDetailRow}>
                 <DDIcon name="hash" size={14} color={theme.textSecondary} />
                 <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
                   {t('valet.plateNumber')}: {vehicle.plateNumber}
                 </ThemedText>
               </DirectionalRow>
-            </View>
           ) : null}
           {(vehicle.make || vehicle.model) ? (
-            <View style={[styles.expandedDetailRow, { flexDirection: 'row' }]}>
-              <DirectionalRow>
+            <DirectionalRow style={styles.expandedDetailRow}>
                 <DDIcon name="truck" size={14} color={theme.textSecondary} />
                 <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
                   {[vehicle.make, vehicle.model].filter(Boolean).join(' ')}
                 </ThemedText>
               </DirectionalRow>
-            </View>
           ) : null}
           {vehicle.color ? (
-            <View style={[styles.expandedDetailRow, { flexDirection: 'row' }]}>
-              <DirectionalRow>
+            <DirectionalRow style={styles.expandedDetailRow}>
                 <DDIcon name="droplet" size={14} color={theme.textSecondary} />
                 <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
                   {t('valet.color')}: {vehicle.color}
                 </ThemedText>
               </DirectionalRow>
-            </View>
           ) : null}
         </View>
       );
@@ -255,7 +241,7 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
         <View style={[styles.typeAccent, { backgroundColor: statusColor }]} />
         
         <View style={styles.cardContent}>
-          <View style={[styles.cardHeader, { flexDirection: 'row' }]}>
+          <DirectionalRow style={styles.cardHeader}>
             <ThemedText style={[Typography.body, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left', flex: 1 }]} numberOfLines={1}>
               {request.visitorName}
             </ThemedText>
@@ -267,42 +253,36 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
 
           <Spacer height={Spacing.sm} />
 
-          <View style={[styles.detailsRow, { flexDirection: 'row' }]}>
-            <View style={[styles.detailItem, { flexDirection: 'row' }]}>
-              <DirectionalRow>
-                <DDIcon name="calendar" size={14} variant="muted" />
-                <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
-                  {formatDate(request.date)}
-                </ThemedText>
-              </DirectionalRow>
-            </View>
-            <View style={[styles.detailItem, { flexDirection: 'row' }]}>
-              <DirectionalRow>
-                <DDIcon name="clock" size={14} variant="muted" />
-                <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
-                  {formatTimeFromString(request.time)}
-                </ThemedText>
-              </DirectionalRow>
-            </View>
-          </View>
+          <DirectionalRow style={styles.detailsRow}>
+            <DirectionalRow style={styles.detailItem}>
+              <DDIcon name="calendar" size={14} variant="muted" />
+              <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
+                {formatDate(request.date)}
+              </ThemedText>
+            </DirectionalRow>
+            <DirectionalRow style={styles.detailItem}>
+              <DDIcon name="clock" size={14} variant="muted" />
+              <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
+                {formatTimeFromString(request.time)}
+              </ThemedText>
+            </DirectionalRow>
+          </DirectionalRow>
 
           {request.location ? (
             <>
               <Spacer height={Spacing.xs} />
-              <View style={[styles.detailItem, { flexDirection: 'row' }]}>
-                <DirectionalRow>
-                  <DDIcon name="map-pin" size={14} variant="muted" />
-                  <ThemedText style={[styles.detailText, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
-                    {request.location}
-                  </ThemedText>
-                </DirectionalRow>
-              </View>
+              <DirectionalRow style={styles.detailItem}>
+                <DDIcon name="map-pin" size={14} variant="muted" />
+                <ThemedText style={[styles.detailText, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+                  {request.location}
+                </ThemedText>
+              </DirectionalRow>
             </>
           ) : null}
 
           <Spacer height={Spacing.sm} />
 
-          <View style={[styles.badgesRow, { flexDirection: 'row' }]}>
+          <DirectionalRow style={styles.badgesRow}>
             <View style={[styles.typeBadge, { backgroundColor: applyOpacity(typeColor, '12') }]}>
               <DDIcon name={typeIcon} size={12} color={typeColor} />
               <ThemedText style={[styles.typeBadgeText, { color: typeColor }]}>
@@ -315,7 +295,7 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
                 {getStatusLabel(request.status, t)}
               </ThemedText>
             </View>
-          </View>
+          </DirectionalRow>
 
           {renderExpandedDetails()}
 
@@ -341,10 +321,10 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
           {(request.canApprove || request.canCancel) ? (
             <>
               <Spacer height={Spacing.md} />
-              <View style={[styles.actionsRow, { flexDirection: 'row' }]}>
+              <DirectionalRow style={styles.actionsRow}>
                 {request.canApprove ? (
                   <Pressable
-                    style={[styles.approveButton, { backgroundColor: '#22C55E', flexDirection: 'row' }]}
+                    style={[styles.approveButton, { backgroundColor: '#22C55E' }]}
                     onPress={(e) => {
                       e.stopPropagation();
                       onApprove?.();
@@ -360,7 +340,7 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
                 ) : null}
                 {request.canCancel ? (
                   <Pressable
-                    style={[styles.rejectButton, { borderColor: theme.error, flexDirection: 'row' }]}
+                    style={[styles.rejectButton, { borderColor: theme.error }]}
                     onPress={(e) => {
                       e.stopPropagation();
                       onReject?.();
@@ -374,7 +354,7 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
                     </DirectionalRow>
                   </Pressable>
                 ) : null}
-              </View>
+              </DirectionalRow>
             </>
           ) : null}
         </View>
@@ -751,7 +731,7 @@ export default function AllRequestsScreen() {
         <Spacer height={Spacing.lg} />
 
         {isLargeScreen ? (
-          <View style={[styles.statsRow, { flexDirection: 'row' }]}>
+          <DirectionalRow style={styles.statsRow}>
             <StatCard
               value={stats.total}
               label={t('common.all')}
@@ -815,12 +795,12 @@ export default function AllRequestsScreen() {
               theme={theme}
               isLargeScreen
             />
-          </View>
+          </DirectionalRow>
         ) : (
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={[styles.statsScrollContent, { flexDirection: 'row' }]}
+            contentContainerStyle={styles.statsScrollContent}
             nestedScrollEnabled={true}
           >
             <StatCard
@@ -884,7 +864,7 @@ export default function AllRequestsScreen() {
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.searchRow, { flexDirection: 'row' }]}>
+        <DirectionalRow style={styles.searchRow}>
           <View style={styles.searchInputWrapper}>
             <SearchInput
               placeholder={t('common.search')}
@@ -908,7 +888,7 @@ export default function AllRequestsScreen() {
               color={selectedDate ? theme.primary : theme.textSecondary} 
             />
           </Pressable>
-        </View>
+        </DirectionalRow>
 
         {selectedDate ? (
           <>

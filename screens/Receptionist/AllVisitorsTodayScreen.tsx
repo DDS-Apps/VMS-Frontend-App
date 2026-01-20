@@ -18,6 +18,7 @@ import { DDIcon } from "@/components/DDIcon";
 import { VisitorActionButton } from "@/components/VisitorActionButton";
 import { applyOpacity } from "@/utils/statusStyles";
 import { formatPhoneNumber } from "@/utils/formatters";
+import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 import { useTodayVisitorsQuery, useReceptionCheckInMutation, useReceptionCheckOutMutation } from "@/hooks/queries/useReceptionQueries";
 import type { TodayVisitorDto, ListReceptionTodayParams } from "@/types";
 
@@ -42,7 +43,7 @@ const ServiceIconsRow = ({ visitor, size = 14 }: { visitor: TodayVisitorDto; siz
   }
 
   return (
-    <View style={[styles.servicesIconsRow, { flexDirection: 'row' }]}>
+    <DirectionalRow style={styles.servicesIconsRow}>
       {showBuffet ? (
         <View style={[styles.serviceIconPill, { backgroundColor: applyOpacity(theme.warning, '20') }]}>
           <DDIcon name="coffee" size={size} color={theme.warning} />
@@ -58,7 +59,7 @@ const ServiceIconsRow = ({ visitor, size = 14 }: { visitor: TodayVisitorDto; siz
           <DDIcon name="map-pin" size={size} color={theme.info} />
         </View>
       ) : null}
-    </View>
+    </DirectionalRow>
   );
 };
 
@@ -260,7 +261,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
           <View style={[styles.statusBorderLine, { backgroundColor: statusConfig.border }]} />
 
           <View style={styles.cardContent}>
-            <View style={[styles.cardHeader, { flexDirection: 'row' }]}>
+            <DirectionalRow style={styles.cardHeader}>
               <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
                 <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
                   {initials}
@@ -275,41 +276,41 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
                   {item.visitor.company ?? ''}
                 </ThemedText>
               </View>
-            </View>
+            </DirectionalRow>
 
-            <View style={[styles.detailsRow, { flexDirection: 'row' }]}>
-              <View style={[styles.detailItem, { flexDirection: 'row' }]}>
+            <DirectionalRow style={styles.detailsRow}>
+              <DirectionalRow style={styles.detailItem}>
                 <DDIcon name="clock" size={12} variant="muted" />
                 <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
                   {formatTimeFromString(item.visitTime)}
                 </ThemedText>
-              </View>
-              <View style={[styles.detailItem, { flexDirection: 'row' }]}>
+              </DirectionalRow>
+              <DirectionalRow style={styles.detailItem}>
                 <DDIcon name="user" size={12} variant="muted" />
                 <ThemedText style={[styles.detailText, { color: theme.textSecondary }]} numberOfLines={1}>
                   {item.hostName}{item.hostDepartment ? ` - ${item.hostDepartment}` : ''}
                 </ThemedText>
-              </View>
-            </View>
+              </DirectionalRow>
+            </DirectionalRow>
 
-            <View style={[styles.servicesStatusRow, { flexDirection: 'row' }]}>
+            <DirectionalRow style={styles.servicesStatusRow} justifyContent="space-between">
               <ServiceIconsRow visitor={item} />
               <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: 1 }]}>
                 <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
                   {statusConfig.label}
                 </ThemedText>
               </View>
-            </View>
+            </DirectionalRow>
 
             {isExpanded && hasDetails ? (
               <View style={styles.expandedSection}>
                 {item.visitor.phone ? (
-                  <View style={[styles.expandedDetailRow, { flexDirection: 'row' }]}>
+                  <DirectionalRow style={styles.expandedDetailRow}>
                     <DDIcon name="phone" size={14} color={theme.textSecondary} />
                     <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
                       {formatPhoneNumber(item.visitor.phone)}
                     </ThemedText>
-                  </View>
+                  </DirectionalRow>
                 ) : null}
               </View>
             ) : null}
@@ -317,22 +318,23 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
             {hasDetails ? (
               <Pressable
                 onPress={(e) => { e.stopPropagation(); toggleVisitorExpanded(item.id); }}
-                style={[styles.toggleContainer, { flexDirection: 'row' }]}
+                style={styles.toggleContainer}
               >
-                <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
-                  {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
-                </ThemedText>
-                <DDIcon
-                  name={isExpanded ? 'chevron-up' : 'chevron-down'}
-                  size={16}
-                  color={theme.primary}
-                />
+                <DirectionalRow>
+                  <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
+                    {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
+                  </ThemedText>
+                  <DDIcon
+                    name={isExpanded ? 'chevron-up' : 'chevron-down'}
+                    size={16}
+                    color={theme.primary}
+                  />
+                </DirectionalRow>
               </Pressable>
             ) : null}
 
-            <View style={[styles.cardFooter, { flexDirection: 'row' }]}>
-              <View />
-              <View style={[styles.actionButtons, { flexDirection: 'row' }]}>
+            <DirectionalRow style={styles.cardFooter} justifyContent="flex-end">
+              <DirectionalRow style={styles.actionButtons}>
                 {showCheckIn ? (
                   <VisitorActionButton
                     type="check_in"
@@ -346,8 +348,8 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
                 ) : showCompleted ? (
                   <VisitorActionButton type="completed" />
                 ) : null}
-              </View>
-            </View>
+              </DirectionalRow>
+            </DirectionalRow>
           </View>
         </ThemedView>
       </Pressable>
@@ -378,11 +380,11 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
 
       <Spacer height={Spacing.md} />
 
-      <View style={[styles.summaryRow, { flexDirection: 'row' }]}>
+      <DirectionalRow style={styles.summaryRow}>
         {renderSummaryCard(t('visitor.expectedVisitors'), summary.expected, theme.warning, 'clock')}
         {renderSummaryCard(t('status.checkedIn'), summary.checkedIn, theme.success, 'log-in')}
         {renderSummaryCard(t('status.checkedOut'), summary.completed, theme.textSecondary, 'log-out')}
-      </View>
+      </DirectionalRow>
 
       <Spacer height={Spacing.lg} />
 
@@ -453,7 +455,6 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
 
 const styles = StyleSheet.create({
   summaryRow: {
-    flexDirection: 'row',
     gap: Spacing.sm,
   },
   summaryCard: {
@@ -484,7 +485,6 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   segmentedControl: {
-    flexDirection: 'row',
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
     overflow: 'hidden',
@@ -622,7 +622,6 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
   },
   servicePill: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     paddingHorizontal: Spacing.sm,
@@ -637,7 +636,6 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
   },
   actionBtn: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 6,

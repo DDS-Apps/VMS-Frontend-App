@@ -7,6 +7,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
 import { LoadingButton } from "@/components/shared/LoadingButton";
+import { DirectionalRow } from "@/components/DirectionalRow";
 
 type SplashState = 'loading' | 'checking_health' | 'checking_auth' | 'error' | 'ready';
 
@@ -129,12 +130,12 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
         resizeMode="contain"
       />
       {splashState !== 'loading' && splashState !== 'ready' ? (
-        <View style={[styles.statusContainer, { flexDirection: 'row' }]}>
+        <DirectionalRow style={styles.statusContainer}>
           <ActivityIndicator size="small" color="#FFFFFF" />
           <ThemedText style={styles.statusText}>
             {getStatusMessage()}
           </ThemedText>
-        </View>
+        </DirectionalRow>
       ) : null}
     </View>
   );

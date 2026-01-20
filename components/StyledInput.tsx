@@ -16,6 +16,7 @@ import { Spacing, BorderRadius, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ArabicFontScaling } from '@/utils/rtlStyles';
+import { DirectionalRow } from '@/components/DirectionalRow';
 
 const INPUT_ICON_SIZE = 22;
 const INPUT_FONT_SIZE = 17;
@@ -82,7 +83,7 @@ export const StyledInput = forwardRef<TextInput, StyledInputProps>(({
         </ThemedText>
       ) : null}
       
-      <View style={[getInputContainerStyle(), { flexDirection: 'row' }]}>
+      <DirectionalRow style={getInputContainerStyle()} alignItems="center">
         {leftIcon ? (
           <DDIcon name={leftIcon} size={INPUT_ICON_SIZE} variant="muted" />
         ) : null}
@@ -129,7 +130,7 @@ export const StyledInput = forwardRef<TextInput, StyledInputProps>(({
             <DDIcon name={rightIcon} size={20} variant="muted" />
           </Pressable>
         ) : null}
-      </View>
+      </DirectionalRow>
       
       {error ? (
         <ThemedText style={[Typography.caption, { color: theme.error, marginTop: Spacing.xs, textAlign: isRTL ? 'right' : 'left' }]}>
@@ -144,7 +145,6 @@ StyledInput.displayName = 'StyledInput';
 
 const styles = StyleSheet.create({
   inputContainer: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.md,
     borderRadius: BorderRadius.sm,

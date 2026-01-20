@@ -15,7 +15,7 @@ import { Spacing, BorderRadius, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useToast } from '@/contexts/ToastContext';
-import { DirectionalRow } from '@/components/DirectionalRow';
+import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 import {
   useUsersQuery, 
   useCreateUserMutation, 
@@ -504,22 +504,22 @@ export default function UsersRolesScreen() {
           }
         ]}
       >
-        <View style={[styles.userHeader, { flexDirection: 'row' }]}>
+        <DirectionalRow style={styles.userHeader}>
           {bulkMode ? (
             <View style={{ marginEnd: Spacing.md }}>
               {renderCheckbox(item.id)}
             </View>
           ) : null}
           <View style={{ flex: 1 }}>
-            <View style={[styles.nameRow, { flexDirection: 'row' }]}>
+            <DirectionalRow style={styles.nameRow}>
               <ThemedText style={[Typography.subtitle, { fontWeight: '600', flex: 1, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
                 {item.name}
               </ThemedText>
-            </View>
+            </DirectionalRow>
             <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginBottom: Spacing.xs }]} numberOfLines={1}>
               {item.email}
             </ThemedText>
-            <View style={[styles.badgeRow, { flexDirection: 'row' }]}>
+            <DirectionalRow style={styles.badgeRow}>
               <View style={[styles.roleBadge, { backgroundColor: theme.primary + '20' }]}>
                 <ThemedText style={[Typography.caption, { color: theme.primary, fontWeight: '600' }]}>
                   {getRoleLabel(item.role)}
@@ -533,10 +533,10 @@ export default function UsersRolesScreen() {
                   </ThemedText>
                 </View>
               ) : null}
-            </View>
+            </DirectionalRow>
           </View>
           {!isGrid && !bulkMode ? (
-            <View style={[styles.actions, { flexDirection: 'row' }]}>
+            <DirectionalRow style={styles.actions}>
               <Pressable
                 style={[styles.actionButton, { backgroundColor: theme.primary + '15' }]}
                 onPress={() => handleEditUser(item)}
@@ -550,41 +550,37 @@ export default function UsersRolesScreen() {
               >
                 <DDIcon name="trash-2" size={16} variant="danger" />
               </Pressable>
-            </View>
+            </DirectionalRow>
           ) : null}
-        </View>
+        </DirectionalRow>
 
         {!isGrid && (item.department || item.phoneNumber) ? (
           <>
             <Spacer height={Spacing.md} />
             {item.department ? (
-              <View style={[styles.infoRow, bulkMode ? { marginStart: 32 } : null, { flexDirection: 'row' }]}>
-                <DirectionalRow>
-                  <DDIcon name="briefcase" variant="muted" size={14} />
-                  <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginEnd: Spacing.xs }]}>
-                    {item.department}
-                  </ThemedText>
-                </DirectionalRow>
-              </View>
+              <DirectionalRow style={[styles.infoRow, bulkMode ? { marginStart: 32 } : null]}>
+                <DDIcon name="briefcase" variant="muted" size={14} />
+                <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginEnd: Spacing.xs }]}>
+                  {item.department}
+                </ThemedText>
+              </DirectionalRow>
             ) : null}
             {item.phoneNumber ? (
               <>
                 <Spacer height={Spacing.xs} />
-                <View style={[styles.infoRow, bulkMode ? { marginStart: 32 } : null, { flexDirection: 'row' }]}>
-                  <DirectionalRow>
-                    <DDIcon name="phone" variant="muted" size={14} />
-                    <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginEnd: Spacing.xs }]}>
-                      {item.phoneNumber}
-                    </ThemedText>
-                  </DirectionalRow>
-                </View>
+                <DirectionalRow style={[styles.infoRow, bulkMode ? { marginStart: 32 } : null]}>
+                  <DDIcon name="phone" variant="muted" size={14} />
+                  <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginEnd: Spacing.xs }]}>
+                    {item.phoneNumber}
+                  </ThemedText>
+                </DirectionalRow>
               </>
             ) : null}
           </>
         ) : null}
 
         {isGrid && !bulkMode ? (
-          <View style={styles.gridActions}>
+          <DirectionalRow style={styles.gridActions}>
             <Pressable
               style={[styles.gridActionButton, { backgroundColor: theme.primary + '15' }]}
               onPress={() => handleEditUser(item)}
@@ -597,7 +593,7 @@ export default function UsersRolesScreen() {
             >
               <DDIcon name="trash-2" size={14} variant="danger" />
             </Pressable>
-          </View>
+          </DirectionalRow>
         ) : null}
       </Pressable>
     );
@@ -652,7 +648,7 @@ export default function UsersRolesScreen() {
           )}
         </View>
         {!bulkMode ? (
-          <View style={[styles.tableCell, { flex: 1.5, flexDirection: 'row', justifyContent: 'center', gap: Spacing.xs }]}>
+          <DirectionalRow style={[styles.tableCell, { flex: 1.5, justifyContent: 'center', gap: Spacing.xs }]}>
             <Pressable
               style={[styles.tableActionButton, { backgroundColor: theme.primary + '15' }]}
               onPress={() => handleEditUser(item)}
@@ -665,14 +661,14 @@ export default function UsersRolesScreen() {
             >
               <DDIcon name="trash-2" size={14} variant="danger" />
             </Pressable>
-          </View>
+          </DirectionalRow>
         ) : null}
       </Pressable>
     );
   };
 
   const renderTableHeader = () => (
-    <View style={[styles.tableHeaderRow, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
+    <DirectionalRow style={[styles.tableHeaderRow, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
       {bulkMode ? (
         <View style={[styles.tableHeaderCell, { width: 50 }]}>
           <Pressable
@@ -718,7 +714,7 @@ export default function UsersRolesScreen() {
           </ThemedText>
         </View>
       ) : null}
-    </View>
+    </DirectionalRow>
   );
 
   const renderSectionHeader = ({ section }: { section: { title: string; role: UserRole; data: DisplayUser[] } }) => {
@@ -726,7 +722,7 @@ export default function UsersRolesScreen() {
     const someSelected = section.data.some(u => selectedUserIds.has(u.id));
     
     return (
-      <View style={[styles.sectionHeader, { backgroundColor: theme.background }]}>
+      <DirectionalRow style={[styles.sectionHeader, { backgroundColor: theme.background }]}>
         {bulkMode ? (
           <Pressable
             style={[
@@ -755,7 +751,7 @@ export default function UsersRolesScreen() {
             {section.data.length}
           </ThemedText>
         </View>
-      </View>
+      </DirectionalRow>
     );
   };
 
@@ -763,8 +759,8 @@ export default function UsersRolesScreen() {
     if (!bulkMode) return null;
     
     return (
-      <View style={[styles.bulkActionBar, { backgroundColor: theme.surface, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.md }]}>
-        <View style={styles.bulkActionInfo}>
+      <DirectionalRow style={[styles.bulkActionBar, { backgroundColor: theme.surface, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.md }]}>
+        <DirectionalRow style={styles.bulkActionInfo}>
           <Pressable
             style={[
               styles.checkbox, 
@@ -784,11 +780,11 @@ export default function UsersRolesScreen() {
           <ThemedText style={[Typography.bodySmall, { color: theme.text, marginStart: Spacing.sm }]}>
             {selectedUserIds.size} {t('common.selected')}
           </ThemedText>
-        </View>
+        </DirectionalRow>
         
-        <View style={styles.bulkActions}>
+        <DirectionalRow style={styles.bulkActions}>
           <Pressable
-            style={[styles.bulkActionButton, { backgroundColor: theme.success + '20', opacity: selectedUserIds.size === 0 ? 0.5 : 1 }]}
+            style={[styles.bulkActionButton, { backgroundColor: theme.success + '20', opacity: selectedUserIds.size === 0 ? 0.5 : 1, flexDirection: getFlexDirection(isRTL) }]}
             onPress={() => handleBulkAutoApprove(true)}
             disabled={selectedUserIds.size === 0}
           >
@@ -799,7 +795,7 @@ export default function UsersRolesScreen() {
           </Pressable>
           
           <Pressable
-            style={[styles.bulkActionButton, { backgroundColor: theme.error + '20', opacity: selectedUserIds.size === 0 ? 0.5 : 1 }]}
+            style={[styles.bulkActionButton, { backgroundColor: theme.error + '20', opacity: selectedUserIds.size === 0 ? 0.5 : 1, flexDirection: getFlexDirection(isRTL) }]}
             onPress={() => handleBulkAutoApprove(false)}
             disabled={selectedUserIds.size === 0}
           >
@@ -815,8 +811,8 @@ export default function UsersRolesScreen() {
           >
             <DDIcon name="x" size={16} variant="muted" />
           </Pressable>
-        </View>
-      </View>
+        </DirectionalRow>
+      </DirectionalRow>
     );
   };
 
@@ -832,7 +828,7 @@ export default function UsersRolesScreen() {
           {(['name', 'role', 'department'] as SortOption[]).map((option) => (
             <Pressable
               key={option}
-              style={[styles.sortMenuItem, { backgroundColor: sortBy === option ? theme.primary + '10' : 'transparent' }]}
+              style={[styles.sortMenuItem, { backgroundColor: sortBy === option ? theme.primary + '10' : 'transparent', flexDirection: getFlexDirection(isRTL) }]}
               onPress={() => {
                 setSortBy(option);
                 setShowSortMenu(false);
@@ -855,7 +851,7 @@ export default function UsersRolesScreen() {
     if (totalPages <= 1) return null;
     
     return (
-      <View style={[styles.paginationContainer, { backgroundColor: theme.surface, borderTopColor: theme.border }]}>
+      <DirectionalRow style={[styles.paginationContainer, { backgroundColor: theme.surface, borderTopColor: theme.border }]}>
         <Pressable
           style={[styles.paginationButton, { opacity: currentPage === 1 ? 0.5 : 1 }]}
           onPress={() => setCurrentPage(p => Math.max(1, p - 1))}
@@ -875,13 +871,13 @@ export default function UsersRolesScreen() {
         >
           <DDIcon name="chevron-right" size={20} variant={currentPage === totalPages ? 'muted' : 'primary'} />
         </Pressable>
-      </View>
+      </DirectionalRow>
     );
   };
 
   const renderListHeader = () => (
     <>
-      <View style={styles.header}>
+      <DirectionalRow style={styles.header}>
         <View>
           <ThemedText style={[Typography.title, { fontWeight: '700' }]}>
             {t('navigation.manageUsers')}
@@ -890,7 +886,7 @@ export default function UsersRolesScreen() {
             {totalUsers} {t('roles.employee').toLowerCase()}
           </ThemedText>
         </View>
-        <View style={styles.viewToggle}>
+        <DirectionalRow style={styles.viewToggle}>
           <Pressable
             style={[
               styles.viewToggleButton,
@@ -917,8 +913,8 @@ export default function UsersRolesScreen() {
           >
             <DDIcon name="list" size={16} color={viewMode === 'table' ? theme.buttonText : theme.textSecondary} />
           </Pressable>
-        </View>
-      </View>
+        </DirectionalRow>
+      </DirectionalRow>
 
       <View style={styles.searchContainer}>
         <StyledInput
@@ -994,7 +990,7 @@ export default function UsersRolesScreen() {
         nestedScrollEnabled={true}
       >
         <Pressable 
-          style={[styles.sortButton, { backgroundColor: theme.surface, borderColor: theme.border }]}
+          style={[styles.sortButton, { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: getFlexDirection(isRTL) }]}
           onPress={() => setShowSortMenu(!showSortMenu)}
         >
           <DDIcon name="sliders" size={16} variant="muted" />
@@ -1005,7 +1001,7 @@ export default function UsersRolesScreen() {
         </Pressable>
 
         <Pressable
-          style={[styles.groupButton, { backgroundColor: groupBy === 'role' ? theme.primary : theme.surface, borderColor: groupBy === 'role' ? theme.primary : theme.border }]}
+          style={[styles.groupButton, { backgroundColor: groupBy === 'role' ? theme.primary : theme.surface, borderColor: groupBy === 'role' ? theme.primary : theme.border, flexDirection: getFlexDirection(isRTL) }]}
           onPress={() => setGroupBy(groupBy === 'none' ? 'role' : 'none')}
         >
           <DDIcon name="layers" size={16} color={groupBy === 'role' ? theme.buttonText : theme.textSecondary} />
@@ -1019,7 +1015,8 @@ export default function UsersRolesScreen() {
             styles.statusFilterButton, 
             { 
               backgroundColor: filterActive === true ? theme.success : filterActive === false ? theme.error : theme.surface, 
-              borderColor: filterActive !== 'all' ? (filterActive ? theme.success : theme.error) : theme.border 
+              borderColor: filterActive !== 'all' ? (filterActive ? theme.success : theme.error) : theme.border,
+              flexDirection: getFlexDirection(isRTL)
             }
           ]}
           onPress={() => {
@@ -1103,7 +1100,7 @@ export default function UsersRolesScreen() {
         const someSelected = section.data.some(user => selectedUserIds.has(user.id));
         
         return (
-          <View style={[styles.tableSectionHeader, { backgroundColor: theme.background, width: '100%' }]}>
+          <DirectionalRow style={[styles.tableSectionHeader, { backgroundColor: theme.background, width: '100%' }]}>
             {bulkMode ? (
               <Pressable
                 style={[
@@ -1132,7 +1129,7 @@ export default function UsersRolesScreen() {
                 {section.data.length}
               </ThemedText>
             </View>
-          </View>
+          </DirectionalRow>
         );
       };
 
@@ -1197,14 +1194,14 @@ export default function UsersRolesScreen() {
         <FlatList
           data={gridData}
           renderItem={({ item: pair }) => (
-            <View style={styles.gridRow}>
+            <DirectionalRow style={styles.gridRow}>
               {pair.map((user, idx) => (
                 <View key={user.id} style={[styles.gridItemWrapper, idx === 1 ? { marginStart: Spacing.sm } : null]}>
                   {renderUserCard({ item: user })}
                 </View>
               ))}
               {pair.length === 1 ? <View style={styles.gridItemWrapper} /> : null}
-            </View>
+            </DirectionalRow>
           )}
           keyExtractor={(item, index) => `row-${index}`}
           ListFooterComponent={listFooter}
@@ -1257,14 +1254,14 @@ export default function UsersRolesScreen() {
         >
           <Pressable style={styles.modalBackdrop} onPress={() => setShowModal(false)} />
           <View style={[styles.modalContent, { backgroundColor: theme.background, paddingBottom: insets.bottom + Spacing.xl }]}>
-            <View style={styles.modalHeader}>
+            <DirectionalRow style={styles.modalHeader}>
               <ThemedText style={[Typography.subtitle, { fontWeight: '600' }]}>
                 {editingUser ? t('common.edit') : t('common.addUser')}
               </ThemedText>
               <Pressable onPress={() => setShowModal(false)}>
                 <DDIcon name="x" size={24} variant="muted" />
               </Pressable>
-            </View>
+            </DirectionalRow>
 
             <ScrollView style={styles.formContainer} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
               <StyledInput
@@ -1461,7 +1458,7 @@ export default function UsersRolesScreen() {
                 })}
               </ScrollView>
 
-              <View style={[styles.autoApprovalRow, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <DirectionalRow style={[styles.autoApprovalRow, { backgroundColor: theme.surface, borderColor: theme.border }]}>
                 <View style={{ flex: 1 }}>
                   <ThemedText style={[Typography.body, { fontWeight: '500' }]}>
                     {t('common.autoApproval')}
@@ -1477,7 +1474,7 @@ export default function UsersRolesScreen() {
                   thumbColor={formData.autoApproval ? theme.success : theme.textSecondary}
                   accessibilityLabel={t('common.autoApproval')}
                 />
-              </View>
+              </DirectionalRow>
 
               <Spacer height={Spacing.lg} />
 

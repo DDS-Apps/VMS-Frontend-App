@@ -19,6 +19,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { UserRole } from "@/types/vms.types";
 import { applyOpacity } from "@/utils/statusStyles";
 import { SupportedLocale } from "@/constants/i18n";
+import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 import {
   useNotificationPreferencesQuery,
   useUpdateNotificationPreferencesMutation,
@@ -188,7 +189,7 @@ export default function SettingsScreen({
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.profileContainer, { flexDirection: 'row', gap: Spacing.md }]}>
+        <DirectionalRow style={[styles.profileContainer, { gap: Spacing.md }]}>
           <View style={[styles.avatar, { backgroundColor: theme.primary + '20' }]}>
             <ThemedText style={[Typography.subtitle, { color: theme.primary, fontWeight: '700' }]}>
               {userName.split(' ').map(n => n[0]).join('')}
@@ -208,7 +209,7 @@ export default function SettingsScreen({
               </ThemedText>
             ) : null}
           </View>
-        </View>
+        </DirectionalRow>
 
         <Spacer height={Spacing.md} />
 
@@ -218,7 +219,7 @@ export default function SettingsScreen({
             { 
               borderColor: theme.primary,
               opacity: pressed ? 0.7 : 1,
-              flexDirection: 'row',
+              flexDirection: getFlexDirection(isRTL),
               gap: Spacing.xs,
             },
           ]}
@@ -238,7 +239,7 @@ export default function SettingsScreen({
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.settingItem, { flexDirection: 'row', gap: Spacing.md }]}>
+        <DirectionalRow style={[styles.settingItem, { gap: Spacing.md }]}>
           <View style={{ flex: 1 }}>
             <ThemedText style={[styles.settingLabel, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('settings.darkMode')}
@@ -254,11 +255,11 @@ export default function SettingsScreen({
             thumbColor={isDark ? theme.primary : theme.buttonText}
             ios_backgroundColor={theme.border}
           />
-        </View>
+        </DirectionalRow>
 
         <View style={[styles.sectionDivider, { backgroundColor: theme.surfaceSecondary }]} />
 
-        <View style={[styles.settingItem, { flexDirection: 'row' }]}>
+        <DirectionalRow style={styles.settingItem}>
           <View style={{ flex: 1 }}>
             <ThemedText style={[styles.settingLabel, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('settings.language')}
@@ -267,7 +268,7 @@ export default function SettingsScreen({
               {t('settings.languageDesc')}
             </ThemedText>
           </View>
-        </View>
+        </DirectionalRow>
         
         <Spacer height={Spacing.md} />
 
@@ -278,7 +279,7 @@ export default function SettingsScreen({
               style={({ pressed }) => [
                 styles.languageButton,
                 { 
-                  flexDirection: 'row',
+                  flexDirection: getFlexDirection(isRTL),
                   justifyContent: 'space-between',
                   backgroundColor: locale === lang.code ? applyOpacity(theme.primary, '15') : theme.background,
                   borderColor: locale === lang.code ? theme.primary : theme.border,
@@ -305,7 +306,7 @@ export default function SettingsScreen({
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.settingItem, { flexDirection: 'row', gap: Spacing.md }]}>
+        <DirectionalRow style={[styles.settingItem, { gap: Spacing.md }]}>
           <View style={{ flex: 1 }}>
             <ThemedText style={[styles.settingLabel, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('settings.pushNotifications')}
@@ -325,7 +326,7 @@ export default function SettingsScreen({
               ios_backgroundColor={theme.border}
             />
           )}
-        </View>
+        </DirectionalRow>
 
         <View style={[styles.sectionDivider, { backgroundColor: theme.surfaceSecondary }]} />
 
@@ -339,7 +340,7 @@ export default function SettingsScreen({
                   ? theme.error 
                   : theme.primary,
               opacity: pressed ? 0.8 : 1,
-              flexDirection: 'row',
+              flexDirection: getFlexDirection(isRTL),
               gap: Spacing.sm,
             },
           ]}
@@ -381,6 +382,7 @@ export default function SettingsScreen({
           style={({ pressed }) => [
             styles.debugButton,
             { 
+              flexDirection: getFlexDirection(isRTL),
               backgroundColor: theme.surfaceSecondary,
               opacity: pressed ? 0.8 : 1,
             },
@@ -415,7 +417,7 @@ export default function SettingsScreen({
             { 
               backgroundColor: theme.error,
               opacity: pressed ? 0.8 : 1,
-              flexDirection: 'row',
+              flexDirection: getFlexDirection(isRTL),
             },
           ]}
           onPress={onLogout}
@@ -609,7 +611,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   debugButton: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: Spacing.sm,

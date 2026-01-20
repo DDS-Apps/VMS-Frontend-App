@@ -8,6 +8,7 @@ import { DDIcon } from "@/components/DDIcon";
 import { useScreenInsets } from "@/hooks/useScreenInsets";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
 import Spacer from "@/components/Spacer";
 import { ServiceIcons, SelectionCheckbox, StatusAccent, WalkInBadge, SkeletonDashboard, LoadingSpinner, ApprovalActionGroup, LoadingButton, VisitorRequestCard } from "@/components/shared";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
@@ -63,7 +64,7 @@ const DateTimeDisplay = ({ date, time, duration, theme, compact = false, fmtDate
   ) : null;
   
   return (
-    <View style={[styles.dateTimeRow, { flexDirection: 'row' }]}>
+    <DirectionalRow style={styles.dateTimeRow}>
       {calendarIcon}
       {dateText}
       <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
@@ -75,7 +76,7 @@ const DateTimeDisplay = ({ date, time, duration, theme, compact = false, fmtDate
           {durationText}
         </>
       ) : null}
-    </View>
+    </DirectionalRow>
   );
 };
 
@@ -162,21 +163,21 @@ const SectionHeader = ({
   );
   
   const actionsContent = (
-    <View style={[styles.headerActions, { flexDirection: 'row' }]}>
+    <DirectionalRow style={styles.headerActions}>
       {selectButton}
       <Spacer width={Spacing.sm} />
-      <View style={[styles.viewModeToggle, { flexDirection: 'row' }]}>
+      <DirectionalRow style={styles.viewModeToggle}>
         {gridButton}
         {listButton}
-      </View>
-    </View>
+      </DirectionalRow>
+    </DirectionalRow>
   );
   
   return (
-    <View style={[styles.header, { flexDirection: 'row' }]}>
+    <DirectionalRow style={styles.header}>
       {titleContent}
       {actionsContent}
-    </View>
+    </DirectionalRow>
   );
 };
 
@@ -194,15 +195,15 @@ const SelectAllBar = ({
   isRTL?: boolean;
 }) => {
   return (
-    <View style={[styles.selectAllBar, { backgroundColor: theme.surfaceSecondary, flexDirection: 'row' }]}>
-      <Pressable onPress={onToggleAll} style={[styles.selectAllButton, { flexDirection: 'row' }]}>
+    <DirectionalRow style={[styles.selectAllBar, { backgroundColor: theme.surfaceSecondary }]}>
+      <Pressable onPress={onToggleAll} style={[styles.selectAllButton, getFlexDirection(isRTL)]}>
         <SelectionCheckbox isSelected={allSelected} onToggle={onToggleAll} />
         <Spacer width={Spacing.sm} />
         <ThemedText style={[Typography.body, { color: theme.text }]}>
           {allSelected ? t('bulkActions.deselectAll') : t('bulkActions.selectAll')}
         </ThemedText>
       </Pressable>
-    </View>
+    </DirectionalRow>
   );
 };
 
@@ -238,13 +239,13 @@ const BulkActionBar = ({
         }
       ]}
     >
-      <View style={[styles.bulkActionContent, { flexDirection: 'row' }]}>
+      <DirectionalRow style={styles.bulkActionContent}>
         <ThemedText style={[Typography.body, { fontWeight: '600', color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
           {isProcessing ? t('common.processing') : `${selectedCount} ${t('bulkActions.selected')}`}
         </ThemedText>
-        <View style={[styles.bulkActionButtons, { flexDirection: 'row' }]}>
+        <DirectionalRow style={styles.bulkActionButtons}>
           <Pressable
-            style={[styles.bulkRejectButton, { borderColor: theme.error, opacity: isProcessing ? 0.6 : 1, flexDirection: 'row' }]}
+            style={[styles.bulkRejectButton, { borderColor: theme.error, opacity: isProcessing ? 0.6 : 1 }, getFlexDirection(isRTL)]}
             onPress={onReject}
             disabled={isProcessing}
           >
@@ -260,7 +261,7 @@ const BulkActionBar = ({
           </Pressable>
           <Spacer width={Spacing.sm} />
           <Pressable
-            style={[styles.bulkApproveButton, { backgroundColor: theme.success, opacity: isProcessing ? 0.6 : 1, flexDirection: 'row' }]}
+            style={[styles.bulkApproveButton, { backgroundColor: theme.success, opacity: isProcessing ? 0.6 : 1 }, getFlexDirection(isRTL)]}
             onPress={onApprove}
             disabled={isProcessing}
           >
@@ -274,8 +275,8 @@ const BulkActionBar = ({
               {t('actions.approve')}
             </ThemedText>
           </Pressable>
-        </View>
-      </View>
+        </DirectionalRow>
+      </DirectionalRow>
     </View>
   );
 };
@@ -358,10 +359,10 @@ const ApprovalTableRow = React.memo(({
     <View style={[styles.fixedColumn, { width: isSelectionMode ? LAYOUT.tableFixedColumnWidth - 40 : LAYOUT.tableFixedColumnWidth }]}>
       <View style={styles.fixedColumnContent}>
         <View style={{ flex: 1 }}>
-          <View style={[styles.nameWithBadge, { flexDirection: 'row' }]}>
+          <DirectionalRow style={styles.nameWithBadge}>
             {nameText}
             {walkInBadge}
-          </View>
+          </DirectionalRow>
           <Spacer height={6} />
           <DateTimeDisplay 
             date={request.visitDate} 
@@ -430,13 +431,13 @@ const ApprovalTableRow = React.memo(({
             {t('common.actions').toUpperCase()}
           </ThemedText>
           <Spacer height={10} />
-          <View style={[styles.actionsRow, { flexDirection: 'row' }]}>
+          <DirectionalRow style={styles.actionsRow}>
             {rejectBtn}
             <Spacer width={Spacing.sm} />
             {approveBtn}
             <Spacer width={Spacing.sm} />
             {detailsBtn}
-          </View>
+          </DirectionalRow>
         </View>
       ) : null}
     </ScrollView>
@@ -444,7 +445,7 @@ const ApprovalTableRow = React.memo(({
   
   return (
     <Pressable onLongPress={onLongPress}>
-      <ThemedView style={[styles.tableRow, { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: 'row' }]}>
+      <ThemedView style={[styles.tableRow, { backgroundColor: theme.surface, borderColor: theme.border }, getFlexDirection(isRTL)]}>
         {statusAccent}
         {checkboxColumn}
         {fixedColumnContent}
@@ -571,7 +572,7 @@ const RejectRequestModal = ({
 
             <Spacer height={Spacing.xl} />
 
-            <View style={[styles.rejectModalActions, { flexDirection: 'row' }]}>
+            <DirectionalRow style={styles.rejectModalActions}>
               <LoadingButton
                 onPress={handleCancel}
                 variant="outline"
@@ -593,7 +594,7 @@ const RejectRequestModal = ({
               >
                 {t('common.confirm')}
               </LoadingButton>
-            </View>
+            </DirectionalRow>
           </ThemedView>
         </Pressable>
       </Pressable>
@@ -1012,12 +1013,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
   },
   headerActions: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
   selectButton: {
@@ -1031,7 +1030,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   viewModeToggle: {
-    flexDirection: 'row',
     gap: Spacing.xs,
   },
   toggleButton: {
@@ -1043,14 +1041,12 @@ const styles = StyleSheet.create({
   },
 
   selectAllBar: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.sm,
   },
   selectAllButton: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
 
@@ -1076,12 +1072,10 @@ const styles = StyleSheet.create({
   },
 
   nameWithBadge: {
-    flexDirection: 'row',
     alignItems: 'center',
     flexWrap: 'wrap',
   },
   nameWithBadgeCard: {
-    flexDirection: 'row',
     alignItems: 'center',
     flexWrap: 'wrap',
   },
@@ -1099,17 +1093,14 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   bulkActionContent: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: Spacing.md,
   },
   bulkActionButtons: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
   bulkRejectButton: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
@@ -1117,7 +1108,6 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
   },
   bulkApproveButton: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
@@ -1141,7 +1131,6 @@ const styles = StyleSheet.create({
   },
 
   searchBar: {
-    flexDirection: 'row',
     alignItems: 'center',
     borderRadius: BorderRadius.md,
     paddingHorizontal: Spacing.md,
@@ -1163,7 +1152,6 @@ const styles = StyleSheet.create({
     width: LAYOUT.statusBorderWidth,
   },
   servicesRow: {
-    flexDirection: 'row',
     gap: Spacing.xs,
     flexWrap: 'wrap',
   },
@@ -1172,7 +1160,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dateTimeRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
@@ -1184,7 +1171,6 @@ const styles = StyleSheet.create({
   },
 
   tableRow: {
-    flexDirection: 'row',
     height: LAYOUT.tableRowHeight,
     borderRadius: LAYOUT.cardRadius,
     borderWidth: 1,
@@ -1226,7 +1212,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   actionsRow: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
   actionButton: {
@@ -1260,7 +1245,6 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   cardHeader: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
   avatar: {
@@ -1287,7 +1271,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   employeeRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
   },
@@ -1299,14 +1282,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   cardActions: {
-    flexDirection: 'row',
   },
   cardRejectButton: {
     flex: 1,
     height: 44,
     borderRadius: BorderRadius.md,
     borderWidth: 1.5,
-    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 6,
@@ -1319,7 +1300,6 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 44,
     borderRadius: BorderRadius.md,
-    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 6,
@@ -1387,7 +1367,6 @@ const styles = StyleSheet.create({
     lineHeight: 21,
   },
   modalActions: {
-    flexDirection: 'row',
     width: '100%',
   },
   modalCancelButton: {
@@ -1404,7 +1383,6 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 48,
     borderRadius: BorderRadius.md,
-    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -1446,7 +1424,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   rejectModalActions: {
-    flexDirection: 'row',
     width: '100%',
   },
   rejectModalContent: {

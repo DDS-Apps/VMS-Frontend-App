@@ -10,6 +10,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { LoadingButton } from "@/components/shared/LoadingButton";
 import Spacer from "@/components/Spacer";
+import { DirectionalRow } from "@/components/DirectionalRow";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -295,19 +296,19 @@ export default function EditProfileScreen({
     editable: boolean = true
   ) => (
     <View style={styles.inputContainer}>
-      <View style={[styles.labelRow, { flexDirection: 'row', justifyContent: 'space-between' }]}>
+      <DirectionalRow style={[styles.labelRow, { justifyContent: 'space-between' }]}>
         <ThemedText style={[styles.inputLabel, { color: theme.text, textAlign: isRTL ? 'right' : 'left', flex: 1 }]}>
           {label}
         </ThemedText>
         {!editable ? (
-          <View style={[styles.readOnlyBadge, { backgroundColor: applyOpacity(theme.textSecondary, '15'), flexDirection: 'row', gap: 4 }]}>
+          <DirectionalRow style={[styles.readOnlyBadge, { backgroundColor: applyOpacity(theme.textSecondary, '15'), gap: 4 }]}>
             <DDIcon name="lock" size={10} color={theme.textSecondary} />
             <ThemedText style={[styles.readOnlyText, { color: theme.textSecondary }]}>
               {t('form.readOnly')}
             </ThemedText>
-          </View>
+          </DirectionalRow>
         ) : null}
-      </View>
+      </DirectionalRow>
       <TextInput
         style={[
           styles.input,
@@ -383,7 +384,7 @@ export default function EditProfileScreen({
               </View>
             ) : null}
           </View>
-          <View style={[styles.photoButtons, { flexDirection: 'row' }]}>
+          <DirectionalRow style={styles.photoButtons}>
             <LoadingButton
               onPress={handlePickPhoto}
               loading={isUploadingPhoto}
@@ -408,7 +409,7 @@ export default function EditProfileScreen({
                 {t('settings.deletePhoto')}
               </LoadingButton>
             ) : null}
-          </View>
+          </DirectionalRow>
           <View style={styles.avatarInfo}>
             <ThemedText style={[styles.roleBadge, { color: theme.primary, backgroundColor: applyOpacity(theme.primary, '10') }]}>
               {getRoleLabel(user?.role || 'employee')}
@@ -424,7 +425,7 @@ export default function EditProfileScreen({
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.infoRow, { flexDirection: 'row' }]}>
+        <DirectionalRow style={styles.infoRow}>
           <View style={styles.infoItem}>
             <ThemedText style={[styles.infoLabel, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('settings.status')}
@@ -443,7 +444,7 @@ export default function EditProfileScreen({
               </ThemedText>
             </View>
           ) : null}
-        </View>
+        </DirectionalRow>
       </ThemedView>
 
       <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
@@ -505,7 +506,7 @@ export default function EditProfileScreen({
 
       <Spacer height={Spacing.lg} />
 
-      <View style={[styles.buttonRow, { direction: 'ltr' }]}>
+      <DirectionalRow style={styles.buttonRow}>
         <LoadingButton
           onPress={handleCancel}
           variant="outline"
@@ -526,7 +527,7 @@ export default function EditProfileScreen({
         >
           {t('common.save')}
         </LoadingButton>
-      </View>
+      </DirectionalRow>
 
       <Spacer height={Spacing.xl} />
     </ScreenKeyboardAwareScrollView>
@@ -642,7 +643,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   buttonRow: {
-    flexDirection: 'row',
     gap: Spacing.md,
   },
   button: {

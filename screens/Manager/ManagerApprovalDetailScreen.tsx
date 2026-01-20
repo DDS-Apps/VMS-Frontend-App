@@ -32,6 +32,7 @@ import { mapVisitDetailsToVisitorRequest } from "@/utils/requestMappers";
 import { calculateServerDuration } from "@/utils/dateTimeUtils";
 import { useServerDateTime } from "@/hooks/useServerDateTime";
 import { applyOpacity } from "@/utils/statusStyles";
+import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
 
 const LAYOUT = {
   cardPadding: 20,
@@ -667,7 +668,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
             <Spacer height={Spacing.sm} />
 
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
+            <DirectionalRow style={{ alignItems: 'center', gap: Spacing.sm }}>
               {request.isWalkIn ? (
                 <View
                   style={{
@@ -698,29 +699,29 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
                   {statusText}
                 </ThemedText>
               </View>
-            </View>
+            </DirectionalRow>
 
             <Spacer height={Spacing.lg} />
 
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
+            <DirectionalRow style={{ alignItems: 'center', gap: Spacing.md }}>
               <View style={[styles.contactIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
                 <DDIcon name="mail" size={18} color={theme.text} />
               </View>
               <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 13, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                 {request.visitor.email}
               </ThemedText>
-            </View>
+            </DirectionalRow>
 
             <Spacer height={Spacing.md} />
 
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
+            <DirectionalRow style={{ alignItems: 'center', gap: Spacing.md }}>
               <View style={[styles.contactIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
                 <DDIcon name="phone" size={18} color={theme.text} />
               </View>
               <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 13, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                 {request.visitor.phone}
               </ThemedText>
-            </View>
+            </DirectionalRow>
           </View>
         </ThemedView>
 
@@ -728,7 +729,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
           <>
             <Spacer height={Spacing.lg} />
             <ThemedView style={[styles.cardNew, { backgroundColor: applyOpacity(theme.error, '08') }]}>
-              <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.sm }}>
+              <DirectionalRow style={{ alignItems: 'flex-start', gap: Spacing.sm }}>
                 <View style={{ marginTop: 2 }}>
                   <DDIcon name="message-circle" size={18} color={theme.error} />
                 </View>
@@ -740,7 +741,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
                     {request.approval.rejectionReason}
                   </ThemedText>
                 </View>
-              </View>
+              </DirectionalRow>
             </ThemedView>
           </>
         ) : null}
@@ -749,7 +750,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
           <>
             <Spacer height={Spacing.lg} />
             <ThemedView style={[styles.cardNew, { backgroundColor: applyOpacity(theme.error, '08') }]}>
-              <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.sm }}>
+              <DirectionalRow style={{ alignItems: 'flex-start', gap: Spacing.sm }}>
                 <View style={{ marginTop: 2 }}>
                   <DDIcon name="user-x" size={18} color={theme.error} />
                 </View>
@@ -761,7 +762,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
                     {request.visitorDecision.reason}
                   </ThemedText>
                 </View>
-              </View>
+              </DirectionalRow>
             </ThemedView>
           </>
         ) : null}
@@ -772,7 +773,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
           <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text, textAlign: isRTL ? 'right' : 'left', marginBottom: Spacing.xl }]}>
             {t('visitor.visitorRequest')}
           </ThemedText>
-          <View style={[styles.serviceRow, { flexDirection: 'row' }]}>
+          <DirectionalRow style={styles.serviceRow}>
             <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
               <DDIcon name="user" size={18} color={theme.text} />
             </View>
@@ -784,11 +785,11 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
                 {request.employeeName}{request.employeeDepartment ? ` (${request.employeeDepartment})` : ''}
               </ThemedText>
             </View>
-          </View>
+          </DirectionalRow>
 
           <Spacer height={Spacing.lg} />
 
-          <View style={[styles.serviceRow, { flexDirection: 'row' }]}>
+          <DirectionalRow style={styles.serviceRow}>
             <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
               <DDIcon name="calendar" size={18} color={theme.text} />
             </View>
@@ -800,11 +801,11 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
                 {formatDateShort(request.visitDate)} • {formatVisitTimeRange(request.visitTime, request.endTime)}
               </ThemedText>
             </View>
-          </View>
+          </DirectionalRow>
 
           <Spacer height={Spacing.lg} />
 
-          <View style={[styles.serviceRow, { flexDirection: 'row' }]}>
+          <DirectionalRow style={styles.serviceRow}>
             <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
               <DDIcon name="clock" size={18} color={theme.text} />
             </View>
@@ -816,13 +817,13 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
                 {parseISODuration(request.duration)}
               </ThemedText>
             </View>
-          </View>
+          </DirectionalRow>
 
           {/* End Time - Inline editable for walk-ins */}
           {request.isWalkIn ? (
             <>
               <Spacer height={Spacing.lg} />
-              <View style={[styles.serviceRow, { flexDirection: 'row' }]}>
+              <DirectionalRow style={styles.serviceRow}>
                 <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
                   <DDIcon name="log-out" size={18} color={theme.text} />
                 </View>
@@ -831,7 +832,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
                     {t('form.endTime')}
                   </ThemedText>
                   {inlineEndTime !== null ? (
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginTop: 2 }}>
+                    <DirectionalRow style={{ alignItems: 'center', gap: Spacing.sm, marginTop: 2 }}>
                       <Pressable
                         onPress={() => setShowInlineEndTimePicker(true)}
                         style={[styles.inlineTimeButton, { backgroundColor: applyOpacity(theme.primary, '10'), borderColor: theme.primary }]}
@@ -847,9 +848,9 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
                       <Pressable onPress={handleCancelInlineEndTime}>
                         <DDIcon name="x" size={20} color={theme.error} />
                       </Pressable>
-                    </View>
+                    </DirectionalRow>
                   ) : (
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginTop: 2 }}>
+                    <DirectionalRow style={{ alignItems: 'center', gap: Spacing.sm, marginTop: 2 }}>
                       <ThemedText style={[Typography.caption, { color: request.endTime ? theme.textSecondary : theme.warning, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
                         {request.endTime ? formatTimeFromString(request.endTime) : t('common.notRequested')}
                       </ThemedText>
@@ -858,16 +859,16 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
                           <DDIcon name="edit-2" size={16} color={theme.primary} />
                         </Pressable>
                       ) : null}
-                    </View>
+                    </DirectionalRow>
                   )}
                 </View>
-              </View>
+              </DirectionalRow>
             </>
           ) : null}
 
           <Spacer height={Spacing.lg} />
 
-          <View style={[styles.serviceRow, { flexDirection: 'row' }]}>
+          <DirectionalRow style={styles.serviceRow}>
             <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
               <DDIcon name="file-text" size={18} color={theme.text} />
             </View>
@@ -879,13 +880,13 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
                 {request.purpose}
               </ThemedText>
             </View>
-          </View>
+          </DirectionalRow>
 
           {/* Walk-in Notes */}
           {request.isWalkIn && request.notes ? (
             <>
               <Spacer height={Spacing.lg} />
-              <View style={[styles.serviceRow, { flexDirection: 'row' }]}>
+              <DirectionalRow style={styles.serviceRow}>
                 <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
                   <DDIcon name="edit-3" size={18} color={theme.text} />
                 </View>
@@ -897,7 +898,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
                     {request.notes}
                   </ThemedText>
                 </View>
-              </View>
+              </DirectionalRow>
             </>
           ) : null}
         </ThemedView>
@@ -909,12 +910,12 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
             {t('services.additionalServices')}
           </ThemedText>
           {/* Meeting Room */}
-          <View style={[styles.serviceRow, { flexDirection: 'row' }]}>
+          <DirectionalRow style={styles.serviceRow}>
             <View style={[styles.serviceIcon, { backgroundColor: applyOpacity((request.meetingRoom || request.isMeetingRoom) ? theme.secondary : theme.textSecondary, '20') }]}>
               <DDIcon name="briefcase" size={18} color={(request.meetingRoom || request.isMeetingRoom) ? theme.secondary : theme.textSecondary} />
             </View>
             <View style={[styles.serviceInfo, { flex: 1 }]}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <DirectionalRow style={{ justifyContent: 'space-between', alignItems: 'center' }}>
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
                   {t('services.meetingRoom')}
                 </ThemedText>
@@ -949,16 +950,16 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
                 </ThemedText>
               )}
             </View>
-          </View>
+          </DirectionalRow>
           <Spacer height={Spacing.lg} />
 
           {/* Buffet */}
-          <View style={[styles.serviceRow, { flexDirection: 'row' }]}>
+          <DirectionalRow style={styles.serviceRow}>
             <View style={[styles.serviceIcon, { backgroundColor: applyOpacity((request.buffet || request.isBuffet || (request as any).buffetPending) ? theme.secondary : theme.textSecondary, '20') }]}>
               <DDIcon name="cloche" size={18} color={(request.buffet || request.isBuffet || (request as any).buffetPending) ? theme.secondary : theme.textSecondary} />
             </View>
             <View style={[styles.serviceInfo, { flex: 1 }]}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <DirectionalRow style={{ justifyContent: 'space-between', alignItems: 'center' }}>
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
                   {t('services.buffet')}
                 </ThemedText>
@@ -988,7 +989,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
                 </ThemedText>
               )}
             </View>
-          </View>
+          </DirectionalRow>
         </ThemedView>
 
         <Spacer height={LAYOUT.sectionSpacing} />
@@ -1002,12 +1003,12 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
         <View style={[styles.actionBar, { backgroundColor: theme.background, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.lg }]}>
           {isVisitExpired ? (
             <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: Spacing.sm, paddingHorizontal: Spacing.md }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.xs }}>
+              <DirectionalRow style={{ alignItems: 'center', justifyContent: 'center', gap: Spacing.xs }}>
                 <DDIcon name="alert-circle" size={16} color={theme.warning} />
                 <ThemedText style={[Typography.caption, { color: theme.warning, fontWeight: '600', textAlign: 'center' }]}>
                   {t('status.visitExpired')}
                 </ThemedText>
-              </View>
+              </DirectionalRow>
               <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: 'center', marginTop: 2, fontSize: 12 }]}>
                 {t('errors.visitDatePassed')}
               </ThemedText>
@@ -1028,7 +1029,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
       {!isReadOnlyRole && (request.status === REQUEST_STATUS.APPROVED || request.status === REQUEST_STATUS.VISITOR_ACCEPTED) && (
         <View style={[styles.actionBar, { backgroundColor: theme.background, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.lg }]}>
           {request.isWalkIn && isManagerTheHost ? (
-            <View style={{ flexDirection: 'row', gap: Spacing.md }}>
+            <DirectionalRow style={{ gap: Spacing.md }}>
               <LoadingButton
                 onPress={handleEditWalkInServices}
                 loading={false}
@@ -1054,7 +1055,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
               >
                 {t('common.cancel')}
               </LoadingButton>
-            </View>
+            </DirectionalRow>
           ) : (
             <LoadingButton
               onPress={() => setShowCancelModal(true)}
@@ -1115,7 +1116,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
               <Spacer height={Spacing.xl} />
 
-              <View style={[styles.modalActions, { flexDirection: 'row' }]}>
+              <DirectionalRow style={styles.modalActions}>
                 <LoadingButton
                   onPress={() => setShowCancelModal(false)}
                   disabled={isProcessing}
@@ -1139,7 +1140,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
                 >
                   {t('actions.cancelRequest')}
                 </LoadingButton>
-              </View>
+              </DirectionalRow>
             </ThemedView>
           </View>
         </View>
@@ -1208,7 +1209,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
               <Spacer height={Spacing.xl} />
 
-              <View style={[styles.modalActions, { flexDirection: 'row' }]}>
+              <DirectionalRow style={styles.modalActions}>
                 <LoadingButton
                   onPress={() => setShowRejectModal(false)}
                   disabled={isProcessing}
@@ -1232,7 +1233,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
                 >
                   {t('common.confirm')}
                 </LoadingButton>
-              </View>
+              </DirectionalRow>
             </ThemedView>
           </View>
         </View>
@@ -1285,7 +1286,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginBottom: Spacing.xs }]}>
                   {t('form.startTime')}
                 </ThemedText>
-                <View
+                <DirectionalRow
                   style={{
                     borderWidth: 1,
                     borderRadius: BorderRadius.md,
@@ -1293,7 +1294,6 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
                     backgroundColor: applyOpacity(theme.surfaceSecondary, '50'),
                     paddingVertical: Spacing.md,
                     paddingHorizontal: Spacing.lg,
-                    flexDirection: 'row',
                     alignItems: 'center',
                     opacity: 0.7,
                   }}
@@ -1313,7 +1313,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
                     {formatDisplayTime(approvalStartTime || new Date())}
                   </ThemedText>
                   <DDIcon name="lock" size={14} variant="muted" />
-                </View>
+                </DirectionalRow>
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: Spacing.xs, fontSize: 11 }]}>
                   {t('form.startTimeReadOnly')}
                 </ThemedText>
@@ -1333,10 +1333,10 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
                       borderColor: theme.border,
                       backgroundColor: theme.background,
                       paddingVertical: Spacing.md,
-                      flexDirection: 'row',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                    }
+                    },
+                    getFlexDirection(isRTL)
                   ]}
                 >
                   <ThemedText style={{ color: theme.text }}>
@@ -1414,7 +1414,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
 
               <Spacer height={Spacing.xl} />
 
-              <View style={[styles.modalActions, { flexDirection: 'row' }]}>
+              <DirectionalRow style={styles.modalActions}>
                 <LoadingButton
                   onPress={() => setShowWalkInApprovalModal(false)}
                   disabled={isProcessing}
@@ -1438,7 +1438,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
                 >
                   {isWalkInEditMode ? t('common.save') : t('actions.approve')}
                 </LoadingButton>
-              </View>
+              </DirectionalRow>
             </ThemedView>
           </View>
         </View>
@@ -1502,7 +1502,6 @@ const styles = StyleSheet.create({
     width: LAYOUT.accentWidth,
   },
   statusContent: {
-    flexDirection: 'row',
     alignItems: 'center',
     padding: LAYOUT.headerPadding,
   },
@@ -1522,7 +1521,6 @@ const styles = StyleSheet.create({
   },
 
   visitorRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.md,
   },
@@ -1542,13 +1540,11 @@ const styles = StyleSheet.create({
     marginStart: Spacing.lg,
   },
   contactRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.md,
   },
 
   detailRow: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     gap: Spacing.md,
@@ -1565,7 +1561,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   inlineTimeButton: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.xs,
@@ -1574,7 +1569,6 @@ const styles = StyleSheet.create({
   },
 
   serviceRow: {
-    flexDirection: 'row',
     alignItems: 'flex-start',
     gap: Spacing.md,
   },
@@ -1601,7 +1595,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    flexDirection: 'row',
     paddingHorizontal: Spacing.xl,
     paddingTop: Spacing.lg,
     borderTopWidth: 1,
@@ -1676,7 +1669,6 @@ const styles = StyleSheet.create({
     lineHeight: 21,
   },
   modalActions: {
-    flexDirection: 'row',
     width: '100%',
   },
   modalActionButton: {
@@ -1688,7 +1680,6 @@ const styles = StyleSheet.create({
     bottom: 120,
     start: Spacing.xl,
     end: Spacing.xl,
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,

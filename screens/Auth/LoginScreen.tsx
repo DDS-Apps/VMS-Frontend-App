@@ -19,7 +19,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
 import { LoadingButton } from "@/components/shared/LoadingButton";
-import { DirectionalRow } from "@/components/DirectionalRow";
+import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
 import { UserRole } from "@/types/vms.types";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
@@ -550,7 +550,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                   backgroundColor: theme.surface,
                   borderColor: theme.border,
                   opacity: isMicrosoftSubmitting || isAzureLoading ? 0.7 : 1,
-                  flexDirection: 'row',
+                  flexDirection: getFlexDirection(isRTL),
                 },
               ]}
               onPress={handleMicrosoftLogin}

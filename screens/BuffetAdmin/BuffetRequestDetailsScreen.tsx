@@ -9,6 +9,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
+import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
 import { applyOpacity } from "@/utils/statusStyles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LoadingButton } from "@/components/shared/LoadingButton";
@@ -396,7 +397,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
         </ThemedText>
         <Spacer height={Spacing.xl} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: 'row' }]}>
+        <DirectionalRow style={styles.serviceRowNew}>
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="user" size={18} color={theme.text} />
           </View>
@@ -408,11 +409,11 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
               {request.hostName}
             </ThemedText>
           </View>
-        </View>
+        </DirectionalRow>
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: 'row' }]}>
+        <DirectionalRow style={styles.serviceRowNew}>
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="map-pin" size={18} color={theme.text} />
           </View>
@@ -424,11 +425,11 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
               {request.meetingRoom || request.hostName}
             </ThemedText>
           </View>
-        </View>
+        </DirectionalRow>
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: 'row' }]}>
+        <DirectionalRow style={styles.serviceRowNew}>
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="clock" size={18} color={theme.text} />
           </View>
@@ -440,7 +441,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
               {request.timeSlot}
             </ThemedText>
           </View>
-        </View>
+        </DirectionalRow>
 
       </ThemedView>
 
@@ -449,12 +450,12 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
           <Spacer height={Spacing.lg} />
 
           <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
-            <View style={[styles.notesHeader, { flexDirection: 'row' }]}>
+            <DirectionalRow style={styles.notesHeader}>
               <DDIcon name="file-text" size={16} color={theme.info} />
               <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginStart: Spacing.sm, fontSize: 14, color: theme.text }]}>
                 {t('form.notes')}
               </ThemedText>
-            </View>
+            </DirectionalRow>
             <Spacer height={Spacing.sm} />
             <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, lineHeight: 20, textAlign: isRTL ? 'right' : 'left' }]}>
               {request.notes}
@@ -466,7 +467,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
       <Spacer height={Spacing.lg} />
 
       <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
-        <View style={[styles.sectionHeaderRow, { flexDirection: 'row' }]}>
+        <DirectionalRow style={[styles.sectionHeaderRow, { justifyContent: 'space-between', alignItems: 'center' }]}>
           <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text }]}>
             {t('navigation.staffManagement')}
           </ThemedText>
@@ -481,12 +482,12 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
               </ThemedText>
             </Pressable>
           ) : null}
-        </View>
+        </DirectionalRow>
 
         <Spacer height={Spacing.lg} />
 
         {request.assignedStaff ? (
-          <View style={[styles.serviceRowNew, { flexDirection: 'row' }]}>
+          <DirectionalRow style={styles.serviceRowNew}>
             <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.success, '15') }]}>
               <DDIcon name="user-check" size={18} color={theme.success} />
             </View>
@@ -498,7 +499,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
                 {request.assignedStaff}
               </ThemedText>
             </View>
-          </View>
+          </DirectionalRow>
         ) : (
           <View style={styles.noStaffState}>
             <DDIcon name="user-x" size={24} variant="muted" />
@@ -549,7 +550,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
         onPress={() => setShowAssignModal(false)}
       >
         <Pressable style={[styles.modalContent, { backgroundColor: theme.surface }]}>
-          <View style={[styles.modalHeader, { flexDirection: 'row' }]}>
+          <DirectionalRow style={[styles.modalHeader, { justifyContent: 'space-between', alignItems: 'center' }]}>
             <ThemedText style={[Typography.subtitle, { fontWeight: '600' }]}>
               {request.assignedStaff ? t('buffet.reassignStaff') : t('buffet.assignStaff')}
             </ThemedText>
@@ -559,7 +560,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
             >
               <DDIcon name="x" size={20} variant="muted" />
             </Pressable>
-          </View>
+          </DirectionalRow>
 
           <View style={styles.modalRequestInfo}>
             <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>

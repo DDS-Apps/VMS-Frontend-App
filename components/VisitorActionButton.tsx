@@ -6,6 +6,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { applyOpacity } from "@/utils/statusStyles";
 import { Spacing, BorderRadius } from "@/constants/theme";
+import { getFlexDirection } from "@/components/DirectionalRow";
 
 type ActionType = 'check_in' | 'check_out' | 'completed';
 
@@ -79,7 +80,7 @@ export function VisitorActionButton({ type, onPress, disabled = false, fullWidth
           borderWidth: type === 'completed' ? 1 : 0,
           borderColor: theme.border,
           flex: flex,
-          flexDirection: 'row',
+          flexDirection: getFlexDirection(isRTL),
         }
       ]}>
         {iconEl}
@@ -100,7 +101,7 @@ export function VisitorActionButton({ type, onPress, disabled = false, fullWidth
           backgroundColor: config.bgColor, 
           opacity: isDisabled ? 0.6 : pressed ? 0.8 : 1,
           flex: flex,
-          flexDirection: 'row',
+          flexDirection: getFlexDirection(isRTL),
         }
       ]}
       onPress={onPress}

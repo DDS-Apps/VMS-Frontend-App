@@ -14,7 +14,7 @@ import { useFormatters } from "@/hooks/useFormatters";
 import { DDIcon } from "@/components/DDIcon";
 import { usePublicInviteQuery, useAcceptInviteMutation, useRejectInviteMutation } from "@/hooks/queries";
 import type { PublicInviteDto, VisitorParkingOption } from "@/types/api.types";
-import { DirectionalRow } from '@/components/DirectionalRow';
+import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 
 // Dallah Albaraka Light Theme Colors for this page
 const PageColors = {
@@ -119,12 +119,10 @@ const RejectModal = memo(function RejectModal({
               disabled={isLoading}
             >
               {isLoading ? (
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                  <DirectionalRow>
-                    <DDIcon name="loader" size={16} color="#FFFFFF" />
-                    <ThemedText style={modalStyles.confirmText}>{translations.confirm}</ThemedText>
-                  </DirectionalRow>
-                </View>
+                <DirectionalRow style={{ alignItems: 'center', gap: 8 }}>
+                  <DDIcon name="loader" size={16} color="#FFFFFF" />
+                  <ThemedText style={modalStyles.confirmText}>{translations.confirm}</ThemedText>
+                </DirectionalRow>
               ) : (
                 <ThemedText style={modalStyles.confirmText}>{translations.confirm}</ThemedText>
               )}
@@ -387,10 +385,10 @@ const ParkingSelectionModal = memo(function ParkingSelectionModal({
                 disabled={!selectedOption || isLoading}
               >
                 {isLoading ? (
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <DirectionalRow style={{ alignItems: 'center', gap: 8 }}>
                     <DDIcon name="loader" size={16} color="#FFFFFF" />
                     <ThemedText style={modalStyles.confirmText}>{translations.confirm}</ThemedText>
-                  </View>
+                  </DirectionalRow>
                 ) : (
                   <ThemedText style={modalStyles.confirmText}>{translations.confirm}</ThemedText>
                 )}
@@ -505,7 +503,7 @@ interface InfoRowProps {
 const InfoRow = memo(function InfoRow({ icon, label, value, subValue }: InfoRowProps) {
   const { isRTL } = useLanguage();
   return (
-    <View style={[helperStyles.infoRow, { flexDirection: 'row' }]}>
+    <DirectionalRow style={helperStyles.infoRow}>
       <View style={[helperStyles.infoIconContainer, { marginRight: isRTL ? 0 : Spacing.md, marginLeft: isRTL ? Spacing.md : 0 }]}>
         <DDIcon name={icon as any} size={18} color={PageColors.accent} />
       </View>
@@ -516,7 +514,7 @@ const InfoRow = memo(function InfoRow({ icon, label, value, subValue }: InfoRowP
           <ThemedText style={[helperStyles.infoSubValue, { textAlign: isRTL ? 'right' : 'left' }]}>{subValue}</ThemedText>
         ) : null}
       </View>
-    </View>
+    </DirectionalRow>
   );
 });
 

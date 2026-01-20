@@ -18,7 +18,7 @@ import { useSecurityVisitorsQuery } from "@/hooks/queries/useSecurityQueries";
 import type { SecurityVisitorDto } from "@/types";
 import type { SecurityCheckInScreenProps } from "@/types/securityNavigation.types";
 import type { Theme } from "@/types/theme.types";
-import { DirectionalRow } from '@/components/DirectionalRow';
+import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 
 const LAYOUT = {
   cardPadding: Spacing.lg,
@@ -442,7 +442,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
           <View style={[styles.cardAccent, { backgroundColor: statusConfig.borderColor }]} />
           
           <View style={styles.cardMainSection}>
-            <View style={[styles.cardHeaderRow, { flexDirection: 'row' }]}>
+            <DirectionalRow style={styles.cardHeaderRow}>
               <VisitorAvatar name={visitor.name} theme={theme} size={LAYOUT.avatarSize} />
               
               <View style={[styles.cardNameSection, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
@@ -461,36 +461,31 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
                   {statusConfig.label}
                 </ThemedText>
               </View>
-            </View>
+            </DirectionalRow>
 
             <Spacer height={Spacing.sm} />
 
-            <View style={[styles.compactDetailsRow, { flexDirection: 'row' }]}>
-              <DirectionalRow>
-                <DDIcon name="user" size={14} variant="muted" />
-                <ThemedText style={[styles.compactDetailText, { color: theme.textSecondary, textAlign: 'right', marginEnd: 8 }]} numberOfLines={1}>
-                  {detailParts.join('  |  ')}
-                </ThemedText>
-              </DirectionalRow>
-            </View>
+            <DirectionalRow style={styles.compactDetailsRow}>
+              <DDIcon name="user" size={14} variant="muted" />
+              <ThemedText style={[styles.compactDetailText, { color: theme.textSecondary, textAlign: 'right', marginEnd: 8 }]} numberOfLines={1}>
+                {detailParts.join('  |  ')}
+              </ThemedText>
+            </DirectionalRow>
 
             <Spacer height={Spacing.sm} />
 
-            <View style={[styles.compactServiceRow, { 
-              backgroundColor: hasParking ? applyOpacity(theme.success, '08') : applyOpacity(theme.textSecondary, '08'),
-              flexDirection: 'row'
+            <DirectionalRow style={[styles.compactServiceRow, { 
+              backgroundColor: hasParking ? applyOpacity(theme.success, '08') : applyOpacity(theme.textSecondary, '08')
             }]}>
-              <DirectionalRow>
-                <DDIcon 
-                  name={hasParking ? "map-pin" : "x-circle"} 
-                  size={14} 
-                  color={hasParking ? theme.success : theme.textSecondary} 
-                />
-                <ThemedText style={[styles.compactServiceText, { color: hasParking ? theme.success : theme.textSecondary, marginEnd: 8 }]}>
-                  {serviceParts.join('  |  ')}
-                </ThemedText>
-              </DirectionalRow>
-            </View>
+              <DDIcon 
+                name={hasParking ? "map-pin" : "x-circle"} 
+                size={14} 
+                color={hasParking ? theme.success : theme.textSecondary} 
+              />
+              <ThemedText style={[styles.compactServiceText, { color: hasParking ? theme.success : theme.textSecondary, marginEnd: 8 }]}>
+                {serviceParts.join('  |  ')}
+              </ThemedText>
+            </DirectionalRow>
           </View>
         </ThemedView>
       </Pressable>
@@ -566,18 +561,18 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
         
         <Spacer height={Spacing.sm} />
         
-        <View style={[styles.dateDisplayRow, { flexDirection: 'row' }]}>
+        <DirectionalRow style={styles.dateDisplayRow}>
           <ThemedText style={[Typography.bodySmall, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
             {formatDisplayDate()}
           </ThemedText>
           <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'left' : 'right' }]}>
             {filteredVisitors.length} {filteredVisitors.length === 1 ? t('roles.visitor').toLowerCase() : t('navigation.allVisitors').toLowerCase()}
           </ThemedText>
-        </View>
+        </DirectionalRow>
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.searchBarWrapper, { flexDirection: 'row' }]}>
+        <DirectionalRow style={styles.searchBarWrapper}>
           <SearchInput
             placeholder={t('common.search')}
             value={searchQuery}
@@ -592,7 +587,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
           >
             <DDIcon name="calendar" size={20} color={theme.primary} />
           </Pressable>
-        </View>
+        </DirectionalRow>
 
         <Spacer height={Spacing.lg} />
 

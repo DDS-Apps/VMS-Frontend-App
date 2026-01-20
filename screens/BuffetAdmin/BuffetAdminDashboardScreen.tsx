@@ -11,6 +11,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon, IconName } from "@/components/DDIcon";
+import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
 import { applyOpacity, getStatusConfig } from "@/utils/statusStyles";
 import type { StatusConfig } from "@/types/theme.types";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -475,7 +476,7 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
 
   return (
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
-      <View style={[styles.kpiRow, { flexDirection: 'row' }]}>
+      <DirectionalRow style={styles.kpiRow}>
         <KPICard 
           title={t('time.today')} 
           value={String(stats.total)} 
@@ -511,7 +512,7 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
       <Spacer height={Spacing.md} />
 
       <View style={styles.quickActionsGrid}>
-        <View style={[styles.quickActionsRow, { flexDirection: 'row' }]}>
+        <DirectionalRow style={styles.quickActionsRow}>
           <QuickActionButton
             icon="bar-chart-2"
             label={t('buffet.capacityOverview')}
@@ -526,8 +527,8 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
             iconColor={theme.primary}
             onPress={() => navigation.navigate(ROUTES.BUFFET_STAFF as never)}
           />
-        </View>
-        <View style={[styles.quickActionsRow, { flexDirection: 'row' }]}>
+        </DirectionalRow>
+        <DirectionalRow style={styles.quickActionsRow}>
           <QuickActionButton
             icon="map-pin"
             label={t('navigation.locations')}
@@ -542,12 +543,12 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
             iconColor={theme.warning}
             onPress={() => navigation.navigate(ROUTES.BUFFET_ALL_REQUESTS as never)}
           />
-        </View>
+        </DirectionalRow>
       </View>
 
       <Spacer height={Spacing.xl} />
 
-      <View style={[styles.sectionHeader, { flexDirection: 'row' }]}>
+      <DirectionalRow style={styles.sectionHeader}>
         <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
           {t('buffet.buffetService')}
         </ThemedText>
@@ -556,7 +557,7 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
             onPress={() => navigation.navigate(ROUTES.BUFFET_ALL_REQUESTS as never)}
             style={({ pressed }) => [
               styles.viewAllButton,
-              { opacity: pressed ? 0.7 : 1 }
+              { flexDirection: getFlexDirection(isRTL), opacity: pressed ? 0.7 : 1 }
             ]}
           >
             <ThemedText style={[styles.viewAllText, { color: theme.primary }]}>
@@ -565,7 +566,7 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
             <DDIcon name="chevron-right" size={16} variant="primary" directionAware />
           </Pressable>
         ) : null}
-      </View>
+      </DirectionalRow>
 
       <Spacer height={Spacing.md} />
 

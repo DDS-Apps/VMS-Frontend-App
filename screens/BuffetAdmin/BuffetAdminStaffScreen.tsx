@@ -9,6 +9,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon, IconName } from "@/components/DDIcon";
+import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
 import { applyOpacity } from "@/utils/statusStyles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useBuffetAdminStaffQuery, useUpdateStaffDutyMutation } from "@/hooks/queries/useBuffetQueries";
@@ -136,7 +137,7 @@ export default function BuffetAdminStaffScreen() {
           },
         ]}
       >
-        <View style={[styles.cardHeader, { flexDirection: 'row' }]}>
+        <DirectionalRow style={styles.cardHeader}>
           <View style={[styles.avatar, { backgroundColor: applyOpacity(roleColor, '12') }]}>
             <ThemedText style={[styles.avatarText, { color: roleColor }]}>
               {initials}
@@ -159,7 +160,7 @@ export default function BuffetAdminStaffScreen() {
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.metaRow, { flexDirection: 'row' }]}>
+        <DirectionalRow style={styles.metaRow}>
           <DDIcon name="briefcase" size={14} color={theme.textSecondary} />
           <ThemedText style={[styles.metaText, { color: theme.textSecondary }]}>
             {item.currentTasks} {t('dashboard.activeTasks')}
@@ -168,8 +169,8 @@ export default function BuffetAdminStaffScreen() {
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.cardFooter, { flexDirection: 'row' }]}>
-          <View style={[styles.statusContainer, { flexDirection: 'row' }]}>
+        <DirectionalRow style={styles.cardFooter}>
+          <DirectionalRow style={styles.statusContainer}>
             <View 
               style={[
                 styles.statusIndicator, 
@@ -222,7 +223,7 @@ export default function BuffetAdminStaffScreen() {
 
   return (
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
-      <View style={[styles.kpiRow, { flexDirection: 'row' }]}>
+      <DirectionalRow style={styles.kpiRow}>
         <KPICard 
           title={t('dashboard.totalStaff')} 
           value={String(stats.total)} 

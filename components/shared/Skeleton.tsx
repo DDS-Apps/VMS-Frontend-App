@@ -12,6 +12,7 @@ import Animated, {
 import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Spacing, BorderRadius } from "@/constants/theme";
+import DirectionalRow from "@/components/DirectionalRow";
 
 interface SkeletonProps {
   width?: number | `${number}%`;
@@ -172,13 +173,13 @@ export const SkeletonListItem = ({
   const actionEl = <Skeleton width={24} height={24} borderRadius={BorderRadius.xs} />;
 
   return (
-    <View
+    <DirectionalRow
+      alignItems="center"
       style={[
         styles.listItem,
         {
           backgroundColor: theme.surface,
           borderBottomColor: theme.border,
-          flexDirection: 'row',
         },
         style,
       ]}
@@ -186,7 +187,7 @@ export const SkeletonListItem = ({
       {avatarEl}
       {contentEl}
       {actionEl}
-    </View>
+    </DirectionalRow>
   );
 };
 
@@ -272,9 +273,12 @@ export const SkeletonDashboard = ({
   return (
     <View style={style}>
       <Skeleton width="50%" height={24} style={{ marginBottom: Spacing.lg }} />
-      <View style={[styles.statsRow, { flexDirection: 'row' }]}>
+      <DirectionalRow
+        justifyContent="flex-start"
+        style={styles.statsRow}
+      >
         {cardElements}
-      </View>
+      </DirectionalRow>
       <Skeleton width="40%" height={20} style={{ marginTop: Spacing.xl, marginBottom: Spacing.md }} />
       <SkeletonList count={3} />
     </View>

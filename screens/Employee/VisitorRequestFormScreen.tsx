@@ -3,7 +3,7 @@ import { View, StyleSheet, TextInput, Pressable, Switch, Platform, Alert, Modal,
 import { CommonActions } from "@react-navigation/native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DDIcon } from "@/components/DDIcon";
-import { DirectionalRow } from "@/components/DirectionalRow";
+import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
 import { ScreenKeyboardAwareScrollView } from "@/components/ScreenKeyboardAwareScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -536,14 +536,12 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
       {visitType && visitType !== t('visitor.generalVisit') && (
         <>
           <ThemedView style={[styles.visitTypeBanner, { backgroundColor: applyOpacity(theme.primary, '15'), borderStartColor: theme.primary, borderStartWidth: 4, alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
-              <DirectionalRow>
-                <DDIcon name="info" size={18} variant="primary" />
-                <ThemedText style={[Typography.body, { fontWeight: '600', color: theme.primary }]}>
-                  {t('visitor.typeOfVisit')}: {visitType}
-                </ThemedText>
-              </DirectionalRow>
-            </View>
+            <DirectionalRow style={{ alignItems: 'center', gap: Spacing.sm }}>
+              <DDIcon name="info" size={18} variant="primary" />
+              <ThemedText style={[Typography.body, { fontWeight: '600', color: theme.primary }]}>
+                {t('visitor.typeOfVisit')}: {visitType}
+              </ThemedText>
+            </DirectionalRow>
           </ThemedView>
           <Spacer height={Spacing.lg} />
         </>
@@ -684,7 +682,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                 { 
                   backgroundColor: theme.background, 
                   borderColor: errors.hostEmployee ? theme.error : theme.border,
-                  flexDirection: 'row'
+                  flexDirection: getFlexDirection(isRTL)
                 }
               ]}
               onPress={() => setShowEmployeePicker(true)}
@@ -719,7 +717,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                 { 
                   backgroundColor: theme.background, 
                   borderColor: theme.border,
-                  flexDirection: 'row'
+                  flexDirection: getFlexDirection(isRTL)
                 }
               ]}
               onPress={() => setShowIdTypePicker(true)}
@@ -783,13 +781,13 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
               ]}
               onPress={() => setShowPurposePicker(true)}
             >
-              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
+              <DirectionalRow style={{ flex: 1, alignItems: 'center', gap: Spacing.md }}>
                 <DDIcon name="clipboard" size={20} variant="muted" />
                 <ThemedText style={[Typography.body, { color: theme.text, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                   {purposeLabel || t('form.selectPurpose')}
                 </ThemedText>
                 <DDIcon name="chevron-down" size={20} variant="muted" />
-              </View>
+              </DirectionalRow>
             </Pressable>
           </>
         ) : null}
@@ -800,7 +798,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
           <Spacer height={Spacing.lg} />
 
           <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
-            <View style={[styles.sectionHeader, { flexDirection: 'row', gap: Spacing.md }]}>
+            <DirectionalRow style={[styles.sectionHeader, { gap: Spacing.md }]}>
               <View style={[styles.sectionIconContainer, { backgroundColor: theme.primary + '20' }]}>
                 <DDIcon name="calendar" size={20} variant="primary" />
               </View>
@@ -810,7 +808,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                   {t('visitor.whenVisitorComing')}
                 </ThemedText>
               </View>
-            </View>
+            </DirectionalRow>
 
             <Spacer height={Spacing.lg} />
 
@@ -828,13 +826,13 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
               ]}
               onPress={() => setShowDatePicker(true)}
             >
-              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
+              <DirectionalRow style={{ flex: 1, alignItems: 'center', gap: Spacing.md }}>
                 <DDIcon name="calendar" size={20} variant="primary" />
                 <ThemedText style={[Typography.body, { color: theme.text, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                   {formatPickerDate(selectedDate)}
                 </ThemedText>
                 <DDIcon name="chevron-down" size={20} variant="muted" />
-              </View>
+              </DirectionalRow>
             </Pressable>
             {errors.visitDate ? (
               <>
@@ -861,13 +859,13 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
               ]}
               onPress={() => setShowTimePicker(true)}
             >
-              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
+              <DirectionalRow style={{ flex: 1, alignItems: 'center', gap: Spacing.md }}>
                 <DDIcon name="clock" size={20} variant="primary" />
                 <ThemedText style={[Typography.body, { color: theme.text, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                   {formatPickerTime(selectedTime)}
                 </ThemedText>
                 <DDIcon name="chevron-down" size={20} variant="muted" />
-              </View>
+              </DirectionalRow>
             </Pressable>
             {errors.visitTime ? (
               <>
@@ -894,13 +892,13 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
               ]}
               onPress={() => setShowEndTimePicker(true)}
             >
-              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
+              <DirectionalRow style={{ flex: 1, alignItems: 'center', gap: Spacing.md }}>
                 <DDIcon name="clock" size={20} variant="primary" />
                 <ThemedText style={[Typography.body, { color: theme.text, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                   {formatPickerTime(selectedEndTime)}
                 </ThemedText>
                 <DDIcon name="chevron-down" size={20} variant="muted" />
-              </View>
+              </DirectionalRow>
             </Pressable>
             {errors.endTime ? (
               <>
@@ -927,13 +925,13 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                 }
               ]}
             >
-              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
+              <DirectionalRow style={{ flex: 1, alignItems: 'center', gap: Spacing.md }}>
                 <DDIcon name="clock" size={20} variant="muted" />
                 <ThemedText style={[Typography.body, { color: isEndTimeBeforeStartTime() ? theme.error : theme.textSecondary, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                   {calculateDuration()}
                 </ThemedText>
                 <DDIcon name="lock" size={16} variant="muted" />
-              </View>
+              </DirectionalRow>
             </View>
             <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: Spacing.xs }]}>
               {t('form.calculatedAutomatically')}
@@ -984,7 +982,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
           {needsMeetingRoom ? (
             <View style={{ marginTop: Spacing.md }}>
               {hasCheckedAvailability ? (
-                <View 
+                <DirectionalRow 
                   style={[
                     styles.availabilityBadge, 
                     { 
@@ -992,40 +990,37 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                         ? applyOpacity(theme.success, '15') 
                         : applyOpacity(theme.error, '15'),
                       borderColor: isRoomAvailable ? theme.success : theme.error,
-                      flexDirection: 'row',
                       justifyContent: 'flex-start',
                     }
                   ]}
                 >
-                  <DirectionalRow>
-                    <DDIcon 
-                      name={isRoomAvailable ? "check-circle" : "alert-circle"} 
-                      size={16} 
-                      color={isRoomAvailable ? theme.success : theme.error} 
-                    />
-                    <ThemedText 
-                      style={[
-                        Typography.bodySmall, 
-                        { 
-                          color: isRoomAvailable ? theme.success : theme.error,
-                          marginEnd: Spacing.xs,
-                          fontWeight: '500'
-                        }
-                      ]}
-                    >
-                      {isRoomAvailable 
-                        ? t('form.meetingRoomAvailable')
-                        : t('errors.noRoomsAvailableForTime')
+                  <DDIcon 
+                    name={isRoomAvailable ? "check-circle" : "alert-circle"} 
+                    size={16} 
+                    color={isRoomAvailable ? theme.success : theme.error} 
+                  />
+                  <ThemedText 
+                    style={[
+                      Typography.bodySmall, 
+                      { 
+                        color: isRoomAvailable ? theme.success : theme.error,
+                        marginEnd: Spacing.xs,
+                        fontWeight: '500'
                       }
-                    </ThemedText>
-                  </DirectionalRow>
-                </View>
+                    ]}
+                  >
+                    {isRoomAvailable 
+                      ? t('form.meetingRoomAvailable')
+                      : t('errors.noRoomsAvailableForTime')
+                    }
+                  </ThemedText>
+                </DirectionalRow>
               ) : isLoadingRooms ? (
-                <View style={[styles.availabilityBadge, { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: 'row', justifyContent: 'flex-start' }]}>
+                <DirectionalRow style={[styles.availabilityBadge, { backgroundColor: theme.surface, borderColor: theme.border, justifyContent: 'flex-start' }]}>
                   <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
                     {t('common.checkingAvailability')}...
                   </ThemedText>
-                </View>
+                </DirectionalRow>
               ) : null}
             </View>
           ) : null}
@@ -1043,7 +1038,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
           style={[styles.channelChip, { backgroundColor: theme.surface, borderColor: sendWhatsApp ? theme.primary : theme.border }]}
           onPress={() => setSendWhatsApp(!sendWhatsApp)}
         >
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.xs }}>
+          <DirectionalRow style={{ alignItems: 'center', gap: Spacing.xs }}>
             <View style={[styles.channelChipIcon, { backgroundColor: theme.success + '15' }]}>
               <DDIcon name="message-circle" size={16} variant="success" />
             </View>
@@ -1055,14 +1050,14 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                 <DDIcon name="check" size={10} color={theme.buttonText} />
               </View>
             ) : null}
-          </View>
+          </DirectionalRow>
         </Pressable>
 
         <Pressable
           style={[styles.channelChip, { backgroundColor: theme.surface, borderColor: sendSMS ? theme.primary : theme.border }]}
           onPress={() => setSendSMS(!sendSMS)}
         >
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.xs }}>
+          <DirectionalRow style={{ alignItems: 'center', gap: Spacing.xs }}>
             <View style={[styles.channelChipIcon, { backgroundColor: theme.info + '15' }]}>
               <DDIcon name="smartphone" size={16} color={theme.info} />
             </View>
@@ -1074,13 +1069,13 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                 <DDIcon name="check" size={10} color={theme.buttonText} />
               </View>
             ) : null}
-          </View>
+          </DirectionalRow>
         </Pressable>
 
         <View
           style={[styles.channelChip, { backgroundColor: theme.surface, borderColor: theme.primary, opacity: 0.8 }]}
         >
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.xs }}>
+          <DirectionalRow style={{ alignItems: 'center', gap: Spacing.xs }}>
             <View style={[styles.channelChipIcon, { backgroundColor: theme.warning + '15' }]}>
               <DDIcon name="mail" size={16} color={theme.warning} />
             </View>
@@ -1090,7 +1085,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
             <View style={[styles.chipCheckmark, { backgroundColor: theme.primary }]}>
               <DDIcon name="check" size={10} color={theme.buttonText} />
             </View>
-          </View>
+          </DirectionalRow>
         </View>
       </DirectionalRow>
 
@@ -1142,7 +1137,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                 <DDIcon name="x" size={24} variant="muted" />
               </Pressable>
             </View>
-            <View style={[styles.searchContainer, { backgroundColor: theme.background, borderBottomColor: theme.border, flexDirection: 'row' }]}>
+            <DirectionalRow style={[styles.searchContainer, { backgroundColor: theme.background, borderBottomColor: theme.border }]}>
               <DDIcon name="search" size={20} variant="muted" />
               <TextInput
                 style={[styles.searchInput, { color: theme.text }]}
@@ -1158,7 +1153,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                   <DDIcon name="x-circle" size={20} variant="muted" />
                 </Pressable>
               ) : null}
-            </View>
+            </DirectionalRow>
             <ScrollView style={{ maxHeight: 300 }} keyboardShouldPersistTaps="handled">
               {filteredEmployees.length > 0 ? (
                 filteredEmployees.map((employee) => (
@@ -1166,7 +1161,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
                     key={employee.id}
                     style={[
                       styles.employeeOption,
-                      { borderBottomColor: theme.border, flexDirection: 'row' },
+                      { borderBottomColor: theme.border, flexDirection: getFlexDirection(isRTL) },
                       selectedEmployeeId === employee.id && { backgroundColor: applyOpacity(theme.primary, '10') }
                     ]}
                     onPress={() => handleEmployeeSelect(employee)}
@@ -1368,7 +1363,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
 
     {/* Sticky Footer for Action Buttons */}
     <View style={[styles.stickyFooter, { backgroundColor: theme.background, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.lg }]}>
-      <View style={[styles.buttonRow, { flexDirection: 'row' }]}>
+      <DirectionalRow style={styles.buttonRow}>
         <LoadingButton
           onPress={() => navigation.goBack()}
           variant="outline"
@@ -1390,7 +1385,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
         >
           {t('actions.submitRequest')}
         </LoadingButton>
-      </View>
+      </DirectionalRow>
     </View>
     </>
   );

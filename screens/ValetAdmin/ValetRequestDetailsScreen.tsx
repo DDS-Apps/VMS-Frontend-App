@@ -14,7 +14,7 @@ import { useFormatters } from "@/hooks/useFormatters";
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { applyOpacity } from "@/utils/statusStyles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { DirectionalRow } from '@/components/DirectionalRow';
+import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 import {
   getValetRequestById,
   updateValetRequestStatus,
@@ -326,7 +326,7 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
               </ThemedText>
               {request.status === 'pending' ? (
                 <Pressable
-                  style={[styles.assignButton, { backgroundColor: theme.primary }]}
+                  style={[styles.assignButton, { backgroundColor: theme.primary, flexDirection: getFlexDirection(isRTL) }]}
                   onPress={() => setShowDriverModal(true)}
                 >
                   <DDIcon name="user-plus" size={16} color={theme.buttonText} />
@@ -377,7 +377,7 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
           <View style={styles.actionButtons}>
             {request.status === 'pending' && request.assignedDriver ? (
               <Pressable
-                style={[styles.actionButton, { backgroundColor: theme.warning }]}
+                style={[styles.actionButton, { backgroundColor: theme.warning, flexDirection: getFlexDirection(isRTL) }]}
                 onPress={() => handleStatusUpdate('assigned')}
               >
                 <DDIcon name="send" size={18} color={theme.buttonText} />
@@ -389,7 +389,7 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
 
             {request.status === 'assigned' ? (
               <Pressable
-                style={[styles.actionButton, { backgroundColor: theme.info }]}
+                style={[styles.actionButton, { backgroundColor: theme.info, flexDirection: getFlexDirection(isRTL) }]}
                 onPress={() => handleStatusUpdate('parked')}
               >
                 <DDIcon name="map-pin" size={18} color={theme.buttonText} />
@@ -401,7 +401,7 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
 
             {request.status === 'parked' ? (
               <Pressable
-                style={[styles.actionButton, { backgroundColor: theme.success }]}
+                style={[styles.actionButton, { backgroundColor: theme.success, flexDirection: getFlexDirection(isRTL) }]}
                 onPress={() => handleStatusUpdate('ready_for_pickup')}
               >
                 <DDIcon name="bell" size={18} color={theme.buttonText} />
@@ -413,7 +413,7 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
 
             {request.status === 'ready_for_pickup' ? (
               <Pressable
-                style={[styles.actionButton, { backgroundColor: theme.success }]}
+                style={[styles.actionButton, { backgroundColor: theme.success, flexDirection: getFlexDirection(isRTL) }]}
                 onPress={handleComplete}
               >
                 <DDIcon name="check-circle" size={18} color={theme.buttonText} />
