@@ -2,7 +2,6 @@ import React, { useState, useCallback } from "react";
 import { View, StyleSheet, Pressable, ActivityIndicator, Platform } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DDIcon, IconName } from "@/components/DDIcon";
-import { DirectionalRow } from "@/components/DirectionalRow";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -18,7 +17,6 @@ import type { NotificationItemDto, NotificationEventType } from "@/types/notific
 import { applyOpacity } from "@/utils/statusStyles";
 import { navigateFromInAppNotification } from "@/utils/notificationNavigator";
 import { localizeNotification } from "@/utils/notificationLocalization";
-import { getPlatformTextAlign } from "@/utils/rtlInitializer";
 import { 
   useNotificationsQuery, 
   useMarkNotificationAsReadMutation, 
@@ -168,19 +166,19 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
 
   return (
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
-      <DirectionalRow style={styles.header}>
-        <ThemedText style={[Typography.title, { flex: 1, textAlign: getPlatformTextAlign(isRTL, 'start') }]}>
+      <View style={[styles.header, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
+        <ThemedText style={[Typography.title, { textAlign: isRTL ? 'right' : 'left' }]}>
           {t('notifications.title')}
         </ThemedText>
         <Pressable 
           onPress={handleMarkAllAsRead}
           disabled={markAllAsReadMutation.isPending}
         >
-          <ThemedText style={[Typography.bodySmall, { color: theme.primary }]}>
+          <ThemedText style={[Typography.bodySmall, { color: theme.primary, textAlign: isRTL ? 'left' : 'right' }]}>
             {markAllAsReadMutation.isPending ? t('common.loading') : t('notifications.markAllRead')}
           </ThemedText>
         </Pressable>
-      </DirectionalRow>
+      </View>
 
       <Spacer height={Spacing.lg} />
 
@@ -248,16 +246,16 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
           );
           
           const contentElement = (
-            <View style={styles.notificationContent}>
-              <ThemedText style={[styles.notificationTitle, { color: theme.text, textAlign: getPlatformTextAlign(isRTL, 'start') }]}>
+            <View style={[styles.notificationContent, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
+              <ThemedText style={[styles.notificationTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left', width: '100%' }]}>
                 {localizedTitle}
               </ThemedText>
               <Spacer height={Spacing.xs} />
-              <ThemedText style={[styles.notificationMessage, { color: theme.textSecondary, textAlign: getPlatformTextAlign(isRTL, 'start') }]} numberOfLines={3}>
+              <ThemedText style={[styles.notificationMessage, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left', width: '100%' }]} numberOfLines={3}>
                 {localizedMessage}
               </ThemedText>
               <Spacer height={Spacing.sm} />
-              <View style={[styles.timeContainer, { flexDirection: 'row', gap: 4, alignSelf: 'flex-end' }]}>
+              <View style={[styles.timeContainer, { flexDirection: 'row', gap: 4 }]}>
                 {shouldSwapChildren ? (
                   <>
                     <ThemedText style={[styles.timeText, { color: theme.textSecondary }]}>
