@@ -33,27 +33,22 @@ export {
  * Returns TRUE when:
  * - The context says isRTL is true (app is in Arabic mode)
  * - We're on mobile (not web)
- * - I18nManager.isRTL is false (hasn't been applied yet - requires restart)
  * 
- * This provides a fallback for Expo Go and hot reload scenarios where
- * I18nManager.forceRTL() hasn't taken effect yet.
+ * IMPORTANT: I18nManager.forceRTL() does NOT automatically flip flexDirection: 'row'.
+ * It only affects start/end properties. Therefore, we must always swap children
+ * on mobile when in RTL mode.
  * 
- * Web doesn't need this because document.dir='rtl' takes effect immediately.
+ * Web uses document.dir='rtl' combined with row-reverse in flexbox.
  */
 export function shouldSwapChildrenForRTL(isRTL: boolean): boolean {
-  // Web: browser handles RTL via document.dir, no swapping needed
+  // Web: browser handles RTL via row-reverse in components, no swapping needed
   if (Platform.OS === 'web') {
     return false;
   }
   
-  // Mobile: If context says RTL but I18nManager hasn't applied it,
-  // we need to manually swap children
-  if (isRTL && !I18nManager.isRTL) {
-    return true;
-  }
-  
-  // I18nManager is handling RTL correctly, no swapping needed
-  return false;
+  // Mobile: Always swap children when in RTL mode since I18nManager
+  // doesn't flip flexDirection: 'row'
+  return isRTL;
 }
 
 /**

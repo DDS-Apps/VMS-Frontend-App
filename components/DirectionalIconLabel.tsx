@@ -4,7 +4,7 @@ import { DDIcon } from '@/components/DDIcon';
 import { ThemedText } from '@/components/ThemedText';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/hooks/useTheme';
-import { getFlexDirection } from '@/utils/rtlInitializer';
+import { shouldSwapChildrenForRTL, getFlexDirection } from '@/utils/rtlInitializer';
 import { Spacing } from '@/constants/theme';
 
 interface DirectionalIconLabelProps {
@@ -33,11 +33,11 @@ export function DirectionalIconLabel({
   const { isRTL } = useLanguage();
   const { theme } = useTheme();
   
-  // On web RTL, use row-reverse. On mobile RTL, swap children (I18nManager doesn't flip flexDirection).
+  // On web RTL, use row-reverse. On mobile, use row (child swap handles RTL).
   const flexDirection = Platform.OS === 'web' ? getFlexDirection(isRTL) : 'row';
   
-  // On mobile RTL, always swap children since I18nManager doesn't flip flexDirection: 'row'
-  const shouldReverse = Platform.OS !== 'web' && isRTL;
+  // Use shouldSwapChildrenForRTL for consistent RTL handling (returns true on mobile RTL)
+  const shouldReverse = shouldSwapChildrenForRTL(isRTL);
   
   const flattenedStyle = StyleSheet.flatten([style]);
   const containerStyle: ViewStyle = {

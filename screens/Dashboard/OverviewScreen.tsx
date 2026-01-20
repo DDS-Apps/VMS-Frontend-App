@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback } from "react";
-import { View, StyleSheet, Dimensions, Pressable, ScrollView } from "react-native";
+import { View, StyleSheet, Dimensions, Pressable, ScrollView, Platform } from "react-native";
 import { useNavigation, ParamListBase, useFocusEffect } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -14,7 +14,6 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
 import { UserRole, VisitorRequest } from "@/types/vms.types";
 import { SkeletonDashboard, VisitorRequestCard } from "@/components/shared";
 import { useVisitsQuery, usePendingApprovalsQuery, useAwaitingVisitorQuery, usePendingHostWalkInsQuery } from "@/hooks/queries/useApprovalQueries";
@@ -72,7 +71,8 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { isRTL } = useLanguage();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
+  // On mobile RTL, always swap children since I18nManager doesn't flip flexDirection: 'row'
+  const shouldSwap = Platform.OS !== 'web' && isRTL;
   const { formatDate: fmtDate } = useFormatters();
   const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
   const insets = useSafeAreaInsets();
