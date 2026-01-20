@@ -175,8 +175,8 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
 
   return (
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
-      <DirectionalRow style={styles.header}>
-        <ThemedText style={[Typography.title, { flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
+      <DirectionalRow style={styles.header} justifyContent="space-between">
+        <ThemedText style={[Typography.title, { textAlign: isRTL ? 'right' : 'left' }]}>
           {t('notifications.title')}
         </ThemedText>
         <Pressable 
@@ -262,7 +262,7 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
                 {localizedMessage}
               </ThemedText>
               <Spacer height={Spacing.sm} />
-              <DirectionalRow style={styles.timeContainer} gap={4}>
+              <DirectionalRow style={styles.timeContainer} gap={4} forceDirection="row" justifyContent="flex-start">
                 <DDIcon name="clock" size={12} variant="muted" />
                 <ThemedText style={[styles.timeText, { color: theme.textSecondary }]}>
                   {formatTime(notification.createdAt)}
