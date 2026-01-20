@@ -271,9 +271,9 @@ export function VisitorRequestCard({
 
   const renderServicesAndStatus = () => (
     <DirectionalRow style={styles.servicesStatusRow}>
-      <View style={[styles.servicesContainer, { justifyContent: isRTL ? 'flex-end' : 'flex-start', flexDirection: 'row' }]}>
+      <DirectionalRow style={[styles.servicesContainer, { justifyContent: isRTL ? 'flex-end' : 'flex-start' }]}>
         <ServiceIconsRow request={request} showWalkIn={true} />
-      </View>
+      </DirectionalRow>
       {renderStatusBadge()}
     </DirectionalRow>
   );
@@ -592,7 +592,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   expiredBanner: {
-    flexDirection: 'row',
+    flexDirection: 'row', // Static - doesn't need RTL flip (centered icon + text)
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: Spacing.sm,

@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { DDIcon, IconName } from "@/components/DDIcon";
+import { DirectionalRow } from "@/components/DirectionalRow";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { LoadingButton } from "@/components/shared/LoadingButton";
 import { useTheme } from "@/hooks/useTheme";
@@ -137,7 +138,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           <ThemedText style={[Typography.bodySmall, styles.errorMessage, { color: theme.textSecondary }]}>
             {errorMessage}
           </ThemedText>
-          <View style={[styles.errorActions, { flexDirection: 'row' }]}>
+          <DirectionalRow style={styles.errorActions}>
             <LoadingButton
               onPress={handleRetry}
               variant="outline"
@@ -156,7 +157,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
             >
               {cancelLabel || t("common.cancel")}
             </LoadingButton>
-          </View>
+          </DirectionalRow>
         </View>
       );
     }
@@ -181,7 +182,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           </ThemedText>
         ) : null}
 
-        <View style={[styles.buttonContainer, { flexDirection: 'row' }]}>
+        <DirectionalRow style={styles.buttonContainer}>
           <LoadingButton
             onPress={handleCancel}
             variant="outline"
@@ -200,7 +201,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           >
             {confirmLabel || t("common.confirm")}
           </LoadingButton>
-        </View>
+        </DirectionalRow>
       </>
     );
   };

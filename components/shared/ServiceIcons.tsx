@@ -1,6 +1,7 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
 import { DDIcon } from "@/components/DDIcon";
+import { DirectionalRow } from "@/components/DirectionalRow";
 import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { applyOpacity } from "@/utils/statusStyles";
@@ -88,15 +89,15 @@ export const ServiceIcons = ({
   }
   
   return (
-    <View style={[styles.container, { flexDirection: 'row' }]}>
+    <DirectionalRow style={styles.container}>
       {items}
-    </View>
+    </DirectionalRow>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
+    // flexDirection handled by DirectionalRow
     alignItems: 'center',
     gap: Spacing.xs,
   },

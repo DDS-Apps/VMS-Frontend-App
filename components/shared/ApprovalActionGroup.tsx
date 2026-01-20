@@ -1,6 +1,7 @@
 import React from "react";
 import { View, StyleSheet, ViewStyle, StyleProp } from "react-native";
 import { LoadingButton } from "@/components/shared/LoadingButton";
+import { DirectionalRow } from "@/components/DirectionalRow";
 import { Spacing } from "@/constants/theme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -88,7 +89,13 @@ export const ApprovalActionGroup = ({
 
   const spacer = layout === "row" ? <View style={styles.spacerHorizontal} /> : <View style={styles.spacerVertical} />;
 
-  return (
+  return layout === "row" ? (
+    <DirectionalRow style={[styles.rowContainerBase, style]}>
+      {rejectButton}
+      {spacer}
+      {approveButton}
+    </DirectionalRow>
+  ) : (
     <View style={[containerStyle, style]}>
       {rejectButton}
       {spacer}
@@ -100,6 +107,11 @@ export const ApprovalActionGroup = ({
 const styles = StyleSheet.create({
   rowContainer: {
     flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+  },
+  rowContainerBase: {
+    // flexDirection handled by DirectionalRow
     alignItems: "center",
     width: "100%",
   },

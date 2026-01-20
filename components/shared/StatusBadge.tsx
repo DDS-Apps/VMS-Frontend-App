@@ -2,6 +2,7 @@ import React from "react";
 import { View, StyleSheet } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { DDIcon, IconName } from "@/components/DDIcon";
+import { DirectionalRow } from "@/components/DirectionalRow";
 import { useTheme } from "@/hooks/useTheme";
 import { applyOpacity } from "@/utils/statusStyles";
 import { Spacing, BorderRadius } from "@/constants/theme";
@@ -57,18 +58,17 @@ export const StatusBadge = ({
   );
 
   return (
-    <View style={[
+    <DirectionalRow style={[
       styles.badge,
       { 
         backgroundColor: applyOpacity(color, '15'),
         paddingHorizontal: isSmall ? Spacing.sm : Spacing.md,
         paddingVertical: isSmall ? Spacing.xs / 2 : Spacing.xs,
-        flexDirection: 'row',
       }
     ]}>
       {iconEl}
       {textEl}
-    </View>
+    </DirectionalRow>
   );
 };
 
@@ -118,7 +118,7 @@ export const StatusAccent = ({ color, width = 4 }: StatusAccentProps) => {
 
 const styles = StyleSheet.create({
   badge: {
-    flexDirection: 'row',
+    // flexDirection handled by DirectionalRow
     alignItems: 'center',
     borderRadius: BorderRadius.full,
   },

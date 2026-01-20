@@ -11,6 +11,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { ThemedText } from '@/components/ThemedText';
 import { DDIcon } from '@/components/DDIcon';
+import { DirectionalRow, useDirectionalStyle } from '@/components/DirectionalRow';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
 import { pushNotificationService } from '@/services/push';
@@ -128,16 +129,18 @@ export function EnableNotificationsPrompt({
     </Pressable>
   );
 
+  const directionalStyle = useDirectionalStyle();
+  
   return (
     <Animated.View 
       entering={FadeIn.duration(300)}
       exiting={FadeOut.duration(200)}
       style={[
-        styles.container, 
+        styles.container,
+        directionalStyle,
         { 
           backgroundColor: theme.softOrange,
           borderColor: theme.primary,
-          flexDirection: 'row',
         }
       ]}
     >
@@ -155,10 +158,10 @@ export function EnableNotificationsPrompt({
           {t('notifications.enablePromptDescription')}
         </ThemedText>
         
-        <View style={[styles.buttonRow, { flexDirection: 'row' }]}>
+        <DirectionalRow style={styles.buttonRow}>
           {enableButton}
           {laterButton}
-        </View>
+        </DirectionalRow>
       </View>
       
       {closeButton}

@@ -501,17 +501,11 @@ export default function DashboardLayout({
           </Pressable>
         </Modal>
 
-        <View 
+        <DirectionalRow 
           testID="main-container"
           nativeID="main-container"
-          style={[
-            styles.mainContainer, 
-            { 
-              // Always use 'row' - I18nManager handles RTL on mobile, dir="rtl" handles it on web
-              // Using row-reverse causes double-reversal on mobile
-              flexDirection: 'row' 
-            }
-          ]}
+          style={styles.mainContainer}
+          alignItems="stretch"
         >
           {/* Mobile Overlay - Rendered first so sidebar appears on top */}
           {!isLargeScreen && sidebarOpen && (
@@ -583,15 +577,15 @@ export default function DashboardLayout({
           <View style={styles.content}>
             {/* Desktop Header Bar */}
             {isLargeScreen && (
-              <View style={[
+              <DirectionalRow style={[
                 styles.desktopHeader,
                 { 
                   borderBottomColor: theme.border, 
                   backgroundColor: theme.background,
                 },
               ]}>
-                {/* Page title on START side, notification+avatar on END side - I18nManager handles RTL */}
-                <View style={styles.desktopHeaderLeft}>
+                {/* Page title on START side, notification+avatar on END side */}
+                <DirectionalRow style={styles.desktopHeaderLeft}>
                   {canGoBack && onGoBack ? (
                     <Pressable 
                       onPress={onGoBack} 
@@ -618,9 +612,9 @@ export default function DashboardLayout({
                       ) : null}
                     </View>
                   ) : null}
-                </View>
+                </DirectionalRow>
                 
-                <View style={styles.desktopHeaderRight}>
+                <DirectionalRow style={styles.desktopHeaderRight}>
                   <Pressable 
                     onPress={() => onNavigate('Notifications')} 
                     style={({ pressed }) => [
@@ -650,18 +644,20 @@ export default function DashboardLayout({
                       { opacity: pressed ? 0.7 : 1 }
                     ]}
                   >
-                    <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
-                      <ThemedText style={[Typography.caption, { color: '#FFFFFF', fontWeight: '700' }]}>
-                        {getInitials(userName)}
+                    <DirectionalRow style={{ alignItems: 'center' }}>
+                      <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
+                        <ThemedText style={[Typography.caption, { color: '#FFFFFF', fontWeight: '700' }]}>
+                          {getInitials(userName)}
+                        </ThemedText>
+                      </View>
+                      <ThemedText style={[Typography.body, { marginStart: Spacing.sm, fontWeight: '500' }]}>
+                        {userName}
                       </ThemedText>
-                    </View>
-                    <ThemedText style={[Typography.body, { marginStart: Spacing.sm, fontWeight: '500' }]}>
-                      {userName}
-                    </ThemedText>
-                    <DDIcon name="chevron-down" size={16} color={theme.textSecondary} />
+                      <DDIcon name="chevron-down" size={16} color={theme.textSecondary} />
+                    </DirectionalRow>
                   </Pressable>
-                </View>
-              </View>
+                </DirectionalRow>
+              </DirectionalRow>
             )}
             
             <View style={styles.contentInner}>
@@ -669,7 +665,7 @@ export default function DashboardLayout({
               {children}
             </View>
           </View>
-        </View>
+        </DirectionalRow>
       </View>
     </GestureDetector>
   );
@@ -697,7 +693,7 @@ const styles = StyleSheet.create({
   },
   mainContainer: {
     flex: 1,
-    flexDirection: 'row',
+    // flexDirection handled by DirectionalRow
   },
   sidebarContainer: {
     // Width applied dynamically in JSX based on screen size
@@ -721,7 +717,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   desktopHeader: {
-    flexDirection: 'row',
+    // flexDirection handled by DirectionalRow
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.xl,
@@ -729,11 +725,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   desktopHeaderLeft: {
-    flexDirection: 'row',
+    // flexDirection handled by DirectionalRow
     alignItems: 'center',
   },
   desktopHeaderRight: {
-    flexDirection: 'row',
+    // flexDirection handled by DirectionalRow
     alignItems: 'center',
     gap: Spacing.md,
   },
@@ -742,7 +738,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.sm,
   },
   desktopAvatarButton: {
-    flexDirection: 'row',
+    // flexDirection handled by DirectionalRow inside
     alignItems: 'center',
     paddingVertical: Spacing.xs,
     paddingHorizontal: Spacing.sm,
