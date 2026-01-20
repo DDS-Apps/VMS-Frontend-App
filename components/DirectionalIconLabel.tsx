@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, ViewStyle, StyleProp, StyleSheet, Platform } from 'react-native';
+import { View, ViewStyle, StyleProp, StyleSheet } from 'react-native';
 import { DDIcon } from '@/components/DDIcon';
 import { ThemedText } from '@/components/ThemedText';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/hooks/useTheme';
+import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
 import { Spacing } from '@/constants/theme';
 
 interface DirectionalIconLabelProps {
@@ -32,12 +33,9 @@ export function DirectionalIconLabel({
   const { isRTL } = useLanguage();
   const { theme } = useTheme();
   
-  // Platform-aware RTL handling:
-  // - On WEB: Browser's document.dir='rtl' reverses flex layouts automatically,
-  //   so only reverse if forceReverse=true (for containers with border/overflow bugs)
-  // - On MOBILE: I18nManager doesn't flip flexDirection, so always reverse in RTL
-  const isWeb = Platform.OS === 'web';
-  const shouldReverse = isRTL && (!isWeb || forceReverse);
+  // Use shouldSwapChildrenForRTL for consistent RTL handling across all components
+  // forceReverse only applies when in RTL mode (to handle specific web quirks)
+  const shouldReverse = shouldSwapChildrenForRTL(isRTL) || (isRTL && forceReverse);
   
   const flattenedStyle = StyleSheet.flatten([style]);
   const containerStyle: ViewStyle = {

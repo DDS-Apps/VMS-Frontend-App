@@ -289,6 +289,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                 snapToInterval={cardWidth + Spacing.md}
                 decelerationRate="fast"
                 nestedScrollEnabled={true}
+                keyboardShouldPersistTaps="handled"
               >
                 {upcomingThisWeek.map((request, index) => (
                   <VisitorRequestCard
@@ -320,11 +321,11 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
         <>
           <View>
             <View style={[styles.header, { flexDirection: 'row' }]}>
-              <View>
-                <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
+              <View style={{ flex: 1 }}>
+                <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
                   {t('dashboard.recentRequests')}
                 </ThemedText>
-                <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 4, fontSize: 12 }]}>
+                <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 4, fontSize: 12, textAlign: isRTL ? 'right' : 'left' }]}>
                   {t('dashboard.yourLatestRequests')}
                 </ThemedText>
               </View>
@@ -355,6 +356,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                 snapToInterval={cardWidth + Spacing.md}
                 decelerationRate="fast"
                 nestedScrollEnabled={true}
+                keyboardShouldPersistTaps="handled"
               >
                 {recentRequests.map((request, index) => (
                   <VisitorRequestCard
@@ -385,11 +387,11 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
       {userRole === 'manager' && (
         <>
           <View>
-            <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
+            <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('dashboard.pendingApprovals')}
             </ThemedText>
             <View style={[styles.header, { alignItems: 'center', marginTop: 4, flexDirection: 'row' }]}>
-              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, fontSize: 12 }]}>
+              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, fontSize: 12, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                 {t('dashboard.requestsAwaitingApproval')}
               </ThemedText>
               {pendingApprovals.length > 0 && (
@@ -419,6 +421,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                 snapToInterval={cardWidth + Spacing.md}
                 decelerationRate="fast"
                 nestedScrollEnabled={true}
+                keyboardShouldPersistTaps="handled"
               >
                 {pendingApprovals.slice(0, 5).map((request, index) => (
                   <VisitorRequestCard
@@ -451,11 +454,11 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
       {(userRole === 'manager' || userRole === 'employee') && (
         <>
           <View>
-            <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
+            <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('navigation.awaitingVisitor')}
             </ThemedText>
             <View style={[styles.header, { alignItems: 'center', marginTop: 4, flexDirection: 'row' }]}>
-              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, fontSize: 12 }]}>
+              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, fontSize: 12, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                 {t('dashboard.awaitingResponse')}
               </ThemedText>
               {awaitingVisitorAcceptance.length > 0 && (
@@ -488,6 +491,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                 snapToInterval={cardWidth + Spacing.md}
                 decelerationRate="fast"
                 nestedScrollEnabled={true}
+                keyboardShouldPersistTaps="handled"
               >
                 {awaitingVisitorAcceptance.slice(0, 5).map((request, index) => (
                   <VisitorRequestCard
@@ -520,11 +524,11 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
       {(userRole === 'manager' || userRole === 'employee') && (
         <>
           <View>
-            <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
+            <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
               {t('navigation.walkInVisitors')}
             </ThemedText>
             <View style={[styles.header, { alignItems: 'center', marginTop: 4, flexDirection: 'row' }]}>
-              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, fontSize: 12 }]}>
+              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, fontSize: 12, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                 {t('dashboard.walkIns')}
               </ThemedText>
               {walkInVisitors.length > 0 && (userRole === 'manager' || userRole === 'employee') && (
@@ -554,6 +558,7 @@ export default function OverviewScreen({ userRole, userName }: OverviewScreenPro
                 snapToInterval={cardWidth + Spacing.md}
                 decelerationRate="fast"
                 nestedScrollEnabled={true}
+                keyboardShouldPersistTaps="handled"
               >
                 {walkInVisitors.slice(0, 5).map((request, index) => (
                   <VisitorRequestCard
