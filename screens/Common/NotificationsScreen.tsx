@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from "react";
-import { View, StyleSheet, Pressable, ActivityIndicator, Platform } from "react-native";
+import { View, StyleSheet, Pressable, ActivityIndicator } from "react-native";
+import { shouldSwapChildrenForRTL } from "@/utils/rtlInitializer";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
@@ -236,8 +237,7 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
           const { icon, variant } = getNotificationConfig(notification.type);
           const accentColor = getVariantColor(variant);
           const { title: localizedTitle, message: localizedMessage } = getLocalizedContent(notification);
-          // Use child swapping on mobile RTL instead of row-reverse to avoid conflicts
-          const shouldSwapChildren = isRTL && Platform.OS !== 'web';
+          const shouldSwapChildren = shouldSwapChildrenForRTL(isRTL);
           
           const iconElement = (
             <View style={[styles.iconContainer, { backgroundColor: applyOpacity(accentColor, '15') }]}>

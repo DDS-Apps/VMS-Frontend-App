@@ -30,17 +30,29 @@ export {
 /**
  * Determines if children should be swapped for RTL layout.
  * 
- * ALWAYS RETURNS FALSE - I18nManager handles RTL on ALL platforms when
- * properly initialized before first render:
- * - Mobile: I18nManager.forceRTL(true) flips layouts automatically
- * - Web: I18nManager + document.dir='rtl' enables React Native Web's RTL handling
+ * Returns TRUE when:
+ * - The context says isRTL is true (app is in Arabic mode)
+ * - We're on mobile (not web)
+ * - I18nManager.isRTL is false (hasn't been applied yet - requires restart)
  * 
- * This function exists for backwards compatibility. Existing code that uses
- * conditional child swapping will now always render children in original order,
- * letting I18nManager handle the visual flip.
+ * This provides a fallback for Expo Go and hot reload scenarios where
+ * I18nManager.forceRTL() hasn't taken effect yet.
+ * 
+ * Web doesn't need this because document.dir='rtl' takes effect immediately.
  */
 export function shouldSwapChildrenForRTL(isRTL: boolean): boolean {
-  // I18nManager handles RTL on all platforms - no manual swapping needed
+  // Web: browser handles RTL via document.dir, no swapping needed
+  if (Platform.OS === 'web') {
+    return false;
+  }
+  
+  // Mobile: If context says RTL but I18nManager hasn't applied it,
+  // we need to manually swap children
+  if (isRTL && !I18nManager.isRTL) {
+    return true;
+  }
+  
+  // I18nManager is handling RTL correctly, no swapping needed
   return false;
 }
 
