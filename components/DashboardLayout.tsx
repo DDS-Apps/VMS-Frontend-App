@@ -12,7 +12,7 @@ import Sidebar from "@/components/Sidebar";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { DDIcon } from "@/components/DDIcon";
-import { DirectionalRow, useDirectionalStyle } from "@/components/DirectionalRow";
+import { DirectionalRow } from "@/components/DirectionalRow";
 import { EnableNotificationsPrompt } from "@/components/shared/EnableNotificationsPrompt";
 import { LanguageChangeOverlay } from "@/components/LanguageChangeOverlay";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
@@ -81,7 +81,6 @@ export default function DashboardLayout({
   console.log('[DashboardLayout] isRTL:', isRTL, 'contextIsRTL:', contextIsRTL, 'locale:', locale);
   
   const { t } = useTranslation();
-  const headerDirectionalStyle = useDirectionalStyle();
   const rtlStyles = useRTLStyles();
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -279,15 +278,17 @@ export default function DashboardLayout({
         >
         {/* Mobile Header Bar */}
         {!isLargeScreen && (
-          <ThemedView style={[
-            styles.mobileHeader, 
-            headerDirectionalStyle,
-            { 
-              borderBottomColor: theme.border, 
-              backgroundColor: theme.background,
-              paddingTop: insets.top + Spacing.sm,
-            },
-          ]}>
+          <DirectionalRow 
+            style={[
+              styles.mobileHeader, 
+              { 
+                borderBottomColor: theme.border, 
+                backgroundColor: theme.background,
+                paddingTop: insets.top + Spacing.sm,
+              },
+            ]}
+            justifyContent="space-between"
+          >
             {/* Left cluster: menu/back + logo */}
             <DirectionalRow style={styles.headerCluster} gap={Spacing.sm}>
               {canGoBack && onGoBack ? (
@@ -367,7 +368,7 @@ export default function DashboardLayout({
                 </View>
               </Pressable>
             </DirectionalRow>
-          </ThemedView>
+          </DirectionalRow>
         )}
         
         <Modal

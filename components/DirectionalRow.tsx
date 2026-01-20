@@ -5,6 +5,11 @@
  * A row container that handles RTL layout correctly across all platforms.
  * This is the SINGLE SOURCE OF TRUTH for RTL row layouts.
  * 
+ * IMPORTANT: Uses I18nManager.isRTL directly (not React context) because:
+ * - I18nManager.isRTL is set by the native layer after app restart
+ * - React context may not be synced in all render cycles
+ * - The React Native docs recommend using I18nManager.isRTL for layout decisions
+ * 
  * FEATURES:
  * =========
  * 1. Double-flip prevention - Detects if browser already flips via dir="rtl"
@@ -34,7 +39,38 @@
 
 import React, { ReactNode, createContext, useContext } from 'react';
 import { View, ViewStyle, StyleProp, StyleSheet, Platform, I18nManager } from 'react-native';
-import { useLanguage } from '@/contexts/LanguageContext';
+
+// =============================================================================
+// RTL DETECTION
+// =============================================================================
+
+/**
+ * Get the current RTL state directly from I18nManager
+ * This is the authoritative source for RTL on mobile (set by native layer after restart)
+ * On web, we check localStorage for stored language preference
+ */
+function getIsRTL(): boolean {
+  if (Platform.OS === 'web') {
+    // On web, check localStorage for stored language as I18nManager may not be reliable
+    if (typeof localStorage !== 'undefined') {
+      try {
+        const storedLang = localStorage.getItem('@vms_language');
+        if (storedLang === 'ar') return true;
+        if (storedLang === 'en') return false;
+      } catch {
+        // Fall through to I18nManager
+      }
+    }
+  }
+  // Use I18nManager.isRTL - this is set correctly by native layer after app restart
+  return I18nManager.isRTL;
+}
+
+/**
+ * Export getIsRTL for use in other components
+ * This is the authoritative RTL check that reads directly from I18nManager
+ */
+export { getIsRTL };
 
 // =============================================================================
 // CONTEXT FOR NESTED DIRECTIONAL ROWS
@@ -135,7 +171,8 @@ export function DirectionalRow({
   testID,
   nativeID,
 }: DirectionalRowProps) {
-  const { isRTL } = useLanguage();
+  // Use I18nManager.isRTL directly - this is the authoritative source on mobile
+  const isRTL = getIsRTL();
   const { isInsideDirectionalRow, depth } = useDirectionalContext();
   const flattenedStyle = StyleSheet.flatten([style]) || {};
   
@@ -177,7 +214,8 @@ export function DirectionalRow({
  * ```
  */
 export function useDirectionalStyle(): { flexDirection: 'row' | 'row-reverse' } {
-  const { isRTL } = useLanguage();
+  // Use I18nManager.isRTL directly - this is the authoritative source on mobile
+  const isRTL = getIsRTL();
   const { isInsideDirectionalRow } = useDirectionalContext();
   
   return {
@@ -230,7 +268,8 @@ export function RTLWrapper({
   style,
   componentHandlesRTL = false,
 }: RTLWrapperProps) {
-  const { isRTL } = useLanguage();
+  // Use I18nManager.isRTL directly - this is the authoritative source on mobile
+  const isRTL = getIsRTL();
   
   // If component handles RTL internally, just pass through
   if (componentHandlesRTL) {

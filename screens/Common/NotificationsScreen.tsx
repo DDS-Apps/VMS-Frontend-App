@@ -262,7 +262,7 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
                 {localizedMessage}
               </ThemedText>
               <Spacer height={Spacing.sm} />
-              <DirectionalRow style={styles.timeContainer} gap={4} forceDirection="row" justifyContent="flex-start">
+              <DirectionalRow style={styles.timeContainer} gap={4} justifyContent="flex-start">
                 <DDIcon name="clock" size={12} variant="muted" />
                 <ThemedText style={[styles.timeText, { color: theme.textSecondary }]}>
                   {formatTime(notification.createdAt)}
