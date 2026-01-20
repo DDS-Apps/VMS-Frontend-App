@@ -1,16 +1,32 @@
 import React from 'react';
-import { StyleSheet, View, ActivityIndicator, Modal, Platform } from 'react-native';
-import { ThemedText } from '@/components/ThemedText';
+import { StyleSheet, View, ActivityIndicator, Modal, Platform, Text } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
-import { useTranslation } from '@/hooks/useTranslation';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface LanguageChangeOverlayProps {
   visible: boolean;
 }
 
+// Static text in both languages - avoid using translations during state transition
+const OVERLAY_TEXT = {
+  en: {
+    title: 'Switching language...',
+    web: 'Page will reload',
+    mobile: 'App will restart',
+  },
+  ar: {
+    title: 'جارٍ تغيير اللغة...',
+    web: 'ستتم إعادة تحميل الصفحة',
+    mobile: 'ستتم إعادة تشغيل التطبيق',
+  },
+};
+
 export function LanguageChangeOverlay({ visible }: LanguageChangeOverlayProps) {
   const { theme } = useTheme();
-  const { t, isRTL } = useTranslation();
+  const { locale, isRTL } = useLanguage();
+  
+  // Use static text to avoid translation dependencies during state transition
+  const text = OVERLAY_TEXT[locale] || OVERLAY_TEXT.en;
 
   if (!visible) return null;
 
@@ -24,14 +40,12 @@ export function LanguageChangeOverlay({ visible }: LanguageChangeOverlayProps) {
       <View style={[styles.overlay, { backgroundColor: 'rgba(0,0,0,0.7)' }]}>
         <View style={[styles.content, { backgroundColor: theme.surface }]}>
           <ActivityIndicator size="large" color={theme.primary} />
-          <ThemedText style={[styles.text, { color: theme.text, textAlign: isRTL ? 'right' : 'center' }]}>
-            {t('settings.changingLanguage') || 'Switching language...'}
-          </ThemedText>
-          <ThemedText style={[styles.subtext, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'center' }]}>
-            {Platform.OS === 'web' 
-              ? (t('settings.pageWillReload') || 'Page will reload')
-              : (t('settings.appWillRestart') || 'App will restart')}
-          </ThemedText>
+          <Text style={[styles.text, { color: theme.text, textAlign: isRTL ? 'right' : 'center' }]}>
+            {text.title}
+          </Text>
+          <Text style={[styles.subtext, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'center' }]}>
+            {Platform.OS === 'web' ? text.web : text.mobile}
+          </Text>
         </View>
       </View>
     </Modal>
