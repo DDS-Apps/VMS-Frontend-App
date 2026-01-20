@@ -3,7 +3,7 @@ import { Text, type TextProps, TextStyle, StyleSheet } from "react-native";
 import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Typography, FontFamily } from "@/constants/theme";
-import { getTextAlign } from "@/utils/rtlInitializer";
+import { getPlatformTextAlign } from "@/utils/rtlInitializer";
 import { arabicFontSize, arabicLineHeight, TextCategory, ArabicFontScaling } from "@/utils/rtlStyles";
 
 export type TextVariant = 
@@ -48,7 +48,12 @@ export function ThemedText({
   // 'auto' means use the default alignment based on RTL state
   const textAlign = align === 'auto' 
     ? (isRTL ? 'right' : 'left')
-    : getTextAlign(isRTL, align);
+    : getPlatformTextAlign(isRTL, align);
+
+  // RTL DEBUG - Log once per component type to verify text alignment
+  if (__DEV__ && isRTL && textVariant === 'body') {
+    console.log('🔄 [RTL_DEBUG] ThemedText:', { isRTL, textAlign, writingDirection });
+  }
 
   const getColor = () => {
     if (color) {
