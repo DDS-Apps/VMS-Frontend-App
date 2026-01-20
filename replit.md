@@ -47,23 +47,29 @@ The VMS app employs a Clean Architecture pattern, segmenting the application int
 **Technical Implementations:**
 - **Core Technologies:** React Native, Expo, TypeScript.
 - **Iconography & RTL Support:** `DDIcon` component for theme-aware icons with automatic RTL mirroring. Full RTL compatibility.
-- **RTL Pattern for Android:** Critical pattern to prevent double-inversion bugs on Android mobile:
-  - **Child Swapping Pattern:** For icon + text rows, use `flexDirection: 'row'` always (never 'row-reverse'), then swap children order when `shouldSwapChildrenForRTL(isRTL)` returns true
-  - **Web:** Relies on browser's dir="rtl" for automatic layout reversal
-  - **Mobile:** Manual child swapping prevents React Native's built-in I18nManager from double-reversing layouts
-  - **Helper Functions:** 
-    - `shouldSwapChildrenForRTL(isRTL)` - returns true when child swapping is needed (mobile RTL only)
-    - `DirectionalRow` component - automatically handles child swapping for its children
-    - `RTLInfoRow` / `RTLSimpleRow` - specialized row components with built-in child swapping
-  - **Usage Pattern:**
+- **RTL Pattern (DirectionalRow as Single Source of Truth):** All horizontal row layouts must use `DirectionalRow` component for consistent RTL behavior across web and mobile:
+  - **DirectionalRow Component:** The single source of truth for RTL row layouts. Uses explicit `flexDirection: 'row-reverse'` for RTL instead of relying on I18nManager auto-swap (mobile) or browser `dir` attribute (web).
+  - **Usage Patterns:**
     ```tsx
-    const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-    <View style={{ flexDirection: 'row' }}>
-      {shouldSwap ? (<><Text>Text</Text><Icon /></>) : (<><Icon /><Text>Text</Text></>)}
-    </View>
+    // For View-like containers:
+    <DirectionalRow style={styles.row} alignItems="center">
+      <Icon /><Text>Label</Text>
+    </DirectionalRow>
+    
+    // For Pressable/Animated components (cannot use DirectionalRow):
+    const { isRTL } = useLanguage();
+    <Pressable style={{ flexDirection: getFlexDirection(isRTL) }}>
+      <Icon /><Text>Label</Text>
+    </Pressable>
     ```
-  - **Deprecated:** `getPlatformFlexDirection()` - do not use; causes double-inversion bugs
-  - **Avoid:** Never mix flex-direction reversal with child order manipulation in the same component layer
+  - **Helper Functions:**
+    - `getFlexDirection(isRTL)` - returns 'row-reverse' for RTL, 'row' for LTR (for inline styles)
+    - `useDirectionalStyle()` - hook returning `{ flexDirection }` style object
+  - **Key Props:**
+    - `alignItems` - defaults to 'center', pass 'stretch' for layout containers
+    - `gap` - spacing between children
+  - **Deprecated:** `getPlatformFlexDirection()`, `shouldSwapChildrenForRTL()` - do not use
+  - **Avoid:** Using inline `flexDirection: 'row'` in View components - always use DirectionalRow
 - **State Management:** Centralized state service using mutable mock data and `useFocusEffect` for reactive updates.
 - **Role-Based Access:** Specialized interfaces and navigation for nine distinct user roles.
 - **Internationalization (i18n):** Bilingual support for English (LTR) and Arabic (RTL) across all 40+ screens using type-safe translation keys, a `LanguageContext`, and `useTranslation` hook.

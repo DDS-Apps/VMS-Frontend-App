@@ -926,7 +926,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
                     size="sm"
                   />
                 ) : null}
-              </View>
+              </DirectionalRow>
               {request.meetingRoom ? (
                 <>
                   <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
@@ -970,7 +970,7 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
                     size="sm"
                   />
                 ) : null}
-              </View>
+              </DirectionalRow>
               {request.buffet && request.buffet.mealType ? (
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
                   {request.buffet.location} ({request.buffet.mealType.charAt(0).toUpperCase() + request.buffet.mealType.slice(1)})
