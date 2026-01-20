@@ -28,6 +28,7 @@ import {
   isRTLLocale,
   getStoredLocale,
   getStoredLocaleSync,
+  getCachedLocale,
   changeLanguage as localeManagerChangeLanguage,
 } from '@/utils/localeManager';
 import { restartApp } from '@/utils/restartApp';
@@ -52,12 +53,22 @@ interface LanguageProviderProps {
 let layoutKeyCounter = 0;
 
 export function LanguageProvider({ children }: LanguageProviderProps) {
-  // On web, use sync localStorage read for accurate initial state
-  // On mobile, use I18nManager.isRTL which is set by bootstrap
+  // Get initial locale from the most reliable source available
+  // On web: use sync localStorage read
+  // On mobile: use cached locale from async bootstrap (set before React renders)
+  //            or fall back to I18nManager.isRTL (may be stale until restart)
   const getInitialLocale = (): SupportedLocale => {
     if (Platform.OS === 'web') {
       return getStoredLocaleSync();
     }
+    // Mobile: Prefer cached locale (set by async bootstrap in index.js)
+    const cached = getCachedLocale();
+    if (cached !== null) {
+      console.log('[LanguageContext] Using cached locale:', cached);
+      return cached;
+    }
+    // Fallback to I18nManager.isRTL (may be stale until restart)
+    console.log('[LanguageContext] No cached locale, using I18nManager.isRTL:', I18nManager.isRTL);
     return I18nManager.isRTL ? 'ar' : 'en';
   };
   

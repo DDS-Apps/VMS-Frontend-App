@@ -7,6 +7,7 @@ import * as ExpoSplashScreen from "expo-splash-screen";
 import { KeyboardProviderWrapper } from "@/components/KeyboardProviderWrapper";
 import { StatusBar } from "expo-status-bar";
 import { useFonts } from 'expo-font';
+import { getBootstrapPromise, getCachedLocale } from "@/utils/localeManager";
 
 // Note: initializeRTLSync() is called in index.js before registerRootComponent()
 // This ensures I18nManager is configured before any React rendering
@@ -220,6 +221,13 @@ function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
 export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [appIsReady, setAppIsReady] = useState(false);
+  const [localeBootstrapReady, setLocaleBootstrapReady] = useState(() => {
+    // On web, we don't need to wait for bootstrap (sync localStorage is available)
+    // On mobile, wait for async bootstrap to populate the cache
+    if (Platform.OS === 'web') return true;
+    // If cache is already populated (e.g., hot reload), we're ready
+    return getCachedLocale() !== null;
+  });
 
   const [fontsLoaded, fontError] = useFonts({
     'Inter_400Regular': require('./assets/fonts/Inter_400Regular.ttf'),
@@ -227,6 +235,21 @@ export default function App() {
     'Inter_600SemiBold': require('./assets/fonts/Inter_600SemiBold.ttf'),
     'Inter_700Bold': require('./assets/fonts/Inter_700Bold.ttf'),
   });
+
+  // Wait for locale bootstrap on mobile before rendering LanguageProvider
+  useEffect(() => {
+    if (Platform.OS === 'web') return;
+    if (localeBootstrapReady) return;
+    
+    let mounted = true;
+    getBootstrapPromise().then(() => {
+      if (mounted) {
+        console.log('[App] Locale bootstrap complete, cached locale:', getCachedLocale());
+        setLocaleBootstrapReady(true);
+      }
+    });
+    return () => { mounted = false; };
+  }, [localeBootstrapReady]);
 
   useEffect(() => {
     async function prepare() {
@@ -253,9 +276,14 @@ export default function App() {
         console.warn('[App] Font loading timeout - proceeding without custom fonts');
         setAppIsReady(true);
       }
+      // Also timeout locale bootstrap to prevent stuck splash
+      if (!localeBootstrapReady) {
+        console.warn('[App] Locale bootstrap timeout - proceeding with fallback');
+        setLocaleBootstrapReady(true);
+      }
     }, 3000);
     return () => clearTimeout(timer);
-  }, [appIsReady]);
+  }, [appIsReady, localeBootstrapReady]);
 
   const onLayoutRootView = useCallback(async () => {
     if (appIsReady) {
@@ -273,7 +301,9 @@ export default function App() {
     theme: isDarkMode ? Colors.dark : Colors.light,
   };
 
-  if (!appIsReady) {
+  // Wait for both fonts and locale bootstrap before rendering
+  // This ensures LanguageProvider gets the correct initial locale from cache
+  if (!appIsReady || !localeBootstrapReady) {
     return null;
   }
 

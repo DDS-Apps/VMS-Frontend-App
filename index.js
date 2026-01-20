@@ -37,8 +37,11 @@ import App from "@/App";
 registerRootComponent(App);
 
 // Step 3: Run async bootstrap AFTER registration to check for direction mismatch
+// The bootstrap populates the cache and signals App.tsx when ready
 // If restart is needed, it will trigger - the app has already started rendering
 // but the restart will happen before user sees anything meaningful
+import { resolveBootstrapPromise } from "@/utils/localeManager";
+
 (async function checkRTLRestart() {
   try {
     const result = await bootstrapLocale();
@@ -50,12 +53,16 @@ registerRootComponent(App);
       i18nManagerIsRTL: I18nManager.isRTL,
     });
     
+    // Signal App.tsx that bootstrap is complete and cache is populated
+    resolveBootstrapPromise({ locale: result.locale, isRTL: result.isRTL });
+    
     if (result.needsRestart) {
       console.log('🔄 [RTL_DEBUG] Direction mismatch detected, restarting app...');
       await restartApp(result.locale);
     }
   } catch (error) {
     console.error('[RTL_DEBUG] Async bootstrap error:', error);
-    // App already registered and running, so we just log the error
+    // Resolve with fallback so App.tsx doesn't hang
+    resolveBootstrapPromise({ locale: 'en', isRTL: false });
   }
 })();

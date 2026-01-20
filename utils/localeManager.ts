@@ -40,6 +40,67 @@ export type SupportedLocale = 'en' | 'ar';
 export const LANGUAGE_STORAGE_KEY = '@vms_language';
 export const DEFAULT_LOCALE: SupportedLocale = 'en';
 
+// ============================================================================
+// IN-MEMORY LOCALE CACHE (for synchronous access on mobile)
+// ============================================================================
+
+/**
+ * Global in-memory cache for locale.
+ * This is set during async bootstrap and then available for synchronous reads.
+ * This solves the problem where I18nManager.isRTL is stale until restart.
+ */
+let cachedLocale: SupportedLocale | null = null;
+
+/**
+ * Sets the cached locale (call after loading from AsyncStorage)
+ */
+export function setCachedLocale(locale: SupportedLocale): void {
+  cachedLocale = locale;
+  console.log('🔄 [RTL_DEBUG] setCachedLocale:', locale);
+}
+
+/**
+ * Gets the cached locale (returns null if not yet set)
+ */
+export function getCachedLocale(): SupportedLocale | null {
+  return cachedLocale;
+}
+
+/**
+ * Gets the cached locale or falls back to default
+ */
+export function getCachedLocaleOrDefault(): SupportedLocale {
+  return cachedLocale ?? DEFAULT_LOCALE;
+}
+
+/**
+ * Promise that resolves when async bootstrap is complete
+ * This allows App.tsx to wait for the cache to be populated
+ * 
+ * CRITICAL: Promise is created EAGERLY at module load to avoid race conditions.
+ * The resolver is captured immediately, so resolveBootstrapPromise can call it
+ * regardless of when it's invoked relative to App.tsx waiting on the promise.
+ */
+let bootstrapResolve: ((value: { locale: SupportedLocale; isRTL: boolean }) => void) | null = null;
+
+// Create promise eagerly at module load and capture the resolver
+const bootstrapPromise: Promise<{ locale: SupportedLocale; isRTL: boolean }> = new Promise((resolve) => {
+  bootstrapResolve = resolve;
+});
+
+export function getBootstrapPromise(): Promise<{ locale: SupportedLocale; isRTL: boolean }> {
+  return bootstrapPromise;
+}
+
+export function resolveBootstrapPromise(result: { locale: SupportedLocale; isRTL: boolean }): void {
+  if (bootstrapResolve) {
+    bootstrapResolve(result);
+    bootstrapResolve = null;
+  }
+  // Note: If resolveBootstrapPromise is called multiple times, only the first call takes effect
+  // This is expected - bootstrap should only complete once
+}
+
 export const LOCALE_CONFIG: Record<SupportedLocale, { isRTL: boolean; name: string; nativeName: string }> = {
   en: { isRTL: false, name: 'English', nativeName: 'English' },
   ar: { isRTL: true, name: 'Arabic', nativeName: 'العربية' },
@@ -183,6 +244,10 @@ export async function bootstrapLocale(): Promise<BootstrapResult> {
   
   // Step 2: Load stored locale
   const locale = await getStoredLocale();
+  
+  // Step 2.5: Cache the locale for synchronous access by LanguageContext
+  setCachedLocale(locale);
+  
   const shouldBeRTL = isRTLLocale(locale);
   const currentlyRTL = I18nManager.isRTL;
   
@@ -218,7 +283,7 @@ export async function bootstrapLocale(): Promise<BootstrapResult> {
  * Synchronous bootstrap for web (can be called in index.js before async code)
  * 
  * On web, reads from localStorage synchronously
- * On mobile, just enables RTL support (full bootstrap must be async)
+ * On mobile, uses cached locale if available, otherwise falls back to I18nManager.isRTL
  */
 export function bootstrapLocaleSync(): { locale: SupportedLocale; isRTL: boolean } {
   // Enable RTL support immediately
@@ -238,11 +303,20 @@ export function bootstrapLocaleSync(): { locale: SupportedLocale; isRTL: boolean
     return { locale, isRTL };
   }
   
-  // Mobile: Just return current state, full bootstrap will be async
-  const isRTL = I18nManager.isRTL;
-  const locale = isRTL ? 'ar' : 'en'; // Derive from current I18nManager state
+  // Mobile: Use cached locale if available (set by async bootstrap)
+  // This allows LanguageContext to get the correct locale even before restart
+  const cached = getCachedLocale();
+  if (cached !== null) {
+    const isRTL = isRTLLocale(cached);
+    console.log('🔄 [RTL_DEBUG] bootstrapLocaleSync (mobile, cached):', { locale: cached, isRTL });
+    return { locale: cached, isRTL };
+  }
   
-  console.log('🔄 [RTL_DEBUG] bootstrapLocaleSync (mobile):', { locale, isRTL });
+  // Fallback: Derive from current I18nManager state (stale until restart)
+  const isRTL = I18nManager.isRTL;
+  const locale = isRTL ? 'ar' : 'en';
+  
+  console.log('🔄 [RTL_DEBUG] bootstrapLocaleSync (mobile, fallback):', { locale, isRTL });
   return { locale, isRTL };
 }
 
@@ -274,8 +348,9 @@ export async function changeLanguage(newLocale: SupportedLocale): Promise<Change
     directionChanged 
   });
   
-  // Save the new locale
+  // Save the new locale and update the in-memory cache
   await saveLocale(newLocale);
+  setCachedLocale(newLocale);
   
   if (Platform.OS === 'web') {
     // Web: Apply immediately
