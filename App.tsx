@@ -8,8 +8,8 @@ import { KeyboardProviderWrapper } from "@/components/KeyboardProviderWrapper";
 import { StatusBar } from "expo-status-bar";
 import { useFonts } from 'expo-font';
 
-import { initializeRTLSync } from "@/utils/rtlInitializer";
-initializeRTLSync();
+// Note: initializeRTLSync() is called in index.js before registerRootComponent()
+// This ensures I18nManager is configured before any React rendering
 
 ExpoSplashScreen.preventAutoHideAsync().catch(() => {});
 

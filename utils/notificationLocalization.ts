@@ -59,6 +59,22 @@ const translations = {
   ar,
 };
 
+/**
+ * Normalize notification type to match our template keys.
+ * Handles common variations from backend (camelCase, UPPER_CASE, etc.)
+ */
+function normalizeNotificationType(type: string): NotificationType {
+  // Convert to snake_case lowercase
+  const normalized = type
+    .replace(/([A-Z])/g, '_$1') // camelCase to snake_case
+    .replace(/[-\s]+/g, '_')    // hyphens/spaces to underscores
+    .replace(/_+/g, '_')        // multiple underscores to single
+    .replace(/^_/, '')          // remove leading underscore
+    .toLowerCase() as NotificationType;
+  
+  return normalized;
+}
+
 function interpolate(template: string, params: NotificationParams): string {
   return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
     const value = params[key as keyof NotificationParams];
@@ -76,7 +92,8 @@ export function localizeNotification(
   const t = translations[locale];
   const templates = t.notifications.templates;
 
-  const notificationType = type as NotificationType;
+  // Normalize the type to handle variations from backend
+  const notificationType = normalizeNotificationType(type);
   const template = templates[notificationType];
 
   if (!template) {

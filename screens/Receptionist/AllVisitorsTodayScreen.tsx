@@ -30,19 +30,19 @@ type StatusFilter = 'all' | 'expected' | 'checked_in' | 'completed';
 const ServiceIconsRow = ({ visitor, size = 14 }: { visitor: TodayVisitorDto; size?: number }) => {
   const { theme } = useTheme();
   const { isRTL } = useLanguage();
-  
+
   const showParking = visitor.isVisitorNeedsParking === true || visitor.visitorNeedsParking === true || visitor.hasParking === true || !!visitor.parkingSlot;
   const showMeetingRoom = visitor.isMeetingRoom === true || visitor.hasMeetingRoom === true || !!visitor.meetingRoom;
   const showBuffet = visitor.isBuffet === true || visitor.hasBuffet === true;
-  
+
   const hasServices = showParking || showMeetingRoom || showBuffet;
-  
+
   if (!hasServices) {
     return <View />;
   }
 
   return (
-    <View style={[styles.servicesIconsRow, { flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}>
+    <View style={[styles.servicesIconsRow, { flexDirection: 'row' }]}>
       {showBuffet ? (
         <View style={[styles.serviceIconPill, { backgroundColor: applyOpacity(theme.warning, '20') }]}>
           <DDIcon name="coffee" size={size} color={theme.warning} />
@@ -72,8 +72,8 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [expandedVisitors, setExpandedVisitors] = useState<Set<string>>(new Set());
 
-  const queryParams: ListReceptionTodayParams | undefined = statusFilter !== 'all' 
-    ? { status: statusFilter } 
+  const queryParams: ListReceptionTodayParams | undefined = statusFilter !== 'all'
+    ? { status: statusFilter }
     : undefined;
 
   const { data: todayResponse, isLoading, isFetching, isError, error } = useTodayVisitorsQuery(queryParams);
@@ -110,7 +110,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
 
   const filteredVisitors = useMemo(() => {
     if (!searchQuery.trim()) return todaysVisitors;
-    
+
     return todaysVisitors.filter(visitor => {
       const name = visitor.visitor.fullName.toLowerCase();
       const phone = visitor.visitor.phone ?? '';
@@ -155,7 +155,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
 
   const handleCheckIn = (visitorId: string, visitorName: string, event: GestureResponderEvent) => {
     event.stopPropagation();
-    
+
     checkInMutation.mutate(
       { visitId: visitorId },
       {
@@ -176,7 +176,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
 
   const handleCheckOut = (visitorId: string, visitorName: string, event: GestureResponderEvent) => {
     event.stopPropagation();
-    
+
     checkOutMutation.mutate(
       { visitId: visitorId },
       {
@@ -249,24 +249,24 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
     const showCompleted = item.status === 'completed' || item.status === 'checked_out';
     const isExpanded = expandedVisitors.has(item.id);
     const hasDetails = item.visitor.phone;
-    
+
     return (
-      <Pressable 
-        key={item.id} 
+      <Pressable
+        key={item.id}
         onPress={() => handleVisitorPress(item)}
         style={({ pressed }) => [pressed && { opacity: 0.95 }]}
       >
         <ThemedView style={[styles.visitorCard, { backgroundColor: theme.surface }]}>
           <View style={[styles.statusBorderLine, { backgroundColor: statusConfig.border }]} />
-          
+
           <View style={styles.cardContent}>
-            <View style={[styles.cardHeader, { flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.cardHeader, { flexDirection: 'row' }]}>
               <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
                 <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
                   {initials}
                 </ThemedText>
               </View>
-              
+
               <View style={[styles.nameSection, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
                 <ThemedText style={[styles.visitorName, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
                   {visitorName}
@@ -277,14 +277,14 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
               </View>
             </View>
 
-            <View style={[styles.detailsRow, { flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}>
-              <View style={[styles.detailItem, { flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.detailsRow, { flexDirection: 'row' }]}>
+              <View style={[styles.detailItem, { flexDirection: 'row' }]}>
                 <DDIcon name="clock" size={12} variant="muted" />
                 <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
                   {formatTimeFromString(item.visitTime)}
                 </ThemedText>
               </View>
-              <View style={[styles.detailItem, { flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.detailItem, { flexDirection: 'row' }]}>
                 <DDIcon name="user" size={12} variant="muted" />
                 <ThemedText style={[styles.detailText, { color: theme.textSecondary }]} numberOfLines={1}>
                   {item.hostName}{item.hostDepartment ? ` - ${item.hostDepartment}` : ''}
@@ -292,7 +292,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
               </View>
             </View>
 
-            <View style={[styles.servicesStatusRow, { flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.servicesStatusRow, { flexDirection: 'row' }]}>
               <ServiceIconsRow visitor={item} />
               <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: 1 }]}>
                 <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
@@ -304,7 +304,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
             {isExpanded && hasDetails ? (
               <View style={styles.expandedSection}>
                 {item.visitor.phone ? (
-                  <View style={[styles.expandedDetailRow, { flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}>
+                  <View style={[styles.expandedDetailRow, { flexDirection: 'row' }]}>
                     <DDIcon name="phone" size={14} color={theme.textSecondary} />
                     <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
                       {formatPhoneNumber(item.visitor.phone)}
@@ -315,33 +315,33 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
             ) : null}
 
             {hasDetails ? (
-              <Pressable 
-                onPress={(e) => { e.stopPropagation(); toggleVisitorExpanded(item.id); }} 
-                style={[styles.toggleContainer, { flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}
+              <Pressable
+                onPress={(e) => { e.stopPropagation(); toggleVisitorExpanded(item.id); }}
+                style={[styles.toggleContainer, { flexDirection: 'row' }]}
               >
                 <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
                   {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
                 </ThemedText>
-                <DDIcon 
-                  name={isExpanded ? 'chevron-up' : 'chevron-down'} 
-                  size={16} 
-                  color={theme.primary} 
+                <DDIcon
+                  name={isExpanded ? 'chevron-up' : 'chevron-down'}
+                  size={16}
+                  color={theme.primary}
                 />
               </Pressable>
             ) : null}
 
-            <View style={[styles.cardFooter, { flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.cardFooter, { flexDirection: 'row' }]}>
               <View />
-              <View style={[styles.actionButtons, { flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.actionButtons, { flexDirection: 'row' }]}>
                 {showCheckIn ? (
-                  <VisitorActionButton 
-                    type="check_in" 
-                    onPress={(e) => handleCheckIn(item.id, visitorName, e)} 
+                  <VisitorActionButton
+                    type="check_in"
+                    onPress={(e) => handleCheckIn(item.id, visitorName, e)}
                   />
                 ) : showCheckOut ? (
-                  <VisitorActionButton 
-                    type="check_out" 
-                    onPress={(e) => handleCheckOut(item.id, visitorName, e)} 
+                  <VisitorActionButton
+                    type="check_out"
+                    onPress={(e) => handleCheckOut(item.id, visitorName, e)}
                   />
                 ) : showCompleted ? (
                   <VisitorActionButton type="completed" />
@@ -369,16 +369,16 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
       <ThemedText style={[Typography.title, { fontSize: 22, fontWeight: '700', textAlign: isRTL ? 'right' : 'left' }]}>
         {t('navigation.todaysVisitors')}
       </ThemedText>
-      
+
       <Spacer height={4} />
-      
+
       <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
         {todaysVisitors.length} {t('dashboard.expectedToday').toLowerCase()}
       </ThemedText>
 
       <Spacer height={Spacing.md} />
 
-      <View style={[styles.summaryRow, { flexDirection: isRTL && Platform.OS !== 'web' ? 'row-reverse' : 'row' }]}>
+      <View style={[styles.summaryRow, { flexDirection: 'row' }]}>
         {renderSummaryCard(t('visitor.expectedVisitors'), summary.expected, theme.warning, 'clock')}
         {renderSummaryCard(t('status.checkedIn'), summary.checkedIn, theme.success, 'log-in')}
         {renderSummaryCard(t('status.checkedOut'), summary.completed, theme.textSecondary, 'log-out')}
@@ -394,8 +394,8 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
 
       <Spacer height={Spacing.md} />
 
-      <ScrollView 
-        horizontal 
+      <ScrollView
+        horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.filterScrollContent}
         nestedScrollEnabled={true}
@@ -405,7 +405,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
             const isActive = statusFilter === option.key;
             const isFirst = index === 0;
             const isLast = index === FILTER_OPTIONS.length - 1;
-            
+
             return (
               <Pressable
                 key={option.key}
@@ -417,7 +417,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
                 ]}
                 onPress={() => setStatusFilter(option.key)}
               >
-                <ThemedText 
+                <ThemedText
                   style={[
                     styles.segmentText,
                     { color: isActive ? '#FFFFFF' : theme.text }

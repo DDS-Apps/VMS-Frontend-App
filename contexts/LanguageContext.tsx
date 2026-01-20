@@ -1,62 +1,38 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import { I18nManager, Platform } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { reloadAppAsync } from 'expo';
-import { SupportedLocale, localeConfig, defaultLocale } from '@/constants/i18n';
-import { 
-  isRTLLanguage, 
-  setWebDocumentDirection, 
-  applyRTLChange,
-  getCurrentRTLState,
-  initializeRTLAsync as rtlInitAsync,
-} from '@/utils/rtlInitializer';
+/**
+ * Language Context
+ * ================
+ * 
+ * Provides app-wide language/locale state and RTL support.
+ * 
+ * Usage:
+ *   const { locale, isRTL, setLocale } = useLanguage();
+ * 
+ * RTL HANDLING:
+ * - isRTL reflects the current RTL state based on locale
+ * - When locale changes between LTR/RTL, app restart is required (mobile)
+ * - On web, page reload is required
+ * - layoutKey changes when locale changes - use as key prop to force re-render
+ */
 
-const LANGUAGE_STORAGE_KEY = '@vms_language';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { Platform, Alert, I18nManager } from 'react-native';
+import * as Updates from 'expo-updates';
+import { SupportedLocale, localeConfig, defaultLocale } from '@/constants/i18n';
+import {
+  loadStoredLocale,
+  changeLanguage,
+  LANGUAGE_STORAGE_KEY
+} from '@/utils/rtl';
 
 export type LocaleCode = 'ar-SA' | 'en-US';
-
-// Detect browser language preference
-function getBrowserLanguage(): SupportedLocale {
-  if (Platform.OS === 'web' && typeof navigator !== 'undefined') {
-    try {
-      const browserLang = navigator.language || (navigator as any).userLanguage || '';
-      // Check if browser language starts with 'ar' (Arabic)
-      if (browserLang.toLowerCase().startsWith('ar')) {
-        return 'ar';
-      }
-    } catch (e) {
-      // navigator not available
-    }
-  }
-  return 'en'; // Default to English
-}
-
-// Read initial locale from localStorage synchronously on web
-// This ensures the first render has the correct RTL state
-// Falls back to browser language detection, then to English
-function getInitialLocale(): SupportedLocale {
-  if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
-    try {
-      const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY);
-      if (stored === 'ar' || stored === 'en') {
-        return stored as SupportedLocale;
-      }
-      // No stored preference - use browser language detection
-      return getBrowserLanguage();
-    } catch (e) {
-      // localStorage not available
-    }
-  }
-  return defaultLocale;
-}
 
 interface LanguageContextType {
   locale: SupportedLocale;
   localeCode: LocaleCode;
   isRTL: boolean;
-  layoutKey: string;
   setLocale: (locale: SupportedLocale) => Promise<void>;
   isLoading: boolean;
+  layoutKey: string;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -65,142 +41,106 @@ interface LanguageProviderProps {
   children: ReactNode;
 }
 
+let layoutKeyCounter = 0;
+
 export function LanguageProvider({ children }: LanguageProviderProps) {
-  const initialLocale = getInitialLocale();
-  const [locale, setLocaleState] = useState<SupportedLocale>(initialLocale);
-  const [isRTL, setIsRTL] = useState<boolean>(localeConfig[initialLocale].isRTL);
-  const [layoutNonce, setLayoutNonce] = useState<number>(0);
+  const [locale, setLocaleState] = useState<SupportedLocale>(defaultLocale);
   const [isLoading, setIsLoading] = useState(true);
+  const [layoutKey, setLayoutKey] = useState<string>('initial-0');
 
-  const localeCode: LocaleCode = isRTL ? 'ar-SA' : 'en-US';
-  const layoutKey = `${locale}-${isRTL ? 'rtl' : 'ltr'}-${layoutNonce}`;
-
+  // Initialize on mount
   useEffect(() => {
-    loadStoredLanguage();
+    let mounted = true;
+
+    async function initialize() {
+      try {
+        console.log('[LanguageContext] Loading stored locale...');
+        const result = await loadStoredLocale();
+
+        if (!mounted) return;
+
+        console.log('[LanguageContext] Loaded:', result);
+
+        setLocaleState(result.locale);
+        setLayoutKey(`${result.locale}-${result.isRTL ? 'rtl' : 'ltr'}-${++layoutKeyCounter}`);
+        setIsLoading(false);
+
+        // If RTL mismatch detected on mobile, restart is needed
+        if (result.needsRestart) {
+          console.log('[LanguageContext] RTL mismatch, restarting app...');
+          setTimeout(async () => {
+            try {
+              await Updates.reloadAsync();
+            } catch (error) {
+              console.warn('[LanguageContext] Could not reload:', error);
+              Alert.alert(
+                'Restart Required',
+                'Please restart the app to apply language changes.',
+                [{ text: 'OK' }]
+              );
+            }
+          }, 100);
+        }
+      } catch (error) {
+        console.error('[LanguageContext] Init error:', error);
+        if (mounted) setIsLoading(false);
+      }
+    }
+
+    initialize();
+    return () => { mounted = false; };
   }, []);
 
-  useEffect(() => {
-    if (Platform.OS === 'web') {
-      setWebDocumentDirection(locale);
-    }
-  }, [locale]);
+  // Derived values
+  const isRTL = localeConfig[locale]?.isRTL ?? false;
+  const localeCode: LocaleCode = isRTL ? 'ar-SA' : 'en-US';
 
-  const loadStoredLanguage = async () => {
+  const handleSetLocale = useCallback(async (newLocale: SupportedLocale) => {
+    if (newLocale === locale) return;
+
+    console.log('[LanguageContext] Changing locale:', { from: locale, to: newLocale });
+
     try {
-      // Use the unified RTL async initializer
-      const { locale: validLocale, needsReload } = await rtlInitAsync();
-      const needsRTL = isRTLLanguage(validLocale);
-      
-      console.log('[LanguageContext] loadStoredLanguage:', { validLocale, needsRTL, needsReload });
-      
-      // Sync to raw localStorage on web for sync RTL initialization on next page load
-      if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
-        const currentLocalStorage = localStorage.getItem(LANGUAGE_STORAGE_KEY);
-        
-        // If localStorage is out of sync with AsyncStorage, sync it and reload
-        if (currentLocalStorage !== validLocale) {
-          console.log('[LanguageContext] Web: localStorage mismatch detected, syncing and reloading');
-          console.log('[LanguageContext] localStorage:', currentLocalStorage, '→', validLocale);
-          localStorage.setItem(LANGUAGE_STORAGE_KEY, validLocale);
-          
-          // Only reload if the RTL state would change
-          const currentIsRTL = currentLocalStorage === 'ar';
-          if (currentIsRTL !== needsRTL) {
-            console.log('[LanguageContext] Web: RTL mismatch, reloading page...');
-            window.location.reload();
-            return;
+      const needsReload = await changeLanguage(newLocale);
+
+      // Update local state
+      const newIsRTL = localeConfig[newLocale]?.isRTL ?? false;
+      setLocaleState(newLocale);
+      setLayoutKey(`${newLocale}-${newIsRTL ? 'rtl' : 'ltr'}-${++layoutKeyCounter}`);
+
+      if (needsReload) {
+        console.log('[LanguageContext] Triggering reload/restart...');
+
+        if (Platform.OS === 'web') {
+          window.location.reload();
+        } else {
+          try {
+            await Updates.reloadAsync();
+          } catch (error) {
+            console.warn('[LanguageContext] Could not reload:', error);
+            Alert.alert(
+              newLocale === 'ar' ? 'إعادة التشغيل مطلوبة' : 'Restart Required',
+              newLocale === 'ar'
+                ? 'يرجى إعادة تشغيل التطبيق لتطبيق تغييرات اللغة.'
+                : 'Please restart the app to apply language changes.',
+              [{ text: newLocale === 'ar' ? 'حسناً' : 'OK' }]
+            );
           }
         }
       }
-      
-      // If mobile detected a mismatch between stored locale and I18nManager state,
-      // we need to reload the app to apply the RTL change
-      if (needsReload && Platform.OS !== 'web') {
-        console.log('[LanguageContext] RTL mismatch detected, reloading app...');
-        // Set loading false BEFORE reload so if reload fails, app doesn't freeze
-        setIsLoading(false);
-        try {
-          await reloadAppAsync();
-        } catch (error) {
-          console.warn('[LanguageContext] reloadAppAsync failed:', error);
-          // Continue without reload - user can manually restart
-        }
-        return;
-      }
-      
-      setLocaleState(validLocale);
-      setIsRTL(needsRTL);
-      setLayoutNonce(prev => prev + 1);
-      
-      if (Platform.OS === 'web') {
-        setWebDocumentDirection(validLocale);
-      }
     } catch (error) {
-      console.warn('Failed to load stored language:', error);
-    } finally {
-      setIsLoading(false);
+      console.error('[LanguageContext] Error changing locale:', error);
     }
-  };
+  }, [locale]);
 
-  const setLocale = useCallback(async (newLocale: SupportedLocale) => {
-    try {
-      const newIsRTL = localeConfig[newLocale].isRTL;
-      
-      console.log('[LanguageContext] setLocale called:', { newLocale, newIsRTL, localeConfigValue: localeConfig[newLocale] });
-      
-      await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, newLocale);
-      
-      // Also write to raw localStorage on web for sync RTL initialization
-      if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
-        localStorage.setItem(LANGUAGE_STORAGE_KEY, newLocale);
-      }
-      
-      if (Platform.OS === 'web') {
-        setWebDocumentDirection(newLocale);
-        console.log('[LanguageContext] Web: Setting locale to', newLocale, 'isRTL:', newIsRTL);
-        
-        // Force full page reload on web to ensure RTL layout is applied correctly
-        // This matches the native behavior which requires app reload for RTL changes
-        if (typeof window !== 'undefined') {
-          console.log('[LanguageContext] Forcing page reload for RTL change on web');
-          window.location.reload();
-          return;
-        }
-        
-        setLocaleState(newLocale);
-        setIsRTL(newIsRTL);
-        setLayoutNonce(prev => prev + 1);
-        return;
-      }
-      
-      const currentRTL = getCurrentRTLState();
-      const needsReload = applyRTLChange(newLocale, currentRTL);
-      
-      if (needsReload) {
-        await reloadAppAsync();
-        return;
-      }
-      
-      setLocaleState(newLocale);
-      setIsRTL(newIsRTL);
-      setLayoutNonce(prev => prev + 1);
-    } catch (error) {
-      console.error('Failed to save language preference:', error);
-    }
-  }, []);
-
-  console.log('[LanguageContext] Current state:', { locale, isRTL, layoutKey });
-  
   const value: LanguageContextType = {
     locale,
     localeCode,
     isRTL,
-    layoutKey,
-    setLocale,
+    setLocale: handleSetLocale,
     isLoading,
+    layoutKey,
   };
-  
-  console.log('[LanguageContext] Provider value:', { locale: value.locale, isRTL: value.isRTL, layoutKey: value.layoutKey });
 
   return (
     <LanguageContext.Provider value={value}>
@@ -217,4 +157,4 @@ export function useLanguage(): LanguageContextType {
   return context;
 }
 
-export { LanguageContext };
+export { LanguageContext, LANGUAGE_STORAGE_KEY };

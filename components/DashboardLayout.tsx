@@ -507,11 +507,9 @@ export default function DashboardLayout({
           style={[
             styles.mainContainer, 
             { 
-              // On web: dir="rtl" on html already reverses flex, so use 'row'
-              // On native: no dir attribute, so use 'row-reverse' explicitly
-              flexDirection: isRTL 
-                ? (Platform.OS === 'web' ? 'row' : 'row-reverse') 
-                : 'row' 
+              // Always use 'row' - I18nManager handles RTL on mobile, dir="rtl" handles it on web
+              // Using row-reverse causes double-reversal on mobile
+              flexDirection: 'row' 
             }
           ]}
         >

@@ -1,430 +1,106 @@
-import { I18nManager, Platform } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { localeConfig, defaultLocale, SupportedLocale } from '@/constants/i18n';
+/**
+ * RTL Initializer - BACKWARDS COMPATIBILITY LAYER
+ * ================================================
+ * 
+ * This file re-exports from the new utils/rtl.ts module for backwards compatibility.
+ * New code should import from '@/utils/rtl' directly.
+ * 
+ * @deprecated Use '@/utils/rtl' instead
+ */
 
-const LANGUAGE_STORAGE_KEY = '@vms_language';
-const RTL_RELOAD_GUARD_KEY = '@vms_rtl_reload_guard';
+import { Platform, I18nManager } from 'react-native';
+import { SupportedLocale, localeConfig } from '@/constants/i18n';
 
-// Detect browser language preference (web only)
-function getBrowserLanguage(): SupportedLocale {
-  if (Platform.OS === 'web' && typeof navigator !== 'undefined') {
-    try {
-      const browserLang = navigator.language || (navigator as any).userLanguage || '';
-      if (browserLang.toLowerCase().startsWith('ar')) {
-        return 'ar';
-      }
-    } catch (e) {
-      // navigator not available
-    }
-  }
-  return 'en';
-}
+// Re-export everything from the new rtl module
+export {
+  LANGUAGE_STORAGE_KEY,
+  initializeRTL as initializeRTLSync,
+  loadStoredLocale as initializeRTLAsync,
+  changeLanguage as setLocaleWithRTL,
+  isRTL as getCurrentRTLState,
+  createTextStyle,
+  marginHorizontal,
+  paddingHorizontal,
+  mirrorForRTL,
+  getDirectionalIcon,
+} from './rtl';
 
-export function isRTLLanguage(locale: SupportedLocale): boolean {
-  return localeConfig[locale]?.isRTL ?? false;
-}
+// Additional exports for compatibility with existing code
 
-export function getDirection(locale: SupportedLocale): 'rtl' | 'ltr' {
-  return isRTLLanguage(locale) ? 'rtl' : 'ltr';
-}
-
-export function setWebDocumentDirection(locale: SupportedLocale): void {
-  if (Platform.OS !== 'web') return;
-  
-  try {
-    const direction = getDirection(locale);
-    const lang = locale === 'ar' ? 'ar' : 'en';
-    
-    if (typeof document !== 'undefined') {
-      document.documentElement.dir = direction;
-      document.documentElement.lang = lang;
-    }
-  } catch (error) {
-    console.warn('[RTL] Failed to set web document direction:', error);
-  }
-}
-
-export interface RTLAsyncResult {
-  locale: SupportedLocale;
-  needsReload: boolean;
-}
-
-export async function initializeRTLAsync(): Promise<RTLAsyncResult> {
-  try {
-    // Check if we just reloaded for RTL - prevent infinite reload loop
-    const reloadGuard = await AsyncStorage.getItem(RTL_RELOAD_GUARD_KEY);
-    if (reloadGuard === 'pending') {
-      console.log('[RTL] Reload guard detected - clearing and skipping reload to prevent loop');
-      await AsyncStorage.removeItem(RTL_RELOAD_GUARD_KEY);
-      // Continue with initialization but don't trigger another reload
-    }
-    
-    const storedLocale = await AsyncStorage.getItem(LANGUAGE_STORAGE_KEY);
-    // Use stored locale if valid, otherwise fall back to browser language detection, then defaultLocale
-    const locale = (storedLocale === 'en' || storedLocale === 'ar') 
-      ? storedLocale as SupportedLocale 
-      : (Platform.OS === 'web' ? getBrowserLanguage() : defaultLocale);
-    
-    const needsRTL = isRTLLanguage(locale);
-    const currentRTL = I18nManager.isRTL;
-    
-    console.log('[RTL] initializeRTLAsync:', { locale, needsRTL, currentRTL, reloadGuard });
-    
-    if (Platform.OS === 'web') {
-      setWebDocumentDirection(locale);
-      return { locale, needsReload: false };
-    }
-    
-    // On mobile, check if stored locale implies different RTL than current state
-    // This handles fresh installs where I18nManager defaults to LTR but user's stored locale is Arabic
-    // Only request reload if we haven't just reloaded (guard was not set)
-    if (currentRTL !== needsRTL && reloadGuard !== 'pending') {
-      console.log('[RTL] Mismatch detected, forcing RTL and requesting reload');
-      I18nManager.allowRTL(true);
-      I18nManager.forceRTL(needsRTL);
-      // Set reload guard before requesting reload
-      await AsyncStorage.setItem(RTL_RELOAD_GUARD_KEY, 'pending');
-      return { locale, needsReload: true };
-    }
-    
-    return { locale, needsReload: false };
-  } catch (error) {
-    console.warn('[RTL] Failed to initialize RTL:', error);
-    return { locale: defaultLocale, needsReload: false };
-  }
-}
-
-export function initializeRTLSync(): void {
-  // Enable RTL support on all platforms
-  I18nManager.allowRTL(true);
-  
-  // Enable automatic left/right swapping for margins, paddings, and positioning
-  // This is critical for proper RTL layout on mobile
-  if (typeof I18nManager.swapLeftAndRightInRTL === 'function') {
-    I18nManager.swapLeftAndRightInRTL(true);
-  }
-  
-  if (Platform.OS === 'web') {
-    // On web, synchronously read from localStorage to set RTL before first render
-    try {
-      if (typeof localStorage !== 'undefined') {
-        const storedLocale = localStorage.getItem(LANGUAGE_STORAGE_KEY);
-        // Use stored locale if valid, otherwise fall back to browser language detection
-        const locale = (storedLocale === 'en' || storedLocale === 'ar') 
-          ? storedLocale as SupportedLocale 
-          : getBrowserLanguage();
-        const needsRTL = isRTLLanguage(locale);
-        
-        console.log('[RTL] initializeRTLSync on web:', { locale, needsRTL });
-        
-        // Set I18nManager for React Native Web to mirror flexDirection
-        I18nManager.forceRTL(needsRTL);
-        
-        // Also set document direction
-        setWebDocumentDirection(locale);
-      }
-    } catch (error) {
-      console.warn('[RTL] Failed to initialize RTL sync on web:', error);
-    }
-  } else {
-    // On mobile (iOS/Android), use I18nManager's persisted state as baseline
-    // This ensures first render respects the previously set RTL state
-    // The async init will reconcile with AsyncStorage if needed
-    const currentRTL = I18nManager.isRTL;
-    console.log('[RTL] initializeRTLSync on mobile:', { currentRTL });
-    
-    // Force RTL state to ensure it's applied before first render
-    // Using the current persisted value maintains consistency
-    I18nManager.forceRTL(currentRTL);
-  }
-}
-
-export function applyRTLChange(newLocale: SupportedLocale, currentIsRTL: boolean): boolean {
-  const needsRTL = isRTLLanguage(newLocale);
-  
-  if (Platform.OS === 'web') {
-    setWebDocumentDirection(newLocale);
-    return false;
-  }
-  
-  if (currentIsRTL !== needsRTL) {
-    I18nManager.allowRTL(true);
-    I18nManager.forceRTL(needsRTL);
-    return true;
-  }
-  
+/**
+ * Determines if children should be swapped for RTL layout.
+ * 
+ * ALWAYS RETURNS FALSE - I18nManager handles RTL on ALL platforms when
+ * properly initialized before first render:
+ * - Mobile: I18nManager.forceRTL(true) flips layouts automatically
+ * - Web: I18nManager + document.dir='rtl' enables React Native Web's RTL handling
+ * 
+ * This function exists for backwards compatibility. Existing code that uses
+ * conditional child swapping will now always render children in original order,
+ * letting I18nManager handle the visual flip.
+ */
+export function shouldSwapChildrenForRTL(isRTL: boolean): boolean {
+  // I18nManager handles RTL on all platforms - no manual swapping needed
   return false;
 }
 
-export function getCurrentRTLState(): boolean {
-  if (Platform.OS === 'web') {
-    try {
-      return typeof document !== 'undefined' && document.documentElement.dir === 'rtl';
-    } catch {
-      return false;
-    }
+/**
+ * Sets the document direction on web platform.
+ */
+export function setWebDocumentDirection(locale: SupportedLocale): void {
+  if (Platform.OS === 'web' && typeof document !== 'undefined') {
+    const isRTL = localeConfig[locale]?.isRTL ?? false;
+    document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
+    document.documentElement.lang = locale === 'ar' ? 'ar' : 'en';
   }
+}
+
+/**
+ * Platform-aware text alignment helper.
+ */
+export function getPlatformTextAlign(
+  isRTL: boolean,
+  alignment: 'start' | 'end' | 'left' | 'right' | 'center' = 'start'
+): 'left' | 'right' | 'center' {
+  if (alignment === 'center') return 'center';
+  if (alignment === 'left' || alignment === 'right') return alignment;
+
+  // 'start' and 'end' are logical values
+  if (Platform.OS === 'web') {
+    // Web: browser handles RTL via document.dir
+    return alignment === 'start' ? 'left' : 'right';
+  }
+
+  // Mobile: resolve based on RTL state
+  if (alignment === 'start') {
+    return isRTL ? 'right' : 'left';
+  }
+  return isRTL ? 'left' : 'right';
+}
+
+/**
+ * Returns the flex direction for horizontal layouts.
+ * 
+ * PLATFORM BEHAVIOR:
+ * - Mobile: Returns 'row'. I18nManager handles layout flipping.
+ * - Web: Returns 'row-reverse' when RTL (browser doesn't auto-flip).
+ */
+export function getFlexDirection(isRTL: boolean = I18nManager.isRTL): 'row' | 'row-reverse' {
+  return Platform.OS === 'web' && isRTL ? 'row-reverse' : 'row';
+}
+
+/**
+ * Gets the current RTL state from I18nManager
+ */
+export function getCurrentRTLStateFromI18n(): boolean {
   return I18nManager.isRTL;
 }
 
 /**
- * RTL-aware style utilities
- * These helpers return the correct styles based on RTL state
+ * Type for RTL async result
  */
-
-export type FlexDirection = 'row' | 'row-reverse' | 'column' | 'column-reverse';
-export type TextAlign = 'left' | 'right' | 'center' | 'auto';
-export type JustifyContent = 'flex-start' | 'flex-end' | 'center' | 'space-between' | 'space-around' | 'space-evenly';
-export type AlignItems = 'flex-start' | 'flex-end' | 'center' | 'stretch' | 'baseline';
-
-/**
- * Returns row or row-reverse based on RTL state
- */
-export function getFlexDirection(isRTL: boolean, base: 'row' | 'column' = 'row'): FlexDirection {
-  if (base === 'column') return base;
-  return isRTL ? 'row-reverse' : 'row';
-}
-
-/**
- * Returns appropriate text alignment based on RTL state
- * 'start' -> left in LTR, right in RTL
- * 'end' -> right in LTR, left in RTL
- */
-export function getTextAlign(isRTL: boolean, align: 'start' | 'end' | 'center' = 'start'): TextAlign {
-  if (align === 'center') return 'center';
-  if (align === 'start') return isRTL ? 'right' : 'left';
-  return isRTL ? 'left' : 'right'; // 'end'
-}
-
-/**
- * Returns appropriate alignment for flex items
- * 'start' -> flex-start in LTR, flex-end in RTL (for row direction)
- */
-export function getAlignItems(isRTL: boolean, align: 'start' | 'end' | 'center' = 'start'): AlignItems {
-  if (align === 'center') return 'center';
-  if (align === 'start') return isRTL ? 'flex-end' : 'flex-start';
-  return isRTL ? 'flex-start' : 'flex-end'; // 'end'
-}
-
-/**
- * Returns appropriate justification for RTL
- */
-export function getJustifyContent(isRTL: boolean, justify: 'start' | 'end' | 'center' | 'between' | 'around' = 'start'): JustifyContent {
-  if (justify === 'center') return 'center';
-  if (justify === 'between') return 'space-between';
-  if (justify === 'around') return 'space-around';
-  if (justify === 'start') return isRTL ? 'flex-end' : 'flex-start';
-  return isRTL ? 'flex-start' : 'flex-end'; // 'end'
-}
-
-/**
- * Common RTL-aware styles object
- */
-export function getRTLStyles(isRTL: boolean) {
-  return {
-    row: { flexDirection: getFlexDirection(isRTL, 'row') as FlexDirection },
-    textStart: { textAlign: getTextAlign(isRTL, 'start') as TextAlign },
-    textEnd: { textAlign: getTextAlign(isRTL, 'end') as TextAlign },
-    textCenter: { textAlign: 'center' as TextAlign },
-    alignStart: { alignItems: getAlignItems(isRTL, 'start') as AlignItems },
-    alignEnd: { alignItems: getAlignItems(isRTL, 'end') as AlignItems },
-    justifyStart: { justifyContent: getJustifyContent(isRTL, 'start') as JustifyContent },
-    justifyEnd: { justifyContent: getJustifyContent(isRTL, 'end') as JustifyContent },
-    writingDirection: { writingDirection: isRTL ? 'rtl' : 'ltr' as 'rtl' | 'ltr' },
-  };
-}
-
-/**
- * ============================================================================
- * PLATFORM-AWARE RTL UTILITIES
- * ============================================================================
- * These utilities handle the difference between web and mobile RTL behavior:
- * - Web: Browser automatically handles RTL via document.dir='rtl'
- * - Mobile: Requires explicit RTL handling in component styles
- * 
- * Use these utilities to ensure consistent RTL behavior across all platforms
- * without double-reversing on web or missing reversals on mobile.
- */
-
-const isWeb = Platform.OS === 'web';
-
-/**
- * Check if manual RTL handling is needed.
- * On web, the browser handles RTL automatically, so we don't need manual handling.
- * On mobile, we need to manually adjust styles for RTL.
- */
-export function needsManualRTLHandling(isRTL: boolean): boolean {
-  return isRTL && !isWeb;
-}
-
-/**
- * Position style types for absolute positioning
- */
-export type PositionStyle = { left: number } | { right: number };
-export type FullPositionStyle = { left?: number; right?: number; start?: number; end?: number };
-
-/**
- * Returns the correct position style for "start" edge (where content begins).
- * - LTR: left side
- * - RTL: right side (on both web and mobile)
- * 
- * Note: CSS left/right are physical properties that don't auto-swap with dir="rtl".
- * We must explicitly swap them for RTL on all platforms.
- * 
- * Use this for absolute positioning of elements that should be at the "start" edge.
- */
-export function getStartPosition(isRTL: boolean, value: number = 0): FullPositionStyle {
-  return isRTL ? { right: value } : { left: value };
-}
-
-/**
- * Returns the correct position style for "end" edge (opposite of start).
- * - LTR: right side
- * - RTL: left side (on both web and mobile)
- * 
- * Note: CSS left/right are physical properties that don't auto-swap with dir="rtl".
- * We must explicitly swap them for RTL on all platforms.
- * 
- * Use this for absolute positioning of elements that should be at the "end" edge.
- */
-export function getEndPosition(isRTL: boolean, value: number = 0): FullPositionStyle {
-  return isRTL ? { left: value } : { right: value };
-}
-
-/**
- * ============================================================================
- * CHILD SWAPPING PATTERN (RECOMMENDED)
- * ============================================================================
- * The child swapping pattern is the recommended approach for RTL on mobile.
- * Instead of using row-reverse (which can cause double-inversion bugs on Android),
- * use flexDirection: 'row' always and swap children order on mobile RTL.
- * 
- * Usage:
- *   const shouldSwap = shouldSwapChildrenForRTL(isRTL);
- *   <View style={{ flexDirection: 'row' }}>
- *     {shouldSwap ? (
- *       <><Text>Right</Text><Icon /></>
- *     ) : (
- *       <><Icon /><Text>Left</Text></>
- *     )}
- *   </View>
- */
-export function shouldSwapChildrenForRTL(isRTL: boolean): boolean {
-  return isRTL && Platform.OS !== 'web';
-}
-
-/**
- * Platform-aware flex direction.
- * 
- * @deprecated Use child swapping pattern instead to prevent double-inversion bugs.
- * See shouldSwapChildrenForRTL() and DirectionalRow component.
- * 
- * For web RTL: Browser's document.dir='rtl' auto-reverses flexbox rows,
- * so we use 'row' and let the browser handle it.
- * 
- * For mobile RTL: React Native's I18nManager doesn't auto-reverse flexDirection,
- * so we explicitly use 'row-reverse' to achieve the correct visual order.
- */
-export function getPlatformFlexDirection(isRTL: boolean, base: 'row' | 'column' = 'row'): FlexDirection {
-  if (base === 'column') return base;
-  if (isWeb) {
-    // On web, browser handles flex direction reversal via document.dir
-    return 'row';
-  }
-  // On mobile, we need to explicitly reverse
-  return isRTL ? 'row-reverse' : 'row';
-}
-
-/**
- * Platform-aware text alignment.
- * Returns the correct text-align value based on RTL state.
- * 
- * Note: CSS text-align values (left/right) are physical and don't auto-swap
- * with dir="rtl" in React Native (even on web). We must explicitly swap them.
- * 
- * - 'start' → 'left' in LTR, 'right' in RTL
- * - 'end' → 'right' in LTR, 'left' in RTL
- * - 'center' → 'center' always
- */
-export function getPlatformTextAlign(isRTL: boolean, align: 'start' | 'end' | 'center' = 'start'): TextAlign {
-  if (align === 'center') return 'center';
-  
-  // Swap alignment based on RTL state (same for web and mobile)
-  if (align === 'start') return isRTL ? 'right' : 'left';
-  return isRTL ? 'left' : 'right'; // 'end'
-}
-
-/**
- * Platform-aware margin for start edge.
- * - LTR: marginLeft
- * - RTL: marginRight (on all platforms)
- * 
- * Note: CSS margins are physical properties that don't auto-swap.
- */
-export function getStartMargin(isRTL: boolean, value: number): { marginLeft?: number; marginRight?: number } {
-  return isRTL ? { marginRight: value } : { marginLeft: value };
-}
-
-/**
- * Platform-aware margin for end edge.
- * - LTR: marginRight
- * - RTL: marginLeft (on all platforms)
- * 
- * Note: CSS margins are physical properties that don't auto-swap.
- */
-export function getEndMargin(isRTL: boolean, value: number): { marginLeft?: number; marginRight?: number } {
-  return isRTL ? { marginLeft: value } : { marginRight: value };
-}
-
-/**
- * Comprehensive platform-aware RTL styles object.
- * Use this to get all RTL-aware styles in one call.
- */
-export function getPlatformRTLStyles(isRTL: boolean) {
-  return {
-    // Flex direction
-    row: { flexDirection: getPlatformFlexDirection(isRTL, 'row') as FlexDirection },
-    
-    // Text alignment
-    textStart: { textAlign: getPlatformTextAlign(isRTL, 'start') as TextAlign },
-    textEnd: { textAlign: getPlatformTextAlign(isRTL, 'end') as TextAlign },
-    textCenter: { textAlign: 'center' as TextAlign },
-    
-    // Position (for absolute positioning)
-    positionStart: getStartPosition(isRTL, 0),
-    positionEnd: getEndPosition(isRTL, 0),
-    
-    // Writing direction (always set based on RTL)
-    writingDirection: { writingDirection: isRTL ? 'rtl' : 'ltr' as 'rtl' | 'ltr' },
-    
-    // Helper to check if manual handling needed
-    needsManualHandling: needsManualRTLHandling(isRTL),
-  };
-}
-
-/**
- * Hook-friendly helper that returns all platform-aware utilities
- * bound to the current RTL state.
- */
-export function createRTLHelpers(isRTL: boolean) {
-  return {
-    isRTL,
-    isWeb,
-    needsManualHandling: needsManualRTLHandling(isRTL),
-    
-    // Position helpers
-    startPosition: (value?: number) => getStartPosition(isRTL, value),
-    endPosition: (value?: number) => getEndPosition(isRTL, value),
-    
-    // Flex/alignment helpers
-    flexDirection: (base?: 'row' | 'column') => getPlatformFlexDirection(isRTL, base),
-    textAlign: (align?: 'start' | 'end' | 'center') => getPlatformTextAlign(isRTL, align),
-    
-    // Margin helpers
-    startMargin: (value: number) => getStartMargin(isRTL, value),
-    endMargin: (value: number) => getEndMargin(isRTL, value),
-    
-    // Full styles object
-    styles: getPlatformRTLStyles(isRTL),
-  };
+export interface RTLAsyncResult {
+  locale: SupportedLocale;
+  isRTL: boolean;
+  needsReload: boolean;
 }
