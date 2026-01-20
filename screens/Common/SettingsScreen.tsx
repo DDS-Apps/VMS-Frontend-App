@@ -192,25 +192,51 @@ export default function SettingsScreen({
         <Spacer height={Spacing.md} />
 
         <View style={[styles.profileContainer, { flexDirection: 'row', gap: Spacing.md }]}>
-          <View style={[styles.avatar, { backgroundColor: theme.primary + '20' }]}>
-            <ThemedText style={[Typography.subtitle, { color: theme.primary, fontWeight: '700' }]}>
-              {userName.split(' ').map(n => n[0]).join('')}
-            </ThemedText>
-          </View>
-          <View style={{ flex: 1 }}>
-            <ThemedText style={[styles.userName, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
-              {userName}
-            </ThemedText>
-            <ThemedText style={[styles.userRole, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-              {getRoleLabel(userRole)}
-            </ThemedText>
-            <Spacer height={2} />
-            {userEmail ? (
-              <ThemedText style={[styles.userEmail, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-                {userEmail}
-              </ThemedText>
-            ) : null}
-          </View>
+          {shouldSwap ? (
+            <>
+              <View style={{ flex: 1 }}>
+                <ThemedText style={[styles.userName, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {userName}
+                </ThemedText>
+                <ThemedText style={[styles.userRole, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {getRoleLabel(userRole)}
+                </ThemedText>
+                <Spacer height={2} />
+                {userEmail ? (
+                  <ThemedText style={[styles.userEmail, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+                    {userEmail}
+                  </ThemedText>
+                ) : null}
+              </View>
+              <View style={[styles.avatar, { backgroundColor: theme.primary + '20' }]}>
+                <ThemedText style={[Typography.subtitle, { color: theme.primary, fontWeight: '700' }]}>
+                  {userName.split(' ').map(n => n[0]).join('')}
+                </ThemedText>
+              </View>
+            </>
+          ) : (
+            <>
+              <View style={[styles.avatar, { backgroundColor: theme.primary + '20' }]}>
+                <ThemedText style={[Typography.subtitle, { color: theme.primary, fontWeight: '700' }]}>
+                  {userName.split(' ').map(n => n[0]).join('')}
+                </ThemedText>
+              </View>
+              <View style={{ flex: 1 }}>
+                <ThemedText style={[styles.userName, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {userName}
+                </ThemedText>
+                <ThemedText style={[styles.userRole, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {getRoleLabel(userRole)}
+                </ThemedText>
+                <Spacer height={2} />
+                {userEmail ? (
+                  <ThemedText style={[styles.userEmail, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+                    {userEmail}
+                  </ThemedText>
+                ) : null}
+              </View>
+            </>
+          )}
         </View>
 
         <Spacer height={Spacing.md} />
@@ -242,21 +268,43 @@ export default function SettingsScreen({
         <Spacer height={Spacing.md} />
 
         <View style={[styles.settingItem, { flexDirection: 'row', gap: Spacing.md }]}>
-          <View style={{ flex: 1 }}>
-            <ThemedText style={[styles.settingLabel, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
-              {t('settings.darkMode')}
-            </ThemedText>
-            <ThemedText style={[styles.settingDescription, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-              {t('settings.darkModeDesc')}
-            </ThemedText>
-          </View>
-          <Switch
-            value={isDark}
-            onValueChange={toggleTheme}
-            trackColor={{ false: theme.border, true: applyOpacity(theme.primary, '80') }}
-            thumbColor={isDark ? theme.primary : theme.buttonText}
-            ios_backgroundColor={theme.border}
-          />
+          {shouldSwap ? (
+            <>
+              <Switch
+                value={isDark}
+                onValueChange={toggleTheme}
+                trackColor={{ false: theme.border, true: applyOpacity(theme.primary, '80') }}
+                thumbColor={isDark ? theme.primary : theme.buttonText}
+                ios_backgroundColor={theme.border}
+              />
+              <View style={{ flex: 1 }}>
+                <ThemedText style={[styles.settingLabel, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {t('settings.darkMode')}
+                </ThemedText>
+                <ThemedText style={[styles.settingDescription, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {t('settings.darkModeDesc')}
+                </ThemedText>
+              </View>
+            </>
+          ) : (
+            <>
+              <View style={{ flex: 1 }}>
+                <ThemedText style={[styles.settingLabel, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {t('settings.darkMode')}
+                </ThemedText>
+                <ThemedText style={[styles.settingDescription, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {t('settings.darkModeDesc')}
+                </ThemedText>
+              </View>
+              <Switch
+                value={isDark}
+                onValueChange={toggleTheme}
+                trackColor={{ false: theme.border, true: applyOpacity(theme.primary, '80') }}
+                thumbColor={isDark ? theme.primary : theme.buttonText}
+                ios_backgroundColor={theme.border}
+              />
+            </>
+          )}
         </View>
 
         <View style={[styles.sectionDivider, { backgroundColor: theme.surfaceSecondary }]} />
@@ -290,12 +338,25 @@ export default function SettingsScreen({
               ]}
               onPress={() => handleLanguageChange(lang.code)}
             >
-              <ThemedText style={[styles.languageLabel, { color: locale === lang.code ? theme.primary : theme.text, textAlign: isRTL ? 'right' : 'left', flex: 1 }]}>
-                {lang.nativeName}
-              </ThemedText>
-              {locale === lang.code ? (
-                <DDIcon name="check-circle" size={18} variant="primary" />
-              ) : null}
+              {shouldSwap ? (
+                <>
+                  {locale === lang.code ? (
+                    <DDIcon name="check-circle" size={18} variant="primary" />
+                  ) : null}
+                  <ThemedText style={[styles.languageLabel, { color: locale === lang.code ? theme.primary : theme.text, textAlign: isRTL ? 'right' : 'left', flex: 1 }]}>
+                    {lang.nativeName}
+                  </ThemedText>
+                </>
+              ) : (
+                <>
+                  <ThemedText style={[styles.languageLabel, { color: locale === lang.code ? theme.primary : theme.text, textAlign: isRTL ? 'right' : 'left', flex: 1 }]}>
+                    {lang.nativeName}
+                  </ThemedText>
+                  {locale === lang.code ? (
+                    <DDIcon name="check-circle" size={18} variant="primary" />
+                  ) : null}
+                </>
+              )}
             </Pressable>
           ))}
         </View>
@@ -309,24 +370,50 @@ export default function SettingsScreen({
         <Spacer height={Spacing.md} />
 
         <View style={[styles.settingItem, { flexDirection: 'row', gap: Spacing.md }]}>
-          <View style={{ flex: 1 }}>
-            <ThemedText style={[styles.settingLabel, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
-              {t('settings.pushNotifications')}
-            </ThemedText>
-            <ThemedText style={[styles.settingDescription, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-              {t('settings.pushNotificationsDesc')}
-            </ThemedText>
-          </View>
-          {isLoadingPrefs ? (
-            <ActivityIndicator size="small" color={theme.primary} />
+          {shouldSwap ? (
+            <>
+              {isLoadingPrefs ? (
+                <ActivityIndicator size="small" color={theme.primary} />
+              ) : (
+                <Switch
+                  value={pushEnabled}
+                  onValueChange={handlePushToggle}
+                  trackColor={{ false: theme.border, true: applyOpacity(theme.primary, '80') }}
+                  thumbColor={pushEnabled ? theme.primary : theme.buttonText}
+                  ios_backgroundColor={theme.border}
+                />
+              )}
+              <View style={{ flex: 1 }}>
+                <ThemedText style={[styles.settingLabel, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {t('settings.pushNotifications')}
+                </ThemedText>
+                <ThemedText style={[styles.settingDescription, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {t('settings.pushNotificationsDesc')}
+                </ThemedText>
+              </View>
+            </>
           ) : (
-            <Switch
-              value={pushEnabled}
-              onValueChange={handlePushToggle}
-              trackColor={{ false: theme.border, true: applyOpacity(theme.primary, '80') }}
-              thumbColor={pushEnabled ? theme.primary : theme.buttonText}
-              ios_backgroundColor={theme.border}
-            />
+            <>
+              <View style={{ flex: 1 }}>
+                <ThemedText style={[styles.settingLabel, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {t('settings.pushNotifications')}
+                </ThemedText>
+                <ThemedText style={[styles.settingDescription, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+                  {t('settings.pushNotificationsDesc')}
+                </ThemedText>
+              </View>
+              {isLoadingPrefs ? (
+                <ActivityIndicator size="small" color={theme.primary} />
+              ) : (
+                <Switch
+                  value={pushEnabled}
+                  onValueChange={handlePushToggle}
+                  trackColor={{ false: theme.border, true: applyOpacity(theme.primary, '80') }}
+                  thumbColor={pushEnabled ? theme.primary : theme.buttonText}
+                  ios_backgroundColor={theme.border}
+                />
+              )}
+            </>
           )}
         </View>
 
