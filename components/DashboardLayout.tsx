@@ -531,9 +531,12 @@ export default function DashboardLayout({
                 style={[
                   styles.sidebarContainer,
                   styles.sidebarMobile,
-                  { width: sidebarWidthMobile },
+                  { 
+                    width: sidebarWidthMobile,
+                    left: isRTL ? undefined : 0,
+                    right: isRTL ? 0 : undefined,
+                  },
                   sidebarAnimatedStyle,
-                  { [isRTL ? 'right' : 'left']: 0 },
                 ]}
               >
                 <Sidebar

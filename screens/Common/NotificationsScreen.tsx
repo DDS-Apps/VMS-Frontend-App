@@ -33,7 +33,7 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { toLocalNumerals } = useFormatters();
-  const { locale } = useLanguage();
+  const { locale, isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   const [selectedTab, setSelectedTab] = useState<'all' | 'unread'>('all');
 
@@ -188,7 +188,7 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
         </Pressable>
       </View>
 
-      <Spacer height={Spacing.lg} />
+      <Spacer height={Spacing.md} />
 
       <View style={styles.tabsContainer}>
         <Pressable
@@ -253,15 +253,15 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
           
           const contentElement = (
             <View style={styles.notificationContent}>
-              <ThemedText style={[styles.notificationTitle, { color: theme.text }]}>
+              <ThemedText style={[styles.notificationTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
                 {localizedTitle}
               </ThemedText>
               <Spacer height={Spacing.xs} />
-              <ThemedText style={[styles.notificationMessage, { color: theme.textSecondary }]} numberOfLines={3}>
+              <ThemedText style={[styles.notificationMessage, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={3}>
                 {localizedMessage}
               </ThemedText>
               <Spacer height={Spacing.sm} />
-              <View style={[styles.timeContainer, { flexDirection: 'row', gap: 4 }]}>
+              <View style={[styles.timeContainer, { flexDirection: 'row', justifyContent: isRTL ? 'flex-start' : 'flex-start', gap: 4 }]}>
                 <DDIcon name="clock" size={12} variant="muted" />
                 <ThemedText style={[styles.timeText, { color: theme.textSecondary }]}>
                   {formatTime(notification.createdAt)}

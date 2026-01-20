@@ -95,14 +95,15 @@ export function getPlatformTextAlign(
 /**
  * Returns the flex direction for horizontal layouts.
  * 
- * IMPORTANT: Now always returns 'row' on ALL platforms.
- * I18nManager handles RTL when initialized correctly before first render.
+ * Returns 'row-reverse' for RTL, 'row' for LTR.
+ * We use explicit direction instead of relying on I18nManager
+ * because it may not work correctly on iOS after language change.
  * 
- * @deprecated Just use flexDirection: 'row' directly
+ * @param isRTL - Whether the current layout is RTL
+ * @returns 'row' or 'row-reverse'
  */
-export function getFlexDirection(_isRTL: boolean = I18nManager.isRTL): 'row' {
-  // Always return 'row' - I18nManager handles RTL on all platforms
-  return 'row';
+export function getFlexDirection(isRTL: boolean = I18nManager.isRTL): 'row' | 'row-reverse' {
+  return isRTL ? 'row-reverse' : 'row';
 }
 
 /**

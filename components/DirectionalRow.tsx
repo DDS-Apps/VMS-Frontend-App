@@ -7,13 +7,12 @@
  * HOW IT WORKS:
  * =============
  * 
- * Uses flexDirection: 'row' and relies on I18nManager for RTL flip.
+ * Uses explicit flexDirection: 'row-reverse' for RTL layouts.
  * 
- * IMPORTANT: I18nManager MUST be initialized correctly BEFORE React renders.
- * This is done in index.js via bootstrapLocale(). When initialized correctly:
- * - flexDirection: 'row' automatically appears as right-to-left on mobile RTL
- * - No manual child swapping is needed
- * - Web uses the same 'row' direction (document.dir='rtl' handles the flip)
+ * NOTE: We use explicit row-reverse instead of relying on I18nManager.forceRTL()
+ * because on iOS, forceRTL() only affects the initial bundle layout. If the user
+ * changes language after app start, I18nManager may not flip 'row' automatically.
+ * Using explicit row-reverse ensures consistent RTL behavior.
  * 
  * USAGE:
  * ======
@@ -23,7 +22,7 @@
  * </DirectionalRow>
  * 
  * In LTR: [Icon] [Username]
- * In RTL: [Username] [Icon]  ← I18nManager handles this automatically!
+ * In RTL: [Username] [Icon]
  */
 
 import React, { ReactNode } from 'react';
@@ -47,13 +46,15 @@ export function DirectionalRow({
   alignItems = 'center',
   justifyContent = 'flex-start',
 }: DirectionalRowProps) {
+  const { isRTL } = useLanguage();
   const flattenedStyle = StyleSheet.flatten([style]) || {};
   
-  // ALWAYS use 'row' - I18nManager handles RTL on ALL platforms
-  // when initialized correctly before first render
+  // Use row-reverse for RTL to ensure proper layout
+  // This is needed because I18nManager.forceRTL() may not work
+  // correctly on iOS if called after initial bundle load
   const finalStyle: ViewStyle = {
     ...flattenedStyle,
-    flexDirection: 'row',
+    flexDirection: isRTL ? 'row-reverse' : 'row',
     alignItems: flattenedStyle.alignItems ?? alignItems,
     justifyContent: flattenedStyle.justifyContent ?? justifyContent,
     gap: gap ?? flattenedStyle.gap,
@@ -68,20 +69,22 @@ export function DirectionalRow({
 }
 
 /**
- * Helper hook to get the flex direction.
- * Always returns 'row' - I18nManager handles RTL.
+ * Helper hook to get the flex direction based on RTL state.
+ * Returns 'row-reverse' for RTL, 'row' for LTR.
  */
 export function useDirectionalStyle() {
+  const { isRTL } = useLanguage();
   return {
-    flexDirection: 'row' as const,
+    flexDirection: isRTL ? 'row-reverse' as const : 'row' as const,
   };
 }
 
 /**
- * Get flex direction. Always returns 'row' - I18nManager handles RTL.
+ * Get flex direction based on isRTL parameter.
+ * Returns 'row-reverse' for RTL, 'row' for LTR.
  */
-export function getFlexDirection(): 'row' {
-  return 'row';
+export function getFlexDirection(isRTL: boolean): 'row' | 'row-reverse' {
+  return isRTL ? 'row-reverse' : 'row';
 }
 
 export default DirectionalRow;
