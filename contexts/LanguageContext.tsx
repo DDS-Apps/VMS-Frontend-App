@@ -27,6 +27,7 @@ import {
   LANGUAGE_STORAGE_KEY,
   isRTLLocale,
   getStoredLocale,
+  getStoredLocaleSync,
   changeLanguage as localeManagerChangeLanguage,
 } from '@/utils/localeManager';
 import { restartApp } from '@/utils/restartApp';
@@ -51,10 +52,17 @@ interface LanguageProviderProps {
 let layoutKeyCounter = 0;
 
 export function LanguageProvider({ children }: LanguageProviderProps) {
-  // Initialize with I18nManager's current RTL state
-  // This will be correct because index.js bootstrapped before rendering
-  const initialIsRTL = I18nManager.isRTL;
-  const initialLocale: SupportedLocale = initialIsRTL ? 'ar' : 'en';
+  // On web, use sync localStorage read for accurate initial state
+  // On mobile, use I18nManager.isRTL which is set by bootstrap
+  const getInitialLocale = (): SupportedLocale => {
+    if (Platform.OS === 'web') {
+      return getStoredLocaleSync();
+    }
+    return I18nManager.isRTL ? 'ar' : 'en';
+  };
+  
+  const initialLocale = getInitialLocale();
+  const initialIsRTL = isRTLLocale(initialLocale);
   
   const [locale, setLocaleState] = useState<SupportedLocale>(initialLocale);
   const [isLoading, setIsLoading] = useState(true);
