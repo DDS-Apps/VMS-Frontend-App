@@ -25,7 +25,7 @@
 import React, { ReactNode, Children } from 'react';
 import { View, ViewStyle, StyleProp, StyleSheet, Platform } from 'react-native';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { shouldSwapChildrenForRTL, getFlexDirection as getRTLFlexDirection } from '@/utils/rtlInitializer';
+import { getFlexDirection as getRTLFlexDirection } from '@/utils/rtlInitializer';
 
 interface DirectionalRowProps {
   children: ReactNode;
@@ -45,10 +45,9 @@ export function DirectionalRow({
   justifyContent = 'flex-start',
 }: DirectionalRowProps) {
   const { isRTL } = useLanguage();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
   const flattenedStyle = StyleSheet.flatten([style]) || {};
   
-  // On web RTL, use row-reverse. On mobile, use row (I18nManager or child swap handles RTL).
+  // On web RTL, use row-reverse. On mobile RTL, swap children (I18nManager doesn't flip flexDirection).
   const flexDirection = Platform.OS === 'web' ? getRTLFlexDirection(isRTL) : 'row';
   
   const finalStyle: ViewStyle = {
@@ -59,9 +58,10 @@ export function DirectionalRow({
     gap: gap ?? flattenedStyle.gap,
   };
   
-  // Convert children to array and reverse if swapping needed (mobile only)
+  // On mobile RTL, always swap children since I18nManager doesn't flip flexDirection: 'row'
+  const shouldSwapOnMobile = Platform.OS !== 'web' && isRTL;
   const childArray = Children.toArray(children);
-  const renderedChildren = shouldSwap ? [...childArray].reverse() : childArray;
+  const renderedChildren = shouldSwapOnMobile ? [...childArray].reverse() : childArray;
   
   return (
     <View style={finalStyle}>
