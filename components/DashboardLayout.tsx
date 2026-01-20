@@ -14,6 +14,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { DDIcon } from "@/components/DDIcon";
 import { DirectionalRow, useDirectionalStyle } from "@/components/DirectionalRow";
 import { EnableNotificationsPrompt } from "@/components/shared/EnableNotificationsPrompt";
+import { LanguageChangeOverlay } from "@/components/LanguageChangeOverlay";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -73,7 +74,7 @@ export default function DashboardLayout({
   isSSOUser = false,
 }: DashboardLayoutProps) {
   const { theme, isDark, toggleTheme } = useTheme();
-  const { locale, setLocale, isRTL: contextIsRTL, layoutKey } = useLanguage();
+  const { locale, setLocale, isRTL: contextIsRTL, layoutKey, isChangingLanguage } = useLanguage();
   
   // Use synchronous localStorage check for first render, then context value
   const isRTL = Platform.OS === 'web' ? getInitialRTLState() || contextIsRTL : contextIsRTL;
@@ -269,11 +270,13 @@ export default function DashboardLayout({
   });
 
   return (
-    <GestureDetector gesture={edgeSwipeGesture}>
-      <View 
-        key={layoutKey} 
-        style={[styles.container, { backgroundColor: theme.background }]}
-      >
+    <>
+      <LanguageChangeOverlay visible={isChangingLanguage} />
+      <GestureDetector gesture={edgeSwipeGesture}>
+        <View 
+          key={layoutKey} 
+          style={[styles.container, { backgroundColor: theme.background }]}
+        >
         {/* Mobile Header Bar */}
         {!isLargeScreen && (
           <ThemedView style={[
@@ -667,7 +670,8 @@ export default function DashboardLayout({
           </View>
         </DirectionalRow>
       </View>
-    </GestureDetector>
+      </GestureDetector>
+    </>
   );
 }
 
