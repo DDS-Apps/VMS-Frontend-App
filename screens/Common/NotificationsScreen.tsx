@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from "react";
 import { View, StyleSheet, Pressable, ActivityIndicator, I18nManager } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DDIcon, IconName } from "@/components/DDIcon";
+import { DirectionalRow, useDirectionalStyle } from "@/components/DirectionalRow";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -34,6 +35,7 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
   const { t } = useTranslation();
   const { toLocalNumerals } = useFormatters();
   const { locale, isRTL } = useLanguage();
+  const directionalStyle = useDirectionalStyle();
   const insets = useSafeAreaInsets();
   const [selectedTab, setSelectedTab] = useState<'all' | 'unread'>('all');
 
@@ -174,7 +176,7 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
 
   return (
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
-      <View style={[styles.header, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
+      <DirectionalRow style={[styles.header, { justifyContent: 'space-between' }]}>
         <ThemedText style={Typography.title}>
           {t('notifications.title')}
         </ThemedText>
@@ -186,7 +188,7 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
             {markAllAsReadMutation.isPending ? t('common.loading') : t('notifications.markAllRead')}
           </ThemedText>
         </Pressable>
-      </View>
+      </DirectionalRow>
 
       <Spacer height={Spacing.md} />
 
@@ -261,12 +263,12 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
                 {localizedMessage}
               </ThemedText>
               <Spacer height={Spacing.sm} />
-              <View style={[styles.timeContainer, { flexDirection: 'row', justifyContent: isRTL ? 'flex-start' : 'flex-start', gap: 4 }]}>
+              <DirectionalRow style={styles.timeContainer} gap={4}>
                 <DDIcon name="clock" size={12} variant="muted" />
                 <ThemedText style={[styles.timeText, { color: theme.textSecondary }]}>
                   {formatTime(notification.createdAt)}
                 </ThemedText>
-              </View>
+              </DirectionalRow>
             </View>
           );
           
@@ -281,7 +283,7 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
                     opacity: pressed ? 0.95 : 1,
                     borderColor: theme.border,
                     shadowColor: '#000',
-                    flexDirection: 'row',
+                    ...directionalStyle,
                   },
                 ]}
               >
