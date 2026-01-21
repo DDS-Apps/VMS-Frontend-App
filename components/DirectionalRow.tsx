@@ -55,6 +55,7 @@ function getIsRTL(): boolean {
     if (typeof localStorage !== 'undefined') {
       try {
         const storedLang = localStorage.getItem('@vms_language');
+        console.log('[getIsRTL WEB DEBUG]', { storedLang, I18nManagerIsRTL: I18nManager.isRTL });
         if (storedLang === 'ar') return true;
         if (storedLang === 'en') return false;
       } catch {
