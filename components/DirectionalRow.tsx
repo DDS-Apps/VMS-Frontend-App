@@ -205,11 +205,6 @@ export function DirectionalRow({
   // Calculate flex direction
   const flexDirection = forceDirection ?? calculateFlexDirection(isRTL, isInsideDirectionalRow);
   
-  // DEBUG: Log RTL state and flex direction (only for first few renders)
-  if (Platform.OS === 'web' && depth === 0) {
-    console.log('[DirectionalRow] isRTL:', isRTL, 'isNested:', isInsideDirectionalRow, 'flexDir:', flexDirection);
-  }
-  
   const finalStyle: ViewStyle = {
     ...flattenedStyle,
     flexDirection,
@@ -218,11 +213,32 @@ export function DirectionalRow({
     gap: gap ?? flattenedStyle.gap,
   };
   
+  // DEBUG: Log the actual final style being applied
+  if (Platform.OS === 'web' && depth === 0 && isRTL) {
+    console.log('[DirectionalRow] finalStyle.flexDirection:', finalStyle.flexDirection, 'flattenedStyle:', JSON.stringify(flattenedStyle));
+  }
+  
+  // On web RTL, also reverse the children order as a workaround
+  // because React Native Web's flex-direction: row-reverse may not work reliably
+  const shouldReverseChildren = Platform.OS === 'web' && isRTL && !isInsideDirectionalRow && flexDirection === 'row-reverse';
+  
+  let renderedChildren = children;
+  if (shouldReverseChildren && Array.isArray(children)) {
+    renderedChildren = [...children].reverse();
+  } else if (shouldReverseChildren && React.Children.count(children) > 1) {
+    renderedChildren = React.Children.toArray(children).reverse();
+  }
+  
+  // DEBUG: Log if we're reversing children
+  if (shouldReverseChildren) {
+    console.log('[DirectionalRow] Reversing children for web RTL');
+  }
+  
   // Wrap children in context to track nesting
   return (
     <DirectionalContext.Provider value={{ isInsideDirectionalRow: true, depth: depth + 1 }}>
       <View style={finalStyle} testID={testID} nativeID={nativeID}>
-        {children}
+        {renderedChildren}
       </View>
     </DirectionalContext.Provider>
   );
