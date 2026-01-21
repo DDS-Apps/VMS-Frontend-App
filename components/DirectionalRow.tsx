@@ -111,10 +111,16 @@ function browserWillAutoFlip(): boolean {
 }
 
 /**
- * Calculate the correct flex direction based on RTL state and context
+ * Calculate the correct flex direction based on RTL state, platform, and context
  * 
- * TESTING: Always use row-reverse for RTL on all platforms
- * (Bypassing I18nManager auto-flip detection for now)
+ * PLATFORM BEHAVIOR:
+ * - On MOBILE with RTL: Use 'row' and let React Native's native layer auto-flip it
+ *   (When forceRTL(true) is set, native interprets 'row' as reversed)
+ * - On WEB with RTL: Use 'row-reverse' explicitly (no native auto-flip on web)
+ * - On LTR or nested: Use 'row'
+ * 
+ * This fixes the "double-flip" issue where setting 'row-reverse' on mobile RTL
+ * was being negated by the native layout engine.
  * 
  * @param isRTL - Whether current locale is RTL
  * @param isNested - Whether this is inside another DirectionalRow
@@ -133,12 +139,31 @@ export function calculateFlexDirection(
   const autoFlip = browserWillAutoFlip();
   
   // If browser will auto-flip, use 'row' (browser handles it)
-  // Otherwise, use 'row-reverse' for RTL on ALL platforms including mobile
   if (autoFlip) {
     return 'row';
   }
   
-  return isRTL ? 'row-reverse' : 'row';
+  // PLATFORM-SPECIFIC RTL HANDLING:
+  // - Mobile: Use 'row' for RTL - native layer auto-flips it when forceRTL(true)
+  // - Web: Use 'row-reverse' for RTL - no native auto-flip, we control it explicitly
+  if (isRTL) {
+    const isWeb = Platform.OS === 'web';
+    const direction = isWeb ? 'row-reverse' : 'row';
+    
+    // DEBUG: Log the platform-specific direction calculation
+    console.log('[calculateFlexDirection DEBUG]', {
+      platform: Platform.OS,
+      isRTL,
+      isNested,
+      isWeb,
+      'nativeAutoFlip (mobile only)': !isWeb,
+      returnedDirection: direction,
+    });
+    
+    return direction;
+  }
+  
+  return 'row';
 }
 
 // =============================================================================
