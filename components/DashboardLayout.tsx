@@ -76,9 +76,14 @@ export default function DashboardLayout({
   const { theme, isDark, toggleTheme } = useTheme();
   const { locale, setLocale, isRTL: contextIsRTL, layoutKey, isChangingLanguage } = useLanguage();
   
-  // Use synchronous localStorage check for first render, then context value
-  const isRTL = Platform.OS === 'web' ? getInitialRTLState() || contextIsRTL : contextIsRTL;
-  console.log('[DashboardLayout] isRTL:', isRTL, 'contextIsRTL:', contextIsRTL, 'locale:', locale);
+  // Use I18nManager.isRTL directly on mobile (authoritative source after app restart)
+  // On web, use localStorage check for first render, then context value
+  const isRTL = Platform.OS === 'web' 
+    ? getInitialRTLState() || contextIsRTL 
+    : I18nManager.isRTL;
+  
+  // DEBUG: Log RTL state for sidebar positioning
+  console.log('[DashboardLayout] isRTL:', isRTL, 'I18nManager.isRTL:', I18nManager.isRTL, 'contextIsRTL:', contextIsRTL, 'locale:', locale);
   
   const { t } = useTranslation();
   const rtlStyles = useRTLStyles();
