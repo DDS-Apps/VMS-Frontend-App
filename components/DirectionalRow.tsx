@@ -55,7 +55,6 @@ function getIsRTL(): boolean {
     if (typeof localStorage !== 'undefined') {
       try {
         const storedLang = localStorage.getItem('@vms_language');
-        console.log('[getIsRTL WEB DEBUG]', { storedLang, I18nManagerIsRTL: I18nManager.isRTL });
         if (storedLang === 'ar') return true;
         if (storedLang === 'en') return false;
       } catch {
@@ -154,19 +153,7 @@ export function calculateFlexDirection(
     
     // On web, always use row-reverse for RTL (even nested, since no auto-flip)
     // On mobile (non-nested), use 'row' which native will flip
-    const direction = isWeb ? 'row-reverse' : 'row';
-    
-    // DEBUG: Log the platform-specific direction calculation
-    console.log('[calculateFlexDirection DEBUG]', {
-      platform: Platform.OS,
-      isRTL,
-      isNested,
-      isWeb,
-      'nativeAutoFlip (mobile only)': !isWeb,
-      returnedDirection: direction,
-    });
-    
-    return direction;
+    return isWeb ? 'row-reverse' : 'row';
   }
   
   return 'row';
@@ -209,18 +196,6 @@ export function DirectionalRow({
   
   // Calculate flex direction
   const flexDirection = forceDirection ?? calculateFlexDirection(isRTL, isInsideDirectionalRow);
-  
-  // DEBUG: Log RTL values for tracing layout issues
-  console.log('[DirectionalRow DEBUG]', {
-    platform: Platform.OS,
-    'I18nManager.isRTL': I18nManager.isRTL,
-    'getIsRTL()': isRTL,
-    'browserWillAutoFlip()': browserWillAutoFlip(),
-    isNested: isInsideDirectionalRow,
-    depth,
-    forceDirection: forceDirection ?? 'none',
-    resolvedFlexDirection: flexDirection,
-  });
   
   const finalStyle: ViewStyle = {
     ...flattenedStyle,
