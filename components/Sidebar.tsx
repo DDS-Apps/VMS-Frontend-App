@@ -361,7 +361,7 @@ export default function Sidebar({
         style={({ pressed }) => [styles.profileHeader, pressed && { opacity: 0.7 }]}
         onPress={() => handleItemPress('Dashboard')}
       >
-        <DirectionalRow gap={Spacing.md}>
+        <DirectionalRow style={{ flex: 1 }} gap={Spacing.md}>
           {userPhotoUrl ? (
             <Image
               source={{ uri: userPhotoUrl }}
@@ -468,6 +468,7 @@ const styles = StyleSheet.create({
   profileHeader: {
     alignItems: 'stretch',
     paddingHorizontal: Spacing.lg,
+    width: '100%',
   },
   profileAvatar: {
     width: 48,
