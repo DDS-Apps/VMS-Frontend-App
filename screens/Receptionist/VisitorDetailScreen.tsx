@@ -59,7 +59,9 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
   const insets = useSafeAreaInsets();  
   const { visitor: legacyVisitor, visitId } = route.params as { visitor?: LegacyVisitor; visitId?: string };
   
-  const { data: visitDetails, isLoading, isError } = useVisitDetailsQuery(visitId ?? '', !!visitId);
+  // Always fetch from server - use visitor.id from passed object or visitId param
+  const effectiveVisitId = visitId ?? legacyVisitor?.id ?? '';
+  const { data: visitDetails, isLoading, isError } = useVisitDetailsQuery(effectiveVisitId, !!effectiveVisitId);
   
   const mapVisitStatus = (status: string): 'pending' | 'approved' | 'checked_in' | 'completed' | 'rejected' | 'cancelled' | 'pending_approval' | 'pending_host_approval' | 'visitor_accepted' => {
     if (status === 'rejected') return 'rejected';
@@ -73,7 +75,8 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
     return 'pending';
   };
   
-  const visitor: LegacyVisitor | null = legacyVisitor ?? (visitDetails ? {
+  // Always prefer server data (visitDetails) over passed legacyVisitor for complete information
+  const visitor: LegacyVisitor | null = visitDetails ? {
     id: visitDetails.id,
     name: visitDetails.visitor.fullName,
     company: visitDetails.visitor.company ?? '',
@@ -95,7 +98,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
     checkedInAt: visitDetails.checkedInAt,
     checkedOutAt: visitDetails.checkedOutAt,
     completedAt: visitDetails.completedAt,
-  } : null);
+  } : null;
   
   const checkInMutation = useReceptionCheckInMutation();
   const checkOutMutation = useReceptionCheckOutMutation();
