@@ -24,7 +24,7 @@ import { restartApp } from "@/utils/restartApp";
 // Step 1: Synchronous bootstrap (enables RTL, applies web direction)
 // This runs immediately before React renders
 const syncResult = bootstrapLocaleSync();
-
+console.log('[RTL DEBUG] index.js: Sync bootstrap result', {
   locale: syncResult.locale,
   isRTL: syncResult.isRTL,
   i18nManagerIsRTL: I18nManager.isRTL,
@@ -44,7 +44,7 @@ import { resolveBootstrapPromise } from "@/utils/localeManager";
 (async function checkRTLRestart() {
   try {
     const result = await bootstrapLocale();
-    
+    console.log('[RTL DEBUG] index.js: Async bootstrap result', {
       locale: result.locale,
       isRTL: result.isRTL,
       needsRestart: result.needsRestart,
