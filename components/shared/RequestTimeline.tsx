@@ -769,7 +769,12 @@ function buildReceptionistTimeline(
     return steps;
   }
 
-  if (data.checkedInAt) {
+  // Check if visitor has checked in - either by timestamp or by status
+  const isCheckedIn = data.checkedInAt || data.status === 'checked_in' || data.status === 'completed';
+  // Check if visitor has checked out / visit completed - either by timestamp or by status
+  const isCheckedOut = data.completedAt || data.checkedOutAt || data.status === 'completed';
+
+  if (isCheckedIn) {
     steps.push({
       id: 'checked_in',
       label: t('timeline.visitorCheckedIn'),
@@ -778,7 +783,7 @@ function buildReceptionistTimeline(
       icon: 'log-in',
     });
 
-    if (data.completedAt || data.checkedOutAt) {
+    if (isCheckedOut) {
       steps.push({
         id: 'checked_out',
         label: t('timeline.visitorCheckedOut'),
