@@ -1,0 +1,25 @@
+[DirectionalRow] REVERSED children, new order count: 2
+DirectionalRow.tsx:230 [DirectionalRow] WEB RTL: toArray length: 2 original count: 2
+DirectionalRow.tsx:236 [DirectionalRow] REVERSED children, new order count: 2
+DirectionalRow.tsx:230 [DirectionalRow] WEB RTL: toArray length: 4 original count: 4
+DirectionalRow.tsx:236 [DirectionalRow] REVERSED children, new order count: 4
+DirectionalRow.tsx:230 [DirectionalRow] WEB RTL: toArray length: 2 original count: 2
+DirectionalRow.tsx:236 [DirectionalRow] REVERSED children, new order count: 2
+DirectionalRow.tsx:230 [DirectionalRow] WEB RTL: toArray length: 1 original count: 1
+DirectionalRow.tsx:230 [DirectionalRow] WEB RTL: toArray length: 2 original count: 2
+DirectionalRow.tsx:236 [DirectionalRow] REVERSED children, new order count: 2
+DirectionalRow.tsx:230 [DirectionalRow] WEB RTL: toArray length: 2 original count: 2
+DirectionalRow.tsx:236 [DirectionalRow] REVERSED children, new order count: 2
+DirectionalRow.tsx:230 [DirectionalRow] WEB RTL: toArray length: 2 original count: 2
+DirectionalRow.tsx:236 [DirectionalRow] REVERSED children, new order count: 2
+DirectionalRow.tsx:230 [DirectionalRow] WEB RTL: toArray length: 4 original count: 4
+DirectionalRow.tsx:236 [DirectionalRow] REVERSED children, new order count: 4
+DirectionalRow.tsx:230 [DirectionalRow] WEB RTL: toArray length: 2 original count: 2
+DirectionalRow.tsx:236 [DirectionalRow] REVERSED children, new order count: 2
+DirectionalRow.tsx:230 [DirectionalRow] WEB RTL: toArray length: 1 original count: 1
+DirectionalRow.tsx:230 [DirectionalRow] WEB RTL: toArray length: 2 original count: 2
+DirectionalRow.tsx:236 [DirectionalRow] REVERSED children, new order count: 2
+DirectionalRow.tsx:230 [DirectionalRow] WEB RTL: toArray length: 2 original count: 2
+DirectionalRow.tsx:236 [DirectionalRow] REVERSED children, new order count: 2
+DirectionalRow.tsx:230 [DirectionalRow] WEB RTL: toArray length: 1 original count: 2
+DirectionalRow.tsx:230 [DirectionalRow] WEB RTL: toArray length: 1 original count: 2

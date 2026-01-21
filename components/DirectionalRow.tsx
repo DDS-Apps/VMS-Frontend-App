@@ -218,27 +218,20 @@ export function DirectionalRow({
     console.log('[DirectionalRow] finalStyle.flexDirection:', finalStyle.flexDirection, 'flattenedStyle:', JSON.stringify(flattenedStyle));
   }
   
-  // On web RTL, reverse the children order AND use 'row' (not 'row-reverse')
-  // because React Native Web's flex-direction: row-reverse doesn't work reliably
-  // Apply to ALL DirectionalRows (including nested ones) on web RTL
-  const shouldReverseChildren = Platform.OS === 'web' && isRTL;
+  // On web RTL, use CSS direction property instead of reversing children
+  // This is more reliable on React Native Web
+  const isWebRTL = Platform.OS === 'web' && isRTL;
   
-  let renderedChildren = children;
-  if (shouldReverseChildren) {
-    // Use toArray to get actual renderable children (filters null/undefined/false)
-    const childArray = React.Children.toArray(children);
-    console.log('[DirectionalRow] WEB RTL: toArray length:', childArray.length, 'original count:', React.Children.count(children));
-    
-    if (childArray.length > 1) {
-      // Create a NEW reversed array (don't mutate in place)
-      const reversedArray = [...childArray].reverse();
-      renderedChildren = reversedArray;
-      console.log('[DirectionalRow] REVERSED children, new order count:', reversedArray.length);
-    }
-    
-    // Always use 'row' on web RTL to avoid double-flip issues
+  if (isWebRTL) {
+    // Use CSS direction: rtl to flip the layout
+    // This is supported by React Native Web and properly reverses flex children
+    (finalStyle as any).direction = 'rtl';
+    // Keep flexDirection as 'row' - the direction property will flip it
     finalStyle.flexDirection = 'row';
+    console.log('[DirectionalRow] WEB RTL: Using direction: rtl');
   }
+  
+  const renderedChildren = children;
   
   // Wrap children in context to track nesting
   // Use key to force re-render when direction changes on web
