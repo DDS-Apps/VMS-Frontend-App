@@ -233,6 +233,7 @@ export function DirectionalRow({
   // When reversing children, use 'row' to avoid double-reversal
   if (shouldReverseChildren) {
     finalStyle.flexDirection = 'row';
+    console.log('[DirectionalRow] WEB RTL FIX: Reversing children, flexDirection set to:', finalStyle.flexDirection, 'childCount:', React.Children.count(children));
   }
   
   // Wrap children in context to track nesting
