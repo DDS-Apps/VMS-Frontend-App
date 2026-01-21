@@ -902,7 +902,7 @@ export default function ManagerApprovalDetailScreen({
                     color: theme.textSecondary,
                     fontSize: 13,
                     flex: 1,
-                    textAlign: isRTL ? "right" : "left",
+                    // 
                   },
                 ]}
               >
@@ -936,7 +936,7 @@ export default function ManagerApprovalDetailScreen({
                         color: theme.error,
                         fontWeight: "600",
                         marginBottom: 4,
-                        textAlign: isRTL ? "right" : "left",
+                        
                       },
                     ]}
                   >
@@ -948,7 +948,7 @@ export default function ManagerApprovalDetailScreen({
                       {
                         color: theme.text,
                         lineHeight: 22,
-                        textAlign: isRTL ? "right" : "left",
+                        
                       },
                     ]}
                   >
@@ -985,7 +985,7 @@ export default function ManagerApprovalDetailScreen({
                         color: theme.error,
                         fontWeight: "600",
                         marginBottom: 4,
-                        textAlign: isRTL ? "right" : "left",
+                        
                       },
                     ]}
                   >
@@ -997,7 +997,7 @@ export default function ManagerApprovalDetailScreen({
                       {
                         color: theme.text,
                         lineHeight: 22,
-                        textAlign: isRTL ? "right" : "left",
+                        
                       },
                     ]}
                   >
@@ -1021,7 +1021,7 @@ export default function ManagerApprovalDetailScreen({
                 fontSize: 16,
                 fontWeight: "600",
                 color: theme.text,
-                textAlign: isRTL ? "right" : "left",
+                
                 marginBottom: Spacing.xl,
               },
             ]}
@@ -1044,7 +1044,7 @@ export default function ManagerApprovalDetailScreen({
                   {
                     fontWeight: "600",
                     fontSize: 15,
-                    textAlign: isRTL ? "right" : "left",
+                    
                   },
                 ]}
               >
@@ -1057,7 +1057,7 @@ export default function ManagerApprovalDetailScreen({
                     color: theme.textSecondary,
                     marginTop: 2,
                     fontSize: 13,
-                    textAlign: isRTL ? "right" : "left",
+                    
                   },
                 ]}
               >
@@ -1087,7 +1087,7 @@ export default function ManagerApprovalDetailScreen({
                   {
                     fontWeight: "600",
                     fontSize: 15,
-                    textAlign: isRTL ? "right" : "left",
+                    
                   },
                 ]}
               >
@@ -1100,7 +1100,7 @@ export default function ManagerApprovalDetailScreen({
                     color: theme.textSecondary,
                     marginTop: 2,
                     fontSize: 13,
-                    textAlign: isRTL ? "right" : "left",
+                    
                   },
                 ]}
               >
@@ -1128,7 +1128,7 @@ export default function ManagerApprovalDetailScreen({
                   {
                     fontWeight: "600",
                     fontSize: 15,
-                    textAlign: isRTL ? "right" : "left",
+                    
                   },
                 ]}
               >
@@ -1141,7 +1141,7 @@ export default function ManagerApprovalDetailScreen({
                     color: theme.textSecondary,
                     marginTop: 2,
                     fontSize: 13,
-                    textAlign: isRTL ? "right" : "left",
+                    
                   },
                 ]}
               >
@@ -1172,7 +1172,7 @@ export default function ManagerApprovalDetailScreen({
                       {
                         fontWeight: "600",
                         fontSize: 15,
-                        textAlign: isRTL ? "right" : "left",
+                        
                       },
                     ]}
                   >
@@ -1236,7 +1236,7 @@ export default function ManagerApprovalDetailScreen({
                               ? theme.textSecondary
                               : theme.warning,
                             fontSize: 13,
-                            textAlign: isRTL ? "right" : "left",
+                            
                           },
                         ]}
                       >
@@ -1284,7 +1284,7 @@ export default function ManagerApprovalDetailScreen({
                   {
                     fontWeight: "600",
                     fontSize: 15,
-                    textAlign: isRTL ? "right" : "left",
+                    
                   },
                 ]}
               >
@@ -1298,7 +1298,7 @@ export default function ManagerApprovalDetailScreen({
                     marginTop: 2,
                     fontSize: 13,
                     lineHeight: 20,
-                    textAlign: isRTL ? "right" : "left",
+                    
                   },
                 ]}
               >
@@ -1329,7 +1329,7 @@ export default function ManagerApprovalDetailScreen({
                       {
                         fontWeight: "600",
                         fontSize: 15,
-                        textAlign: isRTL ? "right" : "left",
+                        
                       },
                     ]}
                   >
@@ -1343,7 +1343,7 @@ export default function ManagerApprovalDetailScreen({
                         marginTop: 2,
                         fontSize: 13,
                         lineHeight: 20,
-                        textAlign: isRTL ? "right" : "left",
+                        
                       },
                     ]}
                   >
@@ -1367,7 +1367,7 @@ export default function ManagerApprovalDetailScreen({
                 fontSize: 16,
                 fontWeight: "600",
                 color: theme.text,
-                textAlign: isRTL ? "right" : "left",
+                
                 marginBottom: Spacing.xl,
               },
             ]}
@@ -1412,7 +1412,7 @@ export default function ManagerApprovalDetailScreen({
                     {
                       fontWeight: "600",
                       fontSize: 15,
-                      textAlign: isRTL ? "right" : "left",
+                      
                     },
                   ]}
                 >
@@ -1437,7 +1437,7 @@ export default function ManagerApprovalDetailScreen({
                         color: theme.textSecondary,
                         marginTop: 2,
                         fontSize: 13,
-                        textAlign: isRTL ? "right" : "left",
+                        
                       },
                     ]}
                   >
@@ -1449,7 +1449,7 @@ export default function ManagerApprovalDetailScreen({
                       {
                         color: theme.textSecondary,
                         fontSize: 12,
-                        textAlign: isRTL ? "right" : "left",
+                        
                       },
                     ]}
                   >
@@ -1465,7 +1465,7 @@ export default function ManagerApprovalDetailScreen({
                       color: theme.warning,
                       marginTop: 2,
                       fontSize: 13,
-                      textAlign: isRTL ? "right" : "left",
+                      
                     },
                   ]}
                 >
@@ -1479,7 +1479,7 @@ export default function ManagerApprovalDetailScreen({
                       color: theme.warning,
                       marginTop: 2,
                       fontSize: 13,
-                      textAlign: isRTL ? "right" : "left",
+                      
                     },
                   ]}
                 >
@@ -1494,7 +1494,7 @@ export default function ManagerApprovalDetailScreen({
                       marginTop: 2,
                       fontSize: 13,
                       fontStyle: "italic",
-                      textAlign: isRTL ? "right" : "left",
+                      
                     },
                   ]}
                 >
@@ -1547,7 +1547,7 @@ export default function ManagerApprovalDetailScreen({
                     {
                       fontWeight: "600",
                       fontSize: 15,
-                      textAlign: isRTL ? "right" : "left",
+                      
                     },
                   ]}
                 >
@@ -1569,7 +1569,7 @@ export default function ManagerApprovalDetailScreen({
                       color: theme.textSecondary,
                       marginTop: 2,
                       fontSize: 13,
-                      textAlign: isRTL ? "right" : "left",
+                      
                     },
                   ]}
                 >
@@ -1586,7 +1586,7 @@ export default function ManagerApprovalDetailScreen({
                       color: theme.warning,
                       marginTop: 2,
                       fontSize: 13,
-                      textAlign: isRTL ? "right" : "left",
+                      
                     },
                   ]}
                 >
@@ -1600,7 +1600,7 @@ export default function ManagerApprovalDetailScreen({
                       color: theme.warning,
                       marginTop: 2,
                       fontSize: 13,
-                      textAlign: isRTL ? "right" : "left",
+                      
                     },
                   ]}
                 >
@@ -1615,7 +1615,7 @@ export default function ManagerApprovalDetailScreen({
                       marginTop: 2,
                       fontSize: 13,
                       fontStyle: "italic",
-                      textAlign: isRTL ? "right" : "left",
+                      
                     },
                   ]}
                 >

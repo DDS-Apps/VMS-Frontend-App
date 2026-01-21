@@ -70,7 +70,7 @@ export function createRowStyle(additionalStyles?: ViewStyle): ViewStyle {
  */
 export function createTextStyle(isRTL: boolean, additionalStyles?: TextStyle): TextStyle {
     return {
-        textAlign: isRTL ? 'right' : 'left',
+        
         writingDirection: isRTL ? 'rtl' : 'ltr',
         ...additionalStyles,
     };

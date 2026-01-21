@@ -565,7 +565,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
           <ThemedText style={[Typography.bodySmall, { fontWeight: '600' }]}>
             {formatDisplayDate()}
           </ThemedText>
-          <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'left' : 'right' }]}>
+          <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
             {filteredVisitors.length} {filteredVisitors.length === 1 ? t('roles.visitor').toLowerCase() : t('navigation.allVisitors').toLowerCase()}
           </ThemedText>
         </DirectionalRow>

@@ -126,7 +126,7 @@ export function getCurrentRTLState(): boolean {
  */
 export function createTextStyle(isRTL: boolean, additionalStyles?: any) {
   return {
-    textAlign: isRTL ? 'right' : 'left',
+    
     writingDirection: isRTL ? 'rtl' : 'ltr',
     ...additionalStyles,
   };

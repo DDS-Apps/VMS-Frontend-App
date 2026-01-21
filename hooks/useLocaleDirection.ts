@@ -20,12 +20,12 @@ export function useLocaleDirection() {
     return {
       isRTL,
       isLTR: !isRTL,
-      textAlign: isRTL ? "right" as const : "left" as const,
+      
       flexDirection: "row" as const,
       alignSelf: isRTL ? "flex-end" as const : "flex-start" as const,
       rowStyle: { flexDirection: "row" } as ViewStyle,
       textStyle: {
-        textAlign: isRTL ? "right" : "left",
+        
         writingDirection: isRTL ? "rtl" : "ltr",
       } as TextStyle,
       alignStart: isRTL ? "flex-end" as const : "flex-start" as const,

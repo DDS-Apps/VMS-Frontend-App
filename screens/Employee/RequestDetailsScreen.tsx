@@ -1072,7 +1072,7 @@ export default function RequestDetailsScreen({
                       fontSize: 14,
                       fontWeight: "600",
                       color: theme.text,
-                      //  textAlign: isRTL ? "right" : "left",
+                      //  
                     },
                   ]}
                 >
@@ -1087,7 +1087,7 @@ export default function RequestDetailsScreen({
                     color: theme.textSecondary,
                     fontSize: 14,
                     lineHeight: 20,
-                    //    textAlign: isRTL ? "right" : "left",
+                    //    
                   },
                 ]}
               >
@@ -1578,7 +1578,7 @@ export default function RequestDetailsScreen({
                   {
                     fontWeight: "600",
                     fontSize: 15,
-                    //  textAlign: isRTL ? "right" : "left",
+                    //  
                   },
                 ]}
               >
@@ -1591,7 +1591,7 @@ export default function RequestDetailsScreen({
                     color: theme.textSecondary,
                     marginTop: 2,
                     fontSize: 13,
-                    //   textAlign: isRTL ? "right" : "left",
+                    //   
                   },
                 ]}
               >
@@ -1618,7 +1618,7 @@ export default function RequestDetailsScreen({
                   {
                     fontWeight: "600",
                     fontSize: 15,
-                    //   textAlign: isRTL ? "right" : "left",
+                    //   
                   },
                 ]}
               >
@@ -1632,7 +1632,7 @@ export default function RequestDetailsScreen({
                     marginTop: 2,
                     fontSize: 13,
                     lineHeight: 20,
-                    //     textAlign: isRTL ? "right" : "left",
+                    //     
                   },
                 ]}
               >
@@ -1694,7 +1694,7 @@ export default function RequestDetailsScreen({
                     fontWeight: "600",
                     fontSize: 14,
                     color: theme.text,
-                    //     textAlign: isRTL ? "right" : "left",
+                    //     
                   },
                 ]}
               >
@@ -1712,7 +1712,7 @@ export default function RequestDetailsScreen({
                       color: theme.error,
                       fontSize: 12,
                       marginTop: 2,
-                      //   textAlign: isRTL ? "right" : "left",
+                      //   
                     },
                   ]}
                 >
@@ -1727,7 +1727,7 @@ export default function RequestDetailsScreen({
                         color: theme.textSecondary,
                         fontSize: 12,
                         marginTop: 2,
-                        //   textAlign: isRTL ? "right" : "left",
+                        //   
                       },
                     ]}
                   >
@@ -1739,7 +1739,7 @@ export default function RequestDetailsScreen({
                       {
                         color: theme.textSecondary,
                         fontSize: 12,
-                        //  textAlign: isRTL ? "right" : "left",
+                        //  
                       },
                     ]}
                   >
@@ -1755,7 +1755,7 @@ export default function RequestDetailsScreen({
                       color: theme.warning,
                       fontSize: 12,
                       marginTop: 2,
-                      //  textAlign: isRTL ? "right" : "left",
+                      //  
                     },
                   ]}
                 >
@@ -1769,7 +1769,7 @@ export default function RequestDetailsScreen({
                       color: theme.warning,
                       fontSize: 12,
                       marginTop: 2,
-                      //  textAlign: isRTL ? "right" : "left",
+                      //  
                     },
                   ]}
                 >
@@ -1784,7 +1784,7 @@ export default function RequestDetailsScreen({
                       fontSize: 12,
                       marginTop: 2,
                       fontStyle: "italic",
-                      //    textAlign: isRTL ? "right" : "left",
+                      //    
                     },
                   ]}
                 >
@@ -1843,7 +1843,7 @@ export default function RequestDetailsScreen({
                     fontWeight: "600",
                     fontSize: 14,
                     color: theme.text,
-                    //    textAlign: isRTL ? "right" : "left",
+                    //    
                   },
                 ]}
               >
@@ -1861,7 +1861,7 @@ export default function RequestDetailsScreen({
                       color: theme.error,
                       fontSize: 12,
                       marginTop: 2,
-                      //    textAlign: isRTL ? "right" : "left",
+                      //    
                     },
                   ]}
                 >
@@ -1875,7 +1875,7 @@ export default function RequestDetailsScreen({
                       color: theme.textSecondary,
                       fontSize: 12,
                       marginTop: 2,
-                      //   textAlign: isRTL ? "right" : "left",
+                      //   
                     },
                   ]}
                 >
@@ -1891,7 +1891,7 @@ export default function RequestDetailsScreen({
                       color: theme.warning,
                       fontSize: 12,
                       marginTop: 2,
-                      //   textAlign: isRTL ? "right" : "left",
+                      //   
                     },
                   ]}
                 >
@@ -1905,7 +1905,7 @@ export default function RequestDetailsScreen({
                       color: theme.warning,
                       fontSize: 12,
                       marginTop: 2,
-                      // textAlign: isRTL ? "right" : "left",
+                      // 
                     },
                   ]}
                 >
@@ -1920,7 +1920,7 @@ export default function RequestDetailsScreen({
                       fontSize: 12,
                       marginTop: 2,
                       fontStyle: "italic",
-                      //   textAlign: isRTL ? "right" : "left",
+                      //   
                     },
                   ]}
                 >
@@ -2062,7 +2062,7 @@ export default function RequestDetailsScreen({
                       fontWeight: "600",
                       color: theme.text,
                       flex: 1,
-                      //     textAlign: isRTL ? "right" : "left",
+                      //     
                     },
                   ]}
                 >
@@ -2355,7 +2355,7 @@ export default function RequestDetailsScreen({
                       fontWeight: "600",
                       color: theme.text,
                       flex: 1,
-                      textAlign: isRTL ? "right" : "left",
+                      
                     },
                   ]}
                 >
@@ -2385,7 +2385,7 @@ export default function RequestDetailsScreen({
                       color: theme.textSecondary,
                       fontSize: 12,
                       marginBottom: 8,
-                      textAlign: isRTL ? "right" : "left",
+                      
                     },
                   ]}
                 >
@@ -2411,7 +2411,7 @@ export default function RequestDetailsScreen({
                         color: editPurpose ? theme.text : theme.textSecondary,
                         fontSize: 14,
                         flex: 1,
-                        //  textAlign: isRTL ? "right" : "left",
+                        //  
                       },
                     ]}
                   >
@@ -2431,7 +2431,7 @@ export default function RequestDetailsScreen({
                           color: theme.textSecondary,
                           fontSize: 12,
                           marginBottom: 8,
-                          //    textAlign: isRTL ? "right" : "left",
+                          //    
                         },
                       ]}
                     >
@@ -2459,7 +2459,7 @@ export default function RequestDetailsScreen({
                             color: theme.textSecondary,
                             fontSize: 14,
                             flex: 1,
-                            //    textAlign: isRTL ? "right" : "left",
+                            //    
                           },
                         ]}
                       >
@@ -2476,7 +2476,7 @@ export default function RequestDetailsScreen({
                           color: theme.textSecondary,
                           marginTop: Spacing.xs,
                           fontSize: 11,
-                          //   textAlign: isRTL ? "right" : "left",
+                          //   
                         },
                       ]}
                     >
@@ -2491,7 +2491,7 @@ export default function RequestDetailsScreen({
                           color: theme.textSecondary,
                           fontSize: 12,
                           marginBottom: 8,
-                          //   textAlign: isRTL ? "right" : "left",
+                          //   
                         },
                       ]}
                     >
@@ -2529,7 +2529,7 @@ export default function RequestDetailsScreen({
                               : theme.text,
                             fontSize: 14,
                             flex: 1,
-                            //  textAlign: isRTL ? "right" : "left",
+                            //  
                           },
                         ]}
                       >
@@ -2545,7 +2545,7 @@ export default function RequestDetailsScreen({
                             color: theme.error,
                             marginTop: Spacing.xs,
                             fontSize: 11,
-                            textAlign: isRTL ? "right" : "left",
+                            
                           },
                         ]}
                       >
@@ -2559,7 +2559,7 @@ export default function RequestDetailsScreen({
                             color: theme.textSecondary,
                             marginTop: Spacing.xs,
                             fontSize: 11,
-                            //  textAlign: isRTL ? "right" : "left",
+                            //  
                           },
                         ]}
                       >
@@ -2580,7 +2580,7 @@ export default function RequestDetailsScreen({
                           color: theme.textSecondary,
                           fontSize: 12,
                           marginBottom: 8,
-                          //    textAlign: isRTL ? "right" : "left",
+                          //    
                         },
                       ]}
                     >
@@ -2611,7 +2611,7 @@ export default function RequestDetailsScreen({
                             color: theme.text,
                             fontSize: 14,
                             flex: 1,
-                            //   textAlign: isRTL ? "right" : "left",
+                            //   
                           },
                         ]}
                       >
@@ -2628,7 +2628,7 @@ export default function RequestDetailsScreen({
                           color: theme.textSecondary,
                           fontSize: 12,
                           marginBottom: 8,
-                          //   textAlign: isRTL ? "right" : "left",
+                          //   
                         },
                       ]}
                     >
@@ -2659,7 +2659,7 @@ export default function RequestDetailsScreen({
                             color: theme.text,
                             fontSize: 14,
                             flex: 1,
-                            //   textAlign: isRTL ? "right" : "left",
+                            //   
                           },
                         ]}
                       >
@@ -2676,7 +2676,7 @@ export default function RequestDetailsScreen({
                           color: theme.textSecondary,
                           fontSize: 12,
                           marginBottom: 8,
-                          //    textAlign: isRTL ? "right" : "left",
+                          //    
                         },
                       ]}
                     >
@@ -2709,7 +2709,7 @@ export default function RequestDetailsScreen({
                             color: theme.text,
                             fontSize: 14,
                             flex: 1,
-                            //  textAlign: isRTL ? "right" : "left",
+                            //  
                           },
                         ]}
                       >
@@ -2726,7 +2726,7 @@ export default function RequestDetailsScreen({
                           color: theme.textSecondary,
                           fontSize: 12,
                           marginBottom: 8,
-                          //   textAlign: isRTL ? "right" : "left",
+                          //   
                         },
                       ]}
                     >
@@ -2753,7 +2753,7 @@ export default function RequestDetailsScreen({
                               : theme.textSecondary,
                             fontSize: 14,
                             flex: 1,
-                            //   textAlign: isRTL ? "right" : "left",
+                            //   
                           },
                         ]}
                       >
@@ -2768,7 +2768,7 @@ export default function RequestDetailsScreen({
                           color: theme.textSecondary,
                           marginTop: Spacing.xs,
                           fontSize: 11,
-                          //  textAlign: isRTL ? "right" : "left",
+                          //  
                         },
                       ]}
                     >
@@ -2787,7 +2787,7 @@ export default function RequestDetailsScreen({
                       fontWeight: "600",
                       color: theme.text,
                       marginBottom: Spacing.md,
-                      //  textAlign: isRTL ? "right" : "left",
+                      //  
                     },
                   ]}
                 >

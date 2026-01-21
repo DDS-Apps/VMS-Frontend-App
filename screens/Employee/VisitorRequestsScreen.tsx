@@ -714,7 +714,7 @@ const SectionHeader = ({
       : ["all", "upcoming", "waiting", "past", "walkin"];
   const titleElement = (
     <ThemedText
-      style={[Typography.subtitle, { textAlign: isRTL ? "right" : "left" }]}
+      style={[Typography.subtitle, {}]}
     >
       {t("navigation.myRequests")}
     </ThemedText>

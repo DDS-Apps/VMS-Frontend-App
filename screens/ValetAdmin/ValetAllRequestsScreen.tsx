@@ -318,7 +318,7 @@ export default function ValetAllRequestsScreen() {
       <Spacer height={LAYOUT.sectionSpacing} />
 
       <DirectionalRow style={[styles.sectionTitleRow, styles.paddedContent]}>
-        <ThemedText style={[Typography.subtitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+        <ThemedText style={[Typography.subtitle, {}]}>
           {t('valet.todaysVisitors')}
         </ThemedText>
       </DirectionalRow>

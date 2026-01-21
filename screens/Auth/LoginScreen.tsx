@@ -333,7 +333,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                 {
                   color: theme.textSecondary,
                   marginBottom: Spacing.xs,
-                  textAlign: isRTL ? "right" : "left",
+                  
                 },
               ]}
             >
@@ -350,7 +350,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                   styles.input,
                   {
                     color: theme.text,
-                    textAlign: isRTL ? "right" : "left",
+                    
                     writingDirection: isRTL ? "rtl" : "ltr",
                   },
                   Platform.OS === "web"
@@ -379,7 +379,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                   {
                     color: theme.error,
                     marginTop: Spacing.xs,
-                    textAlign: isRTL ? "right" : "left",
+                    
                   },
                 ]}
               >
@@ -395,7 +395,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                 {
                   color: theme.textSecondary,
                   marginBottom: Spacing.xs,
-                  textAlign: isRTL ? "right" : "left",
+                  
                 },
               ]}
             >
@@ -412,7 +412,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                   styles.input,
                   {
                     color: theme.text,
-                    textAlign: isRTL ? "right" : "left",
+                    
                     writingDirection: isRTL ? "rtl" : "ltr",
                   },
                   Platform.OS === "web"
@@ -451,7 +451,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                   {
                     color: theme.error,
                     marginTop: Spacing.xs,
-                    textAlign: isRTL ? "right" : "left",
+                    
                   },
                 ]}
               >

@@ -508,10 +508,10 @@ const InfoRow = memo(function InfoRow({ icon, label, value, subValue }: InfoRowP
         <DDIcon name={icon as any} size={18} color={PageColors.accent} />
       </View>
       <View style={helperStyles.infoContent}>
-        <ThemedText style={[helperStyles.infoLabel, { textAlign: isRTL ? 'right' : 'left' }]}>{label}</ThemedText>
-        <ThemedText style={[helperStyles.infoValue, { textAlign: isRTL ? 'right' : 'left' }]}>{value}</ThemedText>
+        <ThemedText style={[helperStyles.infoLabel, {}]}>{label}</ThemedText>
+        <ThemedText style={[helperStyles.infoValue, {}]}>{value}</ThemedText>
         {subValue ? (
-          <ThemedText style={[helperStyles.infoSubValue, { textAlign: isRTL ? 'right' : 'left' }]}>{subValue}</ThemedText>
+          <ThemedText style={[helperStyles.infoSubValue, {}]}>{subValue}</ThemedText>
         ) : null}
       </View>
     </DirectionalRow>
