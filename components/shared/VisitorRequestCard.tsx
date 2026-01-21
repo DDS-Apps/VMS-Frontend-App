@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, StyleSheet, ViewStyle, Pressable } from "react-native";
+import { View, StyleSheet, ViewStyle, Pressable, Platform } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -249,10 +249,17 @@ export function VisitorRequestCard({
   };
 
   const renderDateTime = () => {
+    // On mobile, native auto-flips rows in RTL, so 'flex-start' appears on RIGHT
+    // On web, no auto-flip, so 'flex-end' is needed for RIGHT alignment
+    const isMobile = Platform.OS !== 'web';
+    const justify = isRTL 
+      ? (isMobile ? 'flex-start' : 'flex-end')
+      : 'flex-start';
+    
     return (
       <DirectionalRow 
         style={styles.dateTimeRow}
-        justifyContent={isRTL ? 'flex-end' : 'flex-start'}
+        justifyContent={justify}
       >
         {renderIconText('calendar', formatDate(request.visitDate))}
         <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
@@ -269,14 +276,23 @@ export function VisitorRequestCard({
     );
   };
 
-  const renderServicesAndStatus = () => (
-    <DirectionalRow style={styles.servicesStatusRow}>
-      <DirectionalRow style={[styles.servicesContainer, { justifyContent: isRTL ? 'flex-end' : 'flex-start' }]}>
-        <ServiceIconsRow request={request} showWalkIn={true} />
+  const renderServicesAndStatus = () => {
+    // On mobile, native auto-flips rows in RTL, so 'flex-start' appears on RIGHT
+    // On web, no auto-flip, so 'flex-end' is needed for RIGHT alignment
+    const isMobile = Platform.OS !== 'web';
+    const justify = isRTL 
+      ? (isMobile ? 'flex-start' : 'flex-end')
+      : 'flex-start';
+    
+    return (
+      <DirectionalRow style={styles.servicesStatusRow}>
+        <DirectionalRow style={[styles.servicesContainer, { justifyContent: justify }]}>
+          <ServiceIconsRow request={request} showWalkIn={true} />
+        </DirectionalRow>
+        {renderStatusBadge()}
       </DirectionalRow>
-      {renderStatusBadge()}
-    </DirectionalRow>
-  );
+    );
+  };
 
   const renderDetailRow = (iconName: string, text: string, numberOfLines: number = 1) => {
     return (
@@ -335,7 +351,7 @@ export function VisitorRequestCard({
     return (
       <>
         <Spacer height={Spacing.sm} />
-        <DirectionalRow style={styles.infoRow} gap={Spacing.xs} justifyContent={isRTL ? 'flex-end' : 'flex-start'}>
+        <DirectionalRow style={styles.infoRow} gap={Spacing.xs} justifyContent={isRTL ? (Platform.OS !== 'web' ? 'flex-start' : 'flex-end') : 'flex-start'}>
           <DDIcon name="user" size={12} variant="muted" />
           <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>
             {t('dashboard.requestedBy')}
