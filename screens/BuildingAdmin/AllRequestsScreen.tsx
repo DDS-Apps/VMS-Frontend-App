@@ -693,6 +693,7 @@ export default function AllRequestsScreen() {
   
   const handleCardPress = (request: UnifiedRequest) => {
     if (!request.id) {
+      console.warn('Cannot navigate: request ID is undefined');
       return;
     }
     switch (request.type) {

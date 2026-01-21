@@ -16,14 +16,17 @@ let isInitialized = false;
 const noopCrashlytics: CrashlyticsInstance = {
   log: (message: string) => {
     if (__DEV__) {
+      console.log('[Crashlytics Mock]', message);
     }
   },
   recordError: (error: Error, jsErrorName?: string) => {
     if (__DEV__) {
+      console.error('[Crashlytics Mock] Error:', jsErrorName || error.name, error.message);
     }
   },
   crash: () => {
     if (__DEV__) {
+      console.warn('[Crashlytics Mock] crash() called - only works in production builds');
     }
   },
   setUserId: async () => null,
@@ -39,6 +42,7 @@ const initializeCrashlytics = (): CrashlyticsInstance => {
 
   if (Platform.OS === 'web') {
     if (__DEV__) {
+      console.log('[Crashlytics] Web platform - using mock implementation');
     }
     crashlyticsInstance = noopCrashlytics;
     isInitialized = true;
@@ -52,11 +56,14 @@ const initializeCrashlytics = (): CrashlyticsInstance => {
     isInitialized = true;
     
     if (__DEV__) {
+      console.log('[Crashlytics] Native module initialized successfully');
     }
     
     return instance;
   } catch (error) {
     if (__DEV__) {
+      console.log('[Crashlytics] Native module not available - using mock implementation');
+      console.log('[Crashlytics] Install @react-native-firebase/crashlytics for production builds');
     }
     crashlyticsInstance = noopCrashlytics;
     isInitialized = true;

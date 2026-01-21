@@ -662,6 +662,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
       setResponseQrCode(response.qrCode || null);
       setActionCompleted('accepted');
     } catch (err) {
+      console.error('Accept failed:', err);
     }
   }, [acceptMutation, invite, selectedParkingOption, licensePlate, carModel, carColor]);
 
@@ -681,6 +682,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
       setActionCompleted('rejected');
       setShowRejectModal(false);
     } catch (err) {
+      console.error('Reject failed:', err);
     }
   }, [rejectMutation, invite]);
 

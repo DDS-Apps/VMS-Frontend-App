@@ -76,6 +76,7 @@ export function parseAuthHashFragment(hash: string): ParsedAuthTokens {
     const params = parseParams(hashPart);
     return extractTokensFromParams(params);
   } catch (err) {
+    console.error('[AuthTokenParser] Error parsing hash fragment:', err);
     return {};
   }
 }
@@ -88,12 +89,14 @@ export function parseAuthQueryString(queryString: string): ParsedAuthTokens {
     const params = parseParams(queryPart);
     return extractTokensFromParams(params);
   } catch (err) {
+    console.error('[AuthTokenParser] Error parsing query string:', err);
     return {};
   }
 }
 
 export function parseAuthUrl(url: string): ParsedAuthTokens {
   try {
+    console.log('[AuthTokenParser] Parsing URL:', url);
     
     // First check for query parameters (?)
     const queryIndex = url.indexOf('?');
@@ -104,9 +107,11 @@ export function parseAuthUrl(url: string): ParsedAuthTokens {
         ? url.substring(queryIndex + 1, hashIndex)
         : url.substring(queryIndex + 1);
       
+      console.log('[AuthTokenParser] Found query params:', queryPart);
       const result = parseAuthQueryString(queryPart);
       
       if (result.accessToken || result.error) {
+        console.log('[AuthTokenParser] Parsed from query params:', {
           hasAccessToken: !!result.accessToken,
           hasError: !!result.error,
           error: result.error
@@ -119,13 +124,16 @@ export function parseAuthUrl(url: string): ParsedAuthTokens {
     const hashIndex = url.indexOf('#');
     if (hashIndex !== -1) {
       const hashPart = url.substring(hashIndex + 1);
+      console.log('[AuthTokenParser] Found hash fragment:', hashPart);
       const result = parseAuthHashFragment(hashPart);
       
       return result;
     }
     
+    console.log('[AuthTokenParser] No query params or hash fragment found in URL');
     return {};
   } catch (err) {
+    console.error('[AuthTokenParser] Error parsing auth URL:', err);
     return {};
   }
 }

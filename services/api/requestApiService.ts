@@ -129,10 +129,14 @@ export const requestApiService = {
   },
 
   createVisit: async (data: CreateVisitPayload): Promise<CreateVisitResponse> => {
+    console.log('[requestApiService.createVisit] Sending POST to:', visits.base);
+    console.log('[requestApiService.createVisit] Payload:', JSON.stringify(data, null, 2));
     try {
       const result = await post<CreateVisitResponse, CreateVisitPayload>(visits.base, data);
+      console.log('[requestApiService.createVisit] Response received:', result);
       return result;
     } catch (error) {
+      console.error('[requestApiService.createVisit] Error:', error);
       throw error;
     }
   },

@@ -50,40 +50,20 @@ import { View, ViewStyle, StyleProp, StyleSheet, Platform, I18nManager } from 'r
  * On web, we check localStorage for stored language preference
  */
 function getIsRTL(): boolean {
-  let result: boolean;
-  let source: string;
-  
   if (Platform.OS === 'web') {
     // On web, check localStorage for stored language as I18nManager may not be reliable
     if (typeof localStorage !== 'undefined') {
       try {
         const storedLang = localStorage.getItem('@vms_language');
-        if (storedLang === 'ar') {
-          result = true;
-          source = 'localStorage (ar)';
-        } else if (storedLang === 'en') {
-          result = false;
-          source = 'localStorage (en)';
-        } else {
-          result = I18nManager.isRTL;
-          source = `I18nManager.isRTL (no localStorage, fallback)`;
-        }
+        if (storedLang === 'ar') return true;
+        if (storedLang === 'en') return false;
       } catch {
-        result = I18nManager.isRTL;
-        source = 'I18nManager.isRTL (localStorage error)';
+        // Fall through to I18nManager
       }
-    } else {
-      result = I18nManager.isRTL;
-      source = 'I18nManager.isRTL (no localStorage)';
     }
-  } else {
-    // Mobile: Use I18nManager.isRTL - set by native layer after app restart
-    result = I18nManager.isRTL;
-    source = 'I18nManager.isRTL';
   }
-  
-  console.log(`[RTL DEBUG] getIsRTL() => Platform: ${Platform.OS}, I18nManager.isRTL: ${I18nManager.isRTL}, Source: ${source}, Result: ${result}`);
-  return result;
+  // Use I18nManager.isRTL - this is set correctly by native layer after app restart
+  return I18nManager.isRTL;
 }
 
 /**
@@ -198,8 +178,6 @@ export function DirectionalRow({
   
   // Calculate flex direction
   const flexDirection = forceDirection ?? calculateFlexDirection(isRTL, isInsideDirectionalRow);
-  
-  console.log(`[RTL DEBUG] DirectionalRow => depth: ${depth}, isNested: ${isInsideDirectionalRow}, forceDirection: ${forceDirection ?? 'none'}, isRTL: ${isRTL}, computed flexDirection: ${flexDirection}`);
   
   const finalStyle: ViewStyle = {
     ...flattenedStyle,

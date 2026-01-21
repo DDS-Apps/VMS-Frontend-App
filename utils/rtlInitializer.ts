@@ -27,6 +27,7 @@ export { isRTLLocale as isRTL } from './localeManager';
  * @deprecated Use bootstrapLocale() from localeManager instead
  */
 export function initializeRTLSync(): void {
+  console.warn('[rtlInitializer] initializeRTLSync is deprecated. Use bootstrapLocale() from localeManager.');
   I18nManager.allowRTL(true);
   if (typeof I18nManager.swapLeftAndRightInRTL === 'function') {
     I18nManager.swapLeftAndRightInRTL(true);
@@ -37,6 +38,7 @@ export function initializeRTLSync(): void {
  * @deprecated Use bootstrapLocale() from localeManager instead
  */
 export async function initializeRTLAsync(): Promise<{ locale: SupportedLocale; isRTL: boolean; needsReload: boolean }> {
+  console.warn('[rtlInitializer] initializeRTLAsync is deprecated. Use bootstrapLocale() from localeManager.');
   const { bootstrapLocale } = await import('./localeManager');
   const result = await bootstrapLocale();
   return { locale: result.locale, isRTL: result.isRTL, needsReload: result.needsRestart };
@@ -46,6 +48,7 @@ export async function initializeRTLAsync(): Promise<{ locale: SupportedLocale; i
  * @deprecated Use changeLanguage() from localeManager instead
  */
 export async function setLocaleWithRTL(locale: SupportedLocale): Promise<boolean> {
+  console.warn('[rtlInitializer] setLocaleWithRTL is deprecated. Use changeLanguage() from localeManager.');
   const { changeLanguage } = await import('./localeManager');
   const result = await changeLanguage(locale);
   return result.needsRestart;

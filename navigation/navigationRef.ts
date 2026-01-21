@@ -9,6 +9,7 @@ export function navigate(name: string, params?: Record<string, unknown>) {
       params,
     }));
   } else {
+    console.warn('[Navigation] Navigation is not ready');
   }
 }
 

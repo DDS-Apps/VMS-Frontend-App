@@ -40,16 +40,23 @@ function getInviteTokenFromUrl(): string | null {
     const pathname = window.location.pathname;
     const hash = window.location.hash;
     const search = window.location.search;
-  
+    
+    console.log('[VMS] Full URL:', fullUrl);
+    console.log('[VMS] Pathname:', pathname);
+    console.log('[VMS] Hash:', hash);
+    console.log('[VMS] Search:', search);
+    
     // Check pathname first (e.g., /invite/TOKEN)
     const pathMatch = pathname.match(/\/invite\/([^\/\?#]+)/);
     if (pathMatch && pathMatch[1]) {
+      console.log('[VMS] Found invite token in path:', pathMatch[1]);
       return pathMatch[1];
     }
     
     // Check hash (e.g., #/invite/TOKEN or #invite/TOKEN)
     const hashMatch = hash.match(/\/?invite\/([^\/\?#]+)/);
     if (hashMatch && hashMatch[1]) {
+      console.log('[VMS] Found invite token in hash:', hashMatch[1]);
       return hashMatch[1];
     }
     
@@ -57,15 +64,20 @@ function getInviteTokenFromUrl(): string | null {
     const urlParams = new URLSearchParams(search);
     const tokenParam = urlParams.get('token') || urlParams.get('invite');
     if (tokenParam) {
-       return tokenParam;
+      console.log('[VMS] Found invite token in query params:', tokenParam);
+      return tokenParam;
     }
     
     // Also check if the entire URL contains /invite/ pattern
     const urlMatch = fullUrl.match(/\/invite\/([A-Za-z0-9\-]+)/);
     if (urlMatch && urlMatch[1]) {
-       return urlMatch[1];
+      console.log('[VMS] Found invite token in full URL:', urlMatch[1]);
+      return urlMatch[1];
     }
+    
+    console.log('[VMS] No invite token found');
   } catch (e) {
+    console.error('[VMS] Error accessing window:', e);
   }
   return null;
 }
@@ -91,6 +103,7 @@ function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
       const userLang = user.language;
       // Only change if different from current locale
       if (userLang !== locale) {
+        console.log('[AppContent] Syncing user language from server:', userLang);
         setLocale(userLang);
         setHasAppliedUserLanguage(true);
       } else {
@@ -114,7 +127,7 @@ function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
   useEffect(() => {
     if (!languageLoading && !showSplash) {
       // Language loaded and splash was dismissed - ensure RTL is applied
-   
+      console.log('[AppContent] Language ready, isRTL:', isRTL);
     }
   }, [languageLoading, showSplash, isRTL]);
 
@@ -125,6 +138,7 @@ function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (languageLoading || showSplash) {
+        console.warn('[AppContent] Initialization timeout - forcing app to proceed');
         setShowSplash(false);
         setForceBypassLanguageLoading(true);
       }
@@ -150,15 +164,22 @@ function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
   // Unless we've timed out and need to force bypass
   const effectiveLanguageLoading = languageLoading && !forceBypassLanguageLoading;
   
-  
+  console.log('[AppContent] Render state:', { 
+    showSplash, 
+    effectiveLanguageLoading, 
+    authLoading, 
+    isAuthenticated,
+    hasUser: !!user,
+    inviteToken: !!inviteToken
+  });
   
   if (showSplash || effectiveLanguageLoading) {
-
+    console.log('[AppContent] Showing SplashScreen');
     return <SplashScreen onFinish={handleSplashFinish} />;
   }
 
   if (inviteToken) {
- 
+    console.log('[AppContent] Showing VisitorInviteScreen');
     return (
       <VisitorInviteScreen 
         route={{ params: { token: inviteToken } }} 
@@ -167,7 +188,7 @@ function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
   }
 
   if (authLoading) {
-
+    console.log('[AppContent] Showing auth loading spinner');
     return (
       <View style={[styles.loadingContainer, { backgroundColor: isDarkMode ? Colors.dark.background : Colors.light.background }]}>
         <ActivityIndicator size="large" color={isDarkMode ? Colors.dark.primary : Colors.light.primary} />
@@ -176,6 +197,7 @@ function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
   }
 
   if (!isAuthenticated || !user) {
+    console.log('[AppContent] Showing LoginScreen');
     return <LoginScreen key={layoutKey} onLoginSuccess={handleLoginSuccess} />;
   }
 
@@ -222,7 +244,7 @@ export default function App() {
     let mounted = true;
     getBootstrapPromise().then(() => {
       if (mounted) {
-        console.log('[RTL DEBUG] App.tsx: Bootstrap promise resolved, cached locale:', getCachedLocale());
+        console.log('[App] Locale bootstrap complete, cached locale:', getCachedLocale());
         setLocaleBootstrapReady(true);
       }
     });
@@ -233,13 +255,14 @@ export default function App() {
     async function prepare() {
       try {
         if (fontError) {
+          console.warn('[App] Font loading error:', fontError);
         }
         
         if (fontsLoaded || fontError) {
           setAppIsReady(true);
         }
       } catch (e) {
-      
+        console.warn('[App] Error during app preparation:', e);
         setAppIsReady(true);
       }
     }
@@ -250,11 +273,13 @@ export default function App() {
   useEffect(() => {
     const timer = setTimeout(() => {
       if (!appIsReady) {
+        console.warn('[App] Font loading timeout - proceeding without custom fonts');
         setAppIsReady(true);
       }
       // Also timeout locale bootstrap to prevent stuck splash
       if (!localeBootstrapReady) {
-         setLocaleBootstrapReady(true);
+        console.warn('[App] Locale bootstrap timeout - proceeding with fallback');
+        setLocaleBootstrapReady(true);
       }
     }, 3000);
     return () => clearTimeout(timer);

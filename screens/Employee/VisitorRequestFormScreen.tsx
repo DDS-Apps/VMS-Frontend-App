@@ -448,9 +448,11 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
           idNumber: idNumber.trim(),
         };
 
+        console.log('[VisitorRequestForm] Submitting walk-in registration:', JSON.stringify(walkInPayload, null, 2));
         
         const result = await walkInMutation.mutateAsync(walkInPayload);
         
+        console.log('[VisitorRequestForm] Walk-in registered successfully:', result);
 
         const message = t('reception.walkInRegistered').replace('{name}', fullName);
         setSuccessMessage(message);
@@ -483,9 +485,11 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
         needsBuffet: asReceptionist ? false : needsBuffet,
       };
 
+      console.log('[VisitorRequestForm] Submitting request with payload:', JSON.stringify(payload, null, 2));
       
       const result = await createVisitMutation.mutateAsync(payload);
       
+      console.log('[VisitorRequestForm] Request submitted successfully:', result);
 
       const message = asManager 
         ? t('notifications.requestAutoApproved').replace('{name}', fullName)
@@ -494,6 +498,10 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
       setSuccessMessage(message);
       setShowSuccessModal(true);
     } catch (error: any) {
+      console.error('[VisitorRequestForm] Submit error:', error);
+      console.error('[VisitorRequestForm] Error type:', error?.constructor?.name);
+      console.error('[VisitorRequestForm] Error code:', error?.code);
+      console.error('[VisitorRequestForm] Error message:', error?.message);
       
       let errorMessage = t('errors.submitFailed');
       
@@ -517,6 +525,7 @@ export default function VisitorRequestFormScreen({ navigation, route, asManager,
         [{ text: t('common.ok') }]
       );
     } finally {
+      console.log('[VisitorRequestForm] Submit complete, resetting isSubmitting');
       setIsSubmitting(false);
     }
   };

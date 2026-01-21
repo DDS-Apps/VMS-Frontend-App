@@ -155,4 +155,9 @@ export function logEnvironmentInfo(): void {
   const env = getCurrentEnvironment();
   const config = getEnvironmentConfig();
   
+  console.log('=== Environment Info ===');
+  console.log(`Environment: ${env}`);
+  console.log(`Firebase Project: ${config.firebase.projectId}`);
+  console.log(`API Base URL: ${config.backend.apiBaseUrl}`);
+  console.log('========================');
 }

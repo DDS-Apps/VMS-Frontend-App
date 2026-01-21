@@ -615,6 +615,10 @@ export default function RequestDetailsScreen({
     
     // Pre-select communication channels from existing request data (normalize to lowercase for comparison)
     const channels = (visitData.communicationChannels || []).map(c => c.toLowerCase());
+    console.log('[openEditModal] visitData.communicationChannels:', visitData.communicationChannels);
+    console.log('[openEditModal] Normalized channels:', channels);
+    console.log('[openEditModal] includes whatsapp:', channels.includes('whatsapp'));
+    console.log('[openEditModal] includes sms:', channels.includes('sms'));
     setEditSendWhatsApp(channels.includes('whatsapp'));
     setEditSendSMS(channels.includes('sms'));
     
@@ -806,6 +810,7 @@ export default function RequestDetailsScreen({
       }
     }
 
+    console.log(
       "[RequestDetails] Submitting edit with payload (mode: " + editModalMode + "):",
       JSON.stringify(payload, null, 2),
     );
@@ -814,6 +819,7 @@ export default function RequestDetailsScreen({
       { id: requestId, data: payload },
       {
         onSuccess: () => {
+          console.log("[RequestDetails] Edit successful");
           setShowEditModal(false);
           let message = t("notifications.visitUpdated");
           if (isApprovalFlow) {
@@ -827,6 +833,7 @@ export default function RequestDetailsScreen({
           setIsApprovalFlow(false);
         },
         onError: (error) => {
+          console.log("[RequestDetails] Edit failed:", error.message);
           Alert.alert(t("errors.somethingWentWrong"), error.message);
         },
       },
@@ -2115,6 +2122,7 @@ export default function RequestDetailsScreen({
                       },
                     ]}
                     onPress={() => {
+                      console.log('[Edit Modal] Date picker button pressed');
                       setShowEditDatePicker(true);
                     }}
                     android_ripple={{ color: theme.border }}
@@ -2157,6 +2165,7 @@ export default function RequestDetailsScreen({
                   },
                 ]}
                 onPress={() => {
+                  console.log('[Edit Modal] Time picker button pressed');
                   setShowEditTimePicker(true);
                 }}
                 android_ripple={{ color: theme.border }}
@@ -2199,6 +2208,7 @@ export default function RequestDetailsScreen({
                   },
                 ]}
                 onPress={() => {
+                  console.log('[Edit Modal] End time picker button pressed');
                   setShowEditEndTimePicker(true);
                 }}
                 android_ripple={{ color: theme.border }}

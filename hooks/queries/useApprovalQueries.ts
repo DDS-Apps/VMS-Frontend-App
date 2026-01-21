@@ -313,19 +313,24 @@ export function useCreateVisitMutation() {
 
   return useMutation<CreateVisitResponse, Error, CreateVisitPayload>({
     mutationFn: async (data) => {
+      console.log('[useCreateVisitMutation] Starting mutation with data:', JSON.stringify(data, null, 2));
       try {
         const result = await requestApiService.createVisit(data);
+        console.log('[useCreateVisitMutation] Mutation successful:', result);
         return result;
       } catch (error) {
+        console.error('[useCreateVisitMutation] Mutation failed:', error);
         throw error;
       }
     },
     onSuccess: (data) => {
+      console.log('[useCreateVisitMutation] onSuccess callback - invalidating queries');
       queryClient.invalidateQueries({ queryKey: requestKeys.all });
       queryClient.invalidateQueries({ queryKey: requestKeys.visits() });
       queryClient.invalidateQueries({ queryKey: invitationKeys.all });
     },
     onError: (error) => {
+      console.error('[useCreateVisitMutation] onError callback:', error);
     },
   });
 }

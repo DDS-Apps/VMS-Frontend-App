@@ -22,7 +22,7 @@ const mutationCache = new MutationCache({
     
     showLocalizedError(error);
     
-    console.log('[RTL DEBUG] QueryProvider: Mutation error', {
+    console.error('[MutationCache] Error:', {
       mutationKey: mutation.options.mutationKey,
       error,
     });

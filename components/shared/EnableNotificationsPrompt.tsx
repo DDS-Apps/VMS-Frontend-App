@@ -70,6 +70,7 @@ export function EnableNotificationsPrompt({
         setIsLoading(false);
       }
     } catch (error) {
+      console.error('[EnableNotificationsPrompt] Failed to enable:', error);
       setIsLoading(false);
     }
     

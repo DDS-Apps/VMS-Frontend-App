@@ -52,6 +52,7 @@ async function tryRegisterServiceWorker(): Promise<ServiceWorkerRegistration | n
     await navigator.serviceWorker.ready;
     return registration;
   } catch (error) {
+    console.warn('[Firebase] Service worker registration failed:', error);
     return null;
   }
 }
@@ -62,57 +63,76 @@ export async function initializeFirebaseWeb(): Promise<boolean> {
   }
 
   try {
+    console.log('[FCM] Step 1: Importing Firebase modules...');
     const firebase = await import('firebase/app');
     const messagingModule = await import('firebase/messaging');
 
     if (!firebaseApp) {
+      console.log('[FCM] Step 2: Initializing Firebase app...');
       firebaseApp = firebase.initializeApp(firebaseConfig);
     }
 
     if (typeof window !== 'undefined') {
+      console.log('[FCM] Step 3: Getting messaging instance...');
       messaging = messagingModule.getMessaging(firebaseApp);
+      console.log('[FCM] Step 4: Registering service worker...');
       serviceWorkerRegistration = await tryRegisterServiceWorker();
+      console.log('[FCM] Step 5: Firebase init complete, SW registered:', !!serviceWorkerRegistration);
       return true;
     }
     return false;
   } catch (error) {
+    console.error('[FCM] Init error:', error);
     return false;
   }
 }
 
 export async function getWebFcmToken(): Promise<string | null> {
+  console.log('[FCM] getToken: Starting, messaging available:', !!messaging);
   
   if (Platform.OS !== 'web' || !messaging) {
+    console.log('[FCM] getToken: Skipped - not web or no messaging');
     return null;
   }
 
   try {
+    console.log('[FCM] getToken: Requesting permission...');
     const permission = await Notification.requestPermission();
+    console.log('[FCM] getToken: Permission result:', permission);
     
     if (permission !== 'granted') {
+      console.log('[FCM] getToken: Permission denied');
       return null;
     }
 
+    console.log('[FCM] getToken: Importing getToken function...');
     const { getToken } = await import('firebase/messaging');
     
+    console.log('[FCM] getToken: VAPID key exists:', !!VAPID_KEY);
     const tokenOptions: { vapidKey: string; serviceWorkerRegistration?: ServiceWorkerRegistration } = { 
       vapidKey: VAPID_KEY 
     };
     
     if (serviceWorkerRegistration) {
       tokenOptions.serviceWorkerRegistration = serviceWorkerRegistration;
+      console.log('[FCM] getToken: Using service worker');
     }
     
+    console.log('[FCM] getToken: Calling Firebase getToken...');
     const token = await getToken(messaging, tokenOptions);
     
     if (!token) {
+      console.error('[FCM] getToken: Firebase returned empty token');
       return null;
     }
     
+    console.log('[FCM] getToken: SUCCESS! Token obtained:', token.substring(0, 20) + '...');
     return token;
   } catch (error) {
+    console.error('[FCM] getToken: ERROR:', error);
     
     if (isLocalDevEnvironment()) {
+      console.warn('[FCM] FCM requires HTTPS');
     }
     
     return null;
