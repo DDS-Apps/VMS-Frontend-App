@@ -48,6 +48,7 @@ interface LegacyVisitor {
   rejectionReason?: string;
   checkedInAt?: string;
   checkedOutAt?: string;
+  completedAt?: string;
 }
 
 export default function VisitorDetailScreen({ navigation, route }: VisitorDetailScreenProps) {
@@ -93,6 +94,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
     rejectionReason: visitDetails.rejection?.reason,
     checkedInAt: visitDetails.checkedInAt,
     checkedOutAt: visitDetails.checkedOutAt,
+    completedAt: visitDetails.completedAt,
   } : null);
   
   const checkInMutation = useReceptionCheckInMutation();
@@ -157,6 +159,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
     isWalkIn: visitor?.isWalkIn ?? false,
     checkedInAt: visitor?.checkedInAt,
     checkedOutAt: visitor?.checkedOutAt,
+    completedAt: visitor?.completedAt,
     hostApproval: visitor?.rejectedAt ? {
       required: true,
       rejectedAt: visitor.rejectedAt,

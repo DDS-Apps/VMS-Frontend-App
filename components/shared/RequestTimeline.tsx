@@ -832,6 +832,24 @@ function buildReceptionistTimeline(
     });
   }
 
+  // ============ Visit Completed Step ============
+  if (data.completedAt || data.checkedOutAt || data.status === 'completed') {
+    steps.push({
+      id: 'completed',
+      label: t('timeline.visitCompleted'),
+      timestamp: data.completedAt || data.checkedOutAt,
+      status: 'completed',
+      icon: 'check-circle',
+    });
+  } else {
+    steps.push({
+      id: 'completed',
+      label: t('timeline.visitCompleted'),
+      status: 'pending',
+      icon: 'check-circle',
+    });
+  }
+
   return steps;
 }
 
