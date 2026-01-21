@@ -206,6 +206,9 @@ export default function Sidebar({
   const { width } = Dimensions.get('window');
   const isLargeScreen = width >= 768;
   const insets = useSafeAreaInsets();
+  
+  // DEBUG: Log profile data to verify it's passed correctly
+  console.log('[Sidebar Profile DEBUG]', { userName, userRole, isRTL, platform: Platform.OS });
 
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => {
     const initial = new Set<string>();
@@ -361,7 +364,7 @@ export default function Sidebar({
         style={({ pressed }) => [styles.profileHeader, pressed && { opacity: 0.7 }]}
         onPress={() => handleItemPress('Dashboard')}
       >
-        <DirectionalRow style={{ flex: 1 }} gap={Spacing.md}>
+        <DirectionalRow style={styles.profileRow} gap={Spacing.md}>
           {userPhotoUrl ? (
             <Image
               source={{ uri: userPhotoUrl }}
@@ -375,7 +378,7 @@ export default function Sidebar({
               </ThemedText>
             </View>
           )}
-          <View style={{ flex: 1 }}>
+          <View style={styles.profileInfo}>
             <ThemedText style={[Typography.body, { fontWeight: '600', color: theme.sidebarText }]} numberOfLines={1}>
               {userName}
             </ThemedText>
@@ -469,6 +472,13 @@ const styles = StyleSheet.create({
     alignItems: 'stretch',
     paddingHorizontal: Spacing.lg,
     width: '100%',
+  },
+  profileRow: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  profileInfo: {
+    flex: 1,
   },
   profileAvatar: {
     width: 48,

@@ -74,7 +74,7 @@ export default function SidebarGroup({
         ]}
         onPress={handleToggle}
       >
-        <DirectionalRow style={{ flex: 1 }} gap={Spacing.md}>
+        <DirectionalRow style={styles.headerRow} gap={Spacing.md}>
           <DDIcon name={icon} size={18} color={theme.sidebarTextMuted} />
           <ThemedText
             style={[
@@ -116,6 +116,10 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm + 2,
     paddingHorizontal: Spacing.md,
     borderRadius: BorderRadius.sm,
+  },
+  headerRow: {
+    alignItems: 'center',
+    gap: Spacing.md,
   },
   headerLeft: {
     flexDirection: 'row',
