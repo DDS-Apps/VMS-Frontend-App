@@ -218,12 +218,12 @@ export function VisitorRequestCard({
     return (
       <DirectionalRow style={styles.cardHeader} gap={Spacing.md}>
         {renderAvatar()}
-        <View style={styles.nameSection}>
-          <ThemedText style={[styles.visitorName, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+        <View style={[styles.nameSection, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
+          <ThemedText style={[styles.visitorName, { color: theme.text }]} numberOfLines={1}>
             {request.visitor.fullName}
           </ThemedText>
           {request.visitor.company ? (
-            <ThemedText style={[styles.companyText, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[styles.companyText, { color: theme.textSecondary }]}>
               {request.visitor.company}
             </ThemedText>
           ) : null}
@@ -335,7 +335,7 @@ export function VisitorRequestCard({
     return (
       <>
         <Spacer height={Spacing.sm} />
-        <DirectionalRow style={styles.infoRow} gap={Spacing.xs}>
+        <DirectionalRow style={styles.infoRow} gap={Spacing.xs} justifyContent={isRTL ? 'flex-end' : 'flex-start'}>
           <DDIcon name="user" size={12} variant="muted" />
           <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>
             {t('dashboard.requestedBy')}
@@ -548,6 +548,7 @@ const styles = StyleSheet.create({
   servicesStatusRow: {
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: Spacing.md,
   },
   servicesContainer: {
     flex: 1,

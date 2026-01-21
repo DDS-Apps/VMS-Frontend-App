@@ -724,6 +724,7 @@ const styles = StyleSheet.create({
   header: {
     justifyContent: 'space-between',
     alignItems: 'flex-start',
+    gap: Spacing.md,
   },
   carouselContainer: {
     paddingEnd: Spacing.lg,
