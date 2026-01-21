@@ -224,10 +224,12 @@ export function DirectionalRow({
   const shouldReverseChildren = Platform.OS === 'web' && isRTL;
   
   let renderedChildren = children;
-  if (shouldReverseChildren && Array.isArray(children)) {
-    renderedChildren = [...children].reverse();
-  } else if (shouldReverseChildren && React.Children.count(children) > 1) {
-    renderedChildren = React.Children.toArray(children).reverse();
+  if (shouldReverseChildren) {
+    const childArray = React.Children.toArray(children);
+    if (childArray.length > 1) {
+      renderedChildren = childArray.reverse();
+      console.log('[DirectionalRow] REVERSED children, count:', childArray.length);
+    }
   }
   
   // When reversing children, use 'row' to avoid double-reversal
