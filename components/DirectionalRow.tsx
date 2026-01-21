@@ -225,17 +225,19 @@ export function DirectionalRow({
   
   let renderedChildren = children;
   if (shouldReverseChildren) {
+    // Use toArray to get actual renderable children (filters null/undefined/false)
     const childArray = React.Children.toArray(children);
+    console.log('[DirectionalRow] WEB RTL: toArray length:', childArray.length, 'original count:', React.Children.count(children));
+    
     if (childArray.length > 1) {
-      renderedChildren = childArray.reverse();
-      console.log('[DirectionalRow] REVERSED children, count:', childArray.length);
+      // Create a NEW reversed array (don't mutate in place)
+      const reversedArray = [...childArray].reverse();
+      renderedChildren = reversedArray;
+      console.log('[DirectionalRow] REVERSED children, new order count:', reversedArray.length);
     }
-  }
-  
-  // When reversing children, use 'row' to avoid double-reversal
-  if (shouldReverseChildren) {
+    
+    // Always use 'row' on web RTL to avoid double-flip issues
     finalStyle.flexDirection = 'row';
-    console.log('[DirectionalRow] WEB RTL FIX: Reversing children, flexDirection set to:', finalStyle.flexDirection, 'childCount:', React.Children.count(children));
   }
   
   // Wrap children in context to track nesting
