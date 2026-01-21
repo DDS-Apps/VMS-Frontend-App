@@ -197,6 +197,11 @@ export function DirectionalRow({
   // Calculate flex direction
   const flexDirection = forceDirection ?? calculateFlexDirection(isRTL, isInsideDirectionalRow);
   
+  // DEBUG: Log RTL state and flex direction (only for first few renders)
+  if (Platform.OS === 'web' && depth === 0) {
+    console.log('[DirectionalRow] isRTL:', isRTL, 'isNested:', isInsideDirectionalRow, 'flexDir:', flexDirection);
+  }
+  
   const finalStyle: ViewStyle = {
     ...flattenedStyle,
     flexDirection,
