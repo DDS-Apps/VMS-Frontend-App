@@ -561,6 +561,7 @@ export default function OverviewScreen({
                   style={{
                     flex: 1,
                     alignItems: isRTL ? "flex-end" : "flex-start",
+                    alignSelf: "stretch",
                   }}
                 >
                   <ThemedText
@@ -569,6 +570,7 @@ export default function OverviewScreen({
                       {
                         color: theme.text,
                         textAlign: isRTL ? "right" : "left",
+                        alignSelf: isRTL ? "flex-end" : "flex-start",
                       },
                     ]}
                   >
@@ -582,6 +584,7 @@ export default function OverviewScreen({
                         marginTop: 4,
                         fontSize: 12,
                         textAlign: isRTL ? "right" : "left",
+                        alignSelf: isRTL ? "flex-end" : "flex-start",
                       },
                     ]}
                   >
@@ -703,6 +706,7 @@ export default function OverviewScreen({
                   style={{
                     flex: 1,
                     alignItems: isRTL ? "flex-end" : "flex-start",
+                    alignSelf: "stretch",
                   }}
                 >
                   <ThemedText
@@ -711,6 +715,7 @@ export default function OverviewScreen({
                       {
                         color: theme.text,
                         textAlign: isRTL ? "right" : "left",
+                        alignSelf: isRTL ? "flex-end" : "flex-start",
                       },
                     ]}
                   >
@@ -724,6 +729,7 @@ export default function OverviewScreen({
                         marginTop: 4,
                         fontSize: 12,
                         textAlign: isRTL ? "right" : "left",
+                        alignSelf: isRTL ? "flex-end" : "flex-start",
                       },
                     ]}
                   >
@@ -842,6 +848,7 @@ export default function OverviewScreen({
                   style={{
                     flex: 1,
                     alignItems: isRTL ? "flex-end" : "flex-start",
+                    alignSelf: "stretch",
                   }}
                 >
                   <ThemedText
@@ -850,6 +857,7 @@ export default function OverviewScreen({
                       {
                         color: theme.text,
                         textAlign: isRTL ? "right" : "left",
+                        alignSelf: isRTL ? "flex-end" : "flex-start",
                       },
                     ]}
                   >
@@ -863,6 +871,7 @@ export default function OverviewScreen({
                         marginTop: 4,
                         fontSize: 12,
                         textAlign: isRTL ? "right" : "left",
+                        alignSelf: isRTL ? "flex-end" : "flex-start",
                       },
                     ]}
                   >
@@ -976,6 +985,7 @@ export default function OverviewScreen({
                   style={{
                     flex: 1,
                     alignItems: isRTL ? "flex-end" : "flex-start",
+                    alignSelf: "stretch",
                   }}
                 >
                   <ThemedText
@@ -984,6 +994,7 @@ export default function OverviewScreen({
                       {
                         color: theme.text,
                         textAlign: isRTL ? "right" : "left",
+                        alignSelf: isRTL ? "flex-end" : "flex-start",
                       },
                     ]}
                   >
@@ -997,6 +1008,7 @@ export default function OverviewScreen({
                         marginTop: 4,
                         fontSize: 12,
                         textAlign: isRTL ? "right" : "left",
+                        alignSelf: isRTL ? "flex-end" : "flex-start",
                       },
                     ]}
                   >
@@ -1115,6 +1127,7 @@ export default function OverviewScreen({
                   style={{
                     flex: 1,
                     alignItems: isRTL ? "flex-end" : "flex-start",
+                    alignSelf: "stretch",
                   }}
                 >
                   <ThemedText
@@ -1123,6 +1136,7 @@ export default function OverviewScreen({
                       {
                         color: theme.text,
                         textAlign: isRTL ? "right" : "left",
+                        alignSelf: isRTL ? "flex-end" : "flex-start",
                       },
                     ]}
                   >
@@ -1136,6 +1150,7 @@ export default function OverviewScreen({
                         marginTop: 4,
                         fontSize: 12,
                         textAlign: isRTL ? "right" : "left",
+                        alignSelf: isRTL ? "flex-end" : "flex-start",
                       },
                     ]}
                   >
