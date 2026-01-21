@@ -131,11 +131,6 @@ export function calculateFlexDirection(
   isRTL: boolean, 
   isNested: boolean = false
 ): 'row' | 'row-reverse' {
-  // If nested inside another DirectionalRow, parent already handles direction
-  if (isNested) {
-    return 'row';
-  }
-  
   // Check if browser will auto-flip (web only, when <html dir="rtl"> is set)
   const autoFlip = browserWillAutoFlip();
   
@@ -146,9 +141,19 @@ export function calculateFlexDirection(
   
   // PLATFORM-SPECIFIC RTL HANDLING:
   // - Mobile: Use 'row' for RTL - native layer auto-flips it when forceRTL(true)
+  //   On mobile, nested rows should use 'row' because parent already flipped
   // - Web: Use 'row-reverse' for RTL - no native auto-flip, we control it explicitly
+  //   On web, ALL rows (even nested) need explicit 'row-reverse' because there's no auto-flip
   if (isRTL) {
     const isWeb = Platform.OS === 'web';
+    
+    // On mobile, if nested, parent already handled the flip
+    if (!isWeb && isNested) {
+      return 'row';
+    }
+    
+    // On web, always use row-reverse for RTL (even nested, since no auto-flip)
+    // On mobile (non-nested), use 'row' which native will flip
     const direction = isWeb ? 'row-reverse' : 'row';
     
     // DEBUG: Log the platform-specific direction calculation
