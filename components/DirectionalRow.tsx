@@ -179,6 +179,18 @@ export function DirectionalRow({
   // Calculate flex direction
   const flexDirection = forceDirection ?? calculateFlexDirection(isRTL, isInsideDirectionalRow);
   
+  // DEBUG: Log RTL values for tracing layout issues
+  console.log('[DirectionalRow DEBUG]', {
+    platform: Platform.OS,
+    'I18nManager.isRTL': I18nManager.isRTL,
+    'getIsRTL()': isRTL,
+    'browserWillAutoFlip()': browserWillAutoFlip(),
+    isNested: isInsideDirectionalRow,
+    depth,
+    forceDirection: forceDirection ?? 'none',
+    resolvedFlexDirection: flexDirection,
+  });
+  
   const finalStyle: ViewStyle = {
     ...flattenedStyle,
     flexDirection,

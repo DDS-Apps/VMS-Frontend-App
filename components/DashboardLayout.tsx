@@ -278,6 +278,17 @@ export default function DashboardLayout({
         >
         {/* Mobile Header Bar */}
         {!isLargeScreen && (
+          // DEBUG: Log RTL state for mobile header
+          console.log('[DashboardLayout Mobile Header DEBUG]', {
+            platform: Platform.OS,
+            'I18nManager.isRTL': I18nManager.isRTL,
+            'contextIsRTL': contextIsRTL,
+            'calculated isRTL': isRTL,
+            locale,
+            'localStorage (web only)': Platform.OS === 'web' && typeof localStorage !== 'undefined' 
+              ? localStorage.getItem('@vms_language') 
+              : 'N/A',
+          }),
           <DirectionalRow 
             style={[
               styles.mobileHeader, 
