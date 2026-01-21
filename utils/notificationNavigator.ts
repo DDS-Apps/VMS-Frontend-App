@@ -13,7 +13,6 @@ export function navigateFromInAppNotification(notification: InAppNotificationDat
   const { type, data = {} } = notification;
   
   if (!isReady()) {
-    console.warn('[NotificationNavigator] Navigation is not ready');
     return;
   }
 
@@ -127,10 +126,8 @@ export function navigateFromInAppNotification(notification: InAppNotificationDat
 
 export function handleNotificationTap(response: NotificationResponse) {
   const data = response.notification.request.content.data || {};
-  console.log('[NotificationNavigator] Handling notification tap:', data);
 
   if (!isReady()) {
-    console.warn('[NotificationNavigator] Navigation is not ready');
     return;
   }
 

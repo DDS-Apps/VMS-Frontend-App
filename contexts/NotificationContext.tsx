@@ -21,7 +21,6 @@ try {
     }),
   });
 } catch (error) {
-  console.log('expo-notifications not supported in this environment (likely Expo Go on Android SDK 53+)');
   notificationsSupported = false;
 }
 
@@ -93,12 +92,10 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
     }
 
     if (!notificationsSupported) {
-      console.log('Push notifications not supported in this environment');
       return null;
     }
 
     if (!Device.isDevice) {
-      console.log('Push notifications require a physical device');
       return null;
     }
 
@@ -285,7 +282,6 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
         }
       );
     } catch (e) {
-      console.log('Failed to set up notification listeners');
     }
 
     return () => {

@@ -52,7 +52,6 @@ export function ThemedText({
 
   // RTL DEBUG - Log once per component type to verify text alignment
   if (__DEV__ && isRTL && textVariant === 'body') {
-    console.log('🔄 [RTL_DEBUG] ThemedText:', { isRTL, textAlign, writingDirection });
   }
 
   const getColor = () => {

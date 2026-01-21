@@ -36,6 +36,4 @@ app.use(function(req, res) {
 });
 
 app.listen(PORT, '0.0.0.0', function() {
-  console.log('Production server running on http://0.0.0.0:' + PORT);
-  console.log('Serving Expo web app from: ' + DIST_DIR);
 });

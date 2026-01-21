@@ -10,8 +10,6 @@ const MICROSOFT_AUTH_BASE_URL =
   Constants.expoConfig?.extra?.microsoftAuthUrl ||
   'https://vms-backend-folio3.replit.app';
 
-console.log('[API Config] Using API Base URL:', API_BASE_URL);
-console.log('[API Config] Source: process.env =', process.env.EXPO_PUBLIC_API_BASE_URL, ', Constants.extra =', Constants.expoConfig?.extra?.apiBaseUrl);
 
 export const apiConfig = {
   baseUrl: API_BASE_URL,

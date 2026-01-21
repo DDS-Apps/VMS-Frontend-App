@@ -78,7 +78,6 @@ export default function DashboardLayout({
   
   // Use synchronous localStorage check for first render, then context value
   const isRTL = Platform.OS === 'web' ? getInitialRTLState() || contextIsRTL : contextIsRTL;
-  console.log('[DashboardLayout] isRTL:', isRTL, 'contextIsRTL:', contextIsRTL, 'locale:', locale);
   
   const { t } = useTranslation();
   const rtlStyles = useRTLStyles();
@@ -103,12 +102,10 @@ export default function DashboardLayout({
     // Persist language preference to server first
     try {
       await authService.updateProfile({ language: newLocale });
-      console.log('[DashboardLayout] Language preference saved to server:', newLocale);
       // Only apply locally if server update succeeded
       await setLocale(newLocale);
       setProfileMenuVisible(false);
     } catch (error) {
-      console.warn('[DashboardLayout] Failed to save language to server:', error);
       // Keep menu open so user knows something failed
       // Note: In a future enhancement, we could add a toast notification here
     }

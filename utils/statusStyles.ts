@@ -11,7 +11,6 @@ export type { StatusConfig };
  */
 export const applyOpacity = (color: string, alpha: string): string => {
   if (!color || !color.startsWith('#')) {
-    console.warn(`Invalid color provided to applyOpacity: ${color}, using fallback #808080`);
     return `#808080${alpha}`;
   }
   
@@ -26,7 +25,6 @@ export const applyOpacity = (color: string, alpha: string): string => {
     return `#${hexColor}${alpha}`;
   }
   
-  console.warn(`Invalid hex color length: ${color}, using fallback #808080`);
   return `#808080${alpha}`;
 };
 

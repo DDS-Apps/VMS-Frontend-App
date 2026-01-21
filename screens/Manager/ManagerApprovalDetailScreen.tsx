@@ -237,7 +237,6 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
     try {
       const now = new Date();
       
-      console.log('[isVisitExpired] Checking expiration:', {
         visitDate: visitData.visitDate,
         visitTime: visitData.visitTime,
         endTime: visitData.endTime,
@@ -249,7 +248,6 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
       const endTimeStr = visitData.endTime;
       if (endTimeStr && visitData.visitDate) {
         const visitEndDateTime = parseDateTime(visitData.visitDate, endTimeStr);
-        console.log('[isVisitExpired] Priority 1 - endTime parsed:', {
           endTimeStr,
           visitEndDateTime: visitEndDateTime.toISOString(),
           isValid: !isNaN(visitEndDateTime.getTime()),
@@ -266,7 +264,6 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
         if (!isNaN(startDateTime.getTime())) {
           const durationMs = parseDurationToMs(visitData.duration);
           const calculatedEndTime = new Date(startDateTime.getTime() + durationMs);
-          console.log('[isVisitExpired] Priority 2 - calculated end time:', {
             startDateTime: startDateTime.toISOString(),
             durationMs,
             calculatedEndTime: calculatedEndTime.toISOString(),
@@ -281,7 +278,6 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
       if (year && month && day) {
         // End of visit day (23:59:59)
         const visitDateEndOfDay = new Date(year, month - 1, day, 23, 59, 59);
-        console.log('[isVisitExpired] Fallback - end of day:', {
           visitDateEndOfDay: visitDateEndOfDay.toISOString(),
           isExpired: visitDateEndOfDay < now,
         });
@@ -292,7 +288,6 @@ export default function ManagerApprovalDetailScreen({ navigation, route }: Manag
       
       return false;
     } catch (err) {
-      console.log('[isVisitExpired] Error:', err);
       return false;
     }
   }, [visitData?.visitDate, visitData?.visitTime, visitData?.endTime, visitData?.duration, parseDateTime]);

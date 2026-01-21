@@ -40,7 +40,6 @@ function isDevelopment(): boolean {
  * @param locale - Current locale for localized alert messages
  */
 export async function restartApp(locale: 'en' | 'ar' = 'en'): Promise<void> {
-  console.log('🔄 [RTL_DEBUG] restartApp called:', {
     platform: Platform.OS,
     isExpoGo: isExpoGo(),
     isDev: isDevelopment(),
@@ -63,12 +62,10 @@ export async function restartApp(locale: 'en' | 'ar' = 'en'): Promise<void> {
     try {
       const DevSettings = NativeModules.DevSettings;
       if (DevSettings?.reload) {
-        console.log('🔄 [RTL_DEBUG] Calling DevSettings.reload()...');
         DevSettings.reload();
         return;
       }
     } catch (error) {
-      console.log('🔄 [RTL_DEBUG] DevSettings.reload() not available');
     }
     
     // Fallback: Show alert asking user to manually restart
@@ -91,7 +88,6 @@ export async function restartApp(locale: 'en' | 'ar' = 'en'): Promise<void> {
     }
     throw new Error('Updates.reloadAsync not available');
   } catch (error) {
-    console.error('[RestartApp] Failed to reload:', error);
     
     // Show alert if reload fails
     Alert.alert(

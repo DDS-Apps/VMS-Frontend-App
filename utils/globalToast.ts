@@ -94,7 +94,6 @@ export function showGlobalError(message: string, title?: string) {
   if (toastMethods) {
     toastMethods.showError(message, title);
   } else {
-    console.error('[GlobalToast] Error:', title, message);
   }
 }
 
@@ -102,7 +101,6 @@ export function showGlobalSuccess(message: string, title?: string) {
   if (toastMethods) {
     toastMethods.showSuccess(message, title);
   } else {
-    console.log('[GlobalToast] Success:', title, message);
   }
 }
 
@@ -110,7 +108,6 @@ export function showGlobalWarning(message: string, title?: string) {
   if (toastMethods) {
     toastMethods.showWarning(message, title);
   } else {
-    console.warn('[GlobalToast] Warning:', title, message);
   }
 }
 
@@ -118,7 +115,6 @@ export function showGlobalInfo(message: string, title?: string) {
   if (toastMethods) {
     toastMethods.showInfo(message, title);
   } else {
-    console.info('[GlobalToast] Info:', title, message);
   }
 }
 

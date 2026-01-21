@@ -65,11 +65,9 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
     // Mobile: Prefer cached locale (set by async bootstrap in index.js)
     const cached = getCachedLocale();
     if (cached !== null) {
-      console.log('[LanguageContext] Using cached locale:', cached);
       return cached;
     }
     // Fallback to I18nManager.isRTL (may be stale until restart)
-    console.log('[LanguageContext] No cached locale, using I18nManager.isRTL:', I18nManager.isRTL);
     return I18nManager.isRTL ? 'ar' : 'en';
   };
   
@@ -87,18 +85,14 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
 
     async function verifyLocale() {
       try {
-        console.log('[LanguageContext] Verifying locale...');
-        console.log('[LanguageContext] Initial state:', { locale, isRTL: initialIsRTL });
         
         const storedLocale = await getStoredLocale();
-        console.log('[LanguageContext] Stored locale:', storedLocale);
 
         if (!mounted) return;
 
         // Update state if stored locale differs from initial
         // (This shouldn't happen if bootstrap worked correctly)
         if (storedLocale !== locale) {
-          console.log('[LanguageContext] Locale mismatch, updating state:', { 
             from: locale, 
             to: storedLocale 
           });
@@ -109,7 +103,6 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
           // If direction also mismatches, something went wrong with bootstrap
           // This is a failsafe - restart the app
           if (storedIsRTL !== I18nManager.isRTL && Platform.OS !== 'web') {
-            console.warn('[LanguageContext] Direction mismatch after bootstrap, restarting...');
             await restartApp(storedLocale);
             return;
           }
@@ -117,7 +110,6 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
 
         setIsLoading(false);
       } catch (error) {
-        console.error('[LanguageContext] Verify error:', error);
         if (mounted) setIsLoading(false);
       }
     }
@@ -133,7 +125,6 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
   const handleSetLocale = useCallback(async (newLocale: SupportedLocale) => {
     if (newLocale === locale) return;
 
-    console.log('[LanguageContext] Changing locale:', { from: locale, to: newLocale });
     
     // Show loading overlay
     setIsChangingLanguage(true);
@@ -141,7 +132,6 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
     try {
       // Use localeManager to change language
       const result = await localeManagerChangeLanguage(newLocale);
-      console.log('[LanguageContext] Change result:', result);
 
       // Update local state
       setLocaleState(newLocale);
@@ -149,7 +139,6 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
 
       // If restart/reload is needed, trigger it
       if (result.needsRestart) {
-        console.log('[LanguageContext] Triggering restart/reload...');
         // Keep the loading overlay visible until restart completes
         await restartApp(newLocale);
       } else {
@@ -157,7 +146,6 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
         setIsChangingLanguage(false);
       }
     } catch (error) {
-      console.error('[LanguageContext] Error changing locale:', error);
       setIsChangingLanguage(false);
     }
   }, [locale]);

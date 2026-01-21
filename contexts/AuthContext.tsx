@@ -85,13 +85,11 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
     try {
       await pushNotificationService.unregister();
     } catch (pushError) {
-      console.warn('[AuthContext] Failed to unregister push notifications:', pushError);
     }
 
     try {
       await crashlyticsService.clearUserAttributes();
     } catch (crashlyticsError) {
-      console.warn('[AuthContext] Failed to clear crashlytics user attributes:', crashlyticsError);
     }
 
     try {
@@ -142,7 +140,6 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
     if (isValidRole(role)) {
       return role;
     }
-    console.warn(`Unknown role received from backend: ${role}, defaulting to 'employee'`);
     return 'employee';
   };
 
@@ -170,12 +167,10 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
 
   const mapLoginUserToAuthUser = (loginUser: AuthTokenResponse['user']): AuthUser | null => {
     if (!loginUser) {
-      console.warn('[AuthContext] Received null/undefined user in token response');
       return null;
     }
     
     if (!loginUser.id || !loginUser.email) {
-      console.warn('[AuthContext] User data missing required fields (id or email):', JSON.stringify(loginUser));
       return null;
     }
     
@@ -226,23 +221,19 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
         return false;
       }
 
-      console.log('[AuthContext] Detected auth tokens in URL hash');
       const parsed = parseAuthHashFragment(hash);
 
       if (parsed.error) {
-        console.error('[AuthContext] Error in hash:', parsed.error);
         clearUrlHash();
         return false;
       }
 
       if (!parsed.accessToken) {
-        console.log('[AuthContext] No access token in hash');
         clearUrlHash();
         return false;
       }
 
       try {
-        console.log('[AuthContext] Processing SSO tokens from URL hash');
         
         setAccessToken(parsed.accessToken);
         const refreshTokenValue = parsed.refreshToken || parsed.accessToken;
@@ -263,10 +254,8 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
         });
 
         clearUrlHash();
-        console.log('[AuthContext] SSO login successful');
 
         pushNotificationService.initialize().catch((pushError) => {
-          console.warn('[AuthContext] Failed to initialize push notifications:', pushError);
         });
 
         crashlyticsService.setUserAttributes({
@@ -275,12 +264,10 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
           name: user.name,
           role: user.role,
         }).catch((crashlyticsError) => {
-          console.warn('[AuthContext] Failed to set crashlytics user attributes:', crashlyticsError);
         });
 
         return true;
       } catch (error) {
-        console.error('[AuthContext] Error processing hash tokens:', error);
         clearTokens();
         await AsyncStorage.multiRemove([AUTH_STORAGE_KEY, TOKEN_STORAGE_KEY]);
         clearUrlHash();
@@ -322,7 +309,6 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
             await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
 
             pushNotificationService.initialize().catch((pushError) => {
-              console.warn('[AuthContext] Failed to initialize push notifications:', pushError);
             });
 
             crashlyticsService.setUserAttributes({
@@ -331,7 +317,6 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
               name: user.name,
               role: user.role,
             }).catch((crashlyticsError) => {
-              console.warn('[AuthContext] Failed to set crashlytics user attributes:', crashlyticsError);
             });
           } catch (error) {
             await AsyncStorage.multiRemove([AUTH_STORAGE_KEY, TOKEN_STORAGE_KEY]);
@@ -365,14 +350,12 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
   }, [persistTokens]);
 
   const handleTokenResponse = useCallback(async (response: AuthTokenResponse) => {
-    console.log('[AuthContext] Processing token response, has user:', !!response?.user);
     
     // Handle case where user might be at root level of response (API format variation)
     const userData = response.user || (response as unknown as { id?: string; email?: string });
     const user = mapLoginUserToAuthUser(userData as AuthTokenResponse['user']);
     
     if (!user) {
-      console.error('[AuthContext] Invalid user data received from server. Response keys:', Object.keys(response || {}));
       setState({
         user: null,
         isLoading: false,
@@ -396,7 +379,6 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
     });
 
     pushNotificationService.initialize().catch((error) => {
-      console.warn('[AuthContext] Failed to initialize push notifications:', error);
     });
 
     crashlyticsService.setUserAttributes({
@@ -405,12 +387,10 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
       name: user.name,
       role: user.role,
     }).catch((error) => {
-      console.warn('[AuthContext] Failed to set crashlytics user attributes:', error);
     });
 
     // Sync language preference from server
     if (user.language && onUserLanguageChanged) {
-      console.log('[AuthContext] User language from server:', user.language);
       onUserLanguageChanged(user.language);
     }
 
@@ -453,7 +433,6 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
     setState((prev) => ({ ...prev, error: null }));
 
     try {
-      console.log('[AuthContext] ssoLogin called, token length:', tokens.accessToken?.length || 0);
       
       if (!tokens.accessToken) {
         throw new Error('No access token provided');
@@ -464,18 +443,12 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
       const refreshTokenValue = tokens.refreshToken || tokens.accessToken;
       setRefreshToken(refreshTokenValue);
 
-      console.log('[AuthContext] Tokens set, persisting...');
       await persistTokens(tokens.accessToken, refreshTokenValue, tokens.expiresIn);
 
-      console.log('[AuthContext] Fetching current user from API...');
-      console.log('[AuthContext] Using access token (first 20 chars):', tokens.accessToken?.substring(0, 20));
       let userDto;
       try {
         userDto = await authService.getCurrentUser();
-        console.log('[AuthContext] User fetched successfully:', userDto?.email);
       } catch (userFetchError) {
-        console.error('[AuthContext] Failed to fetch current user:', userFetchError);
-        console.error('[AuthContext] User fetch error details:', {
           name: userFetchError instanceof Error ? userFetchError.name : 'Unknown',
           message: userFetchError instanceof Error ? userFetchError.message : String(userFetchError),
           code: (userFetchError as any)?.code,
@@ -496,10 +469,8 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
         error: null,
       });
 
-      console.log('[AuthContext] SSO login complete, user:', user.email, 'role:', user.role);
 
       pushNotificationService.initialize().catch((pushError) => {
-        console.warn('[AuthContext] Failed to initialize push notifications:', pushError);
       });
 
       crashlyticsService.setUserAttributes({
@@ -508,18 +479,15 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
         name: user.name,
         role: user.role,
       }).catch((crashlyticsError) => {
-        console.warn('[AuthContext] Failed to set crashlytics user attributes:', crashlyticsError);
       });
 
       // Sync language preference from server
       if (user.language && onUserLanguageChanged) {
-        console.log('[AuthContext] SSO User language from server:', user.language);
         onUserLanguageChanged(user.language);
       }
 
       return user;
     } catch (error) {
-      console.error('[AuthContext] ssoLogin error:', error);
       clearTokens();
       await AsyncStorage.multiRemove([AUTH_STORAGE_KEY, TOKEN_STORAGE_KEY]);
       const errorMessage = error instanceof Error ? error.message : 'SSO login failed';

@@ -56,7 +56,6 @@ let cachedLocale: SupportedLocale | null = null;
  */
 export function setCachedLocale(locale: SupportedLocale): void {
   cachedLocale = locale;
-  console.log('🔄 [RTL_DEBUG] setCachedLocale:', locale);
 }
 
 /**
@@ -142,7 +141,6 @@ export async function getStoredLocale(): Promise<SupportedLocale> {
       return stored;
     }
   } catch (error) {
-    console.error('[LocaleManager] Error reading stored locale:', error);
   }
   return DEFAULT_LOCALE;
 }
@@ -160,7 +158,6 @@ export function getStoredLocaleSync(): SupportedLocale {
       return stored;
     }
   } catch (error) {
-    console.warn('[LocaleManager] Error reading localStorage:', error);
   }
   return DEFAULT_LOCALE;
 }
@@ -177,7 +174,6 @@ export async function saveLocale(locale: SupportedLocale): Promise<void> {
       localStorage.setItem(LANGUAGE_STORAGE_KEY, locale);
     }
   } catch (error) {
-    console.error('[RTL_DEBUG] Error saving locale:', error);
     throw error;
   }
 }
@@ -221,7 +217,6 @@ export function applyWebDocumentDirection(locale: SupportedLocale): void {
   // DirectionalRow handles RTL via flexDirection: 'row-reverse'
   document.documentElement.lang = locale === 'ar' ? 'ar' : 'en';
   
-  console.log('[localeManager] Web document lang set:', document.documentElement.lang);
 }
 
 // ============================================================================
@@ -260,7 +255,6 @@ export async function bootstrapLocale(): Promise<BootstrapResult> {
   const currentlyRTL = I18nManager.isRTL;
   
   // RTL DIAGNOSTIC LOG - Single consolidated log
-  console.log('🔄 [RTL_DEBUG] bootstrapLocale:', {
     platform: Platform.OS,
     storedLocale: locale,
     shouldBeRTL,
@@ -316,7 +310,6 @@ export function bootstrapLocaleSync(): { locale: SupportedLocale; isRTL: boolean
   const cached = getCachedLocale();
   if (cached !== null) {
     const isRTL = isRTLLocale(cached);
-    console.log('🔄 [RTL_DEBUG] bootstrapLocaleSync (mobile, cached):', { locale: cached, isRTL });
     return { locale: cached, isRTL };
   }
   
@@ -324,7 +317,6 @@ export function bootstrapLocaleSync(): { locale: SupportedLocale; isRTL: boolean
   const isRTL = I18nManager.isRTL;
   const locale = isRTL ? 'ar' : 'en';
   
-  console.log('🔄 [RTL_DEBUG] bootstrapLocaleSync (mobile, fallback):', { locale, isRTL });
   return { locale, isRTL };
 }
 
@@ -350,7 +342,6 @@ export async function changeLanguage(newLocale: SupportedLocale): Promise<Change
   const currentIsRTL = I18nManager.isRTL;
   const directionChanged = newIsRTL !== currentIsRTL;
   
-  console.log('🔄 [RTL_DEBUG] changeLanguage:', { 
     from: currentIsRTL ? 'ar' : 'en', 
     to: newLocale,
     directionChanged 

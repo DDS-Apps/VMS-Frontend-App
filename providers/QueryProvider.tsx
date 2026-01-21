@@ -22,7 +22,6 @@ const mutationCache = new MutationCache({
     
     showLocalizedError(error);
     
-    console.error('[MutationCache] Error:', {
       mutationKey: mutation.options.mutationKey,
       error,
     });

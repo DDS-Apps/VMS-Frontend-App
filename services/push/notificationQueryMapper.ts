@@ -158,7 +158,6 @@ const NOTIFICATION_QUERY_MAP: Record<NotificationType, QueryKeyFactory[]> = {
 export function getQueryKeysForNotificationType(type: string): (readonly unknown[])[] {
   const factories = NOTIFICATION_QUERY_MAP[type as NotificationType];
   if (!factories) {
-    console.log(`[QueryMapper] Unknown notification type: ${type}`);
     return [];
   }
   return factories.map(factory => factory());
@@ -168,7 +167,6 @@ export function invalidateQueriesForNotification(
   queryClient: QueryClient,
   notificationType: string
 ): void {
-  console.log(`[QueryMapper] Invalidating queries for notification type: ${notificationType}`);
   
   queryClient.invalidateQueries({ queryKey: notificationKeys.lists() });
   queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCount() });
@@ -176,13 +174,11 @@ export function invalidateQueriesForNotification(
   const queryKeys = getQueryKeysForNotificationType(notificationType);
   
   queryKeys.forEach(queryKey => {
-    console.log(`[QueryMapper] Invalidating:`, queryKey);
     queryClient.invalidateQueries({ queryKey });
   });
 }
 
 export function refreshAllNotificationData(queryClient: QueryClient): void {
-  console.log('[QueryMapper] Refreshing all notification-related data');
   
   queryClient.invalidateQueries({ queryKey: notificationKeys.lists() });
   queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCount() });

@@ -25,7 +25,6 @@ import { restartApp } from "@/utils/restartApp";
 // This runs immediately before React renders
 const syncResult = bootstrapLocaleSync();
 
-console.log('🔄 [RTL_DEBUG] Sync bootstrap complete:', {
   locale: syncResult.locale,
   isRTL: syncResult.isRTL,
   i18nManagerIsRTL: I18nManager.isRTL,
@@ -46,7 +45,6 @@ import { resolveBootstrapPromise } from "@/utils/localeManager";
   try {
     const result = await bootstrapLocale();
     
-    console.log('🔄 [RTL_DEBUG] Async bootstrap complete:', {
       locale: result.locale,
       isRTL: result.isRTL,
       needsRestart: result.needsRestart,
@@ -57,11 +55,9 @@ import { resolveBootstrapPromise } from "@/utils/localeManager";
     resolveBootstrapPromise({ locale: result.locale, isRTL: result.isRTL });
     
     if (result.needsRestart) {
-      console.log('🔄 [RTL_DEBUG] Direction mismatch detected, restarting app...');
       await restartApp(result.locale);
     }
   } catch (error) {
-    console.error('[RTL_DEBUG] Async bootstrap error:', error);
     // Resolve with fallback so App.tsx doesn't hang
     resolveBootstrapPromise({ locale: 'en', isRTL: false });
   }

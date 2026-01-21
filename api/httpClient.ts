@@ -84,7 +84,6 @@ httpClient.interceptors.request.use(
     const method = config.method?.toUpperCase() || 'UNKNOWN';
     const url = `${config.baseURL || ''}${config.url || ''}`;
     const hasAuth = !!accessToken;
-    console.log(`[HTTP Request] ${method} ${url} | Auth: ${hasAuth ? 'yes' : 'no'}`);
     
     if (accessToken && config.headers) {
       config.headers.Authorization = `Bearer ${accessToken}`;
@@ -92,7 +91,6 @@ httpClient.interceptors.request.use(
     return config;
   },
   (error) => {
-    console.error('[HTTP Request Error]', error);
     return Promise.reject(error);
   }
 );
@@ -101,7 +99,6 @@ httpClient.interceptors.response.use(
   (response) => {
     const method = response.config.method?.toUpperCase() || 'UNKNOWN';
     const url = response.config.url || '';
-    console.log(`[HTTP Response] ${method} ${url} | Status: ${response.status}`);
     return response;
   },
   async (error: AxiosError) => {
@@ -165,13 +162,10 @@ export async function get<T>(url: string, params?: Record<string, unknown>): Pro
 }
 
 export async function post<T, D = unknown>(url: string, data?: D): Promise<T> {
-  console.log('[httpClient.post] Making POST request to:', url);
   try {
     const response = await httpClient.post(url, data);
-    console.log('[httpClient.post] Response status:', response.status);
     return unwrapResponse<T>(response.data);
   } catch (error) {
-    console.error('[httpClient.post] Request failed:', error);
     throw error;
   }
 }
@@ -187,16 +181,13 @@ export async function put<T, D = unknown>(url: string, data?: D): Promise<T> {
 }
 
 export async function del<T, D = unknown>(url: string, data?: D): Promise<T | undefined> {
-  console.log('[httpClient.del] Making DELETE request to:', url);
   try {
     const response = await httpClient.delete(url, { data });
-    console.log('[httpClient.del] Response status:', response.status);
     if (response.status === 204) {
       return undefined as T;
     }
     return unwrapResponse<T>(response.data);
   } catch (error) {
-    console.error('[httpClient.del] Request failed:', error);
     throw error;
   }
 }

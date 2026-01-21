@@ -84,11 +84,9 @@ export default function SettingsScreen({
     // Persist language preference to server first
     try {
       await authService.updateProfile({ language: langCode });
-      console.log('[Settings] Language preference saved to server:', langCode);
       // Only apply locally if server update succeeded
       await setLocale(langCode);
     } catch (error) {
-      console.warn('[Settings] Failed to save language to server:', error);
       // Show error to user
       setToastMessage({
         title: t('common.error'),
@@ -140,7 +138,6 @@ export default function SettingsScreen({
       }
       setTimeout(() => setTestResult(null), 5000);
     } catch (error) {
-      console.error('[Settings] Test notification failed:', error);
       const errorMsg = error instanceof Error ? error.message : String(error);
       setDebugInfo(prev => prev + '\nException: ' + errorMsg);
       setTestResult('error');
