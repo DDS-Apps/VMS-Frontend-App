@@ -74,12 +74,12 @@ export default function SidebarGroup({
         ]}
         onPress={handleToggle}
       >
-        <DirectionalRow style={{ flex: 1 }} gap={Spacing.md}>
+        <DirectionalRow gap={Spacing.md}>
           <DDIcon name={icon} size={18} color={theme.sidebarTextMuted} />
           <ThemedText
             style={[
               styles.headerTitle,
-              { color: theme.sidebarText, flex: 1, textAlign: isRTL ? 'right' : 'left' },
+              { color: theme.sidebarText },
             ]}
             numberOfLines={1}
           >

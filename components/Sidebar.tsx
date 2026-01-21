@@ -274,7 +274,7 @@ export default function Sidebar({
         ]}
         onPress={() => handleItemPress(item.screen, item.params)}
       >
-        <DirectionalRow style={{ flex: 1 }} gap={Spacing.md}>
+        <DirectionalRow gap={Spacing.md}>
           <DDIcon
             name={item.icon}
             size={18}
@@ -284,7 +284,6 @@ export default function Sidebar({
           <ThemedText
             style={[
               styles.menuText,
-              { flex: 1, textAlign: isRTL ? 'right' : 'left' },
               isActive && { color: theme.primary, fontWeight: '600' },
               !isActive && { color: theme.sidebarText },
             ]}
@@ -309,7 +308,7 @@ export default function Sidebar({
         ]}
         onPress={() => handleItemPress(item.screen, item.params)}
       >
-        <DirectionalRow style={{ flex: 1 }} gap={Spacing.md}>
+        <DirectionalRow gap={Spacing.md}>
           <DDIcon
             name={item.icon}
             size={20}
@@ -318,7 +317,6 @@ export default function Sidebar({
           <ThemedText
             style={[
               styles.standaloneText,
-              { flex: 1, textAlign: isRTL ? 'right' : 'left' },
               isActive && { color: theme.primary, fontWeight: '600' },
               !isActive && { color: theme.sidebarText },
             ]}
@@ -363,7 +361,7 @@ export default function Sidebar({
         style={({ pressed }) => [styles.profileHeader, pressed && { opacity: 0.7 }]}
         onPress={() => handleItemPress('Dashboard')}
       >
-        <DirectionalRow style={{ flex: 1 }} gap={Spacing.md}>
+        <DirectionalRow gap={Spacing.md}>
           {userPhotoUrl ? (
             <Image
               source={{ uri: userPhotoUrl }}
@@ -378,10 +376,10 @@ export default function Sidebar({
             </View>
           )}
           <View style={{ flex: 1 }}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', color: theme.sidebarText, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', color: theme.sidebarText }]} numberOfLines={1}>
               {userName}
             </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.sidebarTextMuted, textTransform: 'capitalize', textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.caption, { color: theme.sidebarTextMuted, textTransform: 'capitalize' }]}>
               {userRole.replace('_', ' ')}
             </ThemedText>
           </View>
