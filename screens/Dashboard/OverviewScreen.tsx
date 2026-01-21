@@ -563,6 +563,12 @@ export default function OverviewScreen({
                     alignItems: isRTL ? (Platform.OS !== 'web' ? 'flex-start' : 'flex-end') : 'flex-start',
                   }}
                 >
+                  {console.log('[Section Header DEBUG]', { 
+                    isRTL, 
+                    platform: Platform.OS,
+                    alignItems: isRTL ? (Platform.OS !== 'web' ? 'flex-start' : 'flex-end') : 'flex-start',
+                    textAlign: isRTL ? 'right' : 'left'
+                  })}
                   <ThemedText
                     style={[
                       styles.sectionTitle,
