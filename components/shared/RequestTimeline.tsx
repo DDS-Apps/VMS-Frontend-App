@@ -406,7 +406,8 @@ function buildStandardTimeline(
   const isAtLaterStage = LATER_STAGE_STATUSES.includes(data.status);
   const isPendingApproval = data.status === 'pending_approval';
   const requiresApproval = data.approval?.requiresApproval || isPendingApproval;
-  const isApproved = data.approval?.approvedAt || (!isPendingApproval && isAtLaterStage);
+  // Only consider approved if we have approvedAt AND status is not pending_approval (after edit, status resets but old timestamp remains)
+  const isApproved = (data.approval?.approvedAt && !isPendingApproval) || (!isPendingApproval && isAtLaterStage);
 
 
   // Track if we've hit a terminal/current step - all subsequent steps should be pending
@@ -921,7 +922,9 @@ function buildManagerApprovalTimeline(
     return steps;
   }
 
-  if (data.approval?.approvedAt) {
+  // Only show approved if approvedAt exists AND status is not pending_approval (after edit, status resets but old timestamp remains)
+  const isPendingApproval = data.status === 'pending_approval';
+  if (data.approval?.approvedAt && !isPendingApproval) {
     steps.push({
       id: 'approval',
       label: t('timeline.managerApproved'),
