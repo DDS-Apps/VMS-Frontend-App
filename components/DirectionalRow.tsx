@@ -220,7 +220,8 @@ export function DirectionalRow({
   
   // On web RTL, reverse the children order AND use 'row' (not 'row-reverse')
   // because React Native Web's flex-direction: row-reverse doesn't work reliably
-  const shouldReverseChildren = Platform.OS === 'web' && isRTL && !isInsideDirectionalRow;
+  // Apply to ALL DirectionalRows (including nested ones) on web RTL
+  const shouldReverseChildren = Platform.OS === 'web' && isRTL;
   
   let renderedChildren = children;
   if (shouldReverseChildren && Array.isArray(children)) {
@@ -232,7 +233,6 @@ export function DirectionalRow({
   // When reversing children, use 'row' to avoid double-reversal
   if (shouldReverseChildren) {
     finalStyle.flexDirection = 'row';
-    console.log('[DirectionalRow] Web RTL: Reversing children and using flexDirection: row');
   }
   
   // Wrap children in context to track nesting
