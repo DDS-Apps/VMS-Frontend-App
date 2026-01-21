@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  StyleSheet,
-  Pressable,
-  ScrollView,
-  Platform,
-  Dimensions,
-} from "react-native";
+import { View, StyleSheet, Pressable, ScrollView, Platform, Dimensions } from "react-native";
 import { Image } from "expo-image";
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { DirectionalRow } from "@/components/DirectionalRow";
@@ -21,7 +14,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useRTLStyles } from "@/hooks/useRTLStyles";
 import { UserRole } from "@/types/vms.types";
-import Constants from "expo-constants";
+import Constants from 'expo-constants';
 
 interface MenuItem {
   id: string;
@@ -54,253 +47,136 @@ interface SidebarProps {
   todaysVisitorsCount?: number;
 }
 
-const getMenuGroups = (
-  role: UserRole,
-): { groups: MenuGroup[]; standalone: MenuItem[] } => {
+const getMenuGroups = (role: UserRole): { groups: MenuGroup[]; standalone: MenuItem[] } => {
   const result: { groups: MenuGroup[]; standalone: MenuItem[] } = {
     groups: [],
     standalone: [],
   };
 
-  if (role === "employee") {
+  if (role === 'employee') {
     result.standalone = [
-      {
-        id: "dashboard",
-        labelKey: "navigation.dashboard",
-        icon: "grid",
-        screen: "Dashboard",
-      },
+      { id: 'dashboard', labelKey: 'navigation.dashboard', icon: 'grid', screen: 'Dashboard' },
     ];
     result.groups = [
       {
-        id: "visits",
-        labelKey: "sidebar.visitsRequests",
-        icon: "users",
+        id: 'visits',
+        labelKey: 'sidebar.visitsRequests',
+        icon: 'users',
         items: [
-          {
-            id: "new_request",
-            labelKey: "navigation.newRequest",
-            icon: "user-plus",
-            screen: "VisitTypeSelection",
-          },
-          {
-            id: "visitor_requests",
-            labelKey: "navigation.myRequests",
-            icon: "list",
-            screen: "VisitorRequests",
-          },
+          { id: 'new_request', labelKey: 'navigation.newRequest', icon: 'user-plus', screen: 'VisitTypeSelection' },
+          { id: 'visitor_requests', labelKey: 'navigation.myRequests', icon: 'list', screen: 'VisitorRequests' },
         ],
       },
     ];
-  } else if (role === "manager") {
+  } else if (role === 'manager') {
     result.standalone = [
-      {
-        id: "dashboard",
-        labelKey: "navigation.dashboard",
-        icon: "grid",
-        screen: "Dashboard",
-      },
+      { id: 'dashboard', labelKey: 'navigation.dashboard', icon: 'grid', screen: 'Dashboard' },
     ];
     result.groups = [
       {
-        id: "visits",
-        labelKey: "sidebar.visitsRequests",
-        icon: "users",
+        id: 'visits',
+        labelKey: 'sidebar.visitsRequests',
+        icon: 'users',
         items: [
-          {
-            id: "new_request",
-            labelKey: "navigation.newRequest",
-            icon: "user-plus",
-            screen: "VisitTypeSelection",
-          },
-          {
-            id: "visitor_requests",
-            labelKey: "navigation.myRequests",
-            icon: "list",
-            screen: "VisitorRequests",
-          },
-          {
-            id: "pending_approvals",
-            labelKey: "navigation.pendingApprovals",
-            icon: "check-circle",
-            screen: "PendingApprovals",
-          },
+          { id: 'new_request', labelKey: 'navigation.newRequest', icon: 'user-plus', screen: 'VisitTypeSelection' },
+          { id: 'visitor_requests', labelKey: 'navigation.myRequests', icon: 'list', screen: 'VisitorRequests' },
+          { id: 'pending_approvals', labelKey: 'navigation.pendingApprovals', icon: 'check-circle', screen: 'PendingApprovals' },
         ],
-        badgeKey: "pendingApprovals",
+        badgeKey: 'pendingApprovals',
       },
     ];
-  } else if (role === "receptionist") {
+  } else if (role === 'receptionist') {
     result.standalone = [
-      {
-        id: "dashboard",
-        labelKey: "navigation.dashboard",
-        icon: "grid",
-        screen: "ReceptionistDashboard",
-      },
+      { id: 'dashboard', labelKey: 'navigation.dashboard', icon: 'grid', screen: 'ReceptionistDashboard' },
     ];
     result.groups = [
       {
-        id: "visitors",
-        labelKey: "sidebar.visitors",
-        icon: "users",
-        badgeKey: "todaysVisitors",
+        id: 'visitors',
+        labelKey: 'sidebar.visitors',
+        icon: 'users',
+        badgeKey: 'todaysVisitors',
         items: [
-          {
-            id: "todays_visitors",
-            labelKey: "navigation.todaysVisitors",
-            icon: "clock",
-            screen: "AllVisitorsToday",
-          },
-          {
-            id: "all_visitors",
-            labelKey: "navigation.allVisitors",
-            icon: "users",
-            screen: "AllVisitors",
-          },
+          { id: 'todays_visitors', labelKey: 'navigation.todaysVisitors', icon: 'clock', screen: 'AllVisitorsToday' },
+          { id: 'all_visitors', labelKey: 'navigation.allVisitors', icon: 'users', screen: 'AllVisitors' },
         ],
       },
       {
-        id: "registration",
-        labelKey: "sidebar.registration",
-        icon: "user-plus",
+        id: 'registration',
+        labelKey: 'sidebar.registration',
+        icon: 'user-plus',
         items: [
-          {
-            id: "walk_in",
-            labelKey: "navigation.walkInRegistration",
-            icon: "user-plus",
-            screen: "WalkInRegistration",
-          },
+          { id: 'walk_in', labelKey: 'navigation.walkInRegistration', icon: 'user-plus', screen: 'WalkInRegistration' },
         ],
       },
     ];
-  } else if (role === "security") {
+  } else if (role === 'security') {
     result.standalone = [];
     result.groups = [
       {
-        id: "operations",
-        labelKey: "sidebar.operations",
-        icon: "shield",
+        id: 'operations',
+        labelKey: 'sidebar.operations',
+        icon: 'shield',
         items: [
-          {
-            id: "check_in",
-            labelKey: "navigation.visitorVerification",
-            icon: "shield",
-            screen: "CheckIn",
-          },
+          { id: 'check_in', labelKey: 'navigation.visitorVerification', icon: 'shield', screen: 'CheckIn' },
         ],
       },
     ];
-  } else if (role === "valet_driver") {
+  } else if (role === 'valet_driver') {
     result.standalone = [
-      {
-        id: "my_tasks",
-        labelKey: "navigation.myTasks",
-        icon: "list",
-        screen: "DriverTasks",
-      },
+      { id: 'my_tasks', labelKey: 'navigation.myTasks', icon: 'list', screen: 'DriverTasks' },
     ];
     result.groups = [];
-  } else if (role === "buffet_staff") {
+  } else if (role === 'buffet_staff') {
     result.standalone = [
-      {
-        id: "buffet_board",
-        labelKey: "navigation.buffetBoard",
-        icon: "clipboard",
-        screen: "BuffetBoard",
-      },
+      { id: 'buffet_board', labelKey: 'navigation.buffetBoard', icon: 'clipboard', screen: 'BuffetBoard' },
     ];
     result.groups = [];
-  } else if (role === "buffet_admin") {
+  } else if (role === 'buffet_admin') {
     result.standalone = [
-      {
-        id: "dashboard",
-        labelKey: "navigation.dashboard",
-        icon: "grid",
-        screen: "BuffetAdminDashboard",
-      },
+      { id: 'dashboard', labelKey: 'navigation.dashboard', icon: 'grid', screen: 'BuffetAdminDashboard' },
     ];
     result.groups = [
       {
-        id: "requests",
-        labelKey: "sidebar.requests",
-        icon: "clipboard",
+        id: 'requests',
+        labelKey: 'sidebar.requests',
+        icon: 'clipboard',
         items: [
-          {
-            id: "buffet_requests",
-            labelKey: "navigation.buffetRequests",
-            icon: "list",
-            screen: "BuffetAllRequests",
-          },
+          { id: 'buffet_requests', labelKey: 'navigation.buffetRequests', icon: 'list', screen: 'BuffetAllRequests' },
         ],
       },
       {
-        id: "management",
-        labelKey: "sidebar.management",
-        icon: "settings",
+        id: 'management',
+        labelKey: 'sidebar.management',
+        icon: 'settings',
         items: [
-          {
-            id: "buffet_staff",
-            labelKey: "navigation.staffManagement",
-            icon: "users",
-            screen: "BuffetStaff",
-          },
-          {
-            id: "buffet_locations",
-            labelKey: "navigation.locations",
-            icon: "map-pin",
-            screen: "BuffetLocations",
-          },
+          { id: 'buffet_staff', labelKey: 'navigation.staffManagement', icon: 'users', screen: 'BuffetStaff' },
+          { id: 'buffet_locations', labelKey: 'navigation.locations', icon: 'map-pin', screen: 'BuffetLocations' },
         ],
       },
     ];
-  } else if (role === "valet_admin") {
+  } else if (role === 'valet_admin') {
     result.standalone = [
-      {
-        id: "parking_dashboard",
-        labelKey: "navigation.parkingDashboard",
-        icon: "truck",
-        screen: "ValetAllRequests",
-      },
+      { id: 'parking_dashboard', labelKey: 'navigation.parkingDashboard', icon: 'truck', screen: 'ValetAllRequests' },
     ];
     result.groups = [];
-  } else if (role === "building_admin") {
+  } else if (role === 'building_admin') {
     result.standalone = [
-      {
-        id: "all_requests",
-        labelKey: "navigation.allRequests",
-        icon: "file-text",
-        screen: "AllRequests",
-      },
+      { id: 'all_requests', labelKey: 'navigation.allRequests', icon: 'file-text', screen: 'AllRequests' },
     ];
     result.groups = [
       {
-        id: "users_config",
-        labelKey: "sidebar.usersConfig",
-        icon: "users",
+        id: 'users_config',
+        labelKey: 'sidebar.usersConfig',
+        icon: 'users',
         items: [
-          {
-            id: "users_roles",
-            labelKey: "navigation.manageUsers",
-            icon: "users",
-            screen: "UsersRoles",
-          },
-          {
-            id: "reminder_rules",
-            labelKey: "navigation.reminderRules",
-            icon: "clock",
-            screen: "ReminderRules",
-          },
+          { id: 'users_roles', labelKey: 'navigation.manageUsers', icon: 'users', screen: 'UsersRoles' },
+          { id: 'reminder_rules', labelKey: 'navigation.reminderRules', icon: 'clock', screen: 'ReminderRules' },
         ],
       },
     ];
   } else {
     result.standalone = [
-      {
-        id: "dashboard",
-        labelKey: "navigation.dashboard",
-        icon: "grid",
-        screen: "Dashboard",
-      },
+      { id: 'dashboard', labelKey: 'navigation.dashboard', icon: 'grid', screen: 'Dashboard' },
     ];
     result.groups = [];
   }
@@ -327,24 +203,17 @@ export default function Sidebar({
   const { isRTL, layoutKey } = useLanguage();
   const rtlStyles = useRTLStyles();
   const { groups, standalone } = getMenuGroups(userRole);
-  const { width } = Dimensions.get("window");
+  const { width } = Dimensions.get('window');
   const isLargeScreen = width >= 768;
   const insets = useSafeAreaInsets();
-
+  
   // DEBUG: Log profile data to verify it's passed correctly
-  console.log("[Sidebar Profile DEBUG]", {
-    userName,
-    userRole,
-    isRTL,
-    platform: Platform.OS,
-  });
+  console.log('[Sidebar Profile DEBUG]', { userName, userRole, isRTL, platform: Platform.OS });
 
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => {
     const initial = new Set<string>();
-    groups.forEach((group) => {
-      const hasActiveItem = group.items.some(
-        (item) => item.screen === currentScreen,
-      );
+    groups.forEach(group => {
+      const hasActiveItem = group.items.some(item => item.screen === currentScreen);
       if (hasActiveItem) {
         initial.add(group.id);
       }
@@ -356,18 +225,16 @@ export default function Sidebar({
   });
 
   useEffect(() => {
-    groups.forEach((group) => {
-      const hasActiveItem = group.items.some(
-        (item) => item.screen === currentScreen,
-      );
+    groups.forEach(group => {
+      const hasActiveItem = group.items.some(item => item.screen === currentScreen);
       if (hasActiveItem && !expandedGroups.has(group.id)) {
-        setExpandedGroups((prev) => new Set(prev).add(group.id));
+        setExpandedGroups(prev => new Set(prev).add(group.id));
       }
     });
   }, [currentScreen, groups]);
 
   const handleGroupToggle = (groupId: string) => {
-    setExpandedGroups((prev) => {
+    setExpandedGroups(prev => {
       const next = new Set(prev);
       if (next.has(groupId)) {
         next.delete(groupId);
@@ -383,16 +250,13 @@ export default function Sidebar({
 
   const getBadgeCount = (badgeKey?: string): number | undefined => {
     if (!badgeKey) return undefined;
-    if (badgeKey === "pendingApprovals") return pendingApprovalsCount;
-    if (badgeKey === "todaysVisitors") return todaysVisitorsCount;
+    if (badgeKey === 'pendingApprovals') return pendingApprovalsCount;
+    if (badgeKey === 'todaysVisitors') return todaysVisitorsCount;
     return undefined;
   };
 
-  const handleItemPress = (
-    screen?: string,
-    params?: Record<string, unknown>,
-  ) => {
-    onNavigate(screen || "Dashboard", params);
+  const handleItemPress = (screen?: string, params?: Record<string, unknown>) => {
+    onNavigate(screen || 'Dashboard', params);
     if (!isLargeScreen) {
       setTimeout(() => {
         onClose();
@@ -402,16 +266,13 @@ export default function Sidebar({
 
   const renderMenuItem = (item: MenuItem) => {
     const isActive = currentScreen === item.screen;
-
+    
     return (
       <Pressable
         key={item.id}
         style={({ pressed }) => [
           styles.menuItem,
-          isActive && [
-            styles.menuItemActive,
-            { backgroundColor: theme.sidebarActive },
-          ],
+          isActive && [styles.menuItemActive, { backgroundColor: theme.sidebarActive }],
           pressed && { opacity: 0.7 },
         ]}
         onPress={() => handleItemPress(item.screen, item.params)}
@@ -421,14 +282,13 @@ export default function Sidebar({
             name={item.icon}
             size={18}
             color={isActive ? theme.primary : theme.sidebarTextMuted}
-            directionAware={item.icon === "log-in" || item.icon === "log-out"}
+            directionAware={item.icon === 'log-in' || item.icon === 'log-out'}
           />
           <ThemedText
             style={[
               styles.menuText,
-              isActive && { color: theme.primary, fontWeight: "600" },
+              isActive && { color: theme.primary, fontWeight: '600' },
               !isActive && { color: theme.sidebarText },
-              { textAlign: isRTL ? "right" : "left" },
             ]}
           >
             {t(item.labelKey)}
@@ -440,16 +300,13 @@ export default function Sidebar({
 
   const renderStandaloneItem = (item: MenuItem) => {
     const isActive = currentScreen === item.screen;
-
+    
     return (
       <Pressable
         key={item.id}
         style={({ pressed }) => [
           styles.standaloneItem,
-          isActive && [
-            styles.menuItemActive,
-            { backgroundColor: theme.sidebarActive },
-          ],
+          isActive && [styles.menuItemActive, { backgroundColor: theme.sidebarActive }],
           pressed && { opacity: 0.7 },
         ]}
         onPress={() => handleItemPress(item.screen, item.params)}
@@ -463,9 +320,8 @@ export default function Sidebar({
           <ThemedText
             style={[
               styles.standaloneText,
-              isActive && { color: theme.primary, fontWeight: "600" },
+              isActive && { color: theme.primary, fontWeight: '600' },
               !isActive && { color: theme.sidebarText },
-              { textAlign: isRTL ? "right" : "left" },
             ]}
           >
             {t(item.labelKey)}
@@ -475,27 +331,27 @@ export default function Sidebar({
     );
   };
 
-  const notificationsItem: MenuItem = {
-    id: "notifications",
-    labelKey: "navigation.notifications",
-    icon: "bell",
-    screen: "Notifications",
+  const notificationsItem: MenuItem = { 
+    id: 'notifications', 
+    labelKey: 'navigation.notifications', 
+    icon: 'bell', 
+    screen: 'Notifications' 
   };
-
-  const settingsItem: MenuItem = {
-    id: "settings",
-    labelKey: "navigation.settings",
-    icon: "settings",
-    screen: "Settings",
+  
+  const settingsItem: MenuItem = { 
+    id: 'settings', 
+    labelKey: 'navigation.settings', 
+    icon: 'settings', 
+    screen: 'Settings' 
   };
 
   return (
-    <ThemedView
+    <ThemedView 
       key={layoutKey}
       style={[
-        styles.sidebar,
-        {
-          backgroundColor: theme.sidebarBg,
+        styles.sidebar, 
+        { 
+          backgroundColor: theme.sidebarBg, 
           borderRightColor: theme.border,
           borderLeftColor: theme.border,
           borderRightWidth: isRTL ? 0 : 1,
@@ -504,12 +360,9 @@ export default function Sidebar({
         },
       ]}
     >
-      <Pressable
-        style={({ pressed }) => [
-          styles.profileHeader,
-          pressed && { opacity: 0.7 },
-        ]}
-        onPress={() => handleItemPress("Dashboard")}
+      <Pressable 
+        style={({ pressed }) => [styles.profileHeader, pressed && { opacity: 0.7 }]}
+        onPress={() => handleItemPress('Dashboard')}
       >
         <DirectionalRow style={styles.profileRow} gap={Spacing.md}>
           {userPhotoUrl ? (
@@ -519,79 +372,34 @@ export default function Sidebar({
               contentFit="cover"
             />
           ) : (
-            <View
-              style={[styles.profileAvatar, { backgroundColor: theme.primary }]}
-            >
-              <ThemedText
-                style={[
-                  Typography.title,
-                  {
-                    color: Colors.light.buttonText,
-                    fontWeight: "600",
-                    fontSize: 20,
-                  },
-                ]}
-              >
-                {userName
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")}
+            <View style={[styles.profileAvatar, { backgroundColor: theme.primary }]}>
+              <ThemedText style={[Typography.title, { color: Colors.light.buttonText, fontWeight: '600', fontSize: 20 }]}>
+                {userName.split(' ').map(n => n[0]).join('')}
               </ThemedText>
             </View>
           )}
-          <View
-            style={[
-              styles.profileInfo,
-              { alignItems: isRTL ? "flex-end" : "flex-start" },
-            ]}
-          >
-            <ThemedText
-              style={[
-                Typography.body,
-                {
-                  fontWeight: "600",
-                  color: theme.sidebarText,
-                  textAlign: isRTL ? "right" : "left",
-                },
-              ]}
-              numberOfLines={1}
-            >
+          <View style={[styles.profileInfo, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', color: theme.sidebarText }]} numberOfLines={1}>
               {userName}
             </ThemedText>
-            <ThemedText
-              style={[
-                Typography.caption,
-                {
-                  color: theme.sidebarTextMuted,
-                  textTransform: "capitalize",
-                  textAlign: isRTL ? "right" : "left",
-                },
-              ]}
-            >
-              {userRole.replace("_", " ")}
+            <ThemedText style={[Typography.caption, { color: theme.sidebarTextMuted, textTransform: 'capitalize' }]}>
+              {userRole.replace('_', ' ')}
             </ThemedText>
           </View>
-          <DDIcon
-            name={isRTL ? "chevron-left" : "chevron-right"}
-            size={18}
-            color={theme.sidebarTextMuted}
-          />
+          <DDIcon name={isRTL ? "chevron-left" : "chevron-right"} size={18} color={theme.sidebarTextMuted} />
         </DirectionalRow>
       </Pressable>
 
       <Spacer height={Spacing.xl} />
 
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {standalone.map(renderStandaloneItem)}
 
         {standalone.length > 0 && groups.length > 0 ? (
           <View style={[styles.divider, { backgroundColor: theme.border }]} />
         ) : null}
 
-        {groups.map((group) => (
+        {groups.map(group => (
           <SidebarGroup
             key={group.id}
             title={t(group.labelKey)}
@@ -612,41 +420,33 @@ export default function Sidebar({
 
       <DirectionalRow style={styles.appInfo} gap={Spacing.xs}>
         <ThemedText style={[styles.appName, { color: theme.sidebarTextMuted }]}>
-          {t("common.brandName")} {t("common.appName")}
+          {t('common.brandName')} {t('common.appName')}
         </ThemedText>
-        <ThemedText
-          style={[styles.appVersion, { color: theme.sidebarTextMuted }]}
-        >
-          v{Constants.expoConfig?.version || "1.0.0"}
+        <ThemedText style={[styles.appVersion, { color: theme.sidebarTextMuted }]}>
+          v{Constants.expoConfig?.version || '1.0.0'}
         </ThemedText>
       </DirectionalRow>
 
       <View style={[styles.footer, { borderTopColor: theme.border }]}>
         <DirectionalRow style={styles.footerActions} gap={Spacing.sm}>
-          <Pressable
-            onPress={onToggleDarkMode}
+          <Pressable 
+            onPress={onToggleDarkMode} 
             style={({ pressed }) => [
               styles.footerButton,
-              {
-                backgroundColor: theme.surfaceSecondary,
-                opacity: pressed ? 0.7 : 1,
-              },
+              { backgroundColor: theme.surfaceSecondary, opacity: pressed ? 0.7 : 1 }
             ]}
           >
             <DDIcon
-              name={isDarkMode ? "sun" : "moon"}
+              name={isDarkMode ? 'sun' : 'moon'}
               size={20}
               color={theme.sidebarTextMuted}
             />
           </Pressable>
-          <Pressable
-            onPress={onLogout}
+          <Pressable 
+            onPress={onLogout} 
             style={({ pressed }) => [
               styles.footerButton,
-              {
-                backgroundColor: theme.surfaceSecondary,
-                opacity: pressed ? 0.7 : 1,
-              },
+              { backgroundColor: theme.surfaceSecondary, opacity: pressed ? 0.7 : 1 }
             ]}
           >
             <DDIcon
@@ -664,18 +464,18 @@ export default function Sidebar({
 
 const styles = StyleSheet.create({
   sidebar: {
-    width: "100%",
-    height: "100%",
+    width: '100%',
+    height: '100%',
     paddingBottom: Spacing.lg,
   },
   profileHeader: {
-    alignItems: "stretch",
+    alignItems: 'stretch',
     paddingHorizontal: Spacing.lg,
-    width: "100%",
+    width: '100%',
   },
   profileRow: {
     flex: 1,
-    alignItems: "center",
+    alignItems: 'center',
   },
   profileInfo: {
     flex: 1,
@@ -684,8 +484,8 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: BorderRadius.md,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   scrollView: {
     flex: 1,
@@ -697,7 +497,7 @@ const styles = StyleSheet.create({
     marginHorizontal: Spacing.sm,
   },
   standaloneItem: {
-    alignItems: "stretch",
+    alignItems: 'stretch',
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.md,
     borderRadius: BorderRadius.sm,
@@ -705,17 +505,17 @@ const styles = StyleSheet.create({
   },
   standaloneText: {
     fontSize: 15,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   menuItem: {
-    alignItems: "stretch",
+    alignItems: 'stretch',
     paddingVertical: Spacing.sm + 2,
     paddingHorizontal: Spacing.sm,
     borderRadius: BorderRadius.sm,
     marginBottom: 2,
   },
   menuItemActive: {
-    backgroundColor: "transparent",
+    backgroundColor: 'transparent',
   },
   menuText: {
     fontSize: 14,
@@ -726,23 +526,23 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
   },
   footerActions: {
-    justifyContent: "flex-start",
+    justifyContent: 'flex-start',
   },
   footerButton: {
     width: 40,
     height: 40,
     borderRadius: BorderRadius.sm,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   appInfo: {
-    alignItems: "center",
+    alignItems: 'center',
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
   },
   appName: {
     fontSize: 12,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   appVersion: {
     fontSize: 12,

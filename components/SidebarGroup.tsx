@@ -1,12 +1,5 @@
 import React from "react";
-import {
-  View,
-  StyleSheet,
-  Pressable,
-  LayoutAnimation,
-  Platform,
-  UIManager,
-} from "react-native";
+import { View, StyleSheet, Pressable, LayoutAnimation, Platform, UIManager } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -21,10 +14,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useRTLStyles } from "@/hooks/useRTLStyles";
 
-if (
-  Platform.OS === "android" &&
-  UIManager.setLayoutAnimationEnabledExperimental
-) {
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
@@ -63,9 +53,7 @@ export default function SidebarGroup({
     const expandedRotation = 90;
     return {
       transform: [
-        {
-          rotate: `${interpolate(expandProgress.value, [0, 1], [baseRotation, expandedRotation])}deg`,
-        },
+        { rotate: `${interpolate(expandProgress.value, [0, 1], [baseRotation, expandedRotation])}deg` },
       ],
     };
   });
@@ -80,8 +68,8 @@ export default function SidebarGroup({
       <Pressable
         style={({ pressed }) => [
           styles.header,
-          {
-            backgroundColor: pressed ? theme.sidebarActive : "transparent",
+          { 
+            backgroundColor: pressed ? theme.sidebarActive : 'transparent',
           },
         ]}
         onPress={handleToggle}
@@ -91,11 +79,7 @@ export default function SidebarGroup({
           <ThemedText
             style={[
               styles.headerTitle,
-              {
-                color: theme.sidebarText,
-                flex: 1,
-                textAlign: isRTL ? "right" : "left",
-              },
+              { color: theme.sidebarText, flex: 1 },
             ]}
             numberOfLines={1}
           >
@@ -104,27 +88,18 @@ export default function SidebarGroup({
           {badge !== undefined && badge > 0 ? (
             <View style={[styles.badge, { backgroundColor: theme.primary }]}>
               <ThemedText style={styles.badgeText}>
-                {badge > 99 ? "99+" : badge}
+                {badge > 99 ? '99+' : badge}
               </ThemedText>
             </View>
           ) : null}
           <Animated.View style={chevronStyle}>
-            <DDIcon
-              name="chevron-right"
-              size={16}
-              color={theme.sidebarTextMuted}
-            />
+            <DDIcon name="chevron-right" size={16} color={theme.sidebarTextMuted} />
           </Animated.View>
         </DirectionalRow>
       </Pressable>
 
       {isExpanded ? (
-        <View
-          style={[
-            styles.content,
-            isRTL && { paddingStart: 0, paddingEnd: Spacing.lg },
-          ]}
-        >
+        <View style={[styles.content, isRTL && { paddingStart: 0, paddingEnd: Spacing.lg }]}>
           {children}
         </View>
       ) : null}
@@ -137,28 +112,28 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.xs,
   },
   header: {
-    alignItems: "stretch",
+    alignItems: 'stretch',
     paddingVertical: Spacing.sm + 2,
     paddingHorizontal: Spacing.md,
     borderRadius: BorderRadius.sm,
   },
   headerRow: {
-    alignItems: "center",
+    alignItems: 'center',
     gap: Spacing.md,
   },
   headerLeft: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     flex: 1,
     gap: Spacing.md,
   },
   headerTitle: {
     fontSize: 14,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   headerRight: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: Spacing.sm,
   },
   badge: {
@@ -166,13 +141,13 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     paddingHorizontal: 6,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   badgeText: {
-    color: "#FFFFFF",
+    color: '#FFFFFF',
     fontSize: 11,
-    fontWeight: "700",
+    fontWeight: '700',
   },
   content: {
     paddingStart: Spacing.lg,

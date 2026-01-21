@@ -560,6 +560,7 @@ export default function OverviewScreen({
                 <View
                   style={{
                     flex: 1,
+                    alignItems: isRTL ? "flex-end" : "flex-start",
                   }}
                 >
                   <ThemedText
@@ -701,6 +702,7 @@ export default function OverviewScreen({
                 <View
                   style={{
                     flex: 1,
+                    alignItems: isRTL ? "flex-end" : "flex-start",
                   }}
                 >
                   <ThemedText
@@ -839,6 +841,7 @@ export default function OverviewScreen({
                 <View
                   style={{
                     flex: 1,
+                    alignItems: isRTL ? "flex-end" : "flex-start",
                   }}
                 >
                   <ThemedText
@@ -972,6 +975,7 @@ export default function OverviewScreen({
                 <View
                   style={{
                     flex: 1,
+                    alignItems: isRTL ? "flex-end" : "flex-start",
                   }}
                 >
                   <ThemedText
@@ -1110,6 +1114,7 @@ export default function OverviewScreen({
                 <View
                   style={{
                     flex: 1,
+                    alignItems: isRTL ? "flex-end" : "flex-start",
                   }}
                 >
                   <ThemedText
