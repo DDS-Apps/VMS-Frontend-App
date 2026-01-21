@@ -1,4 +1,4 @@
-import { Text, type TextProps, TextStyle, StyleSheet } from "react-native";
+import { Text, type TextProps, TextStyle, StyleSheet, Platform } from "react-native";
 
 import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -44,11 +44,37 @@ export function ThemedText({
   const textVariant = variant || type || "body";
   
   const writingDirection = isRTL ? 'rtl' : 'ltr';
-  // Always apply textAlign for RTL to fix iOS Arabic left-alignment issue
-  // 'auto' means use the default alignment based on RTL state
-  const textAlign = align === 'auto' 
-    ? (isRTL ? 'right' : 'left')
-    : getPlatformTextAlign(isRTL, align);
+  // Platform-aware text alignment:
+  // - On mobile with I18nManager.isRTL=true, React Native auto-flips textAlign
+  //   so 'left' becomes right, 'right' becomes left
+  // - On web, no auto-flip occurs, so we need explicit 'right' for RTL
+  // - For 'auto' alignment, use 'left' (which on mobile RTL displays on right)
+  const getTextAlign = (): 'left' | 'right' | 'center' => {
+    if (align === 'center') return 'center';
+    
+    // On mobile, I18nManager flips text alignment automatically
+    // So we use 'left' which will appear on the right in RTL mode
+    if (Platform.OS !== 'web') {
+      if (align === 'auto' || align === 'start') {
+        return 'left'; // Will be flipped to right by I18nManager in RTL
+      }
+      if (align === 'end') {
+        return 'right'; // Will be flipped to left by I18nManager in RTL
+      }
+      return align === 'start' ? 'left' : 'right';
+    }
+    
+    // On web, no auto-flip, so we need explicit alignment
+    if (align === 'auto' || align === 'start') {
+      return isRTL ? 'right' : 'left';
+    }
+    if (align === 'end') {
+      return isRTL ? 'left' : 'right';
+    }
+    return getPlatformTextAlign(isRTL, align);
+  };
+  
+  const textAlign = getTextAlign();
 
   // RTL DEBUG - Log once per component type to verify text alignment
   if (__DEV__ && isRTL && textVariant === 'body') {
