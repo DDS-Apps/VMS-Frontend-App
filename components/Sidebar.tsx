@@ -378,7 +378,7 @@ export default function Sidebar({
               </ThemedText>
             </View>
           )}
-          <View style={[styles.profileInfo, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
+          <View style={styles.profileInfo}>
             <ThemedText style={[Typography.body, { fontWeight: '600', color: theme.sidebarText }]} numberOfLines={1}>
               {userName}
             </ThemedText>
