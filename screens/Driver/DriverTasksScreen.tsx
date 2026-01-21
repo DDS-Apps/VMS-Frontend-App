@@ -424,10 +424,10 @@ export default function DriverTasksScreen({ onNavigateToDetail }: DriverTasksScr
           <View style={styles.cardContent}>
             <DirectionalRow style={styles.cardHeader}>
               <View style={styles.nameSection}>
-                <ThemedText style={[Typography.body, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
+                <ThemedText style={[Typography.body, { fontWeight: '600' }]}>
                   {task.visitorName}
                 </ThemedText>
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
                   {t('reception.hostName')}: {task.hostName}
                 </ThemedText>
               </View>
@@ -444,7 +444,7 @@ export default function DriverTasksScreen({ onNavigateToDetail }: DriverTasksScr
               {task.vehicleInfo ? (
                 <DirectionalRow style={styles.infoRow}>
                   <DDIcon name="truck" size={14} variant="muted" />
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6, textAlign: isRTL ? 'right' : 'left' }]}>
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6 }]}>
                     {task.vehicleInfo.make} {task.vehicleInfo.model} - {task.vehicleInfo.color}
                   </ThemedText>
                 </DirectionalRow>
@@ -453,7 +453,7 @@ export default function DriverTasksScreen({ onNavigateToDetail }: DriverTasksScr
               {task.vehicleInfo?.plateNumber ? (
                 <DirectionalRow style={styles.infoRow}>
                   <DDIcon name="hash" size={14} variant="muted" />
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6, textAlign: isRTL ? 'right' : 'left' }]}>
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6 }]}>
                     {t('valet.plateNumber')}: {task.vehicleInfo.plateNumber}
                   </ThemedText>
                 </DirectionalRow>
@@ -462,7 +462,7 @@ export default function DriverTasksScreen({ onNavigateToDetail }: DriverTasksScr
               {task.parkingSlot ? (
                 <DirectionalRow style={styles.infoRow}>
                   <DDIcon name="map-pin" size={14} variant="primary" />
-                  <ThemedText style={[Typography.caption, { color: theme.primary, marginStart: 6, fontWeight: '500', textAlign: isRTL ? 'right' : 'left' }]}>
+                  <ThemedText style={[Typography.caption, { color: theme.primary, marginStart: 6, fontWeight: '500' }]}>
                     {t('parking.slot')}: {task.parkingSlot}
                   </ThemedText>
                 </DirectionalRow>
@@ -470,20 +470,20 @@ export default function DriverTasksScreen({ onNavigateToDetail }: DriverTasksScr
 
               <DirectionalRow style={styles.infoRow}>
                 <DDIcon name="clock" size={14} variant="muted" />
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6, textAlign: isRTL ? 'right' : 'left' }]}>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6 }]}>
                   {t('valet.pickupVehicle')}: {task.pickupTime}
                 </ThemedText>
                 <View style={styles.dotSeparator}>
                   <ThemedText style={{ color: theme.textSecondary }}>-</ThemedText>
                 </View>
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
                   {t('valet.returnVehicle')}: {task.returnTime}
                 </ThemedText>
               </DirectionalRow>
 
               <DirectionalRow style={styles.infoRow}>
                 <DDIcon name="map-pin" size={14} variant="muted" />
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6, textAlign: isRTL ? 'right' : 'left' }]}>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6 }]}>
                   {task.location}
                 </ThemedText>
               </DirectionalRow>
@@ -555,10 +555,10 @@ export default function DriverTasksScreen({ onNavigateToDetail }: DriverTasksScr
                     <DDIcon name="check-circle" size={20} color={theme.success} />
                   </View>
                   <View style={{ flex: 1 }}>
-                    <ThemedText style={[Typography.body, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
+                    <ThemedText style={[Typography.body, { fontWeight: '600' }]}>
                       {slot.slotNumber}
                     </ThemedText>
-                    <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+                    <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
                       {slot.zone}
                     </ThemedText>
                   </View>
@@ -614,10 +614,10 @@ export default function DriverTasksScreen({ onNavigateToDetail }: DriverTasksScr
         <Spacer height={Spacing.md} />
         
         <DirectionalRow style={styles.dateDisplayRow}>
-          <ThemedText style={[Typography.bodySmall, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
+          <ThemedText style={[Typography.bodySmall, { fontWeight: '600' }]}>
             {formatDisplayDate()}
           </ThemedText>
-          <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+          <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
             {dateFilteredTasks.length} {dateFilteredTasks.length === 1 ? t('navigation.myTasks').split(' ')[1] : t('navigation.myTasks').split(' ')[1]}
           </ThemedText>
         </DirectionalRow>

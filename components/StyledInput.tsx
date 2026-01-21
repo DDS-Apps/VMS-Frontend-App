@@ -78,7 +78,7 @@ export const StyledInput = forwardRef<TextInput, StyledInputProps>(({
   return (
     <View style={containerStyle}>
       {label ? (
-        <ThemedText style={[Typography.label, { color: theme.textSecondary, marginBottom: Spacing.xs, textAlign: isRTL ? 'right' : 'left' }]}>
+        <ThemedText style={[Typography.label, { color: theme.textSecondary, marginBottom: Spacing.xs }]}>
           {label.toUpperCase()}
         </ThemedText>
       ) : null}
@@ -94,7 +94,7 @@ export const StyledInput = forwardRef<TextInput, StyledInputProps>(({
             styles.input,
             { 
               color: theme.text, 
-              textAlign: isRTL ? 'right' : 'left', 
+               
               writingDirection: isRTL ? 'rtl' : 'ltr',
               fontSize: isRTL 
                 ? Math.round(INPUT_FONT_SIZE * ArabicFontScaling.body * 10) / 10 
@@ -133,7 +133,7 @@ export const StyledInput = forwardRef<TextInput, StyledInputProps>(({
       </DirectionalRow>
       
       {error ? (
-        <ThemedText style={[Typography.caption, { color: theme.error, marginTop: Spacing.xs, textAlign: isRTL ? 'right' : 'left' }]}>
+        <ThemedText style={[Typography.caption, { color: theme.error, marginTop: Spacing.xs }]}>
           {error}
         </ThemedText>
       ) : null}

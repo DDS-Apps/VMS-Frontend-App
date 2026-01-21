@@ -269,10 +269,10 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
               </View>
 
               <View style={[styles.nameSection, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
-                <ThemedText style={[styles.visitorName, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+                <ThemedText style={[styles.visitorName, { color: theme.text }]} numberOfLines={1}>
                   {visitorName}
                 </ThemedText>
-                <ThemedText style={[styles.companyText, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+                <ThemedText style={[styles.companyText, { color: theme.textSecondary }]} numberOfLines={1}>
                   {item.visitor.company ?? ''}
                 </ThemedText>
               </View>
@@ -307,7 +307,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
                 {item.visitor.phone ? (
                   <DirectionalRow style={styles.expandedDetailRow}>
                     <DDIcon name="phone" size={14} color={theme.textSecondary} />
-                    <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+                    <ThemedText style={[styles.expandedDetailText, { color: theme.text }]} numberOfLines={1}>
                       {formatPhoneNumber(item.visitor.phone)}
                     </ThemedText>
                   </DirectionalRow>
@@ -368,13 +368,13 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
 
   return (
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
-      <ThemedText style={[Typography.title, { fontSize: 22, fontWeight: '700', textAlign: isRTL ? 'right' : 'left' }]}>
+      <ThemedText style={[Typography.title, { fontSize: 22, fontWeight: '700' }]}>
         {t('navigation.todaysVisitors')}
       </ThemedText>
 
       <Spacer height={4} />
 
-      <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+      <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
         {todaysVisitors.length} {t('dashboard.expectedToday').toLowerCase()}
       </ThemedText>
 

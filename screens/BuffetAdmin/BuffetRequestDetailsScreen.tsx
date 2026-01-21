@@ -392,7 +392,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
       <Spacer height={Spacing.lg} />
 
       <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
-        <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+        <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text }]}>
           {t('buffet.orderDetails')}
         </ThemedText>
         <Spacer height={Spacing.xl} />
@@ -402,10 +402,10 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
             <DDIcon name="user" size={18} color={theme.text} />
           </View>
           <View style={{ flex: 1, marginStart: Spacing.md }}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
               {t('reception.hostName')}
             </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
               {request.hostName}
             </ThemedText>
           </View>
@@ -418,10 +418,10 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
             <DDIcon name="map-pin" size={18} color={theme.text} />
           </View>
           <View style={{ flex: 1, marginStart: Spacing.md }}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
               {t('invitation.location')}
             </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
               {request.meetingRoom || request.hostName}
             </ThemedText>
           </View>
@@ -434,10 +434,10 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
             <DDIcon name="clock" size={18} color={theme.text} />
           </View>
           <View style={{ flex: 1, marginStart: Spacing.md }}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
               {t('buffet.servingTime')}
             </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
               {request.timeSlot}
             </ThemedText>
           </View>
@@ -457,7 +457,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
               </ThemedText>
             </DirectionalRow>
             <Spacer height={Spacing.sm} />
-            <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, lineHeight: 20, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, lineHeight: 20 }]}>
               {request.notes}
             </ThemedText>
           </ThemedView>
@@ -492,10 +492,10 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
               <DDIcon name="user-check" size={18} color={theme.success} />
             </View>
             <View style={{ flex: 1, marginStart: Spacing.md }}>
-              <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
                 {t('buffet.assignedStaff')}
               </ThemedText>
-              <ThemedText style={[Typography.caption, { color: theme.success, marginTop: 2, fontSize: 13, fontWeight: '500', textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.caption, { color: theme.success, marginTop: 2, fontSize: 13, fontWeight: '500' }]}>
                 {request.assignedStaff}
               </ThemedText>
             </View>

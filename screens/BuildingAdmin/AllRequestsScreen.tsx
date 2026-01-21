@@ -162,7 +162,7 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
           {originalData?.visitor?.email ? (
             <DirectionalRow style={styles.expandedDetailRow}>
                 <DDIcon name="mail" size={14} color={theme.textSecondary} />
-                <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+                <ThemedText style={[styles.expandedDetailText, { color: theme.text }]} numberOfLines={1}>
                   {originalData.visitor.email}
                 </ThemedText>
               </DirectionalRow>
@@ -170,7 +170,7 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
           {originalData?.visitor?.phone ? (
             <DirectionalRow style={styles.expandedDetailRow}>
                 <DDIcon name="phone" size={14} color={theme.textSecondary} />
-                <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+                <ThemedText style={[styles.expandedDetailText, { color: theme.text }]} numberOfLines={1}>
                   {originalData.visitor.phone}
                 </ThemedText>
               </DirectionalRow>
@@ -184,14 +184,14 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
         <View style={styles.expandedSection}>
           <DirectionalRow style={styles.expandedDetailRow}>
               <DDIcon name="users" size={14} color={theme.textSecondary} />
-              <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[styles.expandedDetailText, { color: theme.text }]}>
                 {t('buffet.guestCount')}: {request.guestCount}
               </ThemedText>
           </DirectionalRow>
           {request.mealType ? (
             <DirectionalRow style={styles.expandedDetailRow}>
                 <DDIcon name="cloche" size={14} color={theme.textSecondary} />
-                <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+                <ThemedText style={[styles.expandedDetailText, { color: theme.text }]}>
                   {request.mealType}
                 </ThemedText>
               </DirectionalRow>
@@ -207,7 +207,7 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
           {vehicle.plateNumber ? (
             <DirectionalRow style={styles.expandedDetailRow}>
                 <DDIcon name="hash" size={14} color={theme.textSecondary} />
-                <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+                <ThemedText style={[styles.expandedDetailText, { color: theme.text }]}>
                   {t('valet.plateNumber')}: {vehicle.plateNumber}
                 </ThemedText>
               </DirectionalRow>
@@ -215,7 +215,7 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
           {(vehicle.make || vehicle.model) ? (
             <DirectionalRow style={styles.expandedDetailRow}>
                 <DDIcon name="truck" size={14} color={theme.textSecondary} />
-                <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+                <ThemedText style={[styles.expandedDetailText, { color: theme.text }]}>
                   {[vehicle.make, vehicle.model].filter(Boolean).join(' ')}
                 </ThemedText>
               </DirectionalRow>
@@ -223,7 +223,7 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
           {vehicle.color ? (
             <DirectionalRow style={styles.expandedDetailRow}>
                 <DDIcon name="droplet" size={14} color={theme.textSecondary} />
-                <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+                <ThemedText style={[styles.expandedDetailText, { color: theme.text }]}>
                   {t('valet.color')}: {vehicle.color}
                 </ThemedText>
               </DirectionalRow>
@@ -242,12 +242,12 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
         
         <View style={styles.cardContent}>
           <DirectionalRow style={styles.cardHeader}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left', flex: 1 }]} numberOfLines={1}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', flex: 1 }]} numberOfLines={1}>
               {request.visitorName}
             </ThemedText>
           </DirectionalRow>
 
-          <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+          <ThemedText style={[Typography.caption, { color: theme.textSecondary }]} numberOfLines={1}>
             {t('reception.hostName')}: {request.hostName}
           </ThemedText>
 
@@ -273,7 +273,7 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
               <Spacer height={Spacing.xs} />
               <DirectionalRow style={styles.detailItem}>
                 <DDIcon name="map-pin" size={14} variant="muted" />
-                <ThemedText style={[styles.detailText, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+                <ThemedText style={[styles.detailText, { color: theme.textSecondary }]} numberOfLines={1}>
                   {request.location}
                 </ThemedText>
               </DirectionalRow>

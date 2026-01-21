@@ -94,10 +94,10 @@ export default function ValetTasksScreen({ onNavigateToDetail }: ValetTasksScree
       <ThemedView style={[styles.taskCard, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
         <DirectionalRow style={styles.cardHeader}>
           <View style={{ flex: 1 }}>
-            <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginBottom: Spacing.xs, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginBottom: Spacing.xs }]}>
               {item.visitorName}
             </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
               {item.visitorCompany}
             </ThemedText>
           </View>
@@ -108,7 +108,7 @@ export default function ValetTasksScreen({ onNavigateToDetail }: ValetTasksScree
 
         <DirectionalRow style={styles.infoRow}>
           <DDIcon name="user" size={16} variant="muted" />
-          <ThemedText style={[Typography.body, { color: theme.textSecondary, marginEnd: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
+          <ThemedText style={[Typography.body, { color: theme.textSecondary, marginEnd: Spacing.sm }]}>
             {t('reception.hostName')}: {item.hostName}
           </ThemedText>
         </DirectionalRow>
@@ -117,7 +117,7 @@ export default function ValetTasksScreen({ onNavigateToDetail }: ValetTasksScree
 
         <DirectionalRow style={styles.infoRow}>
           <DDIcon name="calendar" size={16} variant="muted" />
-          <ThemedText style={[Typography.body, { color: theme.textSecondary, marginEnd: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
+          <ThemedText style={[Typography.body, { color: theme.textSecondary, marginEnd: Spacing.sm }]}>
             {item.visitDate} • {item.pickupTime} - {item.returnTime}
           </ThemedText>
         </DirectionalRow>
@@ -126,7 +126,7 @@ export default function ValetTasksScreen({ onNavigateToDetail }: ValetTasksScree
 
         <DirectionalRow style={styles.infoRow}>
           <DDIcon name="map-pin" size={16} variant="muted" />
-          <ThemedText style={[Typography.body, { color: theme.textSecondary, marginEnd: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
+          <ThemedText style={[Typography.body, { color: theme.textSecondary, marginEnd: Spacing.sm }]}>
             {item.location}
           </ThemedText>
         </DirectionalRow>
@@ -142,11 +142,11 @@ export default function ValetTasksScreen({ onNavigateToDetail }: ValetTasksScree
             >
               <DirectionalRow style={styles.infoRow}>
                 <DDIcon name="truck" size={16} variant="primary" />
-                <ThemedText style={[Typography.body, { fontWeight: '600', marginEnd: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', marginEnd: Spacing.sm }]}>
                   {item.valet.driver.name}
                 </ThemedText>
               </DirectionalRow>
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: Spacing.xs, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: Spacing.xs }]}>
                 {item.valet.driver.phone}
               </ThemedText>
             </View>
@@ -161,7 +161,7 @@ export default function ValetTasksScreen({ onNavigateToDetail }: ValetTasksScree
               ]}
             >
               <DDIcon name="alert-circle" size={16} variant="warning" />
-              <ThemedText style={[Typography.caption, { color: theme.warning, marginEnd: Spacing.sm, fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.caption, { color: theme.warning, marginEnd: Spacing.sm, fontWeight: '600' }]}>
                 {t('actions.assignDriver')}
               </ThemedText>
             </DirectionalRow>
@@ -173,7 +173,7 @@ export default function ValetTasksScreen({ onNavigateToDetail }: ValetTasksScree
             <Spacer height={Spacing.sm} />
             <DirectionalRow style={styles.infoRow}>
               <DDIcon name="truck" size={16} variant="muted" />
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginEnd: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginEnd: Spacing.sm }]}>
                 {item.vehicleInfo.color} {item.vehicleInfo.make} {item.vehicleInfo.model} • {item.vehicleInfo.plateNumber}
               </ThemedText>
             </DirectionalRow>

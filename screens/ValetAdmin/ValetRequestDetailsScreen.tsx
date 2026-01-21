@@ -87,10 +87,10 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
     );
     const textElement = (
       <View style={{ flex: 1, marginStart: Spacing.md }}>
-        <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+        <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
           {label}
         </ThemedText>
-        <ThemedText style={[Typography.caption, { color: valueColor || theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+        <ThemedText style={[Typography.caption, { color: valueColor || theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
           {value}
         </ThemedText>
       </View>
@@ -204,7 +204,7 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
         <Spacer height={Spacing.lg} />
 
         <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
-          <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+          <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text }]}>
             {t('invitation.visitDetails')}
           </ThemedText>
           <Spacer height={Spacing.xl} />
@@ -253,7 +253,7 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
             <Spacer height={Spacing.lg} />
 
             <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
-              <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text }]}>
                 {t('valet.vehicleInfo')}
               </ThemedText>
               <Spacer height={Spacing.xl} />
@@ -292,7 +292,7 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
         <Spacer height={Spacing.lg} />
 
         <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
-          <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+          <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text }]}>
             {t('valet.assignment')}
           </ThemedText>
           <Spacer height={Spacing.xl} />
@@ -364,7 +364,7 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
                 </ThemedText>
               </DirectionalRow>
               <Spacer height={Spacing.sm} />
-              <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, lineHeight: 20, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, lineHeight: 20 }]}>
                 {request.notes}
               </ThemedText>
             </ThemedView>
@@ -485,10 +485,10 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
                         </ThemedText>
                       </View>
                       <View style={styles.driverInfo}>
-                        <ThemedText style={[Typography.body, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
+                        <ThemedText style={[Typography.body, { fontWeight: '600' }]}>
                           {driver.name}
                         </ThemedText>
-                        <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+                        <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
                           {driver.phone} - {driver.shift}
                         </ThemedText>
                       </View>

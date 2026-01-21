@@ -426,7 +426,7 @@ export default function DashboardLayout({
               >
                 <DirectionalRow gap={Spacing.md} style={{ flex: 1 }}>
                   <DDIcon name="user" size={20} variant="muted" />
-                  <ThemedText style={[Typography.body, { flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
+                  <ThemedText style={[Typography.body, { flex: 1 }]}>
                     {t('settings.profile')}
                   </ThemedText>
                 </DirectionalRow>
@@ -442,7 +442,7 @@ export default function DashboardLayout({
                 >
                   <DirectionalRow gap={Spacing.md} style={{ flex: 1 }}>
                     <DDIcon name="lock" size={20} variant="muted" />
-                    <ThemedText style={[Typography.body, { flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
+                    <ThemedText style={[Typography.body, { flex: 1 }]}>
                       {t('settings.changePassword')}
                     </ThemedText>
                   </DirectionalRow>
@@ -454,7 +454,7 @@ export default function DashboardLayout({
               <View style={styles.dropdownItem}>
                 <DirectionalRow gap={Spacing.md} style={{ flex: 1 }}>
                   <DDIcon name="globe" size={20} variant="muted" />
-                  <ThemedText style={[Typography.body, { flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
+                  <ThemedText style={[Typography.body, { flex: 1 }]}>
                     {t('settings.language')}
                   </ThemedText>
                   <View style={styles.languageToggle}>
@@ -487,7 +487,7 @@ export default function DashboardLayout({
               <View style={styles.dropdownItem}>
                 <DirectionalRow gap={Spacing.md} style={{ flex: 1 }}>
                   <DDIcon name={isDark ? "moon" : "sun"} size={20} variant="muted" />
-                  <ThemedText style={[Typography.body, { flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
+                  <ThemedText style={[Typography.body, { flex: 1 }]}>
                     {t('settings.darkMode')}
                   </ThemedText>
                   <Switch
@@ -512,7 +512,7 @@ export default function DashboardLayout({
               >
                 <DirectionalRow gap={Spacing.md} style={{ flex: 1 }}>
                   <DDIcon name="log-out" size={20} color={theme.error} directionAware />
-                  <ThemedText style={[Typography.body, { color: theme.error, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
+                  <ThemedText style={[Typography.body, { color: theme.error, flex: 1 }]}>
                     {t('auth.signOut')}
                   </ThemedText>
                 </DirectionalRow>
@@ -622,11 +622,11 @@ export default function DashboardLayout({
                   ) : null}
                   {pageTitle ? (
                     <View>
-                      <ThemedText style={[Typography.subtitle, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
+                      <ThemedText style={[Typography.subtitle, { fontWeight: '600' }]}>
                         {pageTitle}
                       </ThemedText>
                       {pageSubtitle ? (
-                        <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, textAlign: isRTL ? 'right' : 'left' }]}>
+                        <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2 }]}>
                           {pageSubtitle}
                         </ThemedText>
                       ) : null}

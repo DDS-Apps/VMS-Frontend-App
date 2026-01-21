@@ -172,10 +172,10 @@ export default function UserDetailScreen() {
           <DirectionalRow style={styles.infoRow}>
             <DDIcon name="user" size={18} variant="muted" />
             <View style={[styles.infoContent, { marginEnd: Spacing.md }]}>
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
                 {t('form.fullName')}
               </ThemedText>
-              <ThemedText style={[Typography.body, { textAlign: isRTL ? 'right' : 'left' }]}>{userName}</ThemedText>
+              <ThemedText style={[Typography.body, {}]}>{userName}</ThemedText>
             </View>
           </DirectionalRow>
 
@@ -184,10 +184,10 @@ export default function UserDetailScreen() {
           <DirectionalRow style={styles.infoRow}>
             <DDIcon name="mail" size={18} variant="muted" />
             <View style={[styles.infoContent, { marginEnd: Spacing.md }]}>
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
                 {t('form.email')}
               </ThemedText>
-              <ThemedText style={[Typography.body, { textAlign: isRTL ? 'right' : 'left' }]}>{user.email}</ThemedText>
+              <ThemedText style={[Typography.body, {}]}>{user.email}</ThemedText>
             </View>
           </DirectionalRow>
 
@@ -197,10 +197,10 @@ export default function UserDetailScreen() {
               <DirectionalRow style={styles.infoRow}>
                 <DDIcon name="phone" size={18} variant="muted" />
                 <View style={[styles.infoContent, { marginEnd: Spacing.md }]}>
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
                     {t('form.phone')}
                   </ThemedText>
-                  <ThemedText style={[Typography.body, { textAlign: isRTL ? 'right' : 'left' }]}>{userPhone}</ThemedText>
+                  <ThemedText style={[Typography.body, {}]}>{userPhone}</ThemedText>
                 </View>
               </DirectionalRow>
             </>
@@ -212,10 +212,10 @@ export default function UserDetailScreen() {
               <DirectionalRow style={styles.infoRow}>
                 <DDIcon name="briefcase" size={18} variant="muted" />
                 <View style={[styles.infoContent, { marginEnd: Spacing.md }]}>
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
                     {t('form.company')}
                   </ThemedText>
-                  <ThemedText style={[Typography.body, { textAlign: isRTL ? 'right' : 'left' }]}>{user.department}</ThemedText>
+                  <ThemedText style={[Typography.body, {}]}>{user.department}</ThemedText>
                 </View>
               </DirectionalRow>
             </>
@@ -232,10 +232,10 @@ export default function UserDetailScreen() {
           <DirectionalRow style={styles.infoRow}>
             <DDIcon name="shield" size={18} variant="muted" />
             <View style={[styles.infoContent, { marginEnd: Spacing.md }]}>
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
                 {t('common.role')}
               </ThemedText>
-              <ThemedText style={[Typography.body, { textAlign: isRTL ? 'right' : 'left' }]}>{getRoleLabel(user.role)}</ThemedText>
+              <ThemedText style={[Typography.body, {}]}>{getRoleLabel(user.role)}</ThemedText>
             </View>
           </DirectionalRow>
 
@@ -244,7 +244,7 @@ export default function UserDetailScreen() {
           <DirectionalRow style={styles.infoRow}>
             <DDIcon name="check-circle" size={18} variant="muted" />
             <View style={[styles.infoContent, { marginEnd: Spacing.md }]}>
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
                 {t('common.autoApproval')}
               </ThemedText>
               <View style={styles.autoApprovalValue}>
@@ -272,10 +272,10 @@ export default function UserDetailScreen() {
           <DirectionalRow style={styles.infoRow}>
             <DDIcon name={source === 'microsoft_ad' ? 'globe' : 'monitor'} size={18} variant="muted" />
             <View style={[styles.infoContent, { marginEnd: Spacing.md }]}>
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
                 {t('common.source')}
               </ThemedText>
-              <ThemedText style={[Typography.body, { textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.body, {}]}>
                 {source === 'microsoft_ad' ? t('common.microsoftAD') : t('common.appCreated')}
               </ThemedText>
             </View>
@@ -286,14 +286,14 @@ export default function UserDetailScreen() {
           <DirectionalRow style={styles.infoRow}>
             <DDIcon name="user" size={18} variant="muted" />
             <View style={[styles.infoContent, { marginEnd: Spacing.md }]}>
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
                 {t('common.manager')}
               </ThemedText>
-              <ThemedText style={[Typography.body, { textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.body, {}]}>
                 {user.managerName || t('common.none')}
               </ThemedText>
               {user.managerId ? (
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left', marginTop: 2 }]}>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2 }]}>
                   ID: {user.managerId}
                 </ThemedText>
               ) : null}
@@ -311,10 +311,10 @@ export default function UserDetailScreen() {
           <DirectionalRow style={styles.infoRow}>
             <DDIcon name="calendar" size={18} variant="muted" />
             <View style={[styles.infoContent, { marginEnd: Spacing.md }]}>
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
                 {t('common.createdAt')}
               </ThemedText>
-              <ThemedText style={[Typography.body, { textAlign: isRTL ? 'right' : 'left' }]}>{formatDate(user.createdAt)}</ThemedText>
+              <ThemedText style={[Typography.body, {}]}>{formatDate(user.createdAt)}</ThemedText>
             </View>
           </DirectionalRow>
 
@@ -323,10 +323,10 @@ export default function UserDetailScreen() {
           <DirectionalRow style={styles.infoRow}>
             <DDIcon name="clock" size={18} variant="muted" />
             <View style={[styles.infoContent, { marginEnd: Spacing.md }]}>
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
                 {t('common.updatedAt')}
               </ThemedText>
-              <ThemedText style={[Typography.body, { textAlign: isRTL ? 'right' : 'left' }]}>{formatDate(user.updatedAt)}</ThemedText>
+              <ThemedText style={[Typography.body, {}]}>{formatDate(user.updatedAt)}</ThemedText>
             </View>
           </DirectionalRow>
         </View>

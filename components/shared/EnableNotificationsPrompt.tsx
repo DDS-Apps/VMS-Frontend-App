@@ -147,13 +147,13 @@ export function EnableNotificationsPrompt({
       {bellIcon}
       
       <View style={styles.content}>
-        <ThemedText variant="bodySmall" style={[styles.title, { textAlign: isRTL ? 'right' : 'left' }]}>
+        <ThemedText variant="bodySmall" style={[styles.title, {}]}>
           {t('notifications.enablePromptTitle')}
         </ThemedText>
         <ThemedText 
           variant="caption" 
           color={theme.textSecondary}
-          style={[styles.description, { textAlign: isRTL ? 'right' : 'left' }]}
+          style={[styles.description, {}]}
         >
           {t('notifications.enablePromptDescription')}
         </ThemedText>

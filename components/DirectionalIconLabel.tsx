@@ -47,7 +47,7 @@ export function DirectionalIconLabel({
       />
       <View style={{ flex: textStyle ? undefined : 1 }}>
         {typeof children === 'string' ? (
-          <ThemedText style={[{ textAlign: isRTL ? 'right' : 'left' }, textStyle]}>
+          <ThemedText style={[{}, textStyle]}>
             {children}
           </ThemedText>
         ) : children}

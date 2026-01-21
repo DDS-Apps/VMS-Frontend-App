@@ -281,11 +281,11 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
               
               <View style={[styles.nameSection, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
                 <DirectionalRow style={[styles.nameRow, { width: '100%' }]}>
-                  <ThemedText style={[styles.visitorName, { color: theme.text, textAlign: isRTL ? 'right' : 'left', width: '100%' }]} numberOfLines={1}>
+                  <ThemedText style={[styles.visitorName, { color: theme.text, width: '100%' }]} numberOfLines={1}>
                     {visitorName}
                   </ThemedText>
                 </DirectionalRow>
-                <ThemedText style={[styles.companyText, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left', width: '100%' }]} numberOfLines={1}>
+                <ThemedText style={[styles.companyText, { color: theme.textSecondary, width: '100%' }]} numberOfLines={1}>
                   {item.visitor.company ?? ''}
                 </ThemedText>
               </View>
@@ -346,7 +346,7 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
                 {item.purpose ? (
                   <DirectionalRow style={styles.expandedDetailRow}>
                     <DDIcon name="briefcase" size={14} color={theme.textSecondary} />
-                    <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={2}>
+                    <ThemedText style={[styles.expandedDetailText, { color: theme.text }]} numberOfLines={2}>
                       {item.purpose}
                     </ThemedText>
                   </DirectionalRow>
@@ -354,7 +354,7 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
                 {item.visitor.email ? (
                   <DirectionalRow style={styles.expandedDetailRow}>
                     <DDIcon name="mail" size={14} color={theme.textSecondary} />
-                    <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+                    <ThemedText style={[styles.expandedDetailText, { color: theme.text }]} numberOfLines={1}>
                       {item.visitor.email}
                     </ThemedText>
                   </DirectionalRow>
@@ -362,7 +362,7 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
                 {item.visitor.phone ? (
                   <DirectionalRow style={styles.expandedDetailRow}>
                     <DDIcon name="phone" size={14} color={theme.textSecondary} />
-                    <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+                    <ThemedText style={[styles.expandedDetailText, { color: theme.text }]} numberOfLines={1}>
                       {item.visitor.phone}
                     </ThemedText>
                   </DirectionalRow>
@@ -483,13 +483,13 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
 
   const ListHeader = useMemo(() => (
     <View>
-      <ThemedText style={[Typography.title, { fontSize: 22, fontWeight: '700', textAlign: isRTL ? 'right' : 'left' }]}>
+      <ThemedText style={[Typography.title, { fontSize: 22, fontWeight: '700' }]}>
         {t('navigation.allVisitors')}
       </ThemedText>
       
       <Spacer height={4} />
       
-      <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+      <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
         {totalCount} {totalCount === 1 ? 'visitor' : 'visitors'} found
         {isFetching && !isFetchingNextPage ? ' ...' : ''}
       </ThemedText>

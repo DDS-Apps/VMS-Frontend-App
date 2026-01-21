@@ -113,7 +113,7 @@ export function arabicTextStyle(
   return {
     fontSize: arabicFontSize(baseFontSize, isRTL, category),
     lineHeight: arabicLineHeight(baseLineHeight, isRTL, category),
-    textAlign: isRTL ? 'right' : 'left',
+    
     writingDirection: isRTL ? 'rtl' : 'ltr',
   };
 }
@@ -160,7 +160,7 @@ export function rowBetween(isRTL: boolean): ViewStyle {
  */
 export function rtlText(isRTL: boolean): TextStyle {
   return {
-    textAlign: isRTL ? 'right' : 'left',
+    
     writingDirection: isRTL ? 'rtl' : 'ltr',
   };
 }

@@ -145,8 +145,8 @@ export default function BuffetSettingsScreen() {
             >
               <DirectionalRow style={styles.cardHeader}>
                 <View style={{ flex: 1 }}>
-                  <ThemedText style={[Typography.subtitle, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>{location.name}</ThemedText>
-                  <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: Spacing.xs, textAlign: isRTL ? 'right' : 'left' }]}>
+                  <ThemedText style={[Typography.subtitle, { fontWeight: '600' }]}>{location.name}</ThemedText>
+                  <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: Spacing.xs }]}>
                     {location.building} • {location.floor}
                   </ThemedText>
                 </View>
@@ -176,7 +176,7 @@ export default function BuffetSettingsScreen() {
               <View style={styles.cardContent}>
                 <DirectionalRow style={styles.infoRow}>
                   <DDIcon name="users" variant="muted" size={16} />
-                  <ThemedText style={[Typography.body, { color: theme.textSecondary, marginEnd: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
+                  <ThemedText style={[Typography.body, { color: theme.textSecondary, marginEnd: Spacing.sm }]}>
                     {t('buffet.numberOfGuests')}: {location.capacity}
                   </ThemedText>
                 </DirectionalRow>

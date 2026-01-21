@@ -247,7 +247,7 @@ export default function AdminDashboardScreen({
       <Spacer height={Spacing.xl} />
 
       <DirectionalRow style={styles.sectionHeader}>
-        <ThemedText style={[Typography.subtitle, { textAlign: isRTL ? 'right' : 'left' }]}>{t('dashboard.recentActivity')}</ThemedText>
+        <ThemedText style={[Typography.subtitle, {}]}>{t('dashboard.recentActivity')}</ThemedText>
         <Pressable>
           <ThemedText style={[Typography.bodySmall, { color: theme.primary }]}>
             {t('common.viewAll')}
@@ -275,11 +275,11 @@ export default function AdminDashboardScreen({
               />
             </View>
             <View style={{ flex: 1, marginStart: Spacing.md }}>
-              <ThemedText style={[Typography.body, { fontWeight: "600", textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.body, { fontWeight: "600" }]}>
                 {activity.title}
               </ThemedText>
               <ThemedText
-                style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}
+                style={[Typography.caption, { color: theme.textSecondary }]}
               >
                 {activity.subtitle}
               </ThemedText>

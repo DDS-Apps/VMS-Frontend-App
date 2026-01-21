@@ -454,21 +454,21 @@ export default function BuffetAdministrationScreen() {
                   <DirectionalRow style={styles.staffDetailRow}>
                     <DDIcon name="map-pin" size={16} variant="muted" />
                     <Spacer width={Spacing.xs} />
-                    <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+                    <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
                       {staff.assignedLocation}
                     </ThemedText>
                   </DirectionalRow>
                   <DirectionalRow style={styles.staffDetailRow}>
                     <DDIcon name="clock" size={16} variant="muted" />
                     <Spacer width={Spacing.xs} />
-                    <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+                    <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
                       {staff.shift}
                     </ThemedText>
                   </DirectionalRow>
                   <DirectionalRow style={styles.staffDetailRow}>
                     <DDIcon name="phone" size={16} variant="muted" />
                     <Spacer width={Spacing.xs} />
-                    <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+                    <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
                       {staff.phone}
                     </ThemedText>
                   </DirectionalRow>

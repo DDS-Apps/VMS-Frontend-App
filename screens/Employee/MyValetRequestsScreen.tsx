@@ -141,10 +141,10 @@ const ValetRequestCard = React.memo(({
   );
   const headerInfo = (
     <View style={styles.taskHeaderInfo}>
-      <ThemedText style={[Typography.body, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
+      <ThemedText style={[Typography.body, { fontWeight: '600' }]}>
         {request.vehicleInfo.plateNumber}
       </ThemedText>
-      <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+      <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
         {request.vehicleInfo.make} {request.vehicleInfo.model} - {request.vehicleInfo.color}
       </ThemedText>
     </View>
@@ -195,7 +195,7 @@ const ValetRequestCard = React.memo(({
               <Spacer height={Spacing.sm} />
               <DirectionalRow style={styles.notesRow}>
                 <DDIcon name="file-text" size={14} variant="muted" />
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6, flex: 1, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={2}>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6, flex: 1 }]} numberOfLines={2}>
                   {request.notes}
                 </ThemedText>
               </DirectionalRow>
@@ -322,8 +322,8 @@ export default function MyValetRequestsScreen({ navigation }: MyValetRequestsScr
       >
         <DirectionalRow style={styles.headerRow}>
           <View>
-            <ThemedText style={[Typography.h2, { textAlign: isRTL ? 'right' : 'left' }]}>{t('navigation.myValetRequests')}</ThemedText>
-            <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.h2, {}]}>{t('navigation.myValetRequests')}</ThemedText>
+            <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
               {filteredRequests.length} {t('sidebar.requests')}
             </ThemedText>
           </View>

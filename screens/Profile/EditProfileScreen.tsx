@@ -297,7 +297,7 @@ export default function EditProfileScreen({
   ) => (
     <View style={styles.inputContainer}>
       <DirectionalRow style={[styles.labelRow, { justifyContent: 'space-between' }]}>
-        <ThemedText style={[styles.inputLabel, { color: theme.text, textAlign: isRTL ? 'right' : 'left', flex: 1 }]}>
+        <ThemedText style={[styles.inputLabel, { color: theme.text, flex: 1 }]}>
           {label}
         </ThemedText>
         {!editable ? (
@@ -316,7 +316,7 @@ export default function EditProfileScreen({
             backgroundColor: editable ? theme.surface : applyOpacity(theme.surfaceSecondary, '60'),
             borderColor: error ? theme.error : theme.border,
             color: editable ? theme.text : theme.textSecondary,
-            textAlign: isRTL ? 'right' : 'left',
+            
           },
         ]}
         value={value}
@@ -419,7 +419,7 @@ export default function EditProfileScreen({
       </ThemedView>
 
       <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
-        <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+        <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
           {t('settings.basicInfo')}
         </ThemedText>
 
@@ -427,19 +427,19 @@ export default function EditProfileScreen({
 
         <DirectionalRow style={styles.infoRow}>
           <View style={styles.infoItem}>
-            <ThemedText style={[styles.infoLabel, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>
               {t('settings.status')}
             </ThemedText>
-            <ThemedText style={[styles.infoValue, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[styles.infoValue, { color: theme.text }]}>
               {user?.status === 'active' ? t('status.active') : t('status.inactive')}
             </ThemedText>
           </View>
           {user?.lastLogin ? (
             <View style={styles.infoItem}>
-              <ThemedText style={[styles.infoLabel, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>
                 {t('settings.lastLogin')}
               </ThemedText>
-              <ThemedText style={[styles.infoValue, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[styles.infoValue, { color: theme.text }]}>
                 {formatDate(user.lastLogin)}
               </ThemedText>
             </View>
@@ -448,7 +448,7 @@ export default function EditProfileScreen({
       </ThemedView>
 
       <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
-        <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+        <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
           {t('settings.personalInfo')}
         </ThemedText>
 
@@ -487,7 +487,7 @@ export default function EditProfileScreen({
       </ThemedView>
 
       <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
-        <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+        <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
           {t('settings.workInfo')}
         </ThemedText>
 

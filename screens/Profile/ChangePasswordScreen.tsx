@@ -155,7 +155,7 @@ export default function ChangePasswordScreen({ onSuccess, onCancel }: ChangePass
             <TextInput
               style={[
                 styles.input,
-                { color: theme.text, textAlign: isRTL ? 'right' : 'left' },
+                { color: theme.text },
               ]}
               placeholder={t('auth.currentPasswordPlaceholder')}
               placeholderTextColor={theme.textSecondary}
@@ -191,7 +191,7 @@ export default function ChangePasswordScreen({ onSuccess, onCancel }: ChangePass
             <TextInput
               style={[
                 styles.input,
-                { color: theme.text, textAlign: isRTL ? 'right' : 'left' },
+                { color: theme.text },
               ]}
               placeholder={t('auth.enterNewPassword')}
               placeholderTextColor={theme.textSecondary}
@@ -227,7 +227,7 @@ export default function ChangePasswordScreen({ onSuccess, onCancel }: ChangePass
             <TextInput
               style={[
                 styles.input,
-                { color: theme.text, textAlign: isRTL ? 'right' : 'left' },
+                { color: theme.text },
               ]}
               placeholder={t('auth.confirmNewPasswordPlaceholder')}
               placeholderTextColor={theme.textSecondary}

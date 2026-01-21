@@ -186,7 +186,7 @@ export default function SettingsScreen({
       <Spacer height={Spacing.xl} />
 
       <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
-        <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+        <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
           {t('settings.profile')}
         </ThemedText>
 
@@ -199,15 +199,15 @@ export default function SettingsScreen({
             </ThemedText>
           </View>
           <View style={{ flex: 1 }}>
-            <ThemedText style={[styles.userName, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[styles.userName, { color: theme.text }]}>
               {userName}
             </ThemedText>
-            <ThemedText style={[styles.userRole, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[styles.userRole, { color: theme.textSecondary }]}>
               {getRoleLabel(userRole)}
             </ThemedText>
             <Spacer height={2} />
             {userEmail ? (
-              <ThemedText style={[styles.userEmail, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[styles.userEmail, { color: theme.textSecondary }]}>
                 {userEmail}
               </ThemedText>
             ) : null}
@@ -236,7 +236,7 @@ export default function SettingsScreen({
       </ThemedView>
 
       <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
-        <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+        <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
           {t('settings.appearance')}
         </ThemedText>
 
@@ -244,10 +244,10 @@ export default function SettingsScreen({
 
         <DirectionalRow style={[styles.settingItem, { gap: Spacing.md }]}>
           <View style={{ flex: 1 }}>
-            <ThemedText style={[styles.settingLabel, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[styles.settingLabel, { color: theme.text }]}>
               {t('settings.darkMode')}
             </ThemedText>
-            <ThemedText style={[styles.settingDescription, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[styles.settingDescription, { color: theme.textSecondary }]}>
               {t('settings.darkModeDesc')}
             </ThemedText>
           </View>
@@ -264,10 +264,10 @@ export default function SettingsScreen({
 
         <DirectionalRow style={styles.settingItem}>
           <View style={{ flex: 1 }}>
-            <ThemedText style={[styles.settingLabel, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[styles.settingLabel, { color: theme.text }]}>
               {t('settings.language')}
             </ThemedText>
-            <ThemedText style={[styles.settingDescription, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[styles.settingDescription, { color: theme.textSecondary }]}>
               {t('settings.languageDesc')}
             </ThemedText>
           </View>
@@ -291,7 +291,7 @@ export default function SettingsScreen({
               ]}
               onPress={() => handleLanguageChange(lang.code)}
             >
-              <ThemedText style={[styles.languageLabel, { color: locale === lang.code ? theme.primary : theme.text, textAlign: isRTL ? 'right' : 'left', flex: 1 }]}>
+              <ThemedText style={[styles.languageLabel, { color: locale === lang.code ? theme.primary : theme.text, flex: 1 }]}>
                 {lang.nativeName}
               </ThemedText>
               {locale === lang.code ? (
@@ -303,7 +303,7 @@ export default function SettingsScreen({
       </ThemedView>
 
       <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
-        <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+        <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
           {t('settings.notificationSettings')}
         </ThemedText>
 
@@ -311,10 +311,10 @@ export default function SettingsScreen({
 
         <DirectionalRow style={[styles.settingItem, { gap: Spacing.md }]}>
           <View style={{ flex: 1 }}>
-            <ThemedText style={[styles.settingLabel, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[styles.settingLabel, { color: theme.text }]}>
               {t('settings.pushNotifications')}
             </ThemedText>
-            <ThemedText style={[styles.settingDescription, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[styles.settingDescription, { color: theme.textSecondary }]}>
               {t('settings.pushNotificationsDesc')}
             </ThemedText>
           </View>
@@ -373,7 +373,7 @@ export default function SettingsScreen({
         {Platform.OS === 'web' ? null : (
           <>
             <Spacer height={Spacing.sm} />
-            <ThemedText style={[styles.testNotificationHint, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[styles.testNotificationHint, { color: theme.textSecondary }]}>
               {t('settings.testNotificationHint')}
             </ThemedText>
           </>

@@ -336,7 +336,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
             {item.visitor.phone ? (
               <DirectionalRow style={styles.detailRow}>
                 <DDIcon name="phone" size={14} color={theme.textSecondary} />
-                <ThemedText style={[styles.detailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+                <ThemedText style={[styles.detailText, { color: theme.text }]} numberOfLines={1}>
                   {item.visitor.phone}
                 </ThemedText>
               </DirectionalRow>

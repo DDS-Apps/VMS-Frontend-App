@@ -147,10 +147,10 @@ export default function DriverTaskDetailScreen({
     <DirectionalRow style={styles.infoRow}>
       <DDIcon name={icon as IconName} variant={iconVariant} size={20} />
       <View style={{ flex: 1, marginStart: Spacing.md }}>
-        <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginBottom: 2, textAlign: isRTL ? 'right' : 'left' }]}>
+        <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginBottom: 2 }]}>
           {label}
         </ThemedText>
-        <ThemedText style={[Typography.body, { fontWeight: '500', textAlign: isRTL ? 'right' : 'left' }]}>
+        <ThemedText style={[Typography.body, { fontWeight: '500' }]}>
           {value}
         </ThemedText>
       </View>
@@ -189,10 +189,10 @@ export default function DriverTaskDetailScreen({
                     <DDIcon name="check-circle" size={20} color={theme.success} />
                   </View>
                   <View style={{ flex: 1 }}>
-                    <ThemedText style={[Typography.body, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
+                    <ThemedText style={[Typography.body, { fontWeight: '600' }]}>
                       {slot.slotNumber}
                     </ThemedText>
-                    <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+                    <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
                       {slot.zone}
                     </ThemedText>
                   </View>
@@ -232,10 +232,10 @@ export default function DriverTaskDetailScreen({
 
         <DirectionalRow style={styles.headerSection}>
           <View style={{ flex: 1 }}>
-            <ThemedText style={[Typography.title, { fontSize: 22, fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.title, { fontSize: 22, fontWeight: '600' }]}>
               {task.visitorName}
             </ThemedText>
-            <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 4, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 4 }]}>
               {task.visitorCompany}
             </ThemedText>
           </View>

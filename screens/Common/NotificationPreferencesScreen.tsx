@@ -150,10 +150,10 @@ export default function NotificationPreferencesScreen() {
           <DirectionalRow style={[styles.permissionCard, { backgroundColor: theme.warning + "20" }]}>
             <DDIcon name="bell-off" size={24} color={theme.warning} />
             <View style={styles.permissionText}>
-              <ThemedText style={[Typography.bodySmall, { fontWeight: "600", textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.bodySmall, { fontWeight: "600" }]}>
                 {t('notifications.pushDisabled')}
               </ThemedText>
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
                 {t('notifications.enablePushDescription')}
               </ThemedText>
             </View>

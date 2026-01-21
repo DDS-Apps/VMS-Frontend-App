@@ -142,7 +142,7 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
       <Spacer height={Spacing.lg} />
 
       <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
-        <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+        <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text }]}>
           {t('visitor.visitorDetails')}
         </ThemedText>
         <Spacer height={Spacing.xl} />
@@ -152,10 +152,10 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
             <DDIcon name="briefcase" size={18} color={theme.text} />
           </View>
           <View style={{ flex: 1, marginStart: Spacing.md }}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
               {t('reception.hostName')}
             </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
               {task.hostName}
             </ThemedText>
           </View>
@@ -168,10 +168,10 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
             <DDIcon name="calendar" size={18} color={theme.text} />
           </View>
           <View style={{ flex: 1, marginStart: Spacing.md }}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
               {t('visitor.visitDate')}
             </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
               {task.visitDate}
             </ThemedText>
           </View>
@@ -184,10 +184,10 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
             <DDIcon name="clock" size={18} color={theme.text} />
           </View>
           <View style={{ flex: 1, marginStart: Spacing.md }}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
               {t('visitor.visitTime')}
             </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
               {task.pickupTime} - {task.returnTime}
             </ThemedText>
           </View>
@@ -200,10 +200,10 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
             <DDIcon name="map-pin" size={18} color={theme.text} />
           </View>
           <View style={{ flex: 1, marginStart: Spacing.md }}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
               {t('invitation.location')}
             </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
               {task.location}
             </ThemedText>
           </View>
@@ -217,13 +217,13 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
                 <DDIcon name="truck" size={18} color={theme.info} />
               </View>
               <View style={{ flex: 1, marginStart: Spacing.md }}>
-                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
                   {t('valet.vehiclePlate')}
                 </ThemedText>
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
                   {task.vehicleInfo.color} {task.vehicleInfo.make} {task.vehicleInfo.model}
                 </ThemedText>
-                <ThemedText style={[Typography.caption, { color: theme.info, marginTop: 2, fontSize: 12, fontWeight: '500', textAlign: isRTL ? 'right' : 'left' }]}>
+                <ThemedText style={[Typography.caption, { color: theme.info, marginTop: 2, fontSize: 12, fontWeight: '500' }]}>
                   {task.vehicleInfo.plateNumber}
                 </ThemedText>
               </View>
@@ -243,7 +243,7 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
               </ThemedText>
             </DirectionalRow>
             <Spacer height={Spacing.sm} />
-            <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, lineHeight: 20, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, lineHeight: 20 }]}>
               {task.notes}
             </ThemedText>
           </ThemedView>
@@ -253,7 +253,7 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
       <Spacer height={Spacing.lg} />
 
       <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
-        <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text, textAlign: isRTL ? 'right' : 'left', marginBottom: Spacing.lg }]}>
+        <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text, marginBottom: Spacing.lg }]}>
           {t('status.pending')}
         </ThemedText>
 
@@ -350,10 +350,10 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
               <DDIcon name="truck" size={18} color={theme.success} />
             </View>
             <View style={{ flex: 1, marginStart: Spacing.md }}>
-              <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
                 {task.valet.driver.name}
               </ThemedText>
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
                 {task.valet.driver.phone}
               </ThemedText>
               <DirectionalRow style={{ alignItems: 'center', marginTop: 4 }}>
@@ -430,10 +430,10 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
                     ]}
                   >
                     <View style={{ flex: 1 }}>
-                      <ThemedText style={[Typography.body, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
+                      <ThemedText style={[Typography.body, { fontWeight: '600' }]}>
                         {driver.name}
                       </ThemedText>
-                      <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+                      <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
                         {driver.phone}
                       </ThemedText>
                       <Spacer height={Spacing.xs} />
@@ -513,7 +513,7 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
                       fontWeight: task.valet.status === option.value ? '600' : '400',
                       marginStart: Spacing.md,
                       flex: 1,
-                      textAlign: isRTL ? 'right' : 'left',
+                      
                     },
                   ]}
                 >

@@ -193,10 +193,10 @@ export default function GateEventsLogScreen({ navigation }: GateEventsLogScreenP
         <View style={styles.cardContent}>
           <DirectionalRow style={styles.cardHeader}>
             <View style={styles.visitorInfo}>
-              <ThemedText style={[Typography.body, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.body, { fontWeight: '600' }]}>
                 {event.visitorName || t('common.unknown')}
               </ThemedText>
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
                 {event.gateName}
               </ThemedText>
             </View>
@@ -211,7 +211,7 @@ export default function GateEventsLogScreen({ navigation }: GateEventsLogScreenP
           {event.reason ? (
             <DirectionalRow style={[styles.reasonBox, { backgroundColor: applyOpacity(theme.error, '08') }]}>
               <DDIcon name="alert-circle" size={14} color={theme.error} />
-              <ThemedText style={[Typography.caption, { color: theme.error, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.caption, { color: theme.error, flex: 1 }]}>
                 {event.reason}
               </ThemedText>
             </DirectionalRow>
@@ -281,10 +281,10 @@ export default function GateEventsLogScreen({ navigation }: GateEventsLogScreenP
         <DirectionalRow style={[styles.summaryCard, { backgroundColor: applyOpacity(theme.success, '12') }]}>
           <DDIcon name="check-circle" size={20} color={theme.success} />
           <View>
-            <ThemedText style={[Typography.title, { fontSize: 20, fontWeight: '700', color: theme.success, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.title, { fontSize: 20, fontWeight: '700', color: theme.success }]}>
               {eventCounts.allowed}
             </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.success, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.caption, { color: theme.success }]}>
               {t('security.allowed')}
             </ThemedText>
           </View>
@@ -292,10 +292,10 @@ export default function GateEventsLogScreen({ navigation }: GateEventsLogScreenP
         <DirectionalRow style={[styles.summaryCard, { backgroundColor: applyOpacity(theme.error, '12') }]}>
           <DDIcon name="x-circle" size={20} color={theme.error} />
           <View>
-            <ThemedText style={[Typography.title, { fontSize: 20, fontWeight: '700', color: theme.error, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.title, { fontSize: 20, fontWeight: '700', color: theme.error }]}>
               {eventCounts.denied}
             </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.error, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.caption, { color: theme.error }]}>
               {t('security.denied')}
             </ThemedText>
           </View>

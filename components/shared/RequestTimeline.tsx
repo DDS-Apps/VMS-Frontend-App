@@ -169,7 +169,7 @@ export function RequestTimeline({
   return (
     <ThemedView style={[styles.container, { backgroundColor: theme.surface }]}>
       {showTitle ? (
-        <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginBottom: Spacing.lg, textAlign: isRTL ? 'right' : 'left' }]}>
+        <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginBottom: Spacing.lg }]}>
           {title || t('request.timeline')}
         </ThemedText>
       ) : null}
@@ -271,7 +271,7 @@ export function RequestTimeline({
                 {
                   fontWeight: isCompleted || isCurrent ? '600' : '400',
                   color: isCompleted || isCurrent || isError ? theme.text : theme.textSecondary,
-                  textAlign: isRTL ? 'right' : 'left',
+                  
                   width: '100%',
                 },
               ]}

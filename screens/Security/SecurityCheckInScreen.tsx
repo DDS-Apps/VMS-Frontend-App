@@ -446,11 +446,11 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
               <VisitorAvatar name={visitor.name} theme={theme} size={LAYOUT.avatarSize} />
               
               <View style={[styles.cardNameSection, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
-                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 16, textAlign: isRTL ? 'right' : 'left' }]}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 16 }]}>
                   {visitor.name}
                 </ThemedText>
                 {visitor.company ? (
-                  <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 2, textAlign: isRTL ? 'right' : 'left' }]}>
+                  <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 2 }]}>
                     {visitor.company}
                   </ThemedText>
                 ) : null}
@@ -562,7 +562,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
         <Spacer height={Spacing.sm} />
         
         <DirectionalRow style={styles.dateDisplayRow}>
-          <ThemedText style={[Typography.bodySmall, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
+          <ThemedText style={[Typography.bodySmall, { fontWeight: '600' }]}>
             {formatDisplayDate()}
           </ThemedText>
           <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'left' : 'right' }]}>

@@ -99,10 +99,10 @@ const SectionHeader = ({
 }) => {  
   const titleContent = (
     <View style={{ alignItems: isRTL ? 'flex-end' : 'flex-start' }}>
-      <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
+      <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600' }]}>
         {t('navigation.pendingApprovals')}
       </ThemedText>
-      <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 12, textAlign: isRTL ? 'right' : 'left' }]}>
+      <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 12 }]}>
         {t('dashboard.requestsAwaitingApproval')}
       </ThemedText>
     </View>
@@ -240,7 +240,7 @@ const BulkActionBar = ({
       ]}
     >
       <DirectionalRow style={styles.bulkActionContent}>
-        <ThemedText style={[Typography.body, { fontWeight: '600', color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+        <ThemedText style={[Typography.body, { fontWeight: '600', color: theme.text }]}>
           {isProcessing ? t('common.processing') : `${selectedCount} ${t('bulkActions.selected')}`}
         </ThemedText>
         <DirectionalRow style={styles.bulkActionButtons}>
@@ -315,7 +315,7 @@ const ApprovalTableRow = React.memo(({
   isRTL?: boolean;
 }) => {  
   const nameText = (
-    <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, flex: 1, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={2}>
+    <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, flex: 1 }]} numberOfLines={2}>
       {request.visitor.fullName}
     </ThemedText>
   );

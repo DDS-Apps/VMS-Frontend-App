@@ -512,7 +512,7 @@ export default function UsersRolesScreen() {
           ) : null}
           <View style={{ flex: 1 }}>
             <DirectionalRow style={styles.nameRow}>
-              <ThemedText style={[Typography.subtitle, { fontWeight: '600', flex: 1, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+              <ThemedText style={[Typography.subtitle, { fontWeight: '600', flex: 1 }]} numberOfLines={1}>
                 {item.name}
               </ThemedText>
             </DirectionalRow>

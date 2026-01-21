@@ -670,7 +670,7 @@ export default function VisitorRequestFormScreen({
               Typography.label,
               {
                 color: theme.textSecondary,
-                // textAlign: isRTL ? "right" : "left",
+                // 
               },
             ]}
           >
@@ -684,7 +684,7 @@ export default function VisitorRequestFormScreen({
                 backgroundColor: theme.background,
                 borderColor: errors.fullName ? theme.error : theme.border,
                 color: theme.text,
-                textAlign: isRTL ? "right" : "left",
+                
                 writingDirection: isRTL ? "rtl" : "ltr",
               },
             ]}
@@ -722,7 +722,7 @@ export default function VisitorRequestFormScreen({
               Typography.label,
               {
                 color: theme.textSecondary,
-                //   textAlign: isRTL ? "right" : "left",
+                //   
               },
             ]}
           >
@@ -736,7 +736,7 @@ export default function VisitorRequestFormScreen({
                 backgroundColor: theme.background,
                 borderColor: errors.email ? theme.error : theme.border,
                 color: theme.text,
-                // textAlign: isRTL ? "right" : "left",
+                // 
                 writingDirection: isRTL ? "rtl" : "ltr",
               },
             ]}
@@ -776,7 +776,7 @@ export default function VisitorRequestFormScreen({
               Typography.label,
               {
                 color: theme.textSecondary,
-                // textAlign: isRTL ? "right" : "left",
+                // 
               },
             ]}
           >
@@ -790,7 +790,7 @@ export default function VisitorRequestFormScreen({
                 backgroundColor: theme.background,
                 borderColor: errors.phone ? theme.error : theme.border,
                 color: theme.text,
-                //  textAlign: isRTL ? "right" : "left",
+                //  
                 writingDirection: isRTL ? "rtl" : "ltr",
               },
             ]}
@@ -824,7 +824,7 @@ export default function VisitorRequestFormScreen({
               Typography.label,
               {
                 color: theme.textSecondary,
-                // textAlign: isRTL ? "right" : "left",
+                // 
               },
             ]}
           >
@@ -838,7 +838,7 @@ export default function VisitorRequestFormScreen({
                 backgroundColor: theme.background,
                 borderColor: theme.border,
                 color: theme.text,
-                //  textAlign: isRTL ? "right" : "left",
+                //  
                 writingDirection: isRTL ? "rtl" : "ltr",
               },
             ]}
@@ -856,7 +856,7 @@ export default function VisitorRequestFormScreen({
                   Typography.label,
                   {
                     color: theme.textSecondary,
-                    // textAlign: isRTL ? "right" : "left",
+                    // 
                   },
                 ]}
               >
@@ -885,7 +885,7 @@ export default function VisitorRequestFormScreen({
                       flex: 1,
                       marginStart: Spacing.md,
                       marginEnd: Spacing.md,
-                      //  textAlign: isRTL ? "right" : "left",
+                      //  
                     },
                   ]}
                 >
@@ -901,7 +901,7 @@ export default function VisitorRequestFormScreen({
                       Typography.caption,
                       {
                         color: theme.error,
-                        // textAlign: isRTL ? "right" : "left",
+                        // 
                       },
                     ]}
                   >
@@ -920,7 +920,7 @@ export default function VisitorRequestFormScreen({
                   Typography.label,
                   {
                     color: theme.textSecondary,
-                    //   textAlign: isRTL ? "right" : "left",
+                    //   
                   },
                 ]}
               >
@@ -947,7 +947,7 @@ export default function VisitorRequestFormScreen({
                       flex: 1,
                       marginStart: Spacing.md,
                       marginEnd: Spacing.md,
-                      //   textAlign: isRTL ? "right" : "left",
+                      //   
                     },
                   ]}
                 >
@@ -965,7 +965,7 @@ export default function VisitorRequestFormScreen({
                   Typography.label,
                   {
                     color: theme.textSecondary,
-                    //   textAlign: isRTL ? "right" : "left",
+                    //   
                   },
                 ]}
               >
@@ -979,7 +979,7 @@ export default function VisitorRequestFormScreen({
                     backgroundColor: theme.background,
                     borderColor: errors.idNumber ? theme.error : theme.border,
                     color: theme.text,
-                    //  textAlign: isRTL ? "right" : "left",
+                    //  
                     writingDirection: isRTL ? "rtl" : "ltr",
                   },
                 ]}
@@ -1003,7 +1003,7 @@ export default function VisitorRequestFormScreen({
                       Typography.caption,
                       {
                         color: theme.error,
-                        //   textAlign: isRTL ? "right" : "left",
+                        //   
                       },
                     ]}
                   >
@@ -1018,7 +1018,7 @@ export default function VisitorRequestFormScreen({
                   Typography.label,
                   {
                     color: theme.textSecondary,
-                    //  textAlign: isRTL ? "right" : "left",
+                    //  
                   },
                 ]}
               >
@@ -1045,7 +1045,7 @@ export default function VisitorRequestFormScreen({
                       {
                         color: theme.text,
                         flex: 1,
-                        //   textAlign: isRTL ? "right" : "left",
+                        //   
                       },
                     ]}
                   >
@@ -1090,7 +1090,7 @@ export default function VisitorRequestFormScreen({
                       Typography.caption,
                       {
                         color: theme.textSecondary,
-                        //  textAlign: isRTL ? "right" : "left",
+                        //  
                       },
                     ]}
                   >
@@ -1106,7 +1106,7 @@ export default function VisitorRequestFormScreen({
                   Typography.label,
                   {
                     color: theme.textSecondary,
-                    //  textAlign: isRTL ? "right" : "left",
+                    //  
                   },
                 ]}
               >
@@ -1133,7 +1133,7 @@ export default function VisitorRequestFormScreen({
                       {
                         color: theme.text,
                         flex: 1,
-                        // textAlign: isRTL ? "right" : "left",
+                        // 
                       },
                     ]}
                   >
@@ -1160,7 +1160,7 @@ export default function VisitorRequestFormScreen({
                   Typography.label,
                   {
                     color: theme.textSecondary,
-                    //  textAlign: isRTL ? "right" : "left",
+                    //  
                   },
                 ]}
               >
@@ -1187,7 +1187,7 @@ export default function VisitorRequestFormScreen({
                       {
                         color: theme.text,
                         flex: 1,
-                        //  textAlign: isRTL ? "right" : "left",
+                        //  
                       },
                     ]}
                   >
@@ -1214,7 +1214,7 @@ export default function VisitorRequestFormScreen({
                   Typography.label,
                   {
                     color: theme.textSecondary,
-                    //   textAlign: isRTL ? "right" : "left",
+                    //   
                   },
                 ]}
               >
@@ -1241,7 +1241,7 @@ export default function VisitorRequestFormScreen({
                       {
                         color: theme.text,
                         flex: 1,
-                        //      textAlign: isRTL ? "right" : "left",
+                        //      
                       },
                     ]}
                   >
@@ -1268,7 +1268,7 @@ export default function VisitorRequestFormScreen({
                   Typography.label,
                   {
                     color: theme.textSecondary,
-                    //   textAlign: isRTL ? "right" : "left",
+                    //   
                   },
                 ]}
               >
@@ -1297,7 +1297,7 @@ export default function VisitorRequestFormScreen({
                           ? theme.error
                           : theme.textSecondary,
                         flex: 1,
-                        //   textAlign: isRTL ? "right" : "left",
+                        //   
                       },
                     ]}
                   >
@@ -1327,7 +1327,7 @@ export default function VisitorRequestFormScreen({
                 Typography.subtitle,
                 {
                   marginBottom: Spacing.sm,
-                  //  textAlign: isRTL ? "right" : "left",
+                  //  
                 },
               ]}
             >
@@ -1449,7 +1449,7 @@ export default function VisitorRequestFormScreen({
                         Typography.bodySmall,
                         {
                           color: theme.textSecondary,
-                          //   textAlign: isRTL ? "right" : "left",
+                          //   
                         },
                       ]}
                     >
@@ -1723,7 +1723,7 @@ export default function VisitorRequestFormScreen({
                             Typography.body,
                             {
                               fontWeight: "500",
-                              //    textAlign: isRTL ? "right" : "left",
+                              //    
                             },
                           ]}
                         >
@@ -1734,7 +1734,7 @@ export default function VisitorRequestFormScreen({
                             Typography.caption,
                             {
                               color: theme.textSecondary,
-                              //  textAlign: isRTL ? "right" : "left",
+                              //  
                             },
                           ]}
                         >

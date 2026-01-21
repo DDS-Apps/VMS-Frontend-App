@@ -61,8 +61,8 @@ const InfoRow = ({ icon, label, value, theme, isRTL }: { icon: string; label: st
         <DDIcon name={icon as any} size={16} color={theme.primary} />
       </View>
       <View style={styles.infoContent}>
-        <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>{label}</ThemedText>
-        <ThemedText style={[Typography.body, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>{value}</ThemedText>
+        <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>{label}</ThemedText>
+        <ThemedText style={[Typography.body, { color: theme.text }]}>{value}</ThemedText>
       </View>
     </DirectionalRow>
   );
@@ -173,10 +173,10 @@ export default function ValetRequestDetailsScreen({ route }: ValetRequestDetails
           <DirectionalRow style={styles.vehicleInfo}>
             <DDIcon name="truck" size={24} color={theme.primary} />
             <View style={styles.vehicleDetails}>
-              <ThemedText style={[Typography.h3, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.h3, { color: theme.text }]}>
                 {request.vehicleInfo?.make} {request.vehicleInfo?.model}
               </ThemedText>
-              <ThemedText style={[Typography.body, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.body, { color: theme.textSecondary }]}>
                 {request.vehicleInfo?.plateNumber} - {request.vehicleInfo?.color}
               </ThemedText>
             </View>
@@ -185,7 +185,7 @@ export default function ValetRequestDetailsScreen({ route }: ValetRequestDetails
 
         <Spacer height={Spacing.lg} />
 
-        <ThemedText style={[Typography.h3, { color: theme.text, marginBottom: Spacing.md, textAlign: isRTL ? 'right' : 'left' }]}>
+        <ThemedText style={[Typography.h3, { color: theme.text, marginBottom: Spacing.md }]}>
           Request Details
         </ThemedText>
 
@@ -230,7 +230,7 @@ export default function ValetRequestDetailsScreen({ route }: ValetRequestDetails
         {request.valet?.driver ? (
           <>
             <Spacer height={Spacing.lg} />
-            <ThemedText style={[Typography.h3, { color: theme.text, marginBottom: Spacing.md, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.h3, { color: theme.text, marginBottom: Spacing.md }]}>
               Assigned Driver
             </ThemedText>
             <Card style={styles.driverCard}>
@@ -239,11 +239,11 @@ export default function ValetRequestDetailsScreen({ route }: ValetRequestDetails
                   <DDIcon name="user" size={20} color={theme.success} />
                 </View>
                 <View style={styles.driverDetails}>
-                  <ThemedText style={[Typography.body, { color: theme.text, fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
+                  <ThemedText style={[Typography.body, { color: theme.text, fontWeight: '600' }]}>
                     {request.valet.driver.name}
                   </ThemedText>
                   {request.valet.driver.phone ? (
-                    <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+                    <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
                       {request.valet.driver.phone}
                     </ThemedText>
                   ) : null}
@@ -256,7 +256,7 @@ export default function ValetRequestDetailsScreen({ route }: ValetRequestDetails
         {request.valet?.pickupTime || request.valet?.returnTime ? (
           <>
             <Spacer height={Spacing.lg} />
-            <ThemedText style={[Typography.h3, { color: theme.text, marginBottom: Spacing.md, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.h3, { color: theme.text, marginBottom: Spacing.md }]}>
               Timeline
             </ThemedText>
             <Card style={styles.timelineCard}>

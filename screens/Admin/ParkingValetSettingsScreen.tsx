@@ -121,7 +121,7 @@ export default function ParkingValetSettingsScreen() {
     <ThemedView style={[styles.card, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
       <DirectionalRow style={styles.cardHeader}>
         <View style={{ flex: 1 }}>
-          <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginBottom: Spacing.xs, textAlign: isRTL ? 'right' : 'left' }]}>
+          <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginBottom: Spacing.xs }]}>
             {item.name}
           </ThemedText>
           <View style={[styles.badge, { backgroundColor: getParkingTypeColor(item.type) + '20' }]}>
@@ -136,7 +136,7 @@ export default function ParkingValetSettingsScreen() {
 
       <DirectionalRow style={styles.infoRow}>
         <DDIcon name="map-pin" variant="muted" size={16} />
-        <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginEnd: Spacing.xs, textAlign: isRTL ? 'right' : 'left' }]}>
+        <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginEnd: Spacing.xs }]}>
           {item.location}
         </ThemedText>
       </DirectionalRow>
@@ -176,7 +176,7 @@ export default function ParkingValetSettingsScreen() {
     <ThemedView style={[styles.card, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
       <DirectionalRow style={styles.cardHeader}>
         <View style={{ flex: 1 }}>
-          <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginBottom: Spacing.xs, textAlign: isRTL ? 'right' : 'left' }]}>
+          <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginBottom: Spacing.xs }]}>
             {item.name}
           </ThemedText>
         </View>
@@ -186,7 +186,7 @@ export default function ParkingValetSettingsScreen() {
 
       <DirectionalRow style={styles.infoRow}>
         <DDIcon name="map-pin" variant="muted" size={16} />
-        <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginEnd: Spacing.xs, textAlign: isRTL ? 'right' : 'left' }]}>
+        <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginEnd: Spacing.xs }]}>
           {item.location}
         </ThemedText>
       </DirectionalRow>

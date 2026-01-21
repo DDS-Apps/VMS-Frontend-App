@@ -59,7 +59,7 @@ export function SearchInput({
         styles.input,
         { 
           color: theme.text,
-          textAlign: isRTL ? 'right' : 'left',
+          
           writingDirection: isRTL ? 'rtl' : 'ltr',
           fontSize: scaledFontSize,
         },

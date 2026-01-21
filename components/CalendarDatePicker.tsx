@@ -220,10 +220,10 @@ export function CalendarDatePicker({
               <DDIcon name="calendar" size={20} color={theme.primary} />
             </View>
             <View style={[styles.headerTextContainer, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
-              <ThemedText style={[Typography.body, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.body, { fontWeight: '600' }]}>
                 {t('calendar.chooseDate')}
               </ThemedText>
-              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
                 {formatDateRange()}
               </ThemedText>
             </View>
@@ -314,7 +314,7 @@ export function CalendarDatePicker({
 
           {mode === 'range' && selectionMode === 'start_selected' && tempRange.startDate ? (
             <View style={[styles.rangeHint, { borderTopColor: theme.border }]}>
-              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
                 {t('calendar.rangeHint')}
               </ThemedText>
             </View>

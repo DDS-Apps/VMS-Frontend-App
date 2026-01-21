@@ -161,7 +161,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
       <Spacer height={Spacing.lg} />
 
       <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
-        <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+        <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text }]}>
           {t('visitor.visitDetails')}
         </ThemedText>
         <Spacer height={Spacing.xl} />
@@ -171,10 +171,10 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
             <DDIcon name="calendar" size={18} color={theme.text} />
           </View>
           <View style={{ flex: 1 }}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
               {t('visitor.visitDate')}
             </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
               {formatDate(new Date(visitorData.scheduledDate), 'long')}
             </ThemedText>
           </View>
@@ -187,10 +187,10 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
             <DDIcon name="clock" size={18} color={theme.text} />
           </View>
           <View style={{ flex: 1 }}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
               {t('visitor.visitTime')}
             </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
               {formatTimeFromString(visitorData.scheduledTime)}
             </ThemedText>
           </View>
@@ -203,10 +203,10 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
             <DDIcon name="user" size={18} color={theme.text} />
           </View>
           <View style={{ flex: 1 }}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
               {t('reception.hostName')}
             </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
               {visitorData.hostName}{visitorData.hostDepartment ? ` - ${visitorData.hostDepartment}` : ''}
             </ThemedText>
           </View>
@@ -221,10 +221,10 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                 <DDIcon name="briefcase" size={18} color={theme.text} />
               </View>
               <View style={{ flex: 1 }}>
-                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
                   {t('form.purpose')}
                 </ThemedText>
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, lineHeight: 20, textAlign: isRTL ? 'right' : 'left' }]}>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, lineHeight: 20 }]}>
                   {visitorData.purpose}
                 </ThemedText>
               </View>
@@ -236,7 +236,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
       <Spacer height={Spacing.lg} />
 
       <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
-        <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+        <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text }]}>
           {t('services.parking')}
         </ThemedText>
         <Spacer height={Spacing.xl} />
@@ -246,11 +246,11 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
             <DDIcon name="map-pin" size={18} color={hasParking ? theme.primary : theme.text} />
           </View>
           <View style={{ flex: 1 }}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
               {t('services.parking')}
             </ThemedText>
             {parkingInfo.showDetails ? (
-              <ThemedText style={[Typography.caption, { color: theme.primary, marginTop: 2, fontSize: 13, fontWeight: '500', textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.caption, { color: theme.primary, marginTop: 2, fontSize: 13, fontWeight: '500' }]}>
                 {parkingInfo.text}
               </ThemedText>
             ) : (
@@ -271,7 +271,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
           <Spacer height={Spacing.lg} />
 
           <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
-            <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text }]}>
               {t('actions.checkIn')} / {t('actions.checkOut')}
             </ThemedText>
             <Spacer height={Spacing.xl} />
@@ -282,10 +282,10 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                   <DDIcon name="log-in" size={18} color={theme.success} />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+                  <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
                     {t('actions.checkIn')}
                   </ThemedText>
-                  <ThemedText style={[Typography.caption, { color: theme.success, marginTop: 2, fontSize: 13, fontWeight: '500', textAlign: isRTL ? 'right' : 'left' }]}>
+                  <ThemedText style={[Typography.caption, { color: theme.success, marginTop: 2, fontSize: 13, fontWeight: '500' }]}>
                     {formatTimeFromString(visitorData.checkInTime)}
                   </ThemedText>
                 </View>
@@ -302,10 +302,10 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                   <DDIcon name="log-out" size={18} color={theme.textSecondary} />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+                  <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
                     {t('actions.checkOut')}
                   </ThemedText>
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, fontWeight: '500', textAlign: isRTL ? 'right' : 'left' }]}>
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, fontWeight: '500' }]}>
                     {formatTimeFromString(visitorData.checkOutTime)}
                   </ThemedText>
                 </View>
@@ -327,7 +327,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
               </ThemedText>
             </DirectionalRow>
             <Spacer height={Spacing.sm} />
-            <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, lineHeight: 20, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, lineHeight: 20 }]}>
               {visitorData.notes}
             </ThemedText>
           </ThemedView>
