@@ -1,8 +1,8 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, Platform } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { DDIcon, IconName } from "@/components/DDIcon";
-import { DirectionalRow } from "@/components/DirectionalRow";
+import { DirectionalRow, getIsRTL } from "@/components/DirectionalRow";
 import { useTheme } from "@/hooks/useTheme";
 import { applyOpacity } from "@/utils/statusStyles";
 import { Spacing, BorderRadius } from "@/constants/theme";
@@ -104,10 +104,25 @@ interface StatusAccentProps {
 }
 
 export const StatusAccent = ({ color, width = 4 }: StatusAccentProps) => {
-  // Use start positioning - I18nManager handles RTL automatically
+  const isRTL = getIsRTL();
+  
+  // On web, we don't set document.dir='rtl', so logical properties (start/end) don't work
+  // Use explicit left/right positioning based on RTL state
+  const positionStyle = Platform.OS === 'web'
+    ? (isRTL ? { right: 0 } : { left: 0 })
+    : { start: 0 }; // Mobile: native handles RTL with 'start'
+  
+  const borderRadiusStyle = Platform.OS === 'web'
+    ? (isRTL 
+        ? { borderTopRightRadius: BorderRadius.md, borderBottomRightRadius: BorderRadius.md }
+        : { borderTopLeftRadius: BorderRadius.md, borderBottomLeftRadius: BorderRadius.md })
+    : { borderTopStartRadius: BorderRadius.md, borderBottomStartRadius: BorderRadius.md };
+  
   return (
     <View style={[
-      styles.accent, 
+      styles.accentBase, 
+      positionStyle,
+      borderRadiusStyle,
       { 
         backgroundColor: color, 
         width,
@@ -138,12 +153,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  accent: {
+  accentBase: {
     position: 'absolute',
     top: 0,
     bottom: 0,
-    start: 0,
-    borderTopStartRadius: BorderRadius.md,
-    borderBottomStartRadius: BorderRadius.md,
   },
 });

@@ -176,7 +176,7 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
   return (
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
       <DirectionalRow style={styles.header} justifyContent="space-between">
-        <ThemedText style={[Typography.title, { textAlign: isRTL ? 'right' : 'left' }]}>
+        <ThemedText style={Typography.title}>
           {t('notifications.title')}
         </ThemedText>
         <Pressable 
@@ -254,11 +254,11 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
           
           const contentElement = (
             <View style={styles.notificationContent}>
-              <ThemedText style={[styles.notificationTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[styles.notificationTitle, { color: theme.text }]}>
                 {localizedTitle}
               </ThemedText>
               <Spacer height={Spacing.xs} />
-              <ThemedText style={[styles.notificationMessage, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={3}>
+              <ThemedText style={[styles.notificationMessage, { color: theme.textSecondary }]} numberOfLines={3}>
                 {localizedMessage}
               </ThemedText>
               <Spacer height={Spacing.sm} />
