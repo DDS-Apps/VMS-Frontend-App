@@ -6,7 +6,6 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { DDIcon } from "@/components/DDIcon";
 import { ROUTES } from "@/constants";
 import Constants from "expo-constants";
-import { pushNotificationService } from "@/services/push";
 import { authService } from "@/services/api/authService";
 import { InAppNotificationToast } from "@/components/InAppNotificationToast";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
@@ -49,10 +48,6 @@ export default function SettingsScreen({
   const { data: preferences, isLoading: isLoadingPrefs } = useNotificationPreferencesQuery();
   const updatePreferencesMutation = useUpdateNotificationPreferencesMutation();
   
-  const [isSendingTest, setIsSendingTest] = useState(false);
-  const [testResult, setTestResult] = useState<'success' | 'error' | null>(null);
-  const [showDebugInfo, setShowDebugInfo] = useState(false);
-  const [debugInfo, setDebugInfo] = useState<string>('');
   const [showInAppToast, setShowInAppToast] = useState(false);
   const [toastMessage, setToastMessage] = useState({ title: '', body: '' });
 
@@ -113,55 +108,6 @@ export default function SettingsScreen({
     );
   };
 
-  const handleTestNotification = async () => {
-    setIsSendingTest(true);
-    setTestResult(null);
-    setDebugInfo('');
-    try {
-      const result = await pushNotificationService.sendTestNotification();
-      setDebugInfo(result.debugInfo);
-      
-      if (result.success) {
-        setTestResult('success');
-        setToastMessage({
-          title: 'Test Notification Sent',
-          body: 'Check your device for the notification. If on web dev, notifications may not appear.',
-        });
-        setShowInAppToast(true);
-      } else {
-        setTestResult('error');
-        setToastMessage({
-          title: 'Notification Not Sent',
-          body: result.debugInfo.includes('No push token') 
-            ? 'Push notifications not initialized. Check debug info below.'
-            : 'Failed to send notification. Check debug info below.',
-        });
-        setShowInAppToast(true);
-      }
-      setTimeout(() => setTestResult(null), 5000);
-    } catch (error) {
-      console.error('[Settings] Test notification failed:', error);
-      const errorMsg = error instanceof Error ? error.message : String(error);
-      setDebugInfo(prev => prev + '\nException: ' + errorMsg);
-      setTestResult('error');
-      setToastMessage({
-        title: 'Error',
-        body: errorMsg,
-      });
-      setShowInAppToast(true);
-      setTimeout(() => setTestResult(null), 5000);
-    } finally {
-      setIsSendingTest(false);
-      setShowDebugInfo(true);
-    }
-  };
-
-  const handleShowDebugInfo = () => {
-    const info = pushNotificationService.getDebugInfo();
-    setDebugInfo(info);
-    setShowDebugInfo(true);
-  };
-
   const pushEnabled = preferences?.pushEnabled ?? false;
 
   return (
@@ -172,7 +118,7 @@ export default function SettingsScreen({
         title={toastMessage.title}
         body={toastMessage.body}
         onDismiss={() => setShowInAppToast(false)}
-        type={testResult === 'success' ? 'success' : testResult === 'error' ? 'error' : 'info'}
+        type="info"
         duration={5000}
       />
       <ScreenScrollView contentContainerStyle={scrollContentStyle}>
@@ -330,84 +276,6 @@ export default function SettingsScreen({
             />
           )}
         </DirectionalRow>
-
-        <View style={[styles.sectionDivider, { backgroundColor: theme.surfaceSecondary }]} />
-
-        <Pressable
-          style={({ pressed }) => [
-            styles.testNotificationButton,
-            { 
-              backgroundColor: testResult === 'success' 
-                ? theme.success 
-                : testResult === 'error' 
-                  ? theme.error 
-                  : theme.primary,
-              opacity: pressed ? 0.8 : 1,
-              flexDirection: getFlexDirection(isRTL),
-              gap: Spacing.sm,
-            },
-          ]}
-          onPress={handleTestNotification}
-          disabled={isSendingTest}
-        >
-          {isSendingTest ? (
-            <ActivityIndicator size="small" color={theme.buttonText} />
-          ) : testResult === 'success' ? (
-            <DDIcon name="check-circle" size={18} color={theme.buttonText} />
-          ) : testResult === 'error' ? (
-            <DDIcon name="alert-circle" size={18} color={theme.buttonText} />
-          ) : (
-            <DDIcon name="bell" size={18} color={theme.buttonText} />
-          )}
-          <ThemedText style={[styles.testNotificationText, { color: theme.buttonText }]}>
-            {isSendingTest 
-              ? t('settings.sendingTest') 
-              : testResult === 'success' 
-                ? t('settings.testSent')
-                : testResult === 'error'
-                  ? t('settings.testFailed')
-                  : t('settings.testNotification')}
-          </ThemedText>
-        </Pressable>
-
-        {Platform.OS === 'web' ? null : (
-          <>
-            <Spacer height={Spacing.sm} />
-            <ThemedText style={[styles.testNotificationHint, { color: theme.textSecondary }]}>
-              {t('settings.testNotificationHint')}
-            </ThemedText>
-          </>
-        )}
-
-        <Spacer height={Spacing.md} />
-
-        <Pressable
-          style={({ pressed }) => [
-            styles.debugButton,
-            { 
-              flexDirection: getFlexDirection(isRTL),
-              backgroundColor: theme.surfaceSecondary,
-              opacity: pressed ? 0.8 : 1,
-            },
-          ]}
-          onPress={handleShowDebugInfo}
-        >
-          <DDIcon name="info" size={16} color={theme.textSecondary} />
-          <ThemedText style={[styles.debugButtonText, { color: theme.textSecondary }]}>
-            {showDebugInfo ? 'Hide Debug Info' : 'Show Debug Info'}
-          </ThemedText>
-        </Pressable>
-
-        {showDebugInfo && debugInfo ? (
-          <>
-            <Spacer height={Spacing.sm} />
-            <View style={[styles.debugInfoContainer, { backgroundColor: theme.background, borderColor: theme.border }]}>
-              <ThemedText style={[styles.debugInfoText, { color: theme.textSecondary }]}>
-                {debugInfo}
-              </ThemedText>
-            </View>
-          </>
-        ) : null}
 
       </ThemedView>
 
