@@ -133,6 +133,12 @@ export function calculateFlexDirection(
   // Check if browser will auto-flip (web only, when <html dir="rtl"> is set)
   const autoFlip = browserWillAutoFlip();
   
+  // DEBUG: Log the calculation
+  if (Platform.OS === 'web') {
+    const docDir = typeof document !== 'undefined' ? document.documentElement.dir : 'N/A';
+    console.log('[calculateFlexDir] isRTL:', isRTL, 'autoFlip:', autoFlip, 'docDir:', docDir, 'isNested:', isNested);
+  }
+  
   // If browser will auto-flip, use 'row' (browser handles it)
   if (autoFlip) {
     return 'row';
@@ -153,7 +159,9 @@ export function calculateFlexDirection(
     
     // On web, always use row-reverse for RTL (even nested, since no auto-flip)
     // On mobile (non-nested), use 'row' which native will flip
-    return isWeb ? 'row-reverse' : 'row';
+    const result = isWeb ? 'row-reverse' : 'row';
+    console.log('[calculateFlexDir] Result:', result);
+    return result;
   }
   
   return 'row';
