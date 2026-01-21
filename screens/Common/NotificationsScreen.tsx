@@ -40,6 +40,7 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
 
   // RTL DIAGNOSTIC - Log I18nManager state on this screen
   useEffect(() => {
+    console.log('[RTL DEBUG] NotificationsScreen', {
       locale,
       'I18nManager.isRTL': I18nManager.isRTL,
     });

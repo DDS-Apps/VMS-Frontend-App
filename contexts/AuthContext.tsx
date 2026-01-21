@@ -449,6 +449,7 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
       try {
         userDto = await authService.getCurrentUser();
       } catch (userFetchError) {
+        console.log('[RTL DEBUG] AuthContext: User fetch error', {
           name: userFetchError instanceof Error ? userFetchError.name : 'Unknown',
           message: userFetchError instanceof Error ? userFetchError.message : String(userFetchError),
           code: (userFetchError as any)?.code,

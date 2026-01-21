@@ -222,7 +222,7 @@ export default function App() {
     let mounted = true;
     getBootstrapPromise().then(() => {
       if (mounted) {
-       getCachedLocale());
+        console.log('[RTL DEBUG] App.tsx: Bootstrap promise resolved, cached locale:', getCachedLocale());
         setLocaleBootstrapReady(true);
       }
     });

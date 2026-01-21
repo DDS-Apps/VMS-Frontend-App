@@ -197,6 +197,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
     try {
       const result = await promptAzureAsync();
 
+      console.log('[RTL DEBUG] LoginScreen: Azure prompt result', {
         hasResult: !!result,
         errorType: result?.errorType,
         hasAccessToken: !!result?.accessToken,
@@ -228,6 +229,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         return;
       }
 
+      console.log(
         "[LoginScreen] Calling ssoLogin with token length:",
         result.accessToken.length,
       );
@@ -239,6 +241,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       const userRole = (user.role as UserRole) || "employee";
       onLoginSuccess?.(userRole);
     } catch (error) {
+      console.log('[RTL DEBUG] LoginScreen: SSO login error', {
         name: error instanceof Error ? error.name : "Unknown",
         message: error instanceof Error ? error.message : String(error),
         code: (error as any)?.code,

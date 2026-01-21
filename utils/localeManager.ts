@@ -255,6 +255,7 @@ export async function bootstrapLocale(): Promise<BootstrapResult> {
   const currentlyRTL = I18nManager.isRTL;
   
   // RTL DIAGNOSTIC LOG - Single consolidated log
+  console.log('[RTL DEBUG] localeManager: bootstrapLocale', {
     platform: Platform.OS,
     storedLocale: locale,
     shouldBeRTL,
@@ -342,6 +343,7 @@ export async function changeLanguage(newLocale: SupportedLocale): Promise<Change
   const currentIsRTL = I18nManager.isRTL;
   const directionChanged = newIsRTL !== currentIsRTL;
   
+  console.log('[RTL DEBUG] localeManager: changeLanguage', {
     from: currentIsRTL ? 'ar' : 'en', 
     to: newLocale,
     directionChanged 
