@@ -93,9 +93,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
         // Update state if stored locale differs from initial
         // (This shouldn't happen if bootstrap worked correctly)
         if (storedLocale !== locale) {
-            from: locale, 
-            to: storedLocale 
-          });
+          console.log('[RTL DEBUG] LanguageContext: Locale mismatch detected', { from: locale, to: storedLocale });
           setLocaleState(storedLocale);
           const storedIsRTL = isRTLLocale(storedLocale);
           setLayoutKey(`${storedLocale}-${storedIsRTL ? 'rtl' : 'ltr'}-${++layoutKeyCounter}`);
@@ -125,6 +123,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
   const handleSetLocale = useCallback(async (newLocale: SupportedLocale) => {
     if (newLocale === locale) return;
 
+    console.log(`[RTL DEBUG] LanguageContext: handleSetLocale called`, { currentLocale: locale, newLocale, currentLayoutKey: layoutKey });
     
     // Show loading overlay
     setIsChangingLanguage(true);
@@ -132,10 +131,13 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
     try {
       // Use localeManager to change language
       const result = await localeManagerChangeLanguage(newLocale);
+      console.log(`[RTL DEBUG] LanguageContext: localeManager result`, { newLocale, isRTL: result.isRTL, needsRestart: result.needsRestart });
 
       // Update local state
       setLocaleState(newLocale);
-      setLayoutKey(`${newLocale}-${result.isRTL ? 'rtl' : 'ltr'}-${++layoutKeyCounter}`);
+      const newLayoutKey = `${newLocale}-${result.isRTL ? 'rtl' : 'ltr'}-${++layoutKeyCounter}`;
+      console.log(`[RTL DEBUG] LanguageContext: Updating layoutKey`, { newLayoutKey });
+      setLayoutKey(newLayoutKey);
 
       // If restart/reload is needed, trigger it
       if (result.needsRestart) {

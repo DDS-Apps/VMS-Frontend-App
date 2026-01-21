@@ -274,7 +274,9 @@ export default function DashboardLayout({
           style={[styles.container, { backgroundColor: theme.background }]}
         >
         {/* Mobile Header Bar */}
-        {!isLargeScreen && (
+        {!isLargeScreen && (() => {
+          console.log(`[RTL DEBUG] DashboardLayout Header => Platform: ${Platform.OS}, contextIsRTL: ${contextIsRTL}, isRTL (used): ${isRTL}, layoutKey: ${layoutKey}`);
+          return (
           <DirectionalRow 
             style={[
               styles.mobileHeader, 
@@ -366,7 +368,8 @@ export default function DashboardLayout({
               </Pressable>
             </DirectionalRow>
           </DirectionalRow>
-        )}
+          );
+        })()}
         
         <Modal
           visible={profileMenuVisible}
