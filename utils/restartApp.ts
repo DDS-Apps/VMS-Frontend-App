@@ -40,6 +40,7 @@ function isDevelopment(): boolean {
  * @param locale - Current locale for localized alert messages
  */
 export async function restartApp(locale: 'en' | 'ar' = 'en'): Promise<void> {
+  console.log('[RTL DEBUG] restartApp called', {
     platform: Platform.OS,
     isExpoGo: isExpoGo(),
     isDev: isDevelopment(),
