@@ -218,12 +218,12 @@ export function VisitorRequestCard({
     return (
       <DirectionalRow style={styles.cardHeader} gap={Spacing.md}>
         {renderAvatar()}
-        <View style={[styles.nameSection, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
-          <ThemedText style={[styles.visitorName, { color: theme.text }]} numberOfLines={1}>
+        <View style={styles.nameSection}>
+          <ThemedText style={[styles.visitorName, { color: theme.text, textAlign: isRTL ? 'right' : 'left', width: '100%' }]} numberOfLines={1}>
             {request.visitor.fullName}
           </ThemedText>
           {request.visitor.company ? (
-            <ThemedText style={[styles.companyText, { color: theme.textSecondary }]}>
+            <ThemedText style={[styles.companyText, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left', width: '100%' }]}>
               {request.visitor.company}
             </ThemedText>
           ) : null}
