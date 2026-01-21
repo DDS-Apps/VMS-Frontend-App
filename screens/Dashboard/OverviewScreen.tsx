@@ -560,7 +560,7 @@ export default function OverviewScreen({
                 <View
                   style={{
                     flex: 1,
-                    alignItems: isRTL ? "flex-end" : "flex-start",
+                    alignItems: isRTL ? (Platform.OS !== 'web' ? 'flex-start' : 'flex-end') : 'flex-start',
                   }}
                 >
                   <ThemedText
@@ -569,6 +569,7 @@ export default function OverviewScreen({
                       {
                         color: theme.text,
                         textAlign: isRTL ? "right" : "left",
+                        width: '100%',
                       },
                     ]}
                   >
@@ -582,6 +583,7 @@ export default function OverviewScreen({
                         marginTop: 4,
                         fontSize: 12,
                         textAlign: isRTL ? "right" : "left",
+                        width: '100%',
                       },
                     ]}
                   >
@@ -702,7 +704,7 @@ export default function OverviewScreen({
                 <View
                   style={{
                     flex: 1,
-                    alignItems: isRTL ? "flex-end" : "flex-start",
+                    alignItems: isRTL ? (Platform.OS !== 'web' ? 'flex-start' : 'flex-end') : 'flex-start',
                   }}
                 >
                   <ThemedText
@@ -711,6 +713,7 @@ export default function OverviewScreen({
                       {
                         color: theme.text,
                         textAlign: isRTL ? "right" : "left",
+                        width: '100%',
                       },
                     ]}
                   >
@@ -724,6 +727,7 @@ export default function OverviewScreen({
                         marginTop: 4,
                         fontSize: 12,
                         textAlign: isRTL ? "right" : "left",
+                        width: '100%',
                       },
                     ]}
                   >
@@ -841,7 +845,7 @@ export default function OverviewScreen({
                 <View
                   style={{
                     flex: 1,
-                    alignItems: isRTL ? "flex-end" : "flex-start",
+                    alignItems: isRTL ? (Platform.OS !== 'web' ? 'flex-start' : 'flex-end') : 'flex-start',
                   }}
                 >
                   <ThemedText
@@ -850,6 +854,7 @@ export default function OverviewScreen({
                       {
                         color: theme.text,
                         textAlign: isRTL ? "right" : "left",
+                        width: '100%',
                       },
                     ]}
                   >
@@ -863,6 +868,7 @@ export default function OverviewScreen({
                         marginTop: 4,
                         fontSize: 12,
                         textAlign: isRTL ? "right" : "left",
+                        width: '100%',
                       },
                     ]}
                   >
@@ -975,7 +981,7 @@ export default function OverviewScreen({
                 <View
                   style={{
                     flex: 1,
-                    alignItems: isRTL ? "flex-end" : "flex-start",
+                    alignItems: isRTL ? (Platform.OS !== 'web' ? 'flex-start' : 'flex-end') : 'flex-start',
                   }}
                 >
                   <ThemedText
@@ -984,6 +990,7 @@ export default function OverviewScreen({
                       {
                         color: theme.text,
                         textAlign: isRTL ? "right" : "left",
+                        width: '100%',
                       },
                     ]}
                   >
@@ -997,6 +1004,7 @@ export default function OverviewScreen({
                         marginTop: 4,
                         fontSize: 12,
                         textAlign: isRTL ? "right" : "left",
+                        width: '100%',
                       },
                     ]}
                   >
@@ -1114,7 +1122,7 @@ export default function OverviewScreen({
                 <View
                   style={{
                     flex: 1,
-                    alignItems: isRTL ? "flex-end" : "flex-start",
+                    alignItems: isRTL ? (Platform.OS !== 'web' ? 'flex-start' : 'flex-end') : 'flex-start',
                   }}
                 >
                   <ThemedText
@@ -1123,6 +1131,7 @@ export default function OverviewScreen({
                       {
                         color: theme.text,
                         textAlign: isRTL ? "right" : "left",
+                        width: '100%',
                       },
                     ]}
                   >
@@ -1136,6 +1145,7 @@ export default function OverviewScreen({
                         marginTop: 4,
                         fontSize: 12,
                         textAlign: isRTL ? "right" : "left",
+                        width: '100%',
                       },
                     ]}
                   >
