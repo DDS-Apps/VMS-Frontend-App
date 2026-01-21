@@ -218,9 +218,9 @@ export function DirectionalRow({
     console.log('[DirectionalRow] finalStyle.flexDirection:', finalStyle.flexDirection, 'flattenedStyle:', JSON.stringify(flattenedStyle));
   }
   
-  // On web RTL, also reverse the children order as a workaround
-  // because React Native Web's flex-direction: row-reverse may not work reliably
-  const shouldReverseChildren = Platform.OS === 'web' && isRTL && !isInsideDirectionalRow && flexDirection === 'row-reverse';
+  // On web RTL, reverse the children order AND use 'row' (not 'row-reverse')
+  // because React Native Web's flex-direction: row-reverse doesn't work reliably
+  const shouldReverseChildren = Platform.OS === 'web' && isRTL && !isInsideDirectionalRow;
   
   let renderedChildren = children;
   if (shouldReverseChildren && Array.isArray(children)) {
@@ -229,9 +229,10 @@ export function DirectionalRow({
     renderedChildren = React.Children.toArray(children).reverse();
   }
   
-  // DEBUG: Log if we're reversing children
+  // When reversing children, use 'row' to avoid double-reversal
   if (shouldReverseChildren) {
-    console.log('[DirectionalRow] Reversing children for web RTL');
+    finalStyle.flexDirection = 'row';
+    console.log('[DirectionalRow] Web RTL: Reversing children and using flexDirection: row');
   }
   
   // Wrap children in context to track nesting
