@@ -106,16 +106,14 @@ interface StatusAccentProps {
 export const StatusAccent = ({ color, width = 4 }: StatusAccentProps) => {
   const isRTL = getIsRTL();
   
-  // DEBUG: Log RTL state and platform
-  console.log('[StatusAccent] Platform:', Platform.OS, 'isRTL:', isRTL);
-  
   // On web, we don't set document.dir='rtl', so logical properties (start/end) don't work
   // Use explicit left/right positioning based on RTL state
+  // IMPORTANT: Set both left and right explicitly to prevent CSS conflicts on web
   const positionStyle = Platform.OS === 'web'
-    ? (isRTL ? { right: 0 } : { left: 0 })
+    ? (isRTL 
+        ? { right: 0, left: 'auto' as const } 
+        : { left: 0, right: 'auto' as const })
     : { start: 0 }; // Mobile: native handles RTL with 'start'
-  
-  console.log('[StatusAccent] positionStyle:', JSON.stringify(positionStyle));
   
   const borderRadiusStyle = Platform.OS === 'web'
     ? (isRTL 
