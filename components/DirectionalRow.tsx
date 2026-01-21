@@ -237,9 +237,12 @@ export function DirectionalRow({
   }
   
   // Wrap children in context to track nesting
+  // Use key to force re-render when direction changes on web
+  const directionKey = Platform.OS === 'web' ? (isRTL ? 'rtl' : 'ltr') : undefined;
+  
   return (
     <DirectionalContext.Provider value={{ isInsideDirectionalRow: true, depth: depth + 1 }}>
-      <View style={finalStyle} testID={testID} nativeID={nativeID}>
+      <View key={directionKey} style={finalStyle} testID={testID} nativeID={nativeID}>
         {renderedChildren}
       </View>
     </DirectionalContext.Provider>
