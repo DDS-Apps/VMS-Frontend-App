@@ -18,27 +18,35 @@
       "distribution": "internal",
       "autoIncrement": true,
       "ios": {
-        "simulator": false
+        "simulator": false,
+        "googleServicesFile": "./config/qa/GoogleService-Info.plist"
       },
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "googleServicesFile": "./config/qa/google-services.json"
       }
     },
     "production": {
       "distribution": "store",
       "autoIncrement": true,
       "ios": {
-        "simulator": false
+        "simulator": false,
+        "googleServicesFile": "./config/prod/GoogleService-Info.plist"
       },
       "android": {
-        "buildType": "app-bundle"
+        "buildType": "app-bundle",
+        "googleServicesFile": "./config/prod/google-services.json"
       }
     },
     "production-preview": {
       "distribution": "internal",
       "autoIncrement": true,
+      "ios": {
+        "googleServicesFile": "./config/prod/GoogleService-Info.plist"
+      },
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "googleServicesFile": "./config/prod/google-services.json"
       }
     }
   },

@@ -35,6 +35,8 @@
       "favicon": "./assets/images/header-icon-dark.png"
     },
     "plugins": [
+      "@react-native-firebase/app",
+      "@react-native-firebase/crashlytics",
       [
         "expo-splash-screen",
         {
