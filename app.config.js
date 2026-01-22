@@ -1,23 +1,33 @@
-const QA_BACKEND_URL = process.env.EXPO_PUBLIC_API_BASE_URL || "https://vms-backend-app-qa.replit.app";
+const QA_BACKEND_URL = "https://vms-backend-app-qa.replit.app";
+const PROD_BACKEND_URL = process.env.EXPO_PUBLIC_API_BASE_URL || "https://vms-backend-folio3.replit.app";
+
+// Determine environment from EAS build profile or environment variable
+const IS_PRODUCTION = process.env.EAS_BUILD_PROFILE === "production" || 
+                      process.env.EAS_BUILD_PROFILE === "production-preview" ||
+                      process.env.APP_ENV === "production";
+
+const BACKEND_URL = IS_PRODUCTION ? PROD_BACKEND_URL : QA_BACKEND_URL;
+const CONFIG_PATH = IS_PRODUCTION ? "prod" : "qa";
 
 export default ({ config }) => ({
   ...config,
   owner: "ahsanshafiq",
   android: {
     ...config.android,
-    googleServicesFile: "./config/qa/google-services.json",
+    googleServicesFile: `./config/${CONFIG_PATH}/google-services.json`,
   },
   ios: {
     ...config.ios,
-    googleServicesFile: "./config/qa/GoogleService-Info.plist",
+    googleServicesFile: `./config/${CONFIG_PATH}/GoogleService-Info.plist`,
   },
   extra: {
     ...config.extra,
     eas: {
       projectId: "33b6baff-6c89-44be-905f-006d0da4434d",
     },
-    apiBaseUrl: QA_BACKEND_URL,
-    microsoftAuthUrl: process.env.EXPO_PUBLIC_MICROSOFT_AUTH_URL || QA_BACKEND_URL,
+    environment: IS_PRODUCTION ? "production" : "qa",
+    apiBaseUrl: BACKEND_URL,
+    microsoftAuthUrl: process.env.EXPO_PUBLIC_MICROSOFT_AUTH_URL || BACKEND_URL,
     firebase: {
       apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || "AIzaSyAY6g-50Gu5zlB3sbkKHuuG5DpBOLZd_xo",
       authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN || "dallah-albaraka-vms.firebaseapp.com",
