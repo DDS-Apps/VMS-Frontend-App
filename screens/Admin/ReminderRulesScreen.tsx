@@ -12,7 +12,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { ReminderRules } from "@/types/vms.types";
 import { useReminderRulesQuery, useUpdateReminderRulesMutation } from "@/hooks/queries/useAdminQueries";
-import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
+import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 
 const HORIZONTAL_PADDING = Spacing.md;
 
@@ -56,9 +56,7 @@ const dateToTimeString = (date: Date): string => {
 
 export default function ReminderRulesScreen() {
   const { theme, isDark } = useTheme();
-  const { t, isRTL } = useTranslation();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  const insets = useSafeAreaInsets();
+  const { t, isRTL } = useTranslation(); const insets = useSafeAreaInsets();
 
   const [localRules, setLocalRules] = useState<ReminderRules | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
@@ -186,7 +184,7 @@ export default function ReminderRulesScreen() {
   return (
     <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
       {notification ? (
-        <View
+        <DirectionalRow
           style={[
             styles.notification,
             {
@@ -212,7 +210,7 @@ export default function ReminderRulesScreen() {
           >
             {notification.message}
           </ThemedText>
-        </View>
+        </DirectionalRow>
       ) : null}
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -226,79 +224,44 @@ export default function ReminderRulesScreen() {
         </View>
 
         <View style={[styles.section, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <View style={[styles.sectionHeader, { flexDirection: 'row' }]}>
-            {shouldSwap ? (
-              <>
-                <Switch
-                  value={localRules.isActive}
-                  onValueChange={(value) => handleUpdate({ isActive: value })}
-                  trackColor={{ false: theme.border, true: theme.primary + "80" }}
-                  thumbColor={localRules.isActive ? theme.primary : theme.textSecondary}
-                />
-                <View style={styles.sectionInfo}>
-                  <ThemedText style={[Typography.subtitle, { fontWeight: "600", textAlign: isRTL ? 'right' : 'left' }]}>
-                    {t("admin.systemActive")}
-                  </ThemedText>
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, textAlign: isRTL ? 'right' : 'left' }]}>
-                    {t("admin.enableAutomatedReminders")}
-                  </ThemedText>
-                </View>
-                <View style={[styles.iconContainer, { backgroundColor: theme.primary + "15" }]}>
-                  <DDIcon name="power" size={24} color={theme.primary} />
-                </View>
-              </>
-            ) : (
-              <>
-                <View style={[styles.iconContainer, { backgroundColor: theme.primary + "15" }]}>
-                  <DDIcon name="power" size={24} color={theme.primary} />
-                </View>
-                <View style={styles.sectionInfo}>
-                  <ThemedText style={[Typography.subtitle, { fontWeight: "600", textAlign: isRTL ? 'right' : 'left' }]}>
-                    {t("admin.systemActive")}
-                  </ThemedText>
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, textAlign: isRTL ? 'right' : 'left' }]}>
-                    {t("admin.enableAutomatedReminders")}
-                  </ThemedText>
-                </View>
-                <Switch
-                  value={localRules.isActive}
-                  onValueChange={(value) => handleUpdate({ isActive: value })}
-                  trackColor={{ false: theme.border, true: theme.primary + "80" }}
-                  thumbColor={localRules.isActive ? theme.primary : theme.textSecondary}
-                />
-              </>
-            )}
-          </View>
+          <DirectionalRow style={styles.sectionHeader}>
+            <View style={[styles.iconContainer, { backgroundColor: theme.primary + "15" }]}>
+              <DDIcon name="power" size={24} color={theme.primary} />
+            </View>
+            <View style={styles.sectionInfo}>
+              <ThemedText style={[Typography.subtitle, { fontWeight: "600" }]}>
+                {t("admin.systemActive")}
+              </ThemedText>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2 }]}>
+                {t("admin.enableAutomatedReminders")}
+              </ThemedText>
+            </View>
+            <Switch
+              value={localRules.isActive}
+              onValueChange={(value) => handleUpdate({ isActive: value })}
+              trackColor={{ false: theme.border, true: theme.primary + "80" }}
+              thumbColor={localRules.isActive ? theme.primary : theme.textSecondary}
+            />
+          </DirectionalRow>
         </View>
 
         <View style={[styles.section, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <View style={[styles.sectionTitle, { flexDirection: 'row' }]}>
-            {shouldSwap ? (
-              <>
-                <ThemedText style={[Typography.subtitle, { fontWeight: "600", marginEnd: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
-                  {t("admin.reminderRules")}
-                </ThemedText>
-                <DDIcon name="bell" size={20} color={theme.text} />
-              </>
-            ) : (
-              <>
-                <DDIcon name="bell" size={20} color={theme.text} />
-                <ThemedText style={[Typography.subtitle, { fontWeight: "600", marginStart: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
-                  {t("admin.reminderRules")}
-                </ThemedText>
-              </>
-            )}
-          </View>
+          <DirectionalRow style={styles.sectionTitle}>
+            <DDIcon name="bell" size={20} color={theme.text} />
+            <ThemedText style={[Typography.subtitle, { fontWeight: "600", marginEnd: Spacing.sm }]}>
+              {t("admin.reminderRules")}
+            </ThemedText>
+          </DirectionalRow>
 
           <View style={styles.ruleCard}>
-            <View style={[styles.ruleHeader, { flexDirection: 'row' }]}>
+            <DirectionalRow style={styles.ruleHeader}>
               <View style={[styles.ruleBadge, { backgroundColor: theme.info + "20" }]}>
                 <ThemedText style={[Typography.caption, { color: theme.info, fontWeight: "600" }]}>1st</ThemedText>
               </View>
-              <ThemedText style={[Typography.body, { flex: 1, marginStart: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.body, { flex: 1, marginStart: Spacing.sm }]}>
                 {t("admin.firstReminderDelay")}
               </ThemedText>
-            </View>
+            </DirectionalRow>
             <View style={styles.ruleInput}>
               <StyledInput
                 value={localRules.firstReminderDelayMinutes.toString()}
@@ -313,14 +276,14 @@ export default function ReminderRulesScreen() {
           </View>
 
           <View style={styles.ruleCard}>
-            <View style={[styles.ruleHeader, { flexDirection: 'row' }]}>
+            <DirectionalRow style={styles.ruleHeader}>
               <View style={[styles.ruleBadge, { backgroundColor: theme.warning + "20" }]}>
                 <ThemedText style={[Typography.caption, { color: theme.warning, fontWeight: "600" }]}>2nd</ThemedText>
               </View>
-              <ThemedText style={[Typography.body, { flex: 1, marginStart: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.body, { flex: 1, marginStart: Spacing.sm }]}>
                 {t("admin.secondReminderDelay")}
               </ThemedText>
-            </View>
+            </DirectionalRow>
             <View style={styles.ruleInput}>
               <StyledInput
                 value={localRules.secondReminderDelayMinutes.toString()}
@@ -335,14 +298,14 @@ export default function ReminderRulesScreen() {
           </View>
 
           <View style={styles.ruleCard}>
-            <View style={[styles.ruleHeader, { flexDirection: 'row' }]}>
+            <DirectionalRow style={styles.ruleHeader}>
               <View style={[styles.ruleBadge, { backgroundColor: theme.error + "20" }]}>
                 <DDIcon name="x-circle" size={14} color={theme.error} />
               </View>
-              <ThemedText style={[Typography.body, { flex: 1, marginStart: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.body, { flex: 1, marginStart: Spacing.sm }]}>
                 {t("admin.autoCancelDelay")}
               </ThemedText>
-            </View>
+            </DirectionalRow>
             <View style={styles.ruleInput}>
               <StyledInput
                 value={localRules.autoCancelDelayMinutes.toString()}
@@ -358,37 +321,26 @@ export default function ReminderRulesScreen() {
         </View>
 
         <View style={[styles.section, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <View style={[styles.sectionTitle, { flexDirection: 'row' }]}>
-            {shouldSwap ? (
-              <>
-                <ThemedText style={[Typography.subtitle, { fontWeight: "600", marginEnd: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
-                  {t("admin.officeHours")}
-                </ThemedText>
-                <DDIcon name="clock" size={20} color={theme.text} />
-              </>
-            ) : (
-              <>
-                <DDIcon name="clock" size={20} color={theme.text} />
-                <ThemedText style={[Typography.subtitle, { fontWeight: "600", marginStart: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
-                  {t("admin.officeHours")}
-                </ThemedText>
-              </>
-            )}
-          </View>
+          <DirectionalRow style={styles.sectionTitle}>
+            <DDIcon name="clock" size={20} color={theme.text} />
+            <ThemedText style={[Typography.subtitle, { fontWeight: "600", marginEnd: Spacing.sm }]}>
+              {t("admin.officeHours")}
+            </ThemedText>
+          </DirectionalRow>
 
-          <View style={[styles.timeInputs, { flexDirection: 'row' }]}>
+          <DirectionalRow style={styles.timeInputs}>
             <View style={styles.timeField}>
               <ThemedText style={[Typography.label, { marginBottom: Spacing.sm }]}>
                 {t("admin.officeStartTime")}
               </ThemedText>
               <Pressable
-                style={[styles.timeButton, { backgroundColor: theme.background, borderColor: theme.border, flexDirection: 'row' }]}
+                style={[styles.timeButton, { backgroundColor: theme.background, borderColor: theme.border, flexDirection: getFlexDirection(isRTL) }]}
                 onPress={() => setShowStartTimePicker(true)}
               >
                 <View style={{ marginEnd: Spacing.sm }}>
                   <DDIcon name="clock" size={18} color={theme.primary} />
                 </View>
-                <ThemedText style={[Typography.body, { flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
+                <ThemedText style={[Typography.body, { flex: 1 }]}>
                   {convert24To12Hour(localRules.officeStartTime)}
                 </ThemedText>
                 <DDIcon name="chevron-down" size={18} color={theme.textSecondary} />
@@ -399,19 +351,19 @@ export default function ReminderRulesScreen() {
                 {t("admin.officeEndTime")}
               </ThemedText>
               <Pressable
-                style={[styles.timeButton, { backgroundColor: theme.background, borderColor: theme.border, flexDirection: 'row' }]}
+                style={[styles.timeButton, { backgroundColor: theme.background, borderColor: theme.border, flexDirection: getFlexDirection(isRTL) }]}
                 onPress={() => setShowEndTimePicker(true)}
               >
                 <View style={{ marginEnd: Spacing.sm }}>
                   <DDIcon name="clock" size={18} color={theme.primary} />
                 </View>
-                <ThemedText style={[Typography.body, { flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
+                <ThemedText style={[Typography.body, { flex: 1 }]}>
                   {convert24To12Hour(localRules.officeEndTime)}
                 </ThemedText>
                 <DDIcon name="chevron-down" size={18} color={theme.textSecondary} />
               </Pressable>
             </View>
-          </View>
+          </DirectionalRow>
 
           <TimePicker
             visible={showStartTimePicker}
@@ -431,23 +383,12 @@ export default function ReminderRulesScreen() {
         </View>
 
         <View style={[styles.section, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <View style={[styles.sectionTitle, { flexDirection: 'row' }]}>
-            {shouldSwap ? (
-              <>
-                <ThemedText style={[Typography.subtitle, { fontWeight: "600", marginEnd: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
-                  {t("admin.workingDays")}
-                </ThemedText>
-                <DDIcon name="calendar" size={20} color={theme.text} />
-              </>
-            ) : (
-              <>
-                <DDIcon name="calendar" size={20} color={theme.text} />
-                <ThemedText style={[Typography.subtitle, { fontWeight: "600", marginStart: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
-                  {t("admin.workingDays")}
-                </ThemedText>
-              </>
-            )}
-          </View>
+          <DirectionalRow style={styles.sectionTitle}>
+            <DDIcon name="calendar" size={20} color={theme.text} />
+            <ThemedText style={[Typography.subtitle, { fontWeight: "600", marginEnd: Spacing.sm }]}>
+              {t("admin.workingDays")}
+            </ThemedText>
+          </DirectionalRow>
 
           <View style={styles.daysGrid}>
             {DAYS.map((day) => (

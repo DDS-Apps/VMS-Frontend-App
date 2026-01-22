@@ -5,6 +5,7 @@ import { Spacing, BorderRadius } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ArabicFontScaling } from '@/utils/rtlStyles';
+import { DirectionalRow } from '@/components/DirectionalRow';
 
 const INPUT_HEIGHT = 56;
 const INPUT_FONT_SIZE = 17;
@@ -58,7 +59,7 @@ export function SearchInput({
         styles.input,
         { 
           color: theme.text,
-          textAlign: isRTL ? 'right' : 'left',
+          
           writingDirection: isRTL ? 'rtl' : 'ltr',
           fontSize: scaledFontSize,
         },
@@ -80,7 +81,7 @@ export function SearchInput({
   ) : null;
 
   return (
-    <View
+    <DirectionalRow
       style={[
         styles.container,
         {
@@ -90,27 +91,17 @@ export function SearchInput({
         },
         containerStyle,
       ]}
+      alignItems="center"
     >
-      {isRTL ? (
-        <>
-          {clearButton}
-          {inputEl}
-          {searchIcon}
-        </>
-      ) : (
-        <>
-          {searchIcon}
-          {inputEl}
-          {clearButton}
-        </>
-      )}
-    </View>
+      {searchIcon}
+      {inputEl}
+      {clearButton}
+    </DirectionalRow>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.md,
     height: INPUT_HEIGHT,

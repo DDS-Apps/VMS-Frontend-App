@@ -74,12 +74,12 @@ export default function SidebarGroup({
         ]}
         onPress={handleToggle}
       >
-        <DirectionalRow style={{ flex: 1 }} gap={Spacing.md}>
+        <DirectionalRow style={styles.headerRow} gap={Spacing.md}>
           <DDIcon name={icon} size={18} color={theme.sidebarTextMuted} />
           <ThemedText
             style={[
               styles.headerTitle,
-              { color: theme.sidebarText, flex: 1, textAlign: isRTL ? 'right' : 'left' },
+              { color: theme.sidebarText, flex: 1 },
             ]}
             numberOfLines={1}
           >
@@ -112,12 +112,14 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.xs,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    alignItems: 'stretch',
     paddingVertical: Spacing.sm + 2,
     paddingHorizontal: Spacing.md,
     borderRadius: BorderRadius.sm,
+  },
+  headerRow: {
+    alignItems: 'center',
+    gap: Spacing.md,
   },
   headerLeft: {
     flexDirection: 'row',

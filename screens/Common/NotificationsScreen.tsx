@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from "react";
-import { View, StyleSheet, Pressable, ActivityIndicator, Platform } from "react-native";
+import React, { useState, useCallback, useEffect } from "react";
+import { View, StyleSheet, Pressable, ActivityIndicator, I18nManager } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { DirectionalRow } from "@/components/DirectionalRow";
@@ -18,7 +18,6 @@ import type { NotificationItemDto, NotificationEventType } from "@/types/notific
 import { applyOpacity } from "@/utils/statusStyles";
 import { navigateFromInAppNotification } from "@/utils/notificationNavigator";
 import { localizeNotification } from "@/utils/notificationLocalization";
-import { getPlatformTextAlign } from "@/utils/rtlInitializer";
 import { 
   useNotificationsQuery, 
   useMarkNotificationAsReadMutation, 
@@ -35,9 +34,17 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { toLocalNumerals } = useFormatters();
-  const { isRTL, locale } = useLanguage();
+  const { locale, isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   const [selectedTab, setSelectedTab] = useState<'all' | 'unread'>('all');
+
+  // RTL DIAGNOSTIC - Log I18nManager state on this screen
+  useEffect(() => {
+    console.log('🔄 [RTL_DEBUG] NotificationsScreen render:', {
+      locale,
+      'I18nManager.isRTL': I18nManager.isRTL,
+    });
+  }, [locale]);
 
   const scrollContentStyle = {
     paddingHorizontal: Spacing.xl,
@@ -168,8 +175,8 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
 
   return (
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
-      <DirectionalRow style={styles.header}>
-        <ThemedText style={[Typography.title, { flex: 1, textAlign: getPlatformTextAlign(isRTL, 'start') }]}>
+      <DirectionalRow style={styles.header} justifyContent="space-between">
+        <ThemedText style={Typography.title}>
           {t('notifications.title')}
         </ThemedText>
         <Pressable 
@@ -182,9 +189,9 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
         </Pressable>
       </DirectionalRow>
 
-      <Spacer height={Spacing.lg} />
+      <Spacer height={Spacing.md} />
 
-      <View style={styles.tabsContainer}>
+      <DirectionalRow style={styles.tabsContainer} gap={Spacing.md}>
         <Pressable
           style={[
             styles.tab,
@@ -217,7 +224,7 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
             {t('notifications.unread')} ({toLocalNumerals(String(unreadCount))})
           </ThemedText>
         </Pressable>
-      </View>
+      </DirectionalRow>
 
       <Spacer height={Spacing.lg} />
 
@@ -238,8 +245,6 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
           const { icon, variant } = getNotificationConfig(notification.type);
           const accentColor = getVariantColor(variant);
           const { title: localizedTitle, message: localizedMessage } = getLocalizedContent(notification);
-          // Use child swapping on mobile RTL instead of row-reverse to avoid conflicts
-          const shouldSwapChildren = isRTL && Platform.OS !== 'web';
           
           const iconElement = (
             <View style={[styles.iconContainer, { backgroundColor: applyOpacity(accentColor, '15') }]}>
@@ -249,31 +254,20 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
           
           const contentElement = (
             <View style={styles.notificationContent}>
-              <ThemedText style={[styles.notificationTitle, { color: theme.text, textAlign: getPlatformTextAlign(isRTL, 'start') }]}>
+              <ThemedText style={[styles.notificationTitle, { color: theme.text }]}>
                 {localizedTitle}
               </ThemedText>
               <Spacer height={Spacing.xs} />
-              <ThemedText style={[styles.notificationMessage, { color: theme.textSecondary, textAlign: getPlatformTextAlign(isRTL, 'start') }]} numberOfLines={3}>
+              <ThemedText style={[styles.notificationMessage, { color: theme.textSecondary }]} numberOfLines={3}>
                 {localizedMessage}
               </ThemedText>
               <Spacer height={Spacing.sm} />
-              <View style={[styles.timeContainer, { flexDirection: 'row', gap: 4, alignSelf: 'flex-end' }]}>
-                {shouldSwapChildren ? (
-                  <>
-                    <ThemedText style={[styles.timeText, { color: theme.textSecondary }]}>
-                      {formatTime(notification.createdAt)}
-                    </ThemedText>
-                    <DDIcon name="clock" size={12} variant="muted" />
-                  </>
-                ) : (
-                  <>
-                    <DDIcon name="clock" size={12} variant="muted" />
-                    <ThemedText style={[styles.timeText, { color: theme.textSecondary }]}>
-                      {formatTime(notification.createdAt)}
-                    </ThemedText>
-                  </>
-                )}
-              </View>
+              <DirectionalRow style={styles.timeContainer} gap={4} justifyContent="flex-start">
+                <DDIcon name="clock" size={12} variant="muted" />
+                <ThemedText style={[styles.timeText, { color: theme.textSecondary }]}>
+                  {formatTime(notification.createdAt)}
+                </ThemedText>
+              </DirectionalRow>
             </View>
           );
           
@@ -288,27 +282,19 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
                     opacity: pressed ? 0.95 : 1,
                     borderColor: theme.border,
                     shadowColor: '#000',
-                    flexDirection: 'row',
                   },
                 ]}
               >
                 <StatusAccent color={accentColor} width={4} />
 
                 {!notification.isRead ? (
-                  <View style={[styles.unreadDot, { backgroundColor: theme.primary, start: isRTL ? Spacing.md : undefined, end: isRTL ? undefined : Spacing.md }]} />
+                  <View style={[styles.unreadDot, { backgroundColor: theme.primary }]} />
                 ) : null}
 
-                {shouldSwapChildren ? (
-                  <>
-                    {contentElement}
-                    {iconElement}
-                  </>
-                ) : (
-                  <>
-                    {iconElement}
-                    {contentElement}
-                  </>
-                )}
+                <DirectionalRow style={styles.cardContent} gap={Spacing.md}>
+                  {iconElement}
+                  {contentElement}
+                </DirectionalRow>
               </Pressable>
               <Spacer height={Spacing.md} />
             </View>
@@ -325,8 +311,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   tabsContainer: {
-    flexDirection: 'row',
-    gap: Spacing.md,
+    // DirectionalRow handles flexDirection
   },
   tab: {
     flex: 1,
@@ -338,7 +323,6 @@ const styles = StyleSheet.create({
   activeTab: {},
   notificationCard: {
     padding: Spacing.lg,
-    paddingStart: Spacing.xl,
     borderRadius: BorderRadius.md,
     position: 'relative',
     overflow: 'hidden',
@@ -347,7 +331,9 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 1,
     borderWidth: StyleSheet.hairlineWidth,
-    gap: Spacing.md,
+  },
+  cardContent: {
+    alignItems: 'flex-start',
   },
   iconContainer: {
     width: 44,
@@ -378,6 +364,7 @@ const styles = StyleSheet.create({
   unreadDot: {
     position: 'absolute',
     top: Spacing.md,
+    end: Spacing.md,
     width: 8,
     height: 8,
     borderRadius: BorderRadius.full,

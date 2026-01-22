@@ -19,8 +19,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
 import { LoadingButton } from "@/components/shared/LoadingButton";
-import { DirectionalRow } from "@/components/DirectionalRow";
-import { shouldSwapChildrenForRTL } from "@/utils/rtlInitializer";
+import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
 import { UserRole } from "@/types/vms.types";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
@@ -67,8 +66,6 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isMicrosoftSubmitting, setIsMicrosoftSubmitting] = useState(false);
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
@@ -336,7 +333,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                 {
                   color: theme.textSecondary,
                   marginBottom: Spacing.xs,
-                  textAlign: isRTL ? "right" : "left",
+                  
                 },
               ]}
             >
@@ -353,7 +350,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                   styles.input,
                   {
                     color: theme.text,
-                    textAlign: isRTL ? "right" : "left",
+                    
                     writingDirection: isRTL ? "rtl" : "ltr",
                   },
                   Platform.OS === "web"
@@ -382,7 +379,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                   {
                     color: theme.error,
                     marginTop: Spacing.xs,
-                    textAlign: isRTL ? "right" : "left",
+                    
                   },
                 ]}
               >
@@ -398,7 +395,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                 {
                   color: theme.textSecondary,
                   marginBottom: Spacing.xs,
-                  textAlign: isRTL ? "right" : "left",
+                  
                 },
               ]}
             >
@@ -415,7 +412,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                   styles.input,
                   {
                     color: theme.text,
-                    textAlign: isRTL ? "right" : "left",
+                    
                     writingDirection: isRTL ? "rtl" : "ltr",
                   },
                   Platform.OS === "web"
@@ -454,7 +451,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                   {
                     color: theme.error,
                     marginTop: Spacing.xs,
-                    textAlign: isRTL ? "right" : "left",
+                    
                   },
                 ]}
               >
@@ -553,57 +550,31 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                   backgroundColor: theme.surface,
                   borderColor: theme.border,
                   opacity: isMicrosoftSubmitting || isAzureLoading ? 0.7 : 1,
-                  flexDirection: 'row',
+                  flexDirection: getFlexDirection(isRTL),
                 },
               ]}
               onPress={handleMicrosoftLogin}
               disabled={isMicrosoftSubmitting || isAzureLoading || isSubmitting}
             >
-              {shouldSwap ? (
-                <>
-                  <ThemedText
-                    style={[
-                      Typography.body,
-                      {
-                        color: theme.text,
-                        fontWeight: "600",
-                        marginEnd: Spacing.sm,
-                      },
-                    ]}
-                  >
-                    {isMicrosoftSubmitting || isAzureLoading
-                      ? t("auth.signingIn")
-                      : t("auth.signInWithMicrosoft")}
-                  </ThemedText>
-                  {isMicrosoftSubmitting || isAzureLoading ? (
-                    <ActivityIndicator size="small" color={theme.primary} />
-                  ) : (
-                    <DDIcon name="globe" size={INPUT_ICON_SIZE} variant="primary" />
-                  )}
-                </>
+              {isMicrosoftSubmitting || isAzureLoading ? (
+                <ActivityIndicator size="small" color={theme.primary} />
               ) : (
-                <>
-                  {isMicrosoftSubmitting || isAzureLoading ? (
-                    <ActivityIndicator size="small" color={theme.primary} />
-                  ) : (
-                    <DDIcon name="globe" size={INPUT_ICON_SIZE} variant="primary" />
-                  )}
-                  <ThemedText
-                    style={[
-                      Typography.body,
-                      {
-                        color: theme.text,
-                        fontWeight: "600",
-                        marginStart: Spacing.sm,
-                      },
-                    ]}
-                  >
-                    {isMicrosoftSubmitting || isAzureLoading
-                      ? t("auth.signingIn")
-                      : t("auth.signInWithMicrosoft")}
-                  </ThemedText>
-                </>
+                <DDIcon name="globe" size={INPUT_ICON_SIZE} variant="primary" />
               )}
+              <ThemedText
+                style={[
+                  Typography.body,
+                  {
+                    color: theme.text,
+                    fontWeight: "600",
+                    marginStart: Spacing.sm,
+                  },
+                ]}
+              >
+                {isMicrosoftSubmitting || isAzureLoading
+                  ? t("auth.signingIn")
+                  : t("auth.signInWithMicrosoft")}
+              </ThemedText>
             </Pressable>
           </View>
         </View>

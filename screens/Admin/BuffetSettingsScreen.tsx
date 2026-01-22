@@ -9,7 +9,7 @@ import Spacer from '@/components/Spacer';
 import { Spacing, BorderRadius, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
-import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
+import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 
 interface BuffetLocation {
   id: string;
@@ -80,9 +80,7 @@ const MOCK_BUFFET_LOCATIONS: BuffetLocation[] = [
 
 export default function BuffetSettingsScreen() {
   const { theme } = useTheme();
-  const { t, isRTL } = useTranslation();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  const insets = useSafeAreaInsets();
+  const { t, isRTL } = useTranslation(); const insets = useSafeAreaInsets();
   const [locations, setLocations] = useState<BuffetLocation[]>(MOCK_BUFFET_LOCATIONS);
   const [showModal, setShowModal] = useState(false);
   const [editingLocation, setEditingLocation] = useState<BuffetLocation | null>(null);
@@ -145,10 +143,10 @@ export default function BuffetSettingsScreen() {
               style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}
               onPress={() => handleEditLocation(location)}
             >
-              <View style={[styles.cardHeader, { flexDirection: 'row' }]}>
+              <DirectionalRow style={styles.cardHeader}>
                 <View style={{ flex: 1 }}>
-                  <ThemedText style={[Typography.subtitle, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>{location.name}</ThemedText>
-                  <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: Spacing.xs, textAlign: isRTL ? 'right' : 'left' }]}>
+                  <ThemedText style={[Typography.subtitle, { fontWeight: '600' }]}>{location.name}</ThemedText>
+                  <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: Spacing.xs }]}>
                     {location.building} • {location.floor}
                   </ThemedText>
                 </View>
@@ -173,89 +171,45 @@ export default function BuffetSettingsScreen() {
                     {location.status === 'active' ? t('status.active') : t('status.inactive')}
                   </ThemedText>
                 </View>
-              </View>
+              </DirectionalRow>
 
               <View style={styles.cardContent}>
-                <View style={[styles.infoRow, { flexDirection: 'row' }]}>
-                  {shouldSwap ? (
-                    <>
-                      <ThemedText style={[Typography.body, { color: theme.textSecondary, marginEnd: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
-                        {t('buffet.numberOfGuests')}: {location.capacity}
-                      </ThemedText>
-                      <DDIcon name="users" variant="muted" size={16} />
-                    </>
-                  ) : (
-                    <>
-                      <DDIcon name="users" variant="muted" size={16} />
-                      <ThemedText style={[Typography.body, { color: theme.textSecondary, marginStart: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
-                        {t('buffet.numberOfGuests')}: {location.capacity}
-                      </ThemedText>
-                    </>
-                  )}
-                </View>
+                <DirectionalRow style={styles.infoRow}>
+                  <DDIcon name="users" variant="muted" size={16} />
+                  <ThemedText style={[Typography.body, { color: theme.textSecondary, marginEnd: Spacing.sm }]}>
+                    {t('buffet.numberOfGuests')}: {location.capacity}
+                  </ThemedText>
+                </DirectionalRow>
 
                 {location.amenities.length > 0 ? (
-                  <View style={[styles.infoRow, { marginTop: Spacing.sm, flexDirection: 'row' }]}>
-                    {shouldSwap ? (
-                      <>
-                        <View style={{ flex: 1, marginEnd: Spacing.sm }}>
-                          <ScrollView horizontal showsHorizontalScrollIndicator={false} nestedScrollEnabled={true}>
-                            <View style={styles.amenitiesContainer}>
-                              {location.amenities.map((amenity, idx) => (
-                                <View
-                                  key={idx}
-                                  style={[styles.amenityTag, { backgroundColor: theme.background, borderColor: theme.border }]}
-                                >
-                                  <ThemedText style={[Typography.caption, { fontSize: 11 }]}>{amenity}</ThemedText>
-                                </View>
-                              ))}
+                  <DirectionalRow style={[styles.infoRow, { marginTop: Spacing.sm }]}>
+                    <DDIcon name="check-circle" variant="muted" size={16} />
+                    <View style={{ flex: 1, marginStart: Spacing.sm }}>
+                      <ScrollView horizontal showsHorizontalScrollIndicator={false} nestedScrollEnabled={true}>
+                        <View style={styles.amenitiesContainer}>
+                          {location.amenities.map((amenity, idx) => (
+                            <View
+                              key={idx}
+                              style={[styles.amenityTag, { backgroundColor: theme.background, borderColor: theme.border }]}
+                            >
+                              <ThemedText style={[Typography.caption, { fontSize: 11 }]}>{amenity}</ThemedText>
                             </View>
-                          </ScrollView>
+                          ))}
                         </View>
-                        <DDIcon name="check-circle" variant="muted" size={16} />
-                      </>
-                    ) : (
-                      <>
-                        <DDIcon name="check-circle" variant="muted" size={16} />
-                        <View style={{ flex: 1, marginStart: Spacing.sm }}>
-                          <ScrollView horizontal showsHorizontalScrollIndicator={false} nestedScrollEnabled={true}>
-                            <View style={styles.amenitiesContainer}>
-                              {location.amenities.map((amenity, idx) => (
-                                <View
-                                  key={idx}
-                                  style={[styles.amenityTag, { backgroundColor: theme.background, borderColor: theme.border }]}
-                                >
-                                  <ThemedText style={[Typography.caption, { fontSize: 11 }]}>{amenity}</ThemedText>
-                                </View>
-                              ))}
-                            </View>
-                          </ScrollView>
-                        </View>
-                      </>
-                    )}
-                  </View>
+                      </ScrollView>
+                    </View>
+                  </DirectionalRow>
                 ) : null}
               </View>
 
-              <View style={[styles.cardFooter, { borderTopColor: theme.border, flexDirection: 'row' }]}>
-                <Pressable style={[styles.actionButton, { flexDirection: 'row' }]}>
-                  {shouldSwap ? (
-                    <>
-                      <ThemedText style={[Typography.body, { color: theme.primary, marginEnd: Spacing.xs }]}>
-                        {t('common.edit')}
-                      </ThemedText>
-                      <DDIcon name="edit-2" size={16} variant="primary" />
-                    </>
-                  ) : (
-                    <>
-                      <DDIcon name="edit-2" size={16} variant="primary" />
-                      <ThemedText style={[Typography.body, { color: theme.primary, marginStart: Spacing.xs }]}>
-                        {t('common.edit')}
-                      </ThemedText>
-                    </>
-                  )}
+              <DirectionalRow style={[styles.cardFooter, { borderTopColor: theme.border }]}>
+                <Pressable style={[styles.actionButton, { flexDirection: getFlexDirection(isRTL) }]}>
+                  <DDIcon name="edit-2" size={16} variant="primary" />
+                  <ThemedText style={[Typography.body, { color: theme.primary, marginEnd: Spacing.xs }]}>
+                    {t('common.edit')}
+                  </ThemedText>
                 </Pressable>
-              </View>
+              </DirectionalRow>
             </Pressable>
           ))}
 
@@ -286,14 +240,14 @@ export default function BuffetSettingsScreen() {
               style={[styles.modalContent, { backgroundColor: theme.background, paddingBottom: insets.bottom + Spacing.xl }]}
               showsVerticalScrollIndicator={false}
             >
-              <View style={[styles.modalHeader, { flexDirection: 'row' }]}>
+              <DirectionalRow style={styles.modalHeader}>
                 <ThemedText style={[Typography.subtitle, { fontWeight: '600' }]}>
                   {editingLocation ? t('common.edit') : t('common.save')}
                 </ThemedText>
                 <Pressable onPress={() => setShowModal(false)}>
                   <DDIcon name="x" size={24} variant="muted" />
                 </Pressable>
-              </View>
+              </DirectionalRow>
 
               <View style={styles.formContainer}>
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginBottom: Spacing.xs }]}>
@@ -348,7 +302,7 @@ export default function BuffetSettingsScreen() {
                 <Spacer height={Spacing.md} />
 
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginBottom: Spacing.xs }]}>{t('status.active')}</ThemedText>
-                <View style={[styles.statusOptions, { flexDirection: 'row' }]}>
+                <DirectionalRow style={styles.statusOptions}>
                   <Pressable
                     style={[
                       styles.statusOption,
@@ -378,7 +332,7 @@ export default function BuffetSettingsScreen() {
                       {t('status.inactive')}
                     </ThemedText>
                   </Pressable>
-                </View>
+                </DirectionalRow>
 
                 <Spacer height={Spacing.lg} />
 

@@ -12,7 +12,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
 import { getValetTasks, ValetTask } from '@/services/state/valetTasksState';
 import type { ValetService } from '@/types/vms.types';
-import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
+import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 
 interface ValetTasksScreenProps {
   onNavigateToDetail: (taskId: string) => void;
@@ -67,9 +67,7 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status, theme, t }) => {
 
 export default function ValetTasksScreen({ onNavigateToDetail }: ValetTasksScreenProps) {
   const { theme } = useTheme();
-  const { t, isRTL } = useTranslation();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  const insets = useSafeAreaInsets();
+  const { t, isRTL } = useTranslation();  const insets = useSafeAreaInsets();
   const [tasks, setTasks] = useState<ValetTask[]>([]);
   const [filter, setFilter] = useState<'all' | 'pending' | 'in_progress' | 'completed'>('all');
 
@@ -94,77 +92,44 @@ export default function ValetTasksScreen({ onNavigateToDetail }: ValetTasksScree
       style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
     >
       <ThemedView style={[styles.taskCard, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
-        <View style={[styles.cardHeader, { flexDirection: 'row' }]}>
+        <DirectionalRow style={styles.cardHeader}>
           <View style={{ flex: 1 }}>
-            <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginBottom: Spacing.xs, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginBottom: Spacing.xs }]}>
               {item.visitorName}
             </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
               {item.visitorCompany}
             </ThemedText>
           </View>
           <StatusBadge status={item.valet.status} theme={theme} t={t} />
-        </View>
+        </DirectionalRow>
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.infoRow, { flexDirection: 'row' }]}>
-          {shouldSwap ? (
-            <>
-              <ThemedText style={[Typography.body, { color: theme.textSecondary, marginEnd: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
-                {t('reception.hostName')}: {item.hostName}
-              </ThemedText>
-              <DDIcon name="user" size={16} variant="muted" />
-            </>
-          ) : (
-            <>
-              <DDIcon name="user" size={16} variant="muted" />
-              <ThemedText style={[Typography.body, { color: theme.textSecondary, marginStart: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
-                {t('reception.hostName')}: {item.hostName}
-              </ThemedText>
-            </>
-          )}
-        </View>
+        <DirectionalRow style={styles.infoRow}>
+          <DDIcon name="user" size={16} variant="muted" />
+          <ThemedText style={[Typography.body, { color: theme.textSecondary, marginEnd: Spacing.sm }]}>
+            {t('reception.hostName')}: {item.hostName}
+          </ThemedText>
+        </DirectionalRow>
 
         <Spacer height={Spacing.sm} />
 
-        <View style={[styles.infoRow, { flexDirection: 'row' }]}>
-          {shouldSwap ? (
-            <>
-              <ThemedText style={[Typography.body, { color: theme.textSecondary, marginEnd: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
-                {item.visitDate} • {item.pickupTime} - {item.returnTime}
-              </ThemedText>
-              <DDIcon name="calendar" size={16} variant="muted" />
-            </>
-          ) : (
-            <>
-              <DDIcon name="calendar" size={16} variant="muted" />
-              <ThemedText style={[Typography.body, { color: theme.textSecondary, marginStart: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
-                {item.visitDate} • {item.pickupTime} - {item.returnTime}
-              </ThemedText>
-            </>
-          )}
-        </View>
+        <DirectionalRow style={styles.infoRow}>
+          <DDIcon name="calendar" size={16} variant="muted" />
+          <ThemedText style={[Typography.body, { color: theme.textSecondary, marginEnd: Spacing.sm }]}>
+            {item.visitDate} • {item.pickupTime} - {item.returnTime}
+          </ThemedText>
+        </DirectionalRow>
 
         <Spacer height={Spacing.sm} />
 
-        <View style={[styles.infoRow, { flexDirection: 'row' }]}>
-          {shouldSwap ? (
-            <>
-              <ThemedText style={[Typography.body, { color: theme.textSecondary, marginEnd: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
-                {item.location}
-              </ThemedText>
-              <DDIcon name="map-pin" size={16} variant="muted" />
-            </>
-          ) : (
-            <>
-              <DDIcon name="map-pin" size={16} variant="muted" />
-              <ThemedText style={[Typography.body, { color: theme.textSecondary, marginStart: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
-                {item.location}
-              </ThemedText>
-            </>
-          )}
-        </View>
+        <DirectionalRow style={styles.infoRow}>
+          <DDIcon name="map-pin" size={16} variant="muted" />
+          <ThemedText style={[Typography.body, { color: theme.textSecondary, marginEnd: Spacing.sm }]}>
+            {item.location}
+          </ThemedText>
+        </DirectionalRow>
 
         {item.valet.driver ? (
           <>
@@ -175,28 +140,13 @@ export default function ValetTasksScreen({ onNavigateToDetail }: ValetTasksScree
                 { backgroundColor: theme.surface, borderColor: theme.border },
               ]}
             >
-              <View style={[styles.infoRow, { flexDirection: 'row' }]}>
-                {shouldSwap ? (
-                  <>
-                    <ThemedText
-                      style={[Typography.body, { fontWeight: '600', marginEnd: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}
-                    >
-                      {item.valet.driver.name}
-                    </ThemedText>
-                    <DDIcon name="truck" size={16} variant="primary" />
-                  </>
-                ) : (
-                  <>
-                    <DDIcon name="truck" size={16} variant="primary" />
-                    <ThemedText
-                      style={[Typography.body, { fontWeight: '600', marginStart: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}
-                    >
-                      {item.valet.driver.name}
-                    </ThemedText>
-                  </>
-                )}
-              </View>
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: Spacing.xs, textAlign: isRTL ? 'right' : 'left' }]}>
+              <DirectionalRow style={styles.infoRow}>
+                <DDIcon name="truck" size={16} variant="primary" />
+                <ThemedText style={[Typography.body, { fontWeight: '600', marginEnd: Spacing.sm }]}>
+                  {item.valet.driver.name}
+                </ThemedText>
+              </DirectionalRow>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: Spacing.xs }]}>
                 {item.valet.driver.phone}
               </ThemedText>
             </View>
@@ -204,61 +154,29 @@ export default function ValetTasksScreen({ onNavigateToDetail }: ValetTasksScree
         ) : (
           <>
             <Spacer height={Spacing.md} />
-            <View
+            <DirectionalRow
               style={[
                 styles.noDiverInfo,
-                { backgroundColor: `${theme.warning}10`, borderColor: theme.warning, flexDirection: 'row' },
+                { backgroundColor: `${theme.warning}10`, borderColor: theme.warning },
               ]}
             >
-              {shouldSwap ? (
-                <>
-                  <ThemedText
-                    style={[
-                      Typography.caption,
-                      { color: theme.warning, marginEnd: Spacing.sm, fontWeight: '600', textAlign: isRTL ? 'right' : 'left' },
-                    ]}
-                  >
-                    {t('actions.assignDriver')}
-                  </ThemedText>
-                  <DDIcon name="alert-circle" size={16} variant="warning" />
-                </>
-              ) : (
-                <>
-                  <DDIcon name="alert-circle" size={16} variant="warning" />
-                  <ThemedText
-                    style={[
-                      Typography.caption,
-                      { color: theme.warning, marginStart: Spacing.sm, fontWeight: '600', textAlign: isRTL ? 'right' : 'left' },
-                    ]}
-                  >
-                    {t('actions.assignDriver')}
-                  </ThemedText>
-                </>
-              )}
-            </View>
+              <DDIcon name="alert-circle" size={16} variant="warning" />
+              <ThemedText style={[Typography.caption, { color: theme.warning, marginEnd: Spacing.sm, fontWeight: '600' }]}>
+                {t('actions.assignDriver')}
+              </ThemedText>
+            </DirectionalRow>
           </>
         )}
 
         {item.vehicleInfo ? (
           <>
             <Spacer height={Spacing.sm} />
-            <View style={[styles.infoRow, { flexDirection: 'row' }]}>
-              {shouldSwap ? (
-                <>
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginEnd: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
-                    {item.vehicleInfo.color} {item.vehicleInfo.make} {item.vehicleInfo.model} • {item.vehicleInfo.plateNumber}
-                  </ThemedText>
-                  <DDIcon name="truck" size={16} variant="muted" />
-                </>
-              ) : (
-                <>
-                  <DDIcon name="truck" size={16} variant="muted" />
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
-                    {item.vehicleInfo.color} {item.vehicleInfo.make} {item.vehicleInfo.model} • {item.vehicleInfo.plateNumber}
-                  </ThemedText>
-                </>
-              )}
-            </View>
+            <DirectionalRow style={styles.infoRow}>
+              <DDIcon name="truck" size={16} variant="muted" />
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginEnd: Spacing.sm }]}>
+                {item.vehicleInfo.color} {item.vehicleInfo.make} {item.vehicleInfo.model} • {item.vehicleInfo.plateNumber}
+              </ThemedText>
+            </DirectionalRow>
           </>
         ) : null}
       </ThemedView>
@@ -280,7 +198,7 @@ export default function ValetTasksScreen({ onNavigateToDetail }: ValetTasksScree
             backgroundColor: isActive ? theme.primary : theme.surface,
             borderColor: isActive ? theme.primary : theme.border,
             opacity: pressed ? 0.7 : 1,
-            flexDirection: 'row',
+            flexDirection: getFlexDirection(isRTL),
           },
         ]}
       >
@@ -326,12 +244,12 @@ export default function ValetTasksScreen({ onNavigateToDetail }: ValetTasksScree
         </ThemedText>
       </View>
 
-      <View style={[styles.filterContainer, { flexDirection: 'row' }]}>
+      <DirectionalRow style={styles.filterContainer}>
         {renderFilterButton('all', t('common.all'), tasks.length)}
         {renderFilterButton('pending', t('status.pending'), pendingCount)}
         {renderFilterButton('in_progress', t('status.inProgress'), inProgressCount)}
         {renderFilterButton('completed', t('status.completed'), completedCount)}
-      </View>
+      </DirectionalRow>
     </>
   );
 

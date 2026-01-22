@@ -2,14 +2,20 @@ import { ViewStyle, TextStyle } from 'react-native';
 
 /**
  * RTL Style Helpers
+ * =================
  * 
- * These helpers provide a single source of truth for RTL-aware styling.
- * Use these instead of inline conditional styles to ensure consistency.
+ * These helpers provide consistent RTL-aware styling across all platforms.
  * 
- * IMPORTANT RULES:
- * 1. Only apply row() to the OUTERMOST container that needs RTL mirroring
- * 2. Nested containers should NOT also use row() - this causes double reversal
- * 3. Use rtlText() on all visible text to ensure proper alignment on iOS
+ * KEY PRINCIPLE:
+ * Always use flexDirection: 'row'. I18nManager handles the RTL flip on ALL
+ * platforms when initialized correctly before first render:
+ * - Mobile: I18nManager.forceRTL(true) flips layouts automatically
+ * - Web: I18nManager + document.dir='rtl' enables React Native Web's RTL handling
+ * 
+ * USAGE:
+ * - Use row(isRTL) or DirectionalRow for horizontal layouts
+ * - Use rtlText(isRTL) for text alignment
+ * - Use marginStart/marginEnd for logical spacing
  */
 
 // ============================================
@@ -107,34 +113,39 @@ export function arabicTextStyle(
   return {
     fontSize: arabicFontSize(baseFontSize, isRTL, category),
     lineHeight: arabicLineHeight(baseLineHeight, isRTL, category),
-    textAlign: isRTL ? 'right' : 'left',
+    
     writingDirection: isRTL ? 'rtl' : 'ltr',
   };
 }
 
 /**
- * Returns RTL-aware row styles for horizontal layouts
- * Use this on the OUTERMOST container only - do NOT nest
+ * Returns RTL-aware row styles for horizontal layouts.
  * 
- * @param isRTL - Whether RTL mode is active
- * @returns ViewStyle with flexDirection and alignItems
+ * Always returns flexDirection: 'row'. I18nManager handles the visual flip
+ * on ALL platforms when initialized correctly before first render.
+ * 
+ * @param isRTL - Whether RTL mode is active (kept for API compatibility)
+ * @returns ViewStyle with flexDirection: 'row' and alignItems: 'center'
  */
 export function row(isRTL: boolean): ViewStyle {
   return {
-    flexDirection: isRTL ? 'row-reverse' : 'row',
+    flexDirection: 'row',
     alignItems: 'center',
   };
 }
 
 /**
- * Returns RTL-aware row styles with space-between justification
+ * Returns RTL-aware row styles with space-between justification.
  * 
- * @param isRTL - Whether RTL mode is active
+ * Always returns flexDirection: 'row'. I18nManager handles the visual flip
+ * on ALL platforms when initialized correctly before first render.
+ * 
+ * @param isRTL - Whether RTL mode is active (kept for API compatibility)
  * @returns ViewStyle with flexDirection, alignItems, and justifyContent
  */
 export function rowBetween(isRTL: boolean): ViewStyle {
   return {
-    flexDirection: isRTL ? 'row-reverse' : 'row',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   };
@@ -149,7 +160,7 @@ export function rowBetween(isRTL: boolean): ViewStyle {
  */
 export function rtlText(isRTL: boolean): TextStyle {
   return {
-    textAlign: isRTL ? 'right' : 'left',
+    
     writingDirection: isRTL ? 'rtl' : 'ltr',
   };
 }

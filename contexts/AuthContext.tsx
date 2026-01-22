@@ -410,8 +410,12 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
 
     // Sync language preference from server
     if (user.language && onUserLanguageChanged) {
-      console.log('[AuthContext] User language from server:', user.language);
-      onUserLanguageChanged(user.language);
+      try {
+        console.log('[AuthContext] User language from server:', user.language);
+        onUserLanguageChanged(user.language);
+      } catch (langError) {
+        console.warn('[AuthContext] Failed to sync user language preference:', langError);
+      }
     }
 
     return response;
@@ -513,8 +517,12 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
 
       // Sync language preference from server
       if (user.language && onUserLanguageChanged) {
-        console.log('[AuthContext] SSO User language from server:', user.language);
-        onUserLanguageChanged(user.language);
+        try {
+          console.log('[AuthContext] SSO User language from server:', user.language);
+          onUserLanguageChanged(user.language);
+        } catch (langError) {
+          console.warn('[AuthContext] Failed to sync SSO user language preference:', langError);
+        }
       }
 
       return user;

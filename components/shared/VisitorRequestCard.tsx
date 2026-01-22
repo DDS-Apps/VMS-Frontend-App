@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { View, StyleSheet, Pressable, ViewStyle } from "react-native";
+import { View, StyleSheet, ViewStyle, Pressable, Platform } from "react-native";
+import { TouchableOpacity } from "react-native-gesture-handler";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { DDIcon } from "@/components/DDIcon";
@@ -214,15 +215,18 @@ export function VisitorRequestCard({
   );
 
   const renderHeader = () => {
+    // DEBUG: Log RTL state for card header
+    console.log('[VisitorRequestCard] Platform:', Platform.OS, 'isRTL:', isRTL);
+    
     return (
       <DirectionalRow style={styles.cardHeader} gap={Spacing.md}>
         {renderAvatar()}
         <View style={styles.nameSection}>
-          <ThemedText style={[styles.visitorName, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+          <ThemedText style={[styles.visitorName, { color: theme.text, width: '100%' }]} align="start" numberOfLines={1}>
             {request.visitor.fullName}
           </ThemedText>
           {request.visitor.company ? (
-            <ThemedText style={[styles.companyText, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[styles.companyText, { color: theme.textSecondary, width: '100%' }]} align="start">
               {request.visitor.company}
             </ThemedText>
           ) : null}
@@ -248,8 +252,18 @@ export function VisitorRequestCard({
   };
 
   const renderDateTime = () => {
+    // On mobile, native auto-flips rows in RTL, so 'flex-start' appears on RIGHT
+    // On web, no auto-flip, so 'flex-end' is needed for RIGHT alignment
+    const isMobile = Platform.OS !== 'web';
+    const justify = isRTL 
+      ? (isMobile ? 'flex-start' : 'flex-end')
+      : 'flex-start';
+    
     return (
-      <DirectionalRow style={styles.dateTimeRow}>
+      <DirectionalRow 
+        style={styles.dateTimeRow}
+        justifyContent={justify}
+      >
         {renderIconText('calendar', formatDate(request.visitDate))}
         <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
         {renderIconText('clock', formatTime(request.visitTime))}
@@ -265,14 +279,23 @@ export function VisitorRequestCard({
     );
   };
 
-  const renderServicesAndStatus = () => (
-    <DirectionalRow style={styles.servicesStatusRow}>
-      <View style={styles.servicesContainer}>
-        <ServiceIconsRow request={request} showWalkIn={true} />
-      </View>
-      {renderStatusBadge()}
-    </DirectionalRow>
-  );
+  const renderServicesAndStatus = () => {
+    // On mobile, native auto-flips rows in RTL, so 'flex-start' appears on RIGHT
+    // On web, no auto-flip, so 'flex-end' is needed for RIGHT alignment
+    const isMobile = Platform.OS !== 'web';
+    const justify = isRTL 
+      ? (isMobile ? 'flex-start' : 'flex-end')
+      : 'flex-start';
+    
+    return (
+      <DirectionalRow style={styles.servicesStatusRow}>
+        <DirectionalRow style={[styles.servicesContainer, { justifyContent: justify }]}>
+          <ServiceIconsRow request={request} showWalkIn={true} />
+        </DirectionalRow>
+        {renderStatusBadge()}
+      </DirectionalRow>
+    );
+  };
 
   const renderDetailRow = (iconName: string, text: string, numberOfLines: number = 1) => {
     return (
@@ -331,7 +354,7 @@ export function VisitorRequestCard({
     return (
       <>
         <Spacer height={Spacing.sm} />
-        <DirectionalRow style={styles.infoRow} gap={Spacing.xs}>
+        <DirectionalRow style={styles.infoRow} gap={Spacing.xs} justifyContent={isRTL ? (Platform.OS !== 'web' ? 'flex-start' : 'flex-end') : 'flex-start'}>
           <DDIcon name="user" size={12} variant="muted" />
           <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>
             {t('dashboard.requestedBy')}
@@ -408,15 +431,16 @@ export function VisitorRequestCard({
   };
 
   return (
-    <Pressable
+    <TouchableOpacity
       onPress={handlePress}
       onLongPress={onLongPress}
-      style={({ pressed }) => [
+      activeOpacity={0.9}
+      hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+      style={[
         styles.container,
         {
           backgroundColor: theme.surface,
           width: width,
-          opacity: pressed ? 0.9 : 1,
         },
         style,
       ]}
@@ -447,7 +471,7 @@ export function VisitorRequestCard({
         </View>
 
       </ThemedView>
-    </Pressable>
+    </TouchableOpacity>
   );
 }
 
@@ -527,7 +551,7 @@ const styles = StyleSheet.create({
   },
   dateTimeRow: {
     alignItems: 'center',
-    flexWrap: 'wrap',
+    flexWrap: 'nowrap',
     gap: Spacing.xs,
   },
   dateTimeItem: {
@@ -543,6 +567,7 @@ const styles = StyleSheet.create({
   servicesStatusRow: {
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: Spacing.md,
   },
   servicesContainer: {
     flex: 1,
@@ -587,7 +612,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   expiredBanner: {
-    flexDirection: 'row',
+    flexDirection: 'row', // Static - doesn't need RTL flip (centered icon + text)
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: Spacing.sm,

@@ -10,7 +10,9 @@ import { ThemedText } from "@/components/ThemedText";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { useTheme } from "@/hooks/useTheme";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { BorderRadius, Spacing } from "@/constants/theme";
+import { getFlexDirection } from "@/components/DirectionalRow";
 
 type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "danger" | "danger-outline" | "warning-outline" | "success";
 type ButtonSize = "small" | "medium" | "large";
@@ -61,6 +63,7 @@ export const LoadingButton = ({
   loadingText,
 }: LoadingButtonProps) => {
   const { theme } = useTheme();
+  const { isRTL } = useLanguage();
   const scale = useSharedValue(1);
   const isDisabled = disabled || loading;
   const sizeStyle = sizeStyles[size];
@@ -156,7 +159,7 @@ export const LoadingButton = ({
     const displayText = loadingText && loading ? loadingText : children;
 
     return (
-      <View style={styles.contentContainer}>
+      <View style={[styles.contentContainer, { flexDirection: getFlexDirection(isRTL) }]}>
         {loading ? spinnerElement : (iconPosition === "left" ? iconElement : null)}
         <ThemedText
           style={[
@@ -188,6 +191,7 @@ export const LoadingButton = ({
           borderWidth: variantStyles.border ? 1.5 : 0,
           opacity: isDisabled ? 0.5 : 1,
           alignSelf: fullWidth ? "stretch" : "flex-start",
+          flexDirection: getFlexDirection(isRTL),
         },
         style,
         animatedStyle,

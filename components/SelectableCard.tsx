@@ -9,6 +9,7 @@ import Animated, {
 
 import { useTheme } from "@/hooks/useTheme";
 import { Spacing, BorderRadius } from "@/constants/theme";
+import { getFlexDirection } from "@/components/DirectionalRow";
 
 interface SelectableCardProps {
   children: React.ReactNode;
@@ -124,8 +125,9 @@ export const CardGridStyles = StyleSheet.create({
 
 export const getGridStyle = (isRTL: boolean = false) => ({
   ...(isWeb ? webStyles.grid : mobileStyles.grid),
-  flexDirection: isRTL ? 'row-reverse' as const : 'row' as const,
-  justifyContent: isRTL ? 'flex-end' as const : 'flex-start' as const,
+  // Use DirectionalRow's getFlexDirection for consistent RTL handling
+  flexDirection: getFlexDirection(isRTL),
+  justifyContent: 'flex-start' as const,
 });
 export const getCardWrapper3ColStyle = () => isWeb ? webStyles.cardWrapper3Col : mobileStyles.cardWrapper3Col;
 export const getCardWrapper2ColStyle = () => isWeb ? webStyles.cardWrapper2Col : mobileStyles.cardWrapper2Col;

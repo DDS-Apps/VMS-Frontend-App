@@ -2,7 +2,12 @@ import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { View, StyleSheet, Pressable, ScrollView, Alert } from "react-native";
 import { DDIcon } from "@/components/DDIcon";
 import { SkeletonList } from "@/components/shared/Skeleton";
-import { useNavigation, useRoute, RouteProp, useFocusEffect } from "@react-navigation/native";
+import {
+  useNavigation,
+  useRoute,
+  RouteProp,
+  useFocusEffect,
+} from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ScreenFlatList } from "@/components/ScreenFlatList";
 import { ROUTES } from "@/constants";
@@ -10,7 +15,11 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
-import { REQUEST_STATUS, UPCOMING_STATUSES, CANCELLED_STATUSES } from "@/constants/requestConstants";
+import {
+  REQUEST_STATUS,
+  UPCOMING_STATUSES,
+  CANCELLED_STATUSES,
+} from "@/constants/requestConstants";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
@@ -18,16 +27,25 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { VisitorRequest } from "@/types/vms.types";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@/contexts/AuthContext";
-import { useInfiniteVisitsQuery, usePendingHostWalkInsQuery } from "@/hooks/queries/useApprovalQueries";
+import {
+  useInfiniteVisitsQuery,
+  usePendingHostWalkInsQuery,
+} from "@/hooks/queries/useApprovalQueries";
 import { ListLoadingFooter, VisitorRequestCard } from "@/components/shared";
 import type { VisitListItemDto } from "@/types/api.types";
-import { getStatusConfig as getStatusStyle, applyOpacity, StatusConfig } from "@/utils/statusStyles";
+import {
+  getStatusConfig as getStatusStyle,
+  applyOpacity,
+  StatusConfig,
+} from "@/utils/statusStyles";
 import type { Theme } from "@/types/theme.types";
 import type { EmployeeStackParamList } from "@/types/employeeNavigation.types";
 import type { ManagerStackParamList } from "@/types/managerNavigation.types";
-import { mapVisitListItemToVisitorRequest, mapPendingHostWalkInToVisitorRequest } from "@/utils/requestMappers";
-import { shouldSwapChildrenForRTL } from "@/utils/rtlInitializer";
-
+import {
+  mapVisitListItemToVisitorRequest,
+  mapPendingHostWalkInToVisitorRequest,
+} from "@/utils/requestMappers";
+import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
 
 // Unified Layout Tokens
 const LAYOUT = {
@@ -43,13 +61,13 @@ const LAYOUT = {
   tableScrollColumnWidth: 240,
 };
 
-type EmployeeTab = 'upcoming' | 'waiting' | 'past' | 'all' | 'walkin';
-type ManagerTab = 'all' | 'pending' | 'awaiting' | 'walkin';
+type EmployeeTab = "upcoming" | "waiting" | "past" | "all" | "walkin";
+type ManagerTab = "all" | "pending" | "awaiting" | "walkin";
 type TabType = EmployeeTab | ManagerTab;
 
 interface VisitorRequestsScreenProps {
   navigation?: NativeStackNavigationProp<EmployeeStackParamList>;
-  userRole?: 'employee' | 'manager';
+  userRole?: "employee" | "manager";
 }
 
 // Shared: Status Accent Bar Component
@@ -58,71 +76,160 @@ const StatusAccent = ({ color }: { color: string }) => (
 );
 
 // Shared: Service Icons Component
-const ServiceIcons = ({ request, theme, size = 16 }: { request: VisitorRequest; theme: Theme; size?: number }) => {
+const ServiceIcons = ({
+  request,
+  theme,
+  size = 16,
+}: {
+  request: VisitorRequest;
+  theme: Theme;
+  size?: number;
+}) => {
   const { isRTL } = useLanguage();
-  const hasServices = request.parkingSlot || request.meetingRoom || request.buffet || request.valet;
-  
+  const hasServices =
+    request.parkingSlot ||
+    request.meetingRoom ||
+    request.buffet ||
+    request.valet;
+
   if (!hasServices) {
-    return <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>-</ThemedText>;
+    return (
+      <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
+        -
+      </ThemedText>
+    );
   }
-  
+
   return (
-    <View style={[styles.servicesRow, { flexDirection: 'row' }]}>
+    <DirectionalRow style={styles.servicesRow}>
       {request.parkingSlot ? (
-        <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '20'), width: size * 2, height: size * 2, borderRadius: size }]}>
+        <View
+          style={[
+            styles.servicePill,
+            {
+              backgroundColor: applyOpacity(theme.info, "20"),
+              width: size * 2,
+              height: size * 2,
+              borderRadius: size,
+            },
+          ]}
+        >
           <DDIcon name="map-pin" size={size} color={theme.info} />
         </View>
       ) : null}
       {request.meetingRoom ? (
-        <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.secondary, '20'), width: size * 2, height: size * 2, borderRadius: size }]}>
+        <View
+          style={[
+            styles.servicePill,
+            {
+              backgroundColor: applyOpacity(theme.secondary, "20"),
+              width: size * 2,
+              height: size * 2,
+              borderRadius: size,
+            },
+          ]}
+        >
           <DDIcon name="briefcase" size={size} color={theme.secondary} />
         </View>
       ) : null}
       {request.buffet ? (
-        <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.warning, '20'), width: size * 2, height: size * 2, borderRadius: size }]}>
+        <View
+          style={[
+            styles.servicePill,
+            {
+              backgroundColor: applyOpacity(theme.warning, "20"),
+              width: size * 2,
+              height: size * 2,
+              borderRadius: size,
+            },
+          ]}
+        >
           <DDIcon name="cloche" size={size} variant="warning" />
         </View>
       ) : null}
       {request.valet ? (
-        <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.primary, '20'), width: size * 2, height: size * 2, borderRadius: size }]}>
+        <View
+          style={[
+            styles.servicePill,
+            {
+              backgroundColor: applyOpacity(theme.primary, "20"),
+              width: size * 2,
+              height: size * 2,
+              borderRadius: size,
+            },
+          ]}
+        >
           <DDIcon name="truck" size={size} variant="primary" />
         </View>
       ) : null}
-    </View>
+    </DirectionalRow>
   );
 };
 
 // Shared: Status Badge Component - matches shared VisitorRequestCard styling
-const StatusBadge = ({ statusConfig, compact = false }: { statusConfig: StatusConfig; compact?: boolean }) => (
-  <View style={[
-    styles.statusBadge, 
-    { 
-      backgroundColor: statusConfig.bg, 
-      borderColor: statusConfig.border,
-      paddingHorizontal: Spacing.sm,
-      paddingVertical: 4,
-    }
-  ]}>
-    <ThemedText style={[styles.statusText, { color: statusConfig.text, fontSize: compact ? 10 : 10 }]}>
+const StatusBadge = ({
+  statusConfig,
+  compact = false,
+}: {
+  statusConfig: StatusConfig;
+  compact?: boolean;
+}) => (
+  <View
+    style={[
+      styles.statusBadge,
+      {
+        backgroundColor: statusConfig.bg,
+        borderColor: statusConfig.border,
+        paddingHorizontal: Spacing.sm,
+        paddingVertical: 4,
+      },
+    ]}
+  >
+    <ThemedText
+      style={[
+        styles.statusText,
+        { color: statusConfig.text, fontSize: compact ? 10 : 10 },
+      ]}
+    >
       {statusConfig.label}
     </ThemedText>
   </View>
 );
 
 // Shared: Visitor Avatar Component
-const VisitorAvatar = ({ name, theme, size = 44 }: { name: string; theme: Theme; size?: number }) => {
-  const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+const VisitorAvatar = ({
+  name,
+  theme,
+  size = 44,
+}: {
+  name: string;
+  theme: Theme;
+  size?: number;
+}) => {
+  const initials = name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .substring(0, 2)
+    .toUpperCase();
   return (
-    <View style={[
-      styles.avatar, 
-      { 
-        backgroundColor: applyOpacity(theme.primary, '15'),
-        width: size,
-        height: size,
-        borderRadius: LAYOUT.cardRadius - 2,
-      }
-    ]}>
-      <ThemedText style={[styles.avatarText, { color: theme.primary, fontSize: size * 0.36 }]}>
+    <View
+      style={[
+        styles.avatar,
+        {
+          backgroundColor: applyOpacity(theme.primary, "15"),
+          width: size,
+          height: size,
+          borderRadius: LAYOUT.cardRadius - 2,
+        },
+      ]}
+    >
+      <ThemedText
+        style={[
+          styles.avatarText,
+          { color: theme.primary, fontSize: size * 0.36 },
+        ]}
+      >
         {initials}
       </ThemedText>
     </View>
@@ -130,8 +237,21 @@ const VisitorAvatar = ({ name, theme, size = 44 }: { name: string; theme: Theme;
 };
 
 // Shared: Date/Time Display Component
-const DateTimeDisplay = ({ date, time, duration, theme, compact = false }: { date: string; time: string; duration?: string; theme: Theme; compact?: boolean }) => {
-  const { formatDateShort, toLocalNumerals, formatTimeFromString } = useFormatters();
+const DateTimeDisplay = ({
+  date,
+  time,
+  duration,
+  theme,
+  compact = false,
+}: {
+  date: string;
+  time: string;
+  duration?: string;
+  theme: Theme;
+  compact?: boolean;
+}) => {
+  const { formatDateShort, toLocalNumerals, formatTimeFromString } =
+    useFormatters();
   const { t } = useTranslation();
   const { isRTL } = useLanguage();
 
@@ -141,379 +261,576 @@ const DateTimeDisplay = ({ date, time, duration, theme, compact = false }: { dat
   };
 
   const formatDuration = (durationStr: string): string => {
-    const match = durationStr.match(/(\d+(?:\.\d+)?)\s*(hour|hours|hr|hrs|minute|minutes|min|mins)/i);
+    const match = durationStr.match(
+      /(\d+(?:\.\d+)?)\s*(hour|hours|hr|hrs|minute|minutes|min|mins)/i,
+    );
     if (match) {
       const num = parseFloat(match[1]);
       const unit = match[2].toLowerCase();
       const localNum = toLocalNumerals(num.toString());
-      if (unit.startsWith('hour') || unit.startsWith('hr')) {
-        return `${localNum} ${num === 1 ? t('time.hour') : t('time.hours')}`;
+      if (unit.startsWith("hour") || unit.startsWith("hr")) {
+        return `${localNum} ${num === 1 ? t("time.hour") : t("time.hours")}`;
       } else {
-        return `${localNum} ${num === 1 ? t('time.minute') : t('time.minutes')}`;
+        return `${localNum} ${num === 1 ? t("time.minute") : t("time.minutes")}`;
       }
     }
     return toLocalNumerals(durationStr);
   };
-
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
   return (
-    <View style={styles.dateTimeRowSplit}>
-      <View style={[styles.dateTimeLeft, { flexDirection: 'row' }]}>
-        {shouldSwap ? (
+    <View
+      style={[
+        styles.dateTimeRowSplit,
+        { alignItems: isRTL ? "flex-end" : "flex-start" },
+      ]}
+    >
+      <DirectionalRow style={styles.dateTimeLeft}>
+        <DirectionalRow>
+          <DDIcon name="calendar" size={compact ? 13 : 14} variant="muted" />
+          <ThemedText
+            style={[
+              styles.dateTimeText,
+              {
+                color: theme.textSecondary,
+                fontSize: compact ? 12 : 13,
+                marginEnd: 4,
+              },
+            ]}
+          >
+            {formatVisitDate(date)}
+          </ThemedText>
+        </DirectionalRow>
+      </DirectionalRow>
+      <DirectionalRow style={styles.dateTimeRight}>
+        <DDIcon name="clock" size={compact ? 13 : 14} variant="muted" />
+        <ThemedText
+          style={[
+            styles.dateTimeText,
+            { color: theme.textSecondary, fontSize: compact ? 12 : 13 },
+          ]}
+        >
+          {formatTimeFromString(time)}
+        </ThemedText>
+        {duration ? (
           <>
-            <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13, marginEnd: 4 }]}>
-              {formatVisitDate(date)}
+            <ThemedText style={[styles.separator, { color: theme.border }]}>
+              •
             </ThemedText>
-            <DDIcon name="calendar" size={compact ? 13 : 14} variant="muted" />
-          </>
-        ) : (
-          <>
-            <DDIcon name="calendar" size={compact ? 13 : 14} variant="muted" />
-            <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
-              {formatVisitDate(date)}
+            <ThemedText
+              style={[
+                styles.dateTimeText,
+                { color: theme.textSecondary, fontSize: compact ? 12 : 13 },
+              ]}
+            >
+              {formatDuration(duration)}
             </ThemedText>
           </>
-        )}
-      </View>
-      <View style={[styles.dateTimeRight, { flexDirection: 'row' }]}>
-        {shouldSwap ? (
-          <>
-            {duration ? (
-              <>
-                <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
-                  {formatDuration(duration)}
-                </ThemedText>
-                <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
-              </>
-            ) : null}
-            <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13, marginEnd: 4 }]}>
-              {formatTimeFromString(time)}
-            </ThemedText>
-            <DDIcon name="clock" size={compact ? 13 : 14} variant="muted" />
-          </>
-        ) : (
-          <>
-            <DDIcon name="clock" size={compact ? 13 : 14} variant="muted" />
-            <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
-              {formatTimeFromString(time)}
-            </ThemedText>
-            {duration ? (
-              <>
-                <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
-                <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
-                  {formatDuration(duration)}
-                </ThemedText>
-              </>
-            ) : null}
-          </>
-        )}
-      </View>
+        ) : null}
+      </DirectionalRow>
     </View>
   );
 };
 
 // Table View: Horizontal Scrolling Row Component
-const VisitorRequestTableRow = React.memo(({ 
-  request, 
-  onPress,
-  theme,
-  t,
-  isRTL = false
-}: { 
-  request: VisitorRequest; 
-  onPress: () => void;
-  theme: Theme;
-  t: (key: string) => string;
-  isRTL?: boolean;
-}) => {
-  const statusConfig = getStatusStyle(theme, request.status, t);
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
+const VisitorRequestTableRow = React.memo(
+  ({
+    request,
+    onPress,
+    theme,
+    t,
+    isRTL = false,
+  }: {
+    request: VisitorRequest;
+    onPress: () => void;
+    theme: Theme;
+    t: (key: string) => string;
+    isRTL?: boolean;
+  }) => {
+    const statusConfig = getStatusStyle(theme, request.status, t);
+    return (
+      <Pressable
+        onPress={onPress}
+        android_ripple={{ color: applyOpacity(theme.primary, "10") }}
+      >
+        <ThemedView
+          style={[
+            styles.tableRow,
+            { backgroundColor: theme.surface, borderColor: theme.border },
+          ]}
+        >
+          <StatusAccent color={statusConfig.borderColor} />
 
-  return (
-    <Pressable 
-      onPress={onPress}
-      android_ripple={{ color: applyOpacity(theme.primary, '10') }}
-    >
-      <ThemedView style={[styles.tableRow, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-        <StatusAccent color={statusConfig.borderColor} />
-        
-        {/* Fixed Column - Always Visible: Name & Time Only */}
-        <View style={[styles.fixedColumn, { width: LAYOUT.tableFixedColumnWidth }]}>
-          <View style={styles.fixedColumnContent}>
-            <View style={{ flex: 1 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, flexShrink: 1 }]} numberOfLines={2}>
-                  {request.visitor.fullName}
-                </ThemedText>
-                {request.isWalkIn ? (
-                  <DDIcon name="user-check" size={14} color={theme.warning} />
+          {/* Fixed Column - Always Visible: Name & Time Only */}
+          <View
+            style={[
+              styles.fixedColumn,
+              { width: LAYOUT.tableFixedColumnWidth },
+            ]}
+          >
+            <View style={styles.fixedColumnContent}>
+              <View style={{ flex: 1 }}>
+                <DirectionalRow style={{ alignItems: "center", gap: 6 }}>
+                  <ThemedText
+                    style={[
+                      Typography.body,
+                      { fontWeight: "600", fontSize: 15, flexShrink: 1 },
+                    ]}
+                    numberOfLines={2}
+                  >
+                    {request.visitor.fullName}
+                  </ThemedText>
+                  {request.isWalkIn ? (
+                    <DDIcon name="user-check" size={14} color={theme.warning} />
+                  ) : null}
+                </DirectionalRow>
+                <Spacer height={6} />
+                <DateTimeDisplay
+                  date={request.visitDate}
+                  time={request.visitTime}
+                  theme={theme}
+                  compact
+                />
+              </View>
+            </View>
+          </View>
+
+          {/* Scrollable Columns - All Details */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={true}
+            style={styles.scrollableColumns}
+            contentContainerStyle={styles.scrollableContent}
+            persistentScrollbar={true}
+            nestedScrollEnabled={true}
+          >
+            {/* Company Column */}
+            <View
+              style={[
+                styles.tableColumn,
+                { width: LAYOUT.tableScrollColumnWidth },
+              ]}
+            >
+              <ThemedText
+                style={[styles.columnHeader, { color: theme.textSecondary }]}
+              >
+                {t("form.company").toUpperCase()}
+              </ThemedText>
+              <Spacer height={10} />
+              <ThemedText
+                style={[styles.columnValue, { fontSize: 15 }]}
+                numberOfLines={2}
+              >
+                {request.visitor.company || "-"}
+              </ThemedText>
+            </View>
+
+            {/* Purpose Column */}
+            <View
+              style={[
+                styles.tableColumn,
+                { width: LAYOUT.tableScrollColumnWidth },
+              ]}
+            >
+              <ThemedText
+                style={[styles.columnHeader, { color: theme.textSecondary }]}
+              >
+                {t("form.purpose").toUpperCase()}
+              </ThemedText>
+              <Spacer height={10} />
+              <ThemedText
+                style={[styles.columnValue, { fontSize: 15 }]}
+                numberOfLines={3}
+              >
+                {request.purpose}
+              </ThemedText>
+            </View>
+
+            {/* Status Column */}
+            <View
+              style={[
+                styles.tableColumn,
+                { width: LAYOUT.tableScrollColumnWidth },
+              ]}
+            >
+              <ThemedText
+                style={[styles.columnHeader, { color: theme.textSecondary }]}
+              >
+                {t("status.pending")
+                  .toUpperCase()
+                  .replace("PENDING", t("common.filter").toUpperCase())}
+              </ThemedText>
+              <Spacer height={10} />
+              <StatusBadge statusConfig={statusConfig} />
+            </View>
+
+            {/* Services Column */}
+            <View
+              style={[
+                styles.tableColumn,
+                { width: LAYOUT.tableScrollColumnWidth },
+              ]}
+            >
+              <ThemedText
+                style={[
+                  styles.columnHeader,
+                  {
+                    writingDirection: isRTL ? "rtl" : "ltr",
+                    color: theme.textSecondary,
+                  },
+                ]}
+              >
+                {t("services.additionalServices").toUpperCase()}
+              </ThemedText>
+              <Spacer height={10} />
+              <ServiceIcons request={request} theme={theme} size={16} />
+            </View>
+
+            {/* Contact Column */}
+            <View
+              style={[
+                styles.tableColumn,
+                { width: LAYOUT.tableScrollColumnWidth },
+              ]}
+            >
+              <ThemedText
+                style={[
+                  styles.columnHeader,
+                  {
+                    writingDirection: isRTL ? "rtl" : "ltr",
+                    color: theme.textSecondary,
+                  },
+                ]}
+              >
+                {t("security.manualEntry").toUpperCase().split(" ")[0]}
+              </ThemedText>
+              <Spacer height={10} />
+              <View style={styles.contactColumn}>
+                {request.visitor.email ? (
+                  <View style={styles.contactRow}>
+                    <DDIcon name="mail" size={14} variant="muted" />
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        {
+                          writingDirection: isRTL ? "rtl" : "ltr",
+                          fontSize: 14,
+                          marginStart: 8,
+                          color: theme.textSecondary,
+                          flex: 1,
+                        },
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {request.visitor.email}
+                    </ThemedText>
+                  </View>
+                ) : null}
+                {request.visitor.email && request.visitor.phone ? (
+                  <Spacer height={6} />
+                ) : null}
+                {request.visitor.phone ? (
+                  <View style={styles.contactRow}>
+                    <DDIcon name="phone" size={14} variant="muted" />
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        {
+                          fontSize: 14,
+                          marginStart: 8,
+                          color: theme.textSecondary,
+                          flex: 1,
+                        },
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {request.visitor.phone}
+                    </ThemedText>
+                  </View>
+                ) : null}
+                {!request.visitor.email && !request.visitor.phone ? (
+                  <ThemedText
+                    style={[Typography.caption, { color: theme.textSecondary }]}
+                  >
+                    -
+                  </ThemedText>
                 ) : null}
               </View>
-              <Spacer height={6} />
-              <DateTimeDisplay 
-                date={request.visitDate} 
-                time={request.visitTime} 
-                theme={theme} 
-                compact 
-              />
             </View>
-          </View>
-        </View>
-
-        {/* Scrollable Columns - All Details */}
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={true}
-          style={styles.scrollableColumns}
-          contentContainerStyle={styles.scrollableContent}
-          persistentScrollbar={true}
-          nestedScrollEnabled={true}
-        >
-          {/* Company Column */}
-          <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
-            <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
-              {t('form.company').toUpperCase()}
-            </ThemedText>
-            <Spacer height={10} />
-            <ThemedText style={[styles.columnValue, { fontSize: 15 }]} numberOfLines={2}>
-              {request.visitor.company || '-'}
-            </ThemedText>
-          </View>
-
-          {/* Purpose Column */}
-          <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
-            <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
-              {t('form.purpose').toUpperCase()}
-            </ThemedText>
-            <Spacer height={10} />
-            <ThemedText style={[styles.columnValue, { fontSize: 15 }]} numberOfLines={3}>
-              {request.purpose}
-            </ThemedText>
-          </View>
-
-          {/* Status Column */}
-          <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
-            <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
-              {t('status.pending').toUpperCase().replace('PENDING', t('common.filter').toUpperCase())}
-            </ThemedText>
-            <Spacer height={10} />
-            <StatusBadge statusConfig={statusConfig} />
-          </View>
-
-          {/* Services Column */}
-          <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
-            <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
-              {t('services.additionalServices').toUpperCase()}
-            </ThemedText>
-            <Spacer height={10} />
-            <ServiceIcons request={request} theme={theme} size={16} />
-          </View>
-
-          {/* Contact Column */}
-          <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
-            <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
-              {t('security.manualEntry').toUpperCase().split(' ')[0]}</ThemedText>
-            <Spacer height={10} />
-            <View style={styles.contactColumn}>
-              {request.visitor.email ? (
-                <View style={styles.contactRow}>
-                  <DDIcon name="mail" size={14} variant="muted" />
-                  <ThemedText style={[Typography.caption, { fontSize: 14, marginStart: 8, color: theme.textSecondary, flex: 1 }]} numberOfLines={1}>
-                    {request.visitor.email}
-                  </ThemedText>
-                </View>
-              ) : null}
-              {request.visitor.email && request.visitor.phone ? <Spacer height={6} /> : null}
-              {request.visitor.phone ? (
-                <View style={styles.contactRow}>
-                  <DDIcon name="phone" size={14} variant="muted" />
-                  <ThemedText style={[Typography.caption, { fontSize: 14, marginStart: 8, color: theme.textSecondary, flex: 1 }]} numberOfLines={1}>
-                    {request.visitor.phone}
-                  </ThemedText>
-                </View>
-              ) : null}
-              {!request.visitor.email && !request.visitor.phone ? (
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>-</ThemedText>
-              ) : null}
-            </View>
-          </View>
-        </ScrollView>
-      </ThemedView>
-    </Pressable>
-  );
-});
-
+          </ScrollView>
+        </ThemedView>
+      </Pressable>
+    );
+  },
+);
 
 // Shared: Stats Cards Component
-const StatsCards = ({ totalVisitors, todaysVisitors, theme, t }: { totalVisitors: number; todaysVisitors: number; theme: Theme; t: (key: string) => string }) => {
+const StatsCards = ({
+  totalVisitors,
+  todaysVisitors,
+  theme,
+  t,
+}: {
+  totalVisitors: number;
+  todaysVisitors: number;
+  theme: Theme;
+  t: (key: string) => string;
+}) => {
   const { isRTL } = useLanguage();
   return (
-  <View style={[styles.statsGrid, { flexDirection: 'row' }]}>
-    <ThemedView style={[styles.statCard, { backgroundColor: theme.surface, borderColor: theme.border, borderWidth: 1 }]}>
-      <View style={[styles.statIconContainer, { backgroundColor: applyOpacity(theme.info, '15') }]}>
-        <DDIcon name="users" size={24} color={theme.info} />
-      </View>
-      <Spacer height={Spacing.md} />
-      <ThemedText style={[Typography.title, { fontSize: 28, lineHeight: 36, fontWeight: '700' }]}>
-        {totalVisitors}
-      </ThemedText>
-      <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: 'center', marginTop: 4 }]}>
-        {t('dashboard.totalVisitors')}
-      </ThemedText>
-    </ThemedView>
+    <DirectionalRow style={styles.statsGrid}>
+      <ThemedView
+        style={[
+          styles.statCard,
+          {
+            backgroundColor: theme.surface,
+            borderColor: theme.border,
+            borderWidth: 1,
+          },
+        ]}
+      >
+        <View
+          style={[
+            styles.statIconContainer,
+            { backgroundColor: applyOpacity(theme.info, "15") },
+          ]}
+        >
+          <DDIcon name="users" size={24} color={theme.info} />
+        </View>
+        <Spacer height={Spacing.md} />
+        <ThemedText
+          style={[
+            Typography.title,
+            { fontSize: 28, lineHeight: 36, fontWeight: "700" },
+          ]}
+        >
+          {totalVisitors}
+        </ThemedText>
+        <ThemedText
+          style={[
+            Typography.bodySmall,
+            { color: theme.textSecondary, textAlign: "center", marginTop: 4 },
+          ]}
+        >
+          {t("dashboard.totalVisitors")}
+        </ThemedText>
+      </ThemedView>
 
-    <ThemedView style={[styles.statCard, { backgroundColor: theme.surface, borderColor: theme.border, borderWidth: 1 }]}>
-      <View style={[styles.statIconContainer, { backgroundColor: applyOpacity(theme.success, '15') }]}>
-        <DDIcon name="calendar" size={24} color={theme.success} />
-      </View>
-      <Spacer height={Spacing.md} />
-      <ThemedText style={[Typography.title, { fontSize: 28, lineHeight: 36, fontWeight: '700' }]}>
-        {todaysVisitors}
-      </ThemedText>
-      <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: 'center', marginTop: 4 }]}>
-        {t('dashboard.todaysVisitors')}
-      </ThemedText>
-    </ThemedView>
-  </View>
+      <ThemedView
+        style={[
+          styles.statCard,
+          {
+            backgroundColor: theme.surface,
+            borderColor: theme.border,
+            borderWidth: 1,
+          },
+        ]}
+      >
+        <View
+          style={[
+            styles.statIconContainer,
+            { backgroundColor: applyOpacity(theme.success, "15") },
+          ]}
+        >
+          <DDIcon name="calendar" size={24} color={theme.success} />
+        </View>
+        <Spacer height={Spacing.md} />
+        <ThemedText
+          style={[
+            Typography.title,
+            { fontSize: 28, lineHeight: 36, fontWeight: "700" },
+          ]}
+        >
+          {todaysVisitors}
+        </ThemedText>
+        <ThemedText
+          style={[
+            Typography.bodySmall,
+            { color: theme.textSecondary, textAlign: "center", marginTop: 4 },
+          ]}
+        >
+          {t("dashboard.todaysVisitors")}
+        </ThemedText>
+      </ThemedView>
+    </DirectionalRow>
   );
 };
 
 // Shared: Header with Tabs and View Toggle
-const SectionHeader = ({ 
-  selectedTab, 
-  onTabChange, 
-  viewMode, 
-  onViewModeChange, 
+const SectionHeader = ({
+  selectedTab,
+  onTabChange,
+  viewMode,
+  onViewModeChange,
   theme,
   t,
-  userRole = 'employee'
-}: { 
-  selectedTab: TabType; 
+  userRole = "employee",
+}: {
+  selectedTab: TabType;
   onTabChange: (tab: TabType) => void;
-  viewMode: 'card' | 'list';
-  onViewModeChange: (mode: 'card' | 'list') => void;
+  viewMode: "card" | "list";
+  onViewModeChange: (mode: "card" | "list") => void;
   theme: Theme;
   t: (key: string) => string;
-  userRole?: 'employee' | 'manager';
+  userRole?: "employee" | "manager";
 }) => {
   const { isRTL } = useLanguage();
   const getEmployeeTabLabel = (tab: EmployeeTab) => {
     switch (tab) {
-      case 'upcoming': return t('visitor.upcomingVisitors');
-      case 'waiting': return t('status.waitingOnVisitor');
-      case 'past': return t('status.completed');
-      case 'all': return t('common.all');
-      case 'walkin': return t('navigation.walkInVisitors');
+      case "upcoming":
+        return t("visitor.upcomingVisitors");
+      case "waiting":
+        return t("status.waitingOnVisitor");
+      case "past":
+        return t("status.completed");
+      case "all":
+        return t("common.all");
+      case "walkin":
+        return t("navigation.walkInVisitors");
     }
   };
 
   const getManagerTabLabel = (tab: ManagerTab) => {
     switch (tab) {
-      case 'all': return t('common.all');
-      case 'pending': return t('navigation.pendingApprovals');
-      case 'awaiting': return t('navigation.awaitingVisitor');
-      case 'walkin': return t('navigation.walkInVisitors');
+      case "all":
+        return t("common.all");
+      case "pending":
+        return t("navigation.pendingApprovals");
+      case "awaiting":
+        return t("navigation.awaitingVisitor");
+      case "walkin":
+        return t("navigation.walkInVisitors");
     }
   };
 
   const getTabLabel = (tab: TabType) => {
-    if (userRole === 'manager') {
+    if (userRole === "manager") {
       return getManagerTabLabel(tab as ManagerTab);
     }
     return getEmployeeTabLabel(tab as EmployeeTab);
   };
 
-  const tabs: TabType[] = userRole === 'manager' 
-    ? ['all', 'pending', 'awaiting', 'walkin']
-    : ['all', 'upcoming', 'waiting', 'past', 'walkin'];
+  const tabs: TabType[] =
+    userRole === "manager"
+      ? ["all", "pending", "awaiting", "walkin"]
+      : ["all", "upcoming", "waiting", "past", "walkin"];
+  const titleElement = (
+    <ThemedText
+      style={[Typography.subtitle, {}]}
+    >
+      {t("navigation.myRequests")}
+    </ThemedText>
+  );
+
+  const viewToggleElement = (
+    <DirectionalRow style={styles.viewToggle}>
+      <Pressable
+        style={[
+          styles.viewToggleButton,
+          styles.viewToggleButtonLeft,
+          {
+            backgroundColor:
+              viewMode === "card" ? theme.primary : theme.surface,
+            borderColor: theme.border,
+          },
+        ]}
+        onPress={() => onViewModeChange("card")}
+        android_ripple={{ color: applyOpacity(theme.primary, "10") }}
+      >
+        <DDIcon
+          name="grid"
+          size={16}
+          color={viewMode === "card" ? theme.buttonText : theme.textSecondary}
+        />
+      </Pressable>
+      <Pressable
+        style={[
+          styles.viewToggleButton,
+          styles.viewToggleButtonRight,
+          {
+            backgroundColor:
+              viewMode === "list" ? theme.primary : theme.surface,
+            borderColor: theme.border,
+          },
+        ]}
+        onPress={() => onViewModeChange("list")}
+        android_ripple={{ color: applyOpacity(theme.primary, "10") }}
+      >
+        <DDIcon
+          name="menu"
+          size={16}
+          color={viewMode === "list" ? theme.buttonText : theme.textSecondary}
+        />
+      </Pressable>
+    </DirectionalRow>
+  );
+
+  // For RTL: reverse tabs order so they start from right
+  const displayTabs = isRTL ? [...tabs].reverse() : tabs;
 
   return (
-  <>
-    <View style={[styles.sectionTitleRow, styles.paddedContent, { flexDirection: 'row' }]}>
-      <ThemedText style={[Typography.subtitle]}>
-        {t('navigation.myRequests')}
-      </ThemedText>
-      <View style={[styles.viewToggle, { flexDirection: 'row' }]}>
-        <Pressable
-          style={[
-            styles.viewToggleButton,
-            styles.viewToggleButtonLeft,
-            { 
-              backgroundColor: viewMode === 'card' ? theme.primary : theme.surface,
-              borderColor: theme.border,
-            },
-          ]}
-          onPress={() => onViewModeChange('card')}
-          android_ripple={{ color: applyOpacity(theme.primary, '10') }}
-        >
-          <DDIcon 
-            name="grid" 
-            size={16} 
-            color={viewMode === 'card' ? theme.buttonText : theme.textSecondary} 
-          />
-        </Pressable>
-        <Pressable
-          style={[
-            styles.viewToggleButton,
-            styles.viewToggleButtonRight,
-            { 
-              backgroundColor: viewMode === 'list' ? theme.primary : theme.surface,
-              borderColor: theme.border,
-            },
-          ]}
-          onPress={() => onViewModeChange('list')}
-          android_ripple={{ color: applyOpacity(theme.primary, '10') }}
-        >
-          <DDIcon 
-            name="menu" 
-            size={16} 
-            color={viewMode === 'list' ? theme.buttonText : theme.textSecondary} 
-          />
-        </Pressable>
-      </View>
-    </View>
+    <>
+      <DirectionalRow style={[styles.sectionTitleRow, styles.paddedContent]}>
+        {titleElement}
+        {viewToggleElement}
+      </DirectionalRow>
 
-    <Spacer height={LAYOUT.contentGap} />
+      <Spacer height={LAYOUT.contentGap} />
 
-    <ScrollView 
-      horizontal 
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={[styles.tabsContainer, { flexDirection: 'row' }]}
-      nestedScrollEnabled={true}
-    >
-      {tabs.map((tab) => (
-        <Pressable
-          key={tab}
-          style={[
-            styles.tab,
-            selectedTab === tab && { borderBottomWidth: 2, borderBottomColor: theme.primary },
-          ]}
-          onPress={() => onTabChange(tab)}
-          android_ripple={{ color: applyOpacity(theme.primary, '10') }}
-        >
-          <ThemedText
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={[
+          styles.tabsContainer,
+          { flexDirection: getFlexDirection(isRTL) },
+        ]}
+        nestedScrollEnabled={true}
+        keyboardShouldPersistTaps="handled"
+      >
+        {displayTabs.map((tab) => (
+          <Pressable
+            key={tab}
             style={[
-              Typography.body,
-              { color: selectedTab === tab ? theme.primary : theme.textSecondary, fontWeight: '600' },
+              styles.tab,
+              selectedTab === tab && {
+                borderBottomWidth: 2,
+                borderBottomColor: theme.primary,
+              },
             ]}
-            numberOfLines={1}
+            onPress={() => onTabChange(tab)}
+            android_ripple={{ color: applyOpacity(theme.primary, "10") }}
           >
-            {getTabLabel(tab)}
-          </ThemedText>
-        </Pressable>
-      ))}
-    </ScrollView>
-  </>
+            <ThemedText
+              style={[
+                Typography.body,
+                {
+                  color:
+                    selectedTab === tab ? theme.primary : theme.textSecondary,
+                  fontWeight: "600",
+                },
+              ]}
+              numberOfLines={1}
+            >
+              {getTabLabel(tab)}
+            </ThemedText>
+          </Pressable>
+        ))}
+      </ScrollView>
+    </>
   );
 };
 
 // Shared: Empty State
-const EmptyState = ({ theme, t }: { theme: Theme; t: (key: string) => string }) => (
+const EmptyState = ({
+  theme,
+  t,
+}: {
+  theme: Theme;
+  t: (key: string) => string;
+}) => (
   <ThemedView style={[styles.emptyState, { backgroundColor: theme.surface }]}>
     <DDIcon name="inbox" size={48} variant="muted" />
     <Spacer height={Spacing.md} />
     <ThemedText style={[Typography.body, { color: theme.textSecondary }]}>
-      {t('common.noResults')}
+      {t("common.noResults")}
     </ThemedText>
   </ThemedView>
 );
@@ -524,24 +841,41 @@ type VisitorRequestsRouteParams = {
 };
 
 // Main Screen Component
-export default function VisitorRequestsScreen({ navigation: navProp, userRole = 'employee' }: VisitorRequestsScreenProps = {}) {
+export default function VisitorRequestsScreen({
+  navigation: navProp,
+  userRole = "employee",
+}: VisitorRequestsScreenProps = {}) {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
-  const navigationHook = useNavigation<NativeStackNavigationProp<EmployeeStackParamList>>();
+  const navigationHook =
+    useNavigation<NativeStackNavigationProp<EmployeeStackParamList>>();
   const navigation = navProp || navigationHook;
   const route = useRoute();
-  const routeParams = (route.params as VisitorRequestsRouteParams | undefined);
+  const routeParams = route.params as VisitorRequestsRouteParams | undefined;
   const { user } = useAuth();
-  const isManager = userRole === 'manager';
-  
-  const validManagerTabs: ManagerTab[] = ['all', 'pending', 'awaiting', 'walkin'];
-  const validEmployeeTabs: EmployeeTab[] = ['all', 'upcoming', 'waiting', 'past', 'walkin'];
-  const isValidManagerTab = (tab: string): tab is ManagerTab => validManagerTabs.includes(tab as ManagerTab);
-  const isValidEmployeeTab = (tab: string): tab is EmployeeTab => validEmployeeTabs.includes(tab as EmployeeTab);
-  
-  const defaultTab: TabType = isManager ? 'all' : 'all';
+  const isManager = userRole === "manager";
+
+  const validManagerTabs: ManagerTab[] = [
+    "all",
+    "pending",
+    "awaiting",
+    "walkin",
+  ];
+  const validEmployeeTabs: EmployeeTab[] = [
+    "all",
+    "upcoming",
+    "waiting",
+    "past",
+    "walkin",
+  ];
+  const isValidManagerTab = (tab: string): tab is ManagerTab =>
+    validManagerTabs.includes(tab as ManagerTab);
+  const isValidEmployeeTab = (tab: string): tab is EmployeeTab =>
+    validEmployeeTabs.includes(tab as EmployeeTab);
+
+  const defaultTab: TabType = isManager ? "all" : "all";
   const getInitialTab = (): TabType | undefined => {
     const paramTab = routeParams?.initialTab;
     if (!paramTab) return undefined;
@@ -550,15 +884,19 @@ export default function VisitorRequestsScreen({ navigation: navProp, userRole = 
     return undefined;
   };
   const initialTabFromParams = getInitialTab();
-  
-  const [selectedTab, setSelectedTab] = useState<TabType>(initialTabFromParams || defaultTab);
-  const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
-  const [lastInitialTab, setLastInitialTab] = useState<string | undefined>(initialTabFromParams);
+
+  const [selectedTab, setSelectedTab] = useState<TabType>(
+    initialTabFromParams || defaultTab,
+  );
+  const [viewMode, setViewMode] = useState<"card" | "list">("card");
+  const [lastInitialTab, setLastInitialTab] = useState<string | undefined>(
+    initialTabFromParams,
+  );
 
   useEffect(() => {
     const paramTab = routeParams?.initialTab;
     if (!paramTab || paramTab === lastInitialTab) return;
-    
+
     if (isManager && isValidManagerTab(paramTab)) {
       setSelectedTab(paramTab);
       setLastInitialTab(paramTab);
@@ -568,26 +906,30 @@ export default function VisitorRequestsScreen({ navigation: navProp, userRole = 
     }
   }, [isManager, routeParams?.initialTab, lastInitialTab]);
 
-  const isWalkInTab = selectedTab === 'walkin';
+  const isWalkInTab = selectedTab === "walkin";
 
   const visitsParams = useMemo(() => {
     if (isManager) {
       switch (selectedTab) {
-        case 'pending': return { pendingApproval: true };
-        case 'awaiting': return { awaitingVisitor: true };
-        case 'walkin': return {}; // Use separate pending host walk-ins query
-        default: return {};
+        case "pending":
+          return { pendingApproval: true };
+        case "awaiting":
+          return { awaitingVisitor: true };
+        case "walkin":
+          return {}; // Use separate pending host walk-ins query
+        default:
+          return {};
       }
     }
     // Employee: use myRequestsOnly to fetch only their own requests
     return { myRequestsOnly: true };
   }, [isManager, selectedTab]);
 
-  const { 
-    data: visitsData, 
-    isLoading: isVisitsLoading, 
+  const {
+    data: visitsData,
+    isLoading: isVisitsLoading,
     isFetching: isVisitsFetching,
-    error: visitsError, 
+    error: visitsError,
     refetch: refetchVisits,
     fetchNextPage,
     hasNextPage,
@@ -604,7 +946,9 @@ export default function VisitorRequestsScreen({ navigation: navProp, userRole = 
   } = usePendingHostWalkInsQuery({ limit: 100 }, isWalkInTab);
 
   const isLoading = isWalkInTab ? isPendingHostWalkInsLoading : isVisitsLoading;
-  const isFetching = isWalkInTab ? isPendingHostWalkInsFetching : isVisitsFetching;
+  const isFetching = isWalkInTab
+    ? isPendingHostWalkInsFetching
+    : isVisitsFetching;
   const error = isWalkInTab ? pendingHostWalkInsError : visitsError;
   const refetch = isWalkInTab ? refetchPendingHostWalkIns : refetchVisits;
 
@@ -612,16 +956,20 @@ export default function VisitorRequestsScreen({ navigation: navProp, userRole = 
   useFocusEffect(
     useCallback(() => {
       refetch();
-    }, [refetch])
+    }, [refetch]),
   );
 
   const requests = useMemo(() => {
     if (isWalkInTab) {
       if (!pendingHostWalkInsData?.data) return [];
-      return pendingHostWalkInsData.data.map(mapPendingHostWalkInToVisitorRequest);
+      return pendingHostWalkInsData.data.map(
+        mapPendingHostWalkInToVisitorRequest,
+      );
     }
     if (!visitsData?.pages) return [];
-    return visitsData.pages.flatMap(page => page.data.map(mapVisitListItemToVisitorRequest));
+    return visitsData.pages.flatMap((page) =>
+      page.data.map(mapVisitListItemToVisitorRequest),
+    );
   }, [isWalkInTab, visitsData?.pages, pendingHostWalkInsData?.data]);
 
   const handleLoadMore = useCallback(() => {
@@ -632,7 +980,13 @@ export default function VisitorRequestsScreen({ navigation: navProp, userRole = 
 
   if (isLoading || isFetching) {
     return (
-      <View style={{ flex: 1, paddingHorizontal: Spacing.xl, paddingTop: insets.top + Spacing.xl }}>
+      <View
+        style={{
+          flex: 1,
+          paddingHorizontal: Spacing.xl,
+          paddingTop: insets.top + Spacing.xl,
+        }}
+      >
         <SkeletonList count={5} />
       </View>
     );
@@ -640,19 +994,32 @@ export default function VisitorRequestsScreen({ navigation: navProp, userRole = 
 
   if (error) {
     return (
-      <View style={{ flex: 1, paddingHorizontal: Spacing.xl, paddingTop: insets.top + Spacing.xl, justifyContent: 'center', alignItems: 'center' }}>
+      <View
+        style={{
+          flex: 1,
+          paddingHorizontal: Spacing.xl,
+          paddingTop: insets.top + Spacing.xl,
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
         <DDIcon name="alert-circle" size={48} color={theme.error} />
         <Spacer height={Spacing.md} />
-        <ThemedText style={[Typography.body, { color: theme.textSecondary, textAlign: 'center' }]}>
-          {t('errors.loadFailed')}
+        <ThemedText
+          style={[
+            Typography.body,
+            { color: theme.textSecondary, textAlign: "center" },
+          ]}
+        >
+          {t("errors.loadFailed")}
         </ThemedText>
         <Spacer height={Spacing.lg} />
         <Pressable
           style={[styles.retryButton, { backgroundColor: theme.primary }]}
           onPress={() => refetch()}
         >
-          <ThemedText style={{ color: theme.buttonText, fontWeight: '600' }}>
-            {t('common.retry')}
+          <ThemedText style={{ color: theme.buttonText, fontWeight: "600" }}>
+            {t("common.retry")}
           </ThemedText>
         </Pressable>
       </View>
@@ -673,29 +1040,36 @@ export default function VisitorRequestsScreen({ navigation: navProp, userRole = 
     let filtered = requests;
 
     switch (selectedTab) {
-      case 'upcoming':
-        filtered = requests.filter(request => {
+      case "upcoming":
+        filtered = requests.filter((request) => {
           const visitDate = new Date(request.visitDate);
-          return visitDate >= today && (UPCOMING_STATUSES as readonly string[]).includes(request.status);
+          return (
+            visitDate >= today &&
+            (UPCOMING_STATUSES as readonly string[]).includes(request.status)
+          );
         });
         break;
-      case 'waiting':
-        filtered = requests.filter(request => {
+      case "waiting":
+        filtered = requests.filter((request) => {
           return request.status === REQUEST_STATUS.VISITOR_PENDING;
         });
         break;
-      case 'past':
-        filtered = requests.filter(request => {
+      case "past":
+        filtered = requests.filter((request) => {
           const visitDate = new Date(request.visitDate);
-          return visitDate < today || request.status === REQUEST_STATUS.COMPLETED || (CANCELLED_STATUSES as readonly string[]).includes(request.status);
+          return (
+            visitDate < today ||
+            request.status === REQUEST_STATUS.COMPLETED ||
+            (CANCELLED_STATUSES as readonly string[]).includes(request.status)
+          );
         });
         break;
-      case 'walkin':
+      case "walkin":
         // For walkin tab, the data already comes from the pending-host API
         // Just return all requests as they are already filtered
         filtered = requests;
         break;
-      case 'all':
+      case "all":
       default:
         filtered = requests;
     }
@@ -706,7 +1080,7 @@ export default function VisitorRequestsScreen({ navigation: navProp, userRole = 
   const filteredRequests = getFilteredRequests();
 
   // List View Layout - CRITICAL: ScreenFlatList as ROOT element
-  if (viewMode === 'list') {
+  if (viewMode === "list") {
     return (
       <>
         <ScreenFlatList
@@ -714,9 +1088,14 @@ export default function VisitorRequestsScreen({ navigation: navProp, userRole = 
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <View style={styles.paddedContent}>
-              <VisitorRequestTableRow 
-                request={item} 
-                onPress={() => navigation.navigate(ROUTES.REQUEST_DETAILS as never, { requestId: item.id } as never)}
+              <VisitorRequestTableRow
+                request={item}
+                onPress={() =>
+                  navigation.navigate(
+                    ROUTES.REQUEST_DETAILS as never,
+                    { requestId: item.id } as never,
+                  )
+                }
                 theme={theme}
                 t={t}
                 isRTL={isRTL}
@@ -727,13 +1106,18 @@ export default function VisitorRequestsScreen({ navigation: navProp, userRole = 
             <>
               {/* Stats Cards - needs padding */}
               <View style={styles.paddedContent}>
-                <StatsCards totalVisitors={totalVisitors} todaysVisitors={todaysVisitors} theme={theme} t={t} />
+                <StatsCards
+                  totalVisitors={totalVisitors}
+                  todaysVisitors={todaysVisitors}
+                  theme={theme}
+                  t={t}
+                />
               </View>
 
               <Spacer height={LAYOUT.sectionSpacing} />
 
               {/* Header Controls - SectionHeader handles its own padding */}
-              <SectionHeader 
+              <SectionHeader
                 selectedTab={selectedTab}
                 onTabChange={setSelectedTab}
                 viewMode={viewMode}
@@ -746,8 +1130,14 @@ export default function VisitorRequestsScreen({ navigation: navProp, userRole = 
               <Spacer height={Spacing.lg} />
             </>
           }
-          ListEmptyComponent={<View style={styles.paddedContent}><EmptyState theme={theme} t={t} /></View>}
-          ListFooterComponent={<ListLoadingFooter isLoading={isFetchingNextPage && !isWalkInTab} />}
+          ListEmptyComponent={
+            <View style={styles.paddedContent}>
+              <EmptyState theme={theme} t={t} />
+            </View>
+          }
+          ListFooterComponent={
+            <ListLoadingFooter isLoading={isFetchingNextPage && !isWalkInTab} />
+          }
           ItemSeparatorComponent={() => <Spacer height={Spacing.md} />}
           onEndReached={isWalkInTab ? undefined : handleLoadMore}
           onEndReachedThreshold={0.5}
@@ -756,12 +1146,14 @@ export default function VisitorRequestsScreen({ navigation: navProp, userRole = 
         <Pressable
           style={[
             styles.fab,
-            { 
+            {
               backgroundColor: theme.primary,
               bottom: insets.bottom + 80 + Spacing.lg,
             },
           ]}
-          onPress={() => navigation.navigate(ROUTES.VISIT_TYPE_SELECTION as never)}
+          onPress={() =>
+            navigation.navigate(ROUTES.VISIT_TYPE_SELECTION as never)
+          }
         >
           <DDIcon name="user-plus" size={24} color={theme.buttonText} />
         </Pressable>
@@ -779,7 +1171,12 @@ export default function VisitorRequestsScreen({ navigation: navProp, userRole = 
           <View style={styles.paddedContent}>
             <VisitorRequestCard
               request={item}
-              onPress={() => navigation.navigate(ROUTES.REQUEST_DETAILS as never, { requestId: item.id } as never)}
+              onPress={() =>
+                navigation.navigate(
+                  ROUTES.REQUEST_DETAILS as never,
+                  { requestId: item.id } as never,
+                )
+              }
             />
           </View>
         )}
@@ -789,13 +1186,18 @@ export default function VisitorRequestsScreen({ navigation: navProp, userRole = 
 
             {/* Stats Cards - needs padding */}
             <View style={styles.paddedContent}>
-              <StatsCards totalVisitors={totalVisitors} todaysVisitors={todaysVisitors} theme={theme} t={t} />
+              <StatsCards
+                totalVisitors={totalVisitors}
+                todaysVisitors={todaysVisitors}
+                theme={theme}
+                t={t}
+              />
             </View>
 
             <Spacer height={LAYOUT.sectionSpacing} />
 
             {/* Section Header - handles its own padding for horizontal scrolls */}
-            <SectionHeader 
+            <SectionHeader
               selectedTab={selectedTab}
               onTabChange={setSelectedTab}
               viewMode={viewMode}
@@ -808,8 +1210,14 @@ export default function VisitorRequestsScreen({ navigation: navProp, userRole = 
             <Spacer height={Spacing.lg} />
           </>
         }
-        ListEmptyComponent={<View style={styles.paddedContent}><EmptyState theme={theme} t={t} /></View>}
-        ListFooterComponent={<ListLoadingFooter isLoading={isFetchingNextPage && !isWalkInTab} />}
+        ListEmptyComponent={
+          <View style={styles.paddedContent}>
+            <EmptyState theme={theme} t={t} />
+          </View>
+        }
+        ListFooterComponent={
+          <ListLoadingFooter isLoading={isFetchingNextPage && !isWalkInTab} />
+        }
         ItemSeparatorComponent={() => <Spacer height={LAYOUT.contentGap} />}
         onEndReached={isWalkInTab ? undefined : handleLoadMore}
         onEndReachedThreshold={0.5}
@@ -818,12 +1226,14 @@ export default function VisitorRequestsScreen({ navigation: navProp, userRole = 
       <Pressable
         style={[
           styles.fab,
-          { 
+          {
             backgroundColor: theme.primary,
             bottom: insets.bottom + 80 + Spacing.lg,
           },
         ]}
-        onPress={() => navigation.navigate(ROUTES.VISIT_TYPE_SELECTION as never)}
+        onPress={() =>
+          navigation.navigate(ROUTES.VISIT_TYPE_SELECTION as never)
+        }
       >
         <DDIcon name="user-plus" size={24} color={theme.buttonText} />
       </Pressable>
@@ -844,18 +1254,18 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: LAYOUT.cardPadding,
     borderRadius: BorderRadius.lg,
-    alignItems: 'center',
+    alignItems: "center",
   },
   statIconContainer: {
     width: 56,
     height: 56,
     borderRadius: BorderRadius.full,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   sectionTitleRow: {
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   tabsContainer: {
     gap: Spacing.lg,
@@ -866,14 +1276,14 @@ const styles = StyleSheet.create({
   },
   viewToggle: {
     borderRadius: BorderRadius.sm,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   viewToggleButton: {
     padding: Spacing.sm,
     minWidth: 36,
     height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     borderWidth: 1,
   },
   viewToggleButtonLeft: {
@@ -892,7 +1302,7 @@ const styles = StyleSheet.create({
 
   // Shared: Status Accent
   statusAccent: {
-    position: 'absolute',
+    position: "absolute",
     start: 0,
     top: 0,
     bottom: 0,
@@ -903,48 +1313,48 @@ const styles = StyleSheet.create({
 
   // Shared: Components
   avatar: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   avatarText: {
-    fontWeight: '700',
+    fontWeight: "700",
   },
   servicesRow: {
     gap: 8,
-    flexWrap: 'wrap-reverse',
+    flexWrap: "wrap-reverse",
   },
   servicePill: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   statusBadge: {
     borderRadius: BorderRadius.full,
     borderWidth: 1,
   },
   statusText: {
-    fontWeight: '600',
+    fontWeight: "600",
   },
   nameWithBadgeRow: {
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    alignItems: "center",
+    justifyContent: "space-between",
     gap: Spacing.sm,
   },
   dateTimeRow: {
-    alignItems: 'center',
+    alignItems: "center",
     gap: 6,
-    flexWrap: 'wrap',
+    flexWrap: "wrap",
   },
   dateTimeRowSplit: {
-    flexDirection: 'column',
-    alignItems: 'flex-start',
+    flexDirection: "column",
+    alignItems: "flex-start",
     gap: 4,
   },
   dateTimeLeft: {
-    alignItems: 'center',
+    alignItems: "center",
     gap: 6,
   },
   dateTimeRight: {
-    alignItems: 'center',
+    alignItems: "center",
     gap: 6,
   },
   dateTimeText: {
@@ -957,8 +1367,8 @@ const styles = StyleSheet.create({
   emptyState: {
     padding: Spacing.xxl,
     borderRadius: LAYOUT.cardRadius,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginTop: Spacing.lg,
   },
   retryButton: {
@@ -971,7 +1381,7 @@ const styles = StyleSheet.create({
   requestCard: {
     borderRadius: LAYOUT.cardRadius,
     padding: LAYOUT.cardPadding,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
@@ -981,7 +1391,7 @@ const styles = StyleSheet.create({
     // Container for main card content
   },
   cardHeaderRow: {
-    alignItems: 'center',
+    alignItems: "center",
     gap: LAYOUT.contentGap,
   },
   cardNameSection: {
@@ -995,42 +1405,42 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.xs,
   },
   secondaryDetail: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   contactSection: {
     // Container for contact details
   },
   moreDetailsButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingTop: LAYOUT.contentGap,
     gap: 4,
   },
   moreDetailsText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 
   // Table View Styles
   tableRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     minHeight: LAYOUT.tableRowHeight,
     borderRadius: LAYOUT.cardRadius,
     borderWidth: 1,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.04,
     shadowRadius: 6,
     elevation: 2,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   fixedColumn: {
-    justifyContent: 'center',
+    justifyContent: "center",
     borderEndWidth: 1,
-    borderEndColor: 'rgba(0,0,0,0.06)',
+    borderEndColor: "rgba(0,0,0,0.06)",
   },
   fixedColumnContent: {
-    alignItems: 'center',
+    alignItems: "center",
     padding: Spacing.md,
   },
   scrollableColumns: {
@@ -1042,12 +1452,12 @@ const styles = StyleSheet.create({
   tableColumn: {
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.lg,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   columnHeader: {
     fontSize: 11,
-    fontWeight: '700',
-    textTransform: 'uppercase',
+    fontWeight: "700",
+    textTransform: "uppercase",
     letterSpacing: 1,
   },
   columnValue: {
@@ -1058,19 +1468,19 @@ const styles = StyleSheet.create({
     // Container for contact info
   },
   contactRow: {
-    alignItems: 'center',
+    alignItems: "center",
   },
 
   // FAB
   fab: {
-    position: 'absolute',
+    position: "absolute",
     end: Spacing.xl,
     width: 56,
     height: 56,
     borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

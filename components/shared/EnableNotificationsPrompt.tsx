@@ -11,6 +11,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { ThemedText } from '@/components/ThemedText';
 import { DDIcon } from '@/components/DDIcon';
+import { DirectionalRow, useDirectionalStyle } from '@/components/DirectionalRow';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
 import { pushNotificationService } from '@/services/push';
@@ -128,51 +129,42 @@ export function EnableNotificationsPrompt({
     </Pressable>
   );
 
+  const directionalStyle = useDirectionalStyle();
+  
   return (
     <Animated.View 
       entering={FadeIn.duration(300)}
       exiting={FadeOut.duration(200)}
       style={[
-        styles.container, 
+        styles.container,
+        directionalStyle,
         { 
           backgroundColor: theme.softOrange,
           borderColor: theme.primary,
-          flexDirection: 'row',
         }
       ]}
     >
-      {isRTL && closeButton}
-      {!isRTL && bellIcon}
+      {bellIcon}
       
       <View style={styles.content}>
-        <ThemedText variant="bodySmall" style={[styles.title, { textAlign: isRTL ? 'right' : 'left' }]}>
+        <ThemedText variant="bodySmall" style={[styles.title, {}]}>
           {t('notifications.enablePromptTitle')}
         </ThemedText>
         <ThemedText 
           variant="caption" 
           color={theme.textSecondary}
-          style={[styles.description, { textAlign: isRTL ? 'right' : 'left' }]}
+          style={[styles.description, {}]}
         >
           {t('notifications.enablePromptDescription')}
         </ThemedText>
         
-        <View style={[styles.buttonRow, { flexDirection: 'row', justifyContent: isRTL ? 'flex-end' : 'flex-start' }]}>
-          {isRTL ? (
-            <>
-              {laterButton}
-              {enableButton}
-            </>
-          ) : (
-            <>
-              {enableButton}
-              {laterButton}
-            </>
-          )}
-        </View>
+        <DirectionalRow style={styles.buttonRow}>
+          {enableButton}
+          {laterButton}
+        </DirectionalRow>
       </View>
       
-      {isRTL && bellIcon}
-      {!isRTL && closeButton}
+      {closeButton}
     </Animated.View>
   );
 }

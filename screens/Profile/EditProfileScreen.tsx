@@ -10,6 +10,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { LoadingButton } from "@/components/shared/LoadingButton";
 import Spacer from "@/components/Spacer";
+import { DirectionalRow } from "@/components/DirectionalRow";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -20,7 +21,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { authService } from "@/services/api/authService";
 import { useToast } from "@/contexts/ToastContext";
 import { ApiException } from "@/api/errors";
-import { shouldSwapChildrenForRTL } from "@/utils/rtlInitializer";
 
 interface EditProfileScreenProps {
   userRole?: UserRole;
@@ -35,9 +35,7 @@ export default function EditProfileScreen({
   onCancel
 }: EditProfileScreenProps) {
   const { theme } = useTheme();
-  const { t, isRTL } = useTranslation();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  const { formatDate: fmtDate } = useFormatters();
+  const { t, isRTL } = useTranslation();  const { formatDate: fmtDate } = useFormatters();
   const insets = useSafeAreaInsets();
   const { user, refreshUser } = useAuth();
   const { showSuccess, showError } = useToast();
@@ -298,19 +296,19 @@ export default function EditProfileScreen({
     editable: boolean = true
   ) => (
     <View style={styles.inputContainer}>
-      <View style={[styles.labelRow, { flexDirection: 'row', justifyContent: 'space-between' }]}>
-        <ThemedText style={[styles.inputLabel, { color: theme.text, textAlign: isRTL ? 'right' : 'left', flex: 1 }]}>
+      <DirectionalRow style={[styles.labelRow, { justifyContent: 'space-between' }]}>
+        <ThemedText style={[styles.inputLabel, { color: theme.text, flex: 1 }]}>
           {label}
         </ThemedText>
         {!editable ? (
-          <View style={[styles.readOnlyBadge, { backgroundColor: applyOpacity(theme.textSecondary, '15'), flexDirection: 'row', gap: 4 }]}>
+          <DirectionalRow style={[styles.readOnlyBadge, { backgroundColor: applyOpacity(theme.textSecondary, '15'), gap: 4 }]}>
             <DDIcon name="lock" size={10} color={theme.textSecondary} />
             <ThemedText style={[styles.readOnlyText, { color: theme.textSecondary }]}>
               {t('form.readOnly')}
             </ThemedText>
-          </View>
+          </DirectionalRow>
         ) : null}
-      </View>
+      </DirectionalRow>
       <TextInput
         style={[
           styles.input,
@@ -318,7 +316,7 @@ export default function EditProfileScreen({
             backgroundColor: editable ? theme.surface : applyOpacity(theme.surfaceSecondary, '60'),
             borderColor: error ? theme.error : theme.border,
             color: editable ? theme.text : theme.textSecondary,
-            textAlign: isRTL ? 'right' : 'left',
+            
           },
         ]}
         value={value}
@@ -386,7 +384,7 @@ export default function EditProfileScreen({
               </View>
             ) : null}
           </View>
-          <View style={[styles.photoButtons, { flexDirection: 'row' }]}>
+          <DirectionalRow style={styles.photoButtons}>
             <LoadingButton
               onPress={handlePickPhoto}
               loading={isUploadingPhoto}
@@ -411,7 +409,7 @@ export default function EditProfileScreen({
                 {t('settings.deletePhoto')}
               </LoadingButton>
             ) : null}
-          </View>
+          </DirectionalRow>
           <View style={styles.avatarInfo}>
             <ThemedText style={[styles.roleBadge, { color: theme.primary, backgroundColor: applyOpacity(theme.primary, '10') }]}>
               {getRoleLabel(user?.role || 'employee')}
@@ -421,36 +419,36 @@ export default function EditProfileScreen({
       </ThemedView>
 
       <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
-        <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+        <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
           {t('settings.basicInfo')}
         </ThemedText>
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.infoRow, { flexDirection: 'row' }]}>
+        <DirectionalRow style={styles.infoRow}>
           <View style={styles.infoItem}>
-            <ThemedText style={[styles.infoLabel, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>
               {t('settings.status')}
             </ThemedText>
-            <ThemedText style={[styles.infoValue, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[styles.infoValue, { color: theme.text }]}>
               {user?.status === 'active' ? t('status.active') : t('status.inactive')}
             </ThemedText>
           </View>
           {user?.lastLogin ? (
             <View style={styles.infoItem}>
-              <ThemedText style={[styles.infoLabel, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>
                 {t('settings.lastLogin')}
               </ThemedText>
-              <ThemedText style={[styles.infoValue, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[styles.infoValue, { color: theme.text }]}>
                 {formatDate(user.lastLogin)}
               </ThemedText>
             </View>
           ) : null}
-        </View>
+        </DirectionalRow>
       </ThemedView>
 
       <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
-        <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+        <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
           {t('settings.personalInfo')}
         </ThemedText>
 
@@ -489,7 +487,7 @@ export default function EditProfileScreen({
       </ThemedView>
 
       <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
-        <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+        <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
           {t('settings.workInfo')}
         </ThemedText>
 
@@ -508,7 +506,7 @@ export default function EditProfileScreen({
 
       <Spacer height={Spacing.lg} />
 
-      <View style={[styles.buttonRow, { direction: 'ltr' }]}>
+      <DirectionalRow style={styles.buttonRow}>
         <LoadingButton
           onPress={handleCancel}
           variant="outline"
@@ -529,7 +527,7 @@ export default function EditProfileScreen({
         >
           {t('common.save')}
         </LoadingButton>
-      </View>
+      </DirectionalRow>
 
       <Spacer height={Spacing.xl} />
     </ScreenKeyboardAwareScrollView>
@@ -645,7 +643,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   buttonRow: {
-    flexDirection: 'row',
     gap: Spacing.md,
   },
   button: {

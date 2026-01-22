@@ -14,17 +14,15 @@ import { useFormatters } from "@/hooks/useFormatters";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
 import { applyOpacity } from "@/utils/statusStyles";
-import { shouldSwapChildrenForRTL } from "@/utils/rtlInitializer";
 import { useTodayVisitorsQuery } from "@/hooks/queries/useReceptionQueries";
 import type { TodayVisitorDto } from "@/types";
+import { DirectionalRow } from '@/components/DirectionalRow';
 
 export default function UpcomingVisitorsListScreen() {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { formatTimeFromString } = useFormatters();
-  const { isRTL } = useLanguage();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  const insets = useSafeAreaInsets();
+  const { isRTL } = useLanguage();  const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedVisitors, setExpandedVisitors] = useState<Set<string>>(new Set());
 
@@ -119,7 +117,7 @@ export default function UpcomingVisitorsListScreen() {
         <View style={[styles.statusBorderLine, { backgroundColor: statusConfig.border }]} />
         
         <View style={styles.cardMainSection}>
-          <View style={[styles.cardHeaderRow, { flexDirection: 'row' }]}>
+          <DirectionalRow style={styles.cardHeaderRow}>
             <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
               <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
                 {initials}
@@ -134,126 +132,75 @@ export default function UpcomingVisitorsListScreen() {
                 {item.visitor.company ?? ''}
               </ThemedText>
             </View>
-          </View>
+          </DirectionalRow>
 
           <Spacer height={Spacing.md} />
 
-          <View style={[styles.dateTimeRow, { flexDirection: 'row' }]}>
-            {shouldSwap ? (
-              <>
-                <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
-                  {t('reception.hostName')}: {item.hostName}
-                </ThemedText>
-                <DDIcon name="user" size={13} variant="muted" />
-                <ThemedText style={[styles.separator, { color: theme.border }]}>-</ThemedText>
-                <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
-                  {formatTimeFromString(item.visitTime)}
-                </ThemedText>
-                <DDIcon name="clock" size={13} variant="muted" />
-              </>
-            ) : (
-              <>
-                <DDIcon name="clock" size={13} variant="muted" />
-                <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
-                  {formatTimeFromString(item.visitTime)}
-                </ThemedText>
-                <ThemedText style={[styles.separator, { color: theme.border }]}>-</ThemedText>
-                <DDIcon name="user" size={13} variant="muted" />
-                <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
-                  {t('reception.hostName')}: {item.hostName}
-                </ThemedText>
-              </>
-            )}
-          </View>
+          <DirectionalRow style={styles.dateTimeRow}>
+            <DDIcon name="clock" size={13} variant="muted" />
+            <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
+              {t('reception.hostName')}: {item.hostName}
+            </ThemedText>
+            <DDIcon name="user" size={13} variant="muted" />
+            <ThemedText style={[styles.separator, { color: theme.border }]}>-</ThemedText>
+            <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
+              {formatTimeFromString(item.visitTime)}
+            </ThemedText>
+          </DirectionalRow>
 
           <Spacer height={Spacing.md} />
 
-          <View style={[styles.bottomRow, { flexDirection: 'row' }]}>
-            <View style={[styles.servicesRow, { flexDirection: 'row' }]}>
+          <DirectionalRow style={styles.bottomRow} justifyContent="space-between">
+            <DirectionalRow style={styles.servicesRow}>
               {item.parkingSlot ? (
                 <View style={[styles.servicePillRounded, { backgroundColor: applyOpacity(theme.info, '20') }]}>
                   <DDIcon name="map-pin" size={14} color={theme.info} />
                 </View>
               ) : null}
-              </View>
+              </DirectionalRow>
             <View style={[styles.statusBadgeBottom, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: 1 }]}>
               <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
                 {statusConfig.label}
               </ThemedText>
             </View>
-          </View>
+          </DirectionalRow>
 
           {expandedVisitors.has(item.id) && (item.visitor.phone || item.visitor.email) ? (
             <>
               <Spacer height={Spacing.md} />
               <View style={[styles.expandedSection, { backgroundColor: applyOpacity(theme.border, '30') }]}>
                 {item.visitor.phone ? (
-                  <View style={[styles.expandedDetailRow, { flexDirection: 'row' }]}>
-                    {shouldSwap ? (
-                      <>
-                        <ThemedText style={[styles.expandedDetailText, { color: theme.textSecondary, marginEnd: 8 }]}>
-                          {item.visitor.phone}
-                        </ThemedText>
-                        <DDIcon name="phone" size={14} variant="muted" />
-                      </>
-                    ) : (
-                      <>
-                        <DDIcon name="phone" size={14} variant="muted" />
-                        <ThemedText style={[styles.expandedDetailText, { color: theme.textSecondary }]}>
-                          {item.visitor.phone}
-                        </ThemedText>
-                      </>
-                    )}
-                  </View>
+                  <DirectionalRow style={styles.expandedDetailRow}>
+                    <DDIcon name="phone" size={14} variant="muted" />
+                    <ThemedText style={[styles.expandedDetailText, { color: theme.textSecondary, marginEnd: 8 }]}>
+                      {item.visitor.phone}
+                    </ThemedText>
+                  </DirectionalRow>
                 ) : null}
                 {item.visitor.email ? (
-                  <View style={[styles.expandedDetailRow, { flexDirection: 'row' }]}>
-                    {shouldSwap ? (
-                      <>
-                        <ThemedText style={[styles.expandedDetailText, { color: theme.textSecondary, marginEnd: 8 }]}>
-                          {item.visitor.email}
-                        </ThemedText>
-                        <DDIcon name="mail" size={14} variant="muted" />
-                      </>
-                    ) : (
-                      <>
-                        <DDIcon name="mail" size={14} variant="muted" />
-                        <ThemedText style={[styles.expandedDetailText, { color: theme.textSecondary }]}>
-                          {item.visitor.email}
-                        </ThemedText>
-                      </>
-                    )}
-                  </View>
+                  <DirectionalRow style={styles.expandedDetailRow}>
+                    <DDIcon name="mail" size={14} variant="muted" />
+                    <ThemedText style={[styles.expandedDetailText, { color: theme.textSecondary, marginEnd: 8 }]}>
+                      {item.visitor.email}
+                    </ThemedText>
+                  </DirectionalRow>
                 ) : null}
               </View>
             </>
           ) : null}
 
           {(item.visitor.phone || item.visitor.email) ? (
-            <Pressable onPress={() => toggleExpand(item.id)} style={[styles.toggleContainer, { flexDirection: 'row' }]}>
-              {shouldSwap ? (
-                <>
-                  <DDIcon 
-                    name={expandedVisitors.has(item.id) ? "chevron-up" : "chevron-down"} 
-                    size={14} 
-                    color={theme.primary} 
-                  />
-                  <ThemedText style={[styles.toggleText, { color: theme.primary, marginStart: 4 }]}>
-                    {expandedVisitors.has(item.id) ? t('common.lessDetails') : t('common.moreDetails')}
-                  </ThemedText>
-                </>
-              ) : (
-                <>
-                  <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
-                    {expandedVisitors.has(item.id) ? t('common.lessDetails') : t('common.moreDetails')}
-                  </ThemedText>
-                  <DDIcon 
-                    name={expandedVisitors.has(item.id) ? "chevron-up" : "chevron-down"} 
-                    size={14} 
-                    color={theme.primary} 
-                  />
-                </>
-              )}
+            <Pressable onPress={() => toggleExpand(item.id)} style={styles.toggleContainer}>
+              <DirectionalRow>
+                <DDIcon 
+                  name={expandedVisitors.has(item.id) ? "chevron-up" : "chevron-down"} 
+                  size={14} 
+                  color={theme.primary} 
+                />
+                <ThemedText style={[styles.toggleText, { color: theme.primary, marginStart: 4 }]}>
+                  {expandedVisitors.has(item.id) ? t('common.lessDetails') : t('common.moreDetails')}
+                </ThemedText>
+              </DirectionalRow>
             </Pressable>
           ) : null}
         </View>

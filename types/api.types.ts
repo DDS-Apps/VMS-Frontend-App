@@ -1543,6 +1543,9 @@ export interface VisitDetailsDto {
   createdAt: string;
   updatedAt: string;
   timezone?: string;
+  checkedInAt?: string;
+  checkedOutAt?: string;
+  completedAt?: string;
 }
 
 export interface UpdateVisitPayload {

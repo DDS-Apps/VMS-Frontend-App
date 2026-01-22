@@ -17,9 +17,9 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
 import { VisitorActionButton } from "@/components/VisitorActionButton";
 import { applyOpacity } from "@/utils/statusStyles";
-import { shouldSwapChildrenForRTL } from "@/utils/rtlInitializer";
 import { useTodayVisitorsQuery, useReceptionCheckInMutation, useReceptionCheckOutMutation } from "@/hooks/queries/useReceptionQueries";
 import type { TodayVisitorDto } from "@/types";
+import { DirectionalRow } from '@/components/DirectionalRow';
 
 type StatusFilter = 'all' | 'pending' | 'checked_in' | 'completed';
 
@@ -27,9 +27,7 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { formatTime, formatTimeFromString } = useFormatters();
-  const { isRTL } = useLanguage();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  const insets = useSafeAreaInsets();
+  const { isRTL } = useLanguage();  const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
@@ -208,7 +206,7 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
           <View style={[styles.statusBorderLine, { backgroundColor: statusConfig.border }]} />
           
           <View style={styles.cardContent}>
-            <View style={[styles.cardHeader, { flexDirection: 'row' }]}>
+            <DirectionalRow style={styles.cardHeader}>
               <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
                 <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
                   {initials}
@@ -223,30 +221,19 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
                   {item.visitor.company ?? ''}
                 </ThemedText>
               </View>
-            </View>
+            </DirectionalRow>
 
-            <View style={[styles.detailsRow, { flexDirection: 'row' }]}>
-              <View style={[styles.detailItem, { flexDirection: 'row' }]}>
-                {shouldSwap ? (
-                  <>
-                    <ThemedText style={[styles.detailText, { color: theme.textSecondary, marginEnd: 4 }]}>
-                      {formatTimeFromString(item.visitTime)}
-                    </ThemedText>
-                    <DDIcon name="clock" size={12} color={theme.textSecondary} />
-                  </>
-                ) : (
-                  <>
-                    <DDIcon name="clock" size={12} color={theme.textSecondary} />
-                    <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
-                      {formatTimeFromString(item.visitTime)}
-                    </ThemedText>
-                  </>
-                )}
-              </View>
-            </View>
+            <DirectionalRow style={styles.detailsRow}>
+              <DirectionalRow style={styles.detailItem}>
+                <DDIcon name="clock" size={12} color={theme.textSecondary} />
+                <ThemedText style={[styles.detailText, { color: theme.textSecondary, marginEnd: 4 }]}>
+                  {formatTimeFromString(item.visitTime)}
+                </ThemedText>
+              </DirectionalRow>
+            </DirectionalRow>
 
-            <View style={[styles.servicesStatusRow, { flexDirection: 'row' }]}>
-              <View style={[styles.servicesRowContainer, { flexDirection: 'row' }]}>
+            <DirectionalRow style={styles.servicesStatusRow} justifyContent="space-between">
+              <DirectionalRow style={styles.servicesRowContainer}>
                 <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.secondary, '15') }]}>
                   <DDIcon name="user-plus" size={12} color={theme.secondary} />
                 </View>
@@ -255,73 +242,40 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
                     <DDIcon name="map-pin" size={12} color={theme.info} />
                   </View>
                 ) : null}
-              </View>
+              </DirectionalRow>
 
               <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: 1 }]}>
                 <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
                   {statusConfig.label}
                 </ThemedText>
               </View>
-            </View>
+            </DirectionalRow>
 
             {isExpanded && hasDetails ? (
               <View style={styles.expandedSection}>
                 {(item as any).purpose ? (
-                  <View style={[styles.expandedDetailRow, { flexDirection: 'row' }]}>
-                    {shouldSwap ? (
-                      <>
-                        <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: 'right', marginEnd: 8 }]} numberOfLines={2}>
-                          {(item as any).purpose}
-                        </ThemedText>
-                        <DDIcon name="briefcase" size={14} color={theme.textSecondary} />
-                      </>
-                    ) : (
-                      <>
-                        <DDIcon name="briefcase" size={14} color={theme.textSecondary} />
-                        <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: 'left' }]} numberOfLines={2}>
-                          {(item as any).purpose}
-                        </ThemedText>
-                      </>
-                    )}
-                  </View>
+                  <DirectionalRow style={styles.expandedDetailRow}>
+                    <DDIcon name="briefcase" size={14} color={theme.textSecondary} />
+                    <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: 'right', marginEnd: 8 }]} numberOfLines={2}>
+                      {(item as any).purpose}
+                    </ThemedText>
+                  </DirectionalRow>
                 ) : null}
                 {item.visitor.email ? (
-                  <View style={[styles.expandedDetailRow, { flexDirection: 'row' }]}>
-                    {shouldSwap ? (
-                      <>
-                        <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: 'right', marginEnd: 8 }]} numberOfLines={1}>
-                          {item.visitor.email}
-                        </ThemedText>
-                        <DDIcon name="mail" size={14} color={theme.textSecondary} />
-                      </>
-                    ) : (
-                      <>
-                        <DDIcon name="mail" size={14} color={theme.textSecondary} />
-                        <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: 'left' }]} numberOfLines={1}>
-                          {item.visitor.email}
-                        </ThemedText>
-                      </>
-                    )}
-                  </View>
+                  <DirectionalRow style={styles.expandedDetailRow}>
+                    <DDIcon name="mail" size={14} color={theme.textSecondary} />
+                    <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: 'right', marginEnd: 8 }]} numberOfLines={1}>
+                      {item.visitor.email}
+                    </ThemedText>
+                  </DirectionalRow>
                 ) : null}
                 {item.visitor.phone ? (
-                  <View style={[styles.expandedDetailRow, { flexDirection: 'row' }]}>
-                    {shouldSwap ? (
-                      <>
-                        <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: 'right', marginEnd: 8 }]} numberOfLines={1}>
-                          {item.visitor.phone}
-                        </ThemedText>
-                        <DDIcon name="phone" size={14} color={theme.textSecondary} />
-                      </>
-                    ) : (
-                      <>
-                        <DDIcon name="phone" size={14} color={theme.textSecondary} />
-                        <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: 'left' }]} numberOfLines={1}>
-                          {item.visitor.phone}
-                        </ThemedText>
-                      </>
-                    )}
-                  </View>
+                  <DirectionalRow style={styles.expandedDetailRow}>
+                    <DDIcon name="phone" size={14} color={theme.textSecondary} />
+                    <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: 'right', marginEnd: 8 }]} numberOfLines={1}>
+                      {item.visitor.phone}
+                    </ThemedText>
+                  </DirectionalRow>
                 ) : null}
               </View>
             ) : null}
@@ -329,36 +283,23 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
             {hasDetails ? (
               <Pressable 
                 onPress={(e) => { e.stopPropagation(); toggleCardExpanded(item.id); }} 
-                style={[styles.toggleContainer, { flexDirection: 'row' }]}
+                style={styles.toggleContainer}
               >
-                {shouldSwap ? (
-                  <>
-                    <DDIcon 
-                      name={isExpanded ? 'chevron-up' : 'chevron-down'} 
-                      size={16} 
-                      color={theme.primary} 
-                    />
-                    <ThemedText style={[styles.toggleText, { color: theme.primary, marginStart: 4 }]}>
-                      {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
-                    </ThemedText>
-                  </>
-                ) : (
-                  <>
-                    <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
-                      {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
-                    </ThemedText>
-                    <DDIcon 
-                      name={isExpanded ? 'chevron-up' : 'chevron-down'} 
-                      size={16} 
-                      color={theme.primary} 
-                    />
-                  </>
-                )}
+                <DirectionalRow>
+                  <DDIcon 
+                    name={isExpanded ? 'chevron-up' : 'chevron-down'} 
+                    size={16} 
+                    color={theme.primary} 
+                  />
+                  <ThemedText style={[styles.toggleText, { color: theme.primary, marginStart: 4 }]}>
+                    {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
+                  </ThemedText>
+                </DirectionalRow>
               </Pressable>
             ) : null}
 
-            <View style={[styles.cardFooter, { flexDirection: 'row' }]}>
-              <View style={[styles.actionButtons, { flexDirection: 'row' }]}>
+            <DirectionalRow style={styles.cardFooter} justifyContent="flex-end">
+              <DirectionalRow style={styles.actionButtons}>
                 {showCheckIn ? (
                   <VisitorActionButton 
                     type="check_in" 
@@ -372,8 +313,8 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
                 ) : (
                   <VisitorActionButton type="completed" />
                 )}
-              </View>
-            </View>
+              </DirectionalRow>
+            </DirectionalRow>
           </View>
         </ThemedView>
       </Pressable>
@@ -383,13 +324,13 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
   return (
     <>
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
-      <ThemedText style={[Typography.title, { fontSize: 22, fontWeight: '700', textAlign: isRTL ? 'right' : 'left' }]}>
+      <ThemedText style={[Typography.title, { fontSize: 22, fontWeight: '700' }]}>
         {t('navigation.walkInVisitors')}
       </ThemedText>
       
       <Spacer height={4} />
       
-      <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+      <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
         {filteredVisitors.length} {t('reception.walkInVisitor').toLowerCase()}{filteredVisitors.length === 1 ? '' : 's'} found
       </ThemedText>
 
@@ -462,7 +403,6 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
 
 const styles = StyleSheet.create({
   segmentedControl: {
-    flexDirection: 'row',
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
     overflow: 'hidden',

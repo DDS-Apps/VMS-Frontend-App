@@ -102,7 +102,7 @@ export default function BuffetAdminCreateLocationScreen({ navigation }: BuffetAd
 
   return (
     <ScreenKeyboardAwareScrollView contentContainerStyle={scrollContentStyle}>
-      <ThemedText style={[styles.title, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+      <ThemedText style={[styles.title, { color: theme.text }]}>
         {t('buffet.createLocation')}
       </ThemedText>
 
@@ -112,7 +112,7 @@ export default function BuffetAdminCreateLocationScreen({ navigation }: BuffetAd
       {status !== 'idle' && <Spacer height={Spacing.md} />}
 
       <View style={styles.formGroup}>
-        <ThemedText style={[styles.label, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+        <ThemedText style={[styles.label, { color: theme.text }]}>
           {t('buffet.locationName')} *
         </ThemedText>
         <Spacer height={Spacing.xs} />
@@ -123,7 +123,7 @@ export default function BuffetAdminCreateLocationScreen({ navigation }: BuffetAd
               backgroundColor: theme.surface,
               color: theme.text,
               borderColor: theme.border,
-              textAlign: isRTL ? 'right' : 'left',
+              
             }
           ]}
           value={name}
@@ -137,7 +137,7 @@ export default function BuffetAdminCreateLocationScreen({ navigation }: BuffetAd
       <Spacer height={Spacing.md} />
 
       <View style={styles.formGroup}>
-        <ThemedText style={[styles.label, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+        <ThemedText style={[styles.label, { color: theme.text }]}>
           {t('buffet.building')}
         </ThemedText>
         <Spacer height={Spacing.xs} />
@@ -148,7 +148,7 @@ export default function BuffetAdminCreateLocationScreen({ navigation }: BuffetAd
               backgroundColor: theme.surface,
               color: theme.text,
               borderColor: theme.border,
-              textAlign: isRTL ? 'right' : 'left',
+              
             }
           ]}
           value={building}
@@ -162,7 +162,7 @@ export default function BuffetAdminCreateLocationScreen({ navigation }: BuffetAd
       <Spacer height={Spacing.md} />
 
       <View style={styles.formGroup}>
-        <ThemedText style={[styles.label, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+        <ThemedText style={[styles.label, { color: theme.text }]}>
           {t('buffet.floor')}
         </ThemedText>
         <Spacer height={Spacing.xs} />
@@ -173,7 +173,7 @@ export default function BuffetAdminCreateLocationScreen({ navigation }: BuffetAd
               backgroundColor: theme.surface,
               color: theme.text,
               borderColor: theme.border,
-              textAlign: isRTL ? 'right' : 'left',
+              
             }
           ]}
           value={floor}
@@ -187,7 +187,7 @@ export default function BuffetAdminCreateLocationScreen({ navigation }: BuffetAd
       <Spacer height={Spacing.md} />
 
       <View style={styles.formGroup}>
-        <ThemedText style={[styles.label, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+        <ThemedText style={[styles.label, { color: theme.text }]}>
           {t('buffet.capacity')}
         </ThemedText>
         <Spacer height={Spacing.xs} />
@@ -198,7 +198,7 @@ export default function BuffetAdminCreateLocationScreen({ navigation }: BuffetAd
               backgroundColor: theme.surface,
               color: theme.text,
               borderColor: theme.border,
-              textAlign: isRTL ? 'right' : 'left',
+              
             }
           ]}
           value={capacity}
@@ -213,7 +213,7 @@ export default function BuffetAdminCreateLocationScreen({ navigation }: BuffetAd
       <Spacer height={Spacing.md} />
 
       <View style={styles.formGroup}>
-        <ThemedText style={[styles.label, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+        <ThemedText style={[styles.label, { color: theme.text }]}>
           {t('buffet.description')}
         </ThemedText>
         <Spacer height={Spacing.xs} />
@@ -225,7 +225,7 @@ export default function BuffetAdminCreateLocationScreen({ navigation }: BuffetAd
               backgroundColor: theme.surface,
               color: theme.text,
               borderColor: theme.border,
-              textAlign: isRTL ? 'right' : 'left',
+              
             }
           ]}
           value={description}

@@ -8,7 +8,6 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { applyOpacity } from "@/utils/statusStyles";
 import { toArabicNumerals } from "@/utils/formatters";
-import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
 
 interface DateRange {
   startDate: Date | null;
@@ -38,9 +37,7 @@ export function CalendarDatePicker({
 }: CalendarDatePickerProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { isRTL } = useLanguage();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  const [currentMonth, setCurrentMonth] = useState(
+  const { isRTL } = useLanguage();  const [currentMonth, setCurrentMonth] = useState(
     selectedDate || dateRange?.startDate || new Date()
   );
   const [tempRange, setTempRange] = useState<DateRange>(
@@ -219,75 +216,38 @@ export function CalendarDatePicker({
           onPress={(e) => e.stopPropagation()}
         >
           <View style={[styles.header, { borderBottomColor: theme.border, flexDirection: 'row' }]}>
-            {shouldSwap ? (
-              <>
-                <Pressable onPress={onClose} hitSlop={8}>
-                  <DDIcon name="chevron-up" size={20} variant="muted" />
-                </Pressable>
-                <View style={[styles.headerTextContainer, { alignItems: 'flex-end' }]}>
-                  <ThemedText style={[Typography.body, { fontWeight: '600', textAlign: 'right' }]}>
-                    {t('calendar.chooseDate')}
-                  </ThemedText>
-                  <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: 'right' }]}>
-                    {formatDateRange()}
-                  </ThemedText>
-                </View>
-                <View style={[styles.calendarIcon, { backgroundColor: applyOpacity(theme.primary, '10') }]}>
-                  <DDIcon name="calendar" size={20} color={theme.primary} />
-                </View>
-              </>
-            ) : (
-              <>
-                <View style={[styles.calendarIcon, { backgroundColor: applyOpacity(theme.primary, '10') }]}>
-                  <DDIcon name="calendar" size={20} color={theme.primary} />
-                </View>
-                <View style={[styles.headerTextContainer, { alignItems: 'flex-start' }]}>
-                  <ThemedText style={[Typography.body, { fontWeight: '600', textAlign: 'left' }]}>
-                    {t('calendar.chooseDate')}
-                  </ThemedText>
-                  <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: 'left' }]}>
-                    {formatDateRange()}
-                  </ThemedText>
-                </View>
-                <Pressable onPress={onClose} hitSlop={8}>
-                  <DDIcon name="chevron-up" size={20} variant="muted" />
-                </Pressable>
-              </>
-            )}
+            <View style={[styles.calendarIcon, { backgroundColor: applyOpacity(theme.primary, '10') }]}>
+              <DDIcon name="calendar" size={20} color={theme.primary} />
+            </View>
+            <View style={[styles.headerTextContainer, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
+              <ThemedText style={[Typography.body, { fontWeight: '600' }]}>
+                {t('calendar.chooseDate')}
+              </ThemedText>
+              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
+                {formatDateRange()}
+              </ThemedText>
+            </View>
+            <Pressable onPress={onClose} hitSlop={8}>
+              <DDIcon name="chevron-up" size={20} variant="muted" />
+            </Pressable>
           </View>
 
           <View style={styles.calendarContainer}>
             <View style={[styles.monthNavigation, { flexDirection: 'row' }]}>
-              {shouldSwap ? (
-                <>
-                  <Pressable onPress={nextMonth} hitSlop={12}>
-                    <DDIcon name="chevron-right" size={20} variant="muted" directionAware />
-                  </Pressable>
-                  <ThemedText style={[Typography.body, { fontWeight: '600' }]}>
-                    {localizedMonths[month]} {formatLocalNumber(year)}
-                  </ThemedText>
-                  <Pressable onPress={prevMonth} hitSlop={12}>
-                    <DDIcon name="chevron-left" size={20} variant="muted" directionAware />
-                  </Pressable>
-                </>
-              ) : (
-                <>
-                  <Pressable onPress={isRTL ? nextMonth : prevMonth} hitSlop={12}>
-                    <DDIcon name="chevron-left" size={20} variant="muted" directionAware />
-                  </Pressable>
-                  <ThemedText style={[Typography.body, { fontWeight: '600' }]}>
-                    {localizedMonths[month]} {formatLocalNumber(year)}
-                  </ThemedText>
-                  <Pressable onPress={isRTL ? prevMonth : nextMonth} hitSlop={12}>
-                    <DDIcon name="chevron-right" size={20} variant="muted" directionAware />
-                  </Pressable>
-                </>
-              )}
+              <Pressable onPress={prevMonth} hitSlop={12}>
+                <DDIcon name="chevron-left" size={20} variant="muted" directionAware />
+              </Pressable>
+              <ThemedText style={[Typography.body, { fontWeight: '600' }]}>
+                {localizedMonths[month]} {formatLocalNumber(year)}
+              </ThemedText>
+              <Pressable onPress={nextMonth} hitSlop={12}>
+                <DDIcon name="chevron-right" size={20} variant="muted" directionAware />
+              </Pressable>
             </View>
 
             <View style={[styles.weekDays, { flexDirection: 'row' }]}>
-              {(shouldSwap ? [...localizedDays].reverse() : localizedDays).map((day, index) => (
-                <View key={DAYS_KEYS[shouldSwap ? localizedDays.length - 1 - index : index]} style={styles.weekDayCell}>
+              {localizedDays.map((day, index) => (
+                <View key={DAYS_KEYS[index]} style={styles.weekDayCell}>
                   <ThemedText style={[styles.weekDayText, { color: theme.textSecondary }]}>
                     {day}
                   </ThemedText>
@@ -354,7 +314,7 @@ export function CalendarDatePicker({
 
           {mode === 'range' && selectionMode === 'start_selected' && tempRange.startDate ? (
             <View style={[styles.rangeHint, { borderTopColor: theme.border }]}>
-              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
                 {t('calendar.rangeHint')}
               </ThemedText>
             </View>

@@ -206,6 +206,9 @@ export default function Sidebar({
   const { width } = Dimensions.get('window');
   const isLargeScreen = width >= 768;
   const insets = useSafeAreaInsets();
+  
+  // DEBUG: Log profile data to verify it's passed correctly
+  console.log('[Sidebar Profile DEBUG]', { userName, userRole, isRTL, platform: Platform.OS });
 
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => {
     const initial = new Set<string>();
@@ -274,7 +277,7 @@ export default function Sidebar({
         ]}
         onPress={() => handleItemPress(item.screen, item.params)}
       >
-        <DirectionalRow style={{ flex: 1 }} gap={Spacing.md}>
+        <DirectionalRow gap={Spacing.md}>
           <DDIcon
             name={item.icon}
             size={18}
@@ -284,7 +287,6 @@ export default function Sidebar({
           <ThemedText
             style={[
               styles.menuText,
-              { flex: 1, textAlign: isRTL ? 'right' : 'left' },
               isActive && { color: theme.primary, fontWeight: '600' },
               !isActive && { color: theme.sidebarText },
             ]}
@@ -309,7 +311,7 @@ export default function Sidebar({
         ]}
         onPress={() => handleItemPress(item.screen, item.params)}
       >
-        <DirectionalRow style={{ flex: 1 }} gap={Spacing.md}>
+        <DirectionalRow gap={Spacing.md}>
           <DDIcon
             name={item.icon}
             size={20}
@@ -318,7 +320,6 @@ export default function Sidebar({
           <ThemedText
             style={[
               styles.standaloneText,
-              { flex: 1, textAlign: isRTL ? 'right' : 'left' },
               isActive && { color: theme.primary, fontWeight: '600' },
               !isActive && { color: theme.sidebarText },
             ]}
@@ -363,7 +364,7 @@ export default function Sidebar({
         style={({ pressed }) => [styles.profileHeader, pressed && { opacity: 0.7 }]}
         onPress={() => handleItemPress('Dashboard')}
       >
-        <DirectionalRow style={{ flex: 1 }} gap={Spacing.md}>
+        <DirectionalRow style={styles.profileRow} gap={Spacing.md}>
           {userPhotoUrl ? (
             <Image
               source={{ uri: userPhotoUrl }}
@@ -377,11 +378,11 @@ export default function Sidebar({
               </ThemedText>
             </View>
           )}
-          <View style={{ flex: 1 }}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', color: theme.sidebarText, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+          <View style={styles.profileInfo}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', color: theme.sidebarText }]} numberOfLines={1}>
               {userName}
             </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.sidebarTextMuted, textTransform: 'capitalize', textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.caption, { color: theme.sidebarTextMuted, textTransform: 'capitalize' }]}>
               {userRole.replace('_', ' ')}
             </ThemedText>
           </View>
@@ -468,9 +469,16 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.lg,
   },
   profileHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'stretch',
     paddingHorizontal: Spacing.lg,
+    width: '100%',
+  },
+  profileRow: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  profileInfo: {
+    flex: 1,
   },
   profileAvatar: {
     width: 48,
@@ -489,25 +497,21 @@ const styles = StyleSheet.create({
     marginHorizontal: Spacing.sm,
   },
   standaloneItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'stretch',
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.md,
     borderRadius: BorderRadius.sm,
     marginBottom: Spacing.xs,
-    gap: Spacing.md,
   },
   standaloneText: {
     fontSize: 15,
     fontWeight: '500',
   },
   menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'stretch',
     paddingVertical: Spacing.sm + 2,
     paddingHorizontal: Spacing.sm,
     borderRadius: BorderRadius.sm,
-    gap: Spacing.md,
     marginBottom: 2,
   },
   menuItemActive: {
@@ -522,9 +526,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
   },
   footerActions: {
-    flexDirection: 'row',
     justifyContent: 'flex-start',
-    gap: Spacing.sm,
   },
   footerButton: {
     width: 40,
@@ -534,7 +536,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   appInfo: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,

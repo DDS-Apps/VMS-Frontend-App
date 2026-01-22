@@ -2,7 +2,7 @@
   "expo": {
     "name": "Dallah Albaraka VMS",
     "slug": "dallah-vms",
-    "version": "1.0.14",
+    "version": "1.0.17",
     "orientation": "portrait",
     "icon": "./assets/images/header-icon-dark.png",
     "scheme": "dallahvms",
@@ -16,13 +16,14 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.dallah.vms",
-      "googleServicesFile": "./config/qa/google-services.json"
+      "googleServicesFile": "./config/qa/google-services.json",
+      "supportsRTL": true
     },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.dallah.vms",
       "appleTeamId": "SNJM77V43A",
-      "buildNumber": "23",
+      "buildNumber": "26",
       "googleServicesFile": "./config/qa/GoogleService-Info.plist",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,

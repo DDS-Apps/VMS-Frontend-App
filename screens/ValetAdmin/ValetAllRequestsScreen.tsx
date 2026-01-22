@@ -10,10 +10,10 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
 import { applyOpacity } from "@/utils/statusStyles";
-import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
 import { useValetParkingDashboard } from "@/hooks/queries/useValetAdminQueries";
 import type { ValetParkingVisitorDto } from "@/types/api.types";
 import type { Theme } from "@/types/theme.types";
+import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 
 const LAYOUT = {
   cardPadding: Spacing.lg,
@@ -261,9 +261,7 @@ const ErrorState = ({ theme, t, onRetry }: { theme: Theme; t: (key: string) => s
 export default function ValetAllRequestsScreen() {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { isRTL } = useLanguage();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  const [filterType, setFilterType] = useState<'all' | 'with_parking' | 'without_parking'>('all');
+  const { isRTL } = useLanguage();  const [filterType, setFilterType] = useState<'all' | 'with_parking' | 'without_parking'>('all');
   
   const today = new Date().toISOString().split('T')[0];
   const { data, isLoading, isError, refetch, isRefetching } = useValetParkingDashboard(today);
@@ -319,11 +317,11 @@ export default function ValetAllRequestsScreen() {
 
       <Spacer height={LAYOUT.sectionSpacing} />
 
-      <View style={[styles.sectionTitleRow, styles.paddedContent, { flexDirection: 'row' }]}>
-        <ThemedText style={[Typography.subtitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+      <DirectionalRow style={[styles.sectionTitleRow, styles.paddedContent]}>
+        <ThemedText style={[Typography.subtitle, {}]}>
           {t('valet.todaysVisitors')}
         </ThemedText>
-      </View>
+      </DirectionalRow>
 
       <Spacer height={Spacing.md} />
 

@@ -169,7 +169,7 @@ export function RequestTimeline({
   return (
     <ThemedView style={[styles.container, { backgroundColor: theme.surface }]}>
       {showTitle ? (
-        <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginBottom: Spacing.lg, textAlign: isRTL ? 'right' : 'left' }]}>
+        <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginBottom: Spacing.lg }]}>
           {title || t('request.timeline')}
         </ThemedText>
       ) : null}
@@ -271,7 +271,7 @@ export function RequestTimeline({
                 {
                   fontWeight: isCompleted || isCurrent ? '600' : '400',
                   color: isCompleted || isCurrent || isError ? theme.text : theme.textSecondary,
-                  textAlign: isRTL ? 'right' : 'left',
+                  
                   width: '100%',
                 },
               ]}
@@ -406,7 +406,8 @@ function buildStandardTimeline(
   const isAtLaterStage = LATER_STAGE_STATUSES.includes(data.status);
   const isPendingApproval = data.status === 'pending_approval';
   const requiresApproval = data.approval?.requiresApproval || isPendingApproval;
-  const isApproved = data.approval?.approvedAt || (!isPendingApproval && isAtLaterStage);
+  // Only consider approved if we have approvedAt AND status is not pending_approval (after edit, status resets but old timestamp remains)
+  const isApproved = (data.approval?.approvedAt && !isPendingApproval) || (!isPendingApproval && isAtLaterStage);
 
 
   // Track if we've hit a terminal/current step - all subsequent steps should be pending
@@ -769,7 +770,12 @@ function buildReceptionistTimeline(
     return steps;
   }
 
-  if (data.checkedInAt) {
+  // Check if visitor has checked in - either by timestamp or by status
+  const isCheckedIn = data.checkedInAt || data.status === 'checked_in' || data.status === 'completed';
+  // Check if visitor has checked out / visit completed - either by timestamp or by status
+  const isCheckedOut = data.completedAt || data.checkedOutAt || data.status === 'completed';
+
+  if (isCheckedIn) {
     steps.push({
       id: 'checked_in',
       label: t('timeline.visitorCheckedIn'),
@@ -778,7 +784,7 @@ function buildReceptionistTimeline(
       icon: 'log-in',
     });
 
-    if (data.completedAt || data.checkedOutAt) {
+    if (isCheckedOut) {
       steps.push({
         id: 'checked_out',
         label: t('timeline.visitorCheckedOut'),
@@ -829,6 +835,24 @@ function buildReceptionistTimeline(
       label: t('timeline.visitorCheckedOut'),
       status: 'pending',
       icon: 'log-out',
+    });
+  }
+
+  // ============ Visit Completed Step ============
+  if (data.completedAt || data.checkedOutAt || data.status === 'completed') {
+    steps.push({
+      id: 'completed',
+      label: t('timeline.visitCompleted'),
+      timestamp: data.completedAt || data.checkedOutAt,
+      status: 'completed',
+      icon: 'check-circle',
+    });
+  } else {
+    steps.push({
+      id: 'completed',
+      label: t('timeline.visitCompleted'),
+      status: 'pending',
+      icon: 'check-circle',
     });
   }
 
@@ -898,7 +922,9 @@ function buildManagerApprovalTimeline(
     return steps;
   }
 
-  if (data.approval?.approvedAt) {
+  // Only show approved if approvedAt exists AND status is not pending_approval (after edit, status resets but old timestamp remains)
+  const isPendingApproval = data.status === 'pending_approval';
+  if (data.approval?.approvedAt && !isPendingApproval) {
     steps.push({
       id: 'approval',
       label: t('timeline.managerApproved'),

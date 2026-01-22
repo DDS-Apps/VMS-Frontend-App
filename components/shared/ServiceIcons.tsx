@@ -1,11 +1,11 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
 import { DDIcon } from "@/components/DDIcon";
+import { DirectionalRow } from "@/components/DirectionalRow";
 import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { applyOpacity } from "@/utils/statusStyles";
 import { Spacing } from "@/constants/theme";
-import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
 
 interface ServiceIconsProps {
   parkingSlot?: unknown;
@@ -23,9 +23,7 @@ export const ServiceIcons = ({
   size = 16 
 }: ServiceIconsProps) => {
   const { theme } = useTheme();
-  const { isRTL } = useLanguage();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  const iconContainerSize = size * 2;
+  const { isRTL } = useLanguage();  const iconContainerSize = size * 2;
   
   const items: React.ReactNode[] = [];
   
@@ -90,18 +88,16 @@ export const ServiceIcons = ({
     );
   }
   
-  const displayItems = shouldSwap ? [...items].reverse() : items;
-  
   return (
-    <View style={[styles.container, { flexDirection: 'row' }]}>
-      {displayItems}
-    </View>
+    <DirectionalRow style={styles.container}>
+      {items}
+    </DirectionalRow>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
+    // flexDirection handled by DirectionalRow
     alignItems: 'center',
     gap: Spacing.xs,
   },

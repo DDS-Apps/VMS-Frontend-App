@@ -11,8 +11,8 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon, IconName } from "@/components/DDIcon";
+import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
 import { applyOpacity } from "@/utils/statusStyles";
-import { shouldSwapChildrenForRTL } from "@/utils/rtlInitializer";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   useBuffetAdminLocationsQuery,
@@ -68,9 +68,7 @@ interface LocationDisplayItem {
 export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLocationsScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { isRTL } = useLanguage();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  const insets = useSafeAreaInsets();
+  const { isRTL } = useLanguage();  const insets = useSafeAreaInsets();
   
   const { data: locationsResponse, isLoading: isLoadingLocations } = useBuffetAdminLocationsQuery();
   const { data: loadSummary, isLoading: isLoadingLoadSummary } = useBuffetLoadSummaryQuery();
@@ -169,7 +167,7 @@ export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLo
           },
         ]}
       >
-        <View style={[styles.cardHeader, { flexDirection: 'row' }]}>
+        <DirectionalRow style={styles.cardHeader}>
           <View style={[styles.iconContainer, { backgroundColor: applyOpacity(theme.primary, '12') }]}>
             <DDIcon name="map-pin" size={20} color={theme.primary} />
           </View>
@@ -186,12 +184,12 @@ export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLo
               {isActive ? t('status.active') : t('status.inactive')}
             </ThemedText>
           </View>
-        </View>
+        </DirectionalRow>
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.statsRow, { flexDirection: 'row' }]}>
-          <View style={[styles.statItem, { flexDirection: 'row' }]}>
+        <DirectionalRow style={styles.statsRow}>
+          <DirectionalRow style={styles.statItem}>
             <View style={[styles.statIconBg, { backgroundColor: applyOpacity(theme.info, '12') }]}>
               <DDIcon name="users" size={16} color={theme.info} />
             </View>
@@ -203,9 +201,9 @@ export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLo
                 {t('buffet.numberOfGuests')}
               </ThemedText>
             </View>
-          </View>
+          </DirectionalRow>
 
-          <View style={[styles.statItem, { flexDirection: 'row' }]}>
+          <DirectionalRow style={styles.statItem}>
             <View style={[styles.statIconBg, { backgroundColor: applyOpacity(theme.success, '12') }]}>
               <DDIcon name="user-check" size={16} color={theme.success} />
             </View>
@@ -217,9 +215,9 @@ export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLo
                 {t('dashboard.active')}
               </ThemedText>
             </View>
-          </View>
+          </DirectionalRow>
 
-          <View style={[styles.statItem, { flexDirection: 'row' }]}>
+          <DirectionalRow style={styles.statItem}>
             <View style={[styles.statIconBg, { backgroundColor: applyOpacity(theme.warning, '12') }]}>
               <DDIcon name="cloche" size={16} color={theme.warning} />
             </View>
@@ -231,8 +229,8 @@ export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLo
                 {t('navigation.allRequests')}
               </ThemedText>
             </View>
-          </View>
-        </View>
+          </DirectionalRow>
+        </DirectionalRow>
 
       </View>
     );
@@ -241,7 +239,7 @@ export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLo
   return (
     <>
       <ScreenScrollView contentContainerStyle={scrollContentStyle}>
-        <View style={[styles.kpiRow, { flexDirection: 'row' }]}>
+        <DirectionalRow style={styles.kpiRow}>
           <KPICard 
             title={t('status.active')} 
             value={String(stats.active)} 
@@ -266,7 +264,7 @@ export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLo
             iconColor={theme.primary}
             cardBgColor={applyOpacity(theme.primary, '06')}
           />
-        </View>
+        </DirectionalRow>
 
         <Spacer height={Spacing.xl} />
 
@@ -329,14 +327,14 @@ export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLo
             style={[styles.modalContent, { backgroundColor: theme.background }]}
             onPress={(e) => e.stopPropagation()}
           >
-            <View style={[styles.modalHeader, { flexDirection: 'row' }]}>
+            <DirectionalRow style={styles.modalHeader}>
               <ThemedText style={[Typography.subtitle, { fontWeight: '600' }]}>
                 {t('common.edit')}
               </ThemedText>
               <Pressable onPress={() => setShowEditModal(false)}>
                 <DDIcon name="x" size={24} variant="muted" />
               </Pressable>
-            </View>
+            </DirectionalRow>
 
             <Spacer height={Spacing.lg} />
 
@@ -401,7 +399,7 @@ export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLo
 
             <Spacer height={Spacing.xl} />
 
-            <View style={[styles.modalActions, { flexDirection: 'row' }]}>
+            <DirectionalRow style={styles.modalActions}>
               <LoadingButton
                 onPress={() => setShowEditModal(false)}
                 variant="secondary"
@@ -421,7 +419,7 @@ export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLo
               >
                 {t('common.save')}
               </LoadingButton>
-            </View>
+            </DirectionalRow>
           </Pressable>
         </Pressable>
       </Modal>

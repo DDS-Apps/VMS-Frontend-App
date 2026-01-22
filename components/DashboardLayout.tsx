@@ -14,12 +14,12 @@ import { ThemedText } from "@/components/ThemedText";
 import { DDIcon } from "@/components/DDIcon";
 import { DirectionalRow } from "@/components/DirectionalRow";
 import { EnableNotificationsPrompt } from "@/components/shared/EnableNotificationsPrompt";
+import { LanguageChangeOverlay } from "@/components/LanguageChangeOverlay";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useRTLStyles } from "@/hooks/useRTLStyles";
-import { getStartPosition } from "@/utils/rtlInitializer";
 import { UserRole } from "@/types/vms.types";
 import { authService } from "@/services/api/authService";
 
@@ -74,11 +74,16 @@ export default function DashboardLayout({
   isSSOUser = false,
 }: DashboardLayoutProps) {
   const { theme, isDark, toggleTheme } = useTheme();
-  const { locale, setLocale, isRTL: contextIsRTL, layoutKey } = useLanguage();
+  const { locale, setLocale, isRTL: contextIsRTL, layoutKey, isChangingLanguage } = useLanguage();
   
-  // Use synchronous localStorage check for first render, then context value
-  const isRTL = Platform.OS === 'web' ? getInitialRTLState() || contextIsRTL : contextIsRTL;
-  console.log('[DashboardLayout] isRTL:', isRTL, 'contextIsRTL:', contextIsRTL, 'locale:', locale);
+  // Use I18nManager.isRTL directly on mobile (authoritative source after app restart)
+  // On web, use localStorage check for first render, then context value
+  const isRTL = Platform.OS === 'web' 
+    ? getInitialRTLState() || contextIsRTL 
+    : I18nManager.isRTL;
+  
+  // DEBUG: Log RTL state for sidebar positioning
+  console.log('[DashboardLayout] isRTL:', isRTL, 'I18nManager.isRTL:', I18nManager.isRTL, 'contextIsRTL:', contextIsRTL, 'locale:', locale);
   
   const { t } = useTranslation();
   const rtlStyles = useRTLStyles();
@@ -269,23 +274,38 @@ export default function DashboardLayout({
   });
 
   return (
-    <GestureDetector gesture={edgeSwipeGesture}>
-      <View 
-        key={layoutKey} 
-        style={[styles.container, { backgroundColor: theme.background }]}
-      >
+    <>
+      <LanguageChangeOverlay visible={isChangingLanguage} />
+      <GestureDetector gesture={edgeSwipeGesture}>
+        <View 
+          key={layoutKey} 
+          style={[styles.container, { backgroundColor: theme.background }]}
+        >
         {/* Mobile Header Bar */}
         {!isLargeScreen && (
-          <ThemedView style={[
-            styles.mobileHeader, 
-            { 
-              borderBottomColor: theme.border, 
-              backgroundColor: theme.background,
-              paddingTop: insets.top + Spacing.sm,
-            },
-          ]}>
-            {/* Left cluster in LTR: menu/back + logo */}
-            {/* DirectionalRow handles platform-specific RTL reversal */}
+          // DEBUG: Log RTL state for mobile header
+          console.log('[DashboardLayout Mobile Header DEBUG]', {
+            platform: Platform.OS,
+            'I18nManager.isRTL': I18nManager.isRTL,
+            'contextIsRTL': contextIsRTL,
+            'calculated isRTL': isRTL,
+            locale,
+            'localStorage (web only)': Platform.OS === 'web' && typeof localStorage !== 'undefined' 
+              ? localStorage.getItem('@vms_language') 
+              : 'N/A',
+          }),
+          <DirectionalRow 
+            style={[
+              styles.mobileHeader, 
+              { 
+                borderBottomColor: theme.border, 
+                backgroundColor: theme.background,
+                paddingTop: insets.top + Spacing.sm,
+              },
+            ]}
+            justifyContent="space-between"
+          >
+            {/* Left cluster: menu/back + logo */}
             <DirectionalRow style={styles.headerCluster} gap={Spacing.sm}>
               {canGoBack && onGoBack ? (
                 <Pressable 
@@ -326,7 +346,7 @@ export default function DashboardLayout({
               </Pressable>
             </DirectionalRow>
             
-            {/* Right cluster in LTR: bell + avatar */}
+            {/* Right cluster: notifications + avatar */}
             <DirectionalRow style={styles.headerCluster} gap={Spacing.sm}>
               <Pressable 
                 onPress={() => onNavigate('Notifications')} 
@@ -364,7 +384,7 @@ export default function DashboardLayout({
                 </View>
               </Pressable>
             </DirectionalRow>
-          </ThemedView>
+          </DirectionalRow>
         )}
         
         <Modal
@@ -404,9 +424,9 @@ export default function DashboardLayout({
                   onNavigate('Settings');
                 }}
               >
-                <DirectionalRow gap={Spacing.md}>
+                <DirectionalRow gap={Spacing.md} style={{ flex: 1 }}>
                   <DDIcon name="user" size={20} variant="muted" />
-                  <ThemedText style={Typography.body}>
+                  <ThemedText style={[Typography.body, { flex: 1 }]}>
                     {t('settings.profile')}
                   </ThemedText>
                 </DirectionalRow>
@@ -420,9 +440,9 @@ export default function DashboardLayout({
                     onNavigate('ChangePassword');
                   }}
                 >
-                  <DirectionalRow gap={Spacing.md}>
+                  <DirectionalRow gap={Spacing.md} style={{ flex: 1 }}>
                     <DDIcon name="lock" size={20} variant="muted" />
-                    <ThemedText style={Typography.body}>
+                    <ThemedText style={[Typography.body, { flex: 1 }]}>
                       {t('settings.changePassword')}
                     </ThemedText>
                   </DirectionalRow>
@@ -490,9 +510,9 @@ export default function DashboardLayout({
                   onLogout();
                 }}
               >
-                <DirectionalRow gap={Spacing.md}>
+                <DirectionalRow gap={Spacing.md} style={{ flex: 1 }}>
                   <DDIcon name="log-out" size={20} color={theme.error} directionAware />
-                  <ThemedText style={[Typography.body, { color: theme.error }]}>
+                  <ThemedText style={[Typography.body, { color: theme.error, flex: 1 }]}>
                     {t('auth.signOut')}
                   </ThemedText>
                 </DirectionalRow>
@@ -501,19 +521,11 @@ export default function DashboardLayout({
           </Pressable>
         </Modal>
 
-        <View 
+        <DirectionalRow 
           testID="main-container"
           nativeID="main-container"
-          style={[
-            styles.mainContainer, 
-            { 
-              // On web: dir="rtl" on html already reverses flex, so use 'row'
-              // On native: no dir attribute, so use 'row-reverse' explicitly
-              flexDirection: isRTL 
-                ? (Platform.OS === 'web' ? 'row' : 'row-reverse') 
-                : 'row' 
-            }
-          ]}
+          style={styles.mainContainer}
+          alignItems="stretch"
         >
           {/* Mobile Overlay - Rendered first so sidebar appears on top */}
           {!isLargeScreen && sidebarOpen && (
@@ -535,9 +547,12 @@ export default function DashboardLayout({
                 style={[
                   styles.sidebarContainer,
                   styles.sidebarMobile,
-                  { width: sidebarWidthMobile },
+                  { 
+                    width: sidebarWidthMobile,
+                    left: isRTL ? undefined : 0,
+                    right: isRTL ? 0 : undefined,
+                  },
                   sidebarAnimatedStyle,
-                  getStartPosition(isRTL, 0),
                 ]}
               >
                 <Sidebar
@@ -582,239 +597,87 @@ export default function DashboardLayout({
           <View style={styles.content}>
             {/* Desktop Header Bar */}
             {isLargeScreen && (
-              <View style={[
+              <DirectionalRow style={[
                 styles.desktopHeader,
                 { 
                   borderBottomColor: theme.border, 
                   backgroundColor: theme.background,
                 },
               ]}>
-                {isRTL ? (
-                  <>
-                    {/* RTL: On web, browser reverses flex with dir="rtl", so use LTR order. On native, manually reverse. */}
-                    {Platform.OS === 'web' ? (
-                      <>
-                        {/* Web RTL: Use LTR order - browser will reverse it */}
-                        <View style={styles.desktopHeaderLeft}>
-                          {canGoBack && onGoBack ? (
-                            <Pressable 
-                              onPress={onGoBack} 
-                              style={[styles.menuButton, { marginEnd: Spacing.md }]}
-                              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                            >
-                              <DDIcon 
-                                name="arrow-right" 
-                                size={24} 
-                                color={theme.text} 
-                              />
-                            </Pressable>
-                          ) : null}
-                          {pageTitle ? (
-                            <View>
-                              <ThemedText style={[Typography.subtitle, { fontWeight: '600', textAlign: 'right' }]}>
-                                {pageTitle}
-                              </ThemedText>
-                              {pageSubtitle ? (
-                                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, textAlign: 'right' }]}>
-                                  {pageSubtitle}
-                                </ThemedText>
-                              ) : null}
-                            </View>
-                          ) : null}
-                        </View>
-                        
-                        <View style={styles.desktopHeaderRight}>
-                          <Pressable 
-                            onPress={() => onNavigate('Notifications')} 
-                            style={({ pressed }) => [
-                              styles.desktopHeaderButton,
-                              { opacity: pressed ? 0.5 : 1, backgroundColor: pressed ? theme.border : 'transparent' }
-                            ]}
-                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                          >
-                            <View>
-                              <DDIcon
-                                name="bell"
-                                size={20}
-                                color={theme.textSecondary}
-                              />
-                              {unreadNotificationCount > 0 ? (
-                                <View style={styles.notificationBadge}>
-                                  <View style={[styles.notificationDot, { backgroundColor: theme.error }]} />
-                                </View>
-                              ) : null}
-                            </View>
-                          </Pressable>
-                          
-                          <Pressable 
-                            onPress={() => setProfileMenuVisible(true)} 
-                            style={({ pressed }) => [
-                              styles.desktopAvatarButton,
-                              { opacity: pressed ? 0.7 : 1 }
-                            ]}
-                          >
-                            <DDIcon name="chevron-down" size={16} color={theme.textSecondary} />
-                            <ThemedText style={[Typography.body, { marginHorizontal: Spacing.sm, fontWeight: '500' }]}>
-                              {userName}
-                            </ThemedText>
-                            <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
-                              <ThemedText style={[Typography.caption, { color: '#FFFFFF', fontWeight: '700' }]}>
-                                {getInitials(userName)}
-                              </ThemedText>
-                            </View>
-                          </Pressable>
-                        </View>
-                      </>
-                    ) : (
-                      <>
-                        {/* Native RTL: Manually reverse order */}
-                        <View style={styles.desktopHeaderRight}>
-                          <Pressable 
-                            onPress={() => setProfileMenuVisible(true)} 
-                            style={({ pressed }) => [
-                              styles.desktopAvatarButton,
-                              { opacity: pressed ? 0.7 : 1 }
-                            ]}
-                          >
-                            <DDIcon name="chevron-down" size={16} color={theme.textSecondary} />
-                            <ThemedText style={[Typography.body, { marginHorizontal: Spacing.sm, fontWeight: '500' }]}>
-                              {userName}
-                            </ThemedText>
-                            <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
-                              <ThemedText style={[Typography.caption, { color: '#FFFFFF', fontWeight: '700' }]}>
-                                {getInitials(userName)}
-                              </ThemedText>
-                            </View>
-                          </Pressable>
-                          
-                          <Pressable 
-                            onPress={() => onNavigate('Notifications')} 
-                            style={({ pressed }) => [
-                              styles.desktopHeaderButton,
-                              { opacity: pressed ? 0.5 : 1, backgroundColor: pressed ? theme.border : 'transparent' }
-                            ]}
-                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                          >
-                            <View>
-                              <DDIcon
-                                name="bell"
-                                size={20}
-                                color={theme.textSecondary}
-                              />
-                              {unreadNotificationCount > 0 ? (
-                                <View style={styles.notificationBadge}>
-                                  <View style={[styles.notificationDot, { backgroundColor: theme.error }]} />
-                                </View>
-                              ) : null}
-                            </View>
-                          </Pressable>
-                        </View>
-                        
-                        <View style={styles.desktopHeaderLeft}>
-                          {pageTitle ? (
-                            <View>
-                              <ThemedText style={[Typography.subtitle, { fontWeight: '600', textAlign: 'right' }]}>
-                                {pageTitle}
-                              </ThemedText>
-                              {pageSubtitle ? (
-                                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, textAlign: 'right' }]}>
-                                  {pageSubtitle}
-                                </ThemedText>
-                              ) : null}
-                            </View>
-                          ) : null}
-                          {canGoBack && onGoBack ? (
-                            <Pressable 
-                              onPress={onGoBack} 
-                              style={[styles.menuButton, { marginStart: Spacing.md }]}
-                              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                            >
-                              <DDIcon 
-                                name="arrow-right" 
-                                size={24} 
-                                color={theme.text} 
-                              />
-                            </Pressable>
-                          ) : null}
-                        </View>
-                      </>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    {/* LTR: page title on LEFT, notification+avatar on RIGHT */}
-                    <View style={styles.desktopHeaderLeft}>
-                      {canGoBack && onGoBack ? (
-                        <Pressable 
-                          onPress={onGoBack} 
-                          style={[styles.menuButton, { marginEnd: Spacing.md }]}
-                          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                        >
-                          <DDIcon 
-                            name="arrow-left" 
-                            size={24} 
-                            color={theme.text} 
-                          />
-                        </Pressable>
-                      ) : null}
-                      {pageTitle ? (
-                        <View>
-                          <ThemedText style={[Typography.subtitle, { fontWeight: '600' }]}>
-                            {pageTitle}
-                          </ThemedText>
-                          {pageSubtitle ? (
-                            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2 }]}>
-                              {pageSubtitle}
-                            </ThemedText>
-                          ) : null}
-                        </View>
-                      ) : null}
-                    </View>
-                    
-                    <View style={styles.desktopHeaderRight}>
-                      <Pressable 
-                        onPress={() => onNavigate('Notifications')} 
-                        style={({ pressed }) => [
-                          styles.desktopHeaderButton,
-                          { opacity: pressed ? 0.5 : 1, backgroundColor: pressed ? theme.border : 'transparent' }
-                        ]}
-                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                      >
-                        <View>
-                          <DDIcon
-                            name="bell"
-                            size={20}
-                            color={theme.textSecondary}
-                          />
-                          {unreadNotificationCount > 0 ? (
-                            <View style={styles.notificationBadge}>
-                              <View style={[styles.notificationDot, { backgroundColor: theme.error }]} />
-                            </View>
-                          ) : null}
-                        </View>
-                      </Pressable>
-                      
-                      <Pressable 
-                        onPress={() => setProfileMenuVisible(true)} 
-                        style={({ pressed }) => [
-                          styles.desktopAvatarButton,
-                          { opacity: pressed ? 0.7 : 1 }
-                        ]}
-                      >
-                        <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
-                          <ThemedText style={[Typography.caption, { color: '#FFFFFF', fontWeight: '700' }]}>
-                            {getInitials(userName)}
-                          </ThemedText>
-                        </View>
-                        <ThemedText style={[Typography.body, { marginStart: Spacing.sm, fontWeight: '500' }]}>
-                          {userName}
+                {/* Page title on START side, notification+avatar on END side */}
+                <DirectionalRow style={styles.desktopHeaderLeft}>
+                  {canGoBack && onGoBack ? (
+                    <Pressable 
+                      onPress={onGoBack} 
+                      style={[styles.menuButton, { marginEnd: Spacing.md }]}
+                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    >
+                      <DDIcon 
+                        name="arrow-left" 
+                        size={24} 
+                        color={theme.text}
+                        directionAware
+                      />
+                    </Pressable>
+                  ) : null}
+                  {pageTitle ? (
+                    <View>
+                      <ThemedText style={[Typography.subtitle, { fontWeight: '600' }]}>
+                        {pageTitle}
+                      </ThemedText>
+                      {pageSubtitle ? (
+                        <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2 }]}>
+                          {pageSubtitle}
                         </ThemedText>
-                        <DDIcon name="chevron-down" size={16} color={theme.textSecondary} />
-                      </Pressable>
+                      ) : null}
                     </View>
-                  </>
-                )}
-              </View>
+                  ) : null}
+                </DirectionalRow>
+                
+                <DirectionalRow style={styles.desktopHeaderRight}>
+                  <Pressable 
+                    onPress={() => onNavigate('Notifications')} 
+                    style={({ pressed }) => [
+                      styles.desktopHeaderButton,
+                      { opacity: pressed ? 0.5 : 1, backgroundColor: pressed ? theme.border : 'transparent' }
+                    ]}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  >
+                    <View>
+                      <DDIcon
+                        name="bell"
+                        size={20}
+                        color={theme.textSecondary}
+                      />
+                      {unreadNotificationCount > 0 ? (
+                        <View style={styles.notificationBadge}>
+                          <View style={[styles.notificationDot, { backgroundColor: theme.error }]} />
+                        </View>
+                      ) : null}
+                    </View>
+                  </Pressable>
+                  
+                  <Pressable 
+                    onPress={() => setProfileMenuVisible(true)} 
+                    style={({ pressed }) => [
+                      styles.desktopAvatarButton,
+                      { opacity: pressed ? 0.7 : 1 }
+                    ]}
+                  >
+                    <DirectionalRow style={{ alignItems: 'center' }}>
+                      <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
+                        <ThemedText style={[Typography.caption, { color: '#FFFFFF', fontWeight: '700' }]}>
+                          {getInitials(userName)}
+                        </ThemedText>
+                      </View>
+                      <ThemedText style={[Typography.body, { marginStart: Spacing.sm, fontWeight: '500' }]}>
+                        {userName}
+                      </ThemedText>
+                      <DDIcon name="chevron-down" size={16} color={theme.textSecondary} />
+                    </DirectionalRow>
+                  </Pressable>
+                </DirectionalRow>
+              </DirectionalRow>
             )}
             
             <View style={styles.contentInner}>
@@ -822,9 +685,10 @@ export default function DashboardLayout({
               {children}
             </View>
           </View>
-        </View>
+        </DirectionalRow>
       </View>
-    </GestureDetector>
+      </GestureDetector>
+    </>
   );
 }
 
@@ -833,7 +697,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   mobileHeader: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.lg,
@@ -842,7 +705,6 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   headerCluster: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.xs,
   },
@@ -852,7 +714,7 @@ const styles = StyleSheet.create({
   },
   mainContainer: {
     flex: 1,
-    flexDirection: 'row',
+    // flexDirection handled by DirectionalRow
   },
   sidebarContainer: {
     // Width applied dynamically in JSX based on screen size
@@ -876,7 +738,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   desktopHeader: {
-    flexDirection: 'row',
+    // flexDirection handled by DirectionalRow
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.xl,
@@ -884,11 +746,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   desktopHeaderLeft: {
-    flexDirection: 'row',
+    // flexDirection handled by DirectionalRow
     alignItems: 'center',
   },
   desktopHeaderRight: {
-    flexDirection: 'row',
+    // flexDirection handled by DirectionalRow
     alignItems: 'center',
     gap: Spacing.md,
   },
@@ -897,7 +759,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.sm,
   },
   desktopAvatarButton: {
-    flexDirection: 'row',
+    // flexDirection handled by DirectionalRow inside
     alignItems: 'center',
     paddingVertical: Spacing.xs,
     paddingHorizontal: Spacing.sm,
@@ -962,8 +824,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   dropdownItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'stretch',
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.lg,
   },

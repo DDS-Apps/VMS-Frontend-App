@@ -4,12 +4,12 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { DDIcon } from "@/components/DDIcon";
 import Spacer from "@/components/Spacer";
+import DirectionalRow from "@/components/DirectionalRow";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ParkingType, ParkingSlot, ValetService } from "@/types/vms.types";
 import { applyOpacity } from "@/utils/statusStyles";
-import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
 
 interface ParkingSectionProps {
   parkingType: ParkingType;
@@ -26,8 +26,6 @@ export function ParkingSection({
 }: ParkingSectionProps) {
   const { theme } = useTheme();
   const { isRTL } = useLanguage();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-
   const renderIconBadge = (iconName: string, variant: string, color?: string) => (
     <View style={[styles.iconBadge, { backgroundColor: applyOpacity(color || theme.textSecondary, '15') }]}>
       <DDIcon name={iconName as any} size={20} variant={variant as any} color={color} />
@@ -50,13 +48,10 @@ export function ParkingSection({
 
     return (
       <ThemedView style={[styles.parkingCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-        <View style={[styles.parkingHeader, { flexDirection: 'row' }]}>
-          {shouldSwap ? (
-            <>{contentEl}{iconEl}</>
-          ) : (
-            <>{iconEl}{contentEl}</>
-          )}
-        </View>
+        <DirectionalRow style={styles.parkingHeader}>
+          {iconEl}
+          {contentEl}
+        </DirectionalRow>
       </ThemedView>
     );
   }
@@ -73,7 +68,7 @@ export function ParkingSection({
     );
     const valetContentEl = (
       <View style={{ flex: 1, marginStart: Spacing.md }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
+        <DirectionalRow gap={Spacing.sm} alignItems="center">
           <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, color: theme.text }]}>
             Valet Service
           </ThemedText>
@@ -88,7 +83,7 @@ export function ParkingSection({
               {isPending ? 'PENDING' : 'ASSIGNED'}
             </ThemedText>
           </View>
-        </View>
+        </DirectionalRow>
         <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 13, marginTop: 2 }]}>
           {isPending ? 'Driver will be assigned shortly' : 'Driver assigned and ready'}
         </ThemedText>
@@ -108,13 +103,10 @@ export function ParkingSection({
         </View>
       );
       return (
-        <View style={[styles.detailRow, { flexDirection: 'row' }]}>
-          {shouldSwap ? (
-            <>{detailContentEl}{detailIconEl}</>
-          ) : (
-            <>{detailIconEl}{detailContentEl}</>
-          )}
-        </View>
+        <DirectionalRow style={styles.detailRow}>
+          {detailIconEl}
+          {detailContentEl}
+        </DirectionalRow>
       );
     };
 
@@ -124,13 +116,10 @@ export function ParkingSection({
         borderColor: isPending ? theme.warning : theme.primary,
         borderWidth: 1.5,
       }]}>
-        <View style={[styles.parkingHeader, { flexDirection: 'row' }]}>
-          {shouldSwap ? (
-            <>{valetContentEl}{valetIconEl}</>
-          ) : (
-            <>{valetIconEl}{valetContentEl}</>
-          )}
-        </View>
+        <DirectionalRow style={styles.parkingHeader}>
+          {valetIconEl}
+          {valetContentEl}
+        </DirectionalRow>
 
         {hasDriver && variant === 'detailed' && (
           <>
@@ -172,7 +161,7 @@ export function ParkingSection({
     );
     const autoContentEl = (
       <View style={{ flex: 1, marginStart: Spacing.md }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
+        <DirectionalRow gap={Spacing.sm} alignItems="center">
           <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, color: theme.text }]}>
             Auto Parking
           </ThemedText>
@@ -187,7 +176,7 @@ export function ParkingSection({
               {isPending ? 'PENDING' : 'ASSIGNED'}
             </ThemedText>
           </View>
-        </View>
+        </DirectionalRow>
         <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 13, marginTop: 2 }]}>
           {isPending ? 'Slot will be assigned soon' : `${parkingSlot?.slotNumber ? parkingSlot.slotNumber : 'Parking slot confirmed'}`}
         </ThemedText>
@@ -207,13 +196,10 @@ export function ParkingSection({
         </View>
       );
       return (
-        <View style={[styles.detailRow, { flexDirection: 'row' }]}>
-          {shouldSwap ? (
-            <>{detailContentEl}{detailIconEl}</>
-          ) : (
-            <>{detailIconEl}{detailContentEl}</>
-          )}
-        </View>
+        <DirectionalRow style={styles.detailRow}>
+          {detailIconEl}
+          {detailContentEl}
+        </DirectionalRow>
       );
     };
 
@@ -223,13 +209,10 @@ export function ParkingSection({
         borderColor: isPending ? theme.warning : theme.info,
         borderWidth: 1.5,
       }]}>
-        <View style={[styles.parkingHeader, { flexDirection: 'row' }]}>
-          {shouldSwap ? (
-            <>{autoContentEl}{autoIconEl}</>
-          ) : (
-            <>{autoIconEl}{autoContentEl}</>
-          )}
-        </View>
+        <DirectionalRow style={styles.parkingHeader}>
+          {autoIconEl}
+          {autoContentEl}
+        </DirectionalRow>
 
         {hasSlot && variant === 'detailed' && (
           <>

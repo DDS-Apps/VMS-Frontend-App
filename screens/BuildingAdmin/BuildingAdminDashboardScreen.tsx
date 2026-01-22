@@ -12,7 +12,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { applyOpacity } from '@/utils/statusStyles';
-import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
+import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 import { 
   getSystemStats, 
   getStaffOverview, 
@@ -115,7 +115,7 @@ function StaffCard({ title, icon, total, details, onPress }: StaffCardProps) {
       style={[styles.staffCard, { backgroundColor: theme.surface }]}
       onPress={onPress}
     >
-      <View style={styles.staffCardHeader}>
+      <DirectionalRow style={styles.staffCardHeader}>
         <DDIcon name={icon as IconName} size={20} color={theme.primary} />
         <ThemedText style={[styles.staffCardTitle, { color: theme.text }]}>
           {title}
@@ -123,11 +123,11 @@ function StaffCard({ title, icon, total, details, onPress }: StaffCardProps) {
         <ThemedText style={[styles.staffCardTotal, { color: theme.primary }]}>
           {total}
         </ThemedText>
-      </View>
+      </DirectionalRow>
       <Spacer height={Spacing.md} />
       <View style={styles.staffCardDetails}>
         {details.map((detail, index) => (
-          <View key={index} style={styles.staffDetail}>
+          <DirectionalRow key={index} style={styles.staffDetail}>
             <View style={[styles.staffDetailDot, { backgroundColor: detail.color }]} />
             <ThemedText style={[styles.staffDetailLabel, { color: theme.textSecondary }]}>
               {detail.label}
@@ -135,7 +135,7 @@ function StaffCard({ title, icon, total, details, onPress }: StaffCardProps) {
             <ThemedText style={[styles.staffDetailValue, { color: theme.text }]}>
               {detail.value}
             </ThemedText>
-          </View>
+          </DirectionalRow>
         ))}
       </View>
     </Pressable>
@@ -145,9 +145,7 @@ function StaffCard({ title, icon, total, details, onPress }: StaffCardProps) {
 export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdminDashboardScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { isRTL } = useLanguage();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  const [stats, setStats] = useState<SystemStats | null>(null);
+  const { isRTL } = useLanguage();  const [stats, setStats] = useState<SystemStats | null>(null);
   const [staffOverview, setStaffOverview] = useState<StaffOverview | null>(null);
   const [activities, setActivities] = useState<RecentActivity[]>([]);
 
@@ -172,7 +170,7 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
 
       <Spacer height={Spacing.xl} />
 
-      <View style={[styles.kpiRow, { flexDirection: 'row' }]}>
+      <DirectionalRow style={styles.kpiRow}>
         <KPICard 
           title={t('dashboard.totalVisitors')} 
           value={String(stats.totalVisitors)} 
@@ -190,11 +188,11 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
           iconColor={theme.info}
           cardBgColor={applyOpacity(theme.info, '06')}
         />
-      </View>
+      </DirectionalRow>
 
       <Spacer height={Spacing.md} />
 
-      <View style={[styles.kpiRow, { flexDirection: 'row' }]}>
+      <DirectionalRow style={styles.kpiRow}>
         <KPICard 
           title={t('status.approved')} 
           value={String(stats.approvedRequests)} 
@@ -211,11 +209,11 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
           iconColor={theme.warning}
           cardBgColor={applyOpacity(theme.warning, '06')}
         />
-      </View>
+      </DirectionalRow>
 
       <Spacer height={Spacing.md} />
 
-      <View style={[styles.kpiRow, { flexDirection: 'row' }]}>
+      <DirectionalRow style={styles.kpiRow}>
         <KPICard 
           title={t('buffet.buffetService')} 
           value={String(stats.ongoingBuffets)} 
@@ -232,7 +230,7 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
           iconColor="#6366F1"
           cardBgColor={applyOpacity('#6366F1', '06')}
         />
-      </View>
+      </DirectionalRow>
 
       <Spacer height={Spacing.xxl} />
 
@@ -242,7 +240,7 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
 
       <Spacer height={Spacing.md} />
 
-      <View style={[styles.quickActionsRow, { flexDirection: 'row' }]}>
+      <DirectionalRow style={styles.quickActionsRow}>
         <QuickActionButton
           icon="users"
           label={t('navigation.manageUsers')}
@@ -273,7 +271,7 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
           iconColor={theme.info}
           onPress={() => navigation.navigate(ROUTES.REPORTS as never)}
         />
-      </View>
+      </DirectionalRow>
 
       <Spacer height={Spacing.xxl} />
 
@@ -333,7 +331,7 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
 
       <Spacer height={Spacing.xxl} />
 
-      <View style={[styles.sectionHeader, { flexDirection: 'row' }]}>
+      <DirectionalRow style={styles.sectionHeader}>
         <ThemedText style={[Typography.subtitle, { color: theme.text }]}>
           {t('dashboard.recentActivity')}
         </ThemedText>
@@ -341,7 +339,7 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
           onPress={() => navigation.navigate(ROUTES.NOTIFICATIONS as never)}
           style={({ pressed }) => [
             styles.viewAllButton,
-            { opacity: pressed ? 0.7 : 1 }
+            { opacity: pressed ? 0.7 : 1, flexDirection: getFlexDirection(isRTL) }
           ]}
         >
           <ThemedText style={[styles.viewAllText, { color: theme.primary }]}>
@@ -349,7 +347,7 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
           </ThemedText>
           <DDIcon name="chevron-right" size={16} variant="primary" directionAware />
         </Pressable>
-      </View>
+      </DirectionalRow>
 
       <Spacer height={Spacing.md} />
 
@@ -357,7 +355,7 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
         <View style={styles.activitiesList}>
           {activities.slice(0, 5).map((activity) => (
             <View key={activity.id}>
-              <ThemedView style={[styles.activityCard, { backgroundColor: theme.surface, flexDirection: 'row' }]}>
+              <DirectionalRow style={[styles.activityCard, { backgroundColor: theme.surface }]}>
                 <View style={[
                   styles.activityIconContainer, 
                   { backgroundColor: applyOpacity(
@@ -398,7 +396,7 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
                     {activity.time}
                   </ThemedText>
                 </View>
-              </ThemedView>
+              </DirectionalRow>
               <Spacer height={Spacing.sm} />
             </View>
           ))}
@@ -423,7 +421,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
   },
   kpiRow: {
-    flexDirection: 'row',
     gap: Spacing.md,
   },
   kpiCard: {
@@ -459,7 +456,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   quickActionsRow: {
-    flexDirection: 'row',
     flexWrap: 'wrap',
     gap: Spacing.md,
   },
@@ -517,7 +513,6 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   staffCardHeader: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
   },
@@ -534,7 +529,6 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
   },
   staffDetail: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
   },
@@ -552,12 +546,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   sectionHeader: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   viewAllButton: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: 2,
   },
@@ -567,7 +559,6 @@ const styles = StyleSheet.create({
   },
   activitiesList: {},
   activityCard: {
-    flexDirection: 'row',
     alignItems: 'center',
     padding: Spacing.md,
     borderRadius: BorderRadius.md,

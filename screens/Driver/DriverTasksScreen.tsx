@@ -9,11 +9,11 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import Spacer from '@/components/Spacer';
 import { CalendarDatePicker } from '@/components/CalendarDatePicker';
+import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 import { Spacing, BorderRadius, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { shouldSwapChildrenForRTL } from '@/utils/rtlInitializer';
 import { applyOpacity } from '@/utils/statusStyles';
 import {
   getRequestsByDriverId,
@@ -41,9 +41,7 @@ interface DriverTasksScreenProps {
 export default function DriverTasksScreen({ onNavigateToDetail }: DriverTasksScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { isRTL } = useLanguage();
-  const shouldSwap = shouldSwapChildrenForRTL(isRTL);
-  const insets = useSafeAreaInsets();
+  const { isRTL } = useLanguage();  const insets = useSafeAreaInsets();
   const [tasks, setTasks] = useState<ValetRequest[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -424,12 +422,12 @@ export default function DriverTasksScreen({ onNavigateToDetail }: DriverTasksScr
           <View style={[styles.statusBorderLine, { backgroundColor: statusConfig.borderColor }]} />
           
           <View style={styles.cardContent}>
-            <View style={[styles.cardHeader, { flexDirection: 'row' }]}>
+            <DirectionalRow style={styles.cardHeader}>
               <View style={styles.nameSection}>
-                <ThemedText style={[Typography.body, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
+                <ThemedText style={[Typography.body, { fontWeight: '600' }]}>
                   {task.visitorName}
                 </ThemedText>
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
                   {t('reception.hostName')}: {task.hostName}
                 </ThemedText>
               </View>
@@ -438,69 +436,69 @@ export default function DriverTasksScreen({ onNavigateToDetail }: DriverTasksScr
                   {statusConfig.label}
                 </ThemedText>
               </View>
-            </View>
+            </DirectionalRow>
 
             <Spacer height={Spacing.md} />
 
             <View style={styles.infoGrid}>
               {task.vehicleInfo ? (
-                <View style={[styles.infoRow, { flexDirection: 'row' }]}>
+                <DirectionalRow style={styles.infoRow}>
                   <DDIcon name="truck" size={14} variant="muted" />
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6, textAlign: isRTL ? 'right' : 'left' }]}>
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6 }]}>
                     {task.vehicleInfo.make} {task.vehicleInfo.model} - {task.vehicleInfo.color}
                   </ThemedText>
-                </View>
+                </DirectionalRow>
               ) : null}
 
               {task.vehicleInfo?.plateNumber ? (
-                <View style={[styles.infoRow, { flexDirection: 'row' }]}>
+                <DirectionalRow style={styles.infoRow}>
                   <DDIcon name="hash" size={14} variant="muted" />
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6, textAlign: isRTL ? 'right' : 'left' }]}>
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6 }]}>
                     {t('valet.plateNumber')}: {task.vehicleInfo.plateNumber}
                   </ThemedText>
-                </View>
+                </DirectionalRow>
               ) : null}
 
               {task.parkingSlot ? (
-                <View style={[styles.infoRow, { flexDirection: 'row' }]}>
+                <DirectionalRow style={styles.infoRow}>
                   <DDIcon name="map-pin" size={14} variant="primary" />
-                  <ThemedText style={[Typography.caption, { color: theme.primary, marginStart: 6, fontWeight: '500', textAlign: isRTL ? 'right' : 'left' }]}>
+                  <ThemedText style={[Typography.caption, { color: theme.primary, marginStart: 6, fontWeight: '500' }]}>
                     {t('parking.slot')}: {task.parkingSlot}
                   </ThemedText>
-                </View>
+                </DirectionalRow>
               ) : null}
 
-              <View style={[styles.infoRow, { flexDirection: 'row' }]}>
+              <DirectionalRow style={styles.infoRow}>
                 <DDIcon name="clock" size={14} variant="muted" />
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6, textAlign: isRTL ? 'right' : 'left' }]}>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6 }]}>
                   {t('valet.pickupVehicle')}: {task.pickupTime}
                 </ThemedText>
                 <View style={styles.dotSeparator}>
                   <ThemedText style={{ color: theme.textSecondary }}>-</ThemedText>
                 </View>
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
                   {t('valet.returnVehicle')}: {task.returnTime}
                 </ThemedText>
-              </View>
+              </DirectionalRow>
 
-              <View style={[styles.infoRow, { flexDirection: 'row' }]}>
+              <DirectionalRow style={styles.infoRow}>
                 <DDIcon name="map-pin" size={14} variant="muted" />
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6, textAlign: isRTL ? 'right' : 'left' }]}>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6 }]}>
                   {task.location}
                 </ThemedText>
-              </View>
+              </DirectionalRow>
             </View>
 
             {actionButtons.length > 0 ? (
               <>
                 <Spacer height={Spacing.md} />
-                <View style={[styles.actionButtonsRow, { flexDirection: 'row' }]}>
+                <DirectionalRow style={styles.actionButtonsRow}>
                   {actionButtons.map((btn, index) => (
                     <Pressable
                       key={index}
                       style={[
                         styles.actionButton,
-                        { backgroundColor: btn.bgColor, flex: 1, flexDirection: 'row' },
+                        { backgroundColor: btn.bgColor, flex: 1, flexDirection: getFlexDirection(isRTL) },
                         index > 0 && { marginStart: Spacing.sm },
                         isUpdating && { opacity: 0.6 }
                       ]}
@@ -516,7 +514,7 @@ export default function DriverTasksScreen({ onNavigateToDetail }: DriverTasksScr
                       </ThemedText>
                     </Pressable>
                   ))}
-                </View>
+                </DirectionalRow>
               </>
             ) : null}
           </View>
@@ -534,14 +532,14 @@ export default function DriverTasksScreen({ onNavigateToDetail }: DriverTasksScr
     >
       <View style={styles.modalOverlay}>
         <ThemedView style={[styles.modalContent, { backgroundColor: theme.background }]}>
-          <View style={[styles.modalHeader, { flexDirection: 'row' }]}>
+          <DirectionalRow style={styles.modalHeader}>
             <ThemedText style={[Typography.subtitle, { fontWeight: '600' }]}>
               {t('parking.assignSlot')}
             </ThemedText>
             <Pressable onPress={() => setShowParkingModal(false)} hitSlop={8}>
               <DDIcon name="x" size={24} variant="muted" />
             </Pressable>
-          </View>
+          </DirectionalRow>
 
           <Spacer height={Spacing.lg} />
 
@@ -550,17 +548,17 @@ export default function DriverTasksScreen({ onNavigateToDetail }: DriverTasksScr
               {availableSlots.map((slot) => (
                 <Pressable
                   key={slot.id}
-                  style={[styles.slotCard, { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: 'row' }]}
+                  style={[styles.slotCard, { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: getFlexDirection(isRTL) }]}
                   onPress={() => handleSelectSlot(slot)}
                 >
                   <View style={[styles.slotIcon, { backgroundColor: applyOpacity(theme.success, '15') }]}>
                     <DDIcon name="check-circle" size={20} color={theme.success} />
                   </View>
                   <View style={{ flex: 1 }}>
-                    <ThemedText style={[Typography.body, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
+                    <ThemedText style={[Typography.body, { fontWeight: '600' }]}>
                       {slot.slotNumber}
                     </ThemedText>
-                    <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+                    <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
                       {slot.zone}
                     </ThemedText>
                   </View>
@@ -615,18 +613,18 @@ export default function DriverTasksScreen({ onNavigateToDetail }: DriverTasksScr
         
         <Spacer height={Spacing.md} />
         
-        <View style={[styles.dateDisplayRow, { flexDirection: 'row' }]}>
-          <ThemedText style={[Typography.bodySmall, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
+        <DirectionalRow style={styles.dateDisplayRow}>
+          <ThemedText style={[Typography.bodySmall, { fontWeight: '600' }]}>
             {formatDisplayDate()}
           </ThemedText>
-          <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+          <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
             {dateFilteredTasks.length} {dateFilteredTasks.length === 1 ? t('navigation.myTasks').split(' ')[1] : t('navigation.myTasks').split(' ')[1]}
           </ThemedText>
-        </View>
+        </DirectionalRow>
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.searchBarWrapper, { flexDirection: 'row' }]}>
+        <DirectionalRow style={styles.searchBarWrapper}>
           <SearchInput
             placeholder={t('common.search')}
             value={searchQuery}
@@ -641,7 +639,7 @@ export default function DriverTasksScreen({ onNavigateToDetail }: DriverTasksScr
           >
             <DDIcon name="calendar" size={20} color={theme.primary} />
           </Pressable>
-        </View>
+        </DirectionalRow>
 
         <Spacer height={Spacing.lg} />
 
@@ -737,12 +735,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   filtersContainer: {
-    flexDirection: 'row',
     gap: Spacing.sm,
     paddingEnd: Spacing.sm,
   },
   filterPill: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
@@ -813,7 +809,6 @@ const styles = StyleSheet.create({
     marginHorizontal: Spacing.sm,
   },
   actionButtonsRow: {
-    flexDirection: 'row',
   },
   actionButton: {
     alignItems: 'center',
