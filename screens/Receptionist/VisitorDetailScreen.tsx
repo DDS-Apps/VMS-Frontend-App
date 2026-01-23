@@ -656,6 +656,7 @@ const styles = StyleSheet.create({
   modalContent: {
     borderRadius: BorderRadius.lg,
     padding: Spacing.lg,
+    zIndex: 10,
   },
   modalHeader: {
     justifyContent: 'space-between',

@@ -3722,6 +3722,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 16,
     elevation: 5,
+    zIndex: 10,
   },
   modalHeader: {
     flexDirection: "row",
