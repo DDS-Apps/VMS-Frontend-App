@@ -1,8 +1,12 @@
 #!/bin/bash
 # EAS Build hook to fix React Native Firebase non-modular header warnings
 # Reference: https://github.com/invertase/react-native-firebase/issues/8657
+# Note: EAS may pass extra arguments like --platform ios, which we ignore
 
 set -e
+
+# Ignore any arguments passed by EAS
+# This prevents errors from --platform ios being passed
 
 PODFILE="ios/Podfile"
 
@@ -47,3 +51,5 @@ rm /tmp/clang_fix.txt
 echo "[fix-firebase-headers] Podfile patched successfully"
 echo "[fix-firebase-headers] Verifying patch..."
 grep -A 10 "post_install do" "$PODFILE" | head -15
+
+exit 0

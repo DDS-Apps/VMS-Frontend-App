@@ -8,7 +8,8 @@
       "developmentClient": true,
       "distribution": "internal",
       "ios": {
-        "simulator": true
+        "simulator": true,
+        "prebuildCommand": "bash scripts/fix-firebase-headers.sh"
       },
       "android": {
         "buildType": "apk"
@@ -18,7 +19,8 @@
       "distribution": "internal",
       "autoIncrement": true,
       "ios": {
-        "simulator": false
+        "simulator": false,
+        "prebuildCommand": "bash scripts/fix-firebase-headers.sh"
       },
       "android": {
         "buildType": "apk"
@@ -28,7 +30,8 @@
       "distribution": "store",
       "autoIncrement": true,
       "ios": {
-        "simulator": false
+        "simulator": false,
+        "prebuildCommand": "bash scripts/fix-firebase-headers.sh"
       },
       "android": {
         "buildType": "app-bundle"
@@ -37,7 +40,9 @@
     "production-preview": {
       "distribution": "internal",
       "autoIncrement": true,
-      "ios": {},
+      "ios": {
+        "prebuildCommand": "bash scripts/fix-firebase-headers.sh"
+      },
       "android": {
         "buildType": "apk"
       }
