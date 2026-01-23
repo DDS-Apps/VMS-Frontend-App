@@ -137,49 +137,75 @@ class PushNotificationService {
   private async initializeMobile(
     onNotificationReceived?: NotificationCallback
   ): Promise<boolean> {
+    console.log('[Push Mobile] Step 1: Checking if physical device...');
     if (!Device.isDevice) {
+      console.log('[Push Mobile] Not a physical device (simulator/emulator), skipping');
       return false;
     }
+    console.log('[Push Mobile] Device info:', {
+      brand: Device.brand,
+      modelName: Device.modelName,
+      deviceName: Device.deviceName,
+      osName: Device.osName,
+      osVersion: Device.osVersion,
+    });
 
+    console.log('[Push Mobile] Step 2: Checking existing permissions...');
     const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    console.log('[Push Mobile] Existing permission status:', existingStatus);
     let finalStatus = existingStatus;
 
     if (existingStatus !== 'granted') {
+      console.log('[Push Mobile] Step 3: Requesting permission...');
       const { status } = await Notifications.requestPermissionsAsync();
       finalStatus = status;
+      console.log('[Push Mobile] Permission request result:', status);
     }
 
     if (finalStatus !== 'granted') {
+      console.log('[Push Mobile] Permission denied, cannot proceed');
       return false;
     }
+    console.log('[Push Mobile] Permission granted!');
 
     try {
+      console.log('[Push Mobile] Step 4: Getting device push token (native APNs/FCM)...');
       const tokenData = await Notifications.getDevicePushTokenAsync();
       this.token = tokenData.data;
+      console.log('[Push Mobile] Token type:', tokenData.type);
+      console.log('[Push Mobile] Token obtained:', this.token?.substring(0, 40) + '...');
     } catch (error) {
-      console.error('[Push] Error getting mobile token:', error);
+      console.error('[Push Mobile] ERROR getting token:', error);
       return false;
     }
 
     if (Platform.OS === 'android') {
+      console.log('[Push Mobile] Step 5: Setting up Android notification channels...');
       await this.setupAndroidChannels();
+      console.log('[Push Mobile] Android channels configured');
     }
 
+    console.log('[Push Mobile] Step 6: Registering token with backend...');
     await this.registerTokenWithBackend();
+    console.log('[Push Mobile] Backend registration complete');
 
+    console.log('[Push Mobile] Step 7: Setting up notification listeners...');
     this.notificationListener = Notifications.addNotificationReceivedListener((notification) => {
+      console.log('[Push Mobile] Notification received:', notification.request.content.title);
       const data = notification.request.content.data as Record<string, unknown>;
       this.handleNotificationReceived(data);
       onNotificationReceived?.(notification);
     });
 
     this.responseListener = Notifications.addNotificationResponseReceivedListener((response) => {
+      console.log('[Push Mobile] Notification tapped:', response.notification.request.content.title);
       const data = response.notification.request.content.data as Record<string, unknown>;
       this.handleNotificationReceived(data);
       handleNotificationTap(response);
     });
 
     this.isInitialized = true;
+    console.log('[Push Mobile] Initialization COMPLETE! Ready to receive notifications.');
     return true;
   }
 
@@ -218,6 +244,7 @@ class PushNotificationService {
 
   private async registerTokenWithBackend(): Promise<void> {
     if (!this.token) {
+      console.log('[Push Backend] No token available, skipping registration');
       return;
     }
 
@@ -226,16 +253,25 @@ class PushNotificationService {
     const deviceModel = Device.modelName || undefined;
     const appVersion = Constants.expoConfig?.version || '1.0.0';
 
+    console.log('[Push Backend] Registering token with backend:', {
+      platform,
+      deviceName,
+      deviceModel,
+      appVersion,
+      tokenPreview: this.token.substring(0, 30) + '...',
+    });
+
     try {
-      await deviceApiService.registerToken({
+      const response = await deviceApiService.registerToken({
         deviceToken: this.token,
         platform,
         deviceName,
         deviceModel,
         appVersion,
       });
+      console.log('[Push Backend] Registration successful:', response);
     } catch (error) {
-      console.error('[Push] Token registration failed:', error);
+      console.error('[Push Backend] Registration FAILED:', error);
       throw error;
     }
   }
@@ -253,20 +289,25 @@ class PushNotificationService {
   }
 
   async unregister(): Promise<void> {
+    console.log('[Push] Unregistering push notifications...');
     if (!this.token) {
+      console.log('[Push] No token to unregister, cleaning up listeners');
       this.cleanup();
       return;
     }
 
     const tokenToUnregister = this.token;
+    console.log('[Push] Unregistering token from backend:', tokenToUnregister.substring(0, 30) + '...');
 
     try {
       await deviceApiService.unregisterToken(tokenToUnregister);
+      console.log('[Push] Token unregistered successfully');
     } catch (error) {
       console.error('[Push] Unregister failed:', error);
     }
 
     this.cleanup();
+    console.log('[Push] Cleanup complete');
   }
 
   private cleanup(): void {
