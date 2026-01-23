@@ -100,7 +100,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
     { key: 'all', label: t('common.all') },
     { key: 'expected', label: t('visitor.expectedVisitors') },
     { key: 'checked_in', label: t('status.checkedIn') },
-    { key: 'completed', label: t('status.checkedOut') },
+    { key: 'completed', label: t('timeline.visitCompleted') },
   ];
 
   const scrollContentStyle = {
@@ -201,6 +201,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
       case 'checked_in':
         return { label: t('status.checkedIn'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: theme.success };
       case 'completed':
+        return { label: t('timeline.visitCompleted'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: theme.success };
       case 'checked_out':
         return { label: t('status.checkedOut'), bg: applyOpacity(theme.textSecondary, '15'), text: theme.textSecondary, border: theme.textSecondary };
       case 'pending_approval':
@@ -247,7 +248,6 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
     const initials = visitorName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
     const showCheckIn = item.status === 'approved' || item.status === 'visitor_accepted' || item.status === 'expected';
     const showCheckOut = item.status === 'checked_in';
-    const showCompleted = item.status === 'completed' || item.status === 'checked_out';
     const isExpanded = expandedVisitors.has(item.id);
     const hasDetails = item.visitor.phone;
 
@@ -345,8 +345,6 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
                     type="check_out"
                     onPress={(e) => handleCheckOut(item.id, visitorName, e)}
                   />
-                ) : showCompleted ? (
-                  <VisitorActionButton type="completed" />
                 ) : null}
               </DirectionalRow>
             </DirectionalRow>
