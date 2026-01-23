@@ -427,7 +427,14 @@ export default function VisitorRequestFormScreen({
   };
 
   const isEndTimeBeforeStartTime = (): boolean => {
-    return selectedEndTime.getTime() <= selectedTime.getTime();
+    // Normalize both times to the same reference date to only compare time-of-day
+    const referenceDate = new Date(2000, 0, 1);
+    const startNormalized = new Date(referenceDate);
+    startNormalized.setHours(selectedTime.getHours(), selectedTime.getMinutes(), 0, 0);
+    const endNormalized = new Date(referenceDate);
+    endNormalized.setHours(selectedEndTime.getHours(), selectedEndTime.getMinutes(), 0, 0);
+    
+    return endNormalized.getTime() <= startNormalized.getTime();
   };
 
   const validateForm = (): { isValid: boolean; errorFields: string[] } => {
