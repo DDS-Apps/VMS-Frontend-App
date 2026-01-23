@@ -2112,7 +2112,10 @@ export default function RequestDetailsScreen({
                 <Spacer width={12} />
 
                 <LoadingButton
-                  onPress={handleCancelRequest}
+                  onPress={() => {
+                    console.log('[CancelRequest] BUTTON TAPPED - calling handleCancelRequest');
+                    handleCancelRequest();
+                  }}
                   loading={cancelMutation.isPending}
                   disabled={cancelMutation.isPending}
                   variant="danger"

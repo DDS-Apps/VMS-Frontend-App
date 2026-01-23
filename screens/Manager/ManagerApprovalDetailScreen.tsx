@@ -725,9 +725,15 @@ export default function ManagerApprovalDetailScreen({
   };
 
   const handleCancel = () => {
-    if (isReadOnlyRole) return;
+    console.log('[CancelRequest Manager] Called, requestId:', requestId, 'isReadOnlyRole:', isReadOnlyRole);
+    if (isReadOnlyRole) {
+      console.log('[CancelRequest Manager] Blocked - user has read-only role');
+      return;
+    }
+    console.log('[CancelRequest Manager] Calling cancelMutation.mutate...');
     cancelMutation.mutate(requestId, {
       onSuccess: () => {
+        console.log('[CancelRequest Manager] SUCCESS - request cancelled');
         setShowCancelModal(false);
         showToast(t("notifications.requestCancelled"), "success");
         setTimeout(() => {
@@ -735,6 +741,7 @@ export default function ManagerApprovalDetailScreen({
         }, 1000);
       },
       onError: (error) => {
+        console.error('[CancelRequest Manager] ERROR:', error);
         showToast(t("errors.somethingWentWrong"), "error");
       },
     });
@@ -1845,7 +1852,10 @@ export default function ManagerApprovalDetailScreen({
                 <Spacer width={Spacing.md} />
 
                 <LoadingButton
-                  onPress={handleCancel}
+                  onPress={() => {
+                    console.log('[CancelRequest Manager] BUTTON TAPPED - calling handleCancel');
+                    handleCancel();
+                  }}
                   loading={cancelMutation.isPending}
                   disabled={isProcessing}
                   variant="danger"
