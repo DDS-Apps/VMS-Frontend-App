@@ -1131,6 +1131,7 @@ const styles = StyleSheet.create({
   },
 
   searchBar: {
+    flexDirection: 'row',
     alignItems: 'center',
     borderRadius: BorderRadius.md,
     paddingHorizontal: Spacing.md,
