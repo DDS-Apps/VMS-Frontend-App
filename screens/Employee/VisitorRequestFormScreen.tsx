@@ -370,9 +370,14 @@ export default function VisitorRequestFormScreen({
   };
 
   const calculateDuration = (): string => {
-    const startMs = selectedTime.getTime();
-    const endMs = selectedEndTime.getTime();
-    const diffMs = endMs - startMs;
+    // Normalize both times to the same reference date to only compare time-of-day
+    const referenceDate = new Date(2000, 0, 1); // Use a fixed reference date
+    const startNormalized = new Date(referenceDate);
+    startNormalized.setHours(selectedTime.getHours(), selectedTime.getMinutes(), 0, 0);
+    const endNormalized = new Date(referenceDate);
+    endNormalized.setHours(selectedEndTime.getHours(), selectedEndTime.getMinutes(), 0, 0);
+    
+    const diffMs = endNormalized.getTime() - startNormalized.getTime();
 
     if (diffMs <= 0) return "--";
 
@@ -390,9 +395,14 @@ export default function VisitorRequestFormScreen({
   };
 
   const getDurationString = (): string => {
-    const startMs = selectedTime.getTime();
-    const endMs = selectedEndTime.getTime();
-    const diffMs = endMs - startMs;
+    // Normalize both times to the same reference date to only compare time-of-day
+    const referenceDate = new Date(2000, 0, 1); // Use a fixed reference date
+    const startNormalized = new Date(referenceDate);
+    startNormalized.setHours(selectedTime.getHours(), selectedTime.getMinutes(), 0, 0);
+    const endNormalized = new Date(referenceDate);
+    endNormalized.setHours(selectedEndTime.getHours(), selectedEndTime.getMinutes(), 0, 0);
+    
+    const diffMs = endNormalized.getTime() - startNormalized.getTime();
 
     if (diffMs <= 0) return "";
 
