@@ -24,7 +24,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.dallah.vms",
       "appleTeamId": "SNJM77V43A",
-      "buildNumber": "27",
+      "buildNumber": "28",
       "googleServicesFile": "./config/qa/GoogleService-Info.plist",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
@@ -66,7 +66,8 @@
           "color": "#F58423",
           "defaultChannel": "default"
         }
-      ]
+      ],
+      "./plugins/withFirebaseModularHeaders.js"
     ],
     "experiments": {
       "reactCompiler": true
