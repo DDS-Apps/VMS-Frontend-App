@@ -44,6 +44,7 @@
           }
         }
       ],
+      "./plugins/withFirebaseModularHeaders.js",
       "@react-native-firebase/app",
       "@react-native-firebase/crashlytics",
       [
