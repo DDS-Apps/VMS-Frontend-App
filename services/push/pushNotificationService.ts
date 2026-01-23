@@ -11,7 +11,7 @@ import {
   registerServiceWorker,
   getWebNotificationPermissionStatus,
 } from '@/services/firebase';
-import { handleNotificationTap } from '@/utils/notificationNavigator';
+import { handleNotificationTap, navigateFromInAppNotification } from '@/utils/notificationNavigator';
 import { invalidateQueriesForNotification, refreshAllNotificationData } from './notificationQueryMapper';
 import type { DevicePlatform, NotificationPayload } from '@/types';
 
@@ -34,6 +34,7 @@ class PushNotificationService {
   private notificationListener: Notifications.EventSubscription | null = null;
   private responseListener: Notifications.EventSubscription | null = null;
   private webUnsubscribe: (() => void) | null = null;
+  private webMessageHandler: ((event: MessageEvent) => void) | null = null;
   private queryClient: QueryClient | null = null;
 
   setQueryClient(client: QueryClient): void {
@@ -130,8 +131,38 @@ class PushNotificationService {
       }
     });
 
+    console.log('[Push Web] Step 5: Setting up service worker message listener for notification clicks...');
+    this.setupWebNotificationClickHandler();
+
     this.isInitialized = true;
+    console.log('[Push Web] Initialization COMPLETE!');
     return true;
+  }
+
+  private setupWebNotificationClickHandler(): void {
+    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
+      console.log('[Push Web] Service worker not available, skipping click handler');
+      return;
+    }
+
+    this.webMessageHandler = (event: MessageEvent) => {
+      console.log('[Push Web] Received message from service worker:', event.data);
+      
+      if (event.data?.type === 'NOTIFICATION_CLICK') {
+        const data = event.data.data || {};
+        console.log('[Push Web] Notification clicked, navigating with data:', data);
+        
+        const notificationType = data.type as string;
+        if (notificationType) {
+          navigateFromInAppNotification({ type: notificationType, data });
+        } else {
+          console.log('[Push Web] No notification type in data, cannot navigate');
+        }
+      }
+    };
+
+    navigator.serviceWorker.addEventListener('message', this.webMessageHandler);
+    console.log('[Push Web] Service worker message listener registered');
   }
 
   private async initializeMobile(
@@ -322,6 +353,10 @@ class PushNotificationService {
     if (this.webUnsubscribe) {
       this.webUnsubscribe();
       this.webUnsubscribe = null;
+    }
+    if (this.webMessageHandler && typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.removeEventListener('message', this.webMessageHandler);
+      this.webMessageHandler = null;
     }
     this.token = null;
     this.isInitialized = false;
