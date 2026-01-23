@@ -45,17 +45,39 @@ function detectBrowser(): BrowserInfo {
     name = 'safari';
     version = ua.match(/Version\/(\d+)/)?.[1] || '';
     const majorVersion = parseInt(version, 10);
-    // Safari 16+ (macOS Ventura+) supports Web Push
-    if (majorVersion < 16) {
-      supportsWebPush = false;
-      supportMessage = `Safari ${version}: Web Push requires Safari 16+ (macOS Ventura or later). Your version does not support Web Push.`;
+    
+    // Check if iOS/iPadOS
+    const isIOS = /iPhone|iPad|iPod/.test(ua);
+    const iosVersion = ua.match(/OS (\d+)/)?.[1] || '';
+    const iosMajorVersion = parseInt(iosVersion, 10);
+    
+    if (isIOS) {
+      // iOS Safari 16.4+ supports Web Push, BUT only as installed PWA
+      if (iosMajorVersion >= 16) {
+        // Check if running as installed PWA (standalone mode)
+        const isStandalone = (window.navigator as any).standalone === true || 
+                            window.matchMedia('(display-mode: standalone)').matches;
+        
+        if (isStandalone) {
+          supportsWebPush = true;
+          supportMessage = `iOS Safari ${iosMajorVersion}: Web Push supported in installed PWA mode.`;
+        } else {
+          supportsWebPush = false;
+          supportMessage = `iOS Safari ${iosMajorVersion}: Web Push only works when app is installed to Home Screen as PWA. Add this app to your Home Screen to enable notifications.`;
+        }
+      } else {
+        supportsWebPush = false;
+        supportMessage = `iOS Safari ${iosMajorVersion}: Web Push requires iOS 16.4+ and must be installed as PWA. Please use our mobile app for notifications.`;
+      }
     } else {
-      supportMessage = 'Safari 16+: Web Push supported on macOS Ventura+.';
-    }
-    // iOS Safari doesn't support Web Push at all
-    if (/iPhone|iPad|iPod/.test(ua)) {
-      supportsWebPush = false;
-      supportMessage = 'Safari on iOS: Web Push is not supported. Please use our mobile app for notifications.';
+      // macOS Safari
+      if (majorVersion < 16) {
+        supportsWebPush = false;
+        supportMessage = `Safari ${version}: Web Push requires Safari 16+ (macOS Ventura or later). Your version does not support Web Push.`;
+      } else {
+        supportsWebPush = true;
+        supportMessage = `Safari ${version}: Web Push supported on macOS. Note: Notifications must display immediately or permissions may be revoked.`;
+      }
     }
   } else if (ua.includes('Opera/') || ua.includes('OPR/')) {
     name = 'opera';
