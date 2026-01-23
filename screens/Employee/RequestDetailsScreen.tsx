@@ -459,13 +459,20 @@ export default function RequestDetailsScreen({
   };
 
   const handleCancelRequest = () => {
-    if (isTerminalStatus) return;
+    console.log('[CancelRequest] Called, requestId:', requestId, 'isTerminalStatus:', isTerminalStatus);
+    if (isTerminalStatus) {
+      console.log('[CancelRequest] Blocked - request is in terminal status');
+      return;
+    }
+    console.log('[CancelRequest] Calling cancelMutation.mutate...');
     cancelMutation.mutate(requestId, {
       onSuccess: () => {
+        console.log('[CancelRequest] SUCCESS - request cancelled');
         setShowCancelModal(false);
         navigation.goBack();
       },
       onError: (error) => {
+        console.error('[CancelRequest] ERROR:', error);
         Alert.alert(t("errors.somethingWentWrong"), error.message);
       },
     });
@@ -2065,17 +2072,11 @@ export default function RequestDetailsScreen({
             <View
               style={[styles.modalContent, { backgroundColor: theme.surface }]}
             >
-              <DirectionalRow style={styles.modalHeader}>
+              <View style={styles.modalHeader}>
                 <ThemedText
                   style={[
                     Typography.subtitle,
-                    {
-                      fontSize: 18,
-                      fontWeight: "600",
-                      color: theme.text,
-                      flex: 1,
-                      //     
-                    },
+                    { fontSize: 18, fontWeight: "600", color: theme.text },
                   ]}
                 >
                   {t("actions.confirmCancel")}
@@ -2083,7 +2084,7 @@ export default function RequestDetailsScreen({
                 <Pressable onPress={() => setShowCancelModal(false)}>
                   <DDIcon name="x" size={22} variant="muted" />
                 </Pressable>
-              </DirectionalRow>
+              </View>
 
               <Spacer height={20} />
 
