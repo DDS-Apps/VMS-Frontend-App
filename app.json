@@ -24,7 +24,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.dallah.vms",
       "appleTeamId": "SNJM77V43A",
-      "buildNumber": "30",
+      "buildNumber": "31",
       "newArchEnabled": false,
       "googleServicesFile": "./config/qa/GoogleService-Info.plist",
       "infoPlist": {
