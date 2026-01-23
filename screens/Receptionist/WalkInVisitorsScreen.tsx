@@ -162,7 +162,7 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
       case 'checked_in':
         return { label: t('status.checkedIn'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: theme.success };
       case 'completed':
-        return { label: t('status.checkedOut'), bg: applyOpacity(theme.textSecondary, '15'), text: theme.textSecondary, border: theme.textSecondary };
+        return { label: t('timeline.visitCompleted'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: theme.success };
       default:
         return { label: t('visitor.expectedVisitors'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: theme.warning };
     }
@@ -310,9 +310,7 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
                     type="check_out" 
                     onPress={(e) => handleCheckOut(item.id, visitorName, e)} 
                   />
-                ) : (
-                  <VisitorActionButton type="completed" />
-                )}
+                ) : null}
               </DirectionalRow>
             </DirectionalRow>
           </View>
