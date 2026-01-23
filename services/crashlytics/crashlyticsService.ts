@@ -1,12 +1,16 @@
 import { Platform } from 'react-native';
 
-// TEMPORARILY DISABLED: Firebase Crashlytics plugins commented out in app.json
-// due to incompatibility with New Architecture + static frameworks on Expo SDK 54.
-// To re-enable: Add these plugins back to app.json:
-//   "@react-native-firebase/app",
-//   "@react-native-firebase/crashlytics",
-//   ["expo-build-properties", { "ios": { "useFrameworks": "static" } }],
-//   "./plugins/withFirebaseModularHeaders.js"
+// TEMPORARILY DISABLED: Firebase Crashlytics removed due to incompatibility 
+// with New Architecture + static frameworks on Expo SDK 54.
+// 
+// To re-enable:
+// 1. Install packages: npm install @react-native-firebase/app @react-native-firebase/crashlytics
+// 2. Add these plugins to app.json:
+//    ["expo-build-properties", { "ios": { "useFrameworks": "static" } }],
+//    "@react-native-firebase/app",
+//    "@react-native-firebase/crashlytics",
+//    "./plugins/withFirebaseModularHeaders.js"
+// 3. Set CRASHLYTICS_DISABLED = false below
 const CRASHLYTICS_DISABLED = true;
 
 type CrashlyticsInstance = {
