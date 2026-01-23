@@ -273,7 +273,7 @@ export default function App() {
   useEffect(() => {
     const timer = setTimeout(() => {
       if (!appIsReady) {
-        console.warn('[App] Font loading timeout - proceeding without custom fonts');
+   
         setAppIsReady(true);
       }
       // Also timeout locale bootstrap to prevent stuck splash

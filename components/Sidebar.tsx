@@ -207,9 +207,6 @@ export default function Sidebar({
   const isLargeScreen = width >= 768;
   const insets = useSafeAreaInsets();
   
-  // DEBUG: Log profile data to verify it's passed correctly
-  console.log('[Sidebar Profile DEBUG]', { userName, userRole, isRTL, platform: Platform.OS });
-
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => {
     const initial = new Set<string>();
     groups.forEach(group => {

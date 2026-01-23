@@ -82,9 +82,6 @@ export default function DashboardLayout({
     ? getInitialRTLState() || contextIsRTL 
     : I18nManager.isRTL;
   
-  // DEBUG: Log RTL state for sidebar positioning
-  console.log('[DashboardLayout] isRTL:', isRTL, 'I18nManager.isRTL:', I18nManager.isRTL, 'contextIsRTL:', contextIsRTL, 'locale:', locale);
-  
   const { t } = useTranslation();
   const rtlStyles = useRTLStyles();
   const { width } = useWindowDimensions();

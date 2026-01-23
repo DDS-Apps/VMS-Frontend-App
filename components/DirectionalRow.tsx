@@ -136,8 +136,7 @@ export function calculateFlexDirection(
   // DEBUG: Log the calculation
   if (Platform.OS === 'web') {
     const docDir = typeof document !== 'undefined' ? document.documentElement.dir : 'N/A';
-    console.log('[calculateFlexDir] isRTL:', isRTL, 'autoFlip:', autoFlip, 'docDir:', docDir, 'isNested:', isNested);
-  }
+   }
   
   // If browser will auto-flip, use 'row' (browser handles it)
   if (autoFlip) {
@@ -160,7 +159,6 @@ export function calculateFlexDirection(
     // On web, always use row-reverse for RTL (even nested, since no auto-flip)
     // On mobile (non-nested), use 'row' which native will flip
     const result = isWeb ? 'row-reverse' : 'row';
-    console.log('[calculateFlexDir] Result:', result);
     return result;
   }
   
@@ -213,10 +211,7 @@ export function DirectionalRow({
     gap: gap ?? flattenedStyle.gap,
   };
   
-  // DEBUG: Log the actual final style being applied
-  if (Platform.OS === 'web' && depth === 0 && isRTL) {
-    console.log('[DirectionalRow] finalStyle.flexDirection:', finalStyle.flexDirection, 'flattenedStyle:', JSON.stringify(flattenedStyle));
-  }
+
   
   // On web RTL, use CSS direction property instead of reversing children
   // This is more reliable on React Native Web
@@ -228,7 +223,7 @@ export function DirectionalRow({
     (finalStyle as any).direction = 'rtl';
     // Keep flexDirection as 'row' - the direction property will flip it
     finalStyle.flexDirection = 'row';
-    console.log('[DirectionalRow] WEB RTL: Using direction: rtl');
+
   }
   
   const renderedChildren = children;

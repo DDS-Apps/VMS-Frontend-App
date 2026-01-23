@@ -215,9 +215,7 @@ export function VisitorRequestCard({
   );
 
   const renderHeader = () => {
-    // DEBUG: Log RTL state for card header
-    console.log('[VisitorRequestCard] Platform:', Platform.OS, 'isRTL:', isRTL);
-    
+
     return (
       <DirectionalRow style={styles.cardHeader} gap={Spacing.md}>
         {renderAvatar()}
