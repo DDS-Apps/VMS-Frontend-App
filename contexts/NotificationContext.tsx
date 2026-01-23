@@ -88,34 +88,43 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
   }, [isAuthenticated]);
 
   const registerForPushNotifications = useCallback(async (): Promise<string | null> => {
+    console.log('[NotificationContext] registerForPushNotifications called, platform:', Platform.OS);
+    
     if (Platform.OS === 'web') {
+      console.log('[NotificationContext] Web platform, skipping Expo push registration');
       return null;
     }
 
     if (!notificationsSupported) {
-      console.log('Push notifications not supported in this environment');
+      console.log('[NotificationContext] Push notifications not supported in this environment');
       return null;
     }
 
     if (!Device.isDevice) {
-      console.log('Push notifications require a physical device');
+      console.log('[NotificationContext] Push notifications require a physical device');
       return null;
     }
 
     try {
+      console.log('[NotificationContext] Checking existing permissions...');
       const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      console.log('[NotificationContext] Existing permission status:', existingStatus);
       let finalStatus = existingStatus;
 
       if (existingStatus !== 'granted') {
+        console.log('[NotificationContext] Requesting permission...');
         const { status } = await Notifications.requestPermissionsAsync();
         finalStatus = status;
+        console.log('[NotificationContext] Permission request result:', finalStatus);
       }
 
       setPermissionStatus(finalStatus);
 
       if (finalStatus !== 'granted') {
+        console.log('[NotificationContext] Permission denied, cannot proceed');
         return null;
       }
+      console.log('[NotificationContext] Permission granted!');
 
       if (Platform.OS === 'android') {
         await Notifications.setNotificationChannelAsync('default', {
@@ -126,9 +135,11 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
         });
       }
 
+      console.log('[NotificationContext] Getting Expo push token...');
       const tokenData = await Notifications.getExpoPushTokenAsync({
-        projectId: 'dallah-vms',
+        projectId: '33b6baff-6c89-44be-905f-006d0da4434d',
       });
+      console.log('[NotificationContext] Token obtained:', tokenData.data?.substring(0, 40) + '...');
       
       const token = tokenData.data;
       setExpoPushToken(token);

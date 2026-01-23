@@ -17,7 +17,8 @@
       "predictiveBackGestureEnabled": false,
       "package": "com.dallah.vms",
       "googleServicesFile": "./config/qa/google-services.json",
-      "supportsRTL": true
+      "supportsRTL": true,
+      "permissions": ["android.permission.POST_NOTIFICATIONS"]
     },
     "ios": {
       "supportsTablet": true,
