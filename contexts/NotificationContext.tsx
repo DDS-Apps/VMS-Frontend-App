@@ -6,30 +6,28 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from './AuthContext';
 import { notificationApiService } from '@/services/api/notificationApiService';
 import { notificationKeys } from '@/hooks/queries/useNotificationQueries';
+import { pushNotificationService } from '@/services/push';
 import type { UserRole } from '@/types/vms.types';
 
+// Check if notifications are supported in this environment
+// Note: The main notification handler is set in pushNotificationService.ts
+// This context only manages unread counts, badge, and permission status
 let notificationsSupported = true;
-
 try {
-  Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldShowAlert: true,
-      shouldPlaySound: true,
-      shouldSetBadge: true,
-      shouldShowBanner: true,
-      shouldShowList: true,
-    }),
-  });
+  // Just check if the module is available, don't set handler (handled by pushNotificationService)
+  if (typeof Notifications.getPermissionsAsync !== 'function') {
+    notificationsSupported = false;
+  }
 } catch (error) {
-  console.log('expo-notifications not supported in this environment (likely Expo Go on Android SDK 53+)');
+  console.log('[NotificationContext] expo-notifications not supported in this environment');
   notificationsSupported = false;
 }
 
 interface NotificationContextType {
   unreadCount: number;
   isLoading: boolean;
-  permissionStatus: Notifications.PermissionStatus | null;
-  expoPushToken: string | null;
+  permissionStatus: 'granted' | 'denied' | 'undetermined' | 'unsupported' | null;
+  pushToken: string | null;
   requestPermission: () => Promise<boolean>;
   refreshUnreadCount: () => Promise<void>;
   markAsRead: (id: string) => Promise<void>;
@@ -62,14 +60,15 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
   
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [permissionStatus, setPermissionStatus] = useState<Notifications.PermissionStatus | null>(null);
-  const [expoPushToken, setExpoPushToken] = useState<string | null>(null);
+  const [permissionStatus, setPermissionStatus] = useState<'granted' | 'denied' | 'undetermined' | 'unsupported' | null>(null);
+  const [pushToken, setPushToken] = useState<string | null>(null);
   
   const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const notificationListenerRef = useRef<Notifications.EventSubscription | null>(null);
   const responseListenerRef = useRef<Notifications.EventSubscription | null>(null);
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
 
+  // Fetch unread count from backend
   const fetchUnreadCount = useCallback(async () => {
     if (!isAuthenticated) return;
     
@@ -77,94 +76,77 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
       const response = await notificationApiService.getUnreadCount();
       setUnreadCount(response.count);
       
+      // Update badge count on mobile
       if (Platform.OS !== 'web' && notificationsSupported) {
         try {
           await Notifications.setBadgeCountAsync(response.count);
         } catch (e) {
+          // Badge not supported
         }
       }
     } catch (error) {
+      // Silently fail - unread count is not critical
     }
   }, [isAuthenticated]);
 
-  const registerForPushNotifications = useCallback(async (): Promise<string | null> => {
-    console.log('[NotificationContext] registerForPushNotifications called, platform:', Platform.OS);
+  // Check and update permission status from pushNotificationService
+  const updatePermissionStatus = useCallback(async () => {
+    try {
+      const status = await pushNotificationService.getPermissionStatus();
+      setPermissionStatus(status);
+      
+      // Also get the current token if available
+      const token = pushNotificationService.getToken();
+      setPushToken(token);
+    } catch (error) {
+      console.log('[NotificationContext] Error getting permission status:', error);
+    }
+  }, []);
+
+  // Request permission - delegates to pushNotificationService which handles token registration
+  const requestPermission = useCallback(async (): Promise<boolean> => {
+    console.log('[NotificationContext] requestPermission called');
     
     if (Platform.OS === 'web') {
-      console.log('[NotificationContext] Web platform, skipping Expo push registration');
-      return null;
+      // For web, pushNotificationService handles everything
+      const success = await pushNotificationService.initialize();
+      await updatePermissionStatus();
+      return success;
     }
 
-    if (!notificationsSupported) {
-      console.log('[NotificationContext] Push notifications not supported in this environment');
-      return null;
-    }
-
-    if (!Device.isDevice) {
-      console.log('[NotificationContext] Push notifications require a physical device');
-      return null;
+    if (!notificationsSupported || !Device.isDevice) {
+      console.log('[NotificationContext] Push notifications not supported');
+      setPermissionStatus('unsupported');
+      return false;
     }
 
     try {
-      console.log('[NotificationContext] Checking existing permissions...');
+      // Request permission via expo-notifications
       const { status: existingStatus } = await Notifications.getPermissionsAsync();
-      console.log('[NotificationContext] Existing permission status:', existingStatus);
       let finalStatus = existingStatus;
 
       if (existingStatus !== 'granted') {
-        console.log('[NotificationContext] Requesting permission...');
+        console.log('[NotificationContext] Requesting notification permission...');
         const { status } = await Notifications.requestPermissionsAsync();
         finalStatus = status;
-        console.log('[NotificationContext] Permission request result:', finalStatus);
+        console.log('[NotificationContext] Permission result:', finalStatus);
       }
 
-      setPermissionStatus(finalStatus);
-
-      if (finalStatus !== 'granted') {
-        console.log('[NotificationContext] Permission denied, cannot proceed');
-        return null;
+      if (finalStatus === 'granted') {
+        setPermissionStatus('granted');
+        // Let pushNotificationService handle token registration (it's already initialized in AuthContext)
+        const token = pushNotificationService.getToken();
+        setPushToken(token);
+        return true;
+      } else {
+        setPermissionStatus('denied');
+        return false;
       }
-      console.log('[NotificationContext] Permission granted!');
-
-      if (Platform.OS === 'android') {
-        await Notifications.setNotificationChannelAsync('default', {
-          name: 'Default',
-          importance: Notifications.AndroidImportance.MAX,
-          vibrationPattern: [0, 250, 250, 250],
-          lightColor: '#F58423',
-        });
-      }
-
-      console.log('[NotificationContext] Getting Expo push token...');
-      const tokenData = await Notifications.getExpoPushTokenAsync({
-        projectId: '33b6baff-6c89-44be-905f-006d0da4434d',
-      });
-      console.log('[NotificationContext] Token obtained:', tokenData.data?.substring(0, 40) + '...');
-      
-      const token = tokenData.data;
-      setExpoPushToken(token);
-
-      if (isAuthenticated && token) {
-        try {
-          await notificationApiService.registerDeviceToken({
-            token,
-            platform: Platform.OS as 'ios' | 'android',
-            deviceName: Device.deviceName || undefined,
-          });
-        } catch (error) {
-        }
-      }
-
-      return token;
     } catch (error) {
-      return null;
+      console.error('[NotificationContext] Error requesting permission:', error);
+      return false;
     }
-  }, [isAuthenticated]);
-
-  const requestPermission = useCallback(async (): Promise<boolean> => {
-    const token = await registerForPushNotifications();
-    return token !== null;
-  }, [registerForPushNotifications]);
+  }, [updatePermissionStatus]);
 
   const refreshUnreadCount = useCallback(async () => {
     setIsLoading(true);
@@ -187,6 +169,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
           const newCount = Math.max(0, unreadCount - 1);
           await Notifications.setBadgeCountAsync(newCount);
         } catch (e) {
+          // Badge not supported
         }
       }
     } catch (error) {
@@ -204,6 +187,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
         try {
           await Notifications.setBadgeCountAsync(0);
         } catch (e) {
+          // Badge not supported
         }
       }
     } catch (error) {
@@ -222,6 +206,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
     }
   }, [queryClient, fetchUnreadCount]);
 
+  // Initialize on authentication change
   useEffect(() => {
     if (pollingIntervalRef.current) {
       clearInterval(pollingIntervalRef.current);
@@ -230,11 +215,13 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
 
     if (!isAuthenticated) {
       setUnreadCount(0);
-      setExpoPushToken(null);
+      setPushToken(null);
+      setPermissionStatus(null);
       if (Platform.OS !== 'web' && notificationsSupported) {
         try {
           Notifications.setBadgeCountAsync(0);
         } catch (e) {
+          // Badge not supported
         }
       }
       return;
@@ -246,11 +233,12 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
       if (!isMounted) return;
       await fetchUnreadCount();
       if (!isMounted) return;
-      await registerForPushNotifications();
+      await updatePermissionStatus();
     };
 
     initNotifications();
 
+    // Set up polling based on role
     const pollingInterval = getPollingIntervalForRole(user?.role);
     pollingIntervalRef.current = setInterval(() => {
       if (isMounted && isAuthenticated) {
@@ -265,8 +253,9 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
         pollingIntervalRef.current = null;
       }
     };
-  }, [isAuthenticated, user?.role, fetchUnreadCount, registerForPushNotifications]);
+  }, [isAuthenticated, user?.role, fetchUnreadCount, updatePermissionStatus]);
 
+  // Set up notification listeners for badge/count updates (not for navigation - that's in pushNotificationService)
   useEffect(() => {
     if (Platform.OS === 'web' || !isAuthenticated || !notificationsSupported) {
       if (notificationListenerRef.current) {
@@ -281,12 +270,14 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
     }
 
     try {
+      // Listen for incoming notifications to update unread count
       notificationListenerRef.current = Notifications.addNotificationReceivedListener(
         (_notification: Notifications.Notification) => {
           fetchUnreadCount();
         }
       );
 
+      // Listen for notification responses to mark as read
       responseListenerRef.current = Notifications.addNotificationResponseReceivedListener(
         (response: Notifications.NotificationResponse) => {
           const data = response.notification.request.content.data;
@@ -296,7 +287,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
         }
       );
     } catch (e) {
-      console.log('Failed to set up notification listeners');
+      console.log('[NotificationContext] Failed to set up notification listeners');
     }
 
     return () => {
@@ -311,6 +302,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
     };
   }, [isAuthenticated, fetchUnreadCount, markAsRead]);
 
+  // Refresh unread count when app comes to foreground
   useEffect(() => {
     if (!isAuthenticated) return;
 
@@ -321,6 +313,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
         isAuthenticated
       ) {
         fetchUnreadCount();
+        updatePermissionStatus();
       }
       appStateRef.current = nextAppState;
     });
@@ -328,13 +321,13 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
     return () => {
       subscription.remove();
     };
-  }, [isAuthenticated, fetchUnreadCount]);
+  }, [isAuthenticated, fetchUnreadCount, updatePermissionStatus]);
 
   const value: NotificationContextType = {
     unreadCount,
     isLoading,
     permissionStatus,
-    expoPushToken,
+    pushToken,
     requestPermission,
     refreshUnreadCount,
     markAsRead,
@@ -356,5 +349,3 @@ export function useNotifications(): NotificationContextType {
   }
   return context;
 }
-
-export { NotificationContext };
