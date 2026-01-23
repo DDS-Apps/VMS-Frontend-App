@@ -847,6 +847,7 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
   },
   pickerOption: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: Spacing.md,
