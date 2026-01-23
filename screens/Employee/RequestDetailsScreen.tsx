@@ -699,9 +699,14 @@ export default function RequestDetailsScreen({
   };
 
   const calculateEditDuration = (): string => {
-    const startMs = editTime.getTime();
-    const endMs = editEndTime.getTime();
-    const diffMs = endMs - startMs;
+    // Normalize both times to the same reference date to only compare time-of-day
+    const referenceDate = new Date(2000, 0, 1);
+    const startNormalized = new Date(referenceDate);
+    startNormalized.setHours(editTime.getHours(), editTime.getMinutes(), 0, 0);
+    const endNormalized = new Date(referenceDate);
+    endNormalized.setHours(editEndTime.getHours(), editEndTime.getMinutes(), 0, 0);
+    
+    const diffMs = endNormalized.getTime() - startNormalized.getTime();
 
     if (diffMs <= 0) return "--";
 
@@ -719,7 +724,14 @@ export default function RequestDetailsScreen({
   };
 
   const isEditEndTimeBeforeStartTime = (): boolean => {
-    return editEndTime.getTime() <= editTime.getTime();
+    // Normalize both times to the same reference date to only compare time-of-day
+    const referenceDate = new Date(2000, 0, 1);
+    const startNormalized = new Date(referenceDate);
+    startNormalized.setHours(editTime.getHours(), editTime.getMinutes(), 0, 0);
+    const endNormalized = new Date(referenceDate);
+    endNormalized.setHours(editEndTime.getHours(), editEndTime.getMinutes(), 0, 0);
+    
+    return endNormalized.getTime() <= startNormalized.getTime();
   };
 
   const isWalkInEndTimeBeforeNow = (): boolean => {
