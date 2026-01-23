@@ -228,7 +228,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
       case 'checked_in':
         return { label: t('status.checkedIn'), variant: 'success', icon: 'check-circle' };
       case 'completed':
-        return { label: t('status.checkedOut'), variant: 'muted', icon: 'log-out' };
+        return { label: t('status.visitCompleted'), variant: 'success', icon: 'check-circle' };
       case 'rejected':
         return { label: t('status.rejected'), variant: 'error', icon: 'x-circle' };
       case 'cancelled':
