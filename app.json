@@ -46,7 +46,6 @@
       ],
       "@react-native-firebase/app",
       "@react-native-firebase/crashlytics",
-      "./plugins/withFirebaseModularHeaders.js",
       [
         "expo-splash-screen",
         {
@@ -67,7 +66,8 @@
           "color": "#F58423",
           "defaultChannel": "default"
         }
-      ]
+      ],
+      "./plugins/withFirebaseModularHeaders.js"
     ],
     "experiments": {
       "reactCompiler": true
