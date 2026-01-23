@@ -24,7 +24,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.dallah.vms",
       "appleTeamId": "SNJM77V43A",
-      "buildNumber": "32",
+      "buildNumber": "33",
       "googleServicesFile": "./config/qa/GoogleService-Info.plist",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
@@ -36,16 +36,6 @@
       "favicon": "./assets/images/header-icon-dark.png"
     },
     "plugins": [
-      [
-        "expo-build-properties",
-        {
-          "ios": {
-            "useFrameworks": "static"
-          }
-        }
-      ],
-      "@react-native-firebase/app",
-      "@react-native-firebase/crashlytics",
       [
         "expo-splash-screen",
         {
@@ -66,8 +56,7 @@
           "color": "#F58423",
           "defaultChannel": "default"
         }
-      ],
-      "./plugins/withFirebaseModularHeaders.js"
+      ]
     ],
     "experiments": {
       "reactCompiler": true

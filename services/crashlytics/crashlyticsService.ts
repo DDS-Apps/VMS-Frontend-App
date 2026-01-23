@@ -1,5 +1,14 @@
 import { Platform } from 'react-native';
 
+// TEMPORARILY DISABLED: Firebase Crashlytics plugins commented out in app.json
+// due to incompatibility with New Architecture + static frameworks on Expo SDK 54.
+// To re-enable: Add these plugins back to app.json:
+//   "@react-native-firebase/app",
+//   "@react-native-firebase/crashlytics",
+//   ["expo-build-properties", { "ios": { "useFrameworks": "static" } }],
+//   "./plugins/withFirebaseModularHeaders.js"
+const CRASHLYTICS_DISABLED = true;
+
 type CrashlyticsInstance = {
   log: (message: string) => void;
   recordError: (error: Error, jsErrorName?: string) => void;
@@ -40,9 +49,10 @@ const initializeCrashlytics = (): CrashlyticsInstance => {
     return crashlyticsInstance;
   }
 
-  if (Platform.OS === 'web') {
+  // Temporarily disabled - using mock implementation
+  if (CRASHLYTICS_DISABLED || Platform.OS === 'web') {
     if (__DEV__) {
-      console.log('[Crashlytics] Web platform - using mock implementation');
+      console.log('[Crashlytics] Disabled or web platform - using mock implementation');
     }
     crashlyticsInstance = noopCrashlytics;
     isInitialized = true;
