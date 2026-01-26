@@ -295,8 +295,6 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
             </View>
           </DirectionalRow>
 
-          {renderExpandedDetails()}
-
           {(request.canApprove || request.canCancel) ? (
             <>
               <Spacer height={Spacing.md} />

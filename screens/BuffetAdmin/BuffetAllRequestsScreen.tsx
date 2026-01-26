@@ -414,27 +414,6 @@ const BuffetRequestCard = React.memo(({
         </View>
       </Pressable>
 
-      <View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
-      <View style={styles.expandedContentInside}>
-        <View style={styles.secondaryDetail}>
-          <DDIcon name="users" size={14} variant="muted" />
-          <ThemedText style={[Typography.caption, { marginStart: 6, color: theme.textSecondary, fontSize: 12 }]}>
-            {t('buffet.guestCount')}: {request.guestCount}
-          </ThemedText>
-        </View>
-        {request.notes ? (
-          <>
-            <Spacer height={Spacing.sm} />
-            <View style={styles.secondaryDetail}>
-              <DDIcon name="file-text" size={14} variant="muted" />
-              <ThemedText style={[Typography.caption, { marginStart: 6, color: theme.textSecondary, flex: 1, fontSize: 12 }]}>
-                {t('form.notes')}: {request.notes}
-              </ThemedText>
-            </View>
-          </>
-        ) : null}
-      </View>
-
     </ThemedView>
   );
 });
