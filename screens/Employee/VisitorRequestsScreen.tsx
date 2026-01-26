@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from "react";
+import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { View, StyleSheet, Pressable, ScrollView, Alert, Platform, useWindowDimensions } from "react-native";
 import { DDIcon } from "@/components/DDIcon";
 import { SkeletonList } from "@/components/shared/Skeleton";
@@ -890,9 +890,16 @@ export default function VisitorRequestsScreen({
   const error = isWalkInTab ? pendingHostWalkInsError : visitsError;
   const refetch = isWalkInTab ? refetchPendingHostWalkIns : refetchVisits;
 
-  // Refetch data when screen gains focus to show latest status
+  // Track if this is the initial mount to avoid double-fetching
+  const isInitialMount = useRef(true);
+
+  // Refetch data when screen gains focus to show latest status (skip initial mount)
   useFocusEffect(
     useCallback(() => {
+      if (isInitialMount.current) {
+        isInitialMount.current = false;
+        return;
+      }
       refetch();
     }, [refetch]),
   );
