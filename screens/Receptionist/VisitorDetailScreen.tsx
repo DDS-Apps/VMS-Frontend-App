@@ -458,7 +458,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
         animationType="fade"
         onRequestClose={() => setShowCancelModal(false)}
       >
-        <View style={styles.modalOverlay}>
+        <View style={styles.modalOverlay} pointerEvents="box-none">
           <Pressable 
             style={[styles.modalBackdrop, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]}
             onPress={() => setShowCancelModal(false)}

@@ -278,7 +278,7 @@ export default function ParkingValetSettingsScreen() {
         animationType="slide"
         onRequestClose={() => setShowModal(false)}
       >
-        <View style={styles.modalOverlay}>
+        <View style={styles.modalOverlay} pointerEvents="box-none">
           <Pressable style={styles.modalBackdrop} onPress={() => setShowModal(false)} />
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}

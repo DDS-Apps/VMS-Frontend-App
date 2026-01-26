@@ -1045,7 +1045,7 @@ export default function AllRequestsScreen() {
         animationType="fade"
         onRequestClose={() => setShowRejectModal(false)}
       >
-        <View style={styles.modalOverlay}>
+        <View style={styles.modalOverlay} pointerEvents="box-none">
           <View style={[styles.modalContainer, { backgroundColor: theme.surface }]}>
             <ThemedText style={[Typography.subtitle, { marginBottom: Spacing.md }]}>
               {t('actions.reject')}

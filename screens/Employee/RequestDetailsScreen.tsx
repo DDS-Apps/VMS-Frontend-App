@@ -2159,7 +2159,7 @@ export default function RequestDetailsScreen({
           animationType="fade"
           onRequestClose={() => setShowCancelModal(false)}
         >
-          <View style={styles.modalOverlay}>
+          <View style={styles.modalOverlay} pointerEvents="box-none">
             <Pressable
               style={[
                 styles.modalBackdrop,
@@ -2234,7 +2234,7 @@ export default function RequestDetailsScreen({
           animationType="fade"
           onRequestClose={() => setShowHostRejectModal(false)}
         >
-          <View style={styles.modalOverlay}>
+          <View style={styles.modalOverlay} pointerEvents="box-none">
             <Pressable
               style={[
                 styles.modalBackdrop,
@@ -2340,7 +2340,7 @@ export default function RequestDetailsScreen({
           animationType="fade"
           onRequestClose={() => setShowManagerRejectModal(false)}
         >
-          <View style={styles.modalOverlay}>
+          <View style={styles.modalOverlay} pointerEvents="box-none">
             <Pressable
               style={[
                 styles.modalBackdrop,
@@ -2446,7 +2446,7 @@ export default function RequestDetailsScreen({
           animationType="fade"
           onRequestClose={closeEditModal}
         >
-          <View style={styles.modalOverlay}>
+          <View style={styles.modalOverlay} pointerEvents="box-none">
             <Pressable
               style={[
                 styles.modalBackdrop,
@@ -3304,7 +3304,7 @@ export default function RequestDetailsScreen({
           animationType="slide"
           onRequestClose={() => setShowPurposePicker(false)}
         >
-          <View style={styles.modalOverlay}>
+          <View style={styles.modalOverlay} pointerEvents="box-none">
             <Pressable
               style={[
                 styles.modalBackdrop,

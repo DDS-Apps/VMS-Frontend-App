@@ -164,7 +164,7 @@ export default function DriverTaskDetailScreen({
       transparent={true}
       onRequestClose={() => setShowParkingModal(false)}
     >
-      <View style={styles.modalOverlay}>
+      <View style={styles.modalOverlay} pointerEvents="box-none">
         <ThemedView style={[styles.modalContent, { backgroundColor: theme.background }]}>
           <DirectionalRow style={styles.modalHeader}>
             <ThemedText style={[Typography.subtitle, { fontWeight: '600' }]}>

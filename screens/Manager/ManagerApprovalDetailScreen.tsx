@@ -1878,7 +1878,7 @@ export default function ManagerApprovalDetailScreen({
         onRequestClose={() => !isProcessing && setShowCancelModal(false)}
         statusBarTranslucent
       >
-        <View style={styles.modalOverlay}>
+        <View style={styles.modalOverlay} pointerEvents="box-none">
           <Pressable
             style={[
               styles.modalBackdrop,
@@ -1981,7 +1981,7 @@ export default function ManagerApprovalDetailScreen({
         onRequestClose={() => !isProcessing && setShowRejectModal(false)}
         statusBarTranslucent
       >
-        <View style={styles.modalOverlay}>
+        <View style={styles.modalOverlay} pointerEvents="box-none">
           <Pressable
             style={[
               styles.modalBackdrop,
@@ -2105,7 +2105,7 @@ export default function ManagerApprovalDetailScreen({
         }
         statusBarTranslucent
       >
-        <View style={styles.modalOverlay}>
+        <View style={styles.modalOverlay} pointerEvents="box-none">
           <Pressable
             style={[
               styles.modalBackdrop,
