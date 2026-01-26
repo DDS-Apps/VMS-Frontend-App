@@ -14,6 +14,7 @@ import { useValetParkingDashboard } from "@/hooks/queries/useValetAdminQueries";
 import type { ValetParkingVisitorDto } from "@/types/api.types";
 import type { Theme } from "@/types/theme.types";
 import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
+import { KPICard, KPICardRow } from '@/components/shared/KPICard';
 
 const LAYOUT = {
   cardPadding: Spacing.lg,
@@ -95,46 +96,26 @@ const StatsCards = ({
   theme: Theme; 
   t: (key: string) => string;
 }) => (
-  <View style={styles.statsGrid}>
-    <ThemedView style={[styles.statCard, { backgroundColor: theme.surface }]}>
-      <View style={[styles.statIconContainer, { backgroundColor: applyOpacity(theme.primary, '20') }]}>
-        <DDIcon name="users" size={24} variant="primary" />
-      </View>
-      <Spacer height={Spacing.sm} />
-      <ThemedText style={[Typography.title, { fontSize: 32, lineHeight: 40 }]}>
-        {totalVisitors}
-      </ThemedText>
-      <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: 'center' }]}>
-        {t('dashboard.totalVisitors')}
-      </ThemedText>
-    </ThemedView>
-
-    <ThemedView style={[styles.statCard, { backgroundColor: theme.surface }]}>
-      <View style={[styles.statIconContainer, { backgroundColor: applyOpacity(theme.success, '20') }]}>
-        <DDIcon name="truck" size={24} variant="success" />
-      </View>
-      <Spacer height={Spacing.sm} />
-      <ThemedText style={[Typography.title, { fontSize: 32, lineHeight: 40 }]}>
-        {withParking}
-      </ThemedText>
-      <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: 'center' }]}>
-        {t('parking.withParking')}
-      </ThemedText>
-    </ThemedView>
-
-    <ThemedView style={[styles.statCard, { backgroundColor: theme.surface }]}>
-      <View style={[styles.statIconContainer, { backgroundColor: applyOpacity(theme.textSecondary, '20') }]}>
-        <DDIcon name="x-circle" size={24} variant="muted" />
-      </View>
-      <Spacer height={Spacing.sm} />
-      <ThemedText style={[Typography.title, { fontSize: 32, lineHeight: 40 }]}>
-        {withoutParking}
-      </ThemedText>
-      <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: 'center' }]}>
-        {t('parking.withoutParking')}
-      </ThemedText>
-    </ThemedView>
-  </View>
+  <KPICardRow>
+    <KPICard 
+      title={t('dashboard.totalVisitors')} 
+      value={totalVisitors} 
+      icon="users" 
+      color={theme.primary}
+    />
+    <KPICard 
+      title={t('parking.withParking')} 
+      value={withParking} 
+      icon="truck" 
+      color={theme.success}
+    />
+    <KPICard 
+      title={t('parking.withoutParking')} 
+      value={withoutParking} 
+      icon="x-circle" 
+      color={theme.textSecondary}
+    />
+  </KPICardRow>
 );
 
 const VisitorCard = React.memo(({ 

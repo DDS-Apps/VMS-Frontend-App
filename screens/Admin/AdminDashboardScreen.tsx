@@ -10,6 +10,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { UserRole, AdminDashboardKPI } from "@/types/vms.types";
 import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
+import { KPICard, KPICardRow } from '@/components/shared/KPICard';
 
 interface AdminDashboardScreenProps {
   role: UserRole;
@@ -214,34 +215,29 @@ export default function AdminDashboardScreen({
       <Spacer height={Spacing.xl} />
 
       <View style={styles.kpiGrid}>
-        {kpis.map((kpi, index) => (
-          <ThemedView
-            key={index}
-            style={[styles.kpiCard, { backgroundColor: theme.surface }]}
-          >
-            <View
-              style={[
-                styles.kpiIconContainer,
-                { backgroundColor: kpi.color + "20" },
-              ]}
-            >
-              <DDIcon name={kpi.icon as IconName} size={24} color={kpi.color} />
-            </View>
-            <Spacer height={Spacing.md} />
-            <ThemedText style={[Typography.title, { fontSize: 28 }]}>
-              {kpi.value}
-            </ThemedText>
-            <ThemedText
-              style={[Typography.bodySmall, { color: theme.textSecondary }]}
-            >
-              {kpi.label}
-            </ThemedText>
-            <Spacer height={Spacing.xs} />
-            <ThemedText style={[Typography.caption, { color: theme.info }]}>
-              {kpi.trend}
-            </ThemedText>
-          </ThemedView>
-        ))}
+        <KPICardRow>
+          {kpis.slice(0, 2).map((kpi, index) => (
+            <KPICard
+              key={index}
+              title={kpi.label}
+              value={kpi.value}
+              icon={kpi.icon as IconName}
+              color={kpi.color}
+            />
+          ))}
+        </KPICardRow>
+        <Spacer height={Spacing.md} />
+        <KPICardRow>
+          {kpis.slice(2, 4).map((kpi, index) => (
+            <KPICard
+              key={index + 2}
+              title={kpi.label}
+              value={kpi.value}
+              icon={kpi.icon as IconName}
+              color={kpi.color}
+            />
+          ))}
+        </KPICardRow>
       </View>
 
       <Spacer height={Spacing.xl} />
