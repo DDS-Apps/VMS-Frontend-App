@@ -617,6 +617,8 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [activeRequestId, setActiveRequestId] = useState<string | null>(null);
   const [isBulkReject, setIsBulkReject] = useState(false);
+  const [approvingRequestId, setApprovingRequestId] = useState<string | null>(null);
+  const [rejectingRequestId, setRejectingRequestId] = useState<string | null>(null);
 
   const { 
     data: pendingApprovalsData, 
@@ -700,10 +702,15 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
 
   const handleApprove = (requestId: string) => {
     if (isProcessing) return;
+    setApprovingRequestId(requestId);
     approveMutation.mutate(
       { id: requestId, payload: {} },
       {
+        onSuccess: () => {
+          setApprovingRequestId(null);
+        },
         onError: (error) => {
+          setApprovingRequestId(null);
           Alert.alert(t('errors.somethingWentWrong'), error.message);
         },
       }
@@ -759,14 +766,17 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
         }
       );
     } else if (activeRequestId) {
+      setRejectingRequestId(activeRequestId);
       rejectMutation.mutate(
         { id: activeRequestId, payload: { reason: rejectReason } },
         {
           onSuccess: () => {
             setShowRejectModal(false);
             setActiveRequestId(null);
+            setRejectingRequestId(null);
           },
           onError: (error) => {
+            setRejectingRequestId(null);
             Alert.alert(t('errors.somethingWentWrong'), error.message);
           },
         }
@@ -945,6 +955,8 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
             onApprove={() => handleApprove(item.id)}
             onReject={() => handleReject(item.id)}
             isProcessing={isProcessing}
+            approveLoading={approvingRequestId === item.id}
+            rejectLoading={rejectingRequestId === item.id}
             isExpired={isVisitExpired(item.visitDate, item.visitTime, item.endTime, item.duration)}
             isSelectionMode={isSelectionMode}
             isSelected={selectedIds.has(item.id)}

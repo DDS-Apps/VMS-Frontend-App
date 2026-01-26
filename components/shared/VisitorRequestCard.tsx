@@ -32,6 +32,8 @@ interface VisitorRequestCardProps {
   onApprove?: () => void;
   onReject?: () => void;
   isProcessing?: boolean;
+  approveLoading?: boolean;
+  rejectLoading?: boolean;
   isExpired?: boolean;
   isSelectionMode?: boolean;
   isSelected?: boolean;
@@ -119,6 +121,8 @@ export function VisitorRequestCard({
   onApprove,
   onReject,
   isProcessing = false,
+  approveLoading = false,
+  rejectLoading = false,
   isExpired = false,
   isSelectionMode = false,
   isSelected = false,
@@ -415,6 +419,8 @@ export function VisitorRequestCard({
             onApprove={onApprove || (() => {})}
             onReject={onReject || (() => {})}
             disabled={isProcessing}
+            approveLoading={approveLoading}
+            rejectLoading={rejectLoading}
             size="medium"
           />
         </View>
