@@ -415,7 +415,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
             label={t('navigation.walkInVisitors')}
             iconBgColor={applyOpacity(theme.success, '12')}
             iconColor={theme.success}
-            onPress={() => navigation.navigate(ROUTES.WALK_IN_VISITORS as never)}
+            onPress={() => navigation.navigate(ROUTES.ALL_VISITORS as never, { initialFilter: 'walk_in' } as never)}
           />
           <QuickActionButton
             icon="clock"

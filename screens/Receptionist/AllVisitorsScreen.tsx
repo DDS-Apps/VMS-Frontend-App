@@ -70,18 +70,20 @@ function mapStatusToApi(status: StatusFilter): string | undefined {
 
 const PAGE_SIZE = 20;
 
-export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps) {
+export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { formatTime, formatTimeFromString, formatDateShort } = useFormatters();
   const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   
+  const initialFilter = route.params?.initialFilter ?? null;
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [dateFilter, setDateFilter] = useState<DateFilter>('today');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
-  const [activeQuickFilter, setActiveQuickFilter] = useState<'walk_in' | 'awaiting_visitor' | 'pending_approval' | null>(null);
+  const [activeQuickFilter, setActiveQuickFilter] = useState<'walk_in' | 'awaiting_visitor' | 'pending_approval' | null>(initialFilter);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showStatusPicker, setShowStatusPicker] = useState(false);
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
