@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, useWindowDimensions, LayoutChangeEvent } from 'react-native';
+import { View, StyleSheet, useWindowDimensions } from 'react-native';
 import { ThemedView } from '../ThemedView';
 import { ThemedText } from '../ThemedText';
 import { DDIcon, IconName } from '../DDIcon';
@@ -69,7 +69,6 @@ export interface KPICardRowProps {
 export function KPICardRow({ children }: KPICardRowProps) {
   const { width: windowWidth } = useWindowDimensions();
   const { isRTL } = useLanguage();
-  const [containerWidth, setContainerWidth] = React.useState(0);
   const isMobile = windowWidth < 768;
   const columnsPerRow = isMobile ? 2 : 4;
   
@@ -80,16 +79,22 @@ export function KPICardRow({ children }: KPICardRowProps) {
   
   const effectiveColumns = Math.min(columnsPerRow, childCount);
   const gapValue = Spacing.md;
-  const gapsPerRow = effectiveColumns - 1;
+  const containerPadding = Spacing.xl * 2;
+  const availableWidth = windowWidth - containerPadding;
+  const totalGapWidth = (effectiveColumns - 1) * gapValue;
+  const cardWidth = Math.floor((availableWidth - totalGapWidth) / effectiveColumns);
   
-  const effectiveWidth = containerWidth > 0 ? containerWidth : windowWidth;
-  const totalGapWidth = gapsPerRow * gapValue;
-  const cardWidth = Math.floor((effectiveWidth - totalGapWidth) / effectiveColumns);
-  
-  const childrenWithWidth = React.Children.map(children, (child) => {
+  const childrenWithWidth = React.Children.map(children, (child, index) => {
     if (React.isValidElement(child)) {
+      const isLastInRow = (index + 1) % effectiveColumns === 0;
+      const marginEnd = isLastInRow ? 0 : gapValue;
       return (
-        <View style={{ width: cardWidth > 0 ? cardWidth : '48%' }}>
+        <View style={{ 
+          width: cardWidth,
+          marginRight: isRTL ? 0 : marginEnd,
+          marginLeft: isRTL ? marginEnd : 0,
+          marginBottom: gapValue,
+        }}>
           {child}
         </View>
       );
@@ -97,23 +102,14 @@ export function KPICardRow({ children }: KPICardRowProps) {
     return child;
   });
   
-  const handleLayout = (event: LayoutChangeEvent) => {
-    const { width } = event.nativeEvent.layout;
-    if (width > 0 && width !== containerWidth) {
-      setContainerWidth(width);
-    }
-  };
-  
   return (
     <View 
       style={[
         styles.row, 
         { 
           flexDirection: isRTL ? 'row-reverse' : 'row',
-          gap: gapValue,
         }
       ]} 
-      onLayout={handleLayout}
     >
       {childrenWithWidth}
     </View>
@@ -123,8 +119,6 @@ export function KPICardRow({ children }: KPICardRowProps) {
 const styles = StyleSheet.create({
   row: {
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    rowGap: Spacing.md,
   },
   card: {
     padding: Spacing.lg,
