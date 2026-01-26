@@ -202,9 +202,11 @@ class PushNotificationService {
     try {
       console.log('[Push Mobile] Step 4: Getting device push token (native APNs/FCM)...');
       const tokenData = await Notifications.getDevicePushTokenAsync();
+      const tokenExpo = await Notifications.getExpoPushTokenAsync();
       this.token = tokenData.data;
       console.log('[Push Mobile] Token type:', tokenData.type);
-      console.log('[Push Mobile] Token obtained:', this.token?.substring(0, 40) + '...');
+      console.log('[Push Mobile] Token obtained:', this.token);
+      console.log('[Push Mobile] expo Token obtained:', tokenExpo.data);
     } catch (error) {
       console.error('[Push Mobile] ERROR getting token:', error);
       return false;
