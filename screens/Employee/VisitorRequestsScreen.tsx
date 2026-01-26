@@ -1103,12 +1103,16 @@ export default function VisitorRequestsScreen({
   // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
   const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
   
-  // Calculate item width for multi-column layout (accounting for padding and gaps)
-  const horizontalPadding = Spacing.xl * 2; // ScreenFlatList default padding
-  const gapSize = Spacing.md;
-  const totalGaps = numColumns > 1 ? (numColumns - 1) * gapSize : 0;
-  const availableWidth = screenWidth - horizontalPadding - totalGaps;
-  const itemWidth = numColumns > 1 ? availableWidth / numColumns : undefined;
+  // Get item style based on numColumns - use flexBasis percentage for reliable multi-column layout
+  const getItemStyle = () => {
+    if (numColumns === 1) return styles.paddedContent;
+    // Use percentage-based flexBasis that accounts for gaps
+    // Each item takes equal space, flexShrink allows items to shrink to fit
+    return { 
+      flex: 1,
+      minWidth: 0, // Allow items to shrink below content size
+    };
+  };
   
   return (
     <>
@@ -1119,7 +1123,7 @@ export default function VisitorRequestsScreen({
         numColumns={numColumns}
         columnWrapperStyle={numColumns > 1 ? styles.webGridRow : undefined}
         renderItem={({ item }) => (
-          <View style={numColumns > 1 ? { width: itemWidth } : styles.paddedContent}>
+          <View style={getItemStyle()}>
             <VisitorRequestCard
               request={item}
               onPress={() =>
