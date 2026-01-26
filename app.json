@@ -56,7 +56,9 @@
           "color": "#F58423",
           "defaultChannel": "default"
         }
-      ]
+      ],
+      "@react-native-firebase/app",
+      "@react-native-firebase/messaging"
     ],
     "experiments": {
       "reactCompiler": true
