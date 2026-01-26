@@ -104,9 +104,10 @@ The VMS app employs a Clean Architecture pattern, segmenting the application int
 - **iOS Requirements:** Requires EAS Build with `@react-native-firebase/app` and `@react-native-firebase/messaging` plugins. Firebase project must have APNs key configured in Cloud Messaging settings.
 
 **Crashlytics (Crash Reporting):**
-- **Status:** TEMPORARILY DISABLED - Firebase Crashlytics plugins removed from app.json due to incompatibility with New Architecture + static frameworks on Expo SDK 54. The service code remains intact with graceful fallback to console logging. To re-enable, add back the plugins listed in `services/crashlytics/crashlyticsService.ts` comments.
+- **Status:** ENABLED - Firebase Crashlytics re-enabled using `expo-build-properties` with `buildReactNativeFromSource: true` to resolve Expo SDK 54 + static frameworks compatibility issues.
 - **Architecture:** Firebase Crashlytics integration for crash monitoring with graceful fallback for development/web.
 - **Features:** Automatic JavaScript exception reporting via ErrorBoundary integration, user attributes (id, email, name, role) set on login for crash grouping, custom logging and non-fatal error recording. Graceful fallback to console logging in Expo Go/web.
+- **Build Configuration:** Requires EAS Build with `@react-native-firebase/crashlytics` plugin in app.json. Uses same `buildReactNativeFromSource: true` fix as Firebase Messaging.
 
 **Multi-Environment Setup:**
 - **Environments:** Production (`dallahdigital-vms`) and QA (`dallah-albaraka-vms`) with separate Firebase projects and backends.
