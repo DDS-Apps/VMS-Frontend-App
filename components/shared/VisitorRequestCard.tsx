@@ -331,18 +331,20 @@ export function VisitorRequestCard({
     if (!hasDetails) return null;
 
     return (
-      <Pressable onPress={toggleExpanded}>
-        <DirectionalRow style={styles.toggleContainer} gap={Spacing.xs}>
-          <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
-            {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
-          </ThemedText>
-          <DDIcon 
-            name={isExpanded ? 'chevron-up' : 'chevron-down'} 
-            size={16} 
-            color={theme.primary} 
-          />
-        </DirectionalRow>
-      </Pressable>
+      <View onStartShouldSetResponder={() => true}>
+        <Pressable onPress={toggleExpanded}>
+          <DirectionalRow style={styles.toggleContainer} gap={Spacing.xs}>
+            <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
+              {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
+            </ThemedText>
+            <DDIcon 
+              name={isExpanded ? 'chevron-up' : 'chevron-down'} 
+              size={16} 
+              color={theme.primary} 
+            />
+          </DirectionalRow>
+        </Pressable>
+      </View>
     );
   };
 
@@ -409,12 +411,14 @@ export function VisitorRequestCard({
     return (
       <>
         <Spacer height={Spacing.md} />
-        <ApprovalActionGroup
-          onApprove={onApprove || (() => {})}
-          onReject={onReject || (() => {})}
-          disabled={isProcessing}
-          size="medium"
-        />
+        <View onStartShouldSetResponder={() => true}>
+          <ApprovalActionGroup
+            onApprove={onApprove || (() => {})}
+            onReject={onReject || (() => {})}
+            disabled={isProcessing}
+            size="medium"
+          />
+        </View>
       </>
     );
   };
