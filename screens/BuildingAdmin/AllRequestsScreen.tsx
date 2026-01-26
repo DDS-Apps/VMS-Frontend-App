@@ -69,6 +69,7 @@ const getStatusColor = (status: UnifiedStatus, theme: Theme) => {
     case 'in_progress': return theme.info;
     case 'rejected': return theme.error;
     case 'cancelled': return theme.error;
+    case 'auto_cancelled': return theme.error;
     default: return theme.textSecondary;
   }
 };
@@ -80,6 +81,7 @@ const getStatusLabel = (status: UnifiedStatus, t: (key: string) => string) => {
     case 'in_progress': return t('status.inProgress');
     case 'completed': return t('status.completed');
     case 'cancelled': return t('status.cancelled');
+    case 'auto_cancelled': return t('status.autoCancelled');
     case 'rejected': return t('status.rejected');
     default: return status;
   }
@@ -434,7 +436,8 @@ export default function AllRequestsScreen() {
       if (['checked_in', 'in_progress'].includes(statusLower)) return 'in_progress';
       if (['completed', 'checked_out'].includes(statusLower)) return 'completed';
       if (['approved', 'visitor_accepted'].includes(statusLower)) return 'approved';
-      if (['cancelled', 'auto_cancelled'].includes(statusLower)) return 'cancelled';
+      if (statusLower === 'cancelled') return 'cancelled';
+      if (statusLower === 'auto_cancelled') return 'auto_cancelled';
       if (['rejected'].includes(statusLower)) return 'rejected';
       return 'pending';
     };
