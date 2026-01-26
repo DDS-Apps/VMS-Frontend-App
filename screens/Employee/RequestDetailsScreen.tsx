@@ -2891,166 +2891,170 @@ export default function RequestDetailsScreen({
                   </>
                 ) : null}
 
-                <Spacer height={Spacing.xl} />
+                {/* Optional Services - Hide for walk-in requests (services-only mode) */}
+                {editModalMode !== "services-only" ? (
+                  <>
+                    <Spacer height={Spacing.xl} />
 
-                <ThemedText
-                  style={[
-                    Typography.subtitle,
-                    {
-                      fontSize: 14,
-                      fontWeight: "600",
-                      color: theme.text,
-                      marginBottom: Spacing.md,
-                      //  
-                    },
-                  ]}
-                >
-                  {t("services.optionalServices")}
-                </ThemedText>
-
-                <View style={getGridStyle(isRTL)}>
-                  <View style={getCardWrapper3ColStyle()}>
-                    <SelectableCard
-                      onPress={() =>
-                        setEditRequiresMeetingRoom(!editRequiresMeetingRoom)
-                      }
-                      selected={editRequiresMeetingRoom}
+                    <ThemedText
+                      style={[
+                        Typography.subtitle,
+                        {
+                          fontSize: 14,
+                          fontWeight: "600",
+                          color: theme.text,
+                          marginBottom: Spacing.md,
+                        },
+                      ]}
                     >
-                      <View
-                        style={[
-                          styles.compactServiceIcon,
-                          {
-                            backgroundColor: applyOpacity(theme.cardIcon, "15"),
-                          },
-                        ]}
-                      >
-                        <DDIcon name="users" size={20} color={theme.cardIcon} />
-                      </View>
-                      <ThemedText
-                        style={[
-                          Typography.caption,
-                          {
-                            fontWeight: "600",
-                            marginTop: Spacing.xs,
-                            textAlign: "center",
-                            color: theme.text,
-                            fontSize: 11,
-                          },
-                        ]}
-                      >
-                        {t("services.meetingRoom")}
-                      </ThemedText>
-                    </SelectableCard>
-                  </View>
+                      {t("services.optionalServices")}
+                    </ThemedText>
 
-                  <View style={getCardWrapper3ColStyle()}>
-                    <SelectableCard
-                      onPress={() => setEditRequiresBuffet(!editRequiresBuffet)}
-                      selected={editRequiresBuffet}
-                    >
-                      <View
-                        style={[
-                          styles.compactServiceIcon,
-                          {
-                            backgroundColor: applyOpacity(theme.cardIcon, "15"),
-                          },
-                        ]}
-                      >
-                        <DDIcon
-                          name="cloche"
-                          size={20}
-                          color={theme.cardIcon}
-                        />
+                    <View style={getGridStyle(isRTL)}>
+                      <View style={getCardWrapper3ColStyle()}>
+                        <SelectableCard
+                          onPress={() =>
+                            setEditRequiresMeetingRoom(!editRequiresMeetingRoom)
+                          }
+                          selected={editRequiresMeetingRoom}
+                        >
+                          <View
+                            style={[
+                              styles.compactServiceIcon,
+                              {
+                                backgroundColor: applyOpacity(theme.cardIcon, "15"),
+                              },
+                            ]}
+                          >
+                            <DDIcon name="users" size={20} color={theme.cardIcon} />
+                          </View>
+                          <ThemedText
+                            style={[
+                              Typography.caption,
+                              {
+                                fontWeight: "600",
+                                marginTop: Spacing.xs,
+                                textAlign: "center",
+                                color: theme.text,
+                                fontSize: 11,
+                              },
+                            ]}
+                          >
+                            {t("services.meetingRoom")}
+                          </ThemedText>
+                        </SelectableCard>
                       </View>
-                      <ThemedText
-                        style={[
-                          Typography.caption,
-                          {
-                            fontWeight: "600",
-                            marginTop: Spacing.xs,
-                            textAlign: "center",
-                            color: theme.text,
-                            fontSize: 11,
-                          },
-                        ]}
-                      >
-                        {t("buffet.buffet")}
-                      </ThemedText>
-                    </SelectableCard>
-                  </View>
-                </View>
 
-                {/* Meeting Room Availability Badge */}
-                {editRequiresMeetingRoom ? (
-                  <View style={{ marginTop: Spacing.md }}>
-                    {hasCheckedEditAvailability ? (
-                      <DirectionalRow
-                        style={[
-                          styles.availabilityBadge,
-                          {
-                            backgroundColor: isEditRoomAvailable
-                              ? applyOpacity(theme.success, "15")
-                              : applyOpacity(theme.error, "15"),
-                            borderColor: isEditRoomAvailable
-                              ? theme.success
-                              : theme.error,
-                          },
-                        ]}
-                      >
-                        <DDIcon
-                          name={
-                            isEditRoomAvailable
-                              ? "check-circle"
-                              : "alert-circle"
-                          }
-                          size={16}
-                          color={
-                            isEditRoomAvailable ? theme.success : theme.error
-                          }
-                        />
-                        <ThemedText
-                          style={[
-                            Typography.bodySmall,
-                            {
-                              color: isEditRoomAvailable
-                                ? theme.success
-                                : theme.error,
-                              marginStart: Spacing.xs,
-                              fontWeight: "500",
-                            },
-                          ]}
+                      <View style={getCardWrapper3ColStyle()}>
+                        <SelectableCard
+                          onPress={() => setEditRequiresBuffet(!editRequiresBuffet)}
+                          selected={editRequiresBuffet}
                         >
-                          {isEditRoomAvailable
-                            ? t("form.meetingRoomAvailable")
-                            : t("errors.noRoomsAvailableForTime")}
-                        </ThemedText>
-                      </DirectionalRow>
-                    ) : isLoadingEditRooms ? (
-                      <DirectionalRow
-                        style={[
-                          styles.availabilityBadge,
-                          {
-                            backgroundColor: theme.surface,
-                            borderColor: theme.border,
-                          },
-                        ]}
-                      >
-                        <ActivityIndicator
-                          size="small"
-                          color={theme.primary}
-                          style={{ marginEnd: Spacing.xs }}
-                        />
-                        <ThemedText
-                          style={[
-                            Typography.bodySmall,
-                            { color: theme.textSecondary },
-                          ]}
-                        >
-                          {t("common.checkingAvailability")}...
-                        </ThemedText>
-                      </DirectionalRow>
+                          <View
+                            style={[
+                              styles.compactServiceIcon,
+                              {
+                                backgroundColor: applyOpacity(theme.cardIcon, "15"),
+                              },
+                            ]}
+                          >
+                            <DDIcon
+                              name="cloche"
+                              size={20}
+                              color={theme.cardIcon}
+                            />
+                          </View>
+                          <ThemedText
+                            style={[
+                              Typography.caption,
+                              {
+                                fontWeight: "600",
+                                marginTop: Spacing.xs,
+                                textAlign: "center",
+                                color: theme.text,
+                                fontSize: 11,
+                              },
+                            ]}
+                          >
+                            {t("buffet.buffet")}
+                          </ThemedText>
+                        </SelectableCard>
+                      </View>
+                    </View>
+
+                    {/* Meeting Room Availability Badge */}
+                    {editRequiresMeetingRoom ? (
+                      <View style={{ marginTop: Spacing.md }}>
+                        {hasCheckedEditAvailability ? (
+                          <DirectionalRow
+                            style={[
+                              styles.availabilityBadge,
+                              {
+                                backgroundColor: isEditRoomAvailable
+                                  ? applyOpacity(theme.success, "15")
+                                  : applyOpacity(theme.error, "15"),
+                                borderColor: isEditRoomAvailable
+                                  ? theme.success
+                                  : theme.error,
+                              },
+                            ]}
+                          >
+                            <DDIcon
+                              name={
+                                isEditRoomAvailable
+                                  ? "check-circle"
+                                  : "alert-circle"
+                              }
+                              size={16}
+                              color={
+                                isEditRoomAvailable ? theme.success : theme.error
+                              }
+                            />
+                            <ThemedText
+                              style={[
+                                Typography.bodySmall,
+                                {
+                                  color: isEditRoomAvailable
+                                    ? theme.success
+                                    : theme.error,
+                                  marginStart: Spacing.xs,
+                                  fontWeight: "500",
+                                },
+                              ]}
+                            >
+                              {isEditRoomAvailable
+                                ? t("form.meetingRoomAvailable")
+                                : t("errors.noRoomsAvailableForTime")}
+                            </ThemedText>
+                          </DirectionalRow>
+                        ) : isLoadingEditRooms ? (
+                          <DirectionalRow
+                            style={[
+                              styles.availabilityBadge,
+                              {
+                                backgroundColor: theme.surface,
+                                borderColor: theme.border,
+                              },
+                            ]}
+                          >
+                            <ActivityIndicator
+                              size="small"
+                              color={theme.primary}
+                              style={{ marginEnd: Spacing.xs }}
+                            />
+                            <ThemedText
+                              style={[
+                                Typography.bodySmall,
+                                { color: theme.textSecondary },
+                              ]}
+                            >
+                              {t("common.checkingAvailability")}...
+                            </ThemedText>
+                          </DirectionalRow>
+                        ) : null}
+                      </View>
                     ) : null}
-                  </View>
+                  </>
                 ) : null}
 
                 {/* Communication Channels - Hide for walk-in requests */}
