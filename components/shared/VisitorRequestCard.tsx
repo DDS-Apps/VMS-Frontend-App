@@ -133,8 +133,6 @@ export function VisitorRequestCard({
   const { t } = useTranslation();
   const { formatDateShort, formatTimeFromString, toLocalNumerals } = useFormatters();
   const { isRTL } = useLanguage();
-  const [isExpanded, setIsExpanded] = useState(false);
-
   const statusConfig = getStatusStyle(theme, request.status, t);
   const borderColor = accentColor || statusConfig.borderColor;
 
@@ -190,10 +188,6 @@ export function VisitorRequestCard({
     } else {
       onPress();
     }
-  };
-
-  const toggleExpanded = () => {
-    setIsExpanded(!isExpanded);
   };
 
   const renderAvatar = () => (
@@ -314,43 +308,6 @@ export function VisitorRequestCard({
     );
   };
 
-  const renderExpandedDetails = () => {
-    if (!isExpanded) return null;
-
-    const hasDetails = request.purpose || request.visitor.email || request.visitor.phone;
-    if (!hasDetails) return null;
-
-    return (
-      <View style={styles.expandedSection}>
-        {request.purpose ? renderDetailRow('briefcase', request.purpose, 2) : null}
-        {request.visitor.email ? renderDetailRow('mail', request.visitor.email) : null}
-        {request.visitor.phone ? renderDetailRow('phone', request.visitor.phone) : null}
-      </View>
-    );
-  };
-
-  const renderDetailsToggle = () => {
-    const hasDetails = request.purpose || request.visitor.email || request.visitor.phone;
-    if (!hasDetails) return null;
-
-    return (
-      <View onStartShouldSetResponder={() => true}>
-        <Pressable onPress={toggleExpanded}>
-          <DirectionalRow style={styles.toggleContainer} gap={Spacing.xs}>
-            <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
-              {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
-            </ThemedText>
-            <DDIcon 
-              name={isExpanded ? 'chevron-up' : 'chevron-down'} 
-              size={16} 
-              color={theme.primary} 
-            />
-          </DirectionalRow>
-        </Pressable>
-      </View>
-    );
-  };
-
   const renderRequestedBy = () => {
     if (!showRequestedBy || !request.employeeName) return null;
     
@@ -468,10 +425,6 @@ export function VisitorRequestCard({
           <Spacer height={Spacing.sm} />
           
           {renderServicesAndStatus()}
-
-          {renderExpandedDetails()}
-          
-          {renderDetailsToggle()}
           
           {renderActions()}
         </View>
