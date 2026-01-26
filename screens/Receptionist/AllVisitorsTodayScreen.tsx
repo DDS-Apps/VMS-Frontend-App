@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
-import { View, StyleSheet, Pressable, GestureResponderEvent, Alert, ScrollView, LayoutAnimation, Platform, UIManager } from "react-native";
+import { View, StyleSheet, Pressable, GestureResponderEvent, Alert, ScrollView, LayoutAnimation, Platform, UIManager, useWindowDimensions } from "react-native";
 import type { AllVisitorsTodayScreenProps } from "@/types/receptionistNavigation.types";
 import { ROUTES } from "@/constants";
 import { SkeletonList } from "@/components/shared/Skeleton";
@@ -69,6 +69,11 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
   const { formatTime, formatTimeFromString } = useFormatters();
   const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
+  
+  // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
+  const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [expandedVisitors, setExpandedVisitors] = useState<Set<string>>(new Set());
@@ -418,7 +423,14 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
 
       {filteredVisitors.length > 0 ? (
         <View style={styles.cardList}>
-          {filteredVisitors.map((visitor) => renderVisitorCard(visitor))}
+          {filteredVisitors.map((visitor) => (
+            <View 
+              key={visitor.id} 
+              style={numColumns > 1 ? { flex: 1, flexBasis: numColumns === 2 ? '48%' : '31%', minWidth: 0 } : { width: '100%' }}
+            >
+              {renderVisitorCard(visitor)}
+            </View>
+          ))}
         </View>
       ) : (
         <View style={styles.emptyState}>
@@ -465,6 +477,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   segmentedControl: {
+    flexDirection: 'row',
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
     overflow: 'hidden',
@@ -488,7 +501,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   cardList: {
-    gap: Spacing.sm,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.md,
+  },
+  gridItem: {
+    minWidth: 0,
   },
   visitorCard: {
     borderRadius: BorderRadius.lg,

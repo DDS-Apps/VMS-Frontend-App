@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { View, StyleSheet, Pressable, GestureResponderEvent, Alert, Switch, FlatList, ActivityIndicator, Modal, Platform } from "react-native";
+import { View, StyleSheet, Pressable, GestureResponderEvent, Alert, Switch, FlatList, ActivityIndicator, Modal, Platform, useWindowDimensions } from "react-native";
 import type { AllVisitorsScreenProps } from "@/types/receptionistNavigation.types";
 import { ROUTES } from "@/constants";
 import { SkeletonList, WalkInBadge } from "@/components/shared";
@@ -76,6 +76,10 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
   const { formatTime, formatTimeFromString, formatDateShort } = useFormatters();
   const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
+  
+  // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
+  const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
   
   const initialFilter = route.params?.initialFilter ?? null;
   
@@ -609,15 +613,21 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <FlatList
+        key={`flatlist-${numColumns}`}
         data={visitors}
-        renderItem={renderVisitorCard}
+        renderItem={({ item }) => (
+          <View style={numColumns > 1 ? styles.gridItem : styles.singleColumnItem}>
+            {renderVisitorCard({ item })}
+          </View>
+        )}
         keyExtractor={(item) => item.id}
+        numColumns={numColumns}
+        columnWrapperStyle={numColumns > 1 ? styles.gridRow : undefined}
         contentContainerStyle={{
           paddingHorizontal: Spacing.lg,
           paddingTop: insets.top + Spacing.lg,
           paddingBottom: insets.bottom + Spacing.xl,
         }}
-        ItemSeparatorComponent={() => <Spacer height={Spacing.sm} />}
         ListHeaderComponent={ListHeader}
         ListFooterComponent={renderFooter}
         ListEmptyComponent={renderEmpty}
@@ -650,6 +660,18 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  gridRow: {
+    gap: Spacing.md,
+    marginBottom: Spacing.md,
+  },
+  gridItem: {
+    flex: 1,
+    minWidth: 0,
+  },
+  singleColumnItem: {
+    width: '100%',
+    marginBottom: Spacing.sm,
   },
   filtersRow: {
     flexWrap: 'wrap',
