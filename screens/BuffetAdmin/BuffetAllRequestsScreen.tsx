@@ -29,6 +29,7 @@ import type { BuffetAdminTaskDto, BuffetAdminStaffDto } from "@/types/api.types"
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { BuffetAdminStackParamList } from "@/types/buffetAdminNavigation.types";
 import type { Theme } from "@/types/theme.types";
+import { formatDateForApi, formatDate } from "@/utils/dateTimeUtils";
 
 type BuffetRequest = BuffetAdminTaskDto & {
   timeSlot: string;
@@ -107,7 +108,7 @@ const VisitorAvatar = ({ name, theme, size = 44 }: { name: string; theme: Theme;
 };
 
 const DateTimeDisplay = ({ date, time, theme, compact = false, isRTL = false }: { date: string; time: string; theme: Theme; compact?: boolean; isRTL?: boolean }) => {
-  const formattedDate = formatDateDisplay(date, { isRTL, includeYear: true });
+  const formattedDate = formatDate(date, { isRTL, includeYear: true });
   return (
     <View style={styles.dateTimeRow}>
       <DDIcon name="calendar" size={compact ? 13 : 14} variant="muted" />
@@ -620,7 +621,7 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
     if (isToday) {
       return t('common.today');
     }
-    return formatDateDisplay(selectedDate, { isRTL });
+    return formatDate(selectedDate, { isRTL });
   };
   const { data: staffData } = useBuffetAdminStaffQuery();
   const updateStatusMutation = useUpdateBuffetAdminTaskStatusMutation();
