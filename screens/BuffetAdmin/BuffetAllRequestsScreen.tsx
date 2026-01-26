@@ -13,6 +13,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
 import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
+import { KPICard, KPICardRow } from "@/components/shared/KPICard";
 import { applyOpacity, getStatusConfig as getStatusStyle } from "@/utils/statusStyles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
@@ -139,46 +140,26 @@ const StatusBadge = ({ statusConfig, compact = false }: { statusConfig: { bg: st
 );
 
 const StatsCards = ({ totalRequests, inProgress, completed, theme, t }: { totalRequests: number; inProgress: number; completed: number; theme: Theme; t: (key: string) => string }) => (
-  <View style={styles.statsGrid}>
-    <ThemedView style={[styles.statCard, { backgroundColor: theme.surface }]}>
-      <View style={[styles.statIconContainer, { backgroundColor: applyOpacity(theme.primary, '20') }]}>
-        <DDIcon name="clipboard" size={24} variant="primary" />
-      </View>
-      <Spacer height={Spacing.sm} />
-      <ThemedText style={[Typography.title, { fontSize: 32, lineHeight: 40 }]}>
-        {totalRequests}
-      </ThemedText>
-      <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: 'center' }]}>
-        {t('dashboard.totalRequests')}
-      </ThemedText>
-    </ThemedView>
-
-    <ThemedView style={[styles.statCard, { backgroundColor: theme.surface }]}>
-      <View style={[styles.statIconContainer, { backgroundColor: applyOpacity(theme.warning, '20') }]}>
-        <DDIcon name="loader" size={24} variant="warning" />
-      </View>
-      <Spacer height={Spacing.sm} />
-      <ThemedText style={[Typography.title, { fontSize: 32, lineHeight: 40 }]}>
-        {inProgress}
-      </ThemedText>
-      <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: 'center' }]}>
-        {t('status.inProgress')}
-      </ThemedText>
-    </ThemedView>
-
-    <ThemedView style={[styles.statCard, { backgroundColor: theme.surface }]}>
-      <View style={[styles.statIconContainer, { backgroundColor: applyOpacity(theme.success, '20') }]}>
-        <DDIcon name="check-circle" size={24} variant="success" />
-      </View>
-      <Spacer height={Spacing.sm} />
-      <ThemedText style={[Typography.title, { fontSize: 32, lineHeight: 40 }]}>
-        {completed}
-      </ThemedText>
-      <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: 'center' }]}>
-        {t('status.completed')}
-      </ThemedText>
-    </ThemedView>
-  </View>
+  <KPICardRow>
+    <KPICard 
+      title={t('dashboard.totalRequests')} 
+      value={totalRequests} 
+      icon="clipboard" 
+      color={theme.primary}
+    />
+    <KPICard 
+      title={t('status.inProgress')} 
+      value={inProgress} 
+      icon="loader" 
+      color={theme.warning}
+    />
+    <KPICard 
+      title={t('status.completed')} 
+      value={completed} 
+      icon="check-circle" 
+      color={theme.success}
+    />
+  </KPICardRow>
 );
 
 type StatusFilter = 'all' | 'pending' | 'preparing' | 'ready' | 'served' | 'completed';

@@ -46,6 +46,7 @@ import {
   mapPendingHostWalkInToVisitorRequest,
 } from "@/utils/requestMappers";
 import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
+import { KPICard, KPICardRow } from "@/components/shared/KPICard";
 
 // Unified Layout Tokens
 const LAYOUT = {
@@ -573,86 +574,22 @@ const StatsCards = ({
   todaysVisitors: number;
   theme: Theme;
   t: (key: string) => string;
-}) => {
-  const { isRTL } = useLanguage();
-  return (
-    <DirectionalRow style={styles.statsGrid}>
-      <ThemedView
-        style={[
-          styles.statCard,
-          {
-            backgroundColor: theme.surface,
-            borderColor: theme.border,
-            borderWidth: 1,
-          },
-        ]}
-      >
-        <View
-          style={[
-            styles.statIconContainer,
-            { backgroundColor: applyOpacity(theme.info, "15") },
-          ]}
-        >
-          <DDIcon name="users" size={24} color={theme.info} />
-        </View>
-        <Spacer height={Spacing.md} />
-        <ThemedText
-          style={[
-            Typography.title,
-            { fontSize: 28, lineHeight: 36, fontWeight: "700" },
-          ]}
-        >
-          {totalVisitors}
-        </ThemedText>
-        <ThemedText
-          style={[
-            Typography.bodySmall,
-            { color: theme.textSecondary, textAlign: "center", marginTop: 4 },
-          ]}
-        >
-          {t("dashboard.totalVisitors")}
-        </ThemedText>
-      </ThemedView>
-
-      <ThemedView
-        style={[
-          styles.statCard,
-          {
-            backgroundColor: theme.surface,
-            borderColor: theme.border,
-            borderWidth: 1,
-          },
-        ]}
-      >
-        <View
-          style={[
-            styles.statIconContainer,
-            { backgroundColor: applyOpacity(theme.success, "15") },
-          ]}
-        >
-          <DDIcon name="calendar" size={24} color={theme.success} />
-        </View>
-        <Spacer height={Spacing.md} />
-        <ThemedText
-          style={[
-            Typography.title,
-            { fontSize: 28, lineHeight: 36, fontWeight: "700" },
-          ]}
-        >
-          {todaysVisitors}
-        </ThemedText>
-        <ThemedText
-          style={[
-            Typography.bodySmall,
-            { color: theme.textSecondary, textAlign: "center", marginTop: 4 },
-          ]}
-        >
-          {t("dashboard.todaysVisitors")}
-        </ThemedText>
-      </ThemedView>
-    </DirectionalRow>
-  );
-};
+}) => (
+  <KPICardRow>
+    <KPICard 
+      title={t("dashboard.totalVisitors")} 
+      value={totalVisitors} 
+      icon="users" 
+      color={theme.info}
+    />
+    <KPICard 
+      title={t("dashboard.todaysVisitors")} 
+      value={todaysVisitors} 
+      icon="calendar" 
+      color={theme.success}
+    />
+  </KPICardRow>
+);
 
 // Shared: Header with Tabs and View Toggle
 const SectionHeader = ({
