@@ -87,6 +87,7 @@ export interface TranslationKeys {
     errorLoadingData: string;
     today: string;
     others: string;
+    other: string;
   };
   bulkActions: {
     selectMode: string;

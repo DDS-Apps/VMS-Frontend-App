@@ -27,6 +27,7 @@ export const en: TranslationKeys = {
     filter: 'Filter',
     all: 'All',
     none: 'None',
+    other: 'Other',
     manager: 'Manager',
     yes: 'Yes',
     no: 'No',
