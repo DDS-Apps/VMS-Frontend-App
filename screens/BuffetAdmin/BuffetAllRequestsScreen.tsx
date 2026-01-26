@@ -897,12 +897,19 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
                   <ThemedText style={[Typography.body, { fontWeight: '600', marginStart: Spacing.sm }]}>
                     {getDisplayDate()}
                   </ThemedText>
-                  {isToday ? null : (
+                  {isToday ? (
+                    <View style={[styles.todayBadge, { backgroundColor: applyOpacity(theme.success, '15') }]}>
+                      <ThemedText style={[Typography.caption, { color: theme.success, fontSize: 10, fontWeight: '600' }]}>
+                        {t('common.today')}
+                      </ThemedText>
+                    </View>
+                  ) : (
                     <Pressable
                       style={[styles.todayBadge, { backgroundColor: applyOpacity(theme.primary, '15') }]}
                       onPress={() => setSelectedDate(new Date())}
                     >
-                      <ThemedText style={[Typography.caption, { color: theme.primary, fontSize: 10, fontWeight: '600' }]}>
+                      <DDIcon name="corner-down-left" size={10} color={theme.primary} />
+                      <ThemedText style={[Typography.caption, { color: theme.primary, fontSize: 10, fontWeight: '600', marginStart: 4 }]}>
                         {t('common.today')}
                       </ThemedText>
                     </Pressable>
@@ -1026,12 +1033,19 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
             <ThemedText style={[Typography.body, { fontWeight: '600', marginStart: Spacing.sm }]}>
               {getDisplayDate()}
             </ThemedText>
-            {isToday ? null : (
+            {isToday ? (
+              <View style={[styles.todayBadge, { backgroundColor: applyOpacity(theme.success, '15') }]}>
+                <ThemedText style={[Typography.caption, { color: theme.success, fontSize: 10, fontWeight: '600' }]}>
+                  {t('common.today')}
+                </ThemedText>
+              </View>
+            ) : (
               <Pressable 
                 style={[styles.todayBadge, { backgroundColor: applyOpacity(theme.primary, '15') }]}
                 onPress={() => setSelectedDate(new Date())}
               >
-                <ThemedText style={[Typography.caption, { color: theme.primary, fontSize: 10, fontWeight: '600' }]}>
+                <DDIcon name="corner-down-left" size={10} color={theme.primary} />
+                <ThemedText style={[Typography.caption, { color: theme.primary, fontSize: 10, fontWeight: '600', marginStart: 4 }]}>
                   {t('common.today')}
                 </ThemedText>
               </Pressable>
@@ -1187,6 +1201,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   todayBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: Spacing.sm,
     paddingVertical: 2,
     borderRadius: BorderRadius.sm,
