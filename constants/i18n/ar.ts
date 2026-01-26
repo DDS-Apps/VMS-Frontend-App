@@ -86,6 +86,7 @@ export const ar: TranslationKeys = {
     errorOccurred: 'حدث خطأ',
     errorLoadingData: 'خطأ في تحميل البيانات',
     today: 'اليوم',
+    others: 'أخرى',
   },
   bulkActions: {
     selectMode: 'تحديد',

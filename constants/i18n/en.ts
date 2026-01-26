@@ -86,6 +86,7 @@ export const en: TranslationKeys = {
     errorOccurred: 'An error occurred',
     errorLoadingData: 'Error loading data',
     today: 'Today',
+    others: 'Other',
   },
   bulkActions: {
     selectMode: 'Select',
