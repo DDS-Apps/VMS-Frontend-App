@@ -1,0 +1,45 @@
+10:47:58 AM LOG [HTTP] POST /api/v1/invites/df4568e2-a19e-41ad-b4c0-926a9fc59f0e/accept?format=json 200 - 5400ms - 127.0.0.1 - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36
+2026-01-26 15:48:00.52
+8c5dba15
+User
+[Nest] 37 - 01/26/2026, 10:48:00 AM WARN [PushService] Failed to send to token: NotRegistered
+2026-01-26 15:48:00.52
+8c5dba15
+User
+[Nest] 37 - 01/26/2026, 10:48:00 AM WARN [PushService] Failed to send to token: The registration token is not a valid FCM registration token
+2026-01-26 15:48:00.52
+8c5dba15
+User
+[Nest] 37 - 01/26/2026, 10:48:00 AM WARN [PushService] Failed to send to token: Requested entity was not found.
+2026-01-26 15:48:00.52
+8c5dba15
+User
+[Nest] 37 - 01/26/2026, 10:48:00 AM WARN [PushService] Failed to send to token: The registration token is not a valid FCM registration token
+2026-01-26 15:48:00.52
+8c5dba15
+User
+[Nest] 37 - 01/26/2026, 10:48:00 AM WARN [PushService] Failed to send to token: Requested entity was not found.
+2026-01-26 15:48:00.52
+8c5dba15
+User
+[Nest] 37 - 01/26/2026, 10:48:00 AM WARN [PushService] Failed to send to token: The registration token is not a valid FCM registration token
+2026-01-26 15:48:00.52
+8c5dba15
+User
+[Nest] 37 - 01/26/2026, 10:48:00 AM WARN [PushService] Failed to send to token: The registration token is not a valid FCM registration token
+2026-01-26 15:48:00.52
+8c5dba15
+User
+[Nest] 37 - 01/26/2026, 10:48:00 AM WARN [PushService] Failed to send to token: NotRegistered
+2026-01-26 15:48:00.52
+8c5dba15
+User
+[Nest] 37 - 01/26/2026, 10:48:00 AM WARN [PushService] Failed to send to token: Request is missing required authentication credential. Expected OAuth 2 access token, login cookie or other valid authentication credential. See https://developers.google.com/identity/sign-in/web/devconsole-project.
+2026-01-26 15:48:00.52
+8c5dba15
+User
+[Nest] 37 - 01/26/2026, 10:48:00 AM WARN [PushService] Failed to send to token: Requested entity was not found.
+2026-01-26 15:48:00.75
+8c5dba15
+User
+[Nest] 37 - 01/26/2026, 10:48:00 AM ERROR [PushService] Failed to send push notification: QueryFailedError: Error: Validation failed for parameter '1'. Invalid string.
