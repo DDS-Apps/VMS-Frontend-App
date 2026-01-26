@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
-import { View, StyleSheet, Pressable, ScrollView, Alert } from "react-native";
+import { View, StyleSheet, Pressable, ScrollView, Alert, Platform } from "react-native";
 import { DDIcon } from "@/components/DDIcon";
 import { SkeletonList } from "@/components/shared/Skeleton";
 import {
@@ -1099,13 +1099,20 @@ export default function VisitorRequestsScreen({
   }
 
   // Card View Layout - CRITICAL: ScreenFlatList as ROOT element for infinite scroll
+  // Use 3 columns on web for compact layout, 1 column on mobile
+  const isWeb = Platform.OS === 'web';
+  const numColumns = isWeb ? 3 : 1;
+  
   return (
     <>
       <ScreenFlatList
+        key={`flatlist-${numColumns}`}
         data={filteredRequests}
         keyExtractor={(item) => item.id}
+        numColumns={numColumns}
+        columnWrapperStyle={isWeb ? styles.webGridRow : undefined}
         renderItem={({ item }) => (
-          <View style={styles.paddedContent}>
+          <View style={isWeb ? styles.webGridItem : styles.paddedContent}>
             <VisitorRequestCard
               request={item}
               onPress={() =>
@@ -1182,6 +1189,15 @@ const styles = StyleSheet.create({
   // Content wrapper - ScreenScrollView/ScreenFlatList already provides paddingHorizontal: Spacing.xl
   paddedContent: {
     // No additional horizontal padding needed
+  },
+  // Web 3-column grid layout
+  webGridRow: {
+    gap: Spacing.md,
+    marginBottom: Spacing.md,
+  },
+  webGridItem: {
+    flex: 1,
+    maxWidth: '33.33%' as any,
   },
   // Shared: Layout
   statsGrid: {

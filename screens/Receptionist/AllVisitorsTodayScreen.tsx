@@ -315,24 +315,6 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
               </View>
             ) : null}
 
-            {hasDetails ? (
-              <Pressable
-                onPress={(e) => { e.stopPropagation(); toggleVisitorExpanded(item.id); }}
-                style={styles.toggleContainer}
-              >
-                <DirectionalRow>
-                  <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
-                    {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
-                  </ThemedText>
-                  <DDIcon
-                    name={isExpanded ? 'chevron-up' : 'chevron-down'}
-                    size={16}
-                    color={theme.primary}
-                  />
-                </DirectionalRow>
-              </Pressable>
-            ) : null}
-
             <DirectionalRow style={styles.cardFooter} justifyContent="flex-end">
               <DirectionalRow style={styles.actionButtons}>
                 {showCheckIn ? (

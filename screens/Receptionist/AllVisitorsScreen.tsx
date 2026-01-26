@@ -372,24 +372,6 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
               </View>
             ) : null}
 
-            {hasDetails ? (
-              <Pressable 
-                onPress={(e) => { e.stopPropagation(); toggleCardExpanded(item.id); }} 
-                style={styles.toggleContainer}
-              >
-                <DirectionalRow>
-                  <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
-                    {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
-                  </ThemedText>
-                  <DDIcon 
-                    name={isExpanded ? 'chevron-up' : 'chevron-down'} 
-                    size={16} 
-                    color={theme.primary} 
-                  />
-                </DirectionalRow>
-              </Pressable>
-            ) : null}
-
             <DirectionalRow style={styles.cardFooter} justifyContent="flex-end">
               <View style={styles.actionButtons}>
                 {showCheckIn ? (

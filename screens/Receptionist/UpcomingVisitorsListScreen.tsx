@@ -189,20 +189,6 @@ export default function UpcomingVisitorsListScreen() {
             </>
           ) : null}
 
-          {(item.visitor.phone || item.visitor.email) ? (
-            <Pressable onPress={() => toggleExpand(item.id)} style={styles.toggleContainer}>
-              <DirectionalRow>
-                <DDIcon 
-                  name={expandedVisitors.has(item.id) ? "chevron-up" : "chevron-down"} 
-                  size={14} 
-                  color={theme.primary} 
-                />
-                <ThemedText style={[styles.toggleText, { color: theme.primary, marginStart: 4 }]}>
-                  {expandedVisitors.has(item.id) ? t('common.lessDetails') : t('common.moreDetails')}
-                </ThemedText>
-              </DirectionalRow>
-            </Pressable>
-          ) : null}
         </View>
       </ThemedView>
     );

@@ -280,24 +280,6 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
               </View>
             ) : null}
 
-            {hasDetails ? (
-              <Pressable 
-                onPress={(e) => { e.stopPropagation(); toggleCardExpanded(item.id); }} 
-                style={styles.toggleContainer}
-              >
-                <DirectionalRow>
-                  <DDIcon 
-                    name={isExpanded ? 'chevron-up' : 'chevron-down'} 
-                    size={16} 
-                    color={theme.primary} 
-                  />
-                  <ThemedText style={[styles.toggleText, { color: theme.primary, marginStart: 4 }]}>
-                    {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
-                  </ThemedText>
-                </DirectionalRow>
-              </Pressable>
-            ) : null}
-
             <DirectionalRow style={styles.cardFooter} justifyContent="flex-end">
               <DirectionalRow style={styles.actionButtons}>
                 {showCheckIn ? (

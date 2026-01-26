@@ -294,22 +294,6 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
           </View>
         ) : null}
 
-        {hasDetails ? (
-          <Pressable 
-            onPress={(e) => { e.stopPropagation(); toggleVisitorExpanded(item.id); }} 
-            style={styles.toggleContainer}
-          >
-            <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
-              {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
-            </ThemedText>
-            <DDIcon 
-              name={isExpanded ? 'chevron-up' : 'chevron-down'} 
-              size={16} 
-              color={theme.primary} 
-            />
-          </Pressable>
-        ) : null}
-
         <Spacer height={Spacing.md} />
 
         <DirectionalRow style={styles.visitorCardFooter} justifyContent="space-between">
