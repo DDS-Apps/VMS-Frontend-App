@@ -764,7 +764,7 @@ export default function ManagerApprovalDetailScreen({
       statusColor = theme.textSecondary;
       statusText = t("status.cancelled");
     } else if (request.status === REQUEST_STATUS.AUTO_CANCELLED) {
-      statusColor = theme.textSecondary;
+      statusColor = theme.error;
       statusText = t("status.autoCancelled");
     }
 
@@ -868,6 +868,8 @@ export default function ManagerApprovalDetailScreen({
               </View>
             </DirectionalRow>
 
+          </View>
+
             <Spacer height={Spacing.lg} />
 
             <DirectionalRow style={{ alignItems: "center", justifyContent: "flex-start", gap: Spacing.md }}>
@@ -917,7 +919,6 @@ export default function ManagerApprovalDetailScreen({
                 {request.visitor.phone}
               </ThemedText>
             </DirectionalRow>
-          </View>
         </ThemedView>
 
         {request.status === REQUEST_STATUS.REJECTED &&
