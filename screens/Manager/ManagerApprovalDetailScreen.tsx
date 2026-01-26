@@ -1633,6 +1633,107 @@ export default function ManagerApprovalDetailScreen({
               )}
             </View>
           </DirectionalRow>
+          <Spacer height={Spacing.lg} />
+
+          {/* Parking */}
+          <DirectionalRow style={styles.serviceRow}>
+            <View
+              style={[
+                styles.serviceIcon,
+                {
+                  backgroundColor: applyOpacity(
+                    request.visitorNeedsParking
+                      ? theme.secondary
+                      : theme.textSecondary,
+                    "20",
+                  ),
+                },
+              ]}
+            >
+              <DDIcon
+                name="truck"
+                size={18}
+                color={
+                  request.visitorNeedsParking
+                    ? theme.secondary
+                    : theme.textSecondary
+                }
+              />
+            </View>
+            <View style={[styles.serviceInfo, { flex: 1 }]}>
+              <DirectionalRow
+                style={{
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <ThemedText
+                  style={[
+                    Typography.body,
+                    {
+                      fontWeight: "600",
+                      fontSize: 15,
+                      
+                    },
+                  ]}
+                >
+                  {t("services.parking")}
+                </ThemedText>
+              </DirectionalRow>
+              {request.visitorNeedsParking ? (
+                request.licensePlate || request.carModel || request.carColor ? (
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      {
+                        color: theme.textSecondary,
+                        marginTop: 2,
+                        fontSize: 13,
+                        
+                      },
+                    ]}
+                  >
+                    {[
+                      request.licensePlate,
+                      request.carModel,
+                      request.carColor,
+                    ]
+                      .filter(Boolean)
+                      .join(" • ")}
+                  </ThemedText>
+                ) : (
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      {
+                        color: theme.warning,
+                        marginTop: 2,
+                        fontSize: 13,
+                        
+                      },
+                    ]}
+                  >
+                    {t("parking.parkingPending")}
+                  </ThemedText>
+                )
+              ) : (
+                <ThemedText
+                  style={[
+                    Typography.caption,
+                    {
+                      color: theme.textSecondary,
+                      marginTop: 2,
+                      fontSize: 13,
+                      fontStyle: "italic",
+                      
+                    },
+                  ]}
+                >
+                  {t("common.notRequested")}
+                </ThemedText>
+              )}
+            </View>
+          </DirectionalRow>
         </ThemedView>
 
         <Spacer height={LAYOUT.sectionSpacing} />

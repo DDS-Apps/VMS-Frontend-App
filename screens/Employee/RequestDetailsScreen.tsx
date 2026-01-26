@@ -1955,6 +1955,104 @@ export default function RequestDetailsScreen({
               />
             ) : null}
           </DirectionalRow>
+          <Spacer height={Spacing.md} />
+
+          {/* Parking */}
+          <DirectionalRow
+            style={[
+              styles.serviceItemNew,
+              { backgroundColor: theme.surfaceSecondary },
+            ]}
+          >
+            <View
+              style={[
+                styles.serviceIcon,
+                {
+                  backgroundColor: applyOpacity(
+                    request.visitorNeedsParking
+                      ? theme.secondary
+                      : theme.textSecondary,
+                    "15",
+                  ),
+                },
+              ]}
+            >
+              <DDIcon
+                name="truck"
+                size={18}
+                color={
+                  request.visitorNeedsParking
+                    ? theme.secondary
+                    : theme.textSecondary
+                }
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <ThemedText
+                style={[
+                  Typography.body,
+                  {
+                    fontWeight: "600",
+                    fontSize: 14,
+                    color: theme.text,
+                  },
+                ]}
+              >
+                {t("services.parking")}
+              </ThemedText>
+              {request.visitorNeedsParking ? (
+                request.licensePlate || request.carModel || request.carColor ? (
+                  <>
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        {
+                          color: theme.textSecondary,
+                          fontSize: 12,
+                          marginTop: 2,
+                        },
+                      ]}
+                    >
+                      {[
+                        request.licensePlate,
+                        request.carModel,
+                        request.carColor,
+                      ]
+                        .filter(Boolean)
+                        .join(" • ")}
+                    </ThemedText>
+                  </>
+                ) : (
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      {
+                        color: theme.warning,
+                        fontSize: 12,
+                        marginTop: 2,
+                      },
+                    ]}
+                  >
+                    {t("parking.parkingPending")}
+                  </ThemedText>
+                )
+              ) : (
+                <ThemedText
+                  style={[
+                    Typography.caption,
+                    {
+                      color: theme.textSecondary,
+                      fontSize: 12,
+                      marginTop: 2,
+                      fontStyle: "italic",
+                    },
+                  ]}
+                >
+                  {t("common.notRequested")}
+                </ThemedText>
+              )}
+            </View>
+          </DirectionalRow>
         </ThemedView>
         <Spacer height={Spacing.lg} />
 
