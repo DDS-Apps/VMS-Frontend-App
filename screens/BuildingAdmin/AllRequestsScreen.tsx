@@ -106,8 +106,6 @@ function StatCard({ value, label, color, isActive, onPress, theme, isLargeScreen
         isLargeScreen && styles.statCardFlex,
         { 
           backgroundColor: isActive ? applyOpacity(color, '20') : applyOpacity(color, '08'),
-          borderWidth: isActive ? 2 : 0,
-          borderColor: isActive ? color : 'transparent',
         }
       ]}
     >
