@@ -214,31 +214,17 @@ export default function AdminDashboardScreen({
 
       <Spacer height={Spacing.xl} />
 
-      <View style={styles.kpiGrid}>
-        <KPICardRow>
-          {kpis.slice(0, 2).map((kpi, index) => (
-            <KPICard
-              key={index}
-              title={kpi.label}
-              value={kpi.value}
-              icon={kpi.icon as IconName}
-              color={kpi.color}
-            />
-          ))}
-        </KPICardRow>
-        <Spacer height={Spacing.md} />
-        <KPICardRow>
-          {kpis.slice(2, 4).map((kpi, index) => (
-            <KPICard
-              key={index + 2}
-              title={kpi.label}
-              value={kpi.value}
-              icon={kpi.icon as IconName}
-              color={kpi.color}
-            />
-          ))}
-        </KPICardRow>
-      </View>
+      <KPICardRow>
+        {kpis.map((kpi, index) => (
+          <KPICard
+            key={index}
+            title={kpi.label}
+            value={kpi.value}
+            icon={kpi.icon as IconName}
+            color={kpi.color}
+          />
+        ))}
+      </KPICardRow>
 
       <Spacer height={Spacing.xl} />
 
@@ -296,29 +282,6 @@ export default function AdminDashboardScreen({
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: Spacing.lg,
-  },
-  kpiGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginHorizontal: -Spacing.xs,
-  },
-  kpiCard: {
-    width: "48%",
-    margin: "1%",
-    padding: Spacing.lg,
-    borderRadius: BorderRadius.md,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  kpiIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: BorderRadius.md,
-    justifyContent: "center",
-    alignItems: "center",
   },
   sectionHeader: {
     justifyContent: "space-between",
