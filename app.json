@@ -62,13 +62,13 @@
         "expo-notifications",
         {
           "icon": "./assets/images/header-icon-dark.png",
-          "color": "#F58423",
-          "defaultChannel": "default"
+          "color": "#F58423"
         }
       ],
       "@react-native-firebase/app",
       "@react-native-firebase/messaging",
-      "@react-native-firebase/crashlytics"
+      "@react-native-firebase/crashlytics",
+      "./plugins/withNotificationManifestFix"
     ],
     "experiments": {
       "reactCompiler": true

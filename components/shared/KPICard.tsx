@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, StyleSheet, useWindowDimensions, LayoutChangeEvent } from 'react-native';
 import { ThemedView } from '../ThemedView';
 import { ThemedText } from '../ThemedText';
@@ -13,10 +13,9 @@ export interface KPICardProps {
   value: string | number;
   icon: IconName;
   color: string;
-  cardWidth?: number;
 }
 
-export function KPICard({ title, value, icon, color, cardWidth }: KPICardProps) {
+export function KPICard({ title, value, icon, color }: KPICardProps) {
   const { theme } = useTheme();
   
   return (
@@ -26,9 +25,6 @@ export function KPICard({ title, value, icon, color, cardWidth }: KPICardProps) 
         {
           backgroundColor: theme.surface,
           borderColor: theme.border,
-          width: cardWidth ?? '100%',
-          flexGrow: 0,
-          flexShrink: 0,
         },
       ]}
     >
@@ -73,48 +69,62 @@ export interface KPICardRowProps {
 export function KPICardRow({ children }: KPICardRowProps) {
   const { width: windowWidth } = useWindowDimensions();
   const { isRTL } = useLanguage();
-  const [containerWidth, setContainerWidth] = useState(0);
+  const [containerWidth, setContainerWidth] = React.useState(0);
   const isMobile = windowWidth < 768;
   const columnsPerRow = isMobile ? 2 : 4;
-  const gapSize = Spacing.md;
-  
-  const handleLayout = (event: LayoutChangeEvent) => {
-    const { width } = event.nativeEvent.layout;
-    setContainerWidth(width);
-  };
   
   const childCount = React.Children.count(children);
-  const effectiveColumns = Math.min(columnsPerRow, childCount);
-  const totalGaps = effectiveColumns - 1;
-  const cardWidth = containerWidth > 0 
-    ? Math.floor((containerWidth - (totalGaps * gapSize)) / effectiveColumns)
-    : undefined;
+  if (childCount === 0) {
+    return null;
+  }
   
-  const childrenWithProps = React.Children.map(children, (child) => {
-    if (React.isValidElement(child) && cardWidth) {
-      return React.cloneElement(child as React.ReactElement<KPICardProps>, { cardWidth });
+  const effectiveColumns = Math.min(columnsPerRow, childCount);
+  const gapValue = Spacing.md;
+  const gapsPerRow = effectiveColumns - 1;
+  
+  const effectiveWidth = containerWidth > 0 ? containerWidth : windowWidth;
+  const totalGapWidth = gapsPerRow * gapValue;
+  const cardWidth = Math.floor((effectiveWidth - totalGapWidth) / effectiveColumns);
+  
+  const childrenWithWidth = React.Children.map(children, (child) => {
+    if (React.isValidElement(child)) {
+      return (
+        <View style={{ width: cardWidth > 0 ? cardWidth : '48%' }}>
+          {child}
+        </View>
+      );
     }
     return child;
   });
+  
+  const handleLayout = (event: LayoutChangeEvent) => {
+    const { width } = event.nativeEvent.layout;
+    if (width > 0 && width !== containerWidth) {
+      setContainerWidth(width);
+    }
+  };
   
   return (
     <View 
       style={[
         styles.row, 
-        { flexDirection: isRTL ? 'row-reverse' : 'row' }
+        { 
+          flexDirection: isRTL ? 'row-reverse' : 'row',
+          gap: gapValue,
+        }
       ]} 
       onLayout={handleLayout}
     >
-      {childrenWithProps}
+      {childrenWithWidth}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   row: {
-    gap: Spacing.md,
     flexWrap: 'wrap',
-    justifyContent: 'flex-start',
+    justifyContent: 'space-between',
+    rowGap: Spacing.md,
   },
   card: {
     padding: Spacing.lg,
