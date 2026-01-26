@@ -8,9 +8,7 @@ import {
   Text,
   Modal,
 } from "react-native";
-import { ThemedView } from "@/components/ThemedView";
-import { DDIcon } from "@/components/DDIcon";
-import { ThemedText } from "@/components/ThemedText";
+import { Feather } from "@expo/vector-icons";
 import { useTheme } from "@/hooks/useTheme";
 import { Spacing, BorderRadius, Fonts } from "@/constants/theme";
 
@@ -41,7 +39,7 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
   };
 
   return (
-    <ThemedView style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.backgroundRoot }]}>
       {__DEV__ ? (
         <Pressable
           onPress={() => setIsModalVisible(true)}
@@ -53,18 +51,18 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
             },
           ]}
         >
-          <DDIcon name="alert-circle" size={20} color={theme.text} />
+          <Feather name="alert-circle" size={20} color={theme.text} />
         </Pressable>
       ) : null}
 
       <View style={styles.content}>
-        <ThemedText type="h1" style={styles.title}>
+        <Text style={[styles.title, { color: theme.text }]}>
           Something went wrong
-        </ThemedText>
+        </Text>
 
-        <ThemedText type="body" style={styles.message}>
+        <Text style={[styles.message, { color: theme.textSecondary }]}>
           Please reload the app to continue.
-        </ThemedText>
+        </Text>
 
         <Pressable
           onPress={handleRestart}
@@ -77,12 +75,9 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
             },
           ]}
         >
-          <ThemedText
-            type="body"
-            style={[styles.buttonText, { color: theme.buttonText }]}
-          >
+          <Text style={[styles.buttonText, { color: theme.buttonText }]}>
             Try Again
-          </ThemedText>
+          </Text>
         </Pressable>
       </View>
 
@@ -94,11 +89,11 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
           onRequestClose={() => setIsModalVisible(false)}
         >
           <View style={styles.modalOverlay}>
-            <ThemedView style={styles.modalContainer}>
+            <View style={[styles.modalContainer, { backgroundColor: theme.backgroundRoot }]}>
               <View style={[styles.modalHeader, { flexDirection: 'row' }]}>
-                <ThemedText type="h2" style={styles.modalTitle}>
+                <Text style={[styles.modalTitle, { color: theme.text }]}>
                   Error Details
-                </ThemedText>
+                </Text>
                 <Pressable
                   onPress={() => setIsModalVisible(false)}
                   style={({ pressed }) => [
@@ -106,7 +101,7 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
                     { opacity: pressed ? 0.6 : 1 },
                   ]}
                 >
-                  <DDIcon name="x" size={24} color={theme.text} />
+                  <Feather name="x" size={24} color={theme.text} />
                 </Pressable>
               </View>
 
@@ -135,11 +130,11 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
                   </Text>
                 </View>
               </ScrollView>
-            </ThemedView>
+            </View>
           </View>
         </Modal>
       ) : null}
-    </ThemedView>
+    </View>
   );
 }
 
@@ -162,11 +157,19 @@ const styles = StyleSheet.create({
   title: {
     textAlign: "center",
     lineHeight: 40,
+    fontSize: 24,
+    fontWeight: "700",
   },
   message: {
     textAlign: "center",
     opacity: 0.7,
     lineHeight: 24,
+    fontSize: 16,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "600",
+    flex: 1,
   },
   topButton: {
     position: "absolute",
@@ -218,9 +221,6 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: "rgba(128, 128, 128, 0.2)",
-  },
-  modalTitle: {
-    fontWeight: "600",
   },
   closeButton: {
     padding: Spacing.xs,

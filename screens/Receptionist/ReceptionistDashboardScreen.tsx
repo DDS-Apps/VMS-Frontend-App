@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
-import { View, StyleSheet, Pressable, Dimensions, GestureResponderEvent, LayoutAnimation, Platform, UIManager, Alert } from "react-native";
+import { View, StyleSheet, Pressable, Dimensions, GestureResponderEvent, LayoutAnimation, Platform, UIManager, Alert, useWindowDimensions } from "react-native";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { ROUTES } from "@/constants";
 import { ThemedText } from "@/components/ThemedText";
@@ -97,6 +97,11 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
   const { formatTime, formatTimeFromString } = useFormatters();
   const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
+  
+  // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
+  const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
+  
   const [expandedVisitors, setExpandedVisitors] = useState<Set<string>>(new Set());
 
   const { data: todayResponse, isLoading, isFetching, isError, error: visitorError } = useTodayVisitorsQuery();
@@ -417,7 +422,14 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
 
         {todaysVisitors.length > 0 ? (
           <View style={styles.visitorsList}>
-            {todaysVisitors.slice(0, 3).map((visitor) => renderVisitorCard(visitor))}
+            {todaysVisitors.slice(0, 3).map((visitor) => (
+              <View 
+                key={visitor.id} 
+                style={numColumns > 1 ? { width: numColumns === 2 ? '48%' : '31%', flexGrow: 0 } : { width: '100%' }}
+              >
+                {renderVisitorCard(visitor)}
+              </View>
+            ))}
           </View>
         ) : (
           <ThemedView style={[styles.emptyState, { backgroundColor: theme.surface }]}>
@@ -599,7 +611,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   visitorsList: {
-    gap: Spacing.sm,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.md,
   },
   visitorCard: {
     borderRadius: 12,

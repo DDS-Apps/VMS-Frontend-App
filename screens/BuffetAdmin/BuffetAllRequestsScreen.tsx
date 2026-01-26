@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { View, StyleSheet, Pressable, ScrollView, Modal, GestureResponderEvent, ActivityIndicator, Platform } from "react-native";
+import { View, StyleSheet, Pressable, ScrollView, Modal, GestureResponderEvent, ActivityIndicator, Platform, useWindowDimensions } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { ROUTES } from "@/constants";
 import { ThemedText } from "@/components/ThemedText";
@@ -573,8 +573,13 @@ function getStatusLabel(status: string, t: (key: string) => string) {
 export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequestsScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { isRTL } = useLanguage();  const insets = useSafeAreaInsets();
+  const { isRTL } = useLanguage();
+  const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
   const { showSuccess, showError } = useToast();
+  
+  // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
+  const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
@@ -1067,10 +1072,13 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
 
         <Spacer height={Spacing.lg} />
 
-        <View style={styles.paddedContent}>
+        <View style={[styles.paddedContent, styles.cardGrid]}>
           {filteredRequests.length > 0 ? (
             filteredRequests.map((request) => (
-              <View key={request.id}>
+              <View 
+                key={request.id}
+                style={numColumns > 1 ? { width: numColumns === 2 ? '48%' : '31%', flexGrow: 0 } : { width: '100%', marginBottom: LAYOUT.contentGap }}
+              >
                 <BuffetRequestCard
                   request={request}
                   isExpanded={expandedCard === request.id}
@@ -1081,7 +1089,6 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
                   isCompleting={completingRequestId === request.id}
                   theme={theme}
                 />
-                <Spacer height={LAYOUT.contentGap} />
               </View>
             ))
           ) : (
@@ -1151,6 +1158,11 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
 const styles = StyleSheet.create({
   paddedContent: {
     paddingHorizontal: Spacing.xl,
+  },
+  cardGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.md,
   },
   dateNavRow: {
     alignItems: 'center',

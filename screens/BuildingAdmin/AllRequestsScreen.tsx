@@ -991,27 +991,32 @@ export default function AllRequestsScreen() {
           <Spacer height={Spacing.md} />
 
           {displayRequests.length > 0 ? (
-            displayRequests.map(request => {
-              const cardKey = `${request.type}-${request.id}`;
-              return (
-                <View key={cardKey}>
-                  <RequestCard
-                    request={request}
-                    onPress={() => handleCardPress(request)}
-                    onApprove={() => handleApprove(request)}
-                    onReject={() => handleReject(request)}
-                    theme={theme}
-                    t={t}
-                    formatDate={formatDate}
-                    formatTimeFromString={formatTimeFromString}
-                    isRTL={isRTL}
-                    isExpanded={expandedCards.has(cardKey)}
-                    onToggleExpand={() => toggleCardExpanded(cardKey)}
-                  />
-                  <Spacer height={LAYOUT.contentGap} />
-                </View>
-              );
-            })
+            <View style={styles.cardGrid}>
+              {displayRequests.map(request => {
+                const cardKey = `${request.type}-${request.id}`;
+                const numColumns = width > 1024 ? 3 : width >= 768 ? 2 : 1;
+                return (
+                  <View 
+                    key={cardKey}
+                    style={numColumns > 1 ? { width: numColumns === 2 ? '48%' : '31%', flexGrow: 0 } : { width: '100%', marginBottom: LAYOUT.contentGap }}
+                  >
+                    <RequestCard
+                      request={request}
+                      onPress={() => handleCardPress(request)}
+                      onApprove={() => handleApprove(request)}
+                      onReject={() => handleReject(request)}
+                      theme={theme}
+                      t={t}
+                      formatDate={formatDate}
+                      formatTimeFromString={formatTimeFromString}
+                      isRTL={isRTL}
+                      isExpanded={expandedCards.has(cardKey)}
+                      onToggleExpand={() => toggleCardExpanded(cardKey)}
+                    />
+                  </View>
+                );
+              })}
+            </View>
           ) : (
             <EmptyState
               icon="inbox"
@@ -1108,6 +1113,11 @@ export default function AllRequestsScreen() {
 const styles = StyleSheet.create({
   paddedContent: {
     paddingHorizontal: Spacing.lg,
+  },
+  cardGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.md,
   },
   statsRow: {
     flexDirection: 'row',
