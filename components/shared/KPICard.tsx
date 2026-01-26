@@ -82,7 +82,6 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: Spacing.lg,
     borderRadius: BorderRadius.lg,
-    borderWidth: 1,
     alignItems: 'center',
   },
   iconContainer: {
