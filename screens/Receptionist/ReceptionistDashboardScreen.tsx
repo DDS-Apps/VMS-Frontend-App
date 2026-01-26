@@ -16,8 +16,8 @@ import { applyOpacity } from "@/utils/statusStyles";
 import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useTodayVisitorsQuery, useRoomsTodayQuery, useReceptionCheckInMutation, useReceptionCheckOutMutation } from "@/hooks/queries/useReceptionQueries";
-import type { TodayVisitorDto, RoomStatusDto } from "@/types";
+import { useTodayVisitorsQuery, useReceptionCheckInMutation, useReceptionCheckOutMutation } from "@/hooks/queries/useReceptionQueries";
+import type { TodayVisitorDto } from "@/types";
 import { SkeletonDashboard, WalkInBadge } from "@/components/shared";
 import type { ReceptionistDashboardScreenProps } from "@/types/receptionistNavigation.types";
 
@@ -97,21 +97,15 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
   const { formatTime, formatTimeFromString } = useFormatters();
   const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
-  const [expandedRooms, setExpandedRooms] = useState<Set<string>>(new Set());
   const [expandedVisitors, setExpandedVisitors] = useState<Set<string>>(new Set());
 
-  const { data: todayResponse, isLoading: isLoadingVisitors, isFetching: isFetchingVisitors, isError: isVisitorError, error: visitorError } = useTodayVisitorsQuery();
-  const { data: roomsData, isLoading: isLoadingRooms, isFetching: isFetchingRooms, isError: isRoomsError, error: roomsError } = useRoomsTodayQuery();
+  const { data: todayResponse, isLoading, isFetching, isError, error: visitorError } = useTodayVisitorsQuery();
   const checkInMutation = useReceptionCheckInMutation();
   const checkOutMutation = useReceptionCheckOutMutation();
 
   const todaysVisitors = todayResponse?.data ?? [];
   const summary = todayResponse?.summary;
-  const roomMeetings = roomsData ?? [];
-  const isLoading = isLoadingVisitors || isLoadingRooms;
-  const isFetching = isFetchingVisitors || isFetchingRooms;
-  const isError = isVisitorError || isRoomsError;
-  const errorMessage = visitorError?.message || roomsError?.message || t('common.loadError');
+  const errorMessage = visitorError?.message || t('common.loadError');
 
   const hasShownError = useRef(false);
 
@@ -129,19 +123,6 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
     paddingHorizontal: Spacing.lg,
     paddingTop: insets.top + Spacing.xl,
     paddingBottom: insets.bottom + Spacing.xl + 80
-  };
-
-  const toggleRoomExpanded = (roomId: string) => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setExpandedRooms(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(roomId)) {
-        newSet.delete(roomId);
-      } else {
-        newSet.add(roomId);
-      }
-      return newSet;
-    });
   };
 
   const toggleVisitorExpanded = (visitorId: string) => {
@@ -425,114 +406,6 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
             onPress={() => navigation.navigate(ROUTES.ALL_VISITORS_TODAY as never)}
           />
         </DirectionalRow>
-
-        <Spacer height={Spacing.xl} />
-
-        <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
-          {t('reception.todaysMeetingsByRoom')}
-        </ThemedText>
-
-        <Spacer height={Spacing.md} />
-
-        {roomMeetings.length > 0 ? (
-          <View style={styles.meetingsContainer}>
-            {roomMeetings.map((room) => {
-              const isExpanded = expandedRooms.has(room.id);
-              const hasBookings = room.currentBooking || room.nextBooking;
-              const statusColor = room.status === 'available' ? theme.success 
-                : room.status === 'occupied' ? theme.error 
-                : room.status === 'reserved' ? theme.warning 
-                : theme.textSecondary;
-              
-              return (
-                <View 
-                  key={room.id} 
-                  style={[styles.roomCard, { backgroundColor: theme.surface }]}
-                >
-                  <Pressable
-                      style={[styles.roomHeader, { flexDirection: getFlexDirection(isRTL) }]}
-                      onPress={() => toggleRoomExpanded(room.id)}
-                    >
-                      <DirectionalRow style={styles.roomHeaderLeft}>
-                        <View style={[styles.roomIconContainer, { backgroundColor: applyOpacity(theme.info, '12') }]}>
-                          <DDIcon name="home" size={20} color={theme.info} />
-                        </View>
-                        <View style={styles.roomInfo}>
-                          <ThemedText style={[styles.roomName, { color: theme.text }]} numberOfLines={1}>
-                            {room.name}
-                          </ThemedText>
-                          <ThemedText style={[styles.roomFloor, { color: theme.textSecondary }]}>
-                            {room.floor ? `${t('parking.floor')} ${room.floor}` : `${t('reception.capacity')}: ${room.capacity}`}
-                          </ThemedText>
-                        </View>
-                      </DirectionalRow>
-                      <DirectionalRow style={styles.roomHeaderRight}>
-                        <View style={[styles.meetingCountBadge, { backgroundColor: applyOpacity(statusColor, '12') }]}>
-                          <ThemedText style={[styles.meetingCountText, { color: statusColor }]}>
-                            {room.status}
-                          </ThemedText>
-                        </View>
-                        {hasBookings ? (
-                          <DDIcon 
-                            name={isExpanded ? "chevron-up" : "chevron-down"} 
-                            size={20} 
-                            color={theme.textSecondary} 
-                          />
-                        ) : null}
-                      </DirectionalRow>
-                    </Pressable>
-
-                  {isExpanded && hasBookings ? (
-                    <View style={[styles.meetingsList, { borderTopColor: theme.border }]}>
-                      {room.currentBooking ? (
-                        <View style={styles.meetingItem}>
-                          <DirectionalRow style={styles.meetingTimeSlot}>
-                            <DDIcon name="clock" size={14} color={theme.textSecondary} />
-                            <ThemedText style={[styles.meetingTime, { color: theme.textSecondary }]}>
-                              {room.currentBooking.startTime} - {room.currentBooking.endTime ?? t('common.ongoing')}
-                            </ThemedText>
-                          </DirectionalRow>
-                          <ThemedText style={[styles.meetingTitle, { color: theme.text }]} numberOfLines={1}>
-                            {room.currentBooking.visitorName}
-                          </ThemedText>
-                          {room.currentBooking.hostName ? (
-                            <DirectionalRow style={styles.meetingMeta}>
-                              <DDIcon name="user" size={12} color={theme.textSecondary} />
-                              <ThemedText style={[styles.meetingHost, { color: theme.textSecondary }]} numberOfLines={1}>
-                                {room.currentBooking.hostName}
-                              </ThemedText>
-                            </DirectionalRow>
-                          ) : null}
-                        </View>
-                      ) : null}
-                      {room.nextBooking ? (
-                        <View style={[styles.meetingItem, room.currentBooking && { borderTopWidth: 1, borderTopColor: applyOpacity(theme.border, '50') }]}>
-                          <DirectionalRow style={styles.meetingTimeSlot}>
-                            <DDIcon name="clock" size={14} color={theme.textSecondary} />
-                            <ThemedText style={[styles.meetingTime, { color: theme.textSecondary }]}>
-                              {t('reception.next')}: {room.nextBooking.startTime}
-                            </ThemedText>
-                          </DirectionalRow>
-                          <ThemedText style={[styles.meetingTitle, { color: theme.text }]} numberOfLines={1}>
-                            {room.nextBooking.visitorName}
-                          </ThemedText>
-                        </View>
-                      ) : null}
-                    </View>
-                  ) : null}
-                </View>
-              );
-            })}
-          </View>
-        ) : (
-          <ThemedView style={[styles.emptyState, { backgroundColor: theme.surface }]}>
-            <DDIcon name="calendar" size={32} variant="muted" />
-            <Spacer height={Spacing.sm} />
-            <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
-              {t('reception.noMeetingsToday')}
-            </ThemedText>
-          </ThemedView>
-        )}
 
         <Spacer height={Spacing.xl} />
 
