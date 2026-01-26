@@ -300,11 +300,28 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
 
             <DirectionalRow style={styles.servicesStatusRow} justifyContent="space-between">
               <ServiceIconsRow visitor={item} />
-              <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: 1 }]}>
-                <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
-                  {statusConfig.label}
-                </ThemedText>
-              </View>
+              <DirectionalRow alignItems="center">
+                {showCheckIn ? (
+                  <View style={{ marginEnd: Spacing.sm }}>
+                    <VisitorActionButton
+                      type="check_in"
+                      onPress={(e) => handleCheckIn(item.id, visitorName, e)}
+                    />
+                  </View>
+                ) : showCheckOut ? (
+                  <View style={{ marginEnd: Spacing.sm }}>
+                    <VisitorActionButton
+                      type="check_out"
+                      onPress={(e) => handleCheckOut(item.id, visitorName, e)}
+                    />
+                  </View>
+                ) : null}
+                <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: 1 }]}>
+                  <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
+                    {statusConfig.label}
+                  </ThemedText>
+                </View>
+              </DirectionalRow>
             </DirectionalRow>
 
             {isExpanded && hasDetails ? (
@@ -319,22 +336,6 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
                 ) : null}
               </View>
             ) : null}
-
-            <DirectionalRow style={styles.cardFooter} justifyContent="flex-end">
-              <DirectionalRow style={styles.actionButtons}>
-                {showCheckIn ? (
-                  <VisitorActionButton
-                    type="check_in"
-                    onPress={(e) => handleCheckIn(item.id, visitorName, e)}
-                  />
-                ) : showCheckOut ? (
-                  <VisitorActionButton
-                    type="check_out"
-                    onPress={(e) => handleCheckOut(item.id, visitorName, e)}
-                  />
-                ) : null}
-              </DirectionalRow>
-            </DirectionalRow>
           </View>
         </ThemedView>
       </Pressable>
@@ -426,7 +427,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
           {filteredVisitors.map((visitor) => (
             <View 
               key={visitor.id} 
-              style={numColumns > 1 ? { flex: 1, flexBasis: numColumns === 2 ? '48%' : '31%', minWidth: 0 } : { width: '100%' }}
+              style={numColumns > 1 ? { width: numColumns === 2 ? '48%' : '31%', flexGrow: 0 } : { width: '100%' }}
             >
               {renderVisitorCard(visitor)}
             </View>
