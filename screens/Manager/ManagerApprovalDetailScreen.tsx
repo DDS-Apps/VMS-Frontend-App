@@ -760,7 +760,7 @@ export default function ManagerApprovalDetailScreen({
     } else if (request.status === REQUEST_STATUS.REJECTED) {
       statusColor = theme.error;
       statusText = t("status.rejected");
-    } else if (request.status === REQUEST_STATUS.CANCELLED) {
+    } else if (request.status === REQUEST_STATUS.CANCELLED || request.status === REQUEST_STATUS.AUTO_CANCELLED) {
       statusColor = theme.textSecondary;
       statusText = t("status.cancelled");
     }
@@ -867,7 +867,7 @@ export default function ManagerApprovalDetailScreen({
 
             <Spacer height={Spacing.lg} />
 
-            <DirectionalRow style={{ alignItems: "center", gap: Spacing.md }}>
+            <DirectionalRow style={{ alignItems: "center", justifyContent: "flex-start", gap: Spacing.md }}>
               <View
                 style={[
                   styles.contactIcon,
@@ -883,7 +883,6 @@ export default function ManagerApprovalDetailScreen({
                     color: theme.textSecondary,
                     fontSize: 13,
                     flex: 1,
-                    //   textAlign: isRTL ? 'right' : 'left'
                   },
                 ]}
               >
@@ -893,7 +892,7 @@ export default function ManagerApprovalDetailScreen({
 
             <Spacer height={Spacing.md} />
 
-            <DirectionalRow style={{ alignItems: "center", gap: Spacing.md }}>
+            <DirectionalRow style={{ alignItems: "center", justifyContent: "flex-start", gap: Spacing.md }}>
               <View
                 style={[
                   styles.contactIcon,
@@ -909,7 +908,6 @@ export default function ManagerApprovalDetailScreen({
                     color: theme.textSecondary,
                     fontSize: 13,
                     flex: 1,
-                    // 
                   },
                 ]}
               >
