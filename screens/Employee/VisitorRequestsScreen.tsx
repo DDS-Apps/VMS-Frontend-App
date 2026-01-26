@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
-import { View, StyleSheet, Pressable, ScrollView, Alert, Platform } from "react-native";
+import { View, StyleSheet, Pressable, ScrollView, Alert, Platform, useWindowDimensions } from "react-native";
 import { DDIcon } from "@/components/DDIcon";
 import { SkeletonList } from "@/components/shared/Skeleton";
 import {
@@ -1099,9 +1099,16 @@ export default function VisitorRequestsScreen({
   }
 
   // Card View Layout - CRITICAL: ScreenFlatList as ROOT element for infinite scroll
-  // Use 3 columns on web for compact layout, 1 column on mobile
-  const isWeb = Platform.OS === 'web';
-  const numColumns = isWeb ? 3 : 1;
+  // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
+  const { width: screenWidth } = useWindowDimensions();
+  const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
+  
+  // Calculate item width for multi-column layout (accounting for padding and gaps)
+  const horizontalPadding = Spacing.xl * 2; // ScreenFlatList default padding
+  const gapSize = Spacing.md;
+  const totalGaps = numColumns > 1 ? (numColumns - 1) * gapSize : 0;
+  const availableWidth = screenWidth - horizontalPadding - totalGaps;
+  const itemWidth = numColumns > 1 ? availableWidth / numColumns : undefined;
   
   return (
     <>
@@ -1110,9 +1117,9 @@ export default function VisitorRequestsScreen({
         data={filteredRequests}
         keyExtractor={(item) => item.id}
         numColumns={numColumns}
-        columnWrapperStyle={isWeb ? styles.webGridRow : undefined}
+        columnWrapperStyle={numColumns > 1 ? styles.webGridRow : undefined}
         renderItem={({ item }) => (
-          <View style={isWeb ? styles.webGridItem : styles.paddedContent}>
+          <View style={numColumns > 1 ? { width: itemWidth } : styles.paddedContent}>
             <VisitorRequestCard
               request={item}
               onPress={() =>
@@ -1197,7 +1204,6 @@ const styles = StyleSheet.create({
   },
   webGridItem: {
     flex: 1,
-    maxWidth: '33.33%' as any,
   },
   // Shared: Layout
   statsGrid: {
