@@ -786,6 +786,7 @@ export default function VisitorRequestsScreen({
   const { t } = useTranslation();
   const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
   const navigationHook =
     useNavigation<NativeStackNavigationProp<EmployeeStackParamList>>();
   const navigation = navProp || navigationHook;
@@ -1100,7 +1101,6 @@ export default function VisitorRequestsScreen({
 
   // Card View Layout - CRITICAL: ScreenFlatList as ROOT element for infinite scroll
   // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
-  const { width: screenWidth } = useWindowDimensions();
   const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
   
   // Calculate item width for multi-column layout (accounting for padding and gaps)
