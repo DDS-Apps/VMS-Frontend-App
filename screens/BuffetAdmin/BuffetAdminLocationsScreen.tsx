@@ -21,38 +21,7 @@ import {
 import type { BuffetAdminLocationDto, BuffetLocationLoadDto } from "@/types/api.types";
 import type { BuffetAdminLocationsScreenProps } from "@/types/buffetAdminNavigation.types";
 
-interface KPICardProps {
-  title: string;
-  value: string;
-  icon: string;
-  iconBgColor: string;
-  iconColor: string;
-  cardBgColor: string;
-}
-
-function KPICard({ title, value, icon, iconBgColor, iconColor, cardBgColor }: KPICardProps) {
-  const { theme } = useTheme();
-  
-  return (
-    <View style={[styles.kpiCard, { backgroundColor: cardBgColor, borderWidth: 1, borderColor: applyOpacity(iconColor, '15') }]}>
-      <View style={[styles.kpiIconContainer, { backgroundColor: iconBgColor }]}>
-        <DDIcon name={icon as IconName} size={24} color={iconColor} />
-      </View>
-
-      <Spacer height={Spacing.md} />
-
-      <ThemedText style={[styles.kpiValue, { color: theme.text }]}>
-        {value}
-      </ThemedText>
-
-      <Spacer height={Spacing.xs} />
-
-      <ThemedText style={[styles.kpiLabel, { color: theme.textSecondary }]}>
-        {title}
-      </ThemedText>
-    </View>
-  );
-}
+import { KPICard, KPICardRow } from '@/components/shared/KPICard';
 
 interface LocationDisplayItem {
   id: string;
@@ -233,32 +202,26 @@ export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLo
   return (
     <>
       <ScreenScrollView contentContainerStyle={scrollContentStyle}>
-        <DirectionalRow style={styles.kpiRow}>
+        <KPICardRow>
           <KPICard 
             title={t('status.active')} 
             value={String(stats.active)} 
             icon="check-circle" 
-            iconBgColor={applyOpacity(theme.success, '20')}
-            iconColor={theme.success}
-            cardBgColor={applyOpacity(theme.success, '06')}
+            color={theme.success}
           />
           <KPICard 
             title={t('status.inactive')} 
             value={String(stats.inactive)} 
             icon="x-circle" 
-            iconBgColor={applyOpacity(theme.textSecondary, '20')}
-            iconColor={theme.textSecondary}
-            cardBgColor={applyOpacity(theme.textSecondary, '06')}
+            color={theme.textSecondary}
           />
           <KPICard 
             title={t('buffet.numberOfGuests')} 
             value={String(stats.totalCapacity)} 
             icon="users" 
-            iconBgColor={applyOpacity(theme.primary, '20')}
-            iconColor={theme.primary}
-            cardBgColor={applyOpacity(theme.primary, '06')}
+            color={theme.primary}
           />
-        </DirectionalRow>
+        </KPICardRow>
 
         <Spacer height={Spacing.xl} />
 

@@ -62,38 +62,7 @@ const mapAdminStaffDto = (staff: BuffetAdminStaffDto): BuffetStaff => {
   };
 };
 
-interface KPICardProps {
-  title: string;
-  value: string;
-  icon: string;
-  iconBgColor: string;
-  iconColor: string;
-  cardBgColor: string;
-}
-
-function KPICard({ title, value, icon, iconBgColor, iconColor, cardBgColor }: KPICardProps) {
-  const { theme } = useTheme();
-  
-  return (
-    <View style={[styles.kpiCard, { backgroundColor: cardBgColor, borderWidth: StyleSheet.hairlineWidth, borderColor: applyOpacity(iconColor, '15') }]}>
-      <View style={[styles.kpiIconContainer, { backgroundColor: iconBgColor }]}>
-        <DDIcon name={icon as IconName} size={28} color={iconColor} />
-      </View>
-
-      <Spacer height={Spacing.lg} />
-
-      <ThemedText style={[styles.kpiValue, { color: theme.text }]}>
-        {value}
-      </ThemedText>
-
-      <Spacer height={Spacing.xs} />
-
-      <ThemedText style={[styles.kpiLabel, { color: theme.textSecondary }]}>
-        {title}
-      </ThemedText>
-    </View>
-  );
-}
+import { KPICard, KPICardRow } from '@/components/shared/KPICard';
 
 interface QuickActionProps {
   icon: string;
@@ -476,32 +445,26 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
 
   return (
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
-      <DirectionalRow style={styles.kpiRow}>
+      <KPICardRow>
         <KPICard 
           title={t('time.today')} 
           value={String(stats.total)} 
           icon="disc" 
-          iconBgColor={applyOpacity(theme.primary, '20')}
-          iconColor={theme.primary}
-          cardBgColor={applyOpacity(theme.primary, '06')}
+          color={theme.primary}
         />
         <KPICard 
           title={t('status.pending')} 
           value={String(stats.pending)} 
           icon="clock" 
-          iconBgColor={applyOpacity(theme.warning, '20')}
-          iconColor={theme.warning}
-          cardBgColor={applyOpacity(theme.warning, '06')}
+          color={theme.warning}
         />
         <KPICard 
           title={t('status.completed')} 
           value={String(stats.completed)} 
           icon="check-circle" 
-          iconBgColor={applyOpacity(theme.success, '20')}
-          iconColor={theme.success}
-          cardBgColor={applyOpacity(theme.success, '06')}
+          color={theme.success}
         />
-      </DirectionalRow>
+      </KPICardRow>
 
       <Spacer height={Spacing.xl} />
 

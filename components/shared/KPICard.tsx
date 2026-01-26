@@ -3,9 +3,10 @@ import { View, StyleSheet } from 'react-native';
 import { ThemedView } from '../ThemedView';
 import { ThemedText } from '../ThemedText';
 import { DDIcon, IconName } from '../DDIcon';
-import { useTheme } from '../../contexts/ThemeContext';
-import { Spacing, BorderRadius, Typography } from '../../constants/theme';
-import { Spacer } from '../Spacer';
+import { useTheme } from '@/hooks/useTheme';
+import { Spacing, BorderRadius, Typography } from '@/constants/theme';
+import Spacer from '../Spacer';
+import { DirectionalRow } from '../DirectionalRow';
 
 export interface KPICardProps {
   title: string;
@@ -67,15 +68,14 @@ export interface KPICardRowProps {
 
 export function KPICardRow({ children }: KPICardRowProps) {
   return (
-    <View style={styles.row}>
+    <DirectionalRow style={styles.row}>
       {children}
-    </View>
+    </DirectionalRow>
   );
 }
 
 const styles = StyleSheet.create({
   row: {
-    flexDirection: 'row',
     gap: Spacing.md,
   },
   card: {
