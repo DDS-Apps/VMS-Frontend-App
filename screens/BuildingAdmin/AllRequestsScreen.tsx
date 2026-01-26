@@ -150,8 +150,6 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
   }, [request]);
 
   const renderExpandedDetails = () => {
-    if (!isExpanded) return null;
-
     if (request.type === 'visitor') {
       const originalData = request.originalData as VisitListItemDto;
       const hasDetails = originalData?.visitor?.email || originalData?.visitor?.phone;
@@ -298,25 +296,6 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
           </DirectionalRow>
 
           {renderExpandedDetails()}
-
-          {hasExpandableDetails ? (
-            <Pressable 
-              onPress={(e) => {
-                e.stopPropagation();
-                onToggleExpand();
-              }} 
-              style={styles.toggleContainer}
-            >
-              <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
-                {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
-              </ThemedText>
-              <DDIcon 
-                name={isExpanded ? 'chevron-up' : 'chevron-down'} 
-                size={16} 
-                color={theme.primary} 
-              />
-            </Pressable>
-          ) : null}
 
           {(request.canApprove || request.canCancel) ? (
             <>
