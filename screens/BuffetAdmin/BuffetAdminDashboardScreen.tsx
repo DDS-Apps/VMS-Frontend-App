@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { View, StyleSheet, Pressable, GestureResponderEvent, ActivityIndicator, Alert, Modal, ScrollView } from "react-native";
+import { View, StyleSheet, Pressable, GestureResponderEvent, ActivityIndicator, Alert, Modal, ScrollView, useWindowDimensions } from "react-native";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { ROUTES } from "@/constants";
 import { ThemedText } from "@/components/ThemedText";
@@ -95,8 +95,13 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { formatTimeFromString } = useFormatters();
-  const { isRTL } = useLanguage();  const insets = useSafeAreaInsets();
+  const { isRTL } = useLanguage();
+  const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
   const { showSuccess, showError } = useToast();
+  
+  // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
+  const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
 
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<BuffetRequest | null>(null);
@@ -524,7 +529,14 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
 
       {requests.length > 0 ? (
         <View style={styles.requestsList}>
-          {requests.slice(0, 5).map((request) => renderRequestCard(request))}
+          {requests.slice(0, 6).map((request) => (
+            <View 
+              key={request.id}
+              style={numColumns > 1 ? { width: numColumns === 2 ? '48%' : '31%', flexGrow: 0 } : { width: '100%', marginBottom: Spacing.md }}
+            >
+              {renderRequestCard(request)}
+            </View>
+          ))}
         </View>
       ) : (
         <ThemedView style={[styles.emptyState, { backgroundColor: theme.surface }]}>
@@ -630,6 +642,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   requestsList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: Spacing.md,
   },
   requestCard: {
