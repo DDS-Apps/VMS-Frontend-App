@@ -40,62 +40,9 @@ import {
   mapPendingHostWalkInToVisitorRequest,
 } from "@/utils/requestMappers";
 import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
+import { KPICard, KPICardRow } from "@/components/shared/KPICard";
 
 const { width: screenWidth } = Dimensions.get("window");
-
-interface KPICardProps {
-  title: string;
-  value: string;
-  subtitle: string;
-  icon: string;
-  iconColor: string;
-  backgroundColor: string;
-  trend?: string;
-  trendUp?: boolean;
-}
-
-function KPICard({
-  title,
-  value,
-  subtitle,
-  icon,
-  iconColor,
-  backgroundColor,
-  trend,
-  trendUp,
-}: KPICardProps) {
-  const { theme } = useTheme();
-  const { isRTL } = useLanguage();
-
-  return (
-    <View style={[styles.kpiCard, { backgroundColor: theme.surface }]}>
-      <View
-        style={[
-          styles.iconContainer,
-          { backgroundColor: iconColor, alignSelf: "center" },
-        ]}
-      >
-        <DDIcon name={icon as IconName} size={24} color={theme.buttonText} />
-      </View>
-
-      <Spacer height={Spacing.md} />
-
-      <ThemedText
-        style={[styles.kpiTitle, { color: iconColor, textAlign: "center" }]}
-      >
-        {title}
-      </ThemedText>
-
-      <Spacer height={Spacing.xs} />
-
-      <ThemedText
-        style={[styles.kpiValue, { color: theme.text, textAlign: "center" }]}
-      >
-        {value}
-      </ThemedText>
-    </View>
-  );
-}
 
 interface OverviewScreenProps {
   userRole: UserRole;
@@ -223,18 +170,14 @@ export default function OverviewScreen({
           {
             title: t("dashboard.myVisit"),
             value: "1",
-            subtitle: t("dashboard.scheduledVisit"),
             icon: "calendar",
-            iconColor: theme.primary,
-            backgroundColor: theme.primary,
+            color: theme.primary,
           },
           {
             title: t("dashboard.visitStatus"),
             value: t("status.pending"),
-            subtitle: t("dashboard.awaitingResponse"),
             icon: "clock",
-            iconColor: theme.warning,
-            backgroundColor: theme.warning,
+            color: theme.warning,
           },
         ]
       : userRole === "receptionist"
@@ -242,26 +185,20 @@ export default function OverviewScreen({
             {
               title: t("dashboard.expectedToday"),
               value: "5",
-              subtitle: t("dashboard.scheduledVisit"),
               icon: "users",
-              iconColor: theme.info,
-              backgroundColor: theme.info,
+              color: theme.info,
             },
             {
               title: t("dashboard.checkedIn"),
               value: "1",
-              subtitle: t("dashboard.currentlyOnPremises"),
               icon: "user-check",
-              iconColor: theme.success,
-              backgroundColor: theme.success,
+              color: theme.success,
             },
             {
               title: t("dashboard.walkIns"),
               value: "0",
-              subtitle: t("dashboard.registeredToday"),
               icon: "user-plus",
-              iconColor: theme.warning,
-              backgroundColor: theme.warning,
+              color: theme.warning,
             },
           ]
         : userRole === "employee"
@@ -269,40 +206,26 @@ export default function OverviewScreen({
               {
                 title: t("dashboard.totalVisitors"),
                 value: totalVisitors.toString(),
-                subtitle: t("dashboard.allTimeVisitors"),
                 icon: "users",
-                iconColor: theme.info,
-                backgroundColor: theme.info,
-                trend: "0%",
-                trendUp: false,
+                color: theme.info,
               },
               {
                 title: t("dashboard.todaysVisitors"),
                 value: todaysVisitors.toString(),
-                subtitle: t("dashboard.expectedToday"),
                 icon: "calendar",
-                iconColor: theme.primary,
-                backgroundColor: theme.primary,
-                trend: "0%",
-                trendUp: false,
+                color: theme.primary,
               },
               {
                 title: t("dashboard.checkedIn"),
                 value: "0",
-                subtitle: t("dashboard.currentlyOnPremises"),
                 icon: "check-circle",
-                iconColor: theme.chartPurple,
-                backgroundColor: theme.chartPurple,
+                color: theme.chartPurple,
               },
               {
                 title: t("dashboard.thisWeek"),
                 value: upcomingThisWeek.length.toString(),
-                subtitle: t("dashboard.last7Days"),
                 icon: "trending-up",
-                iconColor: theme.secondary,
-                backgroundColor: theme.secondary,
-                trend: "+12%",
-                trendUp: true,
+                color: theme.secondary,
               },
             ]
           : userRole === "manager"
@@ -310,38 +233,26 @@ export default function OverviewScreen({
                 {
                   title: t("dashboard.pendingRequests"),
                   value: pendingApprovals.length.toString(),
-                  subtitle: t("dashboard.requestsAwaitingApproval"),
                   icon: "clock",
-                  iconColor: theme.primary,
-                  backgroundColor: theme.primary,
+                  color: theme.primary,
                 },
                 {
                   title: t("dashboard.todaysVisitors"),
                   value: todaysVisitors.toString(),
-                  subtitle: t("dashboard.expectedToday"),
                   icon: "calendar",
-                  iconColor: theme.info,
-                  backgroundColor: theme.info,
-                  trend: "0%",
-                  trendUp: false,
+                  color: theme.info,
                 },
                 {
                   title: t("dashboard.checkedIn"),
                   value: "0",
-                  subtitle: t("dashboard.currentlyOnPremises"),
                   icon: "check-circle",
-                  iconColor: theme.chartPurple,
-                  backgroundColor: theme.chartPurple,
+                  color: theme.chartPurple,
                 },
                 {
                   title: t("dashboard.thisWeek"),
                   value: upcomingThisWeek.length.toString(),
-                  subtitle: t("dashboard.last7Days"),
                   icon: "trending-up",
-                  iconColor: theme.secondary,
-                  backgroundColor: theme.secondary,
-                  trend: "+12%",
-                  trendUp: true,
+                  color: theme.secondary,
                 },
               ]
             : userRole === "security"
@@ -349,34 +260,26 @@ export default function OverviewScreen({
                   {
                     title: t("dashboard.expectedToday"),
                     value: "45",
-                    subtitle: t("dashboard.scheduledVisit"),
                     icon: "users",
-                    iconColor: theme.info,
-                    backgroundColor: theme.info,
+                    color: theme.info,
                   },
                   {
                     title: t("dashboard.checkedIn"),
                     value: "18",
-                    subtitle: t("dashboard.currentlyOnPremises"),
                     icon: "user-check",
-                    iconColor: theme.secondary,
-                    backgroundColor: theme.secondary,
+                    color: theme.secondary,
                   },
                   {
                     title: t("dashboard.pendingAwaiting"),
                     value: "27",
-                    subtitle: t("dashboard.awaitingArrival"),
                     icon: "clock",
-                    iconColor: theme.primary,
-                    backgroundColor: theme.primary,
+                    color: theme.primary,
                   },
                   {
                     title: t("dashboard.walkIns"),
                     value: "3",
-                    subtitle: t("dashboard.registeredToday"),
                     icon: "user-plus",
-                    iconColor: theme.chartPurple,
-                    backgroundColor: theme.chartPurple,
+                    color: theme.chartPurple,
                   },
                 ]
               : userRole === "building_admin"
@@ -384,34 +287,26 @@ export default function OverviewScreen({
                     {
                       title: t("dashboard.totalSlots"),
                       value: "150",
-                      subtitle: t("dashboard.parkingCapacity"),
                       icon: "map-pin",
-                      iconColor: theme.info,
-                      backgroundColor: theme.info,
+                      color: theme.info,
                     },
                     {
                       title: t("dashboard.occupied"),
                       value: "87",
-                      subtitle: `58% ${t("dashboard.utilization")}`,
                       icon: "check-circle",
-                      iconColor: theme.secondary,
-                      backgroundColor: theme.secondary,
+                      color: theme.secondary,
                     },
                     {
                       title: t("dashboard.reserved"),
                       value: "23",
-                      subtitle: `15% ${t("dashboard.reserved").toLowerCase()}`,
                       icon: "clock",
-                      iconColor: theme.primary,
-                      backgroundColor: theme.primary,
+                      color: theme.primary,
                     },
                     {
                       title: t("dashboard.available"),
                       value: "40",
-                      subtitle: `27% ${t("dashboard.available").toLowerCase()}`,
                       icon: "circle",
-                      iconColor: theme.chartPurple,
-                      backgroundColor: theme.chartPurple,
+                      color: theme.chartPurple,
                     },
                   ]
                 : userRole === "buffet_admin"
@@ -419,70 +314,52 @@ export default function OverviewScreen({
                       {
                         title: t("dashboard.totalVisitors"),
                         value: "4",
-                        subtitle: `0 ${t("dashboard.upcomingVisitors").toLowerCase()}`,
                         icon: "disc",
-                        iconColor: theme.primary,
-                        backgroundColor: theme.primary,
+                        color: theme.primary,
                       },
                       {
                         title: t("dashboard.buffetLocations"),
                         value: "6",
-                        subtitle: `6 ${t("dashboard.activeLocations")}`,
                         icon: "map",
-                        iconColor: theme.info,
-                        backgroundColor: theme.info,
+                        color: theme.info,
                       },
                       {
                         title: t("dashboard.buffetStaff"),
                         value: "0",
-                        subtitle: `0 ${t("dashboard.onDuty")}`,
                         icon: "users",
-                        iconColor: theme.secondary,
-                        backgroundColor: theme.secondary,
+                        color: theme.secondary,
                       },
                       {
                         title: t("notifications.title"),
                         value: "0",
-                        subtitle: t("dashboard.unreadAlerts"),
                         icon: "bell",
-                        iconColor: theme.chartPurple,
-                        backgroundColor: theme.chartPurple,
+                        color: theme.chartPurple,
                       },
                     ]
                   : [
                       {
                         title: t("dashboard.activeDrivers"),
                         value: "12",
-                        subtitle: `75% ${t("dashboard.ofFleet")}`,
                         icon: "truck",
-                        iconColor: theme.primary,
-                        backgroundColor: theme.primary,
+                        color: theme.primary,
                       },
                       {
                         title: t("dashboard.pendingTasks"),
                         value: "7",
-                        subtitle: t("dashboard.inProgressTasks"),
                         icon: "list",
-                        iconColor: theme.primary,
-                        backgroundColor: theme.primary,
+                        color: theme.primary,
                       },
                       {
                         title: t("dashboard.completedToday"),
                         value: "23",
-                        subtitle: t("time.today"),
                         icon: "check-square",
-                        iconColor: theme.secondary,
-                        backgroundColor: theme.secondary,
-                        trend: "+12%",
-                        trendUp: true,
+                        color: theme.secondary,
                       },
                       {
                         title: t("dashboard.avgWait"),
                         value: "8m",
-                        subtitle: `-2m ${t("dashboard.improvement")}`,
                         icon: "clock",
-                        iconColor: theme.info,
-                        backgroundColor: theme.info,
+                        color: theme.info,
                       },
                     ];
 
@@ -544,11 +421,11 @@ export default function OverviewScreen({
         )}
 
         {/* 2. Stats Cards */}
-        <View style={styles.kpiGrid}>
+        <KPICardRow>
           {kpiData.map((kpi, index) => (
             <KPICard key={index} {...kpi} />
           ))}
-        </View>
+        </KPICardRow>
 
         <Spacer height={Spacing.xxl} />
 
