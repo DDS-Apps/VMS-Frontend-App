@@ -474,40 +474,29 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
 
       <Spacer height={Spacing.md} />
 
-      <View style={styles.quickActionsGrid}>
-        <DirectionalRow style={styles.quickActionsRow}>
-          <QuickActionButton
-            icon="bar-chart-2"
-            label={t('buffet.capacityOverview')}
-            iconBgColor={applyOpacity(theme.info, '12')}
-            iconColor={theme.info}
-            onPress={() => navigation.navigate(ROUTES.BUFFET_OVERVIEW as never)}
-          />
-          <QuickActionButton
-            icon="users"
-            label={t('navigation.staffManagement')}
-            iconBgColor={applyOpacity(theme.primary, '12')}
-            iconColor={theme.primary}
-            onPress={() => navigation.navigate(ROUTES.BUFFET_STAFF as never)}
-          />
-        </DirectionalRow>
-        <DirectionalRow style={styles.quickActionsRow}>
-          <QuickActionButton
-            icon="map-pin"
-            label={t('navigation.locations')}
-            iconBgColor={applyOpacity(theme.success, '12')}
-            iconColor={theme.success}
-            onPress={() => navigation.navigate(ROUTES.BUFFET_LOCATIONS as never)}
-          />
-          <QuickActionButton
-            icon="list"
-            label={t('navigation.allRequests')}
-            iconBgColor={applyOpacity(theme.warning, '12')}
-            iconColor={theme.warning}
-            onPress={() => navigation.navigate(ROUTES.BUFFET_ALL_REQUESTS as never)}
-          />
-        </DirectionalRow>
-      </View>
+      <DirectionalRow style={styles.quickActionsRow}>
+        <QuickActionButton
+          icon="users"
+          label={t('navigation.staffManagement')}
+          iconBgColor={applyOpacity(theme.primary, '12')}
+          iconColor={theme.primary}
+          onPress={() => navigation.navigate(ROUTES.BUFFET_STAFF as never)}
+        />
+        <QuickActionButton
+          icon="map-pin"
+          label={t('navigation.locations')}
+          iconBgColor={applyOpacity(theme.success, '12')}
+          iconColor={theme.success}
+          onPress={() => navigation.navigate(ROUTES.BUFFET_LOCATIONS as never)}
+        />
+        <QuickActionButton
+          icon="list"
+          label={t('navigation.allRequests')}
+          iconBgColor={applyOpacity(theme.warning, '12')}
+          iconColor={theme.warning}
+          onPress={() => navigation.navigate(ROUTES.BUFFET_ALL_REQUESTS as never)}
+        />
+      </DirectionalRow>
 
       <Spacer height={Spacing.xl} />
 
@@ -610,9 +599,6 @@ const styles = StyleSheet.create({
   viewAllText: {
     fontSize: 14,
     fontWeight: '500',
-  },
-  quickActionsGrid: {
-    gap: Spacing.sm,
   },
   quickActionsRow: {
     flexDirection: 'row',
