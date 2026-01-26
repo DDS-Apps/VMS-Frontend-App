@@ -96,8 +96,12 @@ The VMS app employs a Clean Architecture pattern, segmenting the application int
 - **Key Features:** Axios HTTP Client with interceptors for JWT token injection and automatic refresh, standardized error handling, TanStack Query for data fetching, caching, mutations, and query invalidation, token management (refresh, AsyncStorage persistence), session management, role mapping, Azure AD SSO, and OTP flows.
 
 **Push Notifications:**
-- **Architecture:** Unified push notification service supporting both mobile (expo-notifications with native FCM tokens) and web (Firebase SDK with VAPID key).
+- **Architecture:** Unified push notification service supporting mobile (iOS/Android) and web, all using FCM tokens that backend routes appropriately.
+  - **iOS:** Uses `@react-native-firebase/messaging` to obtain FCM tokens (required because backend expects FCM tokens and routes FCM → APNs).
+  - **Android:** Uses `expo-notifications` which returns native FCM tokens directly.
+  - **Web:** Uses Firebase SDK with VAPID key for FCM tokens.
 - **Functionality:** Automatic device registration on login, unregistration on logout via AuthContext integration. Deep linking from notifications is supported. Android channels are configured for default, visitors, approvals, tasks, and reminders.
+- **iOS Requirements:** Requires EAS Build with `@react-native-firebase/app` and `@react-native-firebase/messaging` plugins. Firebase project must have APNs key configured in Cloud Messaging settings.
 
 **Crashlytics (Crash Reporting):**
 - **Status:** TEMPORARILY DISABLED - Firebase Crashlytics plugins removed from app.json due to incompatibility with New Architecture + static frameworks on Expo SDK 54. The service code remains intact with graceful fallback to console logging. To re-enable, add back the plugins listed in `services/crashlytics/crashlyticsService.ts` comments.
@@ -129,4 +133,5 @@ The VMS app employs a Clean Architecture pattern, segmenting the application int
 - **expo-notifications:** Push notifications for mobile (iOS/Android).
 - **firebase:** Firebase SDK for web push notifications (FCM).
 - **@react-native-firebase/app:** React Native Firebase core.
+- **@react-native-firebase/messaging:** Firebase Cloud Messaging for iOS FCM token retrieval.
 - **@react-native-firebase/crashlytics:** Firebase Crashlytics for crash reporting.
