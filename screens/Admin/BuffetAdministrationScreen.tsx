@@ -11,6 +11,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { createModalOverlayStyle } from "@/utils/statusStyles";
 import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
+import { KPICard, KPICardRow } from '@/components/shared/KPICard';
 
 const { width } = Dimensions.get('window');
 const isLargeScreen = width >= 768;
@@ -267,28 +268,20 @@ export default function BuffetAdministrationScreen() {
 
       {activeTab === 'locations' ? (
         <>
-          <DirectionalRow style={styles.statsRow}>
-            <ThemedView style={[styles.statCard, { backgroundColor: theme.surface }]}>
-              <DDIcon name="map" size={24} variant="primary" />
-              <Spacer height={Spacing.sm} />
-              <ThemedText style={[Typography.title, { fontSize: 24 }]}>
-                {stats.locations.total}
-              </ThemedText>
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
-                {t('navigation.locations')}
-              </ThemedText>
-            </ThemedView>
-            <ThemedView style={[styles.statCard, { backgroundColor: theme.surface }]}>
-              <DDIcon name="check-circle" size={24} variant="success" />
-              <Spacer height={Spacing.sm} />
-              <ThemedText style={[Typography.title, { fontSize: 24 }]}>
-                {stats.locations.active}
-              </ThemedText>
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
-                {t('status.active')}
-              </ThemedText>
-            </ThemedView>
-          </DirectionalRow>
+          <KPICardRow>
+            <KPICard
+              title={t('navigation.locations')}
+              value={stats.locations.total}
+              icon="map"
+              color={theme.primary}
+            />
+            <KPICard
+              title={t('status.active')}
+              value={stats.locations.active}
+              icon="check-circle"
+              color={theme.success}
+            />
+          </KPICardRow>
 
           <Spacer height={Spacing.xl} />
 
@@ -376,38 +369,26 @@ export default function BuffetAdministrationScreen() {
         </>
       ) : (
         <>
-          <DirectionalRow style={styles.statsRow}>
-            <ThemedView style={[styles.statCard, { backgroundColor: theme.surface }]}>
-              <DDIcon name="users" size={24} variant="primary" />
-              <Spacer height={Spacing.sm} />
-              <ThemedText style={[Typography.title, { fontSize: 24 }]}>
-                {stats.staff.total}
-              </ThemedText>
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
-                {t('dashboard.totalStaff')}
-              </ThemedText>
-            </ThemedView>
-            <ThemedView style={[styles.statCard, { backgroundColor: theme.surface }]}>
-              <DDIcon name="check-circle" size={24} variant="success" />
-              <Spacer height={Spacing.sm} />
-              <ThemedText style={[Typography.title, { fontSize: 24 }]}>
-                {stats.staff.onDuty}
-              </ThemedText>
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
-                {t('dashboard.onDuty')}
-              </ThemedText>
-            </ThemedView>
-            <ThemedView style={[styles.statCard, { backgroundColor: theme.surface }]}>
-              <DDIcon name="users" size={24} color={theme.info} />
-              <Spacer height={Spacing.sm} />
-              <ThemedText style={[Typography.title, { fontSize: 24 }]}>
-                {stats.staff.active}
-              </ThemedText>
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
-                {t('status.active')}
-              </ThemedText>
-            </ThemedView>
-          </DirectionalRow>
+          <KPICardRow>
+            <KPICard
+              title={t('dashboard.totalStaff')}
+              value={stats.staff.total}
+              icon="users"
+              color={theme.primary}
+            />
+            <KPICard
+              title={t('dashboard.onDuty')}
+              value={stats.staff.onDuty}
+              icon="check-circle"
+              color={theme.success}
+            />
+            <KPICard
+              title={t('status.active')}
+              value={stats.staff.active}
+              icon="users"
+              color={theme.info}
+            />
+          </KPICardRow>
 
           <Spacer height={Spacing.xl} />
 
