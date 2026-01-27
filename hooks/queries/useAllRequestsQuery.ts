@@ -221,25 +221,36 @@ export function useAllRequestsQuery(filters: AllRequestsFilters = {}) {
   const shouldFetchBuffet = (type === 'all' || type === 'buffet') && hasBuffetAccess;
   const shouldFetchValet = (type === 'all' || type === 'valet') && hasValetAccess;
 
+  console.log('[useAllRequestsQuery] Filter type:', type, 'shouldFetchBuffet:', shouldFetchBuffet, 'shouldFetchValet:', shouldFetchValet);
+
   const results = useQueries({
     queries: [
       {
-        queryKey: ['all-requests', 'visits', visitParams],
-        queryFn: () => requestApiService.listVisits(visitParams),
+        queryKey: ['all-requests', 'visits', type, visitParams],
+        queryFn: () => {
+          console.log('[useAllRequestsQuery] Fetching visits...');
+          return requestApiService.listVisits(visitParams);
+        },
         enabled: shouldFetchVisits,
         staleTime: 30 * 1000,
         retry: false,
       },
       {
-        queryKey: ['all-requests', 'buffet-admin-tasks', buffetParams],
-        queryFn: () => buffetApiService.getBuffetAdminTasks(buffetParams),
+        queryKey: ['all-requests', 'buffet-admin-tasks', type, buffetParams],
+        queryFn: () => {
+          console.log('[useAllRequestsQuery] Fetching buffet tasks...');
+          return buffetApiService.getBuffetAdminTasks(buffetParams);
+        },
         enabled: shouldFetchBuffet,
         staleTime: 30 * 1000,
         retry: false,
       },
       {
-        queryKey: ['all-requests', 'valet-admin-tasks', valetParams],
-        queryFn: () => valetApiService.listTasks(valetParams),
+        queryKey: ['all-requests', 'valet-admin-tasks', type, valetParams],
+        queryFn: () => {
+          console.log('[useAllRequestsQuery] Fetching valet tasks...');
+          return valetApiService.listTasks(valetParams);
+        },
         enabled: shouldFetchValet,
         staleTime: 30 * 1000,
         retry: false,
