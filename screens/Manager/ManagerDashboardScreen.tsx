@@ -196,7 +196,7 @@ const SelectAllBar = ({
 }) => {
   return (
     <DirectionalRow style={[styles.selectAllBar, { backgroundColor: theme.surfaceSecondary }]}>
-      <Pressable onPress={onToggleAll} style={[styles.selectAllButton, getFlexDirection(isRTL)]}>
+      <Pressable onPress={onToggleAll} style={[styles.selectAllButton, { flexDirection: getFlexDirection(isRTL) }]}>
         <SelectionCheckbox isSelected={allSelected} onToggle={onToggleAll} />
         <Spacer width={Spacing.sm} />
         <ThemedText style={[Typography.body, { color: theme.text }]}>
@@ -245,7 +245,7 @@ const BulkActionBar = ({
         </ThemedText>
         <DirectionalRow style={styles.bulkActionButtons}>
           <Pressable
-            style={[styles.bulkRejectButton, { borderColor: theme.error, opacity: isProcessing ? 0.6 : 1 }, getFlexDirection(isRTL)]}
+            style={[styles.bulkRejectButton, { borderColor: theme.error, opacity: isProcessing ? 0.6 : 1, flexDirection: getFlexDirection(isRTL) }]}
             onPress={onReject}
             disabled={isProcessing}
           >
@@ -261,7 +261,7 @@ const BulkActionBar = ({
           </Pressable>
           <Spacer width={Spacing.sm} />
           <Pressable
-            style={[styles.bulkApproveButton, { backgroundColor: theme.success, opacity: isProcessing ? 0.6 : 1 }, getFlexDirection(isRTL)]}
+            style={[styles.bulkApproveButton, { backgroundColor: theme.success, opacity: isProcessing ? 0.6 : 1, flexDirection: getFlexDirection(isRTL) }]}
             onPress={onApprove}
             disabled={isProcessing}
           >
@@ -448,7 +448,7 @@ const ApprovalTableRow = React.memo(({
   
   return (
     <Pressable onLongPress={onLongPress}>
-      <ThemedView style={[styles.tableRow, { backgroundColor: theme.surface, borderColor: theme.border }, getFlexDirection(isRTL)]}>
+      <ThemedView style={[styles.tableRow, { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: getFlexDirection(isRTL) }]}>
         {statusAccent}
         {checkboxColumn}
         {fixedColumnContent}
