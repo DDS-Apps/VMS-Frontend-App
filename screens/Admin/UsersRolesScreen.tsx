@@ -54,6 +54,7 @@ interface DisplayUser {
   department?: string;
   phoneNumber?: string;
   businessPhone?: string;
+  landline?: string;
   status: "active" | "inactive";
   createdAt: string;
   source: UserSource;
@@ -73,6 +74,7 @@ function mapUserDtoToDisplayUser(dto: UserDto): DisplayUser {
     (email ? email.split("@")[0] : "Unknown User");
   const phoneNumber = (dtoAny["phoneNumber"] || dto.phone || "") as string;
   const businessPhone = (dtoAny["businessPhone"] || "") as string;
+  const landline = (dtoAny["landline"] || "") as string;
   const status =
     (dtoAny["status"] as "active" | "inactive") ||
     (dto.isActive ? "active" : "inactive");
@@ -90,6 +92,7 @@ function mapUserDtoToDisplayUser(dto: UserDto): DisplayUser {
     department: dto.department,
     phoneNumber: phoneNumber || undefined,
     businessPhone: businessPhone || undefined,
+    landline: landline || undefined,
     status: status,
     createdAt: dto.createdAt,
     source: source === "azure_ad" ? "microsoft_ad" : (source as UserSource),
@@ -625,7 +628,7 @@ export default function UsersRolesScreen() {
           ) : null}
         </DirectionalRow>
 
-        {!isGrid && (item.department || item.phoneNumber || item.businessPhone) ? (
+        {!isGrid && (item.department || item.phoneNumber || item.businessPhone || item.landline) ? (
           <>
             <Spacer height={Spacing.md} />
             {item.department ? (
@@ -681,6 +684,27 @@ export default function UsersRolesScreen() {
                     ]}
                   >
                     {item.businessPhone}
+                  </ThemedText>
+                </DirectionalRow>
+              </>
+            ) : null}
+            {item.landline ? (
+              <>
+                <Spacer height={Spacing.xs} />
+                <DirectionalRow
+                  style={[
+                    styles.infoRow,
+                    bulkMode ? { marginStart: 32 } : null,
+                  ]}
+                >
+                  <DDIcon name="phone" variant="muted" size={14} />
+                  <ThemedText
+                    style={[
+                      Typography.bodySmall,
+                      { color: theme.textSecondary, marginEnd: Spacing.xs },
+                    ]}
+                  >
+                    {item.landline}
                   </ThemedText>
                 </DirectionalRow>
               </>
