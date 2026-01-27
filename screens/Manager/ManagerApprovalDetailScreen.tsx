@@ -1503,7 +1503,7 @@ export default function ManagerApprovalDetailScreen({
                 >
                   {t("status.pending")}
                 </ThemedText>
-              ) : request.status === REQUEST_STATUS.CANCELLED || request.status === REQUEST_STATUS.AUTO_CANCELLED ? (
+              ) : request.status === REQUEST_STATUS.CANCELLED || request.status === REQUEST_STATUS.AUTO_CANCELLED || request.status === REQUEST_STATUS.VISITOR_REJECTED ? (
                 <ThemedText
                   style={[
                     Typography.caption,
@@ -1638,7 +1638,7 @@ export default function ManagerApprovalDetailScreen({
                 >
                   {t("status.pending")}
                 </ThemedText>
-              ) : request.status === REQUEST_STATUS.CANCELLED || request.status === REQUEST_STATUS.AUTO_CANCELLED ? (
+              ) : request.status === REQUEST_STATUS.CANCELLED || request.status === REQUEST_STATUS.AUTO_CANCELLED || request.status === REQUEST_STATUS.VISITOR_REJECTED ? (
                 <ThemedText
                   style={[
                     Typography.caption,
@@ -1753,7 +1753,7 @@ export default function ManagerApprovalDetailScreen({
                     {t("parking.parkingPending")}
                   </ThemedText>
                 )
-              ) : request.status === REQUEST_STATUS.CANCELLED || request.status === REQUEST_STATUS.AUTO_CANCELLED ? (
+              ) : request.status === REQUEST_STATUS.CANCELLED || request.status === REQUEST_STATUS.AUTO_CANCELLED || request.status === REQUEST_STATUS.VISITOR_REJECTED ? (
                 <ThemedText
                   style={[
                     Typography.caption,
