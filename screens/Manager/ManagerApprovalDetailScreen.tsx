@@ -2253,8 +2253,8 @@ export default function ManagerApprovalDetailScreen({
                       paddingVertical: Spacing.md,
                       alignItems: "center",
                       justifyContent: "space-between",
+                      flexDirection: getFlexDirection(isRTL),
                     },
-                    getFlexDirection(isRTL),
                   ]}
                 >
                   <ThemedText style={{ color: theme.text }}>
