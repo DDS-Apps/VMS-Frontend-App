@@ -432,7 +432,7 @@ Content-Type: application/json
 [Push Mobile iOS] FCM token obtained successfully: cXyZ123abc456def789ghi...
 [Push Mobile] Step 6: Registering token with backend...
 [Device API] ========== REGISTER TOKEN START ==========
-[Device API] Endpoint: https://vms-backend-app-qa.replit.app/api/v1/devices/token
+[Device API] Endpoint: https://vms-backend-folio3.replit.app/api/v1/devices/token
 [Device API] Auth token present: true
 [Device API] Platform: ios
 [Device API] Device: iPhone 14 Pro, iPhone14,2
