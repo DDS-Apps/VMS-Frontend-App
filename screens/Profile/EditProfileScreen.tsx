@@ -21,6 +21,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { authService } from "@/services/api/authService";
 import { useToast } from "@/contexts/ToastContext";
 import { ApiException } from "@/api/errors";
+import { formatPhoneInput, formatPhoneNumber, normalizePhoneNumber } from "@/utils/formatters";
 
 interface EditProfileScreenProps {
   userRole?: UserRole;
@@ -59,7 +60,7 @@ export default function EditProfileScreen({
   useEffect(() => {
     if (user) {
       setName(user.name || '');
-      setPhone(user.phoneNumber ? formatSaudiPhone(user.phoneNumber) : '');
+      setPhone(user.phoneNumber ? formatPhoneInput(user.phoneNumber) : '');
       setDepartment(user.department || '');
     }
   }, [user]);
@@ -70,31 +71,8 @@ export default function EditProfileScreen({
     paddingBottom: insets.bottom + Spacing.xl
   };
 
-  const formatSaudiPhone = (input: string): string => {
-    let digits = input.replace(/\D/g, '');
-    
-    if (digits.startsWith('00966')) {
-      digits = digits.substring(2);
-    }
-    
-    if (digits.length > 0 && !digits.startsWith('966')) {
-      if (digits.startsWith('0')) {
-        digits = digits.substring(1);
-      }
-      digits = '966' + digits;
-    }
-    
-    digits = digits.substring(0, 12);
-    
-    if (digits.length === 0) return '';
-    if (digits.length <= 3) return '+' + digits;
-    if (digits.length <= 5) return '+' + digits.substring(0, 3) + ' ' + digits.substring(3);
-    if (digits.length <= 8) return '+' + digits.substring(0, 3) + ' ' + digits.substring(3, 5) + ' ' + digits.substring(5);
-    return '+' + digits.substring(0, 3) + ' ' + digits.substring(3, 5) + ' ' + digits.substring(5, 8) + ' ' + digits.substring(8);
-  };
-
   const handlePhoneChange = (text: string) => {
-    setPhone(formatSaudiPhone(text));
+    setPhone(formatPhoneInput(text));
   };
 
   const getRoleLabel = (role: string) => {
@@ -136,10 +114,9 @@ export default function EditProfileScreen({
     setIsSaving(true);
     
     try {
-      const normalizedPhone = phone.replace(/\D/g, '');
       await authService.updateProfile({
         name: name.trim(),
-        phoneNumber: normalizedPhone || undefined,
+        phoneNumber: normalizePhoneNumber(phone) || undefined,
         department: department.trim() || undefined,
       });
       

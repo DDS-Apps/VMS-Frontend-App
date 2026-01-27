@@ -42,6 +42,7 @@ import type {
   UserRole as ApiUserRole,
 } from "@/types/api.types";
 import { UserRole, USER_ROLES } from "@/types/vms.types";
+import { formatPhoneInput, formatPhoneNumber, normalizePhoneNumber } from "@/utils/formatters";
 
 type UserSource = "microsoft_ad" | "app_created";
 
@@ -275,54 +276,14 @@ export default function UsersRolesScreen() {
     setShowModal(true);
   };
 
-  const formatSaudiPhone = (input: string): string => {
-    let digits = input.replace(/\D/g, "");
-
-    if (digits.startsWith("00966")) {
-      digits = digits.substring(2);
-    }
-
-    if (digits.length > 0 && !digits.startsWith("966")) {
-      if (digits.startsWith("0")) {
-        digits = digits.substring(1);
-      }
-      digits = "966" + digits;
-    }
-
-    digits = digits.substring(0, 12);
-
-    if (digits.length === 0) return "";
-    if (digits.length <= 3) return "+" + digits;
-    if (digits.length <= 5)
-      return "+" + digits.substring(0, 3) + " " + digits.substring(3);
-    if (digits.length <= 8)
-      return (
-        "+" +
-        digits.substring(0, 3) +
-        " " +
-        digits.substring(3, 5) +
-        " " +
-        digits.substring(5)
-      );
-    return (
-      "+" +
-      digits.substring(0, 3) +
-      " " +
-      digits.substring(3, 5) +
-      " " +
-      digits.substring(5, 8) +
-      " " +
-      digits.substring(8)
-    );
-  };
-
   const validatePhone = (phone: string): boolean => {
-    const digitsOnly = phone.replace(/\D/g, "");
-    return digitsOnly.length >= 9 && digitsOnly.length <= 12;
+    const digitsOnly = normalizePhoneNumber(phone);
+    // Valid international phone: 7-15 digits (E.164 standard)
+    return digitsOnly.length >= 7 && digitsOnly.length <= 15;
   };
 
   const handlePhoneChange = (text: string) => {
-    const formatted = formatSaudiPhone(text);
+    const formatted = formatPhoneInput(text);
     setFormData({ ...formData, phoneNumber: formatted });
     if (formErrors.phone) setFormErrors({ ...formErrors, phone: undefined });
   };
@@ -358,7 +319,7 @@ export default function UsersRolesScreen() {
           name: formData.name,
           role: formData.role,
           department: formData.department || undefined,
-          phoneNumber: formData.phoneNumber || undefined,
+          phoneNumber: formData.phoneNumber ? normalizePhoneNumber(formData.phoneNumber) : undefined,
           status: formData.status,
           autoApproval: formData.autoApproval,
           managerId: formData.managerId || undefined,
@@ -375,7 +336,7 @@ export default function UsersRolesScreen() {
           password: formData.password || undefined,
           role: formData.role,
           department: formData.department || undefined,
-          phoneNumber: formData.phoneNumber || undefined,
+          phoneNumber: formData.phoneNumber ? normalizePhoneNumber(formData.phoneNumber) : undefined,
           status: formData.status,
           autoApproval: formData.autoApproval,
           managerId: formData.managerId || undefined,
@@ -695,7 +656,7 @@ export default function UsersRolesScreen() {
                       { color: theme.textSecondary, marginEnd: Spacing.xs },
                     ]}
                   >
-                    {item.phoneNumber}
+                    {formatPhoneNumber(item.phoneNumber)}
                   </ThemedText>
                 </DirectionalRow>
               </>
