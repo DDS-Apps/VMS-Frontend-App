@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from "react";
-import { View, StyleSheet, Pressable, TextInput, ScrollView, Modal, FlatList, Alert } from "react-native";
+import { View, StyleSheet, Pressable, TextInput, ScrollView, Modal, FlatList, Alert, useWindowDimensions } from "react-native";
 import { useFocusEffect } from '@react-navigation/native';
 import { ROUTES } from "@/constants";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -613,6 +613,8 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
   const insets = useSafeAreaInsets();
   const { paddingTop, paddingBottom } = useScreenInsets();
   const { user } = useAuth();
+  const { width: screenWidth } = useWindowDimensions();
+  const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const [isSelectionMode, setIsSelectionMode] = useState(false);
@@ -946,31 +948,35 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
       </View>
       
       <FlatList
+        key={`flatlist-${numColumns}`}
         data={filteredRequests}
         keyExtractor={(item) => item.id}
+        numColumns={numColumns}
+        columnWrapperStyle={numColumns > 1 ? styles.gridRow : undefined}
         renderItem={({ item }) => (
-          <VisitorRequestCard
-            request={item}
-            onPress={() => handleViewDetails(item.id)}
-            onLongPress={() => handleLongPress(item.id)}
-            showRequestedBy
-            showActions={!isSelectionMode}
-            onApprove={() => handleApprove(item.id)}
-            onReject={() => handleReject(item.id)}
-            isProcessing={isProcessing}
-            approveLoading={approvingRequestId === item.id}
-            rejectLoading={rejectingRequestId === item.id}
-            isExpired={isVisitExpired(item.visitDate, item.visitTime, item.endTime, item.duration)}
-            isSelectionMode={isSelectionMode}
-            isSelected={selectedIds.has(item.id)}
-            onToggleSelection={() => toggleSelection(item.id)}
-            accentColor={theme.primary}
-          />
+          <View style={numColumns > 1 ? { width: numColumns === 2 ? '48%' : '31%', flexGrow: 0, marginBottom: LAYOUT.contentGap } : { width: '100%', marginBottom: LAYOUT.contentGap }}>
+            <VisitorRequestCard
+              request={item}
+              onPress={() => handleViewDetails(item.id)}
+              onLongPress={() => handleLongPress(item.id)}
+              showRequestedBy
+              showActions={!isSelectionMode}
+              onApprove={() => handleApprove(item.id)}
+              onReject={() => handleReject(item.id)}
+              isProcessing={isProcessing}
+              approveLoading={approvingRequestId === item.id}
+              rejectLoading={rejectingRequestId === item.id}
+              isExpired={isVisitExpired(item.visitDate, item.visitTime, item.endTime, item.duration)}
+              isSelectionMode={isSelectionMode}
+              isSelected={selectedIds.has(item.id)}
+              onToggleSelection={() => toggleSelection(item.id)}
+              accentColor={theme.primary}
+            />
+          </View>
         )}
         ListHeaderComponent={renderListHeader()}
         ListEmptyComponent={renderEmptyState()}
         ListFooterComponent={<ListLoadingFooter isLoading={isFetchingNextPage} />}
-        ItemSeparatorComponent={() => <Spacer height={LAYOUT.contentGap} />}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}
         style={styles.scrollableContent}
@@ -1053,6 +1059,11 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.sm,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  gridRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
   },
 
   selectAllBar: {
