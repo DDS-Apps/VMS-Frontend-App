@@ -1794,6 +1794,19 @@ export default function RequestDetailsScreen({
                 >
                   {t("status.pending")}
                 </ThemedText>
+              ) : request.status === REQUEST_STATUS.CANCELLED || request.status === REQUEST_STATUS.AUTO_CANCELLED ? (
+                <ThemedText
+                  style={[
+                    Typography.caption,
+                    {
+                      color: theme.error,
+                      fontSize: 12,
+                      marginTop: 2,
+                    },
+                  ]}
+                >
+                  {t("status.cancelled")}
+                </ThemedText>
               ) : (
                 <ThemedText
                   style={[
@@ -1930,6 +1943,19 @@ export default function RequestDetailsScreen({
                 >
                   {t("status.pending")}
                 </ThemedText>
+              ) : request.status === REQUEST_STATUS.CANCELLED || request.status === REQUEST_STATUS.AUTO_CANCELLED ? (
+                <ThemedText
+                  style={[
+                    Typography.caption,
+                    {
+                      color: theme.error,
+                      fontSize: 12,
+                      marginTop: 2,
+                    },
+                  ]}
+                >
+                  {t("status.cancelled")}
+                </ThemedText>
               ) : (
                 <ThemedText
                   style={[
@@ -2036,6 +2062,19 @@ export default function RequestDetailsScreen({
                     {t("parking.parkingPending")}
                   </ThemedText>
                 )
+              ) : request.status === REQUEST_STATUS.CANCELLED || request.status === REQUEST_STATUS.AUTO_CANCELLED ? (
+                <ThemedText
+                  style={[
+                    Typography.caption,
+                    {
+                      color: theme.error,
+                      fontSize: 12,
+                      marginTop: 2,
+                    },
+                  ]}
+                >
+                  {t("status.cancelled")}
+                </ThemedText>
               ) : (
                 <ThemedText
                   style={[

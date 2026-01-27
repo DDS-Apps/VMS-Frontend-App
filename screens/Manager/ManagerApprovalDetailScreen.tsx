@@ -1503,6 +1503,20 @@ export default function ManagerApprovalDetailScreen({
                 >
                   {t("status.pending")}
                 </ThemedText>
+              ) : request.status === REQUEST_STATUS.CANCELLED || request.status === REQUEST_STATUS.AUTO_CANCELLED ? (
+                <ThemedText
+                  style={[
+                    Typography.caption,
+                    {
+                      color: theme.error,
+                      marginTop: 2,
+                      fontSize: 13,
+                      
+                    },
+                  ]}
+                >
+                  {t("status.cancelled")}
+                </ThemedText>
               ) : (
                 <ThemedText
                   style={[
@@ -1624,6 +1638,20 @@ export default function ManagerApprovalDetailScreen({
                 >
                   {t("status.pending")}
                 </ThemedText>
+              ) : request.status === REQUEST_STATUS.CANCELLED || request.status === REQUEST_STATUS.AUTO_CANCELLED ? (
+                <ThemedText
+                  style={[
+                    Typography.caption,
+                    {
+                      color: theme.error,
+                      marginTop: 2,
+                      fontSize: 13,
+                      
+                    },
+                  ]}
+                >
+                  {t("status.cancelled")}
+                </ThemedText>
               ) : (
                 <ThemedText
                   style={[
@@ -1725,6 +1753,20 @@ export default function ManagerApprovalDetailScreen({
                     {t("parking.parkingPending")}
                   </ThemedText>
                 )
+              ) : request.status === REQUEST_STATUS.CANCELLED || request.status === REQUEST_STATUS.AUTO_CANCELLED ? (
+                <ThemedText
+                  style={[
+                    Typography.caption,
+                    {
+                      color: theme.error,
+                      marginTop: 2,
+                      fontSize: 13,
+                      
+                    },
+                  ]}
+                >
+                  {t("status.cancelled")}
+                </ThemedText>
               ) : (
                 <ThemedText
                   style={[
