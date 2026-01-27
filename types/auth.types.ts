@@ -25,6 +25,7 @@ export interface AuthUserDto {
   department?: string;
   phoneNumber?: string;
   businessPhone?: string;
+  landline?: string;
   status: 'active' | 'inactive';
   autoApproval: boolean;
   source?: UserSource;

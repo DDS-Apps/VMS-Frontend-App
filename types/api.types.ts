@@ -114,6 +114,7 @@ export interface UserDto {
   phone?: string;
   phoneNumber?: string;
   businessPhone?: string;
+  landline?: string;
   department?: string;
   jobTitle?: string;
   role: UserRole;

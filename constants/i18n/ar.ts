@@ -318,6 +318,7 @@ export const ar: TranslationKeys = {
     phoneNumber: 'رقم الهاتف',
     phone: 'الهاتف',
     businessPhone: 'هاتف المكتب',
+    landline: 'الهاتف الأرضي',
     phonePlaceholder: 'أدخل رقم الهاتف',
     company: 'الشركة',
     companyPlaceholder: 'أدخل اسم الشركة',
