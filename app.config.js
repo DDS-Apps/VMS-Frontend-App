@@ -1,7 +1,7 @@
 // QA Environment Configuration
 // This Replit project is dedicated to QA/Testing environment
 // For production, use the separate production Replit project
-const QA_BACKEND_URL = "https://vms-backend-app-qa.replit.app";
+const QA_BACKEND_URL = "https://vms-backend-folio3.replit.app";
 const BACKEND_URL = QA_BACKEND_URL;
 const CONFIG_PATH = "qa";
 
