@@ -74,6 +74,16 @@ const buildBuffetTimelineSteps = (
   const currentStatusIndex = BUFFET_STATUS_ORDER.indexOf(request.status as typeof BUFFET_STATUS_ORDER[number]);
   const isCancelled = request.status === 'cancelled';
 
+  // Define all possible steps
+  const allSteps: Array<{ id: string; label: string; icon: string; statusIndex: number }> = [
+    { id: 'pending', label: t('buffet.pending'), icon: 'clock', statusIndex: 0 },
+    { id: 'preparing', label: t('buffet.preparing'), icon: 'loader', statusIndex: 1 },
+    { id: 'ready', label: t('buffet.ready'), icon: 'check-circle', statusIndex: 2 },
+    { id: 'served', label: t('buffet.served'), icon: 'coffee', statusIndex: 3 },
+    { id: 'completed', label: t('buffet.completed'), icon: 'check', statusIndex: 4 },
+  ];
+
+  // Always start with Request Created
   const steps: TimelineStep[] = [
     {
       id: 'created',
@@ -82,44 +92,33 @@ const buildBuffetTimelineSteps = (
       status: 'completed',
       icon: 'file-plus',
     },
-    {
-      id: 'pending',
-      label: t('buffet.pending'),
-      status: getStepStatus(0, currentStatusIndex, isCancelled),
-      icon: 'clock',
-    },
-    {
-      id: 'preparing',
-      label: t('buffet.preparing'),
-      status: getStepStatus(1, currentStatusIndex, isCancelled),
-      icon: 'loader',
-    },
-    {
-      id: 'ready',
-      label: t('buffet.ready'),
-      status: getStepStatus(2, currentStatusIndex, isCancelled),
-      icon: 'check-circle',
-    },
-    {
-      id: 'served',
-      label: t('buffet.served'),
-      status: getStepStatus(3, currentStatusIndex, isCancelled),
-      icon: 'coffee',
-    },
-    {
-      id: 'completed',
-      label: t('buffet.completed'),
-      status: getStepStatus(4, currentStatusIndex, isCancelled),
-      icon: 'check',
-    },
   ];
 
   if (isCancelled) {
+    // When cancelled, show Pending as completed (the step before cancellation), then Cancelled
+    steps.push({
+      id: 'pending',
+      label: t('buffet.pending'),
+      status: 'completed',
+      icon: 'clock',
+    });
     steps.push({
       id: 'cancelled',
       label: t('status.cancelled'),
       status: 'error',
       icon: 'x-circle',
+    });
+    // Don't show any subsequent steps (preparing, ready, served, completed)
+    return steps;
+  }
+
+  // Normal flow - add all steps with their appropriate status
+  for (const step of allSteps) {
+    steps.push({
+      id: step.id,
+      label: step.label,
+      status: getStepStatus(step.statusIndex, currentStatusIndex, isCancelled),
+      icon: step.icon,
     });
   }
 
@@ -249,7 +248,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
       case 'completed':
         return theme.success;
       case 'cancelled':
-        return theme.textSecondary;
+        return theme.error;
       default:
         return theme.textSecondary;
     }
