@@ -204,7 +204,7 @@ export default function AdminDashboardScreen({
   ];
 
   return (
-    <ScreenScrollView contentContainerStyle={styles.container}>
+    <ScreenScrollView skipTopPadding contentContainerStyle={styles.container}>
       <ThemedText style={[Typography.title]}>{title}</ThemedText>
       <ThemedText
         style={[Typography.bodySmall, { color: theme.textSecondary }]}

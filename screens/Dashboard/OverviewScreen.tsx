@@ -388,7 +388,7 @@ export default function OverviewScreen({
 
   return (
     <>
-      <ScreenScrollView contentContainerStyle={scrollContentStyle}>
+      <ScreenScrollView skipTopPadding contentContainerStyle={scrollContentStyle}>
         {/* 1. Welcome Heading - Employee & Manager */}
         {(userRole === "employee" || userRole === "manager") && (
           <>

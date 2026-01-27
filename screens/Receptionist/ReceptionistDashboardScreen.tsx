@@ -342,7 +342,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
 
   return (
     <>
-      <ScreenScrollView contentContainerStyle={scrollContentStyle}>
+      <ScreenScrollView skipTopPadding contentContainerStyle={scrollContentStyle}>
         <KPICardRow>
           <KPICard 
             title={t('dashboard.expectedToday')} 

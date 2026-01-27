@@ -291,7 +291,7 @@ export default function BuffetOverviewScreen({ navigation }: BuffetOverviewScree
   };
 
   return (
-    <ScreenScrollView contentContainerStyle={scrollContentStyle}>
+    <ScreenScrollView skipTopPadding contentContainerStyle={scrollContentStyle}>
       <KPICardRow>
         <KPICard 
           title={t('buffet.eventsToday')} 

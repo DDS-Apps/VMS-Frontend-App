@@ -121,7 +121,7 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
   }
 
   return (
-    <ScreenScrollView contentContainerStyle={styles.container}>
+    <ScreenScrollView skipTopPadding contentContainerStyle={styles.container}>
       <ThemedText style={Typography.title}>{t('navigation.controlCenter')}</ThemedText>
       <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
         {t('dashboard.overview')}

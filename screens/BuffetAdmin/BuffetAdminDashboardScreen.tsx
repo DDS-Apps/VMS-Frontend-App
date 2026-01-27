@@ -449,7 +449,7 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
   }
 
   return (
-    <ScreenScrollView contentContainerStyle={scrollContentStyle}>
+    <ScreenScrollView skipTopPadding contentContainerStyle={scrollContentStyle}>
       <KPICardRow>
         <KPICard 
           title={t('time.today')} 
