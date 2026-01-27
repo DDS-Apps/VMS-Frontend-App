@@ -1864,7 +1864,7 @@ export default function RequestDetailsScreen({
               >
                 {t("buffet.buffetService")}
               </ThemedText>
-              {(request.buffet ||
+              {(request.buffet?.mealType ||
                 request.isBuffet ||
                 (request as any).buffetPending) &&
               (request.status === REQUEST_STATUS.REJECTED ||
@@ -1876,13 +1876,12 @@ export default function RequestDetailsScreen({
                       color: theme.error,
                       fontSize: 12,
                       marginTop: 2,
-                      //    
                     },
                   ]}
                 >
                   {t("status.cancelled")}
                 </ThemedText>
-              ) : request.buffet && request.buffet.mealType ? (
+              ) : request.buffet?.mealType ? (
                 <ThemedText
                   style={[
                     Typography.caption,
@@ -1890,7 +1889,6 @@ export default function RequestDetailsScreen({
                       color: theme.textSecondary,
                       fontSize: 12,
                       marginTop: 2,
-                      //   
                     },
                   ]}
                 >
@@ -1898,7 +1896,7 @@ export default function RequestDetailsScreen({
                   {request.buffet.mealType.charAt(0).toUpperCase() +
                     request.buffet.mealType.slice(1)}
                 </ThemedText>
-              ) : request.isBuffet ? (
+              ) : request.isBuffet || (request as any).buffetPending ? (
                 <ThemedText
                   style={[
                     Typography.caption,
@@ -1906,25 +1904,12 @@ export default function RequestDetailsScreen({
                       color: theme.warning,
                       fontSize: 12,
                       marginTop: 2,
-                      //   
                     },
                   ]}
                 >
-                  {t("status.pending")}
-                </ThemedText>
-              ) : (request as any).buffetPending ? (
-                <ThemedText
-                  style={[
-                    Typography.caption,
-                    {
-                      color: theme.warning,
-                      fontSize: 12,
-                      marginTop: 2,
-                      // 
-                    },
-                  ]}
-                >
-                  {t("status.pending")}
+                  {request.status === REQUEST_STATUS.PENDING_APPROVAL || request.status === REQUEST_STATUS.PENDING_HOST_APPROVAL
+                    ? t("status.pendingApproval")
+                    : t("status.pending")}
                 </ThemedText>
               ) : request.status === REQUEST_STATUS.CANCELLED || request.status === REQUEST_STATUS.AUTO_CANCELLED || request.status === REQUEST_STATUS.VISITOR_REJECTED ? (
                 <ThemedText
@@ -1948,7 +1933,6 @@ export default function RequestDetailsScreen({
                       fontSize: 12,
                       marginTop: 2,
                       fontStyle: "italic",
-                      //   
                     },
                   ]}
                 >
@@ -2042,7 +2026,9 @@ export default function RequestDetailsScreen({
                       },
                     ]}
                   >
-                    {t("parking.parkingPending")}
+                    {request.status === REQUEST_STATUS.PENDING_APPROVAL || request.status === REQUEST_STATUS.PENDING_HOST_APPROVAL
+                      ? t("status.pendingApproval")
+                      : t("parking.parkingPending")}
                   </ThemedText>
                 )
               ) : request.status === REQUEST_STATUS.CANCELLED || request.status === REQUEST_STATUS.AUTO_CANCELLED || request.status === REQUEST_STATUS.VISITOR_REJECTED ? (
