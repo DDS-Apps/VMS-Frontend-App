@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { View, StyleSheet, Pressable, ScrollView, ActivityIndicator, RefreshControl } from "react-native";
+import { View, StyleSheet, Pressable, ScrollView, ActivityIndicator, RefreshControl, useWindowDimensions } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
@@ -252,7 +252,12 @@ const ErrorState = ({ theme, t, onRetry }: { theme: Theme; t: (key: string) => s
 export default function ValetAllRequestsScreen() {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { isRTL } = useLanguage();  const [filterType, setFilterType] = useState<'all' | 'with_parking' | 'without_parking'>('all');
+  const { isRTL } = useLanguage();
+  const { width: screenWidth } = useWindowDimensions();
+  const [filterType, setFilterType] = useState<'all' | 'with_parking' | 'without_parking'>('all');
+  
+  // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
+  const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
   
   const today = new Date().toISOString().split('T')[0];
   const { data, isLoading, isError, refetch, isRefetching } = useValetParkingDashboard(today);
@@ -320,33 +325,36 @@ export default function ValetAllRequestsScreen() {
         contentContainerStyle={styles.tabsContainer}
         nestedScrollEnabled={true}
       >
-        {filterOptions.map((filter) => (
-          <Pressable
-            key={filter.key}
-            style={[
-              styles.filterChip,
-              { 
-                backgroundColor: filterType === filter.key 
-                  ? applyOpacity(theme.primary, '15') 
-                  : theme.surface,
-                borderColor: filterType === filter.key ? theme.primary : theme.border,
-              }
-            ]}
-            onPress={() => setFilterType(filter.key)}
-          >
-            <ThemedText
-              style={[
-                styles.filterChipText,
-                { 
-                  color: filterType === filter.key ? theme.primary : theme.textSecondary,
-                  fontWeight: filterType === filter.key ? '600' : '400',
-                }
-              ]}
-            >
-              {filter.label}
-            </ThemedText>
-          </Pressable>
-        ))}
+        <View style={[styles.segmentedControl, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          {filterOptions.map((option, index) => {
+            const isActive = filterType === option.key;
+            const isFirst = index === 0;
+            const isLast = index === filterOptions.length - 1;
+
+            return (
+              <Pressable
+                key={option.key}
+                style={[
+                  styles.segmentButton,
+                  isActive && { backgroundColor: theme.primary },
+                  isFirst && styles.segmentFirst,
+                  isLast && styles.segmentLast,
+                ]}
+                onPress={() => setFilterType(option.key)}
+              >
+                <ThemedText
+                  style={[
+                    styles.segmentText,
+                    { color: isActive ? '#FFFFFF' : theme.text }
+                  ]}
+                  numberOfLines={1}
+                >
+                  {option.label}
+                </ThemedText>
+              </Pressable>
+            );
+          })}
+        </View>
       </ScrollView>
 
       <Spacer height={Spacing.sm} />
@@ -355,17 +363,21 @@ export default function ValetAllRequestsScreen() {
         {filteredVisitors.length === 0 ? (
           <EmptyState theme={theme} t={t} />
         ) : (
-          filteredVisitors.map((visitor) => (
-            <React.Fragment key={visitor.requestId}>
-              <VisitorCard 
-                visitor={visitor} 
-                theme={theme} 
-                t={t}
-                isRTL={isRTL}
-              />
-              <Spacer height={Spacing.xs} />
-            </React.Fragment>
-          ))
+          <View style={styles.cardGrid}>
+            {filteredVisitors.map((visitor) => (
+              <View 
+                key={visitor.requestId}
+                style={numColumns > 1 ? { width: numColumns === 2 ? '48%' : '31%', flexGrow: 0 } : { width: '100%', marginBottom: LAYOUT.contentGap }}
+              >
+                <VisitorCard 
+                  visitor={visitor} 
+                  theme={theme} 
+                  t={t}
+                  isRTL={isRTL}
+                />
+              </View>
+            ))}
+          </View>
         )}
       </View>
 
@@ -403,14 +415,34 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.sm,
     gap: Spacing.xs,
   },
-  filterChip: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    borderRadius: BorderRadius.full,
+  segmentedControl: {
+    flexDirection: 'row',
+    borderRadius: BorderRadius.lg,
     borderWidth: 1,
+    overflow: 'hidden',
+    height: 36,
   },
-  filterChipText: {
+  segmentButton: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+  },
+  segmentFirst: {
+    borderTopStartRadius: BorderRadius.lg - 1,
+    borderBottomStartRadius: BorderRadius.lg - 1,
+  },
+  segmentLast: {
+    borderTopEndRadius: BorderRadius.lg - 1,
+    borderBottomEndRadius: BorderRadius.lg - 1,
+  },
+  segmentText: {
     fontSize: 12,
+    fontWeight: '600',
+  },
+  cardGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
   },
   visitorCard: {
     borderRadius: LAYOUT.cardRadius,
