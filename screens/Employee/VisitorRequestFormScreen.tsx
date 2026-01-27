@@ -765,7 +765,7 @@ export default function VisitorRequestFormScreen({
                 writingDirection: isRTL ? "rtl" : "ltr",
               },
             ]}
-            placeholder="+966 5X XXX XXXX"
+            placeholder="+XXX XX XXX XXXX"
             placeholderTextColor={theme.textSecondary}
             value={phone}
             onChangeText={handlePhoneChange}

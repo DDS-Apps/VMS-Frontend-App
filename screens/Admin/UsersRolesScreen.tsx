@@ -1897,7 +1897,7 @@ export default function UsersRolesScreen() {
                 label={`${t("form.phoneNumber")} *`}
                 value={formData.phoneNumber}
                 onChangeText={handlePhoneChange}
-                placeholder="+966 5X XXX XXXX"
+                placeholder="+XXX XX XXX XXXX"
                 keyboardType="phone-pad"
                 error={formErrors.phone}
                 returnKeyType="done"

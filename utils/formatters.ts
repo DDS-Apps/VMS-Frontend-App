@@ -190,17 +190,13 @@ export const formatPhoneNumber = (phone: string): string => {
   // If no digits, return empty
   if (digits.length === 0) return '';
   
-  // Normalize Saudi local numbers (05XXXXXXXX → 9665XXXXXXXX)
-  if (digits.startsWith('00966')) {
-    digits = digits.substring(2); // Remove leading 00
-  }
-  if (digits.startsWith('0') && digits.length === 10) {
-    // Saudi local format (05XXXXXXXX) - convert to international
-    digits = '966' + digits.substring(1);
+  // Handle 00XXX international prefix (convert 00 to nothing, keeping country code)
+  if (digits.startsWith('00')) {
+    digits = digits.substring(2);
   }
   
-  // Unified format: +CCC XX XXX XXXX+ (3-2-3-remaining grouping)
-  // This pattern is applied consistently for all phone numbers
+  // International format: +CCC XX XXX XXXX+ (3-2-3-remaining grouping)
+  // This pattern is applied consistently for all phone numbers from any country
   // All digits are preserved - the last group can be longer for >12 digit numbers
   
   // Progressive formatting (same 3-2-3 pattern, remaining goes to last group)
@@ -221,39 +217,28 @@ export const formatPhoneNumber = (phone: string): string => {
  * Formats phone input as the user types (input masking).
  * Uses formatPhoneNumber internally to ensure display and input mask are identical.
  * 
- * For Saudi numbers (default), automatically converts local format to international.
+ * Allows any international phone number - user can enter any country code.
+ * Applies the 3-2-3-remaining format pattern to all numbers.
  * 
  * Use this for TextInput onChangeText handlers.
  * 
  * @param input - Raw user input
- * @param countryCode - Default country code (default: '966' for Saudi Arabia)
  * @returns Formatted phone string with masking applied
  */
-export const formatPhoneInput = (input: string, countryCode: string = '966'): string => {
+export const formatPhoneInput = (input: string): string => {
   let digits = input.replace(/\D/g, '');
   
   if (digits.length === 0) return '';
   
-  // Handle Saudi numbers (default) - auto-convert local to international
-  if (countryCode === '966') {
-    // Handle 00966 prefix
-    if (digits.startsWith('00966')) {
-      digits = digits.substring(2);
-    }
-    
-    // If user starts with 0, convert to international format
-    if (!digits.startsWith('966')) {
-      if (digits.startsWith('0')) {
-        digits = digits.substring(1);
-      }
-      digits = '966' + digits;
-    }
+  // Handle 00XXX international prefix (convert 00 to nothing, keeping country code)
+  if (digits.startsWith('00')) {
+    digits = digits.substring(2);
   }
   
   // Limit to 15 digits (E.164 max)
   digits = digits.substring(0, 15);
   
-  // Use formatPhoneNumber to ensure identical output
+  // Use formatPhoneNumber to ensure identical output with 3-2-3-remaining pattern
   return formatPhoneNumber(digits);
 };
 
