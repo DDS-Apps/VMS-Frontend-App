@@ -113,6 +113,7 @@ export interface UserDto {
   lastName?: string;
   phone?: string;
   phoneNumber?: string;
+  businessPhone?: string;
   department?: string;
   jobTitle?: string;
   role: UserRole;
