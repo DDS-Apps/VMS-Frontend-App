@@ -1,0 +1,18 @@
+[HTTP Response] GET /api/v1/approvals/pending?page=1&limit=10 | Status: 200 index.bundle:158704:13
+TypeError: CSSStyleProperties doesn't have an indexed property setter for '0'
+    setValueForStyle https://d02f58f1-0735-43a7-a13a-9cffc6e5f093-00-1e1umab99qj4l.spock.replit.dev/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&transform.reactCompiler=true&unstable_transformProfile=hermes-stable:6477
+    setValueForStyles https://d02f58f1-0735-43a7-a13a-9cffc6e5f093-00-1e1umab99qj4l.spock.replit.dev/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&transform.reactCompiler=true&unstable_transformProfile=hermes-stable:6500
+    setProp https://d02f58f1-0735-43a7-a13a-9cffc6e5f093-00-1e1umab99qj4l.spock.replit.dev/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&transform.reactCompiler=true&unstable_transformProfile=hermes-stable:13549
+ 
+
+
+The above error occurred in the <div> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, ErrorBoundary.
+index.bundle:9570:22
+[Crashlytics Mock] JS Exception: CSSStyleProperties doesn't have an indexed property setter for '0' index.bundle:135748:17
+[Crashlytics Mock] Component Stack: 
+div@unknown:0:0
+View<@https://d02f58f1-0735-43a7-a13a-9cffc6e5f093-00-1e1umab99qj4l.spock.replit.dev/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&transform.reactCompiler=true&unstable_transformProfile=hermes-stable:30714:21
+ThemedView@https://d02f58f1-0735-43a7-a13a-9cffc6e5f093-00-1e1umab99qj4l.spock.replit.dev/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&transform.reactCompile index.bundle:135748:17
+[Crashlytics Mock] Error: JavaScript Exception CSSStyleProperties doesn't have an indexed property setter for '0'
