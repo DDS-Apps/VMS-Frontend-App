@@ -78,22 +78,17 @@ export function KPICardRow({ children }: KPICardRowProps) {
   }
   
   const effectiveColumns = Math.min(columnsPerRow, childCount);
-  const gapValue = Spacing.md;
-  const containerPadding = Spacing.xl * 2;
-  const availableWidth = windowWidth - containerPadding;
-  const totalGapWidth = (effectiveColumns - 1) * gapValue;
-  const cardWidth = Math.floor((availableWidth - totalGapWidth) / effectiveColumns);
+  const flexBasisPercent = effectiveColumns === 2 ? '46%' : effectiveColumns === 3 ? '30%' : '22%';
   
-  const childrenWithWidth = React.Children.map(children, (child, index) => {
+  const childrenWithWidth = React.Children.map(children, (child) => {
     if (React.isValidElement(child)) {
-      const isLastInRow = (index + 1) % effectiveColumns === 0;
-      const marginEnd = isLastInRow ? 0 : gapValue;
       return (
         <View style={{ 
-          width: cardWidth,
-          marginRight: isRTL ? 0 : marginEnd,
-          marginLeft: isRTL ? marginEnd : 0,
-          marginBottom: gapValue,
+          flexBasis: flexBasisPercent,
+          flexGrow: 1,
+          flexShrink: 0,
+          maxWidth: effectiveColumns === 2 ? '49%' : effectiveColumns === 3 ? '32%' : '24%',
+          marginBottom: Spacing.md,
         }}>
           {child}
         </View>
@@ -108,6 +103,7 @@ export function KPICardRow({ children }: KPICardRowProps) {
         styles.row, 
         { 
           flexDirection: isRTL ? 'row-reverse' : 'row',
+          gap: Spacing.sm,
         }
       ]} 
     >
