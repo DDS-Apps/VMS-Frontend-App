@@ -19,6 +19,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
 import { LoadingButton } from "@/components/shared/LoadingButton";
+import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
 import { UserRole } from "@/types/vms.types";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
@@ -65,7 +66,6 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isMicrosoftSubmitting, setIsMicrosoftSubmitting] = useState(false);
-
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
@@ -285,7 +285,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   const hasErrors = errors.email !== undefined || errors.password !== undefined;
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={[styles.container, { backgroundColor: isDark ? theme.background : '#FFFFFF' }]}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={[
@@ -333,16 +333,15 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                 {
                   color: theme.textSecondary,
                   marginBottom: Spacing.xs,
-                  textAlign: isRTL ? "right" : "left",
+                  
                 },
               ]}
             >
               {t("form.emailAddress").toUpperCase()}
             </ThemedText>
-            <View
+            <DirectionalRow
               style={[
-                getInputContainerStyle("email"),
-                { flexDirection: isRTL ? "row-reverse" : "row" },
+                ...getInputContainerStyle("email"),
               ]}
             >
               <DDIcon name="mail" size={INPUT_ICON_SIZE} variant="muted" />
@@ -351,7 +350,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                   styles.input,
                   {
                     color: theme.text,
-                    textAlign: isRTL ? "right" : "left",
+                    
                     writingDirection: isRTL ? "rtl" : "ltr",
                   },
                   Platform.OS === "web"
@@ -372,7 +371,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                 autoCorrect={false}
                 returnKeyType="next"
               />
-            </View>
+            </DirectionalRow>
             {errors.email ? (
               <ThemedText
                 style={[
@@ -380,7 +379,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                   {
                     color: theme.error,
                     marginTop: Spacing.xs,
-                    textAlign: isRTL ? "right" : "left",
+                    
                   },
                 ]}
               >
@@ -396,16 +395,15 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                 {
                   color: theme.textSecondary,
                   marginBottom: Spacing.xs,
-                  textAlign: isRTL ? "right" : "left",
+                  
                 },
               ]}
             >
               {t("auth.password").toUpperCase()}
             </ThemedText>
-            <View
+            <DirectionalRow
               style={[
-                getInputContainerStyle("password"),
-                { flexDirection: isRTL ? "row-reverse" : "row" },
+                ...getInputContainerStyle("password"),
               ]}
             >
               <DDIcon name="lock" size={INPUT_ICON_SIZE} variant="muted" />
@@ -414,7 +412,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                   styles.input,
                   {
                     color: theme.text,
-                    textAlign: isRTL ? "right" : "left",
+                    
                     writingDirection: isRTL ? "rtl" : "ltr",
                   },
                   Platform.OS === "web"
@@ -445,7 +443,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                   variant="muted"
                 />
               </Pressable>
-            </View>
+            </DirectionalRow>
             {errors.password ? (
               <ThemedText
                 style={[
@@ -453,7 +451,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                   {
                     color: theme.error,
                     marginTop: Spacing.xs,
-                    textAlign: isRTL ? "right" : "left",
+                    
                   },
                 ]}
               >
@@ -463,47 +461,39 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
 
             <Spacer height={Spacing.lg} />
 
-            <View style={styles.rememberForgotRow}>
+            <DirectionalRow style={styles.rememberForgotRow}>
               <Pressable
-                style={styles.rememberRow}
                 onPress={() => setRememberMe(!rememberMe)}
               >
-                <View
-                  style={[
-                    styles.checkbox,
-                    {
-                      borderColor: rememberMe ? theme.primary : theme.border,
-                      backgroundColor: rememberMe
-                        ? theme.primary
-                        : "transparent",
-                    },
-                  ]}
-                >
-                  {rememberMe ? (
-                    <DDIcon name="check" size={14} color="#FFFFFF" />
-                  ) : null}
-                </View>
-                <ThemedText
-                  style={[Typography.bodySmall, { marginStart: Spacing.sm }]}
-                >
-                  {t("auth.rememberMe")}
-                </ThemedText>
+                <DirectionalRow style={styles.rememberRow}>
+                  <View
+                    style={[
+                      styles.checkbox,
+                      {
+                        borderColor: rememberMe ? theme.primary : theme.border,
+                        backgroundColor: rememberMe
+                          ? theme.primary
+                          : "transparent",
+                      },
+                    ]}
+                  >
+                    {rememberMe ? (
+                      <DDIcon name="check" size={14} color="#FFFFFF" />
+                    ) : null}
+                  </View>
+                  <ThemedText
+                    style={[Typography.bodySmall, { marginStart: Spacing.sm }]}
+                  >
+                    {t("auth.rememberMe")}
+                  </ThemedText>
+                </DirectionalRow>
               </Pressable>
-              {/* Forgot password hidden per user request
-              <Pressable onPress={onForgotPassword}>
-                <ThemedText
-                  style={[Typography.bodySmall, { color: theme.primary }]}
-                >
-                  {t("auth.forgotPassword")}
-                </ThemedText>
-              </Pressable>
-*/}
-            </View>
+            </DirectionalRow>
 
             <Spacer height={Spacing.xl} />
 
             {errors.general ? (
-              <View
+              <DirectionalRow
                 style={[
                   styles.errorContainer,
                   {
@@ -521,7 +511,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                 >
                   {errors.general}
                 </ThemedText>
-              </View>
+              </DirectionalRow>
             ) : null}
 
             <LoadingButton
@@ -536,7 +526,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
               {t("auth.signIn")}
             </LoadingButton>
 
-            <View style={styles.dividerContainer}>
+            <DirectionalRow style={styles.dividerContainer}>
               <View
                 style={[styles.dividerLine, { backgroundColor: theme.border }]}
               />
@@ -551,7 +541,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
               <View
                 style={[styles.dividerLine, { backgroundColor: theme.border }]}
               />
-            </View>
+            </DirectionalRow>
 
             <Pressable
               style={[
@@ -560,6 +550,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                   backgroundColor: theme.surface,
                   borderColor: theme.border,
                   opacity: isMicrosoftSubmitting || isAzureLoading ? 0.7 : 1,
+                  flexDirection: getFlexDirection(isRTL),
                 },
               ]}
               onPress={handleMicrosoftLogin}
@@ -618,7 +609,6 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   inputContainer: {
-    flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: Spacing.md,
     borderRadius: BorderRadius.sm,
@@ -632,13 +622,12 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   rememberForgotRow: {
-    flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
   rememberRow: {
-    flexDirection: "row",
     alignItems: "center",
+    gap: Spacing.sm,
   },
   checkbox: {
     width: 22,
@@ -654,13 +643,12 @@ const styles = StyleSheet.create({
   microsoftButton: {
     height: INPUT_HEIGHT,
     borderRadius: 10,
-    flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1,
+    gap: Spacing.md,
   },
   dividerContainer: {
-    flexDirection: "row",
     alignItems: "center",
     marginVertical: Spacing.lg,
   },
@@ -669,7 +657,6 @@ const styles = StyleSheet.create({
     height: 1,
   },
   errorContainer: {
-    flexDirection: "row",
     alignItems: "center",
     padding: Spacing.md,
     borderRadius: BorderRadius.sm,

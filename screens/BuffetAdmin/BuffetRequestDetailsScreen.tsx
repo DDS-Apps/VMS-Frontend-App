@@ -9,6 +9,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
+import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
 import { applyOpacity } from "@/utils/statusStyles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LoadingButton } from "@/components/shared/LoadingButton";
@@ -73,6 +74,16 @@ const buildBuffetTimelineSteps = (
   const currentStatusIndex = BUFFET_STATUS_ORDER.indexOf(request.status as typeof BUFFET_STATUS_ORDER[number]);
   const isCancelled = request.status === 'cancelled';
 
+  // Define all possible steps
+  const allSteps: Array<{ id: string; label: string; icon: string; statusIndex: number }> = [
+    { id: 'pending', label: t('buffet.pending'), icon: 'clock', statusIndex: 0 },
+    { id: 'preparing', label: t('buffet.preparing'), icon: 'loader', statusIndex: 1 },
+    { id: 'ready', label: t('buffet.ready'), icon: 'check-circle', statusIndex: 2 },
+    { id: 'served', label: t('buffet.served'), icon: 'coffee', statusIndex: 3 },
+    { id: 'completed', label: t('buffet.completed'), icon: 'check', statusIndex: 4 },
+  ];
+
+  // Always start with Request Created
   const steps: TimelineStep[] = [
     {
       id: 'created',
@@ -81,44 +92,33 @@ const buildBuffetTimelineSteps = (
       status: 'completed',
       icon: 'file-plus',
     },
-    {
-      id: 'pending',
-      label: t('buffet.pending'),
-      status: getStepStatus(0, currentStatusIndex, isCancelled),
-      icon: 'clock',
-    },
-    {
-      id: 'preparing',
-      label: t('buffet.preparing'),
-      status: getStepStatus(1, currentStatusIndex, isCancelled),
-      icon: 'loader',
-    },
-    {
-      id: 'ready',
-      label: t('buffet.ready'),
-      status: getStepStatus(2, currentStatusIndex, isCancelled),
-      icon: 'check-circle',
-    },
-    {
-      id: 'served',
-      label: t('buffet.served'),
-      status: getStepStatus(3, currentStatusIndex, isCancelled),
-      icon: 'coffee',
-    },
-    {
-      id: 'completed',
-      label: t('buffet.completed'),
-      status: getStepStatus(4, currentStatusIndex, isCancelled),
-      icon: 'check',
-    },
   ];
 
   if (isCancelled) {
+    // When cancelled, show Pending as completed (the step before cancellation), then Cancelled
+    steps.push({
+      id: 'pending',
+      label: t('buffet.pending'),
+      status: 'completed',
+      icon: 'clock',
+    });
     steps.push({
       id: 'cancelled',
       label: t('status.cancelled'),
       status: 'error',
       icon: 'x-circle',
+    });
+    // Don't show any subsequent steps (preparing, ready, served, completed)
+    return steps;
+  }
+
+  // Normal flow - add all steps with their appropriate status
+  for (const step of allSteps) {
+    steps.push({
+      id: step.id,
+      label: step.label,
+      status: getStepStatus(step.statusIndex, currentStatusIndex, isCancelled),
+      icon: step.icon,
     });
   }
 
@@ -128,8 +128,7 @@ const buildBuffetTimelineSteps = (
 export default function BuffetRequestDetailsScreen({ route, navigation }: BuffetRequestDetailsScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { isRTL } = useLanguage();
-  const insets = useSafeAreaInsets();
+  const { isRTL } = useLanguage();  const insets = useSafeAreaInsets();
   const { showSuccess } = useToast();
   const { user } = useAuth();
   const isReadOnlyRole = user?.role === 'building_admin';
@@ -249,7 +248,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
       case 'completed':
         return theme.success;
       case 'cancelled':
-        return theme.textSecondary;
+        return theme.error;
       default:
         return theme.textSecondary;
     }
@@ -392,56 +391,56 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
       <Spacer height={Spacing.lg} />
 
       <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
-        <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+        <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text }]}>
           {t('buffet.orderDetails')}
         </ThemedText>
         <Spacer height={Spacing.xl} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <DirectionalRow style={styles.serviceRowNew}>
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="user" size={18} color={theme.text} />
           </View>
           <View style={{ flex: 1, marginStart: Spacing.md }}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
               {t('reception.hostName')}
             </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
               {request.hostName}
             </ThemedText>
           </View>
-        </View>
+        </DirectionalRow>
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <DirectionalRow style={styles.serviceRowNew}>
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="map-pin" size={18} color={theme.text} />
           </View>
           <View style={{ flex: 1, marginStart: Spacing.md }}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
               {t('invitation.location')}
             </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
               {request.meetingRoom || request.hostName}
             </ThemedText>
           </View>
-        </View>
+        </DirectionalRow>
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <DirectionalRow style={styles.serviceRowNew}>
           <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
             <DDIcon name="clock" size={18} color={theme.text} />
           </View>
           <View style={{ flex: 1, marginStart: Spacing.md }}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
               {t('buffet.servingTime')}
             </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
               {request.timeSlot}
             </ThemedText>
           </View>
-        </View>
+        </DirectionalRow>
 
       </ThemedView>
 
@@ -450,14 +449,14 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
           <Spacer height={Spacing.lg} />
 
           <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
-            <View style={[styles.notesHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <DirectionalRow style={styles.notesHeader}>
               <DDIcon name="file-text" size={16} color={theme.info} />
               <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginStart: Spacing.sm, fontSize: 14, color: theme.text }]}>
                 {t('form.notes')}
               </ThemedText>
-            </View>
+            </DirectionalRow>
             <Spacer height={Spacing.sm} />
-            <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, lineHeight: 20, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, lineHeight: 20 }]}>
               {request.notes}
             </ThemedText>
           </ThemedView>
@@ -467,7 +466,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
       <Spacer height={Spacing.lg} />
 
       <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
-        <View style={[styles.sectionHeaderRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <DirectionalRow style={[styles.sectionHeaderRow, { justifyContent: 'space-between', alignItems: 'center' }]}>
           <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text }]}>
             {t('navigation.staffManagement')}
           </ThemedText>
@@ -482,24 +481,24 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
               </ThemedText>
             </Pressable>
           ) : null}
-        </View>
+        </DirectionalRow>
 
         <Spacer height={Spacing.lg} />
 
         {request.assignedStaff ? (
-          <View style={[styles.serviceRowNew, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <DirectionalRow style={styles.serviceRowNew}>
             <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.success, '15') }]}>
               <DDIcon name="user-check" size={18} color={theme.success} />
             </View>
             <View style={{ flex: 1, marginStart: Spacing.md }}>
-              <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
                 {t('buffet.assignedStaff')}
               </ThemedText>
-              <ThemedText style={[Typography.caption, { color: theme.success, marginTop: 2, fontSize: 13, fontWeight: '500', textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.caption, { color: theme.success, marginTop: 2, fontSize: 13, fontWeight: '500' }]}>
                 {request.assignedStaff}
               </ThemedText>
             </View>
-          </View>
+          </DirectionalRow>
         ) : (
           <View style={styles.noStaffState}>
             <DDIcon name="user-x" size={24} variant="muted" />
@@ -550,7 +549,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
         onPress={() => setShowAssignModal(false)}
       >
         <Pressable style={[styles.modalContent, { backgroundColor: theme.surface }]}>
-          <View style={[styles.modalHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <DirectionalRow style={[styles.modalHeader, { justifyContent: 'space-between', alignItems: 'center' }]}>
             <ThemedText style={[Typography.subtitle, { fontWeight: '600' }]}>
               {request.assignedStaff ? t('buffet.reassignStaff') : t('buffet.assignStaff')}
             </ThemedText>
@@ -560,7 +559,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
             >
               <DDIcon name="x" size={20} variant="muted" />
             </Pressable>
-          </View>
+          </DirectionalRow>
 
           <View style={styles.modalRequestInfo}>
             <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>

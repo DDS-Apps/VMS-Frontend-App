@@ -14,6 +14,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/contexts/ToastContext";
 import { useNotifications } from "@/contexts/NotificationContext";
+import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 import {
   useNotificationPreferencesQuery,
   useUpdateNotificationPreferencesMutation,
@@ -26,8 +27,7 @@ import type {
 export default function NotificationPreferencesScreen() {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { isRTL } = useLanguage();
-  const insets = useSafeAreaInsets();
+  const { isRTL } = useLanguage();  const insets = useSafeAreaInsets();
   const { showSuccess, showError } = useToast();
   const { requestPermission, permissionStatus } = useNotifications();
 
@@ -147,13 +147,13 @@ export default function NotificationPreferencesScreen() {
 
       {permissionStatus !== "granted" && (
         <>
-          <ThemedView style={[styles.permissionCard, { backgroundColor: theme.warning + "20", flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <DirectionalRow style={[styles.permissionCard, { backgroundColor: theme.warning + "20" }]}>
             <DDIcon name="bell-off" size={24} color={theme.warning} />
             <View style={styles.permissionText}>
-              <ThemedText style={[Typography.bodySmall, { fontWeight: "600", textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.bodySmall, { fontWeight: "600" }]}>
                 {t('notifications.pushDisabled')}
               </ThemedText>
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
                 {t('notifications.enablePushDescription')}
               </ThemedText>
             </View>
@@ -164,7 +164,7 @@ export default function NotificationPreferencesScreen() {
             >
               {t('common.enable')}
             </LoadingButton>
-          </ThemedView>
+          </DirectionalRow>
           <Spacer height={Spacing.lg} />
         </>
       )}
@@ -178,20 +178,20 @@ export default function NotificationPreferencesScreen() {
 
         {channelSettings.map((setting, index) => (
           <React.Fragment key={setting.field}>
-            <View style={[styles.row, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <View style={[styles.rowLeft, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <DirectionalRow style={styles.row}>
+              <DirectionalRow style={styles.rowLeft}>
                 <DDIcon name={setting.icon as any} size={20} color={theme.primary} />
-                <ThemedText style={[Typography.body, { marginStart: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
+                <ThemedText style={[Typography.body, { marginEnd: Spacing.sm, textAlign: 'right' }]}>
                   {setting.label}
                 </ThemedText>
-              </View>
+              </DirectionalRow>
               <Switch
                 value={localPrefs[setting.field]}
                 onValueChange={(value) => handleToggle(setting.field, value)}
                 trackColor={{ false: theme.border, true: theme.primary + "80" }}
                 thumbColor={localPrefs[setting.field] ? theme.primary : theme.textSecondary}
               />
-            </View>
+            </DirectionalRow>
             {index < channelSettings.length - 1 && (
               <View style={[styles.divider, { backgroundColor: theme.border }]} />
             )}
@@ -213,20 +213,20 @@ export default function NotificationPreferencesScreen() {
 
         {eventSettings.map((setting, index) => (
           <React.Fragment key={setting.field}>
-            <View style={[styles.row, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <View style={[styles.rowLeft, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <DirectionalRow style={styles.row}>
+              <DirectionalRow style={styles.rowLeft}>
                 <DDIcon name={setting.icon as any} size={20} color={theme.primary} />
-                <ThemedText style={[Typography.body, { marginStart: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
+                <ThemedText style={[Typography.body, { marginEnd: Spacing.sm, textAlign: 'right' }]}>
                   {setting.label}
                 </ThemedText>
-              </View>
+              </DirectionalRow>
               <Switch
                 value={localPrefs[setting.field]}
                 onValueChange={(value) => handleToggle(setting.field, value)}
                 trackColor={{ false: theme.border, true: theme.primary + "80" }}
                 thumbColor={localPrefs[setting.field] ? theme.primary : theme.textSecondary}
               />
-            </View>
+            </DirectionalRow>
             {index < eventSettings.length - 1 && (
               <View style={[styles.divider, { backgroundColor: theme.border }]} />
             )}
@@ -263,13 +263,11 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   row: {
-    flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingVertical: Spacing.sm,
   },
   rowLeft: {
-    flexDirection: "row",
     alignItems: "center",
     flex: 1,
   },
@@ -278,7 +276,6 @@ const styles = StyleSheet.create({
     marginVertical: Spacing.sm,
   },
   permissionCard: {
-    flexDirection: "row",
     alignItems: "center",
     padding: Spacing.md,
     borderRadius: BorderRadius.lg,

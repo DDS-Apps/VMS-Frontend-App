@@ -9,49 +9,18 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon, IconName } from "@/components/DDIcon";
+import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
 import { applyOpacity } from "@/utils/statusStyles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useBuffetAdminStaffQuery, useUpdateStaffDutyMutation } from "@/hooks/queries/useBuffetQueries";
 import type { BuffetAdminStaffDto } from "@/types/api.types";
 
-interface KPICardProps {
-  title: string;
-  value: string;
-  icon: string;
-  iconBgColor: string;
-  iconColor: string;
-  cardBgColor: string;
-}
-
-function KPICard({ title, value, icon, iconBgColor, iconColor, cardBgColor }: KPICardProps) {
-  const { theme } = useTheme();
-  
-  return (
-    <View style={[styles.kpiCard, { backgroundColor: cardBgColor, borderWidth: 1, borderColor: applyOpacity(iconColor, '15') }]}>
-      <View style={[styles.kpiIconContainer, { backgroundColor: iconBgColor }]}>
-        <DDIcon name={icon as IconName} size={24} color={iconColor} />
-      </View>
-
-      <Spacer height={Spacing.md} />
-
-      <ThemedText style={[styles.kpiValue, { color: theme.text }]}>
-        {value}
-      </ThemedText>
-
-      <Spacer height={Spacing.xs} />
-
-      <ThemedText style={[styles.kpiLabel, { color: theme.textSecondary }]}>
-        {title}
-      </ThemedText>
-    </View>
-  );
-}
+import { KPICard, KPICardRow } from '@/components/shared/KPICard';
 
 export default function BuffetAdminStaffScreen() {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { isRTL } = useLanguage();
-  const insets = useSafeAreaInsets();
+  const { isRTL } = useLanguage();  const insets = useSafeAreaInsets();
   const [togglingStaffId, setTogglingStaffId] = useState<string | null>(null);
   
   const { data: staffResponse, isLoading, isFetching } = useBuffetAdminStaffQuery();
@@ -137,7 +106,7 @@ export default function BuffetAdminStaffScreen() {
           },
         ]}
       >
-        <View style={[styles.cardHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <DirectionalRow style={styles.cardHeader}>
           <View style={[styles.avatar, { backgroundColor: applyOpacity(roleColor, '12') }]}>
             <ThemedText style={[styles.avatarText, { color: roleColor }]}>
               {initials}
@@ -156,21 +125,21 @@ export default function BuffetAdminStaffScreen() {
               </View>
             </View>
           </View>
-        </View>
+        </DirectionalRow>
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.metaRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <DirectionalRow style={styles.metaRow}>
           <DDIcon name="briefcase" size={14} color={theme.textSecondary} />
           <ThemedText style={[styles.metaText, { color: theme.textSecondary }]}>
             {item.currentTasks} {t('dashboard.activeTasks')}
           </ThemedText>
-        </View>
+        </DirectionalRow>
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.cardFooter, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-          <View style={[styles.statusContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <DirectionalRow style={styles.cardFooter}>
+          <DirectionalRow style={styles.statusContainer}>
             <View 
               style={[
                 styles.statusIndicator, 
@@ -180,7 +149,7 @@ export default function BuffetAdminStaffScreen() {
             <ThemedText style={[styles.statusLabel, { color: isOnDuty ? theme.success : theme.textSecondary }]}>
               {isOnDuty ? t('dashboard.onDuty') : t('status.inactive')}
             </ThemedText>
-          </View>
+          </DirectionalRow>
 
           <Pressable
             style={[
@@ -208,7 +177,7 @@ export default function BuffetAdminStaffScreen() {
               </>
             )}
           </Pressable>
-        </View>
+        </DirectionalRow>
       </View>
     );
   };
@@ -223,32 +192,26 @@ export default function BuffetAdminStaffScreen() {
 
   return (
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
-      <View style={[styles.kpiRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <KPICardRow>
         <KPICard 
           title={t('dashboard.totalStaff')} 
           value={String(stats.total)} 
           icon="users" 
-          iconBgColor={applyOpacity(theme.primary, '20')}
-          iconColor={theme.primary}
-          cardBgColor={applyOpacity(theme.primary, '06')}
+          color={theme.primary}
         />
         <KPICard 
           title={t('dashboard.onDuty')} 
           value={String(stats.onDuty)} 
           icon="user-check" 
-          iconBgColor={applyOpacity(theme.success, '20')}
-          iconColor={theme.success}
-          cardBgColor={applyOpacity(theme.success, '06')}
+          color={theme.success}
         />
         <KPICard 
           title={t('status.inactive')} 
           value={String(stats.offDuty)} 
           icon="user-x" 
-          iconBgColor={applyOpacity(theme.textSecondary, '20')}
-          iconColor={theme.textSecondary}
-          cardBgColor={applyOpacity(theme.textSecondary, '06')}
+          color={theme.textSecondary}
         />
-      </View>
+      </KPICardRow>
 
       <Spacer height={Spacing.xl} />
 

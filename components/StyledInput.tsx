@@ -15,6 +15,8 @@ import { ThemedText } from '@/components/ThemedText';
 import { Spacing, BorderRadius, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { ArabicFontScaling } from '@/utils/rtlStyles';
+import { DirectionalRow } from '@/components/DirectionalRow';
 
 const INPUT_ICON_SIZE = 22;
 const INPUT_FONT_SIZE = 17;
@@ -76,12 +78,12 @@ export const StyledInput = forwardRef<TextInput, StyledInputProps>(({
   return (
     <View style={containerStyle}>
       {label ? (
-        <ThemedText style={[Typography.label, { color: theme.textSecondary, marginBottom: Spacing.xs, textAlign: isRTL ? 'right' : 'left' }]}>
+        <ThemedText style={[Typography.label, { color: theme.textSecondary, marginBottom: Spacing.xs }]}>
           {label.toUpperCase()}
         </ThemedText>
       ) : null}
       
-      <View style={[getInputContainerStyle(), { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <DirectionalRow style={getInputContainerStyle()} alignItems="center">
         {leftIcon ? (
           <DDIcon name={leftIcon} size={INPUT_ICON_SIZE} variant="muted" />
         ) : null}
@@ -90,7 +92,14 @@ export const StyledInput = forwardRef<TextInput, StyledInputProps>(({
           ref={ref}
           style={[
             styles.input,
-            { color: theme.text, textAlign: isRTL ? 'right' : 'left', writingDirection: isRTL ? 'rtl' : 'ltr' },
+            { 
+              color: theme.text, 
+               
+              writingDirection: isRTL ? 'rtl' : 'ltr',
+              fontSize: isRTL 
+                ? Math.round(INPUT_FONT_SIZE * ArabicFontScaling.body * 10) / 10 
+                : INPUT_FONT_SIZE,
+            },
             Platform.OS === 'web' ? { outlineStyle: 'none' } as any : {},
             !leftIcon ? { paddingStart: 0 } : null,
           ]}
@@ -121,10 +130,10 @@ export const StyledInput = forwardRef<TextInput, StyledInputProps>(({
             <DDIcon name={rightIcon} size={20} variant="muted" />
           </Pressable>
         ) : null}
-      </View>
+      </DirectionalRow>
       
       {error ? (
-        <ThemedText style={[Typography.caption, { color: theme.error, marginTop: Spacing.xs, textAlign: isRTL ? 'right' : 'left' }]}>
+        <ThemedText style={[Typography.caption, { color: theme.error, marginTop: Spacing.xs }]}>
           {error}
         </ThemedText>
       ) : null}
@@ -136,7 +145,6 @@ StyledInput.displayName = 'StyledInput';
 
 const styles = StyleSheet.create({
   inputContainer: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.md,
     borderRadius: BorderRadius.sm,

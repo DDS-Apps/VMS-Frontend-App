@@ -16,6 +16,7 @@ import { useSecurityGateLogsQuery } from "@/hooks/queries/useSecurityQueries";
 import type { GateLogEntry, GateAction, GateResult } from "@/types";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { SecurityStackParamList } from "@/types/securityNavigation.types";
+import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 
 type GateEventsLogScreenProps = NativeStackScreenProps<SecurityStackParamList, "GateEventsLog">;
 
@@ -24,8 +25,7 @@ type ResultFilter = 'all' | 'allowed' | 'denied';
 export default function GateEventsLogScreen({ navigation }: GateEventsLogScreenProps) {
   const { theme } = useTheme();
   const { t, isRTL } = useTranslation();
-  const insets = useSafeAreaInsets();
-  const [searchQuery, setSearchQuery] = useState('');
+  const insets = useSafeAreaInsets();  const [searchQuery, setSearchQuery] = useState('');
   const [resultFilter, setResultFilter] = useState<ResultFilter>('all');
 
   const { data: allLogsResponse } = useSecurityGateLogsQuery({
@@ -186,51 +186,51 @@ export default function GateEventsLogScreen({ navigation }: GateEventsLogScreenP
     return (
       <ThemedView
         key={event.id}
-        style={[styles.eventCard, { backgroundColor: theme.surface, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
+        style={[styles.eventCard, { backgroundColor: theme.surface }, getFlexDirection(isRTL)]}
       >
         <View style={[styles.resultBorderLine, { backgroundColor: resultConfig.color }]} />
         
         <View style={styles.cardContent}>
-          <View style={[styles.cardHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <DirectionalRow style={styles.cardHeader}>
             <View style={styles.visitorInfo}>
-              <ThemedText style={[Typography.body, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.body, { fontWeight: '600' }]}>
                 {event.visitorName || t('common.unknown')}
               </ThemedText>
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
                 {event.gateName}
               </ThemedText>
             </View>
-            <View style={[styles.resultBadge, { backgroundColor: resultConfig.bgColor, flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <DirectionalRow style={[styles.resultBadge, { backgroundColor: resultConfig.bgColor }]}>
               <DDIcon name={resultConfig.icon} size={12} color={resultConfig.color} />
               <ThemedText style={[styles.resultText, { color: resultConfig.color }]}>
                 {resultConfig.label}
               </ThemedText>
-            </View>
-          </View>
+            </DirectionalRow>
+          </DirectionalRow>
 
           {event.reason ? (
-            <View style={[styles.reasonBox, { backgroundColor: applyOpacity(theme.error, '08'), flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <DirectionalRow style={[styles.reasonBox, { backgroundColor: applyOpacity(theme.error, '08') }]}>
               <DDIcon name="alert-circle" size={14} color={theme.error} />
-              <ThemedText style={[Typography.caption, { color: theme.error, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.caption, { color: theme.error, flex: 1 }]}>
                 {event.reason}
               </ThemedText>
-            </View>
+            </DirectionalRow>
           ) : null}
 
-          <View style={[styles.metaRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <View style={[styles.metaChip, { backgroundColor: applyOpacity(theme.primary, '10'), flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <DirectionalRow style={styles.metaRow}>
+            <DirectionalRow style={[styles.metaChip, { backgroundColor: applyOpacity(theme.primary, '10') }]}>
               <DDIcon name={methodConfig.icon} size={12} color={theme.primary} />
               <ThemedText style={[styles.metaText, { color: theme.primary }]}>
                 {methodConfig.label}
               </ThemedText>
-            </View>
-            <View style={[styles.metaChip, { backgroundColor: applyOpacity(theme.textSecondary, '10'), flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            </DirectionalRow>
+            <DirectionalRow style={[styles.metaChip, { backgroundColor: applyOpacity(theme.textSecondary, '10') }]}>
               <DDIcon name="clock" size={12} color={theme.textSecondary} />
               <ThemedText style={[styles.metaText, { color: theme.textSecondary }]}>
                 {timestamp.date}, {timestamp.time}
               </ThemedText>
-            </View>
-          </View>
+            </DirectionalRow>
+          </DirectionalRow>
         </View>
       </ThemedView>
     );
@@ -277,30 +277,30 @@ export default function GateEventsLogScreen({ navigation }: GateEventsLogScreenP
       
       <Spacer height={Spacing.sm} />
       
-      <View style={[styles.summaryRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-        <View style={[styles.summaryCard, { backgroundColor: applyOpacity(theme.success, '12'), flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <DirectionalRow style={styles.summaryRow}>
+        <DirectionalRow style={[styles.summaryCard, { backgroundColor: applyOpacity(theme.success, '12') }]}>
           <DDIcon name="check-circle" size={20} color={theme.success} />
           <View>
-            <ThemedText style={[Typography.title, { fontSize: 20, fontWeight: '700', color: theme.success, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.title, { fontSize: 20, fontWeight: '700', color: theme.success }]}>
               {eventCounts.allowed}
             </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.success, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.caption, { color: theme.success }]}>
               {t('security.allowed')}
             </ThemedText>
           </View>
-        </View>
-        <View style={[styles.summaryCard, { backgroundColor: applyOpacity(theme.error, '12'), flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        </DirectionalRow>
+        <DirectionalRow style={[styles.summaryCard, { backgroundColor: applyOpacity(theme.error, '12') }]}>
           <DDIcon name="x-circle" size={20} color={theme.error} />
           <View>
-            <ThemedText style={[Typography.title, { fontSize: 20, fontWeight: '700', color: theme.error, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.title, { fontSize: 20, fontWeight: '700', color: theme.error }]}>
               {eventCounts.denied}
             </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.error, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.caption, { color: theme.error }]}>
               {t('security.denied')}
             </ThemedText>
           </View>
-        </View>
-      </View>
+        </DirectionalRow>
+      </DirectionalRow>
 
       <Spacer height={Spacing.lg} />
 
@@ -364,23 +364,19 @@ export default function GateEventsLogScreen({ navigation }: GateEventsLogScreenP
 
 const styles = StyleSheet.create({
   summaryRow: {
-    flexDirection: 'row',
     gap: Spacing.md,
   },
   summaryCard: {
     flex: 1,
-    flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
     padding: Spacing.md,
     borderRadius: BorderRadius.lg,
   },
   filtersContainer: {
-    flexDirection: 'row',
     gap: Spacing.sm,
   },
   filterPill: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,
@@ -408,7 +404,6 @@ const styles = StyleSheet.create({
   eventCard: {
     borderRadius: BorderRadius.lg,
     overflow: 'hidden',
-    flexDirection: 'row',
   },
   resultBorderLine: {
     width: 4,
@@ -419,7 +414,6 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   cardHeader: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
   },
@@ -428,7 +422,6 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   resultBadge: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,
@@ -440,19 +433,16 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   reasonBox: {
-    flexDirection: 'row',
     alignItems: 'flex-start',
     gap: Spacing.xs,
     padding: Spacing.sm,
     borderRadius: BorderRadius.md,
   },
   metaRow: {
-    flexDirection: 'row',
     flexWrap: 'wrap',
     gap: Spacing.sm,
   },
   metaChip: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,

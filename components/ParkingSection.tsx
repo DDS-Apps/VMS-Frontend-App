@@ -4,8 +4,10 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { DDIcon } from "@/components/DDIcon";
 import Spacer from "@/components/Spacer";
+import DirectionalRow from "@/components/DirectionalRow";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { ParkingType, ParkingSlot, ValetService } from "@/types/vms.types";
 import { applyOpacity } from "@/utils/statusStyles";
 
@@ -23,24 +25,33 @@ export function ParkingSection({
   variant = 'detailed' 
 }: ParkingSectionProps) {
   const { theme } = useTheme();
+  const { isRTL } = useLanguage();
+  const renderIconBadge = (iconName: string, variant: string, color?: string) => (
+    <View style={[styles.iconBadge, { backgroundColor: applyOpacity(color || theme.textSecondary, '15') }]}>
+      <DDIcon name={iconName as any} size={20} variant={variant as any} color={color} />
+    </View>
+  );
 
   // State: No Parking
   if (parkingType === 'none') {
+    const iconEl = renderIconBadge('slash', 'muted');
+    const contentEl = (
+      <View style={{ flex: 1, marginStart: Spacing.md }}>
+        <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, color: theme.text }]}>
+          No Parking
+        </ThemedText>
+        <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 13, marginTop: 2 }]}>
+          Visitor will arrange own parking
+        </ThemedText>
+      </View>
+    );
+
     return (
       <ThemedView style={[styles.parkingCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-        <View style={styles.parkingHeader}>
-          <View style={[styles.iconBadge, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-            <DDIcon name="slash" size={20} variant="muted" />
-          </View>
-          <View style={{ flex: 1, marginStart: Spacing.md }}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, color: theme.text }]}>
-              No Parking
-            </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 13, marginTop: 2 }]}>
-              Visitor will arrange own parking
-            </ThemedText>
-          </View>
-        </View>
+        <DirectionalRow style={styles.parkingHeader}>
+          {iconEl}
+          {contentEl}
+        </DirectionalRow>
       </ThemedView>
     );
   }
@@ -50,38 +61,65 @@ export function ParkingSection({
     const hasDriver = valet?.driver;
     const isPending = !hasDriver;
 
+    const valetIconEl = (
+      <View style={[styles.iconBadge, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
+        <DDIcon name="truck" size={20} variant="primary" />
+      </View>
+    );
+    const valetContentEl = (
+      <View style={{ flex: 1, marginStart: Spacing.md }}>
+        <DirectionalRow gap={Spacing.sm} alignItems="center">
+          <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, color: theme.text }]}>
+            Valet Service
+          </ThemedText>
+          <View style={[styles.statusBadge, { 
+            backgroundColor: isPending ? applyOpacity(theme.warning, '15') : applyOpacity(theme.success, '15') 
+          }]}>
+            <ThemedText style={[Typography.caption, { 
+              color: isPending ? theme.warning : theme.success, 
+              fontSize: 11, 
+              fontWeight: '600' 
+            }]}>
+              {isPending ? 'PENDING' : 'ASSIGNED'}
+            </ThemedText>
+          </View>
+        </DirectionalRow>
+        <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 13, marginTop: 2 }]}>
+          {isPending ? 'Driver will be assigned shortly' : 'Driver assigned and ready'}
+        </ThemedText>
+      </View>
+    );
+
+    const renderDetailRow = (iconName: string, label: string, value: string | undefined) => {
+      const detailIconEl = <DDIcon name={iconName as any} size={16} variant="muted" />;
+      const detailContentEl = (
+        <View style={{ flex: 1, marginStart: Spacing.md }}>
+          <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12 }]}>
+            {label}
+          </ThemedText>
+          <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 14, color: theme.text, marginTop: 2 }]}>
+            {value}
+          </ThemedText>
+        </View>
+      );
+      return (
+        <DirectionalRow style={styles.detailRow}>
+          {detailIconEl}
+          {detailContentEl}
+        </DirectionalRow>
+      );
+    };
+
     return (
       <ThemedView style={[styles.parkingCard, { 
         backgroundColor: theme.surface, 
         borderColor: isPending ? theme.warning : theme.primary,
         borderWidth: 1.5,
       }]}>
-        <View style={styles.parkingHeader}>
-          <View style={[styles.iconBadge, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
-            <DDIcon name="truck" size={20} variant="primary" />
-          </View>
-          <View style={{ flex: 1, marginStart: Spacing.md }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
-              <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, color: theme.text }]}>
-                Valet Service
-              </ThemedText>
-              <View style={[styles.statusBadge, { 
-                backgroundColor: isPending ? applyOpacity(theme.warning, '15') : applyOpacity(theme.success, '15') 
-              }]}>
-                <ThemedText style={[Typography.caption, { 
-                  color: isPending ? theme.warning : theme.success, 
-                  fontSize: 11, 
-                  fontWeight: '600' 
-                }]}>
-                  {isPending ? 'PENDING' : 'ASSIGNED'}
-                </ThemedText>
-              </View>
-            </View>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 13, marginTop: 2 }]}>
-              {isPending ? 'Driver will be assigned shortly' : 'Driver assigned and ready'}
-            </ThemedText>
-          </View>
-        </View>
+        <DirectionalRow style={styles.parkingHeader}>
+          {valetIconEl}
+          {valetContentEl}
+        </DirectionalRow>
 
         {hasDriver && variant === 'detailed' && (
           <>
@@ -89,31 +127,11 @@ export function ParkingSection({
             <View style={[styles.divider, { backgroundColor: theme.border }]} />
             <Spacer height={Spacing.lg} />
 
-            <View style={styles.detailRow}>
-              <DDIcon name="user" size={16} variant="muted" />
-              <View style={{ flex: 1, marginStart: Spacing.md }}>
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12 }]}>
-                  Driver Name
-                </ThemedText>
-                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 14, color: theme.text, marginTop: 2 }]}>
-                  {valet?.driver?.name}
-                </ThemedText>
-              </View>
-            </View>
+            {renderDetailRow('user', 'Driver Name', valet?.driver?.name)}
 
             <Spacer height={Spacing.md} />
 
-            <View style={styles.detailRow}>
-              <DDIcon name="phone" size={16} variant="muted" />
-              <View style={{ flex: 1, marginStart: Spacing.md }}>
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12 }]}>
-                  Contact
-                </ThemedText>
-                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 14, color: theme.text, marginTop: 2 }]}>
-                  {valet?.driver?.phone}
-                </ThemedText>
-              </View>
-            </View>
+            {renderDetailRow('phone', 'Contact', valet?.driver?.phone)}
           </>
         )}
       </ThemedView>
@@ -136,38 +154,65 @@ export function ParkingSection({
       }
     };
 
+    const autoIconEl = (
+      <View style={[styles.iconBadge, { backgroundColor: applyOpacity(theme.info, '15') }]}>
+        <DDIcon name="map-pin" size={20} color={theme.info} />
+      </View>
+    );
+    const autoContentEl = (
+      <View style={{ flex: 1, marginStart: Spacing.md }}>
+        <DirectionalRow gap={Spacing.sm} alignItems="center">
+          <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, color: theme.text }]}>
+            Auto Parking
+          </ThemedText>
+          <View style={[styles.statusBadge, { 
+            backgroundColor: isPending ? applyOpacity(theme.warning, '15') : applyOpacity(theme.success, '15') 
+          }]}>
+            <ThemedText style={[Typography.caption, { 
+              color: isPending ? theme.warning : theme.success, 
+              fontSize: 11, 
+              fontWeight: '600' 
+            }]}>
+              {isPending ? 'PENDING' : 'ASSIGNED'}
+            </ThemedText>
+          </View>
+        </DirectionalRow>
+        <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 13, marginTop: 2 }]}>
+          {isPending ? 'Slot will be assigned soon' : `${parkingSlot?.slotNumber ? parkingSlot.slotNumber : 'Parking slot confirmed'}`}
+        </ThemedText>
+      </View>
+    );
+
+    const renderAutoDetailRow = (iconName: string, label: string, value: string | undefined) => {
+      const detailIconEl = <DDIcon name={iconName as any} size={16} variant="muted" />;
+      const detailContentEl = (
+        <View style={{ flex: 1, marginStart: Spacing.md }}>
+          <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12 }]}>
+            {label}
+          </ThemedText>
+          <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 14, color: theme.text, marginTop: 2 }]}>
+            {value}
+          </ThemedText>
+        </View>
+      );
+      return (
+        <DirectionalRow style={styles.detailRow}>
+          {detailIconEl}
+          {detailContentEl}
+        </DirectionalRow>
+      );
+    };
+
     return (
       <ThemedView style={[styles.parkingCard, { 
         backgroundColor: theme.surface, 
         borderColor: isPending ? theme.warning : theme.info,
         borderWidth: 1.5,
       }]}>
-        <View style={styles.parkingHeader}>
-          <View style={[styles.iconBadge, { backgroundColor: applyOpacity(theme.info, '15') }]}>
-            <DDIcon name="map-pin" size={20} color={theme.info} />
-          </View>
-          <View style={{ flex: 1, marginStart: Spacing.md }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
-              <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, color: theme.text }]}>
-                Auto Parking
-              </ThemedText>
-              <View style={[styles.statusBadge, { 
-                backgroundColor: isPending ? applyOpacity(theme.warning, '15') : applyOpacity(theme.success, '15') 
-              }]}>
-                <ThemedText style={[Typography.caption, { 
-                  color: isPending ? theme.warning : theme.success, 
-                  fontSize: 11, 
-                  fontWeight: '600' 
-                }]}>
-                  {isPending ? 'PENDING' : 'ASSIGNED'}
-                </ThemedText>
-              </View>
-            </View>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 13, marginTop: 2 }]}>
-              {isPending ? 'Slot will be assigned soon' : `${parkingSlot?.slotNumber ? parkingSlot.slotNumber : 'Parking slot confirmed'}`}
-            </ThemedText>
-          </View>
-        </View>
+        <DirectionalRow style={styles.parkingHeader}>
+          {autoIconEl}
+          {autoContentEl}
+        </DirectionalRow>
 
         {hasSlot && variant === 'detailed' && (
           <>
@@ -175,46 +220,16 @@ export function ParkingSection({
             <View style={[styles.divider, { backgroundColor: theme.border }]} />
             <Spacer height={Spacing.lg} />
 
-            <View style={styles.detailRow}>
-              <DDIcon name="map" size={16} variant="muted" />
-              <View style={{ flex: 1, marginStart: Spacing.md }}>
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12 }]}>
-                  Location
-                </ThemedText>
-                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 14, color: theme.text, marginTop: 2 }]}>
-                  {formatLocation(parkingSlot.location)}
-                </ThemedText>
-              </View>
-            </View>
+            {renderAutoDetailRow('map', 'Location', formatLocation(parkingSlot.location))}
 
             <Spacer height={Spacing.md} />
 
-            <View style={styles.detailRow}>
-              <DDIcon name="hash" size={16} variant="muted" />
-              <View style={{ flex: 1, marginStart: Spacing.md }}>
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12 }]}>
-                  Slot Number
-                </ThemedText>
-                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 14, color: theme.text, marginTop: 2 }]}>
-                  {parkingSlot.slotNumber}
-                </ThemedText>
-              </View>
-            </View>
+            {renderAutoDetailRow('hash', 'Slot Number', parkingSlot.slotNumber)}
 
             {parkingSlot.floor && (
               <>
                 <Spacer height={Spacing.md} />
-                <View style={styles.detailRow}>
-                  <DDIcon name="layers" size={16} variant="muted" />
-                  <View style={{ flex: 1, marginStart: Spacing.md }}>
-                    <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12 }]}>
-                      Floor
-                    </ThemedText>
-                    <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 14, color: theme.text, marginTop: 2 }]}>
-                      {parkingSlot.floor}
-                    </ThemedText>
-                  </View>
-                </View>
+                {renderAutoDetailRow('layers', 'Floor', parkingSlot.floor)}
               </>
             )}
           </>
@@ -233,7 +248,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   parkingHeader: {
-    flexDirection: 'row',
     alignItems: 'flex-start',
   },
   iconBadge: {
@@ -253,7 +267,6 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   detailRow: {
-    flexDirection: 'row',
     alignItems: 'flex-start',
   },
 });

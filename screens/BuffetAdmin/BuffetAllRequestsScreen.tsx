@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { View, StyleSheet, Pressable, ScrollView, Modal, GestureResponderEvent, ActivityIndicator, Platform } from "react-native";
+import { View, StyleSheet, Pressable, ScrollView, Modal, GestureResponderEvent, ActivityIndicator, Platform, useWindowDimensions } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { ROUTES } from "@/constants";
 import { ThemedText } from "@/components/ThemedText";
@@ -12,8 +12,9 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
+import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
+import { KPICard, KPICardRow } from "@/components/shared/KPICard";
 import { applyOpacity, getStatusConfig as getStatusStyle } from "@/utils/statusStyles";
-import { formatDateForApi, formatDate as formatDateDisplay } from "@/utils/dateTimeUtils";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { LoadingButton } from "@/components/shared/LoadingButton";
@@ -28,6 +29,7 @@ import type { BuffetAdminTaskDto, BuffetAdminStaffDto } from "@/types/api.types"
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { BuffetAdminStackParamList } from "@/types/buffetAdminNavigation.types";
 import type { Theme } from "@/types/theme.types";
+import { formatDateForApi, formatDate } from "@/utils/dateTimeUtils";
 
 type BuffetRequest = BuffetAdminTaskDto & {
   timeSlot: string;
@@ -106,7 +108,7 @@ const VisitorAvatar = ({ name, theme, size = 44 }: { name: string; theme: Theme;
 };
 
 const DateTimeDisplay = ({ date, time, theme, compact = false, isRTL = false }: { date: string; time: string; theme: Theme; compact?: boolean; isRTL?: boolean }) => {
-  const formattedDate = formatDateDisplay(date, { isRTL, includeYear: true });
+  const formattedDate = formatDate(date, { isRTL, includeYear: true });
   return (
     <View style={styles.dateTimeRow}>
       <DDIcon name="calendar" size={compact ? 13 : 14} variant="muted" />
@@ -139,46 +141,26 @@ const StatusBadge = ({ statusConfig, compact = false }: { statusConfig: { bg: st
 );
 
 const StatsCards = ({ totalRequests, inProgress, completed, theme, t }: { totalRequests: number; inProgress: number; completed: number; theme: Theme; t: (key: string) => string }) => (
-  <View style={styles.statsGrid}>
-    <ThemedView style={[styles.statCard, { backgroundColor: theme.surface }]}>
-      <View style={[styles.statIconContainer, { backgroundColor: applyOpacity(theme.primary, '20') }]}>
-        <DDIcon name="clipboard" size={24} variant="primary" />
-      </View>
-      <Spacer height={Spacing.sm} />
-      <ThemedText style={[Typography.title, { fontSize: 32, lineHeight: 40 }]}>
-        {totalRequests}
-      </ThemedText>
-      <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: 'center' }]}>
-        {t('dashboard.totalRequests')}
-      </ThemedText>
-    </ThemedView>
-
-    <ThemedView style={[styles.statCard, { backgroundColor: theme.surface }]}>
-      <View style={[styles.statIconContainer, { backgroundColor: applyOpacity(theme.warning, '20') }]}>
-        <DDIcon name="loader" size={24} variant="warning" />
-      </View>
-      <Spacer height={Spacing.sm} />
-      <ThemedText style={[Typography.title, { fontSize: 32, lineHeight: 40 }]}>
-        {inProgress}
-      </ThemedText>
-      <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: 'center' }]}>
-        {t('status.inProgress')}
-      </ThemedText>
-    </ThemedView>
-
-    <ThemedView style={[styles.statCard, { backgroundColor: theme.surface }]}>
-      <View style={[styles.statIconContainer, { backgroundColor: applyOpacity(theme.success, '20') }]}>
-        <DDIcon name="check-circle" size={24} variant="success" />
-      </View>
-      <Spacer height={Spacing.sm} />
-      <ThemedText style={[Typography.title, { fontSize: 32, lineHeight: 40 }]}>
-        {completed}
-      </ThemedText>
-      <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: 'center' }]}>
-        {t('status.completed')}
-      </ThemedText>
-    </ThemedView>
-  </View>
+  <KPICardRow>
+    <KPICard 
+      title={t('dashboard.totalRequests')} 
+      value={totalRequests} 
+      icon="clipboard" 
+      color={theme.primary}
+    />
+    <KPICard 
+      title={t('status.inProgress')} 
+      value={inProgress} 
+      icon="loader" 
+      color={theme.warning}
+    />
+    <KPICard 
+      title={t('status.completed')} 
+      value={completed} 
+      icon="check-circle" 
+      color={theme.success}
+    />
+  </KPICardRow>
 );
 
 type StatusFilter = 'all' | 'pending' | 'preparing' | 'ready' | 'served' | 'completed';
@@ -269,7 +251,7 @@ const SectionHeader = ({
 
   return (
     <>
-      <View style={[styles.sectionTitleRow, styles.paddedContent, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <DirectionalRow style={[styles.sectionTitleRow, styles.paddedContent]}>
         <ThemedText style={[Typography.subtitle]}>
           {t('navigation.buffetRequests')}
         </ThemedText>
@@ -301,7 +283,7 @@ const SectionHeader = ({
             />
           </Pressable>
         </View>
-      </View>
+      </DirectionalRow>
 
       <Spacer height={Spacing.md} />
 
@@ -361,8 +343,7 @@ const BuffetRequestCard = React.memo(({
   theme: Theme;
 }) => {
   const { t } = useTranslation();
-  const { isRTL } = useLanguage();
-  const statusConfig = getStatusStyle(theme, request.status, t);
+  const { isRTL } = useLanguage();  const statusConfig = getStatusStyle(theme, request.status, t);
 
   return (
     <ThemedView style={[styles.requestCard, { backgroundColor: theme.surface }]}>
@@ -370,32 +351,32 @@ const BuffetRequestCard = React.memo(({
 
       <Pressable onPress={onPress} android_ripple={{ color: applyOpacity(theme.primary, '10') }}>
         <View style={styles.cardMainSection}>
-          <View style={[styles.cardHeaderRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <DirectionalRow style={styles.cardHeaderRow}>
             <VisitorAvatar name={request.visitorName} theme={theme} />
             
             <View style={styles.cardNameSection}>
-              <View style={[styles.nameWithBadgeRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <DirectionalRow style={styles.nameWithBadgeRow}>
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 16, flex: 1 }]} numberOfLines={1}>
                   {request.visitorName}
                 </ThemedText>
                 <StatusBadge statusConfig={statusConfig} />
-              </View>
+              </DirectionalRow>
               <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 2 }]}>
                 {t('reception.hostName')}: {request.hostName}
               </ThemedText>
             </View>
-          </View>
+          </DirectionalRow>
 
           <Spacer height={LAYOUT.contentGap} />
 
-          <View style={[styles.detailsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <View style={[styles.detailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <DirectionalRow style={styles.detailsRow}>
+            <DirectionalRow style={styles.detailItem}>
               <DDIcon name="map-pin" size={14} variant="muted" />
               <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
                 {request.location}
               </ThemedText>
-            </View>
-          </View>
+            </DirectionalRow>
+          </DirectionalRow>
 
           <Spacer height={Spacing.sm} />
 
@@ -404,23 +385,23 @@ const BuffetRequestCard = React.memo(({
           {request.assignedStaff ? (
             <>
               <Spacer height={Spacing.sm} />
-              <View style={[styles.detailsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                <View style={[styles.detailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <DirectionalRow style={styles.detailsRow}>
+                <DirectionalRow style={styles.detailItem}>
                   <DDIcon name="user-check" size={14} variant="success" />
                   <ThemedText style={[styles.detailText, { color: theme.success }]}>
                     {request.assignedStaff}
                   </ThemedText>
-                </View>
-              </View>
+                </DirectionalRow>
+              </DirectionalRow>
             </>
           ) : null}
 
           {request.status !== 'completed' && request.status !== 'cancelled' ? (
             <>
               <Spacer height={LAYOUT.contentGap} />
-              <View style={[styles.actionsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <DirectionalRow style={styles.actionsRow}>
                 <Pressable
-                  style={[styles.actionButton, { backgroundColor: applyOpacity(theme.warning, '12') }]}
+                  style={[styles.actionButton, { backgroundColor: applyOpacity(theme.warning, '12'), flexDirection: getFlexDirection(isRTL) }]}
                   onPress={(e) => onAssignStaff(e)}
                 >
                   <DDIcon name="user-plus" size={14} color={theme.warning} />
@@ -428,50 +409,12 @@ const BuffetRequestCard = React.memo(({
                     {request.assignedStaff ? t('buffet.reassign') : t('actions.assign')}
                   </ThemedText>
                 </Pressable>
-              </View>
+              </DirectionalRow>
             </>
           ) : null}
         </View>
       </Pressable>
 
-      {isExpanded && (
-        <>
-          <View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
-          <View style={styles.expandedContentInside}>
-            <View style={styles.secondaryDetail}>
-              <DDIcon name="users" size={14} variant="muted" />
-              <ThemedText style={[Typography.caption, { marginStart: 6, color: theme.textSecondary, fontSize: 12 }]}>
-                {t('buffet.guestCount')}: {request.guestCount}
-              </ThemedText>
-            </View>
-            {request.notes ? (
-              <>
-                <Spacer height={Spacing.sm} />
-                <View style={styles.secondaryDetail}>
-                  <DDIcon name="file-text" size={14} variant="muted" />
-                  <ThemedText style={[Typography.caption, { marginStart: 6, color: theme.textSecondary, flex: 1, fontSize: 12 }]}>
-                    {t('form.notes')}: {request.notes}
-                  </ThemedText>
-                </View>
-              </>
-            ) : null}
-          </View>
-        </>
-      )}
-
-      <Pressable
-        style={styles.moreDetailsButton}
-        onPress={onToggleExpand}
-      >
-        <ThemedText style={[styles.moreDetailsText, { color: theme.primary }]}>
-          {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
-        </ThemedText>
-        <DDIcon 
-          name={isExpanded ? "chevron-up" : "chevron-down"} 
-          size={16} 
-          variant="primary" 
-        />
-      </Pressable>
     </ThemedView>
   );
 });
@@ -492,8 +435,7 @@ const BuffetRequestTableRow = React.memo(({
   theme: Theme;
 }) => {
   const { t } = useTranslation();
-  const { isRTL } = useLanguage();
-  const statusConfig = getStatusStyle(theme, request.status, t);
+  const { isRTL } = useLanguage();  const statusConfig = getStatusStyle(theme, request.status, t);
 
   return (
     <Pressable onPress={onPress}>
@@ -570,9 +512,9 @@ const BuffetRequestTableRow = React.memo(({
                 {t('dashboard.quickActions').toUpperCase()}
               </ThemedText>
               <Spacer height={10} />
-              <View style={[styles.tableActionsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <DirectionalRow style={styles.tableActionsRow}>
                 <Pressable
-                  style={[styles.tableActionButton, { backgroundColor: applyOpacity(theme.warning, '12') }]}
+                  style={[styles.tableActionButton, { backgroundColor: applyOpacity(theme.warning, '12'), flexDirection: getFlexDirection(isRTL) }]}
                   onPress={onAssignStaff}
                 >
                   <DDIcon name="user-plus" size={14} color={theme.warning} />
@@ -580,7 +522,7 @@ const BuffetRequestTableRow = React.memo(({
                     {request.assignedStaff ? t('buffet.reassign') : t('actions.assign')}
                   </ThemedText>
                 </Pressable>
-              </View>
+              </DirectionalRow>
             </View>
           ) : null}
         </ScrollView>
@@ -634,7 +576,11 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
   const { t } = useTranslation();
   const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
   const { showSuccess, showError } = useToast();
+  
+  // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
+  const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
@@ -675,7 +621,7 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
     if (isToday) {
       return t('common.today');
     }
-    return formatDateDisplay(selectedDate, { isRTL });
+    return formatDate(selectedDate, { isRTL });
   };
   const { data: staffData } = useBuffetAdminStaffQuery();
   const updateStatusMutation = useUpdateBuffetAdminTaskStatusMutation();
@@ -935,7 +881,7 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
           )}
           ListHeaderComponent={
             <>
-              <View style={[styles.paddedContent, styles.dateNavRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <DirectionalRow style={[styles.paddedContent, styles.dateNavRow]}>
                 <Pressable
                   style={[styles.dateNavButton, { backgroundColor: theme.surfaceSecondary }]}
                   onPress={handlePrevDay}
@@ -944,19 +890,26 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
                 </Pressable>
                 
                 <Pressable
-                  style={[styles.dateDisplay, { backgroundColor: theme.surfaceSecondary }]}
+                  style={[styles.dateDisplay, { backgroundColor: theme.surfaceSecondary, flexDirection: getFlexDirection(isRTL) }]}
                   onPress={() => { setTempDate(selectedDate); setShowDatePicker(true); }}
                 >
                   <DDIcon name="calendar" size={18} color={theme.primary} />
                   <ThemedText style={[Typography.body, { fontWeight: '600', marginStart: Spacing.sm }]}>
                     {getDisplayDate()}
                   </ThemedText>
-                  {isToday ? null : (
+                  {isToday ? (
+                    <View style={[styles.todayBadge, { backgroundColor: applyOpacity(theme.success, '15') }]}>
+                      <ThemedText style={[Typography.caption, { color: theme.success, fontSize: 10, fontWeight: '600' }]}>
+                        {t('common.today')}
+                      </ThemedText>
+                    </View>
+                  ) : (
                     <Pressable
                       style={[styles.todayBadge, { backgroundColor: applyOpacity(theme.primary, '15') }]}
                       onPress={() => setSelectedDate(new Date())}
                     >
-                      <ThemedText style={[Typography.caption, { color: theme.primary, fontSize: 10, fontWeight: '600' }]}>
+                      <DDIcon name="corner-down-left" size={10} color={theme.primary} />
+                      <ThemedText style={[Typography.caption, { color: theme.primary, fontSize: 10, fontWeight: '600', marginStart: 4 }]}>
                         {t('common.today')}
                       </ThemedText>
                     </Pressable>
@@ -969,7 +922,7 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
                 >
                   <DDIcon name={isRTL ? "chevron-left" : "chevron-right"} size={20} color={theme.text} />
                 </Pressable>
-              </View>
+              </DirectionalRow>
 
               <Spacer height={Spacing.lg} />
 
@@ -1064,7 +1017,7 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
       <ScreenScrollView>
         <Spacer height={Spacing.xl} />
 
-        <View style={[styles.paddedContent, styles.dateNavRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <DirectionalRow style={[styles.paddedContent, styles.dateNavRow]}>
           <Pressable
             style={[styles.dateNavButton, { backgroundColor: theme.surfaceSecondary }]}
             onPress={handlePrevDay}
@@ -1073,19 +1026,26 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
           </Pressable>
           
           <Pressable
-            style={[styles.dateDisplay, { backgroundColor: theme.surfaceSecondary }]}
+            style={[styles.dateDisplay, { backgroundColor: theme.surfaceSecondary, flexDirection: getFlexDirection(isRTL) }]}
             onPress={() => { setTempDate(selectedDate); setShowDatePicker(true); }}
           >
             <DDIcon name="calendar" size={18} color={theme.primary} />
             <ThemedText style={[Typography.body, { fontWeight: '600', marginStart: Spacing.sm }]}>
               {getDisplayDate()}
             </ThemedText>
-            {isToday ? null : (
+            {isToday ? (
+              <View style={[styles.todayBadge, { backgroundColor: applyOpacity(theme.success, '15') }]}>
+                <ThemedText style={[Typography.caption, { color: theme.success, fontSize: 10, fontWeight: '600' }]}>
+                  {t('common.today')}
+                </ThemedText>
+              </View>
+            ) : (
               <Pressable 
                 style={[styles.todayBadge, { backgroundColor: applyOpacity(theme.primary, '15') }]}
                 onPress={() => setSelectedDate(new Date())}
               >
-                <ThemedText style={[Typography.caption, { color: theme.primary, fontSize: 10, fontWeight: '600' }]}>
+                <DDIcon name="corner-down-left" size={10} color={theme.primary} />
+                <ThemedText style={[Typography.caption, { color: theme.primary, fontSize: 10, fontWeight: '600', marginStart: 4 }]}>
                   {t('common.today')}
                 </ThemedText>
               </Pressable>
@@ -1098,7 +1058,7 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
           >
             <DDIcon name={isRTL ? "chevron-left" : "chevron-right"} size={20} color={theme.text} />
           </Pressable>
-        </View>
+        </DirectionalRow>
 
         <Spacer height={Spacing.lg} />
 
@@ -1127,10 +1087,13 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
 
         <Spacer height={Spacing.lg} />
 
-        <View style={styles.paddedContent}>
+        <View style={[styles.paddedContent, styles.cardGrid]}>
           {filteredRequests.length > 0 ? (
             filteredRequests.map((request) => (
-              <View key={request.id}>
+              <View 
+                key={request.id}
+                style={numColumns > 1 ? { width: numColumns === 2 ? '50%' : '33.33%', flexGrow: 0, marginBottom: LAYOUT.contentGap, paddingRight: Spacing.sm } : { width: '100%', marginBottom: LAYOUT.contentGap }}
+              >
                 <BuffetRequestCard
                   request={request}
                   isExpanded={expandedCard === request.id}
@@ -1141,7 +1104,6 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
                   isCompleting={completingRequestId === request.id}
                   theme={theme}
                 />
-                <Spacer height={LAYOUT.contentGap} />
               </View>
             ))
           ) : (
@@ -1212,6 +1174,11 @@ const styles = StyleSheet.create({
   paddedContent: {
     paddingHorizontal: Spacing.xl,
   },
+  cardGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.md,
+  },
   dateNavRow: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -1234,6 +1201,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   todayBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: Spacing.sm,
     paddingVertical: 2,
     borderRadius: BorderRadius.sm,

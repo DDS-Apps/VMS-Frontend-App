@@ -27,6 +27,7 @@ export const en: TranslationKeys = {
     filter: 'Filter',
     all: 'All',
     none: 'None',
+    other: 'Other',
     manager: 'Manager',
     yes: 'Yes',
     no: 'No',
@@ -85,6 +86,8 @@ export const en: TranslationKeys = {
     savedSuccessfully: 'Saved successfully',
     errorOccurred: 'An error occurred',
     errorLoadingData: 'Error loading data',
+    today: 'Today',
+    others: 'Other',
   },
   bulkActions: {
     selectMode: 'Select',
@@ -314,6 +317,8 @@ export const en: TranslationKeys = {
     emailPlaceholder: 'Enter email address',
     phoneNumber: 'Phone Number',
     phone: 'Phone',
+    businessPhone: 'Office Phone',
+    landline: 'Landline',
     phonePlaceholder: 'Enter phone number',
     company: 'Company',
     companyPlaceholder: 'Enter company name',
@@ -530,6 +535,180 @@ export const en: TranslationKeys = {
       securityAccessUpdate: 'Security Access Update',
       securityGatePass: 'Security Gate Pass',
     },
+    templates: {
+      request_created: {
+        title: 'New Visit Request',
+        message: 'New visit request created for {{visitorName}} to meet {{hostName}}',
+      },
+      request_approved: {
+        title: 'Visit Request Approved',
+        message: 'Your visit request for {{visitorName}} has been approved by {{managerName}}',
+      },
+      request_rejected: {
+        title: 'Visit Request Rejected',
+        message: 'Your visit request for {{visitorName}} has been rejected by {{managerName}}. Reason: {{reason}}',
+      },
+      request_cancelled: {
+        title: 'Visit Cancelled',
+        message: 'Visit request for {{visitorName}} has been cancelled by {{cancelledBy}}',
+      },
+      request_updated: {
+        title: 'Visit Updated',
+        message: 'Visit request for {{visitorName}} has been updated by {{updatedBy}}',
+      },
+      request_modified: {
+        title: 'Meeting Room Booked',
+        titleError: 'Meeting Room Booking Failed',
+        message: 'Meeting room "{{roomName}}" has been booked for your visit',
+        messageError: 'Unable to book a meeting room: {{error}}. Please update your request',
+      },
+      pending_approval: {
+        title: 'Approval Required',
+        message: 'Visit request from {{visitorName}} to {{hostName}} is awaiting your approval',
+      },
+      visitor_accepted: {
+        title: 'Invitation Accepted',
+        message: '{{visitorName}} has accepted the visit invitation',
+      },
+      visitor_rejected: {
+        title: 'Invitation Declined',
+        message: '{{visitorName}} has declined the visit invitation',
+      },
+      visitor_arrival: {
+        title: 'Visitor Arrived',
+        message: '{{visitorName}} has arrived at reception',
+      },
+      visitor_no_show: {
+        title: 'Visitor No-Show',
+        message: '{{visitorName}} did not arrive for the scheduled visit',
+      },
+      walk_in_registered: {
+        title: 'Walk-in Visitor',
+        message: '{{visitorName}} from {{company}} is at reception to see you. Please approve or reject this visit',
+      },
+      check_in: {
+        title: 'Visitor Checked In',
+        message: '{{visitorName}} has checked in',
+      },
+      check_out: {
+        title: 'Visitor Checked Out',
+        message: '{{visitorName}} has checked out',
+      },
+      reminder_tomorrow: {
+        title: 'Visit Reminder',
+        message: 'Reminder: {{visitorName}} is scheduled to visit tomorrow ({{visitDate}})',
+      },
+      reminder_2hours: {
+        title: 'Visit Reminder',
+        message: 'Reminder: {{visitorName}} is arriving in 2 hours at {{visitTime}}',
+      },
+      reminder_30min: {
+        title: 'Visit Reminder',
+        message: 'Reminder: {{visitorName}} is arriving in 30 minutes at {{visitTime}}',
+      },
+      reminder_now: {
+        title: 'Visitor Arriving',
+        message: '{{visitorName}} should be arriving now',
+      },
+      expected_today: {
+        title: 'Daily Agenda',
+        message: 'You have {{visitorCount}} visitor(s) expected today',
+      },
+      visitor_reminder: {
+        title: 'Visitor Reminder Sent',
+        titleFinal: 'Final Visitor Reminder',
+        message: 'First reminder sent to {{visitorName}} for pending visit response',
+        messageFinal: 'Final reminder sent to {{visitorName}}. Auto-cancellation imminent if no response',
+      },
+      auto_cancelled: {
+        title: 'Visit Auto-Cancelled',
+        message: 'Visit request for {{visitorName}} was auto-cancelled due to no response. Resources have been released',
+      },
+      room_booked: {
+        title: 'Room Booked',
+        message: 'Meeting room {{roomName}} has been booked for {{visitDate}} at {{visitTime}}',
+      },
+      room_reminder: {
+        title: 'Meeting Reminder',
+        message: 'Reminder: Meeting in {{roomName}} at {{visitTime}}',
+      },
+      room_cancelled: {
+        title: 'Room Booking Cancelled',
+        message: 'Meeting room booking for {{roomName}} has been cancelled',
+      },
+      room_conflict: {
+        title: 'Room Conflict',
+        message: 'Conflict detected for {{roomName}} at {{conflictTime}}',
+      },
+      room_reassigned: {
+        title: 'Room Reassigned',
+        message: 'Your meeting has been moved from {{oldRoom}} to {{newRoom}}',
+      },
+      parking_assigned: {
+        title: 'Parking Assigned',
+        message: 'Parking spot {{spotNumber}} has been assigned for {{visitorName}}',
+      },
+      parking_full: {
+        title: 'Parking Full',
+        message: 'Parking is currently full. Visitor {{visitorName}} will need alternative arrangements',
+      },
+      buffet_new_request: {
+        title: 'New Buffet Request',
+        message: 'New buffet request from {{hostName}} at {{location}}',
+      },
+      buffet_task_assigned: {
+        title: 'Buffet Task Assigned',
+        message: 'New {{taskType}} task assigned at {{location}}',
+      },
+      buffet_scheduled: {
+        title: 'Buffet Scheduled',
+        message: 'Buffet service scheduled for {{scheduledTime}} at {{location}}',
+      },
+      buffet_completed: {
+        title: 'Buffet Completed',
+        message: 'Buffet service at {{location}} has been completed',
+      },
+      buffet_request_created: {
+        title: 'Buffet Request Created',
+        message: 'Buffet request created for {{hostName}} at {{location}}',
+      },
+      buffet_status_update: {
+        title: 'Buffet Status Update',
+        message: 'Buffet service status updated at {{location}}',
+      },
+      buffet_staff_update: {
+        title: 'Buffet Staff Update',
+        message: 'Staff assignment updated for buffet service at {{location}}',
+      },
+      valet_new_request: {
+        title: 'New Valet Request',
+        message: 'New valet request for {{visitorName}} - {{vehicleInfo}}',
+      },
+      valet_task_assigned: {
+        title: 'Valet Task Assigned',
+        message: 'Valet task for {{visitorName}} assigned to {{driverName}}',
+      },
+      valet_scheduled: {
+        title: 'Valet Scheduled',
+        message: 'Valet service scheduled for {{visitorName}} at {{scheduledTime}}',
+      },
+      valet_completed: {
+        title: 'Valet Completed',
+        message: 'Valet service for {{visitorName}} has been completed',
+      },
+      valet_cancelled: {
+        title: 'Valet Cancelled',
+        message: 'Valet service for {{visitorName}} has been cancelled',
+      },
+      security_access_update: {
+        title: 'Access Updated',
+        message: 'Access level for {{visitorName}} updated to {{accessLevel}}',
+      },
+      security_gate_pass: {
+        title: 'Gate Pass Issued',
+        message: 'Gate pass issued for {{visitorName}} at Gate {{gateNumber}}',
+      },
+    },
   },
   settings: {
     title: 'Settings',
@@ -700,6 +879,10 @@ export const en: TranslationKeys = {
     at: 'at',
     dateAndTime: 'Date & Time',
     selectDate: 'Select Date',
+    selectTime: 'Select Time',
+    am: 'AM',
+    pm: 'PM',
+    quickSelect: 'Quick Select',
     justNow: 'Just now',
     minutesAgo: '{{count}}m ago',
     hoursAgo: '{{count}}h ago',

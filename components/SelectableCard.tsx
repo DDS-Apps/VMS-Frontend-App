@@ -9,6 +9,7 @@ import Animated, {
 
 import { useTheme } from "@/hooks/useTheme";
 import { Spacing, BorderRadius } from "@/constants/theme";
+import { getFlexDirection } from "@/components/DirectionalRow";
 
 interface SelectableCardProps {
   children: React.ReactNode;
@@ -16,6 +17,8 @@ interface SelectableCardProps {
   selected?: boolean;
   style?: ViewStyle;
   aspectRatio?: number;
+  backgroundColor?: string;
+  borderColor?: string;
 }
 
 const springConfig: WithSpringConfig = {
@@ -34,6 +37,8 @@ export function SelectableCard({
   selected = false,
   style,
   aspectRatio = 1,
+  backgroundColor,
+  borderColor,
 }: SelectableCardProps) {
   const { theme, isDark } = useTheme();
   const scale = useSharedValue(1);
@@ -50,6 +55,9 @@ export function SelectableCard({
     scale.value = withSpring(1, springConfig);
   };
 
+  const cardBackgroundColor = backgroundColor ?? theme.surface;
+  const cardBorderColor = borderColor ?? (selected ? theme.primary : theme.border);
+
   return (
     <AnimatedPressable
       onPress={onPress}
@@ -59,9 +67,9 @@ export function SelectableCard({
         styles.card,
         {
           aspectRatio,
-          backgroundColor: theme.surface,
+          backgroundColor: cardBackgroundColor,
           borderWidth: selected ? 2 : 1,
-          borderColor: selected ? theme.primary : theme.border,
+          borderColor: selected ? theme.primary : cardBorderColor,
           shadowColor: isDark ? 'transparent' : '#000',
           shadowOffset: { width: 0, height: 1 },
           shadowOpacity: isDark ? 0 : 0.08,
@@ -83,7 +91,6 @@ const mobileStyles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'flex-start',
     marginHorizontal: -Spacing.sm,
   },
   cardWrapper3Col: {
@@ -102,7 +109,6 @@ const webStyles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'flex-start',
     gap: Spacing.md,
   },
   cardWrapper3Col: {
@@ -124,7 +130,12 @@ export const CardGridStyles = StyleSheet.create({
   cardWrapper2ColWeb: webStyles.cardWrapper2Col,
 });
 
-export const getGridStyle = () => isWeb ? webStyles.grid : mobileStyles.grid;
+export const getGridStyle = (isRTL: boolean = false) => ({
+  ...(isWeb ? webStyles.grid : mobileStyles.grid),
+  // Use DirectionalRow's getFlexDirection for consistent RTL handling
+  flexDirection: getFlexDirection(isRTL),
+  justifyContent: 'flex-start' as const,
+});
 export const getCardWrapper3ColStyle = () => isWeb ? webStyles.cardWrapper3Col : mobileStyles.cardWrapper3Col;
 export const getCardWrapper2ColStyle = () => isWeb ? webStyles.cardWrapper2Col : mobileStyles.cardWrapper2Col;
 

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
-import { View, StyleSheet, Pressable, GestureResponderEvent, Alert, ScrollView, LayoutAnimation, Platform, UIManager } from "react-native";
+import { View, StyleSheet, Pressable, GestureResponderEvent, Alert, ScrollView, LayoutAnimation, Platform, UIManager, useWindowDimensions } from "react-native";
 import type { AllVisitorsTodayScreenProps } from "@/types/receptionistNavigation.types";
 import { ROUTES } from "@/constants";
 import { SkeletonList } from "@/components/shared/Skeleton";
@@ -17,6 +17,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
 import { VisitorActionButton } from "@/components/VisitorActionButton";
 import { applyOpacity } from "@/utils/statusStyles";
+import { formatPhoneNumber } from "@/utils/formatters";
+import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 import { useTodayVisitorsQuery, useReceptionCheckInMutation, useReceptionCheckOutMutation } from "@/hooks/queries/useReceptionQueries";
 import type { TodayVisitorDto, ListReceptionTodayParams } from "@/types";
 
@@ -29,19 +31,19 @@ type StatusFilter = 'all' | 'expected' | 'checked_in' | 'completed';
 const ServiceIconsRow = ({ visitor, size = 14 }: { visitor: TodayVisitorDto; size?: number }) => {
   const { theme } = useTheme();
   const { isRTL } = useLanguage();
-  
+
   const showParking = visitor.isVisitorNeedsParking === true || visitor.visitorNeedsParking === true || visitor.hasParking === true || !!visitor.parkingSlot;
   const showMeetingRoom = visitor.isMeetingRoom === true || visitor.hasMeetingRoom === true || !!visitor.meetingRoom;
   const showBuffet = visitor.isBuffet === true || visitor.hasBuffet === true;
-  
+
   const hasServices = showParking || showMeetingRoom || showBuffet;
-  
+
   if (!hasServices) {
     return <View />;
   }
 
   return (
-    <View style={[styles.servicesIconsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+    <DirectionalRow style={styles.servicesIconsRow}>
       {showBuffet ? (
         <View style={[styles.serviceIconPill, { backgroundColor: applyOpacity(theme.warning, '20') }]}>
           <DDIcon name="coffee" size={size} color={theme.warning} />
@@ -57,7 +59,7 @@ const ServiceIconsRow = ({ visitor, size = 14 }: { visitor: TodayVisitorDto; siz
           <DDIcon name="map-pin" size={size} color={theme.info} />
         </View>
       ) : null}
-    </View>
+    </DirectionalRow>
   );
 };
 
@@ -67,12 +69,17 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
   const { formatTime, formatTimeFromString } = useFormatters();
   const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
+  
+  // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
+  const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [expandedVisitors, setExpandedVisitors] = useState<Set<string>>(new Set());
 
-  const queryParams: ListReceptionTodayParams | undefined = statusFilter !== 'all' 
-    ? { status: statusFilter } 
+  const queryParams: ListReceptionTodayParams | undefined = statusFilter !== 'all'
+    ? { status: statusFilter }
     : undefined;
 
   const { data: todayResponse, isLoading, isFetching, isError, error } = useTodayVisitorsQuery(queryParams);
@@ -98,7 +105,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
     { key: 'all', label: t('common.all') },
     { key: 'expected', label: t('visitor.expectedVisitors') },
     { key: 'checked_in', label: t('status.checkedIn') },
-    { key: 'completed', label: t('status.checkedOut') },
+    { key: 'completed', label: t('timeline.visitCompleted') },
   ];
 
   const scrollContentStyle = {
@@ -109,7 +116,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
 
   const filteredVisitors = useMemo(() => {
     if (!searchQuery.trim()) return todaysVisitors;
-    
+
     return todaysVisitors.filter(visitor => {
       const name = visitor.visitor.fullName.toLowerCase();
       const phone = visitor.visitor.phone ?? '';
@@ -154,7 +161,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
 
   const handleCheckIn = (visitorId: string, visitorName: string, event: GestureResponderEvent) => {
     event.stopPropagation();
-    
+
     checkInMutation.mutate(
       { visitId: visitorId },
       {
@@ -175,7 +182,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
 
   const handleCheckOut = (visitorId: string, visitorName: string, event: GestureResponderEvent) => {
     event.stopPropagation();
-    
+
     checkOutMutation.mutate(
       { visitId: visitorId },
       {
@@ -199,9 +206,23 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
       case 'checked_in':
         return { label: t('status.checkedIn'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: theme.success };
       case 'completed':
+        return { label: t('timeline.visitCompleted'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: theme.success };
+      case 'checked_out':
         return { label: t('status.checkedOut'), bg: applyOpacity(theme.textSecondary, '15'), text: theme.textSecondary, border: theme.textSecondary };
+      case 'pending_approval':
+        return { label: t('status.pendingApproval'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: theme.warning };
+      case 'pending_host_approval':
+        return { label: t('status.pendingHostApproval'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: theme.warning };
+      case 'approved':
+      case 'visitor_accepted':
+      case 'expected':
+        return { label: t('visitor.expectedVisitors'), bg: applyOpacity(theme.info, '15'), text: theme.info, border: theme.info };
+      case 'rejected':
+        return { label: t('status.rejected'), bg: applyOpacity(theme.error, '15'), text: theme.error, border: theme.error };
+      case 'cancelled':
+        return { label: t('status.cancelled'), bg: applyOpacity(theme.textSecondary, '15'), text: theme.textSecondary, border: theme.textSecondary };
       default:
-        return { label: t('visitor.expectedVisitors'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: theme.warning };
+        return { label: t('status.pending'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: theme.warning };
     }
   };
 
@@ -230,29 +251,29 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
     const statusConfig = getStatusConfig(item.status);
     const visitorName = item.visitor.fullName;
     const initials = visitorName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-    const showCheckIn = item.status === 'pending' || item.status === 'expected';
+    const showCheckIn = item.status === 'approved' || item.status === 'visitor_accepted' || item.status === 'expected';
     const showCheckOut = item.status === 'checked_in';
     const isExpanded = expandedVisitors.has(item.id);
     const hasDetails = item.visitor.phone;
-    
+
     return (
-      <Pressable 
-        key={item.id} 
+      <Pressable
+        key={item.id}
         onPress={() => handleVisitorPress(item)}
         style={({ pressed }) => [pressed && { opacity: 0.95 }]}
       >
         <ThemedView style={[styles.visitorCard, { backgroundColor: theme.surface }]}>
           <View style={[styles.statusBorderLine, { backgroundColor: statusConfig.border }]} />
-          
+
           <View style={styles.cardContent}>
-            <View style={[styles.cardHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <DirectionalRow style={styles.cardHeader}>
               <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
                 <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
                   {initials}
                 </ThemedText>
               </View>
-              
-              <View style={styles.nameSection}>
+
+              <View style={[styles.nameSection, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
                 <ThemedText style={[styles.visitorName, { color: theme.text }]} numberOfLines={1}>
                   {visitorName}
                 </ThemedText>
@@ -260,79 +281,61 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
                   {item.visitor.company ?? ''}
                 </ThemedText>
               </View>
-            </View>
+            </DirectionalRow>
 
-            <View style={[styles.detailsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <View style={[styles.detailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <DirectionalRow style={styles.detailsRow}>
+              <DirectionalRow style={styles.detailItem}>
                 <DDIcon name="clock" size={12} variant="muted" />
                 <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
                   {formatTimeFromString(item.visitTime)}
                 </ThemedText>
-              </View>
-              <View style={[styles.detailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              </DirectionalRow>
+              <DirectionalRow style={styles.detailItem}>
                 <DDIcon name="user" size={12} variant="muted" />
                 <ThemedText style={[styles.detailText, { color: theme.textSecondary }]} numberOfLines={1}>
                   {item.hostName}{item.hostDepartment ? ` - ${item.hostDepartment}` : ''}
                 </ThemedText>
-              </View>
-            </View>
+              </DirectionalRow>
+            </DirectionalRow>
 
-            <View style={[styles.servicesStatusRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <DirectionalRow style={styles.servicesStatusRow} justifyContent="space-between">
               <ServiceIconsRow visitor={item} />
-              <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: 1 }]}>
-                <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
-                  {statusConfig.label}
-                </ThemedText>
-              </View>
-            </View>
+              <DirectionalRow alignItems="center">
+                {showCheckIn ? (
+                  <View style={{ marginEnd: Spacing.sm }}>
+                    <VisitorActionButton
+                      type="check_in"
+                      onPress={(e) => handleCheckIn(item.id, visitorName, e)}
+                    />
+                  </View>
+                ) : showCheckOut ? (
+                  <View style={{ marginEnd: Spacing.sm }}>
+                    <VisitorActionButton
+                      type="check_out"
+                      onPress={(e) => handleCheckOut(item.id, visitorName, e)}
+                    />
+                  </View>
+                ) : null}
+                <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: 1 }]}>
+                  <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
+                    {statusConfig.label}
+                  </ThemedText>
+                </View>
+              </DirectionalRow>
+            </DirectionalRow>
 
             {isExpanded && hasDetails ? (
               <View style={styles.expandedSection}>
                 {item.visitor.phone ? (
-                  <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                  <DirectionalRow style={styles.expandedDetailRow}>
                     <DDIcon name="phone" size={14} color={theme.textSecondary} />
-                    <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
-                      {item.visitor.phone}
+                    <ThemedText style={[styles.expandedDetailText, { color: theme.text }]} numberOfLines={1}>
+                      {formatPhoneNumber(item.visitor.phone)}
                     </ThemedText>
-                  </View>
+                  </DirectionalRow>
                 ) : null}
               </View>
             ) : null}
-
-            {hasDetails ? (
-              <Pressable 
-                onPress={(e) => { e.stopPropagation(); toggleVisitorExpanded(item.id); }} 
-                style={styles.toggleContainer}
-              >
-                <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
-                  {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
-                </ThemedText>
-                <DDIcon 
-                  name={isExpanded ? 'chevron-up' : 'chevron-down'} 
-                  size={16} 
-                  color={theme.primary} 
-                />
-              </Pressable>
-            ) : null}
-
-            <View style={[styles.cardFooter, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <View />
-              <View style={[styles.actionButtons, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                {showCheckIn ? (
-                  <VisitorActionButton 
-                    type="check_in" 
-                    onPress={(e) => handleCheckIn(item.id, visitorName, e)} 
-                  />
-                ) : showCheckOut ? (
-                  <VisitorActionButton 
-                    type="check_out" 
-                    onPress={(e) => handleCheckOut(item.id, visitorName, e)} 
-                  />
-                ) : (
-                  <VisitorActionButton type="completed" />
-                )}
-              </View>
-            </View>
           </View>
         </ThemedView>
       </Pressable>
@@ -354,20 +357,20 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
       <ThemedText style={[Typography.title, { fontSize: 22, fontWeight: '700' }]}>
         {t('navigation.todaysVisitors')}
       </ThemedText>
-      
+
       <Spacer height={4} />
-      
+
       <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
         {todaysVisitors.length} {t('dashboard.expectedToday').toLowerCase()}
       </ThemedText>
 
       <Spacer height={Spacing.md} />
 
-      <View style={[styles.summaryRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <DirectionalRow style={styles.summaryRow}>
         {renderSummaryCard(t('visitor.expectedVisitors'), summary.expected, theme.warning, 'clock')}
         {renderSummaryCard(t('status.checkedIn'), summary.checkedIn, theme.success, 'log-in')}
         {renderSummaryCard(t('status.checkedOut'), summary.completed, theme.textSecondary, 'log-out')}
-      </View>
+      </DirectionalRow>
 
       <Spacer height={Spacing.lg} />
 
@@ -379,8 +382,8 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
 
       <Spacer height={Spacing.md} />
 
-      <ScrollView 
-        horizontal 
+      <ScrollView
+        horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.filterScrollContent}
         nestedScrollEnabled={true}
@@ -390,7 +393,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
             const isActive = statusFilter === option.key;
             const isFirst = index === 0;
             const isLast = index === FILTER_OPTIONS.length - 1;
-            
+
             return (
               <Pressable
                 key={option.key}
@@ -402,7 +405,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
                 ]}
                 onPress={() => setStatusFilter(option.key)}
               >
-                <ThemedText 
+                <ThemedText
                   style={[
                     styles.segmentText,
                     { color: isActive ? '#FFFFFF' : theme.text }
@@ -421,7 +424,14 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
 
       {filteredVisitors.length > 0 ? (
         <View style={styles.cardList}>
-          {filteredVisitors.map((visitor) => renderVisitorCard(visitor))}
+          {filteredVisitors.map((visitor) => (
+            <View 
+              key={visitor.id} 
+              style={numColumns > 1 ? { width: numColumns === 2 ? '50%' : '33.33%', flexGrow: 0, marginBottom: LAYOUT.contentGap, paddingRight: Spacing.sm } : { width: '100%' }}
+            >
+              {renderVisitorCard(visitor)}
+            </View>
+          ))}
         </View>
       ) : (
         <View style={styles.emptyState}>
@@ -438,7 +448,6 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
 
 const styles = StyleSheet.create({
   summaryRow: {
-    flexDirection: 'row',
     gap: Spacing.sm,
   },
   summaryCard: {
@@ -493,7 +502,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   cardList: {
-    gap: Spacing.sm,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.md,
+  },
+  gridItem: {
+    minWidth: 0,
   },
   visitorCard: {
     borderRadius: BorderRadius.lg,
@@ -513,7 +527,6 @@ const styles = StyleSheet.create({
     paddingStart: Spacing.lg,
   },
   cardHeader: {
-    flexDirection: 'row',
     alignItems: 'center',
     marginBottom: Spacing.sm,
   },
@@ -541,13 +554,11 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   detailsRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.md,
     marginBottom: Spacing.sm,
   },
   detailItem: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
   },
@@ -555,13 +566,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   servicesStatusRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: Spacing.sm,
   },
   servicesIconsRow: {
-    flexDirection: 'row',
     gap: Spacing.sm,
     alignItems: 'center',
   },
@@ -586,8 +595,7 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   expandedDetailRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     gap: Spacing.sm,
   },
   expandedDetailText: {
@@ -595,7 +603,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   toggleContainer: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: Spacing.sm,
@@ -606,17 +613,14 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   cardFooter: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     minHeight: 28,
   },
   servicesRow: {
-    flexDirection: 'row',
     gap: Spacing.xs,
   },
   servicePill: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     paddingHorizontal: Spacing.sm,
@@ -628,11 +632,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   actionButtons: {
-    flexDirection: 'row',
     gap: Spacing.xs,
   },
   actionBtn: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 6,

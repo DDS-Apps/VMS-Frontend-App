@@ -37,8 +37,7 @@ export function CalendarDatePicker({
 }: CalendarDatePickerProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { isRTL } = useLanguage();
-  const [currentMonth, setCurrentMonth] = useState(
+  const { isRTL } = useLanguage();  const [currentMonth, setCurrentMonth] = useState(
     selectedDate || dateRange?.startDate || new Date()
   );
   const [tempRange, setTempRange] = useState<DateRange>(
@@ -207,6 +206,8 @@ export function CalendarDatePicker({
       transparent
       animationType="fade"
       onRequestClose={onClose}
+      presentationStyle="overFullScreen"
+      statusBarTranslucent
     >
       <Pressable 
         style={[styles.overlay, { backgroundColor: applyOpacity(theme.overlay, '50') }]}
@@ -216,15 +217,15 @@ export function CalendarDatePicker({
           style={[styles.container, { backgroundColor: theme.surface }]}
           onPress={(e) => e.stopPropagation()}
         >
-          <View style={[styles.header, { borderBottomColor: theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.header, { borderBottomColor: theme.border, flexDirection: 'row' }]}>
             <View style={[styles.calendarIcon, { backgroundColor: applyOpacity(theme.primary, '10') }]}>
               <DDIcon name="calendar" size={20} color={theme.primary} />
             </View>
             <View style={[styles.headerTextContainer, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
-              <ThemedText style={[Typography.body, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.body, { fontWeight: '600' }]}>
                 {t('calendar.chooseDate')}
               </ThemedText>
-              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
                 {formatDateRange()}
               </ThemedText>
             </View>
@@ -234,19 +235,19 @@ export function CalendarDatePicker({
           </View>
 
           <View style={styles.calendarContainer}>
-            <View style={[styles.monthNavigation, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <Pressable onPress={isRTL ? nextMonth : prevMonth} hitSlop={12}>
+            <View style={[styles.monthNavigation, { flexDirection: 'row' }]}>
+              <Pressable onPress={prevMonth} hitSlop={12}>
                 <DDIcon name="chevron-left" size={20} variant="muted" directionAware />
               </Pressable>
               <ThemedText style={[Typography.body, { fontWeight: '600' }]}>
                 {localizedMonths[month]} {formatLocalNumber(year)}
               </ThemedText>
-              <Pressable onPress={isRTL ? prevMonth : nextMonth} hitSlop={12}>
+              <Pressable onPress={nextMonth} hitSlop={12}>
                 <DDIcon name="chevron-right" size={20} variant="muted" directionAware />
               </Pressable>
             </View>
 
-            <View style={[styles.weekDays, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.weekDays, { flexDirection: 'row' }]}>
               {localizedDays.map((day, index) => (
                 <View key={DAYS_KEYS[index]} style={styles.weekDayCell}>
                   <ThemedText style={[styles.weekDayText, { color: theme.textSecondary }]}>
@@ -256,7 +257,7 @@ export function CalendarDatePicker({
               ))}
             </View>
 
-            <View style={[styles.daysGrid, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.daysGrid, { flexDirection: 'row' }]}>
               {calendarDays.map((day, index) => {
                 if (day === null) {
                   return <View key={`empty-${index}`} style={styles.dayCell} />;
@@ -315,7 +316,7 @@ export function CalendarDatePicker({
 
           {mode === 'range' && selectionMode === 'start_selected' && tempRange.startDate ? (
             <View style={[styles.rangeHint, { borderTopColor: theme.border }]}>
-              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
                 {t('calendar.rangeHint')}
               </ThemedText>
             </View>
@@ -332,12 +333,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: Spacing.xl,
+    zIndex: 9999,
   },
   container: {
     width: '100%',
     maxWidth: 340,
     borderRadius: BorderRadius.xl,
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 24,
+    elevation: 30,
+    zIndex: 9999,
   },
   header: {
     flexDirection: 'row',

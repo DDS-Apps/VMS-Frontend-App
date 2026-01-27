@@ -12,6 +12,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { applyOpacity } from '@/utils/statusStyles';
+import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 import { 
   getSystemStats, 
   getStaffOverview, 
@@ -22,48 +23,7 @@ import {
 } from '@/services/state/buildingAdminState';
 import type { BuildingAdminDashboardScreenProps } from '@/types/buildingAdminNavigation.types';
 
-interface KPICardProps {
-  title: string;
-  value: string;
-  icon: string;
-  iconBgColor: string;
-  iconColor: string;
-  cardBgColor: string;
-  subtitle?: string;
-}
-
-function KPICard({ title, value, icon, iconBgColor, iconColor, cardBgColor, subtitle }: KPICardProps) {
-  const { theme } = useTheme();
-  
-  return (
-    <View style={[styles.kpiCard, { backgroundColor: cardBgColor, borderWidth: StyleSheet.hairlineWidth, borderColor: applyOpacity(iconColor, '15') }]}>
-      <View style={[styles.kpiIconContainer, { backgroundColor: iconBgColor }]}>
-        <DDIcon name={icon as IconName} size={28} color={iconColor} />
-      </View>
-
-      <Spacer height={Spacing.lg} />
-
-      <ThemedText style={[styles.kpiValue, { color: theme.text }]}>
-        {value}
-      </ThemedText>
-
-      <Spacer height={Spacing.xs} />
-
-      <ThemedText style={[styles.kpiLabel, { color: theme.textSecondary }]}>
-        {title}
-      </ThemedText>
-      
-      {subtitle ? (
-        <>
-          <Spacer height={2} />
-          <ThemedText style={[styles.kpiSubtitle, { color: theme.info }]}>
-            {subtitle}
-          </ThemedText>
-        </>
-      ) : null}
-    </View>
-  );
-}
+import { KPICard, KPICardRow } from '@/components/shared/KPICard';
 
 interface QuickActionProps {
   icon: string;
@@ -114,7 +74,7 @@ function StaffCard({ title, icon, total, details, onPress }: StaffCardProps) {
       style={[styles.staffCard, { backgroundColor: theme.surface }]}
       onPress={onPress}
     >
-      <View style={styles.staffCardHeader}>
+      <DirectionalRow style={styles.staffCardHeader}>
         <DDIcon name={icon as IconName} size={20} color={theme.primary} />
         <ThemedText style={[styles.staffCardTitle, { color: theme.text }]}>
           {title}
@@ -122,11 +82,11 @@ function StaffCard({ title, icon, total, details, onPress }: StaffCardProps) {
         <ThemedText style={[styles.staffCardTotal, { color: theme.primary }]}>
           {total}
         </ThemedText>
-      </View>
+      </DirectionalRow>
       <Spacer height={Spacing.md} />
       <View style={styles.staffCardDetails}>
         {details.map((detail, index) => (
-          <View key={index} style={styles.staffDetail}>
+          <DirectionalRow key={index} style={styles.staffDetail}>
             <View style={[styles.staffDetailDot, { backgroundColor: detail.color }]} />
             <ThemedText style={[styles.staffDetailLabel, { color: theme.textSecondary }]}>
               {detail.label}
@@ -134,7 +94,7 @@ function StaffCard({ title, icon, total, details, onPress }: StaffCardProps) {
             <ThemedText style={[styles.staffDetailValue, { color: theme.text }]}>
               {detail.value}
             </ThemedText>
-          </View>
+          </DirectionalRow>
         ))}
       </View>
     </Pressable>
@@ -144,8 +104,7 @@ function StaffCard({ title, icon, total, details, onPress }: StaffCardProps) {
 export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdminDashboardScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { isRTL } = useLanguage();
-  const [stats, setStats] = useState<SystemStats | null>(null);
+  const { isRTL } = useLanguage();  const [stats, setStats] = useState<SystemStats | null>(null);
   const [staffOverview, setStaffOverview] = useState<StaffOverview | null>(null);
   const [activities, setActivities] = useState<RecentActivity[]>([]);
 
@@ -162,7 +121,7 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
   }
 
   return (
-    <ScreenScrollView contentContainerStyle={styles.container}>
+    <ScreenScrollView skipTopPadding contentContainerStyle={styles.container}>
       <ThemedText style={Typography.title}>{t('navigation.controlCenter')}</ThemedText>
       <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
         {t('dashboard.overview')}
@@ -170,67 +129,54 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
 
       <Spacer height={Spacing.xl} />
 
-      <View style={[styles.kpiRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <KPICardRow>
         <KPICard 
           title={t('dashboard.totalVisitors')} 
           value={String(stats.totalVisitors)} 
           icon="users" 
-          iconBgColor={applyOpacity(theme.primary, '20')}
-          iconColor={theme.primary}
-          cardBgColor={applyOpacity(theme.primary, '06')}
-          subtitle={t('time.today')}
+          color={theme.primary}
         />
         <KPICard 
           title={t('dashboard.pendingRequests')} 
           value={String(stats.activeRequests)} 
           icon="file-text" 
-          iconBgColor={applyOpacity(theme.info, '20')}
-          iconColor={theme.info}
-          cardBgColor={applyOpacity(theme.info, '06')}
+          color={theme.info}
         />
-      </View>
+      </KPICardRow>
 
       <Spacer height={Spacing.md} />
 
-      <View style={[styles.kpiRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <KPICardRow>
         <KPICard 
           title={t('status.approved')} 
           value={String(stats.approvedRequests)} 
           icon="check-circle" 
-          iconBgColor={applyOpacity(theme.success, '20')}
-          iconColor={theme.success}
-          cardBgColor={applyOpacity(theme.success, '06')}
+          color={theme.success}
         />
         <KPICard 
           title={t('status.pending')} 
           value={String(stats.pendingRequests)} 
           icon="clock" 
-          iconBgColor={applyOpacity(theme.warning, '20')}
-          iconColor={theme.warning}
-          cardBgColor={applyOpacity(theme.warning, '06')}
+          color={theme.warning}
         />
-      </View>
+      </KPICardRow>
 
       <Spacer height={Spacing.md} />
 
-      <View style={[styles.kpiRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <KPICardRow>
         <KPICard 
           title={t('buffet.buffetService')} 
           value={String(stats.ongoingBuffets)} 
           icon="disc" 
-          iconBgColor={applyOpacity('#FF6B35', '20')}
-          iconColor="#FF6B35"
-          cardBgColor={applyOpacity('#FF6B35', '06')}
+          color="#FF6B35"
         />
         <KPICard 
           title={t('valet.valetService')} 
           value={String(stats.activeValetOperations)} 
           icon="navigation" 
-          iconBgColor={applyOpacity('#6366F1', '20')}
-          iconColor="#6366F1"
-          cardBgColor={applyOpacity('#6366F1', '06')}
+          color="#6366F1"
         />
-      </View>
+      </KPICardRow>
 
       <Spacer height={Spacing.xxl} />
 
@@ -240,7 +186,7 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
 
       <Spacer height={Spacing.md} />
 
-      <View style={[styles.quickActionsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <DirectionalRow style={styles.quickActionsRow}>
         <QuickActionButton
           icon="users"
           label={t('navigation.manageUsers')}
@@ -271,7 +217,7 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
           iconColor={theme.info}
           onPress={() => navigation.navigate(ROUTES.REPORTS as never)}
         />
-      </View>
+      </DirectionalRow>
 
       <Spacer height={Spacing.xxl} />
 
@@ -286,6 +232,9 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.staffScrollContent}
         nestedScrollEnabled={true}
+        directionalLockEnabled={true}
+        scrollEventThrottle={16}
+        keyboardShouldPersistTaps="handled"
       >
         <StaffCard
           title={t('dashboard.buffetStaff')}
@@ -331,7 +280,7 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
 
       <Spacer height={Spacing.xxl} />
 
-      <View style={[styles.sectionHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <DirectionalRow style={styles.sectionHeader}>
         <ThemedText style={[Typography.subtitle, { color: theme.text }]}>
           {t('dashboard.recentActivity')}
         </ThemedText>
@@ -339,7 +288,7 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
           onPress={() => navigation.navigate(ROUTES.NOTIFICATIONS as never)}
           style={({ pressed }) => [
             styles.viewAllButton,
-            { opacity: pressed ? 0.7 : 1 }
+            { opacity: pressed ? 0.7 : 1, flexDirection: getFlexDirection(isRTL) }
           ]}
         >
           <ThemedText style={[styles.viewAllText, { color: theme.primary }]}>
@@ -347,7 +296,7 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
           </ThemedText>
           <DDIcon name="chevron-right" size={16} variant="primary" directionAware />
         </Pressable>
-      </View>
+      </DirectionalRow>
 
       <Spacer height={Spacing.md} />
 
@@ -355,7 +304,7 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
         <View style={styles.activitiesList}>
           {activities.slice(0, 5).map((activity) => (
             <View key={activity.id}>
-              <ThemedView style={[styles.activityCard, { backgroundColor: theme.surface, flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <DirectionalRow style={[styles.activityCard, { backgroundColor: theme.surface }]}>
                 <View style={[
                   styles.activityIconContainer, 
                   { backgroundColor: applyOpacity(
@@ -396,7 +345,7 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
                     {activity.time}
                   </ThemedText>
                 </View>
-              </ThemedView>
+              </DirectionalRow>
               <Spacer height={Spacing.sm} />
             </View>
           ))}
@@ -421,7 +370,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
   },
   kpiRow: {
-    flexDirection: 'row',
     gap: Spacing.md,
   },
   kpiCard: {
@@ -457,7 +405,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   quickActionsRow: {
-    flexDirection: 'row',
     flexWrap: 'wrap',
     gap: Spacing.md,
   },
@@ -515,7 +462,6 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   staffCardHeader: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
   },
@@ -532,7 +478,6 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
   },
   staffDetail: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
   },
@@ -550,12 +495,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   sectionHeader: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   viewAllButton: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: 2,
   },
@@ -565,7 +508,6 @@ const styles = StyleSheet.create({
   },
   activitiesList: {},
   activityCard: {
-    flexDirection: 'row',
     alignItems: 'center',
     padding: Spacing.md,
     borderRadius: BorderRadius.md,

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Pressable, Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -10,10 +11,14 @@ import Animated, {
 } from 'react-native-reanimated';
 import { ThemedText } from '@/components/ThemedText';
 import { DDIcon } from '@/components/DDIcon';
+import { DirectionalRow, useDirectionalStyle } from '@/components/DirectionalRow';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
 import { pushNotificationService } from '@/services/push';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { BorderRadius, Spacing } from '@/constants/theme';
+
+const PROMPT_DISMISSED_KEY = 'notification_prompt_dismissed';
 
 interface EnableNotificationsPromptProps {
   onEnabled?: () => void;
@@ -26,12 +31,19 @@ export function EnableNotificationsPrompt({
 }: EnableNotificationsPromptProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { isRTL } = useLanguage();
   const [isVisible, setIsVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const scale = useSharedValue(1);
 
   useEffect(() => {
     const checkPermission = async () => {
+      const dismissed = await AsyncStorage.getItem(PROMPT_DISMISSED_KEY);
+      if (dismissed === 'true') {
+        setIsVisible(false);
+        return;
+      }
+      
       const shouldShow = pushNotificationService.shouldShowEnablePrompt();
       if (shouldShow) {
         const status = await pushNotificationService.getPermissionStatus();
@@ -65,7 +77,8 @@ export function EnableNotificationsPrompt({
     scale.value = withSpring(1);
   };
 
-  const handleDismiss = () => {
+  const handleDismiss = async () => {
+    await AsyncStorage.setItem(PROMPT_DISMISSED_KEY, 'true');
     setIsVisible(false);
     onDismissed?.();
   };
@@ -74,81 +87,99 @@ export function EnableNotificationsPrompt({
     return null;
   }
 
+  const bellIcon = (
+    <View style={styles.iconContainer}>
+      <DDIcon name="bell" size={24} color={theme.primary} />
+    </View>
+  );
+
+  const closeButton = (
+    <Pressable onPress={handleDismiss} style={styles.closeButton}>
+      <DDIcon name="x" size={18} color={theme.textSecondary} />
+    </Pressable>
+  );
+
+  const enableButton = (
+    <Pressable
+      onPress={handleEnable}
+      disabled={isLoading}
+      style={[
+        styles.enableButton,
+        { backgroundColor: theme.primary },
+        isLoading && styles.buttonDisabled,
+      ]}
+    >
+      <ThemedText variant="bodySmall" color="#FFFFFF">
+        {isLoading 
+          ? t('notifications.enablingNotifications') 
+          : t('notifications.enableButton')
+        }
+      </ThemedText>
+    </Pressable>
+  );
+
+  const laterButton = (
+    <Pressable
+      onPress={handleDismiss}
+      style={styles.dismissButton}
+    >
+      <ThemedText variant="bodySmall" color={theme.textSecondary}>
+        {t('notifications.enableLater')}
+      </ThemedText>
+    </Pressable>
+  );
+
+  const directionalStyle = useDirectionalStyle();
+  
   return (
     <Animated.View 
       entering={FadeIn.duration(300)}
       exiting={FadeOut.duration(200)}
       style={[
-        styles.container, 
+        styles.container,
+        directionalStyle,
         { 
           backgroundColor: theme.softOrange,
           borderColor: theme.primary,
         }
       ]}
     >
-      <View style={styles.iconContainer}>
-        <DDIcon name="bell" size={24} color={theme.primary} />
-      </View>
+      {bellIcon}
       
       <View style={styles.content}>
-        <ThemedText variant="bodySmall" style={styles.title}>
+        <ThemedText variant="bodySmall" style={[styles.title, {}]}>
           {t('notifications.enablePromptTitle')}
         </ThemedText>
         <ThemedText 
           variant="caption" 
           color={theme.textSecondary}
-          style={styles.description}
+          style={[styles.description, {}]}
         >
           {t('notifications.enablePromptDescription')}
         </ThemedText>
         
-        <View style={styles.buttonRow}>
-          <Pressable
-            onPress={handleEnable}
-            disabled={isLoading}
-            style={[
-              styles.enableButton,
-              { backgroundColor: theme.primary },
-              isLoading && styles.buttonDisabled,
-            ]}
-          >
-            <ThemedText variant="bodySmall" color="#FFFFFF">
-              {isLoading 
-                ? t('notifications.enablingNotifications') 
-                : t('notifications.enableButton')
-              }
-            </ThemedText>
-          </Pressable>
-          
-          <Pressable
-            onPress={handleDismiss}
-            style={styles.dismissButton}
-          >
-            <ThemedText variant="bodySmall" color={theme.textSecondary}>
-              {t('notifications.enableLater')}
-            </ThemedText>
-          </Pressable>
-        </View>
+        <DirectionalRow style={styles.buttonRow}>
+          {enableButton}
+          {laterButton}
+        </DirectionalRow>
       </View>
       
-      <Pressable onPress={handleDismiss} style={styles.closeButton}>
-        <DDIcon name="x" size={18} color={theme.textSecondary} />
-      </Pressable>
+      {closeButton}
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
     padding: Spacing.md,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
     marginHorizontal: Spacing.md,
+    marginTop: Spacing.md,
     marginBottom: Spacing.md,
+    gap: Spacing.sm,
   },
   iconContainer: {
-    marginEnd: Spacing.sm,
     paddingTop: 2,
   },
   content: {
@@ -162,7 +193,6 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
   },
   buttonRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.md,
   },
@@ -179,6 +209,5 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     padding: Spacing.xs,
-    marginStart: Spacing.xs,
   },
 });

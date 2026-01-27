@@ -7,10 +7,12 @@ import Animated, {
   interpolate,
 } from "react-native-reanimated";
 import { DDIcon, IconName } from "@/components/DDIcon";
+import { DirectionalRow } from "@/components/DirectionalRow";
 import { ThemedText } from "@/components/ThemedText";
 import { Spacing, BorderRadius } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useRTLStyles } from "@/hooks/useRTLStyles";
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -34,7 +36,8 @@ export default function SidebarGroup({
   children,
 }: SidebarGroupProps) {
   const { theme } = useTheme();
-  const { isRTL } = useLanguage();
+  const { isRTL, layoutKey } = useLanguage();
+  const rtlStyles = useRTLStyles();
   const expandProgress = useSharedValue(isExpanded ? 1 : 0);
 
   React.useEffect(() => {
@@ -61,7 +64,7 @@ export default function SidebarGroup({
   };
 
   return (
-    <View style={styles.container}>
+    <View key={layoutKey} style={styles.container}>
       <Pressable
         style={({ pressed }) => [
           styles.header,
@@ -71,19 +74,17 @@ export default function SidebarGroup({
         ]}
         onPress={handleToggle}
       >
-        <View style={[styles.headerLeft, isRTL && { flexDirection: 'row-reverse' }]}>
+        <DirectionalRow style={styles.headerRow} gap={Spacing.md}>
           <DDIcon name={icon} size={18} color={theme.sidebarTextMuted} />
           <ThemedText
             style={[
               styles.headerTitle,
-              { color: theme.sidebarText },
+              { color: theme.sidebarText, flex: 1 },
             ]}
             numberOfLines={1}
           >
             {title}
           </ThemedText>
-        </View>
-        <View style={styles.headerRight}>
           {badge !== undefined && badge > 0 ? (
             <View style={[styles.badge, { backgroundColor: theme.primary }]}>
               <ThemedText style={styles.badgeText}>
@@ -94,11 +95,11 @@ export default function SidebarGroup({
           <Animated.View style={chevronStyle}>
             <DDIcon name="chevron-right" size={16} color={theme.sidebarTextMuted} />
           </Animated.View>
-        </View>
+        </DirectionalRow>
       </Pressable>
 
       {isExpanded ? (
-        <View style={styles.content}>
+        <View style={[styles.content, isRTL && { paddingStart: 0, paddingEnd: Spacing.lg }]}>
           {children}
         </View>
       ) : null}
@@ -111,12 +112,14 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.xs,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    alignItems: 'stretch',
     paddingVertical: Spacing.sm + 2,
     paddingHorizontal: Spacing.md,
     borderRadius: BorderRadius.sm,
+  },
+  headerRow: {
+    alignItems: 'center',
+    gap: Spacing.md,
   },
   headerLeft: {
     flexDirection: 'row',

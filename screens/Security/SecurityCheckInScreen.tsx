@@ -18,6 +18,7 @@ import { useSecurityVisitorsQuery } from "@/hooks/queries/useSecurityQueries";
 import type { SecurityVisitorDto } from "@/types";
 import type { SecurityCheckInScreenProps } from "@/types/securityNavigation.types";
 import type { Theme } from "@/types/theme.types";
+import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 
 const LAYOUT = {
   cardPadding: Spacing.lg,
@@ -131,8 +132,7 @@ interface DateRange {
 
 export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScreenProps) {
   const { theme } = useTheme();
-  const { t, isRTL } = useTranslation();
-  const { formatTimeFromString } = useFormatters();
+  const { t, isRTL } = useTranslation();  const { formatTimeFromString } = useFormatters();
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -442,15 +442,15 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
           <View style={[styles.cardAccent, { backgroundColor: statusConfig.borderColor }]} />
           
           <View style={styles.cardMainSection}>
-            <View style={[styles.cardHeaderRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <DirectionalRow style={styles.cardHeaderRow}>
               <VisitorAvatar name={visitor.name} theme={theme} size={LAYOUT.avatarSize} />
               
               <View style={[styles.cardNameSection, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
-                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 16, textAlign: isRTL ? 'right' : 'left' }]}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 16 }]}>
                   {visitor.name}
                 </ThemedText>
                 {visitor.company ? (
-                  <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 2, textAlign: isRTL ? 'right' : 'left' }]}>
+                  <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 2 }]}>
                     {visitor.company}
                   </ThemedText>
                 ) : null}
@@ -461,32 +461,31 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
                   {statusConfig.label}
                 </ThemedText>
               </View>
-            </View>
+            </DirectionalRow>
 
             <Spacer height={Spacing.sm} />
 
-            <View style={[styles.compactDetailsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <DirectionalRow style={styles.compactDetailsRow}>
               <DDIcon name="user" size={14} variant="muted" />
-              <ThemedText style={[styles.compactDetailText, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+              <ThemedText style={[styles.compactDetailText, { color: theme.textSecondary, textAlign: 'right', marginEnd: 8 }]} numberOfLines={1}>
                 {detailParts.join('  |  ')}
               </ThemedText>
-            </View>
+            </DirectionalRow>
 
             <Spacer height={Spacing.sm} />
 
-            <View style={[styles.compactServiceRow, { 
-              backgroundColor: hasParking ? applyOpacity(theme.success, '08') : applyOpacity(theme.textSecondary, '08'),
-              flexDirection: isRTL ? 'row-reverse' : 'row'
+            <DirectionalRow style={[styles.compactServiceRow, { 
+              backgroundColor: hasParking ? applyOpacity(theme.success, '08') : applyOpacity(theme.textSecondary, '08')
             }]}>
               <DDIcon 
                 name={hasParking ? "map-pin" : "x-circle"} 
                 size={14} 
                 color={hasParking ? theme.success : theme.textSecondary} 
               />
-              <ThemedText style={[styles.compactServiceText, { color: hasParking ? theme.success : theme.textSecondary }]}>
+              <ThemedText style={[styles.compactServiceText, { color: hasParking ? theme.success : theme.textSecondary, marginEnd: 8 }]}>
                 {serviceParts.join('  |  ')}
               </ThemedText>
-            </View>
+            </DirectionalRow>
           </View>
         </ThemedView>
       </Pressable>
@@ -562,18 +561,18 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
         
         <Spacer height={Spacing.sm} />
         
-        <View style={[styles.dateDisplayRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-          <ThemedText style={[Typography.bodySmall, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
+        <DirectionalRow style={styles.dateDisplayRow}>
+          <ThemedText style={[Typography.bodySmall, { fontWeight: '600' }]}>
             {formatDisplayDate()}
           </ThemedText>
-          <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'left' : 'right' }]}>
+          <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
             {filteredVisitors.length} {filteredVisitors.length === 1 ? t('roles.visitor').toLowerCase() : t('navigation.allVisitors').toLowerCase()}
           </ThemedText>
-        </View>
+        </DirectionalRow>
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.searchBarWrapper, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <DirectionalRow style={styles.searchBarWrapper}>
           <SearchInput
             placeholder={t('common.search')}
             value={searchQuery}
@@ -588,7 +587,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
           >
             <DDIcon name="calendar" size={20} color={theme.primary} />
           </Pressable>
-        </View>
+        </DirectionalRow>
 
         <Spacer height={Spacing.lg} />
 
@@ -644,12 +643,10 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
 
 const styles = StyleSheet.create({
   dateDisplayRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   searchBarWrapper: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
   },
@@ -665,12 +662,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   filtersContainer: {
-    flexDirection: 'row',
     gap: Spacing.sm,
     paddingEnd: Spacing.sm,
   },
   filterPill: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
@@ -700,7 +695,6 @@ const styles = StyleSheet.create({
   visitorCard: {
     borderRadius: BorderRadius.md,
     overflow: 'hidden',
-    flexDirection: 'row',
   },
   cardAccent: {
     width: 4,
@@ -710,7 +704,6 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
   },
   cardHeaderRow: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
   avatar: {
@@ -737,7 +730,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_600SemiBold',
   },
   compactDetailsRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
@@ -747,7 +739,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   compactServiceRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.sm,
     paddingVertical: Spacing.xs,
@@ -760,7 +751,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   valetBadge: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.sm,
     paddingVertical: 2,

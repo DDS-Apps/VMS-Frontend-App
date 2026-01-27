@@ -113,6 +113,8 @@ export interface UserDto {
   lastName?: string;
   phone?: string;
   phoneNumber?: string;
+  businessPhone?: string;
+  landline?: string;
   department?: string;
   jobTitle?: string;
   role: UserRole;
@@ -1543,6 +1545,9 @@ export interface VisitDetailsDto {
   createdAt: string;
   updatedAt: string;
   timezone?: string;
+  checkedInAt?: string;
+  checkedOutAt?: string;
+  completedAt?: string;
 }
 
 export interface UpdateVisitPayload {

@@ -1,5 +1,5 @@
 import React from "react";
-import { View, StyleSheet, Pressable, ActivityIndicator } from "react-native";
+import { View, StyleSheet, Pressable, ActivityIndicator, Platform } from "react-native";
 import { DDIcon, type IconName } from "@/components/DDIcon";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -15,6 +15,7 @@ import {
 } from "@/constants/requestConstants";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export type TimelineStepStatus = 'completed' | 'current' | 'pending' | 'error';
 
@@ -66,6 +67,7 @@ export function RequestTimeline({
 }: RequestTimelineProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { isRTL } = useLanguage();
 
   const getStepColor = (status: TimelineStepStatus) => {
     switch (status) {
@@ -100,6 +102,7 @@ export function RequestTimeline({
       alignItems: 'center' as const,
       justifyContent: 'center' as const,
       minWidth: 100,
+      gap: Spacing.xs,
     };
 
     switch (action.type) {
@@ -180,94 +183,131 @@ export function RequestTimeline({
         const isError = step.status === 'error';
         const hasActions = step.actions && step.actions.length > 0;
 
-        return (
-          <View key={step.id} style={styles.stepContainer}>
-            <View style={styles.iconColumn}>
+        const iconColumnEl = (
+          <View style={styles.iconColumn}>
+            <View
+              style={[
+                styles.iconCircle,
+                {
+                  backgroundColor: isCompleted || isCurrent || isError
+                    ? stepColor
+                    : 'transparent',
+                  borderColor: stepColor,
+                  borderWidth: isCompleted || isCurrent || isError ? 0 : 2,
+                },
+              ]}
+            >
+              <DDIcon
+                name={step.icon}
+                size={14}
+                color={isCompleted || isCurrent || isError ? '#FFFFFF' : stepColor}
+              />
+            </View>
+            {!isLast ? (
               <View
                 style={[
-                  styles.iconCircle,
-                  {
-                    backgroundColor: isCompleted || isCurrent || isError
-                      ? stepColor
-                      : 'transparent',
-                    borderColor: stepColor,
-                    borderWidth: isCompleted || isCurrent || isError ? 0 : 2,
-                  },
+                  styles.line,
+                  { backgroundColor: lineColor },
                 ]}
-              >
-                <DDIcon
-                  name={step.icon}
-                  size={14}
-                  color={isCompleted || isCurrent || isError ? '#FFFFFF' : stepColor}
+              />
+            ) : null}
+          </View>
+        );
+
+        const renderActionButton = (action: TimelineAction, actionIndex: number) => {
+          const iconEl = (
+            <DDIcon
+              name={getActionIcon(action)}
+              size={16}
+              color={getActionTextStyle(action).color}
+            />
+          );
+          const textEl = (
+            <ThemedText
+              style={[
+                Typography.bodySmall,
+                getActionTextStyle(action),
+              ]}
+            >
+              {action.label}
+            </ThemedText>
+          );
+
+          return (
+            <Pressable
+              key={`${step.id}-action-${actionIndex}`}
+              onPress={action.onPress}
+              disabled={action.disabled || action.isLoading}
+              style={({ pressed }) => [
+                getActionButtonStyle(action),
+                pressed && { opacity: 0.8 },
+                action.disabled && { opacity: 0.5 },
+              ]}
+            >
+              {action.isLoading ? (
+                <ActivityIndicator 
+                  size="small" 
+                  color={action.type === 'reject' || action.type === 'cancel' ? theme.error : '#FFFFFF'} 
                 />
+              ) : (
+                <>
+                  {iconEl}
+                  {textEl}
+                </>
+              )}
+            </Pressable>
+          );
+        };
+
+        const actionButtons = hasActions 
+          ? step.actions!.map((action, actionIndex) => renderActionButton(action, actionIndex))
+          : null;
+
+        const contentColumnEl = (
+          <View style={[styles.contentColumn]}>
+            <ThemedText
+              style={[
+                Typography.body,
+                {
+                  fontWeight: isCompleted || isCurrent ? '600' : '400',
+                  color: isCompleted || isCurrent || isError ? theme.text : theme.textSecondary,
+                  
+                  width: '100%',
+                },
+              ]}
+            >
+              {step.label}
+            </ThemedText>
+
+            {hasActions ? (
+              <View style={[styles.actionsContainer, { justifyContent: isRTL ? 'flex-end' : 'flex-start', gap: Spacing.sm }]}>
+                {actionButtons}
               </View>
-              {!isLast ? (
-                <View
-                  style={[
-                    styles.line,
-                    { backgroundColor: lineColor },
-                  ]}
-                />
-              ) : null}
-            </View>
+            ) : null}
 
-            <View style={styles.contentColumn}>
-              <ThemedText
-                style={[
-                  Typography.body,
-                  {
-                    fontWeight: isCompleted || isCurrent ? '600' : '400',
-                    color: isCompleted || isCurrent || isError ? theme.text : theme.textSecondary,
-                  },
-                ]}
-              >
-                {step.label}
-              </ThemedText>
+            <Spacer height={isLast ? 0 : Spacing.lg} />
+          </View>
+        );
 
-              {hasActions ? (
-                <View style={styles.actionsContainer}>
-                  {step.actions!.map((action, actionIndex) => (
-                    <Pressable
-                      key={`${step.id}-action-${actionIndex}`}
-                      onPress={action.onPress}
-                      disabled={action.disabled || action.isLoading}
-                      style={({ pressed }) => [
-                        getActionButtonStyle(action),
-                        pressed && { opacity: 0.8 },
-                        action.disabled && { opacity: 0.5 },
-                        actionIndex > 0 && { marginStart: Spacing.sm },
-                      ]}
-                    >
-                      {action.isLoading ? (
-                        <ActivityIndicator 
-                          size="small" 
-                          color={action.type === 'reject' || action.type === 'cancel' ? theme.error : '#FFFFFF'} 
-                        />
-                      ) : (
-                        <>
-                          <DDIcon
-                            name={getActionIcon(action)}
-                            size={16}
-                            color={getActionTextStyle(action).color}
-                          />
-                          <ThemedText
-                            style={[
-                              Typography.bodySmall,
-                              getActionTextStyle(action),
-                              { marginStart: Spacing.xs },
-                            ]}
-                          >
-                            {action.label}
-                          </ThemedText>
-                        </>
-                      )}
-                    </Pressable>
-                  ))}
-                </View>
-              ) : null}
+        // Platform-aware RTL handling:
+        // - On WEB: Browser's document.dir='rtl' reverses flex layouts automatically
+        // - On MOBILE: I18nManager doesn't flip flexDirection, so manually reverse in RTL
+        const isWeb = Platform.OS === 'web';
+        const shouldReverse = isRTL && !isWeb;
 
-              <Spacer height={isLast ? 0 : Spacing.lg} />
-            </View>
+        return (
+          <View key={step.id} style={[styles.stepContainer, { flexDirection: 'row' }]}>
+            {shouldReverse ? (
+              <>
+                {contentColumnEl}
+                {iconColumnEl}
+              </>
+            ) : (
+              <>
+                {iconColumnEl}
+                {contentColumnEl}
+              </>
+            )}
           </View>
         );
       })}
@@ -366,7 +406,8 @@ function buildStandardTimeline(
   const isAtLaterStage = LATER_STAGE_STATUSES.includes(data.status);
   const isPendingApproval = data.status === 'pending_approval';
   const requiresApproval = data.approval?.requiresApproval || isPendingApproval;
-  const isApproved = data.approval?.approvedAt || (!isPendingApproval && isAtLaterStage);
+  // Only consider approved if we have approvedAt AND status is not pending_approval (after edit, status resets but old timestamp remains)
+  const isApproved = (data.approval?.approvedAt && !isPendingApproval) || (!isPendingApproval && isAtLaterStage);
 
 
   // Track if we've hit a terminal/current step - all subsequent steps should be pending
@@ -729,7 +770,12 @@ function buildReceptionistTimeline(
     return steps;
   }
 
-  if (data.checkedInAt) {
+  // Check if visitor has checked in - either by timestamp or by status
+  const isCheckedIn = data.checkedInAt || data.status === 'checked_in' || data.status === 'completed';
+  // Check if visitor has checked out / visit completed - either by timestamp or by status
+  const isCheckedOut = data.completedAt || data.checkedOutAt || data.status === 'completed';
+
+  if (isCheckedIn) {
     steps.push({
       id: 'checked_in',
       label: t('timeline.visitorCheckedIn'),
@@ -738,7 +784,7 @@ function buildReceptionistTimeline(
       icon: 'log-in',
     });
 
-    if (data.completedAt || data.checkedOutAt) {
+    if (isCheckedOut) {
       steps.push({
         id: 'checked_out',
         label: t('timeline.visitorCheckedOut'),
@@ -789,6 +835,24 @@ function buildReceptionistTimeline(
       label: t('timeline.visitorCheckedOut'),
       status: 'pending',
       icon: 'log-out',
+    });
+  }
+
+  // ============ Visit Completed Step ============
+  if (data.completedAt || data.checkedOutAt || data.status === 'completed') {
+    steps.push({
+      id: 'completed',
+      label: t('timeline.visitCompleted'),
+      timestamp: data.completedAt || data.checkedOutAt,
+      status: 'completed',
+      icon: 'check-circle',
+    });
+  } else {
+    steps.push({
+      id: 'completed',
+      label: t('timeline.visitCompleted'),
+      status: 'pending',
+      icon: 'check-circle',
     });
   }
 
@@ -858,7 +922,9 @@ function buildManagerApprovalTimeline(
     return steps;
   }
 
-  if (data.approval?.approvedAt) {
+  // Only show approved if approvedAt exists AND status is not pending_approval (after edit, status resets but old timestamp remains)
+  const isPendingApproval = data.status === 'pending_approval';
+  if (data.approval?.approvedAt && !isPendingApproval) {
     steps.push({
       id: 'approval',
       label: t('timeline.managerApproved'),
@@ -1023,11 +1089,11 @@ const styles = StyleSheet.create({
   },
   stepContainer: {
     flexDirection: 'row',
+    gap: Spacing.md,
   },
   iconColumn: {
     alignItems: 'center',
     width: 28,
-    marginEnd: Spacing.md,
   },
   iconCircle: {
     width: 28,

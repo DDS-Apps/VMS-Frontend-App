@@ -12,6 +12,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
 import { getValetTasks, ValetTask } from '@/services/state/valetTasksState';
 import type { ValetService } from '@/types/vms.types';
+import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 
 interface ValetTasksScreenProps {
   onNavigateToDetail: (taskId: string) => void;
@@ -66,8 +67,7 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status, theme, t }) => {
 
 export default function ValetTasksScreen({ onNavigateToDetail }: ValetTasksScreenProps) {
   const { theme } = useTheme();
-  const { t, isRTL } = useTranslation();
-  const insets = useSafeAreaInsets();
+  const { t, isRTL } = useTranslation();  const insets = useSafeAreaInsets();
   const [tasks, setTasks] = useState<ValetTask[]>([]);
   const [filter, setFilter] = useState<'all' | 'pending' | 'in_progress' | 'completed'>('all');
 
@@ -92,44 +92,44 @@ export default function ValetTasksScreen({ onNavigateToDetail }: ValetTasksScree
       style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
     >
       <ThemedView style={[styles.taskCard, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
-        <View style={[styles.cardHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <DirectionalRow style={styles.cardHeader}>
           <View style={{ flex: 1 }}>
-            <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginBottom: Spacing.xs, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginBottom: Spacing.xs }]}>
               {item.visitorName}
             </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
               {item.visitorCompany}
             </ThemedText>
           </View>
           <StatusBadge status={item.valet.status} theme={theme} t={t} />
-        </View>
+        </DirectionalRow>
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <DirectionalRow style={styles.infoRow}>
           <DDIcon name="user" size={16} variant="muted" />
-          <ThemedText style={[Typography.body, { color: theme.textSecondary, marginStart: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
+          <ThemedText style={[Typography.body, { color: theme.textSecondary, marginEnd: Spacing.sm }]}>
             {t('reception.hostName')}: {item.hostName}
           </ThemedText>
-        </View>
+        </DirectionalRow>
 
         <Spacer height={Spacing.sm} />
 
-        <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <DirectionalRow style={styles.infoRow}>
           <DDIcon name="calendar" size={16} variant="muted" />
-          <ThemedText style={[Typography.body, { color: theme.textSecondary, marginStart: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
+          <ThemedText style={[Typography.body, { color: theme.textSecondary, marginEnd: Spacing.sm }]}>
             {item.visitDate} • {item.pickupTime} - {item.returnTime}
           </ThemedText>
-        </View>
+        </DirectionalRow>
 
         <Spacer height={Spacing.sm} />
 
-        <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <DirectionalRow style={styles.infoRow}>
           <DDIcon name="map-pin" size={16} variant="muted" />
-          <ThemedText style={[Typography.body, { color: theme.textSecondary, marginStart: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
+          <ThemedText style={[Typography.body, { color: theme.textSecondary, marginEnd: Spacing.sm }]}>
             {item.location}
           </ThemedText>
-        </View>
+        </DirectionalRow>
 
         {item.valet.driver ? (
           <>
@@ -140,15 +140,13 @@ export default function ValetTasksScreen({ onNavigateToDetail }: ValetTasksScree
                 { backgroundColor: theme.surface, borderColor: theme.border },
               ]}
             >
-              <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <DirectionalRow style={styles.infoRow}>
                 <DDIcon name="truck" size={16} variant="primary" />
-                <ThemedText
-                  style={[Typography.body, { fontWeight: '600', marginStart: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}
-                >
+                <ThemedText style={[Typography.body, { fontWeight: '600', marginEnd: Spacing.sm }]}>
                   {item.valet.driver.name}
                 </ThemedText>
-              </View>
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: Spacing.xs, textAlign: isRTL ? 'right' : 'left' }]}>
+              </DirectionalRow>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: Spacing.xs }]}>
                 {item.valet.driver.phone}
               </ThemedText>
             </View>
@@ -156,34 +154,29 @@ export default function ValetTasksScreen({ onNavigateToDetail }: ValetTasksScree
         ) : (
           <>
             <Spacer height={Spacing.md} />
-            <View
+            <DirectionalRow
               style={[
                 styles.noDiverInfo,
-                { backgroundColor: `${theme.warning}10`, borderColor: theme.warning, flexDirection: isRTL ? 'row-reverse' : 'row' },
+                { backgroundColor: `${theme.warning}10`, borderColor: theme.warning },
               ]}
             >
               <DDIcon name="alert-circle" size={16} variant="warning" />
-              <ThemedText
-                style={[
-                  Typography.caption,
-                  { color: theme.warning, marginStart: Spacing.sm, fontWeight: '600', textAlign: isRTL ? 'right' : 'left' },
-                ]}
-              >
+              <ThemedText style={[Typography.caption, { color: theme.warning, marginEnd: Spacing.sm, fontWeight: '600' }]}>
                 {t('actions.assignDriver')}
               </ThemedText>
-            </View>
+            </DirectionalRow>
           </>
         )}
 
         {item.vehicleInfo ? (
           <>
             <Spacer height={Spacing.sm} />
-            <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <DirectionalRow style={styles.infoRow}>
               <DDIcon name="truck" size={16} variant="muted" />
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginEnd: Spacing.sm }]}>
                 {item.vehicleInfo.color} {item.vehicleInfo.make} {item.vehicleInfo.model} • {item.vehicleInfo.plateNumber}
               </ThemedText>
-            </View>
+            </DirectionalRow>
           </>
         ) : null}
       </ThemedView>
@@ -205,7 +198,7 @@ export default function ValetTasksScreen({ onNavigateToDetail }: ValetTasksScree
             backgroundColor: isActive ? theme.primary : theme.surface,
             borderColor: isActive ? theme.primary : theme.border,
             opacity: pressed ? 0.7 : 1,
-            flexDirection: isRTL ? 'row-reverse' : 'row',
+            flexDirection: getFlexDirection(isRTL),
           },
         ]}
       >
@@ -251,12 +244,12 @@ export default function ValetTasksScreen({ onNavigateToDetail }: ValetTasksScree
         </ThemedText>
       </View>
 
-      <View style={[styles.filterContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <DirectionalRow style={styles.filterContainer}>
         {renderFilterButton('all', t('common.all'), tasks.length)}
         {renderFilterButton('pending', t('status.pending'), pendingCount)}
         {renderFilterButton('in_progress', t('status.inProgress'), inProgressCount)}
         {renderFilterButton('completed', t('status.completed'), completedCount)}
-      </View>
+      </DirectionalRow>
     </>
   );
 

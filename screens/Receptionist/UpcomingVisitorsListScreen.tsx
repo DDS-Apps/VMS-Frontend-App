@@ -16,13 +16,13 @@ import { DDIcon } from "@/components/DDIcon";
 import { applyOpacity } from "@/utils/statusStyles";
 import { useTodayVisitorsQuery } from "@/hooks/queries/useReceptionQueries";
 import type { TodayVisitorDto } from "@/types";
+import { DirectionalRow } from '@/components/DirectionalRow';
 
 export default function UpcomingVisitorsListScreen() {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { formatTimeFromString } = useFormatters();
-  const { isRTL } = useLanguage();
-  const insets = useSafeAreaInsets();
+  const { isRTL } = useLanguage();  const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedVisitors, setExpandedVisitors] = useState<Set<string>>(new Set());
 
@@ -117,7 +117,7 @@ export default function UpcomingVisitorsListScreen() {
         <View style={[styles.statusBorderLine, { backgroundColor: statusConfig.border }]} />
         
         <View style={styles.cardMainSection}>
-          <View style={[styles.cardHeaderRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <DirectionalRow style={styles.cardHeaderRow}>
             <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
               <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
                 {initials}
@@ -132,75 +132,63 @@ export default function UpcomingVisitorsListScreen() {
                 {item.visitor.company ?? ''}
               </ThemedText>
             </View>
-          </View>
+          </DirectionalRow>
 
           <Spacer height={Spacing.md} />
 
-          <View style={[styles.dateTimeRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <DirectionalRow style={styles.dateTimeRow}>
             <DDIcon name="clock" size={13} variant="muted" />
-            <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
-              {formatTimeFromString(item.visitTime)}
-            </ThemedText>
-            <ThemedText style={[styles.separator, { color: theme.border }]}>-</ThemedText>
-            <DDIcon name="user" size={13} variant="muted" />
             <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
               {t('reception.hostName')}: {item.hostName}
             </ThemedText>
-          </View>
+            <DDIcon name="user" size={13} variant="muted" />
+            <ThemedText style={[styles.separator, { color: theme.border }]}>-</ThemedText>
+            <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
+              {formatTimeFromString(item.visitTime)}
+            </ThemedText>
+          </DirectionalRow>
 
           <Spacer height={Spacing.md} />
 
-          <View style={[styles.bottomRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <View style={[styles.servicesRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <DirectionalRow style={styles.bottomRow} justifyContent="space-between">
+            <DirectionalRow style={styles.servicesRow}>
               {item.parkingSlot ? (
                 <View style={[styles.servicePillRounded, { backgroundColor: applyOpacity(theme.info, '20') }]}>
                   <DDIcon name="map-pin" size={14} color={theme.info} />
                 </View>
               ) : null}
-              </View>
+              </DirectionalRow>
             <View style={[styles.statusBadgeBottom, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: 1 }]}>
               <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
                 {statusConfig.label}
               </ThemedText>
             </View>
-          </View>
+          </DirectionalRow>
 
           {expandedVisitors.has(item.id) && (item.visitor.phone || item.visitor.email) ? (
             <>
               <Spacer height={Spacing.md} />
               <View style={[styles.expandedSection, { backgroundColor: applyOpacity(theme.border, '30') }]}>
                 {item.visitor.phone ? (
-                  <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                  <DirectionalRow style={styles.expandedDetailRow}>
                     <DDIcon name="phone" size={14} variant="muted" />
-                    <ThemedText style={[styles.expandedDetailText, { color: theme.textSecondary }]}>
+                    <ThemedText style={[styles.expandedDetailText, { color: theme.textSecondary, marginEnd: 8 }]}>
                       {item.visitor.phone}
                     </ThemedText>
-                  </View>
+                  </DirectionalRow>
                 ) : null}
                 {item.visitor.email ? (
-                  <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                  <DirectionalRow style={styles.expandedDetailRow}>
                     <DDIcon name="mail" size={14} variant="muted" />
-                    <ThemedText style={[styles.expandedDetailText, { color: theme.textSecondary }]}>
+                    <ThemedText style={[styles.expandedDetailText, { color: theme.textSecondary, marginEnd: 8 }]}>
                       {item.visitor.email}
                     </ThemedText>
-                  </View>
+                  </DirectionalRow>
                 ) : null}
               </View>
             </>
           ) : null}
 
-          {(item.visitor.phone || item.visitor.email) ? (
-            <Pressable onPress={() => toggleExpand(item.id)} style={styles.toggleContainer}>
-              <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
-                {expandedVisitors.has(item.id) ? t('common.lessDetails') : t('common.moreDetails')}
-              </ThemedText>
-              <DDIcon 
-                name={expandedVisitors.has(item.id) ? "chevron-up" : "chevron-down"} 
-                size={14} 
-                color={theme.primary} 
-              />
-            </Pressable>
-          ) : null}
         </View>
       </ThemedView>
     );
@@ -274,7 +262,6 @@ const styles = StyleSheet.create({
     
   },
   cardHeaderRow: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
   avatar: {
@@ -301,7 +288,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   dateTimeRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
@@ -312,12 +298,10 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   bottomRow: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   servicesRow: {
-    flexDirection: 'row',
     gap: Spacing.sm,
   },
   servicePillRounded: {
@@ -348,7 +332,6 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   expandedDetailRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
   },
@@ -356,7 +339,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   toggleContainer: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing.xs,

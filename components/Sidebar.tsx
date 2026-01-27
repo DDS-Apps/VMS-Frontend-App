@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, StyleSheet, Pressable, ScrollView, Platform, Dimensions } from "react-native";
 import { Image } from "expo-image";
 import { DDIcon, IconName } from "@/components/DDIcon";
+import { DirectionalRow } from "@/components/DirectionalRow";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -11,6 +12,7 @@ import { Colors, Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useRTLStyles } from "@/hooks/useRTLStyles";
 import { UserRole } from "@/types/vms.types";
 import Constants from 'expo-constants';
 
@@ -158,16 +160,10 @@ const getMenuGroups = (role: UserRole): { groups: MenuGroup[]; standalone: MenuI
     ];
     result.groups = [];
   } else if (role === 'building_admin') {
-    result.standalone = [];
+    result.standalone = [
+      { id: 'all_requests', labelKey: 'navigation.allRequests', icon: 'file-text', screen: 'AllRequests' },
+    ];
     result.groups = [
-      {
-        id: 'requests',
-        labelKey: 'sidebar.visitsRequests',
-        icon: 'file-text',
-        items: [
-          { id: 'all_requests', labelKey: 'navigation.allRequests', icon: 'file-text', screen: 'AllRequests' },
-        ],
-      },
       {
         id: 'users_config',
         labelKey: 'sidebar.usersConfig',
@@ -204,12 +200,13 @@ export default function Sidebar({
 }: SidebarProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { isRTL } = useLanguage();
+  const { isRTL, layoutKey } = useLanguage();
+  const rtlStyles = useRTLStyles();
   const { groups, standalone } = getMenuGroups(userRole);
   const { width } = Dimensions.get('window');
   const isLargeScreen = width >= 768;
   const insets = useSafeAreaInsets();
-
+  
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => {
     const initial = new Set<string>();
     groups.forEach(group => {
@@ -272,27 +269,28 @@ export default function Sidebar({
         key={item.id}
         style={({ pressed }) => [
           styles.menuItem,
-          isRTL && { flexDirection: 'row-reverse' },
           isActive && [styles.menuItemActive, { backgroundColor: theme.sidebarActive }],
           pressed && { opacity: 0.7 },
         ]}
         onPress={() => handleItemPress(item.screen, item.params)}
       >
-        <DDIcon
-          name={item.icon}
-          size={18}
-          color={isActive ? theme.primary : theme.sidebarTextMuted}
-          directionAware={item.icon === 'log-in' || item.icon === 'log-out'}
-        />
-        <ThemedText
-          style={[
-            styles.menuText,
-            isActive && { color: theme.primary, fontWeight: '600' },
-            !isActive && { color: theme.sidebarText },
-          ]}
-        >
-          {t(item.labelKey)}
-        </ThemedText>
+        <DirectionalRow gap={Spacing.md}>
+          <DDIcon
+            name={item.icon}
+            size={18}
+            color={isActive ? theme.primary : theme.sidebarTextMuted}
+            directionAware={item.icon === 'log-in' || item.icon === 'log-out'}
+          />
+          <ThemedText
+            style={[
+              styles.menuText,
+              isActive && { color: theme.primary, fontWeight: '600' },
+              !isActive && { color: theme.sidebarText },
+            ]}
+          >
+            {t(item.labelKey)}
+          </ThemedText>
+        </DirectionalRow>
       </Pressable>
     );
   };
@@ -305,26 +303,27 @@ export default function Sidebar({
         key={item.id}
         style={({ pressed }) => [
           styles.standaloneItem,
-          isRTL && { flexDirection: 'row-reverse' },
           isActive && [styles.menuItemActive, { backgroundColor: theme.sidebarActive }],
           pressed && { opacity: 0.7 },
         ]}
         onPress={() => handleItemPress(item.screen, item.params)}
       >
-        <DDIcon
-          name={item.icon}
-          size={20}
-          color={isActive ? theme.primary : theme.sidebarTextMuted}
-        />
-        <ThemedText
-          style={[
-            styles.standaloneText,
-            isActive && { color: theme.primary, fontWeight: '600' },
-            !isActive && { color: theme.sidebarText },
-          ]}
-        >
-          {t(item.labelKey)}
-        </ThemedText>
+        <DirectionalRow gap={Spacing.md}>
+          <DDIcon
+            name={item.icon}
+            size={20}
+            color={isActive ? theme.primary : theme.sidebarTextMuted}
+          />
+          <ThemedText
+            style={[
+              styles.standaloneText,
+              isActive && { color: theme.primary, fontWeight: '600' },
+              !isActive && { color: theme.sidebarText },
+            ]}
+          >
+            {t(item.labelKey)}
+          </ThemedText>
+        </DirectionalRow>
       </Pressable>
     );
   };
@@ -344,43 +343,48 @@ export default function Sidebar({
   };
 
   return (
-    <ThemedView style={[
-      styles.sidebar, 
-      { 
-        backgroundColor: theme.sidebarBg, 
-        borderRightColor: theme.border,
-        borderLeftColor: theme.border,
-        borderRightWidth: isRTL ? 0 : 1,
-        borderLeftWidth: isRTL ? 1 : 0,
-        paddingTop: insets.top + Spacing.sm,
-      },
-    ]}>
+    <ThemedView 
+      key={layoutKey}
+      style={[
+        styles.sidebar, 
+        { 
+          backgroundColor: theme.sidebarBg, 
+          borderRightColor: theme.border,
+          borderLeftColor: theme.border,
+          borderRightWidth: isRTL ? 0 : 1,
+          borderLeftWidth: isRTL ? 1 : 0,
+          paddingTop: insets.top + Spacing.sm,
+        },
+      ]}
+    >
       <Pressable 
-        style={({ pressed }) => [styles.profileHeader, isRTL && { flexDirection: 'row-reverse' }, pressed && { opacity: 0.7 }]}
+        style={({ pressed }) => [styles.profileHeader, pressed && { opacity: 0.7 }]}
         onPress={() => handleItemPress('Dashboard')}
       >
-        {userPhotoUrl ? (
-          <Image
-            source={{ uri: userPhotoUrl }}
-            style={styles.profileAvatar}
-            contentFit="cover"
-          />
-        ) : (
-          <View style={[styles.profileAvatar, { backgroundColor: theme.primary }]}>
-            <ThemedText style={[Typography.title, { color: Colors.light.buttonText, fontWeight: '600', fontSize: 20 }]}>
-              {userName.split(' ').map(n => n[0]).join('')}
+        <DirectionalRow style={styles.profileRow} gap={Spacing.md}>
+          {userPhotoUrl ? (
+            <Image
+              source={{ uri: userPhotoUrl }}
+              style={styles.profileAvatar}
+              contentFit="cover"
+            />
+          ) : (
+            <View style={[styles.profileAvatar, { backgroundColor: theme.primary }]}>
+              <ThemedText style={[Typography.title, { color: Colors.light.buttonText, fontWeight: '600', fontSize: 20 }]}>
+                {userName.split(' ').map(n => n[0]).join('')}
+              </ThemedText>
+            </View>
+          )}
+          <View style={styles.profileInfo}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', color: theme.sidebarText }]} numberOfLines={1}>
+              {userName}
+            </ThemedText>
+            <ThemedText style={[Typography.caption, { color: theme.sidebarTextMuted, textTransform: 'capitalize' }]}>
+              {userRole.replace('_', ' ')}
             </ThemedText>
           </View>
-        )}
-        <View style={{ marginStart: Spacing.md, flex: 1 }}>
-          <ThemedText style={[Typography.body, { fontWeight: '600', color: theme.sidebarText }]} numberOfLines={1}>
-            {userName}
-          </ThemedText>
-          <ThemedText style={[Typography.caption, { color: theme.sidebarTextMuted, textTransform: 'capitalize' }]}>
-            {userRole.replace('_', ' ')}
-          </ThemedText>
-        </View>
-        <DDIcon name="chevron-right" size={18} color={theme.sidebarTextMuted} />
+          <DDIcon name={isRTL ? "chevron-left" : "chevron-right"} size={18} color={theme.sidebarTextMuted} />
+        </DirectionalRow>
       </Pressable>
 
       <Spacer height={Spacing.xl} />
@@ -411,17 +415,17 @@ export default function Sidebar({
         {renderStandaloneItem(settingsItem)}
       </ScrollView>
 
-      <View style={styles.appInfo}>
+      <DirectionalRow style={styles.appInfo} gap={Spacing.xs}>
         <ThemedText style={[styles.appName, { color: theme.sidebarTextMuted }]}>
           {t('common.brandName')} {t('common.appName')}
         </ThemedText>
         <ThemedText style={[styles.appVersion, { color: theme.sidebarTextMuted }]}>
           v{Constants.expoConfig?.version || '1.0.0'}
         </ThemedText>
-      </View>
+      </DirectionalRow>
 
       <View style={[styles.footer, { borderTopColor: theme.border }]}>
-        <View style={styles.footerActions}>
+        <DirectionalRow style={styles.footerActions} gap={Spacing.sm}>
           <Pressable 
             onPress={onToggleDarkMode} 
             style={({ pressed }) => [
@@ -449,7 +453,7 @@ export default function Sidebar({
               directionAware
             />
           </Pressable>
-        </View>
+        </DirectionalRow>
       </View>
     </ThemedView>
   );
@@ -462,9 +466,16 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.lg,
   },
   profileHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'stretch',
     paddingHorizontal: Spacing.lg,
+    width: '100%',
+  },
+  profileRow: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  profileInfo: {
+    flex: 1,
   },
   profileAvatar: {
     width: 48,
@@ -483,25 +494,21 @@ const styles = StyleSheet.create({
     marginHorizontal: Spacing.sm,
   },
   standaloneItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'stretch',
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.md,
     borderRadius: BorderRadius.sm,
     marginBottom: Spacing.xs,
-    gap: Spacing.md,
   },
   standaloneText: {
     fontSize: 15,
     fontWeight: '500',
   },
   menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'stretch',
     paddingVertical: Spacing.sm + 2,
     paddingHorizontal: Spacing.sm,
     borderRadius: BorderRadius.sm,
-    gap: Spacing.md,
     marginBottom: 2,
   },
   menuItemActive: {
@@ -516,9 +523,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
   },
   footerActions: {
-    flexDirection: 'row',
     justifyContent: 'flex-start',
-    gap: Spacing.sm,
   },
   footerButton: {
     width: 40,
@@ -528,7 +533,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   appInfo: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,

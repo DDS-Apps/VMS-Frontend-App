@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { View, StyleSheet, Pressable, GestureResponderEvent, Alert, Switch, FlatList, ActivityIndicator, Modal, Platform } from "react-native";
+import { View, StyleSheet, Pressable, GestureResponderEvent, Alert, Switch, FlatList, ActivityIndicator, Modal, Platform, useWindowDimensions } from "react-native";
 import type { AllVisitorsScreenProps } from "@/types/receptionistNavigation.types";
 import { ROUTES } from "@/constants";
 import { SkeletonList, WalkInBadge } from "@/components/shared";
@@ -16,6 +16,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
 import { VisitorActionButton } from "@/components/VisitorActionButton";
 import { applyOpacity } from "@/utils/statusStyles";
+import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 import { useInfiniteVisitsQuery } from "@/hooks/queries/useApprovalQueries";
 import { useReceptionCheckInMutation, useReceptionCheckOutMutation } from "@/hooks/queries/useReceptionQueries";
 import type { VisitListParams, VisitListItemDto } from "@/types";
@@ -26,7 +27,13 @@ type StatusFilter = 'all' | 'pending_approval' | 'approved' | 'checked_in' | 'au
 function getDateRange(filter: DateFilter): { startDate?: string; endDate?: string } {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const formatDate = (d: Date) => d.toISOString().split('T')[0];
+  // Use local timezone formatting instead of UTC (toISOString converts to UTC)
+  const formatDate = (d: Date) => {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
   
   switch (filter) {
     case 'today':
@@ -63,18 +70,24 @@ function mapStatusToApi(status: StatusFilter): string | undefined {
 
 const PAGE_SIZE = 20;
 
-export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps) {
+export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { formatTime, formatTimeFromString } = useFormatters();
+  const { formatTime, formatTimeFromString, formatDateShort } = useFormatters();
   const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
+  
+  // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
+  const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
+  
+  const initialFilter = route.params?.initialFilter ?? null;
   
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [dateFilter, setDateFilter] = useState<DateFilter>('today');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
-  const [activeQuickFilter, setActiveQuickFilter] = useState<'walk_in' | 'awaiting_visitor' | 'pending_approval' | null>(null);
+  const [activeQuickFilter, setActiveQuickFilter] = useState<'walk_in' | 'awaiting_visitor' | 'pending_approval' | null>(initialFilter);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showStatusPicker, setShowStatusPicker] = useState(false);
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
@@ -208,18 +221,22 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
       case 'checked_in':
         return { label: t('status.checkedIn'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: theme.success };
       case 'completed':
+        return { label: t('timeline.visitCompleted'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: theme.success };
       case 'checked_out':
         return { label: t('status.checkedOut'), bg: applyOpacity(theme.textSecondary, '15'), text: theme.textSecondary, border: theme.textSecondary };
       case 'pending_approval':
         return { label: t('status.pendingApproval'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: theme.warning };
+      case 'pending_host_approval':
+        return { label: t('status.pendingHostApproval'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: theme.warning };
       case 'approved':
+      case 'visitor_accepted':
         return { label: t('visitor.expectedVisitors'), bg: applyOpacity(theme.info, '15'), text: theme.info, border: theme.info };
       case 'rejected':
         return { label: t('status.rejected'), bg: applyOpacity(theme.error, '15'), text: theme.error, border: theme.error };
       case 'cancelled':
         return { label: t('status.cancelled'), bg: applyOpacity(theme.textSecondary, '15'), text: theme.textSecondary, border: theme.textSecondary };
       default:
-        return { label: t('visitor.expectedVisitors'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: theme.warning };
+        return { label: t('status.pending'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: theme.warning };
     }
   }, [t, theme]);
 
@@ -247,7 +264,7 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
     const statusConfig = getStatusConfig(item.status);
     const visitorName = item.visitor.fullName;
     const initials = visitorName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-    const showCheckIn = item.status === 'approved';
+    const showCheckIn = item.status === 'approved' || item.status === 'visitor_accepted';
     const showCheckOut = item.status === 'checked_in';
     const isExpanded = expandedCards.has(item.id);
     const hasDetails = item.purpose || item.visitor.email || item.visitor.phone;
@@ -261,50 +278,50 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
           <View style={[styles.statusBorderLine, { backgroundColor: statusConfig.border }]} />
           
           <View style={styles.cardContent}>
-            <View style={[styles.cardHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <DirectionalRow style={styles.cardHeader}>
               <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
                 <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
                   {initials}
                 </ThemedText>
               </View>
               
-              <View style={styles.nameSection}>
-                <View style={[styles.nameRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                  <ThemedText style={[styles.visitorName, { color: theme.text }]} numberOfLines={1}>
+              <View style={[styles.nameSection, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
+                <DirectionalRow style={[styles.nameRow, { width: '100%' }]}>
+                  <ThemedText style={[styles.visitorName, { color: theme.text, width: '100%' }]} numberOfLines={1}>
                     {visitorName}
                   </ThemedText>
-                </View>
-                <ThemedText style={[styles.companyText, { color: theme.textSecondary }]} numberOfLines={1}>
+                </DirectionalRow>
+                <ThemedText style={[styles.companyText, { color: theme.textSecondary, width: '100%' }]} numberOfLines={1}>
                   {item.visitor.company ?? ''}
                 </ThemedText>
               </View>
-            </View>
+            </DirectionalRow>
 
-            <View style={[styles.detailsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <View style={[styles.detailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <DirectionalRow style={styles.detailsRow}>
+              <DirectionalRow style={styles.detailItem}>
                 <DDIcon name="calendar" size={12} color={theme.textSecondary} />
                 <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
-                  {item.visitDate}
+                  {formatDateShort(item.visitDate)}
                 </ThemedText>
-              </View>
+              </DirectionalRow>
               <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
-              <View style={[styles.detailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <DirectionalRow style={styles.detailItem}>
                 <DDIcon name="clock" size={12} color={theme.textSecondary} />
                 <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
                   {formatTimeFromString(item.visitTime)}
                 </ThemedText>
-              </View>
+              </DirectionalRow>
               <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
-              <View style={[styles.detailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <DirectionalRow style={styles.detailItem}>
                 <DDIcon name="user" size={12} color={theme.textSecondary} />
                 <ThemedText style={[styles.detailText, { color: theme.textSecondary }]} numberOfLines={1}>
                   {item.employeeName}
                 </ThemedText>
-              </View>
-            </View>
+              </DirectionalRow>
+            </DirectionalRow>
 
-            <View style={[styles.servicesStatusRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <View style={[styles.servicesRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <DirectionalRow style={styles.servicesStatusRow} justifyContent="space-between">
+              <DirectionalRow style={styles.servicesRow}>
                 {item.isWalkIn ? <WalkInBadge size="sm" /> : null}
                 {item.hasParking ? (
                   <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '20') }]}>
@@ -321,61 +338,45 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
                     <DDIcon name="cloche" size={12} color={theme.warning} />
                   </View>
                 ) : null}
-              </View>
+              </DirectionalRow>
 
               <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: 1 }]}>
                 <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
                   {statusConfig.label}
                 </ThemedText>
               </View>
-            </View>
+            </DirectionalRow>
 
             {isExpanded && hasDetails ? (
               <View style={styles.expandedSection}>
                 {item.purpose ? (
-                  <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                  <DirectionalRow style={styles.expandedDetailRow}>
                     <DDIcon name="briefcase" size={14} color={theme.textSecondary} />
-                    <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={2}>
+                    <ThemedText style={[styles.expandedDetailText, { color: theme.text }]} numberOfLines={2}>
                       {item.purpose}
                     </ThemedText>
-                  </View>
+                  </DirectionalRow>
                 ) : null}
                 {item.visitor.email ? (
-                  <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                  <DirectionalRow style={styles.expandedDetailRow}>
                     <DDIcon name="mail" size={14} color={theme.textSecondary} />
-                    <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+                    <ThemedText style={[styles.expandedDetailText, { color: theme.text }]} numberOfLines={1}>
                       {item.visitor.email}
                     </ThemedText>
-                  </View>
+                  </DirectionalRow>
                 ) : null}
                 {item.visitor.phone ? (
-                  <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                  <DirectionalRow style={styles.expandedDetailRow}>
                     <DDIcon name="phone" size={14} color={theme.textSecondary} />
-                    <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+                    <ThemedText style={[styles.expandedDetailText, { color: theme.text }]} numberOfLines={1}>
                       {item.visitor.phone}
                     </ThemedText>
-                  </View>
+                  </DirectionalRow>
                 ) : null}
               </View>
             ) : null}
 
-            {hasDetails ? (
-              <Pressable 
-                onPress={(e) => { e.stopPropagation(); toggleCardExpanded(item.id); }} 
-                style={styles.toggleContainer}
-              >
-                <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
-                  {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
-                </ThemedText>
-                <DDIcon 
-                  name={isExpanded ? 'chevron-up' : 'chevron-down'} 
-                  size={16} 
-                  color={theme.primary} 
-                />
-              </Pressable>
-            ) : null}
-
-            <View style={[styles.cardFooter, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <DirectionalRow style={styles.cardFooter} justifyContent="flex-end">
               <View style={styles.actionButtons}>
                 {showCheckIn ? (
                   <VisitorActionButton 
@@ -387,11 +388,9 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
                     type="check_out" 
                     onPress={(e) => handleCheckOut(item.id, visitorName, e)} 
                   />
-                ) : (
-                  <VisitorActionButton type="completed" />
-                )}
+                ) : null}
               </View>
-            </View>
+            </DirectionalRow>
           </View>
         </ThemedView>
       </Pressable>
@@ -491,9 +490,9 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
 
       <Spacer height={Spacing.md} />
 
-      <View style={[styles.filtersRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <DirectionalRow style={styles.filtersRow}>
         <Pressable
-          style={[styles.filterDropdown, { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
+          style={[styles.filterDropdown, { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: getFlexDirection(isRTL) }]}
           onPress={() => setShowDatePicker(true)}
         >
           <DDIcon name="calendar" size={14} variant="muted" />
@@ -504,7 +503,7 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
         </Pressable>
 
         <Pressable
-          style={[styles.filterDropdown, { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
+          style={[styles.filterDropdown, { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: getFlexDirection(isRTL) }]}
           onPress={() => setShowStatusPicker(true)}
         >
           <DDIcon name="filter" size={14} variant="muted" />
@@ -514,18 +513,18 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
           <DDIcon name="chevron-down" size={14} variant="muted" />
         </Pressable>
 
-      </View>
+      </DirectionalRow>
 
       <Spacer height={Spacing.sm} />
 
-      <View style={[styles.filtersRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <DirectionalRow style={styles.filtersRow}>
         <Pressable
           style={[
             styles.filterChip,
             { 
               backgroundColor: activeQuickFilter === 'walk_in' ? applyOpacity(theme.warning, '15') : theme.surface,
               borderColor: activeQuickFilter === 'walk_in' ? theme.warning : theme.border,
-              flexDirection: isRTL ? 'row-reverse' : 'row'
+              flexDirection: getFlexDirection(isRTL)
             }
           ]}
           onPress={() => setActiveQuickFilter(activeQuickFilter === 'walk_in' ? null : 'walk_in')}
@@ -545,7 +544,7 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
             { 
               backgroundColor: activeQuickFilter === 'awaiting_visitor' ? applyOpacity(theme.info, '15') : theme.surface,
               borderColor: activeQuickFilter === 'awaiting_visitor' ? theme.info : theme.border,
-              flexDirection: isRTL ? 'row-reverse' : 'row'
+              flexDirection: getFlexDirection(isRTL)
             }
           ]}
           onPress={() => setActiveQuickFilter(activeQuickFilter === 'awaiting_visitor' ? null : 'awaiting_visitor')}
@@ -565,7 +564,7 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
             { 
               backgroundColor: activeQuickFilter === 'pending_approval' ? applyOpacity(theme.primary, '15') : theme.surface,
               borderColor: activeQuickFilter === 'pending_approval' ? theme.primary : theme.border,
-              flexDirection: isRTL ? 'row-reverse' : 'row'
+              flexDirection: getFlexDirection(isRTL)
             }
           ]}
           onPress={() => setActiveQuickFilter(activeQuickFilter === 'pending_approval' ? null : 'pending_approval')}
@@ -578,7 +577,7 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
             {t('filters.pendingApproval')}
           </ThemedText>
         </Pressable>
-      </View>
+      </DirectionalRow>
 
       <Spacer height={Spacing.md} />
     </View>
@@ -614,15 +613,21 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <FlatList
+        key={`flatlist-${numColumns}`}
         data={visitors}
-        renderItem={renderVisitorCard}
+        renderItem={({ item }) => (
+          <View style={numColumns > 1 ? styles.gridItem : styles.singleColumnItem}>
+            {renderVisitorCard({ item })}
+          </View>
+        )}
         keyExtractor={(item) => item.id}
+        numColumns={numColumns}
+        columnWrapperStyle={numColumns > 1 ? styles.gridRow : undefined}
         contentContainerStyle={{
           paddingHorizontal: Spacing.lg,
           paddingTop: insets.top + Spacing.lg,
           paddingBottom: insets.bottom + Spacing.xl,
         }}
-        ItemSeparatorComponent={() => <Spacer height={Spacing.sm} />}
         ListHeaderComponent={ListHeader}
         ListFooterComponent={renderFooter}
         ListEmptyComponent={renderEmpty}
@@ -656,14 +661,24 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  gridRow: {
+    gap: Spacing.md,
+    marginBottom: Spacing.md,
+  },
+  gridItem: {
+    flex: 1,
+    minWidth: 0,
+  },
+  singleColumnItem: {
+    width: '100%',
+    marginBottom: Spacing.sm,
+  },
   filtersRow: {
-    flexDirection: 'row',
     flexWrap: 'wrap',
     gap: Spacing.sm,
   },
   filterDropdown: {
     flex: 1,
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.sm,
     paddingVertical: Spacing.sm,
@@ -676,7 +691,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   filterChip: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
@@ -706,7 +720,6 @@ const styles = StyleSheet.create({
     paddingStart: Spacing.lg,
   },
   cardHeader: {
-    flexDirection: 'row',
     alignItems: 'center',
     marginBottom: Spacing.sm,
   },
@@ -726,7 +739,6 @@ const styles = StyleSheet.create({
     marginHorizontal: Spacing.sm,
   },
   nameRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.xs,
   },
@@ -742,14 +754,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   detailsRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.xs,
     marginBottom: Spacing.sm,
     flexWrap: 'wrap',
   },
   detailItem: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
   },
@@ -757,18 +767,15 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   servicesStatusRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: Spacing.sm,
   },
   servicesRow: {
-    flexDirection: 'row',
     gap: Spacing.sm,
     alignItems: 'center',
   },
   statusArea: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
   },
@@ -793,7 +800,7 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   expandedDetailRow: {
-    alignItems: 'flex-start',
+    alignItems: 'center',
     gap: Spacing.sm,
   },
   expandedDetailText: {
@@ -801,7 +808,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   toggleContainer: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingTop: Spacing.md,
@@ -812,14 +818,12 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   cardFooter: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
     marginTop: Spacing.sm,
     minHeight: 28,
   },
   actionButtons: {
-    flexDirection: 'row',
     gap: Spacing.xs,
   },
   emptyState: {
@@ -831,7 +835,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   footerLoader: {
-    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: Spacing.lg,

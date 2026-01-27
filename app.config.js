@@ -1,27 +1,40 @@
-const PRODUCTION_BACKEND_URL = "https://vms-backend-folio3.replit.app";
+// QA Environment Configuration
+// This Replit project is dedicated to QA/Testing environment
+// For production, use the separate production Replit project
+const QA_BACKEND_URL = "https://vms-backend-folio3.replit.app";
+const BACKEND_URL = QA_BACKEND_URL;
+const CONFIG_PATH = "qa";
 
 export default ({ config }) => ({
   ...config,
   owner: "ahsanshafiq",
+  android: {
+    ...config.android,
+    googleServicesFile: `./config/${CONFIG_PATH}/google-services.json`,
+  },
+  ios: {
+    ...config.ios,
+    googleServicesFile: `./config/${CONFIG_PATH}/GoogleService-Info.plist`,
+  },
   extra: {
     ...config.extra,
     eas: {
       projectId: "33b6baff-6c89-44be-905f-006d0da4434d",
     },
-    apiBaseUrl: PRODUCTION_BACKEND_URL,
-    microsoftAuthUrl: PRODUCTION_BACKEND_URL,
+    environment: "qa",
+    apiBaseUrl: BACKEND_URL,
+    microsoftAuthUrl: process.env.EXPO_PUBLIC_MICROSOFT_AUTH_URL || BACKEND_URL,
     firebase: {
-      apiKey: "AIzaSyDYMIEEPJLFkpZIkhxmHDcMhfL-BNkSdjw",
-      authDomain: "dallahdigital-vms.firebaseapp.com",
-      projectId: "dallahdigital-vms",
-      storageBucket: "dallahdigital-vms.firebasestorage.app",
-      messagingSenderId: "224821384776",
-      measurementId: "G-27R412QL3Q",
-      appIdWeb: "1:224821384776:web:f759f8d4805d5965d0aa7d",
-      appIdAndroid: "1:224821384776:android:ce145b6bbcbf94ecd0aa7d",
-      appIdIos: "1:224821384776:ios:fd73944c70ae83e5d0aa7d",
-      vapidKey:
-        "BKVbpaIfbFwy4mf6bsA6dDNONAjM8gIVQsYd8mLCo1RPwOc9miHHeKK4vOsAOMP5LOViNnYA9X2YnM85Tfoq984",
+      apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || "AIzaSyAY6g-50Gu5zlB3sbkKHuuG5DpBOLZd_xo",
+      authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN || "dallah-albaraka-vms.firebaseapp.com",
+      projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID || "dallah-albaraka-vms",
+      storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET || "dallah-albaraka-vms.firebasestorage.app",
+      messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "913604772710",
+      measurementId: process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID || "G-Y5G46SXSQB",
+      appIdWeb: process.env.EXPO_PUBLIC_FIREBASE_APP_ID_WEB || "1:913604772710:web:46c93bf8fbcd061362bea7",
+      appIdAndroid: process.env.EXPO_PUBLIC_FIREBASE_APP_ID_ANDROID || "1:913604772710:android:a9320215a876705e62bea7",
+      appIdIos: process.env.EXPO_PUBLIC_FIREBASE_APP_ID_IOS || "1:913604772710:ios:ea764c22ce480dec62bea7",
+      vapidKey: process.env.EXPO_PUBLIC_FIREBASE_VAPID_KEY || "BKXyeihYX0n_rNHIEIP26eNGnbVZL_rCsiLnA7jv0ZuIThHmbV0FJqENbmt-QnikL4uqKbh3lYqp0sqAQImDass",
     },
   },
 });

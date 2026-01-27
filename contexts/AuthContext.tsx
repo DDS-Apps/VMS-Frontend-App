@@ -38,6 +38,7 @@ export interface AuthUser {
   lastLogin?: string;
   isSSOUser?: boolean;
   timezone?: string;
+  language?: 'en' | 'ar';
 }
 
 interface AuthState {
@@ -69,9 +70,10 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 interface AuthProviderProps {
   children: ReactNode;
   onLogout?: () => void;
+  onUserLanguageChanged?: (language: 'en' | 'ar') => void;
 }
 
-export function AuthProvider({ children, onLogout }: AuthProviderProps) {
+export function AuthProvider({ children, onLogout, onUserLanguageChanged }: AuthProviderProps) {
   const [state, setState] = useState<AuthState>({
     user: null,
     isLoading: true,
@@ -162,6 +164,7 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
       createdAt: userDto.createdAt,
       lastLogin: userDto.lastLogin,
       timezone: userDto.timezone,
+      language: userDto.language,
     };
   };
 
@@ -184,6 +187,7 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
       autoApproval: loginUser.autoApproval,
       department: loginUser.department,
       timezone: loginUser.timezone,
+      language: loginUser.language,
     };
   };
 
@@ -261,11 +265,9 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
         clearUrlHash();
         console.log('[AuthContext] SSO login successful');
 
-        if (Platform.OS !== 'web') {
-          pushNotificationService.initialize().catch((pushError) => {
-            console.warn('[AuthContext] Failed to initialize push notifications:', pushError);
-          });
-        }
+        pushNotificationService.initialize().catch((pushError) => {
+          console.warn('[AuthContext] Failed to initialize push notifications:', pushError);
+        });
 
         crashlyticsService.setUserAttributes({
           id: user.id,
@@ -319,11 +321,9 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
             });
             await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
 
-            if (Platform.OS !== 'web') {
-              pushNotificationService.initialize().catch((pushError) => {
-                console.warn('[AuthContext] Failed to initialize push notifications:', pushError);
-              });
-            }
+            pushNotificationService.initialize().catch((pushError) => {
+              console.warn('[AuthContext] Failed to initialize push notifications:', pushError);
+            });
 
             crashlyticsService.setUserAttributes({
               id: user.id,
@@ -395,11 +395,9 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
       error: null,
     });
 
-    if (Platform.OS !== 'web') {
-      pushNotificationService.initialize().catch((error) => {
-        console.warn('[AuthContext] Failed to initialize push notifications:', error);
-      });
-    }
+    pushNotificationService.initialize().catch((error) => {
+      console.warn('[AuthContext] Failed to initialize push notifications:', error);
+    });
 
     crashlyticsService.setUserAttributes({
       id: user.id,
@@ -410,8 +408,18 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
       console.warn('[AuthContext] Failed to set crashlytics user attributes:', error);
     });
 
+    // Sync language preference from server
+    if (user.language && onUserLanguageChanged) {
+      try {
+        console.log('[AuthContext] User language from server:', user.language);
+        onUserLanguageChanged(user.language);
+      } catch (langError) {
+        console.warn('[AuthContext] Failed to sync user language preference:', langError);
+      }
+    }
+
     return response;
-  }, [persistTokens]);
+  }, [persistTokens, onUserLanguageChanged]);
 
   const login = useCallback(async (email: string, password: string): Promise<AuthTokenResponse> => {
     setState((prev) => ({ ...prev, error: null }));
@@ -494,11 +502,9 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
 
       console.log('[AuthContext] SSO login complete, user:', user.email, 'role:', user.role);
 
-      if (Platform.OS !== 'web') {
-        pushNotificationService.initialize().catch((pushError) => {
-          console.warn('[AuthContext] Failed to initialize push notifications:', pushError);
-        });
-      }
+      pushNotificationService.initialize().catch((pushError) => {
+        console.warn('[AuthContext] Failed to initialize push notifications:', pushError);
+      });
 
       crashlyticsService.setUserAttributes({
         id: user.id,
@@ -508,6 +514,16 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
       }).catch((crashlyticsError) => {
         console.warn('[AuthContext] Failed to set crashlytics user attributes:', crashlyticsError);
       });
+
+      // Sync language preference from server
+      if (user.language && onUserLanguageChanged) {
+        try {
+          console.log('[AuthContext] SSO User language from server:', user.language);
+          onUserLanguageChanged(user.language);
+        } catch (langError) {
+          console.warn('[AuthContext] Failed to sync SSO user language preference:', langError);
+        }
+      }
 
       return user;
     } catch (error) {
@@ -521,7 +537,7 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
       }));
       throw error;
     }
-  }, [persistTokens]);
+  }, [persistTokens, onUserLanguageChanged]);
 
   const logout = useCallback(async () => {
     await handleLogout();

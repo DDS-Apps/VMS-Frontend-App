@@ -6,6 +6,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { LoadingButton } from "@/components/shared/LoadingButton";
 import Spacer from "@/components/Spacer";
+import { DirectionalRow } from "@/components/DirectionalRow";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -27,8 +28,7 @@ type FieldName = 'currentPassword' | 'newPassword' | 'confirmPassword';
 
 export default function ChangePasswordScreen({ onSuccess, onCancel }: ChangePasswordScreenProps) {
   const { theme } = useTheme();
-  const { t, isRTL } = useTranslation();
-  const insets = useSafeAreaInsets();
+  const { t, isRTL } = useTranslation();  const insets = useSafeAreaInsets();
   const { showSuccess, showError } = useToast();
   const changePasswordMutation = useChangePasswordMutation();
   
@@ -150,12 +150,12 @@ export default function ChangePasswordScreen({ onSuccess, onCancel }: ChangePass
           <ThemedText style={[Typography.label, { color: theme.textSecondary, marginBottom: Spacing.xs }]}>
             {t('auth.currentPassword')}
           </ThemedText>
-          <View style={[getInputContainerStyle('currentPassword'), { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <DirectionalRow style={getInputContainerStyle('currentPassword')}>
             <DDIcon name="lock" size={INPUT_ICON_SIZE} variant="muted" />
             <TextInput
               style={[
                 styles.input,
-                { color: theme.text, textAlign: isRTL ? 'right' : 'left' },
+                { color: theme.text },
               ]}
               placeholder={t('auth.currentPasswordPlaceholder')}
               placeholderTextColor={theme.textSecondary}
@@ -172,7 +172,7 @@ export default function ChangePasswordScreen({ onSuccess, onCancel }: ChangePass
             <Pressable onPress={() => setShowCurrentPassword(!showCurrentPassword)}>
               <DDIcon name={showCurrentPassword ? "eye" : "eye-off"} size={INPUT_ICON_SIZE} variant="muted" />
             </Pressable>
-          </View>
+          </DirectionalRow>
           {errors.currentPassword ? (
             <ThemedText style={[Typography.caption, { color: theme.error, marginTop: Spacing.xs }]}>
               {errors.currentPassword}
@@ -186,12 +186,12 @@ export default function ChangePasswordScreen({ onSuccess, onCancel }: ChangePass
           <ThemedText style={[Typography.label, { color: theme.textSecondary, marginBottom: Spacing.xs }]}>
             {t('auth.newPassword')}
           </ThemedText>
-          <View style={[getInputContainerStyle('newPassword'), { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <DirectionalRow style={getInputContainerStyle('newPassword')}>
             <DDIcon name="lock" size={INPUT_ICON_SIZE} variant="muted" />
             <TextInput
               style={[
                 styles.input,
-                { color: theme.text, textAlign: isRTL ? 'right' : 'left' },
+                { color: theme.text },
               ]}
               placeholder={t('auth.enterNewPassword')}
               placeholderTextColor={theme.textSecondary}
@@ -208,7 +208,7 @@ export default function ChangePasswordScreen({ onSuccess, onCancel }: ChangePass
             <Pressable onPress={() => setShowNewPassword(!showNewPassword)}>
               <DDIcon name={showNewPassword ? "eye" : "eye-off"} size={INPUT_ICON_SIZE} variant="muted" />
             </Pressable>
-          </View>
+          </DirectionalRow>
           {errors.newPassword ? (
             <ThemedText style={[Typography.caption, { color: theme.error, marginTop: Spacing.xs }]}>
               {errors.newPassword}
@@ -222,12 +222,12 @@ export default function ChangePasswordScreen({ onSuccess, onCancel }: ChangePass
           <ThemedText style={[Typography.label, { color: theme.textSecondary, marginBottom: Spacing.xs }]}>
             {t('auth.confirmNewPassword')}
           </ThemedText>
-          <View style={[getInputContainerStyle('confirmPassword'), { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <DirectionalRow style={getInputContainerStyle('confirmPassword')}>
             <DDIcon name="lock" size={INPUT_ICON_SIZE} variant="muted" />
             <TextInput
               style={[
                 styles.input,
-                { color: theme.text, textAlign: isRTL ? 'right' : 'left' },
+                { color: theme.text },
               ]}
               placeholder={t('auth.confirmNewPasswordPlaceholder')}
               placeholderTextColor={theme.textSecondary}
@@ -244,7 +244,7 @@ export default function ChangePasswordScreen({ onSuccess, onCancel }: ChangePass
             <Pressable onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
               <DDIcon name={showConfirmPassword ? "eye" : "eye-off"} size={INPUT_ICON_SIZE} variant="muted" />
             </Pressable>
-          </View>
+          </DirectionalRow>
           {errors.confirmPassword ? (
             <ThemedText style={[Typography.caption, { color: theme.error, marginTop: Spacing.xs }]}>
               {errors.confirmPassword}
@@ -287,7 +287,6 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
   },
   inputContainer: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.md,
     borderRadius: BorderRadius.sm,

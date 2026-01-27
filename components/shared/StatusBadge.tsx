@@ -1,9 +1,9 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, Platform } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { DDIcon, IconName } from "@/components/DDIcon";
+import { DirectionalRow, getIsRTL } from "@/components/DirectionalRow";
 import { useTheme } from "@/hooks/useTheme";
-import { useLanguage } from "@/contexts/LanguageContext";
 import { applyOpacity } from "@/utils/statusStyles";
 import { Spacing, BorderRadius } from "@/constants/theme";
 
@@ -21,7 +21,6 @@ export const StatusBadge = ({
   size = 'md' 
 }: StatusBadgeProps) => {
   const { theme } = useTheme();
-  const { isRTL } = useLanguage();
   
   const getColor = () => {
     switch (variant) {
@@ -37,34 +36,39 @@ export const StatusBadge = ({
   const color = getColor();
   const isSmall = size === 'sm';
   
+  const iconEl = icon ? (
+    <DDIcon 
+      name={icon} 
+      size={isSmall ? 12 : 14} 
+      color={color} 
+    />
+  ) : null;
+  
+  const textEl = (
+    <ThemedText style={[
+      styles.text, 
+      { 
+        color,
+        fontSize: isSmall ? 11 : 12,
+        marginStart: icon ? Spacing.xs : 0,
+      }
+    ]}>
+      {label}
+    </ThemedText>
+  );
+
   return (
-    <View style={[
+    <DirectionalRow style={[
       styles.badge,
       { 
         backgroundColor: applyOpacity(color, '15'),
         paddingHorizontal: isSmall ? Spacing.sm : Spacing.md,
         paddingVertical: isSmall ? Spacing.xs / 2 : Spacing.xs,
-        flexDirection: isRTL ? 'row-reverse' : 'row',
       }
     ]}>
-      {icon ? (
-        <DDIcon 
-          name={icon} 
-          size={isSmall ? 12 : 14} 
-          color={color} 
-        />
-      ) : null}
-      <ThemedText style={[
-        styles.text, 
-        { 
-          color,
-          fontSize: isSmall ? 11 : 12,
-          marginStart: icon ? Spacing.xs : 0,
-        }
-      ]}>
-        {label}
-      </ThemedText>
-    </View>
+      {iconEl}
+      {textEl}
+    </DirectionalRow>
   );
 };
 
@@ -100,14 +104,31 @@ interface StatusAccentProps {
 }
 
 export const StatusAccent = ({ color, width = 4 }: StatusAccentProps) => {
-  const { isRTL } = useLanguage();
+  const isRTL = getIsRTL();
+  
+  // On web, we don't set document.dir='rtl', so logical properties (start/end) don't work
+  // Use explicit left/right positioning based on RTL state
+  // IMPORTANT: Set both left and right explicitly to prevent CSS conflicts on web
+  const positionStyle = Platform.OS === 'web'
+    ? (isRTL 
+        ? { right: 0, left: 'auto' as const } 
+        : { left: 0, right: 'auto' as const })
+    : { start: 0 }; // Mobile: native handles RTL with 'start'
+  
+  const borderRadiusStyle = Platform.OS === 'web'
+    ? (isRTL 
+        ? { borderTopRightRadius: BorderRadius.md, borderBottomRightRadius: BorderRadius.md }
+        : { borderTopLeftRadius: BorderRadius.md, borderBottomLeftRadius: BorderRadius.md })
+    : { borderTopStartRadius: BorderRadius.md, borderBottomStartRadius: BorderRadius.md };
+  
   return (
     <View style={[
-      styles.accent, 
+      styles.accentBase, 
+      positionStyle,
+      borderRadiusStyle,
       { 
         backgroundColor: color, 
         width,
-        ...(isRTL ? { left: 'auto', right: 0 } : { left: 0, right: 'auto' }),
       }
     ]} />
   );
@@ -115,7 +136,7 @@ export const StatusAccent = ({ color, width = 4 }: StatusAccentProps) => {
 
 const styles = StyleSheet.create({
   badge: {
-    flexDirection: 'row',
+    // flexDirection handled by DirectionalRow
     alignItems: 'center',
     borderRadius: BorderRadius.full,
   },
@@ -135,11 +156,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  accent: {
+  accentBase: {
     position: 'absolute',
     top: 0,
     bottom: 0,
-    borderTopStartRadius: BorderRadius.md,
-    borderBottomStartRadius: BorderRadius.md,
   },
 });

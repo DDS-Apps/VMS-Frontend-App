@@ -17,3 +17,4 @@ export {
 export { VisitorRequestCard } from './VisitorRequestCard';
 export { ListLoadingFooter } from './ListLoadingFooter';
 export { EnableNotificationsPrompt } from './EnableNotificationsPrompt';
+export { SectionHeader } from './SectionHeader';

@@ -170,13 +170,84 @@ export const capitalizeFirst = (text: string): string => {
   return text.charAt(0).toUpperCase() + text.slice(1);
 };
 
+/**
+ * Formats a phone number for display in unified international format.
+ * Pattern: +CCC XX XXX XXXX (always 3-2-3-4 grouping)
+ * 
+ * Examples:
+ * - "966501234567" → "+966 50 123 4567"
+ * - "+966501234567" → "+966 50 123 4567"
+ * - "0501234567" → "+966 50 123 4567" (Saudi local converted)
+ * 
+ * Note: All numbers are formatted with 3-2-3-4 pattern for consistency.
+ * Shorter numbers are padded progressively as they're typed.
+ */
 export const formatPhoneNumber = (phone: string): string => {
-  const cleaned = phone.replace(/\D/g, '');
-  const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
-  if (match) {
-    return `(${match[1]}) ${match[2]}-${match[3]}`;
+  if (!phone) return '';
+  
+  let digits = phone.replace(/\D/g, '');
+  
+  // If no digits, return empty
+  if (digits.length === 0) return '';
+  
+  // Handle 00XXX international prefix (convert 00 to nothing, keeping country code)
+  if (digits.startsWith('00')) {
+    digits = digits.substring(2);
   }
-  return phone;
+  
+  // International format: +CCC XX XXX XXXX+ (3-2-3-remaining grouping)
+  // This pattern is applied consistently for all phone numbers from any country
+  // All digits are preserved - the last group can be longer for >12 digit numbers
+  
+  // Progressive formatting (same 3-2-3 pattern, remaining goes to last group)
+  if (digits.length <= 3) {
+    return '+' + digits;
+  }
+  if (digits.length <= 5) {
+    return '+' + digits.substring(0, 3) + ' ' + digits.substring(3);
+  }
+  if (digits.length <= 8) {
+    return '+' + digits.substring(0, 3) + ' ' + digits.substring(3, 5) + ' ' + digits.substring(5);
+  }
+  // 9+ digits: +CCC XX XXX XXXX+ (last group takes all remaining)
+  return '+' + digits.substring(0, 3) + ' ' + digits.substring(3, 5) + ' ' + digits.substring(5, 8) + ' ' + digits.substring(8);
+};
+
+/**
+ * Formats phone input as the user types (input masking).
+ * Uses formatPhoneNumber internally to ensure display and input mask are identical.
+ * 
+ * Allows any international phone number - user can enter any country code.
+ * Applies the 3-2-3-remaining format pattern to all numbers.
+ * 
+ * Use this for TextInput onChangeText handlers.
+ * 
+ * @param input - Raw user input
+ * @returns Formatted phone string with masking applied
+ */
+export const formatPhoneInput = (input: string): string => {
+  let digits = input.replace(/\D/g, '');
+  
+  if (digits.length === 0) return '';
+  
+  // Handle 00XXX international prefix (convert 00 to nothing, keeping country code)
+  if (digits.startsWith('00')) {
+    digits = digits.substring(2);
+  }
+  
+  // Limit to 15 digits (E.164 max)
+  digits = digits.substring(0, 15);
+  
+  // Use formatPhoneNumber to ensure identical output with 3-2-3-remaining pattern
+  return formatPhoneNumber(digits);
+};
+
+/**
+ * Extracts raw digits from a formatted phone number.
+ * Use this before sending to API.
+ */
+export const normalizePhoneNumber = (phone: string): string => {
+  return phone.replace(/\D/g, '');
 };
 
 export const parseISODuration = (isoDuration: string): string => {

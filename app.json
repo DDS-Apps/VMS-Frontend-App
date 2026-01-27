@@ -2,28 +2,30 @@
   "expo": {
     "name": "Dallah Albaraka VMS",
     "slug": "dallah-vms",
-    "version": "1.0.5",
+    "version": "1.0.23",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/header-icon-dark.png",
     "scheme": "dallahvms",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#FFFFFF",
-        "foregroundImage": "./assets/images/android-icon-foreground.png"
+        "foregroundImage": "./assets/images/header-icon-dark.png"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.dallah.vms",
-      "googleServicesFile": "./google-services.json"
+      "googleServicesFile": "./config/qa/google-services.json",
+      "supportsRTL": true,
+      "permissions": ["android.permission.POST_NOTIFICATIONS"]
     },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.dallah.vms",
       "appleTeamId": "SNJM77V43A",
-      "buildNumber": "7",
-      "googleServicesFile": "./GoogleService-Info.plist",
+      "buildNumber": "49",
+      "googleServicesFile": "./config/qa/GoogleService-Info.plist",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "UIBackgroundModes": ["remote-notification"]
@@ -31,9 +33,18 @@
     },
     "web": {
       "output": "single",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/header-icon-dark.png"
     },
     "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static",
+            "buildReactNativeFromSource": true
+          }
+        }
+      ],
       [
         "expo-splash-screen",
         {
@@ -50,11 +61,14 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/images/notification-icon.png",
-          "color": "#F58423",
-          "defaultChannel": "default"
+          "icon": "./assets/images/header-icon-dark.png",
+          "color": "#F58423"
         }
-      ]
+      ],
+      "@react-native-firebase/app",
+      "@react-native-firebase/messaging",
+      "@react-native-firebase/crashlytics",
+      "./plugins/withNotificationManifestFix"
     ],
     "experiments": {
       "reactCompiler": true

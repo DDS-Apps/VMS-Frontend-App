@@ -16,7 +16,7 @@ console.log('[API Config] Source: process.env =', process.env.EXPO_PUBLIC_API_BA
 export const apiConfig = {
   baseUrl: API_BASE_URL,
   microsoftAuthUrl: MICROSOFT_AUTH_BASE_URL,
-  timeout: 30000,
+  timeout: 180000,
   endpoints: {
     health: "/api/health",
     healthDb: "/api/health/db",

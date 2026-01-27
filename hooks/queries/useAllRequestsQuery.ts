@@ -17,7 +17,7 @@ const ROLES_WITH_BUFFET_ACCESS: UserRole[] = ['buffet_admin', 'building_admin'];
 const ROLES_WITH_VALET_ACCESS: UserRole[] = ['valet_admin', 'building_admin'];
 
 export type UnifiedRequestType = 'visitor' | 'buffet' | 'valet';
-export type UnifiedStatus = 'pending' | 'approved' | 'in_progress' | 'completed' | 'cancelled' | 'rejected';
+export type UnifiedStatus = 'pending' | 'approved' | 'in_progress' | 'completed' | 'cancelled' | 'auto_cancelled' | 'rejected';
 
 export interface UnifiedRequest {
   id: string;
@@ -45,10 +45,12 @@ function normalizeVisitStatus(status: string): UnifiedStatus {
     case 'pending':
     case 'pending_approval':
     case 'pending_host_approval':
+    case 'visitor_pending':
       return 'pending';
     case 'approved':
     case 'confirmed':
     case 'accepted':
+    case 'visitor_accepted':
       return 'approved';
     case 'checked_in':
     case 'in_progress':
@@ -58,7 +60,10 @@ function normalizeVisitStatus(status: string): UnifiedStatus {
       return 'completed';
     case 'cancelled':
       return 'cancelled';
+    case 'auto_cancelled':
+      return 'auto_cancelled';
     case 'rejected':
+    case 'visitor_rejected':
     case 'expired':
       return 'rejected';
     default:
@@ -85,6 +90,8 @@ function normalizeBuffetStatus(status: string): UnifiedStatus {
       return 'completed';
     case 'cancelled':
       return 'cancelled';
+    case 'auto_cancelled':
+      return 'auto_cancelled';
     default:
       return 'pending';
   }
@@ -109,6 +116,8 @@ function normalizeValetStatus(status?: string): UnifiedStatus {
       return 'completed';
     case 'cancelled':
       return 'cancelled';
+    case 'auto_cancelled':
+      return 'auto_cancelled';
     case 'rejected':
       return 'rejected';
     default:
@@ -308,7 +317,8 @@ export function useAllRequestsQuery(filters: AllRequestsFilters = {}) {
     approved: allRequests.filter(r => r.status === 'approved').length,
     inProgress: allRequests.filter(r => r.status === 'in_progress').length,
     completed: allRequests.filter(r => r.status === 'completed').length,
-    cancelled: allRequests.filter(r => r.status === 'cancelled' || r.status === 'rejected').length,
+    cancelled: allRequests.filter(r => r.status === 'cancelled').length,
+    rejected: allRequests.filter(r => r.status === 'rejected').length,
     byType: {
       visitor: allRequests.filter(r => r.type === 'visitor').length,
       buffet: allRequests.filter(r => r.type === 'buffet').length,

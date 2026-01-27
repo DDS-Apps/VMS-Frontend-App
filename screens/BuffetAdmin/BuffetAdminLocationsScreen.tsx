@@ -11,6 +11,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon, IconName } from "@/components/DDIcon";
+import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
 import { applyOpacity } from "@/utils/statusStyles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
@@ -20,38 +21,7 @@ import {
 import type { BuffetAdminLocationDto, BuffetLocationLoadDto } from "@/types/api.types";
 import type { BuffetAdminLocationsScreenProps } from "@/types/buffetAdminNavigation.types";
 
-interface KPICardProps {
-  title: string;
-  value: string;
-  icon: string;
-  iconBgColor: string;
-  iconColor: string;
-  cardBgColor: string;
-}
-
-function KPICard({ title, value, icon, iconBgColor, iconColor, cardBgColor }: KPICardProps) {
-  const { theme } = useTheme();
-  
-  return (
-    <View style={[styles.kpiCard, { backgroundColor: cardBgColor, borderWidth: 1, borderColor: applyOpacity(iconColor, '15') }]}>
-      <View style={[styles.kpiIconContainer, { backgroundColor: iconBgColor }]}>
-        <DDIcon name={icon as IconName} size={24} color={iconColor} />
-      </View>
-
-      <Spacer height={Spacing.md} />
-
-      <ThemedText style={[styles.kpiValue, { color: theme.text }]}>
-        {value}
-      </ThemedText>
-
-      <Spacer height={Spacing.xs} />
-
-      <ThemedText style={[styles.kpiLabel, { color: theme.textSecondary }]}>
-        {title}
-      </ThemedText>
-    </View>
-  );
-}
+import { KPICard, KPICardRow } from '@/components/shared/KPICard';
 
 interface LocationDisplayItem {
   id: string;
@@ -67,8 +37,7 @@ interface LocationDisplayItem {
 export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLocationsScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { isRTL } = useLanguage();
-  const insets = useSafeAreaInsets();
+  const { isRTL } = useLanguage();  const insets = useSafeAreaInsets();
   
   const { data: locationsResponse, isLoading: isLoadingLocations } = useBuffetAdminLocationsQuery();
   const { data: loadSummary, isLoading: isLoadingLoadSummary } = useBuffetLoadSummaryQuery();
@@ -167,7 +136,7 @@ export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLo
           },
         ]}
       >
-        <View style={[styles.cardHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <DirectionalRow style={styles.cardHeader}>
           <View style={[styles.iconContainer, { backgroundColor: applyOpacity(theme.primary, '12') }]}>
             <DDIcon name="map-pin" size={20} color={theme.primary} />
           </View>
@@ -184,51 +153,45 @@ export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLo
               {isActive ? t('status.active') : t('status.inactive')}
             </ThemedText>
           </View>
-        </View>
+        </DirectionalRow>
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.statsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-          <View style={[styles.statItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={styles.statsRow}>
+          <View style={styles.statItem}>
             <View style={[styles.statIconBg, { backgroundColor: applyOpacity(theme.info, '12') }]}>
-              <DDIcon name="users" size={16} color={theme.info} />
+              <DDIcon name="users" size={14} color={theme.info} />
             </View>
-            <View style={styles.statInfo}>
-              <ThemedText style={[styles.statValue, { color: theme.text }]}>
-                {item.capacity}
-              </ThemedText>
-              <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>
-                {t('buffet.numberOfGuests')}
-              </ThemedText>
-            </View>
+            <ThemedText style={[styles.statValue, { color: theme.text }]}>
+              {item.capacity}
+            </ThemedText>
+            <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>
+              {t('buffet.numberOfGuests')}
+            </ThemedText>
           </View>
 
-          <View style={[styles.statItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={styles.statItem}>
             <View style={[styles.statIconBg, { backgroundColor: applyOpacity(theme.success, '12') }]}>
-              <DDIcon name="user-check" size={16} color={theme.success} />
+              <DDIcon name="user-check" size={14} color={theme.success} />
             </View>
-            <View style={styles.statInfo}>
-              <ThemedText style={[styles.statValue, { color: theme.text }]}>
-                {item.activeStaff}
-              </ThemedText>
-              <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>
-                {t('dashboard.active')}
-              </ThemedText>
-            </View>
+            <ThemedText style={[styles.statValue, { color: theme.text }]}>
+              {item.activeStaff}
+            </ThemedText>
+            <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>
+              {t('dashboard.active')}
+            </ThemedText>
           </View>
 
-          <View style={[styles.statItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={styles.statItem}>
             <View style={[styles.statIconBg, { backgroundColor: applyOpacity(theme.warning, '12') }]}>
-              <DDIcon name="cloche" size={16} color={theme.warning} />
+              <DDIcon name="cloche" size={14} color={theme.warning} />
             </View>
-            <View style={styles.statInfo}>
-              <ThemedText style={[styles.statValue, { color: theme.text }]}>
-                {item.currentRequests}
-              </ThemedText>
-              <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>
-                {t('navigation.allRequests')}
-              </ThemedText>
-            </View>
+            <ThemedText style={[styles.statValue, { color: theme.text }]}>
+              {item.currentRequests}
+            </ThemedText>
+            <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>
+              {t('navigation.allRequests')}
+            </ThemedText>
           </View>
         </View>
 
@@ -239,32 +202,26 @@ export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLo
   return (
     <>
       <ScreenScrollView contentContainerStyle={scrollContentStyle}>
-        <View style={[styles.kpiRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <KPICardRow>
           <KPICard 
             title={t('status.active')} 
             value={String(stats.active)} 
             icon="check-circle" 
-            iconBgColor={applyOpacity(theme.success, '20')}
-            iconColor={theme.success}
-            cardBgColor={applyOpacity(theme.success, '06')}
+            color={theme.success}
           />
           <KPICard 
             title={t('status.inactive')} 
             value={String(stats.inactive)} 
             icon="x-circle" 
-            iconBgColor={applyOpacity(theme.textSecondary, '20')}
-            iconColor={theme.textSecondary}
-            cardBgColor={applyOpacity(theme.textSecondary, '06')}
+            color={theme.textSecondary}
           />
           <KPICard 
             title={t('buffet.numberOfGuests')} 
             value={String(stats.totalCapacity)} 
             icon="users" 
-            iconBgColor={applyOpacity(theme.primary, '20')}
-            iconColor={theme.primary}
-            cardBgColor={applyOpacity(theme.primary, '06')}
+            color={theme.primary}
           />
-        </View>
+        </KPICardRow>
 
         <Spacer height={Spacing.xl} />
 
@@ -327,14 +284,14 @@ export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLo
             style={[styles.modalContent, { backgroundColor: theme.background }]}
             onPress={(e) => e.stopPropagation()}
           >
-            <View style={[styles.modalHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <DirectionalRow style={styles.modalHeader}>
               <ThemedText style={[Typography.subtitle, { fontWeight: '600' }]}>
                 {t('common.edit')}
               </ThemedText>
               <Pressable onPress={() => setShowEditModal(false)}>
                 <DDIcon name="x" size={24} variant="muted" />
               </Pressable>
-            </View>
+            </DirectionalRow>
 
             <Spacer height={Spacing.lg} />
 
@@ -399,7 +356,7 @@ export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLo
 
             <Spacer height={Spacing.xl} />
 
-            <View style={[styles.modalActions, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <DirectionalRow style={styles.modalActions}>
               <LoadingButton
                 onPress={() => setShowEditModal(false)}
                 variant="secondary"
@@ -419,7 +376,7 @@ export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLo
               >
                 {t('common.save')}
               </LoadingButton>
-            </View>
+            </DirectionalRow>
           </Pressable>
         </Pressable>
       </Modal>
@@ -523,29 +480,30 @@ const styles = StyleSheet.create({
   },
   statsRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
+    gap: Spacing.sm,
   },
   statItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
+    gap: 4,
+    minWidth: 80,
   },
   statIconBg: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  statInfo: {
-    marginStart: 8,
-  },
   statValue: {
-    fontSize: 16,
+    fontSize: 13,
     fontWeight: '700',
   },
   statLabel: {
-    fontSize: 10,
+    fontSize: 11,
+    flexShrink: 1,
   },
   emptyState: {
     padding: Spacing.xl,

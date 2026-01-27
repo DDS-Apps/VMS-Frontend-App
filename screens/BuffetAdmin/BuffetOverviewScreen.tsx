@@ -9,6 +9,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon, IconName } from "@/components/DDIcon";
+import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
 import { applyOpacity } from "@/utils/statusStyles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
@@ -37,34 +38,7 @@ interface OverviewStats {
   };
 }
 
-interface KPICardProps {
-  title: string;
-  value: string;
-  icon: string;
-  iconBgColor: string;
-  iconColor: string;
-  cardBgColor: string;
-}
-
-function KPICard({ title, value, icon, iconBgColor, iconColor, cardBgColor }: KPICardProps) {
-  const { theme } = useTheme();
-  
-  return (
-    <View style={[styles.kpiCard, { backgroundColor: cardBgColor, borderWidth: 1, borderColor: applyOpacity(iconColor, '15') }]}>
-      <View style={[styles.kpiIconContainer, { backgroundColor: iconBgColor }]}>
-        <DDIcon name={icon as IconName} size={24} color={iconColor} />
-      </View>
-      <Spacer height={Spacing.md} />
-      <ThemedText style={[styles.kpiValue, { color: theme.text }]}>
-        {value}
-      </ThemedText>
-      <Spacer height={Spacing.xs} />
-      <ThemedText style={[styles.kpiLabel, { color: theme.textSecondary }]}>
-        {title}
-      </ThemedText>
-    </View>
-  );
-}
+import { KPICard, KPICardRow } from '@/components/shared/KPICard';
 
 interface StatusBarProps {
   pending: number;
@@ -106,8 +80,7 @@ function StatusBreakdownBar({ pending, preparing, ready, served, completed, tota
 export default function BuffetOverviewScreen({ navigation }: BuffetOverviewScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { isRTL } = useLanguage();
-  const insets = useSafeAreaInsets();
+  const { isRTL } = useLanguage();  const insets = useSafeAreaInsets();
   
   const { data: loadSummary, isLoading: isLoadingLoadSummary } = useBuffetLoadSummaryQuery();
   const { data: locationsResponse, isLoading: isLoadingLocations } = useBuffetAdminLocationsQuery();
@@ -199,7 +172,7 @@ export default function BuffetOverviewScreen({ navigation }: BuffetOverviewScree
           }
         ]}
       >
-        <View style={[styles.locationHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <DirectionalRow style={[styles.locationHeader, { justifyContent: 'space-between', alignItems: 'flex-start' }]}>
           <View style={styles.locationInfo}>
             <ThemedText style={[styles.locationName, { color: theme.text }]}>
               {location.locationName}
@@ -222,13 +195,13 @@ export default function BuffetOverviewScreen({ navigation }: BuffetOverviewScree
               </ThemedText>
             </View>
           )}
-        </View>
+        </DirectionalRow>
 
         {hasEvents ? (
           <>
             <Spacer height={Spacing.md} />
 
-            <View style={[styles.statsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <DirectionalRow style={[styles.statsRow, { alignItems: 'center' }]}>
               <View style={styles.statItem}>
                 <DDIcon name="users" size={16} variant="muted" />
                 <ThemedText style={[styles.statValue, { color: theme.text }]}>
@@ -262,7 +235,7 @@ export default function BuffetOverviewScreen({ navigation }: BuffetOverviewScree
                   {t('status.completed')}
                 </ThemedText>
               </View>
-            </View>
+            </DirectionalRow>
 
             <Spacer height={Spacing.md} />
 
@@ -277,7 +250,7 @@ export default function BuffetOverviewScreen({ navigation }: BuffetOverviewScree
 
             <Spacer height={Spacing.sm} />
 
-            <View style={[styles.legendRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <DirectionalRow style={[styles.legendRow, { flexWrap: 'wrap', gap: Spacing.sm }]}>
               {location.statusBreakdown.pending > 0 ? (
                 <View style={styles.legendItem}>
                   <View style={[styles.legendDot, { backgroundColor: theme.primary }]} />
@@ -310,7 +283,7 @@ export default function BuffetOverviewScreen({ navigation }: BuffetOverviewScree
                   </ThemedText>
                 </View>
               ) : null}
-            </View>
+            </DirectionalRow>
           </>
         ) : null}
       </View>
@@ -318,33 +291,27 @@ export default function BuffetOverviewScreen({ navigation }: BuffetOverviewScree
   };
 
   return (
-    <ScreenScrollView contentContainerStyle={scrollContentStyle}>
-      <View style={[styles.kpiRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+    <ScreenScrollView skipTopPadding contentContainerStyle={scrollContentStyle}>
+      <KPICardRow>
         <KPICard 
           title={t('buffet.eventsToday')} 
           value={String(stats.totalEvents)} 
           icon="calendar" 
-          iconBgColor={applyOpacity(theme.primary, '20')}
-          iconColor={theme.primary}
-          cardBgColor={applyOpacity(theme.primary, '06')}
+          color={theme.primary}
         />
         <KPICard 
           title={t('buffet.totalGuests')} 
           value={String(stats.totalGuests)} 
           icon="users" 
-          iconBgColor={applyOpacity(theme.success, '20')}
-          iconColor={theme.success}
-          cardBgColor={applyOpacity(theme.success, '06')}
+          color={theme.success}
         />
         <KPICard 
           title={t('buffet.activeLocations')} 
           value={String(stats.activeLocations)} 
           icon="map-pin" 
-          iconBgColor={applyOpacity(theme.warning, '20')}
-          iconColor={theme.warning}
-          cardBgColor={applyOpacity(theme.warning, '06')}
+          color={theme.warning}
         />
-      </View>
+      </KPICardRow>
 
       <Spacer height={Spacing.xl} />
 
@@ -355,7 +322,7 @@ export default function BuffetOverviewScreen({ navigation }: BuffetOverviewScree
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.summaryStatsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <DirectionalRow style={styles.summaryStatsRow}>
           <View style={styles.summaryStatItem}>
             <View style={[styles.summaryStatDot, { backgroundColor: theme.primary }]} />
             <ThemedText style={[styles.summaryStatLabel, { color: theme.textSecondary }]}>
@@ -401,7 +368,7 @@ export default function BuffetOverviewScreen({ navigation }: BuffetOverviewScree
               {stats.statusCounts.completed}
             </ThemedText>
           </View>
-        </View>
+        </DirectionalRow>
       </View>
 
       <Spacer height={Spacing.xl} />

@@ -10,7 +10,9 @@ import Animated, {
   cancelAnimation,
 } from "react-native-reanimated";
 import { useTheme } from "@/hooks/useTheme";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Spacing, BorderRadius } from "@/constants/theme";
+import DirectionalRow from "@/components/DirectionalRow";
 
 interface SkeletonProps {
   width?: number | `${number}%`;
@@ -149,9 +151,30 @@ export const SkeletonListItem = ({
   style,
 }: SkeletonListItemProps) => {
   const { theme } = useTheme();
+  const { isRTL } = useLanguage();
+  const avatarEl = showAvatar ? (
+    <Skeleton
+      width={avatarSize}
+      height={avatarSize}
+      borderRadius={avatarSize / 2}
+      style={{ marginEnd: Spacing.md }}
+    />
+  ) : null;
+
+  const contentEl = (
+    <View style={styles.listItemContent}>
+      <Skeleton width="60%" height={16} style={{ marginBottom: Spacing.sm }} />
+      {lines > 1 ? (
+        <Skeleton width="40%" height={12} />
+      ) : null}
+    </View>
+  );
+
+  const actionEl = <Skeleton width={24} height={24} borderRadius={BorderRadius.xs} />;
 
   return (
-    <View
+    <DirectionalRow
+      alignItems="center"
       style={[
         styles.listItem,
         {
@@ -161,22 +184,10 @@ export const SkeletonListItem = ({
         style,
       ]}
     >
-      {showAvatar ? (
-        <Skeleton
-          width={avatarSize}
-          height={avatarSize}
-          borderRadius={avatarSize / 2}
-          style={{ marginEnd: Spacing.md }}
-        />
-      ) : null}
-      <View style={styles.listItemContent}>
-        <Skeleton width="60%" height={16} style={{ marginBottom: Spacing.sm }} />
-        {lines > 1 ? (
-          <Skeleton width="40%" height={12} />
-        ) : null}
-      </View>
-      <Skeleton width={24} height={24} borderRadius={BorderRadius.xs} />
-    </View>
+      {avatarEl}
+      {contentEl}
+      {actionEl}
+    </DirectionalRow>
   );
 };
 
@@ -241,28 +252,33 @@ export const SkeletonDashboard = ({
   style,
 }: SkeletonDashboardProps) => {
   const { theme } = useTheme();
+  const { isRTL } = useLanguage();
+  const cardElements = Array.from({ length: Math.min(cards, 4) }).map((_, index) => (
+    <View
+      key={index}
+      style={[
+        styles.statCard,
+        {
+          backgroundColor: theme.surface,
+          borderColor: theme.border,
+        },
+      ]}
+    >
+      <Skeleton width={40} height={40} borderRadius={BorderRadius.sm} />
+      <Skeleton width="70%" height={24} style={{ marginTop: Spacing.md }} />
+      <Skeleton width="50%" height={14} style={{ marginTop: Spacing.sm }} />
+    </View>
+  ));
 
   return (
     <View style={style}>
       <Skeleton width="50%" height={24} style={{ marginBottom: Spacing.lg }} />
-      <View style={styles.statsRow}>
-        {Array.from({ length: Math.min(cards, 4) }).map((_, index) => (
-          <View
-            key={index}
-            style={[
-              styles.statCard,
-              {
-                backgroundColor: theme.surface,
-                borderColor: theme.border,
-              },
-            ]}
-          >
-            <Skeleton width={40} height={40} borderRadius={BorderRadius.sm} />
-            <Skeleton width="70%" height={24} style={{ marginTop: Spacing.md }} />
-            <Skeleton width="50%" height={14} style={{ marginTop: Spacing.sm }} />
-          </View>
-        ))}
-      </View>
+      <DirectionalRow
+        justifyContent="flex-start"
+        style={styles.statsRow}
+      >
+        {cardElements}
+      </DirectionalRow>
       <Skeleton width="40%" height={20} style={{ marginTop: Spacing.xl, marginBottom: Spacing.md }} />
       <SkeletonList count={3} />
     </View>
@@ -287,7 +303,6 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
   },
   listItem: {
-    flexDirection: "row",
     alignItems: "center",
     padding: Spacing.lg,
     borderBottomWidth: 1,
@@ -299,7 +314,6 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
   },
   statsRow: {
-    flexDirection: "row",
     flexWrap: "wrap",
     marginHorizontal: -Spacing.sm,
   },

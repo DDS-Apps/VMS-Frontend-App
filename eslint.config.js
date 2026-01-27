@@ -9,4 +9,18 @@ module.exports = defineConfig([
   {
     ignores: ["dist/*"],
   },
+  {
+    // Custom rules for RTL compliance
+    rules: {
+      // Warn when using inline flexDirection: 'row' - should use DirectionalRow instead
+      // This is a reminder rule, not enforced strictly
+      "no-restricted-syntax": [
+        "warn",
+        {
+          selector: "Property[key.name='flexDirection'][value.value='row']",
+          message: "⚠️ RTL: Consider using <DirectionalRow> or useDirectionalStyle() instead of flexDirection: 'row'. See docs/RTL_ARCHITECTURE.md"
+        }
+      ]
+    }
+  }
 ]);

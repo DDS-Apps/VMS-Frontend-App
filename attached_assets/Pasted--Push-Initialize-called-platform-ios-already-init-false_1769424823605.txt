@@ -1,0 +1,52 @@
+[Push] Initialize called, platform: ios already init: false
+ LOG  [Push Mobile] Step 1: Checking if physical device...
+ LOG  [Push Mobile] Device info: {"brand": "Apple", "deviceName": "iPhone", "modelName": "iPhone XS Max", "osName": "iOS", "osVersion": "18.7.2"}
+ LOG  [Push Mobile iOS] Step 2: Requesting permission via Firebase Messaging...
+ WARN  This method is deprecated (as well as all React Native Firebase namespaced API) and will be removed in the next major release as part of move to match Firebase Web modular SDK API. Please see migration guide for more details: https://rnfirebase.io/migrating-to-v22 Please use `getApp()` instead.
+ WARN  This method is deprecated (as well as all React Native Firebase namespaced API) and will be removed in the next major release as part of move to match Firebase Web modular SDK API. Please see migration guide for more details: https://rnfirebase.io/migrating-to-v22. Method called was `requestPermission`. Please use `requestPermission()` instead.
+ LOG  [Crashlytics] Disabled or web platform - using mock implementation
+ LOG  [AppContent] Render state: {"authLoading": false, "effectiveLanguageLoading": false, "hasUser": true, "inviteToken": false, "isAuthenticated": true, "showSplash": false}
+ LOG  [DashboardLayout Mobile Header DEBUG] {"I18nManager.isRTL": false, "calculated isRTL": false, "contextIsRTL": false, "localStorage (web only)": "N/A", "locale": "en", "platform": "ios"}
+ LOG  [HTTP Request] GET https://vms-backend-app-qa.replit.app/api/v1/visits?myRequestsOnly=true&limit=50 | Auth: yes
+ LOG  [HTTP Request] GET https://vms-backend-app-qa.replit.app/api/v1/approvals/awaiting-visitor?limit=10 | Auth: yes
+ LOG  [HTTP Request] GET https://vms-backend-app-qa.replit.app/api/v1/approvals/pending-host?limit=10 | Auth: yes
+ LOG  [HTTP Request] GET https://vms-backend-app-qa.replit.app/api/v1/notifications/unread-count | Auth: yes
+ LOG  [HTTP Request] GET https://vms-backend-app-qa.replit.app/api/v1/notifications/unread-count | Auth: yes
+ LOG  [AppContent] Render state: {"authLoading": false, "effectiveLanguageLoading": false, "hasUser": true, "inviteToken": false, "isAuthenticated": true, "showSplash": false}
+ LOG  [HTTP Response] GET /api/v1/notifications/unread-count | Status: 200
+ LOG  [DashboardLayout Mobile Header DEBUG] {"I18nManager.isRTL": false, "calculated isRTL": false, "contextIsRTL": false, "localStorage (web only)": "N/A", "locale": "en", "platform": "ios"}
+ LOG  [HTTP Response] GET /api/v1/approvals/pending-host?limit=10 | Status: 200
+ LOG  [HTTP Response] GET /api/v1/notifications/unread-count | Status: 200
+ LOG  [HTTP Response] GET /api/v1/approvals/awaiting-visitor?limit=10 | Status: 200
+ LOG  [HTTP Response] GET /api/v1/visits?myRequestsOnly=true&limit=50 | Status: 200
+ LOG  [Push Mobile iOS] Firebase auth status: 1
+ WARN  This method is deprecated (as well as all React Native Firebase namespaced API) and will be removed in the next major release as part of move to match Firebase Web modular SDK API. Please see migration guide for more details: https://rnfirebase.io/migrating-to-v22. Method called was `AuthorizationStatus`. Please use `AuthorizationStatus` instead.
+ LOG  [Push Mobile iOS] Permission granted!
+ LOG  [Push Mobile iOS] Step 3: Registering for remote messages...
+ WARN  This method is deprecated (as well as all React Native Firebase namespaced API) and will be removed in the next major release as part of move to match Firebase Web modular SDK API. Please see migration guide for more details: https://rnfirebase.io/migrating-to-v22 Please use `getApp()` instead.
+ WARN  This method is deprecated (as well as all React Native Firebase namespaced API) and will be removed in the next major release as part of move to match Firebase Web modular SDK API. Please see migration guide for more details: https://rnfirebase.io/migrating-to-v22. Method called was `registerDeviceForRemoteMessages`. Please use `registerDeviceForRemoteMessages()` instead.
+ WARN  Usage of "messaging().registerDeviceForRemoteMessages()" is not required. You only need to register if auto-registration is disabled in your 'firebase.json' configuration file via the 'messaging_ios_auto_register_for_remote_messages' property.
+ LOG  [Push Mobile iOS] Registered for remote messages
+ LOG  [Push Mobile iOS] Step 4: Getting FCM token...
+ WARN  This method is deprecated (as well as all React Native Firebase namespaced API) and will be removed in the next major release as part of move to match Firebase Web modular SDK API. Please see migration guide for more details: https://rnfirebase.io/migrating-to-v22 Please use `getApp()` instead.
+ WARN  This method is deprecated (as well as all React Native Firebase namespaced API) and will be removed in the next major release as part of move to match Firebase Web modular SDK API. Please see migration guide for more details: https://rnfirebase.io/migrating-to-v22. Method called was `getToken`. Please use `getToken()` instead.
+ LOG  [Push Mobile iOS] FCM token obtained successfully: dSWa5CkZAk1-kckeS5jZIV:APA91bH...
+ LOG  [Push Mobile] Expo token (for reference): ExponentPushToken[4lgID4EmHU0ijyPwSDR1qM]
+ LOG  [Push Mobile] Step 6: Registering token with backend...
+ LOG  [Push Backend] Registering token with backend: {"appVersion": "1.0.20", "deviceModel": "iPhone XS Max", "deviceName": "iPhone", "platform": "ios", "tokenPreview": "dSWa5CkZAk1-kckeS5jZIV:APA91bH..."}
+ LOG  [Device API] ========== REGISTER TOKEN START ==========
+ LOG  [Device API] Endpoint: https://vms-backend-app-qa.replit.app/api/v1/devices/token
+ LOG  [Device API] Auth token present: true
+ LOG  [Device API] Platform: ios
+ LOG  [Device API] Device: iPhone iPhone XS Max
+ LOG  [Device API] Token (first 30 chars): dSWa5CkZAk1-kckeS5jZIV:APA91bH...
+ LOG  [httpClient.post] Making POST request to: /api/v1/devices/token
+ LOG  [HTTP Request] POST https://vms-backend-app-qa.replit.app/api/v1/devices/token | Auth: yes
+ LOG  [HTTP Response] POST /api/v1/devices/token | Status: 201
+ LOG  [httpClient.post] Response status: 201
+ LOG  [Device API] Token registered successfully, response: {"id":"EEB6A638-EA76-478C-AF63-E3B4B52C8AEC","platform":"ios","deviceName":"iPhone","deviceModel":"iPhone XS Max","appVersion":"1.0.20"}
+ LOG  [Device API] ========== REGISTER TOKEN SUCCESS ==========
+ LOG  [Push Backend] Registration successful: {"appVersion": "1.0.20", "deviceModel": "iPhone XS Max", "deviceName": "iPhone", "id": "EEB6A638-EA76-478C-AF63-E3B4B52C8AEC", "platform": "ios"}
+ LOG  [Push Mobile] Backend registration complete
+ LOG  [Push Mobile] Step 7: Setting up notification listeners...
+ LOG  [Push Mobile] Initialization COMPLETE! Ready to receive notifications.

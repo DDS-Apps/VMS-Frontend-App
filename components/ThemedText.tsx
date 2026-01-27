@@ -1,18 +1,34 @@
-import { Text, type TextProps } from "react-native";
+import {
+  Text,
+  type TextProps,
+  TextStyle,
+  StyleSheet,
+  Platform,
+} from "react-native";
 
 import { useTheme } from "@/hooks/useTheme";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Typography, FontFamily } from "@/constants/theme";
+import { getPlatformTextAlign } from "@/utils/rtlInitializer";
+import {
+  arabicFontSize,
+  arabicLineHeight,
+  TextCategory,
+  ArabicFontScaling,
+} from "@/utils/rtlStyles";
 
-export type TextVariant = 
-  | "h1" 
-  | "h2" 
-  | "h3" 
-  | "bodyL" 
-  | "body" 
-  | "bodySmall" 
-  | "caption" 
+export type TextVariant =
+  | "h1"
+  | "h2"
+  | "h3"
+  | "bodyL"
+  | "body"
+  | "bodySmall"
+  | "caption"
   | "label"
   | "link";
+
+export type TextAlignRTL = "start" | "end" | "center" | "auto";
 
 export type ThemedTextProps = TextProps & {
   lightColor?: string;
@@ -20,6 +36,7 @@ export type ThemedTextProps = TextProps & {
   type?: TextVariant;
   variant?: TextVariant;
   color?: string;
+  align?: TextAlignRTL;
 };
 
 export function ThemedText({
@@ -29,17 +46,52 @@ export function ThemedText({
   type,
   variant,
   color,
+  align = "auto",
   ...rest
 }: ThemedTextProps) {
   const { theme, isDark } = useTheme();
+  const { isRTL } = useLanguage();
 
   const textVariant = variant || type || "body";
+
+  const writingDirection = isRTL ? "rtl" : "ltr";
+  // Platform-aware text alignment:
+  // - On mobile with I18nManager.isRTL=true, React Native auto-flips textAlign
+  //   so 'left' becomes right, 'right' becomes left
+  // - On web, no auto-flip occurs, so we need explicit 'right' for RTL
+  // - For 'auto' alignment, use 'left' (which on mobile RTL displays on right)
+  const getTextAlign = (): "left" | "right" | "center" => {
+    if (align === "center") return "center";
+
+    // On mobile, I18nManager flips text alignment automatically
+    // So we use 'left' which will appear on the right in RTL mode
+    if (Platform.OS !== "web") {
+      if (align === "auto" || align === "start") {
+        return "left"; // Will be flipped to right by I18nManager in RTL
+      }
+      if (align === "end") {
+        return "right"; // Will be flipped to left by I18nManager in RTL
+      }
+      return align === "start" ? "left" : "right";
+    }
+
+    // On web, no auto-flip, so we need explicit alignment
+    if (align === "auto" || align === "start") {
+      return isRTL ? "right" : "left";
+    }
+    if (align === "end") {
+      return isRTL ? "left" : "right";
+    }
+    return getPlatformTextAlign(isRTL, align);
+  };
+
+  const textAlign = getTextAlign();
 
   const getColor = () => {
     if (color) {
       return color;
     }
-    
+
     if (isDark && darkColor) {
       return darkColor;
     }
@@ -55,35 +107,116 @@ export function ThemedText({
     return theme.text;
   };
 
-  const getTypeStyle = () => {
-    switch (textVariant) {
+  // Map text variants to categories for Arabic scaling
+  const getCategory = (variant: TextVariant): TextCategory => {
+    switch (variant) {
       case "h1":
-        return Typography.h1;
       case "h2":
-        return Typography.h2;
       case "h3":
-        return Typography.h3;
-      case "bodyL":
-        return Typography.bodyL;
-      case "body":
-        return Typography.body;
-      case "bodySmall":
-        return Typography.bodySmall;
+        return "heading";
       case "caption":
-        return Typography.caption;
       case "label":
-        return Typography.label;
+        return "caption";
+      case "bodyL":
+      case "body":
+      case "bodySmall":
       case "link":
-        return {
-          ...Typography.body,
-          fontFamily: FontFamily.latinMedium,
-        };
       default:
-        return Typography.body;
+        return "body";
     }
   };
 
+  const getTypeStyle = () => {
+    const category = getCategory(textVariant);
+
+    // Helper to apply Arabic scaling to typography styles
+    type TypographyStyle = {
+      fontSize: number;
+      lineHeight: number;
+      fontWeight: string;
+      fontFamily: string;
+      letterSpacing: number;
+    };
+    const scaleForArabic = <T extends TypographyStyle>(baseStyle: T): T => {
+      if (!isRTL) return baseStyle;
+      return {
+        ...baseStyle,
+        fontSize: arabicFontSize(baseStyle.fontSize, isRTL, category),
+        lineHeight: arabicLineHeight(baseStyle.lineHeight, isRTL, category),
+      };
+    };
+
+    switch (textVariant) {
+      case "h1":
+        return scaleForArabic(Typography.h1);
+      case "h2":
+        return scaleForArabic(Typography.h2);
+      case "h3":
+        return scaleForArabic(Typography.h3);
+      case "bodyL":
+        return scaleForArabic(Typography.bodyL);
+      case "body":
+        return scaleForArabic(Typography.body);
+      case "bodySmall":
+        return scaleForArabic(Typography.bodySmall);
+      case "caption":
+        return scaleForArabic(Typography.caption);
+      case "label":
+        return scaleForArabic(Typography.label);
+      case "link":
+        return scaleForArabic({
+          ...Typography.body,
+          fontFamily: FontFamily.latinMedium,
+        });
+      default:
+        return scaleForArabic(Typography.body);
+    }
+  };
+
+  const baseStyle: TextStyle = {
+    color: getColor(),
+    writingDirection,
+    textAlign,
+  };
+
+  // Extract and scale custom fontSize from style prop for Arabic
+  const getScaledCustomStyle = (): TextStyle | null => {
+    if (!style || !isRTL) return null;
+
+    // Flatten style array if needed
+    const flatStyle = StyleSheet.flatten(style);
+    if (!flatStyle) return null;
+
+    const scaledStyle: TextStyle = {};
+    const category = getCategory(textVariant);
+
+    // Scale custom fontSize if present
+    if (typeof flatStyle.fontSize === "number") {
+      scaledStyle.fontSize =
+        Math.round(flatStyle.fontSize * ArabicFontScaling[category] * 10) / 10;
+    }
+
+    // Scale custom lineHeight if present
+    if (typeof flatStyle.lineHeight === "number") {
+      scaledStyle.lineHeight = Math.round(
+        flatStyle.lineHeight * ArabicFontScaling[category],
+      );
+    }
+
+    return Object.keys(scaledStyle).length > 0 ? scaledStyle : null;
+  };
+
+  const scaledCustomStyle = getScaledCustomStyle();
+
   return (
-    <Text style={[{ color: getColor() }, getTypeStyle(), style]} {...rest} />
+    <Text
+      style={[
+        baseStyle,
+        getTypeStyle(),
+        style,
+        scaledCustomStyle, // Apply scaled custom fontSize last to override
+      ]}
+      {...rest}
+    />
   );
 }

@@ -1,5 +1,17 @@
 # Dallah Albaraka - Visitor Management System (VMS) Mobile App
 
+## Current Environment: QA
+This Replit project is configured for the **QA/Testing environment**.
+
+| Setting | Value |
+|---------|-------|
+| **Backend API** | `https://vms-backend-folio3.replit.app` |
+| **Firebase Project** | `dallah-albaraka-vms` |
+| **Branch** | `qa` |
+| **Purpose** | QA/Testing - Not for production use |
+
+All environment variables are stored in Replit Secrets (not hardcoded in code).
+
 ## Overview
 The Dallah Albaraka Visitor Management System (VMS) is a comprehensive React Native and Expo mobile application. Its primary purpose is to streamline visitor management for organizations, supporting nine distinct user roles with specialized interfaces for various functions including visitor requests, check-ins, parking, valet services, and buffet bookings. Visitors interact through unique external invitation links via a lightweight web view. The system is branded with Dallah Albaraka's color scheme, defaults to light mode, and emphasizes UI/UX design and visual analytics.
 
@@ -35,6 +47,29 @@ The VMS app employs a Clean Architecture pattern, segmenting the application int
 **Technical Implementations:**
 - **Core Technologies:** React Native, Expo, TypeScript.
 - **Iconography & RTL Support:** `DDIcon` component for theme-aware icons with automatic RTL mirroring. Full RTL compatibility.
+- **RTL Pattern (DirectionalRow as Single Source of Truth):** All horizontal row layouts must use `DirectionalRow` component for consistent RTL behavior across web and mobile:
+  - **DirectionalRow Component:** The single source of truth for RTL row layouts. Uses explicit `flexDirection: 'row-reverse'` for RTL instead of relying on I18nManager auto-swap (mobile) or browser `dir` attribute (web).
+  - **Usage Patterns:**
+    ```tsx
+    // For View-like containers:
+    <DirectionalRow style={styles.row} alignItems="center">
+      <Icon /><Text>Label</Text>
+    </DirectionalRow>
+    
+    // For Pressable/Animated components (cannot use DirectionalRow):
+    const { isRTL } = useLanguage();
+    <Pressable style={{ flexDirection: getFlexDirection(isRTL) }}>
+      <Icon /><Text>Label</Text>
+    </Pressable>
+    ```
+  - **Helper Functions:**
+    - `getFlexDirection(isRTL)` - returns 'row-reverse' for RTL, 'row' for LTR (for inline styles)
+    - `useDirectionalStyle()` - hook returning `{ flexDirection }` style object
+  - **Key Props:**
+    - `alignItems` - defaults to 'center', pass 'stretch' for layout containers
+    - `gap` - spacing between children
+  - **Deprecated:** `getPlatformFlexDirection()`, `shouldSwapChildrenForRTL()` - do not use
+  - **Avoid:** Using inline `flexDirection: 'row'` in View components - always use DirectionalRow
 - **State Management:** Centralized state service using mutable mock data and `useFocusEffect` for reactive updates.
 - **Role-Based Access:** Specialized interfaces and navigation for nine distinct user roles.
 - **Internationalization (i18n):** Bilingual support for English (LTR) and Arabic (RTL) across all 40+ screens using type-safe translation keys, a `LanguageContext`, and `useTranslation` hook.
@@ -61,12 +96,18 @@ The VMS app employs a Clean Architecture pattern, segmenting the application int
 - **Key Features:** Axios HTTP Client with interceptors for JWT token injection and automatic refresh, standardized error handling, TanStack Query for data fetching, caching, mutations, and query invalidation, token management (refresh, AsyncStorage persistence), session management, role mapping, Azure AD SSO, and OTP flows.
 
 **Push Notifications:**
-- **Architecture:** Unified push notification service supporting both mobile (expo-notifications with native FCM tokens) and web (Firebase SDK with VAPID key).
+- **Architecture:** Unified push notification service supporting mobile (iOS/Android) and web, all using FCM tokens that backend routes appropriately.
+  - **iOS:** Uses `@react-native-firebase/messaging` to obtain FCM tokens (required because backend expects FCM tokens and routes FCM → APNs).
+  - **Android:** Uses `expo-notifications` which returns native FCM tokens directly.
+  - **Web:** Uses Firebase SDK with VAPID key for FCM tokens.
 - **Functionality:** Automatic device registration on login, unregistration on logout via AuthContext integration. Deep linking from notifications is supported. Android channels are configured for default, visitors, approvals, tasks, and reminders.
+- **iOS Requirements:** Requires EAS Build with `@react-native-firebase/app` and `@react-native-firebase/messaging` plugins. Firebase project must have APNs key configured in Cloud Messaging settings.
 
 **Crashlytics (Crash Reporting):**
+- **Status:** ENABLED - Firebase Crashlytics re-enabled using `expo-build-properties` with `buildReactNativeFromSource: true` to resolve Expo SDK 54 + static frameworks compatibility issues.
 - **Architecture:** Firebase Crashlytics integration for crash monitoring with graceful fallback for development/web.
 - **Features:** Automatic JavaScript exception reporting via ErrorBoundary integration, user attributes (id, email, name, role) set on login for crash grouping, custom logging and non-fatal error recording. Graceful fallback to console logging in Expo Go/web.
+- **Build Configuration:** Requires EAS Build with `@react-native-firebase/crashlytics` plugin in app.json. Uses same `buildReactNativeFromSource: true` fix as Firebase Messaging.
 
 **Multi-Environment Setup:**
 - **Environments:** Production (`dallahdigital-vms`) and QA (`dallah-albaraka-vms`) with separate Firebase projects and backends.
@@ -93,4 +134,5 @@ The VMS app employs a Clean Architecture pattern, segmenting the application int
 - **expo-notifications:** Push notifications for mobile (iOS/Android).
 - **firebase:** Firebase SDK for web push notifications (FCM).
 - **@react-native-firebase/app:** React Native Firebase core.
+- **@react-native-firebase/messaging:** Firebase Cloud Messaging for iOS FCM token retrieval.
 - **@react-native-firebase/crashlytics:** Firebase Crashlytics for crash reporting.

@@ -11,9 +11,19 @@ import {
   registerServiceWorker,
   getWebNotificationPermissionStatus,
 } from '@/services/firebase';
-import { handleNotificationTap } from '@/utils/notificationNavigator';
+import { handleNotificationTap, navigateFromInAppNotification } from '@/utils/notificationNavigator';
 import { invalidateQueriesForNotification, refreshAllNotificationData } from './notificationQueryMapper';
 import type { DevicePlatform, NotificationPayload } from '@/types';
+
+let firebaseMessaging: typeof import('@react-native-firebase/messaging').default | null = null;
+if (Platform.OS === 'ios') {
+  try {
+    firebaseMessaging = require('@react-native-firebase/messaging').default;
+    console.log('[Push] Firebase Messaging module loaded for iOS');
+  } catch (error) {
+    console.log('[Push] Firebase Messaging not available (Expo Go or web):', error);
+  }
+}
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -34,25 +44,22 @@ class PushNotificationService {
   private notificationListener: Notifications.EventSubscription | null = null;
   private responseListener: Notifications.EventSubscription | null = null;
   private webUnsubscribe: (() => void) | null = null;
+  private webMessageHandler: ((event: MessageEvent) => void) | null = null;
   private queryClient: QueryClient | null = null;
 
   setQueryClient(client: QueryClient): void {
     this.queryClient = client;
-    console.log('[Push] QueryClient set for automatic data refresh');
   }
 
   private handleNotificationReceived(data: Record<string, unknown>): void {
     if (!this.queryClient) {
-      console.log('[Push] QueryClient not set, skipping data refresh');
       return;
     }
 
     const notificationType = data?.type as string;
     if (notificationType) {
-      console.log(`[Push] Refreshing data for notification type: ${notificationType}`);
       invalidateQueriesForNotification(this.queryClient, notificationType);
     } else {
-      console.log('[Push] No notification type, refreshing all notification data');
       refreshAllNotificationData(this.queryClient);
     }
   }
@@ -67,31 +74,23 @@ class PushNotificationService {
   async initialize(
     onNotificationReceived?: NotificationCallback
   ): Promise<boolean> {
-    console.log('[Push] ========== INITIALIZE START ==========');
-    console.log('[Push] Platform:', Platform.OS);
-    console.log('[Push] Already initialized:', this.isInitialized);
-    console.log('[Push] Current token exists:', !!this.token);
+    console.log('[Push] Initialize called, platform:', Platform.OS, 'already init:', this.isInitialized);
     
     if (this.isInitialized) {
-      console.log('[Push] Already initialized, skipping re-initialization');
-      console.log('[Push] ========== INITIALIZE SKIPPED (already done) ==========');
       return true;
     }
 
     try {
       let result: boolean;
       if (Platform.OS === 'web') {
-        console.log('[Push] Calling initializeWeb()...');
+        console.log('[Push] Calling initializeWeb...');
         result = await this.initializeWeb(onNotificationReceived);
+        console.log('[Push] initializeWeb result:', result);
       } else {
-        console.log('[Push] Calling initializeMobile()...');
         result = await this.initializeMobile(onNotificationReceived);
       }
-      console.log('[Push] Initialization result:', result);
-      console.log('[Push] ========== INITIALIZE END ==========');
       return result;
     } catch (error) {
-      console.error('[Push] ========== INITIALIZE FAILED ==========');
       console.error('[Push] Initialization error:', error);
       return false;
     }
@@ -100,24 +99,29 @@ class PushNotificationService {
   private async initializeWeb(
     onNotificationReceived?: NotificationCallback
   ): Promise<boolean> {
+    console.log('[Push Web] Step 1: initializeFirebaseWeb...');
     const initialized = await initializeFirebaseWeb();
+    console.log('[Push Web] Firebase initialized:', initialized);
     if (!initialized) {
-      console.log('[Push Web] Firebase not available');
+      console.log('[Push Web] Firebase init failed, stopping');
       return false;
     }
 
+    console.log('[Push Web] Step 2: registerServiceWorker...');
     await registerServiceWorker();
 
+    console.log('[Push Web] Step 3: getWebFcmToken...');
     this.token = await getWebFcmToken();
+    console.log('[Push Web] Token obtained:', !!this.token);
     if (!this.token) {
-      console.log('[Push Web] No token obtained');
+      console.log('[Push Web] No token, stopping');
       return false;
     }
 
+    console.log('[Push Web] Step 4: registerTokenWithBackend...');
     await this.registerTokenWithBackend();
 
     this.webUnsubscribe = onWebForegroundMessage((payload: unknown) => {
-      console.log('[Push Web] Foreground message:', payload);
       const typedPayload = payload as Record<string, unknown>;
       const data = typedPayload.data as Record<string, unknown> || {};
       
@@ -137,78 +141,154 @@ class PushNotificationService {
       }
     });
 
+    console.log('[Push Web] Step 5: Setting up service worker message listener for notification clicks...');
+    this.setupWebNotificationClickHandler();
+
     this.isInitialized = true;
-    console.log('[Push Web] Initialized successfully');
+    console.log('[Push Web] Initialization COMPLETE!');
     return true;
+  }
+
+  private setupWebNotificationClickHandler(): void {
+    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
+      console.log('[Push Web] Service worker not available, skipping click handler');
+      return;
+    }
+
+    this.webMessageHandler = (event: MessageEvent) => {
+      console.log('[Push Web] Received message from service worker:', event.data);
+      
+      if (event.data?.type === 'NOTIFICATION_CLICK') {
+        const data = event.data.data || {};
+        console.log('[Push Web] Notification clicked, navigating with data:', data);
+        
+        const notificationType = data.type as string;
+        if (notificationType) {
+          navigateFromInAppNotification({ type: notificationType, data });
+        } else {
+          console.log('[Push Web] No notification type in data, cannot navigate');
+        }
+      }
+    };
+
+    navigator.serviceWorker.addEventListener('message', this.webMessageHandler);
+    console.log('[Push Web] Service worker message listener registered');
   }
 
   private async initializeMobile(
     onNotificationReceived?: NotificationCallback
   ): Promise<boolean> {
-    console.log('[Push Mobile] ========== INITIALIZE MOBILE START ==========');
-    console.log('[Push Mobile] Is physical device:', Device.isDevice);
-    
+    console.log('[Push Mobile] Step 1: Checking if physical device...');
     if (!Device.isDevice) {
-      console.log('[Push Mobile] Push notifications require a physical device, skipping');
-      console.log('[Push Mobile] ========== INITIALIZE MOBILE SKIPPED ==========');
+      console.log('[Push Mobile] Not a physical device (simulator/emulator), skipping');
       return false;
     }
+    console.log('[Push Mobile] Device info:', {
+      brand: Device.brand,
+      modelName: Device.modelName,
+      deviceName: Device.deviceName,
+      osName: Device.osName,
+      osVersion: Device.osVersion,
+    });
 
-    console.log('[Push Mobile] Checking notification permissions...');
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
-    console.log('[Push Mobile] Existing permission status:', existingStatus);
-    let finalStatus = existingStatus;
-
-    if (existingStatus !== 'granted') {
-      console.log('[Push Mobile] Requesting notification permissions...');
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
-      console.log('[Push Mobile] New permission status:', finalStatus);
-    }
-
-    if (finalStatus !== 'granted') {
-      console.log('[Push Mobile] Permission denied, cannot proceed');
-      console.log('[Push Mobile] ========== INITIALIZE MOBILE FAILED (no permission) ==========');
-      return false;
-    }
-
-    console.log('[Push Mobile] Permission granted, getting device push token...');
     try {
-      const tokenData = await Notifications.getDevicePushTokenAsync();
-      const tokenValue = tokenData.data;
-      this.token = tokenValue;
-      console.log('[Push Mobile] Token obtained successfully');
-      console.log('[Push Mobile] Token (first 30 chars):', tokenValue.substring(0, 30) + '...');
+      if (Platform.OS === 'ios') {
+        if (!firebaseMessaging) {
+          console.error('[Push Mobile iOS] Firebase Messaging not available - cannot get FCM token');
+          console.error('[Push Mobile iOS] This app requires EAS Build with @react-native-firebase/messaging');
+          return false;
+        }
+        
+        console.log('[Push Mobile iOS] Step 2: Requesting permission via Firebase Messaging...');
+        const authStatus = await firebaseMessaging().requestPermission();
+        console.log('[Push Mobile iOS] Firebase auth status:', authStatus);
+        
+        const enabled = authStatus === firebaseMessaging.AuthorizationStatus.AUTHORIZED ||
+                        authStatus === firebaseMessaging.AuthorizationStatus.PROVISIONAL;
+        
+        if (!enabled) {
+          console.log('[Push Mobile iOS] Firebase messaging permission not granted');
+          return false;
+        }
+        console.log('[Push Mobile iOS] Permission granted!');
+        
+        console.log('[Push Mobile iOS] Step 3: Registering for remote messages...');
+        await firebaseMessaging().registerDeviceForRemoteMessages();
+        console.log('[Push Mobile iOS] Registered for remote messages');
+        
+        console.log('[Push Mobile iOS] Step 4: Getting FCM token...');
+        const fcmToken = await firebaseMessaging().getToken();
+        if (!fcmToken) {
+          console.error('[Push Mobile iOS] Failed to get FCM token - backend requires FCM token, not APNs');
+          console.error('[Push Mobile iOS] Check Firebase project APNs configuration');
+          return false;
+        }
+        this.token = fcmToken;
+        console.log('[Push Mobile iOS] FCM token obtained successfully:', fcmToken.substring(0, 30) + '...');
+      } else {
+        console.log('[Push Mobile Android] Step 2: Checking permissions...');
+        const { status: existingStatus } = await Notifications.getPermissionsAsync();
+        console.log('[Push Mobile Android] Existing permission status:', existingStatus);
+        let finalStatus = existingStatus;
+
+        if (existingStatus !== 'granted') {
+          console.log('[Push Mobile Android] Requesting permission...');
+          const { status } = await Notifications.requestPermissionsAsync();
+          finalStatus = status;
+          console.log('[Push Mobile Android] Permission request result:', status);
+        }
+
+        if (finalStatus !== 'granted') {
+          console.log('[Push Mobile Android] Permission denied, cannot proceed');
+          return false;
+        }
+        console.log('[Push Mobile Android] Permission granted!');
+        
+        console.log('[Push Mobile Android] Step 3: Getting device push token (native FCM)...');
+        const tokenData = await Notifications.getDevicePushTokenAsync();
+        this.token = tokenData.data;
+        console.log('[Push Mobile Android] Token type:', tokenData.type);
+        console.log('[Push Mobile Android] FCM token obtained:', this.token);
+      }
+      
+      try {
+        const tokenExpo = await Notifications.getExpoPushTokenAsync();
+        console.log('[Push Mobile] Expo token (for reference):', tokenExpo.data);
+      } catch {
+        console.log('[Push Mobile] Could not get Expo push token (expected in production builds)');
+      }
     } catch (error) {
-      console.error('[Push Mobile] Error getting token:', error);
-      console.log('[Push Mobile] ========== INITIALIZE MOBILE FAILED (token error) ==========');
+      console.error('[Push Mobile] ERROR getting token:', error);
       return false;
     }
 
     if (Platform.OS === 'android') {
-      console.log('[Push Mobile] Setting up Android notification channels...');
+      console.log('[Push Mobile] Step 5: Setting up Android notification channels...');
       await this.setupAndroidChannels();
+      console.log('[Push Mobile] Android channels configured');
     }
 
-    console.log('[Push Mobile] Registering token with backend...');
+    console.log('[Push Mobile] Step 6: Registering token with backend...');
     await this.registerTokenWithBackend();
+    console.log('[Push Mobile] Backend registration complete');
 
+    console.log('[Push Mobile] Step 7: Setting up notification listeners...');
     this.notificationListener = Notifications.addNotificationReceivedListener((notification) => {
-      console.log('[Push Mobile] Notification received:', notification);
+      console.log('[Push Mobile] Notification received:', notification.request.content.title);
       const data = notification.request.content.data as Record<string, unknown>;
       this.handleNotificationReceived(data);
       onNotificationReceived?.(notification);
     });
 
     this.responseListener = Notifications.addNotificationResponseReceivedListener((response) => {
-      console.log('[Push Mobile] Notification tapped:', response);
+      console.log('[Push Mobile] Notification tapped:', response.notification.request.content.title);
       const data = response.notification.request.content.data as Record<string, unknown>;
       this.handleNotificationReceived(data);
       handleNotificationTap(response);
     });
 
     this.isInitialized = true;
-    console.log('[Push Mobile] Initialized successfully');
+    console.log('[Push Mobile] Initialization COMPLETE! Ready to receive notifications.');
     return true;
   }
 
@@ -246,13 +326,8 @@ class PushNotificationService {
   }
 
   private async registerTokenWithBackend(): Promise<void> {
-    console.log('[Push] ========== REGISTER TOKEN WITH BACKEND START ==========');
-    console.log('[Push] Token exists:', !!this.token);
-    console.log('[Push] Token value (first 30 chars):', this.token ? this.token.substring(0, 30) + '...' : 'null');
-    
     if (!this.token) {
-      console.log('[Push] No token to register, skipping API call');
-      console.log('[Push] ========== REGISTER TOKEN WITH BACKEND SKIPPED ==========');
+      console.log('[Push Backend] No token available, skipping registration');
       return;
     }
 
@@ -261,28 +336,25 @@ class PushNotificationService {
     const deviceModel = Device.modelName || undefined;
     const appVersion = Constants.expoConfig?.version || '1.0.0';
 
-    console.log('[Push] Preparing registration request:', {
+    console.log('[Push Backend] Registering token with backend:', {
       platform,
       deviceName,
       deviceModel,
       appVersion,
-      tokenPrefix: this.token.substring(0, 30) + '...',
+      tokenPreview: this.token.substring(0, 30) + '...',
     });
 
     try {
-      console.log('[Push] Calling deviceApiService.registerToken()...');
-      const result = await deviceApiService.registerToken({
+      const response = await deviceApiService.registerToken({
         deviceToken: this.token,
         platform,
         deviceName,
         deviceModel,
         appVersion,
       });
-      console.log('[Push] Token registered with backend successfully, result:', JSON.stringify(result));
-      console.log('[Push] ========== REGISTER TOKEN WITH BACKEND SUCCESS ==========');
+      console.log('[Push Backend] Registration successful:', response);
     } catch (error) {
-      console.error('[Push] ========== REGISTER TOKEN WITH BACKEND FAILED ==========');
-      console.error('[Push] Error:', error);
+      console.error('[Push Backend] Registration FAILED:', error);
       throw error;
     }
   }
@@ -300,30 +372,25 @@ class PushNotificationService {
   }
 
   async unregister(): Promise<void> {
-    console.log('[Push] ========== UNREGISTER START ==========');
-    console.log('[Push] Token exists:', !!this.token);
-    console.log('[Push] Token value (first 30 chars):', this.token ? this.token.substring(0, 30) + '...' : 'null');
-    
+    console.log('[Push] Unregistering push notifications...');
     if (!this.token) {
-      console.log('[Push] No token to unregister, skipping API call');
-      console.log('[Push] ========== UNREGISTER SKIPPED ==========');
+      console.log('[Push] No token to unregister, cleaning up listeners');
       this.cleanup();
       return;
     }
 
     const tokenToUnregister = this.token;
+    console.log('[Push] Unregistering token from backend:', tokenToUnregister.substring(0, 30) + '...');
 
     try {
-      console.log('[Push] Calling deviceApiService.unregisterToken()...');
       await deviceApiService.unregisterToken(tokenToUnregister);
-      console.log('[Push] Token unregistered from backend successfully');
-      console.log('[Push] ========== UNREGISTER SUCCESS ==========');
+      console.log('[Push] Token unregistered successfully');
     } catch (error) {
-      console.error('[Push] ========== UNREGISTER FAILED ==========');
-      console.error('[Push] Error:', error);
+      console.error('[Push] Unregister failed:', error);
     }
 
     this.cleanup();
+    console.log('[Push] Cleanup complete');
   }
 
   private cleanup(): void {
@@ -338,6 +405,10 @@ class PushNotificationService {
     if (this.webUnsubscribe) {
       this.webUnsubscribe();
       this.webUnsubscribe = null;
+    }
+    if (this.webMessageHandler && typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.removeEventListener('message', this.webMessageHandler);
+      this.webMessageHandler = null;
     }
     this.token = null;
     this.isInitialized = false;
@@ -359,27 +430,18 @@ class PushNotificationService {
     debugInfo.push(`Token exists: ${!!this.token}`);
     debugInfo.push(`Token (first 20 chars): ${this.token?.substring(0, 20) || 'none'}...`);
     
-    console.log('[Push Debug] ===== SEND TEST NOTIFICATION =====');
-    console.log('[Push Debug] Platform:', Platform.OS);
-    console.log('[Push Debug] Initialized:', this.isInitialized);
-    console.log('[Push Debug] Token exists:', !!this.token);
-    
     if (!this.token) {
       const msg = 'No push token available. Push notifications not initialized.';
-      console.warn('[Push Debug]', msg);
       debugInfo.push(`Error: ${msg}`);
       return { success: false, debugInfo: debugInfo.join('\n') };
     }
     
     try {
-      console.log('[Push Debug] Calling backend API to send test notification...');
       const result = await deviceApiService.sendTestNotification();
-      console.log('[Push Debug] Backend response:', result);
       debugInfo.push(`Backend response: ${JSON.stringify(result)}`);
       return { success: result.success, debugInfo: debugInfo.join('\n') };
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
-      console.error('[Push Debug] Failed to send test notification:', errorMsg);
       debugInfo.push(`Error: ${errorMsg}`);
       return { success: false, debugInfo: debugInfo.join('\n') };
     }

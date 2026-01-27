@@ -6,7 +6,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { DDIcon } from "@/components/DDIcon";
 import { ROUTES } from "@/constants";
 import Constants from "expo-constants";
-import { pushNotificationService } from "@/services/push";
+import { authService } from "@/services/api/authService";
 import { InAppNotificationToast } from "@/components/InAppNotificationToast";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { ThemedText } from "@/components/ThemedText";
@@ -18,6 +18,8 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { UserRole } from "@/types/vms.types";
 import { applyOpacity } from "@/utils/statusStyles";
 import { SupportedLocale } from "@/constants/i18n";
+import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
+import { LanguageChangeOverlay } from '@/components/LanguageChangeOverlay';
 import {
   useNotificationPreferencesQuery,
   useUpdateNotificationPreferencesMutation,
@@ -39,17 +41,13 @@ export default function SettingsScreen({
   onLogout 
 }: SettingsScreenProps) {
   const { theme, isDark, toggleTheme } = useTheme();
-  const { t, locale, setLocale, locales, isRTL } = useTranslation();
+  const { t, locale, setLocale, locales, isRTL, isChangingLanguage } = useTranslation();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NativeStackNavigationProp<{ EditProfile: undefined }>>();
   
   const { data: preferences, isLoading: isLoadingPrefs } = useNotificationPreferencesQuery();
   const updatePreferencesMutation = useUpdateNotificationPreferencesMutation();
   
-  const [isSendingTest, setIsSendingTest] = useState(false);
-  const [testResult, setTestResult] = useState<'success' | 'error' | null>(null);
-  const [showDebugInfo, setShowDebugInfo] = useState(false);
-  const [debugInfo, setDebugInfo] = useState<string>('');
   const [showInAppToast, setShowInAppToast] = useState(false);
   const [toastMessage, setToastMessage] = useState({ title: '', body: '' });
 
@@ -78,7 +76,21 @@ export default function SettingsScreen({
   };
 
   const handleLanguageChange = async (langCode: SupportedLocale) => {
-    await setLocale(langCode);
+    // Persist language preference to server first
+    try {
+      await authService.updateProfile({ language: langCode });
+      console.log('[Settings] Language preference saved to server:', langCode);
+      // Only apply locally if server update succeeded
+      await setLocale(langCode);
+    } catch (error) {
+      console.warn('[Settings] Failed to save language to server:', error);
+      // Show error to user
+      setToastMessage({
+        title: t('common.error'),
+        body: t('settings.languageSaveError') || 'Failed to save language preference. Please try again.',
+      });
+      setShowInAppToast(true);
+    }
   };
 
   const handlePushToggle = (enabled: boolean) => {
@@ -96,65 +108,17 @@ export default function SettingsScreen({
     );
   };
 
-  const handleTestNotification = async () => {
-    setIsSendingTest(true);
-    setTestResult(null);
-    setDebugInfo('');
-    try {
-      const result = await pushNotificationService.sendTestNotification();
-      setDebugInfo(result.debugInfo);
-      
-      if (result.success) {
-        setTestResult('success');
-        setToastMessage({
-          title: 'Test Notification Sent',
-          body: 'Check your device for the notification. If on web dev, notifications may not appear.',
-        });
-        setShowInAppToast(true);
-      } else {
-        setTestResult('error');
-        setToastMessage({
-          title: 'Notification Not Sent',
-          body: result.debugInfo.includes('No push token') 
-            ? 'Push notifications not initialized. Check debug info below.'
-            : 'Failed to send notification. Check debug info below.',
-        });
-        setShowInAppToast(true);
-      }
-      setTimeout(() => setTestResult(null), 5000);
-    } catch (error) {
-      console.error('[Settings] Test notification failed:', error);
-      const errorMsg = error instanceof Error ? error.message : String(error);
-      setDebugInfo(prev => prev + '\nException: ' + errorMsg);
-      setTestResult('error');
-      setToastMessage({
-        title: 'Error',
-        body: errorMsg,
-      });
-      setShowInAppToast(true);
-      setTimeout(() => setTestResult(null), 5000);
-    } finally {
-      setIsSendingTest(false);
-      setShowDebugInfo(true);
-    }
-  };
-
-  const handleShowDebugInfo = () => {
-    const info = pushNotificationService.getDebugInfo();
-    setDebugInfo(info);
-    setShowDebugInfo(true);
-  };
-
   const pushEnabled = preferences?.pushEnabled ?? false;
 
   return (
     <>
+      <LanguageChangeOverlay visible={isChangingLanguage} />
       <InAppNotificationToast
         visible={showInAppToast}
         title={toastMessage.title}
         body={toastMessage.body}
         onDismiss={() => setShowInAppToast(false)}
-        type={testResult === 'success' ? 'success' : testResult === 'error' ? 'error' : 'info'}
+        type="info"
         duration={5000}
       />
       <ScreenScrollView contentContainerStyle={scrollContentStyle}>
@@ -174,27 +138,27 @@ export default function SettingsScreen({
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.profileContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <DirectionalRow style={[styles.profileContainer, { gap: Spacing.md }]}>
           <View style={[styles.avatar, { backgroundColor: theme.primary + '20' }]}>
             <ThemedText style={[Typography.subtitle, { color: theme.primary, fontWeight: '700' }]}>
               {userName.split(' ').map(n => n[0]).join('')}
             </ThemedText>
           </View>
-          <View style={{ flex: 1, marginStart: Spacing.md }}>
-            <ThemedText style={[styles.userName, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+          <View style={{ flex: 1 }}>
+            <ThemedText style={[styles.userName, { color: theme.text }]}>
               {userName}
             </ThemedText>
-            <ThemedText style={[styles.userRole, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[styles.userRole, { color: theme.textSecondary }]}>
               {getRoleLabel(userRole)}
             </ThemedText>
             <Spacer height={2} />
             {userEmail ? (
-              <ThemedText style={[styles.userEmail, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[styles.userEmail, { color: theme.textSecondary }]}>
                 {userEmail}
               </ThemedText>
             ) : null}
           </View>
-        </View>
+        </DirectionalRow>
 
         <Spacer height={Spacing.md} />
 
@@ -204,7 +168,8 @@ export default function SettingsScreen({
             { 
               borderColor: theme.primary,
               opacity: pressed ? 0.7 : 1,
-              flexDirection: isRTL ? 'row-reverse' : 'row',
+              flexDirection: getFlexDirection(isRTL),
+              gap: Spacing.xs,
             },
           ]}
           onPress={() => navigation.navigate(ROUTES.EDIT_PROFILE as never)}
@@ -223,12 +188,12 @@ export default function SettingsScreen({
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.settingItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <DirectionalRow style={[styles.settingItem, { gap: Spacing.md }]}>
           <View style={{ flex: 1 }}>
-            <ThemedText style={[styles.settingLabel, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[styles.settingLabel, { color: theme.text }]}>
               {t('settings.darkMode')}
             </ThemedText>
-            <ThemedText style={[styles.settingDescription, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[styles.settingDescription, { color: theme.textSecondary }]}>
               {t('settings.darkModeDesc')}
             </ThemedText>
           </View>
@@ -239,20 +204,20 @@ export default function SettingsScreen({
             thumbColor={isDark ? theme.primary : theme.buttonText}
             ios_backgroundColor={theme.border}
           />
-        </View>
+        </DirectionalRow>
 
         <View style={[styles.sectionDivider, { backgroundColor: theme.surfaceSecondary }]} />
 
-        <View style={[styles.settingItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <DirectionalRow style={styles.settingItem}>
           <View style={{ flex: 1 }}>
-            <ThemedText style={[styles.settingLabel, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[styles.settingLabel, { color: theme.text }]}>
               {t('settings.language')}
             </ThemedText>
-            <ThemedText style={[styles.settingDescription, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[styles.settingDescription, { color: theme.textSecondary }]}>
               {t('settings.languageDesc')}
             </ThemedText>
           </View>
-        </View>
+        </DirectionalRow>
         
         <Spacer height={Spacing.md} />
 
@@ -263,15 +228,16 @@ export default function SettingsScreen({
               style={({ pressed }) => [
                 styles.languageButton,
                 { 
+                  flexDirection: getFlexDirection(isRTL),
+                  justifyContent: 'space-between',
                   backgroundColor: locale === lang.code ? applyOpacity(theme.primary, '15') : theme.background,
                   borderColor: locale === lang.code ? theme.primary : theme.border,
                   opacity: pressed ? 0.8 : 1,
-                  flexDirection: isRTL ? 'row-reverse' : 'row',
                 },
               ]}
               onPress={() => handleLanguageChange(lang.code)}
             >
-              <ThemedText style={[styles.languageLabel, { color: locale === lang.code ? theme.primary : theme.text }]}>
+              <ThemedText style={[styles.languageLabel, { color: locale === lang.code ? theme.primary : theme.text, flex: 1 }]}>
                 {lang.nativeName}
               </ThemedText>
               {locale === lang.code ? (
@@ -289,12 +255,12 @@ export default function SettingsScreen({
 
         <Spacer height={Spacing.md} />
 
-        <View style={[styles.settingItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <DirectionalRow style={[styles.settingItem, { gap: Spacing.md }]}>
           <View style={{ flex: 1 }}>
-            <ThemedText style={[styles.settingLabel, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[styles.settingLabel, { color: theme.text }]}>
               {t('settings.pushNotifications')}
             </ThemedText>
-            <ThemedText style={[styles.settingDescription, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[styles.settingDescription, { color: theme.textSecondary }]}>
               {t('settings.pushNotificationsDesc')}
             </ThemedText>
           </View>
@@ -309,83 +275,7 @@ export default function SettingsScreen({
               ios_backgroundColor={theme.border}
             />
           )}
-        </View>
-
-        <View style={[styles.sectionDivider, { backgroundColor: theme.surfaceSecondary }]} />
-
-        <Pressable
-          style={({ pressed }) => [
-            styles.testNotificationButton,
-            { 
-              backgroundColor: testResult === 'success' 
-                ? theme.success 
-                : testResult === 'error' 
-                  ? theme.error 
-                  : theme.primary,
-              opacity: pressed ? 0.8 : 1,
-              flexDirection: isRTL ? 'row-reverse' : 'row',
-            },
-          ]}
-          onPress={handleTestNotification}
-          disabled={isSendingTest}
-        >
-          {isSendingTest ? (
-            <ActivityIndicator size="small" color={theme.buttonText} />
-          ) : testResult === 'success' ? (
-            <DDIcon name="check-circle" size={18} color={theme.buttonText} />
-          ) : testResult === 'error' ? (
-            <DDIcon name="alert-circle" size={18} color={theme.buttonText} />
-          ) : (
-            <DDIcon name="bell" size={18} color={theme.buttonText} />
-          )}
-          <ThemedText style={[styles.testNotificationText, { color: theme.buttonText, marginStart: Spacing.sm }]}>
-            {isSendingTest 
-              ? t('settings.sendingTest') 
-              : testResult === 'success' 
-                ? t('settings.testSent')
-                : testResult === 'error'
-                  ? t('settings.testFailed')
-                  : t('settings.testNotification')}
-          </ThemedText>
-        </Pressable>
-
-        {Platform.OS === 'web' ? null : (
-          <>
-            <Spacer height={Spacing.sm} />
-            <ThemedText style={[styles.testNotificationHint, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-              {t('settings.testNotificationHint')}
-            </ThemedText>
-          </>
-        )}
-
-        <Spacer height={Spacing.md} />
-
-        <Pressable
-          style={({ pressed }) => [
-            styles.debugButton,
-            { 
-              backgroundColor: theme.surfaceSecondary,
-              opacity: pressed ? 0.8 : 1,
-            },
-          ]}
-          onPress={handleShowDebugInfo}
-        >
-          <DDIcon name="info" size={16} color={theme.textSecondary} />
-          <ThemedText style={[styles.debugButtonText, { color: theme.textSecondary }]}>
-            {showDebugInfo ? 'Hide Debug Info' : 'Show Debug Info'}
-          </ThemedText>
-        </Pressable>
-
-        {showDebugInfo && debugInfo ? (
-          <>
-            <Spacer height={Spacing.sm} />
-            <View style={[styles.debugInfoContainer, { backgroundColor: theme.background, borderColor: theme.border }]}>
-              <ThemedText style={[styles.debugInfoText, { color: theme.textSecondary }]}>
-                {debugInfo}
-              </ThemedText>
-            </View>
-          </>
-        ) : null}
+        </DirectionalRow>
 
       </ThemedView>
 
@@ -398,7 +288,7 @@ export default function SettingsScreen({
             { 
               backgroundColor: theme.error,
               opacity: pressed ? 0.8 : 1,
-              flexDirection: isRTL ? 'row-reverse' : 'row',
+              flexDirection: getFlexDirection(isRTL),
             },
           ]}
           onPress={onLogout}
@@ -446,7 +336,6 @@ const styles = StyleSheet.create({
     marginVertical: Spacing.md,
   },
   profileContainer: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
   avatar: {
@@ -468,7 +357,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   editProfileButton: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
@@ -482,7 +370,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   settingItem: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
@@ -498,7 +385,6 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   languageButton: {
-    flexDirection: 'row',
     alignItems: 'center',
     padding: Spacing.md,
     borderRadius: 10,
@@ -575,14 +461,12 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.xs,
   },
   logoutButton: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     padding: Spacing.lg,
     borderRadius: BorderRadius.md,
   },
   testNotificationButton: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: Spacing.md,
@@ -598,7 +482,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   debugButton: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: Spacing.sm,

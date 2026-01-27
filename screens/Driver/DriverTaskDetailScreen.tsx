@@ -8,6 +8,7 @@ import { LoadingButton } from '@/components/shared/LoadingButton';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import Spacer from '@/components/Spacer';
+import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 import { Spacing, BorderRadius, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -36,8 +37,7 @@ export default function DriverTaskDetailScreen({
 }: DriverTaskDetailScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { isRTL } = useLanguage();
-  const { formatDate, formatTime } = useFormatters();
+  const { isRTL } = useLanguage();  const { formatDate, formatTime } = useFormatters();
   const insets = useSafeAreaInsets();
   const [task, setTask] = useState<ValetRequest | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -144,17 +144,17 @@ export default function DriverTaskDetailScreen({
   const isTerminalStatus = task.status === 'completed' || task.status === 'cancelled';
 
   const renderInfoRow = (icon: string, label: string, value: string, iconVariant: 'muted' | 'primary' | 'success' = 'muted') => (
-    <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+    <DirectionalRow style={styles.infoRow}>
       <DDIcon name={icon as IconName} variant={iconVariant} size={20} />
       <View style={{ flex: 1, marginStart: Spacing.md }}>
-        <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginBottom: 2, textAlign: isRTL ? 'right' : 'left' }]}>
+        <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginBottom: 2 }]}>
           {label}
         </ThemedText>
-        <ThemedText style={[Typography.body, { fontWeight: '500', textAlign: isRTL ? 'right' : 'left' }]}>
+        <ThemedText style={[Typography.body, { fontWeight: '500' }]}>
           {value}
         </ThemedText>
       </View>
-    </View>
+    </DirectionalRow>
   );
 
   const renderParkingModal = () => (
@@ -164,16 +164,16 @@ export default function DriverTaskDetailScreen({
       transparent={true}
       onRequestClose={() => setShowParkingModal(false)}
     >
-      <View style={styles.modalOverlay}>
+      <View style={styles.modalOverlay} pointerEvents="box-none">
         <ThemedView style={[styles.modalContent, { backgroundColor: theme.background }]}>
-          <View style={[styles.modalHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <DirectionalRow style={styles.modalHeader}>
             <ThemedText style={[Typography.subtitle, { fontWeight: '600' }]}>
               {t('parking.assignSlot')}
             </ThemedText>
             <Pressable onPress={() => setShowParkingModal(false)} hitSlop={8}>
               <DDIcon name="x" size={24} variant="muted" />
             </Pressable>
-          </View>
+          </DirectionalRow>
 
           <Spacer height={Spacing.lg} />
 
@@ -182,17 +182,17 @@ export default function DriverTaskDetailScreen({
               {availableSlots.map((slot) => (
                 <Pressable
                   key={slot.id}
-                  style={[styles.slotCard, { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
+                  style={[styles.slotCard, { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: getFlexDirection(isRTL) }]}
                   onPress={() => handleSelectSlot(slot)}
                 >
                   <View style={[styles.slotIcon, { backgroundColor: applyOpacity(theme.success, '15') }]}>
                     <DDIcon name="check-circle" size={20} color={theme.success} />
                   </View>
                   <View style={{ flex: 1 }}>
-                    <ThemedText style={[Typography.body, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
+                    <ThemedText style={[Typography.body, { fontWeight: '600' }]}>
                       {slot.slotNumber}
                     </ThemedText>
-                    <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+                    <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
                       {slot.zone}
                     </ThemedText>
                   </View>
@@ -221,7 +221,7 @@ export default function DriverTaskDetailScreen({
         paddingTop: insets.top + Spacing.xl,
         paddingBottom: insets.bottom + Spacing.xl + 100
       }}>
-        <Pressable onPress={onNavigateBack} style={[styles.backButton, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <Pressable onPress={onNavigateBack} style={[styles.backButton, { flexDirection: getFlexDirection(isRTL) }]}>
           <DDIcon name="arrow-left" variant="primary" directionAware />
           <ThemedText style={[Typography.body, { color: theme.primary, marginStart: Spacing.xs }]}>
             {t('common.back')}
@@ -230,12 +230,12 @@ export default function DriverTaskDetailScreen({
 
         <Spacer height={Spacing.xl} />
 
-        <View style={[styles.headerSection, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <DirectionalRow style={styles.headerSection}>
           <View style={{ flex: 1 }}>
-            <ThemedText style={[Typography.title, { fontSize: 22, fontWeight: '600', textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.title, { fontSize: 22, fontWeight: '600' }]}>
               {task.visitorName}
             </ThemedText>
-            <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 4, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 4 }]}>
               {task.visitorCompany}
             </ThemedText>
           </View>
@@ -244,7 +244,7 @@ export default function DriverTaskDetailScreen({
               {statusConfig.label}
             </ThemedText>
           </View>
-        </View>
+        </DirectionalRow>
 
         <Spacer height={Spacing.xl} />
 
@@ -319,7 +319,7 @@ export default function DriverTaskDetailScreen({
         <Spacer height={Spacing.xl} />
 
         {showAssignedActions ? (
-          <View style={styles.actionsContainer}>
+          <DirectionalRow style={styles.actionsContainer}>
             <LoadingButton
               onPress={handleOpenParkingModal}
               disabled={isUpdating}
@@ -347,7 +347,7 @@ export default function DriverTaskDetailScreen({
             >
               {t('actions.completeTask')}
             </LoadingButton>
-          </View>
+          </DirectionalRow>
         ) : null}
 
         {showAssignedActions ? (
@@ -407,7 +407,7 @@ export default function DriverTaskDetailScreen({
               ? applyOpacity(theme.success, '10') 
               : applyOpacity(theme.textSecondary, '10'),
             borderColor: task.status === 'completed' ? theme.success : theme.textSecondary,
-            flexDirection: isRTL ? 'row-reverse' : 'row'
+            flexDirection: getFlexDirection(isRTL)
           }]}>
             <DDIcon 
               name={task.status === 'completed' ? 'check-circle' : 'x-circle'} 
@@ -432,11 +432,9 @@ export default function DriverTaskDetailScreen({
 
 const styles = StyleSheet.create({
   backButton: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
   headerSection: {
-    flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
   },
@@ -458,14 +456,12 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
   },
   infoRow: {
-    flexDirection: 'row',
     alignItems: 'flex-start',
   },
   actionsContainer: {
-    flexDirection: 'row',
+    alignItems: 'center',
   },
   actionButton: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: Spacing.lg,
@@ -473,7 +469,6 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.lg,
   },
   statusCard: {
-    flexDirection: 'row',
     alignItems: 'center',
     padding: Spacing.lg,
     borderRadius: BorderRadius.lg,
@@ -498,7 +493,6 @@ const styles = StyleSheet.create({
     maxHeight: '70%',
   },
   modalHeader: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
@@ -506,7 +500,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   slotCard: {
-    flexDirection: 'row',
     alignItems: 'center',
     padding: Spacing.lg,
     borderRadius: BorderRadius.lg,

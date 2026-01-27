@@ -85,6 +85,9 @@ export interface TranslationKeys {
     savedSuccessfully: string;
     errorOccurred: string;
     errorLoadingData: string;
+    today: string;
+    others: string;
+    other: string;
   };
   bulkActions: {
     selectMode: string;
@@ -530,6 +533,180 @@ export interface TranslationKeys {
       securityAccessUpdate: string;
       securityGatePass: string;
     };
+    templates: {
+      request_created: {
+        title: string;
+        message: string;
+      };
+      request_approved: {
+        title: string;
+        message: string;
+      };
+      request_rejected: {
+        title: string;
+        message: string;
+      };
+      request_cancelled: {
+        title: string;
+        message: string;
+      };
+      request_updated: {
+        title: string;
+        message: string;
+      };
+      request_modified: {
+        title: string;
+        titleError: string;
+        message: string;
+        messageError: string;
+      };
+      pending_approval: {
+        title: string;
+        message: string;
+      };
+      visitor_accepted: {
+        title: string;
+        message: string;
+      };
+      visitor_rejected: {
+        title: string;
+        message: string;
+      };
+      visitor_arrival: {
+        title: string;
+        message: string;
+      };
+      visitor_no_show: {
+        title: string;
+        message: string;
+      };
+      walk_in_registered: {
+        title: string;
+        message: string;
+      };
+      check_in: {
+        title: string;
+        message: string;
+      };
+      check_out: {
+        title: string;
+        message: string;
+      };
+      reminder_tomorrow: {
+        title: string;
+        message: string;
+      };
+      reminder_2hours: {
+        title: string;
+        message: string;
+      };
+      reminder_30min: {
+        title: string;
+        message: string;
+      };
+      reminder_now: {
+        title: string;
+        message: string;
+      };
+      expected_today: {
+        title: string;
+        message: string;
+      };
+      visitor_reminder: {
+        title: string;
+        titleFinal: string;
+        message: string;
+        messageFinal: string;
+      };
+      auto_cancelled: {
+        title: string;
+        message: string;
+      };
+      room_booked: {
+        title: string;
+        message: string;
+      };
+      room_reminder: {
+        title: string;
+        message: string;
+      };
+      room_cancelled: {
+        title: string;
+        message: string;
+      };
+      room_conflict: {
+        title: string;
+        message: string;
+      };
+      room_reassigned: {
+        title: string;
+        message: string;
+      };
+      parking_assigned: {
+        title: string;
+        message: string;
+      };
+      parking_full: {
+        title: string;
+        message: string;
+      };
+      buffet_new_request: {
+        title: string;
+        message: string;
+      };
+      buffet_task_assigned: {
+        title: string;
+        message: string;
+      };
+      buffet_scheduled: {
+        title: string;
+        message: string;
+      };
+      buffet_completed: {
+        title: string;
+        message: string;
+      };
+      buffet_request_created: {
+        title: string;
+        message: string;
+      };
+      buffet_status_update: {
+        title: string;
+        message: string;
+      };
+      buffet_staff_update: {
+        title: string;
+        message: string;
+      };
+      valet_new_request: {
+        title: string;
+        message: string;
+      };
+      valet_task_assigned: {
+        title: string;
+        message: string;
+      };
+      valet_scheduled: {
+        title: string;
+        message: string;
+      };
+      valet_completed: {
+        title: string;
+        message: string;
+      };
+      valet_cancelled: {
+        title: string;
+        message: string;
+      };
+      security_access_update: {
+        title: string;
+        message: string;
+      };
+      security_gate_pass: {
+        title: string;
+        message: string;
+      };
+    };
   };
   settings: {
     title: string;
@@ -700,6 +877,10 @@ export interface TranslationKeys {
     at: string;
     dateAndTime: string;
     selectDate: string;
+    selectTime: string;
+    am: string;
+    pm: string;
+    quickSelect: string;
     justNow: string;
     minutesAgo: string;
     hoursAgo: string;

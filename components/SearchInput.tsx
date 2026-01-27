@@ -4,6 +4,8 @@ import { DDIcon } from '@/components/DDIcon';
 import { Spacing, BorderRadius } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { ArabicFontScaling } from '@/utils/rtlStyles';
+import { DirectionalRow } from '@/components/DirectionalRow';
 
 const INPUT_HEIGHT = 56;
 const INPUT_FONT_SIZE = 17;
@@ -45,8 +47,41 @@ export function SearchInput({
     onClear?.();
   };
 
+  // Scale font size for Arabic
+  const scaledFontSize = isRTL 
+    ? Math.round(INPUT_FONT_SIZE * ArabicFontScaling.body * 10) / 10 
+    : INPUT_FONT_SIZE;
+
+  const searchIcon = <DDIcon name="search" size={ICON_SIZE} variant="muted" />;
+  const inputEl = (
+    <TextInput
+      style={[
+        styles.input,
+        { 
+          color: theme.text,
+          
+          writingDirection: isRTL ? 'rtl' : 'ltr',
+          fontSize: scaledFontSize,
+        },
+        Platform.OS === 'web' ? { outlineStyle: 'none' } as any : {},
+      ]}
+      placeholder={placeholder}
+      placeholderTextColor={theme.textSecondary}
+      value={value}
+      onChangeText={onChangeText}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
+      {...textInputProps}
+    />
+  );
+  const clearButton = showClearButton && value && value.length > 0 ? (
+    <Pressable onPress={handleClear} hitSlop={8}>
+      <DDIcon name="x" size={18} variant="muted" />
+    </Pressable>
+  ) : null;
+
   return (
-    <View
+    <DirectionalRow
       style={[
         styles.container,
         {
@@ -56,38 +91,17 @@ export function SearchInput({
         },
         containerStyle,
       ]}
+      alignItems="center"
     >
-      <DDIcon name="search" size={ICON_SIZE} variant="muted" />
-      <TextInput
-        style={[
-          styles.input,
-          { 
-            color: theme.text,
-            textAlign: isRTL ? 'right' : 'left',
-            writingDirection: isRTL ? 'rtl' : 'ltr',
-          },
-          Platform.OS === 'web' ? { outlineStyle: 'none' } as any : {},
-        ]}
-        placeholder={placeholder}
-        placeholderTextColor={theme.textSecondary}
-        value={value}
-        onChangeText={onChangeText}
-        onFocus={handleFocus}
-        onBlur={handleBlur}
-        {...textInputProps}
-      />
-      {showClearButton && value && value.length > 0 ? (
-        <Pressable onPress={handleClear} hitSlop={8}>
-          <DDIcon name="x" size={18} variant="muted" />
-        </Pressable>
-      ) : null}
-    </View>
+      {searchIcon}
+      {inputEl}
+      {clearButton}
+    </DirectionalRow>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.md,
     height: INPUT_HEIGHT,

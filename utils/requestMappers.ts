@@ -50,6 +50,16 @@ export type VisitorRequestWithPending = VisitorRequest & {
 };
 
 export const mapVisitDetailsToVisitorRequest = (visit: VisitDetailsDto): VisitorRequestWithPending => {
+  // DEBUG: Trace parking data from API
+  console.log('[DEBUG mapVisitDetailsToVisitorRequest] Parking data from API:', {
+    visitorNeedsParking: visit.visitorNeedsParking,
+    isVisitorNeedsParking: visit.isVisitorNeedsParking,
+    licensePlate: visit.licensePlate,
+    carModel: visit.carModel,
+    carColor: visit.carColor,
+    parkingType: (visit as any).parkingType,
+  });
+  
   return {
     id: visit.id,
     employeeId: visit.employeeId,
@@ -93,17 +103,24 @@ export const mapVisitDetailsToVisitorRequest = (visit: VisitDetailsDto): Visitor
         || '',
       status: visit.meetingBooking?.status,
     } : undefined,
-    meetingRoomPending: (isEmptyObject(visit.meetingBooking) || isEmptyObject(visit.meetingRoom)) &&
-      !hasValidData(visit.meetingBooking) && !hasValidData(visit.meetingRoom),
+    meetingRoomPending: visit.isMeetingRoom === true && 
+      !hasValidData(visit.meetingRoom) && !hasValidData(visit.meetingBooking),
+    isMeetingRoom: visit.isMeetingRoom ?? hasValidData(visit.meetingRoom) ?? hasValidData(visit.meetingBooking),
     buffet: hasValidData(visit.buffet) ? {
       id: visit.buffet!.id,
       mealType: (visit.buffet!.mealType as BuffetMealType) || DEFAULT_MEAL_TYPE,
       location: visit.buffet!.location,
       status: (visit.buffet as any)?.status,
     } : undefined,
-    buffetPending: isEmptyObject(visit.buffet) && !hasValidData(visit.buffet),
+    buffetPending: false,
+    isBuffet: visit.isBuffet ?? hasValidData(visit.buffet),
     valet: undefined,
     qrCode: visit.qrCode,
+    visitorNeedsParking: visit.visitorNeedsParking ?? false,
+    isVisitorNeedsParking: visit.isVisitorNeedsParking ?? visit.visitorNeedsParking ?? false,
+    licensePlate: visit.licensePlate ?? undefined,
+    carModel: visit.carModel ?? undefined,
+    carColor: visit.carColor ?? undefined,
     approval: {
       requiresApproval: visit.approval?.requiresApproval ?? true,
       autoApproved: visit.approval?.autoApproved ?? false,

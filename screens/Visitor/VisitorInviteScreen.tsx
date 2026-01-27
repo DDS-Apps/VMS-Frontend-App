@@ -14,6 +14,7 @@ import { useFormatters } from "@/hooks/useFormatters";
 import { DDIcon } from "@/components/DDIcon";
 import { usePublicInviteQuery, useAcceptInviteMutation, useRejectInviteMutation } from "@/hooks/queries";
 import type { PublicInviteDto, VisitorParkingOption } from "@/types/api.types";
+import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 
 // Dallah Albaraka Light Theme Colors for this page
 const PageColors = {
@@ -38,6 +39,7 @@ interface RejectModalProps {
   onCancel: () => void;
   onConfirm: (reason: string) => void;
   isLoading: boolean;
+  isRTL?: boolean;
   translations: {
     title: string;
     subtitle: string;
@@ -52,11 +54,11 @@ const RejectModal = memo(function RejectModal({
   onCancel,
   onConfirm,
   isLoading,
+  isRTL = false,
   translations,
 }: RejectModalProps) {
   const [localReason, setLocalReason] = useState('');
   const wasLoadingRef = React.useRef(false);
-
   // Only reset localReason when modal closes AND we're not in loading state
   // This prevents clearing the input during submission
   useEffect(() => {
@@ -117,10 +119,10 @@ const RejectModal = memo(function RejectModal({
               disabled={isLoading}
             >
               {isLoading ? (
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <DirectionalRow style={{ alignItems: 'center', gap: 8 }}>
                   <DDIcon name="loader" size={16} color="#FFFFFF" />
                   <ThemedText style={modalStyles.confirmText}>{translations.confirm}</ThemedText>
-                </View>
+                </DirectionalRow>
               ) : (
                 <ThemedText style={modalStyles.confirmText}>{translations.confirm}</ThemedText>
               )}
@@ -217,6 +219,7 @@ interface ParkingSelectionModalProps {
     carColor?: string;
   }) => void;
   isLoading: boolean;
+  isRTL?: boolean;
   translations: {
     title: string;
     noParking: string;
@@ -235,6 +238,7 @@ const ParkingSelectionModal = memo(function ParkingSelectionModal({
   onCancel,
   onConfirm,
   isLoading,
+  isRTL = false,
   translations,
 }: ParkingSelectionModalProps) {
   const [selectedOption, setSelectedOption] = useState<VisitorParkingOption | null>(null);
@@ -381,10 +385,10 @@ const ParkingSelectionModal = memo(function ParkingSelectionModal({
                 disabled={!selectedOption || isLoading}
               >
                 {isLoading ? (
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <DirectionalRow style={{ alignItems: 'center', gap: 8 }}>
                     <DDIcon name="loader" size={16} color="#FFFFFF" />
                     <ThemedText style={modalStyles.confirmText}>{translations.confirm}</ThemedText>
-                  </View>
+                  </DirectionalRow>
                 ) : (
                   <ThemedText style={modalStyles.confirmText}>{translations.confirm}</ThemedText>
                 )}
@@ -499,18 +503,18 @@ interface InfoRowProps {
 const InfoRow = memo(function InfoRow({ icon, label, value, subValue }: InfoRowProps) {
   const { isRTL } = useLanguage();
   return (
-    <View style={[helperStyles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+    <DirectionalRow style={helperStyles.infoRow}>
       <View style={[helperStyles.infoIconContainer, { marginRight: isRTL ? 0 : Spacing.md, marginLeft: isRTL ? Spacing.md : 0 }]}>
         <DDIcon name={icon as any} size={18} color={PageColors.accent} />
       </View>
       <View style={helperStyles.infoContent}>
-        <ThemedText style={[helperStyles.infoLabel, { textAlign: isRTL ? 'right' : 'left' }]}>{label}</ThemedText>
-        <ThemedText style={[helperStyles.infoValue, { textAlign: isRTL ? 'right' : 'left' }]}>{value}</ThemedText>
+        <ThemedText style={[helperStyles.infoLabel, {}]}>{label}</ThemedText>
+        <ThemedText style={[helperStyles.infoValue, {}]}>{value}</ThemedText>
         {subValue ? (
-          <ThemedText style={[helperStyles.infoSubValue, { textAlign: isRTL ? 'right' : 'left' }]}>{subValue}</ThemedText>
+          <ThemedText style={[helperStyles.infoSubValue, {}]}>{subValue}</ThemedText>
         ) : null}
       </View>
-    </View>
+    </DirectionalRow>
   );
 });
 
@@ -609,8 +613,7 @@ const helperStyles = StyleSheet.create({
 export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { isRTL } = useLanguage();
-  const { formatDate: fmtDate, formatDateShort, formatTimeFromString, formatDateTime } = useFormatters();
+  const { isRTL } = useLanguage();  const { formatDate: fmtDate, formatDateShort, formatTimeFromString, formatDateTime } = useFormatters();
   const insets = useSafeAreaInsets();
   const token = route?.params?.token || route?.params?.visitId;
   
@@ -1479,6 +1482,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
         onCancel={handleCancelReject}
         onConfirm={handleReject}
         isLoading={rejectMutation.isPending}
+        isRTL={isRTL}
         translations={rejectModalTranslations}
       />
       </ContentWrapper>

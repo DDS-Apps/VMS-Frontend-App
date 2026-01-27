@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from "react";
-import { View, StyleSheet, Pressable, TextInput, ScrollView, Modal, FlatList, Alert } from "react-native";
+import { View, StyleSheet, Pressable, TextInput, ScrollView, Modal, FlatList, Alert, useWindowDimensions } from "react-native";
 import { useFocusEffect } from '@react-navigation/native';
 import { ROUTES } from "@/constants";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,6 +8,7 @@ import { DDIcon } from "@/components/DDIcon";
 import { useScreenInsets } from "@/hooks/useScreenInsets";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
 import Spacer from "@/components/Spacer";
 import { ServiceIcons, SelectionCheckbox, StatusAccent, WalkInBadge, SkeletonDashboard, LoadingSpinner, ApprovalActionGroup, LoadingButton, VisitorRequestCard } from "@/components/shared";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
@@ -44,27 +45,38 @@ const LAYOUT = {
 };
 
 
-const DateTimeDisplay = ({ date, time, duration, theme, compact = false, fmtDate, fmtTime, isRTL = false }: { date: string; time: string; duration?: string; theme: Theme; compact?: boolean; fmtDate: (d: Date | string) => string; fmtTime: (t: string) => string; isRTL?: boolean }) => {
+const DateTimeDisplay = ({ date, time, duration, theme, compact = false, fmtDate, fmtTime, isRTL = false }: { date: string; time: string; duration?: string; theme: Theme; compact?: boolean; fmtDate: (d: Date | string) => string; fmtTime: (t: string) => string; isRTL?: boolean }) => {  const calendarIcon = <DDIcon name="calendar" size={compact ? 13 : 14} variant="muted" />;
+  const dateText = (
+    <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
+      {fmtDate(date)}
+    </ThemedText>
+  );
+  const clockIcon = <DDIcon name="clock" size={compact ? 13 : 14} variant="muted" />;
+  const timeText = (
+    <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
+      {fmtTime(time)}
+    </ThemedText>
+  );
+  const durationText = duration ? (
+    <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
+      {duration}
+    </ThemedText>
+  ) : null;
+  
   return (
-    <View style={[styles.dateTimeRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-      <DDIcon name="calendar" size={compact ? 13 : 14} variant="muted" />
-      <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
-        {fmtDate(date)}
-      </ThemedText>
+    <DirectionalRow style={styles.dateTimeRow}>
+      {calendarIcon}
+      {dateText}
       <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
-      <DDIcon name="clock" size={compact ? 13 : 14} variant="muted" />
-      <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
-        {fmtTime(time)}
-      </ThemedText>
+      {clockIcon}
+      {timeText}
       {duration ? (
         <>
           <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
-          <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
-            {duration}
-          </ThemedText>
+          {durationText}
         </>
       ) : null}
-    </View>
+    </DirectionalRow>
   );
 };
 
@@ -84,9 +96,9 @@ const SectionHeader = ({
   theme: Theme;
   t: (key: string) => string;
   isRTL?: boolean;
-}) => (
-  <View style={[styles.header, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-    <View>
+}) => {  
+  const titleContent = (
+    <View style={{ alignItems: isRTL ? 'flex-end' : 'flex-start' }}>
       <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600' }]}>
         {t('navigation.pendingApprovals')}
       </ThemedText>
@@ -94,58 +106,80 @@ const SectionHeader = ({
         {t('dashboard.requestsAwaitingApproval')}
       </ThemedText>
     </View>
-    <View style={[styles.headerActions, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-      <Pressable
-        onPress={onToggleSelectionMode}
+  );
+  
+  const selectButton = (
+    <Pressable
+      onPress={onToggleSelectionMode}
+      style={[
+        styles.selectButton,
+        { 
+          backgroundColor: isSelectionMode ? theme.primary : theme.surfaceSecondary,
+          borderColor: isSelectionMode ? theme.primary : theme.border,
+        }
+      ]}
+    >
+      <ThemedText 
         style={[
-          styles.selectButton,
-          { 
-            backgroundColor: isSelectionMode ? theme.primary : theme.surfaceSecondary,
-            borderColor: isSelectionMode ? theme.primary : theme.border,
-          }
+          styles.selectButtonText, 
+          { color: isSelectionMode ? theme.buttonText : theme.text }
         ]}
       >
-        <ThemedText 
-          style={[
-            styles.selectButtonText, 
-            { color: isSelectionMode ? theme.buttonText : theme.text }
-          ]}
-        >
-          {isSelectionMode ? t('bulkActions.cancelSelection') : t('bulkActions.selectMode')}
-        </ThemedText>
-      </Pressable>
+        {isSelectionMode ? t('bulkActions.cancelSelection') : t('bulkActions.selectMode')}
+      </ThemedText>
+    </Pressable>
+  );
+  
+  const gridButton = (
+    <Pressable
+      onPress={() => onViewModeChange('card')}
+      style={[
+        styles.toggleButton,
+        { backgroundColor: viewMode === 'card' ? theme.primary : 'transparent' }
+      ]}
+    >
+      <DDIcon 
+        name="grid" 
+        size={18} 
+        color={viewMode === 'card' ? theme.buttonText : theme.textSecondary} 
+      />
+    </Pressable>
+  );
+  
+  const listButton = (
+    <Pressable
+      onPress={() => onViewModeChange('list')}
+      style={[
+        styles.toggleButton,
+        { backgroundColor: viewMode === 'list' ? theme.primary : 'transparent' }
+      ]}
+    >
+      <DDIcon 
+        name="list" 
+        size={18} 
+        color={viewMode === 'list' ? theme.buttonText : theme.textSecondary} 
+      />
+    </Pressable>
+  );
+  
+  const actionsContent = (
+    <DirectionalRow style={styles.headerActions}>
+      {selectButton}
       <Spacer width={Spacing.sm} />
-      <View style={[styles.viewModeToggle, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-        <Pressable
-          onPress={() => onViewModeChange('card')}
-          style={[
-            styles.toggleButton,
-            { backgroundColor: viewMode === 'card' ? theme.primary : 'transparent' }
-          ]}
-        >
-          <DDIcon 
-            name="grid" 
-            size={18} 
-            color={viewMode === 'card' ? theme.buttonText : theme.textSecondary} 
-          />
-        </Pressable>
-        <Pressable
-          onPress={() => onViewModeChange('list')}
-          style={[
-            styles.toggleButton,
-            { backgroundColor: viewMode === 'list' ? theme.primary : 'transparent' }
-          ]}
-        >
-          <DDIcon 
-            name="list" 
-            size={18} 
-            color={viewMode === 'list' ? theme.buttonText : theme.textSecondary} 
-          />
-        </Pressable>
-      </View>
-    </View>
-  </View>
-);
+      <DirectionalRow style={styles.viewModeToggle}>
+        {gridButton}
+        {listButton}
+      </DirectionalRow>
+    </DirectionalRow>
+  );
+  
+  return (
+    <DirectionalRow style={styles.header}>
+      {titleContent}
+      {actionsContent}
+    </DirectionalRow>
+  );
+};
 
 const SelectAllBar = ({
   allSelected,
@@ -159,17 +193,19 @@ const SelectAllBar = ({
   theme: Theme;
   t: (key: string) => string;
   isRTL?: boolean;
-}) => (
-  <View style={[styles.selectAllBar, { backgroundColor: theme.surfaceSecondary, flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-    <Pressable onPress={onToggleAll} style={[styles.selectAllButton, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-      <SelectionCheckbox isSelected={allSelected} onToggle={onToggleAll} />
-      <Spacer width={Spacing.sm} />
-      <ThemedText style={[Typography.body, { color: theme.text }]}>
-        {allSelected ? t('bulkActions.deselectAll') : t('bulkActions.selectAll')}
-      </ThemedText>
-    </Pressable>
-  </View>
-);
+}) => {
+  return (
+    <DirectionalRow style={[styles.selectAllBar, { backgroundColor: theme.surfaceSecondary }]}>
+      <Pressable onPress={onToggleAll} style={[styles.selectAllButton, { flexDirection: getFlexDirection(isRTL) }]}>
+        <SelectionCheckbox isSelected={allSelected} onToggle={onToggleAll} />
+        <Spacer width={Spacing.sm} />
+        <ThemedText style={[Typography.body, { color: theme.text }]}>
+          {allSelected ? t('bulkActions.deselectAll') : t('bulkActions.selectAll')}
+        </ThemedText>
+      </Pressable>
+    </DirectionalRow>
+  );
+};
 
 const BulkActionBar = ({
   selectedCount,
@@ -191,57 +227,59 @@ const BulkActionBar = ({
   isProcessing?: boolean;
   processingAction?: 'approve' | 'reject' | null;
   isRTL?: boolean;
-}) => (
-  <View 
-    style={[
-      styles.bulkActionBar,
-      { 
-        bottom: bottomInset + Spacing.md,
-        backgroundColor: theme.surface,
-        borderColor: theme.border,
-      }
-    ]}
-  >
-    <View style={[styles.bulkActionContent, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-      <ThemedText style={[Typography.body, { fontWeight: '600', color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
-        {isProcessing ? t('common.processing') : `${selectedCount} ${t('bulkActions.selected')}`}
-      </ThemedText>
-      <View style={[styles.bulkActionButtons, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-        <Pressable
-          style={[styles.bulkRejectButton, { borderColor: theme.error, opacity: isProcessing ? 0.6 : 1, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
-          onPress={onReject}
-          disabled={isProcessing}
-        >
-          {isProcessing && processingAction === 'reject' ? (
-            <LoadingSpinner size="small" color={theme.error} inline />
-          ) : (
-            <DDIcon name="x" size={16} color={theme.error} />
-          )}
-          <Spacer width={6} />
-          <ThemedText style={[styles.bulkButtonText, { color: theme.error }]}>
-            {t('actions.reject')}
-          </ThemedText>
-        </Pressable>
-        <Spacer width={Spacing.sm} />
-        <Pressable
-          style={[styles.bulkApproveButton, { backgroundColor: theme.success, opacity: isProcessing ? 0.6 : 1, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
-          onPress={onApprove}
-          disabled={isProcessing}
-        >
-          {isProcessing && processingAction === 'approve' ? (
-            <LoadingSpinner size="small" color={theme.buttonText} inline />
-          ) : (
-            <DDIcon name="check" size={16} color={theme.buttonText} />
-          )}
-          <Spacer width={6} />
-          <ThemedText style={[styles.bulkButtonText, { color: theme.buttonText }]}>
-            {t('actions.approve')}
-          </ThemedText>
-        </Pressable>
-      </View>
+}) => {  
+  return (
+    <View 
+      style={[
+        styles.bulkActionBar,
+        { 
+          bottom: bottomInset + Spacing.md,
+          backgroundColor: theme.surface,
+          borderColor: theme.border,
+        }
+      ]}
+    >
+      <DirectionalRow style={styles.bulkActionContent}>
+        <ThemedText style={[Typography.body, { fontWeight: '600', color: theme.text }]}>
+          {isProcessing ? t('common.processing') : `${selectedCount} ${t('bulkActions.selected')}`}
+        </ThemedText>
+        <DirectionalRow style={styles.bulkActionButtons}>
+          <Pressable
+            style={[styles.bulkRejectButton, { borderColor: theme.error, opacity: isProcessing ? 0.6 : 1, flexDirection: getFlexDirection(isRTL) }]}
+            onPress={onReject}
+            disabled={isProcessing}
+          >
+            {isProcessing && processingAction === 'reject' ? (
+              <LoadingSpinner size="small" color={theme.error} inline />
+            ) : (
+              <DDIcon name="x" size={16} color={theme.error} />
+            )}
+            <Spacer width={6} />
+            <ThemedText style={[styles.bulkButtonText, { color: theme.error }]}>
+              {t('actions.reject')}
+            </ThemedText>
+          </Pressable>
+          <Spacer width={Spacing.sm} />
+          <Pressable
+            style={[styles.bulkApproveButton, { backgroundColor: theme.success, opacity: isProcessing ? 0.6 : 1, flexDirection: getFlexDirection(isRTL) }]}
+            onPress={onApprove}
+            disabled={isProcessing}
+          >
+            {isProcessing && processingAction === 'approve' ? (
+              <LoadingSpinner size="small" color={theme.buttonText} inline />
+            ) : (
+              <DDIcon name="check" size={16} color={theme.buttonText} />
+            )}
+            <Spacer width={6} />
+            <ThemedText style={[styles.bulkButtonText, { color: theme.buttonText }]}>
+              {t('actions.approve')}
+            </ThemedText>
+          </Pressable>
+        </DirectionalRow>
+      </DirectionalRow>
     </View>
-  </View>
-);
+  );
+};
 
 const ApprovalTableRow = React.memo(({ 
   request, 
@@ -275,120 +313,146 @@ const ApprovalTableRow = React.memo(({
   fmtDate: (d: Date | string) => string;
   fmtTime: (t: string) => string;
   isRTL?: boolean;
-}) => {
+}) => {  
+  const nameText = (
+    <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, flex: 1 }]} numberOfLines={2}>
+      {request.visitor.fullName}
+    </ThemedText>
+  );
+  const walkInBadge = request.isWalkIn ? <WalkInBadge /> : null;
+  
+  const rejectBtn = (
+    <Pressable
+      style={[styles.actionButton, styles.rejectActionButton, { borderColor: theme.error, opacity: isProcessing || isExpired ? 0.5 : 1 }]}
+      onPress={onReject}
+      disabled={isProcessing || isExpired}
+    >
+      <DDIcon name="x" size={16} color={theme.error} />
+    </Pressable>
+  );
+  const approveBtn = (
+    <Pressable
+      style={[styles.actionButton, styles.approveActionButton, { backgroundColor: theme.success, opacity: isProcessing || isExpired ? 0.5 : 1 }]}
+      onPress={onApprove}
+      disabled={isProcessing || isExpired}
+    >
+      <DDIcon name="check" size={16} color={theme.buttonText} />
+    </Pressable>
+  );
+  const detailsBtn = (
+    <Pressable
+      style={[styles.actionButton, styles.detailsActionButton, { borderColor: theme.border }]}
+      onPress={onViewDetails}
+    >
+      <DDIcon name="eye" size={16} variant="muted" />
+    </Pressable>
+  );
+  
+  const statusAccent = <StatusAccent color={theme.primary} />;
+  const checkboxColumn = isSelectionMode ? (
+    <View style={styles.tableCheckboxColumn}>
+      <SelectionCheckbox isSelected={isSelected} onToggle={onToggleSelection} />
+    </View>
+  ) : null;
+  
+  const fixedColumnContent = (
+    <View style={[styles.fixedColumn, { width: isSelectionMode ? LAYOUT.tableFixedColumnWidth - 40 : LAYOUT.tableFixedColumnWidth }]}>
+      <View style={styles.fixedColumnContent}>
+        <View style={{ flex: 1 }}>
+          <DirectionalRow style={styles.nameWithBadge}>
+            {nameText}
+            {walkInBadge}
+          </DirectionalRow>
+          <Spacer height={6} />
+          <DateTimeDisplay 
+            date={request.visitDate} 
+            time={request.visitTime} 
+            theme={theme} 
+            compact 
+            fmtDate={fmtDate}
+            fmtTime={fmtTime}
+            isRTL={isRTL}
+          />
+        </View>
+      </View>
+    </View>
+  );
+  
+  const scrollableContent = (
+    <ScrollView 
+      horizontal 
+      showsHorizontalScrollIndicator={true}
+      style={styles.scrollableColumns}
+      contentContainerStyle={styles.scrollableColumnsContent}
+      persistentScrollbar={true}
+      nestedScrollEnabled={true}
+      directionalLockEnabled={true}
+      scrollEventThrottle={16}
+      keyboardShouldPersistTaps="handled"
+    >
+      <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
+        <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
+          {t('form.company').toUpperCase()}
+        </ThemedText>
+        <Spacer height={10} />
+        <ThemedText style={[styles.columnValue, { fontSize: 15 }]} numberOfLines={2}>
+          {request.visitor.company || '-'}
+        </ThemedText>
+      </View>
+
+      <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
+        <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
+          {t('dashboard.requestedBy').toUpperCase()}
+        </ThemedText>
+        <Spacer height={10} />
+        <ThemedText style={[styles.columnValue, { fontSize: 15 }]} numberOfLines={2}>
+          {request.employeeName}
+        </ThemedText>
+      </View>
+
+      <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
+        <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
+          {t('form.purpose').toUpperCase()}
+        </ThemedText>
+        <Spacer height={10} />
+        <ThemedText style={[styles.columnValue, { fontSize: 15 }]} numberOfLines={3}>
+          {request.purpose}
+        </ThemedText>
+      </View>
+
+      <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
+        <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
+          {t('services.additionalServices').toUpperCase()}
+        </ThemedText>
+        <Spacer height={10} />
+        <ServiceIcons parkingSlot={request.parkingSlot} meetingRoom={request.meetingRoom} buffet={request.buffet} valet={request.valet} size={16} />
+      </View>
+
+      {!isSelectionMode ? (
+        <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
+          <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
+            {t('common.actions').toUpperCase()}
+          </ThemedText>
+          <Spacer height={10} />
+          <DirectionalRow style={styles.actionsRow}>
+            {rejectBtn}
+            <Spacer width={Spacing.sm} />
+            {approveBtn}
+            <Spacer width={Spacing.sm} />
+            {detailsBtn}
+          </DirectionalRow>
+        </View>
+      ) : null}
+    </ScrollView>
+  );
+  
   return (
     <Pressable onLongPress={onLongPress}>
-      <ThemedView style={[styles.tableRow, { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-        <StatusAccent color={theme.primary} />
-        
-        {isSelectionMode ? (
-          <View style={styles.tableCheckboxColumn}>
-            <SelectionCheckbox isSelected={isSelected} onToggle={onToggleSelection} />
-          </View>
-        ) : null}
-        
-        <View style={[styles.fixedColumn, { width: isSelectionMode ? LAYOUT.tableFixedColumnWidth - 40 : LAYOUT.tableFixedColumnWidth }]}>
-          <View style={styles.fixedColumnContent}>
-            <View style={{ flex: 1 }}>
-              <View style={[styles.nameWithBadge, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, flex: 1, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={2}>
-                  {request.visitor.fullName}
-                </ThemedText>
-                {request.isWalkIn ? <WalkInBadge /> : null}
-              </View>
-              <Spacer height={6} />
-              <DateTimeDisplay 
-                date={request.visitDate} 
-                time={request.visitTime} 
-                theme={theme} 
-                compact 
-                fmtDate={fmtDate}
-                fmtTime={fmtTime}
-                isRTL={isRTL}
-              />
-            </View>
-          </View>
-        </View>
-
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={true}
-          style={styles.scrollableColumns}
-          contentContainerStyle={styles.scrollableColumnsContent}
-          persistentScrollbar={true}
-          nestedScrollEnabled={true}
-        >
-          <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
-            <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
-              {t('form.company').toUpperCase()}
-            </ThemedText>
-            <Spacer height={10} />
-            <ThemedText style={[styles.columnValue, { fontSize: 15 }]} numberOfLines={2}>
-              {request.visitor.company || '-'}
-            </ThemedText>
-          </View>
-
-          <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
-            <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
-              {t('dashboard.requestedBy').toUpperCase()}
-            </ThemedText>
-            <Spacer height={10} />
-            <ThemedText style={[styles.columnValue, { fontSize: 15 }]} numberOfLines={2}>
-              {request.employeeName}
-            </ThemedText>
-          </View>
-
-          <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
-            <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
-              {t('form.purpose').toUpperCase()}
-            </ThemedText>
-            <Spacer height={10} />
-            <ThemedText style={[styles.columnValue, { fontSize: 15 }]} numberOfLines={3}>
-              {request.purpose}
-            </ThemedText>
-          </View>
-
-          <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
-            <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
-              {t('services.additionalServices').toUpperCase()}
-            </ThemedText>
-            <Spacer height={10} />
-            <ServiceIcons parkingSlot={request.parkingSlot} meetingRoom={request.meetingRoom} buffet={request.buffet} valet={request.valet} size={16} />
-          </View>
-
-          {!isSelectionMode ? (
-            <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
-              <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
-                {t('common.actions').toUpperCase()}
-              </ThemedText>
-              <Spacer height={10} />
-              <View style={[styles.actionsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                <Pressable
-                  style={[styles.actionButton, styles.rejectActionButton, { borderColor: theme.error, opacity: isProcessing || isExpired ? 0.5 : 1 }]}
-                  onPress={onReject}
-                  disabled={isProcessing || isExpired}
-                >
-                  <DDIcon name="x" size={16} color={theme.error} />
-                </Pressable>
-                <Spacer width={Spacing.sm} />
-                <Pressable
-                  style={[styles.actionButton, styles.approveActionButton, { backgroundColor: theme.success, opacity: isProcessing || isExpired ? 0.5 : 1 }]}
-                  onPress={onApprove}
-                  disabled={isProcessing || isExpired}
-                >
-                  <DDIcon name="check" size={16} color={theme.buttonText} />
-                </Pressable>
-                <Spacer width={Spacing.sm} />
-                <Pressable
-                  style={[styles.actionButton, styles.detailsActionButton, { borderColor: theme.border }]}
-                  onPress={onViewDetails}
-                >
-                  <DDIcon name="eye" size={16} variant="muted" />
-                </Pressable>
-              </View>
-            </View>
-          ) : null}
-        </ScrollView>
+      <ThemedView style={[styles.tableRow, { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: getFlexDirection(isRTL) }]}>
+        {statusAccent}
+        {checkboxColumn}
+        {fixedColumnContent}
+        {scrollableContent}
       </ThemedView>
     </Pressable>
   );
@@ -511,7 +575,7 @@ const RejectRequestModal = ({
 
             <Spacer height={Spacing.xl} />
 
-            <View style={[styles.rejectModalActions, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <DirectionalRow style={styles.rejectModalActions}>
               <LoadingButton
                 onPress={handleCancel}
                 variant="outline"
@@ -533,7 +597,7 @@ const RejectRequestModal = ({
               >
                 {t('common.confirm')}
               </LoadingButton>
-            </View>
+            </DirectionalRow>
           </ThemedView>
         </Pressable>
       </Pressable>
@@ -549,6 +613,8 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
   const insets = useSafeAreaInsets();
   const { paddingTop, paddingBottom } = useScreenInsets();
   const { user } = useAuth();
+  const { width: screenWidth } = useWindowDimensions();
+  const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const [isSelectionMode, setIsSelectionMode] = useState(false);
@@ -556,6 +622,8 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [activeRequestId, setActiveRequestId] = useState<string | null>(null);
   const [isBulkReject, setIsBulkReject] = useState(false);
+  const [approvingRequestId, setApprovingRequestId] = useState<string | null>(null);
+  const [rejectingRequestId, setRejectingRequestId] = useState<string | null>(null);
 
   const { 
     data: pendingApprovalsData, 
@@ -639,10 +707,15 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
 
   const handleApprove = (requestId: string) => {
     if (isProcessing) return;
+    setApprovingRequestId(requestId);
     approveMutation.mutate(
       { id: requestId, payload: {} },
       {
+        onSuccess: () => {
+          setApprovingRequestId(null);
+        },
         onError: (error) => {
+          setApprovingRequestId(null);
           Alert.alert(t('errors.somethingWentWrong'), error.message);
         },
       }
@@ -698,14 +771,17 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
         }
       );
     } else if (activeRequestId) {
+      setRejectingRequestId(activeRequestId);
       rejectMutation.mutate(
         { id: activeRequestId, payload: { reason: rejectReason } },
         {
           onSuccess: () => {
             setShowRejectModal(false);
             setActiveRequestId(null);
+            setRejectingRequestId(null);
           },
           onError: (error) => {
+            setRejectingRequestId(null);
             Alert.alert(t('errors.somethingWentWrong'), error.message);
           },
         }
@@ -872,29 +948,35 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
       </View>
       
       <FlatList
+        key={`flatlist-${numColumns}`}
         data={filteredRequests}
         keyExtractor={(item) => item.id}
+        numColumns={numColumns}
         renderItem={({ item }) => (
-          <VisitorRequestCard
-            request={item}
-            onPress={() => handleViewDetails(item.id)}
-            onLongPress={() => handleLongPress(item.id)}
-            showRequestedBy
-            showActions={!isSelectionMode}
-            onApprove={() => handleApprove(item.id)}
-            onReject={() => handleReject(item.id)}
-            isProcessing={isProcessing}
-            isExpired={isVisitExpired(item.visitDate, item.visitTime, item.endTime, item.duration)}
-            isSelectionMode={isSelectionMode}
-            isSelected={selectedIds.has(item.id)}
-            onToggleSelection={() => toggleSelection(item.id)}
-            accentColor={theme.primary}
-          />
+          <View style={numColumns > 1 ? { width: numColumns === 2 ? '50%' : '33.33%', flexGrow: 0, marginBottom: LAYOUT.contentGap, paddingRight: Spacing.sm } : { width: '100%' }}>
+            <VisitorRequestCard
+              request={item}
+              onPress={() => handleViewDetails(item.id)}
+              onLongPress={() => handleLongPress(item.id)}
+              showRequestedBy
+              showActions={!isSelectionMode}
+              onApprove={() => handleApprove(item.id)}
+              onReject={() => handleReject(item.id)}
+              isProcessing={isProcessing}
+              approveLoading={approvingRequestId === item.id}
+              rejectLoading={rejectingRequestId === item.id}
+              isExpired={isVisitExpired(item.visitDate, item.visitTime, item.endTime, item.duration)}
+              isSelectionMode={isSelectionMode}
+              isSelected={selectedIds.has(item.id)}
+              onToggleSelection={() => toggleSelection(item.id)}
+              accentColor={theme.primary}
+            />
+          </View>
         )}
         ListHeaderComponent={renderListHeader()}
         ListEmptyComponent={renderEmptyState()}
         ListFooterComponent={<ListLoadingFooter isLoading={isFetchingNextPage} />}
-        ItemSeparatorComponent={() => <Spacer height={LAYOUT.contentGap} />}
+        ItemSeparatorComponent={numColumns === 1 ? () => <Spacer height={LAYOUT.contentGap} /> : undefined}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}
         style={styles.scrollableContent}
@@ -952,12 +1034,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
   },
   headerActions: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
   selectButton: {
@@ -971,7 +1051,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   viewModeToggle: {
-    flexDirection: 'row',
     gap: Spacing.xs,
   },
   toggleButton: {
@@ -981,16 +1060,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-
   selectAllBar: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.sm,
   },
   selectAllButton: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
 
@@ -1016,12 +1092,10 @@ const styles = StyleSheet.create({
   },
 
   nameWithBadge: {
-    flexDirection: 'row',
     alignItems: 'center',
     flexWrap: 'wrap',
   },
   nameWithBadgeCard: {
-    flexDirection: 'row',
     alignItems: 'center',
     flexWrap: 'wrap',
   },
@@ -1039,17 +1113,14 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   bulkActionContent: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: Spacing.md,
   },
   bulkActionButtons: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
   bulkRejectButton: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
@@ -1057,7 +1128,6 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
   },
   bulkApproveButton: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
@@ -1103,7 +1173,6 @@ const styles = StyleSheet.create({
     width: LAYOUT.statusBorderWidth,
   },
   servicesRow: {
-    flexDirection: 'row',
     gap: Spacing.xs,
     flexWrap: 'wrap',
   },
@@ -1112,7 +1181,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dateTimeRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
@@ -1124,7 +1192,6 @@ const styles = StyleSheet.create({
   },
 
   tableRow: {
-    flexDirection: 'row',
     height: LAYOUT.tableRowHeight,
     borderRadius: LAYOUT.cardRadius,
     borderWidth: 1,
@@ -1166,7 +1233,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   actionsRow: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
   actionButton: {
@@ -1200,7 +1266,6 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   cardHeader: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
   avatar: {
@@ -1227,7 +1292,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   employeeRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
   },
@@ -1239,14 +1303,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   cardActions: {
-    flexDirection: 'row',
   },
   cardRejectButton: {
     flex: 1,
     height: 44,
     borderRadius: BorderRadius.md,
     borderWidth: 1.5,
-    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 6,
@@ -1259,7 +1321,6 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 44,
     borderRadius: BorderRadius.md,
-    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 6,
@@ -1327,7 +1388,6 @@ const styles = StyleSheet.create({
     lineHeight: 21,
   },
   modalActions: {
-    flexDirection: 'row',
     width: '100%',
   },
   modalCancelButton: {
@@ -1344,7 +1404,6 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 48,
     borderRadius: BorderRadius.md,
-    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -1386,7 +1445,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   rejectModalActions: {
-    flexDirection: 'row',
     width: '100%',
   },
   rejectModalContent: {

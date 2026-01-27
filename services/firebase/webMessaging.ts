@@ -8,6 +8,118 @@ let messaging: FirebaseMessaging | null = null;
 let firebaseApp: FirebaseApp | null = null;
 let serviceWorkerRegistration: ServiceWorkerRegistration | null = null;
 
+// Browser detection utilities
+interface BrowserInfo {
+  name: 'chrome' | 'firefox' | 'safari' | 'edge' | 'opera' | 'unknown';
+  version: string;
+  isPrivateMode: boolean;
+  supportsWebPush: boolean;
+  supportMessage: string;
+}
+
+function detectBrowser(): BrowserInfo {
+  if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+    return { name: 'unknown', version: '', isPrivateMode: false, supportsWebPush: false, supportMessage: 'Not in browser environment' };
+  }
+
+  const ua = navigator.userAgent;
+  let name: BrowserInfo['name'] = 'unknown';
+  let version = '';
+  let supportsWebPush = true;
+  let supportMessage = 'Web Push supported';
+
+  // Detect browser
+  if (ua.includes('Firefox/')) {
+    name = 'firefox';
+    version = ua.match(/Firefox\/(\d+)/)?.[1] || '';
+    supportMessage = 'Firefox: Web Push supported. Note: Private browsing may block notifications.';
+  } else if (ua.includes('Edg/')) {
+    name = 'edge';
+    version = ua.match(/Edg\/(\d+)/)?.[1] || '';
+    supportMessage = 'Edge: Web Push fully supported.';
+  } else if (ua.includes('Chrome/')) {
+    name = 'chrome';
+    version = ua.match(/Chrome\/(\d+)/)?.[1] || '';
+    supportMessage = 'Chrome: Web Push fully supported.';
+  } else if (ua.includes('Safari/') && !ua.includes('Chrome')) {
+    name = 'safari';
+    version = ua.match(/Version\/(\d+)/)?.[1] || '';
+    const majorVersion = parseInt(version, 10);
+    
+    // Check if iOS/iPadOS
+    const isIOS = /iPhone|iPad|iPod/.test(ua);
+    const iosVersion = ua.match(/OS (\d+)/)?.[1] || '';
+    const iosMajorVersion = parseInt(iosVersion, 10);
+    
+    if (isIOS) {
+      // iOS Safari 16.4+ supports Web Push, BUT only as installed PWA
+      if (iosMajorVersion >= 16) {
+        // Check if running as installed PWA (standalone mode)
+        const isStandalone = (window.navigator as any).standalone === true || 
+                            window.matchMedia('(display-mode: standalone)').matches;
+        
+        if (isStandalone) {
+          supportsWebPush = true;
+          supportMessage = `iOS Safari ${iosMajorVersion}: Web Push supported in installed PWA mode.`;
+        } else {
+          supportsWebPush = false;
+          supportMessage = `iOS Safari ${iosMajorVersion}: Web Push only works when app is installed to Home Screen as PWA. Add this app to your Home Screen to enable notifications.`;
+        }
+      } else {
+        supportsWebPush = false;
+        supportMessage = `iOS Safari ${iosMajorVersion}: Web Push requires iOS 16.4+ and must be installed as PWA. Please use our mobile app for notifications.`;
+      }
+    } else {
+      // macOS Safari
+      if (majorVersion < 16) {
+        supportsWebPush = false;
+        supportMessage = `Safari ${version}: Web Push requires Safari 16+ (macOS Ventura or later). Your version does not support Web Push.`;
+      } else {
+        supportsWebPush = true;
+        supportMessage = `Safari ${version}: Web Push supported on macOS. Note: Notifications must display immediately or permissions may be revoked.`;
+      }
+    }
+  } else if (ua.includes('Opera/') || ua.includes('OPR/')) {
+    name = 'opera';
+    version = ua.match(/OPR\/(\d+)/)?.[1] || ua.match(/Opera\/(\d+)/)?.[1] || '';
+    supportMessage = 'Opera: Web Push supported.';
+  }
+
+  console.log(`[FCM Browser] Detected: ${name} v${version}, Web Push support: ${supportsWebPush}`);
+
+  return { name, version, isPrivateMode: false, supportsWebPush, supportMessage };
+}
+
+// Check for private/incognito mode (IndexedDB may be blocked)
+async function checkPrivateBrowsingMode(): Promise<boolean> {
+  if (typeof window === 'undefined') return false;
+
+  try {
+    // Try to use IndexedDB - it's blocked or limited in private mode on some browsers
+    const testDb = indexedDB.open('test-private-mode');
+    
+    return new Promise((resolve) => {
+      testDb.onerror = () => {
+        console.warn('[FCM Browser] Private browsing detected via IndexedDB test');
+        resolve(true);
+      };
+      testDb.onsuccess = () => {
+        testDb.result.close();
+        indexedDB.deleteDatabase('test-private-mode');
+        resolve(false);
+      };
+      // Timeout after 1 second
+      setTimeout(() => resolve(false), 1000);
+    });
+  } catch {
+    return false;
+  }
+}
+
+export function getBrowserInfo(): BrowserInfo {
+  return detectBrowser();
+}
+
 function isLocalDevEnvironment(): boolean {
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
@@ -22,36 +134,26 @@ function getServiceWorkerUrl(): string {
   }
   
   const { protocol, hostname } = window.location;
-  
-  // On Replit, the proxy strips the port - we need to use the base URL without port
-  // Check if we're on Replit by looking for replit.dev or replit.app in hostname
   const isReplit = hostname.includes('replit.dev') || hostname.includes('replit.app');
   
   if (isReplit) {
-    // Use the full origin without port for Replit
     const baseUrl = `${protocol}//${hostname}`;
-    console.log('[Firebase Web] Replit detected, using base URL:', baseUrl);
     return `${baseUrl}/firebase-messaging-sw.js`;
   }
   
-  // For other environments, use relative path
   return '/firebase-messaging-sw.js';
 }
 
 async function tryRegisterServiceWorker(): Promise<ServiceWorkerRegistration | null> {
   if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
-    console.log('[Firebase Web] Service workers not supported');
     return null;
   }
   
   try {
     const swUrl = getServiceWorkerUrl();
-    console.log('[Firebase Web] Attempting to register service worker at:', swUrl);
     
-    // First check if there's an existing registration
     const existingRegistration = await navigator.serviceWorker.getRegistration('/firebase-cloud-messaging-push-scope');
     if (existingRegistration) {
-      console.log('[Firebase Web] Using existing service worker registration');
       return existingRegistration;
     }
     
@@ -59,110 +161,197 @@ async function tryRegisterServiceWorker(): Promise<ServiceWorkerRegistration | n
       scope: '/firebase-cloud-messaging-push-scope'
     });
     
-    // Wait for the service worker to be ready
     await navigator.serviceWorker.ready;
-    
-    console.log('[Firebase Web] Service worker registered successfully');
     return registration;
   } catch (error) {
-    console.warn('[Firebase Web] Service worker registration failed:', error);
-    console.log('[Firebase Web] Background messages may not work, but foreground messaging should still function');
+    console.warn('[Firebase] Service worker registration failed:', error);
     return null;
   }
 }
 
 export async function initializeFirebaseWeb(): Promise<boolean> {
-  console.log('[Firebase Web] ========== INITIALIZE START ==========');
   if (Platform.OS !== 'web') {
-    console.log('[Firebase Web] Not web platform, skipping');
     return false;
   }
 
   try {
-    console.log('[Firebase Web] Importing firebase modules...');
+    // Step 0: Check browser compatibility
+    const browserInfo = detectBrowser();
+    console.log('[FCM] Browser info:', JSON.stringify(browserInfo));
+    
+    if (!browserInfo.supportsWebPush) {
+      console.warn('[FCM] Browser does not support Web Push:', browserInfo.supportMessage);
+      return false;
+    }
+
+    // Check for private browsing mode
+    const isPrivate = await checkPrivateBrowsingMode();
+    if (isPrivate) {
+      console.warn('[FCM] Private/Incognito mode detected - FCM may not work properly');
+    }
+
+    console.log('[FCM] Step 1: Importing Firebase modules...');
     const firebase = await import('firebase/app');
     const messagingModule = await import('firebase/messaging');
 
     if (!firebaseApp) {
-      console.log('[Firebase Web] Initializing Firebase app...');
+      console.log('[FCM] Step 2: Initializing Firebase app...');
       firebaseApp = firebase.initializeApp(firebaseConfig);
     }
 
-    console.log('[Firebase Web] Checking browser support...');
-    console.log('[Firebase Web] window defined:', typeof window !== 'undefined');
-    console.log('[Firebase Web] serviceWorker in navigator:', 'serviceWorker' in navigator);
-
     if (typeof window !== 'undefined') {
-      console.log('[Firebase Web] Getting messaging instance...');
-      messaging = messagingModule.getMessaging(firebaseApp);
+      console.log('[FCM] Step 3: Getting messaging instance...');
+      try {
+        messaging = messagingModule.getMessaging(firebaseApp);
+        console.log('[FCM] Messaging instance created:', !!messaging);
+      } catch (msgError) {
+        console.error('[FCM] Failed to get messaging instance:', msgError);
+        // Firefox-specific: Try alternative approach
+        if (browserInfo.name === 'firefox') {
+          console.log('[FCM] Firefox detected, trying alternative messaging init...');
+        }
+        throw msgError;
+      }
       
+      console.log('[FCM] Step 4: Registering service worker...');
       serviceWorkerRegistration = await tryRegisterServiceWorker();
-      
-      console.log('[Firebase Web] Service worker registered:', !!serviceWorkerRegistration);
-      console.log('[Firebase Web] ========== INITIALIZE SUCCESS ==========');
+      console.log('[FCM] Step 5: Firebase init complete, SW registered:', !!serviceWorkerRegistration);
       return true;
     }
-    console.log('[Firebase Web] ========== INITIALIZE END (no window object) ==========');
     return false;
   } catch (error) {
-    console.error('[Firebase Web] ========== INITIALIZATION ERROR ==========');
-    console.error('[Firebase Web] Initialization error:', error);
+    console.error('[FCM] Init error:', error);
+    if (error instanceof Error) {
+      console.error('[FCM] Error name:', error.name);
+      console.error('[FCM] Error message:', error.message);
+      console.error('[FCM] Error stack:', error.stack);
+    }
     return false;
   }
 }
 
 export async function getWebFcmToken(): Promise<string | null> {
-  console.log('[Firebase Web] ========== GET FCM TOKEN START ==========');
-  console.log('[Firebase Web] Platform:', Platform.OS);
-  console.log('[Firebase Web] Messaging available:', !!messaging);
-  console.log('[Firebase Web] Service worker registered:', !!serviceWorkerRegistration);
-  console.log('[Firebase Web] VAPID key configured:', !!VAPID_KEY);
-
+  const browserInfo = detectBrowser();
+  console.log('[FCM] getToken: Starting, messaging available:', !!messaging, 'browser:', browserInfo.name);
+  
   if (Platform.OS !== 'web' || !messaging) {
-    console.log('[Firebase Web] Cannot get token - not web or no messaging');
+    console.log('[FCM] getToken: Skipped - not web or no messaging');
+    return null;
+  }
+
+  // Pre-flight checks
+  if (!browserInfo.supportsWebPush) {
+    console.warn('[FCM] getToken: Browser does not support Web Push -', browserInfo.supportMessage);
     return null;
   }
 
   try {
-    console.log('[Firebase Web] Requesting notification permission...');
-    const permission = await Notification.requestPermission();
-    console.log('[Firebase Web] Permission result:', permission);
-    if (permission !== 'granted') {
-      console.log('[Firebase Web] Notification permission denied');
+    // Check if Notification API is available
+    if (typeof Notification === 'undefined') {
+      console.error('[FCM] getToken: Notification API not available');
       return null;
     }
 
-    console.log('[Firebase Web] Getting real FCM token with VAPID key...');
+    console.log('[FCM] getToken: Current permission status:', Notification.permission);
+    console.log('[FCM] getToken: Requesting permission...');
+    
+    let permission: NotificationPermission;
+    try {
+      permission = await Notification.requestPermission();
+    } catch (permError) {
+      console.error('[FCM] getToken: Permission request failed:', permError);
+      // Firefox may throw if permission was already denied
+      permission = Notification.permission;
+    }
+    
+    console.log('[FCM] getToken: Permission result:', permission);
+    
+    if (permission !== 'granted') {
+      console.log('[FCM] getToken: Permission not granted (status:', permission, ')');
+      if (permission === 'denied') {
+        console.warn('[FCM] getToken: User has denied notifications. They must enable them in browser settings.');
+      }
+      return null;
+    }
+
+    console.log('[FCM] getToken: Importing getToken function...');
     const { getToken } = await import('firebase/messaging');
     
+    console.log('[FCM] getToken: VAPID key exists:', !!VAPID_KEY, 'length:', VAPID_KEY?.length);
     const tokenOptions: { vapidKey: string; serviceWorkerRegistration?: ServiceWorkerRegistration } = { 
       vapidKey: VAPID_KEY 
     };
     
     if (serviceWorkerRegistration) {
       tokenOptions.serviceWorkerRegistration = serviceWorkerRegistration;
-      console.log('[Firebase Web] Using registered service worker for FCM');
+      console.log('[FCM] getToken: Using service worker, state:', serviceWorkerRegistration.active?.state);
     } else {
-      console.log('[Firebase Web] No service worker, requesting token without it');
+      console.warn('[FCM] getToken: No service worker registration available');
+      // Try to register again
+      console.log('[FCM] getToken: Attempting to register service worker...');
+      const newReg = await tryRegisterServiceWorker();
+      if (newReg) {
+        tokenOptions.serviceWorkerRegistration = newReg;
+        serviceWorkerRegistration = newReg;
+        console.log('[FCM] getToken: Service worker registered on retry');
+      }
     }
     
-    const token = await getToken(messaging, tokenOptions);
+    console.log('[FCM] getToken: Calling Firebase getToken...');
+    console.log('[FCM] getToken: Token options:', { 
+      hasVapidKey: !!tokenOptions.vapidKey, 
+      hasServiceWorker: !!tokenOptions.serviceWorkerRegistration 
+    });
+    
+    let token: string | undefined;
+    try {
+      token = await getToken(messaging, tokenOptions);
+    } catch (tokenError) {
+      console.error('[FCM] getToken: Firebase getToken threw error:', tokenError);
+      if (tokenError instanceof Error) {
+        console.error('[FCM] getToken: Error name:', tokenError.name);
+        console.error('[FCM] getToken: Error message:', tokenError.message);
+        
+        // Firefox-specific error handling
+        if (browserInfo.name === 'firefox') {
+          if (tokenError.message.includes('storage')) {
+            console.error('[FCM] getToken: Firefox storage error - may be in private browsing mode');
+          }
+          if (tokenError.message.includes('AbortError')) {
+            console.error('[FCM] getToken: Firefox AbortError - service worker may have terminated');
+          }
+        }
+      }
+      throw tokenError;
+    }
     
     if (!token) {
-      console.error('[Firebase Web] getToken returned empty token');
+      console.error('[FCM] getToken: Firebase returned empty token');
       return null;
     }
     
-    console.log('[Firebase Web] FCM Token obtained successfully');
-    console.log('[Firebase Web] Token prefix:', token.substring(0, 30) + '...');
-    console.log('[Firebase Web] ========== GET FCM TOKEN SUCCESS ==========');
+    console.log('[FCM] getToken: SUCCESS! Token obtained:', token.substring(0, 20) + '...');
     return token;
   } catch (error) {
-    console.error('[Firebase Web] ========== GET FCM TOKEN ERROR ==========');
-    console.error('[Firebase Web] Error getting FCM token:', error);
+    console.error('[FCM] getToken: ERROR:', error);
+    
+    if (error instanceof Error) {
+      console.error('[FCM] getToken: Full error details:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack?.substring(0, 500)
+      });
+    }
     
     if (isLocalDevEnvironment()) {
-      console.warn('[Firebase Web] Running on localhost - FCM tokens require HTTPS. Push notifications will not work locally.');
+      console.warn('[FCM] FCM requires HTTPS');
+    }
+    
+    // Browser-specific troubleshooting hints
+    if (browserInfo.name === 'firefox') {
+      console.warn('[FCM] Firefox troubleshooting: Check if private browsing mode is enabled, or if notifications are blocked in browser settings.');
+    } else if (browserInfo.name === 'safari') {
+      console.warn('[FCM] Safari troubleshooting: Ensure you are on macOS Ventura+ with Safari 16+. Web Push is not supported on iOS Safari.');
     }
     
     return null;
@@ -178,7 +367,6 @@ export function onWebForegroundMessage(callback: (payload: unknown) => void): ()
 
   import('firebase/messaging').then(({ onMessage }) => {
     unsubscribe = onMessage(messaging, (payload) => {
-      console.log('[Firebase Web] Foreground message received:', payload);
       callback(payload);
     });
   });
@@ -196,7 +384,6 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
   }
 
   if (serviceWorkerRegistration) {
-    console.log('[Firebase Web] Service worker already registered');
     return serviceWorkerRegistration;
   }
 

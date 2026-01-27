@@ -110,10 +110,10 @@ export const getStatusConfig = (theme: Theme, status: string, t?: (key: string) 
       };
     case 'visitor_accepted':
       return {
-        bg: applyOpacity(BrandColors.brandOrange, '15'),
-        text: BrandColors.brandOrange,
-        border: applyOpacity(BrandColors.brandOrange, '30'),
-        borderColor: BrandColors.brandOrange,
+        bg: applyOpacity(BrandColors.brandGreen, '15'),
+        text: BrandColors.brandGreen,
+        border: applyOpacity(BrandColors.brandGreen, '30'),
+        borderColor: BrandColors.brandGreen,
         label
       };
     case 'checked_in':

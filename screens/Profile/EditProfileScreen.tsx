@@ -10,6 +10,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { LoadingButton } from "@/components/shared/LoadingButton";
 import Spacer from "@/components/Spacer";
+import { DirectionalRow } from "@/components/DirectionalRow";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -20,6 +21,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { authService } from "@/services/api/authService";
 import { useToast } from "@/contexts/ToastContext";
 import { ApiException } from "@/api/errors";
+import { formatPhoneInput, formatPhoneNumber, normalizePhoneNumber } from "@/utils/formatters";
 
 interface EditProfileScreenProps {
   userRole?: UserRole;
@@ -34,8 +36,7 @@ export default function EditProfileScreen({
   onCancel
 }: EditProfileScreenProps) {
   const { theme } = useTheme();
-  const { t, isRTL } = useTranslation();
-  const { formatDate: fmtDate } = useFormatters();
+  const { t, isRTL } = useTranslation();  const { formatDate: fmtDate } = useFormatters();
   const insets = useSafeAreaInsets();
   const { user, refreshUser } = useAuth();
   const { showSuccess, showError } = useToast();
@@ -59,7 +60,7 @@ export default function EditProfileScreen({
   useEffect(() => {
     if (user) {
       setName(user.name || '');
-      setPhone(user.phoneNumber ? formatSaudiPhone(user.phoneNumber) : '');
+      setPhone(user.phoneNumber ? formatPhoneInput(user.phoneNumber) : '');
       setDepartment(user.department || '');
     }
   }, [user]);
@@ -70,31 +71,8 @@ export default function EditProfileScreen({
     paddingBottom: insets.bottom + Spacing.xl
   };
 
-  const formatSaudiPhone = (input: string): string => {
-    let digits = input.replace(/\D/g, '');
-    
-    if (digits.startsWith('00966')) {
-      digits = digits.substring(2);
-    }
-    
-    if (digits.length > 0 && !digits.startsWith('966')) {
-      if (digits.startsWith('0')) {
-        digits = digits.substring(1);
-      }
-      digits = '966' + digits;
-    }
-    
-    digits = digits.substring(0, 12);
-    
-    if (digits.length === 0) return '';
-    if (digits.length <= 3) return '+' + digits;
-    if (digits.length <= 5) return '+' + digits.substring(0, 3) + ' ' + digits.substring(3);
-    if (digits.length <= 8) return '+' + digits.substring(0, 3) + ' ' + digits.substring(3, 5) + ' ' + digits.substring(5);
-    return '+' + digits.substring(0, 3) + ' ' + digits.substring(3, 5) + ' ' + digits.substring(5, 8) + ' ' + digits.substring(8);
-  };
-
   const handlePhoneChange = (text: string) => {
-    setPhone(formatSaudiPhone(text));
+    setPhone(formatPhoneInput(text));
   };
 
   const getRoleLabel = (role: string) => {
@@ -136,10 +114,9 @@ export default function EditProfileScreen({
     setIsSaving(true);
     
     try {
-      const normalizedPhone = phone.replace(/\D/g, '');
       await authService.updateProfile({
         name: name.trim(),
-        phoneNumber: normalizedPhone || undefined,
+        phoneNumber: normalizePhoneNumber(phone) || undefined,
         department: department.trim() || undefined,
       });
       
@@ -296,19 +273,19 @@ export default function EditProfileScreen({
     editable: boolean = true
   ) => (
     <View style={styles.inputContainer}>
-      <View style={[styles.labelRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-        <ThemedText style={[styles.inputLabel, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+      <DirectionalRow style={[styles.labelRow, { justifyContent: 'space-between' }]}>
+        <ThemedText style={[styles.inputLabel, { color: theme.text, flex: 1 }]}>
           {label}
         </ThemedText>
         {!editable ? (
-          <View style={[styles.readOnlyBadge, { backgroundColor: applyOpacity(theme.textSecondary, '15'), flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <DirectionalRow style={[styles.readOnlyBadge, { backgroundColor: applyOpacity(theme.textSecondary, '15'), gap: 4 }]}>
             <DDIcon name="lock" size={10} color={theme.textSecondary} />
             <ThemedText style={[styles.readOnlyText, { color: theme.textSecondary }]}>
               {t('form.readOnly')}
             </ThemedText>
-          </View>
+          </DirectionalRow>
         ) : null}
-      </View>
+      </DirectionalRow>
       <TextInput
         style={[
           styles.input,
@@ -316,7 +293,7 @@ export default function EditProfileScreen({
             backgroundColor: editable ? theme.surface : applyOpacity(theme.surfaceSecondary, '60'),
             borderColor: error ? theme.error : theme.border,
             color: editable ? theme.text : theme.textSecondary,
-            textAlign: isRTL ? 'right' : 'left',
+            
           },
         ]}
         value={value}
@@ -384,7 +361,7 @@ export default function EditProfileScreen({
               </View>
             ) : null}
           </View>
-          <View style={[styles.photoButtons, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <DirectionalRow style={styles.photoButtons}>
             <LoadingButton
               onPress={handlePickPhoto}
               loading={isUploadingPhoto}
@@ -409,7 +386,7 @@ export default function EditProfileScreen({
                 {t('settings.deletePhoto')}
               </LoadingButton>
             ) : null}
-          </View>
+          </DirectionalRow>
           <View style={styles.avatarInfo}>
             <ThemedText style={[styles.roleBadge, { color: theme.primary, backgroundColor: applyOpacity(theme.primary, '10') }]}>
               {getRoleLabel(user?.role || 'employee')}
@@ -425,26 +402,26 @@ export default function EditProfileScreen({
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <DirectionalRow style={styles.infoRow}>
           <View style={styles.infoItem}>
-            <ThemedText style={[styles.infoLabel, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>
               {t('settings.status')}
             </ThemedText>
-            <ThemedText style={[styles.infoValue, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+            <ThemedText style={[styles.infoValue, { color: theme.text }]}>
               {user?.status === 'active' ? t('status.active') : t('status.inactive')}
             </ThemedText>
           </View>
           {user?.lastLogin ? (
             <View style={styles.infoItem}>
-              <ThemedText style={[styles.infoLabel, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>
                 {t('settings.lastLogin')}
               </ThemedText>
-              <ThemedText style={[styles.infoValue, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[styles.infoValue, { color: theme.text }]}>
                 {formatDate(user.lastLogin)}
               </ThemedText>
             </View>
           ) : null}
-        </View>
+        </DirectionalRow>
       </ThemedView>
 
       <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
@@ -506,7 +483,7 @@ export default function EditProfileScreen({
 
       <Spacer height={Spacing.lg} />
 
-      <View style={styles.buttonRow}>
+      <DirectionalRow style={styles.buttonRow}>
         <LoadingButton
           onPress={handleCancel}
           variant="outline"
@@ -527,7 +504,7 @@ export default function EditProfileScreen({
         >
           {t('common.save')}
         </LoadingButton>
-      </View>
+      </DirectionalRow>
 
       <Spacer height={Spacing.xl} />
     </ScreenKeyboardAwareScrollView>
@@ -581,7 +558,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   photoButtons: {
-    flexDirection: 'row',
     gap: Spacing.sm,
   },
   avatarInfo: {
@@ -596,7 +572,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   infoRow: {
-    flexDirection: 'row',
     gap: Spacing.lg,
   },
   infoItem: {
@@ -615,7 +590,6 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
   },
   labelRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
@@ -624,7 +598,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   readOnlyBadge: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.sm,
     paddingVertical: 2,
@@ -647,7 +620,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   buttonRow: {
-    flexDirection: 'row',
     gap: Spacing.md,
   },
   button: {

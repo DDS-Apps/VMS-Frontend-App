@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { View, StyleSheet, Pressable, ScrollView, RefreshControl, ActivityIndicator, Modal, TextInput, Alert, Platform } from 'react-native';
+import { View, StyleSheet, Pressable, ScrollView, RefreshControl, ActivityIndicator, Modal, TextInput, Alert, Platform, useWindowDimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ROUTES } from "@/constants";
 import type { NavigationProp } from '@react-navigation/native';
@@ -11,12 +11,13 @@ import { ThemedView } from '@/components/ThemedView';
 import Spacer from '@/components/Spacer';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { CalendarDatePicker } from '@/components/CalendarDatePicker';
-import { Spacing, BorderRadius, Typography } from '@/constants/theme';
+import { Spacing, BorderRadius, Typography, StatusCardColors } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useFormatters } from '@/hooks/useFormatters';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { applyOpacity } from '@/utils/statusStyles';
+import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 import { 
   useAllRequestsQuery,
   type UnifiedRequest,
@@ -68,6 +69,7 @@ const getStatusColor = (status: UnifiedStatus, theme: Theme) => {
     case 'in_progress': return theme.info;
     case 'rejected': return theme.error;
     case 'cancelled': return theme.error;
+    case 'auto_cancelled': return theme.error;
     default: return theme.textSecondary;
   }
 };
@@ -79,6 +81,7 @@ const getStatusLabel = (status: UnifiedStatus, t: (key: string) => string) => {
     case 'in_progress': return t('status.inProgress');
     case 'completed': return t('status.completed');
     case 'cancelled': return t('status.cancelled');
+    case 'auto_cancelled': return t('status.autoCancelled');
     case 'rejected': return t('status.rejected');
     default: return status;
   }
@@ -91,18 +94,18 @@ interface StatCardProps {
   isActive: boolean;
   onPress: () => void;
   theme: Theme;
+  isLargeScreen?: boolean;
 }
 
-function StatCard({ value, label, color, isActive, onPress, theme }: StatCardProps) {
+function StatCard({ value, label, color, isActive, onPress, theme, isLargeScreen }: StatCardProps) {
   return (
     <Pressable 
       onPress={onPress}
       style={[
         styles.statCard, 
+        isLargeScreen && styles.statCardFlex,
         { 
           backgroundColor: isActive ? applyOpacity(color, '20') : applyOpacity(color, '08'),
-          borderWidth: isActive ? 2 : 0,
-          borderColor: isActive ? color : 'transparent',
         }
       ]}
     >
@@ -132,7 +135,6 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
   const typeColor = getTypeColor(request.type, theme);
   const statusColor = getStatusColor(request.status, theme);
   const typeIcon = getTypeIcon(request.type);
-
   const hasExpandableDetails = useMemo(() => {
     if (request.type === 'visitor') {
       const originalData = request.originalData as VisitListItemDto;
@@ -148,8 +150,6 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
   }, [request]);
 
   const renderExpandedDetails = () => {
-    if (!isExpanded) return null;
-
     if (request.type === 'visitor') {
       const originalData = request.originalData as VisitListItemDto;
       const hasDetails = originalData?.visitor?.email || originalData?.visitor?.phone;
@@ -158,20 +158,20 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
       return (
         <View style={styles.expandedSection}>
           {originalData?.visitor?.email ? (
-            <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <DDIcon name="mail" size={14} color={theme.textSecondary} />
-              <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
-                {originalData.visitor.email}
-              </ThemedText>
-            </View>
+            <DirectionalRow style={styles.expandedDetailRow}>
+                <DDIcon name="mail" size={14} color={theme.textSecondary} />
+                <ThemedText style={[styles.expandedDetailText, { color: theme.text }]} numberOfLines={1}>
+                  {originalData.visitor.email}
+                </ThemedText>
+              </DirectionalRow>
           ) : null}
           {originalData?.visitor?.phone ? (
-            <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <DDIcon name="phone" size={14} color={theme.textSecondary} />
-              <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
-                {originalData.visitor.phone}
-              </ThemedText>
-            </View>
+            <DirectionalRow style={styles.expandedDetailRow}>
+                <DDIcon name="phone" size={14} color={theme.textSecondary} />
+                <ThemedText style={[styles.expandedDetailText, { color: theme.text }]} numberOfLines={1}>
+                  {originalData.visitor.phone}
+                </ThemedText>
+              </DirectionalRow>
           ) : null}
         </View>
       );
@@ -180,19 +180,19 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
     if (request.type === 'buffet' && request.guestCount) {
       return (
         <View style={styles.expandedSection}>
-          <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <DDIcon name="users" size={14} color={theme.textSecondary} />
-            <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
-              {t('buffet.guestCount')}: {request.guestCount}
-            </ThemedText>
-          </View>
-          {request.mealType ? (
-            <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <DDIcon name="cloche" size={14} color={theme.textSecondary} />
-              <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
-                {request.mealType}
+          <DirectionalRow style={styles.expandedDetailRow}>
+              <DDIcon name="users" size={14} color={theme.textSecondary} />
+              <ThemedText style={[styles.expandedDetailText, { color: theme.text }]}>
+                {t('buffet.guestCount')}: {request.guestCount}
               </ThemedText>
-            </View>
+          </DirectionalRow>
+          {request.mealType ? (
+            <DirectionalRow style={styles.expandedDetailRow}>
+                <DDIcon name="cloche" size={14} color={theme.textSecondary} />
+                <ThemedText style={[styles.expandedDetailText, { color: theme.text }]}>
+                  {request.mealType}
+                </ThemedText>
+              </DirectionalRow>
           ) : null}
         </View>
       );
@@ -203,28 +203,28 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
       return (
         <View style={styles.expandedSection}>
           {vehicle.plateNumber ? (
-            <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <DDIcon name="hash" size={14} color={theme.textSecondary} />
-              <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
-                {t('valet.plateNumber')}: {vehicle.plateNumber}
-              </ThemedText>
-            </View>
+            <DirectionalRow style={styles.expandedDetailRow}>
+                <DDIcon name="hash" size={14} color={theme.textSecondary} />
+                <ThemedText style={[styles.expandedDetailText, { color: theme.text }]}>
+                  {t('valet.plateNumber')}: {vehicle.plateNumber}
+                </ThemedText>
+              </DirectionalRow>
           ) : null}
           {(vehicle.make || vehicle.model) ? (
-            <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <DDIcon name="truck" size={14} color={theme.textSecondary} />
-              <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
-                {[vehicle.make, vehicle.model].filter(Boolean).join(' ')}
-              </ThemedText>
-            </View>
+            <DirectionalRow style={styles.expandedDetailRow}>
+                <DDIcon name="truck" size={14} color={theme.textSecondary} />
+                <ThemedText style={[styles.expandedDetailText, { color: theme.text }]}>
+                  {[vehicle.make, vehicle.model].filter(Boolean).join(' ')}
+                </ThemedText>
+              </DirectionalRow>
           ) : null}
           {vehicle.color ? (
-            <View style={[styles.expandedDetailRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <DDIcon name="droplet" size={14} color={theme.textSecondary} />
-              <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
-                {t('valet.color')}: {vehicle.color}
-              </ThemedText>
-            </View>
+            <DirectionalRow style={styles.expandedDetailRow}>
+                <DDIcon name="droplet" size={14} color={theme.textSecondary} />
+                <ThemedText style={[styles.expandedDetailText, { color: theme.text }]}>
+                  {t('valet.color')}: {vehicle.color}
+                </ThemedText>
+              </DirectionalRow>
           ) : null}
         </View>
       );
@@ -239,48 +239,48 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
         <View style={[styles.typeAccent, { backgroundColor: statusColor }]} />
         
         <View style={styles.cardContent}>
-          <View style={[styles.cardHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', textAlign: isRTL ? 'right' : 'left', flex: 1 }]} numberOfLines={1}>
+          <DirectionalRow style={styles.cardHeader}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', flex: 1 }]} numberOfLines={1}>
               {request.visitorName}
             </ThemedText>
-          </View>
+          </DirectionalRow>
 
-          <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+          <ThemedText style={[Typography.caption, { color: theme.textSecondary }]} numberOfLines={1}>
             {t('reception.hostName')}: {request.hostName}
           </ThemedText>
 
           <Spacer height={Spacing.sm} />
 
-          <View style={[styles.detailsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <View style={[styles.detailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <DirectionalRow style={styles.detailsRow}>
+            <DirectionalRow style={styles.detailItem}>
               <DDIcon name="calendar" size={14} variant="muted" />
               <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
                 {formatDate(request.date)}
               </ThemedText>
-            </View>
-            <View style={[styles.detailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            </DirectionalRow>
+            <DirectionalRow style={styles.detailItem}>
               <DDIcon name="clock" size={14} variant="muted" />
               <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
                 {formatTimeFromString(request.time)}
               </ThemedText>
-            </View>
-          </View>
+            </DirectionalRow>
+          </DirectionalRow>
 
           {request.location ? (
             <>
               <Spacer height={Spacing.xs} />
-              <View style={[styles.detailItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <DirectionalRow style={styles.detailItem}>
                 <DDIcon name="map-pin" size={14} variant="muted" />
-                <ThemedText style={[styles.detailText, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+                <ThemedText style={[styles.detailText, { color: theme.textSecondary }]} numberOfLines={1}>
                   {request.location}
                 </ThemedText>
-              </View>
+              </DirectionalRow>
             </>
           ) : null}
 
           <Spacer height={Spacing.sm} />
 
-          <View style={[styles.badgesRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <DirectionalRow style={styles.badgesRow}>
             <View style={[styles.typeBadge, { backgroundColor: applyOpacity(typeColor, '12') }]}>
               <DDIcon name={typeIcon} size={12} color={typeColor} />
               <ThemedText style={[styles.typeBadgeText, { color: typeColor }]}>
@@ -293,62 +293,45 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
                 {getStatusLabel(request.status, t)}
               </ThemedText>
             </View>
-          </View>
-
-          {renderExpandedDetails()}
-
-          {hasExpandableDetails ? (
-            <Pressable 
-              onPress={(e) => {
-                e.stopPropagation();
-                onToggleExpand();
-              }} 
-              style={styles.toggleContainer}
-            >
-              <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
-                {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
-              </ThemedText>
-              <DDIcon 
-                name={isExpanded ? 'chevron-up' : 'chevron-down'} 
-                size={16} 
-                color={theme.primary} 
-              />
-            </Pressable>
-          ) : null}
+          </DirectionalRow>
 
           {(request.canApprove || request.canCancel) ? (
             <>
               <Spacer height={Spacing.md} />
-              <View style={[styles.actionsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <DirectionalRow style={styles.actionsRow}>
                 {request.canApprove ? (
                   <Pressable
-                    style={[styles.approveButton, { backgroundColor: '#22C55E', flexDirection: isRTL ? 'row-reverse' : 'row' }]}
+                    style={[styles.approveButton, { backgroundColor: '#22C55E' }]}
                     onPress={(e) => {
                       e.stopPropagation();
                       onApprove?.();
                     }}
                   >
-                    <DDIcon name="check" size={14} color="#FFFFFF" />
-                    <ThemedText style={[styles.actionButtonText, { color: '#FFFFFF' }]}>
-                      {t('actions.approve')}
-                    </ThemedText>
+                    <DirectionalRow>
+                      <DDIcon name="check" size={14} color="#FFFFFF" />
+                      <ThemedText style={[styles.actionButtonText, { color: '#FFFFFF' }]}>
+                        {t('actions.approve')}
+                      </ThemedText>
+                    </DirectionalRow>
                   </Pressable>
                 ) : null}
                 {request.canCancel ? (
                   <Pressable
-                    style={[styles.rejectButton, { borderColor: theme.error, flexDirection: isRTL ? 'row-reverse' : 'row' }]}
+                    style={[styles.rejectButton, { borderColor: theme.error }]}
                     onPress={(e) => {
                       e.stopPropagation();
                       onReject?.();
                     }}
                   >
-                    <DDIcon name="x" size={14} color={theme.error} />
-                    <ThemedText style={[styles.actionButtonText, { color: theme.error }]}>
-                      {t('actions.reject')}
-                    </ThemedText>
+                    <DirectionalRow>
+                      <DDIcon name="x" size={14} color={theme.error} />
+                      <ThemedText style={[styles.actionButtonText, { color: theme.error }]}>
+                        {t('actions.reject')}
+                      </ThemedText>
+                    </DirectionalRow>
                   </Pressable>
                 ) : null}
-              </View>
+              </DirectionalRow>
             </>
           ) : null}
         </View>
@@ -378,8 +361,9 @@ export default function AllRequestsScreen() {
   const { t } = useTranslation();
   const { formatDate, formatTimeFromString } = useFormatters();
   const { isRTL } = useLanguage();
-  const queryClient = useQueryClient();
-  
+  const { width } = useWindowDimensions();
+  const isLargeScreen = width >= 768;
+  const queryClient = useQueryClient();  
   const [typeFilter, setTypeFilter] = useState<RequestFilter>('visitor');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -427,7 +411,8 @@ export default function AllRequestsScreen() {
       if (['checked_in', 'in_progress'].includes(statusLower)) return 'in_progress';
       if (['completed', 'checked_out'].includes(statusLower)) return 'completed';
       if (['approved', 'visitor_accepted'].includes(statusLower)) return 'approved';
-      if (['cancelled', 'auto_cancelled'].includes(statusLower)) return 'cancelled';
+      if (statusLower === 'cancelled') return 'cancelled';
+      if (statusLower === 'auto_cancelled') return 'auto_cancelled';
       if (['rejected'].includes(statusLower)) return 'rejected';
       return 'pending';
     };
@@ -723,44 +708,141 @@ export default function AllRequestsScreen() {
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.statsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-          <StatCard
-            value={stats.total}
-            label={t('common.all')}
-            color={theme.primary}
-            isActive={statusFilter === 'all'}
-            onPress={() => handleStatPress('all')}
-            theme={theme}
-          />
-          <StatCard
-            value={stats.pending}
-            label={t('status.pending')}
-            color={theme.warning}
-            isActive={statusFilter === 'pending'}
-            onPress={() => handleStatPress('pending')}
-            theme={theme}
-          />
-          <StatCard
-            value={stats.approved}
-            label={t('status.approved')}
-            color={theme.success}
-            isActive={statusFilter === 'approved'}
-            onPress={() => handleStatPress('approved')}
-            theme={theme}
-          />
-          <StatCard
-            value={stats.completed}
-            label={t('common.done')}
-            color={theme.info}
-            isActive={statusFilter === 'completed'}
-            onPress={() => handleStatPress('completed')}
-            theme={theme}
-          />
-        </View>
+        {isLargeScreen ? (
+          <DirectionalRow style={styles.statsRow}>
+            <StatCard
+              value={stats.total}
+              label={t('common.all')}
+              color={StatusCardColors.all}
+              isActive={statusFilter === 'all'}
+              onPress={() => handleStatPress('all')}
+              theme={theme}
+              isLargeScreen
+            />
+            <StatCard
+              value={stats.pending}
+              label={t('status.pending')}
+              color={StatusCardColors.pending}
+              isActive={statusFilter === 'pending'}
+              onPress={() => handleStatPress('pending')}
+              theme={theme}
+              isLargeScreen
+            />
+            <StatCard
+              value={stats.approved}
+              label={t('status.approved')}
+              color={StatusCardColors.approved}
+              isActive={statusFilter === 'approved'}
+              onPress={() => handleStatPress('approved')}
+              theme={theme}
+              isLargeScreen
+            />
+            <StatCard
+              value={stats.inProgress}
+              label={t('status.checkedIn')}
+              color={StatusCardColors.inProgress}
+              isActive={statusFilter === 'in_progress'}
+              onPress={() => handleStatPress('in_progress')}
+              theme={theme}
+              isLargeScreen
+            />
+            <StatCard
+              value={stats.completed}
+              label={t('status.checkedOut')}
+              color={StatusCardColors.done}
+              isActive={statusFilter === 'completed'}
+              onPress={() => handleStatPress('completed')}
+              theme={theme}
+              isLargeScreen
+            />
+            <StatCard
+              value={stats.cancelled}
+              label={t('status.cancelled')}
+              color={StatusCardColors.cancelled}
+              isActive={statusFilter === 'cancelled'}
+              onPress={() => handleStatPress('cancelled')}
+              theme={theme}
+              isLargeScreen
+            />
+            <StatCard
+              value={stats.rejected}
+              label={t('status.rejected')}
+              color={StatusCardColors.rejected}
+              isActive={statusFilter === 'rejected'}
+              onPress={() => handleStatPress('rejected')}
+              theme={theme}
+              isLargeScreen
+            />
+          </DirectionalRow>
+        ) : (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.statsScrollContent}
+            nestedScrollEnabled={true}
+          >
+            <StatCard
+              value={stats.total}
+              label={t('common.all')}
+              color={StatusCardColors.all}
+              isActive={statusFilter === 'all'}
+              onPress={() => handleStatPress('all')}
+              theme={theme}
+            />
+            <StatCard
+              value={stats.pending}
+              label={t('status.pending')}
+              color={StatusCardColors.pending}
+              isActive={statusFilter === 'pending'}
+              onPress={() => handleStatPress('pending')}
+              theme={theme}
+            />
+            <StatCard
+              value={stats.approved}
+              label={t('status.approved')}
+              color={StatusCardColors.approved}
+              isActive={statusFilter === 'approved'}
+              onPress={() => handleStatPress('approved')}
+              theme={theme}
+            />
+            <StatCard
+              value={stats.inProgress}
+              label={t('status.checkedIn')}
+              color={StatusCardColors.inProgress}
+              isActive={statusFilter === 'in_progress'}
+              onPress={() => handleStatPress('in_progress')}
+              theme={theme}
+            />
+            <StatCard
+              value={stats.completed}
+              label={t('status.checkedOut')}
+              color={StatusCardColors.done}
+              isActive={statusFilter === 'completed'}
+              onPress={() => handleStatPress('completed')}
+              theme={theme}
+            />
+            <StatCard
+              value={stats.cancelled}
+              label={t('status.cancelled')}
+              color={StatusCardColors.cancelled}
+              isActive={statusFilter === 'cancelled'}
+              onPress={() => handleStatPress('cancelled')}
+              theme={theme}
+            />
+            <StatCard
+              value={stats.rejected}
+              label={t('status.rejected')}
+              color={StatusCardColors.rejected}
+              isActive={statusFilter === 'rejected'}
+              onPress={() => handleStatPress('rejected')}
+              theme={theme}
+            />
+          </ScrollView>
+        )}
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.searchRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <DirectionalRow style={styles.searchRow}>
           <View style={styles.searchInputWrapper}>
             <SearchInput
               placeholder={t('common.search')}
@@ -784,7 +866,7 @@ export default function AllRequestsScreen() {
               color={selectedDate ? theme.primary : theme.textSecondary} 
             />
           </Pressable>
-        </View>
+        </DirectionalRow>
 
         {selectedDate ? (
           <>
@@ -909,27 +991,32 @@ export default function AllRequestsScreen() {
           <Spacer height={Spacing.md} />
 
           {displayRequests.length > 0 ? (
-            displayRequests.map(request => {
-              const cardKey = `${request.type}-${request.id}`;
-              return (
-                <View key={cardKey}>
-                  <RequestCard
-                    request={request}
-                    onPress={() => handleCardPress(request)}
-                    onApprove={() => handleApprove(request)}
-                    onReject={() => handleReject(request)}
-                    theme={theme}
-                    t={t}
-                    formatDate={formatDate}
-                    formatTimeFromString={formatTimeFromString}
-                    isRTL={isRTL}
-                    isExpanded={expandedCards.has(cardKey)}
-                    onToggleExpand={() => toggleCardExpanded(cardKey)}
-                  />
-                  <Spacer height={LAYOUT.contentGap} />
-                </View>
-              );
-            })
+            <View style={styles.cardGrid}>
+              {displayRequests.map(request => {
+                const cardKey = `${request.type}-${request.id}`;
+                const numColumns = width > 1024 ? 3 : width >= 768 ? 2 : 1;
+                return (
+                  <View 
+                    key={cardKey}
+                    style={numColumns > 1 ? { width: numColumns === 2 ? '50%' : '33.33%', flexGrow: 0, marginBottom: LAYOUT.contentGap, paddingRight: Spacing.sm } : { width: '100%', marginBottom: LAYOUT.contentGap }}
+                  >
+                    <RequestCard
+                      request={request}
+                      onPress={() => handleCardPress(request)}
+                      onApprove={() => handleApprove(request)}
+                      onReject={() => handleReject(request)}
+                      theme={theme}
+                      t={t}
+                      formatDate={formatDate}
+                      formatTimeFromString={formatTimeFromString}
+                      isRTL={isRTL}
+                      isExpanded={expandedCards.has(cardKey)}
+                      onToggleExpand={() => toggleCardExpanded(cardKey)}
+                    />
+                  </View>
+                );
+              })}
+            </View>
           ) : (
             <EmptyState
               icon="inbox"
@@ -958,7 +1045,7 @@ export default function AllRequestsScreen() {
         animationType="fade"
         onRequestClose={() => setShowRejectModal(false)}
       >
-        <View style={styles.modalOverlay}>
+        <View style={styles.modalOverlay} pointerEvents="box-none">
           <View style={[styles.modalContainer, { backgroundColor: theme.surface }]}>
             <ThemedText style={[Typography.subtitle, { marginBottom: Spacing.md }]}>
               {t('actions.reject')}
@@ -1027,15 +1114,28 @@ const styles = StyleSheet.create({
   paddedContent: {
     paddingHorizontal: Spacing.lg,
   },
+  cardGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.md,
+  },
   statsRow: {
     flexDirection: 'row',
     gap: Spacing.sm,
   },
+  statsScrollContent: {
+    gap: Spacing.sm,
+    paddingHorizontal: Spacing.lg,
+  },
   statCard: {
-    flex: 1,
+    minWidth: 90,
     padding: Spacing.md,
     borderRadius: BorderRadius.md,
     alignItems: 'center',
+  },
+  statCardFlex: {
+    flex: 1,
+    minWidth: 0,
   },
   statValue: {
     fontSize: 22,

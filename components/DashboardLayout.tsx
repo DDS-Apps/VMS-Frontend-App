@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { View, StyleSheet, Pressable, I18nManager, useWindowDimensions, Image, Modal, Switch, Platform } from "react-native";
-import { GestureDetector, Gesture } from "react-native-gesture-handler";
+import { GestureDetector, Gesture, NativeViewGestureHandler } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, {
   useSharedValue,
@@ -12,16 +12,38 @@ import Sidebar from "@/components/Sidebar";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { DDIcon } from "@/components/DDIcon";
+import { DirectionalRow } from "@/components/DirectionalRow";
 import { EnableNotificationsPrompt } from "@/components/shared/EnableNotificationsPrompt";
+import { LanguageChangeOverlay } from "@/components/LanguageChangeOverlay";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useRTLStyles } from "@/hooks/useRTLStyles";
 import { UserRole } from "@/types/vms.types";
+import { authService } from "@/services/api/authService";
 
 const SIDEBAR_WIDTH_DESKTOP = 280;
-const EDGE_SWIPE_THRESHOLD = 24;
+// Android needs a narrower edge area to avoid conflicts with horizontal ScrollViews
+const EDGE_SWIPE_THRESHOLD_IOS = 24;
+const EDGE_SWIPE_THRESHOLD_ANDROID = 16;
 const SWIPE_VELOCITY_THRESHOLD = 500;
+// Android needs higher thresholds to avoid conflicts with horizontal ScrollViews
+const ANDROID_ACTIVE_OFFSET = 60;
+const IOS_ACTIVE_OFFSET = 30;
+
+// Synchronously determine RTL state for first render on web
+function getInitialRTLState(): boolean {
+  if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
+    try {
+      const stored = localStorage.getItem('@vms_language');
+      return stored === 'ar';
+    } catch {
+      return false;
+    }
+  }
+  return I18nManager.isRTL;
+}
 
 interface DashboardLayoutProps {
   userRole: UserRole;
@@ -57,8 +79,16 @@ export default function DashboardLayout({
   isSSOUser = false,
 }: DashboardLayoutProps) {
   const { theme, isDark, toggleTheme } = useTheme();
-  const { locale, setLocale, isRTL } = useLanguage();
+  const { locale, setLocale, isRTL: contextIsRTL, layoutKey, isChangingLanguage } = useLanguage();
+  
+  // Use I18nManager.isRTL directly on mobile (authoritative source after app restart)
+  // On web, use localStorage check for first render, then context value
+  const isRTL = Platform.OS === 'web' 
+    ? getInitialRTLState() || contextIsRTL 
+    : I18nManager.isRTL;
+  
   const { t } = useTranslation();
+  const rtlStyles = useRTLStyles();
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   
@@ -77,8 +107,18 @@ export default function DashboardLayout({
   
   const handleLanguageToggle = async () => {
     const newLocale = locale === 'en' ? 'ar' : 'en';
-    await setLocale(newLocale);
-    setProfileMenuVisible(false);
+    // Persist language preference to server first
+    try {
+      await authService.updateProfile({ language: newLocale });
+      console.log('[DashboardLayout] Language preference saved to server:', newLocale);
+      // Only apply locally if server update succeeded
+      await setLocale(newLocale);
+      setProfileMenuVisible(false);
+    } catch (error) {
+      console.warn('[DashboardLayout] Failed to save language to server:', error);
+      // Keep menu open so user knows something failed
+      // Note: In a future enhancement, we could add a toast notification here
+    }
   };
   
   // Calculate responsive values
@@ -90,6 +130,10 @@ export default function DashboardLayout({
   const [isOverlayActive, setIsOverlayActive] = useState(false);
   const translateX = useSharedValue(isRTL ? sidebarWidth : -sidebarWidth);
   const prevIsLargeScreenRef = useRef<boolean | null>(null);
+  
+  // Ref for native scroll gesture coordination on Android
+  // This allows horizontal ScrollViews to take precedence over the edge swipe gesture
+  const nativeScrollRef = useRef<any>(null);
   
   // Sync sidebar state only when screen size crosses breakpoint
   useEffect(() => {
@@ -139,19 +183,29 @@ export default function DashboardLayout({
     );
   };
 
+  const isWeb = Platform.OS === 'web';
+  const isAndroid = Platform.OS === 'android';
+  
   // Calculate hitSlop to restrict gesture to edge only
   // Shrink from opposite side by (width - threshold) so only edge strip is active
+  // Android uses a narrower edge area to reduce conflicts with horizontal ScrollViews
+  const edgeSwipeThreshold = isAndroid ? EDGE_SWIPE_THRESHOLD_ANDROID : EDGE_SWIPE_THRESHOLD_IOS;
   const edgeHitSlop = isRTL
-    ? { left: -(width - EDGE_SWIPE_THRESHOLD), right: 0, top: 0, bottom: 0 }
-    : { left: 0, right: -(width - EDGE_SWIPE_THRESHOLD), top: 0, bottom: 0 };
-
-  const isWeb = Platform.OS === 'web';
+    ? { left: -(width - edgeSwipeThreshold), right: 0, top: 0, bottom: 0 }
+    : { left: 0, right: -(width - edgeSwipeThreshold), top: 0, bottom: 0 };
   
+  // Use higher thresholds on Android to prevent conflicts with horizontal ScrollViews
+  const activeOffset = isAndroid ? ANDROID_ACTIVE_OFFSET : IOS_ACTIVE_OFFSET;
+  
+  // Build the edge swipe gesture with Android-specific scroll coordination
+  // On Android: higher thresholds + minDistance + NativeViewGestureHandler with disallowInterruption
+  // ensures horizontal ScrollViews take precedence over the sidebar swipe
   const edgeSwipeGesture = Gesture.Pan()
     .enabled(!isWeb && !isLargeScreen && !sidebarOpen && !canGoBack)
     .hitSlop(edgeHitSlop)
-    .activeOffsetX(isRTL ? [-30, 0] : [0, 30])
+    .activeOffsetX(isRTL ? [-activeOffset, 0] : [0, activeOffset])
     .failOffsetY([-20, 20])
+    .minDistance(isAndroid ? 40 : 0)
     .onUpdate((event) => {
       'worklet';
       if (isRTL) {
@@ -236,95 +290,117 @@ export default function DashboardLayout({
   });
 
   return (
-    <GestureDetector gesture={edgeSwipeGesture}>
-      <ThemedView style={styles.container}>
+    <>
+      <LanguageChangeOverlay visible={isChangingLanguage} />
+      <GestureDetector gesture={edgeSwipeGesture}>
+        <View 
+          key={layoutKey} 
+          style={[styles.container, { backgroundColor: theme.background }]}
+        >
         {/* Mobile Header Bar */}
         {!isLargeScreen && (
-          <ThemedView style={[
-            styles.mobileHeader, 
-            { 
-              borderBottomColor: theme.border, 
-              backgroundColor: theme.background,
-              paddingTop: insets.top + Spacing.sm,
-            },
-            isRTL && { flexDirection: 'row-reverse' },
-          ]}>
-            {canGoBack && onGoBack ? (
+          // DEBUG: Log RTL state for mobile header
+          console.log('[DashboardLayout Mobile Header DEBUG]', {
+            platform: Platform.OS,
+            'I18nManager.isRTL': I18nManager.isRTL,
+            'contextIsRTL': contextIsRTL,
+            'calculated isRTL': isRTL,
+            locale,
+            'localStorage (web only)': Platform.OS === 'web' && typeof localStorage !== 'undefined' 
+              ? localStorage.getItem('@vms_language') 
+              : 'N/A',
+          }),
+          <DirectionalRow 
+            style={[
+              styles.mobileHeader, 
+              { 
+                borderBottomColor: theme.border, 
+                backgroundColor: theme.background,
+                paddingTop: insets.top + Spacing.sm,
+              },
+            ]}
+            justifyContent="space-between"
+          >
+            {/* Left cluster: menu/back + logo */}
+            <DirectionalRow style={styles.headerCluster} gap={Spacing.sm}>
+              {canGoBack && onGoBack ? (
+                <Pressable 
+                  onPress={onGoBack} 
+                  style={styles.menuButton}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <DDIcon 
+                    name={isRTL ? "arrow-right" : "arrow-left"} 
+                    size={24} 
+                    color={theme.text} 
+                  />
+                </Pressable>
+              ) : (
+                <Pressable onPress={openSidebar} style={styles.menuButton}>
+                  <DDIcon name="menu" size={24} color={theme.text} />
+                </Pressable>
+              )}
+              
               <Pressable 
-                onPress={onGoBack} 
-                style={styles.menuButton}
+                onPress={() => {
+                  if (onNavigateHome) {
+                    onNavigateHome();
+                  } else {
+                    onNavigate('Dashboard');
+                  }
+                }}
+                style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+              >
+                <Image
+                  source={isDark 
+                    ? require("../assets/images/header-icon-dark.png")
+                    : require("../assets/images/header-icon-light.png")
+                  }
+                  style={styles.headerLogo}
+                  resizeMode="contain"
+                />
+              </Pressable>
+            </DirectionalRow>
+            
+            {/* Right cluster: notifications + avatar */}
+            <DirectionalRow style={styles.headerCluster} gap={Spacing.sm}>
+              <Pressable 
+                onPress={() => onNavigate('Notifications')} 
+                style={({ pressed }) => [
+                  styles.menuButton,
+                  { opacity: pressed ? 0.5 : 1 }
+                ]}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
-                <DDIcon 
-                  name={isRTL ? "arrow-right" : "arrow-left"} 
-                  size={24} 
-                  color={theme.text} 
-                />
+                <View>
+                  <DDIcon
+                    name="bell"
+                    size={20}
+                    color={theme.textSecondary}
+                  />
+                  {unreadNotificationCount > 0 && (
+                    <View style={styles.notificationBadge}>
+                      <View style={[styles.notificationDot, { backgroundColor: theme.error }]} />
+                    </View>
+                  )}
+                </View>
               </Pressable>
-            ) : (
-              <Pressable onPress={openSidebar} style={styles.menuButton}>
-                <DDIcon name="menu" size={24} color={theme.text} />
+              
+              <Pressable 
+                onPress={() => setProfileMenuVisible(true)} 
+                style={({ pressed }) => [
+                  styles.avatarButton,
+                  { opacity: pressed ? 0.7 : 1 }
+                ]}
+              >
+                <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
+                  <ThemedText style={[Typography.caption, { color: '#FFFFFF', fontWeight: '700' }]}>
+                    {getInitials(userName)}
+                  </ThemedText>
+                </View>
               </Pressable>
-            )}
-            
-            <Pressable 
-              onPress={() => {
-                if (onNavigateHome) {
-                  onNavigateHome();
-                } else {
-                  onNavigate('Dashboard');
-                }
-              }}
-              style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
-            >
-              <Image
-                source={isDark 
-                  ? require("../assets/images/header-icon-dark.png")
-                  : require("../assets/images/header-icon-light.png")
-                }
-                style={styles.headerLogo}
-                resizeMode="contain"
-              />
-            </Pressable>
-            
-            <View style={{ flex: 1 }} />
-            
-            <Pressable 
-              onPress={() => onNavigate('Notifications')} 
-              style={({ pressed }) => [
-                styles.menuButton,
-                { opacity: pressed ? 0.5 : 1 }
-              ]}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <View>
-                <DDIcon
-                  name="bell"
-                  size={20}
-                  color={theme.textSecondary}
-                />
-                {unreadNotificationCount > 0 && (
-                  <View style={styles.notificationBadge}>
-                    <View style={[styles.notificationDot, { backgroundColor: theme.error }]} />
-                  </View>
-                )}
-              </View>
-            </Pressable>
-            
-            <Pressable 
-              onPress={() => setProfileMenuVisible(true)} 
-              style={({ pressed }) => [
-                styles.avatarButton,
-                { opacity: pressed ? 0.7 : 1 }
-              ]}
-            >
-              <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
-                <ThemedText style={[Typography.caption, { color: '#FFFFFF', fontWeight: '700' }]}>
-                  {getInitials(userName)}
-                </ThemedText>
-              </View>
-            </Pressable>
-          </ThemedView>
+            </DirectionalRow>
+          </DirectionalRow>
         )}
         
         <Modal
@@ -364,10 +440,12 @@ export default function DashboardLayout({
                   onNavigate('Settings');
                 }}
               >
-                <DDIcon name="user" size={20} variant="muted" />
-                <ThemedText style={[Typography.body, { marginStart: Spacing.md }]}>
-                  {t('settings.profile')}
-                </ThemedText>
+                <DirectionalRow gap={Spacing.md} style={{ flex: 1 }}>
+                  <DDIcon name="user" size={20} variant="muted" />
+                  <ThemedText style={[Typography.body, { flex: 1 }]}>
+                    {t('settings.profile')}
+                  </ThemedText>
+                </DirectionalRow>
               </Pressable>
               
               {!isSSOUser ? (
@@ -378,59 +456,65 @@ export default function DashboardLayout({
                     onNavigate('ChangePassword');
                   }}
                 >
-                  <DDIcon name="lock" size={20} variant="muted" />
-                  <ThemedText style={[Typography.body, { marginStart: Spacing.md }]}>
-                    {t('settings.changePassword')}
-                  </ThemedText>
+                  <DirectionalRow gap={Spacing.md} style={{ flex: 1 }}>
+                    <DDIcon name="lock" size={20} variant="muted" />
+                    <ThemedText style={[Typography.body, { flex: 1 }]}>
+                      {t('settings.changePassword')}
+                    </ThemedText>
+                  </DirectionalRow>
                 </Pressable>
               ) : null}
               
               <View style={[styles.dropdownDivider, { backgroundColor: theme.border }]} />
               
               <View style={styles.dropdownItem}>
-                <DDIcon name="globe" size={20} variant="muted" />
-                <ThemedText style={[Typography.body, { marginStart: Spacing.md, flex: 1 }]}>
-                  {t('settings.language')}
-                </ThemedText>
-                <View style={styles.languageToggle}>
-                  <Pressable 
-                    onPress={handleLanguageToggle}
-                    style={[
-                      styles.langOption,
-                      locale === 'en' && { backgroundColor: theme.primary }
-                    ]}
-                  >
-                    <ThemedText style={[Typography.caption, { color: locale === 'en' ? '#FFFFFF' : theme.textSecondary, fontWeight: '600' }]}>
-                      EN
-                    </ThemedText>
-                  </Pressable>
-                  <Pressable 
-                    onPress={handleLanguageToggle}
-                    style={[
-                      styles.langOption,
-                      locale === 'ar' && { backgroundColor: theme.primary }
-                    ]}
-                  >
-                    <ThemedText style={[Typography.caption, { color: locale === 'ar' ? '#FFFFFF' : theme.textSecondary, fontWeight: '600' }]}>
-                      AR
-                    </ThemedText>
-                  </Pressable>
-                </View>
+                <DirectionalRow gap={Spacing.md} style={{ flex: 1 }}>
+                  <DDIcon name="globe" size={20} variant="muted" />
+                  <ThemedText style={[Typography.body, { flex: 1 }]}>
+                    {t('settings.language')}
+                  </ThemedText>
+                  <View style={styles.languageToggle}>
+                    <Pressable 
+                      onPress={handleLanguageToggle}
+                      style={[
+                        styles.langOption,
+                        locale === 'en' && { backgroundColor: theme.primary }
+                      ]}
+                    >
+                      <ThemedText style={[Typography.caption, { color: locale === 'en' ? '#FFFFFF' : theme.textSecondary, fontWeight: '600' }]}>
+                        EN
+                      </ThemedText>
+                    </Pressable>
+                    <Pressable 
+                      onPress={handleLanguageToggle}
+                      style={[
+                        styles.langOption,
+                        locale === 'ar' && { backgroundColor: theme.primary }
+                      ]}
+                    >
+                      <ThemedText style={[Typography.caption, { color: locale === 'ar' ? '#FFFFFF' : theme.textSecondary, fontWeight: '600' }]}>
+                        AR
+                      </ThemedText>
+                    </Pressable>
+                  </View>
+                </DirectionalRow>
               </View>
               
               <View style={styles.dropdownItem}>
-                <DDIcon name={isDark ? "moon" : "sun"} size={20} variant="muted" />
-                <ThemedText style={[Typography.body, { marginStart: Spacing.md, flex: 1 }]}>
-                  {t('settings.darkMode')}
-                </ThemedText>
-                <Switch
-                  value={isDark}
-                  onValueChange={() => {
-                    toggleTheme();
-                  }}
-                  trackColor={{ false: theme.border, true: theme.primary }}
-                  thumbColor="#FFFFFF"
-                />
+                <DirectionalRow gap={Spacing.md} style={{ flex: 1 }}>
+                  <DDIcon name={isDark ? "moon" : "sun"} size={20} variant="muted" />
+                  <ThemedText style={[Typography.body, { flex: 1 }]}>
+                    {t('settings.darkMode')}
+                  </ThemedText>
+                  <Switch
+                    value={isDark}
+                    onValueChange={() => {
+                      toggleTheme();
+                    }}
+                    trackColor={{ false: theme.border, true: theme.primary }}
+                    thumbColor="#FFFFFF"
+                  />
+                </DirectionalRow>
               </View>
               
               <View style={[styles.dropdownDivider, { backgroundColor: theme.border }]} />
@@ -442,16 +526,23 @@ export default function DashboardLayout({
                   onLogout();
                 }}
               >
-                <DDIcon name="log-out" size={20} color={theme.error} directionAware />
-                <ThemedText style={[Typography.body, { marginStart: Spacing.md, color: theme.error }]}>
-                  {t('auth.signOut')}
-                </ThemedText>
+                <DirectionalRow gap={Spacing.md} style={{ flex: 1 }}>
+                  <DDIcon name="log-out" size={20} color={theme.error} directionAware />
+                  <ThemedText style={[Typography.body, { color: theme.error, flex: 1 }]}>
+                    {t('auth.signOut')}
+                  </ThemedText>
+                </DirectionalRow>
               </Pressable>
             </View>
           </Pressable>
         </Modal>
 
-        <View style={[styles.mainContainer, isRTL && { flexDirection: 'row-reverse' }]}>
+        <DirectionalRow 
+          testID="main-container"
+          nativeID="main-container"
+          style={styles.mainContainer}
+          alignItems="stretch"
+        >
           {/* Mobile Overlay - Rendered first so sidebar appears on top */}
           {!isLargeScreen && sidebarOpen && (
             <Animated.View
@@ -465,19 +556,24 @@ export default function DashboardLayout({
             </Animated.View>
           )}
 
-          {/* Sidebar */}
-          {(sidebarOpen || isLargeScreen) && (
-            isLargeScreen ? (
-              <View
+          {/* Mobile Sidebar - absolute positioned */}
+          {!isLargeScreen && sidebarOpen && (
+            <GestureDetector gesture={sidebarSwipeGesture}>
+              <Animated.View
                 style={[
                   styles.sidebarContainer,
-                  { width: SIDEBAR_WIDTH_DESKTOP, zIndex: 10 },
+                  styles.sidebarMobile,
+                  { 
+                    width: sidebarWidthMobile,
+                    left: isRTL ? undefined : 0,
+                    right: isRTL ? 0 : undefined,
+                  },
+                  sidebarAnimatedStyle,
                 ]}
               >
                 <Sidebar
                   userRole={userRole}
                   userName={userName}
-                  userPhotoUrl={userPhotoUrl}
                   currentScreen={currentScreen}
                   onNavigate={onNavigate}
                   onLogout={onLogout}
@@ -486,47 +582,46 @@ export default function DashboardLayout({
                   isOpen={sidebarOpen}
                   onClose={closeSidebar}
                 />
-              </View>
-            ) : (
-              <GestureDetector gesture={sidebarSwipeGesture}>
-                <Animated.View
-                  style={[
-                    styles.sidebarContainer,
-                    styles.sidebarMobile,
-                    { width: sidebarWidthMobile },
-                    sidebarAnimatedStyle,
-                    isRTL && { left: 'auto', right: 0 },
-                  ]}
-                >
-                  <Sidebar
-                    userRole={userRole}
-                    userName={userName}
-                    currentScreen={currentScreen}
-                    onNavigate={onNavigate}
-                    onLogout={onLogout}
-                    onToggleDarkMode={toggleTheme}
-                    isDarkMode={isDark}
-                    isOpen={sidebarOpen}
-                    onClose={closeSidebar}
-                  />
-                </Animated.View>
-              </GestureDetector>
-            )
+              </Animated.View>
+            </GestureDetector>
+          )}
+
+          {/* Desktop Sidebar */}
+          {isLargeScreen && (
+            <View
+              style={[
+                styles.sidebarContainer,
+                { width: SIDEBAR_WIDTH_DESKTOP, zIndex: 10 },
+              ]}
+            >
+              <Sidebar
+                userRole={userRole}
+                userName={userName}
+                userPhotoUrl={userPhotoUrl}
+                currentScreen={currentScreen}
+                onNavigate={onNavigate}
+                onLogout={onLogout}
+                onToggleDarkMode={toggleTheme}
+                isDarkMode={isDark}
+                isOpen={sidebarOpen}
+                onClose={closeSidebar}
+              />
+            </View>
           )}
 
           {/* Main Content */}
           <View style={styles.content}>
             {/* Desktop Header Bar */}
             {isLargeScreen && (
-              <View style={[
+              <DirectionalRow style={[
                 styles.desktopHeader,
                 { 
                   borderBottomColor: theme.border, 
                   backgroundColor: theme.background,
                 },
-                isRTL && { flexDirection: 'row-reverse' },
               ]}>
-                <View style={[styles.desktopHeaderLeft, isRTL && { flexDirection: 'row-reverse' }]}>
+                {/* Page title on START side, notification+avatar on END side */}
+                <DirectionalRow style={styles.desktopHeaderLeft}>
                   {canGoBack && onGoBack ? (
                     <Pressable 
                       onPress={onGoBack} 
@@ -534,9 +629,10 @@ export default function DashboardLayout({
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
                       <DDIcon 
-                        name={isRTL ? "arrow-right" : "arrow-left"} 
+                        name="arrow-left" 
                         size={24} 
-                        color={theme.text} 
+                        color={theme.text}
+                        directionAware
                       />
                     </Pressable>
                   ) : null}
@@ -552,9 +648,9 @@ export default function DashboardLayout({
                       ) : null}
                     </View>
                   ) : null}
-                </View>
+                </DirectionalRow>
                 
-                <View style={[styles.desktopHeaderRight, isRTL && { flexDirection: 'row-reverse' }]}>
+                <DirectionalRow style={styles.desktopHeaderRight}>
                   <Pressable 
                     onPress={() => onNavigate('Notifications')} 
                     style={({ pressed }) => [
@@ -584,28 +680,41 @@ export default function DashboardLayout({
                       { opacity: pressed ? 0.7 : 1 }
                     ]}
                   >
-                    <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
-                      <ThemedText style={[Typography.caption, { color: '#FFFFFF', fontWeight: '700' }]}>
-                        {getInitials(userName)}
+                    <DirectionalRow style={{ alignItems: 'center' }}>
+                      <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
+                        <ThemedText style={[Typography.caption, { color: '#FFFFFF', fontWeight: '700' }]}>
+                          {getInitials(userName)}
+                        </ThemedText>
+                      </View>
+                      <ThemedText style={[Typography.body, { marginStart: Spacing.sm, fontWeight: '500' }]}>
+                        {userName}
                       </ThemedText>
-                    </View>
-                    <ThemedText style={[Typography.body, { marginStart: Spacing.sm, fontWeight: '500' }]}>
-                      {userName}
-                    </ThemedText>
-                    <DDIcon name="chevron-down" size={16} color={theme.textSecondary} />
+                      <DDIcon name="chevron-down" size={16} color={theme.textSecondary} />
+                    </DirectionalRow>
                   </Pressable>
-                </View>
-              </View>
+                </DirectionalRow>
+              </DirectionalRow>
             )}
             
-            <View style={styles.contentInner}>
-              {Platform.OS === 'web' && <EnableNotificationsPrompt />}
-              {children}
-            </View>
+            {/* On Android, wrap content with NativeViewGestureHandler to coordinate with sidebar gesture */}
+            {isAndroid ? (
+              <NativeViewGestureHandler ref={nativeScrollRef} disallowInterruption>
+                <View style={styles.contentInner}>
+                  {Platform.OS === 'web' && <EnableNotificationsPrompt />}
+                  {children}
+                </View>
+              </NativeViewGestureHandler>
+            ) : (
+              <View style={styles.contentInner}>
+                {Platform.OS === 'web' && <EnableNotificationsPrompt />}
+                {children}
+              </View>
+            )}
           </View>
-        </View>
-      </ThemedView>
-    </GestureDetector>
+        </DirectionalRow>
+      </View>
+      </GestureDetector>
+    </>
   );
 }
 
@@ -614,7 +723,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   mobileHeader: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.lg,
@@ -622,13 +730,17 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     zIndex: 10,
   },
+  headerCluster: {
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
   menuButton: {
     padding: Spacing.xs,
     marginEnd: Spacing.xs,
   },
   mainContainer: {
     flex: 1,
-    flexDirection: 'row',
+    // flexDirection handled by DirectionalRow
   },
   sidebarContainer: {
     // Width applied dynamically in JSX based on screen size
@@ -636,7 +748,6 @@ const styles = StyleSheet.create({
   sidebarMobile: {
     position: 'absolute',
     top: 0,
-    left: 0,
     bottom: 0,
     zIndex: 100,
     elevation: 8,
@@ -653,7 +764,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   desktopHeader: {
-    flexDirection: 'row',
+    // flexDirection handled by DirectionalRow
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.xl,
@@ -661,11 +772,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   desktopHeaderLeft: {
-    flexDirection: 'row',
+    // flexDirection handled by DirectionalRow
     alignItems: 'center',
   },
   desktopHeaderRight: {
-    flexDirection: 'row',
+    // flexDirection handled by DirectionalRow
     alignItems: 'center',
     gap: Spacing.md,
   },
@@ -674,7 +785,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.sm,
   },
   desktopAvatarButton: {
-    flexDirection: 'row',
+    // flexDirection handled by DirectionalRow inside
     alignItems: 'center',
     paddingVertical: Spacing.xs,
     paddingHorizontal: Spacing.sm,
@@ -739,8 +850,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   dropdownItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'stretch',
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.lg,
   },
