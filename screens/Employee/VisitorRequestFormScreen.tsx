@@ -1383,6 +1383,7 @@ export default function VisitorRequestFormScreen({
                         justifyContent: "flex-start",
                       },
                     ]}
+                    gap={Spacing.xs}
                   >
                     <DDIcon
                       name={isRoomAvailable ? "check-circle" : "alert-circle"}
@@ -1394,8 +1395,9 @@ export default function VisitorRequestFormScreen({
                         Typography.bodySmall,
                         {
                           color: isRoomAvailable ? theme.success : theme.error,
-                          marginEnd: Spacing.xs,
                           fontWeight: "500",
+                          flex: 1,
+                          flexWrap: "wrap",
                         },
                       ]}
                     >
