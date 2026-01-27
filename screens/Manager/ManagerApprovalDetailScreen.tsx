@@ -794,6 +794,105 @@ export default function ManagerApprovalDetailScreen({
           paddingTop: Spacing.lg,
         }}
       >
+        {/* Rejection Reason - Moved to top */}
+        {request.status === REQUEST_STATUS.REJECTED &&
+        request.approval.rejectionReason ? (
+          <>
+            <ThemedView
+              style={[
+                styles.cardNew,
+                { backgroundColor: applyOpacity(theme.error, "08") },
+              ]}
+            >
+              <DirectionalRow
+                style={{ alignItems: "flex-start", gap: Spacing.sm }}
+              >
+                <View style={{ marginTop: 2 }}>
+                  <DDIcon name="message-circle" size={18} color={theme.error} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <ThemedText
+                    style={[
+                      Typography.bodySmall,
+                      {
+                        color: theme.error,
+                        fontWeight: "600",
+                        marginBottom: 4,
+                        
+                      },
+                    ]}
+                  >
+                    {t("form.reason")}
+                  </ThemedText>
+                  <ThemedText
+                    style={[
+                      Typography.body,
+                      {
+                        color: theme.text,
+                        lineHeight: 22,
+                        
+                      },
+                    ]}
+                  >
+                    {request.approval.rejectionReason}
+                  </ThemedText>
+                </View>
+              </DirectionalRow>
+            </ThemedView>
+            <Spacer height={Spacing.lg} />
+          </>
+        ) : null}
+
+        {/* Visitor Decline Reason - Moved to top */}
+        {request.visitorDecision &&
+        !request.visitorDecision.accepted &&
+        request.visitorDecision.reason ? (
+          <>
+            <ThemedView
+              style={[
+                styles.cardNew,
+                { backgroundColor: applyOpacity(theme.error, "08") },
+              ]}
+            >
+              <DirectionalRow
+                style={{ alignItems: "flex-start", gap: Spacing.sm }}
+              >
+                <View style={{ marginTop: 2 }}>
+                  <DDIcon name="user-x" size={18} color={theme.error} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <ThemedText
+                    style={[
+                      Typography.bodySmall,
+                      {
+                        color: theme.error,
+                        fontWeight: "600",
+                        marginBottom: 4,
+                        
+                      },
+                    ]}
+                  >
+                    {t("visitor.visitorDeclineReason")}
+                  </ThemedText>
+                  <ThemedText
+                    style={[
+                      Typography.body,
+                      {
+                        color: theme.text,
+                        lineHeight: 22,
+                        
+                      },
+                    ]}
+                  >
+                    {request.visitorDecision.reason}
+                  </ThemedText>
+                </View>
+              </DirectionalRow>
+            </ThemedView>
+            <Spacer height={Spacing.lg} />
+          </>
+        ) : null}
+
         <ThemedView
           style={[styles.cardNew, { backgroundColor: theme.surface }]}
         >
@@ -929,103 +1028,6 @@ export default function ManagerApprovalDetailScreen({
               </ThemedText>
             </DirectionalRow>
         </ThemedView>
-
-        {request.status === REQUEST_STATUS.REJECTED &&
-        request.approval.rejectionReason ? (
-          <>
-            <Spacer height={Spacing.lg} />
-            <ThemedView
-              style={[
-                styles.cardNew,
-                { backgroundColor: applyOpacity(theme.error, "08") },
-              ]}
-            >
-              <DirectionalRow
-                style={{ alignItems: "flex-start", gap: Spacing.sm }}
-              >
-                <View style={{ marginTop: 2 }}>
-                  <DDIcon name="message-circle" size={18} color={theme.error} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <ThemedText
-                    style={[
-                      Typography.bodySmall,
-                      {
-                        color: theme.error,
-                        fontWeight: "600",
-                        marginBottom: 4,
-                        
-                      },
-                    ]}
-                  >
-                    {t("form.reason")}
-                  </ThemedText>
-                  <ThemedText
-                    style={[
-                      Typography.body,
-                      {
-                        color: theme.text,
-                        lineHeight: 22,
-                        
-                      },
-                    ]}
-                  >
-                    {request.approval.rejectionReason}
-                  </ThemedText>
-                </View>
-              </DirectionalRow>
-            </ThemedView>
-          </>
-        ) : null}
-
-        {request.visitorDecision &&
-        !request.visitorDecision.accepted &&
-        request.visitorDecision.reason ? (
-          <>
-            <Spacer height={Spacing.lg} />
-            <ThemedView
-              style={[
-                styles.cardNew,
-                { backgroundColor: applyOpacity(theme.error, "08") },
-              ]}
-            >
-              <DirectionalRow
-                style={{ alignItems: "flex-start", gap: Spacing.sm }}
-              >
-                <View style={{ marginTop: 2 }}>
-                  <DDIcon name="user-x" size={18} color={theme.error} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <ThemedText
-                    style={[
-                      Typography.bodySmall,
-                      {
-                        color: theme.error,
-                        fontWeight: "600",
-                        marginBottom: 4,
-                        
-                      },
-                    ]}
-                  >
-                    {t("visitor.visitorDeclineReason")}
-                  </ThemedText>
-                  <ThemedText
-                    style={[
-                      Typography.body,
-                      {
-                        color: theme.text,
-                        lineHeight: 22,
-                        
-                      },
-                    ]}
-                  >
-                    {request.visitorDecision.reason}
-                  </ThemedText>
-                </View>
-              </DirectionalRow>
-            </ThemedView>
-          </>
-        ) : null}
 
         <Spacer height={LAYOUT.sectionSpacing} />
 
