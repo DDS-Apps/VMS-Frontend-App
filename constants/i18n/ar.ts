@@ -317,6 +317,7 @@ export const ar: TranslationKeys = {
     emailPlaceholder: 'أدخل البريد الإلكتروني',
     phoneNumber: 'رقم الهاتف',
     phone: 'الهاتف',
+    businessPhone: 'هاتف المكتب',
     phonePlaceholder: 'أدخل رقم الهاتف',
     company: 'الشركة',
     companyPlaceholder: 'أدخل اسم الشركة',

@@ -317,6 +317,7 @@ export const en: TranslationKeys = {
     emailPlaceholder: 'Enter email address',
     phoneNumber: 'Phone Number',
     phone: 'Phone',
+    businessPhone: 'Office Phone',
     phonePlaceholder: 'Enter phone number',
     company: 'Company',
     companyPlaceholder: 'Enter company name',

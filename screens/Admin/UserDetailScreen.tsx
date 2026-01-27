@@ -122,6 +122,7 @@ export default function UserDetailScreen() {
   const userFirstName = (user as any).name?.split(' ')[0] || user.firstName || '';
   const userLastName = (user as any).name?.split(' ').slice(1).join(' ') || user.lastName || '';
   const userPhone = (user as any).phoneNumber || user.phone || '';
+  const userBusinessPhone = (user as any).businessPhone || '';
   const source = user.azureAdId ? 'microsoft_ad' : 'app_created';
   
   // Check user active status from both isActive boolean and status string
@@ -202,6 +203,21 @@ export default function UserDetailScreen() {
                     {t('form.phone')}
                   </ThemedText>
                   <ThemedText style={[Typography.body, {}]}>{formatPhoneNumber(userPhone)}</ThemedText>
+                </View>
+              </DirectionalRow>
+            </>
+          ) : null}
+
+          {userBusinessPhone ? (
+            <>
+              <View style={[styles.separator, { backgroundColor: theme.border }]} />
+              <DirectionalRow style={styles.infoRow}>
+                <DDIcon name="phone-call" size={18} variant="muted" />
+                <View style={[styles.infoContent, { marginEnd: Spacing.md }]}>
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
+                    {t('form.businessPhone')}
+                  </ThemedText>
+                  <ThemedText style={[Typography.body, {}]}>{userBusinessPhone}</ThemedText>
                 </View>
               </DirectionalRow>
             </>

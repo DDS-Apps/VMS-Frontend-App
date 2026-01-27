@@ -53,6 +53,7 @@ interface DisplayUser {
   role: UserRole;
   department?: string;
   phoneNumber?: string;
+  businessPhone?: string;
   status: "active" | "inactive";
   createdAt: string;
   source: UserSource;
@@ -71,6 +72,7 @@ function mapUserDtoToDisplayUser(dto: UserDto): DisplayUser {
     `${firstName} ${lastName}`.trim() ||
     (email ? email.split("@")[0] : "Unknown User");
   const phoneNumber = (dtoAny["phoneNumber"] || dto.phone || "") as string;
+  const businessPhone = (dtoAny["businessPhone"] || "") as string;
   const status =
     (dtoAny["status"] as "active" | "inactive") ||
     (dto.isActive ? "active" : "inactive");
@@ -87,6 +89,7 @@ function mapUserDtoToDisplayUser(dto: UserDto): DisplayUser {
     role: dto.role.toLowerCase() as UserRole,
     department: dto.department,
     phoneNumber: phoneNumber || undefined,
+    businessPhone: businessPhone || undefined,
     status: status,
     createdAt: dto.createdAt,
     source: source === "azure_ad" ? "microsoft_ad" : (source as UserSource),
@@ -622,7 +625,7 @@ export default function UsersRolesScreen() {
           ) : null}
         </DirectionalRow>
 
-        {!isGrid && (item.department || item.phoneNumber) ? (
+        {!isGrid && (item.department || item.phoneNumber || item.businessPhone) ? (
           <>
             <Spacer height={Spacing.md} />
             {item.department ? (
@@ -657,6 +660,27 @@ export default function UsersRolesScreen() {
                     ]}
                   >
                     {formatPhoneNumber(item.phoneNumber)}
+                  </ThemedText>
+                </DirectionalRow>
+              </>
+            ) : null}
+            {item.businessPhone ? (
+              <>
+                <Spacer height={Spacing.xs} />
+                <DirectionalRow
+                  style={[
+                    styles.infoRow,
+                    bulkMode ? { marginStart: 32 } : null,
+                  ]}
+                >
+                  <DDIcon name="phone-call" variant="muted" size={14} />
+                  <ThemedText
+                    style={[
+                      Typography.bodySmall,
+                      { color: theme.textSecondary, marginEnd: Spacing.xs },
+                    ]}
+                  >
+                    {item.businessPhone}
                   </ThemedText>
                 </DirectionalRow>
               </>
