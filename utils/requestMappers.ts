@@ -50,6 +50,16 @@ export type VisitorRequestWithPending = VisitorRequest & {
 };
 
 export const mapVisitDetailsToVisitorRequest = (visit: VisitDetailsDto): VisitorRequestWithPending => {
+  // DEBUG: Trace parking data from API
+  console.log('[DEBUG mapVisitDetailsToVisitorRequest] Parking data from API:', {
+    visitorNeedsParking: visit.visitorNeedsParking,
+    isVisitorNeedsParking: visit.isVisitorNeedsParking,
+    licensePlate: visit.licensePlate,
+    carModel: visit.carModel,
+    carColor: visit.carColor,
+    parkingType: (visit as any).parkingType,
+  });
+  
   return {
     id: visit.id,
     employeeId: visit.employeeId,

@@ -251,7 +251,16 @@ export default function ManagerApprovalDetailScreen({
 
   const request = useMemo(() => {
     if (!visitData) return null;
-    return mapVisitDetailsToVisitorRequest(visitData);
+    const mapped = mapVisitDetailsToVisitorRequest(visitData);
+    // DEBUG: Trace parking data in screen
+    console.log('[DEBUG ManagerApprovalDetailScreen] Mapped request parking data:', {
+      visitorNeedsParking: mapped.visitorNeedsParking,
+      isVisitorNeedsParking: mapped.isVisitorNeedsParking,
+      licensePlate: mapped.licensePlate,
+      carModel: mapped.carModel,
+      carColor: mapped.carColor,
+    });
+    return mapped;
   }, [visitData]);
 
   const timelineData: TimelineData = useMemo(
