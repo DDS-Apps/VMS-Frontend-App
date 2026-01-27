@@ -17,7 +17,7 @@ const ROLES_WITH_BUFFET_ACCESS: UserRole[] = ['buffet_admin', 'building_admin'];
 const ROLES_WITH_VALET_ACCESS: UserRole[] = ['valet_admin', 'building_admin'];
 
 export type UnifiedRequestType = 'visitor' | 'buffet' | 'valet';
-export type UnifiedStatus = 'pending' | 'approved' | 'in_progress' | 'completed' | 'cancelled' | 'rejected';
+export type UnifiedStatus = 'pending' | 'approved' | 'in_progress' | 'completed' | 'cancelled' | 'auto_cancelled' | 'rejected';
 
 export interface UnifiedRequest {
   id: string;
@@ -59,8 +59,9 @@ function normalizeVisitStatus(status: string): UnifiedStatus {
     case 'completed':
       return 'completed';
     case 'cancelled':
-    case 'auto_cancelled':
       return 'cancelled';
+    case 'auto_cancelled':
+      return 'auto_cancelled';
     case 'rejected':
     case 'visitor_rejected':
     case 'expired':
@@ -89,6 +90,8 @@ function normalizeBuffetStatus(status: string): UnifiedStatus {
       return 'completed';
     case 'cancelled':
       return 'cancelled';
+    case 'auto_cancelled':
+      return 'auto_cancelled';
     default:
       return 'pending';
   }
@@ -113,6 +116,8 @@ function normalizeValetStatus(status?: string): UnifiedStatus {
       return 'completed';
     case 'cancelled':
       return 'cancelled';
+    case 'auto_cancelled':
+      return 'auto_cancelled';
     case 'rejected':
       return 'rejected';
     default:

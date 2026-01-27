@@ -228,7 +228,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
       case 'checked_in':
         return { label: t('status.checkedIn'), variant: 'success', icon: 'check-circle' };
       case 'completed':
-        return { label: t('status.checkedOut'), variant: 'muted', icon: 'log-out' };
+        return { label: t('timeline.visitCompleted'), variant: 'success', icon: 'check-circle' };
       case 'rejected':
         return { label: t('status.rejected'), variant: 'error', icon: 'x-circle' };
       case 'cancelled':
@@ -458,7 +458,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
         animationType="fade"
         onRequestClose={() => setShowCancelModal(false)}
       >
-        <View style={styles.modalOverlay}>
+        <View style={styles.modalOverlay} pointerEvents="box-none">
           <Pressable 
             style={[styles.modalBackdrop, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]}
             onPress={() => setShowCancelModal(false)}
@@ -656,6 +656,7 @@ const styles = StyleSheet.create({
   modalContent: {
     borderRadius: BorderRadius.lg,
     padding: Spacing.lg,
+    zIndex: 10,
   },
   modalHeader: {
     justifyContent: 'space-between',

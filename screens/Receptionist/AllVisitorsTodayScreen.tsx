@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
-import { View, StyleSheet, Pressable, GestureResponderEvent, Alert, ScrollView, LayoutAnimation, Platform, UIManager } from "react-native";
+import { View, StyleSheet, Pressable, GestureResponderEvent, Alert, ScrollView, LayoutAnimation, Platform, UIManager, useWindowDimensions } from "react-native";
 import type { AllVisitorsTodayScreenProps } from "@/types/receptionistNavigation.types";
 import { ROUTES } from "@/constants";
 import { SkeletonList } from "@/components/shared/Skeleton";
@@ -69,6 +69,11 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
   const { formatTime, formatTimeFromString } = useFormatters();
   const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
+  
+  // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
+  const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [expandedVisitors, setExpandedVisitors] = useState<Set<string>>(new Set());
@@ -100,7 +105,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
     { key: 'all', label: t('common.all') },
     { key: 'expected', label: t('visitor.expectedVisitors') },
     { key: 'checked_in', label: t('status.checkedIn') },
-    { key: 'completed', label: t('status.checkedOut') },
+    { key: 'completed', label: t('timeline.visitCompleted') },
   ];
 
   const scrollContentStyle = {
@@ -201,6 +206,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
       case 'checked_in':
         return { label: t('status.checkedIn'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: theme.success };
       case 'completed':
+        return { label: t('timeline.visitCompleted'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: theme.success };
       case 'checked_out':
         return { label: t('status.checkedOut'), bg: applyOpacity(theme.textSecondary, '15'), text: theme.textSecondary, border: theme.textSecondary };
       case 'pending_approval':
@@ -247,7 +253,6 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
     const initials = visitorName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
     const showCheckIn = item.status === 'approved' || item.status === 'visitor_accepted' || item.status === 'expected';
     const showCheckOut = item.status === 'checked_in';
-    const showCompleted = item.status === 'completed' || item.status === 'checked_out';
     const isExpanded = expandedVisitors.has(item.id);
     const hasDetails = item.visitor.phone;
 
@@ -295,11 +300,28 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
 
             <DirectionalRow style={styles.servicesStatusRow} justifyContent="space-between">
               <ServiceIconsRow visitor={item} />
-              <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: 1 }]}>
-                <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
-                  {statusConfig.label}
-                </ThemedText>
-              </View>
+              <DirectionalRow alignItems="center">
+                {showCheckIn ? (
+                  <View style={{ marginEnd: Spacing.sm }}>
+                    <VisitorActionButton
+                      type="check_in"
+                      onPress={(e) => handleCheckIn(item.id, visitorName, e)}
+                    />
+                  </View>
+                ) : showCheckOut ? (
+                  <View style={{ marginEnd: Spacing.sm }}>
+                    <VisitorActionButton
+                      type="check_out"
+                      onPress={(e) => handleCheckOut(item.id, visitorName, e)}
+                    />
+                  </View>
+                ) : null}
+                <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: 1 }]}>
+                  <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
+                    {statusConfig.label}
+                  </ThemedText>
+                </View>
+              </DirectionalRow>
             </DirectionalRow>
 
             {isExpanded && hasDetails ? (
@@ -314,42 +336,6 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
                 ) : null}
               </View>
             ) : null}
-
-            {hasDetails ? (
-              <Pressable
-                onPress={(e) => { e.stopPropagation(); toggleVisitorExpanded(item.id); }}
-                style={styles.toggleContainer}
-              >
-                <DirectionalRow>
-                  <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
-                    {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
-                  </ThemedText>
-                  <DDIcon
-                    name={isExpanded ? 'chevron-up' : 'chevron-down'}
-                    size={16}
-                    color={theme.primary}
-                  />
-                </DirectionalRow>
-              </Pressable>
-            ) : null}
-
-            <DirectionalRow style={styles.cardFooter} justifyContent="flex-end">
-              <DirectionalRow style={styles.actionButtons}>
-                {showCheckIn ? (
-                  <VisitorActionButton
-                    type="check_in"
-                    onPress={(e) => handleCheckIn(item.id, visitorName, e)}
-                  />
-                ) : showCheckOut ? (
-                  <VisitorActionButton
-                    type="check_out"
-                    onPress={(e) => handleCheckOut(item.id, visitorName, e)}
-                  />
-                ) : showCompleted ? (
-                  <VisitorActionButton type="completed" />
-                ) : null}
-              </DirectionalRow>
-            </DirectionalRow>
           </View>
         </ThemedView>
       </Pressable>
@@ -438,7 +424,14 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
 
       {filteredVisitors.length > 0 ? (
         <View style={styles.cardList}>
-          {filteredVisitors.map((visitor) => renderVisitorCard(visitor))}
+          {filteredVisitors.map((visitor) => (
+            <View 
+              key={visitor.id} 
+              style={numColumns > 1 ? { width: numColumns === 2 ? '50%' : '33.33%', flexGrow: 0, marginBottom: LAYOUT.contentGap, paddingRight: Spacing.sm } : { width: '100%' }}
+            >
+              {renderVisitorCard(visitor)}
+            </View>
+          ))}
         </View>
       ) : (
         <View style={styles.emptyState}>
@@ -485,6 +478,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   segmentedControl: {
+    flexDirection: 'row',
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
     overflow: 'hidden',
@@ -508,7 +502,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   cardList: {
-    gap: Spacing.sm,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.md,
+  },
+  gridItem: {
+    minWidth: 0,
   },
   visitorCard: {
     borderRadius: BorderRadius.lg,

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
-import { View, StyleSheet, Pressable, Dimensions, GestureResponderEvent, LayoutAnimation, Platform, UIManager, Alert } from "react-native";
+import { View, StyleSheet, Pressable, Dimensions, GestureResponderEvent, LayoutAnimation, Platform, UIManager, Alert, useWindowDimensions } from "react-native";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { ROUTES } from "@/constants";
 import { ThemedText } from "@/components/ThemedText";
@@ -16,8 +16,8 @@ import { applyOpacity } from "@/utils/statusStyles";
 import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useTodayVisitorsQuery, useRoomsTodayQuery, useReceptionCheckInMutation, useReceptionCheckOutMutation } from "@/hooks/queries/useReceptionQueries";
-import type { TodayVisitorDto, RoomStatusDto } from "@/types";
+import { useTodayVisitorsQuery, useReceptionCheckInMutation, useReceptionCheckOutMutation } from "@/hooks/queries/useReceptionQueries";
+import type { TodayVisitorDto } from "@/types";
 import { SkeletonDashboard, WalkInBadge } from "@/components/shared";
 import type { ReceptionistDashboardScreenProps } from "@/types/receptionistNavigation.types";
 
@@ -27,38 +27,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 
 const screenWidth = Dimensions.get('window').width;
 
-interface KPICardProps {
-  title: string;
-  value: string;
-  icon: IconName;
-  iconBgColor: string;
-  iconColor: string;
-  cardBgColor: string;
-}
-
-function KPICard({ title, value, icon, iconBgColor, iconColor, cardBgColor }: KPICardProps) {
-  const { theme } = useTheme();
-  
-  return (
-    <View style={[styles.kpiCard, { backgroundColor: cardBgColor }]}>
-      <View style={[styles.kpiIconContainer, { backgroundColor: iconBgColor }]}>
-        <DDIcon name={icon} size={28} color={iconColor} />
-      </View>
-
-      <Spacer height={Spacing.lg} />
-
-      <ThemedText style={[styles.kpiValue, { color: theme.text }]}>
-        {value}
-      </ThemedText>
-
-      <Spacer height={Spacing.xs} />
-
-      <ThemedText style={[styles.kpiLabel, { color: theme.textSecondary }]}>
-        {title}
-      </ThemedText>
-    </View>
-  );
-}
+import { KPICard, KPICardRow } from '@/components/shared/KPICard';
 
 interface QuickActionProps {
   icon: IconName;
@@ -128,21 +97,20 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
   const { formatTime, formatTimeFromString } = useFormatters();
   const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
-  const [expandedRooms, setExpandedRooms] = useState<Set<string>>(new Set());
+  const { width: screenWidth } = useWindowDimensions();
+  
+  // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
+  const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
+  
   const [expandedVisitors, setExpandedVisitors] = useState<Set<string>>(new Set());
 
-  const { data: todayResponse, isLoading: isLoadingVisitors, isFetching: isFetchingVisitors, isError: isVisitorError, error: visitorError } = useTodayVisitorsQuery();
-  const { data: roomsData, isLoading: isLoadingRooms, isFetching: isFetchingRooms, isError: isRoomsError, error: roomsError } = useRoomsTodayQuery();
+  const { data: todayResponse, isLoading, isFetching, isError, error: visitorError } = useTodayVisitorsQuery();
   const checkInMutation = useReceptionCheckInMutation();
   const checkOutMutation = useReceptionCheckOutMutation();
 
   const todaysVisitors = todayResponse?.data ?? [];
   const summary = todayResponse?.summary;
-  const roomMeetings = roomsData ?? [];
-  const isLoading = isLoadingVisitors || isLoadingRooms;
-  const isFetching = isFetchingVisitors || isFetchingRooms;
-  const isError = isVisitorError || isRoomsError;
-  const errorMessage = visitorError?.message || roomsError?.message || t('common.loadError');
+  const errorMessage = visitorError?.message || t('common.loadError');
 
   const hasShownError = useRef(false);
 
@@ -160,19 +128,6 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
     paddingHorizontal: Spacing.lg,
     paddingTop: insets.top + Spacing.xl,
     paddingBottom: insets.bottom + Spacing.xl + 80
-  };
-
-  const toggleRoomExpanded = (roomId: string) => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setExpandedRooms(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(roomId)) {
-        newSet.delete(roomId);
-      } else {
-        newSet.add(roomId);
-      }
-      return newSet;
-    });
   };
 
   const toggleVisitorExpanded = (visitorId: string) => {
@@ -235,7 +190,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
       case 'checked_in':
         return { label: t('status.checkedIn'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: theme.success };
       case 'completed':
-        return { label: t('status.checkedOut'), bg: applyOpacity(theme.textSecondary, '15'), text: theme.textSecondary, border: theme.textSecondary };
+        return { label: t('timeline.visitCompleted'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: theme.success };
       default:
         return { label: t('visitor.expectedVisitors'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: theme.warning };
     }
@@ -344,22 +299,6 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
           </View>
         ) : null}
 
-        {hasDetails ? (
-          <Pressable 
-            onPress={(e) => { e.stopPropagation(); toggleVisitorExpanded(item.id); }} 
-            style={styles.toggleContainer}
-          >
-            <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
-              {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
-            </ThemedText>
-            <DDIcon 
-              name={isExpanded ? 'chevron-up' : 'chevron-down'} 
-              size={16} 
-              color={theme.primary} 
-            />
-          </Pressable>
-        ) : null}
-
         <Spacer height={Spacing.md} />
 
         <DirectionalRow style={styles.visitorCardFooter} justifyContent="space-between">
@@ -375,9 +314,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
               onPress={(e) => handleCheckOut(item.id, visitorName, e)}
               disabled={isMutating}
             />
-          ) : (
-            <VisitorActionButton type="completed" />
-          )}
+          ) : null}
         </DirectionalRow>
       </Pressable>
     );
@@ -405,33 +342,27 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
 
   return (
     <>
-      <ScreenScrollView contentContainerStyle={scrollContentStyle}>
-        <DirectionalRow style={styles.kpiRow}>
+      <ScreenScrollView skipTopPadding contentContainerStyle={scrollContentStyle}>
+        <KPICardRow>
           <KPICard 
             title={t('dashboard.expectedToday')} 
             value={String(expectedCount)} 
             icon="users" 
-            iconBgColor={applyOpacity(theme.primary, '20')}
-            iconColor={theme.primary}
-            cardBgColor={applyOpacity(theme.primary, '06')}
+            color={theme.primary}
           />
           <KPICard 
             title={t('dashboard.checkedIn')} 
             value={String(checkedInCount)} 
             icon="user-check" 
-            iconBgColor={applyOpacity(theme.success, '20')}
-            iconColor={theme.success}
-            cardBgColor={applyOpacity(theme.success, '06')}
+            color={theme.success}
           />
           <KPICard 
             title={t('dashboard.pending')} 
             value={String(pendingCount)} 
             icon="clock" 
-            iconBgColor={applyOpacity(theme.warning, '20')}
-            iconColor={theme.warning}
-            cardBgColor={applyOpacity(theme.warning, '06')}
+            color={theme.warning}
           />
-        </DirectionalRow>
+        </KPICardRow>
 
         <Spacer height={Spacing.xl} />
 
@@ -454,7 +385,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
             label={t('navigation.walkInVisitors')}
             iconBgColor={applyOpacity(theme.success, '12')}
             iconColor={theme.success}
-            onPress={() => navigation.navigate(ROUTES.WALK_IN_VISITORS as never)}
+            onPress={() => navigation.navigate(ROUTES.ALL_VISITORS as never, { initialFilter: 'walk_in' } as never)}
           />
           <QuickActionButton
             icon="clock"
@@ -464,114 +395,6 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
             onPress={() => navigation.navigate(ROUTES.ALL_VISITORS_TODAY as never)}
           />
         </DirectionalRow>
-
-        <Spacer height={Spacing.xl} />
-
-        <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
-          {t('reception.todaysMeetingsByRoom')}
-        </ThemedText>
-
-        <Spacer height={Spacing.md} />
-
-        {roomMeetings.length > 0 ? (
-          <View style={styles.meetingsContainer}>
-            {roomMeetings.map((room) => {
-              const isExpanded = expandedRooms.has(room.id);
-              const hasBookings = room.currentBooking || room.nextBooking;
-              const statusColor = room.status === 'available' ? theme.success 
-                : room.status === 'occupied' ? theme.error 
-                : room.status === 'reserved' ? theme.warning 
-                : theme.textSecondary;
-              
-              return (
-                <View 
-                  key={room.id} 
-                  style={[styles.roomCard, { backgroundColor: theme.surface }]}
-                >
-                  <Pressable
-                      style={[styles.roomHeader, { flexDirection: getFlexDirection(isRTL) }]}
-                      onPress={() => toggleRoomExpanded(room.id)}
-                    >
-                      <DirectionalRow style={styles.roomHeaderLeft}>
-                        <View style={[styles.roomIconContainer, { backgroundColor: applyOpacity(theme.info, '12') }]}>
-                          <DDIcon name="home" size={20} color={theme.info} />
-                        </View>
-                        <View style={styles.roomInfo}>
-                          <ThemedText style={[styles.roomName, { color: theme.text }]} numberOfLines={1}>
-                            {room.name}
-                          </ThemedText>
-                          <ThemedText style={[styles.roomFloor, { color: theme.textSecondary }]}>
-                            {room.floor ? `${t('parking.floor')} ${room.floor}` : `${t('reception.capacity')}: ${room.capacity}`}
-                          </ThemedText>
-                        </View>
-                      </DirectionalRow>
-                      <DirectionalRow style={styles.roomHeaderRight}>
-                        <View style={[styles.meetingCountBadge, { backgroundColor: applyOpacity(statusColor, '12') }]}>
-                          <ThemedText style={[styles.meetingCountText, { color: statusColor }]}>
-                            {room.status}
-                          </ThemedText>
-                        </View>
-                        {hasBookings ? (
-                          <DDIcon 
-                            name={isExpanded ? "chevron-up" : "chevron-down"} 
-                            size={20} 
-                            color={theme.textSecondary} 
-                          />
-                        ) : null}
-                      </DirectionalRow>
-                    </Pressable>
-
-                  {isExpanded && hasBookings ? (
-                    <View style={[styles.meetingsList, { borderTopColor: theme.border }]}>
-                      {room.currentBooking ? (
-                        <View style={styles.meetingItem}>
-                          <DirectionalRow style={styles.meetingTimeSlot}>
-                            <DDIcon name="clock" size={14} color={theme.textSecondary} />
-                            <ThemedText style={[styles.meetingTime, { color: theme.textSecondary }]}>
-                              {room.currentBooking.startTime} - {room.currentBooking.endTime ?? t('common.ongoing')}
-                            </ThemedText>
-                          </DirectionalRow>
-                          <ThemedText style={[styles.meetingTitle, { color: theme.text }]} numberOfLines={1}>
-                            {room.currentBooking.visitorName}
-                          </ThemedText>
-                          {room.currentBooking.hostName ? (
-                            <DirectionalRow style={styles.meetingMeta}>
-                              <DDIcon name="user" size={12} color={theme.textSecondary} />
-                              <ThemedText style={[styles.meetingHost, { color: theme.textSecondary }]} numberOfLines={1}>
-                                {room.currentBooking.hostName}
-                              </ThemedText>
-                            </DirectionalRow>
-                          ) : null}
-                        </View>
-                      ) : null}
-                      {room.nextBooking ? (
-                        <View style={[styles.meetingItem, room.currentBooking && { borderTopWidth: 1, borderTopColor: applyOpacity(theme.border, '50') }]}>
-                          <DirectionalRow style={styles.meetingTimeSlot}>
-                            <DDIcon name="clock" size={14} color={theme.textSecondary} />
-                            <ThemedText style={[styles.meetingTime, { color: theme.textSecondary }]}>
-                              {t('reception.next')}: {room.nextBooking.startTime}
-                            </ThemedText>
-                          </DirectionalRow>
-                          <ThemedText style={[styles.meetingTitle, { color: theme.text }]} numberOfLines={1}>
-                            {room.nextBooking.visitorName}
-                          </ThemedText>
-                        </View>
-                      ) : null}
-                    </View>
-                  ) : null}
-                </View>
-              );
-            })}
-          </View>
-        ) : (
-          <ThemedView style={[styles.emptyState, { backgroundColor: theme.surface }]}>
-            <DDIcon name="calendar" size={32} variant="muted" />
-            <Spacer height={Spacing.sm} />
-            <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
-              {t('reception.noMeetingsToday')}
-            </ThemedText>
-          </ThemedView>
-        )}
 
         <Spacer height={Spacing.xl} />
 
@@ -599,7 +422,14 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
 
         {todaysVisitors.length > 0 ? (
           <View style={styles.visitorsList}>
-            {todaysVisitors.slice(0, 3).map((visitor) => renderVisitorCard(visitor))}
+            {todaysVisitors.slice(0, 3).map((visitor) => (
+              <View 
+                key={visitor.id} 
+                style={numColumns > 1 ? { width: numColumns === 2 ? '50%' : '33.33%', flexGrow: 0, marginBottom: LAYOUT.contentGap, paddingRight: Spacing.sm } : { width: '100%' }}
+              >
+                {renderVisitorCard(visitor)}
+              </View>
+            ))}
           </View>
         ) : (
           <ThemedView style={[styles.emptyState, { backgroundColor: theme.surface }]}>
@@ -781,7 +611,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   visitorsList: {
-    gap: Spacing.sm,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.md,
   },
   visitorCard: {
     borderRadius: 12,

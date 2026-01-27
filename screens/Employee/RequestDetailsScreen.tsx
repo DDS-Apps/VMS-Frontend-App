@@ -459,13 +459,20 @@ export default function RequestDetailsScreen({
   };
 
   const handleCancelRequest = () => {
-    if (isTerminalStatus) return;
+    console.log('[CancelRequest] Called, requestId:', requestId, 'isTerminalStatus:', isTerminalStatus);
+    if (isTerminalStatus) {
+      console.log('[CancelRequest] Blocked - request is in terminal status');
+      return;
+    }
+    console.log('[CancelRequest] Calling cancelMutation.mutate...');
     cancelMutation.mutate(requestId, {
       onSuccess: () => {
+        console.log('[CancelRequest] SUCCESS - request cancelled');
         setShowCancelModal(false);
         navigation.goBack();
       },
       onError: (error) => {
+        console.error('[CancelRequest] ERROR:', error);
         Alert.alert(t("errors.somethingWentWrong"), error.message);
       },
     });
@@ -699,9 +706,14 @@ export default function RequestDetailsScreen({
   };
 
   const calculateEditDuration = (): string => {
-    const startMs = editTime.getTime();
-    const endMs = editEndTime.getTime();
-    const diffMs = endMs - startMs;
+    // Normalize both times to the same reference date to only compare time-of-day
+    const referenceDate = new Date(2000, 0, 1);
+    const startNormalized = new Date(referenceDate);
+    startNormalized.setHours(editTime.getHours(), editTime.getMinutes(), 0, 0);
+    const endNormalized = new Date(referenceDate);
+    endNormalized.setHours(editEndTime.getHours(), editEndTime.getMinutes(), 0, 0);
+    
+    const diffMs = endNormalized.getTime() - startNormalized.getTime();
 
     if (diffMs <= 0) return "--";
 
@@ -719,7 +731,14 @@ export default function RequestDetailsScreen({
   };
 
   const isEditEndTimeBeforeStartTime = (): boolean => {
-    return editEndTime.getTime() <= editTime.getTime();
+    // Normalize both times to the same reference date to only compare time-of-day
+    const referenceDate = new Date(2000, 0, 1);
+    const startNormalized = new Date(referenceDate);
+    startNormalized.setHours(editTime.getHours(), editTime.getMinutes(), 0, 0);
+    const endNormalized = new Date(referenceDate);
+    endNormalized.setHours(editEndTime.getHours(), editEndTime.getMinutes(), 0, 0);
+    
+    return endNormalized.getTime() <= startNormalized.getTime();
   };
 
   const isWalkInEndTimeBeforeNow = (): boolean => {
@@ -1775,6 +1794,19 @@ export default function RequestDetailsScreen({
                 >
                   {t("status.pending")}
                 </ThemedText>
+              ) : request.status === REQUEST_STATUS.CANCELLED || request.status === REQUEST_STATUS.AUTO_CANCELLED || request.status === REQUEST_STATUS.VISITOR_REJECTED ? (
+                <ThemedText
+                  style={[
+                    Typography.caption,
+                    {
+                      color: theme.error,
+                      fontSize: 12,
+                      marginTop: 2,
+                    },
+                  ]}
+                >
+                  {t("status.cancelled")}
+                </ThemedText>
               ) : (
                 <ThemedText
                   style={[
@@ -1911,6 +1943,19 @@ export default function RequestDetailsScreen({
                 >
                   {t("status.pending")}
                 </ThemedText>
+              ) : request.status === REQUEST_STATUS.CANCELLED || request.status === REQUEST_STATUS.AUTO_CANCELLED || request.status === REQUEST_STATUS.VISITOR_REJECTED ? (
+                <ThemedText
+                  style={[
+                    Typography.caption,
+                    {
+                      color: theme.error,
+                      fontSize: 12,
+                      marginTop: 2,
+                    },
+                  ]}
+                >
+                  {t("status.cancelled")}
+                </ThemedText>
               ) : (
                 <ThemedText
                   style={[
@@ -1935,6 +1980,117 @@ export default function RequestDetailsScreen({
                 size="sm"
               />
             ) : null}
+          </DirectionalRow>
+          <Spacer height={Spacing.md} />
+
+          {/* Parking */}
+          <DirectionalRow
+            style={[
+              styles.serviceItemNew,
+              { backgroundColor: theme.surfaceSecondary },
+            ]}
+          >
+            <View
+              style={[
+                styles.serviceIcon,
+                {
+                  backgroundColor: applyOpacity(
+                    request.visitorNeedsParking
+                      ? theme.secondary
+                      : theme.textSecondary,
+                    "15",
+                  ),
+                },
+              ]}
+            >
+              <DDIcon
+                name="truck"
+                size={18}
+                color={
+                  request.visitorNeedsParking
+                    ? theme.secondary
+                    : theme.textSecondary
+                }
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <ThemedText
+                style={[
+                  Typography.body,
+                  {
+                    fontWeight: "600",
+                    fontSize: 14,
+                    color: theme.text,
+                  },
+                ]}
+              >
+                {t("services.parking")}
+              </ThemedText>
+              {request.visitorNeedsParking ? (
+                request.licensePlate || request.carModel || request.carColor ? (
+                  <>
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        {
+                          color: theme.textSecondary,
+                          fontSize: 12,
+                          marginTop: 2,
+                        },
+                      ]}
+                    >
+                      {[
+                        request.licensePlate,
+                        request.carModel,
+                        request.carColor,
+                      ]
+                        .filter(Boolean)
+                        .join(" • ")}
+                    </ThemedText>
+                  </>
+                ) : (
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      {
+                        color: theme.warning,
+                        fontSize: 12,
+                        marginTop: 2,
+                      },
+                    ]}
+                  >
+                    {t("parking.parkingPending")}
+                  </ThemedText>
+                )
+              ) : request.status === REQUEST_STATUS.CANCELLED || request.status === REQUEST_STATUS.AUTO_CANCELLED || request.status === REQUEST_STATUS.VISITOR_REJECTED ? (
+                <ThemedText
+                  style={[
+                    Typography.caption,
+                    {
+                      color: theme.error,
+                      fontSize: 12,
+                      marginTop: 2,
+                    },
+                  ]}
+                >
+                  {t("status.cancelled")}
+                </ThemedText>
+              ) : (
+                <ThemedText
+                  style={[
+                    Typography.caption,
+                    {
+                      color: theme.textSecondary,
+                      fontSize: 12,
+                      marginTop: 2,
+                      fontStyle: "italic",
+                    },
+                  ]}
+                >
+                  {t("common.notRequested")}
+                </ThemedText>
+              )}
+            </View>
           </DirectionalRow>
         </ThemedView>
         <Spacer height={Spacing.lg} />
@@ -2042,7 +2198,7 @@ export default function RequestDetailsScreen({
           animationType="fade"
           onRequestClose={() => setShowCancelModal(false)}
         >
-          <View style={styles.modalOverlay}>
+          <View style={styles.modalOverlay} pointerEvents="box-none">
             <Pressable
               style={[
                 styles.modalBackdrop,
@@ -2053,17 +2209,11 @@ export default function RequestDetailsScreen({
             <View
               style={[styles.modalContent, { backgroundColor: theme.surface }]}
             >
-              <DirectionalRow style={styles.modalHeader}>
+              <View style={styles.modalHeader}>
                 <ThemedText
                   style={[
                     Typography.subtitle,
-                    {
-                      fontSize: 18,
-                      fontWeight: "600",
-                      color: theme.text,
-                      flex: 1,
-                      //     
-                    },
+                    { fontSize: 18, fontWeight: "600", color: theme.text },
                   ]}
                 >
                   {t("actions.confirmCancel")}
@@ -2071,7 +2221,7 @@ export default function RequestDetailsScreen({
                 <Pressable onPress={() => setShowCancelModal(false)}>
                   <DDIcon name="x" size={22} variant="muted" />
                 </Pressable>
-              </DirectionalRow>
+              </View>
 
               <Spacer height={20} />
 
@@ -2099,7 +2249,10 @@ export default function RequestDetailsScreen({
                 <Spacer width={12} />
 
                 <LoadingButton
-                  onPress={handleCancelRequest}
+                  onPress={() => {
+                    console.log('[CancelRequest] BUTTON TAPPED - calling handleCancelRequest');
+                    handleCancelRequest();
+                  }}
                   loading={cancelMutation.isPending}
                   disabled={cancelMutation.isPending}
                   variant="danger"
@@ -2120,7 +2273,7 @@ export default function RequestDetailsScreen({
           animationType="fade"
           onRequestClose={() => setShowHostRejectModal(false)}
         >
-          <View style={styles.modalOverlay}>
+          <View style={styles.modalOverlay} pointerEvents="box-none">
             <Pressable
               style={[
                 styles.modalBackdrop,
@@ -2226,7 +2379,7 @@ export default function RequestDetailsScreen({
           animationType="fade"
           onRequestClose={() => setShowManagerRejectModal(false)}
         >
-          <View style={styles.modalOverlay}>
+          <View style={styles.modalOverlay} pointerEvents="box-none">
             <Pressable
               style={[
                 styles.modalBackdrop,
@@ -2332,19 +2485,19 @@ export default function RequestDetailsScreen({
           animationType="fade"
           onRequestClose={closeEditModal}
         >
-          <View style={styles.modalOverlay}>
+          <Pressable
+            style={[
+              styles.modalOverlay,
+              createModalOverlayStyle(theme, "50"),
+            ]}
+            onPress={closeEditModal}
+          >
             <Pressable
-              style={[
-                styles.modalBackdrop,
-                createModalOverlayStyle(theme, "50"),
-              ]}
-              onPress={closeEditModal}
-            />
-            <View
               style={[
                 styles.editModalContent,
                 { backgroundColor: theme.surface },
               ]}
+              onPress={(e) => e.stopPropagation()}
             >
               <DirectionalRow style={styles.modalHeader}>
                 <ThemedText
@@ -2777,166 +2930,170 @@ export default function RequestDetailsScreen({
                   </>
                 ) : null}
 
-                <Spacer height={Spacing.xl} />
+                {/* Optional Services - Hide for walk-in requests (services-only mode) */}
+                {editModalMode !== "services-only" ? (
+                  <>
+                    <Spacer height={Spacing.xl} />
 
-                <ThemedText
-                  style={[
-                    Typography.subtitle,
-                    {
-                      fontSize: 14,
-                      fontWeight: "600",
-                      color: theme.text,
-                      marginBottom: Spacing.md,
-                      //  
-                    },
-                  ]}
-                >
-                  {t("services.optionalServices")}
-                </ThemedText>
-
-                <View style={getGridStyle(isRTL)}>
-                  <View style={getCardWrapper3ColStyle()}>
-                    <SelectableCard
-                      onPress={() =>
-                        setEditRequiresMeetingRoom(!editRequiresMeetingRoom)
-                      }
-                      selected={editRequiresMeetingRoom}
+                    <ThemedText
+                      style={[
+                        Typography.subtitle,
+                        {
+                          fontSize: 14,
+                          fontWeight: "600",
+                          color: theme.text,
+                          marginBottom: Spacing.md,
+                        },
+                      ]}
                     >
-                      <View
-                        style={[
-                          styles.compactServiceIcon,
-                          {
-                            backgroundColor: applyOpacity(theme.cardIcon, "15"),
-                          },
-                        ]}
-                      >
-                        <DDIcon name="users" size={20} color={theme.cardIcon} />
-                      </View>
-                      <ThemedText
-                        style={[
-                          Typography.caption,
-                          {
-                            fontWeight: "600",
-                            marginTop: Spacing.xs,
-                            textAlign: "center",
-                            color: theme.text,
-                            fontSize: 11,
-                          },
-                        ]}
-                      >
-                        {t("services.meetingRoom")}
-                      </ThemedText>
-                    </SelectableCard>
-                  </View>
+                      {t("services.optionalServices")}
+                    </ThemedText>
 
-                  <View style={getCardWrapper3ColStyle()}>
-                    <SelectableCard
-                      onPress={() => setEditRequiresBuffet(!editRequiresBuffet)}
-                      selected={editRequiresBuffet}
-                    >
-                      <View
-                        style={[
-                          styles.compactServiceIcon,
-                          {
-                            backgroundColor: applyOpacity(theme.cardIcon, "15"),
-                          },
-                        ]}
-                      >
-                        <DDIcon
-                          name="cloche"
-                          size={20}
-                          color={theme.cardIcon}
-                        />
+                    <View style={getGridStyle(isRTL)}>
+                      <View style={getCardWrapper3ColStyle()}>
+                        <SelectableCard
+                          onPress={() =>
+                            setEditRequiresMeetingRoom(!editRequiresMeetingRoom)
+                          }
+                          selected={editRequiresMeetingRoom}
+                        >
+                          <View
+                            style={[
+                              styles.compactServiceIcon,
+                              {
+                                backgroundColor: applyOpacity(theme.cardIcon, "15"),
+                              },
+                            ]}
+                          >
+                            <DDIcon name="users" size={20} color={theme.cardIcon} />
+                          </View>
+                          <ThemedText
+                            style={[
+                              Typography.caption,
+                              {
+                                fontWeight: "600",
+                                marginTop: Spacing.xs,
+                                textAlign: "center",
+                                color: theme.text,
+                                fontSize: 11,
+                              },
+                            ]}
+                          >
+                            {t("services.meetingRoom")}
+                          </ThemedText>
+                        </SelectableCard>
                       </View>
-                      <ThemedText
-                        style={[
-                          Typography.caption,
-                          {
-                            fontWeight: "600",
-                            marginTop: Spacing.xs,
-                            textAlign: "center",
-                            color: theme.text,
-                            fontSize: 11,
-                          },
-                        ]}
-                      >
-                        {t("buffet.buffet")}
-                      </ThemedText>
-                    </SelectableCard>
-                  </View>
-                </View>
 
-                {/* Meeting Room Availability Badge */}
-                {editRequiresMeetingRoom ? (
-                  <View style={{ marginTop: Spacing.md }}>
-                    {hasCheckedEditAvailability ? (
-                      <DirectionalRow
-                        style={[
-                          styles.availabilityBadge,
-                          {
-                            backgroundColor: isEditRoomAvailable
-                              ? applyOpacity(theme.success, "15")
-                              : applyOpacity(theme.error, "15"),
-                            borderColor: isEditRoomAvailable
-                              ? theme.success
-                              : theme.error,
-                          },
-                        ]}
-                      >
-                        <DDIcon
-                          name={
-                            isEditRoomAvailable
-                              ? "check-circle"
-                              : "alert-circle"
-                          }
-                          size={16}
-                          color={
-                            isEditRoomAvailable ? theme.success : theme.error
-                          }
-                        />
-                        <ThemedText
-                          style={[
-                            Typography.bodySmall,
-                            {
-                              color: isEditRoomAvailable
-                                ? theme.success
-                                : theme.error,
-                              marginStart: Spacing.xs,
-                              fontWeight: "500",
-                            },
-                          ]}
+                      <View style={getCardWrapper3ColStyle()}>
+                        <SelectableCard
+                          onPress={() => setEditRequiresBuffet(!editRequiresBuffet)}
+                          selected={editRequiresBuffet}
                         >
-                          {isEditRoomAvailable
-                            ? t("form.meetingRoomAvailable")
-                            : t("errors.noRoomsAvailableForTime")}
-                        </ThemedText>
-                      </DirectionalRow>
-                    ) : isLoadingEditRooms ? (
-                      <DirectionalRow
-                        style={[
-                          styles.availabilityBadge,
-                          {
-                            backgroundColor: theme.surface,
-                            borderColor: theme.border,
-                          },
-                        ]}
-                      >
-                        <ActivityIndicator
-                          size="small"
-                          color={theme.primary}
-                          style={{ marginEnd: Spacing.xs }}
-                        />
-                        <ThemedText
-                          style={[
-                            Typography.bodySmall,
-                            { color: theme.textSecondary },
-                          ]}
-                        >
-                          {t("common.checkingAvailability")}...
-                        </ThemedText>
-                      </DirectionalRow>
+                          <View
+                            style={[
+                              styles.compactServiceIcon,
+                              {
+                                backgroundColor: applyOpacity(theme.cardIcon, "15"),
+                              },
+                            ]}
+                          >
+                            <DDIcon
+                              name="cloche"
+                              size={20}
+                              color={theme.cardIcon}
+                            />
+                          </View>
+                          <ThemedText
+                            style={[
+                              Typography.caption,
+                              {
+                                fontWeight: "600",
+                                marginTop: Spacing.xs,
+                                textAlign: "center",
+                                color: theme.text,
+                                fontSize: 11,
+                              },
+                            ]}
+                          >
+                            {t("buffet.buffet")}
+                          </ThemedText>
+                        </SelectableCard>
+                      </View>
+                    </View>
+
+                    {/* Meeting Room Availability Badge */}
+                    {editRequiresMeetingRoom ? (
+                      <View style={{ marginTop: Spacing.md }}>
+                        {hasCheckedEditAvailability ? (
+                          <DirectionalRow
+                            style={[
+                              styles.availabilityBadge,
+                              {
+                                backgroundColor: isEditRoomAvailable
+                                  ? applyOpacity(theme.success, "15")
+                                  : applyOpacity(theme.error, "15"),
+                                borderColor: isEditRoomAvailable
+                                  ? theme.success
+                                  : theme.error,
+                              },
+                            ]}
+                          >
+                            <DDIcon
+                              name={
+                                isEditRoomAvailable
+                                  ? "check-circle"
+                                  : "alert-circle"
+                              }
+                              size={16}
+                              color={
+                                isEditRoomAvailable ? theme.success : theme.error
+                              }
+                            />
+                            <ThemedText
+                              style={[
+                                Typography.bodySmall,
+                                {
+                                  color: isEditRoomAvailable
+                                    ? theme.success
+                                    : theme.error,
+                                  marginStart: Spacing.xs,
+                                  fontWeight: "500",
+                                },
+                              ]}
+                            >
+                              {isEditRoomAvailable
+                                ? t("form.meetingRoomAvailable")
+                                : t("errors.noRoomsAvailableForTime")}
+                            </ThemedText>
+                          </DirectionalRow>
+                        ) : isLoadingEditRooms ? (
+                          <DirectionalRow
+                            style={[
+                              styles.availabilityBadge,
+                              {
+                                backgroundColor: theme.surface,
+                                borderColor: theme.border,
+                              },
+                            ]}
+                          >
+                            <ActivityIndicator
+                              size="small"
+                              color={theme.primary}
+                              style={{ marginEnd: Spacing.xs }}
+                            />
+                            <ThemedText
+                              style={[
+                                Typography.bodySmall,
+                                { color: theme.textSecondary },
+                              ]}
+                            >
+                              {t("common.checkingAvailability")}...
+                            </ThemedText>
+                          </DirectionalRow>
+                        ) : null}
+                      </View>
                     ) : null}
-                  </View>
+                  </>
                 ) : null}
 
                 {/* Communication Channels - Hide for walk-in requests */}
@@ -3140,8 +3297,8 @@ export default function RequestDetailsScreen({
                   {isApprovalFlow ? t("actions.approve") : t("common.save")}
                 </LoadingButton>
               </View>
-            </View>
-          </View>
+            </Pressable>
+          </Pressable>
         </Modal>
 
         {/* Date/Time Picker Modals for Edit */}
@@ -3185,20 +3342,22 @@ export default function RequestDetailsScreen({
           transparent
           animationType="slide"
           onRequestClose={() => setShowPurposePicker(false)}
+          presentationStyle="overFullScreen"
+          statusBarTranslucent
         >
-          <View style={styles.modalOverlay}>
+          <Pressable
+            style={[
+              styles.modalOverlay,
+              createModalOverlayStyle(theme, "50"),
+            ]}
+            onPress={() => setShowPurposePicker(false)}
+          >
             <Pressable
-              style={[
-                styles.modalBackdrop,
-                createModalOverlayStyle(theme, "50"),
-              ]}
-              onPress={() => setShowPurposePicker(false)}
-            />
-            <View
               style={[
                 styles.modalContent,
                 { backgroundColor: theme.surface, maxHeight: "60%" },
               ]}
+              onPress={(e) => e.stopPropagation()}
             >
               <View style={styles.modalHeader}>
                 <ThemedText
@@ -3264,8 +3423,8 @@ export default function RequestDetailsScreen({
                   </Pressable>
                 ))}
               </ScrollView>
-            </View>
-          </View>
+            </Pressable>
+          </Pressable>
         </Modal>
 
         {/* Success Modal */}
@@ -3706,6 +3865,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 16,
     elevation: 5,
+    zIndex: 10,
   },
   modalHeader: {
     flexDirection: "row",

@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { View, StyleSheet, ViewStyle, Pressable, Platform } from "react-native";
-import { TouchableOpacity } from "react-native-gesture-handler";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { DDIcon } from "@/components/DDIcon";
@@ -33,6 +32,8 @@ interface VisitorRequestCardProps {
   onApprove?: () => void;
   onReject?: () => void;
   isProcessing?: boolean;
+  approveLoading?: boolean;
+  rejectLoading?: boolean;
   isExpired?: boolean;
   isSelectionMode?: boolean;
   isSelected?: boolean;
@@ -120,6 +121,8 @@ export function VisitorRequestCard({
   onApprove,
   onReject,
   isProcessing = false,
+  approveLoading = false,
+  rejectLoading = false,
   isExpired = false,
   isSelectionMode = false,
   isSelected = false,
@@ -130,8 +133,6 @@ export function VisitorRequestCard({
   const { t } = useTranslation();
   const { formatDateShort, formatTimeFromString, toLocalNumerals } = useFormatters();
   const { isRTL } = useLanguage();
-  const [isExpanded, setIsExpanded] = useState(false);
-
   const statusConfig = getStatusStyle(theme, request.status, t);
   const borderColor = accentColor || statusConfig.borderColor;
 
@@ -189,10 +190,6 @@ export function VisitorRequestCard({
     }
   };
 
-  const toggleExpanded = () => {
-    setIsExpanded(!isExpanded);
-  };
-
   const renderAvatar = () => (
     <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
       <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
@@ -215,9 +212,7 @@ export function VisitorRequestCard({
   );
 
   const renderHeader = () => {
-    // DEBUG: Log RTL state for card header
-    console.log('[VisitorRequestCard] Platform:', Platform.OS, 'isRTL:', isRTL);
-    
+
     return (
       <DirectionalRow style={styles.cardHeader} gap={Spacing.md}>
         {renderAvatar()}
@@ -313,41 +308,6 @@ export function VisitorRequestCard({
     );
   };
 
-  const renderExpandedDetails = () => {
-    if (!isExpanded) return null;
-
-    const hasDetails = request.purpose || request.visitor.email || request.visitor.phone;
-    if (!hasDetails) return null;
-
-    return (
-      <View style={styles.expandedSection}>
-        {request.purpose ? renderDetailRow('briefcase', request.purpose, 2) : null}
-        {request.visitor.email ? renderDetailRow('mail', request.visitor.email) : null}
-        {request.visitor.phone ? renderDetailRow('phone', request.visitor.phone) : null}
-      </View>
-    );
-  };
-
-  const renderDetailsToggle = () => {
-    const hasDetails = request.purpose || request.visitor.email || request.visitor.phone;
-    if (!hasDetails) return null;
-
-    return (
-      <Pressable onPress={toggleExpanded}>
-        <DirectionalRow style={styles.toggleContainer} gap={Spacing.xs}>
-          <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
-            {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
-          </ThemedText>
-          <DDIcon 
-            name={isExpanded ? 'chevron-up' : 'chevron-down'} 
-            size={16} 
-            color={theme.primary} 
-          />
-        </DirectionalRow>
-      </Pressable>
-    );
-  };
-
   const renderRequestedBy = () => {
     if (!showRequestedBy || !request.employeeName) return null;
     
@@ -411,12 +371,16 @@ export function VisitorRequestCard({
     return (
       <>
         <Spacer height={Spacing.md} />
-        <ApprovalActionGroup
-          onApprove={onApprove || (() => {})}
-          onReject={onReject || (() => {})}
-          disabled={isProcessing}
-          size="medium"
-        />
+        <View onStartShouldSetResponder={() => true}>
+          <ApprovalActionGroup
+            onApprove={onApprove || (() => {})}
+            onReject={onReject || (() => {})}
+            disabled={isProcessing}
+            approveLoading={approveLoading}
+            rejectLoading={rejectLoading}
+            size="medium"
+          />
+        </View>
       </>
     );
   };
@@ -431,16 +395,15 @@ export function VisitorRequestCard({
   };
 
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={handlePress}
       onLongPress={onLongPress}
-      activeOpacity={0.9}
-      hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
-      style={[
+      style={({ pressed }) => [
         styles.container,
         {
           backgroundColor: theme.surface,
           width: width,
+          opacity: pressed ? 0.9 : 1,
         },
         style,
       ]}
@@ -462,16 +425,12 @@ export function VisitorRequestCard({
           <Spacer height={Spacing.sm} />
           
           {renderServicesAndStatus()}
-
-          {renderExpandedDetails()}
-          
-          {renderDetailsToggle()}
           
           {renderActions()}
         </View>
 
       </ThemedView>
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 

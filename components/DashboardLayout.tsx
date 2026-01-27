@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { View, StyleSheet, Pressable, I18nManager, useWindowDimensions, Image, Modal, Switch, Platform } from "react-native";
-import { GestureDetector, Gesture } from "react-native-gesture-handler";
+import { GestureDetector, Gesture, NativeViewGestureHandler } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, {
   useSharedValue,
@@ -24,8 +24,13 @@ import { UserRole } from "@/types/vms.types";
 import { authService } from "@/services/api/authService";
 
 const SIDEBAR_WIDTH_DESKTOP = 280;
-const EDGE_SWIPE_THRESHOLD = 24;
+// Android needs a narrower edge area to avoid conflicts with horizontal ScrollViews
+const EDGE_SWIPE_THRESHOLD_IOS = 24;
+const EDGE_SWIPE_THRESHOLD_ANDROID = 16;
 const SWIPE_VELOCITY_THRESHOLD = 500;
+// Android needs higher thresholds to avoid conflicts with horizontal ScrollViews
+const ANDROID_ACTIVE_OFFSET = 60;
+const IOS_ACTIVE_OFFSET = 30;
 
 // Synchronously determine RTL state for first render on web
 function getInitialRTLState(): boolean {
@@ -82,9 +87,6 @@ export default function DashboardLayout({
     ? getInitialRTLState() || contextIsRTL 
     : I18nManager.isRTL;
   
-  // DEBUG: Log RTL state for sidebar positioning
-  console.log('[DashboardLayout] isRTL:', isRTL, 'I18nManager.isRTL:', I18nManager.isRTL, 'contextIsRTL:', contextIsRTL, 'locale:', locale);
-  
   const { t } = useTranslation();
   const rtlStyles = useRTLStyles();
   const { width } = useWindowDimensions();
@@ -128,6 +130,10 @@ export default function DashboardLayout({
   const [isOverlayActive, setIsOverlayActive] = useState(false);
   const translateX = useSharedValue(isRTL ? sidebarWidth : -sidebarWidth);
   const prevIsLargeScreenRef = useRef<boolean | null>(null);
+  
+  // Ref for native scroll gesture coordination on Android
+  // This allows horizontal ScrollViews to take precedence over the edge swipe gesture
+  const nativeScrollRef = useRef<any>(null);
   
   // Sync sidebar state only when screen size crosses breakpoint
   useEffect(() => {
@@ -177,19 +183,29 @@ export default function DashboardLayout({
     );
   };
 
+  const isWeb = Platform.OS === 'web';
+  const isAndroid = Platform.OS === 'android';
+  
   // Calculate hitSlop to restrict gesture to edge only
   // Shrink from opposite side by (width - threshold) so only edge strip is active
+  // Android uses a narrower edge area to reduce conflicts with horizontal ScrollViews
+  const edgeSwipeThreshold = isAndroid ? EDGE_SWIPE_THRESHOLD_ANDROID : EDGE_SWIPE_THRESHOLD_IOS;
   const edgeHitSlop = isRTL
-    ? { left: -(width - EDGE_SWIPE_THRESHOLD), right: 0, top: 0, bottom: 0 }
-    : { left: 0, right: -(width - EDGE_SWIPE_THRESHOLD), top: 0, bottom: 0 };
-
-  const isWeb = Platform.OS === 'web';
+    ? { left: -(width - edgeSwipeThreshold), right: 0, top: 0, bottom: 0 }
+    : { left: 0, right: -(width - edgeSwipeThreshold), top: 0, bottom: 0 };
   
+  // Use higher thresholds on Android to prevent conflicts with horizontal ScrollViews
+  const activeOffset = isAndroid ? ANDROID_ACTIVE_OFFSET : IOS_ACTIVE_OFFSET;
+  
+  // Build the edge swipe gesture with Android-specific scroll coordination
+  // On Android: higher thresholds + minDistance + NativeViewGestureHandler with disallowInterruption
+  // ensures horizontal ScrollViews take precedence over the sidebar swipe
   const edgeSwipeGesture = Gesture.Pan()
     .enabled(!isWeb && !isLargeScreen && !sidebarOpen && !canGoBack)
     .hitSlop(edgeHitSlop)
-    .activeOffsetX(isRTL ? [-30, 0] : [0, 30])
+    .activeOffsetX(isRTL ? [-activeOffset, 0] : [0, activeOffset])
     .failOffsetY([-20, 20])
+    .minDistance(isAndroid ? 40 : 0)
     .onUpdate((event) => {
       'worklet';
       if (isRTL) {
@@ -680,10 +696,20 @@ export default function DashboardLayout({
               </DirectionalRow>
             )}
             
-            <View style={styles.contentInner}>
-              {Platform.OS === 'web' && <EnableNotificationsPrompt />}
-              {children}
-            </View>
+            {/* On Android, wrap content with NativeViewGestureHandler to coordinate with sidebar gesture */}
+            {isAndroid ? (
+              <NativeViewGestureHandler ref={nativeScrollRef} disallowInterruption>
+                <View style={styles.contentInner}>
+                  {Platform.OS === 'web' && <EnableNotificationsPrompt />}
+                  {children}
+                </View>
+              </NativeViewGestureHandler>
+            ) : (
+              <View style={styles.contentInner}>
+                {Platform.OS === 'web' && <EnableNotificationsPrompt />}
+                {children}
+              </View>
+            )}
           </View>
         </DirectionalRow>
       </View>

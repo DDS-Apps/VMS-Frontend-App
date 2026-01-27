@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from "react";
-import { View, StyleSheet, Pressable, TextInput, ScrollView, Modal, FlatList, Alert } from "react-native";
+import { View, StyleSheet, Pressable, TextInput, ScrollView, Modal, FlatList, Alert, useWindowDimensions } from "react-native";
 import { useFocusEffect } from '@react-navigation/native';
 import { ROUTES } from "@/constants";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -196,7 +196,7 @@ const SelectAllBar = ({
 }) => {
   return (
     <DirectionalRow style={[styles.selectAllBar, { backgroundColor: theme.surfaceSecondary }]}>
-      <Pressable onPress={onToggleAll} style={[styles.selectAllButton, getFlexDirection(isRTL)]}>
+      <Pressable onPress={onToggleAll} style={[styles.selectAllButton, { flexDirection: getFlexDirection(isRTL) }]}>
         <SelectionCheckbox isSelected={allSelected} onToggle={onToggleAll} />
         <Spacer width={Spacing.sm} />
         <ThemedText style={[Typography.body, { color: theme.text }]}>
@@ -245,7 +245,7 @@ const BulkActionBar = ({
         </ThemedText>
         <DirectionalRow style={styles.bulkActionButtons}>
           <Pressable
-            style={[styles.bulkRejectButton, { borderColor: theme.error, opacity: isProcessing ? 0.6 : 1 }, getFlexDirection(isRTL)]}
+            style={[styles.bulkRejectButton, { borderColor: theme.error, opacity: isProcessing ? 0.6 : 1, flexDirection: getFlexDirection(isRTL) }]}
             onPress={onReject}
             disabled={isProcessing}
           >
@@ -261,7 +261,7 @@ const BulkActionBar = ({
           </Pressable>
           <Spacer width={Spacing.sm} />
           <Pressable
-            style={[styles.bulkApproveButton, { backgroundColor: theme.success, opacity: isProcessing ? 0.6 : 1 }, getFlexDirection(isRTL)]}
+            style={[styles.bulkApproveButton, { backgroundColor: theme.success, opacity: isProcessing ? 0.6 : 1, flexDirection: getFlexDirection(isRTL) }]}
             onPress={onApprove}
             disabled={isProcessing}
           >
@@ -386,6 +386,9 @@ const ApprovalTableRow = React.memo(({
       contentContainerStyle={styles.scrollableColumnsContent}
       persistentScrollbar={true}
       nestedScrollEnabled={true}
+      directionalLockEnabled={true}
+      scrollEventThrottle={16}
+      keyboardShouldPersistTaps="handled"
     >
       <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
         <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
@@ -445,7 +448,7 @@ const ApprovalTableRow = React.memo(({
   
   return (
     <Pressable onLongPress={onLongPress}>
-      <ThemedView style={[styles.tableRow, { backgroundColor: theme.surface, borderColor: theme.border }, getFlexDirection(isRTL)]}>
+      <ThemedView style={[styles.tableRow, { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: getFlexDirection(isRTL) }]}>
         {statusAccent}
         {checkboxColumn}
         {fixedColumnContent}
@@ -610,6 +613,8 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
   const insets = useSafeAreaInsets();
   const { paddingTop, paddingBottom } = useScreenInsets();
   const { user } = useAuth();
+  const { width: screenWidth } = useWindowDimensions();
+  const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const [isSelectionMode, setIsSelectionMode] = useState(false);
@@ -617,6 +622,8 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [activeRequestId, setActiveRequestId] = useState<string | null>(null);
   const [isBulkReject, setIsBulkReject] = useState(false);
+  const [approvingRequestId, setApprovingRequestId] = useState<string | null>(null);
+  const [rejectingRequestId, setRejectingRequestId] = useState<string | null>(null);
 
   const { 
     data: pendingApprovalsData, 
@@ -700,10 +707,15 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
 
   const handleApprove = (requestId: string) => {
     if (isProcessing) return;
+    setApprovingRequestId(requestId);
     approveMutation.mutate(
       { id: requestId, payload: {} },
       {
+        onSuccess: () => {
+          setApprovingRequestId(null);
+        },
         onError: (error) => {
+          setApprovingRequestId(null);
           Alert.alert(t('errors.somethingWentWrong'), error.message);
         },
       }
@@ -759,14 +771,17 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
         }
       );
     } else if (activeRequestId) {
+      setRejectingRequestId(activeRequestId);
       rejectMutation.mutate(
         { id: activeRequestId, payload: { reason: rejectReason } },
         {
           onSuccess: () => {
             setShowRejectModal(false);
             setActiveRequestId(null);
+            setRejectingRequestId(null);
           },
           onError: (error) => {
+            setRejectingRequestId(null);
             Alert.alert(t('errors.somethingWentWrong'), error.message);
           },
         }
@@ -933,29 +948,35 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
       </View>
       
       <FlatList
+        key={`flatlist-${numColumns}`}
         data={filteredRequests}
         keyExtractor={(item) => item.id}
+        numColumns={numColumns}
         renderItem={({ item }) => (
-          <VisitorRequestCard
-            request={item}
-            onPress={() => handleViewDetails(item.id)}
-            onLongPress={() => handleLongPress(item.id)}
-            showRequestedBy
-            showActions={!isSelectionMode}
-            onApprove={() => handleApprove(item.id)}
-            onReject={() => handleReject(item.id)}
-            isProcessing={isProcessing}
-            isExpired={isVisitExpired(item.visitDate, item.visitTime, item.endTime, item.duration)}
-            isSelectionMode={isSelectionMode}
-            isSelected={selectedIds.has(item.id)}
-            onToggleSelection={() => toggleSelection(item.id)}
-            accentColor={theme.primary}
-          />
+          <View style={numColumns > 1 ? { width: numColumns === 2 ? '50%' : '33.33%', flexGrow: 0, marginBottom: LAYOUT.contentGap, paddingRight: Spacing.sm } : { width: '100%' }}>
+            <VisitorRequestCard
+              request={item}
+              onPress={() => handleViewDetails(item.id)}
+              onLongPress={() => handleLongPress(item.id)}
+              showRequestedBy
+              showActions={!isSelectionMode}
+              onApprove={() => handleApprove(item.id)}
+              onReject={() => handleReject(item.id)}
+              isProcessing={isProcessing}
+              approveLoading={approvingRequestId === item.id}
+              rejectLoading={rejectingRequestId === item.id}
+              isExpired={isVisitExpired(item.visitDate, item.visitTime, item.endTime, item.duration)}
+              isSelectionMode={isSelectionMode}
+              isSelected={selectedIds.has(item.id)}
+              onToggleSelection={() => toggleSelection(item.id)}
+              accentColor={theme.primary}
+            />
+          </View>
         )}
         ListHeaderComponent={renderListHeader()}
         ListEmptyComponent={renderEmptyState()}
         ListFooterComponent={<ListLoadingFooter isLoading={isFetchingNextPage} />}
-        ItemSeparatorComponent={() => <Spacer height={LAYOUT.contentGap} />}
+        ItemSeparatorComponent={numColumns === 1 ? () => <Spacer height={LAYOUT.contentGap} /> : undefined}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}
         style={styles.scrollableContent}
@@ -1039,7 +1060,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-
   selectAllBar: {
     alignItems: 'center',
     paddingHorizontal: Spacing.md,
@@ -1131,6 +1151,7 @@ const styles = StyleSheet.create({
   },
 
   searchBar: {
+    flexDirection: 'row',
     alignItems: 'center',
     borderRadius: BorderRadius.md,
     paddingHorizontal: Spacing.md,

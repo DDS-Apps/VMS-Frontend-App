@@ -7,7 +7,7 @@ import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { SelectableCard } from "@/components/SelectableCard";
 import Spacer from "@/components/Spacer";
-import { Spacing, Typography } from "@/constants/theme";
+import { Spacing, Typography, BrandColors } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -94,12 +94,16 @@ export default function VisitTypeSelectionScreen({ navigation, onTypeSelect }: V
         <View style={styles.grid}>
           {visitTypes.map((visitType) => (
             <View key={visitType.id} style={[styles.cardWrapper, isWeb ? styles.webCardWrapper : { width: cardWidth }]}>
-              <SelectableCard onPress={() => handleTypeSelect(visitType)}>
+              <SelectableCard 
+                onPress={() => handleTypeSelect(visitType)}
+                backgroundColor={BrandColors.brandOrange}
+                borderColor={BrandColors.brandOrange}
+              >
                 <View style={styles.iconContainer}>
-                  <DDIcon name={visitType.icon} size={28} color={theme.cardIcon} />
+                  <DDIcon name={visitType.icon} size={28} color="#FFFFFF" />
                 </View>
                 <Spacer height={Spacing.xs} />
-                <ThemedText style={[Typography.caption, { color: theme.text, fontWeight: '600', textAlign: 'center', fontSize: 11 }]}>
+                <ThemedText style={[Typography.caption, { color: '#FFFFFF', fontWeight: '600', textAlign: 'center', fontSize: 11 }]}>
                   {visitType.title}
                 </ThemedText>
               </SelectableCard>

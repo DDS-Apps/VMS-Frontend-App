@@ -48,6 +48,7 @@ import type {
 import { applyOpacity, createModalOverlayStyle } from "@/utils/statusStyles";
 import { CalendarDatePicker } from "@/components/CalendarDatePicker";
 import { TimePicker } from "@/components/TimePicker";
+import { formatPhoneInput, normalizePhoneNumber } from "@/utils/formatters";
 import type { VisitorRequestFormScreenProps } from "@/types/employeeNavigation.types";
 import { calculateServerDuration } from "@/utils/dateTimeUtils";
 import { useServerDateTime } from "@/hooks/useServerDateTime";
@@ -261,61 +262,14 @@ export default function VisitorRequestFormScreen({
   };
 
   const validatePhone = (phone: string) => {
-    const digitsOnly = phone.replace(/\D/g, "");
-    // Saudi phone: country code (966) + 9 digits = 12 digits total
-    // Or without country code: 9 digits starting with 5 (mobile) or area code
-    return digitsOnly.length >= 9 && digitsOnly.length <= 12;
-  };
-
-  const formatSaudiPhone = (input: string): string => {
-    // Remove all non-digits
-    let digits = input.replace(/\D/g, "");
-
-    // If starts with 00966, convert to 966
-    if (digits.startsWith("00966")) {
-      digits = digits.substring(2);
-    }
-
-    // If doesn't start with 966, add it (unless empty or already has it)
-    if (digits.length > 0 && !digits.startsWith("966")) {
-      // If starts with 0, remove it (local format)
-      if (digits.startsWith("0")) {
-        digits = digits.substring(1);
-      }
-      digits = "966" + digits;
-    }
-
-    // Limit to 12 digits (966 + 9 digits)
-    digits = digits.substring(0, 12);
-
-    // Format: +966 XX XXX XXXX
-    if (digits.length === 0) return "";
-    if (digits.length <= 3) return "+" + digits;
-    if (digits.length <= 5)
-      return "+" + digits.substring(0, 3) + " " + digits.substring(3);
-    if (digits.length <= 8)
-      return (
-        "+" +
-        digits.substring(0, 3) +
-        " " +
-        digits.substring(3, 5) +
-        " " +
-        digits.substring(5)
-      );
-    return (
-      "+" +
-      digits.substring(0, 3) +
-      " " +
-      digits.substring(3, 5) +
-      " " +
-      digits.substring(5, 8) +
-      " " +
-      digits.substring(8)
-    );
+    const digitsOnly = normalizePhoneNumber(phone);
+    // Valid international phone: 7-15 digits (E.164 standard)
+    // Saudi: 12 digits (966 + 9), US: 11 digits (1 + 10), etc.
+    return digitsOnly.length >= 7 && digitsOnly.length <= 15;
   };
 
   const handlePhoneChange = (text: string) => {
-    const formatted = formatSaudiPhone(text);
+    const formatted = formatPhoneInput(text);
     setPhone(formatted);
     if (errors.phone) {
       setErrors({ ...errors, phone: "" });
@@ -370,9 +324,14 @@ export default function VisitorRequestFormScreen({
   };
 
   const calculateDuration = (): string => {
-    const startMs = selectedTime.getTime();
-    const endMs = selectedEndTime.getTime();
-    const diffMs = endMs - startMs;
+    // Normalize both times to the same reference date to only compare time-of-day
+    const referenceDate = new Date(2000, 0, 1); // Use a fixed reference date
+    const startNormalized = new Date(referenceDate);
+    startNormalized.setHours(selectedTime.getHours(), selectedTime.getMinutes(), 0, 0);
+    const endNormalized = new Date(referenceDate);
+    endNormalized.setHours(selectedEndTime.getHours(), selectedEndTime.getMinutes(), 0, 0);
+    
+    const diffMs = endNormalized.getTime() - startNormalized.getTime();
 
     if (diffMs <= 0) return "--";
 
@@ -390,9 +349,14 @@ export default function VisitorRequestFormScreen({
   };
 
   const getDurationString = (): string => {
-    const startMs = selectedTime.getTime();
-    const endMs = selectedEndTime.getTime();
-    const diffMs = endMs - startMs;
+    // Normalize both times to the same reference date to only compare time-of-day
+    const referenceDate = new Date(2000, 0, 1); // Use a fixed reference date
+    const startNormalized = new Date(referenceDate);
+    startNormalized.setHours(selectedTime.getHours(), selectedTime.getMinutes(), 0, 0);
+    const endNormalized = new Date(referenceDate);
+    endNormalized.setHours(selectedEndTime.getHours(), selectedEndTime.getMinutes(), 0, 0);
+    
+    const diffMs = endNormalized.getTime() - startNormalized.getTime();
 
     if (diffMs <= 0) return "";
 
@@ -417,7 +381,14 @@ export default function VisitorRequestFormScreen({
   };
 
   const isEndTimeBeforeStartTime = (): boolean => {
-    return selectedEndTime.getTime() <= selectedTime.getTime();
+    // Normalize both times to the same reference date to only compare time-of-day
+    const referenceDate = new Date(2000, 0, 1);
+    const startNormalized = new Date(referenceDate);
+    startNormalized.setHours(selectedTime.getHours(), selectedTime.getMinutes(), 0, 0);
+    const endNormalized = new Date(referenceDate);
+    endNormalized.setHours(selectedEndTime.getHours(), selectedEndTime.getMinutes(), 0, 0);
+    
+    return endNormalized.getTime() <= startNormalized.getTime();
   };
 
   const validateForm = (): { isValid: boolean; errorFields: string[] } => {
@@ -556,7 +527,7 @@ export default function VisitorRequestFormScreen({
         visitor: {
           fullName: fullName.trim(),
           email: email.trim(),
-          phone: phone.trim(),
+          phone: normalizePhoneNumber(phone),
           company: company.trim() || undefined,
         },
         visitDate: formatDate(selectedDate),
@@ -794,7 +765,7 @@ export default function VisitorRequestFormScreen({
                 writingDirection: isRTL ? "rtl" : "ltr",
               },
             ]}
-            placeholder="+966 5X XXX XXXX"
+            placeholder="+XXX XX XXX XXXX"
             placeholderTextColor={theme.textSecondary}
             value={phone}
             onChangeText={handlePhoneChange}
@@ -1412,6 +1383,7 @@ export default function VisitorRequestFormScreen({
                         justifyContent: "flex-start",
                       },
                     ]}
+                    gap={Spacing.xs}
                   >
                     <DDIcon
                       name={isRoomAvailable ? "check-circle" : "alert-circle"}
@@ -1423,8 +1395,9 @@ export default function VisitorRequestFormScreen({
                         Typography.bodySmall,
                         {
                           color: isRoomAvailable ? theme.success : theme.error,
-                          marginEnd: Spacing.xs,
                           fontWeight: "500",
+                          flex: 1,
+                          flexWrap: "wrap",
                         },
                       ]}
                     >

@@ -5,7 +5,7 @@ export type ReceptionistStackParamList = {
   ReceptionistDashboard: undefined;
   VisitTypeSelection: undefined;
   WalkInRegistration: { visitType?: string };
-  AllVisitors: undefined;
+  AllVisitors: { initialFilter?: 'walk_in' | 'awaiting_visitor' | 'pending_approval' } | undefined;
   WalkInVisitors: undefined;
   AllVisitorsToday: undefined;
   UpcomingVisitorsList: undefined;

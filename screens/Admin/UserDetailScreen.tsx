@@ -17,6 +17,7 @@ import { useUserQuery, useDeleteUserMutation } from '@/hooks/queries/useUserQuer
 import { useFormatters } from '@/hooks/useFormatters';
 import { UserRole } from '@/types/vms.types';
 import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
+import { formatPhoneNumber } from '@/utils/formatters';
 
 type RootStackParamList = {
   UserDetail: { userId: string };
@@ -121,6 +122,8 @@ export default function UserDetailScreen() {
   const userFirstName = (user as any).name?.split(' ')[0] || user.firstName || '';
   const userLastName = (user as any).name?.split(' ').slice(1).join(' ') || user.lastName || '';
   const userPhone = (user as any).phoneNumber || user.phone || '';
+  const userBusinessPhone = (user as any).businessPhone || '';
+  const userLandline = (user as any).landline || '';
   const source = user.azureAdId ? 'microsoft_ad' : 'app_created';
   
   // Check user active status from both isActive boolean and status string
@@ -200,7 +203,37 @@ export default function UserDetailScreen() {
                   <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
                     {t('form.phone')}
                   </ThemedText>
-                  <ThemedText style={[Typography.body, {}]}>{userPhone}</ThemedText>
+                  <ThemedText style={[Typography.body, {}]}>{formatPhoneNumber(userPhone)}</ThemedText>
+                </View>
+              </DirectionalRow>
+            </>
+          ) : null}
+
+          {userBusinessPhone ? (
+            <>
+              <View style={[styles.separator, { backgroundColor: theme.border }]} />
+              <DirectionalRow style={styles.infoRow}>
+                <DDIcon name="phone-call" size={18} variant="muted" />
+                <View style={[styles.infoContent, { marginEnd: Spacing.md }]}>
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
+                    {t('form.businessPhone')}
+                  </ThemedText>
+                  <ThemedText style={[Typography.body, {}]}>{userBusinessPhone}</ThemedText>
+                </View>
+              </DirectionalRow>
+            </>
+          ) : null}
+
+          {userLandline ? (
+            <>
+              <View style={[styles.separator, { backgroundColor: theme.border }]} />
+              <DirectionalRow style={styles.infoRow}>
+                <DDIcon name="phone" size={18} variant="muted" />
+                <View style={[styles.infoContent, { marginEnd: Spacing.md }]}>
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
+                    {t('form.landline')}
+                  </ThemedText>
+                  <ThemedText style={[Typography.body, {}]}>{userLandline}</ThemedText>
                 </View>
               </DirectionalRow>
             </>
@@ -416,6 +449,7 @@ const styles = StyleSheet.create({
   infoRow: {
     alignItems: 'flex-start',
     paddingVertical: Spacing.sm,
+    gap: Spacing.sm,
   },
   infoContent: {
     flex: 1,

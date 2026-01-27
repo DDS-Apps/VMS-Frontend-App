@@ -17,6 +17,8 @@ interface SelectableCardProps {
   selected?: boolean;
   style?: ViewStyle;
   aspectRatio?: number;
+  backgroundColor?: string;
+  borderColor?: string;
 }
 
 const springConfig: WithSpringConfig = {
@@ -35,6 +37,8 @@ export function SelectableCard({
   selected = false,
   style,
   aspectRatio = 1,
+  backgroundColor,
+  borderColor,
 }: SelectableCardProps) {
   const { theme, isDark } = useTheme();
   const scale = useSharedValue(1);
@@ -51,6 +55,9 @@ export function SelectableCard({
     scale.value = withSpring(1, springConfig);
   };
 
+  const cardBackgroundColor = backgroundColor ?? theme.surface;
+  const cardBorderColor = borderColor ?? (selected ? theme.primary : theme.border);
+
   return (
     <AnimatedPressable
       onPress={onPress}
@@ -60,9 +67,9 @@ export function SelectableCard({
         styles.card,
         {
           aspectRatio,
-          backgroundColor: theme.surface,
+          backgroundColor: cardBackgroundColor,
           borderWidth: selected ? 2 : 1,
-          borderColor: selected ? theme.primary : theme.border,
+          borderColor: selected ? theme.primary : cardBorderColor,
           shadowColor: isDark ? 'transparent' : '#000',
           shadowOffset: { width: 0, height: 1 },
           shadowOpacity: isDark ? 0 : 0.08,

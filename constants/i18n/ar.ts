@@ -27,6 +27,7 @@ export const ar: TranslationKeys = {
     filter: 'تصفية',
     all: 'الكل',
     none: 'لا شيء',
+    other: 'أخرى',
     manager: 'مدير',
     yes: 'نعم',
     no: 'لا',
@@ -86,6 +87,7 @@ export const ar: TranslationKeys = {
     errorOccurred: 'حدث خطأ',
     errorLoadingData: 'خطأ في تحميل البيانات',
     today: 'اليوم',
+    others: 'أخرى',
   },
   bulkActions: {
     selectMode: 'تحديد',
@@ -315,6 +317,8 @@ export const ar: TranslationKeys = {
     emailPlaceholder: 'أدخل البريد الإلكتروني',
     phoneNumber: 'رقم الهاتف',
     phone: 'الهاتف',
+    businessPhone: 'هاتف المكتب',
+    landline: 'الهاتف الأرضي',
     phonePlaceholder: 'أدخل رقم الهاتف',
     company: 'الشركة',
     companyPlaceholder: 'أدخل اسم الشركة',
@@ -650,7 +654,7 @@ export const ar: TranslationKeys = {
       },
       buffet_new_request: {
         title: 'طلب بوفيه جديد',
-        message: 'طلب بوفيه جديد من {{hostName}} لـ {{guestCount}} ضيف',
+        message: 'طلب بوفيه جديد من {{hostName}} في {{location}}',
       },
       buffet_task_assigned: {
         title: 'تم تعيين مهمة البوفيه',
@@ -666,7 +670,7 @@ export const ar: TranslationKeys = {
       },
       buffet_request_created: {
         title: 'تم إنشاء طلب البوفيه',
-        message: 'تم إنشاء طلب بوفيه لـ {{hostName}} مع {{guestCount}} ضيوف',
+        message: 'تم إنشاء طلب بوفيه لـ {{hostName}} في {{location}}',
       },
       buffet_status_update: {
         title: 'تحديث حالة البوفيه',

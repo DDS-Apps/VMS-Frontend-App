@@ -21,38 +21,7 @@ import {
 import type { BuffetAdminLocationDto, BuffetLocationLoadDto } from "@/types/api.types";
 import type { BuffetAdminLocationsScreenProps } from "@/types/buffetAdminNavigation.types";
 
-interface KPICardProps {
-  title: string;
-  value: string;
-  icon: string;
-  iconBgColor: string;
-  iconColor: string;
-  cardBgColor: string;
-}
-
-function KPICard({ title, value, icon, iconBgColor, iconColor, cardBgColor }: KPICardProps) {
-  const { theme } = useTheme();
-  
-  return (
-    <View style={[styles.kpiCard, { backgroundColor: cardBgColor, borderWidth: 1, borderColor: applyOpacity(iconColor, '15') }]}>
-      <View style={[styles.kpiIconContainer, { backgroundColor: iconBgColor }]}>
-        <DDIcon name={icon as IconName} size={24} color={iconColor} />
-      </View>
-
-      <Spacer height={Spacing.md} />
-
-      <ThemedText style={[styles.kpiValue, { color: theme.text }]}>
-        {value}
-      </ThemedText>
-
-      <Spacer height={Spacing.xs} />
-
-      <ThemedText style={[styles.kpiLabel, { color: theme.textSecondary }]}>
-        {title}
-      </ThemedText>
-    </View>
-  );
-}
+import { KPICard, KPICardRow } from '@/components/shared/KPICard';
 
 interface LocationDisplayItem {
   id: string;
@@ -188,49 +157,43 @@ export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLo
 
         <Spacer height={Spacing.lg} />
 
-        <DirectionalRow style={styles.statsRow}>
-          <DirectionalRow style={styles.statItem}>
+        <View style={styles.statsRow}>
+          <View style={styles.statItem}>
             <View style={[styles.statIconBg, { backgroundColor: applyOpacity(theme.info, '12') }]}>
-              <DDIcon name="users" size={16} color={theme.info} />
+              <DDIcon name="users" size={14} color={theme.info} />
             </View>
-            <View style={styles.statInfo}>
-              <ThemedText style={[styles.statValue, { color: theme.text }]}>
-                {item.capacity}
-              </ThemedText>
-              <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>
-                {t('buffet.numberOfGuests')}
-              </ThemedText>
-            </View>
-          </DirectionalRow>
+            <ThemedText style={[styles.statValue, { color: theme.text }]}>
+              {item.capacity}
+            </ThemedText>
+            <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>
+              {t('buffet.numberOfGuests')}
+            </ThemedText>
+          </View>
 
-          <DirectionalRow style={styles.statItem}>
+          <View style={styles.statItem}>
             <View style={[styles.statIconBg, { backgroundColor: applyOpacity(theme.success, '12') }]}>
-              <DDIcon name="user-check" size={16} color={theme.success} />
+              <DDIcon name="user-check" size={14} color={theme.success} />
             </View>
-            <View style={styles.statInfo}>
-              <ThemedText style={[styles.statValue, { color: theme.text }]}>
-                {item.activeStaff}
-              </ThemedText>
-              <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>
-                {t('dashboard.active')}
-              </ThemedText>
-            </View>
-          </DirectionalRow>
+            <ThemedText style={[styles.statValue, { color: theme.text }]}>
+              {item.activeStaff}
+            </ThemedText>
+            <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>
+              {t('dashboard.active')}
+            </ThemedText>
+          </View>
 
-          <DirectionalRow style={styles.statItem}>
+          <View style={styles.statItem}>
             <View style={[styles.statIconBg, { backgroundColor: applyOpacity(theme.warning, '12') }]}>
-              <DDIcon name="cloche" size={16} color={theme.warning} />
+              <DDIcon name="cloche" size={14} color={theme.warning} />
             </View>
-            <View style={styles.statInfo}>
-              <ThemedText style={[styles.statValue, { color: theme.text }]}>
-                {item.currentRequests}
-              </ThemedText>
-              <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>
-                {t('navigation.allRequests')}
-              </ThemedText>
-            </View>
-          </DirectionalRow>
-        </DirectionalRow>
+            <ThemedText style={[styles.statValue, { color: theme.text }]}>
+              {item.currentRequests}
+            </ThemedText>
+            <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>
+              {t('navigation.allRequests')}
+            </ThemedText>
+          </View>
+        </View>
 
       </View>
     );
@@ -239,32 +202,26 @@ export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLo
   return (
     <>
       <ScreenScrollView contentContainerStyle={scrollContentStyle}>
-        <DirectionalRow style={styles.kpiRow}>
+        <KPICardRow>
           <KPICard 
             title={t('status.active')} 
             value={String(stats.active)} 
             icon="check-circle" 
-            iconBgColor={applyOpacity(theme.success, '20')}
-            iconColor={theme.success}
-            cardBgColor={applyOpacity(theme.success, '06')}
+            color={theme.success}
           />
           <KPICard 
             title={t('status.inactive')} 
             value={String(stats.inactive)} 
             icon="x-circle" 
-            iconBgColor={applyOpacity(theme.textSecondary, '20')}
-            iconColor={theme.textSecondary}
-            cardBgColor={applyOpacity(theme.textSecondary, '06')}
+            color={theme.textSecondary}
           />
           <KPICard 
             title={t('buffet.numberOfGuests')} 
             value={String(stats.totalCapacity)} 
             icon="users" 
-            iconBgColor={applyOpacity(theme.primary, '20')}
-            iconColor={theme.primary}
-            cardBgColor={applyOpacity(theme.primary, '06')}
+            color={theme.primary}
           />
-        </DirectionalRow>
+        </KPICardRow>
 
         <Spacer height={Spacing.xl} />
 
@@ -523,29 +480,30 @@ const styles = StyleSheet.create({
   },
   statsRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
+    gap: Spacing.sm,
   },
   statItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
+    gap: 4,
+    minWidth: 80,
   },
   statIconBg: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  statInfo: {
-    marginStart: 8,
-  },
   statValue: {
-    fontSize: 16,
+    fontSize: 13,
     fontWeight: '700',
   },
   statLabel: {
-    fontSize: 10,
+    fontSize: 11,
+    flexShrink: 1,
   },
   emptyState: {
     padding: Spacing.xl,

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { View, StyleSheet, Pressable, ScrollView, ActivityIndicator, RefreshControl } from "react-native";
+import { View, StyleSheet, Pressable, ScrollView, ActivityIndicator, RefreshControl, useWindowDimensions } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
@@ -9,18 +9,22 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
-import { applyOpacity } from "@/utils/statusStyles";
+import { applyOpacity, getStatusConfig } from "@/utils/statusStyles";
 import { useValetParkingDashboard } from "@/hooks/queries/useValetAdminQueries";
 import type { ValetParkingVisitorDto } from "@/types/api.types";
 import type { Theme } from "@/types/theme.types";
 import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
+import { KPICard, KPICardRow } from '@/components/shared/KPICard';
+import { StatusBadge } from '@/components/shared/StatusBadge';
 
 const LAYOUT = {
-  cardPadding: Spacing.lg,
+  cardPadding: Spacing.sm,
   cardRadius: BorderRadius.md,
-  sectionSpacing: Spacing.xxl,
-  contentGap: Spacing.md,
+  sectionSpacing: Spacing.md,
+  contentGap: Spacing.xs,
   statCardRadius: BorderRadius.md,
+  accentWidth: 4,
+  avatarSize: 40,
 };
 
 const VisitorAvatar = ({ name, theme, size = 44 }: { name: string; theme: Theme; size?: number }) => {
@@ -42,44 +46,31 @@ const VisitorAvatar = ({ name, theme, size = 44 }: { name: string; theme: Theme;
   );
 };
 
-const StatusBadge = ({ needsParking, hasCarInfo, theme, t }: { 
-  needsParking: boolean; 
-  hasCarInfo: boolean;
-  theme: Theme; 
-  t: (key: string) => string;
-}) => {
-  let color: string;
-  let label: string;
-  let icon: string;
-
-  if (!needsParking) {
-    color = theme.textSecondary;
-    label = t('parking.noParking');
-    icon = 'x-circle';
-  } else if (hasCarInfo) {
-    color = theme.success;
-    label = t('parking.carInfoProvided');
-    icon = 'check-circle';
-  } else {
-    color = theme.warning;
-    label = t('parking.carInfoPending');
-    icon = 'alert-circle';
+const getVariantFromStatus = (status: string): 'success' | 'warning' | 'error' | 'info' | 'muted' | 'primary' => {
+  switch (status.toLowerCase()) {
+    case 'approved':
+    case 'visitor_accepted':
+    case 'checked_in':
+    case 'completed':
+    case 'in_progress':
+      return 'success';
+    case 'pending':
+    case 'pending_approval':
+    case 'pending_host_approval':
+    case 'waiting_on_visitor':
+      return 'warning';
+    case 'rejected':
+    case 'cancelled':
+    case 'no_show':
+    case 'auto_cancelled':
+    case 'visitor_rejected':
+      return 'error';
+    case 'checked_out':
+    case 'scheduled':
+      return 'info';
+    default:
+      return 'muted';
   }
-
-  return (
-    <View style={[
-      styles.statusBadge, 
-      { 
-        backgroundColor: applyOpacity(color, '15'), 
-        borderColor: applyOpacity(color, '30'),
-      }
-    ]}>
-      <DDIcon name={icon} size={12} color={color} />
-      <ThemedText style={[styles.statusText, { color, marginStart: 4 }]}>
-        {label}
-      </ThemedText>
-    </View>
-  );
 };
 
 const StatsCards = ({ 
@@ -95,65 +86,42 @@ const StatsCards = ({
   theme: Theme; 
   t: (key: string) => string;
 }) => (
-  <View style={styles.statsGrid}>
-    <ThemedView style={[styles.statCard, { backgroundColor: theme.surface }]}>
-      <View style={[styles.statIconContainer, { backgroundColor: applyOpacity(theme.primary, '20') }]}>
-        <DDIcon name="users" size={24} variant="primary" />
-      </View>
-      <Spacer height={Spacing.sm} />
-      <ThemedText style={[Typography.title, { fontSize: 32, lineHeight: 40 }]}>
-        {totalVisitors}
-      </ThemedText>
-      <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: 'center' }]}>
-        {t('dashboard.totalVisitors')}
-      </ThemedText>
-    </ThemedView>
-
-    <ThemedView style={[styles.statCard, { backgroundColor: theme.surface }]}>
-      <View style={[styles.statIconContainer, { backgroundColor: applyOpacity(theme.success, '20') }]}>
-        <DDIcon name="truck" size={24} variant="success" />
-      </View>
-      <Spacer height={Spacing.sm} />
-      <ThemedText style={[Typography.title, { fontSize: 32, lineHeight: 40 }]}>
-        {withParking}
-      </ThemedText>
-      <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: 'center' }]}>
-        {t('parking.withParking')}
-      </ThemedText>
-    </ThemedView>
-
-    <ThemedView style={[styles.statCard, { backgroundColor: theme.surface }]}>
-      <View style={[styles.statIconContainer, { backgroundColor: applyOpacity(theme.textSecondary, '20') }]}>
-        <DDIcon name="x-circle" size={24} variant="muted" />
-      </View>
-      <Spacer height={Spacing.sm} />
-      <ThemedText style={[Typography.title, { fontSize: 32, lineHeight: 40 }]}>
-        {withoutParking}
-      </ThemedText>
-      <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: 'center' }]}>
-        {t('parking.withoutParking')}
-      </ThemedText>
-    </ThemedView>
-  </View>
+  <KPICardRow>
+    <KPICard 
+      title={t('dashboard.totalVisitors')} 
+      value={totalVisitors} 
+      icon="users" 
+      color={theme.primary}
+    />
+    <KPICard 
+      title={t('parking.withParking')} 
+      value={withParking} 
+      icon="truck" 
+      color={theme.success}
+    />
+    <KPICard 
+      title={t('parking.withoutParking')} 
+      value={withoutParking} 
+      icon="x-circle" 
+      color={theme.textSecondary}
+    />
+  </KPICardRow>
 );
 
 const VisitorCard = React.memo(({ 
   visitor, 
   theme,
   t,
+  isRTL,
 }: { 
   visitor: ValetParkingVisitorDto; 
   theme: Theme;
   t: (key: string) => string;
+  isRTL: boolean;
 }) => {
-  const hasCarInfo = !!(visitor.licensePlate && visitor.carModel);
-
-  const detailParts = [
-    visitor.hostName,
-    visitor.hostDepartment,
-    visitor.visitTime,
-    visitor.visitorPhone,
-  ].filter(Boolean);
+  const hasCarInfo = !!(visitor.licensePlate || visitor.carModel);
+  const needsParking = visitor.isVisitorNeedsParking === true || visitor.visitorNeedsParking === true;
+  const statusConfig = getStatusConfig(theme, visitor.status || 'pending', t);
 
   const carInfoParts = [
     visitor.licensePlate,
@@ -162,41 +130,52 @@ const VisitorCard = React.memo(({
   ].filter(Boolean);
 
   return (
-    <ThemedView style={[styles.visitorCard, { backgroundColor: theme.surface }]}>
+    <ThemedView style={[
+      styles.visitorCard, 
+      { 
+        backgroundColor: theme.surface,
+        flexDirection: getFlexDirection(isRTL),
+      }
+    ]}>
       <View style={[
         styles.cardAccent, 
-        { backgroundColor: (visitor.isVisitorNeedsParking === true || visitor.visitorNeedsParking === true) ? theme.success : theme.textSecondary }
+        { 
+          backgroundColor: statusConfig.borderColor ?? statusConfig.text ?? theme.primary,
+          borderTopLeftRadius: isRTL ? 0 : LAYOUT.cardRadius,
+          borderBottomLeftRadius: isRTL ? 0 : LAYOUT.cardRadius,
+          borderTopRightRadius: isRTL ? LAYOUT.cardRadius : 0,
+          borderBottomRightRadius: isRTL ? LAYOUT.cardRadius : 0,
+        }
       ]} />
 
       <View style={styles.cardMainSection}>
-        <View style={styles.cardHeaderRow}>
-          <VisitorAvatar name={visitor.visitorName} theme={theme} />
+        <DirectionalRow style={styles.cardHeaderRow} alignItems="center">
+          <VisitorAvatar name={visitor.visitorName} theme={theme} size={LAYOUT.avatarSize} />
           
           <View style={styles.cardNameSection}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 16 }]}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 14 }]} numberOfLines={1}>
               {visitor.visitorName}
             </ThemedText>
             {visitor.visitorCompany ? (
-              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 2 }]}>
+              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, fontSize: 12 }]} numberOfLines={1}>
                 {visitor.visitorCompany}
               </ThemedText>
             ) : null}
           </View>
 
           <StatusBadge 
-            needsParking={visitor.isVisitorNeedsParking === true || visitor.visitorNeedsParking === true} 
-            hasCarInfo={hasCarInfo}
-            theme={theme} 
-            t={t}
+            label={getStatusConfig(theme, visitor.status || 'pending', t).label}
+            variant={getVariantFromStatus(visitor.status || 'pending')}
+            size="sm"
           />
-        </View>
+        </DirectionalRow>
 
-        <Spacer height={Spacing.sm} />
+        <View style={{ height: Spacing.xs }} />
 
-        <View style={styles.compactDetailsRow}>
-          <DDIcon name="user" size={14} variant="muted" />
+        <DirectionalRow style={styles.compactDetailsRow} alignItems="center">
+          <DDIcon name="user" size={12} variant="muted" />
           <ThemedText style={[styles.compactDetailText, { color: theme.textSecondary }]} numberOfLines={1}>
-            {detailParts.join('  |  ')}
+            {[visitor.hostName, visitor.hostDepartment, visitor.visitTime].filter(Boolean).join(' · ')}
           </ThemedText>
           {visitor.isWalkIn ? (
             <View style={[styles.walkInBadge, { backgroundColor: applyOpacity(theme.info, '15') }]}>
@@ -205,17 +184,29 @@ const VisitorCard = React.memo(({
               </ThemedText>
             </View>
           ) : null}
-        </View>
+        </DirectionalRow>
 
-        {(visitor.isVisitorNeedsParking === true || visitor.visitorNeedsParking === true) && hasCarInfo ? (
+        {needsParking ? (
           <>
-            <Spacer height={Spacing.sm} />
-            <View style={[styles.compactCarInfo, { backgroundColor: applyOpacity(theme.success, '08') }]}>
-              <DDIcon name="truck" size={14} variant="success" />
-              <ThemedText style={[styles.compactCarText, { color: theme.success }]}>
-                {carInfoParts.join('  |  ')}
+            <View style={{ height: Spacing.xs }} />
+            <DirectionalRow 
+              style={[
+                styles.compactCarInfo, 
+                { backgroundColor: hasCarInfo ? applyOpacity(theme.success, '10') : applyOpacity(theme.warning, '10') }
+              ]} 
+              alignItems="center"
+            >
+              <DDIcon name="truck" size={12} color={hasCarInfo ? theme.success : theme.warning} />
+              <ThemedText 
+                style={[
+                  styles.compactCarText, 
+                  { color: hasCarInfo ? theme.success : theme.warning }
+                ]} 
+                numberOfLines={1}
+              >
+                {hasCarInfo ? carInfoParts.join(' · ') : t('parking.carInfoPending')}
               </ThemedText>
-            </View>
+            </DirectionalRow>
           </>
         ) : null}
       </View>
@@ -261,7 +252,12 @@ const ErrorState = ({ theme, t, onRetry }: { theme: Theme; t: (key: string) => s
 export default function ValetAllRequestsScreen() {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { isRTL } = useLanguage();  const [filterType, setFilterType] = useState<'all' | 'with_parking' | 'without_parking'>('all');
+  const { isRTL } = useLanguage();
+  const { width: screenWidth } = useWindowDimensions();
+  const [filterType, setFilterType] = useState<'all' | 'with_parking' | 'without_parking'>('all');
+  
+  // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
+  const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
   
   const today = new Date().toISOString().split('T')[0];
   const { data, isLoading, isError, refetch, isRefetching } = useValetParkingDashboard(today);
@@ -303,8 +299,6 @@ export default function ValetAllRequestsScreen() {
         />
       }
     >
-      <Spacer height={Spacing.xl} />
-
       <View style={styles.paddedContent}>
         <StatsCards 
           totalVisitors={data?.summary.totalVisitors ?? 0}
@@ -313,17 +307,17 @@ export default function ValetAllRequestsScreen() {
           theme={theme} 
           t={t} 
         />
+
+        <Spacer height={Spacing.md} />
+
+        <DirectionalRow style={styles.sectionTitleRow}>
+          <ThemedText style={[Typography.subtitle]}>
+            {t('valet.todaysVisitors')}
+          </ThemedText>
+        </DirectionalRow>
       </View>
 
-      <Spacer height={LAYOUT.sectionSpacing} />
-
-      <DirectionalRow style={[styles.sectionTitleRow, styles.paddedContent]}>
-        <ThemedText style={[Typography.subtitle, {}]}>
-          {t('valet.todaysVisitors')}
-        </ThemedText>
-      </DirectionalRow>
-
-      <Spacer height={Spacing.md} />
+      <Spacer height={Spacing.xs} />
 
       <ScrollView 
         horizontal 
@@ -331,77 +325,85 @@ export default function ValetAllRequestsScreen() {
         contentContainerStyle={styles.tabsContainer}
         nestedScrollEnabled={true}
       >
-        {filterOptions.map((filter) => (
-          <Pressable
-            key={filter.key}
-            style={[
-              styles.filterChip,
-              { 
-                backgroundColor: filterType === filter.key 
-                  ? applyOpacity(theme.primary, '15') 
-                  : theme.surface,
-                borderColor: filterType === filter.key ? theme.primary : theme.border,
-              }
-            ]}
-            onPress={() => setFilterType(filter.key)}
-          >
-            <ThemedText
-              style={[
-                styles.filterChipText,
-                { 
-                  color: filterType === filter.key ? theme.primary : theme.textSecondary,
-                  fontWeight: filterType === filter.key ? '600' : '400',
-                }
-              ]}
-            >
-              {filter.label}
-            </ThemedText>
-          </Pressable>
-        ))}
+        <View style={[styles.segmentedControl, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          {filterOptions.map((option, index) => {
+            const isActive = filterType === option.key;
+            const isFirst = index === 0;
+            const isLast = index === filterOptions.length - 1;
+
+            return (
+              <Pressable
+                key={option.key}
+                style={[
+                  styles.segmentButton,
+                  isActive && { backgroundColor: theme.primary },
+                  isFirst && styles.segmentFirst,
+                  isLast && styles.segmentLast,
+                ]}
+                onPress={() => setFilterType(option.key)}
+              >
+                <ThemedText
+                  style={[
+                    styles.segmentText,
+                    { color: isActive ? '#FFFFFF' : theme.text }
+                  ]}
+                  numberOfLines={1}
+                >
+                  {option.label}
+                </ThemedText>
+              </Pressable>
+            );
+          })}
+        </View>
       </ScrollView>
 
-      <Spacer height={Spacing.lg} />
+      <Spacer height={Spacing.sm} />
 
       <View style={styles.paddedContent}>
         {filteredVisitors.length === 0 ? (
           <EmptyState theme={theme} t={t} />
         ) : (
-          filteredVisitors.map((visitor) => (
-            <React.Fragment key={visitor.requestId}>
-              <VisitorCard 
-                visitor={visitor} 
-                theme={theme} 
-                t={t}
-              />
-              <Spacer height={Spacing.md} />
-            </React.Fragment>
-          ))
+          <View style={styles.cardGrid}>
+            {filteredVisitors.map((visitor) => (
+              <View 
+                key={visitor.requestId}
+                style={numColumns > 1 ? { width: numColumns === 2 ? '50%' : '33.33%', flexGrow: 0, marginBottom: LAYOUT.contentGap, paddingRight: Spacing.sm } : { width: '100%', marginBottom: LAYOUT.contentGap }}
+              >
+                <VisitorCard 
+                  visitor={visitor} 
+                  theme={theme} 
+                  t={t}
+                  isRTL={isRTL}
+                />
+              </View>
+            ))}
+          </View>
         )}
       </View>
 
-      <Spacer height={Spacing.xxl} />
+      <Spacer height={Spacing.md} />
     </ScreenScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   paddedContent: {
-    paddingHorizontal: Spacing.xl,
+    paddingHorizontal: Spacing.sm,
   },
   statsGrid: {
     flexDirection: 'row' as const,
-    gap: Spacing.md,
+    gap: Spacing.xs,
   },
   statCard: {
     flex: 1,
-    padding: Spacing.lg,
+    padding: Spacing.sm,
     borderRadius: LAYOUT.statCardRadius,
     alignItems: 'center',
   },
   statIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
+    width: 40,
+    height: 40,
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -410,32 +412,51 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   tabsContainer: {
-    paddingHorizontal: Spacing.xl,
-    gap: Spacing.sm,
+    paddingHorizontal: Spacing.sm,
+    gap: Spacing.xs,
   },
-  filterChip: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.full,
+  segmentedControl: {
+    flexDirection: 'row',
+    borderRadius: BorderRadius.lg,
     borderWidth: 1,
+    overflow: 'hidden',
+    height: 36,
   },
-  filterChipText: {
-    fontSize: 14,
+  segmentButton: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+  },
+  segmentFirst: {
+    borderTopStartRadius: BorderRadius.lg - 1,
+    borderBottomStartRadius: BorderRadius.lg - 1,
+  },
+  segmentLast: {
+    borderTopEndRadius: BorderRadius.lg - 1,
+    borderBottomEndRadius: BorderRadius.lg - 1,
+  },
+  segmentText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  cardGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
   },
   visitorCard: {
     borderRadius: LAYOUT.cardRadius,
     overflow: 'hidden',
   },
   cardAccent: {
-    width: 4,
+    width: LAYOUT.accentWidth,
   },
   cardMainSection: {
     flex: 1,
     padding: LAYOUT.cardPadding,
   },
   cardHeaderRow: {
-    alignItems: 'center',
-    gap: Spacing.md,
+    gap: Spacing.xs,
   },
   cardNameSection: {
     flex: 1,
@@ -447,78 +468,64 @@ const styles = StyleSheet.create({
   avatarText: {
     fontWeight: '600',
   },
-  statusBadge: {
-    alignItems: 'center',
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 6,
-    borderRadius: BorderRadius.sm,
-    borderWidth: 1,
-  },
-  statusText: {
-    fontSize: 11,
-    fontWeight: '500',
-  },
   detailsRow: {
     alignItems: 'center',
     flexWrap: 'wrap',
-    gap: Spacing.md,
+    gap: Spacing.sm,
   },
   detailItem: {
     alignItems: 'center',
-    gap: 6,
+    gap: 4,
   },
   detailText: {
-    fontSize: 13,
+    fontSize: 12,
   },
   walkInBadge: {
-    paddingHorizontal: Spacing.sm,
+    paddingHorizontal: Spacing.xs,
     paddingVertical: 2,
     borderRadius: BorderRadius.xs,
+    marginStart: Spacing.xs,
   },
   walkInText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '500',
   },
   carInfoSection: {
-    padding: Spacing.md,
+    padding: Spacing.sm,
     borderRadius: BorderRadius.sm,
   },
   carInfoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 4,
   },
   carInfoLabel: {
-    fontSize: 12,
+    fontSize: 11,
   },
   carInfoValue: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
   },
   compactDetailsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
+    gap: 4,
   },
   compactDetailText: {
-    fontSize: 13,
+    fontSize: 12,
     flex: 1,
   },
   compactCarInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
+    gap: 6,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
     borderRadius: BorderRadius.sm,
   },
   compactCarText: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 12,
+    fontWeight: '500',
     flex: 1,
   },
   emptyState: {
-    padding: Spacing.xxl,
+    padding: Spacing.lg,
     borderRadius: LAYOUT.cardRadius,
     alignItems: 'center',
     justifyContent: 'center',
@@ -529,7 +536,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   retryButton: {
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.sm,
   },

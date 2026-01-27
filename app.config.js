@@ -1,13 +1,9 @@
-const QA_BACKEND_URL = "https://vms-backend-app-qa.replit.app";
-const PROD_BACKEND_URL = process.env.EXPO_PUBLIC_API_BASE_URL || "https://vms-backend-folio3.replit.app";
-
-// Determine environment from EAS build profile or environment variable
-const IS_PRODUCTION = process.env.EAS_BUILD_PROFILE === "production" || 
-                      process.env.EAS_BUILD_PROFILE === "production-preview" ||
-                      process.env.APP_ENV === "production";
-
-const BACKEND_URL = IS_PRODUCTION ? PROD_BACKEND_URL : QA_BACKEND_URL;
-const CONFIG_PATH = IS_PRODUCTION ? "prod" : "qa";
+// QA Environment Configuration
+// This Replit project is dedicated to QA/Testing environment
+// For production, use the separate production Replit project
+const QA_BACKEND_URL = "https://vms-backend-folio3.replit.app";
+const BACKEND_URL = QA_BACKEND_URL;
+const CONFIG_PATH = "qa";
 
 export default ({ config }) => ({
   ...config,
@@ -25,7 +21,7 @@ export default ({ config }) => ({
     eas: {
       projectId: "33b6baff-6c89-44be-905f-006d0da4434d",
     },
-    environment: IS_PRODUCTION ? "production" : "qa",
+    environment: "qa",
     apiBaseUrl: BACKEND_URL,
     microsoftAuthUrl: process.env.EXPO_PUBLIC_MICROSOFT_AUTH_URL || BACKEND_URL,
     firebase: {

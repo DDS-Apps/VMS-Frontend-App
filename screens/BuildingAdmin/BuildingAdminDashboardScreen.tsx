@@ -23,48 +23,7 @@ import {
 } from '@/services/state/buildingAdminState';
 import type { BuildingAdminDashboardScreenProps } from '@/types/buildingAdminNavigation.types';
 
-interface KPICardProps {
-  title: string;
-  value: string;
-  icon: string;
-  iconBgColor: string;
-  iconColor: string;
-  cardBgColor: string;
-  subtitle?: string;
-}
-
-function KPICard({ title, value, icon, iconBgColor, iconColor, cardBgColor, subtitle }: KPICardProps) {
-  const { theme } = useTheme();
-  
-  return (
-    <View style={[styles.kpiCard, { backgroundColor: cardBgColor, borderWidth: StyleSheet.hairlineWidth, borderColor: applyOpacity(iconColor, '15') }]}>
-      <View style={[styles.kpiIconContainer, { backgroundColor: iconBgColor }]}>
-        <DDIcon name={icon as IconName} size={28} color={iconColor} />
-      </View>
-
-      <Spacer height={Spacing.lg} />
-
-      <ThemedText style={[styles.kpiValue, { color: theme.text }]}>
-        {value}
-      </ThemedText>
-
-      <Spacer height={Spacing.xs} />
-
-      <ThemedText style={[styles.kpiLabel, { color: theme.textSecondary }]}>
-        {title}
-      </ThemedText>
-      
-      {subtitle ? (
-        <>
-          <Spacer height={2} />
-          <ThemedText style={[styles.kpiSubtitle, { color: theme.info }]}>
-            {subtitle}
-          </ThemedText>
-        </>
-      ) : null}
-    </View>
-  );
-}
+import { KPICard, KPICardRow } from '@/components/shared/KPICard';
 
 interface QuickActionProps {
   icon: string;
@@ -162,7 +121,7 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
   }
 
   return (
-    <ScreenScrollView contentContainerStyle={styles.container}>
+    <ScreenScrollView skipTopPadding contentContainerStyle={styles.container}>
       <ThemedText style={Typography.title}>{t('navigation.controlCenter')}</ThemedText>
       <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
         {t('dashboard.overview')}
@@ -170,67 +129,54 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
 
       <Spacer height={Spacing.xl} />
 
-      <DirectionalRow style={styles.kpiRow}>
+      <KPICardRow>
         <KPICard 
           title={t('dashboard.totalVisitors')} 
           value={String(stats.totalVisitors)} 
           icon="users" 
-          iconBgColor={applyOpacity(theme.primary, '20')}
-          iconColor={theme.primary}
-          cardBgColor={applyOpacity(theme.primary, '06')}
-          subtitle={t('time.today')}
+          color={theme.primary}
         />
         <KPICard 
           title={t('dashboard.pendingRequests')} 
           value={String(stats.activeRequests)} 
           icon="file-text" 
-          iconBgColor={applyOpacity(theme.info, '20')}
-          iconColor={theme.info}
-          cardBgColor={applyOpacity(theme.info, '06')}
+          color={theme.info}
         />
-      </DirectionalRow>
+      </KPICardRow>
 
       <Spacer height={Spacing.md} />
 
-      <DirectionalRow style={styles.kpiRow}>
+      <KPICardRow>
         <KPICard 
           title={t('status.approved')} 
           value={String(stats.approvedRequests)} 
           icon="check-circle" 
-          iconBgColor={applyOpacity(theme.success, '20')}
-          iconColor={theme.success}
-          cardBgColor={applyOpacity(theme.success, '06')}
+          color={theme.success}
         />
         <KPICard 
           title={t('status.pending')} 
           value={String(stats.pendingRequests)} 
           icon="clock" 
-          iconBgColor={applyOpacity(theme.warning, '20')}
-          iconColor={theme.warning}
-          cardBgColor={applyOpacity(theme.warning, '06')}
+          color={theme.warning}
         />
-      </DirectionalRow>
+      </KPICardRow>
 
       <Spacer height={Spacing.md} />
 
-      <DirectionalRow style={styles.kpiRow}>
+      <KPICardRow>
         <KPICard 
           title={t('buffet.buffetService')} 
           value={String(stats.ongoingBuffets)} 
           icon="disc" 
-          iconBgColor={applyOpacity('#FF6B35', '20')}
-          iconColor="#FF6B35"
-          cardBgColor={applyOpacity('#FF6B35', '06')}
+          color="#FF6B35"
         />
         <KPICard 
           title={t('valet.valetService')} 
           value={String(stats.activeValetOperations)} 
           icon="navigation" 
-          iconBgColor={applyOpacity('#6366F1', '20')}
-          iconColor="#6366F1"
-          cardBgColor={applyOpacity('#6366F1', '06')}
+          color="#6366F1"
         />
-      </DirectionalRow>
+      </KPICardRow>
 
       <Spacer height={Spacing.xxl} />
 
@@ -286,6 +232,9 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.staffScrollContent}
         nestedScrollEnabled={true}
+        directionalLockEnabled={true}
+        scrollEventThrottle={16}
+        keyboardShouldPersistTaps="handled"
       >
         <StaffCard
           title={t('dashboard.buffetStaff')}

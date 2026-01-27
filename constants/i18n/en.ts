@@ -27,6 +27,7 @@ export const en: TranslationKeys = {
     filter: 'Filter',
     all: 'All',
     none: 'None',
+    other: 'Other',
     manager: 'Manager',
     yes: 'Yes',
     no: 'No',
@@ -86,6 +87,7 @@ export const en: TranslationKeys = {
     errorOccurred: 'An error occurred',
     errorLoadingData: 'Error loading data',
     today: 'Today',
+    others: 'Other',
   },
   bulkActions: {
     selectMode: 'Select',
@@ -315,6 +317,8 @@ export const en: TranslationKeys = {
     emailPlaceholder: 'Enter email address',
     phoneNumber: 'Phone Number',
     phone: 'Phone',
+    businessPhone: 'Office Phone',
+    landline: 'Landline',
     phonePlaceholder: 'Enter phone number',
     company: 'Company',
     companyPlaceholder: 'Enter company name',
@@ -650,7 +654,7 @@ export const en: TranslationKeys = {
       },
       buffet_new_request: {
         title: 'New Buffet Request',
-        message: 'New buffet request from {{hostName}} for {{guestCount}} guests',
+        message: 'New buffet request from {{hostName}} at {{location}}',
       },
       buffet_task_assigned: {
         title: 'Buffet Task Assigned',
@@ -666,7 +670,7 @@ export const en: TranslationKeys = {
       },
       buffet_request_created: {
         title: 'Buffet Request Created',
-        message: 'Buffet request created for {{hostName}} with {{guestCount}} guests',
+        message: 'Buffet request created for {{hostName}} at {{location}}',
       },
       buffet_status_update: {
         title: 'Buffet Status Update',

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { View, StyleSheet, Pressable, GestureResponderEvent, ActivityIndicator, Alert, Modal, ScrollView } from "react-native";
+import { View, StyleSheet, Pressable, GestureResponderEvent, ActivityIndicator, Alert, Modal, ScrollView, useWindowDimensions } from "react-native";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { ROUTES } from "@/constants";
 import { ThemedText } from "@/components/ThemedText";
@@ -62,38 +62,7 @@ const mapAdminStaffDto = (staff: BuffetAdminStaffDto): BuffetStaff => {
   };
 };
 
-interface KPICardProps {
-  title: string;
-  value: string;
-  icon: string;
-  iconBgColor: string;
-  iconColor: string;
-  cardBgColor: string;
-}
-
-function KPICard({ title, value, icon, iconBgColor, iconColor, cardBgColor }: KPICardProps) {
-  const { theme } = useTheme();
-  
-  return (
-    <View style={[styles.kpiCard, { backgroundColor: cardBgColor, borderWidth: StyleSheet.hairlineWidth, borderColor: applyOpacity(iconColor, '15') }]}>
-      <View style={[styles.kpiIconContainer, { backgroundColor: iconBgColor }]}>
-        <DDIcon name={icon as IconName} size={28} color={iconColor} />
-      </View>
-
-      <Spacer height={Spacing.lg} />
-
-      <ThemedText style={[styles.kpiValue, { color: theme.text }]}>
-        {value}
-      </ThemedText>
-
-      <Spacer height={Spacing.xs} />
-
-      <ThemedText style={[styles.kpiLabel, { color: theme.textSecondary }]}>
-        {title}
-      </ThemedText>
-    </View>
-  );
-}
+import { KPICard, KPICardRow } from '@/components/shared/KPICard';
 
 interface QuickActionProps {
   icon: string;
@@ -126,8 +95,13 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { formatTimeFromString } = useFormatters();
-  const { isRTL } = useLanguage();  const insets = useSafeAreaInsets();
+  const { isRTL } = useLanguage();
+  const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
   const { showSuccess, showError } = useToast();
+  
+  // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
+  const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
 
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<BuffetRequest | null>(null);
@@ -475,33 +449,27 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
   }
 
   return (
-    <ScreenScrollView contentContainerStyle={scrollContentStyle}>
-      <DirectionalRow style={styles.kpiRow}>
+    <ScreenScrollView skipTopPadding contentContainerStyle={scrollContentStyle}>
+      <KPICardRow>
         <KPICard 
           title={t('time.today')} 
           value={String(stats.total)} 
           icon="disc" 
-          iconBgColor={applyOpacity(theme.primary, '20')}
-          iconColor={theme.primary}
-          cardBgColor={applyOpacity(theme.primary, '06')}
+          color={theme.primary}
         />
         <KPICard 
           title={t('status.pending')} 
           value={String(stats.pending)} 
           icon="clock" 
-          iconBgColor={applyOpacity(theme.warning, '20')}
-          iconColor={theme.warning}
-          cardBgColor={applyOpacity(theme.warning, '06')}
+          color={theme.warning}
         />
         <KPICard 
           title={t('status.completed')} 
           value={String(stats.completed)} 
           icon="check-circle" 
-          iconBgColor={applyOpacity(theme.success, '20')}
-          iconColor={theme.success}
-          cardBgColor={applyOpacity(theme.success, '06')}
+          color={theme.success}
         />
-      </DirectionalRow>
+      </KPICardRow>
 
       <Spacer height={Spacing.xl} />
 
@@ -511,40 +479,29 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
 
       <Spacer height={Spacing.md} />
 
-      <View style={styles.quickActionsGrid}>
-        <DirectionalRow style={styles.quickActionsRow}>
-          <QuickActionButton
-            icon="bar-chart-2"
-            label={t('buffet.capacityOverview')}
-            iconBgColor={applyOpacity(theme.info, '12')}
-            iconColor={theme.info}
-            onPress={() => navigation.navigate(ROUTES.BUFFET_OVERVIEW as never)}
-          />
-          <QuickActionButton
-            icon="users"
-            label={t('navigation.staffManagement')}
-            iconBgColor={applyOpacity(theme.primary, '12')}
-            iconColor={theme.primary}
-            onPress={() => navigation.navigate(ROUTES.BUFFET_STAFF as never)}
-          />
-        </DirectionalRow>
-        <DirectionalRow style={styles.quickActionsRow}>
-          <QuickActionButton
-            icon="map-pin"
-            label={t('navigation.locations')}
-            iconBgColor={applyOpacity(theme.success, '12')}
-            iconColor={theme.success}
-            onPress={() => navigation.navigate(ROUTES.BUFFET_LOCATIONS as never)}
-          />
-          <QuickActionButton
-            icon="list"
-            label={t('navigation.allRequests')}
-            iconBgColor={applyOpacity(theme.warning, '12')}
-            iconColor={theme.warning}
-            onPress={() => navigation.navigate(ROUTES.BUFFET_ALL_REQUESTS as never)}
-          />
-        </DirectionalRow>
-      </View>
+      <DirectionalRow style={styles.quickActionsRow}>
+        <QuickActionButton
+          icon="users"
+          label={t('navigation.staffManagement')}
+          iconBgColor={applyOpacity(theme.primary, '12')}
+          iconColor={theme.primary}
+          onPress={() => navigation.navigate(ROUTES.BUFFET_STAFF as never)}
+        />
+        <QuickActionButton
+          icon="map-pin"
+          label={t('navigation.locations')}
+          iconBgColor={applyOpacity(theme.success, '12')}
+          iconColor={theme.success}
+          onPress={() => navigation.navigate(ROUTES.BUFFET_LOCATIONS as never)}
+        />
+        <QuickActionButton
+          icon="list"
+          label={t('navigation.allRequests')}
+          iconBgColor={applyOpacity(theme.warning, '12')}
+          iconColor={theme.warning}
+          onPress={() => navigation.navigate(ROUTES.BUFFET_ALL_REQUESTS as never)}
+        />
+      </DirectionalRow>
 
       <Spacer height={Spacing.xl} />
 
@@ -572,7 +529,14 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
 
       {requests.length > 0 ? (
         <View style={styles.requestsList}>
-          {requests.slice(0, 5).map((request) => renderRequestCard(request))}
+          {requests.slice(0, 6).map((request) => (
+            <View 
+              key={request.id}
+              style={numColumns > 1 ? { width: numColumns === 2 ? '50%' : '33.33%', flexGrow: 0, marginBottom: Spacing.md, paddingRight: Spacing.sm } : { width: '100%', marginBottom: Spacing.md }}
+            >
+              {renderRequestCard(request)}
+            </View>
+          ))}
         </View>
       ) : (
         <ThemedView style={[styles.emptyState, { backgroundColor: theme.surface }]}>
@@ -648,9 +612,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
   },
-  quickActionsGrid: {
-    gap: Spacing.sm,
-  },
   quickActionsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -681,6 +642,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   requestsList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: Spacing.md,
   },
   requestCard: {

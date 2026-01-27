@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { View, StyleSheet, Pressable, GestureResponderEvent, Alert, Switch, FlatList, ActivityIndicator, Modal, Platform } from "react-native";
+import { View, StyleSheet, Pressable, GestureResponderEvent, Alert, Switch, FlatList, ActivityIndicator, Modal, Platform, useWindowDimensions } from "react-native";
 import type { AllVisitorsScreenProps } from "@/types/receptionistNavigation.types";
 import { ROUTES } from "@/constants";
 import { SkeletonList, WalkInBadge } from "@/components/shared";
@@ -70,18 +70,24 @@ function mapStatusToApi(status: StatusFilter): string | undefined {
 
 const PAGE_SIZE = 20;
 
-export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps) {
+export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { formatTime, formatTimeFromString, formatDateShort } = useFormatters();
   const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
+  
+  // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
+  const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
+  
+  const initialFilter = route.params?.initialFilter ?? null;
   
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [dateFilter, setDateFilter] = useState<DateFilter>('today');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
-  const [activeQuickFilter, setActiveQuickFilter] = useState<'walk_in' | 'awaiting_visitor' | 'pending_approval' | null>(null);
+  const [activeQuickFilter, setActiveQuickFilter] = useState<'walk_in' | 'awaiting_visitor' | 'pending_approval' | null>(initialFilter);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showStatusPicker, setShowStatusPicker] = useState(false);
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
@@ -215,6 +221,7 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
       case 'checked_in':
         return { label: t('status.checkedIn'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: theme.success };
       case 'completed':
+        return { label: t('timeline.visitCompleted'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: theme.success };
       case 'checked_out':
         return { label: t('status.checkedOut'), bg: applyOpacity(theme.textSecondary, '15'), text: theme.textSecondary, border: theme.textSecondary };
       case 'pending_approval':
@@ -259,7 +266,6 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
     const initials = visitorName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
     const showCheckIn = item.status === 'approved' || item.status === 'visitor_accepted';
     const showCheckOut = item.status === 'checked_in';
-    const showCompleted = item.status === 'completed' || item.status === 'checked_out';
     const isExpanded = expandedCards.has(item.id);
     const hasDetails = item.purpose || item.visitor.email || item.visitor.phone;
     
@@ -370,24 +376,6 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
               </View>
             ) : null}
 
-            {hasDetails ? (
-              <Pressable 
-                onPress={(e) => { e.stopPropagation(); toggleCardExpanded(item.id); }} 
-                style={styles.toggleContainer}
-              >
-                <DirectionalRow>
-                  <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
-                    {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
-                  </ThemedText>
-                  <DDIcon 
-                    name={isExpanded ? 'chevron-up' : 'chevron-down'} 
-                    size={16} 
-                    color={theme.primary} 
-                  />
-                </DirectionalRow>
-              </Pressable>
-            ) : null}
-
             <DirectionalRow style={styles.cardFooter} justifyContent="flex-end">
               <View style={styles.actionButtons}>
                 {showCheckIn ? (
@@ -400,8 +388,6 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
                     type="check_out" 
                     onPress={(e) => handleCheckOut(item.id, visitorName, e)} 
                   />
-                ) : showCompleted ? (
-                  <VisitorActionButton type="completed" />
                 ) : null}
               </View>
             </DirectionalRow>
@@ -627,15 +613,21 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <FlatList
+        key={`flatlist-${numColumns}`}
         data={visitors}
-        renderItem={renderVisitorCard}
+        renderItem={({ item }) => (
+          <View style={numColumns > 1 ? styles.gridItem : styles.singleColumnItem}>
+            {renderVisitorCard({ item })}
+          </View>
+        )}
         keyExtractor={(item) => item.id}
+        numColumns={numColumns}
+        columnWrapperStyle={numColumns > 1 ? styles.gridRow : undefined}
         contentContainerStyle={{
           paddingHorizontal: Spacing.lg,
           paddingTop: insets.top + Spacing.lg,
           paddingBottom: insets.bottom + Spacing.xl,
         }}
-        ItemSeparatorComponent={() => <Spacer height={Spacing.sm} />}
         ListHeaderComponent={ListHeader}
         ListFooterComponent={renderFooter}
         ListEmptyComponent={renderEmpty}
@@ -668,6 +660,18 @@ export default function AllVisitorsScreen({ navigation }: AllVisitorsScreenProps
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  gridRow: {
+    gap: Spacing.md,
+    marginBottom: Spacing.md,
+  },
+  gridItem: {
+    flex: 1,
+    minWidth: 0,
+  },
+  singleColumnItem: {
+    width: '100%',
+    marginBottom: Spacing.sm,
   },
   filtersRow: {
     flexWrap: 'wrap',
@@ -849,6 +853,7 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
   },
   pickerOption: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: Spacing.md,

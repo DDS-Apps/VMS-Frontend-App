@@ -10,6 +10,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { UserRole, AdminDashboardKPI } from "@/types/vms.types";
 import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
+import { KPICard, KPICardRow } from '@/components/shared/KPICard';
 
 interface AdminDashboardScreenProps {
   role: UserRole;
@@ -203,7 +204,7 @@ export default function AdminDashboardScreen({
   ];
 
   return (
-    <ScreenScrollView contentContainerStyle={styles.container}>
+    <ScreenScrollView skipTopPadding contentContainerStyle={styles.container}>
       <ThemedText style={[Typography.title]}>{title}</ThemedText>
       <ThemedText
         style={[Typography.bodySmall, { color: theme.textSecondary }]}
@@ -213,36 +214,17 @@ export default function AdminDashboardScreen({
 
       <Spacer height={Spacing.xl} />
 
-      <View style={styles.kpiGrid}>
+      <KPICardRow>
         {kpis.map((kpi, index) => (
-          <ThemedView
+          <KPICard
             key={index}
-            style={[styles.kpiCard, { backgroundColor: theme.surface }]}
-          >
-            <View
-              style={[
-                styles.kpiIconContainer,
-                { backgroundColor: kpi.color + "20" },
-              ]}
-            >
-              <DDIcon name={kpi.icon as IconName} size={24} color={kpi.color} />
-            </View>
-            <Spacer height={Spacing.md} />
-            <ThemedText style={[Typography.title, { fontSize: 28 }]}>
-              {kpi.value}
-            </ThemedText>
-            <ThemedText
-              style={[Typography.bodySmall, { color: theme.textSecondary }]}
-            >
-              {kpi.label}
-            </ThemedText>
-            <Spacer height={Spacing.xs} />
-            <ThemedText style={[Typography.caption, { color: theme.info }]}>
-              {kpi.trend}
-            </ThemedText>
-          </ThemedView>
+            title={kpi.label}
+            value={kpi.value}
+            icon={kpi.icon as IconName}
+            color={kpi.color}
+          />
         ))}
-      </View>
+      </KPICardRow>
 
       <Spacer height={Spacing.xl} />
 
@@ -300,29 +282,6 @@ export default function AdminDashboardScreen({
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: Spacing.lg,
-  },
-  kpiGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginHorizontal: -Spacing.xs,
-  },
-  kpiCard: {
-    width: "48%",
-    margin: "1%",
-    padding: Spacing.lg,
-    borderRadius: BorderRadius.md,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  kpiIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: BorderRadius.md,
-    justifyContent: "center",
-    alignItems: "center",
   },
   sectionHeader: {
     justifyContent: "space-between",

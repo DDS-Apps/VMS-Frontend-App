@@ -246,7 +246,7 @@ export default function ReminderRulesScreen() {
         </View>
 
         <View style={[styles.section, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <DirectionalRow style={styles.sectionTitle}>
+          <DirectionalRow style={styles.sectionTitle} gap={Spacing.sm}>
             <DDIcon name="bell" size={20} color={theme.text} />
             <ThemedText style={[Typography.subtitle, { fontWeight: "600", marginEnd: Spacing.sm }]}>
               {t("admin.reminderRules")}
@@ -321,7 +321,7 @@ export default function ReminderRulesScreen() {
         </View>
 
         <View style={[styles.section, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <DirectionalRow style={styles.sectionTitle}>
+          <DirectionalRow style={styles.sectionTitle} gap={Spacing.sm}>
             <DDIcon name="clock" size={20} color={theme.text} />
             <ThemedText style={[Typography.subtitle, { fontWeight: "600", marginEnd: Spacing.sm }]}>
               {t("admin.officeHours")}
@@ -383,7 +383,7 @@ export default function ReminderRulesScreen() {
         </View>
 
         <View style={[styles.section, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <DirectionalRow style={styles.sectionTitle}>
+          <DirectionalRow style={styles.sectionTitle} gap={Spacing.sm}>
             <DDIcon name="calendar" size={20} color={theme.text} />
             <ThemedText style={[Typography.subtitle, { fontWeight: "600", marginEnd: Spacing.sm }]}>
               {t("admin.workingDays")}

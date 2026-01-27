@@ -189,6 +189,8 @@ export function TimePicker({
         transparent
         animationType="slide"
         onRequestClose={handleCancel}
+        presentationStyle="overFullScreen"
+        statusBarTranslucent
       >
         <View style={styles.modalContainer}>
           <Pressable 
@@ -296,6 +298,8 @@ export function TimePicker({
       transparent
       animationType="fade"
       onRequestClose={handleCancel}
+      presentationStyle="overFullScreen"
+      statusBarTranslucent
     >
       <Pressable 
         style={[styles.webModalOverlay, createModalOverlayStyle(theme, '60')]}
@@ -544,9 +548,11 @@ const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
     justifyContent: 'flex-end',
+    zIndex: 9999,
   },
   modalBackdrop: {
     ...StyleSheet.absoluteFillObject,
+    zIndex: 1,
   },
   pickerModal: {
     borderTopLeftRadius: BorderRadius.xl,
@@ -556,7 +562,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
-    elevation: 20,
+    elevation: 30,
+    zIndex: 9999,
   },
   headerCompact: {
     alignItems: 'center',
@@ -569,6 +576,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: Spacing.xl,
+    zIndex: 9999,
   },
   webPickerContainer: {
     width: '100%',
@@ -578,7 +586,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.2,
     shadowRadius: 24,
-    elevation: 20,
+    elevation: 30,
+    zIndex: 9999,
     overflow: 'hidden',
   },
   mainTimeSection: {

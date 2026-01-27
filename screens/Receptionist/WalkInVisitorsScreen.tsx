@@ -162,7 +162,7 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
       case 'checked_in':
         return { label: t('status.checkedIn'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: theme.success };
       case 'completed':
-        return { label: t('status.checkedOut'), bg: applyOpacity(theme.textSecondary, '15'), text: theme.textSecondary, border: theme.textSecondary };
+        return { label: t('timeline.visitCompleted'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: theme.success };
       default:
         return { label: t('visitor.expectedVisitors'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: theme.warning };
     }
@@ -280,24 +280,6 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
               </View>
             ) : null}
 
-            {hasDetails ? (
-              <Pressable 
-                onPress={(e) => { e.stopPropagation(); toggleCardExpanded(item.id); }} 
-                style={styles.toggleContainer}
-              >
-                <DirectionalRow>
-                  <DDIcon 
-                    name={isExpanded ? 'chevron-up' : 'chevron-down'} 
-                    size={16} 
-                    color={theme.primary} 
-                  />
-                  <ThemedText style={[styles.toggleText, { color: theme.primary, marginStart: 4 }]}>
-                    {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
-                  </ThemedText>
-                </DirectionalRow>
-              </Pressable>
-            ) : null}
-
             <DirectionalRow style={styles.cardFooter} justifyContent="flex-end">
               <DirectionalRow style={styles.actionButtons}>
                 {showCheckIn ? (
@@ -310,9 +292,7 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
                     type="check_out" 
                     onPress={(e) => handleCheckOut(item.id, visitorName, e)} 
                   />
-                ) : (
-                  <VisitorActionButton type="completed" />
-                )}
+                ) : null}
               </DirectionalRow>
             </DirectionalRow>
           </View>

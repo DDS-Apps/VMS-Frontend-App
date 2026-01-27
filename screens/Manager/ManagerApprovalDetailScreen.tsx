@@ -251,7 +251,16 @@ export default function ManagerApprovalDetailScreen({
 
   const request = useMemo(() => {
     if (!visitData) return null;
-    return mapVisitDetailsToVisitorRequest(visitData);
+    const mapped = mapVisitDetailsToVisitorRequest(visitData);
+    // DEBUG: Trace parking data in screen
+    console.log('[DEBUG ManagerApprovalDetailScreen] Mapped request parking data:', {
+      visitorNeedsParking: mapped.visitorNeedsParking,
+      isVisitorNeedsParking: mapped.isVisitorNeedsParking,
+      licensePlate: mapped.licensePlate,
+      carModel: mapped.carModel,
+      carColor: mapped.carColor,
+    });
+    return mapped;
   }, [visitData]);
 
   const timelineData: TimelineData = useMemo(
@@ -725,9 +734,15 @@ export default function ManagerApprovalDetailScreen({
   };
 
   const handleCancel = () => {
-    if (isReadOnlyRole) return;
+    console.log('[CancelRequest Manager] Called, requestId:', requestId, 'isReadOnlyRole:', isReadOnlyRole);
+    if (isReadOnlyRole) {
+      console.log('[CancelRequest Manager] Blocked - user has read-only role');
+      return;
+    }
+    console.log('[CancelRequest Manager] Calling cancelMutation.mutate...');
     cancelMutation.mutate(requestId, {
       onSuccess: () => {
+        console.log('[CancelRequest Manager] SUCCESS - request cancelled');
         setShowCancelModal(false);
         showToast(t("notifications.requestCancelled"), "success");
         setTimeout(() => {
@@ -735,6 +750,7 @@ export default function ManagerApprovalDetailScreen({
         }, 1000);
       },
       onError: (error) => {
+        console.error('[CancelRequest Manager] ERROR:', error);
         showToast(t("errors.somethingWentWrong"), "error");
       },
     });
@@ -754,8 +770,11 @@ export default function ManagerApprovalDetailScreen({
       statusColor = theme.error;
       statusText = t("status.rejected");
     } else if (request.status === REQUEST_STATUS.CANCELLED) {
-      statusColor = theme.textSecondary;
+      statusColor = theme.error;
       statusText = t("status.cancelled");
+    } else if (request.status === REQUEST_STATUS.AUTO_CANCELLED) {
+      statusColor = theme.error;
+      statusText = t("status.autoCancelled");
     }
 
     return { statusColor, statusText };
@@ -775,6 +794,105 @@ export default function ManagerApprovalDetailScreen({
           paddingTop: Spacing.lg,
         }}
       >
+        {/* Rejection Reason - Moved to top */}
+        {request.status === REQUEST_STATUS.REJECTED &&
+        request.approval.rejectionReason ? (
+          <>
+            <ThemedView
+              style={[
+                styles.cardNew,
+                { backgroundColor: applyOpacity(theme.error, "08") },
+              ]}
+            >
+              <DirectionalRow
+                style={{ alignItems: "flex-start", gap: Spacing.sm }}
+              >
+                <View style={{ marginTop: 2 }}>
+                  <DDIcon name="message-circle" size={18} color={theme.error} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <ThemedText
+                    style={[
+                      Typography.bodySmall,
+                      {
+                        color: theme.error,
+                        fontWeight: "600",
+                        marginBottom: 4,
+                        
+                      },
+                    ]}
+                  >
+                    {t("form.reason")}
+                  </ThemedText>
+                  <ThemedText
+                    style={[
+                      Typography.body,
+                      {
+                        color: theme.text,
+                        lineHeight: 22,
+                        
+                      },
+                    ]}
+                  >
+                    {request.approval.rejectionReason}
+                  </ThemedText>
+                </View>
+              </DirectionalRow>
+            </ThemedView>
+            <Spacer height={Spacing.lg} />
+          </>
+        ) : null}
+
+        {/* Visitor Decline Reason - Moved to top */}
+        {request.visitorDecision &&
+        !request.visitorDecision.accepted &&
+        request.visitorDecision.reason ? (
+          <>
+            <ThemedView
+              style={[
+                styles.cardNew,
+                { backgroundColor: applyOpacity(theme.error, "08") },
+              ]}
+            >
+              <DirectionalRow
+                style={{ alignItems: "flex-start", gap: Spacing.sm }}
+              >
+                <View style={{ marginTop: 2 }}>
+                  <DDIcon name="user-x" size={18} color={theme.error} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <ThemedText
+                    style={[
+                      Typography.bodySmall,
+                      {
+                        color: theme.error,
+                        fontWeight: "600",
+                        marginBottom: 4,
+                        
+                      },
+                    ]}
+                  >
+                    {t("visitor.visitorDeclineReason")}
+                  </ThemedText>
+                  <ThemedText
+                    style={[
+                      Typography.body,
+                      {
+                        color: theme.text,
+                        lineHeight: 22,
+                        
+                      },
+                    ]}
+                  >
+                    {request.visitorDecision.reason}
+                  </ThemedText>
+                </View>
+              </DirectionalRow>
+            </ThemedView>
+            <Spacer height={Spacing.lg} />
+          </>
+        ) : null}
+
         <ThemedView
           style={[styles.cardNew, { backgroundColor: theme.surface }]}
         >
@@ -858,9 +976,11 @@ export default function ManagerApprovalDetailScreen({
               </View>
             </DirectionalRow>
 
+          </View>
+
             <Spacer height={Spacing.lg} />
 
-            <DirectionalRow style={{ alignItems: "center", gap: Spacing.md }}>
+            <DirectionalRow style={{ alignItems: "center", justifyContent: "flex-start", gap: Spacing.md }}>
               <View
                 style={[
                   styles.contactIcon,
@@ -876,7 +996,6 @@ export default function ManagerApprovalDetailScreen({
                     color: theme.textSecondary,
                     fontSize: 13,
                     flex: 1,
-                    //   textAlign: isRTL ? 'right' : 'left'
                   },
                 ]}
               >
@@ -886,7 +1005,7 @@ export default function ManagerApprovalDetailScreen({
 
             <Spacer height={Spacing.md} />
 
-            <DirectionalRow style={{ alignItems: "center", gap: Spacing.md }}>
+            <DirectionalRow style={{ alignItems: "center", justifyContent: "flex-start", gap: Spacing.md }}>
               <View
                 style={[
                   styles.contactIcon,
@@ -902,112 +1021,13 @@ export default function ManagerApprovalDetailScreen({
                     color: theme.textSecondary,
                     fontSize: 13,
                     flex: 1,
-                    // 
                   },
                 ]}
               >
                 {request.visitor.phone}
               </ThemedText>
             </DirectionalRow>
-          </View>
         </ThemedView>
-
-        {request.status === REQUEST_STATUS.REJECTED &&
-        request.approval.rejectionReason ? (
-          <>
-            <Spacer height={Spacing.lg} />
-            <ThemedView
-              style={[
-                styles.cardNew,
-                { backgroundColor: applyOpacity(theme.error, "08") },
-              ]}
-            >
-              <DirectionalRow
-                style={{ alignItems: "flex-start", gap: Spacing.sm }}
-              >
-                <View style={{ marginTop: 2 }}>
-                  <DDIcon name="message-circle" size={18} color={theme.error} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <ThemedText
-                    style={[
-                      Typography.bodySmall,
-                      {
-                        color: theme.error,
-                        fontWeight: "600",
-                        marginBottom: 4,
-                        
-                      },
-                    ]}
-                  >
-                    {t("form.reason")}
-                  </ThemedText>
-                  <ThemedText
-                    style={[
-                      Typography.body,
-                      {
-                        color: theme.text,
-                        lineHeight: 22,
-                        
-                      },
-                    ]}
-                  >
-                    {request.approval.rejectionReason}
-                  </ThemedText>
-                </View>
-              </DirectionalRow>
-            </ThemedView>
-          </>
-        ) : null}
-
-        {request.visitorDecision &&
-        !request.visitorDecision.accepted &&
-        request.visitorDecision.reason ? (
-          <>
-            <Spacer height={Spacing.lg} />
-            <ThemedView
-              style={[
-                styles.cardNew,
-                { backgroundColor: applyOpacity(theme.error, "08") },
-              ]}
-            >
-              <DirectionalRow
-                style={{ alignItems: "flex-start", gap: Spacing.sm }}
-              >
-                <View style={{ marginTop: 2 }}>
-                  <DDIcon name="user-x" size={18} color={theme.error} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <ThemedText
-                    style={[
-                      Typography.bodySmall,
-                      {
-                        color: theme.error,
-                        fontWeight: "600",
-                        marginBottom: 4,
-                        
-                      },
-                    ]}
-                  >
-                    {t("visitor.visitorDeclineReason")}
-                  </ThemedText>
-                  <ThemedText
-                    style={[
-                      Typography.body,
-                      {
-                        color: theme.text,
-                        lineHeight: 22,
-                        
-                      },
-                    ]}
-                  >
-                    {request.visitorDecision.reason}
-                  </ThemedText>
-                </View>
-              </DirectionalRow>
-            </ThemedView>
-          </>
-        ) : null}
 
         <Spacer height={LAYOUT.sectionSpacing} />
 
@@ -1485,6 +1505,20 @@ export default function ManagerApprovalDetailScreen({
                 >
                   {t("status.pending")}
                 </ThemedText>
+              ) : request.status === REQUEST_STATUS.CANCELLED || request.status === REQUEST_STATUS.AUTO_CANCELLED || request.status === REQUEST_STATUS.VISITOR_REJECTED ? (
+                <ThemedText
+                  style={[
+                    Typography.caption,
+                    {
+                      color: theme.error,
+                      marginTop: 2,
+                      fontSize: 13,
+                      
+                    },
+                  ]}
+                >
+                  {t("status.cancelled")}
+                </ThemedText>
               ) : (
                 <ThemedText
                   style={[
@@ -1605,6 +1639,135 @@ export default function ManagerApprovalDetailScreen({
                   ]}
                 >
                   {t("status.pending")}
+                </ThemedText>
+              ) : request.status === REQUEST_STATUS.CANCELLED || request.status === REQUEST_STATUS.AUTO_CANCELLED || request.status === REQUEST_STATUS.VISITOR_REJECTED ? (
+                <ThemedText
+                  style={[
+                    Typography.caption,
+                    {
+                      color: theme.error,
+                      marginTop: 2,
+                      fontSize: 13,
+                      
+                    },
+                  ]}
+                >
+                  {t("status.cancelled")}
+                </ThemedText>
+              ) : (
+                <ThemedText
+                  style={[
+                    Typography.caption,
+                    {
+                      color: theme.textSecondary,
+                      marginTop: 2,
+                      fontSize: 13,
+                      fontStyle: "italic",
+                      
+                    },
+                  ]}
+                >
+                  {t("common.notRequested")}
+                </ThemedText>
+              )}
+            </View>
+          </DirectionalRow>
+          <Spacer height={Spacing.lg} />
+
+          {/* Parking */}
+          <DirectionalRow style={styles.serviceRow}>
+            <View
+              style={[
+                styles.serviceIcon,
+                {
+                  backgroundColor: applyOpacity(
+                    request.visitorNeedsParking
+                      ? theme.secondary
+                      : theme.textSecondary,
+                    "20",
+                  ),
+                },
+              ]}
+            >
+              <DDIcon
+                name="truck"
+                size={18}
+                color={
+                  request.visitorNeedsParking
+                    ? theme.secondary
+                    : theme.textSecondary
+                }
+              />
+            </View>
+            <View style={[styles.serviceInfo, { flex: 1 }]}>
+              <DirectionalRow
+                style={{
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <ThemedText
+                  style={[
+                    Typography.body,
+                    {
+                      fontWeight: "600",
+                      fontSize: 15,
+                      
+                    },
+                  ]}
+                >
+                  {t("services.parking")}
+                </ThemedText>
+              </DirectionalRow>
+              {request.visitorNeedsParking ? (
+                request.licensePlate || request.carModel || request.carColor ? (
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      {
+                        color: theme.textSecondary,
+                        marginTop: 2,
+                        fontSize: 13,
+                        
+                      },
+                    ]}
+                  >
+                    {[
+                      request.licensePlate,
+                      request.carModel,
+                      request.carColor,
+                    ]
+                      .filter(Boolean)
+                      .join(" • ")}
+                  </ThemedText>
+                ) : (
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      {
+                        color: theme.warning,
+                        marginTop: 2,
+                        fontSize: 13,
+                        
+                      },
+                    ]}
+                  >
+                    {t("parking.parkingPending")}
+                  </ThemedText>
+                )
+              ) : request.status === REQUEST_STATUS.CANCELLED || request.status === REQUEST_STATUS.AUTO_CANCELLED || request.status === REQUEST_STATUS.VISITOR_REJECTED ? (
+                <ThemedText
+                  style={[
+                    Typography.caption,
+                    {
+                      color: theme.error,
+                      marginTop: 2,
+                      fontSize: 13,
+                      
+                    },
+                  ]}
+                >
+                  {t("status.cancelled")}
                 </ThemedText>
               ) : (
                 <ThemedText
@@ -1768,7 +1931,7 @@ export default function ManagerApprovalDetailScreen({
         onRequestClose={() => !isProcessing && setShowCancelModal(false)}
         statusBarTranslucent
       >
-        <View style={styles.modalOverlay}>
+        <View style={styles.modalOverlay} pointerEvents="box-none">
           <Pressable
             style={[
               styles.modalBackdrop,
@@ -1845,7 +2008,10 @@ export default function ManagerApprovalDetailScreen({
                 <Spacer width={Spacing.md} />
 
                 <LoadingButton
-                  onPress={handleCancel}
+                  onPress={() => {
+                    console.log('[CancelRequest Manager] BUTTON TAPPED - calling handleCancel');
+                    handleCancel();
+                  }}
                   loading={cancelMutation.isPending}
                   disabled={isProcessing}
                   variant="danger"
@@ -1868,7 +2034,7 @@ export default function ManagerApprovalDetailScreen({
         onRequestClose={() => !isProcessing && setShowRejectModal(false)}
         statusBarTranslucent
       >
-        <View style={styles.modalOverlay}>
+        <View style={styles.modalOverlay} pointerEvents="box-none">
           <Pressable
             style={[
               styles.modalBackdrop,
@@ -1992,7 +2158,7 @@ export default function ManagerApprovalDetailScreen({
         }
         statusBarTranslucent
       >
-        <View style={styles.modalOverlay}>
+        <View style={styles.modalOverlay} pointerEvents="box-none">
           <Pressable
             style={[
               styles.modalBackdrop,
@@ -2140,8 +2306,8 @@ export default function ManagerApprovalDetailScreen({
                       paddingVertical: Spacing.md,
                       alignItems: "center",
                       justifyContent: "space-between",
+                      flexDirection: getFlexDirection(isRTL),
                     },
-                    getFlexDirection(isRTL),
                   ]}
                 >
                   <ThemedText style={{ color: theme.text }}>
@@ -2161,149 +2327,7 @@ export default function ManagerApprovalDetailScreen({
                 />
               )}
 
-              {/* Additional Services Section - Only show when Manager is the host */}
-              {isManagerTheHost ? (
-                <>
-                  <Spacer height={Spacing.xl} />
-                  <View style={{ width: "100%" }}>
-                    <ThemedText
-                      style={[
-                        Typography.caption,
-                        {
-                          color: theme.textSecondary,
-                          marginBottom: Spacing.md,
-                        },
-                      ]}
-                    >
-                      {t("services.additionalServices")}
-                    </ThemedText>
-
-                    <View style={getGridStyle(isRTL)}>
-                      <View style={getCardWrapper3ColStyle()}>
-                        <SelectableCard
-                          onPress={() =>
-                            setWalkInRequiresMeetingRoom(
-                              !walkInRequiresMeetingRoom,
-                            )
-                          }
-                          selected={walkInRequiresMeetingRoom}
-                        >
-                          <View
-                            style={[
-                              styles.compactServiceIcon,
-                              {
-                                backgroundColor: applyOpacity(
-                                  theme.cardIcon,
-                                  "15",
-                                ),
-                              },
-                            ]}
-                          >
-                            <DDIcon
-                              name="users"
-                              size={20}
-                              color={theme.cardIcon}
-                            />
-                          </View>
-                          <ThemedText
-                            style={[
-                              Typography.caption,
-                              {
-                                fontWeight: "600",
-                                marginTop: Spacing.xs,
-                                textAlign: "center",
-                                color: theme.text,
-                                fontSize: 11,
-                              },
-                            ]}
-                          >
-                            {t("services.meetingRoom")}
-                          </ThemedText>
-                        </SelectableCard>
-                      </View>
-
-                      <View
-                        style={[getCardWrapper3ColStyle(), { opacity: 0.5 }]}
-                      >
-                        <SelectableCard onPress={() => {}} selected={false}>
-                          <View
-                            style={[
-                              styles.compactServiceIcon,
-                              {
-                                backgroundColor: applyOpacity(
-                                  theme.textSecondary,
-                                  "15",
-                                ),
-                              },
-                            ]}
-                          >
-                            <DDIcon
-                              name="map-pin"
-                              size={20}
-                              color={theme.textSecondary}
-                            />
-                          </View>
-                          <ThemedText
-                            style={[
-                              Typography.caption,
-                              {
-                                fontWeight: "600",
-                                marginTop: Spacing.xs,
-                                textAlign: "center",
-                                color: theme.textSecondary,
-                                fontSize: 11,
-                              },
-                            ]}
-                          >
-                            {t("parking.parking")}
-                          </ThemedText>
-                        </SelectableCard>
-                      </View>
-
-                      <View style={getCardWrapper3ColStyle()}>
-                        <SelectableCard
-                          onPress={() =>
-                            setWalkInRequiresBuffet(!walkInRequiresBuffet)
-                          }
-                          selected={walkInRequiresBuffet}
-                        >
-                          <View
-                            style={[
-                              styles.compactServiceIcon,
-                              {
-                                backgroundColor: applyOpacity(
-                                  theme.cardIcon,
-                                  "15",
-                                ),
-                              },
-                            ]}
-                          >
-                            <DDIcon
-                              name="cloche"
-                              size={20}
-                              color={theme.cardIcon}
-                            />
-                          </View>
-                          <ThemedText
-                            style={[
-                              Typography.caption,
-                              {
-                                fontWeight: "600",
-                                marginTop: Spacing.xs,
-                                textAlign: "center",
-                                color: theme.text,
-                                fontSize: 11,
-                              },
-                            ]}
-                          >
-                            {t("buffet.buffet")}
-                          </ThemedText>
-                        </SelectableCard>
-                      </View>
-                    </View>
-                  </View>
-                </>
-              ) : null}
+              {/* Additional Services Section - Hidden for walk-in requests */}
 
               <Spacer height={Spacing.xl} />
 
@@ -2534,6 +2558,7 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
     elevation: 8,
     position: "relative",
+    zIndex: 10,
   },
   closeButton: {
     position: "absolute",

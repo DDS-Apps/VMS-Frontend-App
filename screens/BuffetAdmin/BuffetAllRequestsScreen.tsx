@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { View, StyleSheet, Pressable, ScrollView, Modal, GestureResponderEvent, ActivityIndicator, Platform } from "react-native";
+import { View, StyleSheet, Pressable, ScrollView, Modal, GestureResponderEvent, ActivityIndicator, Platform, useWindowDimensions } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { ROUTES } from "@/constants";
 import { ThemedText } from "@/components/ThemedText";
@@ -13,6 +13,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
 import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
+import { KPICard, KPICardRow } from "@/components/shared/KPICard";
 import { applyOpacity, getStatusConfig as getStatusStyle } from "@/utils/statusStyles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
@@ -28,6 +29,7 @@ import type { BuffetAdminTaskDto, BuffetAdminStaffDto } from "@/types/api.types"
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { BuffetAdminStackParamList } from "@/types/buffetAdminNavigation.types";
 import type { Theme } from "@/types/theme.types";
+import { formatDateForApi, formatDate } from "@/utils/dateTimeUtils";
 
 type BuffetRequest = BuffetAdminTaskDto & {
   timeSlot: string;
@@ -106,7 +108,7 @@ const VisitorAvatar = ({ name, theme, size = 44 }: { name: string; theme: Theme;
 };
 
 const DateTimeDisplay = ({ date, time, theme, compact = false, isRTL = false }: { date: string; time: string; theme: Theme; compact?: boolean; isRTL?: boolean }) => {
-  const formattedDate = formatDateDisplay(date, { isRTL, includeYear: true });
+  const formattedDate = formatDate(date, { isRTL, includeYear: true });
   return (
     <View style={styles.dateTimeRow}>
       <DDIcon name="calendar" size={compact ? 13 : 14} variant="muted" />
@@ -139,46 +141,26 @@ const StatusBadge = ({ statusConfig, compact = false }: { statusConfig: { bg: st
 );
 
 const StatsCards = ({ totalRequests, inProgress, completed, theme, t }: { totalRequests: number; inProgress: number; completed: number; theme: Theme; t: (key: string) => string }) => (
-  <View style={styles.statsGrid}>
-    <ThemedView style={[styles.statCard, { backgroundColor: theme.surface }]}>
-      <View style={[styles.statIconContainer, { backgroundColor: applyOpacity(theme.primary, '20') }]}>
-        <DDIcon name="clipboard" size={24} variant="primary" />
-      </View>
-      <Spacer height={Spacing.sm} />
-      <ThemedText style={[Typography.title, { fontSize: 32, lineHeight: 40 }]}>
-        {totalRequests}
-      </ThemedText>
-      <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: 'center' }]}>
-        {t('dashboard.totalRequests')}
-      </ThemedText>
-    </ThemedView>
-
-    <ThemedView style={[styles.statCard, { backgroundColor: theme.surface }]}>
-      <View style={[styles.statIconContainer, { backgroundColor: applyOpacity(theme.warning, '20') }]}>
-        <DDIcon name="loader" size={24} variant="warning" />
-      </View>
-      <Spacer height={Spacing.sm} />
-      <ThemedText style={[Typography.title, { fontSize: 32, lineHeight: 40 }]}>
-        {inProgress}
-      </ThemedText>
-      <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: 'center' }]}>
-        {t('status.inProgress')}
-      </ThemedText>
-    </ThemedView>
-
-    <ThemedView style={[styles.statCard, { backgroundColor: theme.surface }]}>
-      <View style={[styles.statIconContainer, { backgroundColor: applyOpacity(theme.success, '20') }]}>
-        <DDIcon name="check-circle" size={24} variant="success" />
-      </View>
-      <Spacer height={Spacing.sm} />
-      <ThemedText style={[Typography.title, { fontSize: 32, lineHeight: 40 }]}>
-        {completed}
-      </ThemedText>
-      <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: 'center' }]}>
-        {t('status.completed')}
-      </ThemedText>
-    </ThemedView>
-  </View>
+  <KPICardRow>
+    <KPICard 
+      title={t('dashboard.totalRequests')} 
+      value={totalRequests} 
+      icon="clipboard" 
+      color={theme.primary}
+    />
+    <KPICard 
+      title={t('status.inProgress')} 
+      value={inProgress} 
+      icon="loader" 
+      color={theme.warning}
+    />
+    <KPICard 
+      title={t('status.completed')} 
+      value={completed} 
+      icon="check-circle" 
+      color={theme.success}
+    />
+  </KPICardRow>
 );
 
 type StatusFilter = 'all' | 'pending' | 'preparing' | 'ready' | 'served' | 'completed';
@@ -433,44 +415,6 @@ const BuffetRequestCard = React.memo(({
         </View>
       </Pressable>
 
-      {isExpanded && (
-        <>
-          <View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
-          <View style={styles.expandedContentInside}>
-            <View style={styles.secondaryDetail}>
-              <DDIcon name="users" size={14} variant="muted" />
-              <ThemedText style={[Typography.caption, { marginStart: 6, color: theme.textSecondary, fontSize: 12 }]}>
-                {t('buffet.guestCount')}: {request.guestCount}
-              </ThemedText>
-            </View>
-            {request.notes ? (
-              <>
-                <Spacer height={Spacing.sm} />
-                <View style={styles.secondaryDetail}>
-                  <DDIcon name="file-text" size={14} variant="muted" />
-                  <ThemedText style={[Typography.caption, { marginStart: 6, color: theme.textSecondary, flex: 1, fontSize: 12 }]}>
-                    {t('form.notes')}: {request.notes}
-                  </ThemedText>
-                </View>
-              </>
-            ) : null}
-          </View>
-        </>
-      )}
-
-      <Pressable
-        style={styles.moreDetailsButton}
-        onPress={onToggleExpand}
-      >
-        <ThemedText style={[styles.moreDetailsText, { color: theme.primary }]}>
-          {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
-        </ThemedText>
-        <DDIcon 
-          name={isExpanded ? "chevron-up" : "chevron-down"} 
-          size={16} 
-          variant="primary" 
-        />
-      </Pressable>
     </ThemedView>
   );
 });
@@ -630,8 +574,13 @@ function getStatusLabel(status: string, t: (key: string) => string) {
 export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequestsScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { isRTL } = useLanguage();  const insets = useSafeAreaInsets();
+  const { isRTL } = useLanguage();
+  const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
   const { showSuccess, showError } = useToast();
+  
+  // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
+  const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
@@ -672,7 +621,7 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
     if (isToday) {
       return t('common.today');
     }
-    return formatDateDisplay(selectedDate, { isRTL });
+    return formatDate(selectedDate, { isRTL });
   };
   const { data: staffData } = useBuffetAdminStaffQuery();
   const updateStatusMutation = useUpdateBuffetAdminTaskStatusMutation();
@@ -948,12 +897,19 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
                   <ThemedText style={[Typography.body, { fontWeight: '600', marginStart: Spacing.sm }]}>
                     {getDisplayDate()}
                   </ThemedText>
-                  {isToday ? null : (
+                  {isToday ? (
+                    <View style={[styles.todayBadge, { backgroundColor: applyOpacity(theme.success, '15') }]}>
+                      <ThemedText style={[Typography.caption, { color: theme.success, fontSize: 10, fontWeight: '600' }]}>
+                        {t('common.today')}
+                      </ThemedText>
+                    </View>
+                  ) : (
                     <Pressable
                       style={[styles.todayBadge, { backgroundColor: applyOpacity(theme.primary, '15') }]}
                       onPress={() => setSelectedDate(new Date())}
                     >
-                      <ThemedText style={[Typography.caption, { color: theme.primary, fontSize: 10, fontWeight: '600' }]}>
+                      <DDIcon name="corner-down-left" size={10} color={theme.primary} />
+                      <ThemedText style={[Typography.caption, { color: theme.primary, fontSize: 10, fontWeight: '600', marginStart: 4 }]}>
                         {t('common.today')}
                       </ThemedText>
                     </Pressable>
@@ -1077,12 +1033,19 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
             <ThemedText style={[Typography.body, { fontWeight: '600', marginStart: Spacing.sm }]}>
               {getDisplayDate()}
             </ThemedText>
-            {isToday ? null : (
+            {isToday ? (
+              <View style={[styles.todayBadge, { backgroundColor: applyOpacity(theme.success, '15') }]}>
+                <ThemedText style={[Typography.caption, { color: theme.success, fontSize: 10, fontWeight: '600' }]}>
+                  {t('common.today')}
+                </ThemedText>
+              </View>
+            ) : (
               <Pressable 
                 style={[styles.todayBadge, { backgroundColor: applyOpacity(theme.primary, '15') }]}
                 onPress={() => setSelectedDate(new Date())}
               >
-                <ThemedText style={[Typography.caption, { color: theme.primary, fontSize: 10, fontWeight: '600' }]}>
+                <DDIcon name="corner-down-left" size={10} color={theme.primary} />
+                <ThemedText style={[Typography.caption, { color: theme.primary, fontSize: 10, fontWeight: '600', marginStart: 4 }]}>
                   {t('common.today')}
                 </ThemedText>
               </Pressable>
@@ -1124,10 +1087,13 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
 
         <Spacer height={Spacing.lg} />
 
-        <View style={styles.paddedContent}>
+        <View style={[styles.paddedContent, styles.cardGrid]}>
           {filteredRequests.length > 0 ? (
             filteredRequests.map((request) => (
-              <View key={request.id}>
+              <View 
+                key={request.id}
+                style={numColumns > 1 ? { width: numColumns === 2 ? '50%' : '33.33%', flexGrow: 0, marginBottom: LAYOUT.contentGap, paddingRight: Spacing.sm } : { width: '100%', marginBottom: LAYOUT.contentGap }}
+              >
                 <BuffetRequestCard
                   request={request}
                   isExpanded={expandedCard === request.id}
@@ -1138,7 +1104,6 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
                   isCompleting={completingRequestId === request.id}
                   theme={theme}
                 />
-                <Spacer height={LAYOUT.contentGap} />
               </View>
             ))
           ) : (
@@ -1209,6 +1174,11 @@ const styles = StyleSheet.create({
   paddedContent: {
     paddingHorizontal: Spacing.xl,
   },
+  cardGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.md,
+  },
   dateNavRow: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -1231,6 +1201,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   todayBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: Spacing.sm,
     paddingVertical: 2,
     borderRadius: BorderRadius.sm,

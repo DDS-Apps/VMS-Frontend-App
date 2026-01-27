@@ -69,6 +69,7 @@ const getStatusColor = (status: UnifiedStatus, theme: Theme) => {
     case 'in_progress': return theme.info;
     case 'rejected': return theme.error;
     case 'cancelled': return theme.error;
+    case 'auto_cancelled': return theme.error;
     default: return theme.textSecondary;
   }
 };
@@ -80,6 +81,7 @@ const getStatusLabel = (status: UnifiedStatus, t: (key: string) => string) => {
     case 'in_progress': return t('status.inProgress');
     case 'completed': return t('status.completed');
     case 'cancelled': return t('status.cancelled');
+    case 'auto_cancelled': return t('status.autoCancelled');
     case 'rejected': return t('status.rejected');
     default: return status;
   }
@@ -104,8 +106,6 @@ function StatCard({ value, label, color, isActive, onPress, theme, isLargeScreen
         isLargeScreen && styles.statCardFlex,
         { 
           backgroundColor: isActive ? applyOpacity(color, '20') : applyOpacity(color, '08'),
-          borderWidth: isActive ? 2 : 0,
-          borderColor: isActive ? color : 'transparent',
         }
       ]}
     >
@@ -150,8 +150,6 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
   }, [request]);
 
   const renderExpandedDetails = () => {
-    if (!isExpanded) return null;
-
     if (request.type === 'visitor') {
       const originalData = request.originalData as VisitListItemDto;
       const hasDetails = originalData?.visitor?.email || originalData?.visitor?.phone;
@@ -297,27 +295,6 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
             </View>
           </DirectionalRow>
 
-          {renderExpandedDetails()}
-
-          {hasExpandableDetails ? (
-            <Pressable 
-              onPress={(e) => {
-                e.stopPropagation();
-                onToggleExpand();
-              }} 
-              style={styles.toggleContainer}
-            >
-              <ThemedText style={[styles.toggleText, { color: theme.primary }]}>
-                {isExpanded ? t('common.lessDetails') : t('common.moreDetails')}
-              </ThemedText>
-              <DDIcon 
-                name={isExpanded ? 'chevron-up' : 'chevron-down'} 
-                size={16} 
-                color={theme.primary} 
-              />
-            </Pressable>
-          ) : null}
-
           {(request.canApprove || request.canCancel) ? (
             <>
               <Spacer height={Spacing.md} />
@@ -434,7 +411,8 @@ export default function AllRequestsScreen() {
       if (['checked_in', 'in_progress'].includes(statusLower)) return 'in_progress';
       if (['completed', 'checked_out'].includes(statusLower)) return 'completed';
       if (['approved', 'visitor_accepted'].includes(statusLower)) return 'approved';
-      if (['cancelled', 'auto_cancelled'].includes(statusLower)) return 'cancelled';
+      if (statusLower === 'cancelled') return 'cancelled';
+      if (statusLower === 'auto_cancelled') return 'auto_cancelled';
       if (['rejected'].includes(statusLower)) return 'rejected';
       return 'pending';
     };
@@ -1013,27 +991,32 @@ export default function AllRequestsScreen() {
           <Spacer height={Spacing.md} />
 
           {displayRequests.length > 0 ? (
-            displayRequests.map(request => {
-              const cardKey = `${request.type}-${request.id}`;
-              return (
-                <View key={cardKey}>
-                  <RequestCard
-                    request={request}
-                    onPress={() => handleCardPress(request)}
-                    onApprove={() => handleApprove(request)}
-                    onReject={() => handleReject(request)}
-                    theme={theme}
-                    t={t}
-                    formatDate={formatDate}
-                    formatTimeFromString={formatTimeFromString}
-                    isRTL={isRTL}
-                    isExpanded={expandedCards.has(cardKey)}
-                    onToggleExpand={() => toggleCardExpanded(cardKey)}
-                  />
-                  <Spacer height={LAYOUT.contentGap} />
-                </View>
-              );
-            })
+            <View style={styles.cardGrid}>
+              {displayRequests.map(request => {
+                const cardKey = `${request.type}-${request.id}`;
+                const numColumns = width > 1024 ? 3 : width >= 768 ? 2 : 1;
+                return (
+                  <View 
+                    key={cardKey}
+                    style={numColumns > 1 ? { width: numColumns === 2 ? '50%' : '33.33%', flexGrow: 0, marginBottom: LAYOUT.contentGap, paddingRight: Spacing.sm } : { width: '100%', marginBottom: LAYOUT.contentGap }}
+                  >
+                    <RequestCard
+                      request={request}
+                      onPress={() => handleCardPress(request)}
+                      onApprove={() => handleApprove(request)}
+                      onReject={() => handleReject(request)}
+                      theme={theme}
+                      t={t}
+                      formatDate={formatDate}
+                      formatTimeFromString={formatTimeFromString}
+                      isRTL={isRTL}
+                      isExpanded={expandedCards.has(cardKey)}
+                      onToggleExpand={() => toggleCardExpanded(cardKey)}
+                    />
+                  </View>
+                );
+              })}
+            </View>
           ) : (
             <EmptyState
               icon="inbox"
@@ -1062,7 +1045,7 @@ export default function AllRequestsScreen() {
         animationType="fade"
         onRequestClose={() => setShowRejectModal(false)}
       >
-        <View style={styles.modalOverlay}>
+        <View style={styles.modalOverlay} pointerEvents="box-none">
           <View style={[styles.modalContainer, { backgroundColor: theme.surface }]}>
             <ThemedText style={[Typography.subtitle, { marginBottom: Spacing.md }]}>
               {t('actions.reject')}
@@ -1130,6 +1113,11 @@ export default function AllRequestsScreen() {
 const styles = StyleSheet.create({
   paddedContent: {
     paddingHorizontal: Spacing.lg,
+  },
+  cardGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.md,
   },
   statsRow: {
     flexDirection: 'row',

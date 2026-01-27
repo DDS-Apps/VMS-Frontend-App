@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useEffect, useCallback } from "react";
-import { View, StyleSheet, Pressable, ScrollView, Alert } from "react-native";
+import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { View, StyleSheet, Pressable, ScrollView, Alert, Platform, useWindowDimensions } from "react-native";
 import { DDIcon } from "@/components/DDIcon";
 import { SkeletonList } from "@/components/shared/Skeleton";
 import {
@@ -46,6 +46,7 @@ import {
   mapPendingHostWalkInToVisitorRequest,
 } from "@/utils/requestMappers";
 import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
+import { KPICard, KPICardRow } from "@/components/shared/KPICard";
 
 // Unified Layout Tokens
 const LAYOUT = {
@@ -573,86 +574,22 @@ const StatsCards = ({
   todaysVisitors: number;
   theme: Theme;
   t: (key: string) => string;
-}) => {
-  const { isRTL } = useLanguage();
-  return (
-    <DirectionalRow style={styles.statsGrid}>
-      <ThemedView
-        style={[
-          styles.statCard,
-          {
-            backgroundColor: theme.surface,
-            borderColor: theme.border,
-            borderWidth: 1,
-          },
-        ]}
-      >
-        <View
-          style={[
-            styles.statIconContainer,
-            { backgroundColor: applyOpacity(theme.info, "15") },
-          ]}
-        >
-          <DDIcon name="users" size={24} color={theme.info} />
-        </View>
-        <Spacer height={Spacing.md} />
-        <ThemedText
-          style={[
-            Typography.title,
-            { fontSize: 28, lineHeight: 36, fontWeight: "700" },
-          ]}
-        >
-          {totalVisitors}
-        </ThemedText>
-        <ThemedText
-          style={[
-            Typography.bodySmall,
-            { color: theme.textSecondary, textAlign: "center", marginTop: 4 },
-          ]}
-        >
-          {t("dashboard.totalVisitors")}
-        </ThemedText>
-      </ThemedView>
-
-      <ThemedView
-        style={[
-          styles.statCard,
-          {
-            backgroundColor: theme.surface,
-            borderColor: theme.border,
-            borderWidth: 1,
-          },
-        ]}
-      >
-        <View
-          style={[
-            styles.statIconContainer,
-            { backgroundColor: applyOpacity(theme.success, "15") },
-          ]}
-        >
-          <DDIcon name="calendar" size={24} color={theme.success} />
-        </View>
-        <Spacer height={Spacing.md} />
-        <ThemedText
-          style={[
-            Typography.title,
-            { fontSize: 28, lineHeight: 36, fontWeight: "700" },
-          ]}
-        >
-          {todaysVisitors}
-        </ThemedText>
-        <ThemedText
-          style={[
-            Typography.bodySmall,
-            { color: theme.textSecondary, textAlign: "center", marginTop: 4 },
-          ]}
-        >
-          {t("dashboard.todaysVisitors")}
-        </ThemedText>
-      </ThemedView>
-    </DirectionalRow>
-  );
-};
+}) => (
+  <KPICardRow>
+    <KPICard 
+      title={t("dashboard.totalVisitors")} 
+      value={totalVisitors} 
+      icon="users" 
+      color={theme.info}
+    />
+    <KPICard 
+      title={t("dashboard.todaysVisitors")} 
+      value={todaysVisitors} 
+      icon="calendar" 
+      color={theme.success}
+    />
+  </KPICardRow>
+);
 
 // Shared: Header with Tabs and View Toggle
 const SectionHeader = ({
@@ -849,6 +786,7 @@ export default function VisitorRequestsScreen({
   const { t } = useTranslation();
   const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
   const navigationHook =
     useNavigation<NativeStackNavigationProp<EmployeeStackParamList>>();
   const navigation = navProp || navigationHook;
@@ -952,9 +890,16 @@ export default function VisitorRequestsScreen({
   const error = isWalkInTab ? pendingHostWalkInsError : visitsError;
   const refetch = isWalkInTab ? refetchPendingHostWalkIns : refetchVisits;
 
-  // Refetch data when screen gains focus to show latest status
+  // Track if this is the initial mount to avoid double-fetching
+  const isInitialMount = useRef(true);
+
+  // Refetch data when screen gains focus to show latest status (skip initial mount)
   useFocusEffect(
     useCallback(() => {
+      if (isInitialMount.current) {
+        isInitialMount.current = false;
+        return;
+      }
       refetch();
     }, [refetch]),
   );
@@ -1162,13 +1107,30 @@ export default function VisitorRequestsScreen({
   }
 
   // Card View Layout - CRITICAL: ScreenFlatList as ROOT element for infinite scroll
+  // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
+  const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
+  
+  // Get item style based on numColumns - use flexBasis percentage for reliable multi-column layout
+  const getItemStyle = () => {
+    if (numColumns === 1) return styles.paddedContent;
+    // Use percentage-based flexBasis that accounts for gaps
+    // Each item takes equal space, flexShrink allows items to shrink to fit
+    return { 
+      flex: 1,
+      minWidth: 0, // Allow items to shrink below content size
+    };
+  };
+  
   return (
     <>
       <ScreenFlatList
+        key={`flatlist-${numColumns}`}
         data={filteredRequests}
         keyExtractor={(item) => item.id}
+        numColumns={numColumns}
+        columnWrapperStyle={numColumns > 1 ? styles.webGridRow : undefined}
         renderItem={({ item }) => (
-          <View style={styles.paddedContent}>
+          <View style={getItemStyle()}>
             <VisitorRequestCard
               request={item}
               onPress={() =>
@@ -1245,6 +1207,14 @@ const styles = StyleSheet.create({
   // Content wrapper - ScreenScrollView/ScreenFlatList already provides paddingHorizontal: Spacing.xl
   paddedContent: {
     // No additional horizontal padding needed
+  },
+  // Web 3-column grid layout
+  webGridRow: {
+    gap: Spacing.md,
+    marginBottom: Spacing.md,
+  },
+  webGridItem: {
+    flex: 1,
   },
   // Shared: Layout
   statsGrid: {
