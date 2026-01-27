@@ -157,43 +157,43 @@ export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLo
 
         <Spacer height={Spacing.lg} />
 
-        <DirectionalRow style={styles.statsRow}>
-          <DirectionalRow style={styles.statItem}>
+        <View style={styles.statsRow}>
+          <View style={styles.statItem}>
             <View style={[styles.statIconBg, { backgroundColor: applyOpacity(theme.info, '12') }]}>
               <DDIcon name="users" size={14} color={theme.info} />
             </View>
             <ThemedText style={[styles.statValue, { color: theme.text }]}>
               {item.capacity}
             </ThemedText>
-            <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">
+            <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>
               {t('buffet.numberOfGuests')}
             </ThemedText>
-          </DirectionalRow>
+          </View>
 
-          <DirectionalRow style={styles.statItem}>
+          <View style={styles.statItem}>
             <View style={[styles.statIconBg, { backgroundColor: applyOpacity(theme.success, '12') }]}>
               <DDIcon name="user-check" size={14} color={theme.success} />
             </View>
             <ThemedText style={[styles.statValue, { color: theme.text }]}>
               {item.activeStaff}
             </ThemedText>
-            <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">
+            <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>
               {t('dashboard.active')}
             </ThemedText>
-          </DirectionalRow>
+          </View>
 
-          <DirectionalRow style={styles.statItem}>
+          <View style={styles.statItem}>
             <View style={[styles.statIconBg, { backgroundColor: applyOpacity(theme.warning, '12') }]}>
               <DDIcon name="cloche" size={14} color={theme.warning} />
             </View>
             <ThemedText style={[styles.statValue, { color: theme.text }]}>
               {item.currentRequests}
             </ThemedText>
-            <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">
+            <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>
               {t('navigation.allRequests')}
             </ThemedText>
-          </DirectionalRow>
-        </DirectionalRow>
+          </View>
+        </View>
 
       </View>
     );
@@ -480,14 +480,15 @@ const styles = StyleSheet.create({
   },
   statsRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
-    gap: Spacing.md,
+    gap: Spacing.sm,
   },
   statItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    flex: 1,
+    minWidth: 80,
   },
   statIconBg: {
     width: 24,
