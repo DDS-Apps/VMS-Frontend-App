@@ -2446,19 +2446,19 @@ export default function RequestDetailsScreen({
           animationType="fade"
           onRequestClose={closeEditModal}
         >
-          <View style={styles.modalOverlay} pointerEvents="box-none">
+          <Pressable
+            style={[
+              styles.modalOverlay,
+              createModalOverlayStyle(theme, "50"),
+            ]}
+            onPress={closeEditModal}
+          >
             <Pressable
-              style={[
-                styles.modalBackdrop,
-                createModalOverlayStyle(theme, "50"),
-              ]}
-              onPress={closeEditModal}
-            />
-            <View
               style={[
                 styles.editModalContent,
                 { backgroundColor: theme.surface },
               ]}
+              onPress={(e) => e.stopPropagation()}
             >
               <DirectionalRow style={styles.modalHeader}>
                 <ThemedText
@@ -3258,8 +3258,8 @@ export default function RequestDetailsScreen({
                   {isApprovalFlow ? t("actions.approve") : t("common.save")}
                 </LoadingButton>
               </View>
-            </View>
-          </View>
+            </Pressable>
+          </Pressable>
         </Modal>
 
         {/* Date/Time Picker Modals for Edit */}
@@ -3303,20 +3303,22 @@ export default function RequestDetailsScreen({
           transparent
           animationType="slide"
           onRequestClose={() => setShowPurposePicker(false)}
+          presentationStyle="overFullScreen"
+          statusBarTranslucent
         >
-          <View style={styles.modalOverlay} pointerEvents="box-none">
+          <Pressable
+            style={[
+              styles.modalOverlay,
+              createModalOverlayStyle(theme, "50"),
+            ]}
+            onPress={() => setShowPurposePicker(false)}
+          >
             <Pressable
-              style={[
-                styles.modalBackdrop,
-                createModalOverlayStyle(theme, "50"),
-              ]}
-              onPress={() => setShowPurposePicker(false)}
-            />
-            <View
               style={[
                 styles.modalContent,
                 { backgroundColor: theme.surface, maxHeight: "60%" },
               ]}
+              onPress={(e) => e.stopPropagation()}
             >
               <View style={styles.modalHeader}>
                 <ThemedText
@@ -3382,8 +3384,8 @@ export default function RequestDetailsScreen({
                   </Pressable>
                 ))}
               </ScrollView>
-            </View>
-          </View>
+            </Pressable>
+          </Pressable>
         </Modal>
 
         {/* Success Modal */}

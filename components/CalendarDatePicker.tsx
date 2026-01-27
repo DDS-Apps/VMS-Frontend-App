@@ -206,6 +206,8 @@ export function CalendarDatePicker({
       transparent
       animationType="fade"
       onRequestClose={onClose}
+      presentationStyle="overFullScreen"
+      statusBarTranslucent
     >
       <Pressable 
         style={[styles.overlay, { backgroundColor: applyOpacity(theme.overlay, '50') }]}
@@ -331,12 +333,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: Spacing.xl,
+    zIndex: 9999,
   },
   container: {
     width: '100%',
     maxWidth: 340,
     borderRadius: BorderRadius.xl,
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 24,
+    elevation: 30,
+    zIndex: 9999,
   },
   header: {
     flexDirection: 'row',
