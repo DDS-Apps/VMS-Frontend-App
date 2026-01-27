@@ -386,6 +386,9 @@ const ApprovalTableRow = React.memo(({
       contentContainerStyle={styles.scrollableColumnsContent}
       persistentScrollbar={true}
       nestedScrollEnabled={true}
+      directionalLockEnabled={true}
+      scrollEventThrottle={16}
+      keyboardShouldPersistTaps="handled"
     >
       <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
         <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
