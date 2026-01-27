@@ -9,21 +9,22 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
-import { applyOpacity } from "@/utils/statusStyles";
+import { applyOpacity, getStatusConfig } from "@/utils/statusStyles";
 import { useValetParkingDashboard } from "@/hooks/queries/useValetAdminQueries";
 import type { ValetParkingVisitorDto } from "@/types/api.types";
 import type { Theme } from "@/types/theme.types";
 import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 import { KPICard, KPICardRow } from '@/components/shared/KPICard';
+import { StatusBadge } from '@/components/shared/StatusBadge';
 
 const LAYOUT = {
-  cardPadding: Spacing.md,
+  cardPadding: Spacing.sm,
   cardRadius: BorderRadius.md,
-  sectionSpacing: Spacing.lg,
-  contentGap: Spacing.sm,
+  sectionSpacing: Spacing.md,
+  contentGap: Spacing.xs,
   statCardRadius: BorderRadius.md,
   accentWidth: 4,
-  avatarSize: 44,
+  avatarSize: 40,
 };
 
 const VisitorAvatar = ({ name, theme, size = 44 }: { name: string; theme: Theme; size?: number }) => {
@@ -45,44 +46,31 @@ const VisitorAvatar = ({ name, theme, size = 44 }: { name: string; theme: Theme;
   );
 };
 
-const StatusBadge = ({ needsParking, hasCarInfo, theme, t }: { 
-  needsParking: boolean; 
-  hasCarInfo: boolean;
-  theme: Theme; 
-  t: (key: string) => string;
-}) => {
-  let color: string;
-  let label: string;
-  let icon: string;
-
-  if (!needsParking) {
-    color = theme.textSecondary;
-    label = t('parking.noParking');
-    icon = 'x-circle';
-  } else if (hasCarInfo) {
-    color = theme.success;
-    label = t('parking.carInfoProvided');
-    icon = 'check-circle';
-  } else {
-    color = theme.warning;
-    label = t('parking.carInfoPending');
-    icon = 'alert-circle';
+const getVariantFromStatus = (status: string): 'success' | 'warning' | 'error' | 'info' | 'muted' | 'primary' => {
+  switch (status.toLowerCase()) {
+    case 'approved':
+    case 'visitor_accepted':
+    case 'checked_in':
+    case 'completed':
+    case 'in_progress':
+      return 'success';
+    case 'pending':
+    case 'pending_approval':
+    case 'pending_host_approval':
+    case 'waiting_on_visitor':
+      return 'warning';
+    case 'rejected':
+    case 'cancelled':
+    case 'no_show':
+    case 'auto_cancelled':
+    case 'visitor_rejected':
+      return 'error';
+    case 'checked_out':
+    case 'scheduled':
+      return 'info';
+    default:
+      return 'muted';
   }
-
-  return (
-    <View style={[
-      styles.statusBadge, 
-      { 
-        backgroundColor: applyOpacity(color, '15'), 
-        borderColor: applyOpacity(color, '30'),
-      }
-    ]}>
-      <DDIcon name={icon} size={12} color={color} />
-      <ThemedText style={[styles.statusText, { color, marginStart: 4 }]}>
-        {label}
-      </ThemedText>
-    </View>
-  );
 };
 
 const StatsCards = ({ 
@@ -131,15 +119,9 @@ const VisitorCard = React.memo(({
   t: (key: string) => string;
   isRTL: boolean;
 }) => {
-  const hasCarInfo = !!(visitor.licensePlate && visitor.carModel);
+  const hasCarInfo = !!(visitor.licensePlate || visitor.carModel);
   const needsParking = visitor.isVisitorNeedsParking === true || visitor.visitorNeedsParking === true;
-  const accentColor = needsParking ? theme.success : theme.textSecondary;
-
-  const detailParts = [
-    visitor.hostName,
-    visitor.hostDepartment,
-    visitor.visitTime,
-  ].filter(Boolean);
+  const statusConfig = getStatusConfig(theme, visitor.status || 'pending', t);
 
   const carInfoParts = [
     visitor.licensePlate,
@@ -158,7 +140,7 @@ const VisitorCard = React.memo(({
       <View style={[
         styles.cardAccent, 
         { 
-          backgroundColor: accentColor,
+          backgroundColor: statusConfig.borderColor ?? statusConfig.text ?? theme.primary,
           borderTopLeftRadius: isRTL ? 0 : LAYOUT.cardRadius,
           borderBottomLeftRadius: isRTL ? 0 : LAYOUT.cardRadius,
           borderTopRightRadius: isRTL ? LAYOUT.cardRadius : 0,
@@ -171,30 +153,29 @@ const VisitorCard = React.memo(({
           <VisitorAvatar name={visitor.visitorName} theme={theme} size={LAYOUT.avatarSize} />
           
           <View style={styles.cardNameSection}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]} numberOfLines={1}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 14 }]} numberOfLines={1}>
               {visitor.visitorName}
             </ThemedText>
             {visitor.visitorCompany ? (
-              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 2 }]} numberOfLines={1}>
+              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, fontSize: 12 }]} numberOfLines={1}>
                 {visitor.visitorCompany}
               </ThemedText>
             ) : null}
           </View>
 
           <StatusBadge 
-            needsParking={needsParking} 
-            hasCarInfo={hasCarInfo}
-            theme={theme} 
-            t={t}
+            label={getStatusConfig(theme, visitor.status || 'pending', t).label}
+            variant={getVariantFromStatus(visitor.status || 'pending')}
+            size="sm"
           />
         </DirectionalRow>
 
-        <Spacer height={Spacing.xs} />
+        <View style={{ height: Spacing.xs }} />
 
         <DirectionalRow style={styles.compactDetailsRow} alignItems="center">
-          <DDIcon name="user" size={13} variant="muted" />
+          <DDIcon name="user" size={12} variant="muted" />
           <ThemedText style={[styles.compactDetailText, { color: theme.textSecondary }]} numberOfLines={1}>
-            {detailParts.join(' · ')}
+            {[visitor.hostName, visitor.hostDepartment, visitor.visitTime].filter(Boolean).join(' · ')}
           </ThemedText>
           {visitor.isWalkIn ? (
             <View style={[styles.walkInBadge, { backgroundColor: applyOpacity(theme.info, '15') }]}>
@@ -205,13 +186,25 @@ const VisitorCard = React.memo(({
           ) : null}
         </DirectionalRow>
 
-        {needsParking && hasCarInfo ? (
+        {needsParking ? (
           <>
-            <Spacer height={Spacing.xs} />
-            <DirectionalRow style={[styles.compactCarInfo, { backgroundColor: applyOpacity(theme.success, '10') }]} alignItems="center">
-              <DDIcon name="truck" size={13} variant="success" />
-              <ThemedText style={[styles.compactCarText, { color: theme.success }]} numberOfLines={1}>
-                {carInfoParts.join(' · ')}
+            <View style={{ height: Spacing.xs }} />
+            <DirectionalRow 
+              style={[
+                styles.compactCarInfo, 
+                { backgroundColor: hasCarInfo ? applyOpacity(theme.success, '10') : applyOpacity(theme.warning, '10') }
+              ]} 
+              alignItems="center"
+            >
+              <DDIcon name="truck" size={12} color={hasCarInfo ? theme.success : theme.warning} />
+              <ThemedText 
+                style={[
+                  styles.compactCarText, 
+                  { color: hasCarInfo ? theme.success : theme.warning }
+                ]} 
+                numberOfLines={1}
+              >
+                {hasCarInfo ? carInfoParts.join(' · ') : t('parking.carInfoPending')}
               </ThemedText>
             </DirectionalRow>
           </>
@@ -301,8 +294,6 @@ export default function ValetAllRequestsScreen() {
         />
       }
     >
-      <Spacer height={Spacing.md} />
-
       <View style={styles.paddedContent}>
         <StatsCards 
           totalVisitors={data?.summary.totalVisitors ?? 0}
@@ -311,17 +302,17 @@ export default function ValetAllRequestsScreen() {
           theme={theme} 
           t={t} 
         />
+
+        <Spacer height={Spacing.md} />
+
+        <DirectionalRow style={styles.sectionTitleRow}>
+          <ThemedText style={[Typography.subtitle]}>
+            {t('valet.todaysVisitors')}
+          </ThemedText>
+        </DirectionalRow>
       </View>
 
-      <Spacer height={LAYOUT.sectionSpacing} />
-
-      <DirectionalRow style={[styles.sectionTitleRow, styles.paddedContent]}>
-        <ThemedText style={[Typography.subtitle]}>
-          {t('valet.todaysVisitors')}
-        </ThemedText>
-      </DirectionalRow>
-
-      <Spacer height={Spacing.sm} />
+      <Spacer height={Spacing.xs} />
 
       <ScrollView 
         horizontal 
@@ -358,7 +349,7 @@ export default function ValetAllRequestsScreen() {
         ))}
       </ScrollView>
 
-      <Spacer height={Spacing.md} />
+      <Spacer height={Spacing.sm} />
 
       <View style={styles.paddedContent}>
         {filteredVisitors.length === 0 ? (
@@ -372,35 +363,35 @@ export default function ValetAllRequestsScreen() {
                 t={t}
                 isRTL={isRTL}
               />
-              <Spacer height={Spacing.sm} />
+              <Spacer height={Spacing.xs} />
             </React.Fragment>
           ))
         )}
       </View>
 
-      <Spacer height={Spacing.lg} />
+      <Spacer height={Spacing.md} />
     </ScreenScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   paddedContent: {
-    paddingHorizontal: Spacing.md,
+    paddingHorizontal: Spacing.sm,
   },
   statsGrid: {
     flexDirection: 'row' as const,
-    gap: Spacing.sm,
+    gap: Spacing.xs,
   },
   statCard: {
     flex: 1,
-    padding: Spacing.md,
+    padding: Spacing.sm,
     borderRadius: LAYOUT.statCardRadius,
     alignItems: 'center',
   },
   statIconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 10,
+    width: 40,
+    height: 40,
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -409,17 +400,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   tabsContainer: {
-    paddingHorizontal: Spacing.md,
-    gap: Spacing.sm,
+    paddingHorizontal: Spacing.sm,
+    gap: Spacing.xs,
   },
   filterChip: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
     borderRadius: BorderRadius.full,
     borderWidth: 1,
   },
   filterChipText: {
-    fontSize: 13,
+    fontSize: 12,
   },
   visitorCard: {
     borderRadius: LAYOUT.cardRadius,
@@ -433,11 +424,10 @@ const styles = StyleSheet.create({
     padding: LAYOUT.cardPadding,
   },
   cardHeaderRow: {
-    gap: Spacing.sm,
+    gap: Spacing.xs,
   },
   cardNameSection: {
     flex: 1,
-    marginHorizontal: Spacing.xs,
   },
   avatar: {
     justifyContent: 'center',
@@ -445,18 +435,6 @@ const styles = StyleSheet.create({
   },
   avatarText: {
     fontWeight: '600',
-  },
-  statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    borderRadius: BorderRadius.sm,
-    borderWidth: 1,
-  },
-  statusText: {
-    fontSize: 10,
-    fontWeight: '500',
   },
   detailsRow: {
     alignItems: 'center',
@@ -515,7 +493,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   emptyState: {
-    padding: Spacing.xl,
+    padding: Spacing.lg,
     borderRadius: LAYOUT.cardRadius,
     alignItems: 'center',
     justifyContent: 'center',
