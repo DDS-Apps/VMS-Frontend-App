@@ -952,7 +952,6 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
         data={filteredRequests}
         keyExtractor={(item) => item.id}
         numColumns={numColumns}
-        columnWrapperStyle={numColumns > 1 ? styles.gridRow : undefined}
         renderItem={({ item }) => (
           <View style={numColumns > 1 ? { width: numColumns === 2 ? '48%' : '31%', flexGrow: 0, marginBottom: LAYOUT.contentGap } : { width: '100%' }}>
             <VisitorRequestCard
@@ -1061,12 +1060,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  gridRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    flexWrap: 'wrap',
-  },
-
   selectAllBar: {
     alignItems: 'center',
     paddingHorizontal: Spacing.md,
