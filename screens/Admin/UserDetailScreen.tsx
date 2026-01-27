@@ -417,6 +417,7 @@ const styles = StyleSheet.create({
   infoRow: {
     alignItems: 'flex-start',
     paddingVertical: Spacing.sm,
+    gap: Spacing.sm,
   },
   infoContent: {
     flex: 1,

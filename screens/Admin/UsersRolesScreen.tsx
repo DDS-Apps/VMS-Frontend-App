@@ -2201,6 +2201,7 @@ const styles = StyleSheet.create({
   infoRow: {
     flexDirection: "row",
     alignItems: "center",
+    gap: Spacing.xs,
   },
   sectionHeader: {
     flexDirection: "row",
