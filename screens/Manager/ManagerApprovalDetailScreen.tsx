@@ -761,7 +761,7 @@ export default function ManagerApprovalDetailScreen({
       statusColor = theme.error;
       statusText = t("status.rejected");
     } else if (request.status === REQUEST_STATUS.CANCELLED) {
-      statusColor = theme.textSecondary;
+      statusColor = theme.error;
       statusText = t("status.cancelled");
     } else if (request.status === REQUEST_STATUS.AUTO_CANCELLED) {
       statusColor = theme.error;
