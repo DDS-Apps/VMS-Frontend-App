@@ -367,7 +367,7 @@ export default function ValetAllRequestsScreen() {
             {filteredVisitors.map((visitor) => (
               <View 
                 key={visitor.requestId}
-                style={numColumns > 1 ? { width: numColumns === 2 ? '48%' : '31%', flexGrow: 0 } : { width: '100%', marginBottom: LAYOUT.contentGap }}
+                style={numColumns > 1 ? { width: numColumns === 2 ? '49%' : '32%', flexGrow: 0 } : { width: '100%', marginBottom: LAYOUT.contentGap }}
               >
                 <VisitorCard 
                   visitor={visitor} 

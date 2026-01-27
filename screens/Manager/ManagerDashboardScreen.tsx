@@ -953,7 +953,7 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
         keyExtractor={(item) => item.id}
         numColumns={numColumns}
         renderItem={({ item }) => (
-          <View style={numColumns > 1 ? { width: numColumns === 2 ? '48%' : '31%', flexGrow: 0, marginBottom: LAYOUT.contentGap } : { width: '100%' }}>
+          <View style={numColumns > 1 ? { width: numColumns === 2 ? '49%' : '32%', flexGrow: 0, marginBottom: LAYOUT.contentGap } : { width: '100%' }}>
             <VisitorRequestCard
               request={item}
               onPress={() => handleViewDetails(item.id)}

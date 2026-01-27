@@ -427,7 +427,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
           {filteredVisitors.map((visitor) => (
             <View 
               key={visitor.id} 
-              style={numColumns > 1 ? { width: numColumns === 2 ? '48%' : '31%', flexGrow: 0 } : { width: '100%' }}
+              style={numColumns > 1 ? { width: numColumns === 2 ? '49%' : '32%', flexGrow: 0 } : { width: '100%' }}
             >
               {renderVisitorCard(visitor)}
             </View>
