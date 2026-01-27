@@ -27,6 +27,10 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 
 const screenWidth = Dimensions.get('window').width;
 
+const LAYOUT = {
+  contentGap: Spacing.md,
+};
+
 import { KPICard, KPICardRow } from '@/components/shared/KPICard';
 
 interface QuickActionProps {

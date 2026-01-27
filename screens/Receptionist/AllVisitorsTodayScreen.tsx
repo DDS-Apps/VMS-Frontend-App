@@ -26,6 +26,10 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
+const LAYOUT = {
+  contentGap: Spacing.md,
+};
+
 type StatusFilter = 'all' | 'expected' | 'checked_in' | 'completed';
 
 const ServiceIconsRow = ({ visitor, size = 14 }: { visitor: TodayVisitorDto; size?: number }) => {
