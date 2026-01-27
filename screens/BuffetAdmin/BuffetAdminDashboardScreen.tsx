@@ -532,7 +532,7 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
           {requests.slice(0, 6).map((request) => (
             <View 
               key={request.id}
-              style={numColumns > 1 ? { width: numColumns === 2 ? '49%' : '32%', flexGrow: 0 } : { width: '100%', marginBottom: Spacing.md }}
+              style={numColumns > 1 ? { width: numColumns === 2 ? '50%' : '33.33%', flexGrow: 0, marginBottom: Spacing.md, paddingRight: Spacing.sm } : { width: '100%', marginBottom: Spacing.md }}
             >
               {renderRequestCard(request)}
             </View>

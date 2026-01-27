@@ -998,7 +998,7 @@ export default function AllRequestsScreen() {
                 return (
                   <View 
                     key={cardKey}
-                    style={numColumns > 1 ? { width: numColumns === 2 ? '49%' : '32%', flexGrow: 0 } : { width: '100%', marginBottom: LAYOUT.contentGap }}
+                    style={numColumns > 1 ? { width: numColumns === 2 ? '50%' : '33.33%', flexGrow: 0, marginBottom: LAYOUT.contentGap, paddingRight: Spacing.sm } : { width: '100%', marginBottom: LAYOUT.contentGap }}
                   >
                     <RequestCard
                       request={request}
