@@ -954,7 +954,7 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
         numColumns={numColumns}
         columnWrapperStyle={numColumns > 1 ? styles.gridRow : undefined}
         renderItem={({ item }) => (
-          <View style={numColumns > 1 ? { width: numColumns === 2 ? '48%' : '31%', flexGrow: 0, marginBottom: LAYOUT.contentGap } : { width: '100%', marginBottom: LAYOUT.contentGap }}>
+          <View style={numColumns > 1 ? { width: numColumns === 2 ? '48%' : '31%', flexGrow: 0, marginBottom: LAYOUT.contentGap } : { width: '100%' }}>
             <VisitorRequestCard
               request={item}
               onPress={() => handleViewDetails(item.id)}
@@ -977,6 +977,7 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
         ListHeaderComponent={renderListHeader()}
         ListEmptyComponent={renderEmptyState()}
         ListFooterComponent={<ListLoadingFooter isLoading={isFetchingNextPage} />}
+        ItemSeparatorComponent={numColumns === 1 ? () => <Spacer height={LAYOUT.contentGap} /> : undefined}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}
         style={styles.scrollableContent}
