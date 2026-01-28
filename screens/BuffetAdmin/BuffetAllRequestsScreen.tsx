@@ -396,22 +396,6 @@ const BuffetRequestCard = React.memo(({
             </>
           ) : null}
 
-          {request.status !== 'completed' && request.status !== 'cancelled' ? (
-            <>
-              <Spacer height={LAYOUT.contentGap} />
-              <DirectionalRow style={styles.actionsRow}>
-                <Pressable
-                  style={[styles.actionButton, { backgroundColor: applyOpacity(theme.warning, '12'), flexDirection: getFlexDirection(isRTL) }]}
-                  onPress={(e) => onAssignStaff(e)}
-                >
-                  <DDIcon name="user-plus" size={14} color={theme.warning} />
-                  <ThemedText style={[styles.actionButtonText, { color: theme.warning }]}>
-                    {request.assignedStaff ? t('buffet.reassign') : t('actions.assign')}
-                  </ThemedText>
-                </Pressable>
-              </DirectionalRow>
-            </>
-          ) : null}
         </View>
       </Pressable>
 
@@ -506,25 +490,6 @@ const BuffetRequestTableRow = React.memo(({
             <StatusBadge statusConfig={statusConfig} compact />
           </View>
 
-          {request.status !== 'completed' && request.status !== 'cancelled' ? (
-            <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth * 1.2 }]}>
-              <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
-                {t('dashboard.quickActions').toUpperCase()}
-              </ThemedText>
-              <Spacer height={10} />
-              <DirectionalRow style={styles.tableActionsRow}>
-                <Pressable
-                  style={[styles.tableActionButton, { backgroundColor: applyOpacity(theme.warning, '12'), flexDirection: getFlexDirection(isRTL) }]}
-                  onPress={onAssignStaff}
-                >
-                  <DDIcon name="user-plus" size={14} color={theme.warning} />
-                  <ThemedText style={[styles.tableActionText, { color: theme.warning }]}>
-                    {request.assignedStaff ? t('buffet.reassign') : t('actions.assign')}
-                  </ThemedText>
-                </Pressable>
-              </DirectionalRow>
-            </View>
-          ) : null}
         </ScrollView>
       </ThemedView>
     </Pressable>
