@@ -64,33 +64,6 @@ const mapAdminStaffDto = (staff: BuffetAdminStaffDto): BuffetStaff => {
 
 import { KPICard, KPICardRow } from '@/components/shared/KPICard';
 
-interface QuickActionProps {
-  icon: string;
-  label: string;
-  iconBgColor: string;
-  iconColor: string;
-  onPress: () => void;
-}
-
-function QuickActionButton({ icon, label, iconBgColor, iconColor, onPress }: QuickActionProps) {
-  const { theme } = useTheme();
-  
-  return (
-    <Pressable
-      style={[styles.quickActionCard, { backgroundColor: theme.surface }]}
-      onPress={onPress}
-    >
-      <View style={[styles.quickActionIconContainer, { backgroundColor: iconBgColor }]}>
-        <DDIcon name={icon as IconName} size={24} color={iconColor} />
-      </View>
-      <Spacer height={Spacing.sm} />
-      <ThemedText style={[styles.quickActionLabel, { color: theme.text }]}>
-        {label}
-      </ThemedText>
-    </Pressable>
-  );
-}
-
 export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDashboardScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
@@ -473,38 +446,6 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
 
       <Spacer height={Spacing.xl} />
 
-      <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
-        {t('dashboard.quickActions')}
-      </ThemedText>
-
-      <Spacer height={Spacing.md} />
-
-      <DirectionalRow style={styles.quickActionsRow}>
-        <QuickActionButton
-          icon="users"
-          label={t('navigation.staffManagement')}
-          iconBgColor={applyOpacity(theme.primary, '12')}
-          iconColor={theme.primary}
-          onPress={() => navigation.navigate(ROUTES.BUFFET_STAFF as never)}
-        />
-        <QuickActionButton
-          icon="map-pin"
-          label={t('navigation.locations')}
-          iconBgColor={applyOpacity(theme.success, '12')}
-          iconColor={theme.success}
-          onPress={() => navigation.navigate(ROUTES.BUFFET_LOCATIONS as never)}
-        />
-        <QuickActionButton
-          icon="list"
-          label={t('navigation.allRequests')}
-          iconBgColor={applyOpacity(theme.warning, '12')}
-          iconColor={theme.warning}
-          onPress={() => navigation.navigate(ROUTES.BUFFET_ALL_REQUESTS as never)}
-        />
-      </DirectionalRow>
-
-      <Spacer height={Spacing.xl} />
-
       <DirectionalRow style={styles.sectionHeader}>
         <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
           {t('buffet.buffetService')}
@@ -611,35 +552,6 @@ const styles = StyleSheet.create({
   viewAllText: {
     fontSize: 14,
     fontWeight: '500',
-  },
-  quickActionsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: Spacing.sm,
-  },
-  quickActionCard: {
-    flex: 1,
-    paddingVertical: Spacing.lg,
-    paddingHorizontal: Spacing.md,
-    borderRadius: 12,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  quickActionIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  quickActionLabel: {
-    fontSize: 12,
-    fontWeight: '500',
-    textAlign: 'center',
   },
   requestsList: {
     flexDirection: 'row',

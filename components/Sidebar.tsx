@@ -144,15 +144,6 @@ const getMenuGroups = (role: UserRole): { groups: MenuGroup[]; standalone: MenuI
           { id: 'buffet_requests', labelKey: 'navigation.buffetRequests', icon: 'list', screen: 'BuffetAllRequests' },
         ],
       },
-      {
-        id: 'management',
-        labelKey: 'sidebar.management',
-        icon: 'settings',
-        items: [
-          { id: 'buffet_staff', labelKey: 'navigation.staffManagement', icon: 'users', screen: 'BuffetStaff' },
-          { id: 'buffet_locations', labelKey: 'navigation.locations', icon: 'map-pin', screen: 'BuffetLocations' },
-        ],
-      },
     ];
   } else if (role === 'valet_admin') {
     result.standalone = [

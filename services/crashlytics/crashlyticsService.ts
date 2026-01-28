@@ -1,10 +1,8 @@
 import { Platform } from 'react-native';
 
-// Firebase Crashlytics - TEMPORARILY DISABLED FOR EXPO GO DEBUGGING
-// Uses expo-build-properties with buildReactNativeFromSource: true
+// Firebase Crashlytics - Uses expo-build-properties with buildReactNativeFromSource: true
 // to resolve non-modular header issues with static frameworks.
-// Set back to false when using EAS development build
-const CRASHLYTICS_DISABLED = true;
+const CRASHLYTICS_DISABLED = false;
 
 type CrashlyticsInstance = {
   log: (message: string) => void;
