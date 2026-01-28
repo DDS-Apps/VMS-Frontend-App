@@ -121,8 +121,8 @@ export default function DashboardLayout({
     }
   };
   
-  // Calculate responsive values
-  const isLargeScreen = width >= 768;
+  // Calculate responsive values - use 1024px breakpoint so iPads use mobile sidebar
+  const isLargeScreen = width >= 1024;
   const sidebarWidthMobile = Math.floor(width * 0.75);
   const sidebarWidth = isLargeScreen ? SIDEBAR_WIDTH_DESKTOP : sidebarWidthMobile;
   

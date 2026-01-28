@@ -195,7 +195,7 @@ export default function Sidebar({
   const rtlStyles = useRTLStyles();
   const { groups, standalone } = getMenuGroups(userRole);
   const { width } = Dimensions.get('window');
-  const isLargeScreen = width >= 768;
+  const isLargeScreen = width >= 1024;
   const insets = useSafeAreaInsets();
   
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => {
