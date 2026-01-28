@@ -130,6 +130,8 @@ export default function RequestDetailsScreen({
   const [showEditTimePicker, setShowEditTimePicker] = useState(false);
   const [showEditEndTimePicker, setShowEditEndTimePicker] = useState(false);
   const [showPurposePicker, setShowPurposePicker] = useState(false);
+  // Inline picker mode for iOS (can't stack Modals on iOS)
+  const [inlinePickerMode, setInlinePickerMode] = useState<'none' | 'purpose' | 'endTime' | 'startTime'>('none');
   const [editSendWhatsApp, setEditSendWhatsApp] = useState(false);
   const [editSendSMS, setEditSendSMS] = useState(false);
   const [editModalMode, setEditModalMode] = useState<"full" | "services-only">(
@@ -2554,7 +2556,12 @@ export default function RequestDetailsScreen({
                   ]}
                   onPress={() => {
                     console.log("[DEBUG Modal] Purpose picker button PRESSED");
-                    setShowPurposePicker(true);
+                    // iOS can't stack Modals, use inline overlay instead
+                    if (Platform.OS === 'ios') {
+                      setInlinePickerMode('purpose');
+                    } else {
+                      setShowPurposePicker(true);
+                    }
                   }}
                   onPressIn={() => console.log("[DEBUG Modal] Purpose picker onPressIn")}
                   onPressOut={() => console.log("[DEBUG Modal] Purpose picker onPressOut")}
@@ -2667,7 +2674,12 @@ export default function RequestDetailsScreen({
                       ]}
                       onPress={() => {
                         console.log("[DEBUG Modal] Walk-in End time picker button PRESSED");
-                        setShowEditEndTimePicker(true);
+                        // iOS can't stack Modals, use inline overlay instead
+                        if (Platform.OS === 'ios') {
+                          setInlinePickerMode('endTime');
+                        } else {
+                          setShowEditEndTimePicker(true);
+                        }
                       }}
                       onPressIn={() => console.log("[DEBUG Modal] Walk-in End time picker onPressIn")}
                       onPressOut={() => console.log("[DEBUG Modal] Walk-in End time picker onPressOut")}
@@ -2859,7 +2871,12 @@ export default function RequestDetailsScreen({
                       ]}
                       onPress={() => {
                         console.log("[DEBUG Modal] End time picker button PRESSED");
-                        setShowEditEndTimePicker(true);
+                        // iOS can't stack Modals, use inline overlay instead
+                        if (Platform.OS === 'ios') {
+                          setInlinePickerMode('endTime');
+                        } else {
+                          setShowEditEndTimePicker(true);
+                        }
                       }}
                       onPressIn={() => console.log("[DEBUG Modal] End time picker onPressIn")}
                       onPressOut={() => console.log("[DEBUG Modal] End time picker onPressOut")}
@@ -3330,6 +3347,106 @@ export default function RequestDetailsScreen({
                   {isApprovalFlow ? t("actions.approve") : t("common.save")}
                 </LoadingButton>
               </View>
+
+              {/* iOS Inline Picker Overlays - rendered inside the Edit Modal to avoid Modal stacking issues */}
+              {Platform.OS === 'ios' && inlinePickerMode === 'purpose' && (
+                <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }]}>
+                  <Pressable 
+                    style={StyleSheet.absoluteFill} 
+                    onPress={() => setInlinePickerMode('none')} 
+                  />
+                  <View style={{ backgroundColor: theme.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '60%' }}>
+                    <View style={[styles.modalHeader, { borderBottomWidth: 1, borderBottomColor: theme.border }]}>
+                      <ThemedText style={[Typography.subtitle, { fontSize: 18, fontWeight: '600', color: theme.text }]}>
+                        {t("visitor.selectVisitType")}
+                      </ThemedText>
+                      <Pressable onPress={() => setInlinePickerMode('none')}>
+                        <DDIcon name="x" size={20} variant="muted" />
+                      </Pressable>
+                    </View>
+                    <ScrollView style={{ padding: Spacing.md }}>
+                      {PURPOSE_OPTIONS.map((option) => (
+                        <Pressable
+                          key={option.value}
+                          style={[
+                            {
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              padding: Spacing.md,
+                              borderRadius: BorderRadius.md,
+                              borderWidth: 1,
+                              marginBottom: Spacing.sm,
+                              borderColor: editPurpose === option.value ? theme.primary : theme.border,
+                              backgroundColor: editPurpose === option.value ? applyOpacity(theme.primary, '10') : 'transparent',
+                            },
+                          ]}
+                          onPress={() => {
+                            setEditPurpose(option.value);
+                            setInlinePickerMode('none');
+                          }}
+                        >
+                          <ThemedText style={[Typography.body, { flex: 1, color: theme.text }]}>
+                            {t(option.labelKey)}
+                          </ThemedText>
+                          {editPurpose === option.value && (
+                            <DDIcon name="check" size={18} color={theme.primary} />
+                          )}
+                        </Pressable>
+                      ))}
+                      <Spacer height={Spacing.xl} />
+                    </ScrollView>
+                  </View>
+                </View>
+              )}
+
+              {Platform.OS === 'ios' && inlinePickerMode === 'endTime' && (
+                <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }]}>
+                  <Pressable 
+                    style={StyleSheet.absoluteFill} 
+                    onPress={() => setInlinePickerMode('none')} 
+                  />
+                  <View style={{ backgroundColor: theme.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: Spacing.lg }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.md }}>
+                      <ThemedText style={[Typography.subtitle, { fontSize: 18, fontWeight: '600', color: theme.text }]}>
+                        {t("time.selectTime")}
+                      </ThemedText>
+                      <Pressable onPress={() => setInlinePickerMode('none')}>
+                        <DDIcon name="x" size={20} variant="muted" />
+                      </Pressable>
+                    </View>
+                    <DateTimePicker
+                      value={editEndTime}
+                      mode="time"
+                      display="spinner"
+                      onChange={(event: DateTimePickerEvent, date?: Date) => {
+                        if (date) {
+                          setEditEndTime(date);
+                        }
+                      }}
+                      style={{ height: 180 }}
+                      minuteInterval={5}
+                    />
+                    <View style={{ flexDirection: 'row', gap: Spacing.md, marginTop: Spacing.md }}>
+                      <LoadingButton
+                        onPress={() => setInlinePickerMode('none')}
+                        variant="secondary"
+                        size="medium"
+                        style={{ flex: 1 }}
+                      >
+                        {t("common.cancel")}
+                      </LoadingButton>
+                      <LoadingButton
+                        onPress={() => setInlinePickerMode('none')}
+                        variant="primary"
+                        size="medium"
+                        style={{ flex: 1 }}
+                      >
+                        {t("common.confirm")}
+                      </LoadingButton>
+                    </View>
+                  </View>
+                </View>
+              )}
             </View>
           </View>
         </Modal>
