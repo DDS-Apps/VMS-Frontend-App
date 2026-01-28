@@ -3355,7 +3355,7 @@ export default function RequestDetailsScreen({
                     style={StyleSheet.absoluteFill} 
                     onPress={() => setInlinePickerMode('none')} 
                   />
-                  <View style={{ backgroundColor: theme.surface, borderRadius: 20, maxHeight: '60%', padding: Spacing.lg, marginHorizontal: Spacing.md, marginBottom: Spacing.md }}>
+                  <View style={{ backgroundColor: theme.surface, borderRadius: 20, maxHeight: '60%', padding: Spacing.lg, marginHorizontal: Spacing.md }}>
                     <View style={[styles.modalHeader, { borderBottomWidth: 1, borderBottomColor: theme.border, paddingBottom: Spacing.md, marginBottom: Spacing.md }]}>
                       <ThemedText style={[Typography.subtitle, { fontSize: 18, fontWeight: '600', color: theme.text, flex: 1 }]}>
                         {t("visitor.selectVisitType")}
@@ -3405,7 +3405,7 @@ export default function RequestDetailsScreen({
                     style={StyleSheet.absoluteFill} 
                     onPress={() => setInlinePickerMode('none')} 
                   />
-                  <View style={{ backgroundColor: theme.surface, borderRadius: 20, padding: Spacing.lg, marginHorizontal: Spacing.md, marginBottom: Spacing.md }}>
+                  <View style={{ backgroundColor: theme.surface, borderRadius: 20, maxHeight: '60%', padding: Spacing.lg, marginHorizontal: Spacing.md }}>
                     <View style={[styles.modalHeader, { borderBottomWidth: 1, borderBottomColor: theme.border, paddingBottom: Spacing.md, marginBottom: Spacing.md }]}>
                       <ThemedText style={[Typography.subtitle, { fontSize: 18, fontWeight: '600', color: theme.text, flex: 1 }]}>
                         {t("time.selectTime")}
