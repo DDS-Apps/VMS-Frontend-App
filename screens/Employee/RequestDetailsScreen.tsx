@@ -2470,27 +2470,24 @@ export default function RequestDetailsScreen({
           onShow={() => console.log("[DEBUG Modal] Edit Modal SHOWN - visible:", showEditModal)}
           onDismiss={() => console.log("[DEBUG Modal] Edit Modal DISMISSED")}
         >
-          <Pressable
-            style={[
-              styles.modalOverlay,
-              createModalOverlayStyle(theme, "50"),
-            ]}
-            onPress={() => {
-              console.log("[DEBUG Modal] Backdrop (outer Pressable) PRESSED - closing modal");
-              closeEditModal();
-            }}
-            onPressIn={() => console.log("[DEBUG Modal] Backdrop onPressIn")}
-            onPressOut={() => console.log("[DEBUG Modal] Backdrop onPressOut")}
-          >
-            {/* TouchableWithoutFeedback captures touches to prevent them from reaching the backdrop */}
-            {/* It doesn't compete for responder with children, unlike Pressable */}
-            <TouchableWithoutFeedback>
-              <View
-                style={[
-                  styles.editModalContent,
-                  { backgroundColor: theme.surface },
-                ]}
-              >
+          {/* Container for backdrop + content as siblings (not nested) */}
+          {/* This prevents touch propagation issues on iOS */}
+          <View style={[styles.modalOverlay, createModalOverlayStyle(theme, "50")]}>
+            {/* Backdrop - positioned absolutely, closes modal on tap */}
+            <Pressable
+              style={StyleSheet.absoluteFill}
+              onPress={() => {
+                console.log("[DEBUG Modal] Backdrop PRESSED - closing modal");
+                closeEditModal();
+              }}
+            />
+            {/* Content - positioned on top of backdrop, touches don't affect backdrop */}
+            <View
+              style={[
+                styles.editModalContent,
+                { backgroundColor: theme.surface },
+              ]}
+            >
               <DirectionalRow style={styles.modalHeader}>
                 <ThemedText
                   style={[
@@ -3333,9 +3330,8 @@ export default function RequestDetailsScreen({
                   {isApprovalFlow ? t("actions.approve") : t("common.save")}
                 </LoadingButton>
               </View>
-              </View>
-            </TouchableWithoutFeedback>
-          </Pressable>
+            </View>
+          </View>
         </Modal>
 
         {/* Date/Time Picker Modals for Edit */}
