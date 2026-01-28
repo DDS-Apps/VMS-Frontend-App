@@ -34,6 +34,8 @@ interface LegacyVisitor {
   time: string;
   host: string;
   hostDepartment?: string;
+  hostPhone?: string;
+  hostLandline?: string;
   status: 'pending' | 'approved' | 'checked_in' | 'completed' | 'rejected' | 'cancelled' | 'pending_approval' | 'pending_host_approval' | 'visitor_accepted';
   isWalkIn: boolean;
   email: string;
@@ -83,6 +85,8 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
     time: visitDetails.visitTime,
     host: visitDetails.employeeName,
     hostDepartment: visitDetails.employeeDepartment,
+    hostPhone: visitDetails.employeePhoneNumber,
+    hostLandline: visitDetails.employeeBusinessPhone,
     status: mapVisitStatus(visitDetails.status),
     isWalkIn: visitDetails.isWalkIn ?? false,
     email: visitDetails.visitor.email ?? '',
@@ -400,6 +404,75 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
           </>
         ) : null}
       </ThemedView>
+
+      {/* Host Details Section - only show if we have host phone info */}
+      {(visitor.hostPhone || visitor.hostLandline) && (
+        <>
+          <Spacer height={Spacing.lg} />
+
+          <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
+            <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text }]}>
+              {t('visitor.hostDetails')}
+            </ThemedText>
+            <Spacer height={Spacing.xl} />
+
+            {/* Host Name */}
+            <DirectionalRow style={styles.serviceRowNew}>
+              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                <DDIcon name="user" size={18} color={theme.text} />
+              </View>
+              <View>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+                  {t('visitor.hostName')}
+                </ThemedText>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+                  {visitor.host}
+                  {visitor.hostDepartment ? ` (${visitor.hostDepartment})` : ''}
+                </ThemedText>
+              </View>
+            </DirectionalRow>
+
+            <Spacer height={Spacing.md} />
+
+            {/* Host Phone */}
+            {visitor.hostPhone && (
+              <>
+                <DirectionalRow style={styles.serviceRowNew}>
+                  <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                    <DDIcon name="phone" size={18} color={theme.text} />
+                  </View>
+                  <View>
+                    <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+                      {t('common.phone')}
+                    </ThemedText>
+                    <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+                      {visitor.hostPhone}
+                    </ThemedText>
+                  </View>
+                </DirectionalRow>
+                <Spacer height={Spacing.md} />
+              </>
+            )}
+
+            {/* Host Landline */}
+            {visitor.hostLandline && (
+              <DirectionalRow style={styles.serviceRowNew}>
+                <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                  <DDIcon name="phone-call" size={18} color={theme.text} />
+                </View>
+                <View>
+                  <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+                    {t('common.landline')}
+                  </ThemedText>
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+                    {visitor.hostLandline}
+                  </ThemedText>
+                </View>
+              </DirectionalRow>
+            )}
+          </ThemedView>
+        </>
+      )}
 
       {visitor.parking ? (
         <>

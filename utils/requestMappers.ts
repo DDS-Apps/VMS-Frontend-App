@@ -65,6 +65,8 @@ export const mapVisitDetailsToVisitorRequest = (visit: VisitDetailsDto): Visitor
     employeeId: visit.employeeId,
     employeeName: visit.employeeName || 'Unknown',
     employeeDepartment: visit.employeeDepartment,
+    employeePhoneNumber: visit.employeePhoneNumber,
+    employeeBusinessPhone: visit.employeeBusinessPhone,
     visitor: {
       id: visit.visitor?.id || 'unknown',
       fullName: visit.visitor?.fullName || 'Unknown Visitor',

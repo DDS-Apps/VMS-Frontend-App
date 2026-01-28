@@ -319,6 +319,8 @@ export interface TranslationKeys {
     emailPlaceholder: string;
     phoneNumber: string;
     phone: string;
+    businessPhone: string;
+    landline: string;
     phonePlaceholder: string;
     company: string;
     companyPlaceholder: string;

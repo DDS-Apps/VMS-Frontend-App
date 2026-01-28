@@ -1679,6 +1679,141 @@ export default function RequestDetailsScreen({
 
         <Spacer height={Spacing.lg} />
 
+        {/* Host Details Section - only show if we have host phone info */}
+        {(request.employeePhoneNumber || request.employeeBusinessPhone) && (
+          <>
+            <ThemedView
+              style={[styles.cardNew, { backgroundColor: theme.surface }]}
+            >
+              <ThemedText
+                style={[
+                  Typography.subtitle,
+                  { fontSize: 16, fontWeight: "600", color: theme.text },
+                ]}
+              >
+                {t("visitor.hostDetails")}
+              </ThemedText>
+              <Spacer height={Spacing.xl} />
+
+              {/* Host Name */}
+              <DirectionalRow
+                style={[
+                  styles.serviceRowNew,
+                  { justifyContent: "flex-start" },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.serviceIcon,
+                    { backgroundColor: applyOpacity(theme.textSecondary, "15") },
+                  ]}
+                >
+                  <DDIcon name="user" size={18} color={theme.text} />
+                </View>
+                <View>
+                  <ThemedText
+                    style={[
+                      Typography.body,
+                      { fontWeight: "600", fontSize: 15 },
+                    ]}
+                  >
+                    {t("visitor.hostName")}
+                  </ThemedText>
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      { color: theme.textSecondary, marginTop: 2, fontSize: 13 },
+                    ]}
+                  >
+                    {request.employeeName}
+                    {request.employeeDepartment ? ` (${request.employeeDepartment})` : ''}
+                  </ThemedText>
+                </View>
+              </DirectionalRow>
+
+              <Spacer height={Spacing.md} />
+
+              {/* Host Phone */}
+              {request.employeePhoneNumber && (
+                <>
+                  <DirectionalRow
+                    style={[
+                      styles.serviceRowNew,
+                      { justifyContent: "flex-start" },
+                    ]}
+                  >
+                    <View
+                      style={[
+                        styles.serviceIcon,
+                        { backgroundColor: applyOpacity(theme.textSecondary, "15") },
+                      ]}
+                    >
+                      <DDIcon name="phone" size={18} color={theme.text} />
+                    </View>
+                    <View>
+                      <ThemedText
+                        style={[
+                          Typography.body,
+                          { fontWeight: "600", fontSize: 15 },
+                        ]}
+                      >
+                        {t("common.phone")}
+                      </ThemedText>
+                      <ThemedText
+                        style={[
+                          Typography.caption,
+                          { color: theme.textSecondary, marginTop: 2, fontSize: 13 },
+                        ]}
+                      >
+                        {request.employeePhoneNumber}
+                      </ThemedText>
+                    </View>
+                  </DirectionalRow>
+                  <Spacer height={Spacing.md} />
+                </>
+              )}
+
+              {/* Host Landline */}
+              {request.employeeBusinessPhone && (
+                <DirectionalRow
+                  style={[
+                    styles.serviceRowNew,
+                    { justifyContent: "flex-start" },
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.serviceIcon,
+                      { backgroundColor: applyOpacity(theme.textSecondary, "15") },
+                    ]}
+                  >
+                    <DDIcon name="phone-call" size={18} color={theme.text} />
+                  </View>
+                  <View>
+                    <ThemedText
+                      style={[
+                        Typography.body,
+                        { fontWeight: "600", fontSize: 15 },
+                      ]}
+                    >
+                      {t("common.landline")}
+                    </ThemedText>
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.textSecondary, marginTop: 2, fontSize: 13 },
+                      ]}
+                    >
+                      {request.employeeBusinessPhone}
+                    </ThemedText>
+                  </View>
+                </DirectionalRow>
+              )}
+            </ThemedView>
+            <Spacer height={Spacing.lg} />
+          </>
+        )}
+
         <ThemedView
           style={[styles.cardNew, { backgroundColor: theme.surface }]}
         >

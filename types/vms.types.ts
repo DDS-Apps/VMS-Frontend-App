@@ -97,6 +97,8 @@ export interface VisitorRequest {
   employeeId: string;
   employeeName: string;
   employeeDepartment?: string;
+  employeePhoneNumber?: string;
+  employeeBusinessPhone?: string;
   visitor: Visitor;
   visitDate: string;
   visitTime: string;
