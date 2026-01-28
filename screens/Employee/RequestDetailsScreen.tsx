@@ -11,6 +11,7 @@ import {
   Switch,
   Animated,
   ActivityIndicator,
+  TouchableWithoutFeedback,
 } from "react-native";
 import QRCode from "react-native-qrcode-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -2481,17 +2482,15 @@ export default function RequestDetailsScreen({
             onPressIn={() => console.log("[DEBUG Modal] Backdrop onPressIn")}
             onPressOut={() => console.log("[DEBUG Modal] Backdrop onPressOut")}
           >
-            {/* Using View with pointerEvents="box-none" instead of Pressable to fix iOS touch issues */}
-            {/* box-none: the View itself ignores touches, but children receive them normally */}
-            {/* The backdrop Pressable won't receive touches from within this View because */}
-            {/* touches on children don't bubble up to the backdrop */}
-            <View
-              style={[
-                styles.editModalContent,
-                { backgroundColor: theme.surface },
-              ]}
-              pointerEvents="box-none"
-            >
+            {/* TouchableWithoutFeedback captures touches to prevent them from reaching the backdrop */}
+            {/* It doesn't compete for responder with children, unlike Pressable */}
+            <TouchableWithoutFeedback>
+              <View
+                style={[
+                  styles.editModalContent,
+                  { backgroundColor: theme.surface },
+                ]}
+              >
               <DirectionalRow style={styles.modalHeader}>
                 <ThemedText
                   style={[
@@ -3334,7 +3333,8 @@ export default function RequestDetailsScreen({
                   {isApprovalFlow ? t("actions.approve") : t("common.save")}
                 </LoadingButton>
               </View>
-            </View>
+              </View>
+            </TouchableWithoutFeedback>
           </Pressable>
         </Modal>
 
