@@ -5,7 +5,7 @@ This Replit project is configured for the **QA/Testing environment**.
 
 | Setting | Value |
 |---------|-------|
-| **Backend API** | `https://vms-backend-folio3.replit.app` |
+| **Backend API** | `https://vms-backend-app-qa.replit.app` |
 | **Firebase Project** | `dallah-albaraka-vms` |
 | **Branch** | `qa` |
 | **Purpose** | QA/Testing - Not for production use |
