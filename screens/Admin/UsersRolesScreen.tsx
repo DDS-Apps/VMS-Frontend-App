@@ -101,9 +101,9 @@ function mapUserDtoToDisplayUser(dto: UserDto): DisplayUser {
   };
 }
 
-const ALL_ROLES: UserRole[] = USER_ROLES.filter((role) => role !== "visitor");
+const ALL_ROLES: UserRole[] = USER_ROLES.filter((role) => role !== "visitor" && role !== "buffet_staff");
 
-const HIDDEN_ROLES_IN_CREATE: UserRole[] = ["valet_driver", "visitor"];
+const HIDDEN_ROLES_IN_CREATE: UserRole[] = ["valet_driver", "visitor", "buffet_staff"];
 const DISABLED_ROLES_IN_CREATE: UserRole[] = ["employee", "manager"];
 const CREATABLE_ROLES: UserRole[] = ALL_ROLES.filter(
   (role) => !HIDDEN_ROLES_IN_CREATE.includes(role),
