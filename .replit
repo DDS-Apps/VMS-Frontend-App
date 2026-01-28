@@ -50,7 +50,7 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run dev"
+args = "EXPO_NO_PROMPT=1 npx expo start --port 5000 --host tunnel --go"
 waitForPort = 5000
 
 [userenv]
