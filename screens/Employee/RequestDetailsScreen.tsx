@@ -3355,16 +3355,16 @@ export default function RequestDetailsScreen({
                     style={StyleSheet.absoluteFill} 
                     onPress={() => setInlinePickerMode('none')} 
                   />
-                  <View style={{ backgroundColor: theme.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '60%' }}>
-                    <View style={[styles.modalHeader, { borderBottomWidth: 1, borderBottomColor: theme.border }]}>
-                      <ThemedText style={[Typography.subtitle, { fontSize: 18, fontWeight: '600', color: theme.text }]}>
+                  <View style={{ backgroundColor: theme.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '60%', padding: Spacing.lg }}>
+                    <View style={[styles.modalHeader, { borderBottomWidth: 1, borderBottomColor: theme.border, paddingBottom: Spacing.md, marginBottom: Spacing.md }]}>
+                      <ThemedText style={[Typography.subtitle, { fontSize: 18, fontWeight: '600', color: theme.text, flex: 1 }]}>
                         {t("visitor.selectVisitType")}
                       </ThemedText>
-                      <Pressable onPress={() => setInlinePickerMode('none')}>
+                      <Pressable onPress={() => setInlinePickerMode('none')} hitSlop={8}>
                         <DDIcon name="x" size={20} variant="muted" />
                       </Pressable>
                     </View>
-                    <ScrollView style={{ padding: Spacing.md }}>
+                    <ScrollView>
                       {PURPOSE_OPTIONS.map((option) => (
                         <Pressable
                           key={option.value}
@@ -3406,11 +3406,11 @@ export default function RequestDetailsScreen({
                     onPress={() => setInlinePickerMode('none')} 
                   />
                   <View style={{ backgroundColor: theme.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: Spacing.lg }}>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.md }}>
-                      <ThemedText style={[Typography.subtitle, { fontSize: 18, fontWeight: '600', color: theme.text }]}>
+                    <View style={[styles.modalHeader, { borderBottomWidth: 1, borderBottomColor: theme.border, paddingBottom: Spacing.md, marginBottom: Spacing.md }]}>
+                      <ThemedText style={[Typography.subtitle, { fontSize: 18, fontWeight: '600', color: theme.text, flex: 1 }]}>
                         {t("time.selectTime")}
                       </ThemedText>
-                      <Pressable onPress={() => setInlinePickerMode('none')}>
+                      <Pressable onPress={() => setInlinePickerMode('none')} hitSlop={8}>
                         <DDIcon name="x" size={20} variant="muted" />
                       </Pressable>
                     </View>
