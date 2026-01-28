@@ -2051,51 +2051,58 @@ export default function RequestDetailsScreen({
         </ThemedView>
         <Spacer height={Spacing.lg} />
 
-        <RequestTimeline steps={timelineSteps} />
-
-        <Spacer height={Spacing.lg} />
-
-        <ThemedView
-          style={[
-            styles.cardNew,
-            { backgroundColor: theme.surface, alignItems: "center" },
-          ]}
-        >
-          <ThemedText
-            style={[
-              Typography.subtitle,
-              { fontSize: 16, fontWeight: "600", color: theme.text },
-            ]}
-          >
-            {t("invitation.qrCode")}
-          </ThemedText>
-          <Spacer height={Spacing.xl} />
-
-          <View
-            style={[
-              styles.qrContainerNew,
-              {
-                backgroundColor: theme.surfaceSecondary,
-                borderColor: theme.border,
-              },
-            ]}
-          >
-            {request.qrCode ? (
-              <QRCode
-                value={request.qrCode}
-                size={150}
-                backgroundColor={theme.surfaceSecondary}
-                color={theme.text}
-              />
-            ) : (
-              <View
-                style={[styles.qrPlaceholder, { borderColor: theme.border }]}
-              >
-                <DDIcon name="maximize" size={80} color={theme.border} />
-              </View>
-            )}
+        {/* Responsive 2-column layout for Timeline and QR Code on web */}
+        <View style={isWebLayout ? { flexDirection: 'row', gap: Spacing.lg } : undefined}>
+          <View style={isWebLayout ? { width: '48%' } : undefined}>
+            <RequestTimeline steps={timelineSteps} />
           </View>
-        </ThemedView>
+
+          {!isWebLayout && <Spacer height={Spacing.lg} />}
+
+          <View style={isWebLayout ? { width: '48%' } : undefined}>
+            <ThemedView
+              style={[
+                styles.cardNew,
+                { backgroundColor: theme.surface, alignItems: "center", flex: isWebLayout ? 1 : undefined },
+              ]}
+            >
+              <ThemedText
+                style={[
+                  Typography.subtitle,
+                  { fontSize: 16, fontWeight: "600", color: theme.text },
+                ]}
+              >
+                {t("invitation.qrCode")}
+              </ThemedText>
+              <Spacer height={Spacing.xl} />
+
+              <View
+                style={[
+                  styles.qrContainerNew,
+                  {
+                    backgroundColor: theme.surfaceSecondary,
+                    borderColor: theme.border,
+                  },
+                ]}
+              >
+                {request.qrCode ? (
+                  <QRCode
+                    value={request.qrCode}
+                    size={150}
+                    backgroundColor={theme.surfaceSecondary}
+                    color={theme.text}
+                  />
+                ) : (
+                  <View
+                    style={[styles.qrPlaceholder, { borderColor: theme.border }]}
+                  >
+                    <DDIcon name="maximize" size={80} color={theme.border} />
+                  </View>
+                )}
+              </View>
+            </ThemedView>
+          </View>
+        </View>
 
         <Spacer height={Spacing.xl} />
 
