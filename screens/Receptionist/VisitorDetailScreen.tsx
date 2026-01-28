@@ -459,7 +459,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
             {visitor.hostLandline && (
               <DirectionalRow style={styles.serviceRowNew}>
                 <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-                  <DDIcon name="phone-call" size={18} color={theme.text} />
+                  <DDIcon name="phone" size={18} color={theme.text} />
                 </View>
                 <View>
                   <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>

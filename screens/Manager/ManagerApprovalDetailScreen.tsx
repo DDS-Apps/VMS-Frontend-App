@@ -1416,7 +1416,7 @@ export default function ManagerApprovalDetailScreen({
                       { backgroundColor: applyOpacity(theme.textSecondary, "20") },
                     ]}
                   >
-                    <DDIcon name="phone-call" size={18} color={theme.text} />
+                    <DDIcon name="phone" size={18} color={theme.text} />
                   </View>
                   <View style={{ flex: 1 }}>
                     <ThemedText

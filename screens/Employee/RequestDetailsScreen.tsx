@@ -1788,7 +1788,7 @@ export default function RequestDetailsScreen({
                       { backgroundColor: applyOpacity(theme.textSecondary, "15") },
                     ]}
                   >
-                    <DDIcon name="phone-call" size={18} color={theme.text} />
+                    <DDIcon name="phone" size={18} color={theme.text} />
                   </View>
                   <View>
                     <ThemedText
