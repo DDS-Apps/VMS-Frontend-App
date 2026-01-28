@@ -21,6 +21,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { applyOpacity } from "@/utils/statusStyles";
+import { formatPhoneNumber } from "@/utils/formatters";
 import { VisitorActionButton } from "@/components/VisitorActionButton";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { LoadingButton } from "@/components/shared/LoadingButton";
@@ -443,10 +444,10 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
                   </View>
                   <View>
                     <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
-                      {t('common.phone')}
+                      {t('form.phone')}
                     </ThemedText>
                     <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
-                      {visitor.hostPhone}
+                      {formatPhoneNumber(visitor.hostPhone || '')}
                     </ThemedText>
                   </View>
                 </DirectionalRow>
@@ -462,10 +463,10 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
                 </View>
                 <View>
                   <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
-                    {t('common.landline')}
+                    {t('form.landline')}
                   </ThemedText>
                   <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
-                    {visitor.hostLandline}
+                    {formatPhoneNumber(visitor.hostLandline || '')}
                   </ThemedText>
                 </View>
               </DirectionalRow>

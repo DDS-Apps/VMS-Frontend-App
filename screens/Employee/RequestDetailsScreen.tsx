@@ -72,6 +72,7 @@ import {
   getDurationOptions,
 } from "@/utils/requestMappers";
 import { calculateServerDuration } from "@/utils/dateTimeUtils";
+import { formatPhoneNumber } from "@/utils/formatters";
 import { useServerDateTime } from "@/hooks/useServerDateTime";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -1757,7 +1758,7 @@ export default function RequestDetailsScreen({
                           { fontWeight: "600", fontSize: 15 },
                         ]}
                       >
-                        {t("common.phone")}
+                        {t("form.phone")}
                       </ThemedText>
                       <ThemedText
                         style={[
@@ -1765,7 +1766,7 @@ export default function RequestDetailsScreen({
                           { color: theme.textSecondary, marginTop: 2, fontSize: 13 },
                         ]}
                       >
-                        {request.employeePhoneNumber}
+                        {formatPhoneNumber(request.employeePhoneNumber || '')}
                       </ThemedText>
                     </View>
                   </DirectionalRow>
@@ -1796,7 +1797,7 @@ export default function RequestDetailsScreen({
                         { fontWeight: "600", fontSize: 15 },
                       ]}
                     >
-                      {t("common.landline")}
+                      {t("form.landline")}
                     </ThemedText>
                     <ThemedText
                       style={[
@@ -1804,7 +1805,7 @@ export default function RequestDetailsScreen({
                         { color: theme.textSecondary, marginTop: 2, fontSize: 13 },
                       ]}
                     >
-                      {request.employeeBusinessPhone}
+                      {formatPhoneNumber(request.employeeBusinessPhone || '')}
                     </ThemedText>
                   </View>
                 </DirectionalRow>

@@ -54,6 +54,7 @@ import { mapVisitDetailsToVisitorRequest } from "@/utils/requestMappers";
 import { calculateServerDuration } from "@/utils/dateTimeUtils";
 import { useServerDateTime } from "@/hooks/useServerDateTime";
 import { applyOpacity } from "@/utils/statusStyles";
+import { formatPhoneNumber } from "@/utils/formatters";
 import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
 
 const LAYOUT = {
@@ -1055,49 +1056,6 @@ export default function ManagerApprovalDetailScreen({
                 { backgroundColor: applyOpacity(theme.textSecondary, "15") },
               ]}
             >
-              <DDIcon name="user" size={18} color={theme.text} />
-            </View>
-            <View style={styles.serviceInfo}>
-              <ThemedText
-                style={[
-                  Typography.body,
-                  {
-                    fontWeight: "600",
-                    fontSize: 15,
-                    
-                  },
-                ]}
-              >
-                {t("dashboard.requestedBy")}
-              </ThemedText>
-              <ThemedText
-                style={[
-                  Typography.caption,
-                  {
-                    color: theme.textSecondary,
-                    marginTop: 2,
-                    fontSize: 13,
-                    
-                  },
-                ]}
-              >
-                {request.employeeName}
-                {request.employeeDepartment
-                  ? ` (${request.employeeDepartment})`
-                  : ""}
-              </ThemedText>
-            </View>
-          </DirectionalRow>
-
-          <Spacer height={Spacing.lg} />
-
-          <DirectionalRow style={styles.serviceRow}>
-            <View
-              style={[
-                styles.serviceIcon,
-                { backgroundColor: applyOpacity(theme.textSecondary, "15") },
-              ]}
-            >
               <DDIcon name="calendar" size={18} color={theme.text} />
             </View>
             <View style={styles.serviceInfo}>
@@ -1436,12 +1394,12 @@ export default function ManagerApprovalDetailScreen({
                       <ThemedText
                         style={[Typography.body, { fontWeight: "600", fontSize: 14, color: theme.text }]}
                       >
-                        {t("common.phone")}
+                        {t("form.phone")}
                       </ThemedText>
                       <ThemedText
                         style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}
                       >
-                        {request.employeePhoneNumber}
+                        {formatPhoneNumber(request.employeePhoneNumber || '')}
                       </ThemedText>
                     </View>
                   </DirectionalRow>
@@ -1464,12 +1422,12 @@ export default function ManagerApprovalDetailScreen({
                     <ThemedText
                       style={[Typography.body, { fontWeight: "600", fontSize: 14, color: theme.text }]}
                     >
-                      {t("common.landline")}
+                      {t("form.landline")}
                     </ThemedText>
                     <ThemedText
                       style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}
                     >
-                      {request.employeeBusinessPhone}
+                      {formatPhoneNumber(request.employeeBusinessPhone || '')}
                     </ThemedText>
                   </View>
                 </DirectionalRow>
