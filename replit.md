@@ -73,7 +73,8 @@ The VMS app employs a Clean Architecture pattern, segmenting the application int
 - **State Management:** Centralized state service using mutable mock data and `useFocusEffect` for reactive updates.
 - **Role-Based Access:** Specialized interfaces and navigation for nine distinct user roles.
 - **Internationalization (i18n):** Bilingual support for English (LTR) and Arabic (RTL) across all 40+ screens using type-safe translation keys, a `LanguageContext`, and `useTranslation` hook.
-- **Shared Components:** Reusable UI components including `ServiceIcons`, `SelectionCheckbox`, `StatusBadge`, and `EmptyState`.
+- **Shared Components:** Reusable UI components including `ServiceIcons`, `SelectionCheckbox`, `StatusBadge`, `EmptyState`, and `PhoneInputWithCountry`.
+- **Phone Input Component (`PhoneInputWithCountry`):** Mobile-friendly phone number input with country code selector featuring flag emojis, Gulf region priority (Saudi Arabia default), searchable country picker modal, auto-formatting per country, and full RTL support. Outputs full international format (+XXX...) compatible with existing API validation.
 - **Utility Services:** Centralized utility functions for `dateTimeUtils`, `statusUtils`, and `reminderUtils` supporting RTL locales and i18n.
 - **Timezone Architecture:** All date/time displays and API submissions use device-local time. The client sends raw device-local dates and times to the server, which is responsible for all timezone normalization and conversion.
 
