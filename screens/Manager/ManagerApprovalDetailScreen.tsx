@@ -2317,14 +2317,57 @@ export default function ManagerApprovalDetailScreen({
                 </Pressable>
               </View>
 
-              {showEndTimePicker && (
+              {showEndTimePicker && Platform.OS === 'android' && (
                 <DateTimePicker
                   value={walkInEndTime}
                   mode="time"
                   is24Hour={false}
-                  display={Platform.OS === "ios" ? "spinner" : "default"}
+                  display="default"
                   onChange={handleEndTimeChange}
                 />
+              )}
+
+              {/* iOS Inline End Time Picker Overlay - covers modal content to avoid stacking issues */}
+              {showEndTimePicker && Platform.OS === 'ios' && (
+                <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.surface, borderRadius: 12 }]}>
+                  <View style={{ flex: 1, padding: 24 }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: theme.border, paddingBottom: Spacing.md, marginBottom: Spacing.md }}>
+                      <ThemedText style={[Typography.subtitle, { fontSize: 18, fontWeight: '600', color: theme.text, flex: 1 }]}>
+                        {t("form.endTime")}
+                      </ThemedText>
+                      <Pressable onPress={() => setShowEndTimePicker(false)} hitSlop={8}>
+                        <DDIcon name="x" size={20} variant="muted" />
+                      </Pressable>
+                    </View>
+                    <DateTimePicker
+                      value={walkInEndTime}
+                      mode="time"
+                      is24Hour={false}
+                      display="spinner"
+                      onChange={handleEndTimeChange}
+                      style={{ height: 180 }}
+                    />
+                    <Spacer height={Spacing.lg} />
+                    <DirectionalRow style={{ gap: Spacing.md }}>
+                      <LoadingButton
+                        onPress={() => setShowEndTimePicker(false)}
+                        variant="secondary"
+                        size="medium"
+                        style={{ flex: 1 }}
+                      >
+                        {t("common.cancel")}
+                      </LoadingButton>
+                      <LoadingButton
+                        onPress={() => setShowEndTimePicker(false)}
+                        variant="primary"
+                        size="medium"
+                        style={{ flex: 1 }}
+                      >
+                        {t("common.done")}
+                      </LoadingButton>
+                    </DirectionalRow>
+                  </View>
+                </View>
               )}
 
               {/* Additional Services Section - Hidden for walk-in requests */}
