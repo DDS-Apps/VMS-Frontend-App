@@ -236,6 +236,8 @@ export const ar: TranslationKeys = {
     guest: 'ضيف',
     visitorRequest: 'طلب زيارة',
     visitorDetails: 'تفاصيل الزائر',
+    hostDetails: 'تفاصيل المضيف',
+    hostName: 'اسم المضيف',
     visitorName: 'اسم الزائر',
     visitorEmail: 'بريد الزائر',
     visitorPhone: 'هاتف الزائر',

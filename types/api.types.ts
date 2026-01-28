@@ -1504,6 +1504,8 @@ export interface VisitDetailsDto {
   employeeId: string;
   employeeName: string;
   employeeDepartment?: string;
+  employeePhoneNumber?: string;
+  employeeBusinessPhone?: string;
   visitor: {
     id: string;
     fullName: string;

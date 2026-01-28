@@ -236,6 +236,8 @@ export const en: TranslationKeys = {
     guest: 'Guest',
     visitorRequest: 'Visitor Request',
     visitorDetails: 'Visitor Details',
+    hostDetails: 'Host Details',
+    hostName: 'Host Name',
     visitorName: 'Visitor Name',
     visitorEmail: 'Visitor Email',
     visitorPhone: 'Visitor Phone',

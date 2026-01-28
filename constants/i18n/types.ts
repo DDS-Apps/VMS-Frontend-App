@@ -236,6 +236,8 @@ export interface TranslationKeys {
     guest: string;
     visitorRequest: string;
     visitorDetails: string;
+    hostDetails: string;
+    hostName: string;
     visitorName: string;
     visitorEmail: string;
     visitorPhone: string;
