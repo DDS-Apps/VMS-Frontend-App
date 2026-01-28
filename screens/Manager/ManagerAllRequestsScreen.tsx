@@ -8,7 +8,7 @@ import {
   useWindowDimensions,
   ScrollView,
 } from "react-native";
-import { useFocusEffect, useRoute } from "@react-navigation/native";
+import { useFocusEffect } from "@react-navigation/native";
 import { DDIcon } from "@/components/DDIcon";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -26,6 +26,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useScreenInsets } from "@/hooks/useScreenInsets";
 import {
   useInfiniteApprovalHistoryQuery,
+  useApproveVisitMutation,
+  useRejectVisitMutation,
   approvalHistoryKeys,
 } from "@/hooks/queries/useApprovalQueries";
 import { useQueryClient } from "@tanstack/react-query";
@@ -40,7 +42,7 @@ const LAYOUT = {
   cardRadius: BorderRadius.md,
 };
 
-type TabType = "all" | "approved" | "rejected";
+type TabType = "all" | "pending" | "approved" | "rejected";
 
 type ScreenProps = NativeStackScreenProps<ManagerStackParamList, "AllRequests">;
 
@@ -52,6 +54,20 @@ const mapStatusToVisitorRequestStatus = (status: string): VisitorRequest["status
       return "approved";
     case "rejected":
       return "rejected";
+    case "visitor_pending":
+      return "visitor_pending";
+    case "visitor_accepted":
+      return "visitor_accepted";
+    case "visitor_rejected":
+      return "visitor_rejected";
+    case "checked_in":
+      return "checked_in";
+    case "completed":
+      return "completed";
+    case "cancelled":
+      return "cancelled";
+    case "auto_cancelled":
+      return "auto_cancelled";
     default:
       return "pending_approval";
   }
@@ -109,12 +125,14 @@ const SectionHeaderWithTabs = ({
   t: (key: string) => string;
   isRTL: boolean;
 }) => {
-  const tabs: TabType[] = ["all", "approved", "rejected"];
+  const tabs: TabType[] = ["all", "pending", "approved", "rejected"];
 
   const getTabLabel = (tab: TabType): string => {
     switch (tab) {
       case "all":
         return t("common.all");
+      case "pending":
+        return t("navigation.pendingApprovals");
       case "approved":
         return t("status.approved");
       case "rejected":
@@ -245,7 +263,7 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
   const queryClient = useQueryClient();
 
   const routeParams = route?.params;
-  const validTabs: TabType[] = ["all", "approved", "rejected"];
+  const validTabs: TabType[] = ["all", "pending", "approved", "rejected"];
   const isValidTab = (tab: string): tab is TabType => validTabs.includes(tab as TabType);
 
   const getInitialTab = (): TabType => {
@@ -257,6 +275,8 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
   const [selectedTab, setSelectedTab] = useState<TabType>(getInitialTab());
   const [viewMode, setViewMode] = useState<"card" | "list">("card");
   const [lastInitialTab, setLastInitialTab] = useState<string | undefined>(routeParams?.initialTab);
+  const [approvingRequestId, setApprovingRequestId] = useState<string | null>(null);
+  const [rejectingRequestId, setRejectingRequestId] = useState<string | null>(null);
 
   useEffect(() => {
     const paramTab = routeParams?.initialTab;
@@ -270,6 +290,8 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
   // Map tab to API status filter
   const statusFilter: ApprovalHistoryStatus | undefined = useMemo(() => {
     switch (selectedTab) {
+      case "pending":
+        return "pending";
       case "approved":
         return "approved";
       case "rejected":
@@ -293,6 +315,10 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
     limit: 20,
   });
 
+  // Mutations for approve/reject
+  const approveMutation = useApproveVisitMutation();
+  const rejectMutation = useRejectVisitMutation();
+
   const items = useMemo(() => {
     if (!data?.pages) return [];
     return data.pages.flatMap((page) => page.data || []);
@@ -315,12 +341,74 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
     setSelectedTab(tab);
   }, []);
 
+  // Approve handler
+  const handleApprove = useCallback(
+    (id: string) => {
+      setApprovingRequestId(id);
+      approveMutation.mutate(
+        { id },
+        {
+          onSuccess: () => {
+            setApprovingRequestId(null);
+            queryClient.invalidateQueries({ queryKey: approvalHistoryKeys.all });
+          },
+          onError: (error) => {
+            setApprovingRequestId(null);
+            Alert.alert(t("common.error"), error.message || t("approval.approveFailed"));
+          },
+        }
+      );
+    },
+    [approveMutation, queryClient, t]
+  );
+
+  // Reject handler
+  const handleReject = useCallback(
+    (id: string) => {
+      Alert.prompt(
+        t("approval.rejectRequest"),
+        t("approval.enterRejectionReason"),
+        [
+          { text: t("common.cancel"), style: "cancel" },
+          {
+            text: t("common.reject"),
+            style: "destructive",
+            onPress: (reason: string | undefined) => {
+              setRejectingRequestId(id);
+              rejectMutation.mutate(
+                { id, payload: { reason: reason || "" } },
+                {
+                  onSuccess: () => {
+                    setRejectingRequestId(null);
+                    queryClient.invalidateQueries({ queryKey: approvalHistoryKeys.all });
+                  },
+                  onError: (error) => {
+                    setRejectingRequestId(null);
+                    Alert.alert(t("common.error"), error.message || t("approval.rejectFailed"));
+                  },
+                }
+              );
+            },
+          },
+        ],
+        "plain-text"
+      );
+    },
+    [rejectMutation, queryClient, t]
+  );
+
   const isWebLayout = width > 768;
   const numColumns = isWebLayout && viewMode === "card" ? 3 : 1;
 
   const renderItem = useCallback(
     ({ item }: { item: ApprovalHistoryItemDto }) => {
       const request = mapHistoryToVisitorRequest(item);
+      const isPending = item.status === "pending";
+      
+      // Show actions only for pending items
+      const showActions = isPending;
+      const isApproving = approvingRequestId === item.id;
+      const isRejecting = rejectingRequestId === item.id;
 
       return (
         <View
@@ -334,11 +422,16 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
             request={request}
             onPress={() => handleViewDetails(item.id)}
             showRequestedBy
+            showActions={showActions}
+            onApprove={showActions ? () => handleApprove(item.id) : undefined}
+            onReject={showActions ? () => handleReject(item.id) : undefined}
+            approveLoading={isApproving}
+            rejectLoading={isRejecting}
           />
         </View>
       );
     },
-    [numColumns, handleViewDetails]
+    [numColumns, handleViewDetails, handleApprove, handleReject, approvingRequestId, rejectingRequestId]
   );
 
   const renderHeader = () => (

@@ -9,7 +9,7 @@ export type ManagerStackParamList = {
   VisitTypeSelection: undefined;
   VisitorRequestForm: { visitType?: string };
   VisitorRequests: { initialTab?: 'all' | 'pending' | 'awaiting' | 'walkin' } | undefined;
-  AllRequests: { initialTab?: 'all' | 'approved' | 'rejected' } | undefined;
+  AllRequests: { initialTab?: 'all' | 'pending' | 'approved' | 'rejected' } | undefined;
   RequestDetails: { requestId: string };
   Notifications: undefined;
   Settings: undefined;
