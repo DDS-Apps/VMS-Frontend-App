@@ -411,6 +411,12 @@ export default function RequestDetailsScreen({
     }
   }, [showSuccessModal, fadeAnim, scaleAnim]);
 
+  // DEBUG: Track Edit Modal visibility changes
+  useEffect(() => {
+    console.log("[DEBUG Modal] showEditModal state changed to:", showEditModal);
+    console.log("[DEBUG Modal] Platform:", Platform.OS, "editModalMode:", editModalMode);
+  }, [showEditModal, editModalMode]);
+
   const handleCloseSuccessModal = () => {
     setShowSuccessModal(false);
   };
@@ -611,7 +617,12 @@ export default function RequestDetailsScreen({
   };
 
   const openEditModal = (mode: "full" | "services-only" = "full") => {
-    if (!visitData || isTerminalStatus) return;
+    console.log("[DEBUG Modal] openEditModal called with mode:", mode);
+    console.log("[DEBUG Modal] visitData exists:", !!visitData, "isTerminalStatus:", isTerminalStatus);
+    if (!visitData || isTerminalStatus) {
+      console.log("[DEBUG Modal] openEditModal - early return (no visitData or terminal status)");
+      return;
+    }
 
     setIsApprovalFlow(false);
     setEditModalMode(mode);
@@ -675,10 +686,12 @@ export default function RequestDetailsScreen({
     setEditSendSMS(channels.includes("sms"));
 
     setEditNotes("");
+    console.log("[DEBUG Modal] Setting showEditModal to TRUE");
     setShowEditModal(true);
   };
 
   const closeEditModal = () => {
+    console.log("[DEBUG Modal] closeEditModal called - setting showEditModal to FALSE");
     setShowEditModal(false);
     setIsApprovalFlow(false);
   };
@@ -2453,20 +2466,45 @@ export default function RequestDetailsScreen({
           transparent
           animationType="fade"
           onRequestClose={closeEditModal}
+          onShow={() => console.log("[DEBUG Modal] Edit Modal SHOWN - visible:", showEditModal)}
+          onDismiss={() => console.log("[DEBUG Modal] Edit Modal DISMISSED")}
         >
           <Pressable
             style={[
               styles.modalOverlay,
               createModalOverlayStyle(theme, "50"),
             ]}
-            onPress={closeEditModal}
+            onPress={() => {
+              console.log("[DEBUG Modal] Backdrop (outer Pressable) PRESSED - closing modal");
+              closeEditModal();
+            }}
+            onPressIn={() => console.log("[DEBUG Modal] Backdrop onPressIn")}
+            onPressOut={() => console.log("[DEBUG Modal] Backdrop onPressOut")}
           >
             <Pressable
               style={[
                 styles.editModalContent,
                 { backgroundColor: theme.surface },
               ]}
-              onPress={(e) => e.stopPropagation()}
+              onPress={(e) => {
+                console.log("[DEBUG Modal] Content wrapper (inner Pressable) PRESSED - stopPropagation called");
+                console.log("[DEBUG Modal] Event target:", e.target);
+                console.log("[DEBUG Modal] Event currentTarget:", e.currentTarget);
+                e.stopPropagation();
+              }}
+              onPressIn={(e) => {
+                console.log("[DEBUG Modal] Content wrapper onPressIn");
+                console.log("[DEBUG Modal] PressIn nativeEvent:", JSON.stringify(e.nativeEvent));
+              }}
+              onPressOut={() => console.log("[DEBUG Modal] Content wrapper onPressOut")}
+              onStartShouldSetResponder={() => {
+                console.log("[DEBUG Modal] Content wrapper onStartShouldSetResponder called - returning false");
+                return false;
+              }}
+              onMoveShouldSetResponder={() => {
+                console.log("[DEBUG Modal] Content wrapper onMoveShouldSetResponder called - returning false");
+                return false;
+              }}
             >
               <DirectionalRow style={styles.modalHeader}>
                 <ThemedText
@@ -2487,7 +2525,14 @@ export default function RequestDetailsScreen({
                       ? t("actions.editServices")
                       : t("actions.editRequest")}
                 </ThemedText>
-                <Pressable onPress={closeEditModal}>
+                <Pressable 
+                  onPress={() => {
+                    console.log("[DEBUG Modal] Close X button PRESSED");
+                    closeEditModal();
+                  }}
+                  onPressIn={() => console.log("[DEBUG Modal] Close X button onPressIn")}
+                  onPressOut={() => console.log("[DEBUG Modal] Close X button onPressOut")}
+                >
                   <DDIcon name="x" size={22} variant="muted" />
                 </Pressable>
               </DirectionalRow>
@@ -2499,6 +2544,9 @@ export default function RequestDetailsScreen({
                 showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled"
                 nestedScrollEnabled={true}
+                onTouchStart={() => console.log("[DEBUG Modal] ScrollView onTouchStart")}
+                onTouchEnd={() => console.log("[DEBUG Modal] ScrollView onTouchEnd")}
+                onScrollBeginDrag={() => console.log("[DEBUG Modal] ScrollView onScrollBeginDrag")}
               >
                 <ThemedText
                   style={[
@@ -2522,7 +2570,12 @@ export default function RequestDetailsScreen({
                       flexDirection: getFlexDirection(isRTL),
                     },
                   ]}
-                  onPress={() => setShowPurposePicker(true)}
+                  onPress={() => {
+                    console.log("[DEBUG Modal] Purpose picker button PRESSED");
+                    setShowPurposePicker(true);
+                  }}
+                  onPressIn={() => console.log("[DEBUG Modal] Purpose picker onPressIn")}
+                  onPressOut={() => console.log("[DEBUG Modal] Purpose picker onPressOut")}
                 >
                   <DDIcon name="clipboard" size={16} variant="muted" />
                   <ThemedText
@@ -2630,7 +2683,12 @@ export default function RequestDetailsScreen({
                           flexDirection: getFlexDirection(isRTL),
                         },
                       ]}
-                      onPress={() => setShowEditEndTimePicker(true)}
+                      onPress={() => {
+                        console.log("[DEBUG Modal] Walk-in End time picker button PRESSED");
+                        setShowEditEndTimePicker(true);
+                      }}
+                      onPressIn={() => console.log("[DEBUG Modal] Walk-in End time picker onPressIn")}
+                      onPressOut={() => console.log("[DEBUG Modal] Walk-in End time picker onPressOut")}
                     >
                       <DDIcon
                         name="clock"
@@ -2718,9 +2776,11 @@ export default function RequestDetailsScreen({
                         },
                       ]}
                       onPress={() => {
-                        console.log("[Edit Modal] Date picker button pressed");
+                        console.log("[DEBUG Modal] Date picker button PRESSED");
                         setShowEditDatePicker(true);
                       }}
+                      onPressIn={() => console.log("[DEBUG Modal] Date picker onPressIn")}
+                      onPressOut={() => console.log("[DEBUG Modal] Date picker onPressOut")}
                       android_ripple={{ color: theme.border }}
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
@@ -2766,9 +2826,11 @@ export default function RequestDetailsScreen({
                         },
                       ]}
                       onPress={() => {
-                        console.log("[Edit Modal] Time picker button pressed");
+                        console.log("[DEBUG Modal] Time picker button PRESSED");
                         setShowEditTimePicker(true);
                       }}
+                      onPressIn={() => console.log("[DEBUG Modal] Time picker onPressIn")}
+                      onPressOut={() => console.log("[DEBUG Modal] Time picker onPressOut")}
                       android_ripple={{ color: theme.border }}
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
@@ -2814,11 +2876,11 @@ export default function RequestDetailsScreen({
                         },
                       ]}
                       onPress={() => {
-                        console.log(
-                          "[Edit Modal] End time picker button pressed",
-                        );
+                        console.log("[DEBUG Modal] End time picker button PRESSED");
                         setShowEditEndTimePicker(true);
                       }}
+                      onPressIn={() => console.log("[DEBUG Modal] End time picker onPressIn")}
+                      onPressOut={() => console.log("[DEBUG Modal] End time picker onPressOut")}
                       android_ripple={{ color: theme.border }}
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
@@ -2921,9 +2983,10 @@ export default function RequestDetailsScreen({
                     <View style={getGridStyle(isRTL)}>
                       <View style={getCardWrapper3ColStyle()}>
                         <SelectableCard
-                          onPress={() =>
-                            setEditRequiresMeetingRoom(!editRequiresMeetingRoom)
-                          }
+                          onPress={() => {
+                            console.log("[DEBUG Modal] Meeting Room card PRESSED, toggling to:", !editRequiresMeetingRoom);
+                            setEditRequiresMeetingRoom(!editRequiresMeetingRoom);
+                          }}
                           selected={editRequiresMeetingRoom}
                         >
                           <View
@@ -2955,7 +3018,10 @@ export default function RequestDetailsScreen({
 
                       <View style={getCardWrapper3ColStyle()}>
                         <SelectableCard
-                          onPress={() => setEditRequiresBuffet(!editRequiresBuffet)}
+                          onPress={() => {
+                            console.log("[DEBUG Modal] Buffet card PRESSED, toggling to:", !editRequiresBuffet);
+                            setEditRequiresBuffet(!editRequiresBuffet);
+                          }}
                           selected={editRequiresBuffet}
                         >
                           <View
@@ -3095,7 +3161,12 @@ export default function RequestDetailsScreen({
                               : theme.border,
                           },
                         ]}
-                        onPress={() => setEditSendWhatsApp(!editSendWhatsApp)}
+                        onPress={() => {
+                          console.log("[DEBUG Modal] WhatsApp channel PRESSED, toggling to:", !editSendWhatsApp);
+                          setEditSendWhatsApp(!editSendWhatsApp);
+                        }}
+                        onPressIn={() => console.log("[DEBUG Modal] WhatsApp channel onPressIn")}
+                        onPressOut={() => console.log("[DEBUG Modal] WhatsApp channel onPressOut")}
                       >
                         <View
                           style={[
@@ -3148,7 +3219,12 @@ export default function RequestDetailsScreen({
                               : theme.border,
                           },
                         ]}
-                        onPress={() => setEditSendSMS(!editSendSMS)}
+                        onPress={() => {
+                          console.log("[DEBUG Modal] SMS channel PRESSED, toggling to:", !editSendSMS);
+                          setEditSendSMS(!editSendSMS);
+                        }}
+                        onPressIn={() => console.log("[DEBUG Modal] SMS channel onPressIn")}
+                        onPressOut={() => console.log("[DEBUG Modal] SMS channel onPressOut")}
                       >
                         <View
                           style={[
@@ -3241,7 +3317,10 @@ export default function RequestDetailsScreen({
 
               <View style={styles.modalActions}>
                 <LoadingButton
-                  onPress={closeEditModal}
+                  onPress={() => {
+                    console.log("[DEBUG Modal] Cancel button PRESSED");
+                    closeEditModal();
+                  }}
                   variant="secondary"
                   size="medium"
                   style={{ flex: 1 }}
@@ -3252,7 +3331,10 @@ export default function RequestDetailsScreen({
                 <Spacer width={12} />
 
                 <LoadingButton
-                  onPress={handleEditConfirm}
+                  onPress={() => {
+                    console.log("[DEBUG Modal] Save/Submit button PRESSED");
+                    handleEditConfirm();
+                  }}
                   loading={updateMutation.isPending}
                   disabled={updateMutation.isPending}
                   variant={isApprovalFlow ? "success" : "primary"}
