@@ -9,6 +9,8 @@ import {
   Platform,
   KeyboardAvoidingView,
 } from 'react-native';
+import { Image } from 'expo-image';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { DDIcon } from '@/components/DDIcon';
@@ -38,6 +40,57 @@ interface PhoneInputWithCountryProps {
   testID?: string;
 }
 
+// Get flag image URL from flagcdn.com
+const getFlagUrl = (countryCode: string) => {
+  return `https://flagcdn.com/w80/${countryCode.toLowerCase()}.png`;
+};
+
+// Flag Avatar Component with fallback
+const FlagAvatar = ({ 
+  countryCode, 
+  size = 24 
+}: { 
+  countryCode: string; 
+  size?: number;
+}) => {
+  const { theme } = useTheme();
+  const [hasError, setHasError] = useState(false);
+
+  if (hasError) {
+    // Fallback to country code text
+    return (
+      <View 
+        style={[
+          styles.flagAvatar, 
+          styles.flagFallback,
+          { 
+            width: size, 
+            height: size, 
+            borderRadius: size / 2,
+            backgroundColor: theme.surfaceSecondary,
+          }
+        ]}
+      >
+        <ThemedText style={[styles.flagFallbackText, { fontSize: size * 0.4 }]}>
+          {countryCode}
+        </ThemedText>
+      </View>
+    );
+  }
+
+  return (
+    <View style={[styles.flagAvatar, { width: size, height: size, borderRadius: size / 2 }]}>
+      <Image
+        source={{ uri: getFlagUrl(countryCode) }}
+        style={[styles.flagImage, { width: size, height: size, borderRadius: size / 2 }]}
+        contentFit="cover"
+        onError={() => setHasError(true)}
+        cachePolicy="memory-disk"
+      />
+    </View>
+  );
+};
+
 export const PhoneInputWithCountry = ({
   value,
   onChangeText,
@@ -51,6 +104,7 @@ export const PhoneInputWithCountry = ({
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { isRTL, locale } = useLanguage();
+  const insets = useSafeAreaInsets();
 
   // Parse initial value to get country and national number
   const parsedValue = useMemo(() => {
@@ -151,7 +205,7 @@ export const PhoneInputWithCountry = ({
         ]}
       >
         <DirectionalRow style={styles.countryItemContent} gap={Spacing.md}>
-          <ThemedText style={styles.flag}>{item.flag}</ThemedText>
+          <FlagAvatar countryCode={item.code} size={32} />
           <View style={styles.countryInfo}>
             <ThemedText style={[styles.countryName, { color: theme.text }]} numberOfLines={1}>
               {displayName}
@@ -209,9 +263,9 @@ export const PhoneInputWithCountry = ({
           testID={testID ? `${testID}-country-picker` : undefined}
         >
           <DirectionalRow gap={Spacing.xs} style={styles.countryButtonContent}>
-            <ThemedText style={styles.flag}>{selectedCountry.flag}</ThemedText>
+            <FlagAvatar countryCode={selectedCountry.code} size={20} />
             <ThemedText style={[styles.dialCodeText, { color: theme.text }]}>
-              {selectedCountry.dialCode}
+              {selectedCountry.code} {selectedCountry.dialCode}
             </ThemedText>
             <DDIcon name="chevron-down" size={14} color={theme.textSecondary} />
           </DirectionalRow>
@@ -245,81 +299,165 @@ export const PhoneInputWithCountry = ({
         </>
       )}
 
-      {/* Country Picker Modal */}
+      {/* Country Picker Modal - Half Screen */}
       <Modal
         visible={showCountryPicker}
         animationType="slide"
-        presentationStyle={Platform.OS === 'ios' ? 'pageSheet' : 'fullScreen'}
+        presentationStyle="pageSheet"
         onRequestClose={() => setShowCountryPicker(false)}
+        transparent={Platform.OS === 'android'}
       >
-        <KeyboardAvoidingView
-          style={[styles.modalContainer, { backgroundColor: theme.background }]}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        >
-          <ThemedView style={[styles.modalContent, { backgroundColor: theme.background }]}>
-            {/* Modal Header */}
-            <DirectionalRow style={[styles.modalHeader, { borderBottomColor: theme.border }]}>
-              <ThemedText style={[Typography.title, { color: theme.text, flex: 1 }]}>
-                {t('form.selectCountry')}
-              </ThemedText>
-              <Pressable
-                onPress={() => {
-                  setShowCountryPicker(false);
-                  setSearchQuery('');
-                }}
-                style={styles.closeButton}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              >
-                <DDIcon name="x" size={24} color={theme.text} />
-              </Pressable>
-            </DirectionalRow>
-
-            {/* Search Input */}
-            <View style={[styles.searchContainer, { backgroundColor: theme.surfaceSecondary }]}>
-              <DirectionalRow gap={Spacing.sm} style={styles.searchInputRow}>
-                <DDIcon name="search" size={18} color={theme.textSecondary} />
-                <TextInput
-                  style={[
-                    styles.searchInput,
-                    {
-                      color: theme.text,
-                      textAlign: isRTL ? 'right' : 'left',
-                    },
-                  ]}
-                  value={searchQuery}
-                  onChangeText={setSearchQuery}
-                  placeholder={t('common.search')}
-                  placeholderTextColor={theme.textSecondary}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                />
-                {searchQuery.length > 0 && (
-                  <Pressable onPress={() => setSearchQuery('')}>
-                    <DDIcon name="x-circle" size={18} color={theme.textSecondary} />
-                  </Pressable>
-                )}
-              </DirectionalRow>
-            </View>
-
-            {/* Country List */}
-            <FlatList
-              data={filteredCountries}
-              renderItem={renderCountryItem}
-              keyExtractor={(item) => item.code}
-              style={styles.countryList}
-              contentContainerStyle={styles.countryListContent}
-              keyboardShouldPersistTaps="handled"
-              showsVerticalScrollIndicator={false}
-              ListEmptyComponent={
-                <View style={styles.emptyState}>
-                  <ThemedText style={[Typography.body, { color: theme.textSecondary }]}>
-                    {t('common.noResults')}
-                  </ThemedText>
-                </View>
-              }
+        {Platform.OS === 'android' ? (
+          // Android: Custom half-screen overlay
+          <View style={styles.androidModalOverlay}>
+            <Pressable 
+              style={styles.androidModalBackdrop} 
+              onPress={() => setShowCountryPicker(false)}
             />
-          </ThemedView>
-        </KeyboardAvoidingView>
+            <KeyboardAvoidingView
+              style={[
+                styles.androidModalContent,
+                { 
+                  backgroundColor: theme.background,
+                  paddingBottom: insets.bottom,
+                },
+              ]}
+              behavior="padding"
+            >
+              {/* Modal Header */}
+              <DirectionalRow style={[styles.modalHeader, { borderBottomColor: theme.border }]}>
+                <ThemedText style={[Typography.title, { color: theme.text, flex: 1 }]}>
+                  {t('form.selectCountry')}
+                </ThemedText>
+                <Pressable
+                  onPress={() => {
+                    setShowCountryPicker(false);
+                    setSearchQuery('');
+                  }}
+                  style={styles.closeButton}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <DDIcon name="x" size={24} color={theme.text} />
+                </Pressable>
+              </DirectionalRow>
+
+              {/* Search Input */}
+              <View style={[styles.searchContainer, { backgroundColor: theme.surfaceSecondary }]}>
+                <DirectionalRow gap={Spacing.sm} style={styles.searchInputRow}>
+                  <DDIcon name="search" size={18} color={theme.textSecondary} />
+                  <TextInput
+                    style={[
+                      styles.searchInput,
+                      {
+                        color: theme.text,
+                        textAlign: isRTL ? 'right' : 'left',
+                      },
+                    ]}
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    placeholder={t('common.search')}
+                    placeholderTextColor={theme.textSecondary}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                  {searchQuery.length > 0 && (
+                    <Pressable onPress={() => setSearchQuery('')}>
+                      <DDIcon name="x-circle" size={18} color={theme.textSecondary} />
+                    </Pressable>
+                  )}
+                </DirectionalRow>
+              </View>
+
+              {/* Country List */}
+              <FlatList
+                data={filteredCountries}
+                renderItem={renderCountryItem}
+                keyExtractor={(item) => item.code}
+                style={styles.countryList}
+                contentContainerStyle={styles.countryListContent}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+                ListEmptyComponent={
+                  <View style={styles.emptyState}>
+                    <ThemedText style={[Typography.body, { color: theme.textSecondary }]}>
+                      {t('common.noResults')}
+                    </ThemedText>
+                  </View>
+                }
+              />
+            </KeyboardAvoidingView>
+          </View>
+        ) : (
+          // iOS: Native pageSheet
+          <KeyboardAvoidingView
+            style={[styles.modalContainer, { backgroundColor: theme.background }]}
+            behavior="padding"
+          >
+            <ThemedView style={[styles.modalContent, { backgroundColor: theme.background }]}>
+              {/* Modal Header */}
+              <DirectionalRow style={[styles.modalHeader, { borderBottomColor: theme.border }]}>
+                <ThemedText style={[Typography.title, { color: theme.text, flex: 1 }]}>
+                  {t('form.selectCountry')}
+                </ThemedText>
+                <Pressable
+                  onPress={() => {
+                    setShowCountryPicker(false);
+                    setSearchQuery('');
+                  }}
+                  style={styles.closeButton}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <DDIcon name="x" size={24} color={theme.text} />
+                </Pressable>
+              </DirectionalRow>
+
+              {/* Search Input */}
+              <View style={[styles.searchContainer, { backgroundColor: theme.surfaceSecondary }]}>
+                <DirectionalRow gap={Spacing.sm} style={styles.searchInputRow}>
+                  <DDIcon name="search" size={18} color={theme.textSecondary} />
+                  <TextInput
+                    style={[
+                      styles.searchInput,
+                      {
+                        color: theme.text,
+                        textAlign: isRTL ? 'right' : 'left',
+                      },
+                    ]}
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    placeholder={t('common.search')}
+                    placeholderTextColor={theme.textSecondary}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                  {searchQuery.length > 0 && (
+                    <Pressable onPress={() => setSearchQuery('')}>
+                      <DDIcon name="x-circle" size={18} color={theme.textSecondary} />
+                    </Pressable>
+                  )}
+                </DirectionalRow>
+              </View>
+
+              {/* Country List */}
+              <FlatList
+                data={filteredCountries}
+                renderItem={renderCountryItem}
+                keyExtractor={(item) => item.code}
+                style={styles.countryList}
+                contentContainerStyle={[styles.countryListContent, { paddingBottom: insets.bottom + Spacing.xxl }]}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+                ListEmptyComponent={
+                  <View style={styles.emptyState}>
+                    <ThemedText style={[Typography.body, { color: theme.textSecondary }]}>
+                      {t('common.noResults')}
+                    </ThemedText>
+                  </View>
+                }
+              />
+            </ThemedView>
+          </KeyboardAvoidingView>
+        )}
       </Modal>
     </View>
   );
@@ -344,8 +482,21 @@ const styles = StyleSheet.create({
   countryButtonContent: {
     alignItems: 'center',
   },
-  flag: {
-    fontSize: 20,
+  flagAvatar: {
+    overflow: 'hidden',
+    backgroundColor: '#f0f0f0',
+  },
+  flagFallback: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  flagFallbackText: {
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  flagImage: {
+    width: '100%',
+    height: '100%',
   },
   dialCodeText: {
     fontSize: 14,
@@ -357,6 +508,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     minHeight: 48,
   },
+  // Android half-screen modal
+  androidModalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  androidModalBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  androidModalContent: {
+    maxHeight: '70%',
+    borderTopLeftRadius: BorderRadius.lg,
+    borderTopRightRadius: BorderRadius.lg,
+    overflow: 'hidden',
+  },
+  // iOS modal
   modalContainer: {
     flex: 1,
   },
@@ -377,14 +544,17 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
+    minHeight: 44,
   },
   searchInputRow: {
     alignItems: 'center',
+    flex: 1,
   },
   searchInput: {
     flex: 1,
     fontSize: 16,
     paddingVertical: Spacing.xs,
+    minHeight: 32,
   },
   countryList: {
     flex: 1,
