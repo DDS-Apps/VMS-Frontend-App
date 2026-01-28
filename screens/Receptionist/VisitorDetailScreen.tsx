@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { View, StyleSheet, Pressable, Modal, TextInput, Alert, ScrollView, ActivityIndicator } from "react-native";
+import { View, StyleSheet, Pressable, Modal, TextInput, Alert, ScrollView, ActivityIndicator, useWindowDimensions } from "react-native";
 import type { VisitorDetailScreenProps } from "@/types/receptionistNavigation.types";
 import { ROUTES } from "@/constants";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -59,8 +59,13 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
   const { t } = useTranslation();
   const { formatTime, toLocalNumerals } = useFormatters();
   const { isRTL } = useLanguage();
-  const insets = useSafeAreaInsets();  
+  const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
   const { visitor: legacyVisitor, visitId } = route.params as { visitor?: LegacyVisitor; visitId?: string };
+  
+  // Responsive layout: use grid on web (>768px), single column on mobile
+  const isWebLayout = screenWidth >= 768;
+  const gridItemWidth = screenWidth > 1024 ? '32%' : '48%';
   
   // Always fetch from server - use visitor.id from passed object or visitId param
   const effectiveVisitId = visitId ?? legacyVisitor?.id ?? '';
@@ -417,60 +422,66 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
             </ThemedText>
             <Spacer height={Spacing.xl} />
 
-            {/* Host Name */}
-            <DirectionalRow style={styles.serviceRowNew}>
-              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-                <DDIcon name="user" size={18} color={theme.text} />
-              </View>
-              <View>
-                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
-                  {t('visitor.hostName')}
-                </ThemedText>
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
-                  {visitor.host}
-                  {visitor.hostDepartment ? ` (${visitor.hostDepartment})` : ''}
-                </ThemedText>
-              </View>
-            </DirectionalRow>
-
-            <Spacer height={Spacing.md} />
-
-            {/* Host Phone */}
-            {visitor.hostPhone && (
-              <>
+            {/* Responsive grid for Host Details items */}
+            <View style={isWebLayout ? styles.responsiveGrid : undefined}>
+              {/* Host Name */}
+              <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
                 <DirectionalRow style={styles.serviceRowNew}>
                   <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-                    <DDIcon name="phone" size={18} color={theme.text} />
+                    <DDIcon name="user" size={18} color={theme.text} />
                   </View>
                   <View>
                     <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
-                      {t('form.phone')}
+                      {t('visitor.hostName')}
                     </ThemedText>
                     <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
-                      {formatPhoneNumber(visitor.hostPhone || '')}
+                      {visitor.host}
+                      {visitor.hostDepartment ? ` (${visitor.hostDepartment})` : ''}
                     </ThemedText>
                   </View>
                 </DirectionalRow>
-                <Spacer height={Spacing.md} />
-              </>
-            )}
+                {!isWebLayout && <Spacer height={Spacing.md} />}
+              </View>
 
-            {/* Host Landline */}
-            {visitor.hostLandline && (
-              <DirectionalRow style={styles.serviceRowNew}>
-                <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-                  <DDIcon name="phone" size={18} color={theme.text} />
+              {/* Host Phone */}
+              {visitor.hostPhone && (
+                <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
+                  <DirectionalRow style={styles.serviceRowNew}>
+                    <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                      <DDIcon name="phone" size={18} color={theme.text} />
+                    </View>
+                    <View>
+                      <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+                        {t('form.phone')}
+                      </ThemedText>
+                      <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+                        {formatPhoneNumber(visitor.hostPhone || '')}
+                      </ThemedText>
+                    </View>
+                  </DirectionalRow>
+                  {!isWebLayout && <Spacer height={Spacing.md} />}
                 </View>
-                <View>
-                  <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
-                    {t('form.landline')}
-                  </ThemedText>
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
-                    {formatPhoneNumber(visitor.hostLandline || '')}
-                  </ThemedText>
+              )}
+
+              {/* Host Landline */}
+              {visitor.hostLandline && (
+                <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
+                  <DirectionalRow style={styles.serviceRowNew}>
+                    <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                      <DDIcon name="phone" size={18} color={theme.text} />
+                    </View>
+                    <View>
+                      <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+                        {t('form.landline')}
+                      </ThemedText>
+                      <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+                        {formatPhoneNumber(visitor.hostLandline || '')}
+                      </ThemedText>
+                    </View>
+                  </DirectionalRow>
                 </View>
-              </DirectionalRow>
-            )}
+              )}
+            </View>
           </ThemedView>
         </>
       )}
@@ -685,6 +696,11 @@ const styles = StyleSheet.create({
   },
   serviceRowNew: {
     alignItems: 'flex-start',
+    gap: Spacing.md,
+  },
+  responsiveGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: Spacing.md,
   },
   serviceIcon: {

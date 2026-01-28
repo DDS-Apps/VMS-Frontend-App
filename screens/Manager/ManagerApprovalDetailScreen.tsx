@@ -8,6 +8,7 @@ import {
   Animated,
   Alert,
   Platform,
+  useWindowDimensions,
 } from "react-native";
 import DateTimePicker, {
   DateTimePickerEvent,
@@ -155,7 +156,12 @@ export default function ManagerApprovalDetailScreen({
   } = useFormatters();
   const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
   const { requestId } = route.params;
+  
+  // Responsive layout: use grid on web (>768px), single column on mobile
+  const isWebLayout = screenWidth >= 768;
+  const gridItemWidth = screenWidth > 1024 ? '32%' : '48%';
   const { user } = useAuth();
   const isReadOnlyRole = user?.role === "building_admin";
   const {
@@ -1351,36 +1357,10 @@ export default function ManagerApprovalDetailScreen({
               </ThemedText>
               <Spacer height={Spacing.xl} />
 
-              {/* Host Name */}
-              <DirectionalRow style={styles.serviceRow}>
-                <View
-                  style={[
-                    styles.serviceIcon,
-                    { backgroundColor: applyOpacity(theme.textSecondary, "20") },
-                  ]}
-                >
-                  <DDIcon name="user" size={18} color={theme.text} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <ThemedText
-                    style={[Typography.body, { fontWeight: "600", fontSize: 14, color: theme.text }]}
-                  >
-                    {t("visitor.hostName")}
-                  </ThemedText>
-                  <ThemedText
-                    style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}
-                  >
-                    {request.employeeName}
-                    {request.employeeDepartment ? ` (${request.employeeDepartment})` : ''}
-                  </ThemedText>
-                </View>
-              </DirectionalRow>
-
-              <Spacer height={Spacing.md} />
-
-              {/* Host Phone */}
-              {request.employeePhoneNumber && (
-                <>
+              {/* Responsive grid for Host Details items */}
+              <View style={isWebLayout ? styles.responsiveGrid : undefined}>
+                {/* Host Name */}
+                <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
                   <DirectionalRow style={styles.serviceRow}>
                     <View
                       style={[
@@ -1388,50 +1368,82 @@ export default function ManagerApprovalDetailScreen({
                         { backgroundColor: applyOpacity(theme.textSecondary, "20") },
                       ]}
                     >
-                      <DDIcon name="phone" size={18} color={theme.text} />
+                      <DDIcon name="user" size={18} color={theme.text} />
                     </View>
                     <View style={{ flex: 1 }}>
                       <ThemedText
                         style={[Typography.body, { fontWeight: "600", fontSize: 14, color: theme.text }]}
                       >
-                        {t("form.phone")}
+                        {t("visitor.hostName")}
                       </ThemedText>
                       <ThemedText
                         style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}
                       >
-                        {formatPhoneNumber(request.employeePhoneNumber || '')}
+                        {request.employeeName}
+                        {request.employeeDepartment ? ` (${request.employeeDepartment})` : ''}
                       </ThemedText>
                     </View>
                   </DirectionalRow>
-                  <Spacer height={Spacing.md} />
-                </>
-              )}
+                  {!isWebLayout && <Spacer height={Spacing.md} />}
+                </View>
 
-              {/* Host Landline */}
-              {request.employeeBusinessPhone && (
-                <DirectionalRow style={styles.serviceRow}>
-                  <View
-                    style={[
-                      styles.serviceIcon,
-                      { backgroundColor: applyOpacity(theme.textSecondary, "20") },
-                    ]}
-                  >
-                    <DDIcon name="phone" size={18} color={theme.text} />
+                {/* Host Phone */}
+                {request.employeePhoneNumber && (
+                  <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
+                    <DirectionalRow style={styles.serviceRow}>
+                      <View
+                        style={[
+                          styles.serviceIcon,
+                          { backgroundColor: applyOpacity(theme.textSecondary, "20") },
+                        ]}
+                      >
+                        <DDIcon name="phone" size={18} color={theme.text} />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <ThemedText
+                          style={[Typography.body, { fontWeight: "600", fontSize: 14, color: theme.text }]}
+                        >
+                          {t("form.phone")}
+                        </ThemedText>
+                        <ThemedText
+                          style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}
+                        >
+                          {formatPhoneNumber(request.employeePhoneNumber || '')}
+                        </ThemedText>
+                      </View>
+                    </DirectionalRow>
+                    {!isWebLayout && <Spacer height={Spacing.md} />}
                   </View>
-                  <View style={{ flex: 1 }}>
-                    <ThemedText
-                      style={[Typography.body, { fontWeight: "600", fontSize: 14, color: theme.text }]}
-                    >
-                      {t("form.landline")}
-                    </ThemedText>
-                    <ThemedText
-                      style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}
-                    >
-                      {formatPhoneNumber(request.employeeBusinessPhone || '')}
-                    </ThemedText>
+                )}
+
+                {/* Host Landline */}
+                {request.employeeBusinessPhone && (
+                  <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
+                    <DirectionalRow style={styles.serviceRow}>
+                      <View
+                        style={[
+                          styles.serviceIcon,
+                          { backgroundColor: applyOpacity(theme.textSecondary, "20") },
+                        ]}
+                      >
+                        <DDIcon name="phone" size={18} color={theme.text} />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <ThemedText
+                          style={[Typography.body, { fontWeight: "600", fontSize: 14, color: theme.text }]}
+                        >
+                          {t("form.landline")}
+                        </ThemedText>
+                        <ThemedText
+                          style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}
+                        >
+                          {formatPhoneNumber(request.employeeBusinessPhone || '')}
+                        </ThemedText>
+                      </View>
+                    </DirectionalRow>
                   </View>
-                </DirectionalRow>
-              )}
+                )}
+              </View>
             </ThemedView>
             <Spacer height={LAYOUT.sectionSpacing} />
           </>
@@ -1454,7 +1466,11 @@ export default function ManagerApprovalDetailScreen({
           >
             {t("services.additionalServices")}
           </ThemedText>
+          
+          {/* Responsive grid for Additional Services items */}
+          <View style={isWebLayout ? styles.responsiveGrid : undefined}>
           {/* Meeting Room */}
+          <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
           <DirectionalRow style={styles.serviceRow}>
             <View
               style={[
@@ -1597,9 +1613,11 @@ export default function ManagerApprovalDetailScreen({
               )}
             </View>
           </DirectionalRow>
-          <Spacer height={Spacing.lg} />
+          {!isWebLayout && <Spacer height={Spacing.lg} />}
+          </View>
 
           {/* Buffet */}
+          <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
           <DirectionalRow style={styles.serviceRow}>
             <View
               style={[
@@ -1732,9 +1750,11 @@ export default function ManagerApprovalDetailScreen({
               )}
             </View>
           </DirectionalRow>
-          <Spacer height={Spacing.lg} />
+          {!isWebLayout && <Spacer height={Spacing.lg} />}
+          </View>
 
           {/* Parking */}
+          <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
           <DirectionalRow style={styles.serviceRow}>
             <View
               style={[
@@ -1847,6 +1867,8 @@ export default function ManagerApprovalDetailScreen({
               )}
             </View>
           </DirectionalRow>
+          </View>
+          </View>
         </ThemedView>
 
         <Spacer height={LAYOUT.sectionSpacing} />
@@ -2599,6 +2621,11 @@ const styles = StyleSheet.create({
 
   serviceRow: {
     alignItems: "flex-start",
+    gap: Spacing.md,
+  },
+  responsiveGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: Spacing.md,
   },
   serviceIcon: {

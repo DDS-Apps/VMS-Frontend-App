@@ -12,6 +12,7 @@ import {
   Animated,
   ActivityIndicator,
   TouchableWithoutFeedback,
+  useWindowDimensions,
 } from "react-native";
 import QRCode from "react-native-qrcode-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -106,7 +107,12 @@ export default function RequestDetailsScreen({
   } = useFormatters();
   const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
   const { requestId } = route.params;
+  
+  // Responsive layout: use grid on web (>768px), single column on mobile
+  const isWebLayout = screenWidth >= 768;
+  const gridItemWidth = screenWidth > 1024 ? '32%' : '48%';
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showHostRejectModal, setShowHostRejectModal] = useState(false);
@@ -1478,66 +1484,13 @@ export default function RequestDetailsScreen({
           </DirectionalRow>
           <Spacer height={Spacing.xl} />
 
-          <DirectionalRow
-            style={[styles.serviceRowNew, { justifyContent: "flex-start" }]}
-          >
-            {isRTL ? (
-              <>
-                <View
-                  style={[
-                    styles.serviceIcon,
-                    {
-                      backgroundColor: applyOpacity(
-                        isVisitExpired ? theme.secondary : theme.textSecondary,
-                        "15",
-                      ),
-                    },
-                  ]}
-                >
-                  <DDIcon
-                    name={isVisitExpired ? "check-circle" : "calendar"}
-                    size={18}
-                    color={isVisitExpired ? theme.secondary : theme.text}
-                  />
-                </View>
-                <View>
-                  <DirectionalRow
-                    style={{
-                      alignItems: "center",
-                      gap: Spacing.xs,
-                      justifyContent: "flex-end",
-                    }}
-                  >
-                    {isVisitExpired ? (
-                      <DDIcon name="check" size={14} color={theme.secondary} />
-                    ) : null}
-                    <ThemedText
-                      style={[
-                        Typography.body,
-                        { fontWeight: "600", fontSize: 15, textAlign: "right" },
-                      ]}
-                    >
-                      {t("time.dateAndTime")}
-                    </ThemedText>
-                  </DirectionalRow>
-                  <ThemedText
-                    style={[
-                      Typography.caption,
-                      {
-                        color: theme.textSecondary,
-                        marginTop: 2,
-                        fontSize: 13,
-                        //     textAlign: "right",
-                      },
-                    ]}
-                  >
-                    {formatDateShort(request.visitDate)} •{" "}
-                    {formatVisitTimeRange(request.visitTime, request.endTime)}
-                  </ThemedText>
-                </View>
-              </>
-            ) : (
-              <>
+          {/* Responsive grid for Visit Details items */}
+          <View style={isWebLayout ? styles.responsiveGrid : undefined}>
+            {/* Date & Time */}
+            <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
+              <DirectionalRow
+                style={[styles.serviceRowNew, { justifyContent: "flex-start" }]}
+              >
                 <View
                   style={[
                     styles.serviceIcon,
@@ -1562,11 +1515,7 @@ export default function RequestDetailsScreen({
                     <ThemedText
                       style={[
                         Typography.body,
-                        {
-                          fontWeight: "600",
-                          fontSize: 15,
-                          //  textAlign: "left"
-                        },
+                        { fontWeight: "600", fontSize: 15 },
                       ]}
                     >
                       {t("time.dateAndTime")}
@@ -1578,104 +1527,83 @@ export default function RequestDetailsScreen({
                   <ThemedText
                     style={[
                       Typography.caption,
-                      {
-                        color: theme.textSecondary,
-                        marginTop: 2,
-                        fontSize: 13,
-                        //  textAlign: "left",
-                      },
+                      { color: theme.textSecondary, marginTop: 2, fontSize: 13 },
                     ]}
                   >
                     {formatDateShort(request.visitDate)} •{" "}
                     {formatVisitTimeRange(request.visitTime, request.endTime)}
                   </ThemedText>
                 </View>
-              </>
-            )}
-          </DirectionalRow>
-
-          <Spacer height={Spacing.lg} />
-
-          <DirectionalRow
-            style={[styles.serviceRowNew, { justifyContent: "flex-start" }]}
-          >
-            <View
-              style={[
-                styles.serviceIcon,
-                { backgroundColor: applyOpacity(theme.textSecondary, "15") },
-              ]}
-            >
-              <DDIcon name="clock" size={18} color={theme.text} />
+              </DirectionalRow>
+              {!isWebLayout && <Spacer height={Spacing.lg} />}
             </View>
-            <View>
-              <ThemedText
-                style={[
-                  Typography.body,
-                  {
-                    fontWeight: "600",
-                    fontSize: 15,
-                    //  
-                  },
-                ]}
-              >
-                {t("form.duration")}
-              </ThemedText>
-              <ThemedText
-                style={[
-                  Typography.caption,
-                  {
-                    color: theme.textSecondary,
-                    marginTop: 2,
-                    fontSize: 13,
-                    //   
-                  },
-                ]}
-              >
-                {parseISODuration(request.duration)}
-              </ThemedText>
-            </View>
-          </DirectionalRow>
 
-          <Spacer height={Spacing.lg} />
+            {/* Duration */}
+            <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
+              <DirectionalRow
+                style={[styles.serviceRowNew, { justifyContent: "flex-start" }]}
+              >
+                <View
+                  style={[
+                    styles.serviceIcon,
+                    { backgroundColor: applyOpacity(theme.textSecondary, "15") },
+                  ]}
+                >
+                  <DDIcon name="clock" size={18} color={theme.text} />
+                </View>
+                <View>
+                  <ThemedText
+                    style={[Typography.body, { fontWeight: "600", fontSize: 15 }]}
+                  >
+                    {t("form.duration")}
+                  </ThemedText>
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      { color: theme.textSecondary, marginTop: 2, fontSize: 13 },
+                    ]}
+                  >
+                    {parseISODuration(request.duration)}
+                  </ThemedText>
+                </View>
+              </DirectionalRow>
+              {!isWebLayout && <Spacer height={Spacing.lg} />}
+            </View>
 
-          <DirectionalRow style={[styles.serviceRowNew]}>
-            <View
-              style={[
-                styles.serviceIcon,
-                { backgroundColor: applyOpacity(theme.textSecondary, "15") },
-              ]}
-            >
-              <DDIcon name="briefcase" size={18} color={theme.text} />
+            {/* Purpose */}
+            <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
+              <DirectionalRow style={[styles.serviceRowNew]}>
+                <View
+                  style={[
+                    styles.serviceIcon,
+                    { backgroundColor: applyOpacity(theme.textSecondary, "15") },
+                  ]}
+                >
+                  <DDIcon name="briefcase" size={18} color={theme.text} />
+                </View>
+                <View>
+                  <ThemedText
+                    style={[Typography.body, { fontWeight: "600", fontSize: 15 }]}
+                  >
+                    {t("form.purpose")}
+                  </ThemedText>
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      {
+                        color: theme.textSecondary,
+                        marginTop: 2,
+                        fontSize: 13,
+                        lineHeight: 20,
+                      },
+                    ]}
+                  >
+                    {request.purpose}
+                  </ThemedText>
+                </View>
+              </DirectionalRow>
             </View>
-            <View>
-              <ThemedText
-                style={[
-                  Typography.body,
-                  {
-                    fontWeight: "600",
-                    fontSize: 15,
-                    //   
-                  },
-                ]}
-              >
-                {t("form.purpose")}
-              </ThemedText>
-              <ThemedText
-                style={[
-                  Typography.caption,
-                  {
-                    color: theme.textSecondary,
-                    marginTop: 2,
-                    fontSize: 13,
-                    lineHeight: 20,
-                    //     
-                  },
-                ]}
-              >
-                {request.purpose}
-              </ThemedText>
-            </View>
-          </DirectionalRow>
+          </View>
         </ThemedView>
 
         <Spacer height={Spacing.lg} />
@@ -1696,52 +1624,12 @@ export default function RequestDetailsScreen({
               </ThemedText>
               <Spacer height={Spacing.xl} />
 
-              {/* Host Name */}
-              <DirectionalRow
-                style={[
-                  styles.serviceRowNew,
-                  { justifyContent: "flex-start" },
-                ]}
-              >
-                <View
-                  style={[
-                    styles.serviceIcon,
-                    { backgroundColor: applyOpacity(theme.textSecondary, "15") },
-                  ]}
-                >
-                  <DDIcon name="user" size={18} color={theme.text} />
-                </View>
-                <View>
-                  <ThemedText
-                    style={[
-                      Typography.body,
-                      { fontWeight: "600", fontSize: 15 },
-                    ]}
-                  >
-                    {t("visitor.hostName")}
-                  </ThemedText>
-                  <ThemedText
-                    style={[
-                      Typography.caption,
-                      { color: theme.textSecondary, marginTop: 2, fontSize: 13 },
-                    ]}
-                  >
-                    {request.employeeName}
-                    {request.employeeDepartment ? ` (${request.employeeDepartment})` : ''}
-                  </ThemedText>
-                </View>
-              </DirectionalRow>
-
-              <Spacer height={Spacing.md} />
-
-              {/* Host Phone */}
-              {request.employeePhoneNumber && (
-                <>
+              {/* Responsive grid for Host Details items */}
+              <View style={isWebLayout ? styles.responsiveGrid : undefined}>
+                {/* Host Name */}
+                <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
                   <DirectionalRow
-                    style={[
-                      styles.serviceRowNew,
-                      { justifyContent: "flex-start" },
-                    ]}
+                    style={[styles.serviceRowNew, { justifyContent: "flex-start" }]}
                   >
                     <View
                       style={[
@@ -1749,16 +1637,13 @@ export default function RequestDetailsScreen({
                         { backgroundColor: applyOpacity(theme.textSecondary, "15") },
                       ]}
                     >
-                      <DDIcon name="phone" size={18} color={theme.text} />
+                      <DDIcon name="user" size={18} color={theme.text} />
                     </View>
                     <View>
                       <ThemedText
-                        style={[
-                          Typography.body,
-                          { fontWeight: "600", fontSize: 15 },
-                        ]}
+                        style={[Typography.body, { fontWeight: "600", fontSize: 15 }]}
                       >
-                        {t("form.phone")}
+                        {t("visitor.hostName")}
                       </ThemedText>
                       <ThemedText
                         style={[
@@ -1766,50 +1651,81 @@ export default function RequestDetailsScreen({
                           { color: theme.textSecondary, marginTop: 2, fontSize: 13 },
                         ]}
                       >
-                        {formatPhoneNumber(request.employeePhoneNumber || '')}
+                        {request.employeeName}
+                        {request.employeeDepartment ? ` (${request.employeeDepartment})` : ''}
                       </ThemedText>
                     </View>
                   </DirectionalRow>
-                  <Spacer height={Spacing.md} />
-                </>
-              )}
+                  {!isWebLayout && <Spacer height={Spacing.md} />}
+                </View>
 
-              {/* Host Landline */}
-              {request.employeeBusinessPhone && (
-                <DirectionalRow
-                  style={[
-                    styles.serviceRowNew,
-                    { justifyContent: "flex-start" },
-                  ]}
-                >
-                  <View
-                    style={[
-                      styles.serviceIcon,
-                      { backgroundColor: applyOpacity(theme.textSecondary, "15") },
-                    ]}
-                  >
-                    <DDIcon name="phone" size={18} color={theme.text} />
-                  </View>
-                  <View>
-                    <ThemedText
-                      style={[
-                        Typography.body,
-                        { fontWeight: "600", fontSize: 15 },
-                      ]}
+                {/* Host Phone */}
+                {request.employeePhoneNumber && (
+                  <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
+                    <DirectionalRow
+                      style={[styles.serviceRowNew, { justifyContent: "flex-start" }]}
                     >
-                      {t("form.landline")}
-                    </ThemedText>
-                    <ThemedText
-                      style={[
-                        Typography.caption,
-                        { color: theme.textSecondary, marginTop: 2, fontSize: 13 },
-                      ]}
-                    >
-                      {formatPhoneNumber(request.employeeBusinessPhone || '')}
-                    </ThemedText>
+                      <View
+                        style={[
+                          styles.serviceIcon,
+                          { backgroundColor: applyOpacity(theme.textSecondary, "15") },
+                        ]}
+                      >
+                        <DDIcon name="phone" size={18} color={theme.text} />
+                      </View>
+                      <View>
+                        <ThemedText
+                          style={[Typography.body, { fontWeight: "600", fontSize: 15 }]}
+                        >
+                          {t("form.phone")}
+                        </ThemedText>
+                        <ThemedText
+                          style={[
+                            Typography.caption,
+                            { color: theme.textSecondary, marginTop: 2, fontSize: 13 },
+                          ]}
+                        >
+                          {formatPhoneNumber(request.employeePhoneNumber || '')}
+                        </ThemedText>
+                      </View>
+                    </DirectionalRow>
+                    {!isWebLayout && <Spacer height={Spacing.md} />}
                   </View>
-                </DirectionalRow>
-              )}
+                )}
+
+                {/* Host Landline */}
+                {request.employeeBusinessPhone && (
+                  <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
+                    <DirectionalRow
+                      style={[styles.serviceRowNew, { justifyContent: "flex-start" }]}
+                    >
+                      <View
+                        style={[
+                          styles.serviceIcon,
+                          { backgroundColor: applyOpacity(theme.textSecondary, "15") },
+                        ]}
+                      >
+                        <DDIcon name="phone" size={18} color={theme.text} />
+                      </View>
+                      <View>
+                        <ThemedText
+                          style={[Typography.body, { fontWeight: "600", fontSize: 15 }]}
+                        >
+                          {t("form.landline")}
+                        </ThemedText>
+                        <ThemedText
+                          style={[
+                            Typography.caption,
+                            { color: theme.textSecondary, marginTop: 2, fontSize: 13 },
+                          ]}
+                        >
+                          {formatPhoneNumber(request.employeeBusinessPhone || '')}
+                        </ThemedText>
+                      </View>
+                    </DirectionalRow>
+                  </View>
+                )}
+              </View>
             </ThemedView>
             <Spacer height={Spacing.lg} />
           </>
@@ -1828,391 +1744,310 @@ export default function RequestDetailsScreen({
           </ThemedText>
           <Spacer height={Spacing.xl} />
 
-          <DirectionalRow
-            style={[
-              styles.serviceItemNew,
-              { backgroundColor: theme.surfaceSecondary },
-            ]}
-          >
-            <View
-              style={[
-                styles.serviceIcon,
-                {
-                  backgroundColor: applyOpacity(
-                    request.meetingRoom || request.isMeetingRoom
-                      ? theme.secondary
-                      : theme.textSecondary,
-                    "15",
-                  ),
-                },
-              ]}
-            >
-              <DDIcon
-                name="briefcase"
-                size={18}
-                color={
-                  request.meetingRoom || request.isMeetingRoom
-                    ? theme.secondary
-                    : theme.textSecondary
-                }
-              />
-            </View>
-            <View style={{ flex: 1 }}>
-              <ThemedText
+          {/* Responsive grid for Additional Services items */}
+          <View style={isWebLayout ? styles.responsiveGrid : undefined}>
+            {/* Meeting Room */}
+            <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
+              <DirectionalRow
                 style={[
-                  Typography.body,
-                  {
-                    fontWeight: "600",
-                    fontSize: 14,
-                    color: theme.text,
-                    //     
-                  },
+                  styles.serviceItemNew,
+                  { backgroundColor: theme.surfaceSecondary },
                 ]}
               >
-                {t("services.meetingRoom")}
-              </ThemedText>
-              {(request.meetingRoom?.name ||
-                request.isMeetingRoom ||
-                (request as any).meetingRoomPending) &&
-              (request.status === REQUEST_STATUS.REJECTED ||
-                request.status === REQUEST_STATUS.CANCELLED) ? (
-                <ThemedText
+                <View
                   style={[
-                    Typography.caption,
+                    styles.serviceIcon,
                     {
-                      color: theme.error,
-                      fontSize: 12,
-                      marginTop: 2,
+                      backgroundColor: applyOpacity(
+                        request.meetingRoom || request.isMeetingRoom
+                          ? theme.secondary
+                          : theme.textSecondary,
+                        "15",
+                      ),
                     },
                   ]}
                 >
-                  {t("status.cancelled")}
-                </ThemedText>
-              ) : request.meetingRoom?.name ? (
-                <>
+                  <DDIcon
+                    name="briefcase"
+                    size={18}
+                    color={
+                      request.meetingRoom || request.isMeetingRoom
+                        ? theme.secondary
+                        : theme.textSecondary
+                    }
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
                   <ThemedText
                     style={[
-                      Typography.caption,
-                      {
-                        color: theme.textSecondary,
-                        fontSize: 12,
-                        marginTop: 2,
-                      },
+                      Typography.body,
+                      { fontWeight: "600", fontSize: 14, color: theme.text },
                     ]}
                   >
-                    {request.meetingRoom.name} - {request.meetingRoom.floor}
+                    {t("services.meetingRoom")}
                   </ThemedText>
-                  <ThemedText
-                    style={[
-                      Typography.caption,
-                      {
-                        color: theme.textSecondary,
-                        fontSize: 12,
-                      },
-                    ]}
-                  >
-                    {formatDateShort(request.visitDate)} •{" "}
-                    {formatVisitTimeRange(request.visitTime, request.endTime)}
-                  </ThemedText>
-                </>
-              ) : request.isMeetingRoom || (request as any).meetingRoomPending ? (
-                <ThemedText
-                  style={[
-                    Typography.caption,
-                    {
-                      color: theme.warning,
-                      fontSize: 12,
-                      marginTop: 2,
-                    },
-                  ]}
-                >
-                  {request.status === REQUEST_STATUS.PENDING_APPROVAL || request.status === REQUEST_STATUS.PENDING_HOST_APPROVAL
-                    ? t("status.pendingApproval")
-                    : t("status.pending")}
-                </ThemedText>
-              ) : request.status === REQUEST_STATUS.CANCELLED || request.status === REQUEST_STATUS.AUTO_CANCELLED || request.status === REQUEST_STATUS.VISITOR_REJECTED ? (
-                <ThemedText
-                  style={[
-                    Typography.caption,
-                    {
-                      color: theme.error,
-                      fontSize: 12,
-                      marginTop: 2,
-                    },
-                  ]}
-                >
-                  {t("status.cancelled")}
-                </ThemedText>
-              ) : (
-                <ThemedText
-                  style={[
-                    Typography.caption,
-                    {
-                      color: theme.textSecondary,
-                      fontSize: 12,
-                      marginTop: 2,
-                      fontStyle: "italic",
-                    },
-                  ]}
-                >
-                  {t("common.notRequested")}
-                </ThemedText>
-              )}
-            </View>
-            {request.meetingRoom?.status ? (
-              <StatusBadge
-                label={formatServiceStatus(request.meetingRoom.status)}
-                variant={getServiceStatusVariant(request.meetingRoom.status)}
-                size="sm"
-              />
-            ) : null}
-          </DirectionalRow>
-          <Spacer height={Spacing.md} />
-
-          <DirectionalRow
-            style={[
-              styles.serviceItemNew,
-              { backgroundColor: theme.surfaceSecondary },
-            ]}
-          >
-            <View
-              style={[
-                styles.serviceIcon,
-                {
-                  backgroundColor: applyOpacity(
-                    request.buffet ||
-                      request.isBuffet ||
-                      (request as any).buffetPending
-                      ? theme.secondary
-                      : theme.textSecondary,
-                    "15",
-                  ),
-                },
-              ]}
-            >
-              <DDIcon
-                name="cloche"
-                size={18}
-                color={
-                  request.buffet ||
-                  request.isBuffet ||
-                  (request as any).buffetPending
-                    ? theme.secondary
-                    : theme.textSecondary
-                }
-              />
-            </View>
-            <View style={{ flex: 1 }}>
-              <ThemedText
-                style={[
-                  Typography.body,
-                  {
-                    fontWeight: "600",
-                    fontSize: 14,
-                    color: theme.text,
-                    //    
-                  },
-                ]}
-              >
-                {t("buffet.buffetService")}
-              </ThemedText>
-              {(request.buffet?.mealType ||
-                request.isBuffet ||
-                (request as any).buffetPending) &&
-              (request.status === REQUEST_STATUS.REJECTED ||
-                request.status === REQUEST_STATUS.CANCELLED) ? (
-                <ThemedText
-                  style={[
-                    Typography.caption,
-                    {
-                      color: theme.error,
-                      fontSize: 12,
-                      marginTop: 2,
-                    },
-                  ]}
-                >
-                  {t("status.cancelled")}
-                </ThemedText>
-              ) : request.buffet?.mealType ? (
-                <ThemedText
-                  style={[
-                    Typography.caption,
-                    {
-                      color: theme.textSecondary,
-                      fontSize: 12,
-                      marginTop: 2,
-                    },
-                  ]}
-                >
-                  {request.buffet.location} -{" "}
-                  {request.buffet.mealType.charAt(0).toUpperCase() +
-                    request.buffet.mealType.slice(1)}
-                </ThemedText>
-              ) : request.isBuffet || (request as any).buffetPending ? (
-                <ThemedText
-                  style={[
-                    Typography.caption,
-                    {
-                      color: theme.warning,
-                      fontSize: 12,
-                      marginTop: 2,
-                    },
-                  ]}
-                >
-                  {request.status === REQUEST_STATUS.PENDING_APPROVAL || request.status === REQUEST_STATUS.PENDING_HOST_APPROVAL
-                    ? t("status.pendingApproval")
-                    : t("status.pending")}
-                </ThemedText>
-              ) : request.status === REQUEST_STATUS.CANCELLED || request.status === REQUEST_STATUS.AUTO_CANCELLED || request.status === REQUEST_STATUS.VISITOR_REJECTED ? (
-                <ThemedText
-                  style={[
-                    Typography.caption,
-                    {
-                      color: theme.error,
-                      fontSize: 12,
-                      marginTop: 2,
-                    },
-                  ]}
-                >
-                  {t("status.cancelled")}
-                </ThemedText>
-              ) : (
-                <ThemedText
-                  style={[
-                    Typography.caption,
-                    {
-                      color: theme.textSecondary,
-                      fontSize: 12,
-                      marginTop: 2,
-                      fontStyle: "italic",
-                    },
-                  ]}
-                >
-                  {t("common.notRequested")}
-                </ThemedText>
-              )}
-            </View>
-            {request.buffet?.status ? (
-              <StatusBadge
-                label={formatServiceStatus(request.buffet.status)}
-                variant={getServiceStatusVariant(request.buffet.status)}
-                size="sm"
-              />
-            ) : null}
-          </DirectionalRow>
-          <Spacer height={Spacing.md} />
-
-          {/* Parking */}
-          <DirectionalRow
-            style={[
-              styles.serviceItemNew,
-              { backgroundColor: theme.surfaceSecondary },
-            ]}
-          >
-            <View
-              style={[
-                styles.serviceIcon,
-                {
-                  backgroundColor: applyOpacity(
-                    request.visitorNeedsParking
-                      ? theme.secondary
-                      : theme.textSecondary,
-                    "15",
-                  ),
-                },
-              ]}
-            >
-              <DDIcon
-                name="truck"
-                size={18}
-                color={
-                  request.visitorNeedsParking
-                    ? theme.secondary
-                    : theme.textSecondary
-                }
-              />
-            </View>
-            <View style={{ flex: 1 }}>
-              <ThemedText
-                style={[
-                  Typography.body,
-                  {
-                    fontWeight: "600",
-                    fontSize: 14,
-                    color: theme.text,
-                  },
-                ]}
-              >
-                {t("services.parking")}
-              </ThemedText>
-              {request.visitorNeedsParking ? (
-                request.licensePlate || request.carModel || request.carColor ? (
-                  <>
+                  {(request.meetingRoom?.name ||
+                    request.isMeetingRoom ||
+                    (request as any).meetingRoomPending) &&
+                  (request.status === REQUEST_STATUS.REJECTED ||
+                    request.status === REQUEST_STATUS.CANCELLED) ? (
                     <ThemedText
                       style={[
                         Typography.caption,
-                        {
-                          color: theme.textSecondary,
-                          fontSize: 12,
-                          marginTop: 2,
-                        },
+                        { color: theme.error, fontSize: 12, marginTop: 2 },
                       ]}
                     >
-                      {[
-                        request.licensePlate,
-                        request.carModel,
-                        request.carColor,
-                      ]
-                        .filter(Boolean)
-                        .join(" • ")}
+                      {t("status.cancelled")}
                     </ThemedText>
-                  </>
-                ) : (
+                  ) : request.meetingRoom?.name ? (
+                    <>
+                      <ThemedText
+                        style={[
+                          Typography.caption,
+                          { color: theme.textSecondary, fontSize: 12, marginTop: 2 },
+                        ]}
+                      >
+                        {request.meetingRoom.name} - {request.meetingRoom.floor}
+                      </ThemedText>
+                      <ThemedText
+                        style={[
+                          Typography.caption,
+                          { color: theme.textSecondary, fontSize: 12 },
+                        ]}
+                      >
+                        {formatDateShort(request.visitDate)} •{" "}
+                        {formatVisitTimeRange(request.visitTime, request.endTime)}
+                      </ThemedText>
+                    </>
+                  ) : request.isMeetingRoom || (request as any).meetingRoomPending ? (
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.warning, fontSize: 12, marginTop: 2 },
+                      ]}
+                    >
+                      {request.status === REQUEST_STATUS.PENDING_APPROVAL || request.status === REQUEST_STATUS.PENDING_HOST_APPROVAL
+                        ? t("status.pendingApproval")
+                        : t("status.pending")}
+                    </ThemedText>
+                  ) : request.status === REQUEST_STATUS.CANCELLED || request.status === REQUEST_STATUS.AUTO_CANCELLED || request.status === REQUEST_STATUS.VISITOR_REJECTED ? (
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.error, fontSize: 12, marginTop: 2 },
+                      ]}
+                    >
+                      {t("status.cancelled")}
+                    </ThemedText>
+                  ) : (
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.textSecondary, fontSize: 12, marginTop: 2, fontStyle: "italic" },
+                      ]}
+                    >
+                      {t("common.notRequested")}
+                    </ThemedText>
+                  )}
+                </View>
+                {request.meetingRoom?.status ? (
+                  <StatusBadge
+                    label={formatServiceStatus(request.meetingRoom.status)}
+                    variant={getServiceStatusVariant(request.meetingRoom.status)}
+                    size="sm"
+                  />
+                ) : null}
+              </DirectionalRow>
+              {!isWebLayout && <Spacer height={Spacing.md} />}
+            </View>
+
+            {/* Buffet Service */}
+            <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
+              <DirectionalRow
+                style={[
+                  styles.serviceItemNew,
+                  { backgroundColor: theme.surfaceSecondary },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.serviceIcon,
+                    {
+                      backgroundColor: applyOpacity(
+                        request.buffet || request.isBuffet || (request as any).buffetPending
+                          ? theme.secondary
+                          : theme.textSecondary,
+                        "15",
+                      ),
+                    },
+                  ]}
+                >
+                  <DDIcon
+                    name="cloche"
+                    size={18}
+                    color={
+                      request.buffet || request.isBuffet || (request as any).buffetPending
+                        ? theme.secondary
+                        : theme.textSecondary
+                    }
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
                   <ThemedText
                     style={[
-                      Typography.caption,
-                      {
-                        color: theme.warning,
-                        fontSize: 12,
-                        marginTop: 2,
-                      },
+                      Typography.body,
+                      { fontWeight: "600", fontSize: 14, color: theme.text },
                     ]}
                   >
-                    {request.status === REQUEST_STATUS.PENDING_APPROVAL || request.status === REQUEST_STATUS.PENDING_HOST_APPROVAL
-                      ? t("status.pendingApproval")
-                      : t("parking.parkingPending")}
+                    {t("buffet.buffetService")}
                   </ThemedText>
-                )
-              ) : request.status === REQUEST_STATUS.CANCELLED || request.status === REQUEST_STATUS.AUTO_CANCELLED || request.status === REQUEST_STATUS.VISITOR_REJECTED ? (
-                <ThemedText
-                  style={[
-                    Typography.caption,
-                    {
-                      color: theme.error,
-                      fontSize: 12,
-                      marginTop: 2,
-                    },
-                  ]}
-                >
-                  {t("status.cancelled")}
-                </ThemedText>
-              ) : (
-                <ThemedText
-                  style={[
-                    Typography.caption,
-                    {
-                      color: theme.textSecondary,
-                      fontSize: 12,
-                      marginTop: 2,
-                      fontStyle: "italic",
-                    },
-                  ]}
-                >
-                  {t("common.notRequested")}
-                </ThemedText>
-              )}
+                  {(request.buffet?.mealType ||
+                    request.isBuffet ||
+                    (request as any).buffetPending) &&
+                  (request.status === REQUEST_STATUS.REJECTED ||
+                    request.status === REQUEST_STATUS.CANCELLED) ? (
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.error, fontSize: 12, marginTop: 2 },
+                      ]}
+                    >
+                      {t("status.cancelled")}
+                    </ThemedText>
+                  ) : request.buffet?.mealType ? (
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.textSecondary, fontSize: 12, marginTop: 2 },
+                      ]}
+                    >
+                      {request.buffet.location} -{" "}
+                      {request.buffet.mealType.charAt(0).toUpperCase() +
+                        request.buffet.mealType.slice(1)}
+                    </ThemedText>
+                  ) : request.isBuffet || (request as any).buffetPending ? (
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.warning, fontSize: 12, marginTop: 2 },
+                      ]}
+                    >
+                      {request.status === REQUEST_STATUS.PENDING_APPROVAL || request.status === REQUEST_STATUS.PENDING_HOST_APPROVAL
+                        ? t("status.pendingApproval")
+                        : t("status.pending")}
+                    </ThemedText>
+                  ) : request.status === REQUEST_STATUS.CANCELLED || request.status === REQUEST_STATUS.AUTO_CANCELLED || request.status === REQUEST_STATUS.VISITOR_REJECTED ? (
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.error, fontSize: 12, marginTop: 2 },
+                      ]}
+                    >
+                      {t("status.cancelled")}
+                    </ThemedText>
+                  ) : (
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.textSecondary, fontSize: 12, marginTop: 2, fontStyle: "italic" },
+                      ]}
+                    >
+                      {t("common.notRequested")}
+                    </ThemedText>
+                  )}
+                </View>
+                {request.buffet?.status ? (
+                  <StatusBadge
+                    label={formatServiceStatus(request.buffet.status)}
+                    variant={getServiceStatusVariant(request.buffet.status)}
+                    size="sm"
+                  />
+                ) : null}
+              </DirectionalRow>
+              {!isWebLayout && <Spacer height={Spacing.md} />}
             </View>
-          </DirectionalRow>
+
+            {/* Parking */}
+            <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
+              <DirectionalRow
+                style={[
+                  styles.serviceItemNew,
+                  { backgroundColor: theme.surfaceSecondary },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.serviceIcon,
+                    {
+                      backgroundColor: applyOpacity(
+                        request.visitorNeedsParking ? theme.secondary : theme.textSecondary,
+                        "15",
+                      ),
+                    },
+                  ]}
+                >
+                  <DDIcon
+                    name="truck"
+                    size={18}
+                    color={request.visitorNeedsParking ? theme.secondary : theme.textSecondary}
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <ThemedText
+                    style={[
+                      Typography.body,
+                      { fontWeight: "600", fontSize: 14, color: theme.text },
+                    ]}
+                  >
+                    {t("services.parking")}
+                  </ThemedText>
+                  {request.visitorNeedsParking ? (
+                    request.licensePlate || request.carModel || request.carColor ? (
+                      <ThemedText
+                        style={[
+                          Typography.caption,
+                          { color: theme.textSecondary, fontSize: 12, marginTop: 2 },
+                        ]}
+                      >
+                        {[request.licensePlate, request.carModel, request.carColor]
+                          .filter(Boolean)
+                          .join(" • ")}
+                      </ThemedText>
+                    ) : (
+                      <ThemedText
+                        style={[
+                          Typography.caption,
+                          { color: theme.warning, fontSize: 12, marginTop: 2 },
+                        ]}
+                      >
+                        {request.status === REQUEST_STATUS.PENDING_APPROVAL || request.status === REQUEST_STATUS.PENDING_HOST_APPROVAL
+                          ? t("status.pendingApproval")
+                          : t("parking.parkingPending")}
+                      </ThemedText>
+                    )
+                  ) : request.status === REQUEST_STATUS.CANCELLED || request.status === REQUEST_STATUS.AUTO_CANCELLED || request.status === REQUEST_STATUS.VISITOR_REJECTED ? (
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.error, fontSize: 12, marginTop: 2 },
+                      ]}
+                    >
+                      {t("status.cancelled")}
+                    </ThemedText>
+                  ) : (
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.textSecondary, fontSize: 12, marginTop: 2, fontStyle: "italic" },
+                      ]}
+                    >
+                      {t("common.notRequested")}
+                    </ThemedText>
+                  )}
+                </View>
+              </DirectionalRow>
+            </View>
+          </View>
         </ThemedView>
         <Spacer height={Spacing.lg} />
 
@@ -3991,6 +3826,11 @@ const styles = StyleSheet.create({
   },
   serviceRowNew: {
     alignItems: "flex-start",
+    gap: Spacing.md,
+  },
+  responsiveGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: Spacing.md,
   },
   serviceIcon: {
