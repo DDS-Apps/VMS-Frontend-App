@@ -15,15 +15,19 @@ import { handleNotificationTap, navigateFromInAppNotification } from '@/utils/no
 import { invalidateQueriesForNotification, refreshAllNotificationData } from './notificationQueryMapper';
 import type { DevicePlatform, NotificationPayload } from '@/types';
 
-let firebaseMessaging: typeof import('@react-native-firebase/messaging').default | null = null;
-if (Platform.OS === 'ios') {
-  try {
-    firebaseMessaging = require('@react-native-firebase/messaging').default;
-    console.log('[Push] Firebase Messaging module loaded for iOS');
-  } catch (error) {
-    console.log('[Push] Firebase Messaging not available (Expo Go or web):', error);
-  }
-}
+// TEMPORARILY DISABLED FOR EXPO GO DEBUGGING
+// Uncomment below when using EAS development build
+// let firebaseMessaging: typeof import('@react-native-firebase/messaging').default | null = null;
+// if (Platform.OS === 'ios') {
+//   try {
+//     firebaseMessaging = require('@react-native-firebase/messaging').default;
+//     console.log('[Push] Firebase Messaging module loaded for iOS');
+//   } catch (error) {
+//     console.log('[Push] Firebase Messaging not available (Expo Go or web):', error);
+//   }
+// }
+const firebaseMessaging = null; // Expo Go compatibility mode
+console.log('[Push] Firebase Messaging disabled for Expo Go debugging');
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -193,6 +197,34 @@ class PushNotificationService {
 
     try {
       if (Platform.OS === 'ios') {
+        // EXPO GO DEBUGGING MODE - Firebase disabled
+        // In Expo Go, we can't get FCM tokens, but we can still run the app
+        // Push notifications won't work, but UI debugging will work
+        console.log('[Push Mobile iOS] Running in Expo Go debug mode - push notifications disabled');
+        console.log('[Push Mobile iOS] Using Expo notifications for permission check only...');
+        
+        const { status: existingStatus } = await Notifications.getPermissionsAsync();
+        console.log('[Push Mobile iOS] Permission status:', existingStatus);
+        
+        if (existingStatus !== 'granted') {
+          const { status } = await Notifications.requestPermissionsAsync();
+          if (status !== 'granted') {
+            console.log('[Push Mobile iOS] Permission denied');
+            return false;
+          }
+        }
+        
+        // In Expo Go, we can't get a real FCM token
+        // Setting a dummy token for debugging purposes only
+        this.token = 'expo-go-debug-token-' + Date.now();
+        console.log('[Push Mobile iOS] Debug mode - using placeholder token (push won\'t work)');
+        
+        // Skip backend registration in debug mode
+        console.log('[Push Mobile iOS] Skipping backend registration in Expo Go debug mode');
+        this.isInitialized = true;
+        return true;
+        
+        /* ORIGINAL CODE - Uncomment when using EAS development build:
         if (!firebaseMessaging) {
           console.error('[Push Mobile iOS] Firebase Messaging not available - cannot get FCM token');
           console.error('[Push Mobile iOS] This app requires EAS Build with @react-native-firebase/messaging');
@@ -225,6 +257,7 @@ class PushNotificationService {
         }
         this.token = fcmToken;
         console.log('[Push Mobile iOS] FCM token obtained successfully:', fcmToken.substring(0, 30) + '...');
+        */
       } else {
         console.log('[Push Mobile Android] Step 2: Checking permissions...');
         const { status: existingStatus } = await Notifications.getPermissionsAsync();
