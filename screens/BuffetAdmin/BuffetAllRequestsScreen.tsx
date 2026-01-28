@@ -376,11 +376,14 @@ const BuffetRequestCard = React.memo(({
                 {request.location}
               </ThemedText>
             </DirectionalRow>
+            <ThemedText style={[styles.detailText, { color: theme.border, marginHorizontal: Spacing.xs }]}>•</ThemedText>
+            <DirectionalRow style={styles.detailItem}>
+              <DDIcon name="clock" size={14} variant="muted" />
+              <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
+                {request.timeSlot}
+              </ThemedText>
+            </DirectionalRow>
           </DirectionalRow>
-
-          <Spacer height={Spacing.sm} />
-
-          <DateTimeDisplay date={request.visitDate} time={request.timeSlot} theme={theme} isRTL={isRTL} />
 
           {request.assignedStaff ? (
             <>

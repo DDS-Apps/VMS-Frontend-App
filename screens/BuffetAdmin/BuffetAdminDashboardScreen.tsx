@@ -370,19 +370,10 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
           <ThemedText style={[styles.metaText, { color: theme.textSecondary }]} numberOfLines={1}>
             {item.location}
           </ThemedText>
-        </View>
-
-        <Spacer height={Spacing.xs} />
-
-        <View style={styles.metaRow}>
+          <View style={styles.metaDot} />
           <DDIcon name="clock" size={14} color={theme.textSecondary} />
           <ThemedText style={[styles.metaText, { color: theme.textSecondary }]}>
             {formatTimeFromString(item.visitTime)}
-          </ThemedText>
-          <View style={styles.metaDot} />
-          <DDIcon name="users" size={14} color={theme.textSecondary} />
-          <ThemedText style={[styles.metaText, { color: theme.textSecondary }]}>
-            {item.guestCount} {t('buffet.numberOfGuests').toLowerCase()}
           </ThemedText>
         </View>
 
