@@ -308,6 +308,7 @@ export const en: TranslationKeys = {
     meetingRoom: 'Meeting Room',
   },
   form: {
+    selectCountry: 'Select Country',
     fullName: 'Full Name',
     fullNamePlaceholder: 'Enter full name',
     firstName: 'First Name',

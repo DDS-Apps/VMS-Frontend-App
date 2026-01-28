@@ -308,6 +308,7 @@ export const ar: TranslationKeys = {
     meetingRoom: 'غرفة الاجتماعات',
   },
   form: {
+    selectCountry: 'اختر الدولة',
     fullName: 'الاسم الكامل',
     fullNamePlaceholder: 'أدخل الاسم الكامل',
     firstName: 'الاسم الأول',

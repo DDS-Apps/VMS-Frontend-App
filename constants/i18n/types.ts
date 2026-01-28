@@ -308,6 +308,7 @@ export interface TranslationKeys {
     meetingRoom: string;
   };
   form: {
+    selectCountry: string;
     fullName: string;
     fullNamePlaceholder: string;
     firstName: string;
