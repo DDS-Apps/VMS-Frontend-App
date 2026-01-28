@@ -1,17 +1,18 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import {
   View,
   StyleSheet,
   Pressable,
-  TextInput,
   FlatList,
   Alert,
   useWindowDimensions,
+  ScrollView,
 } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useRoute } from "@react-navigation/native";
 import { DDIcon } from "@/components/DDIcon";
 import { ThemedText } from "@/components/ThemedText";
-import { DirectionalRow } from "@/components/DirectionalRow";
+import { ThemedView } from "@/components/ThemedView";
+import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
 import Spacer from "@/components/Spacer";
 import {
   VisitorRequestCard,
@@ -25,8 +26,6 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useScreenInsets } from "@/hooks/useScreenInsets";
 import {
   useInfiniteApprovalHistoryQuery,
-  useApproveVisitMutation,
-  useRejectVisitMutation,
   approvalHistoryKeys,
 } from "@/hooks/queries/useApprovalQueries";
 import { useQueryClient } from "@tanstack/react-query";
@@ -34,12 +33,14 @@ import type { ApprovalHistoryItemDto, ApprovalHistoryStatus } from "@/types/api.
 import type { VisitorRequest } from "@/types/vms.types";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { ManagerStackParamList } from "@/types/managerNavigation.types";
+import { applyOpacity } from "@/utils/statusStyles";
 
 const LAYOUT = {
   contentGap: Spacing.md,
+  cardRadius: BorderRadius.md,
 };
 
-type TabType = "all" | "pending" | "approved" | "rejected";
+type TabType = "all" | "approved" | "rejected";
 
 type ScreenProps = NativeStackScreenProps<ManagerStackParamList, "AllRequests">;
 
@@ -88,6 +89,153 @@ const mapHistoryToVisitorRequest = (item: ApprovalHistoryItemDto): VisitorReques
   isWalkIn: item.isWalkIn,
 });
 
+// Section Header with Tabs Component (matching My Requests design)
+const SectionHeaderWithTabs = ({
+  title,
+  selectedTab,
+  onTabChange,
+  viewMode,
+  onViewModeChange,
+  theme,
+  t,
+  isRTL,
+}: {
+  title: string;
+  selectedTab: TabType;
+  onTabChange: (tab: TabType) => void;
+  viewMode: "card" | "list";
+  onViewModeChange: (mode: "card" | "list") => void;
+  theme: ReturnType<typeof useTheme>["theme"];
+  t: (key: string) => string;
+  isRTL: boolean;
+}) => {
+  const tabs: TabType[] = ["all", "approved", "rejected"];
+
+  const getTabLabel = (tab: TabType): string => {
+    switch (tab) {
+      case "all":
+        return t("common.all");
+      case "approved":
+        return t("status.approved");
+      case "rejected":
+        return t("status.rejected");
+      default:
+        return tab;
+    }
+  };
+
+  const titleElement = (
+    <ThemedText style={[Typography.title, { fontSize: 18, fontWeight: "600" }]}>
+      {title}
+    </ThemedText>
+  );
+
+  const viewToggleElement = (
+    <DirectionalRow
+      style={[
+        styles.viewToggle,
+        { backgroundColor: theme.surfaceSecondary, borderColor: theme.border },
+      ]}
+    >
+      <Pressable
+        onPress={() => onViewModeChange("card")}
+        style={[
+          styles.toggleButton,
+          { backgroundColor: viewMode === "card" ? theme.primary : "transparent" },
+        ]}
+      >
+        <DDIcon
+          name="grid"
+          size={16}
+          color={viewMode === "card" ? theme.buttonText : theme.textSecondary}
+        />
+      </Pressable>
+      <Pressable
+        onPress={() => onViewModeChange("list")}
+        style={[
+          styles.toggleButton,
+          { backgroundColor: viewMode === "list" ? theme.primary : "transparent" },
+        ]}
+      >
+        <DDIcon
+          name="list"
+          size={16}
+          color={viewMode === "list" ? theme.buttonText : theme.textSecondary}
+        />
+      </Pressable>
+    </DirectionalRow>
+  );
+
+  const displayTabs = isRTL ? [...tabs].reverse() : tabs;
+
+  return (
+    <>
+      <DirectionalRow style={[styles.sectionTitleRow, styles.paddedContent]}>
+        {titleElement}
+        {viewToggleElement}
+      </DirectionalRow>
+
+      <Spacer height={LAYOUT.contentGap} />
+
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={[
+          styles.tabsContainer,
+          { flexDirection: getFlexDirection(isRTL) },
+        ]}
+        nestedScrollEnabled={true}
+        keyboardShouldPersistTaps="handled"
+      >
+        {displayTabs.map((tab) => (
+          <Pressable
+            key={tab}
+            style={[
+              styles.tab,
+              selectedTab === tab && {
+                borderBottomWidth: 2,
+                borderBottomColor: theme.primary,
+              },
+            ]}
+            onPress={() => onTabChange(tab)}
+            android_ripple={{ color: applyOpacity(theme.primary, "10") }}
+          >
+            <ThemedText
+              style={[
+                Typography.body,
+                {
+                  color: selectedTab === tab ? theme.primary : theme.textSecondary,
+                  fontWeight: "600",
+                },
+              ]}
+              numberOfLines={1}
+            >
+              {getTabLabel(tab)}
+            </ThemedText>
+          </Pressable>
+        ))}
+      </ScrollView>
+    </>
+  );
+};
+
+// Empty State Component
+const EmptyState = ({
+  theme,
+  t,
+}: {
+  theme: ReturnType<typeof useTheme>["theme"];
+  t: (key: string) => string;
+}) => (
+  <ThemedView style={[styles.emptyState, { backgroundColor: theme.surface }]}>
+    <DDIcon name="inbox" size={48} variant="muted" />
+    <Spacer height={Spacing.md} />
+    <ThemedText style={[Typography.body, { color: theme.textSecondary }]}>
+      {t("common.noResults")}
+    </ThemedText>
+  </ThemedView>
+);
+
 export default function ManagerAllRequestsScreen({ navigation, route }: ScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
@@ -96,19 +244,41 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
   const { paddingBottom } = useScreenInsets();
   const queryClient = useQueryClient();
 
-  const initialTab = route?.params?.initialTab || "all";
-  const [activeTab, setActiveTab] = useState<TabType>(initialTab);
-  const [viewMode, setViewMode] = useState<"card" | "list">("card");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [approvingRequestId, setApprovingRequestId] = useState<string | null>(null);
-  const [rejectingRequestId, setRejectingRequestId] = useState<string | null>(null);
+  const routeParams = route?.params;
+  const validTabs: TabType[] = ["all", "approved", "rejected"];
+  const isValidTab = (tab: string): tab is TabType => validTabs.includes(tab as TabType);
 
+  const getInitialTab = (): TabType => {
+    const paramTab = routeParams?.initialTab;
+    if (paramTab && isValidTab(paramTab)) return paramTab;
+    return "all";
+  };
+
+  const [selectedTab, setSelectedTab] = useState<TabType>(getInitialTab());
+  const [viewMode, setViewMode] = useState<"card" | "list">("card");
+  const [lastInitialTab, setLastInitialTab] = useState<string | undefined>(routeParams?.initialTab);
+
+  useEffect(() => {
+    const paramTab = routeParams?.initialTab;
+    if (!paramTab || paramTab === lastInitialTab) return;
+    if (isValidTab(paramTab)) {
+      setSelectedTab(paramTab);
+      setLastInitialTab(paramTab);
+    }
+  }, [routeParams?.initialTab, lastInitialTab]);
+
+  // Map tab to API status filter
   const statusFilter: ApprovalHistoryStatus | undefined = useMemo(() => {
-    if (activeTab === "pending") return "pending";
-    if (activeTab === "approved") return "approved";
-    if (activeTab === "rejected") return "rejected";
-    return undefined;
-  }, [activeTab]);
+    switch (selectedTab) {
+      case "approved":
+        return "approved";
+      case "rejected":
+        return "rejected";
+      case "all":
+      default:
+        return undefined; // No filter for "all" tab
+    }
+  }, [selectedTab]);
 
   const {
     data,
@@ -120,12 +290,8 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
     refetch,
   } = useInfiniteApprovalHistoryQuery({
     status: statusFilter,
-    search: searchQuery || undefined,
     limit: 20,
   });
-
-  const approveMutation = useApproveVisitMutation();
-  const rejectMutation = useRejectVisitMutation();
 
   const items = useMemo(() => {
     if (!data?.pages) return [];
@@ -145,171 +311,16 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
     [navigation]
   );
 
-  const handleApprove = useCallback(
-    (id: string) => {
-      setApprovingRequestId(id);
-      approveMutation.mutate(
-        { id },
-        {
-          onSuccess: () => {
-            setApprovingRequestId(null);
-            queryClient.invalidateQueries({ queryKey: approvalHistoryKeys.all });
-          },
-          onError: (error) => {
-            setApprovingRequestId(null);
-            Alert.alert(t("common.error"), error.message || t("approval.approveFailed"));
-          },
-        }
-      );
-    },
-    [approveMutation, queryClient, t]
-  );
-
-  const handleReject = useCallback(
-    (id: string) => {
-      Alert.prompt(
-        t("approval.rejectRequest"),
-        t("approval.enterRejectionReason"),
-        [
-          { text: t("common.cancel"), style: "cancel" },
-          {
-            text: t("common.reject"),
-            style: "destructive",
-            onPress: (reason: string | undefined) => {
-              setRejectingRequestId(id);
-              rejectMutation.mutate(
-                { id, payload: { reason: reason || "" } },
-                {
-                  onSuccess: () => {
-                    setRejectingRequestId(null);
-                    queryClient.invalidateQueries({ queryKey: approvalHistoryKeys.all });
-                  },
-                  onError: (error) => {
-                    setRejectingRequestId(null);
-                    Alert.alert(t("common.error"), error.message || t("approval.rejectFailed"));
-                  },
-                }
-              );
-            },
-          },
-        ],
-        "plain-text"
-      );
-    },
-    [rejectMutation, queryClient, t]
-  );
+  const handleTabChange = useCallback((tab: TabType) => {
+    setSelectedTab(tab);
+  }, []);
 
   const isWebLayout = width > 768;
   const numColumns = isWebLayout && viewMode === "card" ? 3 : 1;
 
-  const tabs: { key: TabType; label: string }[] = [
-    { key: "all", label: t("common.all") },
-    { key: "pending", label: t("navigation.pendingApprovals") },
-    { key: "approved", label: t("status.approved") },
-    { key: "rejected", label: t("status.rejected") },
-  ];
-
-  const renderTabBar = () => (
-    <DirectionalRow style={[styles.tabBar, { borderBottomColor: theme.border }]}>
-      {tabs.map((tab) => (
-        <Pressable
-          key={tab.key}
-          onPress={() => setActiveTab(tab.key)}
-          style={[
-            styles.tab,
-            activeTab === tab.key && { borderBottomColor: theme.primary, borderBottomWidth: 2 },
-          ]}
-        >
-          <ThemedText
-            style={[
-              styles.tabText,
-              { color: activeTab === tab.key ? theme.primary : theme.textSecondary },
-            ]}
-          >
-            {tab.label}
-          </ThemedText>
-        </Pressable>
-      ))}
-    </DirectionalRow>
-  );
-
-  const renderHeader = () => (
-    <View style={styles.header}>
-      <DirectionalRow style={{ alignItems: "center", justifyContent: "space-between" }}>
-        <ThemedText style={[Typography.title, { fontSize: 20, fontWeight: "600" }]}>
-          {t("navigation.allRequests")}
-        </ThemedText>
-        <DirectionalRow style={{ gap: Spacing.sm }}>
-          <Pressable
-            onPress={() => setViewMode("card")}
-            style={[
-              styles.toggleButton,
-              { backgroundColor: viewMode === "card" ? theme.primary : "transparent" },
-            ]}
-          >
-            <DDIcon
-              name="grid"
-              size={18}
-              color={viewMode === "card" ? theme.buttonText : theme.textSecondary}
-            />
-          </Pressable>
-          <Pressable
-            onPress={() => setViewMode("list")}
-            style={[
-              styles.toggleButton,
-              { backgroundColor: viewMode === "list" ? theme.primary : "transparent" },
-            ]}
-          >
-            <DDIcon
-              name="list"
-              size={18}
-              color={viewMode === "list" ? theme.buttonText : theme.textSecondary}
-            />
-          </Pressable>
-        </DirectionalRow>
-      </DirectionalRow>
-
-      <Spacer height={Spacing.md} />
-
-      <DirectionalRow
-        style={[
-          styles.searchBar,
-          { backgroundColor: theme.surfaceSecondary, borderColor: theme.border },
-        ]}
-      >
-        <DDIcon name="search" size={18} color={theme.textSecondary} />
-        <TextInput
-          style={[
-            styles.searchInput,
-            {
-              color: theme.text,
-              textAlign: isRTL ? "right" : "left",
-              writingDirection: isRTL ? "rtl" : "ltr",
-            },
-          ]}
-          placeholder={t("common.search")}
-          placeholderTextColor={theme.textSecondary}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-        {searchQuery.length > 0 && (
-          <Pressable onPress={() => setSearchQuery("")}>
-            <DDIcon name="x" size={18} color={theme.textSecondary} />
-          </Pressable>
-        )}
-      </DirectionalRow>
-
-      <Spacer height={Spacing.md} />
-
-      {renderTabBar()}
-    </View>
-  );
-
   const renderItem = useCallback(
     ({ item }: { item: ApprovalHistoryItemDto }) => {
       const request = mapHistoryToVisitorRequest(item);
-      const isPending = item.status === "pending";
-      const showActions = isPending && activeTab === "pending";
 
       return (
         <View
@@ -323,25 +334,26 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
             request={request}
             onPress={() => handleViewDetails(item.id)}
             showRequestedBy
-            showActions={showActions}
-            onApprove={showActions ? () => handleApprove(item.id) : undefined}
-            onReject={showActions ? () => handleReject(item.id) : undefined}
-            approveLoading={approvingRequestId === item.id}
-            rejectLoading={rejectingRequestId === item.id}
           />
         </View>
       );
     },
-    [activeTab, numColumns, handleViewDetails, handleApprove, handleReject, approvingRequestId, rejectingRequestId]
+    [numColumns, handleViewDetails]
   );
 
-  const renderEmptyState = () => (
-    <View style={styles.emptyState}>
-      <DDIcon name="inbox" size={48} color={theme.textSecondary} />
+  const renderHeader = () => (
+    <View style={styles.headerContainer}>
+      <SectionHeaderWithTabs
+        title={t("navigation.allRequests")}
+        selectedTab={selectedTab}
+        onTabChange={handleTabChange}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        theme={theme}
+        t={t}
+        isRTL={isRTL}
+      />
       <Spacer height={Spacing.md} />
-      <ThemedText style={[Typography.body, { color: theme.textSecondary, textAlign: "center" }]}>
-        {t("common.noResults")}
-      </ThemedText>
     </View>
   );
 
@@ -358,7 +370,7 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       {renderHeader()}
       <FlatList
-        key={`${viewMode}-${numColumns}`}
+        key={`${viewMode}-${numColumns}-${selectedTab}`}
         data={items}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
@@ -374,7 +386,7 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
         }}
         onEndReachedThreshold={0.5}
         ListFooterComponent={<ListLoadingFooter isLoading={isFetchingNextPage} />}
-        ListEmptyComponent={renderEmptyState}
+        ListEmptyComponent={<EmptyState theme={theme} t={t} />}
         refreshing={isFetching && !isFetchingNextPage}
         onRefresh={refetch}
       />
@@ -386,51 +398,47 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    paddingHorizontal: Spacing.lg,
+  headerContainer: {
     paddingTop: Spacing.lg,
   },
-  tabBar: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  tab: {
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.md,
-    marginEnd: Spacing.sm,
-  },
-  tabText: {
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  searchBar: {
-    flexDirection: "row",
+  sectionTitleRow: {
+    justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    gap: Spacing.sm,
   },
-  searchInput: {
-    flex: 1,
-    fontSize: 15,
-    paddingVertical: 4,
+  paddedContent: {
+    paddingHorizontal: Spacing.lg,
+  },
+  viewToggle: {
+    flexDirection: "row",
+    borderRadius: BorderRadius.sm,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 2,
+    gap: 2,
   },
   toggleButton: {
-    width: 36,
-    height: 36,
-    borderRadius: BorderRadius.sm,
+    width: 32,
+    height: 32,
+    borderRadius: BorderRadius.sm - 2,
     alignItems: "center",
     justifyContent: "center",
+  },
+  tabsContainer: {
+    paddingHorizontal: Spacing.lg,
+    gap: Spacing.md,
+  },
+  tab: {
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.xs,
   },
   listContent: {
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.md,
   },
   emptyState: {
-    flex: 1,
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: Spacing.xxl * 2,
+    borderRadius: LAYOUT.cardRadius,
+    marginHorizontal: Spacing.lg,
   },
 });
