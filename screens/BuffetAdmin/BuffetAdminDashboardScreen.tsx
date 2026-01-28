@@ -398,28 +398,17 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
           </>
         ) : null}
 
-        <Spacer height={Spacing.md} />
-
-        <View style={styles.cardFooter}>
-          {showActions ? (
-            <Pressable
-              style={[styles.assignButton, { backgroundColor: applyOpacity(theme.warning, '12') }]}
-              onPress={(e) => handleOpenAssignModal(item, e)}
-            >
-              <DDIcon name="user-plus" size={14} color={theme.warning} />
-              <ThemedText style={[styles.assignButtonText, { color: theme.warning }]}>
-                {item.assignedTo ? t('buffet.reassign') : t('buffet.assignStaff')}
-              </ThemedText>
-            </Pressable>
-          ) : (
+        {!showActions ? (
+          <>
+            <Spacer height={Spacing.md} />
             <View style={[styles.completedBadge, { backgroundColor: applyOpacity(theme.success, '15') }]}>
               <DDIcon name="check-circle" size={14} color={theme.success} />
               <ThemedText style={[styles.completedText, { color: theme.success }]}>
                 {t('common.done')}
               </ThemedText>
             </View>
-          )}
-        </View>
+          </>
+        ) : null}
       </Pressable>
     );
   };

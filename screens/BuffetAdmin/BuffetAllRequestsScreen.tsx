@@ -581,6 +581,19 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
   
   // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
   const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
+  
+  // Calculate card width accounting for gaps
+  const getCardStyle = useMemo(() => {
+    const gap = LAYOUT.contentGap;
+    if (numColumns === 1) {
+      return { width: '100%' as const, marginBottom: gap };
+    } else if (numColumns === 2) {
+      return { width: '48.5%' as const, marginBottom: gap };
+    } else {
+      return { width: '32%' as const, marginBottom: gap };
+    }
+  }, [numColumns]);
+  
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
@@ -1015,8 +1028,6 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
   return (
     <>
       <ScreenScrollView>
-        <Spacer height={Spacing.xl} />
-
         <DirectionalRow style={[styles.paddedContent, styles.dateNavRow]}>
           <Pressable
             style={[styles.dateNavButton, { backgroundColor: theme.surfaceSecondary }]}
@@ -1092,7 +1103,7 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
             filteredRequests.map((request) => (
               <View 
                 key={request.id}
-                style={numColumns > 1 ? { width: numColumns === 2 ? '50%' : '33.33%', flexGrow: 0, marginBottom: LAYOUT.contentGap, paddingRight: Spacing.sm } : { width: '100%', marginBottom: LAYOUT.contentGap }}
+                style={getCardStyle}
               >
                 <BuffetRequestCard
                   request={request}
@@ -1177,7 +1188,7 @@ const styles = StyleSheet.create({
   cardGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: Spacing.md,
+    justifyContent: 'space-between',
   },
   dateNavRow: {
     alignItems: 'center',
