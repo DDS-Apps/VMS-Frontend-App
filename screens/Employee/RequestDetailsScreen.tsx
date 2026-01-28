@@ -2481,30 +2481,16 @@ export default function RequestDetailsScreen({
             onPressIn={() => console.log("[DEBUG Modal] Backdrop onPressIn")}
             onPressOut={() => console.log("[DEBUG Modal] Backdrop onPressOut")}
           >
-            <Pressable
+            {/* Using View with pointerEvents="box-none" instead of Pressable to fix iOS touch issues */}
+            {/* box-none: the View itself ignores touches, but children receive them normally */}
+            {/* The backdrop Pressable won't receive touches from within this View because */}
+            {/* touches on children don't bubble up to the backdrop */}
+            <View
               style={[
                 styles.editModalContent,
                 { backgroundColor: theme.surface },
               ]}
-              onPress={(e) => {
-                console.log("[DEBUG Modal] Content wrapper (inner Pressable) PRESSED - stopPropagation called");
-                console.log("[DEBUG Modal] Event target:", e.target);
-                console.log("[DEBUG Modal] Event currentTarget:", e.currentTarget);
-                e.stopPropagation();
-              }}
-              onPressIn={(e) => {
-                console.log("[DEBUG Modal] Content wrapper onPressIn");
-                console.log("[DEBUG Modal] PressIn nativeEvent:", JSON.stringify(e.nativeEvent));
-              }}
-              onPressOut={() => console.log("[DEBUG Modal] Content wrapper onPressOut")}
-              onStartShouldSetResponder={() => {
-                console.log("[DEBUG Modal] Content wrapper onStartShouldSetResponder called - returning false");
-                return false;
-              }}
-              onMoveShouldSetResponder={() => {
-                console.log("[DEBUG Modal] Content wrapper onMoveShouldSetResponder called - returning false");
-                return false;
-              }}
+              pointerEvents="box-none"
             >
               <DirectionalRow style={styles.modalHeader}>
                 <ThemedText
@@ -3348,7 +3334,7 @@ export default function RequestDetailsScreen({
                   {isApprovalFlow ? t("actions.approve") : t("common.save")}
                 </LoadingButton>
               </View>
-            </Pressable>
+            </View>
           </Pressable>
         </Modal>
 
