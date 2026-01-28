@@ -10,6 +10,7 @@ import {
   Modal,
   Animated,
   ScrollView,
+  KeyboardAvoidingView,
 } from "react-native";
 import { CommonActions } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -1548,7 +1549,10 @@ export default function VisitorRequestFormScreen({
           animationType="slide"
           onRequestClose={handleCloseEmployeePicker}
         >
-          <View style={styles.iosModalContainer}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={styles.iosModalContainer}
+          >
             <Pressable
               style={[
                 styles.iosModalBackdrop,
@@ -1702,7 +1706,7 @@ export default function VisitorRequestFormScreen({
                 )}
               </ScrollView>
             </View>
-          </View>
+          </KeyboardAvoidingView>
         </Modal>
 
         <Modal

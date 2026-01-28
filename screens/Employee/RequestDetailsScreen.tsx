@@ -138,7 +138,7 @@ export default function RequestDetailsScreen({
   const [showEditEndTimePicker, setShowEditEndTimePicker] = useState(false);
   const [showPurposePicker, setShowPurposePicker] = useState(false);
   // Inline picker mode for iOS (can't stack Modals on iOS)
-  const [inlinePickerMode, setInlinePickerMode] = useState<'none' | 'purpose' | 'endTime' | 'startTime'>('none');
+  const [inlinePickerMode, setInlinePickerMode] = useState<'none' | 'purpose' | 'endTime' | 'startTime' | 'date'>('none');
   const [editSendWhatsApp, setEditSendWhatsApp] = useState(false);
   const [editSendSMS, setEditSendSMS] = useState(false);
   const [editModalMode, setEditModalMode] = useState<"full" | "services-only">(
@@ -2813,7 +2813,11 @@ export default function RequestDetailsScreen({
                       ]}
                       onPress={() => {
                         console.log("[DEBUG Modal] Date picker button PRESSED");
-                        setShowEditDatePicker(true);
+                        if (Platform.OS === 'ios') {
+                          setInlinePickerMode('date');
+                        } else {
+                          setShowEditDatePicker(true);
+                        }
                       }}
                       onPressIn={() => console.log("[DEBUG Modal] Date picker onPressIn")}
                       onPressOut={() => console.log("[DEBUG Modal] Date picker onPressOut")}
@@ -2863,7 +2867,11 @@ export default function RequestDetailsScreen({
                       ]}
                       onPress={() => {
                         console.log("[DEBUG Modal] Time picker button PRESSED");
-                        setShowEditTimePicker(true);
+                        if (Platform.OS === 'ios') {
+                          setInlinePickerMode('startTime');
+                        } else {
+                          setShowEditTimePicker(true);
+                        }
                       }}
                       onPressIn={() => console.log("[DEBUG Modal] Time picker onPressIn")}
                       onPressOut={() => console.log("[DEBUG Modal] Time picker onPressOut")}
@@ -3459,6 +3467,96 @@ export default function RequestDetailsScreen({
                       }}
                       style={{ height: 180 }}
                       minuteInterval={5}
+                    />
+                    <View style={{ flexDirection: 'row', gap: Spacing.md, marginTop: Spacing.md }}>
+                      <LoadingButton
+                        onPress={() => setInlinePickerMode('none')}
+                        variant="secondary"
+                        size="medium"
+                        style={{ flex: 1 }}
+                      >
+                        {t("common.cancel")}
+                      </LoadingButton>
+                      <LoadingButton
+                        onPress={() => setInlinePickerMode('none')}
+                        variant="primary"
+                        size="medium"
+                        style={{ flex: 1 }}
+                      >
+                        {t("common.confirm")}
+                      </LoadingButton>
+                    </View>
+                  </View>
+                </View>
+              )}
+
+              {Platform.OS === 'ios' && inlinePickerMode === 'startTime' && (
+                <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.surface, borderRadius: 12 }]}>
+                  <View style={{ flex: 1, padding: 24 }}>
+                    <View style={[styles.modalHeader, { borderBottomWidth: 1, borderBottomColor: theme.border, paddingBottom: Spacing.md, marginBottom: Spacing.md }]}>
+                      <ThemedText style={[Typography.subtitle, { fontSize: 18, fontWeight: '600', color: theme.text, flex: 1 }]}>
+                        {t("time.selectTime")}
+                      </ThemedText>
+                      <Pressable onPress={() => setInlinePickerMode('none')} hitSlop={8}>
+                        <DDIcon name="x" size={20} variant="muted" />
+                      </Pressable>
+                    </View>
+                    <DateTimePicker
+                      value={editTime}
+                      mode="time"
+                      display="spinner"
+                      onChange={(event: DateTimePickerEvent, date?: Date) => {
+                        if (date) {
+                          setEditTime(date);
+                        }
+                      }}
+                      style={{ height: 180 }}
+                      minuteInterval={5}
+                    />
+                    <View style={{ flexDirection: 'row', gap: Spacing.md, marginTop: Spacing.md }}>
+                      <LoadingButton
+                        onPress={() => setInlinePickerMode('none')}
+                        variant="secondary"
+                        size="medium"
+                        style={{ flex: 1 }}
+                      >
+                        {t("common.cancel")}
+                      </LoadingButton>
+                      <LoadingButton
+                        onPress={() => setInlinePickerMode('none')}
+                        variant="primary"
+                        size="medium"
+                        style={{ flex: 1 }}
+                      >
+                        {t("common.confirm")}
+                      </LoadingButton>
+                    </View>
+                  </View>
+                </View>
+              )}
+
+              {Platform.OS === 'ios' && inlinePickerMode === 'date' && (
+                <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.surface, borderRadius: 12 }]}>
+                  <View style={{ flex: 1, padding: 24 }}>
+                    <View style={[styles.modalHeader, { borderBottomWidth: 1, borderBottomColor: theme.border, paddingBottom: Spacing.md, marginBottom: Spacing.md }]}>
+                      <ThemedText style={[Typography.subtitle, { fontSize: 18, fontWeight: '600', color: theme.text, flex: 1 }]}>
+                        {t("form.date")}
+                      </ThemedText>
+                      <Pressable onPress={() => setInlinePickerMode('none')} hitSlop={8}>
+                        <DDIcon name="x" size={20} variant="muted" />
+                      </Pressable>
+                    </View>
+                    <DateTimePicker
+                      value={editDate}
+                      mode="date"
+                      display="spinner"
+                      onChange={(event: DateTimePickerEvent, date?: Date) => {
+                        if (date) {
+                          setEditDate(date);
+                        }
+                      }}
+                      style={{ height: 180 }}
+                      minimumDate={new Date()}
                     />
                     <View style={{ flexDirection: 'row', gap: Spacing.md, marginTop: Spacing.md }}>
                       <LoadingButton
