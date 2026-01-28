@@ -903,137 +903,224 @@ export default function ManagerApprovalDetailScreen({
         <ThemedView
           style={[styles.cardNew, { backgroundColor: theme.surface }]}
         >
-          <View style={{ alignItems: "center" }}>
-            <View
-              style={[
-                styles.avatarNew,
-                { backgroundColor: applyOpacity(theme.primary, "15") },
-              ]}
-            >
-              <ThemedText
-                style={[styles.avatarTextNew, { color: theme.primary }]}
-              >
-                {initials}
-              </ThemedText>
-            </View>
-
-            <Spacer height={Spacing.lg} />
-
-            <ThemedText
-              style={[
-                Typography.title,
-                { fontWeight: "600", fontSize: 22, color: theme.text },
-              ]}
-            >
-              {request.visitor.fullName}
-            </ThemedText>
-            {request.visitor.company ? (
-              <ThemedText
-                style={[
-                  Typography.body,
-                  { color: theme.textSecondary, fontSize: 14, marginTop: 4 },
-                ]}
-              >
-                {request.visitor.company}
-              </ThemedText>
-            ) : null}
-
-            <Spacer height={Spacing.sm} />
-
-            <DirectionalRow style={{ alignItems: "center", gap: Spacing.sm }}>
-              {request.isWalkIn ? (
+          {/* Responsive visitor header - compact row on web, centered stack on mobile */}
+          {isWebLayout ? (
+            <DirectionalRow style={{ alignItems: 'center', justifyContent: 'space-between', gap: Spacing.lg }}>
+              {/* Left group: Avatar, Name, Status */}
+              <DirectionalRow style={{ alignItems: 'center', gap: Spacing.lg, flexShrink: 1 }}>
+                {/* Avatar */}
                 <View
-                  style={{
-                    backgroundColor: applyOpacity(theme.warning, "15"),
-                    borderColor: applyOpacity(theme.warning, "30"),
-                    borderWidth: StyleSheet.hairlineWidth,
-                    paddingHorizontal: Spacing.md,
-                    paddingVertical: 6,
-                    borderRadius: BorderRadius.full,
-                  }}
-                >
-                  <ThemedText
-                    style={[
-                      Typography.caption,
-                      { color: theme.warning, fontWeight: "600", fontSize: 12 },
-                    ]}
-                  >
-                    {t("reception.walkInVisitor")}
-                  </ThemedText>
-                </View>
-              ) : null}
-              <View
-                style={{
-                  backgroundColor: applyOpacity(statusColor, "15"),
-                  borderColor: applyOpacity(statusColor, "30"),
-                  borderWidth: StyleSheet.hairlineWidth,
-                  paddingHorizontal: Spacing.md,
-                  paddingVertical: 6,
-                  borderRadius: BorderRadius.full,
-                }}
-              >
-                <ThemedText
                   style={[
-                    Typography.caption,
-                    { color: statusColor, fontWeight: "600", fontSize: 12 },
+                    styles.avatarNew,
+                    { backgroundColor: applyOpacity(theme.primary, "15"), width: 56, height: 56 },
                   ]}
                 >
-                  {statusText}
+                  <ThemedText
+                    style={[styles.avatarTextNew, { color: theme.primary, fontSize: 20 }]}
+                  >
+                    {initials}
+                  </ThemedText>
+                </View>
+
+                {/* Name and Company */}
+                <View style={{ minWidth: 100, flexShrink: 1 }}>
+                  <ThemedText
+                    style={[Typography.title, { fontWeight: "600", fontSize: 18, color: theme.text }]}
+                    numberOfLines={1}
+                  >
+                    {request.visitor.fullName}
+                  </ThemedText>
+                  {request.visitor.company ? (
+                    <ThemedText
+                      style={[Typography.body, { color: theme.textSecondary, fontSize: 13, marginTop: 2 }]}
+                      numberOfLines={1}
+                    >
+                      {request.visitor.company}
+                    </ThemedText>
+                  ) : null}
+                </View>
+
+                {/* Status Badges */}
+                <DirectionalRow style={{ alignItems: "center", gap: Spacing.sm }}>
+                  {request.isWalkIn ? (
+                    <View
+                      style={{
+                        backgroundColor: applyOpacity(theme.warning, "15"),
+                        borderColor: applyOpacity(theme.warning, "30"),
+                        borderWidth: StyleSheet.hairlineWidth,
+                        paddingHorizontal: Spacing.md,
+                        paddingVertical: 6,
+                        borderRadius: BorderRadius.full,
+                      }}
+                    >
+                      <ThemedText
+                        style={[Typography.caption, { color: theme.warning, fontWeight: "600", fontSize: 12 }]}
+                      >
+                        {t("reception.walkInVisitor")}
+                      </ThemedText>
+                    </View>
+                  ) : null}
+                  <View
+                    style={{
+                      backgroundColor: applyOpacity(statusColor, "15"),
+                      borderColor: applyOpacity(statusColor, "30"),
+                      borderWidth: StyleSheet.hairlineWidth,
+                      paddingHorizontal: Spacing.md,
+                      paddingVertical: 6,
+                      borderRadius: BorderRadius.full,
+                    }}
+                  >
+                    <ThemedText
+                      style={[Typography.caption, { color: statusColor, fontWeight: "600", fontSize: 12 }]}
+                    >
+                      {statusText}
+                    </ThemedText>
+                  </View>
+                </DirectionalRow>
+              </DirectionalRow>
+
+              {/* Right group: Contact info */}
+              <DirectionalRow style={{ alignItems: 'center', gap: Spacing.lg, flexShrink: 0 }}>
+                {/* Email */}
+                <DirectionalRow style={{ alignItems: 'center', gap: Spacing.sm }}>
+                  <View
+                    style={[
+                      styles.contactIcon,
+                      { backgroundColor: applyOpacity(theme.textSecondary, "15"), width: 32, height: 32 },
+                    ]}
+                  >
+                    <DDIcon name="mail" size={16} color={theme.text} />
+                  </View>
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 13 }]}>
+                    {request.visitor.email}
+                  </ThemedText>
+                </DirectionalRow>
+
+                {/* Phone */}
+                <DirectionalRow style={{ alignItems: 'center', gap: Spacing.sm }}>
+                  <View
+                    style={[
+                      styles.contactIcon,
+                      { backgroundColor: applyOpacity(theme.textSecondary, "15"), width: 32, height: 32 },
+                    ]}
+                  >
+                    <DDIcon name="phone" size={16} color={theme.text} />
+                  </View>
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 13 }]}>
+                    {request.visitor.phone}
+                  </ThemedText>
+                </DirectionalRow>
+              </DirectionalRow>
+            </DirectionalRow>
+          ) : (
+            <>
+              {/* Mobile layout - centered stack */}
+              <View style={{ alignItems: "center" }}>
+                <View
+                  style={[
+                    styles.avatarNew,
+                    { backgroundColor: applyOpacity(theme.primary, "15") },
+                  ]}
+                >
+                  <ThemedText
+                    style={[styles.avatarTextNew, { color: theme.primary }]}
+                  >
+                    {initials}
+                  </ThemedText>
+                </View>
+
+                <Spacer height={Spacing.lg} />
+
+                <ThemedText
+                  style={[Typography.title, { fontWeight: "600", fontSize: 22, color: theme.text }]}
+                >
+                  {request.visitor.fullName}
                 </ThemedText>
+                {request.visitor.company ? (
+                  <ThemedText
+                    style={[Typography.body, { color: theme.textSecondary, fontSize: 14, marginTop: 4 }]}
+                  >
+                    {request.visitor.company}
+                  </ThemedText>
+                ) : null}
+
+                <Spacer height={Spacing.sm} />
+
+                <DirectionalRow style={{ alignItems: "center", gap: Spacing.sm }}>
+                  {request.isWalkIn ? (
+                    <View
+                      style={{
+                        backgroundColor: applyOpacity(theme.warning, "15"),
+                        borderColor: applyOpacity(theme.warning, "30"),
+                        borderWidth: StyleSheet.hairlineWidth,
+                        paddingHorizontal: Spacing.md,
+                        paddingVertical: 6,
+                        borderRadius: BorderRadius.full,
+                      }}
+                    >
+                      <ThemedText
+                        style={[Typography.caption, { color: theme.warning, fontWeight: "600", fontSize: 12 }]}
+                      >
+                        {t("reception.walkInVisitor")}
+                      </ThemedText>
+                    </View>
+                  ) : null}
+                  <View
+                    style={{
+                      backgroundColor: applyOpacity(statusColor, "15"),
+                      borderColor: applyOpacity(statusColor, "30"),
+                      borderWidth: StyleSheet.hairlineWidth,
+                      paddingHorizontal: Spacing.md,
+                      paddingVertical: 6,
+                      borderRadius: BorderRadius.full,
+                    }}
+                  >
+                    <ThemedText
+                      style={[Typography.caption, { color: statusColor, fontWeight: "600", fontSize: 12 }]}
+                    >
+                      {statusText}
+                    </ThemedText>
+                  </View>
+                </DirectionalRow>
               </View>
-            </DirectionalRow>
 
-          </View>
+              <Spacer height={Spacing.lg} />
 
-            <Spacer height={Spacing.lg} />
+              <DirectionalRow style={{ alignItems: "center", justifyContent: "flex-start", gap: Spacing.md }}>
+                <View
+                  style={[
+                    styles.contactIcon,
+                    { backgroundColor: applyOpacity(theme.textSecondary, "15") },
+                  ]}
+                >
+                  <DDIcon name="mail" size={18} color={theme.text} />
+                </View>
+                <ThemedText
+                  style={[Typography.caption, { color: theme.textSecondary, fontSize: 13, flex: 1 }]}
+                >
+                  {request.visitor.email}
+                </ThemedText>
+              </DirectionalRow>
 
-            <DirectionalRow style={{ alignItems: "center", justifyContent: "flex-start", gap: Spacing.md }}>
-              <View
-                style={[
-                  styles.contactIcon,
-                  { backgroundColor: applyOpacity(theme.textSecondary, "15") },
-                ]}
-              >
-                <DDIcon name="mail" size={18} color={theme.text} />
-              </View>
-              <ThemedText
-                style={[
-                  Typography.caption,
-                  {
-                    color: theme.textSecondary,
-                    fontSize: 13,
-                    flex: 1,
-                  },
-                ]}
-              >
-                {request.visitor.email}
-              </ThemedText>
-            </DirectionalRow>
+              <Spacer height={Spacing.md} />
 
-            <Spacer height={Spacing.md} />
-
-            <DirectionalRow style={{ alignItems: "center", justifyContent: "flex-start", gap: Spacing.md }}>
-              <View
-                style={[
-                  styles.contactIcon,
-                  { backgroundColor: applyOpacity(theme.textSecondary, "15") },
-                ]}
-              >
-                <DDIcon name="phone" size={18} color={theme.text} />
-              </View>
-              <ThemedText
-                style={[
-                  Typography.caption,
-                  {
-                    color: theme.textSecondary,
-                    fontSize: 13,
-                    flex: 1,
-                  },
-                ]}
-              >
-                {request.visitor.phone}
-              </ThemedText>
-            </DirectionalRow>
+              <DirectionalRow style={{ alignItems: "center", justifyContent: "flex-start", gap: Spacing.md }}>
+                <View
+                  style={[
+                    styles.contactIcon,
+                    { backgroundColor: applyOpacity(theme.textSecondary, "15") },
+                  ]}
+                >
+                  <DDIcon name="phone" size={18} color={theme.text} />
+                </View>
+                <ThemedText
+                  style={[Typography.caption, { color: theme.textSecondary, fontSize: 13, flex: 1 }]}
+                >
+                  {request.visitor.phone}
+                </ThemedText>
+              </DirectionalRow>
+            </>
+          )}
         </ThemedView>
 
         <Spacer height={LAYOUT.sectionSpacing} />
