@@ -3350,12 +3350,8 @@ export default function RequestDetailsScreen({
 
               {/* iOS Inline Picker Overlays - rendered inside the Edit Modal to avoid Modal stacking issues */}
               {Platform.OS === 'ios' && inlinePickerMode === 'purpose' && (
-                <View style={[StyleSheet.absoluteFill, { backgroundColor: 'transparent', justifyContent: 'flex-end' }]}>
-                  <Pressable 
-                    style={StyleSheet.absoluteFill} 
-                    onPress={() => setInlinePickerMode('none')} 
-                  />
-                  <View style={{ backgroundColor: theme.surface, borderRadius: 20, maxHeight: '60%', padding: Spacing.lg, marginHorizontal: Spacing.md }}>
+                <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.surface, borderRadius: 12 }]}>
+                  <View style={{ flex: 1, padding: 24 }}>
                     <View style={[styles.modalHeader, { borderBottomWidth: 1, borderBottomColor: theme.border, paddingBottom: Spacing.md, marginBottom: Spacing.md }]}>
                       <ThemedText style={[Typography.subtitle, { fontSize: 18, fontWeight: '600', color: theme.text, flex: 1 }]}>
                         {t("visitor.selectVisitType")}
@@ -3400,12 +3396,8 @@ export default function RequestDetailsScreen({
               )}
 
               {Platform.OS === 'ios' && inlinePickerMode === 'endTime' && (
-                <View style={[StyleSheet.absoluteFill, { backgroundColor: 'transparent', justifyContent: 'flex-end' }]}>
-                  <Pressable 
-                    style={StyleSheet.absoluteFill} 
-                    onPress={() => setInlinePickerMode('none')} 
-                  />
-                  <View style={{ backgroundColor: theme.surface, borderRadius: 20, maxHeight: '60%', padding: Spacing.lg, marginHorizontal: Spacing.md }}>
+                <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.surface, borderRadius: 12 }]}>
+                  <View style={{ flex: 1, padding: 24 }}>
                     <View style={[styles.modalHeader, { borderBottomWidth: 1, borderBottomColor: theme.border, paddingBottom: Spacing.md, marginBottom: Spacing.md }]}>
                       <ThemedText style={[Typography.subtitle, { fontSize: 18, fontWeight: '600', color: theme.text, flex: 1 }]}>
                         {t("time.selectTime")}
