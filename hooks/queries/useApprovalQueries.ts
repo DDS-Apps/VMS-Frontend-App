@@ -32,6 +32,8 @@ import type {
   HostApproveResponse,
   HostRejectPayload,
   HostRejectResponse,
+  ApprovalHistoryListParams,
+  ApprovalHistoryResponse,
 } from '@/types/api.types';
 import type { VisitorRequest } from '@/types/vms.types';
 import { invitationKeys } from './useInvitationQueries';
@@ -397,6 +399,42 @@ export function useHostRejectVisitMutation() {
       queryClient.invalidateQueries({ queryKey: requestKeys.visits() });
       queryClient.invalidateQueries({ queryKey: requestKeys.pendingApprovals() });
       queryClient.invalidateQueries({ queryKey: invitationKeys.all });
+    },
+  });
+}
+
+// Manager Approval History Queries
+export const approvalHistoryKeys = {
+  all: ['approval-history'] as const,
+  list: (params?: ApprovalHistoryListParams) => [...approvalHistoryKeys.all, 'list', params] as const,
+};
+
+export function useApprovalHistoryQuery(params?: ApprovalHistoryListParams, enabled = true) {
+  return useQuery<ApprovalHistoryResponse>({
+    queryKey: approvalHistoryKeys.list(params),
+    queryFn: () => requestApiService.getApprovalHistory(params),
+    enabled,
+    staleTime: 30 * 1000,
+  });
+}
+
+const APPROVAL_HISTORY_PAGE_SIZE = 20;
+
+export function useInfiniteApprovalHistoryQuery(params?: Omit<ApprovalHistoryListParams, 'page'>) {
+  return useInfiniteQuery<ApprovalHistoryResponse>({
+    queryKey: [...approvalHistoryKeys.list(params), 'infinite'] as const,
+    queryFn: async ({ pageParam = 1 }) => {
+      return requestApiService.getApprovalHistory({ 
+        ...params, 
+        page: pageParam as number, 
+        limit: params?.limit || APPROVAL_HISTORY_PAGE_SIZE 
+      });
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      if (!lastPage?.pagination) return undefined;
+      const { page, totalPages } = lastPage.pagination;
+      return page < totalPages ? page + 1 : undefined;
     },
   });
 }

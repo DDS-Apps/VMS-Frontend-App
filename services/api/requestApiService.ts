@@ -33,6 +33,8 @@ import type {
   HostApproveResponse,
   HostRejectPayload,
   HostRejectResponse,
+  ApprovalHistoryListParams,
+  ApprovalHistoryResponse,
 } from '@/types/api.types';
 
 const { requests, approvals, visits, reception } = apiConfig.endpoints;
@@ -159,6 +161,11 @@ export const requestApiService = {
 
   hostRejectVisit: (id: string, payload: HostRejectPayload): Promise<HostRejectResponse> => {
     return post<HostRejectResponse, HostRejectPayload>(visits.hostReject(id), payload);
+  },
+
+  getApprovalHistory: (params?: ApprovalHistoryListParams): Promise<ApprovalHistoryResponse> => {
+    const queryString = params ? buildQueryString(params as unknown as Record<string, unknown>) : '';
+    return get<ApprovalHistoryResponse>(`${approvals.history}${queryString}`);
   },
 };
 

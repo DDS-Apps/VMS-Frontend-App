@@ -80,6 +80,7 @@ const getMenuGroups = (role: UserRole): { groups: MenuGroup[]; standalone: MenuI
         items: [
           { id: 'new_request', labelKey: 'navigation.newRequest', icon: 'user-plus', screen: 'VisitTypeSelection' },
           { id: 'visitor_requests', labelKey: 'navigation.myRequests', icon: 'list', screen: 'VisitorRequests' },
+          { id: 'all_requests', labelKey: 'navigation.allRequests', icon: 'file-text', screen: 'AllRequests' },
           { id: 'pending_approvals', labelKey: 'navigation.pendingApprovals', icon: 'check-circle', screen: 'PendingApprovals' },
         ],
         badgeKey: 'pendingApprovals',

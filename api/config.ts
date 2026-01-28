@@ -102,6 +102,7 @@ export const apiConfig = {
       awaitingVisitor: "/api/v1/approvals/awaiting-visitor",
       bulkApprove: "/api/v1/approvals/bulk/approve",
       bulkReject: "/api/v1/approvals/bulk/reject",
+      history: "/api/v1/approvals/history",
     },
     parking: {
       base: "/api/v1/parking",

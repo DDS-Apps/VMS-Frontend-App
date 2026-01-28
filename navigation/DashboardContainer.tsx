@@ -15,6 +15,7 @@ import MyValetRequestsScreen from "@/screens/Employee/MyValetRequestsScreen";
 import EmployeeValetRequestDetailsScreen from "@/screens/Employee/ValetRequestDetailsScreen";
 import ManagerDashboardScreen from "@/screens/Manager/ManagerDashboardScreen";
 import ManagerApprovalDetailScreen from "@/screens/Manager/ManagerApprovalDetailScreen";
+import ManagerAllRequestsScreen from "@/screens/Manager/ManagerAllRequestsScreen";
 import SecurityCheckInScreen from "@/screens/Security/SecurityCheckInScreen";
 import SecurityVisitorDetailScreen from "@/screens/Security/SecurityVisitorDetailScreen";
 import GateEventsLogScreen from "@/screens/Security/GateEventsLogScreen";
@@ -316,6 +317,13 @@ export default function DashboardContainer({ userRole, userName, userEmail, user
               {(props) => (
                 <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager} isSSOUser={isSSOUser}>
                   <VisitorRequestsScreen userRole="manager" {...props} />
+                </ScreenWrapper>
+              )}
+            </Stack.Screen>
+            <Stack.Screen name="AllRequests">
+              {(props) => (
+                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager} isSSOUser={isSSOUser}>
+                  <ManagerAllRequestsScreen {...props} />
                 </ScreenWrapper>
               )}
             </Stack.Screen>

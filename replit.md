@@ -90,6 +90,7 @@ The VMS app employs a Clean Architecture pattern, segmenting the application int
 - **Visitor Invite Enhancements:** Handling of expired/invalid invites, display of parking/valet expectations.
 - **Settings - Notification Preferences:** Per-user notification preferences with role-specific defaults, push/email toggles, frequency options, and event-type specific toggles.
 - **Admin System Monitoring:** System event log, reminder schedule visualization.
+- **Manager All Requests:** Comprehensive view of all approval requests for managers with 4 tabs (All, Pending Approval, Approved, Rejected), grid/list view toggle, search functionality, and infinite scroll pagination. Pending tab shows approve/reject actions; other tabs display request status. Integrates with `/api/v1/approvals/history` endpoint.
 
 **API Integration Layer:**
 - **Architecture:** Structured pattern with `api/` (HTTP client core), `services/api/` (API service layer), `services/state/` (local state management), `utils/` (shared helpers), `components/shared/` (for loading states), `types/`, `hooks/` (React Query hooks), `providers/`, and `contexts/`.
