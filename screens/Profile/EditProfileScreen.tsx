@@ -21,7 +21,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { authService } from "@/services/api/authService";
 import { useToast } from "@/contexts/ToastContext";
 import { ApiException } from "@/api/errors";
-import { formatPhoneInput, formatPhoneNumber, normalizePhoneNumber } from "@/utils/formatters";
+import { normalizePhoneNumber } from "@/utils/formatters";
+import { PhoneInputWithCountry } from "@/components/PhoneInputWithCountry";
 
 interface EditProfileScreenProps {
   userRole?: UserRole;
@@ -60,7 +61,7 @@ export default function EditProfileScreen({
   useEffect(() => {
     if (user) {
       setName(user.name || '');
-      setPhone(user.phoneNumber ? formatPhoneInput(user.phoneNumber) : '');
+      setPhone(user.phoneNumber || '');
       setDepartment(user.department || '');
     }
   }, [user]);
@@ -71,8 +72,11 @@ export default function EditProfileScreen({
     paddingBottom: insets.bottom + Spacing.xl
   };
 
-  const handlePhoneChange = (text: string) => {
-    setPhone(formatPhoneInput(text));
+  const handlePhoneChange = (fullNumber: string) => {
+    setPhone(fullNumber);
+    if (errors.phone) {
+      setErrors({ ...errors, phone: undefined });
+    }
   };
 
   const getRoleLabel = (role: string) => {
@@ -453,14 +457,13 @@ export default function EditProfileScreen({
 
         <Spacer height={Spacing.md} />
 
-        {renderInput(
-          t('form.phone'),
-          phone,
-          handlePhoneChange,
-          t('form.enterPhone'),
-          errors.phone,
-          'phone-pad'
-        )}
+        <PhoneInputWithCountry
+          value={phone}
+          onChangeText={handlePhoneChange}
+          label={t('form.phone')}
+          error={errors.phone}
+          testID="input-phone"
+        />
       </ThemedView>
 
       <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
