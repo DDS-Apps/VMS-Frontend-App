@@ -75,8 +75,14 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
   
-  // Responsive columns: 1 on mobile (<600), 2 on tablet (600-900), 3 on desktop (>900)
-  const numColumns = screenWidth > 900 ? 3 : screenWidth >= 600 ? 2 : 1;
+  // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
+  const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
+  
+  // Calculate item width: (containerWidth - gaps) / numColumns
+  // Container has paddingHorizontal of Spacing.lg (24px) on each side, and gap of Spacing.md (16px) between items
+  const containerPadding = Spacing.lg * 2; // 48px total horizontal padding
+  const totalGaps = Spacing.md * (numColumns - 1); // gaps between columns
+  const itemWidth = numColumns > 1 ? (screenWidth - containerPadding - totalGaps) / numColumns : screenWidth - containerPadding;
   
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -431,7 +437,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
           {filteredVisitors.map((visitor) => (
             <View 
               key={visitor.id} 
-              style={numColumns > 1 ? { width: numColumns === 2 ? '50%' : '33.33%', flexGrow: 0, marginBottom: LAYOUT.contentGap, paddingRight: Spacing.sm } : { width: '100%' }}
+              style={{ width: itemWidth }}
             >
               {renderVisitorCard(visitor)}
             </View>
