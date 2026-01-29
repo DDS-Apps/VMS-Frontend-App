@@ -11,6 +11,7 @@ import {
   SectionList,
   FlatList,
   ActivityIndicator,
+  useWindowDimensions,
 } from "react-native";
 import { ConfirmationModal } from "@/components/shared/ConfirmationModal";
 import { useNavigation } from "@react-navigation/native";
@@ -33,7 +34,6 @@ import {
   useCreateUserMutation,
   useUpdateUserMutation,
   useDeleteUserMutation,
-  useUsersByRoleQuery,
 } from "@/hooks/queries/useUserQueries";
 import type {
   UserDto,
@@ -148,6 +148,11 @@ export default function UsersRolesScreen() {
   const insets = useSafeAreaInsets();
   const { showError, showSuccess } = useToast();
   const navigation = useNavigation<NavigationProp>();
+  const { width: screenWidth } = useWindowDimensions();
+  
+  // Determine grid columns based on screen width (3 for web/tablet, 2 for mobile)
+  const isWeb = Platform.OS === "web";
+  const gridColumns = isWeb && screenWidth >= 768 ? 3 : 2;
 
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState<DisplayUser | null>(null);
@@ -215,11 +220,17 @@ export default function UsersRolesScreen() {
   const updateMutation = useUpdateUserMutation();
   const deleteMutation = useDeleteUserMutation();
 
-  const { data: managers = [] } = useUsersByRoleQuery("manager" as ApiUserRole);
-
   const users: DisplayUser[] = useMemo(() => {
     if (!usersResponse?.data) return [];
     return usersResponse.data.map(mapUserDtoToDisplayUser);
+  }, [usersResponse?.data]);
+
+  // Filter managers from existing users list instead of separate API call
+  const managers: UserDto[] = useMemo(() => {
+    if (!usersResponse?.data) return [];
+    return usersResponse.data.filter(
+      (user) => user.role.toLowerCase() === "manager"
+    );
   }, [usersResponse?.data]);
 
   const totalPages = useMemo(() => {
@@ -623,7 +634,20 @@ export default function UsersRolesScreen() {
               >
                 <DDIcon name="edit-2" size={16} variant="primary" />
               </Pressable>
-              <View style={{ width: Spacing.sm }} />
+              {item.source !== "microsoft_ad" && (
+                <>
+                  <View style={{ width: Spacing.sm }} />
+                  <Pressable
+                    style={[
+                      styles.actionButton,
+                      { backgroundColor: theme.error + "15" },
+                    ]}
+                    onPress={() => handleDeleteUser(item.id)}
+                  >
+                    <DDIcon name="trash-2" size={16} variant="danger" />
+                  </Pressable>
+                </>
+              )}
             </DirectionalRow>
           ) : null}
         </DirectionalRow>
@@ -1662,29 +1686,36 @@ export default function UsersRolesScreen() {
 
     if (viewMode === "grid") {
       const gridData: DisplayUser[][] = [];
-      for (let i = 0; i < filteredAndSortedUsers.length; i += 2) {
-        gridData.push(filteredAndSortedUsers.slice(i, i + 2));
+      for (let i = 0; i < filteredAndSortedUsers.length; i += gridColumns) {
+        gridData.push(filteredAndSortedUsers.slice(i, i + gridColumns));
       }
 
       return (
         <FlatList
           data={gridData}
-          renderItem={({ item: pair }) => (
+          renderItem={({ item: rowUsers }) => (
             <DirectionalRow style={styles.gridRow}>
-              {pair.map((user, idx) => (
+              {rowUsers.map((user, idx) => (
                 <View
                   key={user.id}
                   style={[
                     styles.gridItemWrapper,
-                    idx === 1 ? { marginStart: Spacing.sm } : null,
+                    { flex: 1 / gridColumns },
+                    idx > 0 ? { marginStart: Spacing.sm } : null,
                   ]}
                 >
                   {renderUserCard({ item: user })}
                 </View>
               ))}
-              {pair.length === 1 ? (
-                <View style={styles.gridItemWrapper} />
-              ) : null}
+              {/* Fill remaining empty slots to maintain grid alignment */}
+              {rowUsers.length < gridColumns && 
+                Array.from({ length: gridColumns - rowUsers.length }).map((_, idx) => (
+                  <View 
+                    key={`empty-${idx}`} 
+                    style={[styles.gridItemWrapper, { flex: 1 / gridColumns, marginStart: Spacing.sm }]} 
+                  />
+                ))
+              }
             </DirectionalRow>
           )}
           keyExtractor={(item, index) => `row-${index}`}
