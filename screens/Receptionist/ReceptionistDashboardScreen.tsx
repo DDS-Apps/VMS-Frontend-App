@@ -215,7 +215,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
         return { label: t('status.rejected'), bg: applyOpacity(theme.error, '15'), text: theme.error, border: theme.error };
       case 'cancelled':
       case 'auto_cancelled':
-        return { label: t('status.cancelled'), bg: applyOpacity(theme.textSecondary, '15'), text: theme.textSecondary, border: theme.textSecondary };
+        return { label: t('status.cancelled'), bg: applyOpacity(theme.error, '15'), text: theme.error, border: theme.error };
       default:
         // approved, expected, pending all show as expected
         return { label: t('visitor.expectedVisitors'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: theme.warning };
