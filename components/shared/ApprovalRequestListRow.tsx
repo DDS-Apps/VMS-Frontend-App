@@ -159,7 +159,7 @@ export function ApprovalRequestListRow({
         {/* Company Column */}
         <View style={[styles.column, { minWidth: COLUMN_WIDTHS.company }]}>
           <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
-            {t("visitor.company")}
+            {t("form.company")}
           </ThemedText>
           <ThemedText
             style={[Typography.bodySmall, { color: theme.text }]}
@@ -172,7 +172,7 @@ export function ApprovalRequestListRow({
         {/* Requested By Column */}
         <View style={[styles.column, { minWidth: COLUMN_WIDTHS.requestedBy }]}>
           <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
-            {t("approval.requestedBy")}
+            {t("dashboard.requestedBy")}
           </ThemedText>
           <ThemedText
             style={[Typography.bodySmall, { color: theme.text }]}
@@ -190,7 +190,7 @@ export function ApprovalRequestListRow({
         {/* Purpose Column */}
         <View style={[styles.column, { minWidth: COLUMN_WIDTHS.purpose }]}>
           <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
-            {t("approval.purpose")}
+            {t("form.purpose")}
           </ThemedText>
           <ThemedText
             style={[Typography.bodySmall, { color: theme.text }]}
@@ -203,7 +203,7 @@ export function ApprovalRequestListRow({
         {/* Additional Services Column */}
         <View style={[styles.column, { minWidth: COLUMN_WIDTHS.services }]}>
           <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
-            {t("approval.additionalServices")}
+            {t("services.additionalServices")}
           </ThemedText>
           {hasServices ? (
             <DirectionalRow style={styles.servicesRow}>
@@ -296,9 +296,7 @@ const styles = StyleSheet.create({
   },
   columnHeader: {
     ...Typography.caption,
-    textTransform: "uppercase",
     marginBottom: Spacing.xs,
-    letterSpacing: 0.5,
   },
   avatar: {
     width: 40,
