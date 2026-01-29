@@ -57,6 +57,8 @@ function mapVisitToSecurityVisitor(visit: VisitListItemDto): SecurityVisitorDto 
     licensePlate: visit.licensePlate,
     carModel: visit.carModel,
     carColor: visit.carColor,
+    isBuffet: visit.isBuffet,
+    isMeetingRoom: visit.isMeetingRoom,
   };
 }
 
@@ -86,6 +88,8 @@ function mapVisitDetailsToSecurityVisitor(visit: VisitDetailsDto): SecurityVisit
     licensePlate: visit.licensePlate,
     carModel: visit.carModel,
     carColor: visit.carColor,
+    isBuffet: visit.isBuffet,
+    isMeetingRoom: visit.isMeetingRoom,
     qrCode: visit.qrCode,
   };
 }

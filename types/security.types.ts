@@ -41,6 +41,8 @@ export interface SecurityVisitorDto {
   licensePlate?: string | null;
   carModel?: string | null;
   carColor?: string | null;
+  isBuffet?: boolean;
+  isMeetingRoom?: boolean;
   valetAssigned?: boolean;
   valetDriverName?: string;
   valetStatus?: string;
