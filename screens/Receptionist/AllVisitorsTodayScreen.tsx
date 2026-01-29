@@ -75,8 +75,8 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
   
-  // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
-  const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
+  // Responsive columns: 1 on mobile (<600), 2 on tablet (600-900), 3 on desktop (>900)
+  const numColumns = screenWidth > 900 ? 3 : screenWidth >= 600 ? 2 : 1;
   
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
