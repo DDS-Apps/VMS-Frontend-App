@@ -15,6 +15,7 @@ export {
   SkeletonDashboard,
 } from './Skeleton';
 export { VisitorRequestCard } from './VisitorRequestCard';
+export { ApprovalRequestListRow } from './ApprovalRequestListRow';
 export { ListLoadingFooter } from './ListLoadingFooter';
 export { EnableNotificationsPrompt } from './EnableNotificationsPrompt';
 export { SectionHeader } from './SectionHeader';

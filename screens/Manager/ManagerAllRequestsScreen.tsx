@@ -16,6 +16,7 @@ import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
 import Spacer from "@/components/Spacer";
 import {
   VisitorRequestCard,
+  ApprovalRequestListRow,
   ListLoadingFooter,
   SkeletonList,
 } from "@/components/shared";
@@ -416,6 +417,24 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
       const isApproving = approvingRequestId === item.id;
       const isRejecting = rejectingRequestId === item.id;
 
+      // Use list row component for list view mode
+      if (viewMode === "list") {
+        return (
+          <View style={{ width: "100%", marginBottom: LAYOUT.contentGap }}>
+            <ApprovalRequestListRow
+              request={request}
+              onPress={() => handleViewDetails(item.id)}
+              showActions={showActions}
+              onApprove={canApproveReject ? () => handleApprove(item.id) : undefined}
+              onReject={canApproveReject ? () => handleReject(item.id) : undefined}
+              approveLoading={isApproving}
+              rejectLoading={isRejecting}
+              isExpired={isExpired}
+            />
+          </View>
+        );
+      }
+
       return (
         <View
           style={
@@ -438,7 +457,7 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
         </View>
       );
     },
-    [numColumns, handleViewDetails, handleApprove, handleReject, approvingRequestId, rejectingRequestId]
+    [numColumns, viewMode, handleViewDetails, handleApprove, handleReject, approvingRequestId, rejectingRequestId]
   );
 
   const renderHeader = () => (
