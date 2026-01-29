@@ -148,9 +148,9 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
 
         <Spacer height={Spacing.lg} />
 
-        <DirectionalRow style={[styles.infoRowNew, { gap: Spacing.md }]}>
+        <DirectionalRow style={[styles.infoRowNew, { gap: Spacing.md, justifyContent: 'space-between' }]}>
           <DDIcon name="mail" size={16} variant="muted" />
-          <ThemedText style={[Typography.body, { color: theme.textSecondary, flex: 1, fontSize: 14, textAlign: 'right' }]}>
+          <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14 }]}>
             {visitorData.visitorEmail || '-'}
           </ThemedText>
         </DirectionalRow>
