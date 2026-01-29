@@ -321,6 +321,7 @@ export const ar: TranslationKeys = {
     phoneNumber: 'رقم الهاتف',
     phone: 'الهاتف',
     businessPhone: 'هاتف المكتب',
+    extension: 'تحويلة',
     landline: 'الهاتف الأرضي',
     phonePlaceholder: 'أدخل رقم الهاتف',
     company: 'الشركة',

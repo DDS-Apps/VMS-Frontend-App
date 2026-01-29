@@ -321,6 +321,7 @@ export const en: TranslationKeys = {
     phoneNumber: 'Phone Number',
     phone: 'Phone',
     businessPhone: 'Office Phone',
+    extension: 'Ext.',
     landline: 'Landline',
     phonePlaceholder: 'Enter phone number',
     company: 'Company',

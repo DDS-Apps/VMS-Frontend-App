@@ -321,6 +321,7 @@ export interface TranslationKeys {
     phoneNumber: string;
     phone: string;
     businessPhone: string;
+    extension: string;
     landline: string;
     phonePlaceholder: string;
     company: string;

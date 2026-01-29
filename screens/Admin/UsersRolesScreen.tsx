@@ -182,6 +182,7 @@ export default function UsersRolesScreen() {
     department: "",
     phoneNumber: "",
     businessPhone: "",
+    businessPhoneExt: "",
     status: "active" as "active" | "inactive",
     autoApproval: false,
     managerId: "" as string | undefined,
@@ -265,6 +266,7 @@ export default function UsersRolesScreen() {
       department: "",
       phoneNumber: "",
       businessPhone: "",
+      businessPhoneExt: "",
       status: "active",
       autoApproval: false,
       managerId: undefined,
@@ -288,7 +290,8 @@ export default function UsersRolesScreen() {
       role: user.role,
       department: user.department || "",
       phoneNumber: user.phoneNumber || "",
-      businessPhone: user.businessPhone || "",
+      businessPhone: parseBusinessPhoneBase(user.businessPhone || ""),
+      businessPhoneExt: parseBusinessPhoneExt(user.businessPhone || ""),
       status: user.status,
       autoApproval: user.autoApproval,
       managerId: user.managerId,
@@ -310,6 +313,37 @@ export default function UsersRolesScreen() {
 
   const handleBusinessPhoneChange = (text: string) => {
     setFormData({ ...formData, businessPhone: text });
+  };
+
+  const handleBusinessPhoneExtChange = (text: string) => {
+    // Only allow digits for extension
+    const digitsOnly = text.replace(/\D/g, '');
+    setFormData({ ...formData, businessPhoneExt: digitsOnly });
+  };
+
+  // Parse business phone to extract base number (before ext.)
+  const parseBusinessPhoneBase = (phone: string): string => {
+    if (!phone) return "";
+    // Match patterns like "ext.", "ext", "x", "Ext."
+    const extMatch = phone.match(/(.+?)\s*(?:ext\.?|x)\s*\d+$/i);
+    return extMatch ? extMatch[1].trim() : phone;
+  };
+
+  // Parse business phone to extract extension
+  const parseBusinessPhoneExt = (phone: string): string => {
+    if (!phone) return "";
+    const extMatch = phone.match(/(?:ext\.?|x)\s*(\d+)$/i);
+    return extMatch ? extMatch[1] : "";
+  };
+
+  // Format business phone with extension for API
+  const formatBusinessPhoneForApi = (phone: string, ext: string): string => {
+    if (!phone) return "";
+    const formatted = formatPhoneNumber(phone);
+    if (ext) {
+      return `${formatted} ext. ${ext}`;
+    }
+    return formatted;
   };
 
   const handleSaveUser = async () => {
@@ -343,8 +377,8 @@ export default function UsersRolesScreen() {
           name: formData.name,
           role: formData.role,
           department: formData.department || undefined,
-          phoneNumber: formData.phoneNumber ? normalizePhoneNumber(formData.phoneNumber) : undefined,
-          businessPhone: formData.businessPhone ? normalizePhoneNumber(formData.businessPhone) : undefined,
+          phoneNumber: formData.phoneNumber ? formatPhoneNumber(formData.phoneNumber) : undefined,
+          businessPhone: formData.businessPhone ? formatBusinessPhoneForApi(formData.businessPhone, formData.businessPhoneExt) : undefined,
           status: formData.status,
           autoApproval: formData.autoApproval,
           managerId: formData.managerId || undefined,
@@ -361,8 +395,8 @@ export default function UsersRolesScreen() {
           password: formData.password || undefined,
           role: formData.role,
           department: formData.department || undefined,
-          phoneNumber: formData.phoneNumber ? normalizePhoneNumber(formData.phoneNumber) : undefined,
-          businessPhone: formData.businessPhone ? normalizePhoneNumber(formData.businessPhone) : undefined,
+          phoneNumber: formData.phoneNumber ? formatPhoneNumber(formData.phoneNumber) : undefined,
+          businessPhone: formData.businessPhone ? formatBusinessPhoneForApi(formData.businessPhone, formData.businessPhoneExt) : undefined,
           status: formData.status,
           autoApproval: formData.autoApproval,
           managerId: formData.managerId || undefined,
@@ -1860,12 +1894,27 @@ export default function UsersRolesScreen() {
 
               <Spacer height={Spacing.md} />
 
-              <PhoneInputWithCountry
-                value={formData.businessPhone}
-                onChangeText={handleBusinessPhoneChange}
-                label={t("form.businessPhone")}
-                testID="input-business-phone"
-              />
+              <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', gap: Spacing.sm }}>
+                <View style={{ flex: 2 }}>
+                  <PhoneInputWithCountry
+                    value={formData.businessPhone}
+                    onChangeText={handleBusinessPhoneChange}
+                    label={t("form.businessPhone")}
+                    testID="input-business-phone"
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <StyledInput
+                    label={t("form.extension")}
+                    value={formData.businessPhoneExt}
+                    onChangeText={handleBusinessPhoneExtChange}
+                    placeholder="123"
+                    keyboardType="number-pad"
+                    testID="input-business-phone-ext"
+                    maxLength={6}
+                  />
+                </View>
+              </View>
 
               <Spacer height={Spacing.md} />
 
