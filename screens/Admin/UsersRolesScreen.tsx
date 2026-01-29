@@ -1614,12 +1614,10 @@ export default function UsersRolesScreen() {
 
     if (viewMode === "grid") {
       const getItemStyle = () => {
-        if (numColumns === 1) return { paddingHorizontal: HORIZONTAL_PADDING, paddingBottom: Spacing.md };
-        // Calculate maxWidth as percentage to prevent last row items from stretching
-        const gapTotal = (numColumns - 1) * Spacing.md;
-        const availableWidth = screenWidth - HORIZONTAL_PADDING * 2 - gapTotal;
-        const itemWidth = availableWidth / numColumns;
-        return { width: itemWidth, maxWidth: itemWidth, paddingBottom: Spacing.md };
+        if (numColumns === 1) return { width: "100%" as const, paddingHorizontal: HORIZONTAL_PADDING, paddingBottom: Spacing.md };
+        // Use percentage-based widths with flexGrow: 0 to prevent stretching
+        const widthPercent = numColumns === 3 ? "33.33%" : numColumns === 2 ? "50%" : "100%";
+        return { width: widthPercent as const, flexGrow: 0, paddingBottom: Spacing.md, paddingEnd: Spacing.sm };
       };
 
       return (
@@ -1628,7 +1626,7 @@ export default function UsersRolesScreen() {
           data={filteredAndSortedUsers}
           keyExtractor={(item) => item.id}
           numColumns={numColumns}
-          columnWrapperStyle={numColumns > 1 ? styles.webGridRow : undefined}
+          contentContainerStyle={[styles.gridContainer, { paddingHorizontal: HORIZONTAL_PADDING }]}
           renderItem={({ item }) => (
             <View style={getItemStyle()}>
               {renderUserCard({ item })}
@@ -1636,9 +1634,7 @@ export default function UsersRolesScreen() {
           )}
           ListFooterComponent={listFooter}
           ListEmptyComponent={renderEmptyComponent}
-          contentContainerStyle={styles.gridContainer}
           style={{ flex: 1, backgroundColor: theme.background }}
-          ItemSeparatorComponent={numColumns === 1 ? undefined : undefined}
         />
       );
     }
