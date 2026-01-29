@@ -43,6 +43,7 @@ import type {
 } from "@/types/api.types";
 import { UserRole, USER_ROLES } from "@/types/vms.types";
 import { formatPhoneInput, formatPhoneNumber, normalizePhoneNumber } from "@/utils/formatters";
+import { applyOpacity } from "@/utils/statusStyles";
 
 type UserSource = "microsoft_ad" | "app_created";
 
@@ -538,9 +539,42 @@ export default function UsersRolesScreen() {
     );
   };
 
+  const getRoleAccentColor = (role: UserRole): string => {
+    switch (role.toLowerCase()) {
+      case "admin":
+      case "building_admin":
+        return theme.error;
+      case "manager":
+        return theme.warning;
+      case "employee":
+        return theme.primary;
+      case "security":
+        return theme.info;
+      case "receptionist":
+        return theme.secondary;
+      case "buffet_admin":
+        return theme.warning;
+      case "valet_admin":
+      case "valet_driver":
+        return theme.info;
+      default:
+        return theme.primary;
+    }
+  };
+
+  const getInitials = (name: string): string => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .substring(0, 2)
+      .toUpperCase();
+  };
+
   const renderUserCard = ({ item }: { item: DisplayUser }) => {
-    const isGrid = viewMode === "grid";
     const isSelected = selectedUserIds.has(item.id);
+    const accentColor = getRoleAccentColor(item.role);
+    const initials = getInitials(item.name);
 
     return (
       <Pressable
@@ -549,216 +583,129 @@ export default function UsersRolesScreen() {
             ? toggleUserSelection(item.id)
             : handleViewUserDetail(item.id)
         }
-        style={[
-          isGrid ? styles.userCardGrid : styles.userCard,
+        style={({ pressed }) => [
+          styles.userCardContainer,
           {
-            backgroundColor: theme.backgroundSecondary,
-            borderColor: isSelected && bulkMode ? theme.primary : theme.border,
-            borderWidth: isSelected && bulkMode ? 2 : 1,
+            backgroundColor: theme.surface,
+            opacity: pressed ? 0.9 : 1,
+            borderWidth: isSelected && bulkMode ? 2 : 0,
+            borderColor: isSelected && bulkMode ? theme.primary : 'transparent',
           },
         ]}
       >
-        <DirectionalRow style={styles.userHeader}>
-          {bulkMode ? (
-            <View style={{ marginEnd: Spacing.md }}>
+        <View style={[styles.userCardInner, { backgroundColor: theme.surface }]}>
+          <View style={[styles.cardAccentLine, { backgroundColor: accentColor }]} />
+          
+          {bulkMode && (
+            <View style={styles.cardCheckboxContainer}>
               {renderCheckbox(item.id)}
             </View>
-          ) : null}
-          <View style={{ flex: 1 }}>
-            <DirectionalRow style={styles.nameRow}>
-              <ThemedText
-                style={[Typography.subtitle, { fontWeight: "600", flex: 1 }]}
-                numberOfLines={1}
-              >
-                {item.name}
-              </ThemedText>
-            </DirectionalRow>
-            <ThemedText
-              style={[
-                Typography.bodySmall,
-                { color: theme.textSecondary, marginBottom: Spacing.xs },
-              ]}
-              numberOfLines={1}
-            >
-              {item.email}
-            </ThemedText>
-            <DirectionalRow style={styles.badgeRow}>
-              <View
-                style={[
-                  styles.roleBadge,
-                  { backgroundColor: theme.primary + "20" },
-                ]}
-              >
-                <ThemedText
-                  style={[
-                    Typography.caption,
-                    { color: theme.primary, fontWeight: "600" },
-                  ]}
-                >
-                  {getRoleLabel(item.role)}
+          )}
+
+          <View style={styles.cardMainContent}>
+            <DirectionalRow style={styles.cardHeader} gap={Spacing.md}>
+              <View style={[styles.cardAvatar, { backgroundColor: applyOpacity(accentColor, '15') }]}>
+                <ThemedText style={[styles.cardAvatarText, { color: accentColor }]}>
+                  {initials}
                 </ThemedText>
               </View>
-              {item.autoApproval ? (
-                <View
-                  style={[
-                    styles.autoApprovalBadge,
-                    { backgroundColor: theme.success + "20" },
-                  ]}
-                >
-                  <DDIcon name="check-circle" size={10} color={theme.success} />
-                  <ThemedText
-                    style={[
-                      Typography.caption,
-                      {
-                        color: theme.success,
-                        fontWeight: "600",
-                        marginStart: 2,
-                      },
-                    ]}
-                  >
-                    {t("common.auto")}
+              <View style={styles.cardNameSection}>
+                <ThemedText style={[styles.cardUserName, { color: theme.text }]} numberOfLines={1}>
+                  {item.name}
+                </ThemedText>
+                <ThemedText style={[styles.cardEmail, { color: theme.textSecondary }]} numberOfLines={1}>
+                  {item.email}
+                </ThemedText>
+              </View>
+            </DirectionalRow>
+
+            <Spacer height={Spacing.sm} />
+
+            {(item.department || item.phoneNumber || item.businessPhone || item.landline) && (
+              <>
+                {item.department && (
+                  <DirectionalRow style={styles.cardInfoRow} gap={Spacing.sm}>
+                    <DDIcon name="briefcase" variant="muted" size={13} />
+                    <ThemedText style={[styles.cardInfoText, { color: theme.textSecondary }]} numberOfLines={1}>
+                      {item.department}
+                    </ThemedText>
+                  </DirectionalRow>
+                )}
+                {item.phoneNumber && (
+                  <>
+                    <Spacer height={Spacing.xs} />
+                    <DirectionalRow style={styles.cardInfoRow} gap={Spacing.sm}>
+                      <DDIcon name="phone" variant="muted" size={13} />
+                      <ThemedText style={[styles.cardInfoText, { color: theme.textSecondary }]} numberOfLines={1}>
+                        {formatPhoneNumber(item.phoneNumber)}
+                      </ThemedText>
+                    </DirectionalRow>
+                  </>
+                )}
+                {item.businessPhone && (
+                  <>
+                    <Spacer height={Spacing.xs} />
+                    <DirectionalRow style={styles.cardInfoRow} gap={Spacing.sm}>
+                      <DDIcon name="phone-call" variant="muted" size={13} />
+                      <ThemedText style={[styles.cardInfoText, { color: theme.textSecondary }]} numberOfLines={1}>
+                        {item.businessPhone}
+                      </ThemedText>
+                    </DirectionalRow>
+                  </>
+                )}
+                {item.landline && (
+                  <>
+                    <Spacer height={Spacing.xs} />
+                    <DirectionalRow style={styles.cardInfoRow} gap={Spacing.sm}>
+                      <DDIcon name="phone" variant="muted" size={13} />
+                      <ThemedText style={[styles.cardInfoText, { color: theme.textSecondary }]} numberOfLines={1}>
+                        {item.landline}
+                      </ThemedText>
+                    </DirectionalRow>
+                  </>
+                )}
+                <Spacer height={Spacing.sm} />
+              </>
+            )}
+
+            <DirectionalRow style={styles.cardFooter}>
+              <DirectionalRow style={styles.cardBadgesRow} gap={Spacing.xs}>
+                <View style={[styles.cardRoleBadge, { backgroundColor: applyOpacity(accentColor, '15'), borderColor: applyOpacity(accentColor, '30'), borderWidth: 1 }]}>
+                  <ThemedText style={[styles.cardBadgeText, { color: accentColor }]}>
+                    {getRoleLabel(item.role)}
                   </ThemedText>
                 </View>
-              ) : null}
-            </DirectionalRow>
-          </View>
-          {!isGrid && !bulkMode ? (
-            <DirectionalRow style={styles.actions}>
-              <Pressable
-                style={[
-                  styles.actionButton,
-                  { backgroundColor: theme.primary + "15" },
-                ]}
-                onPress={() => handleEditUser(item)}
-              >
-                <DDIcon name="edit-2" size={16} variant="primary" />
-              </Pressable>
-              {item.source !== "microsoft_ad" && (
-                <>
-                  <View style={{ width: Spacing.sm }} />
+                {item.autoApproval && (
+                  <View style={[styles.cardAutoApprovalBadge, { backgroundColor: applyOpacity(theme.success, '15') }]}>
+                    <DDIcon name="check-circle" size={10} color={theme.success} />
+                    <ThemedText style={[styles.cardBadgeText, { color: theme.success, marginStart: 2 }]}>
+                      {t("common.auto")}
+                    </ThemedText>
+                  </View>
+                )}
+              </DirectionalRow>
+
+              {!bulkMode && (
+                <DirectionalRow style={styles.cardActions} gap={Spacing.sm}>
                   <Pressable
-                    style={[
-                      styles.actionButton,
-                      { backgroundColor: theme.error + "15" },
-                    ]}
-                    onPress={() => handleDeleteUser(item.id)}
+                    style={[styles.cardActionButton, { backgroundColor: applyOpacity(theme.primary, '15') }]}
+                    onPress={() => handleEditUser(item)}
                   >
-                    <DDIcon name="trash-2" size={16} variant="danger" />
+                    <DDIcon name="edit-2" size={14} variant="primary" />
                   </Pressable>
-                </>
+                  {item.source !== "microsoft_ad" && (
+                    <Pressable
+                      style={[styles.cardActionButton, { backgroundColor: applyOpacity(theme.error, '15') }]}
+                      onPress={() => handleDeleteUser(item.id)}
+                    >
+                      <DDIcon name="trash-2" size={14} variant="danger" />
+                    </Pressable>
+                  )}
+                </DirectionalRow>
               )}
             </DirectionalRow>
-          ) : null}
-        </DirectionalRow>
-
-        {!isGrid && (item.department || item.phoneNumber || item.businessPhone || item.landline) ? (
-          <>
-            <Spacer height={Spacing.md} />
-            {item.department ? (
-              <DirectionalRow
-                style={[styles.infoRow, bulkMode ? { marginStart: 32 } : null]}
-              >
-                <DDIcon name="briefcase" variant="muted" size={14} />
-                <ThemedText
-                  style={[
-                    Typography.bodySmall,
-                    { color: theme.textSecondary, marginEnd: Spacing.xs },
-                  ]}
-                >
-                  {item.department}
-                </ThemedText>
-              </DirectionalRow>
-            ) : null}
-            {item.phoneNumber ? (
-              <>
-                <Spacer height={Spacing.xs} />
-                <DirectionalRow
-                  style={[
-                    styles.infoRow,
-                    bulkMode ? { marginStart: 32 } : null,
-                  ]}
-                >
-                  <DDIcon name="phone" variant="muted" size={14} />
-                  <ThemedText
-                    style={[
-                      Typography.bodySmall,
-                      { color: theme.textSecondary, marginEnd: Spacing.xs },
-                    ]}
-                  >
-                    {formatPhoneNumber(item.phoneNumber)}
-                  </ThemedText>
-                </DirectionalRow>
-              </>
-            ) : null}
-            {item.businessPhone ? (
-              <>
-                <Spacer height={Spacing.xs} />
-                <DirectionalRow
-                  style={[
-                    styles.infoRow,
-                    bulkMode ? { marginStart: 32 } : null,
-                  ]}
-                >
-                  <DDIcon name="phone-call" variant="muted" size={14} />
-                  <ThemedText
-                    style={[
-                      Typography.bodySmall,
-                      { color: theme.textSecondary, marginEnd: Spacing.xs },
-                    ]}
-                  >
-                    {item.businessPhone}
-                  </ThemedText>
-                </DirectionalRow>
-              </>
-            ) : null}
-            {item.landline ? (
-              <>
-                <Spacer height={Spacing.xs} />
-                <DirectionalRow
-                  style={[
-                    styles.infoRow,
-                    bulkMode ? { marginStart: 32 } : null,
-                  ]}
-                >
-                  <DDIcon name="phone" variant="muted" size={14} />
-                  <ThemedText
-                    style={[
-                      Typography.bodySmall,
-                      { color: theme.textSecondary, marginEnd: Spacing.xs },
-                    ]}
-                  >
-                    {item.landline}
-                  </ThemedText>
-                </DirectionalRow>
-              </>
-            ) : null}
-          </>
-        ) : null}
-
-        {isGrid && !bulkMode ? (
-          <DirectionalRow style={styles.gridActions}>
-            <Pressable
-              style={[
-                styles.gridActionButton,
-                { backgroundColor: theme.primary + "15" },
-              ]}
-              onPress={() => handleEditUser(item)}
-            >
-              <DDIcon name="edit-2" size={14} variant="primary" />
-            </Pressable>
-            {item.source !== "microsoft_ad" && (
-              <Pressable
-                style={[
-                  styles.gridActionButton,
-                  { backgroundColor: theme.error + "15" },
-                ]}
-                onPress={() => handleDeleteUser(item.id)}
-              >
-                <DDIcon name="trash-2" size={14} variant="danger" />
-              </Pressable>
-            )}
-          </DirectionalRow>
-        ) : null}
+          </View>
+        </View>
       </Pressable>
     );
   };
@@ -813,14 +760,14 @@ export default function UsersRolesScreen() {
         <View style={[styles.tableCell, { flex: 1.5 }]}>
           <View
             style={[
-              styles.roleBadge,
-              { backgroundColor: theme.primary + "20" },
+              styles.cardRoleBadge,
+              { backgroundColor: applyOpacity(theme.primary, '20') },
             ]}
           >
             <ThemedText
               style={[
-                Typography.caption,
-                { color: theme.primary, fontWeight: "600" },
+                styles.cardBadgeText,
+                { color: theme.primary },
               ]}
               numberOfLines={1}
             >
@@ -1684,44 +1631,28 @@ export default function UsersRolesScreen() {
     }
 
     if (viewMode === "grid") {
-      const gridData: DisplayUser[][] = [];
-      for (let i = 0; i < filteredAndSortedUsers.length; i += numColumns) {
-        gridData.push(filteredAndSortedUsers.slice(i, i + numColumns));
-      }
+      const getItemStyle = () => {
+        if (numColumns === 1) return { paddingHorizontal: HORIZONTAL_PADDING, paddingBottom: Spacing.md };
+        return { flex: 1, minWidth: 0, paddingBottom: Spacing.md };
+      };
 
       return (
         <FlatList
-          data={gridData}
-          renderItem={({ item: rowUsers }) => (
-            <DirectionalRow style={styles.gridRow}>
-              {rowUsers.map((user, idx) => (
-                <View
-                  key={user.id}
-                  style={[
-                    styles.gridItemWrapper,
-                    { flex: 1 / numColumns },
-                    idx > 0 ? { marginStart: Spacing.sm } : null,
-                  ]}
-                >
-                  {renderUserCard({ item: user })}
-                </View>
-              ))}
-              {/* Fill remaining empty slots to maintain grid alignment */}
-              {rowUsers.length < numColumns && 
-                Array.from({ length: numColumns - rowUsers.length }).map((_, idx) => (
-                  <View 
-                    key={`empty-${idx}`} 
-                    style={[styles.gridItemWrapper, { flex: 1 / numColumns, marginStart: Spacing.sm }]} 
-                  />
-                ))
-              }
-            </DirectionalRow>
+          key={`flatlist-${numColumns}`}
+          data={filteredAndSortedUsers}
+          keyExtractor={(item) => item.id}
+          numColumns={numColumns}
+          columnWrapperStyle={numColumns > 1 ? styles.webGridRow : undefined}
+          renderItem={({ item }) => (
+            <View style={getItemStyle()}>
+              {renderUserCard({ item })}
+            </View>
           )}
-          keyExtractor={(item, index) => `row-${index}`}
           ListFooterComponent={listFooter}
           ListEmptyComponent={renderEmptyComponent}
           contentContainerStyle={styles.gridContainer}
           style={{ flex: 1, backgroundColor: theme.background }}
+          ItemSeparatorComponent={numColumns === 1 ? undefined : undefined}
         />
       );
     }
@@ -2210,70 +2141,100 @@ const styles = StyleSheet.create({
   gridContainer: {
     paddingHorizontal: HORIZONTAL_PADDING,
   },
-  gridRow: {
-    flexDirection: "row",
-    marginBottom: Spacing.md,
+  webGridRow: {
+    gap: Spacing.md,
+    paddingHorizontal: HORIZONTAL_PADDING,
   },
-  gridItemWrapper: {
-    flex: 1,
+  userCardContainer: {
+    borderRadius: BorderRadius.md,
+    overflow: "hidden",
   },
-  userCard: {
-    padding: Spacing.xl,
-    borderRadius: BorderRadius.lg,
-    borderWidth: 1,
-    marginBottom: Spacing.lg,
+  userCardInner: {
+    borderRadius: BorderRadius.md,
+    overflow: "hidden",
   },
-  userCardGrid: {
-    padding: Spacing.md,
-    borderRadius: BorderRadius.lg,
-    borderWidth: 1,
-    flex: 1,
+  cardAccentLine: {
+    position: "absolute",
+    start: 0,
+    top: 0,
+    bottom: 0,
+    width: 4,
+    borderTopStartRadius: BorderRadius.md,
+    borderBottomStartRadius: BorderRadius.md,
   },
-  userHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
+  cardCheckboxContainer: {
+    position: "absolute",
+    top: Spacing.md,
+    end: Spacing.md,
+    zIndex: 1,
   },
-  nameRow: {
-    flexDirection: "row",
+  cardMainContent: {
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.lg,
+    paddingEnd: Spacing.lg,
+    paddingStart: Spacing.lg + 4,
+  },
+  cardHeader: {
     alignItems: "center",
-    marginBottom: Spacing.xs,
   },
-  badgeRow: {
-    flexDirection: "row",
+  cardAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  cardAvatarText: {
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  cardNameSection: {
+    flex: 1,
+  },
+  cardUserName: {
+    fontSize: 15,
+    fontWeight: "600",
+  },
+  cardEmail: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  cardInfoRow: {
+    alignItems: "center",
+  },
+  cardInfoText: {
+    fontSize: 13,
+    flex: 1,
+  },
+  cardFooter: {
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  cardBadgesRow: {
     alignItems: "center",
     flexWrap: "wrap",
-    gap: Spacing.xs,
+    flex: 1,
   },
-  roleBadge: {
-    paddingHorizontal: Spacing.sm,
+  cardRoleBadge: {
+    paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: BorderRadius.sm,
   },
-  autoApprovalBadge: {
+  cardAutoApprovalBadge: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: Spacing.xs,
-    paddingVertical: 3,
+    paddingVertical: 4,
     borderRadius: BorderRadius.sm,
   },
-  actions: {
-    flexDirection: "row",
+  cardBadgeText: {
+    fontSize: 10,
+    fontWeight: "600",
   },
-  actionButton: {
-    width: 32,
-    height: 32,
-    borderRadius: BorderRadius.sm,
+  cardActions: {
     alignItems: "center",
-    justifyContent: "center",
   },
-  gridActions: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    marginTop: Spacing.md,
-    gap: Spacing.sm,
-  },
-  gridActionButton: {
+  cardActionButton: {
     width: 28,
     height: 28,
     borderRadius: BorderRadius.sm,
