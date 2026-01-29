@@ -44,6 +44,7 @@ import type {
 import { UserRole, USER_ROLES } from "@/types/vms.types";
 import { formatPhoneInput, formatPhoneNumber, normalizePhoneNumber } from "@/utils/formatters";
 import { applyOpacity } from "@/utils/statusStyles";
+import { PhoneInputWithCountry } from "@/components/PhoneInputWithCountry";
 
 type UserSource = "microsoft_ad" | "app_created";
 
@@ -180,6 +181,7 @@ export default function UsersRolesScreen() {
     role: "receptionist" as UserRole,
     department: "",
     phoneNumber: "",
+    businessPhone: "",
     status: "active" as "active" | "inactive",
     autoApproval: false,
     managerId: "" as string | undefined,
@@ -262,6 +264,7 @@ export default function UsersRolesScreen() {
       role: "receptionist",
       department: "",
       phoneNumber: "",
+      businessPhone: "",
       status: "active",
       autoApproval: false,
       managerId: undefined,
@@ -285,6 +288,7 @@ export default function UsersRolesScreen() {
       role: user.role,
       department: user.department || "",
       phoneNumber: user.phoneNumber || "",
+      businessPhone: user.businessPhone || "",
       status: user.status,
       autoApproval: user.autoApproval,
       managerId: user.managerId,
@@ -300,9 +304,12 @@ export default function UsersRolesScreen() {
   };
 
   const handlePhoneChange = (text: string) => {
-    const formatted = formatPhoneInput(text);
-    setFormData({ ...formData, phoneNumber: formatted });
+    setFormData({ ...formData, phoneNumber: text });
     if (formErrors.phone) setFormErrors({ ...formErrors, phone: undefined });
+  };
+
+  const handleBusinessPhoneChange = (text: string) => {
+    setFormData({ ...formData, businessPhone: text });
   };
 
   const handleSaveUser = async () => {
@@ -337,6 +344,7 @@ export default function UsersRolesScreen() {
           role: formData.role,
           department: formData.department || undefined,
           phoneNumber: formData.phoneNumber ? normalizePhoneNumber(formData.phoneNumber) : undefined,
+          businessPhone: formData.businessPhone ? normalizePhoneNumber(formData.businessPhone) : undefined,
           status: formData.status,
           autoApproval: formData.autoApproval,
           managerId: formData.managerId || undefined,
@@ -354,6 +362,7 @@ export default function UsersRolesScreen() {
           role: formData.role,
           department: formData.department || undefined,
           phoneNumber: formData.phoneNumber ? normalizePhoneNumber(formData.phoneNumber) : undefined,
+          businessPhone: formData.businessPhone ? normalizePhoneNumber(formData.businessPhone) : undefined,
           status: formData.status,
           autoApproval: formData.autoApproval,
           managerId: formData.managerId || undefined,
@@ -1616,8 +1625,8 @@ export default function UsersRolesScreen() {
       const getItemStyle = () => {
         if (numColumns === 1) return { width: "100%" as const, paddingHorizontal: HORIZONTAL_PADDING, paddingBottom: Spacing.md };
         // Use percentage-based widths with flexGrow: 0 to prevent stretching
-        const widthPercent = numColumns === 3 ? "33.33%" : numColumns === 2 ? "50%" : "100%";
-        return { width: widthPercent as const, flexGrow: 0, paddingBottom: Spacing.md, paddingEnd: Spacing.sm };
+        const widthPercent = numColumns === 3 ? "33.33%" as const : numColumns === 2 ? "50%" as const : "100%" as const;
+        return { width: widthPercent, flexGrow: 0, paddingBottom: Spacing.md, paddingEnd: Spacing.sm };
       };
 
       return (
@@ -1840,15 +1849,22 @@ export default function UsersRolesScreen() {
 
               <Spacer height={Spacing.md} />
 
-              <StyledInput
-                label={`${t("form.phoneNumber")} *`}
+              <PhoneInputWithCountry
                 value={formData.phoneNumber}
                 onChangeText={handlePhoneChange}
-                placeholder="+XXX XX XXX XXXX"
-                keyboardType="phone-pad"
+                label={t("form.phoneNumber")}
+                required
                 error={formErrors.phone}
-                returnKeyType="done"
-                onSubmitEditing={handleSaveUser}
+                testID="input-phone"
+              />
+
+              <Spacer height={Spacing.md} />
+
+              <PhoneInputWithCountry
+                value={formData.businessPhone}
+                onChangeText={handleBusinessPhoneChange}
+                label={t("form.businessPhone")}
+                testID="input-business-phone"
               />
 
               <Spacer height={Spacing.md} />

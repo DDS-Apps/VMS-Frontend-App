@@ -687,6 +687,7 @@ export interface CreateUserDto {
   role: string;
   department?: string;
   phoneNumber?: string;
+  businessPhone?: string;
   status?: 'active' | 'inactive';
   autoApproval?: boolean;
   managerId?: string;
@@ -697,6 +698,7 @@ export interface UpdateUserDto {
   role?: string;
   department?: string;
   phoneNumber?: string;
+  businessPhone?: string;
   status?: 'active' | 'inactive';
   autoApproval?: boolean;
   managerId?: string;
