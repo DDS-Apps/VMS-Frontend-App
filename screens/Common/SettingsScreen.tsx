@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, StyleSheet, Pressable, Switch, ActivityIndicator, Platform } from "react-native";
+import { View, StyleSheet, Pressable, Switch, ActivityIndicator, Platform, Image } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -30,6 +30,7 @@ interface SettingsScreenProps {
   userName?: string;
   userEmail?: string;
   userId?: string;
+  userPhotoUrl?: string | null;
   onLogout?: () => void;
 }
 
@@ -38,6 +39,7 @@ export default function SettingsScreen({
   userName = 'User',
   userEmail,
   userId = 'user_default',
+  userPhotoUrl,
   onLogout 
 }: SettingsScreenProps) {
   const { theme, isDark, toggleTheme } = useTheme();
@@ -139,11 +141,18 @@ export default function SettingsScreen({
         <Spacer height={Spacing.md} />
 
         <DirectionalRow style={[styles.profileContainer, { gap: Spacing.md }]}>
-          <View style={[styles.avatar, { backgroundColor: theme.primary + '20' }]}>
-            <ThemedText style={[Typography.subtitle, { color: theme.primary, fontWeight: '700' }]}>
-              {userName.split(' ').map(n => n[0]).join('')}
-            </ThemedText>
-          </View>
+          {userPhotoUrl ? (
+            <Image
+              source={{ uri: userPhotoUrl }}
+              style={styles.avatar}
+            />
+          ) : (
+            <View style={[styles.avatar, { backgroundColor: theme.primary + '20' }]}>
+              <ThemedText style={[Typography.subtitle, { color: theme.primary, fontWeight: '700' }]}>
+                {userName.split(' ').map(n => n[0]).join('')}
+              </ThemedText>
+            </View>
+          )}
           <View style={{ flex: 1 }}>
             <ThemedText style={[styles.userName, { color: theme.text }]}>
               {userName}

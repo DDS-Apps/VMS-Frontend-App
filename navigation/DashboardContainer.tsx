@@ -215,7 +215,7 @@ export default function DashboardContainer({ userRole, userName, userEmail, user
         <Stack.Screen name="Settings">
           {() => (
             <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager} isSSOUser={isSSOUser}>
-              <SettingsScreen userRole={effectiveRole} userName={userName} userEmail={userEmail} onLogout={onLogout} />
+              <SettingsScreen userRole={effectiveRole} userName={userName} userEmail={userEmail} userPhotoUrl={userPhotoUrl} onLogout={onLogout} />
             </ScreenWrapper>
           )}
         </Stack.Screen>

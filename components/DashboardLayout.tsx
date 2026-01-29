@@ -681,11 +681,18 @@ export default function DashboardLayout({
                     ]}
                   >
                     <DirectionalRow style={{ alignItems: 'center' }}>
-                      <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
-                        <ThemedText style={[Typography.caption, { color: '#FFFFFF', fontWeight: '700' }]}>
-                          {getInitials(userName)}
-                        </ThemedText>
-                      </View>
+                      {userPhotoUrl ? (
+                        <Image
+                          source={{ uri: userPhotoUrl }}
+                          style={styles.avatar}
+                        />
+                      ) : (
+                        <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
+                          <ThemedText style={[Typography.caption, { color: '#FFFFFF', fontWeight: '700' }]}>
+                            {getInitials(userName)}
+                          </ThemedText>
+                        </View>
+                      )}
                       <ThemedText style={[Typography.body, { marginStart: Spacing.sm, fontWeight: '500' }]}>
                         {userName}
                       </ThemedText>
