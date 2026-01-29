@@ -138,19 +138,16 @@ export function ApprovalRequestListRow({
             >
               {request.visitor?.fullName}
             </ThemedText>
-            <DirectionalRow style={styles.dateTimeRow} alignItems="center">
+            <DirectionalRow style={styles.dateRow} alignItems="center">
               <DDIcon name="calendar" size={12} color={theme.textSecondary} />
-              <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
+              <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, marginStart: Spacing.xs }]}>
                 {formatDate(request.visitDate)}
               </ThemedText>
-              <View style={{ marginStart: Spacing.sm }}>
-                <DDIcon name="clock" size={12} color={theme.textSecondary} />
-              </View>
-              <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
+            </DirectionalRow>
+            <DirectionalRow style={styles.timeRow} alignItems="center">
+              <DDIcon name="clock" size={12} color={theme.textSecondary} />
+              <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, marginStart: Spacing.xs }]}>
                 {formatTime(request.visitTime)}
-              </ThemedText>
-              <ThemedText style={[styles.durationText, { color: theme.textSecondary }]}>
-                {" · "}{formatDuration(request.duration)}
               </ThemedText>
             </DirectionalRow>
           </View>
@@ -296,7 +293,10 @@ const styles = StyleSheet.create({
   },
   columnHeader: {
     ...Typography.caption,
+    fontWeight: "600",
+    textTransform: "uppercase",
     marginBottom: Spacing.xs,
+    letterSpacing: 0.5,
   },
   avatar: {
     width: 40,
@@ -313,15 +313,13 @@ const styles = StyleSheet.create({
   visitorInfo: {
     flex: 1,
   },
-  dateTimeRow: {
+  dateRow: {
     marginTop: Spacing.xs,
-    gap: Spacing.xs,
+  },
+  timeRow: {
+    marginTop: 2,
   },
   dateTimeText: {
-    ...Typography.caption,
-    marginStart: Spacing.xs,
-  },
-  durationText: {
     ...Typography.caption,
   },
   servicesRow: {
