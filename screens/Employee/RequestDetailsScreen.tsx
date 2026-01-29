@@ -73,7 +73,7 @@ import {
   getDurationOptions,
 } from "@/utils/requestMappers";
 import { calculateServerDuration } from "@/utils/dateTimeUtils";
-import { formatPhoneNumber } from "@/utils/formatters";
+import { formatPhoneNumber, formatPhoneForDisplay } from "@/utils/formatters";
 import { useServerDateTime } from "@/hooks/useServerDateTime";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -1348,7 +1348,7 @@ export default function RequestDetailsScreen({
                     <DDIcon name="phone" size={16} color={theme.text} />
                   </View>
                   <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14 }]}>
-                    {request.visitor.phone}
+                    {formatPhoneForDisplay(request.visitor.phone || '')}
                   </ThemedText>
                 </DirectionalRow>
               </DirectionalRow>
@@ -1443,7 +1443,7 @@ export default function RequestDetailsScreen({
                   <DDIcon name="phone" size={18} color={theme.text} />
                 </View>
                 <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14 }]}>
-                  {request.visitor.phone}
+                  {formatPhoneForDisplay(request.visitor.phone || '')}
                 </ThemedText>
               </DirectionalRow>
             </>
