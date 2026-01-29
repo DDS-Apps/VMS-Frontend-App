@@ -118,14 +118,12 @@ export function ApprovalRequestListRow({
         },
       ]}
     >
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={true}
-        contentContainerStyle={styles.scrollContent}
-      >
-        <DirectionalRow style={styles.row} alignItems="center">
-        {/* Visitor Info Column */}
-        <DirectionalRow style={[styles.column, { minWidth: COLUMN_WIDTHS.visitor }]} alignItems="center">
+      <DirectionalRow style={styles.mainRow} alignItems="stretch">
+        {/* Frozen Visitor Info Column */}
+        <DirectionalRow 
+          style={[styles.frozenColumn, { minWidth: COLUMN_WIDTHS.visitor, borderEndColor: theme.border }]} 
+          alignItems="center"
+        >
           <View
             style={[
               styles.avatar,
@@ -158,7 +156,15 @@ export function ApprovalRequestListRow({
           </View>
         </DirectionalRow>
 
-        {/* Company Column */}
+        {/* Scrollable Columns */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={true}
+          contentContainerStyle={styles.scrollContent}
+          style={styles.scrollableSection}
+        >
+          <DirectionalRow style={styles.scrollableRow} alignItems="center">
+            {/* Company Column */}
         <View style={[styles.column, { minWidth: COLUMN_WIDTHS.company }]}>
           <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
             {t("form.company")}
@@ -266,9 +272,10 @@ export function ApprovalRequestListRow({
               </ThemedText>
             </View>
           )}
-        </View>
+            </View>
+          </DirectionalRow>
+        </ScrollView>
       </DirectionalRow>
-      </ScrollView>
 
       {/* Progress bar */}
       <View style={[styles.progressBar, { backgroundColor: statusConfig.borderColor }]} />
@@ -288,8 +295,26 @@ const styles = StyleSheet.create({
       },
     }),
   },
+  mainRow: {
+    flex: 1,
+  },
+  frozenColumn: {
+    padding: Spacing.md,
+    paddingVertical: Spacing.lg,
+    borderEndWidth: 1,
+    flexShrink: 0,
+  },
+  scrollableSection: {
+    flex: 1,
+  },
   scrollContent: {
     flexGrow: 1,
+  },
+  scrollableRow: {
+    padding: Spacing.md,
+    paddingVertical: Spacing.lg,
+    gap: Spacing.lg,
+    flexWrap: "nowrap",
   },
   row: {
     padding: Spacing.md,
