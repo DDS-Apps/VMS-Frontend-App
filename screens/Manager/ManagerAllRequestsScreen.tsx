@@ -17,6 +17,7 @@ import Spacer from "@/components/Spacer";
 import {
   VisitorRequestCard,
   ApprovalRequestListRow,
+  COLUMN_WIDTHS,
   ListLoadingFooter,
   SkeletonList,
 } from "@/components/shared";
@@ -238,6 +239,82 @@ const SectionHeaderWithTabs = ({
     </>
   );
 };
+
+// List Column Header Component
+const ListColumnHeader = ({
+  theme,
+  t,
+  isRTL,
+}: {
+  theme: ReturnType<typeof useTheme>["theme"];
+  t: (key: string) => string;
+  isRTL: boolean;
+}) => (
+  <View style={[listHeaderStyles.container, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={true}
+      contentContainerStyle={listHeaderStyles.scrollContent}
+    >
+      <DirectionalRow style={listHeaderStyles.row} alignItems="center">
+        <View style={[listHeaderStyles.column, { minWidth: COLUMN_WIDTHS.visitor }]}>
+          <ThemedText style={[listHeaderStyles.headerText, { color: theme.textSecondary }]}>
+            {t("form.visitorName").toUpperCase()}
+          </ThemedText>
+        </View>
+        <View style={[listHeaderStyles.column, { minWidth: COLUMN_WIDTHS.company }]}>
+          <ThemedText style={[listHeaderStyles.headerText, { color: theme.textSecondary }]}>
+            {t("form.company").toUpperCase()}
+          </ThemedText>
+        </View>
+        <View style={[listHeaderStyles.column, { minWidth: COLUMN_WIDTHS.requestedBy }]}>
+          <ThemedText style={[listHeaderStyles.headerText, { color: theme.textSecondary }]}>
+            {t("dashboard.requestedBy").toUpperCase()}
+          </ThemedText>
+        </View>
+        <View style={[listHeaderStyles.column, { minWidth: COLUMN_WIDTHS.purpose }]}>
+          <ThemedText style={[listHeaderStyles.headerText, { color: theme.textSecondary }]}>
+            {t("form.purpose").toUpperCase()}
+          </ThemedText>
+        </View>
+        <View style={[listHeaderStyles.column, { minWidth: COLUMN_WIDTHS.services }]}>
+          <ThemedText style={[listHeaderStyles.headerText, { color: theme.textSecondary }]}>
+            {t("services.additionalServices").toUpperCase()}
+          </ThemedText>
+        </View>
+        <View style={[listHeaderStyles.column, { minWidth: COLUMN_WIDTHS.actions }]}>
+          <ThemedText style={[listHeaderStyles.headerText, { color: theme.textSecondary }]}>
+            {t("common.actions").toUpperCase()}
+          </ThemedText>
+        </View>
+      </DirectionalRow>
+    </ScrollView>
+  </View>
+);
+
+const listHeaderStyles = StyleSheet.create({
+  container: {
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    marginBottom: Spacing.sm,
+    overflow: "hidden",
+  },
+  scrollContent: {
+    flexGrow: 1,
+  },
+  row: {
+    padding: Spacing.md,
+    gap: Spacing.lg,
+  },
+  column: {
+    justifyContent: "center",
+  },
+  headerText: {
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 0.5,
+  },
+});
 
 // Empty State Component
 const EmptyState = ({
@@ -473,6 +550,9 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
         isRTL={isRTL}
       />
       <Spacer height={Spacing.md} />
+      {viewMode === "list" && (
+        <ListColumnHeader theme={theme} t={t} isRTL={isRTL} />
+      )}
     </View>
   );
 

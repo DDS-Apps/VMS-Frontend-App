@@ -1,5 +1,5 @@
 import React from "react";
-import { View, StyleSheet, Pressable, Platform } from "react-native";
+import { View, StyleSheet, Pressable, Platform, ScrollView } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { DDIcon } from "@/components/DDIcon";
 import { DirectionalRow } from "@/components/DirectionalRow";
@@ -23,7 +23,7 @@ interface ApprovalRequestListRowProps {
   isExpired?: boolean;
 }
 
-const COLUMN_WIDTHS = {
+export const COLUMN_WIDTHS = {
   visitor: 200,
   company: 150,
   requestedBy: 200,
@@ -118,7 +118,12 @@ export function ApprovalRequestListRow({
         },
       ]}
     >
-      <DirectionalRow style={styles.row} alignItems="center">
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={true}
+        contentContainerStyle={styles.scrollContent}
+      >
+        <DirectionalRow style={styles.row} alignItems="center">
         {/* Visitor Info Column */}
         <DirectionalRow style={[styles.column, { minWidth: COLUMN_WIDTHS.visitor }]} alignItems="center">
           <View
@@ -263,6 +268,7 @@ export function ApprovalRequestListRow({
           )}
         </View>
       </DirectionalRow>
+      </ScrollView>
 
       {/* Progress bar */}
       <View style={[styles.progressBar, { backgroundColor: statusConfig.borderColor }]} />
@@ -281,6 +287,9 @@ const styles = StyleSheet.create({
         cursor: "pointer" as any,
       },
     }),
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   row: {
     padding: Spacing.md,
