@@ -370,38 +370,6 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
 
         <Spacer height={Spacing.xl} />
 
-        <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
-          {t('dashboard.quickActions')}
-        </ThemedText>
-
-        <Spacer height={Spacing.md} />
-
-        <DirectionalRow style={styles.quickActionsRow}>
-          <QuickActionButton
-            icon="users"
-            label={t('navigation.allVisitors')}
-            iconBgColor={applyOpacity(theme.primary, '12')}
-            iconColor={theme.primary}
-            onPress={() => navigation.navigate(ROUTES.ALL_VISITORS as never)}
-          />
-          <QuickActionButton
-            icon="user-plus"
-            label={t('navigation.walkInVisitors')}
-            iconBgColor={applyOpacity(theme.success, '12')}
-            iconColor={theme.success}
-            onPress={() => navigation.navigate(ROUTES.ALL_VISITORS as never, { initialFilter: 'walk_in' } as never)}
-          />
-          <QuickActionButton
-            icon="clock"
-            label={t('navigation.todaysVisitors')}
-            iconBgColor={applyOpacity(theme.warning, '12')}
-            iconColor={theme.warning}
-            onPress={() => navigation.navigate(ROUTES.ALL_VISITORS_TODAY as never)}
-          />
-        </DirectionalRow>
-
-        <Spacer height={Spacing.xl} />
-
         <DirectionalRow style={styles.sectionHeader} justifyContent="space-between">
           <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
             {t('navigation.todaysVisitors')}
