@@ -77,6 +77,7 @@ export interface ChangePasswordPayload {
 export interface UpdateProfilePayload {
   name?: string;
   phoneNumber?: string;
+  businessPhone?: string;
   department?: string;
   language?: 'en' | 'ar';
 }

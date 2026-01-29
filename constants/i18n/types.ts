@@ -362,6 +362,7 @@ export interface TranslationKeys {
     passwordRequired: string;
     fillRequiredFields: string;
     readOnly: string;
+    notProvided: string;
     reason: string;
     enterReason: string;
     building: string;

@@ -362,6 +362,7 @@ export const ar: TranslationKeys = {
     passwordRequired: 'كلمة المرور مطلوبة للمستخدمين الجدد',
     fillRequiredFields: 'الرجاء ملء جميع الحقول المطلوبة',
     readOnly: 'للقراءة فقط',
+    notProvided: 'غير متوفر',
     reason: 'السبب',
     enterReason: 'أدخل السبب',
     building: 'المبنى',

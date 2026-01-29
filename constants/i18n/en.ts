@@ -362,6 +362,7 @@ export const en: TranslationKeys = {
     passwordRequired: 'Password is required for new users',
     fillRequiredFields: 'Please fill in all required fields',
     readOnly: 'Read only',
+    notProvided: 'Not provided',
     reason: 'Reason',
     enterReason: 'Enter reason',
     building: 'Building',

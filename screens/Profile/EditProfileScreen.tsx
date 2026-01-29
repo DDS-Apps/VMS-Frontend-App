@@ -21,8 +21,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { authService } from "@/services/api/authService";
 import { useToast } from "@/contexts/ToastContext";
 import { ApiException } from "@/api/errors";
-import { normalizePhoneNumber } from "@/utils/formatters";
+import { normalizePhoneNumber, formatPhoneNumber } from "@/utils/formatters";
 import { PhoneInputWithCountry } from "@/components/PhoneInputWithCountry";
+import { getFlexDirection } from "@/components/DirectionalRow";
 
 interface EditProfileScreenProps {
   userRole?: UserRole;
@@ -44,11 +45,35 @@ export default function EditProfileScreen({
   
   const [name, setName] = useState(user?.name || '');
   const [phone, setPhone] = useState('');
+  const [businessPhone, setBusinessPhone] = useState('');
+  const [businessPhoneExt, setBusinessPhoneExt] = useState('');
   const [department, setDepartment] = useState(user?.department || '');
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [isDeletingPhoto, setIsDeletingPhoto] = useState(false);
-  const [errors, setErrors] = useState<{ name?: string; phone?: string }>({});
+  const [errors, setErrors] = useState<{ name?: string; phone?: string; businessPhone?: string }>({});
+
+  const isSSOUser = user?.source === 'microsoft_ad';
+
+  const parseBusinessPhoneBase = (phoneStr: string): string => {
+    if (!phoneStr) return "";
+    const extMatch = phoneStr.match(/(.+?)\s*(?:ext\.?|x)\s*\d+$/i);
+    return extMatch ? extMatch[1].trim() : phoneStr;
+  };
+
+  const parseBusinessPhoneExt = (phoneStr: string): string => {
+    if (!phoneStr) return "";
+    const extMatch = phoneStr.match(/(?:ext\.?|x)\s*(\d+)$/i);
+    return extMatch ? extMatch[1] : "";
+  };
+
+  const formatBusinessPhoneForApi = (phoneNumber: string, ext: string): string => {
+    const formatted = formatPhoneNumber(phoneNumber);
+    if (ext) {
+      return `${formatted} ext. ${ext}`;
+    }
+    return formatted;
+  };
 
   // Refresh user data when screen gains focus and update form fields
   useFocusEffect(
@@ -62,6 +87,8 @@ export default function EditProfileScreen({
     if (user) {
       setName(user.name || '');
       setPhone(user.phoneNumber || '');
+      setBusinessPhone(parseBusinessPhoneBase(user.businessPhone || ''));
+      setBusinessPhoneExt(parseBusinessPhoneExt(user.businessPhone || ''));
       setDepartment(user.department || '');
     }
   }, [user]);
@@ -77,6 +104,18 @@ export default function EditProfileScreen({
     if (errors.phone) {
       setErrors({ ...errors, phone: undefined });
     }
+  };
+
+  const handleBusinessPhoneChange = (fullNumber: string) => {
+    setBusinessPhone(fullNumber);
+    if (errors.businessPhone) {
+      setErrors({ ...errors, businessPhone: undefined });
+    }
+  };
+
+  const handleBusinessPhoneExtChange = (text: string) => {
+    const digitsOnly = text.replace(/\D/g, '').slice(0, 6);
+    setBusinessPhoneExt(digitsOnly);
   };
 
   const getRoleLabel = (role: string) => {
@@ -121,6 +160,7 @@ export default function EditProfileScreen({
       await authService.updateProfile({
         name: name.trim(),
         phoneNumber: normalizePhoneNumber(phone) || undefined,
+        businessPhone: businessPhone ? formatBusinessPhoneForApi(businessPhone, businessPhoneExt) : undefined,
         department: department.trim() || undefined,
       });
       
@@ -457,13 +497,95 @@ export default function EditProfileScreen({
 
         <Spacer height={Spacing.md} />
 
-        <PhoneInputWithCountry
-          value={phone}
-          onChangeText={handlePhoneChange}
-          label={t('form.phone')}
-          error={errors.phone}
-          testID="input-phone"
-        />
+        {isSSOUser ? (
+          <View style={styles.inputContainer}>
+            <DirectionalRow style={[styles.labelRow, { justifyContent: 'space-between' }]}>
+              <ThemedText style={[styles.inputLabel, { color: theme.text, flex: 1 }]}>
+                {t('form.phone')}
+              </ThemedText>
+              <DirectionalRow style={[styles.readOnlyBadge, { backgroundColor: applyOpacity(theme.textSecondary, '15'), gap: 4 }]}>
+                <DDIcon name="lock" size={10} color={theme.textSecondary} />
+                <ThemedText style={[styles.readOnlyText, { color: theme.textSecondary }]}>
+                  {t('form.readOnly')}
+                </ThemedText>
+              </DirectionalRow>
+            </DirectionalRow>
+            <View style={[styles.input, { backgroundColor: applyOpacity(theme.surfaceSecondary, '60'), borderColor: theme.border }]}>
+              <ThemedText style={{ color: theme.textSecondary }}>
+                {phone ? formatPhoneNumber(phone) : t('form.notProvided')}
+              </ThemedText>
+            </View>
+          </View>
+        ) : (
+          <PhoneInputWithCountry
+            value={phone}
+            onChangeText={handlePhoneChange}
+            label={t('form.phone')}
+            error={errors.phone}
+            testID="input-phone"
+          />
+        )}
+
+        <Spacer height={Spacing.md} />
+
+        {isSSOUser ? (
+          <View style={styles.inputContainer}>
+            <DirectionalRow style={[styles.labelRow, { justifyContent: 'space-between' }]}>
+              <ThemedText style={[styles.inputLabel, { color: theme.text, flex: 1 }]}>
+                {t('form.businessPhone')}
+              </ThemedText>
+              <DirectionalRow style={[styles.readOnlyBadge, { backgroundColor: applyOpacity(theme.textSecondary, '15'), gap: 4 }]}>
+                <DDIcon name="lock" size={10} color={theme.textSecondary} />
+                <ThemedText style={[styles.readOnlyText, { color: theme.textSecondary }]}>
+                  {t('form.readOnly')}
+                </ThemedText>
+              </DirectionalRow>
+            </DirectionalRow>
+            <View style={[styles.input, { backgroundColor: applyOpacity(theme.surfaceSecondary, '60'), borderColor: theme.border }]}>
+              <ThemedText style={{ color: theme.textSecondary }}>
+                {businessPhone ? `${formatPhoneNumber(businessPhone)}${businessPhoneExt ? ` ext. ${businessPhoneExt}` : ''}` : t('form.notProvided')}
+              </ThemedText>
+            </View>
+          </View>
+        ) : (
+          <>
+            <PhoneInputWithCountry
+              value={businessPhone}
+              onChangeText={handleBusinessPhoneChange}
+              label={t('form.businessPhone')}
+              error={errors.businessPhone}
+              testID="input-business-phone"
+            />
+            <Spacer height={Spacing.sm} />
+            <View style={styles.inputContainer}>
+              <ThemedText style={[styles.inputLabel, { color: theme.text }]}>
+                {t('form.extension')}
+              </ThemedText>
+              <View style={{ flexDirection: getFlexDirection(isRTL), alignItems: 'center', gap: Spacing.sm }}>
+                <TextInput
+                  style={[
+                    styles.input,
+                    styles.extensionInput,
+                    {
+                      backgroundColor: theme.surface,
+                      borderColor: theme.border,
+                      color: theme.text,
+                    },
+                  ]}
+                  value={businessPhoneExt}
+                  onChangeText={handleBusinessPhoneExtChange}
+                  placeholder="123"
+                  placeholderTextColor={theme.textSecondary}
+                  keyboardType="number-pad"
+                  maxLength={6}
+                />
+                <ThemedText style={[styles.extensionHint, { color: theme.textSecondary }]}>
+                  {t('form.optional')}
+                </ThemedText>
+              </View>
+            </View>
+          </>
+        )}
       </ThemedView>
 
       <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
@@ -627,5 +749,12 @@ const styles = StyleSheet.create({
   },
   button: {
     flex: 1,
+  },
+  extensionInput: {
+    width: 100,
+  },
+  extensionHint: {
+    fontSize: 12,
+    fontStyle: 'italic',
   },
 });

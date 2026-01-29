@@ -27,6 +27,7 @@ export interface AuthUser {
   role: UserRole;
   autoApproval?: boolean;
   phoneNumber?: string;
+  businessPhone?: string;
   department?: string;
   status?: 'active' | 'inactive';
   source?: string;
@@ -154,6 +155,7 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
       role: mapRoleToUserRole(userDto.role),
       autoApproval: userDto.autoApproval,
       phoneNumber: userDto.phoneNumber,
+      businessPhone: userDto.businessPhone,
       department: userDto.department,
       status: userDto.status,
       source: userDto.source,
