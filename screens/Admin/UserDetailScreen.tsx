@@ -213,12 +213,12 @@ export default function UserDetailScreen() {
             <>
               <View style={[styles.separator, { backgroundColor: theme.border }]} />
               <DirectionalRow style={styles.infoRow}>
-                <DDIcon name="phone-call" size={18} variant="muted" />
+                <DDIcon name="phone" size={18} variant="muted" />
                 <View style={[styles.infoContent, { marginEnd: Spacing.md }]}>
                   <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
                     {t('form.businessPhone')}
                   </ThemedText>
-                  <ThemedText style={[Typography.body, {}]}>{userBusinessPhone}</ThemedText>
+                  <ThemedText style={[Typography.body, {}]}>{formatPhoneNumber(userBusinessPhone)}</ThemedText>
                 </View>
               </DirectionalRow>
             </>
@@ -233,7 +233,7 @@ export default function UserDetailScreen() {
                   <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
                     {t('form.landline')}
                   </ThemedText>
-                  <ThemedText style={[Typography.body, {}]}>{userLandline}</ThemedText>
+                  <ThemedText style={[Typography.body, {}]}>{formatPhoneNumber(userLandline)}</ThemedText>
                 </View>
               </DirectionalRow>
             </>
