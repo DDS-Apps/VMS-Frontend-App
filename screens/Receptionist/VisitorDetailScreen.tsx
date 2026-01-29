@@ -20,6 +20,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { applyOpacity } from "@/utils/statusStyles";
 import { formatPhoneNumber, formatPhoneForDisplay } from "@/utils/formatters";
 import { VisitorActionButton } from "@/components/VisitorActionButton";
@@ -63,6 +64,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
   const { t } = useTranslation();
   const { formatTime, toLocalNumerals } = useFormatters();
   const { isRTL } = useLanguage();
+  const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
   const { visitor: legacyVisitor, visitId } = route.params as { visitor?: LegacyVisitor; visitId?: string };
@@ -735,17 +737,22 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
     {(visitor.status === 'approved' || visitor.status === 'visitor_accepted') && (
       <View style={[styles.stickyFooter, { backgroundColor: theme.background, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.lg }]}>
         <DirectionalRow style={styles.buttonRow}>
-          <LoadingButton
-            onPress={() => setShowCancelModal(true)}
-            variant="danger-outline"
-            size="large"
-            icon="x-circle"
-            iconPosition="left"
-            style={{ flex: 1 }}
-          >
-            {t('actions.cancelRequest')}
-          </LoadingButton>
-          <View style={{ width: Spacing.md }} />
+          {/* Only show Cancel button if current user is the host of this visit */}
+          {visitDetails?.employeeId === user?.id && (
+            <>
+              <LoadingButton
+                onPress={() => setShowCancelModal(true)}
+                variant="danger-outline"
+                size="large"
+                icon="x-circle"
+                iconPosition="left"
+                style={{ flex: 1 }}
+              >
+                {t('actions.cancelRequest')}
+              </LoadingButton>
+              <View style={{ width: Spacing.md }} />
+            </>
+          )}
           <LoadingButton
             onPress={handleCheckIn}
             variant="success"
