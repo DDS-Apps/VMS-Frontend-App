@@ -524,12 +524,33 @@ export default function EditProfileScreen({
 
         <Spacer height={Spacing.lg} />
 
-        {renderInput(
-          t('form.fullName'),
-          name,
-          setName,
-          t('form.enterFullName'),
-          errors.name
+        {isSSOUser ? (
+          <View style={styles.inputContainer}>
+            <DirectionalRow style={[styles.labelRow, { justifyContent: 'space-between' }]}>
+              <ThemedText style={[styles.inputLabel, { color: theme.text, flex: 1 }]}>
+                {t('form.fullName')}
+              </ThemedText>
+              <DirectionalRow style={[styles.readOnlyBadge, { backgroundColor: applyOpacity(theme.textSecondary, '15'), gap: 4 }]}>
+                <DDIcon name="lock" size={10} color={theme.textSecondary} />
+                <ThemedText style={[styles.readOnlyText, { color: theme.textSecondary }]}>
+                  {t('form.readOnly')}
+                </ThemedText>
+              </DirectionalRow>
+            </DirectionalRow>
+            <View style={[styles.input, { backgroundColor: applyOpacity(theme.surfaceSecondary, '60'), borderColor: theme.border }]}>
+              <ThemedText style={{ color: theme.textSecondary }}>
+                {name || t('form.notProvided')}
+              </ThemedText>
+            </View>
+          </View>
+        ) : (
+          renderInput(
+            t('form.fullName'),
+            name,
+            setName,
+            t('form.enterFullName'),
+            errors.name
+          )
         )}
 
         <Spacer height={Spacing.md} />

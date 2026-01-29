@@ -423,11 +423,18 @@ export default function DashboardLayout({
               }
             ]}>
               <View style={[styles.dropdownHeader, { borderBottomColor: theme.border }]}>
-                <View style={[styles.avatarLarge, { backgroundColor: theme.primary }]}>
-                  <ThemedText style={[Typography.subtitle, { color: '#FFFFFF', fontWeight: '700' }]}>
-                    {getInitials(userName)}
-                  </ThemedText>
-                </View>
+                {userPhotoUrl ? (
+                  <Image
+                    source={{ uri: userPhotoUrl }}
+                    style={styles.avatarLarge}
+                  />
+                ) : (
+                  <View style={[styles.avatarLarge, { backgroundColor: theme.primary }]}>
+                    <ThemedText style={[Typography.subtitle, { color: '#FFFFFF', fontWeight: '700' }]}>
+                      {getInitials(userName)}
+                    </ThemedText>
+                  </View>
+                )}
                 <ThemedText style={[Typography.body, { fontWeight: '600', marginTop: Spacing.sm }]}>
                   {userName}
                 </ThemedText>
