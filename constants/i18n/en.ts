@@ -79,6 +79,7 @@ export const en: TranslationKeys = {
     loadError: 'Failed to load data. Please try again.',
     comingSoon: 'Coming Soon',
     notRequested: 'Not Requested',
+    requested: 'Requested',
     filters: 'Filters',
     reset: 'Reset',
     apply: 'Apply',

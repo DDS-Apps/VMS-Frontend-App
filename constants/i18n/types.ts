@@ -78,6 +78,7 @@ export interface TranslationKeys {
     loadError: string;
     comingSoon: string;
     notRequested: string;
+    requested: string;
     filters: string;
     reset: string;
     apply: string;

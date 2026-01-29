@@ -519,15 +519,15 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
           <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
             <DirectionalRow style={[styles.serviceItemNew, { backgroundColor: theme.surfaceSecondary }]}>
               <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(visitor.isBuffet || visitor.buffet ? theme.secondary : theme.textSecondary, '15') }]}>
-                <DDIcon name="coffee" size={18} color={visitor.isBuffet || visitor.buffet ? theme.secondary : theme.textSecondary} />
+                <DDIcon name="cloche" size={18} color={visitor.isBuffet || visitor.buffet ? theme.secondary : theme.textSecondary} />
               </View>
               <View style={{ flex: 1 }}>
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 14, color: theme.text }]}>
-                  {t('services.buffetService')}
+                  {t('buffet.buffetService')}
                 </ThemedText>
                 {visitor.isBuffet || visitor.buffet ? (
-                  <ThemedText style={[Typography.caption, { color: theme.secondary, fontSize: 12, marginTop: 2 }]}>
-                    {t('common.requested')}
+                  <ThemedText style={[Typography.caption, { color: theme.warning, fontSize: 12, marginTop: 2 }]}>
+                    {t('status.pending')}
                   </ThemedText>
                 ) : (
                   <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12, marginTop: 2, fontStyle: 'italic' }]}>
@@ -547,7 +547,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
               </View>
               <View style={{ flex: 1 }}>
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 14, color: theme.text }]}>
-                  {t('services.parking')}
+                  {t('parking.parking')}
                 </ThemedText>
                 {visitor.parking ? (
                   <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12, marginTop: 2 }]}>
