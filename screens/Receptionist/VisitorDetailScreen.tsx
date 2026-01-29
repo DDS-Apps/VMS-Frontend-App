@@ -21,7 +21,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { applyOpacity } from "@/utils/statusStyles";
-import { formatPhoneNumber } from "@/utils/formatters";
+import { formatPhoneNumber, formatPhoneForDisplay } from "@/utils/formatters";
 import { VisitorActionButton } from "@/components/VisitorActionButton";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { LoadingButton } from "@/components/shared/LoadingButton";
@@ -632,7 +632,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
                         {t('form.landline')}
                       </ThemedText>
                       <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
-                        {formatPhoneNumber(visitor.hostLandline || '')}
+                        {formatPhoneForDisplay(visitor.hostLandline || '')}
                       </ThemedText>
                     </View>
                   </DirectionalRow>
