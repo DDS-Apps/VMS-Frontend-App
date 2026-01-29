@@ -132,7 +132,8 @@ interface DateRange {
 
 export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScreenProps) {
   const { theme } = useTheme();
-  const { t, isRTL } = useTranslation();  const { formatTimeFromString } = useFormatters();
+  const { t, isRTL } = useTranslation();
+  const { formatDate, formatTimeFromString } = useFormatters();
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -386,46 +387,6 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
 
   const renderVisitorCard = (visitor: SecurityVisitor) => {
     const statusConfig = getStatusConfig(visitor.status);
-    
-    const detailParts = [
-      visitor.host,
-      formatTimeFromString(visitor.visitTime),
-      visitor.checkInTime ? `${t('actions.checkIn')}: ${formatTimeFromString(visitor.checkInTime)}` : null,
-      visitor.checkOutTime ? `${t('actions.checkOut')}: ${formatTimeFromString(visitor.checkOutTime)}` : null,
-    ].filter(Boolean);
-
-    const getServiceInfo = () => {
-      const parts: string[] = [];
-      
-      // Check parking status based on isVisitorNeedsParking or visitorNeedsParking field
-      const needsParking = visitor.parking.isVisitorNeedsParking ?? visitor.parking.visitorNeedsParking;
-      if (needsParking === false) {
-        // Visitor explicitly doesn't need parking
-        parts.push(t('security.noParking'));
-      } else if (needsParking === true) {
-        // Visitor needs parking - check if car details are available
-        const carDetails: string[] = [];
-        if (visitor.parking.licensePlate) carDetails.push(visitor.parking.licensePlate);
-        if (visitor.parking.carModel) carDetails.push(visitor.parking.carModel);
-        if (visitor.parking.carColor) carDetails.push(visitor.parking.carColor);
-        
-        if (carDetails.length > 0) {
-          parts.push(`${t('security.needsParking')}: ${carDetails.join(' - ')}`);
-        } else {
-          parts.push(`${t('security.needsParking')} (${t('security.parkingDetailsPending')})`);
-        }
-      } else if (visitor.parking.hasParking) {
-        // Fallback: parking slot assigned
-        parts.push(visitor.parking.slotNumber || t('parking.parkingAssigned'));
-      } else {
-        // Default: no parking
-        parts.push(t('security.noParking'));
-      }
-      
-      return parts;
-    };
-
-    const serviceParts = getServiceInfo();
     const hasParking = visitor.parking.isVisitorNeedsParking === true || visitor.parking.visitorNeedsParking === true || visitor.parking.hasParking;
     
     return (
@@ -465,26 +426,57 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
 
             <Spacer height={Spacing.sm} />
 
-            <DirectionalRow style={styles.compactDetailsRow}>
-              <DDIcon name="user" size={14} variant="muted" />
-              <ThemedText style={[styles.compactDetailText, { color: theme.textSecondary, textAlign: 'right', marginEnd: 8 }]} numberOfLines={1}>
-                {detailParts.join('  |  ')}
-              </ThemedText>
+            <DirectionalRow style={styles.dateTimeRow}>
+              <DirectionalRow style={styles.dateTimeItem}>
+                <DDIcon name="calendar" size={13} variant="muted" />
+                <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
+                  {formatDate(new Date(visitor.visitDate), 'short')}
+                </ThemedText>
+              </DirectionalRow>
+              <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
+              <DirectionalRow style={styles.dateTimeItem}>
+                <DDIcon name="clock" size={13} variant="muted" />
+                <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
+                  {formatTimeFromString(visitor.visitTime)}
+                </ThemedText>
+              </DirectionalRow>
+              <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
+              <DirectionalRow style={styles.dateTimeItem}>
+                <DDIcon name="user" size={13} variant="muted" />
+                <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
+                  {visitor.host}
+                </ThemedText>
+              </DirectionalRow>
             </DirectionalRow>
 
             <Spacer height={Spacing.sm} />
 
-            <DirectionalRow style={[styles.compactServiceRow, { 
-              backgroundColor: hasParking ? applyOpacity(theme.success, '08') : applyOpacity(theme.textSecondary, '08')
-            }]}>
-              <DDIcon 
-                name={hasParking ? "map-pin" : "x-circle"} 
-                size={14} 
-                color={hasParking ? theme.success : theme.textSecondary} 
-              />
-              <ThemedText style={[styles.compactServiceText, { color: hasParking ? theme.success : theme.textSecondary, marginEnd: 8 }]}>
-                {serviceParts.join('  |  ')}
-              </ThemedText>
+            <DirectionalRow style={styles.servicesStatusRow}>
+              <DirectionalRow style={styles.servicesContainer}>
+                {hasParking ? (
+                  <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '20') }]}>
+                    <DDIcon name="map-pin" size={14} color={theme.info} />
+                  </View>
+                ) : (
+                  <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                    <DDIcon name="x-circle" size={14} color={theme.textSecondary} />
+                  </View>
+                )}
+              </DirectionalRow>
+              {visitor.status === 'expected' && (
+                <Pressable 
+                  style={[styles.checkInButton, { backgroundColor: theme.success }]}
+                  onPress={(e) => {
+                    e.stopPropagation?.();
+                    navigation.navigate(ROUTES.SECURITY_VISITOR_DETAIL as never, { visitorId: visitor.id } as never);
+                  }}
+                >
+                  <DDIcon name="log-in" size={14} color="#FFFFFF" />
+                  <ThemedText style={styles.checkInButtonText}>
+                    {t('actions.checkIn')}
+                  </ThemedText>
+                </Pressable>
+              )}
             </DirectionalRow>
           </View>
         </ThemedView>
@@ -731,26 +723,51 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontFamily: 'Inter_600SemiBold',
   },
-  compactDetailsRow: {
+  dateTimeRow: {
     alignItems: 'center',
-    gap: 6,
+    flexWrap: 'wrap',
+    gap: 4,
   },
-  compactDetailText: {
+  dateTimeItem: {
+    alignItems: 'center',
+    gap: 4,
+  },
+  dateTimeText: {
     fontSize: 13,
     fontFamily: 'Inter_400Regular',
-    flex: 1,
   },
-  compactServiceRow: {
+  separator: {
+    fontSize: 10,
+    marginHorizontal: 2,
+  },
+  servicesStatusRow: {
     alignItems: 'center',
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
+    justifyContent: 'space-between',
+  },
+  servicesContainer: {
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  servicePill: {
+    width: 28,
+    height: 28,
     borderRadius: BorderRadius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkInButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.md,
     gap: 6,
   },
-  compactServiceText: {
+  checkInButtonText: {
     fontSize: 13,
-    fontFamily: 'Inter_500Medium',
-    flex: 1,
+    fontWeight: '600',
+    fontFamily: 'Inter_600SemiBold',
+    color: '#FFFFFF',
   },
   valetBadge: {
     alignItems: 'center',
