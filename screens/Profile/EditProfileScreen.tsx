@@ -55,8 +55,15 @@ export default function EditProfileScreen({
     return extMatch ? extMatch[1] : "";
   };
 
+  // Normalize phone number to ensure it has "+" prefix for proper parsing
+  const normalizePhoneForDisplay = (phoneStr: string): string => {
+    if (!phoneStr) return "";
+    // If phone doesn't start with "+", add it
+    return phoneStr.startsWith('+') ? phoneStr : `+${phoneStr}`;
+  };
+
   const [name, setName] = useState(user?.name || '');
-  const [phone, setPhone] = useState(user?.phoneNumber || '');
+  const [phone, setPhone] = useState(normalizePhoneForDisplay(user?.phoneNumber || ''));
   const [businessPhone, setBusinessPhone] = useState(parseBusinessPhoneBaseInitial(user?.businessPhone || ''));
   const [businessPhoneExt, setBusinessPhoneExt] = useState(parseBusinessPhoneExtInitial(user?.businessPhone || ''));
   const [department, setDepartment] = useState(user?.department || '');
@@ -95,7 +102,7 @@ export default function EditProfileScreen({
   useEffect(() => {
     if (user) {
       setName(user.name || '');
-      setPhone(user.phoneNumber || '');
+      setPhone(normalizePhoneForDisplay(user.phoneNumber || ''));
       setBusinessPhone(parseBusinessPhoneBaseInitial(user.businessPhone || ''));
       setBusinessPhoneExt(parseBusinessPhoneExtInitial(user.businessPhone || ''));
       setDepartment(user.department || '');
@@ -182,7 +189,7 @@ export default function EditProfileScreen({
       // This confirms the data was persisted correctly
       if (updatedUser) {
         setName(updatedUser.name || '');
-        setPhone(updatedUser.phoneNumber || '');
+        setPhone(normalizePhoneForDisplay(updatedUser.phoneNumber || ''));
         setBusinessPhone(parseBusinessPhoneBaseInitial(updatedUser.businessPhone || ''));
         setBusinessPhoneExt(parseBusinessPhoneExtInitial(updatedUser.businessPhone || ''));
         setDepartment(updatedUser.department || '');
