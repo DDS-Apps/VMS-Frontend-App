@@ -409,8 +409,10 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
       // Check if visit has expired (visit date/time has passed)
       const isExpired = isVisitExpired(item.visitDate, item.visitTime, undefined, item.duration);
       
-      // Show actions only for pending items that are not expired
-      const showActions = isPending && !isExpired;
+      // Show actions section for all pending items (expired will show banner, non-expired will show buttons)
+      const showActions = isPending;
+      // Only provide approve/reject handlers for non-expired pending items
+      const canApproveReject = isPending && !isExpired;
       const isApproving = approvingRequestId === item.id;
       const isRejecting = rejectingRequestId === item.id;
 
@@ -427,11 +429,11 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
             onPress={() => handleViewDetails(item.id)}
             showRequestedBy
             showActions={showActions}
-            onApprove={showActions ? () => handleApprove(item.id) : undefined}
-            onReject={showActions ? () => handleReject(item.id) : undefined}
+            onApprove={canApproveReject ? () => handleApprove(item.id) : undefined}
+            onReject={canApproveReject ? () => handleReject(item.id) : undefined}
             approveLoading={isApproving}
             rejectLoading={isRejecting}
-            isExpired={isPending && isExpired}
+            isExpired={isExpired}
           />
         </View>
       );
