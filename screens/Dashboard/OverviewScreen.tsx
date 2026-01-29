@@ -40,6 +40,7 @@ import {
   mapPendingHostWalkInToVisitorRequest,
 } from "@/utils/requestMappers";
 import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
+import { isVisitExpired } from "@/utils/dateTimeUtils";
 import { KPICard, KPICardRow } from "@/components/shared/KPICard";
 
 const { width: screenWidth } = Dimensions.get("window");
@@ -787,28 +788,33 @@ export default function OverviewScreen({
                   directionalLockEnabled={true}
                   scrollEventThrottle={16}
                 >
-                  {pendingApprovals.slice(0, 5).map((request, index) => (
-                    <VisitorRequestCard
-                      key={request.id}
-                      request={request}
-                      onPress={() =>
-                        navigation.navigate(
-                          ROUTES.MANAGER_APPROVAL_DETAIL as never,
-                          { requestId: request.id } as never,
-                        )
-                      }
-                      width={cardWidth}
-                      accentColor={theme.primary}
-                      showRequestedBy={true}
-                      style={
-                        index > 0
-                          ? isRTL
-                            ? { marginEnd: Spacing.md }
-                            : { marginStart: Spacing.md }
-                          : undefined
-                      }
-                    />
-                  ))}
+                  {pendingApprovals.slice(0, 5).map((request, index) => {
+                    const expired = isVisitExpired(request.visitDate, request.visitTime, request.endTime, request.duration);
+                    return (
+                      <VisitorRequestCard
+                        key={request.id}
+                        request={request}
+                        onPress={() =>
+                          navigation.navigate(
+                            ROUTES.MANAGER_APPROVAL_DETAIL as never,
+                            { requestId: request.id } as never,
+                          )
+                        }
+                        width={cardWidth}
+                        accentColor={theme.primary}
+                        showRequestedBy={true}
+                        showActions={true}
+                        isExpired={expired}
+                        style={
+                          index > 0
+                            ? isRTL
+                              ? { marginEnd: Spacing.md }
+                              : { marginStart: Spacing.md }
+                            : undefined
+                        }
+                      />
+                    );
+                  })}
                 </ScrollView>
               ) : (
                 <ThemedView
