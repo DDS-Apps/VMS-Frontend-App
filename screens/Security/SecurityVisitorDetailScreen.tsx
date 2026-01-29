@@ -1,5 +1,5 @@
 import React from "react";
-import { View, StyleSheet, ActivityIndicator } from "react-native";
+import { View, StyleSheet, ActivityIndicator, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
@@ -11,6 +11,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
 import { applyOpacity } from "@/utils/statusStyles";
+import { formatPhoneNumber } from "@/utils/formatters";
 import { useSecurityVisitorQuery } from "@/hooks/queries/useSecurityQueries";
 import type { SecurityVisitorDetailScreenProps } from "@/types/securityNavigation.types";
 import { DirectionalRow } from '@/components/DirectionalRow';
@@ -19,7 +20,12 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
   const { theme } = useTheme();
   const { t, isRTL } = useTranslation();
   const { formatDate, formatTimeFromString } = useFormatters();
-  const insets = useSafeAreaInsets();  const { visitorId } = route.params;
+  const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
+  const { visitorId } = route.params;
+  
+  // Responsive layout: use grid on web (>768px), single column on mobile
+  const isWebLayout = screenWidth >= 768;
 
   const { data: visitorData, isLoading, isError } = useSecurityVisitorQuery(visitorId);
 
@@ -153,7 +159,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
         <DirectionalRow style={[styles.infoRowNew, { gap: Spacing.md }]}>
           <DDIcon name="phone" size={16} variant="muted" />
           <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, textAlign: 'right' }]}>
-            {visitorData.visitorPhone || '-'}
+            {visitorData.visitorPhone ? formatPhoneNumber(visitorData.visitorPhone) : '-'}
           </ThemedText>
         </DirectionalRow>
       </ThemedView>
@@ -166,51 +172,105 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
         </ThemedText>
         <Spacer height={Spacing.xl} />
 
-        <DirectionalRow style={styles.serviceRowNew}>
-          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-            <DDIcon name="calendar" size={18} color={theme.text} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
-              {t('visitor.visitDate')}
-            </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
-              {formatDate(new Date(visitorData.scheduledDate), 'long')}
-            </ThemedText>
-          </View>
-        </DirectionalRow>
+        {isWebLayout ? (
+          <View style={styles.responsiveGrid}>
+            <View style={styles.gridItem}>
+              <DirectionalRow style={styles.serviceRowNew}>
+                <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                  <DDIcon name="clock" size={18} color={theme.text} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+                    {t('visitor.visitTime')}
+                  </ThemedText>
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+                    {formatTimeFromString(visitorData.scheduledTime)}
+                  </ThemedText>
+                </View>
+              </DirectionalRow>
+            </View>
 
-        <Spacer height={Spacing.lg} />
+            <View style={styles.gridItem}>
+              <DirectionalRow style={styles.serviceRowNew}>
+                <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                  <DDIcon name="calendar" size={18} color={theme.text} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+                    {t('visitor.visitDate')}
+                  </ThemedText>
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+                    {formatDate(new Date(visitorData.scheduledDate), 'long')}
+                  </ThemedText>
+                </View>
+              </DirectionalRow>
+            </View>
 
-        <DirectionalRow style={styles.serviceRowNew}>
-          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-            <DDIcon name="clock" size={18} color={theme.text} />
+            <View style={styles.gridItem}>
+              <DirectionalRow style={styles.serviceRowNew}>
+                <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                  <DDIcon name="user" size={18} color={theme.text} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+                    {t('reception.hostName')}
+                  </ThemedText>
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+                    {visitorData.hostName}{visitorData.hostDepartment ? ` - ${visitorData.hostDepartment}` : ''}
+                  </ThemedText>
+                </View>
+              </DirectionalRow>
+            </View>
           </View>
-          <View style={{ flex: 1 }}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
-              {t('visitor.visitTime')}
-            </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
-              {formatTimeFromString(visitorData.scheduledTime)}
-            </ThemedText>
-          </View>
-        </DirectionalRow>
+        ) : (
+          <>
+            <DirectionalRow style={styles.serviceRowNew}>
+              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                <DDIcon name="calendar" size={18} color={theme.text} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+                  {t('visitor.visitDate')}
+                </ThemedText>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+                  {formatDate(new Date(visitorData.scheduledDate), 'long')}
+                </ThemedText>
+              </View>
+            </DirectionalRow>
 
-        <Spacer height={Spacing.lg} />
+            <Spacer height={Spacing.lg} />
 
-        <DirectionalRow style={styles.serviceRowNew}>
-          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-            <DDIcon name="user" size={18} color={theme.text} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
-              {t('reception.hostName')}
-            </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
-              {visitorData.hostName}{visitorData.hostDepartment ? ` - ${visitorData.hostDepartment}` : ''}
-            </ThemedText>
-          </View>
-        </DirectionalRow>
+            <DirectionalRow style={styles.serviceRowNew}>
+              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                <DDIcon name="clock" size={18} color={theme.text} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+                  {t('visitor.visitTime')}
+                </ThemedText>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+                  {formatTimeFromString(visitorData.scheduledTime)}
+                </ThemedText>
+              </View>
+            </DirectionalRow>
+
+            <Spacer height={Spacing.lg} />
+
+            <DirectionalRow style={styles.serviceRowNew}>
+              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                <DDIcon name="user" size={18} color={theme.text} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+                  {t('reception.hostName')}
+                </ThemedText>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+                  {visitorData.hostName}{visitorData.hostDepartment ? ` - ${visitorData.hostDepartment}` : ''}
+                </ThemedText>
+              </View>
+            </DirectionalRow>
+          </>
+        )}
 
         {visitorData.purpose ? (
           <>
@@ -346,6 +406,15 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 2,
+  },
+  responsiveGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.md,
+  },
+  gridItem: {
+    width: '31%',
+    minWidth: 200,
   },
   avatarNew: {
     width: 80,

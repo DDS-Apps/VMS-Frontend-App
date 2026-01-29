@@ -666,6 +666,7 @@ const styles = StyleSheet.create({
     paddingEnd: Spacing.sm,
   },
   filterPill: {
+    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
@@ -693,6 +694,7 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
   },
   visitorCard: {
+    flexDirection: 'row',
     borderRadius: BorderRadius.md,
     overflow: 'hidden',
   },
