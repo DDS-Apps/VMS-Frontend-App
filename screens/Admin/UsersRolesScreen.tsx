@@ -723,15 +723,17 @@ export default function UsersRolesScreen() {
             >
               <DDIcon name="edit-2" size={14} variant="primary" />
             </Pressable>
-            <Pressable
-              style={[
-                styles.gridActionButton,
-                { backgroundColor: theme.error + "15" },
-              ]}
-              onPress={() => handleDeleteUser(item.id)}
-            >
-              <DDIcon name="trash-2" size={14} variant="danger" />
-            </Pressable>
+            {item.source !== "microsoft_ad" && (
+              <Pressable
+                style={[
+                  styles.gridActionButton,
+                  { backgroundColor: theme.error + "15" },
+                ]}
+                onPress={() => handleDeleteUser(item.id)}
+              >
+                <DDIcon name="trash-2" size={14} variant="danger" />
+              </Pressable>
+            )}
           </DirectionalRow>
         ) : null}
       </Pressable>
@@ -834,15 +836,17 @@ export default function UsersRolesScreen() {
             >
               <DDIcon name="edit-2" size={14} variant="primary" />
             </Pressable>
-            <Pressable
-              style={[
-                styles.tableActionButton,
-                { backgroundColor: theme.error + "15" },
-              ]}
-              onPress={() => handleDeleteUser(item.id)}
-            >
-              <DDIcon name="trash-2" size={14} variant="danger" />
-            </Pressable>
+            {item.source !== "microsoft_ad" && (
+              <Pressable
+                style={[
+                  styles.tableActionButton,
+                  { backgroundColor: theme.error + "15" },
+                ]}
+                onPress={() => handleDeleteUser(item.id)}
+              >
+                <DDIcon name="trash-2" size={14} variant="danger" />
+              </Pressable>
+            )}
           </DirectionalRow>
         ) : null}
       </Pressable>
