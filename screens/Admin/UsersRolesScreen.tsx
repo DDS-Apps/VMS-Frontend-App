@@ -573,7 +573,8 @@ export default function UsersRolesScreen() {
 
   const renderUserCard = ({ item }: { item: DisplayUser }) => {
     const isSelected = selectedUserIds.has(item.id);
-    const accentColor = getRoleAccentColor(item.role);
+    const roleColor = getRoleAccentColor(item.role);
+    const accentColor = item.status === "active" ? theme.success : theme.textSecondary;
     const initials = getInitials(item.name);
 
     return (
@@ -604,15 +605,22 @@ export default function UsersRolesScreen() {
 
           <View style={styles.cardMainContent}>
             <DirectionalRow style={styles.cardHeader} gap={Spacing.md}>
-              <View style={[styles.cardAvatar, { backgroundColor: applyOpacity(accentColor, '15') }]}>
-                <ThemedText style={[styles.cardAvatarText, { color: accentColor }]}>
+              <View style={[styles.cardAvatar, { backgroundColor: applyOpacity(roleColor, '15') }]}>
+                <ThemedText style={[styles.cardAvatarText, { color: roleColor }]}>
                   {initials}
                 </ThemedText>
               </View>
               <View style={styles.cardNameSection}>
-                <ThemedText style={[styles.cardUserName, { color: theme.text }]} numberOfLines={1}>
-                  {item.name}
-                </ThemedText>
+                <DirectionalRow style={styles.cardNameRow} gap={Spacing.sm}>
+                  <ThemedText style={[styles.cardUserName, { color: theme.text, flex: 1 }]} numberOfLines={1}>
+                    {item.name}
+                  </ThemedText>
+                  <View style={[styles.cardRoleBadge, { backgroundColor: applyOpacity(roleColor, '15'), borderColor: applyOpacity(roleColor, '30'), borderWidth: 1 }]}>
+                    <ThemedText style={[styles.cardBadgeText, { color: roleColor }]}>
+                      {getRoleLabel(item.role)}
+                    </ThemedText>
+                  </View>
+                </DirectionalRow>
                 <ThemedText style={[styles.cardEmail, { color: theme.textSecondary }]} numberOfLines={1}>
                   {item.email}
                 </ThemedText>
@@ -621,60 +629,34 @@ export default function UsersRolesScreen() {
 
             <Spacer height={Spacing.sm} />
 
-            {(item.department || item.phoneNumber || item.businessPhone || item.landline) && (
+            {item.department && (
+              <DirectionalRow style={styles.cardInfoRow} gap={Spacing.sm}>
+                <DDIcon name="briefcase" variant="muted" size={13} />
+                <ThemedText style={[styles.cardInfoText, { color: theme.textSecondary }]} numberOfLines={1}>
+                  {item.department}
+                </ThemedText>
+              </DirectionalRow>
+            )}
+
+            {(item.phoneNumber || item.landline) && (
               <>
-                {item.department && (
-                  <DirectionalRow style={styles.cardInfoRow} gap={Spacing.sm}>
-                    <DDIcon name="briefcase" variant="muted" size={13} />
-                    <ThemedText style={[styles.cardInfoText, { color: theme.textSecondary }]} numberOfLines={1}>
-                      {item.department}
-                    </ThemedText>
-                  </DirectionalRow>
-                )}
-                {item.phoneNumber && (
-                  <>
-                    <Spacer height={Spacing.xs} />
-                    <DirectionalRow style={styles.cardInfoRow} gap={Spacing.sm}>
-                      <DDIcon name="phone" variant="muted" size={13} />
-                      <ThemedText style={[styles.cardInfoText, { color: theme.textSecondary }]} numberOfLines={1}>
-                        {formatPhoneNumber(item.phoneNumber)}
-                      </ThemedText>
-                    </DirectionalRow>
-                  </>
-                )}
-                {item.businessPhone && (
-                  <>
-                    <Spacer height={Spacing.xs} />
-                    <DirectionalRow style={styles.cardInfoRow} gap={Spacing.sm}>
-                      <DDIcon name="phone-call" variant="muted" size={13} />
-                      <ThemedText style={[styles.cardInfoText, { color: theme.textSecondary }]} numberOfLines={1}>
-                        {item.businessPhone}
-                      </ThemedText>
-                    </DirectionalRow>
-                  </>
-                )}
-                {item.landline && (
-                  <>
-                    <Spacer height={Spacing.xs} />
-                    <DirectionalRow style={styles.cardInfoRow} gap={Spacing.sm}>
-                      <DDIcon name="phone" variant="muted" size={13} />
-                      <ThemedText style={[styles.cardInfoText, { color: theme.textSecondary }]} numberOfLines={1}>
-                        {item.landline}
-                      </ThemedText>
-                    </DirectionalRow>
-                  </>
-                )}
-                <Spacer height={Spacing.sm} />
+                <Spacer height={Spacing.xs} />
+                <DirectionalRow style={styles.cardInfoRow} gap={Spacing.sm}>
+                  <DDIcon name="phone" variant="muted" size={13} />
+                  <ThemedText style={[styles.cardInfoText, { color: theme.textSecondary }]} numberOfLines={1}>
+                    {[
+                      item.phoneNumber ? formatPhoneNumber(item.phoneNumber) : null,
+                      item.landline ? formatPhoneNumber(item.landline) : null,
+                    ].filter(Boolean).join(" | ")}
+                  </ThemedText>
+                </DirectionalRow>
               </>
             )}
 
+            <Spacer height={Spacing.sm} />
+
             <DirectionalRow style={styles.cardFooter}>
               <DirectionalRow style={styles.cardBadgesRow} gap={Spacing.xs}>
-                <View style={[styles.cardRoleBadge, { backgroundColor: applyOpacity(accentColor, '15'), borderColor: applyOpacity(accentColor, '30'), borderWidth: 1 }]}>
-                  <ThemedText style={[styles.cardBadgeText, { color: accentColor }]}>
-                    {getRoleLabel(item.role)}
-                  </ThemedText>
-                </View>
                 {item.autoApproval && (
                   <View style={[styles.cardAutoApprovalBadge, { backgroundColor: applyOpacity(theme.success, '15') }]}>
                     <DDIcon name="check-circle" size={10} color={theme.success} />
@@ -2190,6 +2172,9 @@ const styles = StyleSheet.create({
   },
   cardNameSection: {
     flex: 1,
+  },
+  cardNameRow: {
+    alignItems: "center",
   },
   cardUserName: {
     fontSize: 15,
