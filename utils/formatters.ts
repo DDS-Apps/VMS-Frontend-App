@@ -250,6 +250,28 @@ export const normalizePhoneNumber = (phone: string): string => {
   return phone.replace(/\D/g, '');
 };
 
+/**
+ * Formats a phone number for display, preserving extension if present.
+ * Handles phone numbers stored with "ext. XXX" or "x XXX" suffixes.
+ * Example: "+966 34 531 1234 ext. 223" stays formatted with extension visible.
+ */
+export const formatPhoneForDisplay = (phone: string): string => {
+  if (!phone) return '';
+  
+  // Check if phone has an extension
+  const extMatch = phone.match(/(.+?)\s*(ext\.?\s*|x\s*)(\d+)$/i);
+  
+  if (extMatch) {
+    const basePart = extMatch[1].trim();
+    const extension = extMatch[3];
+    const formattedBase = formatPhoneNumber(basePart);
+    return `${formattedBase} ext. ${extension}`;
+  }
+  
+  // No extension, just format normally
+  return formatPhoneNumber(phone);
+};
+
 export const parseISODuration = (isoDuration: string): string => {
   if (!isoDuration) return '1 hour';
   

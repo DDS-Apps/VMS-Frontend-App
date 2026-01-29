@@ -42,7 +42,7 @@ import type {
   UserRole as ApiUserRole,
 } from "@/types/api.types";
 import { UserRole, USER_ROLES } from "@/types/vms.types";
-import { formatPhoneInput, formatPhoneNumber, normalizePhoneNumber } from "@/utils/formatters";
+import { formatPhoneInput, formatPhoneNumber, formatPhoneForDisplay, normalizePhoneNumber } from "@/utils/formatters";
 import { applyOpacity } from "@/utils/statusStyles";
 import { PhoneInputWithCountry } from "@/components/PhoneInputWithCountry";
 
@@ -686,10 +686,10 @@ export default function UsersRolesScreen() {
                 <Spacer height={Spacing.xs} />
                 <DirectionalRow style={styles.cardInfoRow} gap={Spacing.sm}>
                   <DDIcon name="phone" variant="muted" size={13} />
-                  <ThemedText style={[styles.cardInfoText, { color: theme.textSecondary }]} numberOfLines={1}>
+                  <ThemedText style={[styles.cardInfoText, { color: theme.textSecondary }]} numberOfLines={2}>
                     {[
                       item.phoneNumber ? formatPhoneNumber(item.phoneNumber) : null,
-                      item.businessPhone ? formatPhoneNumber(item.businessPhone) : null,
+                      item.businessPhone ? formatPhoneForDisplay(item.businessPhone) : null,
                     ].filter(Boolean).join(" | ")}
                   </ThemedText>
                 </DirectionalRow>
