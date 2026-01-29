@@ -11,7 +11,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
 import { applyOpacity } from "@/utils/statusStyles";
-import { formatPhoneNumber } from "@/utils/formatters";
+import { formatPhoneNumber, formatPhoneForDisplay } from "@/utils/formatters";
 import { useSecurityVisitorQuery } from "@/hooks/queries/useSecurityQueries";
 import type { SecurityVisitorDetailScreenProps } from "@/types/securityNavigation.types";
 import { DirectionalRow } from '@/components/DirectionalRow';
@@ -45,6 +45,23 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
         return { label: t('status.checkedOut'), bg: applyOpacity(theme.textSecondary, '15'), text: theme.textSecondary, border: applyOpacity(theme.textSecondary, '30'), icon: 'log-out' };
       case 'cancelled':
         return { label: t('status.cancelled'), bg: applyOpacity(theme.error, '15'), text: theme.error, border: applyOpacity(theme.error, '30'), icon: 'x-circle' };
+      case 'auto_cancelled':
+        return { label: t('status.autoCancelled'), bg: applyOpacity(theme.error, '15'), text: theme.error, border: applyOpacity(theme.error, '30'), icon: 'x-circle' };
+      case 'accepted':
+        return { label: t('status.accepted'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: applyOpacity(theme.success, '30'), icon: 'check-circle' };
+      case 'pending_approval':
+      case 'pending_host_approval':
+        return { label: t('status.pendingApproval'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: applyOpacity(theme.warning, '30'), icon: 'clock' };
+      case 'approved':
+        return { label: t('status.approved'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: applyOpacity(theme.success, '30'), icon: 'check-circle' };
+      case 'rejected':
+        return { label: t('status.rejected'), bg: applyOpacity(theme.error, '15'), text: theme.error, border: applyOpacity(theme.error, '30'), icon: 'x-circle' };
+      case 'waiting_acceptance':
+        return { label: t('status.waitingAcceptance'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: applyOpacity(theme.warning, '30'), icon: 'clock' };
+      case 'no_show':
+        return { label: t('status.noShow'), bg: applyOpacity(theme.error, '15'), text: theme.error, border: applyOpacity(theme.error, '30'), icon: 'user-x' };
+      case 'expired':
+        return { label: t('status.expired'), bg: applyOpacity(theme.textSecondary, '15'), text: theme.textSecondary, border: applyOpacity(theme.textSecondary, '30'), icon: 'clock' };
       default:
         return { label: t('visitor.expectedVisitors'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: applyOpacity(theme.warning, '30'), icon: 'clock' };
     }
@@ -143,7 +160,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                   gap: 4,
                 }}
               >
-                <DDIcon name="check-circle" size={14} color={statusConfig.text} />
+                <DDIcon name={statusConfig.icon} size={14} color={statusConfig.text} />
                 <ThemedText style={[Typography.caption, { color: statusConfig.text, fontWeight: '600', fontSize: 12 }]}>
                   {statusConfig.label}
                 </ThemedText>
@@ -242,42 +259,67 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
 
       <Spacer height={Spacing.lg} />
 
-      {/* Visitor Details Section */}
+      {/* Visit Details Section */}
       <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
         <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text }]}>
           {t('visitor.visitDetails')}
         </ThemedText>
         <Spacer height={Spacing.xl} />
 
-        <DirectionalRow style={styles.serviceRowNew}>
-          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-            <DDIcon name="clock" size={18} color={theme.text} />
+        <View style={isWebLayout ? styles.responsiveGrid : undefined}>
+          {/* Visit Time */}
+          <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
+            <DirectionalRow style={styles.serviceRowNew}>
+              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                <DDIcon name="clock" size={18} color={theme.text} />
+              </View>
+              <View>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+                  {t('visitor.visitTime')}
+                </ThemedText>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+                  {formatTimeFromString(visitorData.scheduledTime)}{visitorData.endTime ? ` - ${formatTimeFromString(visitorData.endTime)}` : ''}
+                </ThemedText>
+              </View>
+            </DirectionalRow>
+            {!isWebLayout && <Spacer height={Spacing.lg} />}
           </View>
-          <View>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
-              {t('visitor.visitTime')}
-            </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
-              {formatTimeFromString(visitorData.scheduledTime)}
-            </ThemedText>
-          </View>
-        </DirectionalRow>
 
-        <Spacer height={Spacing.lg} />
+          {/* Host Name */}
+          <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
+            <DirectionalRow style={styles.serviceRowNew}>
+              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                <DDIcon name="user" size={18} color={theme.text} />
+              </View>
+              <View>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+                  {t('reception.hostName')}
+                </ThemedText>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+                  {visitorData.hostName}{visitorData.hostDepartment ? ` - ${visitorData.hostDepartment}` : ''}
+                </ThemedText>
+              </View>
+            </DirectionalRow>
+            {!isWebLayout && <Spacer height={Spacing.lg} />}
+          </View>
 
-        <DirectionalRow style={styles.serviceRowNew}>
-          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-            <DDIcon name="user" size={18} color={theme.text} />
+          {/* Purpose */}
+          <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
+            <DirectionalRow style={styles.serviceRowNew}>
+              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                <DDIcon name="target" size={18} color={theme.text} />
+              </View>
+              <View>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+                  {t('form.purpose')}
+                </ThemedText>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+                  {visitorData.purpose || '-'}
+                </ThemedText>
+              </View>
+            </DirectionalRow>
           </View>
-          <View>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
-              {t('reception.hostName')}
-            </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
-              {visitorData.hostName}{visitorData.hostDepartment ? ` - ${visitorData.hostDepartment}` : ''}
-            </ThemedText>
-          </View>
-        </DirectionalRow>
+        </View>
       </ThemedView>
 
       <Spacer height={Spacing.lg} />
@@ -317,7 +359,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                   {t('form.phone')}
                 </ThemedText>
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
-                  -
+                  {visitorData.hostPhoneNumber ? formatPhoneNumber(visitorData.hostPhoneNumber) : '-'}
                 </ThemedText>
               </View>
             </DirectionalRow>
@@ -334,7 +376,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                   {t('form.landline')}
                 </ThemedText>
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
-                  -
+                  {visitorData.hostBusinessPhone ? formatPhoneForDisplay(visitorData.hostBusinessPhone) : '-'}
                 </ThemedText>
               </View>
             </DirectionalRow>

@@ -414,9 +414,12 @@ export interface TranslationKeys {
     offline: string;
     inUse: string;
     waitingOnVisitor: string;
+    waitingAcceptance: string;
     visitorPending: string;
     visitorAccepted: string;
     visitorRejected: string;
+    accepted: string;
+    noShow: string;
     autoCancelled: string;
     preparing: string;
     ready: string;
