@@ -712,12 +712,14 @@ export default function UsersRolesScreen() {
 
               {!bulkMode && (
                 <DirectionalRow style={styles.cardActions} gap={Spacing.sm}>
-                  <Pressable
-                    style={[styles.cardActionButton, { backgroundColor: applyOpacity(theme.primary, '15') }]}
-                    onPress={() => handleEditUser(item)}
-                  >
-                    <DDIcon name="edit-2" size={14} variant="primary" />
-                  </Pressable>
+                  {item.source !== "microsoft_ad" && (
+                    <Pressable
+                      style={[styles.cardActionButton, { backgroundColor: applyOpacity(theme.primary, '15') }]}
+                      onPress={() => handleEditUser(item)}
+                    >
+                      <DDIcon name="edit-2" size={14} variant="primary" />
+                    </Pressable>
+                  )}
                   {item.source !== "microsoft_ad" && (
                     <Pressable
                       style={[styles.cardActionButton, { backgroundColor: applyOpacity(theme.error, '15') }]}
@@ -822,15 +824,17 @@ export default function UsersRolesScreen() {
               { flex: 1.5, justifyContent: "center", gap: Spacing.xs },
             ]}
           >
-            <Pressable
-              style={[
-                styles.tableActionButton,
-                { backgroundColor: theme.primary + "15" },
-              ]}
-              onPress={() => handleEditUser(item)}
-            >
-              <DDIcon name="edit-2" size={14} variant="primary" />
-            </Pressable>
+            {item.source !== "microsoft_ad" && (
+              <Pressable
+                style={[
+                  styles.tableActionButton,
+                  { backgroundColor: theme.primary + "15" },
+                ]}
+                onPress={() => handleEditUser(item)}
+              >
+                <DDIcon name="edit-2" size={14} variant="primary" />
+              </Pressable>
+            )}
             {item.source !== "microsoft_ad" && (
               <Pressable
                 style={[
