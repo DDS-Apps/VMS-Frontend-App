@@ -24,6 +24,7 @@ import { ApiException } from "@/api/errors";
 import { normalizePhoneNumber, formatPhoneNumber } from "@/utils/formatters";
 import { PhoneInputWithCountry } from "@/components/PhoneInputWithCountry";
 import { getFlexDirection } from "@/components/DirectionalRow";
+import { apiConfig } from "@/api/config";
 
 interface EditProfileScreenProps {
   userRole?: UserRole;
@@ -399,8 +400,14 @@ export default function EditProfileScreen({
       .slice(0, 2);
   };
 
+  const getFullPhotoUrl = (relativeUrl: string | null | undefined): string | undefined => {
+    if (!relativeUrl) return undefined;
+    if (relativeUrl.startsWith('http')) return relativeUrl;
+    return `${apiConfig.baseUrl}${relativeUrl}`;
+  };
+
   const hasPhoto = user?.photoUrl || user?.thumbnailUrl;
-  const photoUrl = user?.thumbnailUrl || user?.photoUrl;
+  const photoUrl = getFullPhotoUrl(user?.thumbnailUrl || user?.photoUrl);
 
   return (
     <ScreenKeyboardAwareScrollView contentContainerStyle={scrollContentStyle}>
