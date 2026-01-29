@@ -1509,6 +1509,7 @@ export interface TranslationKeys {
     };
   };
   timeline: {
+    requestTimeline: string;
     requestCreated: string;
     requestSubmitted: string;
     autoApproved: string;

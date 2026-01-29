@@ -1509,6 +1509,7 @@ export const en: TranslationKeys = {
     },
   },
   timeline: {
+    requestTimeline: 'Request Timeline',
     requestCreated: 'Request Created',
     requestSubmitted: 'Request Submitted',
     autoApproved: 'Auto-approved',

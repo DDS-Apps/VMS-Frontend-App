@@ -1509,6 +1509,7 @@ export const ar: TranslationKeys = {
     },
   },
   timeline: {
+    requestTimeline: 'الجدول الزمني للطلب',
     requestCreated: 'تم إنشاء الطلب',
     requestSubmitted: 'تم إرسال الطلب',
     autoApproved: 'موافقة تلقائية',
