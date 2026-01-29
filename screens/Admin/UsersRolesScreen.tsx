@@ -160,7 +160,7 @@ export default function UsersRolesScreen() {
   const [filterActive, setFilterActive] = useState<boolean | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("createdAt");
-  const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [groupBy, setGroupBy] = useState<GroupMode>("none");
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
