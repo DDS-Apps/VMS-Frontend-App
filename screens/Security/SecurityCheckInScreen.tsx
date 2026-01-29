@@ -529,20 +529,6 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
                   <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>-</ThemedText>
                 )}
               </DirectionalRow>
-              {visitor.status === 'expected' && (
-                <Pressable 
-                  style={[styles.checkInButton, { backgroundColor: theme.success }]}
-                  onPress={(e) => {
-                    e.stopPropagation?.();
-                    navigation.navigate(ROUTES.SECURITY_VISITOR_DETAIL as never, { visitorId: visitor.id } as never);
-                  }}
-                >
-                  <DDIcon name="log-in" size={14} color="#FFFFFF" />
-                  <ThemedText style={styles.checkInButtonText}>
-                    {t('actions.checkIn')}
-                  </ThemedText>
-                </Pressable>
-              )}
             </DirectionalRow>
           </View>
         </ThemedView>
