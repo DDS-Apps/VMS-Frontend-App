@@ -1238,6 +1238,26 @@ export default function UsersRolesScreen() {
               styles.viewToggleButtonLeft,
               {
                 backgroundColor:
+                  viewMode === "grid" ? theme.primary : theme.surface,
+                borderColor: viewMode === "grid" ? theme.primary : theme.border,
+              },
+            ]}
+            onPress={() => setViewMode("grid")}
+          >
+            <DDIcon
+              name="grid"
+              size={16}
+              color={
+                viewMode === "grid" ? theme.buttonText : theme.textSecondary
+              }
+            />
+          </Pressable>
+          <Pressable
+            style={[
+              styles.viewToggleButton,
+              styles.viewToggleButtonMiddle,
+              {
+                backgroundColor:
                   viewMode === "list" ? theme.primary : theme.surface,
                 borderColor: viewMode === "list" ? theme.primary : theme.border,
               },
