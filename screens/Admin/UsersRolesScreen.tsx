@@ -150,9 +150,8 @@ export default function UsersRolesScreen() {
   const navigation = useNavigation<NavigationProp>();
   const { width: screenWidth } = useWindowDimensions();
   
-  // Determine grid columns based on screen width (3 for web/tablet, 2 for mobile)
-  const isWeb = Platform.OS === "web";
-  const gridColumns = isWeb && screenWidth >= 768 ? 3 : 2;
+  // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
+  const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
 
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState<DisplayUser | null>(null);
@@ -1686,8 +1685,8 @@ export default function UsersRolesScreen() {
 
     if (viewMode === "grid") {
       const gridData: DisplayUser[][] = [];
-      for (let i = 0; i < filteredAndSortedUsers.length; i += gridColumns) {
-        gridData.push(filteredAndSortedUsers.slice(i, i + gridColumns));
+      for (let i = 0; i < filteredAndSortedUsers.length; i += numColumns) {
+        gridData.push(filteredAndSortedUsers.slice(i, i + numColumns));
       }
 
       return (
@@ -1700,7 +1699,7 @@ export default function UsersRolesScreen() {
                   key={user.id}
                   style={[
                     styles.gridItemWrapper,
-                    { flex: 1 / gridColumns },
+                    { flex: 1 / numColumns },
                     idx > 0 ? { marginStart: Spacing.sm } : null,
                   ]}
                 >
@@ -1708,11 +1707,11 @@ export default function UsersRolesScreen() {
                 </View>
               ))}
               {/* Fill remaining empty slots to maintain grid alignment */}
-              {rowUsers.length < gridColumns && 
-                Array.from({ length: gridColumns - rowUsers.length }).map((_, idx) => (
+              {rowUsers.length < numColumns && 
+                Array.from({ length: numColumns - rowUsers.length }).map((_, idx) => (
                   <View 
                     key={`empty-${idx}`} 
-                    style={[styles.gridItemWrapper, { flex: 1 / gridColumns, marginStart: Spacing.sm }]} 
+                    style={[styles.gridItemWrapper, { flex: 1 / numColumns, marginStart: Spacing.sm }]} 
                   />
                 ))
               }
