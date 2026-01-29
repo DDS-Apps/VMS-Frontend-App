@@ -43,29 +43,30 @@ export default function EditProfileScreen({
   const { user, refreshUser } = useAuth();
   const { showSuccess, showError } = useToast();
   
+  const parseBusinessPhoneBaseInitial = (phoneStr: string): string => {
+    if (!phoneStr) return "";
+    const extMatch = phoneStr.match(/(.+?)\s*(?:ext\.?|x)\s*\d+$/i);
+    return extMatch ? extMatch[1].trim() : phoneStr;
+  };
+  
+  const parseBusinessPhoneExtInitial = (phoneStr: string): string => {
+    if (!phoneStr) return "";
+    const extMatch = phoneStr.match(/(?:ext\.?|x)\s*(\d+)$/i);
+    return extMatch ? extMatch[1] : "";
+  };
+
   const [name, setName] = useState(user?.name || '');
-  const [phone, setPhone] = useState('');
-  const [businessPhone, setBusinessPhone] = useState('');
-  const [businessPhoneExt, setBusinessPhoneExt] = useState('');
+  const [phone, setPhone] = useState(user?.phoneNumber || '');
+  const [businessPhone, setBusinessPhone] = useState(parseBusinessPhoneBaseInitial(user?.businessPhone || ''));
+  const [businessPhoneExt, setBusinessPhoneExt] = useState(parseBusinessPhoneExtInitial(user?.businessPhone || ''));
   const [department, setDepartment] = useState(user?.department || '');
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [isDeletingPhoto, setIsDeletingPhoto] = useState(false);
   const [errors, setErrors] = useState<{ name?: string; phone?: string; businessPhone?: string }>({});
 
   const isSSOUser = user?.source === 'microsoft_ad';
-
-  const parseBusinessPhoneBase = (phoneStr: string): string => {
-    if (!phoneStr) return "";
-    const extMatch = phoneStr.match(/(.+?)\s*(?:ext\.?|x)\s*\d+$/i);
-    return extMatch ? extMatch[1].trim() : phoneStr;
-  };
-
-  const parseBusinessPhoneExt = (phoneStr: string): string => {
-    if (!phoneStr) return "";
-    const extMatch = phoneStr.match(/(?:ext\.?|x)\s*(\d+)$/i);
-    return extMatch ? extMatch[1] : "";
-  };
 
   const formatBusinessPhoneForApi = (phoneNumber: string, ext: string): string => {
     const formatted = formatPhoneNumber(phoneNumber);
@@ -78,7 +79,15 @@ export default function EditProfileScreen({
   // Refresh user data when screen gains focus and update form fields
   useFocusEffect(
     useCallback(() => {
-      refreshUser();
+      const doRefresh = async () => {
+        setIsRefreshing(true);
+        try {
+          await refreshUser();
+        } finally {
+          setIsRefreshing(false);
+        }
+      };
+      doRefresh();
     }, [refreshUser])
   );
 
@@ -87,8 +96,8 @@ export default function EditProfileScreen({
     if (user) {
       setName(user.name || '');
       setPhone(user.phoneNumber || '');
-      setBusinessPhone(parseBusinessPhoneBase(user.businessPhone || ''));
-      setBusinessPhoneExt(parseBusinessPhoneExt(user.businessPhone || ''));
+      setBusinessPhone(parseBusinessPhoneBaseInitial(user.businessPhone || ''));
+      setBusinessPhoneExt(parseBusinessPhoneExtInitial(user.businessPhone || ''));
       setDepartment(user.department || '');
     }
   }, [user]);
@@ -157,14 +166,28 @@ export default function EditProfileScreen({
     setIsSaving(true);
     
     try {
-      await authService.updateProfile({
+      const payload = {
         name: name.trim(),
         phoneNumber: normalizePhoneNumber(phone) || undefined,
         businessPhone: businessPhone ? formatBusinessPhoneForApi(businessPhone, businessPhoneExt) : undefined,
         department: department.trim() || undefined,
-      });
+      };
       
-      await refreshUser();
+      await authService.updateProfile(payload);
+      
+      // Refresh user data from backend and get the updated user
+      const updatedUser = await refreshUser();
+      
+      // Update form state with the refreshed user data from backend
+      // This confirms the data was persisted correctly
+      if (updatedUser) {
+        setName(updatedUser.name || '');
+        setPhone(updatedUser.phoneNumber || '');
+        setBusinessPhone(parseBusinessPhoneBaseInitial(updatedUser.businessPhone || ''));
+        setBusinessPhoneExt(parseBusinessPhoneExtInitial(updatedUser.businessPhone || ''));
+        setDepartment(updatedUser.department || '');
+      }
+      
       showSuccess(t('settings.profileUpdated'), t('common.success'));
       
       if (onSave) {
@@ -621,7 +644,7 @@ export default function EditProfileScreen({
         <LoadingButton
           onPress={handleSave}
           loading={isSaving}
-          disabled={isSaving}
+          disabled={isSaving || isRefreshing}
           variant="primary"
           size="large"
           icon="check"
