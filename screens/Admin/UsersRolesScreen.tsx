@@ -1615,7 +1615,11 @@ export default function UsersRolesScreen() {
     if (viewMode === "grid") {
       const getItemStyle = () => {
         if (numColumns === 1) return { paddingHorizontal: HORIZONTAL_PADDING, paddingBottom: Spacing.md };
-        return { flex: 1, minWidth: 0, paddingBottom: Spacing.md };
+        // Calculate maxWidth as percentage to prevent last row items from stretching
+        const gapTotal = (numColumns - 1) * Spacing.md;
+        const availableWidth = screenWidth - HORIZONTAL_PADDING * 2 - gapTotal;
+        const itemWidth = availableWidth / numColumns;
+        return { width: itemWidth, maxWidth: itemWidth, paddingBottom: Spacing.md };
       };
 
       return (
