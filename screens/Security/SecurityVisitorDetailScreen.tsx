@@ -26,6 +26,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
   
   // Responsive layout: use grid on web (>768px), single column on mobile
   const isWebLayout = screenWidth >= 768;
+  const gridItemWidth = screenWidth > 1024 ? '32%' : '48%';
 
   const { data: visitorData, isLoading, isError } = useSecurityVisitorQuery(visitorId);
 
@@ -174,7 +175,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
 
         {isWebLayout ? (
           <View style={styles.responsiveGrid}>
-            <View style={styles.gridItem}>
+            <View style={{ width: gridItemWidth }}>
               <DirectionalRow style={styles.serviceRowNew}>
                 <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
                   <DDIcon name="clock" size={18} color={theme.text} />
@@ -190,7 +191,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
               </DirectionalRow>
             </View>
 
-            <View style={styles.gridItem}>
+            <View style={{ width: gridItemWidth }}>
               <DirectionalRow style={styles.serviceRowNew}>
                 <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
                   <DDIcon name="calendar" size={18} color={theme.text} />
@@ -206,7 +207,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
               </DirectionalRow>
             </View>
 
-            <View style={styles.gridItem}>
+            <View style={{ width: gridItemWidth }}>
               <DirectionalRow style={styles.serviceRowNew}>
                 <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
                   <DDIcon name="user" size={18} color={theme.text} />
@@ -411,10 +412,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: Spacing.md,
-  },
-  gridItem: {
-    width: '31%',
-    minWidth: 200,
   },
   avatarNew: {
     width: 80,
