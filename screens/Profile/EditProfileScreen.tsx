@@ -73,6 +73,7 @@ export default function EditProfileScreen({
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [isDeletingPhoto, setIsDeletingPhoto] = useState(false);
   const [errors, setErrors] = useState<{ name?: string; phone?: string; businessPhone?: string }>({});
+  const [localPhotoUrl, setLocalPhotoUrl] = useState<string | null>(null);
 
   const isSSOUser = user?.source === 'microsoft_ad';
 
@@ -282,7 +283,12 @@ export default function EditProfileScreen({
         } as any);
       }
       
-      await authService.uploadPhoto(formData);
+      const uploadResponse = await authService.uploadPhoto(formData);
+      const newPhotoUrl = uploadResponse.thumbnailUrl || uploadResponse.photoUrl;
+      if (newPhotoUrl) {
+        const cacheBuster = `?t=${Date.now()}`;
+        setLocalPhotoUrl(newPhotoUrl + cacheBuster);
+      }
       await refreshUser();
       showSuccess(t('settings.photoUpdated'), t('common.success'));
     } catch (err) {
@@ -320,6 +326,7 @@ export default function EditProfileScreen({
     
     try {
       await authService.deletePhoto();
+      setLocalPhotoUrl(null);
       await refreshUser();
       showSuccess(t('settings.photoDeleted'), t('common.success'));
     } catch (err) {
@@ -403,11 +410,16 @@ export default function EditProfileScreen({
   const getFullPhotoUrl = (relativeUrl: string | null | undefined): string | undefined => {
     if (!relativeUrl) return undefined;
     if (relativeUrl.startsWith('http')) return relativeUrl;
-    return `${apiConfig.baseUrl}${relativeUrl}`;
+    const baseUrl = relativeUrl.includes('?') 
+      ? `${apiConfig.baseUrl}${relativeUrl}` 
+      : `${apiConfig.baseUrl}${relativeUrl}`;
+    return baseUrl;
   };
 
-  const hasPhoto = user?.photoUrl || user?.thumbnailUrl;
-  const photoUrl = getFullPhotoUrl(user?.thumbnailUrl || user?.photoUrl);
+  const hasPhoto = localPhotoUrl || user?.photoUrl || user?.thumbnailUrl;
+  const photoUrl = localPhotoUrl 
+    ? getFullPhotoUrl(localPhotoUrl)
+    : getFullPhotoUrl(user?.thumbnailUrl || user?.photoUrl);
 
   return (
     <ScreenKeyboardAwareScrollView contentContainerStyle={scrollContentStyle}>
