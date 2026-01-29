@@ -638,7 +638,7 @@ export default function UsersRolesScreen() {
               </DirectionalRow>
             )}
 
-            {(item.phoneNumber || item.landline) && (
+            {(item.phoneNumber || item.businessPhone) && (
               <>
                 <Spacer height={Spacing.xs} />
                 <DirectionalRow style={styles.cardInfoRow} gap={Spacing.sm}>
@@ -646,7 +646,7 @@ export default function UsersRolesScreen() {
                   <ThemedText style={[styles.cardInfoText, { color: theme.textSecondary }]} numberOfLines={1}>
                     {[
                       item.phoneNumber ? formatPhoneNumber(item.phoneNumber) : null,
-                      item.landline ? formatPhoneNumber(item.landline) : null,
+                      item.businessPhone ? formatPhoneNumber(item.businessPhone) : null,
                     ].filter(Boolean).join(" | ")}
                   </ThemedText>
                 </DirectionalRow>
