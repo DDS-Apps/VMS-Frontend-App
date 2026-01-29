@@ -1,0 +1,248 @@
+{
+    "data": [
+        {
+            "id": "E547C349-E8B6-4482-8D7C-DAB684060A15",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "Tissue P",
+                "company": "ASAA"
+            },
+            "visitDate": "2026-01-28",
+            "visitTime": "5:49 PM",
+            "endTime": "6:00 PM",
+            "status": "visitor_accepted",
+            "isExpired": false,
+            "purpose": "General Visit",
+            "isWalkIn": true,
+            "isBuffet": false,
+            "isMeetingRoom": false,
+            "isVisitorNeedsParking": false,
+            "licensePlate": null,
+            "carModel": null,
+            "carColor": null,
+            "createdAt": "2026-01-28T04:48:42.733Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "20ED5798-5DA1-453B-BE28-2A89BAB8A212",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "Happ",
+                "company": "sad"
+            },
+            "visitDate": "2026-01-29",
+            "visitTime": "5:00 PM",
+            "endTime": "6:00 PM",
+            "status": "auto_cancelled",
+            "isExpired": false,
+            "purpose": "Meeting",
+            "isWalkIn": false,
+            "isBuffet": true,
+            "isMeetingRoom": false,
+            "isVisitorNeedsParking": false,
+            "licensePlate": null,
+            "carModel": null,
+            "carColor": null,
+            "createdAt": "2026-01-28T04:38:23.750Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "A1B0CD27-DF4A-454C-AB13-A1605AA53436",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "Nasir1"
+            },
+            "visitDate": "2026-01-28",
+            "visitTime": "1:20 PM",
+            "endTime": "1:30 PM",
+            "status": "approved",
+            "isExpired": false,
+            "purpose": "Meeting",
+            "isWalkIn": false,
+            "isBuffet": true,
+            "isMeetingRoom": true,
+            "isVisitorNeedsParking": false,
+            "licensePlate": null,
+            "carModel": null,
+            "carColor": null,
+            "createdAt": "2026-01-27T09:20:22.846Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "B1A79D09-5C80-4BE5-AF0E-6D8F74734EC5",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "Naasir"
+            },
+            "visitDate": "2026-01-28",
+            "visitTime": "1:15 PM",
+            "endTime": "1:25 PM",
+            "status": "auto_cancelled",
+            "isExpired": false,
+            "purpose": "Meeting",
+            "isWalkIn": false,
+            "isBuffet": true,
+            "isMeetingRoom": false,
+            "isVisitorNeedsParking": false,
+            "licensePlate": null,
+            "carModel": null,
+            "carColor": null,
+            "createdAt": "2026-01-27T09:19:11.233Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "13773923-C97B-49AA-9C10-0D2DEABC9608",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "Naasir"
+            },
+            "visitDate": "2026-01-28",
+            "visitTime": "1:15 PM",
+            "endTime": "1:25 PM",
+            "status": "approved",
+            "isExpired": false,
+            "purpose": "Meeting",
+            "isWalkIn": false,
+            "isBuffet": true,
+            "isMeetingRoom": true,
+            "isVisitorNeedsParking": false,
+            "licensePlate": null,
+            "carModel": null,
+            "carColor": null,
+            "createdAt": "2026-01-27T09:18:52.940Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "0A540DA7-E8C2-4D97-9A8F-CF4865485F23",
+            "employeeName": "Employee 001",
+            "visitor": {
+                "fullName": "testbuffet1",
+                "company": "Folio3"
+            },
+            "visitDate": "2026-01-29",
+            "visitTime": "9:00 AM",
+            "endTime": "10:00 AM",
+            "status": "pending_approval",
+            "isExpired": false,
+            "purpose": "Interview",
+            "isWalkIn": false,
+            "isBuffet": false,
+            "isMeetingRoom": true,
+            "isVisitorNeedsParking": false,
+            "licensePlate": null,
+            "carModel": null,
+            "carColor": null,
+            "createdAt": "2026-01-27T08:59:27.200Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "57E1D4F8-947A-4A55-839C-6143BDFF77F9",
+            "employeeName": "Sarah Employee",
+            "visitor": {
+                "fullName": "Nasir"
+            },
+            "visitDate": "2026-01-28",
+            "visitTime": "1:15 PM",
+            "endTime": "2:15 PM",
+            "status": "visitor_accepted",
+            "isExpired": false,
+            "purpose": "Interview",
+            "isWalkIn": false,
+            "isBuffet": true,
+            "isMeetingRoom": false,
+            "isVisitorNeedsParking": true,
+            "licensePlate": "AWS123",
+            "carModel": "Lamborgini",
+            "carColor": "RED",
+            "visitorDecision": {
+                "accepted": true,
+                "decidedAt": "2026-01-27T13:23:11.000Z"
+            },
+            "createdAt": "2026-01-27T05:21:26.400Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "113CF897-BC28-48D9-9B47-73B0BCFC80EA",
+            "employeeName": "Sarah Employee",
+            "visitor": {
+                "fullName": "Nasir"
+            },
+            "visitDate": "2026-01-30",
+            "visitTime": "1:15 PM",
+            "endTime": "2:15 PM",
+            "status": "auto_cancelled",
+            "isExpired": false,
+            "purpose": "Interview",
+            "isWalkIn": false,
+            "isBuffet": false,
+            "isMeetingRoom": false,
+            "isVisitorNeedsParking": false,
+            "licensePlate": null,
+            "carModel": null,
+            "carColor": null,
+            "createdAt": "2026-01-27T05:16:21.720Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "EC4758E7-4372-4EB0-BD19-07095116ADAA",
+            "employeeName": "Employee 001",
+            "visitor": {
+                "fullName": "meat5",
+                "company": "Folio3"
+            },
+            "visitDate": "2026-01-28",
+            "visitTime": "4:52 PM",
+            "endTime": "5:52 PM",
+            "status": "visitor_rejected",
+            "isExpired": false,
+            "purpose": "Interview",
+            "isWalkIn": false,
+            "isBuffet": true,
+            "isMeetingRoom": true,
+            "isVisitorNeedsParking": false,
+            "licensePlate": null,
+            "carModel": null,
+            "carColor": null,
+            "visitorDecision": {
+                "accepted": false,
+                "reason": "i dont have free time",
+                "decidedAt": "2026-01-27T11:57:15.510Z"
+            },
+            "createdAt": "2026-01-27T03:53:32.356Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "4E78DCFB-582A-4A7D-A82A-5C7A2A406CFE",
+            "employeeName": "Employee 001",
+            "visitor": {
+                "fullName": "Meat4",
+                "company": "Folio3"
+            },
+            "visitDate": "2026-01-28",
+            "visitTime": "1:00 PM",
+            "endTime": "2:00 PM",
+            "status": "visitor_accepted",
+            "isExpired": false,
+            "purpose": "Interview",
+            "isWalkIn": false,
+            "isBuffet": true,
+            "isMeetingRoom": true,
+            "isVisitorNeedsParking": true,
+            "licensePlate": "meat-004",
+            "carModel": "meat cars",
+            "carColor": "Blue",
+            "visitorDecision": {
+                "accepted": true,
+                "decidedAt": "2026-01-27T11:43:43.874Z"
+            },
+            "createdAt": "2026-01-27T03:39:45.350Z",
+            "timezone": "Asia/Riyadh"
+        }
+    ],
+    "pagination": {
+        "page": 1,
+        "limit": 10,
+        "total": 139,
+        "totalPages": 14
+    }
+}
