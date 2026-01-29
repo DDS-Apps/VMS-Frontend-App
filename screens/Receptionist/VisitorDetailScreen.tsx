@@ -327,7 +327,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
                   <DDIcon name="phone" size={16} color={theme.text} />
                 </View>
                 <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14 }]}>
-                  {visitor.phone || '-'}
+                  {visitor.phone ? formatPhoneNumber(visitor.phone) : '-'}
                 </ThemedText>
               </DirectionalRow>
             </DirectionalRow>
@@ -382,7 +382,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
                 <DDIcon name="phone" size={16} color={theme.text} />
               </View>
               <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14 }]}>
-                {visitor.phone || '-'}
+                {visitor.phone ? formatPhoneNumber(visitor.phone) : '-'}
               </ThemedText>
             </DirectionalRow>
           </>
