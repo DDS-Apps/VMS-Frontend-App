@@ -36,6 +36,7 @@ import type { VisitorRequest } from "@/types/vms.types";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { ManagerStackParamList } from "@/types/managerNavigation.types";
 import { applyOpacity } from "@/utils/statusStyles";
+import { isVisitExpired } from "@/utils/dateTimeUtils";
 
 const LAYOUT = {
   contentGap: Spacing.md,
@@ -403,10 +404,13 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
   const renderItem = useCallback(
     ({ item }: { item: ApprovalHistoryItemDto }) => {
       const request = mapHistoryToVisitorRequest(item);
-      const isPending = item.status === "pending";
+      const isPending = item.status === "pending" || item.status === "pending_approval";
       
-      // Show actions only for pending items
-      const showActions = isPending;
+      // Check if visit has expired (visit date/time has passed)
+      const isExpired = isVisitExpired(item.visitDate, item.visitTime, undefined, item.duration);
+      
+      // Show actions only for pending items that are not expired
+      const showActions = isPending && !isExpired;
       const isApproving = approvingRequestId === item.id;
       const isRejecting = rejectingRequestId === item.id;
 
@@ -427,6 +431,7 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
             onReject={showActions ? () => handleReject(item.id) : undefined}
             approveLoading={isApproving}
             rejectLoading={isRejecting}
+            isExpired={isPending && isExpired}
           />
         </View>
       );
