@@ -1783,7 +1783,7 @@ export default function RequestDetailsScreen({
                             { color: theme.textSecondary, marginTop: 2, fontSize: 13 },
                           ]}
                         >
-                          {formatPhoneNumber(request.employeeBusinessPhone || '')}
+                          {formatPhoneForDisplay(request.employeeBusinessPhone || '')}
                         </ThemedText>
                       </View>
                     </DirectionalRow>
