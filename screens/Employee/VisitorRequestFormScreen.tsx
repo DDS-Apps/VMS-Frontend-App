@@ -1272,7 +1272,13 @@ export default function VisitorRequestFormScreen({
             <View style={getGridStyle(isRTL)}>
               <View style={getCardWrapper2ColStyle()}>
                 <SelectableCard
-                  onPress={() => setNeedsMeetingRoom(!needsMeetingRoom)}
+                  onPress={() => {
+                    const newValue = !needsMeetingRoom;
+                    setNeedsMeetingRoom(newValue);
+                    if (!newValue) {
+                      setNeedsBuffet(false);
+                    }
+                  }}
                   selected={needsMeetingRoom}
                 >
                   <View
@@ -1302,7 +1308,13 @@ export default function VisitorRequestFormScreen({
 
               <View style={getCardWrapper2ColStyle()}>
                 <SelectableCard
-                  onPress={() => setNeedsBuffet(!needsBuffet)}
+                  onPress={() => {
+                    const newValue = !needsBuffet;
+                    setNeedsBuffet(newValue);
+                    if (newValue) {
+                      setNeedsMeetingRoom(true);
+                    }
+                  }}
                   selected={needsBuffet}
                 >
                   <View
