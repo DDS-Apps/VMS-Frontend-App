@@ -782,6 +782,9 @@ export default function ManagerApprovalDetailScreen({
     } else if (request.status === REQUEST_STATUS.AUTO_CANCELLED) {
       statusColor = theme.error;
       statusText = t("status.autoCancelled");
+    } else if (request.status === REQUEST_STATUS.VISITOR_PENDING) {
+      statusColor = theme.warning;
+      statusText = t("status.waitingOnVisitor");
     }
 
     return { statusColor, statusText };
@@ -1558,7 +1561,7 @@ export default function ManagerApprovalDetailScreen({
           <View style={isWebLayout ? styles.responsiveGrid : undefined}>
           {/* Meeting Room */}
           <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
-          <DirectionalRow style={styles.serviceRow}>
+          <DirectionalRow style={[styles.serviceItemNew, { backgroundColor: theme.surfaceSecondary }]}>
             <View
               style={[
                 styles.serviceIcon,
@@ -1705,7 +1708,7 @@ export default function ManagerApprovalDetailScreen({
 
           {/* Buffet */}
           <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
-          <DirectionalRow style={styles.serviceRow}>
+          <DirectionalRow style={[styles.serviceItemNew, { backgroundColor: theme.surfaceSecondary }]}>
             <View
               style={[
                 styles.serviceIcon,
@@ -1839,7 +1842,7 @@ export default function ManagerApprovalDetailScreen({
 
           {/* Parking */}
           <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
-          <DirectionalRow style={styles.serviceRow}>
+          <DirectionalRow style={[styles.serviceItemNew, { backgroundColor: theme.surfaceSecondary }]}>
             <View
               style={[
                 styles.serviceIcon,
@@ -2032,6 +2035,7 @@ export default function ManagerApprovalDetailScreen({
         )}
 
       {!isReadOnlyRole &&
+        request.isWalkIn && isManagerTheHost &&
         (request.status === REQUEST_STATUS.APPROVED ||
           request.status === REQUEST_STATUS.VISITOR_ACCEPTED) && (
           <View
@@ -2044,49 +2048,18 @@ export default function ManagerApprovalDetailScreen({
               },
             ]}
           >
-            {request.isWalkIn && isManagerTheHost ? (
-              <DirectionalRow style={{ gap: Spacing.md }}>
-                <LoadingButton
-                  onPress={handleEditWalkInServices}
-                  loading={false}
-                  disabled={isProcessing}
-                  variant="primary"
-                  size="large"
-                  icon="settings"
-                  iconPosition="left"
-                  style={{ flex: 1 }}
-                >
-                  {t("actions.editServices")}
-                </LoadingButton>
-                <LoadingButton
-                  onPress={() => setShowCancelModal(true)}
-                  loading={cancelMutation.isPending}
-                  disabled={isProcessing}
-                  variant="danger"
-                  size="large"
-                  icon="x"
-                  iconPosition="left"
-                  loadingText={t("common.loading")}
-                  style={{ flex: 1 }}
-                >
-                  {t("common.cancel")}
-                </LoadingButton>
-              </DirectionalRow>
-            ) : (
-              <LoadingButton
-                onPress={() => setShowCancelModal(true)}
-                loading={cancelMutation.isPending}
-                disabled={isProcessing}
-                variant="danger"
-                size="large"
-                icon="x"
-                iconPosition="left"
-                loadingText={t("common.loading")}
-                fullWidth
-              >
-                {t("actions.cancelRequest")}
-              </LoadingButton>
-            )}
+            <LoadingButton
+              onPress={handleEditWalkInServices}
+              loading={false}
+              disabled={isProcessing}
+              variant="primary"
+              size="large"
+              icon="settings"
+              iconPosition="left"
+              fullWidth
+            >
+              {t("actions.editServices")}
+            </LoadingButton>
           </View>
         )}
 
@@ -2705,6 +2678,12 @@ const styles = StyleSheet.create({
 
   serviceRow: {
     alignItems: "flex-start",
+    gap: Spacing.md,
+  },
+  serviceItemNew: {
+    alignItems: "center",
+    padding: Spacing.md,
+    borderRadius: 8,
     gap: Spacing.md,
   },
   responsiveGrid: {
