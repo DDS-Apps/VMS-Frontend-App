@@ -49,6 +49,9 @@ interface LegacyVisitor {
   isBuffet?: boolean;
   buffet?: { status?: string; location?: string };
   isParking?: boolean;
+  licensePlate?: string;
+  carModel?: string;
+  carColor?: string;
   origin: 'scheduled' | 'walk_in';
   scheduledFor: string;
   createdAt: string;
@@ -109,7 +112,10 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
     isMeetingRoom: visitDetails.isMeetingRoom ?? !!visitDetails.meetingRoom,
     isBuffet: visitDetails.isBuffet ?? !!visitDetails.buffet,
     buffet: visitDetails.buffet ? { status: 'confirmed', location: visitDetails.buffet.location } : undefined,
-    isParking: visitDetails.isVisitorNeedsParking ?? !!visitDetails.parkingSlot,
+    isParking: visitDetails.visitorNeedsParking ?? !!visitDetails.parkingSlot,
+    licensePlate: visitDetails.licensePlate,
+    carModel: visitDetails.carModel,
+    carColor: visitDetails.carColor,
     origin: visitDetails.isWalkIn ? 'walk_in' : 'scheduled',
     scheduledFor: visitDetails.visitDate,
     createdAt: visitDetails.createdAt,
@@ -556,9 +562,15 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
                     {visitor.parking}
                   </ThemedText>
                 ) : visitor.isParking ? (
-                  <ThemedText style={[Typography.caption, { color: theme.secondary, fontSize: 12, marginTop: 2 }]}>
-                    {t('common.requested')}
-                  </ThemedText>
+                  visitor.licensePlate || visitor.carModel || visitor.carColor ? (
+                    <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12, marginTop: 2 }]}>
+                      {[visitor.licensePlate, visitor.carModel, visitor.carColor].filter(Boolean).join(' • ')}
+                    </ThemedText>
+                  ) : (
+                    <ThemedText style={[Typography.caption, { color: theme.secondary, fontSize: 12, marginTop: 2 }]}>
+                      {t('common.requested')}
+                    </ThemedText>
+                  )
                 ) : (
                   <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12, marginTop: 2, fontStyle: 'italic' }]}>
                     {t('common.notRequested')}
