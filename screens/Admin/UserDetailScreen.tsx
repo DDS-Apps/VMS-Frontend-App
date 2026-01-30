@@ -366,7 +366,7 @@ export default function UserDetailScreen() {
 
         <Spacer height={Spacing.xl} />
 
-        {!user.azureAdId && (
+        {source !== 'microsoft_ad' && (
           <Pressable
             style={[styles.deleteButton, { backgroundColor: theme.error + '15', borderColor: theme.error, flexDirection: getFlexDirection(isRTL) }]}
             onPress={handleDelete}
