@@ -1772,10 +1772,7 @@ export default function ManagerApprovalDetailScreen({
                     },
                   ]}
                 >
-                  {request.buffet.location} (
-                  {request.buffet.mealType.charAt(0).toUpperCase() +
-                    request.buffet.mealType.slice(1)}
-                  )
+                  {request.meetingRoom?.name ? `${request.meetingRoom.name} - ${request.meetingRoom.floor}` : request.buffet.location}
                 </ThemedText>
               ) : request.isBuffet ? (
                 <ThemedText
