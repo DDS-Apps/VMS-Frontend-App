@@ -60,13 +60,16 @@ export const StyledInput = forwardRef<TextInput, StyledInputProps>(({
     onBlur?.(e);
   };
 
+  const isDisabled = textInputProps.editable === false;
+  
   const getInputContainerStyle = () => {
     return [
       styles.inputContainer,
       {
-        backgroundColor: theme.surface,
+        backgroundColor: isDisabled ? theme.surfaceSecondary : theme.surface,
         borderColor: error ? theme.error : (isFocused ? theme.primary : theme.border),
         borderWidth: isFocused ? 2 : 1,
+        opacity: isDisabled ? 0.6 : 1,
       },
     ];
   };

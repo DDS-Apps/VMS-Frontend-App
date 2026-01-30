@@ -247,8 +247,9 @@ export const PhoneInputWithCountry = ({
         style={[
           styles.inputContainer,
           {
-            backgroundColor: theme.background,
+            backgroundColor: editable === false ? theme.surfaceSecondary : theme.background,
             borderColor: error ? theme.error : theme.border,
+            opacity: editable === false ? 0.6 : 1,
           },
         ]}
       >

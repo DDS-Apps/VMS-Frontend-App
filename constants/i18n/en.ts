@@ -19,6 +19,7 @@ export const en: TranslationKeys = {
     processing: 'Processing...',
     delete: 'Delete',
     edit: 'Edit',
+    editAutoApproval: 'Edit Auto Approval',
     close: 'Close',
     back: 'Back',
     next: 'Next',

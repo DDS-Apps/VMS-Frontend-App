@@ -19,6 +19,7 @@ export const ar: TranslationKeys = {
     processing: 'جاري المعالجة...',
     delete: 'حذف',
     edit: 'تعديل',
+    editAutoApproval: 'تعديل الموافقة التلقائية',
     close: 'إغلاق',
     back: 'رجوع',
     next: 'التالي',

@@ -19,6 +19,7 @@ export interface TranslationKeys {
     processing: string;
     delete: string;
     edit: string;
+    editAutoApproval: string;
     close: string;
     back: string;
     next: string;
