@@ -1145,27 +1145,30 @@ export default function ManagerApprovalDetailScreen({
           >
             {t("visitor.visitorRequest")}
           </ThemedText>
-          <DirectionalRow style={styles.serviceRow}>
-            <View
-              style={[
-                styles.serviceIcon,
-                { backgroundColor: applyOpacity(theme.textSecondary, "15") },
-              ]}
-            >
-              <DDIcon name="calendar" size={18} color={theme.text} />
-            </View>
-            <View style={styles.serviceInfo}>
-              <ThemedText
+          {/* Visit Details Grid - 3 columns */}
+          <View style={styles.visitDetailsGrid}>
+            {/* Visit Date & Time */}
+            <View style={styles.visitDetailItem}>
+              <View
                 style={[
-                  Typography.body,
-                  {
-                    fontWeight: "600",
-                    fontSize: 15,
-                    
-                  },
+                  styles.compactServiceIcon,
+                  { backgroundColor: applyOpacity(theme.textSecondary, "15") },
                 ]}
               >
-                {t("visitor.visitDate")} & {t("visitor.visitTime")}
+                <DDIcon name="calendar" size={16} color={theme.text} />
+              </View>
+              <ThemedText
+                style={[
+                  Typography.caption,
+                  {
+                    fontWeight: "600",
+                    fontSize: 13,
+                    marginTop: Spacing.xs,
+                  },
+                ]}
+                numberOfLines={1}
+              >
+                {t("visitor.visitDate")}
               </ThemedText>
               <ThemedText
                 style={[
@@ -1173,38 +1176,36 @@ export default function ManagerApprovalDetailScreen({
                   {
                     color: theme.textSecondary,
                     marginTop: 2,
-                    fontSize: 13,
-                    
+                    fontSize: 12,
                   },
                 ]}
+                numberOfLines={2}
               >
-                {formatDateShort(request.visitDate)} •{" "}
+                {formatDateShort(request.visitDate)}{"\n"}
                 {formatVisitTimeRange(request.visitTime, request.endTime)}
               </ThemedText>
             </View>
-          </DirectionalRow>
 
-          <Spacer height={Spacing.lg} />
-
-          <DirectionalRow style={styles.serviceRow}>
-            <View
-              style={[
-                styles.serviceIcon,
-                { backgroundColor: applyOpacity(theme.textSecondary, "15") },
-              ]}
-            >
-              <DDIcon name="clock" size={18} color={theme.text} />
-            </View>
-            <View style={styles.serviceInfo}>
+            {/* Duration */}
+            <View style={styles.visitDetailItem}>
+              <View
+                style={[
+                  styles.compactServiceIcon,
+                  { backgroundColor: applyOpacity(theme.textSecondary, "15") },
+                ]}
+              >
+                <DDIcon name="clock" size={16} color={theme.text} />
+              </View>
               <ThemedText
                 style={[
-                  Typography.body,
+                  Typography.caption,
                   {
                     fontWeight: "600",
-                    fontSize: 15,
-                    
+                    fontSize: 13,
+                    marginTop: Spacing.xs,
                   },
                 ]}
+                numberOfLines={1}
               >
                 {t("form.duration")}
               </ThemedText>
@@ -1214,15 +1215,53 @@ export default function ManagerApprovalDetailScreen({
                   {
                     color: theme.textSecondary,
                     marginTop: 2,
-                    fontSize: 13,
-                    
+                    fontSize: 12,
                   },
                 ]}
+                numberOfLines={1}
               >
                 {parseISODuration(request.duration)}
               </ThemedText>
             </View>
-          </DirectionalRow>
+
+            {/* Purpose */}
+            <View style={styles.visitDetailItem}>
+              <View
+                style={[
+                  styles.compactServiceIcon,
+                  { backgroundColor: applyOpacity(theme.textSecondary, "15") },
+                ]}
+              >
+                <DDIcon name="file-text" size={16} color={theme.text} />
+              </View>
+              <ThemedText
+                style={[
+                  Typography.caption,
+                  {
+                    fontWeight: "600",
+                    fontSize: 13,
+                    marginTop: Spacing.xs,
+                  },
+                ]}
+                numberOfLines={1}
+              >
+                {t("form.purpose")}
+              </ThemedText>
+              <ThemedText
+                style={[
+                  Typography.caption,
+                  {
+                    color: theme.textSecondary,
+                    marginTop: 2,
+                    fontSize: 12,
+                  },
+                ]}
+                numberOfLines={2}
+              >
+                {request.purpose}
+              </ThemedText>
+            </View>
+          </View>
 
           {/* End Time - Inline editable for walk-ins */}
           {request.isWalkIn ? (
@@ -1339,47 +1378,6 @@ export default function ManagerApprovalDetailScreen({
               </DirectionalRow>
             </>
           ) : null}
-
-          <Spacer height={Spacing.lg} />
-
-          <DirectionalRow style={styles.serviceRow}>
-            <View
-              style={[
-                styles.serviceIcon,
-                { backgroundColor: applyOpacity(theme.textSecondary, "15") },
-              ]}
-            >
-              <DDIcon name="file-text" size={18} color={theme.text} />
-            </View>
-            <View style={styles.serviceInfo}>
-              <ThemedText
-                style={[
-                  Typography.body,
-                  {
-                    fontWeight: "600",
-                    fontSize: 15,
-                    
-                  },
-                ]}
-              >
-                {t("form.purpose")}
-              </ThemedText>
-              <ThemedText
-                style={[
-                  Typography.caption,
-                  {
-                    color: theme.textSecondary,
-                    marginTop: 2,
-                    fontSize: 13,
-                    lineHeight: 20,
-                    
-                  },
-                ]}
-              >
-                {request.purpose}
-              </ThemedText>
-            </View>
-          </DirectionalRow>
 
           {/* Walk-in Notes */}
           {request.isWalkIn && request.notes ? (
@@ -2679,6 +2677,15 @@ const styles = StyleSheet.create({
   serviceRow: {
     alignItems: "flex-start",
     gap: Spacing.md,
+  },
+  visitDetailsGrid: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: Spacing.md,
+  },
+  visitDetailItem: {
+    flex: 1,
+    alignItems: "center",
   },
   serviceItemNew: {
     alignItems: "center",
