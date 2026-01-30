@@ -1775,7 +1775,7 @@ export default function ManagerApprovalDetailScreen({
                     },
                   ]}
                 >
-                  {request.meetingRoom?.name ? `${request.meetingRoom.name} - ${request.meetingRoom.floor}` : request.buffet.location}
+                  {request.buffet.location}
                 </ThemedText>
               ) : request.isBuffet ? (
                 <ThemedText
