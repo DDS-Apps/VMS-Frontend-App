@@ -124,7 +124,8 @@ export default function UserDetailScreen() {
   const userPhone = (user as any).phoneNumber || user.phone || '';
   const userBusinessPhone = (user as any).businessPhone || '';
   const userLandline = (user as any).landline || '';
-  const source = user.azureAdId ? 'microsoft_ad' : 'app_created';
+  const apiSource = (user as any).source;
+  const source = apiSource === 'azure_ad' ? 'microsoft_ad' : (apiSource || (user.azureAdId ? 'microsoft_ad' : 'app_created'));
   
   // Check user active status from both isActive boolean and status string
   const isUserActive = user.isActive === true || user.status === 'active';
