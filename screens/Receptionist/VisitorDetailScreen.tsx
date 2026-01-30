@@ -528,8 +528,8 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
                   {t('buffet.buffetService')}
                 </ThemedText>
                 {visitor.isBuffet || visitor.buffet ? (
-                  <ThemedText style={[Typography.caption, { color: theme.warning, fontSize: 12, marginTop: 2 }]}>
-                    {t('status.pending')}
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12, marginTop: 2 }]}>
+                    {visitor.meetingRoom?.name ? `${visitor.meetingRoom.name} - ${visitor.meetingRoom.floor}` : t('status.pending')}
                   </ThemedText>
                 ) : (
                   <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12, marginTop: 2, fontStyle: 'italic' }]}>

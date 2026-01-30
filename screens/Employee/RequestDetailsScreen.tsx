@@ -1985,7 +1985,7 @@ export default function RequestDetailsScreen({
                         { color: theme.textSecondary, fontSize: 12, marginTop: 2 },
                       ]}
                     >
-                      {request.buffet.location}
+                      {request.meetingRoom?.name ? `${request.meetingRoom.name} - ${request.meetingRoom.floor}` : request.buffet.location}
                     </ThemedText>
                   ) : request.isBuffet || (request as any).buffetPending ? (
                     <ThemedText
