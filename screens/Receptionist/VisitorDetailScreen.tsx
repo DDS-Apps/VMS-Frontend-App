@@ -47,7 +47,7 @@ interface LegacyVisitor {
   meetingRoom?: { name: string; floor?: string };
   isMeetingRoom?: boolean;
   isBuffet?: boolean;
-  buffet?: { status?: string };
+  buffet?: { status?: string; location?: string };
   isParking?: boolean;
   origin: 'scheduled' | 'walk_in';
   scheduledFor: string;
@@ -108,7 +108,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
     meetingRoom: (visitDetails.meetingRoom && visitDetails.meetingRoom.name) ? { name: visitDetails.meetingRoom.name, floor: visitDetails.meetingRoom.floor } : undefined,
     isMeetingRoom: visitDetails.isMeetingRoom ?? !!visitDetails.meetingRoom,
     isBuffet: visitDetails.isBuffet ?? !!visitDetails.buffet,
-    buffet: visitDetails.buffet ? { status: 'confirmed' } : undefined,
+    buffet: visitDetails.buffet ? { status: 'confirmed', location: visitDetails.buffet.location } : undefined,
     isParking: visitDetails.isVisitorNeedsParking ?? !!visitDetails.parkingSlot,
     origin: visitDetails.isWalkIn ? 'walk_in' : 'scheduled',
     scheduledFor: visitDetails.visitDate,
@@ -529,7 +529,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
                 </ThemedText>
                 {visitor.isBuffet || visitor.buffet ? (
                   <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12, marginTop: 2 }]}>
-                    {visitor.meetingRoom?.name ? `${visitor.meetingRoom.name} - ${visitor.meetingRoom.floor}` : t('status.pending')}
+                    {visitor.meetingRoom?.name ? `${visitor.meetingRoom.name} - ${visitor.meetingRoom.floor}` : (visitor.buffet?.location || t('status.pending'))}
                   </ThemedText>
                 ) : (
                   <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12, marginTop: 2, fontStyle: 'italic' }]}>
