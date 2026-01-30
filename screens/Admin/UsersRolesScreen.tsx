@@ -712,14 +712,12 @@ export default function UsersRolesScreen() {
 
               {!bulkMode && (
                 <DirectionalRow style={styles.cardActions} gap={Spacing.sm}>
-                  {item.source !== "microsoft_ad" && (
-                    <Pressable
-                      style={[styles.cardActionButton, { backgroundColor: applyOpacity(theme.primary, '15') }]}
-                      onPress={() => handleEditUser(item)}
-                    >
-                      <DDIcon name="edit-2" size={14} variant="primary" />
-                    </Pressable>
-                  )}
+                  <Pressable
+                    style={[styles.cardActionButton, { backgroundColor: applyOpacity(theme.primary, '15') }]}
+                    onPress={() => handleEditUser(item)}
+                  >
+                    <DDIcon name="edit-2" size={14} variant="primary" />
+                  </Pressable>
                   {item.source !== "microsoft_ad" && (
                     <Pressable
                       style={[styles.cardActionButton, { backgroundColor: applyOpacity(theme.error, '15') }]}
@@ -824,17 +822,15 @@ export default function UsersRolesScreen() {
               { flex: 1.5, justifyContent: "center", gap: Spacing.xs },
             ]}
           >
-            {item.source !== "microsoft_ad" && (
               <Pressable
-                style={[
-                  styles.tableActionButton,
-                  { backgroundColor: theme.primary + "15" },
-                ]}
-                onPress={() => handleEditUser(item)}
-              >
-                <DDIcon name="edit-2" size={14} variant="primary" />
-              </Pressable>
-            )}
+              style={[
+                styles.tableActionButton,
+                { backgroundColor: theme.primary + "15" },
+              ]}
+              onPress={() => handleEditUser(item)}
+            >
+              <DDIcon name="edit-2" size={14} variant="primary" />
+            </Pressable>
             {item.source !== "microsoft_ad" && (
               <Pressable
                 style={[
@@ -1742,6 +1738,10 @@ export default function UsersRolesScreen() {
       {renderBulkActionBar()}
       {renderSortMenu()}
 
+      {/* Helper: SSO users can only edit Auto Approval */}
+      {(() => {
+        const isSsoUser = editingUser?.source === 'microsoft_ad';
+        return (
       <Modal
         visible={showModal}
         transparent
@@ -1767,7 +1767,7 @@ export default function UsersRolesScreen() {
           >
             <DirectionalRow style={styles.modalHeader}>
               <ThemedText style={[Typography.subtitle, { fontWeight: "600" }]}>
-                {editingUser ? t("common.edit") : t("common.addUser")}
+                {editingUser ? (isSsoUser ? t("common.editAutoApproval") : t("common.edit")) : t("common.addUser")}
               </ThemedText>
               <Pressable onPress={() => setShowModal(false)}>
                 <DDIcon name="x" size={24} variant="muted" />
@@ -1790,6 +1790,7 @@ export default function UsersRolesScreen() {
                 placeholder={t("form.enterFullName")}
                 error={formErrors.name}
                 returnKeyType="next"
+                editable={!isSsoUser}
               />
 
               <Spacer height={Spacing.md} />
@@ -1871,9 +1872,9 @@ export default function UsersRolesScreen() {
                         },
                       ]}
                       onPress={() =>
-                        !isDisabled && setFormData({ ...formData, role })
+                        !isDisabled && !isSsoUser && setFormData({ ...formData, role })
                       }
-                      disabled={isDisabled}
+                      disabled={isDisabled || isSsoUser}
                     >
                       <ThemedText
                         style={[
@@ -1903,6 +1904,7 @@ export default function UsersRolesScreen() {
                 }
                 placeholder={t("form.enterCompany")}
                 returnKeyType="next"
+                editable={!isSsoUser}
               />
 
               <Spacer height={Spacing.md} />
@@ -1914,6 +1916,7 @@ export default function UsersRolesScreen() {
                 required
                 error={formErrors.phone}
                 testID="input-phone"
+                editable={!isSsoUser}
               />
 
               <Spacer height={Spacing.md} />
@@ -1925,6 +1928,7 @@ export default function UsersRolesScreen() {
                     onChangeText={handleBusinessPhoneChange}
                     label={t("form.businessPhone")}
                     testID="input-business-phone"
+                    editable={!isSsoUser}
                   />
                 </View>
                 <View style={{ flex: 1 }}>
@@ -1936,6 +1940,7 @@ export default function UsersRolesScreen() {
                     keyboardType="number-pad"
                     testID="input-business-phone-ext"
                     maxLength={6}
+                    editable={!isSsoUser}
                   />
                 </View>
               </View>
@@ -1968,11 +1973,13 @@ export default function UsersRolesScreen() {
                         ? theme.primary
                         : theme.border,
                       marginEnd: Spacing.sm,
+                      opacity: isSsoUser ? 0.5 : 1,
                     },
                   ]}
                   onPress={() =>
-                    setFormData({ ...formData, managerId: undefined })
+                    !isSsoUser && setFormData({ ...formData, managerId: undefined })
                   }
+                  disabled={isSsoUser}
                 >
                   <ThemedText
                     style={[
@@ -2007,11 +2014,13 @@ export default function UsersRolesScreen() {
                               ? theme.primary
                               : theme.border,
                           marginEnd: Spacing.sm,
+                          opacity: isSsoUser ? 0.5 : 1,
                         },
                       ]}
                       onPress={() =>
-                        setFormData({ ...formData, managerId: manager.id })
+                        !isSsoUser && setFormData({ ...formData, managerId: manager.id })
                       }
+                      disabled={isSsoUser}
                     >
                       <ThemedText
                         style={[
@@ -2086,6 +2095,8 @@ export default function UsersRolesScreen() {
           </View>
         </KeyboardAvoidingView>
       </Modal>
+        );
+      })()}
 
       <ConfirmationModal
         visible={deleteModalVisible}
