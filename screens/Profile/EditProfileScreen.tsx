@@ -71,7 +71,6 @@ export default function EditProfileScreen({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
-  const [isDeletingPhoto, setIsDeletingPhoto] = useState(false);
   const [errors, setErrors] = useState<{ name?: string; phone?: string; businessPhone?: string }>({});
   const [localPhotoUrl, setLocalPhotoUrl] = useState<string | null>(null);
 
@@ -301,43 +300,6 @@ export default function EditProfileScreen({
     }
   };
 
-  const handleDeletePhoto = async () => {
-    const confirmDelete = () => {
-      return new Promise<boolean>((resolve) => {
-        if (Platform.OS === 'web') {
-          resolve(confirm(t('settings.deletePhotoConfirm')));
-        } else {
-          Alert.alert(
-            t('settings.deletePhoto'),
-            t('settings.deletePhotoConfirm'),
-            [
-              { text: t('common.cancel'), style: 'cancel', onPress: () => resolve(false) },
-              { text: t('common.delete'), style: 'destructive', onPress: () => resolve(true) },
-            ]
-          );
-        }
-      });
-    };
-
-    const confirmed = await confirmDelete();
-    if (!confirmed) return;
-
-    setIsDeletingPhoto(true);
-    
-    try {
-      await authService.deletePhoto();
-      setLocalPhotoUrl(null);
-      await refreshUser();
-      showSuccess(t('settings.photoDeleted'), t('common.success'));
-    } catch (err) {
-      const errorMessage = err instanceof ApiException 
-        ? err.message 
-        : t('common.errorOccurred');
-      showError(errorMessage, t('common.error'));
-    } finally {
-      setIsDeletingPhoto(false);
-    }
-  };
 
   const handleCancel = () => {
     if (onCancel) {
@@ -448,7 +410,7 @@ export default function EditProfileScreen({
                 </ThemedText>
               </View>
             )}
-            {(isUploadingPhoto || isDeletingPhoto) ? (
+            {isUploadingPhoto ? (
               <View style={[styles.avatarOverlay, { backgroundColor: applyOpacity(theme.background, '70') }]}>
                 <ActivityIndicator size="small" color={theme.primary} />
               </View>
@@ -458,7 +420,7 @@ export default function EditProfileScreen({
             <LoadingButton
               onPress={handlePickPhoto}
               loading={isUploadingPhoto}
-              disabled={isUploadingPhoto || isDeletingPhoto}
+              disabled={isUploadingPhoto}
               variant="ghost"
               size="small"
               icon="camera"
@@ -466,19 +428,6 @@ export default function EditProfileScreen({
             >
               {hasPhoto ? t('settings.changePhoto') : t('settings.addPhoto')}
             </LoadingButton>
-            {hasPhoto ? (
-              <LoadingButton
-                onPress={handleDeletePhoto}
-                loading={isDeletingPhoto}
-                disabled={isUploadingPhoto || isDeletingPhoto}
-                variant="danger"
-                size="small"
-                icon="trash-2"
-                iconPosition="left"
-              >
-                {t('settings.deletePhoto')}
-              </LoadingButton>
-            ) : null}
           </DirectionalRow>
           <View style={styles.avatarInfo}>
             <ThemedText style={[styles.roleBadge, { color: theme.primary, backgroundColor: applyOpacity(theme.primary, '10') }]}>
