@@ -246,6 +246,7 @@ export interface TranslationKeys {
     visitorCompany: string;
     visitDate: string;
     visitTime: string;
+    dateAndTime: string;
     visitDuration: string;
     visitPurpose: string;
     visitType: string;

@@ -1147,120 +1147,122 @@ export default function ManagerApprovalDetailScreen({
           </ThemedText>
           {/* Visit Details Grid - 3 columns */}
           <View style={styles.visitDetailsGrid}>
-            {/* Visit Date & Time */}
-            <View style={styles.visitDetailItem}>
+            {/* Date & Time */}
+            <DirectionalRow style={styles.visitDetailItem}>
               <View
                 style={[
                   styles.compactServiceIcon,
                   { backgroundColor: applyOpacity(theme.textSecondary, "15") },
                 ]}
               >
-                <DDIcon name="calendar" size={16} color={theme.text} />
+                <DDIcon name="calendar" size={18} color={theme.text} />
               </View>
-              <ThemedText
-                style={[
-                  Typography.caption,
-                  {
-                    fontWeight: "600",
-                    fontSize: 13,
-                    marginTop: Spacing.xs,
-                  },
-                ]}
-                numberOfLines={1}
-              >
-                {t("visitor.visitDate")}
-              </ThemedText>
-              <ThemedText
-                style={[
-                  Typography.caption,
-                  {
-                    color: theme.textSecondary,
-                    marginTop: 2,
-                    fontSize: 12,
-                  },
-                ]}
-                numberOfLines={2}
-              >
-                {formatDateShort(request.visitDate)}{"\n"}
-                {formatVisitTimeRange(request.visitTime, request.endTime)}
-              </ThemedText>
-            </View>
+              <View style={styles.visitDetailText}>
+                <ThemedText
+                  style={[
+                    Typography.body,
+                    {
+                      fontWeight: "600",
+                      fontSize: 14,
+                    },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {t("visitor.dateAndTime")}
+                </ThemedText>
+                <ThemedText
+                  style={[
+                    Typography.caption,
+                    {
+                      color: theme.textSecondary,
+                      marginTop: 2,
+                      fontSize: 13,
+                    },
+                  ]}
+                  numberOfLines={2}
+                >
+                  {formatDateShort(request.visitDate)} • {formatVisitTimeRange(request.visitTime, request.endTime)}
+                </ThemedText>
+              </View>
+            </DirectionalRow>
 
             {/* Duration */}
-            <View style={styles.visitDetailItem}>
+            <DirectionalRow style={styles.visitDetailItem}>
               <View
                 style={[
                   styles.compactServiceIcon,
                   { backgroundColor: applyOpacity(theme.textSecondary, "15") },
                 ]}
               >
-                <DDIcon name="clock" size={16} color={theme.text} />
+                <DDIcon name="clock" size={18} color={theme.text} />
               </View>
-              <ThemedText
-                style={[
-                  Typography.caption,
-                  {
-                    fontWeight: "600",
-                    fontSize: 13,
-                    marginTop: Spacing.xs,
-                  },
-                ]}
-                numberOfLines={1}
-              >
-                {t("form.duration")}
-              </ThemedText>
-              <ThemedText
-                style={[
-                  Typography.caption,
-                  {
-                    color: theme.textSecondary,
-                    marginTop: 2,
-                    fontSize: 12,
-                  },
-                ]}
-                numberOfLines={1}
-              >
-                {parseISODuration(request.duration)}
-              </ThemedText>
-            </View>
+              <View style={styles.visitDetailText}>
+                <ThemedText
+                  style={[
+                    Typography.body,
+                    {
+                      fontWeight: "600",
+                      fontSize: 14,
+                    },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {t("form.duration")}
+                </ThemedText>
+                <ThemedText
+                  style={[
+                    Typography.caption,
+                    {
+                      color: theme.textSecondary,
+                      marginTop: 2,
+                      fontSize: 13,
+                    },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {parseISODuration(request.duration)}
+                </ThemedText>
+              </View>
+            </DirectionalRow>
 
             {/* Purpose */}
-            <View style={styles.visitDetailItem}>
+            <DirectionalRow style={styles.visitDetailItem}>
               <View
                 style={[
                   styles.compactServiceIcon,
                   { backgroundColor: applyOpacity(theme.textSecondary, "15") },
                 ]}
               >
-                <DDIcon name="file-text" size={16} color={theme.text} />
+                <DDIcon name="file-text" size={18} color={theme.text} />
               </View>
-              <ThemedText
-                style={[
-                  Typography.caption,
-                  {
-                    fontWeight: "600",
-                    fontSize: 13,
-                    marginTop: Spacing.xs,
-                  },
-                ]}
-                numberOfLines={1}
-              >
-                {t("form.purpose")}
-              </ThemedText>
-              <ThemedText
-                style={[
-                  Typography.caption,
-                  {
-                    color: theme.textSecondary,
-                    marginTop: 2,
-                    fontSize: 12,
-                  },
-                ]}
-                numberOfLines={2}
-              >
-                {request.purpose}
-              </ThemedText>
-            </View>
+              <View style={styles.visitDetailText}>
+                <ThemedText
+                  style={[
+                    Typography.body,
+                    {
+                      fontWeight: "600",
+                      fontSize: 14,
+                    },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {t("form.purpose")}
+                </ThemedText>
+                <ThemedText
+                  style={[
+                    Typography.caption,
+                    {
+                      color: theme.textSecondary,
+                      marginTop: 2,
+                      fontSize: 13,
+                    },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {request.purpose}
+                </ThemedText>
+              </View>
+            </DirectionalRow>
           </View>
 
           {/* End Time - Inline editable for walk-ins */}
@@ -2680,12 +2682,17 @@ const styles = StyleSheet.create({
   },
   visitDetailsGrid: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    flexWrap: "wrap",
     gap: Spacing.md,
   },
   visitDetailItem: {
     flex: 1,
-    alignItems: "center",
+    minWidth: 150,
+    alignItems: "flex-start",
+    gap: Spacing.sm,
+  },
+  visitDetailText: {
+    flex: 1,
   },
   serviceItemNew: {
     alignItems: "center",

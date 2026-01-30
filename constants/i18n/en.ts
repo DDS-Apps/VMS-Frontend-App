@@ -246,6 +246,7 @@ export const en: TranslationKeys = {
     visitorCompany: 'Visitor Company',
     visitDate: 'Visit Date',
     visitTime: 'Visit Time',
+    dateAndTime: 'Date & Time',
     visitDuration: 'Visit Duration',
     visitPurpose: 'Visit Purpose',
     visitType: 'Visit Type',

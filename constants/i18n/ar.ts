@@ -246,6 +246,7 @@ export const ar: TranslationKeys = {
     visitorCompany: 'شركة الزائر',
     visitDate: 'تاريخ الزيارة',
     visitTime: 'وقت الزيارة',
+    dateAndTime: 'التاريخ والوقت',
     visitDuration: 'مدة الزيارة',
     visitPurpose: 'غرض الزيارة',
     visitType: 'نوع الزيارة',
