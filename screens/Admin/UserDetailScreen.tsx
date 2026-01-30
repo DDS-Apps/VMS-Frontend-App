@@ -366,15 +366,17 @@ export default function UserDetailScreen() {
 
         <Spacer height={Spacing.xl} />
 
-        <Pressable
-          style={[styles.deleteButton, { backgroundColor: theme.error + '15', borderColor: theme.error, flexDirection: getFlexDirection(isRTL) }]}
-          onPress={handleDelete}
-        >
-          <DDIcon name="trash-2" size={18} variant="danger" />
-          <ThemedText style={[Typography.body, { color: theme.error, fontWeight: '600', marginEnd: Spacing.sm }]}>
-            {t('common.delete')}
-          </ThemedText>
-        </Pressable>
+        {!user.azureAdId && (
+          <Pressable
+            style={[styles.deleteButton, { backgroundColor: theme.error + '15', borderColor: theme.error, flexDirection: getFlexDirection(isRTL) }]}
+            onPress={handleDelete}
+          >
+            <DDIcon name="trash-2" size={18} variant="danger" />
+            <ThemedText style={[Typography.body, { color: theme.error, fontWeight: '600', marginEnd: Spacing.sm }]}>
+              {t('common.delete')}
+            </ThemedText>
+          </Pressable>
+        )}
 
         <Spacer height={Spacing.xl} />
       </View>
