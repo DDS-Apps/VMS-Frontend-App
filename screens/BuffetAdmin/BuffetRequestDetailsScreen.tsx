@@ -396,51 +396,71 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
         </ThemedText>
         <Spacer height={Spacing.xl} />
 
-        <DirectionalRow style={styles.serviceRowNew}>
-          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-            <DDIcon name="user" size={18} color={theme.text} />
+        <View style={styles.orderDetailsGrid}>
+          <View style={styles.orderDetailItem}>
+            <DirectionalRow style={styles.serviceRowNew}>
+              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                <DDIcon name="user" size={18} color={theme.text} />
+              </View>
+              <View style={{ flex: 1, marginStart: Spacing.md }}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+                  {t('reception.hostName')}
+                </ThemedText>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+                  {request.hostName}
+                </ThemedText>
+              </View>
+            </DirectionalRow>
           </View>
-          <View style={{ flex: 1, marginStart: Spacing.md }}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
-              {t('reception.hostName')}
-            </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
-              {request.hostName}
-            </ThemedText>
-          </View>
-        </DirectionalRow>
 
-        <Spacer height={Spacing.lg} />
+          <View style={styles.orderDetailItem}>
+            <DirectionalRow style={styles.serviceRowNew}>
+              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                <DDIcon name="map-pin" size={18} color={theme.text} />
+              </View>
+              <View style={{ flex: 1, marginStart: Spacing.md }}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+                  {t('invitation.location')}
+                </ThemedText>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+                  {request.meetingRoom || request.hostName}
+                </ThemedText>
+              </View>
+            </DirectionalRow>
+          </View>
 
-        <DirectionalRow style={styles.serviceRowNew}>
-          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-            <DDIcon name="map-pin" size={18} color={theme.text} />
+          <View style={styles.orderDetailItem}>
+            <DirectionalRow style={styles.serviceRowNew}>
+              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                <DDIcon name="clock" size={18} color={theme.text} />
+              </View>
+              <View style={{ flex: 1, marginStart: Spacing.md }}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+                  {t('buffet.servingTime')}
+                </ThemedText>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+                  {request.timeSlot}
+                </ThemedText>
+              </View>
+            </DirectionalRow>
           </View>
-          <View style={{ flex: 1, marginStart: Spacing.md }}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
-              {t('invitation.location')}
-            </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
-              {request.meetingRoom || request.hostName}
-            </ThemedText>
-          </View>
-        </DirectionalRow>
 
-        <Spacer height={Spacing.lg} />
-
-        <DirectionalRow style={styles.serviceRowNew}>
-          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-            <DDIcon name="clock" size={18} color={theme.text} />
+          <View style={styles.orderDetailItem}>
+            <DirectionalRow style={styles.serviceRowNew}>
+              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                <DDIcon name="calendar" size={18} color={theme.text} />
+              </View>
+              <View style={{ flex: 1, marginStart: Spacing.md }}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+                  {t('invitation.visitDate')}
+                </ThemedText>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+                  {request.visitDate || '-'}
+                </ThemedText>
+              </View>
+            </DirectionalRow>
           </View>
-          <View style={{ flex: 1, marginStart: Spacing.md }}>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
-              {t('buffet.servingTime')}
-            </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
-              {request.timeSlot}
-            </ThemedText>
-          </View>
-        </DirectionalRow>
+        </View>
 
       </ThemedView>
 
@@ -634,6 +654,17 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  orderDetailsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.lg,
+  },
+  orderDetailItem: {
+    flexBasis: '30%',
+    flexGrow: 0,
+    flexShrink: 0,
+    minWidth: 200,
   },
   notesHeader: {
     alignItems: 'center',
