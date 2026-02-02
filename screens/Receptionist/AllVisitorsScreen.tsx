@@ -27,7 +27,6 @@ type StatusFilter =
   | 'all'
   | 'pending_approval'
   | 'pending_host_approval'
-  | 'approved'
   | 'rejected'
   | 'cancelled'
   | 'auto_cancelled'
@@ -151,7 +150,6 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
     { key: 'all', label: t('common.all') },
     { key: 'pending_approval', label: t('status.pendingApproval') },
     { key: 'pending_host_approval', label: t('status.pendingHostApproval') },
-    { key: 'approved', label: t('status.approved') },
     { key: 'waiting_acceptance', label: t('status.waitingAcceptance') },
     { key: 'accepted', label: t('status.accepted') },
     { key: 'checked_in', label: t('status.checkedIn') },
@@ -390,21 +388,23 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
               </View>
             ) : null}
 
-            <DirectionalRow style={styles.cardFooter} justifyContent="flex-end">
-              <View style={styles.actionButtons}>
-                {showCheckIn ? (
-                  <VisitorActionButton 
-                    type="check_in" 
-                    onPress={(e) => handleCheckIn(item.id, visitorName, e)} 
-                  />
-                ) : showCheckOut ? (
-                  <VisitorActionButton 
-                    type="check_out" 
-                    onPress={(e) => handleCheckOut(item.id, visitorName, e)} 
-                  />
-                ) : null}
-              </View>
-            </DirectionalRow>
+            {(showCheckIn || showCheckOut) && (
+              <DirectionalRow style={styles.cardFooter} justifyContent="flex-end">
+                <View style={styles.actionButtons}>
+                  {showCheckIn ? (
+                    <VisitorActionButton 
+                      type="check_in" 
+                      onPress={(e) => handleCheckIn(item.id, visitorName, e)} 
+                    />
+                  ) : showCheckOut ? (
+                    <VisitorActionButton 
+                      type="check_out" 
+                      onPress={(e) => handleCheckOut(item.id, visitorName, e)} 
+                    />
+                  ) : null}
+                </View>
+              </DirectionalRow>
+            )}
           </View>
         </ThemedView>
       </Pressable>
@@ -488,7 +488,6 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
       case 'pending_approval':
       case 'pending_host_approval':
         return theme.warning;
-      case 'approved':
       case 'accepted':
       case 'waiting_acceptance':
         return theme.info;
@@ -496,12 +495,9 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
       case 'checked_out':
         return theme.success;
       case 'rejected':
-      case 'no_show':
       case 'cancelled':
       case 'auto_cancelled':
         return theme.error;
-      case 'expired':
-        return theme.textSecondary;
       default:
         return theme.textSecondary;
     }
@@ -640,7 +636,7 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
         key={`flatlist-${numColumns}`}
         data={visitors}
         renderItem={({ item }) => (
-          <View style={numColumns > 1 ? styles.gridItem : styles.singleColumnItem}>
+          <View style={numColumns === 3 ? styles.gridItem3 : numColumns === 2 ? styles.gridItem2 : styles.singleColumnItem}>
             {renderVisitorCard({ item })}
           </View>
         )}
@@ -681,8 +677,18 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
     marginBottom: Spacing.md,
   },
-  gridItem: {
-    flex: 1,
+  gridItem3: {
+    flexBasis: '32%',
+    flexGrow: 0,
+    flexShrink: 0,
+    maxWidth: '32%',
+    minWidth: 0,
+  },
+  gridItem2: {
+    flexBasis: '48%',
+    flexGrow: 0,
+    flexShrink: 0,
+    maxWidth: '48%',
     minWidth: 0,
   },
   singleColumnItem: {
