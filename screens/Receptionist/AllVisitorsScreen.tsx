@@ -33,9 +33,7 @@ type StatusFilter =
   | 'waiting_acceptance'
   | 'accepted'
   | 'checked_in'
-  | 'checked_out'
-  | 'no_show'
-  | 'expired';
+  | 'checked_out';
 
 function getDateRange(filter: DateFilter): { startDate?: string; endDate?: string } {
   const today = new Date();
@@ -160,8 +158,6 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
     { key: 'rejected', label: t('status.rejected') },
     { key: 'cancelled', label: t('status.cancelled') },
     { key: 'auto_cancelled', label: t('status.autoCancelled') },
-    { key: 'no_show', label: t('status.noShow') },
-    { key: 'expired', label: t('status.expired') },
   ];
 
   const visitors = useMemo(() => {
