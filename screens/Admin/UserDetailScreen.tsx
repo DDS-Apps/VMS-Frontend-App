@@ -124,7 +124,8 @@ export default function UserDetailScreen() {
   const userPhone = (user as any).phoneNumber || user.phone || '';
   const userBusinessPhone = (user as any).businessPhone || '';
   const userLandline = (user as any).landline || '';
-  const source = user.azureAdId ? 'microsoft_ad' : 'app_created';
+  const apiSource = (user as any).source;
+  const source = apiSource === 'azure_ad' ? 'microsoft_ad' : (apiSource || (user.azureAdId ? 'microsoft_ad' : 'app_created'));
   
   // Check user active status from both isActive boolean and status string
   const isUserActive = user.isActive === true || user.status === 'active';
@@ -213,12 +214,12 @@ export default function UserDetailScreen() {
             <>
               <View style={[styles.separator, { backgroundColor: theme.border }]} />
               <DirectionalRow style={styles.infoRow}>
-                <DDIcon name="phone-call" size={18} variant="muted" />
+                <DDIcon name="phone" size={18} variant="muted" />
                 <View style={[styles.infoContent, { marginEnd: Spacing.md }]}>
                   <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
                     {t('form.businessPhone')}
                   </ThemedText>
-                  <ThemedText style={[Typography.body, {}]}>{userBusinessPhone}</ThemedText>
+                  <ThemedText style={[Typography.body, {}]}>{formatPhoneNumber(userBusinessPhone)}</ThemedText>
                 </View>
               </DirectionalRow>
             </>
@@ -233,7 +234,7 @@ export default function UserDetailScreen() {
                   <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
                     {t('form.landline')}
                   </ThemedText>
-                  <ThemedText style={[Typography.body, {}]}>{userLandline}</ThemedText>
+                  <ThemedText style={[Typography.body, {}]}>{formatPhoneNumber(userLandline)}</ThemedText>
                 </View>
               </DirectionalRow>
             </>
@@ -366,15 +367,17 @@ export default function UserDetailScreen() {
 
         <Spacer height={Spacing.xl} />
 
-        <Pressable
-          style={[styles.deleteButton, { backgroundColor: theme.error + '15', borderColor: theme.error, flexDirection: getFlexDirection(isRTL) }]}
-          onPress={handleDelete}
-        >
-          <DDIcon name="trash-2" size={18} variant="danger" />
-          <ThemedText style={[Typography.body, { color: theme.error, fontWeight: '600', marginEnd: Spacing.sm }]}>
-            {t('common.delete')}
-          </ThemedText>
-        </Pressable>
+        {source !== 'microsoft_ad' && (
+          <Pressable
+            style={[styles.deleteButton, { backgroundColor: theme.error + '15', borderColor: theme.error, flexDirection: getFlexDirection(isRTL) }]}
+            onPress={handleDelete}
+          >
+            <DDIcon name="trash-2" size={18} variant="danger" />
+            <ThemedText style={[Typography.body, { color: theme.error, fontWeight: '600', marginEnd: Spacing.sm }]}>
+              {t('common.delete')}
+            </ThemedText>
+          </Pressable>
+        )}
 
         <Spacer height={Spacing.xl} />
       </View>

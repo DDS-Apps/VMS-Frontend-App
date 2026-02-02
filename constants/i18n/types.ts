@@ -19,6 +19,7 @@ export interface TranslationKeys {
     processing: string;
     delete: string;
     edit: string;
+    editAutoApproval: string;
     close: string;
     back: string;
     next: string;
@@ -78,6 +79,7 @@ export interface TranslationKeys {
     loadError: string;
     comingSoon: string;
     notRequested: string;
+    requested: string;
     filters: string;
     reset: string;
     apply: string;
@@ -236,12 +238,15 @@ export interface TranslationKeys {
     guest: string;
     visitorRequest: string;
     visitorDetails: string;
+    hostDetails: string;
+    hostName: string;
     visitorName: string;
     visitorEmail: string;
     visitorPhone: string;
     visitorCompany: string;
     visitDate: string;
     visitTime: string;
+    dateAndTime: string;
     visitDuration: string;
     visitPurpose: string;
     visitType: string;
@@ -306,6 +311,7 @@ export interface TranslationKeys {
     meetingRoom: string;
   };
   form: {
+    selectCountry: string;
     fullName: string;
     fullNamePlaceholder: string;
     firstName: string;
@@ -317,6 +323,9 @@ export interface TranslationKeys {
     emailPlaceholder: string;
     phoneNumber: string;
     phone: string;
+    businessPhone: string;
+    extension: string;
+    landline: string;
     phonePlaceholder: string;
     company: string;
     companyPlaceholder: string;
@@ -356,6 +365,7 @@ export interface TranslationKeys {
     passwordRequired: string;
     fillRequiredFields: string;
     readOnly: string;
+    notProvided: string;
     reason: string;
     enterReason: string;
     building: string;
@@ -406,9 +416,12 @@ export interface TranslationKeys {
     offline: string;
     inUse: string;
     waitingOnVisitor: string;
+    waitingAcceptance: string;
     visitorPending: string;
     visitorAccepted: string;
     visitorRejected: string;
+    accepted: string;
+    noShow: string;
     autoCancelled: string;
     preparing: string;
     ready: string;
@@ -1501,6 +1514,7 @@ export interface TranslationKeys {
     };
   };
   timeline: {
+    requestTimeline: string;
     requestCreated: string;
     requestSubmitted: string;
     autoApproved: string;

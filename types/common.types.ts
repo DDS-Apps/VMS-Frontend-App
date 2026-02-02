@@ -18,6 +18,7 @@ export type VisitStatus =
   | 'approved'
   | 'rejected'
   | 'cancelled'
+  | 'auto_cancelled'
   | 'waiting_acceptance'
   | 'accepted'
   | 'checked_in'

@@ -24,9 +24,13 @@ export interface SecurityVisitorDto {
   hostId: string;
   hostName: string;
   hostDepartment?: string;
+  hostPhoneNumber?: string;
+  hostBusinessPhone?: string;
   purpose: string;
   scheduledDate: string;
   scheduledTime: string;
+  endTime?: string;
+  duration?: string;
   status: VisitStatus;
   isBlacklisted: boolean;
   accessAreas?: string[];
@@ -37,6 +41,8 @@ export interface SecurityVisitorDto {
   licensePlate?: string | null;
   carModel?: string | null;
   carColor?: string | null;
+  isBuffet?: boolean;
+  isMeetingRoom?: boolean;
   valetAssigned?: boolean;
   valetDriverName?: string;
   valetStatus?: string;

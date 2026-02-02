@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { View, StyleSheet, Pressable, Modal, TextInput, Alert, ScrollView, ActivityIndicator } from "react-native";
+import { View, StyleSheet, Pressable, Modal, TextInput, Alert, ScrollView, ActivityIndicator, useWindowDimensions } from "react-native";
 import type { VisitorDetailScreenProps } from "@/types/receptionistNavigation.types";
 import { ROUTES } from "@/constants";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -20,7 +20,9 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { applyOpacity } from "@/utils/statusStyles";
+import { formatPhoneNumber, formatPhoneForDisplay } from "@/utils/formatters";
 import { VisitorActionButton } from "@/components/VisitorActionButton";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { LoadingButton } from "@/components/shared/LoadingButton";
@@ -34,6 +36,8 @@ interface LegacyVisitor {
   time: string;
   host: string;
   hostDepartment?: string;
+  hostPhone?: string;
+  hostLandline?: string;
   status: 'pending' | 'approved' | 'checked_in' | 'completed' | 'rejected' | 'cancelled' | 'pending_approval' | 'pending_host_approval' | 'visitor_accepted';
   isWalkIn: boolean;
   email: string;
@@ -41,6 +45,13 @@ interface LegacyVisitor {
   parking?: string;
   valet?: string;
   meetingRoom?: { name: string; floor?: string };
+  isMeetingRoom?: boolean;
+  isBuffet?: boolean;
+  buffet?: { status?: string; location?: string };
+  isParking?: boolean;
+  licensePlate?: string;
+  carModel?: string;
+  carColor?: string;
   origin: 'scheduled' | 'walk_in';
   scheduledFor: string;
   createdAt: string;
@@ -56,8 +67,14 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
   const { t } = useTranslation();
   const { formatTime, toLocalNumerals } = useFormatters();
   const { isRTL } = useLanguage();
-  const insets = useSafeAreaInsets();  
+  const { user } = useAuth();
+  const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
   const { visitor: legacyVisitor, visitId } = route.params as { visitor?: LegacyVisitor; visitId?: string };
+  
+  // Responsive layout: use grid on web (>768px), single column on mobile
+  const isWebLayout = screenWidth >= 768;
+  const gridItemWidth = screenWidth > 1024 ? '32%' : '48%';
   
   // Always fetch from server - use visitor.id from passed object or visitId param
   const effectiveVisitId = visitId ?? legacyVisitor?.id ?? '';
@@ -83,6 +100,8 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
     time: visitDetails.visitTime,
     host: visitDetails.employeeName,
     hostDepartment: visitDetails.employeeDepartment,
+    hostPhone: visitDetails.employeePhoneNumber,
+    hostLandline: visitDetails.employeeBusinessPhone,
     status: mapVisitStatus(visitDetails.status),
     isWalkIn: visitDetails.isWalkIn ?? false,
     email: visitDetails.visitor.email ?? '',
@@ -90,6 +109,13 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
     parking: visitDetails.parkingSlot?.slotNumber,
     valet: visitDetails.parkingAllocation?.status,
     meetingRoom: (visitDetails.meetingRoom && visitDetails.meetingRoom.name) ? { name: visitDetails.meetingRoom.name, floor: visitDetails.meetingRoom.floor } : undefined,
+    isMeetingRoom: visitDetails.isMeetingRoom ?? !!visitDetails.meetingRoom,
+    isBuffet: visitDetails.isBuffet ?? !!visitDetails.buffet,
+    buffet: visitDetails.buffet ? { status: 'confirmed', location: visitDetails.buffet.location } : undefined,
+    isParking: visitDetails.visitorNeedsParking ?? !!visitDetails.parkingSlot,
+    licensePlate: visitDetails.licensePlate,
+    carModel: visitDetails.carModel,
+    carColor: visitDetails.carColor,
     origin: visitDetails.isWalkIn ? 'walk_in' : 'scheduled',
     scheduledFor: visitDetails.visitDate,
     createdAt: visitDetails.createdAt,
@@ -259,56 +285,116 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
     <>
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
       <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
-        <View style={{ alignItems: 'center' }}>
-          <View style={[styles.avatarNew, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
-            <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
-              {visitor.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
-            </ThemedText>
-          </View>
+        {/* Responsive visitor header - compact row on web, centered stack on mobile */}
+        {isWebLayout ? (
+          <DirectionalRow style={{ alignItems: 'center', justifyContent: 'space-between', gap: Spacing.lg }}>
+            {/* Left group: Avatar, Name, Status */}
+            <DirectionalRow style={{ alignItems: 'center', gap: Spacing.lg, flexShrink: 1 }}>
+              {/* Avatar */}
+              <View style={[styles.avatarNew, { backgroundColor: applyOpacity(theme.primary, '15'), width: 56, height: 56 }]}>
+                <ThemedText style={[styles.avatarText, { color: theme.primary, fontSize: 20 }]}>
+                  {visitor.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
+                </ThemedText>
+              </View>
 
-          <Spacer height={Spacing.lg} />
+              {/* Name and Company */}
+              <View style={{ minWidth: 100, flexShrink: 1 }}>
+                <ThemedText style={[Typography.title, { fontWeight: '600', fontSize: 18, color: theme.text }]} numberOfLines={1}>
+                  {visitor.name}
+                </ThemedText>
+                {visitor.company && (
+                  <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 13, marginTop: 2 }]} numberOfLines={1}>
+                    {visitor.company}
+                  </ThemedText>
+                )}
+              </View>
 
-          <ThemedText style={[Typography.title, { fontWeight: '600', fontSize: 22, color: theme.text }]}>
-            {visitor.name}
-          </ThemedText>
-          <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, marginTop: 4 }]}>
-            {visitor.company}
-          </ThemedText>
+              {/* Status Badge */}
+              <StatusBadge
+                label={statusConfig.label}
+                variant={statusConfig.variant}
+                icon={statusConfig.icon}
+              />
+            </DirectionalRow>
 
-          <Spacer height={Spacing.sm} />
+            {/* Right group: Contact info */}
+            <DirectionalRow style={{ alignItems: 'center', gap: Spacing.lg, flexShrink: 0 }}>
+              {/* Email */}
+              <DirectionalRow style={{ alignItems: 'center', gap: Spacing.sm }}>
+                <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15'), width: 32, height: 32 }]}>
+                  <DDIcon name="mail" size={16} color={theme.text} />
+                </View>
+                <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14 }]}>
+                  {visitor.email || '-'}
+                </ThemedText>
+              </DirectionalRow>
 
-          <StatusBadge
-            label={statusConfig.label}
-            variant={statusConfig.variant}
-            icon={statusConfig.icon}
-          />
-        </View>
+              {/* Phone */}
+              <DirectionalRow style={{ alignItems: 'center', gap: Spacing.sm }}>
+                <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15'), width: 32, height: 32 }]}>
+                  <DDIcon name="phone" size={16} color={theme.text} />
+                </View>
+                <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14 }]}>
+                  {visitor.phone ? formatPhoneNumber(visitor.phone) : '-'}
+                </ThemedText>
+              </DirectionalRow>
+            </DirectionalRow>
+          </DirectionalRow>
+        ) : (
+          <>
+            {/* Mobile layout - centered stack */}
+            <View style={{ alignItems: 'center' }}>
+              <View style={[styles.avatarNew, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
+                <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
+                  {visitor.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
+                </ThemedText>
+              </View>
 
-        <Spacer height={Spacing.xl} />
+              <Spacer height={Spacing.lg} />
 
-        <View style={[styles.divider, { backgroundColor: theme.border }]} />
+              <ThemedText style={[Typography.title, { fontWeight: '600', fontSize: 22, color: theme.text }]}>
+                {visitor.name}
+              </ThemedText>
+              <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, marginTop: 4 }]}>
+                {visitor.company}
+              </ThemedText>
 
-        <Spacer height={Spacing.lg} />
+              <Spacer height={Spacing.sm} />
 
-        <DirectionalRow style={styles.infoRowNew} gap={Spacing.md}>
-          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-            <DDIcon name="mail" size={16} color={theme.text} />
-          </View>
-          <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14 }]}>
-            {visitor.email || '-'}
-          </ThemedText>
-        </DirectionalRow>
+              <StatusBadge
+                label={statusConfig.label}
+                variant={statusConfig.variant}
+                icon={statusConfig.icon}
+              />
+            </View>
 
-        <Spacer height={Spacing.md} />
+            <Spacer height={Spacing.xl} />
 
-        <DirectionalRow style={styles.infoRowNew} gap={Spacing.md}>
-          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-            <DDIcon name="phone" size={16} color={theme.text} />
-          </View>
-          <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14 }]}>
-            {visitor.phone || '-'}
-          </ThemedText>
-        </DirectionalRow>
+            <View style={[styles.divider, { backgroundColor: theme.border }]} />
+
+            <Spacer height={Spacing.lg} />
+
+            <DirectionalRow style={styles.infoRowNew} gap={Spacing.md}>
+              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                <DDIcon name="mail" size={16} color={theme.text} />
+              </View>
+              <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14 }]}>
+                {visitor.email || '-'}
+              </ThemedText>
+            </DirectionalRow>
+
+            <Spacer height={Spacing.md} />
+
+            <DirectionalRow style={styles.infoRowNew} gap={Spacing.md}>
+              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                <DDIcon name="phone" size={16} color={theme.text} />
+              </View>
+              <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14 }]}>
+                {visitor.phone ? formatPhoneNumber(visitor.phone) : '-'}
+              </ThemedText>
+            </DirectionalRow>
+          </>
+        )}
       </ThemedView>
 
       {visitor.status === 'rejected' && visitor.rejectionReason ? (
@@ -350,40 +436,42 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
         </DirectionalRow>
         <Spacer height={Spacing.xl} />
 
-        <DirectionalRow style={styles.serviceRowNew}>
-          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-            <DDIcon name="clock" size={18} color={theme.text} />
+        <View style={isWebLayout ? styles.responsiveGrid : undefined}>
+          <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
+            <DirectionalRow style={styles.serviceRowNew}>
+              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                <DDIcon name="clock" size={18} color={theme.text} />
+              </View>
+              <View>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+                  {t('visitor.visitTime')}
+                </ThemedText>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+                  {visitor.time}
+                </ThemedText>
+              </View>
+            </DirectionalRow>
+            {!isWebLayout && <Spacer height={Spacing.lg} />}
           </View>
-          <View>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
-              {t('visitor.visitTime')}
-            </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
-              {visitor.time}
-            </ThemedText>
+
+          <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
+            <DirectionalRow style={styles.serviceRowNew}>
+              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                <DDIcon name="user" size={18} color={theme.text} />
+              </View>
+              <View>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+                  {t('reception.hostName')}
+                </ThemedText>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+                  {visitor.host}{visitor.hostDepartment ? ` - ${visitor.hostDepartment}` : ''}
+                </ThemedText>
+              </View>
+            </DirectionalRow>
+            {!isWebLayout && <Spacer height={Spacing.lg} />}
           </View>
-        </DirectionalRow>
 
-        <Spacer height={Spacing.lg} />
-
-        <DirectionalRow style={styles.serviceRowNew}>
-          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-            <DDIcon name="user" size={18} color={theme.text} />
-          </View>
-          <View>
-            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
-              {t('reception.hostName')}
-            </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
-              {visitor.host}{visitor.hostDepartment ? ` - ${visitor.hostDepartment}` : ''}
-            </ThemedText>
-          </View>
-        </DirectionalRow>
-
-        {visitor.meetingRoom ? (
-          <>
-            <Spacer height={Spacing.lg} />
-
+          <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
             <DirectionalRow style={styles.serviceRowNew}>
               <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
                 <DDIcon name="home" size={18} color={theme.text} />
@@ -393,40 +481,182 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
                   {t('visitor.meetingRoom')}
                 </ThemedText>
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
-                  {visitor.meetingRoom.name}{visitor.meetingRoom.floor ? ` (${visitor.meetingRoom.floor})` : ''}
+                  {visitor.meetingRoom ? `${visitor.meetingRoom.name}${visitor.meetingRoom.floor ? ` (${visitor.meetingRoom.floor})` : ''}` : '-'}
                 </ThemedText>
               </View>
             </DirectionalRow>
-          </>
-        ) : null}
+          </View>
+        </View>
       </ThemedView>
 
-      {visitor.parking ? (
+      {/* Additional Services Section */}
+      <Spacer height={Spacing.lg} />
+
+      <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
+        <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text }]}>
+          {t('services.additionalServices')}
+        </ThemedText>
+        <Spacer height={Spacing.xl} />
+
+        <View style={isWebLayout ? styles.responsiveGrid : undefined}>
+          {/* Meeting Room */}
+          <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
+            <DirectionalRow style={[styles.serviceItemNew, { backgroundColor: theme.surfaceSecondary }]}>
+              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(visitor.isMeetingRoom || visitor.meetingRoom ? theme.secondary : theme.textSecondary, '15') }]}>
+                <DDIcon name="briefcase" size={18} color={visitor.isMeetingRoom || visitor.meetingRoom ? theme.secondary : theme.textSecondary} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 14, color: theme.text }]}>
+                  {t('services.meetingRoom')}
+                </ThemedText>
+                {visitor.meetingRoom ? (
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12, marginTop: 2 }]}>
+                    {visitor.meetingRoom.name}{visitor.meetingRoom.floor ? ` (${visitor.meetingRoom.floor})` : ''}
+                  </ThemedText>
+                ) : (
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12, marginTop: 2, fontStyle: 'italic' }]}>
+                    {t('common.notRequested')}
+                  </ThemedText>
+                )}
+              </View>
+            </DirectionalRow>
+            {!isWebLayout && <Spacer height={Spacing.md} />}
+          </View>
+
+          {/* Buffet Service */}
+          <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
+            <DirectionalRow style={[styles.serviceItemNew, { backgroundColor: theme.surfaceSecondary }]}>
+              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(visitor.isBuffet || visitor.buffet ? theme.secondary : theme.textSecondary, '15') }]}>
+                <DDIcon name="cloche" size={18} color={visitor.isBuffet || visitor.buffet ? theme.secondary : theme.textSecondary} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 14, color: theme.text }]}>
+                  {t('buffet.buffetService')}
+                </ThemedText>
+                {visitor.isBuffet || visitor.buffet ? (
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12, marginTop: 2 }]}>
+                    {visitor.meetingRoom?.name ? `${visitor.meetingRoom.name} - ${visitor.meetingRoom.floor}` : (visitor.buffet?.location || t('status.pending'))}
+                  </ThemedText>
+                ) : (
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12, marginTop: 2, fontStyle: 'italic' }]}>
+                    {t('common.notRequested')}
+                  </ThemedText>
+                )}
+              </View>
+            </DirectionalRow>
+            {!isWebLayout && <Spacer height={Spacing.md} />}
+          </View>
+
+          {/* Parking */}
+          <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
+            <DirectionalRow style={[styles.serviceItemNew, { backgroundColor: theme.surfaceSecondary }]}>
+              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(visitor.isParking || visitor.parking ? theme.secondary : theme.textSecondary, '15') }]}>
+                <DDIcon name="truck" size={18} color={visitor.isParking || visitor.parking ? theme.secondary : theme.textSecondary} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 14, color: theme.text }]}>
+                  {t('parking.parking')}
+                </ThemedText>
+                {visitor.parking ? (
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12, marginTop: 2 }]}>
+                    {visitor.parking}
+                  </ThemedText>
+                ) : visitor.isParking ? (
+                  visitor.licensePlate || visitor.carModel || visitor.carColor ? (
+                    <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12, marginTop: 2 }]}>
+                      {[visitor.licensePlate, visitor.carModel, visitor.carColor].filter(Boolean).join(' • ')}
+                    </ThemedText>
+                  ) : (
+                    <ThemedText style={[Typography.caption, { color: theme.secondary, fontSize: 12, marginTop: 2 }]}>
+                      {t('common.requested')}
+                    </ThemedText>
+                  )
+                ) : (
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12, marginTop: 2, fontStyle: 'italic' }]}>
+                    {t('common.notRequested')}
+                  </ThemedText>
+                )}
+              </View>
+            </DirectionalRow>
+          </View>
+        </View>
+      </ThemedView>
+
+      {/* Host Details Section - only show if we have host phone info */}
+      {(visitor.hostPhone || visitor.hostLandline) && (
         <>
           <Spacer height={Spacing.lg} />
 
           <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
             <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text }]}>
-              {t('services.additionalServices')}
+              {t('visitor.hostDetails')}
             </ThemedText>
             <Spacer height={Spacing.xl} />
 
-            <DirectionalRow style={styles.serviceRowNew}>
-              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.info, '15') }]}>
-                <DDIcon name="map-pin" size={18} color={theme.info} />
+            {/* Responsive grid for Host Details items */}
+            <View style={isWebLayout ? styles.responsiveGrid : undefined}>
+              {/* Host Name */}
+              <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
+                <DirectionalRow style={styles.serviceRowNew}>
+                  <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                    <DDIcon name="user" size={18} color={theme.text} />
+                  </View>
+                  <View>
+                    <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+                      {t('visitor.hostName')}
+                    </ThemedText>
+                    <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+                      {visitor.host}
+                      {visitor.hostDepartment ? ` (${visitor.hostDepartment})` : ''}
+                    </ThemedText>
+                  </View>
+                </DirectionalRow>
+                {!isWebLayout && <Spacer height={Spacing.md} />}
               </View>
-              <View>
-                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
-                  {t('services.parking')}
-                </ThemedText>
-                <ThemedText style={[Typography.caption, { color: theme.info, marginTop: 2, fontSize: 13, fontWeight: '500' }]}>
-                  {visitor.parking}
-                </ThemedText>
-              </View>
-            </DirectionalRow>
+
+              {/* Host Phone */}
+              {visitor.hostPhone && (
+                <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
+                  <DirectionalRow style={styles.serviceRowNew}>
+                    <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                      <DDIcon name="phone" size={18} color={theme.text} />
+                    </View>
+                    <View>
+                      <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+                        {t('form.phone')}
+                      </ThemedText>
+                      <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+                        {formatPhoneNumber(visitor.hostPhone || '')}
+                      </ThemedText>
+                    </View>
+                  </DirectionalRow>
+                  {!isWebLayout && <Spacer height={Spacing.md} />}
+                </View>
+              )}
+
+              {/* Host Landline */}
+              {visitor.hostLandline && (
+                <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
+                  <DirectionalRow style={styles.serviceRowNew}>
+                    <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                      <DDIcon name="phone" size={18} color={theme.text} />
+                    </View>
+                    <View>
+                      <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+                        {t('form.landline')}
+                      </ThemedText>
+                      <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+                        {formatPhoneForDisplay(visitor.hostLandline || '')}
+                      </ThemedText>
+                    </View>
+                  </DirectionalRow>
+                </View>
+              )}
+            </View>
           </ThemedView>
         </>
-      ) : null}
+      )}
+
 
       <Spacer height={Spacing.lg} />
 
@@ -519,17 +749,22 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
     {(visitor.status === 'approved' || visitor.status === 'visitor_accepted') && (
       <View style={[styles.stickyFooter, { backgroundColor: theme.background, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.lg }]}>
         <DirectionalRow style={styles.buttonRow}>
-          <LoadingButton
-            onPress={() => setShowCancelModal(true)}
-            variant="danger-outline"
-            size="large"
-            icon="x-circle"
-            iconPosition="left"
-            style={{ flex: 1 }}
-          >
-            {t('actions.cancelRequest')}
-          </LoadingButton>
-          <View style={{ width: Spacing.md }} />
+          {/* Only show Cancel button if current user is the host of this visit */}
+          {visitDetails?.employeeId === user?.id && (
+            <>
+              <LoadingButton
+                onPress={() => setShowCancelModal(true)}
+                variant="danger-outline"
+                size="large"
+                icon="x-circle"
+                iconPosition="left"
+                style={{ flex: 1 }}
+              >
+                {t('actions.cancelRequest')}
+              </LoadingButton>
+              <View style={{ width: Spacing.md }} />
+            </>
+          )}
           <LoadingButton
             onPress={handleCheckIn}
             variant="success"
@@ -611,6 +846,17 @@ const styles = StyleSheet.create({
   },
   serviceRowNew: {
     alignItems: 'flex-start',
+    gap: Spacing.md,
+  },
+  serviceItemNew: {
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    alignItems: 'flex-start',
+    gap: Spacing.md,
+  },
+  responsiveGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: Spacing.md,
   },
   serviceIcon: {

@@ -5,7 +5,7 @@ This Replit project is configured for the **QA/Testing environment**.
 
 | Setting | Value |
 |---------|-------|
-| **Backend API** | `https://vms-backend-folio3.replit.app` |
+| **Backend API** | `https://vms-backend-app-qa.replit.app` |
 | **Firebase Project** | `dallah-albaraka-vms` |
 | **Branch** | `qa` |
 | **Purpose** | QA/Testing - Not for production use |
@@ -73,7 +73,9 @@ The VMS app employs a Clean Architecture pattern, segmenting the application int
 - **State Management:** Centralized state service using mutable mock data and `useFocusEffect` for reactive updates.
 - **Role-Based Access:** Specialized interfaces and navigation for nine distinct user roles.
 - **Internationalization (i18n):** Bilingual support for English (LTR) and Arabic (RTL) across all 40+ screens using type-safe translation keys, a `LanguageContext`, and `useTranslation` hook.
-- **Shared Components:** Reusable UI components including `ServiceIcons`, `SelectionCheckbox`, `StatusBadge`, and `EmptyState`.
+- **Shared Components:** Reusable UI components including `ServiceIcons`, `SelectionCheckbox`, `StatusBadge`, `EmptyState`, and `PhoneInputWithCountry`.
+- **Phone Input Component (`PhoneInputWithCountry`):** Mobile-friendly phone number input with country code selector featuring circular flag avatars (from flagcdn.com CDN), Gulf region priority (Saudi Arabia default), searchable country picker modal with KeyboardAvoidingView, auto-formatting per country, and full RTL support. Outputs full international format (+XXX...) compatible with existing API validation.
+- **iOS Modal Handling Pattern:** iOS cannot stack multiple Modals. Use the `inlinePickerMode` state pattern inside parent modals to avoid modal stacking issues. When inside an edit/form modal, set inlinePickerMode to 'date' | 'startTime' | 'endTime' | 'purpose' instead of opening a separate picker Modal. Render inline picker overlays with `StyleSheet.absoluteFill` inside the parent modal. For modals with text inputs, wrap content with `KeyboardAvoidingView` (behavior="padding" on iOS).
 - **Utility Services:** Centralized utility functions for `dateTimeUtils`, `statusUtils`, and `reminderUtils` supporting RTL locales and i18n.
 - **Timezone Architecture:** All date/time displays and API submissions use device-local time. The client sends raw device-local dates and times to the server, which is responsible for all timezone normalization and conversion.
 
@@ -90,6 +92,7 @@ The VMS app employs a Clean Architecture pattern, segmenting the application int
 - **Visitor Invite Enhancements:** Handling of expired/invalid invites, display of parking/valet expectations.
 - **Settings - Notification Preferences:** Per-user notification preferences with role-specific defaults, push/email toggles, frequency options, and event-type specific toggles.
 - **Admin System Monitoring:** System event log, reminder schedule visualization.
+- **Manager All Requests:** Comprehensive view of all approval requests for managers with 4 tabs (All, Pending Approval, Approved, Rejected), grid/list view toggle, search functionality, and infinite scroll pagination. Pending tab shows approve/reject actions; other tabs display request status. Integrates with `/api/v1/approvals/history` endpoint.
 
 **API Integration Layer:**
 - **Architecture:** Structured pattern with `api/` (HTTP client core), `services/api/` (API service layer), `services/state/` (local state management), `utils/` (shared helpers), `components/shared/` (for loading states), `types/`, `hooks/` (React Query hooks), `providers/`, and `contexts/`.

@@ -27,6 +27,7 @@ export interface AuthUser {
   role: UserRole;
   autoApproval?: boolean;
   phoneNumber?: string;
+  businessPhone?: string;
   department?: string;
   status?: 'active' | 'inactive';
   source?: string;
@@ -59,7 +60,7 @@ interface AuthContextType extends AuthState {
   azureLogin: (azureToken: string) => Promise<AuthTokenResponse>;
   ssoLogin: (tokens: SSOTokens) => Promise<AuthUser>;
   logout: () => Promise<void>;
-  refreshUser: () => Promise<void>;
+  refreshUser: () => Promise<AuthUser | null>;
   clearError: () => void;
   checkHealth: () => Promise<boolean>;
   isTokenValid: () => Promise<boolean>;
@@ -154,6 +155,7 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
       role: mapRoleToUserRole(userDto.role),
       autoApproval: userDto.autoApproval,
       phoneNumber: userDto.phoneNumber,
+      businessPhone: userDto.businessPhone,
       department: userDto.department,
       status: userDto.status,
       source: userDto.source,
@@ -543,8 +545,8 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
     await handleLogout();
   }, [handleLogout]);
 
-  const refreshUser = useCallback(async () => {
-    if (!state.isAuthenticated) return;
+  const refreshUser = useCallback(async (): Promise<AuthUser | null> => {
+    if (!state.isAuthenticated) return null;
 
     try {
       const userDto = await authService.getCurrentUser();
@@ -556,7 +558,10 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
       
       setState((prev) => ({ ...prev, user }));
       await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
+      return user;
     } catch (error) {
+      console.error('[AuthContext] Failed to refresh user:', error);
+      return null;
     }
   }, [state.isAuthenticated, state.user?.isSSOUser]);
 

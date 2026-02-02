@@ -57,6 +57,8 @@ function mapVisitToSecurityVisitor(visit: VisitListItemDto): SecurityVisitorDto 
     licensePlate: visit.licensePlate,
     carModel: visit.carModel,
     carColor: visit.carColor,
+    isBuffet: visit.isBuffet,
+    isMeetingRoom: visit.isMeetingRoom,
   };
 }
 
@@ -70,9 +72,13 @@ function mapVisitDetailsToSecurityVisitor(visit: VisitDetailsDto): SecurityVisit
     hostId: visit.employeeId || '',
     hostName: visit.employeeName || '',
     hostDepartment: visit.employeeDepartment,
+    hostPhoneNumber: visit.employeePhoneNumber,
+    hostBusinessPhone: visit.employeeBusinessPhone,
     purpose: visit.purpose || '',
     scheduledDate: visit.visitDate,
     scheduledTime: visit.visitTime,
+    endTime: visit.endTime,
+    duration: visit.duration,
     status: visit.status as SecurityVisitorDto['status'],
     isBlacklisted: false,
     parkingAssigned: !!visit.parkingAllocation,
@@ -82,6 +88,8 @@ function mapVisitDetailsToSecurityVisitor(visit: VisitDetailsDto): SecurityVisit
     licensePlate: visit.licensePlate,
     carModel: visit.carModel,
     carColor: visit.carColor,
+    isBuffet: visit.isBuffet,
+    isMeetingRoom: visit.isMeetingRoom,
     qrCode: visit.qrCode,
   };
 }

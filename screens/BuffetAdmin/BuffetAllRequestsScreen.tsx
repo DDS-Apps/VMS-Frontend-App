@@ -376,11 +376,14 @@ const BuffetRequestCard = React.memo(({
                 {request.location}
               </ThemedText>
             </DirectionalRow>
+            <ThemedText style={[styles.detailText, { color: theme.border, marginHorizontal: Spacing.xs }]}>•</ThemedText>
+            <DirectionalRow style={styles.detailItem}>
+              <DDIcon name="clock" size={14} variant="muted" />
+              <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
+                {request.timeSlot}
+              </ThemedText>
+            </DirectionalRow>
           </DirectionalRow>
-
-          <Spacer height={Spacing.sm} />
-
-          <DateTimeDisplay date={request.visitDate} time={request.timeSlot} theme={theme} isRTL={isRTL} />
 
           {request.assignedStaff ? (
             <>
@@ -396,22 +399,6 @@ const BuffetRequestCard = React.memo(({
             </>
           ) : null}
 
-          {request.status !== 'completed' && request.status !== 'cancelled' ? (
-            <>
-              <Spacer height={LAYOUT.contentGap} />
-              <DirectionalRow style={styles.actionsRow}>
-                <Pressable
-                  style={[styles.actionButton, { backgroundColor: applyOpacity(theme.warning, '12'), flexDirection: getFlexDirection(isRTL) }]}
-                  onPress={(e) => onAssignStaff(e)}
-                >
-                  <DDIcon name="user-plus" size={14} color={theme.warning} />
-                  <ThemedText style={[styles.actionButtonText, { color: theme.warning }]}>
-                    {request.assignedStaff ? t('buffet.reassign') : t('actions.assign')}
-                  </ThemedText>
-                </Pressable>
-              </DirectionalRow>
-            </>
-          ) : null}
         </View>
       </Pressable>
 
@@ -506,25 +493,6 @@ const BuffetRequestTableRow = React.memo(({
             <StatusBadge statusConfig={statusConfig} compact />
           </View>
 
-          {request.status !== 'completed' && request.status !== 'cancelled' ? (
-            <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth * 1.2 }]}>
-              <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
-                {t('dashboard.quickActions').toUpperCase()}
-              </ThemedText>
-              <Spacer height={10} />
-              <DirectionalRow style={styles.tableActionsRow}>
-                <Pressable
-                  style={[styles.tableActionButton, { backgroundColor: applyOpacity(theme.warning, '12'), flexDirection: getFlexDirection(isRTL) }]}
-                  onPress={onAssignStaff}
-                >
-                  <DDIcon name="user-plus" size={14} color={theme.warning} />
-                  <ThemedText style={[styles.tableActionText, { color: theme.warning }]}>
-                    {request.assignedStaff ? t('buffet.reassign') : t('actions.assign')}
-                  </ThemedText>
-                </Pressable>
-              </DirectionalRow>
-            </View>
-          ) : null}
         </ScrollView>
       </ThemedView>
     </Pressable>
@@ -581,6 +549,19 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
   
   // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
   const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
+  
+  // Calculate card width accounting for gaps
+  const getCardStyle = useMemo(() => {
+    const gap = LAYOUT.contentGap;
+    if (numColumns === 1) {
+      return { width: '100%' as const, marginBottom: gap };
+    } else if (numColumns === 2) {
+      return { width: '48.5%' as const, marginBottom: gap };
+    } else {
+      return { width: '32%' as const, marginBottom: gap };
+    }
+  }, [numColumns]);
+  
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
@@ -1015,8 +996,6 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
   return (
     <>
       <ScreenScrollView>
-        <Spacer height={Spacing.xl} />
-
         <DirectionalRow style={[styles.paddedContent, styles.dateNavRow]}>
           <Pressable
             style={[styles.dateNavButton, { backgroundColor: theme.surfaceSecondary }]}
@@ -1092,7 +1071,7 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
             filteredRequests.map((request) => (
               <View 
                 key={request.id}
-                style={numColumns > 1 ? { width: numColumns === 2 ? '50%' : '33.33%', flexGrow: 0, marginBottom: LAYOUT.contentGap, paddingRight: Spacing.sm } : { width: '100%', marginBottom: LAYOUT.contentGap }}
+                style={getCardStyle}
               >
                 <BuffetRequestCard
                   request={request}
@@ -1177,7 +1156,7 @@ const styles = StyleSheet.create({
   cardGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: Spacing.md,
+    justifyContent: 'space-between',
   },
   dateNavRow: {
     alignItems: 'center',

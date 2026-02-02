@@ -15,6 +15,7 @@ import { handleNotificationTap, navigateFromInAppNotification } from '@/utils/no
 import { invalidateQueriesForNotification, refreshAllNotificationData } from './notificationQueryMapper';
 import type { DevicePlatform, NotificationPayload } from '@/types';
 
+// Firebase Messaging for iOS FCM token retrieval
 let firebaseMessaging: typeof import('@react-native-firebase/messaging').default | null = null;
 if (Platform.OS === 'ios') {
   try {
@@ -193,6 +194,7 @@ class PushNotificationService {
 
     try {
       if (Platform.OS === 'ios') {
+        // iOS uses Firebase Messaging to get FCM tokens (backend expects FCM, not APNs)
         if (!firebaseMessaging) {
           console.error('[Push Mobile iOS] Firebase Messaging not available - cannot get FCM token');
           console.error('[Push Mobile iOS] This app requires EAS Build with @react-native-firebase/messaging');

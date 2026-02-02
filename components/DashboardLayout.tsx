@@ -121,8 +121,8 @@ export default function DashboardLayout({
     }
   };
   
-  // Calculate responsive values
-  const isLargeScreen = width >= 768;
+  // Calculate responsive values - use 1024px breakpoint so iPads use mobile sidebar
+  const isLargeScreen = width >= 1024;
   const sidebarWidthMobile = Math.floor(width * 0.75);
   const sidebarWidth = isLargeScreen ? SIDEBAR_WIDTH_DESKTOP : sidebarWidthMobile;
   
@@ -423,11 +423,18 @@ export default function DashboardLayout({
               }
             ]}>
               <View style={[styles.dropdownHeader, { borderBottomColor: theme.border }]}>
-                <View style={[styles.avatarLarge, { backgroundColor: theme.primary }]}>
-                  <ThemedText style={[Typography.subtitle, { color: '#FFFFFF', fontWeight: '700' }]}>
-                    {getInitials(userName)}
-                  </ThemedText>
-                </View>
+                {userPhotoUrl ? (
+                  <Image
+                    source={{ uri: userPhotoUrl }}
+                    style={styles.avatarLarge}
+                  />
+                ) : (
+                  <View style={[styles.avatarLarge, { backgroundColor: theme.primary }]}>
+                    <ThemedText style={[Typography.subtitle, { color: '#FFFFFF', fontWeight: '700' }]}>
+                      {getInitials(userName)}
+                    </ThemedText>
+                  </View>
+                )}
                 <ThemedText style={[Typography.body, { fontWeight: '600', marginTop: Spacing.sm }]}>
                   {userName}
                 </ThemedText>
@@ -681,11 +688,18 @@ export default function DashboardLayout({
                     ]}
                   >
                     <DirectionalRow style={{ alignItems: 'center' }}>
-                      <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
-                        <ThemedText style={[Typography.caption, { color: '#FFFFFF', fontWeight: '700' }]}>
-                          {getInitials(userName)}
-                        </ThemedText>
-                      </View>
+                      {userPhotoUrl ? (
+                        <Image
+                          source={{ uri: userPhotoUrl }}
+                          style={styles.avatar}
+                        />
+                      ) : (
+                        <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
+                          <ThemedText style={[Typography.caption, { color: '#FFFFFF', fontWeight: '700' }]}>
+                            {getInitials(userName)}
+                          </ThemedText>
+                        </View>
+                      )}
                       <ThemedText style={[Typography.body, { marginStart: Spacing.sm, fontWeight: '500' }]}>
                         {userName}
                       </ThemedText>

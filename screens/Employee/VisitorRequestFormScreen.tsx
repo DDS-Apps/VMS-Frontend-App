@@ -10,6 +10,7 @@ import {
   Modal,
   Animated,
   ScrollView,
+  KeyboardAvoidingView,
 } from "react-native";
 import { CommonActions } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -48,7 +49,8 @@ import type {
 import { applyOpacity, createModalOverlayStyle } from "@/utils/statusStyles";
 import { CalendarDatePicker } from "@/components/CalendarDatePicker";
 import { TimePicker } from "@/components/TimePicker";
-import { formatPhoneInput, normalizePhoneNumber } from "@/utils/formatters";
+import { normalizePhoneNumber } from "@/utils/formatters";
+import { PhoneInputWithCountry } from "@/components/PhoneInputWithCountry";
 import type { VisitorRequestFormScreenProps } from "@/types/employeeNavigation.types";
 import { calculateServerDuration } from "@/utils/dateTimeUtils";
 import { useServerDateTime } from "@/hooks/useServerDateTime";
@@ -268,9 +270,8 @@ export default function VisitorRequestFormScreen({
     return digitsOnly.length >= 7 && digitsOnly.length <= 15;
   };
 
-  const handlePhoneChange = (text: string) => {
-    const formatted = formatPhoneInput(text);
-    setPhone(formatted);
+  const handlePhoneChange = (fullNumber: string) => {
+    setPhone(fullNumber);
     if (errors.phone) {
       setErrors({ ...errors, phone: "" });
     }
@@ -742,51 +743,14 @@ export default function VisitorRequestFormScreen({
 
           <Spacer height={Spacing.lg} />
 
-          <ThemedText
-            style={[
-              Typography.label,
-              {
-                color: theme.textSecondary,
-                // 
-              },
-            ]}
-          >
-            {t("form.phone").toUpperCase()} *
-          </ThemedText>
-          <Spacer height={Spacing.xs} />
-          <TextInput
-            style={[
-              styles.input,
-              {
-                backgroundColor: theme.background,
-                borderColor: errors.phone ? theme.error : theme.border,
-                color: theme.text,
-                //  
-                writingDirection: isRTL ? "rtl" : "ltr",
-              },
-            ]}
-            placeholder="+XXX XX XXX XXXX"
-            placeholderTextColor={theme.textSecondary}
+          <PhoneInputWithCountry
             value={phone}
             onChangeText={handlePhoneChange}
-            keyboardType="phone-pad"
+            label={t("form.phone")}
+            required
+            error={errors.phone}
+            testID="input-phone"
           />
-          {errors.phone ? (
-            <>
-              <Spacer height={Spacing.xs} />
-              <ThemedText
-                style={[
-                  Typography.caption,
-                  {
-                    color: theme.error,
-                    //   textAlign: isRTL ? "right" : "left"
-                  },
-                ]}
-              >
-                {errors.phone}
-              </ThemedText>
-            </>
-          ) : null}
 
           <Spacer height={Spacing.lg} />
 
@@ -1308,7 +1272,13 @@ export default function VisitorRequestFormScreen({
             <View style={getGridStyle(isRTL)}>
               <View style={getCardWrapper2ColStyle()}>
                 <SelectableCard
-                  onPress={() => setNeedsMeetingRoom(!needsMeetingRoom)}
+                  onPress={() => {
+                    const newValue = !needsMeetingRoom;
+                    setNeedsMeetingRoom(newValue);
+                    if (!newValue) {
+                      setNeedsBuffet(false);
+                    }
+                  }}
                   selected={needsMeetingRoom}
                 >
                   <View
@@ -1338,7 +1308,13 @@ export default function VisitorRequestFormScreen({
 
               <View style={getCardWrapper2ColStyle()}>
                 <SelectableCard
-                  onPress={() => setNeedsBuffet(!needsBuffet)}
+                  onPress={() => {
+                    const newValue = !needsBuffet;
+                    setNeedsBuffet(newValue);
+                    if (newValue) {
+                      setNeedsMeetingRoom(true);
+                    }
+                  }}
                   selected={needsBuffet}
                 >
                   <View
@@ -1585,7 +1561,10 @@ export default function VisitorRequestFormScreen({
           animationType="slide"
           onRequestClose={handleCloseEmployeePicker}
         >
-          <View style={styles.iosModalContainer}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={styles.iosModalContainer}
+          >
             <Pressable
               style={[
                 styles.iosModalBackdrop,
@@ -1739,7 +1718,7 @@ export default function VisitorRequestFormScreen({
                 )}
               </ScrollView>
             </View>
-          </View>
+          </KeyboardAvoidingView>
         </Modal>
 
         <Modal

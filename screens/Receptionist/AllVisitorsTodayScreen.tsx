@@ -431,7 +431,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
           {filteredVisitors.map((visitor) => (
             <View 
               key={visitor.id} 
-              style={numColumns > 1 ? { width: numColumns === 2 ? '50%' : '33.33%', flexGrow: 0, marginBottom: LAYOUT.contentGap, paddingRight: Spacing.sm } : { width: '100%' }}
+              style={numColumns === 3 ? styles.gridItem3 : numColumns === 2 ? styles.gridItem2 : styles.gridItem1}
             >
               {renderVisitorCard(visitor)}
             </View>
@@ -510,8 +510,22 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: Spacing.md,
   },
-  gridItem: {
+  gridItem3: {
+    flexBasis: '32%',
+    flexGrow: 0,
+    flexShrink: 0,
+    maxWidth: '32%',
     minWidth: 0,
+  },
+  gridItem2: {
+    flexBasis: '48%',
+    flexGrow: 0,
+    flexShrink: 0,
+    maxWidth: '48%',
+    minWidth: 0,
+  },
+  gridItem1: {
+    width: '100%',
   },
   visitorCard: {
     borderRadius: BorderRadius.lg,

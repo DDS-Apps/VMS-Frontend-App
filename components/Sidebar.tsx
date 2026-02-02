@@ -80,6 +80,7 @@ const getMenuGroups = (role: UserRole): { groups: MenuGroup[]; standalone: MenuI
         items: [
           { id: 'new_request', labelKey: 'navigation.newRequest', icon: 'user-plus', screen: 'VisitTypeSelection' },
           { id: 'visitor_requests', labelKey: 'navigation.myRequests', icon: 'list', screen: 'VisitorRequests' },
+          { id: 'all_requests', labelKey: 'navigation.allRequests', icon: 'file-text', screen: 'AllRequests' },
           { id: 'pending_approvals', labelKey: 'navigation.pendingApprovals', icon: 'check-circle', screen: 'PendingApprovals' },
         ],
         badgeKey: 'pendingApprovals',
@@ -144,15 +145,6 @@ const getMenuGroups = (role: UserRole): { groups: MenuGroup[]; standalone: MenuI
           { id: 'buffet_requests', labelKey: 'navigation.buffetRequests', icon: 'list', screen: 'BuffetAllRequests' },
         ],
       },
-      {
-        id: 'management',
-        labelKey: 'sidebar.management',
-        icon: 'settings',
-        items: [
-          { id: 'buffet_staff', labelKey: 'navigation.staffManagement', icon: 'users', screen: 'BuffetStaff' },
-          { id: 'buffet_locations', labelKey: 'navigation.locations', icon: 'map-pin', screen: 'BuffetLocations' },
-        ],
-      },
     ];
   } else if (role === 'valet_admin') {
     result.standalone = [
@@ -204,7 +196,7 @@ export default function Sidebar({
   const rtlStyles = useRTLStyles();
   const { groups, standalone } = getMenuGroups(userRole);
   const { width } = Dimensions.get('window');
-  const isLargeScreen = width >= 768;
+  const isLargeScreen = width >= 1024;
   const insets = useSafeAreaInsets();
   
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { View, StyleSheet, Pressable, GestureResponderEvent, Alert, Switch, FlatList, ActivityIndicator, Modal, Platform, useWindowDimensions } from "react-native";
+import { View, StyleSheet, Pressable, GestureResponderEvent, Alert, Switch, FlatList, ActivityIndicator, Modal, Platform, useWindowDimensions, ScrollView } from "react-native";
 import type { AllVisitorsScreenProps } from "@/types/receptionistNavigation.types";
 import { ROUTES } from "@/constants";
 import { SkeletonList, WalkInBadge } from "@/components/shared";
@@ -16,13 +16,24 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
 import { VisitorActionButton } from "@/components/VisitorActionButton";
 import { applyOpacity } from "@/utils/statusStyles";
+import { toServerDateString } from "@/utils/dateTimeUtils";
 import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 import { useInfiniteVisitsQuery } from "@/hooks/queries/useApprovalQueries";
 import { useReceptionCheckInMutation, useReceptionCheckOutMutation } from "@/hooks/queries/useReceptionQueries";
 import type { VisitListParams, VisitListItemDto } from "@/types";
 
 type DateFilter = 'all' | 'today' | 'this_week' | 'this_month';
-type StatusFilter = 'all' | 'pending_approval' | 'approved' | 'checked_in' | 'auto_cancelled' | 'rejected' | 'cancelled' | 'completed';
+type StatusFilter = 
+  | 'all'
+  | 'pending_approval'
+  | 'pending_host_approval'
+  | 'rejected'
+  | 'cancelled'
+  | 'auto_cancelled'
+  | 'waiting_acceptance'
+  | 'accepted'
+  | 'checked_in'
+  | 'checked_out';
 
 function getDateRange(filter: DateFilter): { startDate?: string; endDate?: string } {
   const today = new Date();
@@ -57,15 +68,10 @@ function getDateRange(filter: DateFilter): { startDate?: string; endDate?: strin
   }
 }
 
-function mapStatusToApi(status: StatusFilter): string | undefined {
-  switch (status) {
-    case 'all':
-      return undefined;
-    case 'completed':
-      return 'completed,checked_out';
-    default:
-      return status;
-  }
+function mapStatusesToApi(statuses: Set<StatusFilter>): string | undefined {
+  if (statuses.has('all') || statuses.size === 0) return undefined;
+  const statusArray = Array.from(statuses).filter(s => s !== 'all');
+  return statusArray.length > 0 ? statusArray.join(',') : undefined;
 }
 
 const PAGE_SIZE = 20;
@@ -85,11 +91,10 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
   
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [dateFilter, setDateFilter] = useState<DateFilter>('today');
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
-  const [activeQuickFilter, setActiveQuickFilter] = useState<'walk_in' | 'awaiting_visitor' | 'pending_approval' | null>(initialFilter);
+  const [dateFilter, setDateFilter] = useState<DateFilter>('this_week');
+  const [selectedStatuses, setSelectedStatuses] = useState<Set<StatusFilter>>(new Set(['all']));
+  const [isWalkInFilter, setIsWalkInFilter] = useState(initialFilter === 'walk_in');
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showStatusPicker, setShowStatusPicker] = useState(false);
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
 
   const toggleCardExpanded = useCallback((id: string) => {
@@ -113,14 +118,12 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
 
   const queryParams: Omit<VisitListParams, 'page'> = useMemo(() => ({
     ...getDateRange(dateFilter),
-    status: mapStatusToApi(statusFilter),
+    status: mapStatusesToApi(selectedStatuses),
     search: debouncedSearch || undefined,
-    isWalkIn: activeQuickFilter === 'walk_in' || undefined,
-    awaitingVisitor: activeQuickFilter === 'awaiting_visitor' || undefined,
-    pendingApproval: activeQuickFilter === 'pending_approval' || undefined,
+    isWalkIn: isWalkInFilter || undefined,
     myRequestsOnly: false,
     limit: PAGE_SIZE,
-  }), [dateFilter, statusFilter, debouncedSearch, activeQuickFilter]);
+  }), [dateFilter, selectedStatuses, debouncedSearch, isWalkInFilter]);
 
   const { 
     data, 
@@ -147,12 +150,14 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
   const STATUS_FILTER_OPTIONS: { key: StatusFilter; label: string }[] = [
     { key: 'all', label: t('common.all') },
     { key: 'pending_approval', label: t('status.pendingApproval') },
-    { key: 'approved', label: t('status.approved') },
+    { key: 'pending_host_approval', label: t('status.pendingHostApproval') },
+    { key: 'waiting_acceptance', label: t('status.waitingAcceptance') },
+    { key: 'accepted', label: t('status.accepted') },
     { key: 'checked_in', label: t('status.checkedIn') },
-    { key: 'auto_cancelled', label: t('status.autoCancelled') },
+    { key: 'checked_out', label: t('status.checkedOut') },
     { key: 'rejected', label: t('status.rejected') },
     { key: 'cancelled', label: t('status.cancelled') },
-    { key: 'completed', label: t('status.completed') },
+    { key: 'auto_cancelled', label: t('status.autoCancelled') },
   ];
 
   const visitors = useMemo(() => {
@@ -220,21 +225,28 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
     switch (status) {
       case 'checked_in':
         return { label: t('status.checkedIn'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: theme.success };
-      case 'completed':
-        return { label: t('timeline.visitCompleted'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: theme.success };
       case 'checked_out':
-        return { label: t('status.checkedOut'), bg: applyOpacity(theme.textSecondary, '15'), text: theme.textSecondary, border: theme.textSecondary };
+        return { label: t('status.checkedOut'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: theme.success };
       case 'pending_approval':
         return { label: t('status.pendingApproval'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: theme.warning };
       case 'pending_host_approval':
         return { label: t('status.pendingHostApproval'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: theme.warning };
+      case 'waiting_acceptance':
+        return { label: t('status.waitingAcceptance'), bg: applyOpacity(theme.info, '15'), text: theme.info, border: theme.info };
       case 'approved':
+      case 'accepted':
       case 'visitor_accepted':
-        return { label: t('visitor.expectedVisitors'), bg: applyOpacity(theme.info, '15'), text: theme.info, border: theme.info };
+        return { label: t('status.approved'), bg: applyOpacity(theme.info, '15'), text: theme.info, border: theme.info };
       case 'rejected':
         return { label: t('status.rejected'), bg: applyOpacity(theme.error, '15'), text: theme.error, border: theme.error };
       case 'cancelled':
-        return { label: t('status.cancelled'), bg: applyOpacity(theme.textSecondary, '15'), text: theme.textSecondary, border: theme.textSecondary };
+        return { label: t('status.cancelled'), bg: applyOpacity(theme.error, '15'), text: theme.error, border: theme.error };
+      case 'auto_cancelled':
+        return { label: t('status.autoCancelled'), bg: applyOpacity(theme.error, '15'), text: theme.error, border: theme.error };
+      case 'no_show':
+        return { label: t('status.noShow'), bg: applyOpacity(theme.error, '15'), text: theme.error, border: theme.error };
+      case 'expired':
+        return { label: t('status.expired'), bg: applyOpacity(theme.textSecondary, '15'), text: theme.textSecondary, border: theme.textSecondary };
       default:
         return { label: t('status.pending'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: theme.warning };
     }
@@ -255,16 +267,50 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
     return option?.label || t('common.all');
   };
 
-  const getSelectedStatusLabel = () => {
-    const option = STATUS_FILTER_OPTIONS.find(o => o.key === statusFilter);
-    return option?.label || t('common.all');
-  };
+  const handleWalkInToggle = useCallback(() => {
+    const newWalkInState = !isWalkInFilter;
+    setIsWalkInFilter(newWalkInState);
+    if (newWalkInState) {
+      setSelectedStatuses(new Set());
+    } else {
+      setSelectedStatuses(new Set(['all']));
+    }
+  }, [isWalkInFilter]);
+
+  const handleStatusChipPress = useCallback((status: StatusFilter) => {
+    if (status === 'all') {
+      setSelectedStatuses(new Set(['all']));
+      setIsWalkInFilter(false);
+    } else {
+      setSelectedStatuses(prev => {
+        const newSet = new Set(prev);
+        newSet.delete('all');
+        
+        if (newSet.has(status)) {
+          newSet.delete(status);
+          if (newSet.size === 0) {
+            return new Set(['all']);
+          }
+        } else {
+          newSet.add(status);
+        }
+        return newSet;
+      });
+      setIsWalkInFilter(false);
+    }
+  }, []);
 
   const renderVisitorCard = useCallback(({ item }: { item: VisitListItemDto }) => {
     const statusConfig = getStatusConfig(item.status);
     const visitorName = item.visitor.fullName;
     const initials = visitorName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-    const showCheckIn = item.status === 'approved' || item.status === 'visitor_accepted';
+    
+    // Only show check-in for today's visitors with eligible status
+    // Compare visitDate (YYYY-MM-DD from server) with today's date in server timezone
+    const todayServerDate = toServerDateString(new Date());
+    const isVisitToday = item.visitDate === todayServerDate;
+    const hasCheckInStatus = item.status === 'approved' || item.status === 'accepted' || item.status === 'visitor_accepted';
+    const showCheckIn = hasCheckInStatus && isVisitToday;
     const showCheckOut = item.status === 'checked_in';
     const isExpanded = expandedCards.has(item.id);
     const hasDetails = item.purpose || item.visitor.email || item.visitor.phone;
@@ -376,21 +422,23 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
               </View>
             ) : null}
 
-            <DirectionalRow style={styles.cardFooter} justifyContent="flex-end">
-              <View style={styles.actionButtons}>
-                {showCheckIn ? (
-                  <VisitorActionButton 
-                    type="check_in" 
-                    onPress={(e) => handleCheckIn(item.id, visitorName, e)} 
-                  />
-                ) : showCheckOut ? (
-                  <VisitorActionButton 
-                    type="check_out" 
-                    onPress={(e) => handleCheckOut(item.id, visitorName, e)} 
-                  />
-                ) : null}
-              </View>
-            </DirectionalRow>
+            {(showCheckIn || showCheckOut) && (
+              <DirectionalRow style={styles.cardFooter} justifyContent="flex-end">
+                <View style={styles.actionButtons}>
+                  {showCheckIn ? (
+                    <VisitorActionButton 
+                      type="check_in" 
+                      onPress={(e) => handleCheckIn(item.id, visitorName, e)} 
+                    />
+                  ) : showCheckOut ? (
+                    <VisitorActionButton 
+                      type="check_out" 
+                      onPress={(e) => handleCheckOut(item.id, visitorName, e)} 
+                    />
+                  ) : null}
+                </View>
+              </DirectionalRow>
+            )}
           </View>
         </ThemedView>
       </Pressable>
@@ -467,121 +515,127 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
     </Modal>
   );
 
+  const getStatusChipColor = useCallback((status: StatusFilter) => {
+    switch (status) {
+      case 'all':
+        return theme.primary;
+      case 'pending_approval':
+      case 'pending_host_approval':
+        return theme.warning;
+      case 'accepted':
+      case 'waiting_acceptance':
+        return theme.info;
+      case 'checked_in':
+      case 'checked_out':
+        return theme.success;
+      case 'rejected':
+      case 'cancelled':
+      case 'auto_cancelled':
+        return theme.error;
+      default:
+        return theme.textSecondary;
+    }
+  }, [theme]);
+
   const ListHeader = useMemo(() => (
     <View>
-      <ThemedText style={[Typography.title, { fontSize: 22, fontWeight: '700' }]}>
-        {t('navigation.allVisitors')}
-      </ThemedText>
-      
-      <Spacer height={4} />
-      
-      <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
-        {totalCount} {totalCount === 1 ? 'visitor' : 'visitors'} found
-        {isFetching && !isFetchingNextPage ? ' ...' : ''}
-      </ThemedText>
+      {/* Title row with count on the right */}
+      <DirectionalRow style={{ justifyContent: 'space-between', alignItems: 'baseline', gap: Spacing.md, flexWrap: 'wrap' }}>
+        <ThemedText style={[Typography.title, { fontSize: 22, fontWeight: '700' }]}>
+          {t('navigation.allVisitors')}
+        </ThemedText>
+        <ThemedText style={[Typography.caption, { color: theme.textSecondary, flexShrink: 1 }]} numberOfLines={1}>
+          {totalCount} {totalCount === 1 ? 'visitor' : 'visitors'} found
+          {isFetching && !isFetchingNextPage ? ' ...' : ''}
+        </ThemedText>
+      </DirectionalRow>
 
       <Spacer height={Spacing.lg} />
 
-      <SearchInput
-        placeholder={t('reception.searchVisitor')}
-        value={searchQuery}
-        onChangeText={setSearchQuery}
-      />
-
-      <Spacer height={Spacing.md} />
-
-      <DirectionalRow style={styles.filtersRow}>
+      {/* Search bar with date picker button */}
+      <DirectionalRow style={{ gap: Spacing.sm, alignItems: 'stretch' }}>
+        <View style={{ flex: 1 }}>
+          <SearchInput
+            placeholder={t('reception.searchVisitor')}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
         <Pressable
-          style={[styles.filterDropdown, { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: getFlexDirection(isRTL) }]}
+          style={[styles.datePickerButton, { backgroundColor: theme.surface, borderColor: theme.border, height: 56 }]}
           onPress={() => setShowDatePicker(true)}
         >
-          <DDIcon name="calendar" size={14} variant="muted" />
-          <ThemedText style={[styles.filterDropdownText, { color: theme.text }]} numberOfLines={1}>
+          <DDIcon name="calendar" size={18} color={theme.primary} />
+          <ThemedText style={[styles.datePickerLabel, { color: theme.text }]} numberOfLines={1}>
             {getSelectedDateLabel()}
           </ThemedText>
           <DDIcon name="chevron-down" size={14} variant="muted" />
         </Pressable>
-
-        <Pressable
-          style={[styles.filterDropdown, { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: getFlexDirection(isRTL) }]}
-          onPress={() => setShowStatusPicker(true)}
-        >
-          <DDIcon name="filter" size={14} variant="muted" />
-          <ThemedText style={[styles.filterDropdownText, { color: theme.text }]} numberOfLines={1}>
-            {getSelectedStatusLabel()}
-          </ThemedText>
-          <DDIcon name="chevron-down" size={14} variant="muted" />
-        </Pressable>
-
-      </DirectionalRow>
-
-      <Spacer height={Spacing.sm} />
-
-      <DirectionalRow style={styles.filtersRow}>
-        <Pressable
-          style={[
-            styles.filterChip,
-            { 
-              backgroundColor: activeQuickFilter === 'walk_in' ? applyOpacity(theme.warning, '15') : theme.surface,
-              borderColor: activeQuickFilter === 'walk_in' ? theme.warning : theme.border,
-              flexDirection: getFlexDirection(isRTL)
-            }
-          ]}
-          onPress={() => setActiveQuickFilter(activeQuickFilter === 'walk_in' ? null : 'walk_in')}
-          accessibilityLabel={t('common.walkIn')}
-          accessibilityRole="button"
-          accessibilityState={{ selected: activeQuickFilter === 'walk_in' }}
-        >
-          <DDIcon name="user-plus" size={12} color={activeQuickFilter === 'walk_in' ? theme.warning : theme.textSecondary} />
-          <ThemedText style={[styles.filterChipText, { color: activeQuickFilter === 'walk_in' ? theme.warning : theme.textSecondary }]}>
-            {t('common.walkIn')}
-          </ThemedText>
-        </Pressable>
-
-        <Pressable
-          style={[
-            styles.filterChip,
-            { 
-              backgroundColor: activeQuickFilter === 'awaiting_visitor' ? applyOpacity(theme.info, '15') : theme.surface,
-              borderColor: activeQuickFilter === 'awaiting_visitor' ? theme.info : theme.border,
-              flexDirection: getFlexDirection(isRTL)
-            }
-          ]}
-          onPress={() => setActiveQuickFilter(activeQuickFilter === 'awaiting_visitor' ? null : 'awaiting_visitor')}
-          accessibilityLabel={t('filters.awaitingVisitor')}
-          accessibilityRole="button"
-          accessibilityState={{ selected: activeQuickFilter === 'awaiting_visitor' }}
-        >
-          <DDIcon name="clock" size={12} color={activeQuickFilter === 'awaiting_visitor' ? theme.info : theme.textSecondary} />
-          <ThemedText style={[styles.filterChipText, { color: activeQuickFilter === 'awaiting_visitor' ? theme.info : theme.textSecondary }]}>
-            {t('filters.awaitingVisitor')}
-          </ThemedText>
-        </Pressable>
-
-        <Pressable
-          style={[
-            styles.filterChip,
-            { 
-              backgroundColor: activeQuickFilter === 'pending_approval' ? applyOpacity(theme.primary, '15') : theme.surface,
-              borderColor: activeQuickFilter === 'pending_approval' ? theme.primary : theme.border,
-              flexDirection: getFlexDirection(isRTL)
-            }
-          ]}
-          onPress={() => setActiveQuickFilter(activeQuickFilter === 'pending_approval' ? null : 'pending_approval')}
-          accessibilityLabel={t('filters.pendingApproval')}
-          accessibilityRole="button"
-          accessibilityState={{ selected: activeQuickFilter === 'pending_approval' }}
-        >
-          <DDIcon name="check-circle" size={12} color={activeQuickFilter === 'pending_approval' ? theme.primary : theme.textSecondary} />
-          <ThemedText style={[styles.filterChipText, { color: activeQuickFilter === 'pending_approval' ? theme.primary : theme.textSecondary }]}>
-            {t('filters.pendingApproval')}
-          </ThemedText>
-        </Pressable>
       </DirectionalRow>
 
       <Spacer height={Spacing.md} />
+
+      {/* Horizontal scrollable status chips with Walk-In toggle */}
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.statusChipsContainer}
+      >
+        {/* Walk-In toggle chip */}
+        <Pressable
+          style={[
+            styles.statusChip,
+            { 
+              backgroundColor: isWalkInFilter ? applyOpacity(theme.warning, '15') : theme.surface,
+              borderColor: isWalkInFilter ? theme.warning : theme.border,
+              flexDirection: getFlexDirection(isRTL),
+              gap: Spacing.xs,
+            }
+          ]}
+          onPress={handleWalkInToggle}
+          accessibilityLabel={t('common.walkIn')}
+          accessibilityRole="button"
+          accessibilityState={{ selected: isWalkInFilter }}
+        >
+          <DDIcon name="user-plus" size={12} color={isWalkInFilter ? theme.warning : theme.textSecondary} />
+          <ThemedText style={[styles.statusChipText, { color: isWalkInFilter ? theme.warning : theme.textSecondary }]}>
+            {t('common.walkIn')}
+          </ThemedText>
+        </Pressable>
+        
+        {/* Status filter chips */}
+        {STATUS_FILTER_OPTIONS.map((option) => {
+          const isSelected = selectedStatuses.has(option.key);
+          const chipColor = getStatusChipColor(option.key);
+          return (
+            <Pressable
+              key={option.key}
+              style={[
+                styles.statusChip,
+                { 
+                  backgroundColor: isSelected ? applyOpacity(chipColor, '15') : theme.surface,
+                  borderColor: isSelected ? chipColor : theme.border,
+                }
+              ]}
+              onPress={() => handleStatusChipPress(option.key)}
+              accessibilityLabel={option.label}
+              accessibilityRole="button"
+              accessibilityState={{ selected: isSelected }}
+            >
+              <ThemedText style={[
+                styles.statusChipText, 
+                { color: isSelected ? chipColor : theme.textSecondary }
+              ]}>
+                {option.label}
+              </ThemedText>
+            </Pressable>
+          );
+        })}
+      </ScrollView>
+
+      <Spacer height={Spacing.md} />
     </View>
-  ), [t, theme, totalCount, isFetching, isFetchingNextPage, searchQuery, activeQuickFilter, getSelectedDateLabel, getSelectedStatusLabel]);
+  ), [t, theme, totalCount, isFetching, isFetchingNextPage, searchQuery, isWalkInFilter, selectedStatuses, getSelectedDateLabel, getStatusChipColor, STATUS_FILTER_OPTIONS, isRTL, handleWalkInToggle, handleStatusChipPress]);
 
   if (isLoading) {
     return (
@@ -616,7 +670,7 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
         key={`flatlist-${numColumns}`}
         data={visitors}
         renderItem={({ item }) => (
-          <View style={numColumns > 1 ? styles.gridItem : styles.singleColumnItem}>
+          <View style={numColumns === 3 ? styles.gridItem3 : numColumns === 2 ? styles.gridItem2 : styles.singleColumnItem}>
             {renderVisitorCard({ item })}
           </View>
         )}
@@ -645,14 +699,6 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
         t('time.selectDate')
       )}
 
-      {renderPickerModal(
-        showStatusPicker,
-        () => setShowStatusPicker(false),
-        STATUS_FILTER_OPTIONS,
-        statusFilter,
-        (key) => setStatusFilter(key as StatusFilter),
-        t('status.selectStatus')
-      )}
     </View>
   );
 }
@@ -665,8 +711,18 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
     marginBottom: Spacing.md,
   },
-  gridItem: {
-    flex: 1,
+  gridItem3: {
+    flexBasis: '32%',
+    flexGrow: 0,
+    flexShrink: 0,
+    maxWidth: '32%',
+    minWidth: 0,
+  },
+  gridItem2: {
+    flexBasis: '48%',
+    flexGrow: 0,
+    flexShrink: 0,
+    maxWidth: '48%',
     minWidth: 0,
   },
   singleColumnItem: {
@@ -864,5 +920,34 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.md,
+  },
+  datePickerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    minWidth: 120,
+  },
+  datePickerLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  statusChipsContainer: {
+    paddingVertical: Spacing.xs,
+    gap: Spacing.sm,
+  },
+  statusChip: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    alignItems: 'center',
+  },
+  statusChipText: {
+    fontSize: 12,
+    fontWeight: '500',
   },
 });

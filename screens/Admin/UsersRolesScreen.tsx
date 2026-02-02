@@ -11,6 +11,7 @@ import {
   SectionList,
   FlatList,
   ActivityIndicator,
+  useWindowDimensions,
 } from "react-native";
 import { ConfirmationModal } from "@/components/shared/ConfirmationModal";
 import { useNavigation } from "@react-navigation/native";
@@ -33,7 +34,6 @@ import {
   useCreateUserMutation,
   useUpdateUserMutation,
   useDeleteUserMutation,
-  useUsersByRoleQuery,
 } from "@/hooks/queries/useUserQueries";
 import type {
   UserDto,
@@ -42,7 +42,9 @@ import type {
   UserRole as ApiUserRole,
 } from "@/types/api.types";
 import { UserRole, USER_ROLES } from "@/types/vms.types";
-import { formatPhoneInput, formatPhoneNumber, normalizePhoneNumber } from "@/utils/formatters";
+import { formatPhoneInput, formatPhoneNumber, formatPhoneForDisplay, normalizePhoneNumber } from "@/utils/formatters";
+import { applyOpacity } from "@/utils/statusStyles";
+import { PhoneInputWithCountry } from "@/components/PhoneInputWithCountry";
 
 type UserSource = "microsoft_ad" | "app_created";
 
@@ -101,9 +103,9 @@ function mapUserDtoToDisplayUser(dto: UserDto): DisplayUser {
   };
 }
 
-const ALL_ROLES: UserRole[] = USER_ROLES.filter((role) => role !== "visitor");
+const ALL_ROLES: UserRole[] = USER_ROLES.filter((role) => role !== "visitor" && role !== "buffet_staff");
 
-const HIDDEN_ROLES_IN_CREATE: UserRole[] = ["valet_driver", "visitor"];
+const HIDDEN_ROLES_IN_CREATE: UserRole[] = ["valet_driver", "visitor", "buffet_staff"];
 const DISABLED_ROLES_IN_CREATE: UserRole[] = ["employee", "manager"];
 const CREATABLE_ROLES: UserRole[] = ALL_ROLES.filter(
   (role) => !HIDDEN_ROLES_IN_CREATE.includes(role),
@@ -148,6 +150,10 @@ export default function UsersRolesScreen() {
   const insets = useSafeAreaInsets();
   const { showError, showSuccess } = useToast();
   const navigation = useNavigation<NavigationProp>();
+  const { width: screenWidth } = useWindowDimensions();
+  
+  // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
+  const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
 
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState<DisplayUser | null>(null);
@@ -155,7 +161,7 @@ export default function UsersRolesScreen() {
   const [filterActive, setFilterActive] = useState<boolean | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("createdAt");
-  const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [groupBy, setGroupBy] = useState<GroupMode>("none");
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -175,6 +181,8 @@ export default function UsersRolesScreen() {
     role: "receptionist" as UserRole,
     department: "",
     phoneNumber: "",
+    businessPhone: "",
+    businessPhoneExt: "",
     status: "active" as "active" | "inactive",
     autoApproval: false,
     managerId: "" as string | undefined,
@@ -215,11 +223,17 @@ export default function UsersRolesScreen() {
   const updateMutation = useUpdateUserMutation();
   const deleteMutation = useDeleteUserMutation();
 
-  const { data: managers = [] } = useUsersByRoleQuery("manager" as ApiUserRole);
-
   const users: DisplayUser[] = useMemo(() => {
     if (!usersResponse?.data) return [];
     return usersResponse.data.map(mapUserDtoToDisplayUser);
+  }, [usersResponse?.data]);
+
+  // Filter managers from existing users list instead of separate API call
+  const managers: UserDto[] = useMemo(() => {
+    if (!usersResponse?.data) return [];
+    return usersResponse.data.filter(
+      (user) => user.role.toLowerCase() === "manager"
+    );
   }, [usersResponse?.data]);
 
   const totalPages = useMemo(() => {
@@ -251,6 +265,8 @@ export default function UsersRolesScreen() {
       role: "receptionist",
       department: "",
       phoneNumber: "",
+      businessPhone: "",
+      businessPhoneExt: "",
       status: "active",
       autoApproval: false,
       managerId: undefined,
@@ -274,6 +290,8 @@ export default function UsersRolesScreen() {
       role: user.role,
       department: user.department || "",
       phoneNumber: user.phoneNumber || "",
+      businessPhone: parseBusinessPhoneBase(user.businessPhone || ""),
+      businessPhoneExt: parseBusinessPhoneExt(user.businessPhone || ""),
       status: user.status,
       autoApproval: user.autoApproval,
       managerId: user.managerId,
@@ -289,9 +307,43 @@ export default function UsersRolesScreen() {
   };
 
   const handlePhoneChange = (text: string) => {
-    const formatted = formatPhoneInput(text);
-    setFormData({ ...formData, phoneNumber: formatted });
+    setFormData({ ...formData, phoneNumber: text });
     if (formErrors.phone) setFormErrors({ ...formErrors, phone: undefined });
+  };
+
+  const handleBusinessPhoneChange = (text: string) => {
+    setFormData({ ...formData, businessPhone: text });
+  };
+
+  const handleBusinessPhoneExtChange = (text: string) => {
+    // Only allow digits for extension
+    const digitsOnly = text.replace(/\D/g, '');
+    setFormData({ ...formData, businessPhoneExt: digitsOnly });
+  };
+
+  // Parse business phone to extract base number (before ext.)
+  const parseBusinessPhoneBase = (phone: string): string => {
+    if (!phone) return "";
+    // Match patterns like "ext.", "ext", "x", "Ext."
+    const extMatch = phone.match(/(.+?)\s*(?:ext\.?|x)\s*\d+$/i);
+    return extMatch ? extMatch[1].trim() : phone;
+  };
+
+  // Parse business phone to extract extension
+  const parseBusinessPhoneExt = (phone: string): string => {
+    if (!phone) return "";
+    const extMatch = phone.match(/(?:ext\.?|x)\s*(\d+)$/i);
+    return extMatch ? extMatch[1] : "";
+  };
+
+  // Format business phone with extension for API
+  const formatBusinessPhoneForApi = (phone: string, ext: string): string => {
+    if (!phone) return "";
+    const formatted = formatPhoneNumber(phone);
+    if (ext) {
+      return `${formatted} ext. ${ext}`;
+    }
+    return formatted;
   };
 
   const handleSaveUser = async () => {
@@ -325,7 +377,8 @@ export default function UsersRolesScreen() {
           name: formData.name,
           role: formData.role,
           department: formData.department || undefined,
-          phoneNumber: formData.phoneNumber ? normalizePhoneNumber(formData.phoneNumber) : undefined,
+          phoneNumber: formData.phoneNumber ? formatPhoneNumber(formData.phoneNumber) : undefined,
+          businessPhone: formData.businessPhone ? formatBusinessPhoneForApi(formData.businessPhone, formData.businessPhoneExt) : undefined,
           status: formData.status,
           autoApproval: formData.autoApproval,
           managerId: formData.managerId || undefined,
@@ -342,7 +395,8 @@ export default function UsersRolesScreen() {
           password: formData.password || undefined,
           role: formData.role,
           department: formData.department || undefined,
-          phoneNumber: formData.phoneNumber ? normalizePhoneNumber(formData.phoneNumber) : undefined,
+          phoneNumber: formData.phoneNumber ? formatPhoneNumber(formData.phoneNumber) : undefined,
+          businessPhone: formData.businessPhone ? formatBusinessPhoneForApi(formData.businessPhone, formData.businessPhoneExt) : undefined,
           status: formData.status,
           autoApproval: formData.autoApproval,
           managerId: formData.managerId || undefined,
@@ -528,9 +582,43 @@ export default function UsersRolesScreen() {
     );
   };
 
+  const getRoleAccentColor = (role: UserRole): string => {
+    switch (role.toLowerCase()) {
+      case "admin":
+      case "building_admin":
+        return theme.error;
+      case "manager":
+        return theme.warning;
+      case "employee":
+        return theme.primary;
+      case "security":
+        return theme.info;
+      case "receptionist":
+        return theme.secondary;
+      case "buffet_admin":
+        return theme.warning;
+      case "valet_admin":
+      case "valet_driver":
+        return theme.info;
+      default:
+        return theme.primary;
+    }
+  };
+
+  const getInitials = (name: string): string => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .substring(0, 2)
+      .toUpperCase();
+  };
+
   const renderUserCard = ({ item }: { item: DisplayUser }) => {
-    const isGrid = viewMode === "grid";
     const isSelected = selectedUserIds.has(item.id);
+    const roleColor = getRoleAccentColor(item.role);
+    const accentColor = item.status === "active" ? theme.success : theme.textSecondary;
+    const initials = getInitials(item.name);
 
     return (
       <Pressable
@@ -539,201 +627,110 @@ export default function UsersRolesScreen() {
             ? toggleUserSelection(item.id)
             : handleViewUserDetail(item.id)
         }
-        style={[
-          isGrid ? styles.userCardGrid : styles.userCard,
+        style={({ pressed }) => [
+          styles.userCardContainer,
           {
-            backgroundColor: theme.backgroundSecondary,
-            borderColor: isSelected && bulkMode ? theme.primary : theme.border,
-            borderWidth: isSelected && bulkMode ? 2 : 1,
+            backgroundColor: theme.surface,
+            opacity: pressed ? 0.9 : 1,
+            borderWidth: isSelected && bulkMode ? 2 : 0,
+            borderColor: isSelected && bulkMode ? theme.primary : 'transparent',
           },
         ]}
       >
-        <DirectionalRow style={styles.userHeader}>
-          {bulkMode ? (
-            <View style={{ marginEnd: Spacing.md }}>
+        <View style={[styles.userCardInner, { backgroundColor: theme.surface }]}>
+          <View style={[styles.cardAccentLine, { backgroundColor: accentColor }]} />
+          
+          {bulkMode && (
+            <View style={styles.cardCheckboxContainer}>
               {renderCheckbox(item.id)}
             </View>
-          ) : null}
-          <View style={{ flex: 1 }}>
-            <DirectionalRow style={styles.nameRow}>
-              <ThemedText
-                style={[Typography.subtitle, { fontWeight: "600", flex: 1 }]}
-                numberOfLines={1}
-              >
-                {item.name}
-              </ThemedText>
-            </DirectionalRow>
-            <ThemedText
-              style={[
-                Typography.bodySmall,
-                { color: theme.textSecondary, marginBottom: Spacing.xs },
-              ]}
-              numberOfLines={1}
-            >
-              {item.email}
-            </ThemedText>
-            <DirectionalRow style={styles.badgeRow}>
-              <View
-                style={[
-                  styles.roleBadge,
-                  { backgroundColor: theme.primary + "20" },
-                ]}
-              >
-                <ThemedText
-                  style={[
-                    Typography.caption,
-                    { color: theme.primary, fontWeight: "600" },
-                  ]}
-                >
-                  {getRoleLabel(item.role)}
+          )}
+
+          <View style={styles.cardMainContent}>
+            <DirectionalRow style={styles.cardHeader} gap={Spacing.md}>
+              <View style={[styles.cardAvatar, { backgroundColor: applyOpacity(roleColor, '15') }]}>
+                <ThemedText style={[styles.cardAvatarText, { color: roleColor }]}>
+                  {initials}
                 </ThemedText>
               </View>
-              {item.autoApproval ? (
-                <View
-                  style={[
-                    styles.autoApprovalBadge,
-                    { backgroundColor: theme.success + "20" },
-                  ]}
-                >
-                  <DDIcon name="check-circle" size={10} color={theme.success} />
-                  <ThemedText
-                    style={[
-                      Typography.caption,
-                      {
-                        color: theme.success,
-                        fontWeight: "600",
-                        marginStart: 2,
-                      },
-                    ]}
-                  >
-                    {t("common.auto")}
+              <View style={styles.cardNameSection}>
+                <DirectionalRow style={styles.cardNameRow} gap={Spacing.sm}>
+                  <ThemedText style={[styles.cardUserName, { color: theme.text, flex: 1 }]} numberOfLines={1}>
+                    {item.name}
                   </ThemedText>
-                </View>
-              ) : null}
+                  <View style={[styles.cardRoleBadge, { backgroundColor: applyOpacity(roleColor, '15'), borderColor: applyOpacity(roleColor, '30'), borderWidth: 1 }]}>
+                    <ThemedText style={[styles.cardBadgeText, { color: roleColor }]}>
+                      {getRoleLabel(item.role)}
+                    </ThemedText>
+                  </View>
+                </DirectionalRow>
+                <ThemedText style={[styles.cardEmail, { color: theme.textSecondary }]} numberOfLines={1}>
+                  {item.email}
+                </ThemedText>
+              </View>
             </DirectionalRow>
-          </View>
-          {!isGrid && !bulkMode ? (
-            <DirectionalRow style={styles.actions}>
-              <Pressable
-                style={[
-                  styles.actionButton,
-                  { backgroundColor: theme.primary + "15" },
-                ]}
-                onPress={() => handleEditUser(item)}
-              >
-                <DDIcon name="edit-2" size={16} variant="primary" />
-              </Pressable>
-              <View style={{ width: Spacing.sm }} />
-            </DirectionalRow>
-          ) : null}
-        </DirectionalRow>
 
-        {!isGrid && (item.department || item.phoneNumber || item.businessPhone || item.landline) ? (
-          <>
-            <Spacer height={Spacing.md} />
-            {item.department ? (
-              <DirectionalRow
-                style={[styles.infoRow, bulkMode ? { marginStart: 32 } : null]}
-              >
-                <DDIcon name="briefcase" variant="muted" size={14} />
-                <ThemedText
-                  style={[
-                    Typography.bodySmall,
-                    { color: theme.textSecondary, marginEnd: Spacing.xs },
-                  ]}
-                >
+            <Spacer height={Spacing.sm} />
+
+            {item.department && (
+              <DirectionalRow style={styles.cardInfoRow} gap={Spacing.sm}>
+                <DDIcon name="briefcase" variant="muted" size={13} />
+                <ThemedText style={[styles.cardInfoText, { color: theme.textSecondary }]} numberOfLines={1}>
                   {item.department}
                 </ThemedText>
               </DirectionalRow>
-            ) : null}
-            {item.phoneNumber ? (
-              <>
-                <Spacer height={Spacing.xs} />
-                <DirectionalRow
-                  style={[
-                    styles.infoRow,
-                    bulkMode ? { marginStart: 32 } : null,
-                  ]}
-                >
-                  <DDIcon name="phone" variant="muted" size={14} />
-                  <ThemedText
-                    style={[
-                      Typography.bodySmall,
-                      { color: theme.textSecondary, marginEnd: Spacing.xs },
-                    ]}
-                  >
-                    {formatPhoneNumber(item.phoneNumber)}
-                  </ThemedText>
-                </DirectionalRow>
-              </>
-            ) : null}
-            {item.businessPhone ? (
-              <>
-                <Spacer height={Spacing.xs} />
-                <DirectionalRow
-                  style={[
-                    styles.infoRow,
-                    bulkMode ? { marginStart: 32 } : null,
-                  ]}
-                >
-                  <DDIcon name="phone-call" variant="muted" size={14} />
-                  <ThemedText
-                    style={[
-                      Typography.bodySmall,
-                      { color: theme.textSecondary, marginEnd: Spacing.xs },
-                    ]}
-                  >
-                    {item.businessPhone}
-                  </ThemedText>
-                </DirectionalRow>
-              </>
-            ) : null}
-            {item.landline ? (
-              <>
-                <Spacer height={Spacing.xs} />
-                <DirectionalRow
-                  style={[
-                    styles.infoRow,
-                    bulkMode ? { marginStart: 32 } : null,
-                  ]}
-                >
-                  <DDIcon name="phone" variant="muted" size={14} />
-                  <ThemedText
-                    style={[
-                      Typography.bodySmall,
-                      { color: theme.textSecondary, marginEnd: Spacing.xs },
-                    ]}
-                  >
-                    {item.landline}
-                  </ThemedText>
-                </DirectionalRow>
-              </>
-            ) : null}
-          </>
-        ) : null}
+            )}
 
-        {isGrid && !bulkMode ? (
-          <DirectionalRow style={styles.gridActions}>
-            <Pressable
-              style={[
-                styles.gridActionButton,
-                { backgroundColor: theme.primary + "15" },
-              ]}
-              onPress={() => handleEditUser(item)}
-            >
-              <DDIcon name="edit-2" size={14} variant="primary" />
-            </Pressable>
-            <Pressable
-              style={[
-                styles.gridActionButton,
-                { backgroundColor: theme.error + "15" },
-              ]}
-              onPress={() => handleDeleteUser(item.id)}
-            >
-              <DDIcon name="trash-2" size={14} variant="danger" />
-            </Pressable>
-          </DirectionalRow>
-        ) : null}
+            {(item.phoneNumber || item.businessPhone) && (
+              <>
+                <Spacer height={Spacing.xs} />
+                <DirectionalRow style={styles.cardInfoRow} gap={Spacing.sm}>
+                  <DDIcon name="phone" variant="muted" size={13} />
+                  <ThemedText style={[styles.cardInfoText, { color: theme.textSecondary }]} numberOfLines={2}>
+                    {[
+                      item.phoneNumber ? formatPhoneNumber(item.phoneNumber) : null,
+                      item.businessPhone ? formatPhoneForDisplay(item.businessPhone) : null,
+                    ].filter(Boolean).join(" | ")}
+                  </ThemedText>
+                </DirectionalRow>
+              </>
+            )}
+
+            <Spacer height={Spacing.sm} />
+
+            <DirectionalRow style={styles.cardFooter}>
+              <DirectionalRow style={styles.cardBadgesRow} gap={Spacing.xs}>
+                {item.autoApproval && (
+                  <View style={[styles.cardAutoApprovalBadge, { backgroundColor: applyOpacity(theme.success, '15') }]}>
+                    <DDIcon name="check-circle" size={10} color={theme.success} />
+                    <ThemedText style={[styles.cardBadgeText, { color: theme.success, marginStart: 2 }]}>
+                      {t("common.auto")}
+                    </ThemedText>
+                  </View>
+                )}
+              </DirectionalRow>
+
+              {!bulkMode && (
+                <DirectionalRow style={styles.cardActions} gap={Spacing.sm}>
+                  <Pressable
+                    style={[styles.cardActionButton, { backgroundColor: applyOpacity(theme.primary, '15') }]}
+                    onPress={() => handleEditUser(item)}
+                  >
+                    <DDIcon name="edit-2" size={14} variant="primary" />
+                  </Pressable>
+                  {item.source !== "microsoft_ad" && (
+                    <Pressable
+                      style={[styles.cardActionButton, { backgroundColor: applyOpacity(theme.error, '15') }]}
+                      onPress={() => handleDeleteUser(item.id)}
+                    >
+                      <DDIcon name="trash-2" size={14} variant="danger" />
+                    </Pressable>
+                  )}
+                </DirectionalRow>
+              )}
+            </DirectionalRow>
+          </View>
+        </View>
       </Pressable>
     );
   };
@@ -788,14 +785,14 @@ export default function UsersRolesScreen() {
         <View style={[styles.tableCell, { flex: 1.5 }]}>
           <View
             style={[
-              styles.roleBadge,
-              { backgroundColor: theme.primary + "20" },
+              styles.cardRoleBadge,
+              { backgroundColor: applyOpacity(theme.primary, '20') },
             ]}
           >
             <ThemedText
               style={[
-                Typography.caption,
-                { color: theme.primary, fontWeight: "600" },
+                styles.cardBadgeText,
+                { color: theme.primary },
               ]}
               numberOfLines={1}
             >
@@ -825,7 +822,7 @@ export default function UsersRolesScreen() {
               { flex: 1.5, justifyContent: "center", gap: Spacing.xs },
             ]}
           >
-            <Pressable
+              <Pressable
               style={[
                 styles.tableActionButton,
                 { backgroundColor: theme.primary + "15" },
@@ -834,15 +831,17 @@ export default function UsersRolesScreen() {
             >
               <DDIcon name="edit-2" size={14} variant="primary" />
             </Pressable>
-            <Pressable
-              style={[
-                styles.tableActionButton,
-                { backgroundColor: theme.error + "15" },
-              ]}
-              onPress={() => handleDeleteUser(item.id)}
-            >
-              <DDIcon name="trash-2" size={14} variant="danger" />
-            </Pressable>
+            {item.source !== "microsoft_ad" && (
+              <Pressable
+                style={[
+                  styles.tableActionButton,
+                  { backgroundColor: theme.error + "15" },
+                ]}
+                onPress={() => handleDeleteUser(item.id)}
+              >
+                <DDIcon name="trash-2" size={14} variant="danger" />
+              </Pressable>
+            )}
           </DirectionalRow>
         ) : null}
       </Pressable>
@@ -1233,6 +1232,26 @@ export default function UsersRolesScreen() {
             style={[
               styles.viewToggleButton,
               styles.viewToggleButtonLeft,
+              {
+                backgroundColor:
+                  viewMode === "grid" ? theme.primary : theme.surface,
+                borderColor: viewMode === "grid" ? theme.primary : theme.border,
+              },
+            ]}
+            onPress={() => setViewMode("grid")}
+          >
+            <DDIcon
+              name="grid"
+              size={16}
+              color={
+                viewMode === "grid" ? theme.buttonText : theme.textSecondary
+              }
+            />
+          </Pressable>
+          <Pressable
+            style={[
+              styles.viewToggleButton,
+              styles.viewToggleButtonMiddle,
               {
                 backgroundColor:
                   viewMode === "list" ? theme.primary : theme.surface,
@@ -1657,36 +1676,27 @@ export default function UsersRolesScreen() {
     }
 
     if (viewMode === "grid") {
-      const gridData: DisplayUser[][] = [];
-      for (let i = 0; i < filteredAndSortedUsers.length; i += 2) {
-        gridData.push(filteredAndSortedUsers.slice(i, i + 2));
-      }
+      const getItemStyle = () => {
+        if (numColumns === 1) return { width: "100%" as const, paddingHorizontal: HORIZONTAL_PADDING, paddingBottom: Spacing.md };
+        // Use percentage-based widths with flexGrow: 0 to prevent stretching
+        const widthPercent = numColumns === 3 ? "33.33%" as const : numColumns === 2 ? "50%" as const : "100%" as const;
+        return { width: widthPercent, flexGrow: 0, paddingBottom: Spacing.md, paddingEnd: Spacing.sm };
+      };
 
       return (
         <FlatList
-          data={gridData}
-          renderItem={({ item: pair }) => (
-            <DirectionalRow style={styles.gridRow}>
-              {pair.map((user, idx) => (
-                <View
-                  key={user.id}
-                  style={[
-                    styles.gridItemWrapper,
-                    idx === 1 ? { marginStart: Spacing.sm } : null,
-                  ]}
-                >
-                  {renderUserCard({ item: user })}
-                </View>
-              ))}
-              {pair.length === 1 ? (
-                <View style={styles.gridItemWrapper} />
-              ) : null}
-            </DirectionalRow>
+          key={`flatlist-${numColumns}`}
+          data={filteredAndSortedUsers}
+          keyExtractor={(item) => item.id}
+          numColumns={numColumns}
+          contentContainerStyle={[styles.gridContainer, { paddingHorizontal: HORIZONTAL_PADDING }]}
+          renderItem={({ item }) => (
+            <View style={getItemStyle()}>
+              {renderUserCard({ item })}
+            </View>
           )}
-          keyExtractor={(item, index) => `row-${index}`}
           ListFooterComponent={listFooter}
           ListEmptyComponent={renderEmptyComponent}
-          contentContainerStyle={styles.gridContainer}
           style={{ flex: 1, backgroundColor: theme.background }}
         />
       );
@@ -1728,6 +1738,10 @@ export default function UsersRolesScreen() {
       {renderBulkActionBar()}
       {renderSortMenu()}
 
+      {/* Helper: SSO users can only edit Auto Approval */}
+      {(() => {
+        const isSsoUser = editingUser?.source === 'microsoft_ad';
+        return (
       <Modal
         visible={showModal}
         transparent
@@ -1753,7 +1767,7 @@ export default function UsersRolesScreen() {
           >
             <DirectionalRow style={styles.modalHeader}>
               <ThemedText style={[Typography.subtitle, { fontWeight: "600" }]}>
-                {editingUser ? t("common.edit") : t("common.addUser")}
+                {editingUser ? (isSsoUser ? t("common.editAutoApproval") : t("common.edit")) : t("common.addUser")}
               </ThemedText>
               <Pressable onPress={() => setShowModal(false)}>
                 <DDIcon name="x" size={24} variant="muted" />
@@ -1776,6 +1790,7 @@ export default function UsersRolesScreen() {
                 placeholder={t("form.enterFullName")}
                 error={formErrors.name}
                 returnKeyType="next"
+                editable={!isSsoUser}
               />
 
               <Spacer height={Spacing.md} />
@@ -1857,9 +1872,9 @@ export default function UsersRolesScreen() {
                         },
                       ]}
                       onPress={() =>
-                        !isDisabled && setFormData({ ...formData, role })
+                        !isDisabled && !isSsoUser && setFormData({ ...formData, role })
                       }
-                      disabled={isDisabled}
+                      disabled={isDisabled || isSsoUser}
                     >
                       <ThemedText
                         style={[
@@ -1889,20 +1904,46 @@ export default function UsersRolesScreen() {
                 }
                 placeholder={t("form.enterCompany")}
                 returnKeyType="next"
+                editable={!isSsoUser}
               />
 
               <Spacer height={Spacing.md} />
 
-              <StyledInput
-                label={`${t("form.phoneNumber")} *`}
+              <PhoneInputWithCountry
                 value={formData.phoneNumber}
                 onChangeText={handlePhoneChange}
-                placeholder="+XXX XX XXX XXXX"
-                keyboardType="phone-pad"
+                label={t("form.phoneNumber")}
+                required
                 error={formErrors.phone}
-                returnKeyType="done"
-                onSubmitEditing={handleSaveUser}
+                testID="input-phone"
+                editable={!isSsoUser}
               />
+
+              <Spacer height={Spacing.md} />
+
+              <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', gap: Spacing.sm }}>
+                <View style={{ flex: 2 }}>
+                  <PhoneInputWithCountry
+                    value={formData.businessPhone}
+                    onChangeText={handleBusinessPhoneChange}
+                    label={t("form.businessPhone")}
+                    testID="input-business-phone"
+                    editable={!isSsoUser}
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <StyledInput
+                    label={t("form.extension")}
+                    value={formData.businessPhoneExt}
+                    onChangeText={handleBusinessPhoneExtChange}
+                    placeholder="123"
+                    keyboardType="number-pad"
+                    testID="input-business-phone-ext"
+                    maxLength={6}
+                    editable={!isSsoUser}
+                  />
+                </View>
+              </View>
 
               <Spacer height={Spacing.md} />
 
@@ -1932,11 +1973,13 @@ export default function UsersRolesScreen() {
                         ? theme.primary
                         : theme.border,
                       marginEnd: Spacing.sm,
+                      opacity: isSsoUser ? 0.5 : 1,
                     },
                   ]}
                   onPress={() =>
-                    setFormData({ ...formData, managerId: undefined })
+                    !isSsoUser && setFormData({ ...formData, managerId: undefined })
                   }
+                  disabled={isSsoUser}
                 >
                   <ThemedText
                     style={[
@@ -1971,11 +2014,13 @@ export default function UsersRolesScreen() {
                               ? theme.primary
                               : theme.border,
                           marginEnd: Spacing.sm,
+                          opacity: isSsoUser ? 0.5 : 1,
                         },
                       ]}
                       onPress={() =>
-                        setFormData({ ...formData, managerId: manager.id })
+                        !isSsoUser && setFormData({ ...formData, managerId: manager.id })
                       }
+                      disabled={isSsoUser}
                     >
                       <ThemedText
                         style={[
@@ -2050,6 +2095,8 @@ export default function UsersRolesScreen() {
           </View>
         </KeyboardAvoidingView>
       </Modal>
+        );
+      })()}
 
       <ConfirmationModal
         visible={deleteModalVisible}
@@ -2176,70 +2223,103 @@ const styles = StyleSheet.create({
   gridContainer: {
     paddingHorizontal: HORIZONTAL_PADDING,
   },
-  gridRow: {
-    flexDirection: "row",
-    marginBottom: Spacing.md,
+  webGridRow: {
+    gap: Spacing.md,
+    paddingHorizontal: HORIZONTAL_PADDING,
   },
-  gridItemWrapper: {
-    flex: 1,
+  userCardContainer: {
+    borderRadius: BorderRadius.md,
+    overflow: "hidden",
   },
-  userCard: {
-    padding: Spacing.xl,
-    borderRadius: BorderRadius.lg,
-    borderWidth: 1,
-    marginBottom: Spacing.lg,
+  userCardInner: {
+    borderRadius: BorderRadius.md,
+    overflow: "hidden",
   },
-  userCardGrid: {
-    padding: Spacing.md,
-    borderRadius: BorderRadius.lg,
-    borderWidth: 1,
-    flex: 1,
+  cardAccentLine: {
+    position: "absolute",
+    start: 0,
+    top: 0,
+    bottom: 0,
+    width: 4,
+    borderTopStartRadius: BorderRadius.md,
+    borderBottomStartRadius: BorderRadius.md,
   },
-  userHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
+  cardCheckboxContainer: {
+    position: "absolute",
+    top: Spacing.md,
+    end: Spacing.md,
+    zIndex: 1,
   },
-  nameRow: {
-    flexDirection: "row",
+  cardMainContent: {
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.lg,
+    paddingEnd: Spacing.lg,
+    paddingStart: Spacing.lg + 4,
+  },
+  cardHeader: {
     alignItems: "center",
-    marginBottom: Spacing.xs,
   },
-  badgeRow: {
-    flexDirection: "row",
+  cardAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  cardAvatarText: {
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  cardNameSection: {
+    flex: 1,
+  },
+  cardNameRow: {
+    alignItems: "center",
+  },
+  cardUserName: {
+    fontSize: 15,
+    fontWeight: "600",
+  },
+  cardEmail: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  cardInfoRow: {
+    alignItems: "center",
+  },
+  cardInfoText: {
+    fontSize: 13,
+    flex: 1,
+  },
+  cardFooter: {
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  cardBadgesRow: {
     alignItems: "center",
     flexWrap: "wrap",
-    gap: Spacing.xs,
+    flex: 1,
   },
-  roleBadge: {
-    paddingHorizontal: Spacing.sm,
+  cardRoleBadge: {
+    paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: BorderRadius.sm,
   },
-  autoApprovalBadge: {
+  cardAutoApprovalBadge: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: Spacing.xs,
-    paddingVertical: 3,
+    paddingVertical: 4,
     borderRadius: BorderRadius.sm,
   },
-  actions: {
-    flexDirection: "row",
+  cardBadgeText: {
+    fontSize: 10,
+    fontWeight: "600",
   },
-  actionButton: {
-    width: 32,
-    height: 32,
-    borderRadius: BorderRadius.sm,
+  cardActions: {
     alignItems: "center",
-    justifyContent: "center",
   },
-  gridActions: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    marginTop: Spacing.md,
-    gap: Spacing.sm,
-  },
-  gridActionButton: {
+  cardActionButton: {
     width: 28,
     height: 28,
     borderRadius: BorderRadius.sm,

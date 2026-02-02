@@ -465,52 +465,6 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
 
       <Spacer height={Spacing.lg} />
 
-      <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
-        <DirectionalRow style={[styles.sectionHeaderRow, { justifyContent: 'space-between', alignItems: 'center' }]}>
-          <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text }]}>
-            {t('navigation.staffManagement')}
-          </ThemedText>
-          {showActions ? (
-            <Pressable
-              style={[styles.assignButton, { backgroundColor: applyOpacity(theme.warning, '12') }]}
-              onPress={handleOpenAssignModal}
-            >
-              <DDIcon name={request.assignedStaff ? "edit-2" : "user-plus"} size={14} color={theme.warning} />
-              <ThemedText style={[styles.assignButtonText, { color: theme.warning }]}>
-                {request.assignedStaff ? t('common.edit') : t('buffet.assignStaff')}
-              </ThemedText>
-            </Pressable>
-          ) : null}
-        </DirectionalRow>
-
-        <Spacer height={Spacing.lg} />
-
-        {request.assignedStaff ? (
-          <DirectionalRow style={styles.serviceRowNew}>
-            <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.success, '15') }]}>
-              <DDIcon name="user-check" size={18} color={theme.success} />
-            </View>
-            <View style={{ flex: 1, marginStart: Spacing.md }}>
-              <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
-                {t('buffet.assignedStaff')}
-              </ThemedText>
-              <ThemedText style={[Typography.caption, { color: theme.success, marginTop: 2, fontSize: 13, fontWeight: '500' }]}>
-                {request.assignedStaff}
-              </ThemedText>
-            </View>
-          </DirectionalRow>
-        ) : (
-          <View style={styles.noStaffState}>
-            <DDIcon name="user-x" size={24} variant="muted" />
-            <ThemedText style={[styles.noStaffText, { color: theme.textSecondary }]}>
-              {t('common.noData')}
-            </ThemedText>
-          </View>
-        )}
-      </ThemedView>
-
-      <Spacer height={Spacing.lg} />
-
       <RequestTimeline steps={timelineSteps} />
 
       {showActions ? (

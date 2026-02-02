@@ -11,6 +11,8 @@ import {
   Switch,
   Animated,
   ActivityIndicator,
+  TouchableWithoutFeedback,
+  useWindowDimensions,
 } from "react-native";
 import QRCode from "react-native-qrcode-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -71,6 +73,7 @@ import {
   getDurationOptions,
 } from "@/utils/requestMappers";
 import { calculateServerDuration } from "@/utils/dateTimeUtils";
+import { formatPhoneNumber, formatPhoneForDisplay } from "@/utils/formatters";
 import { useServerDateTime } from "@/hooks/useServerDateTime";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -104,7 +107,12 @@ export default function RequestDetailsScreen({
   } = useFormatters();
   const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
   const { requestId } = route.params;
+  
+  // Responsive layout: use grid on web (>768px), single column on mobile
+  const isWebLayout = screenWidth >= 768;
+  const gridItemWidth = screenWidth > 1024 ? '32%' : '48%';
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showHostRejectModal, setShowHostRejectModal] = useState(false);
@@ -129,6 +137,8 @@ export default function RequestDetailsScreen({
   const [showEditTimePicker, setShowEditTimePicker] = useState(false);
   const [showEditEndTimePicker, setShowEditEndTimePicker] = useState(false);
   const [showPurposePicker, setShowPurposePicker] = useState(false);
+  // Inline picker mode for iOS (can't stack Modals on iOS)
+  const [inlinePickerMode, setInlinePickerMode] = useState<'none' | 'purpose' | 'endTime' | 'startTime' | 'date'>('none');
   const [editSendWhatsApp, setEditSendWhatsApp] = useState(false);
   const [editSendSMS, setEditSendSMS] = useState(false);
   const [editModalMode, setEditModalMode] = useState<"full" | "services-only">(
@@ -411,6 +421,12 @@ export default function RequestDetailsScreen({
     }
   }, [showSuccessModal, fadeAnim, scaleAnim]);
 
+  // DEBUG: Track Edit Modal visibility changes
+  useEffect(() => {
+    console.log("[DEBUG Modal] showEditModal state changed to:", showEditModal);
+    console.log("[DEBUG Modal] Platform:", Platform.OS, "editModalMode:", editModalMode);
+  }, [showEditModal, editModalMode]);
+
   const handleCloseSuccessModal = () => {
     setShowSuccessModal(false);
   };
@@ -611,7 +627,12 @@ export default function RequestDetailsScreen({
   };
 
   const openEditModal = (mode: "full" | "services-only" = "full") => {
-    if (!visitData || isTerminalStatus) return;
+    console.log("[DEBUG Modal] openEditModal called with mode:", mode);
+    console.log("[DEBUG Modal] visitData exists:", !!visitData, "isTerminalStatus:", isTerminalStatus);
+    if (!visitData || isTerminalStatus) {
+      console.log("[DEBUG Modal] openEditModal - early return (no visitData or terminal status)");
+      return;
+    }
 
     setIsApprovalFlow(false);
     setEditModalMode(mode);
@@ -675,10 +696,12 @@ export default function RequestDetailsScreen({
     setEditSendSMS(channels.includes("sms"));
 
     setEditNotes("");
+    console.log("[DEBUG Modal] Setting showEditModal to TRUE");
     setShowEditModal(true);
   };
 
   const closeEditModal = () => {
+    console.log("[DEBUG Modal] closeEditModal called - setting showEditModal to FALSE");
     setShowEditModal(false);
     setIsApprovalFlow(false);
   };
@@ -1238,129 +1261,193 @@ export default function RequestDetailsScreen({
         <ThemedView
           style={[styles.cardNew, { backgroundColor: theme.surface }]}
         >
-          <View style={{ alignItems: "center" }}>
-            <View
-              style={[
-                styles.avatarNew,
-                { backgroundColor: applyOpacity(theme.primary, "15") },
-              ]}
-            >
-              <ThemedText
-                style={[
-                  styles.avatarText,
-                  {
-                    color: theme.primary,
-                    fontSize: 32,
-                    lineHeight: 40,
-                    fontWeight: "700",
-                  },
-                ]}
+          {/* Responsive visitor header - compact row on web, centered stack on mobile */}
+          {isWebLayout ? (
+            <DirectionalRow style={{ alignItems: 'center', justifyContent: 'space-between', gap: Spacing.lg }}>
+              {/* Left group: Avatar, Name, Status */}
+              <DirectionalRow style={{ alignItems: 'center', gap: Spacing.lg, flexShrink: 1 }}>
+                {/* Avatar */}
+                <View
+                  style={[
+                    styles.avatarNew,
+                    { backgroundColor: applyOpacity(theme.primary, "15"), width: 56, height: 56 },
+                  ]}
+                >
+                  <ThemedText
+                    style={[
+                      styles.avatarText,
+                      { color: theme.primary, fontSize: 24, lineHeight: 28, fontWeight: "700" },
+                    ]}
+                  >
+                    {request.visitor.fullName.split(" ").map((n) => n[0]).join("")}
+                  </ThemedText>
+                </View>
+
+                {/* Name and Company */}
+                <View style={{ minWidth: 100, flexShrink: 1 }}>
+                  <ThemedText
+                    style={[Typography.title, { fontWeight: "600", fontSize: 18, color: theme.text }]}
+                    numberOfLines={1}
+                  >
+                    {request.visitor.fullName}
+                  </ThemedText>
+                  {request.visitor.company && (
+                    <ThemedText
+                      style={[Typography.body, { color: theme.textSecondary, fontSize: 13, marginTop: 2 }]}
+                      numberOfLines={1}
+                    >
+                      {request.visitor.company}
+                    </ThemedText>
+                  )}
+                </View>
+
+                {/* Status Badge */}
+                <View
+                  style={{
+                    backgroundColor: statusConfig.bg,
+                    borderColor: statusConfig.border,
+                    borderWidth: StyleSheet.hairlineWidth,
+                    paddingHorizontal: Spacing.md,
+                    paddingVertical: 6,
+                    borderRadius: BorderRadius.full,
+                  }}
+                >
+                  <ThemedText
+                    style={[Typography.caption, { color: statusConfig.text, fontWeight: "600", fontSize: 12 }]}
+                  >
+                    {statusConfig.label}
+                  </ThemedText>
+                </View>
+              </DirectionalRow>
+
+              {/* Right group: Contact info */}
+              <DirectionalRow style={{ alignItems: 'center', gap: Spacing.lg, flexShrink: 0 }}>
+                {/* Email */}
+                <DirectionalRow style={{ alignItems: 'center', gap: Spacing.sm }}>
+                  <View
+                    style={[
+                      styles.serviceIcon,
+                      { backgroundColor: applyOpacity(theme.textSecondary, "15"), width: 32, height: 32 },
+                    ]}
+                  >
+                    <DDIcon name="mail" size={16} color={theme.text} />
+                  </View>
+                  <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14 }]}>
+                    {request.visitor.email}
+                  </ThemedText>
+                </DirectionalRow>
+
+                {/* Phone */}
+                <DirectionalRow style={{ alignItems: 'center', gap: Spacing.sm }}>
+                  <View
+                    style={[
+                      styles.serviceIcon,
+                      { backgroundColor: applyOpacity(theme.textSecondary, "15"), width: 32, height: 32 },
+                    ]}
+                  >
+                    <DDIcon name="phone" size={16} color={theme.text} />
+                  </View>
+                  <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14 }]}>
+                    {formatPhoneForDisplay(request.visitor.phone || '')}
+                  </ThemedText>
+                </DirectionalRow>
+              </DirectionalRow>
+            </DirectionalRow>
+          ) : (
+            <>
+              {/* Mobile layout - centered stack */}
+              <View style={{ alignItems: "center" }}>
+                <View
+                  style={[
+                    styles.avatarNew,
+                    { backgroundColor: applyOpacity(theme.primary, "15") },
+                  ]}
+                >
+                  <ThemedText
+                    style={[
+                      styles.avatarText,
+                      { color: theme.primary, fontSize: 32, lineHeight: 40, fontWeight: "700" },
+                    ]}
+                  >
+                    {request.visitor.fullName.split(" ").map((n) => n[0]).join("")}
+                  </ThemedText>
+                </View>
+
+                <Spacer height={Spacing.lg} />
+
+                <ThemedText
+                  style={[Typography.title, { fontWeight: "600", fontSize: 22, color: theme.text }]}
+                >
+                  {request.visitor.fullName}
+                </ThemedText>
+                <ThemedText
+                  style={[Typography.body, { color: theme.textSecondary, fontSize: 14, marginTop: 4 }]}
+                >
+                  {request.visitor.company}
+                </ThemedText>
+
+                <Spacer height={Spacing.sm} />
+
+                <View
+                  style={{
+                    alignSelf: "center",
+                    backgroundColor: statusConfig.bg,
+                    borderColor: statusConfig.border,
+                    borderWidth: StyleSheet.hairlineWidth,
+                    paddingHorizontal: Spacing.md,
+                    paddingVertical: 6,
+                    borderRadius: BorderRadius.full,
+                  }}
+                >
+                  <ThemedText
+                    style={[Typography.caption, { color: statusConfig.text, fontWeight: "600", fontSize: 12 }]}
+                  >
+                    {statusConfig.label}
+                  </ThemedText>
+                </View>
+              </View>
+
+              <Spacer height={Spacing.xl} />
+
+              <View style={[styles.divider, { backgroundColor: theme.border }]} />
+
+              <Spacer height={Spacing.lg} />
+
+              <DirectionalRow
+                style={[styles.infoRowNew, { justifyContent: "flex-start", gap: Spacing.md }]}
               >
-                {request.visitor.fullName
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")}
-              </ThemedText>
-            </View>
+                <View
+                  style={[
+                    styles.serviceIcon,
+                    { backgroundColor: applyOpacity(theme.textSecondary, "15") },
+                  ]}
+                >
+                  <DDIcon name="mail" size={18} color={theme.text} />
+                </View>
+                <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14 }]}>
+                  {request.visitor.email}
+                </ThemedText>
+              </DirectionalRow>
 
-            <Spacer height={Spacing.lg} />
+              <Spacer height={Spacing.md} />
 
-            <ThemedText
-              style={[
-                Typography.title,
-                { fontWeight: "600", fontSize: 22, color: theme.text },
-              ]}
-            >
-              {request.visitor.fullName}
-            </ThemedText>
-            <ThemedText
-              style={[
-                Typography.body,
-                { color: theme.textSecondary, fontSize: 14, marginTop: 4 },
-              ]}
-            >
-              {request.visitor.company}
-            </ThemedText>
-
-            <Spacer height={Spacing.sm} />
-
-            <View
-              style={{
-                alignSelf: "center",
-                backgroundColor: statusConfig.bg,
-                borderColor: statusConfig.border,
-                borderWidth: StyleSheet.hairlineWidth,
-                paddingHorizontal: Spacing.md,
-                paddingVertical: 6,
-                borderRadius: BorderRadius.full,
-              }}
-            >
-              <ThemedText
-                style={[
-                  Typography.caption,
-                  { color: statusConfig.text, fontWeight: "600", fontSize: 12 },
-                ]}
+              <DirectionalRow
+                style={[styles.infoRowNew, { justifyContent: "flex-start", gap: Spacing.md }]}
               >
-                {statusConfig.label}
-              </ThemedText>
-            </View>
-          </View>
-
-          <Spacer height={Spacing.xl} />
-
-          <View style={[styles.divider, { backgroundColor: theme.border }]} />
-
-          <Spacer height={Spacing.lg} />
-
-          <DirectionalRow
-            style={[
-              styles.infoRowNew,
-              { justifyContent: "flex-start", gap: Spacing.md },
-            ]}
-          >
-            <View
-              style={[
-                styles.serviceIcon,
-                { backgroundColor: applyOpacity(theme.textSecondary, "15") },
-              ]}
-            >
-              <DDIcon name="mail" size={18} color={theme.text} />
-            </View>
-            <ThemedText
-              style={[
-                Typography.body,
-                { color: theme.textSecondary, fontSize: 14 },
-              ]}
-            >
-              {request.visitor.email}
-            </ThemedText>
-          </DirectionalRow>
-
-          <Spacer height={Spacing.md} />
-
-          <DirectionalRow
-            style={[
-              styles.infoRowNew,
-              { justifyContent: "flex-start", gap: Spacing.md },
-            ]}
-          >
-            <View
-              style={[
-                styles.serviceIcon,
-                { backgroundColor: applyOpacity(theme.textSecondary, "15") },
-              ]}
-            >
-              <DDIcon name="phone" size={18} color={theme.text} />
-            </View>
-            <ThemedText
-              style={[
-                Typography.body,
-                { color: theme.textSecondary, fontSize: 14 },
-              ]}
-            >
-              {request.visitor.phone}
-            </ThemedText>
-          </DirectionalRow>
+                <View
+                  style={[
+                    styles.serviceIcon,
+                    { backgroundColor: applyOpacity(theme.textSecondary, "15") },
+                  ]}
+                >
+                  <DDIcon name="phone" size={18} color={theme.text} />
+                </View>
+                <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14 }]}>
+                  {formatPhoneForDisplay(request.visitor.phone || '')}
+                </ThemedText>
+              </DirectionalRow>
+            </>
+          )}
         </ThemedView>
 
         <Spacer height={Spacing.lg} />
@@ -1461,66 +1548,13 @@ export default function RequestDetailsScreen({
           </DirectionalRow>
           <Spacer height={Spacing.xl} />
 
-          <DirectionalRow
-            style={[styles.serviceRowNew, { justifyContent: "flex-start" }]}
-          >
-            {isRTL ? (
-              <>
-                <View
-                  style={[
-                    styles.serviceIcon,
-                    {
-                      backgroundColor: applyOpacity(
-                        isVisitExpired ? theme.secondary : theme.textSecondary,
-                        "15",
-                      ),
-                    },
-                  ]}
-                >
-                  <DDIcon
-                    name={isVisitExpired ? "check-circle" : "calendar"}
-                    size={18}
-                    color={isVisitExpired ? theme.secondary : theme.text}
-                  />
-                </View>
-                <View>
-                  <DirectionalRow
-                    style={{
-                      alignItems: "center",
-                      gap: Spacing.xs,
-                      justifyContent: "flex-end",
-                    }}
-                  >
-                    {isVisitExpired ? (
-                      <DDIcon name="check" size={14} color={theme.secondary} />
-                    ) : null}
-                    <ThemedText
-                      style={[
-                        Typography.body,
-                        { fontWeight: "600", fontSize: 15, textAlign: "right" },
-                      ]}
-                    >
-                      {t("time.dateAndTime")}
-                    </ThemedText>
-                  </DirectionalRow>
-                  <ThemedText
-                    style={[
-                      Typography.caption,
-                      {
-                        color: theme.textSecondary,
-                        marginTop: 2,
-                        fontSize: 13,
-                        //     textAlign: "right",
-                      },
-                    ]}
-                  >
-                    {formatDateShort(request.visitDate)} •{" "}
-                    {formatVisitTimeRange(request.visitTime, request.endTime)}
-                  </ThemedText>
-                </View>
-              </>
-            ) : (
-              <>
+          {/* Responsive grid for Visit Details items */}
+          <View style={isWebLayout ? styles.responsiveGrid : undefined}>
+            {/* Date & Time */}
+            <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
+              <DirectionalRow
+                style={[styles.serviceRowNew, { justifyContent: "flex-start" }]}
+              >
                 <View
                   style={[
                     styles.serviceIcon,
@@ -1545,11 +1579,7 @@ export default function RequestDetailsScreen({
                     <ThemedText
                       style={[
                         Typography.body,
-                        {
-                          fontWeight: "600",
-                          fontSize: 15,
-                          //  textAlign: "left"
-                        },
+                        { fontWeight: "600", fontSize: 15 },
                       ]}
                     >
                       {t("time.dateAndTime")}
@@ -1561,107 +1591,209 @@ export default function RequestDetailsScreen({
                   <ThemedText
                     style={[
                       Typography.caption,
-                      {
-                        color: theme.textSecondary,
-                        marginTop: 2,
-                        fontSize: 13,
-                        //  textAlign: "left",
-                      },
+                      { color: theme.textSecondary, marginTop: 2, fontSize: 13 },
                     ]}
                   >
                     {formatDateShort(request.visitDate)} •{" "}
                     {formatVisitTimeRange(request.visitTime, request.endTime)}
                   </ThemedText>
                 </View>
-              </>
-            )}
-          </DirectionalRow>
-
-          <Spacer height={Spacing.lg} />
-
-          <DirectionalRow
-            style={[styles.serviceRowNew, { justifyContent: "flex-start" }]}
-          >
-            <View
-              style={[
-                styles.serviceIcon,
-                { backgroundColor: applyOpacity(theme.textSecondary, "15") },
-              ]}
-            >
-              <DDIcon name="clock" size={18} color={theme.text} />
+              </DirectionalRow>
+              {!isWebLayout && <Spacer height={Spacing.lg} />}
             </View>
-            <View>
-              <ThemedText
-                style={[
-                  Typography.body,
-                  {
-                    fontWeight: "600",
-                    fontSize: 15,
-                    //  
-                  },
-                ]}
-              >
-                {t("form.duration")}
-              </ThemedText>
-              <ThemedText
-                style={[
-                  Typography.caption,
-                  {
-                    color: theme.textSecondary,
-                    marginTop: 2,
-                    fontSize: 13,
-                    //   
-                  },
-                ]}
-              >
-                {parseISODuration(request.duration)}
-              </ThemedText>
-            </View>
-          </DirectionalRow>
 
-          <Spacer height={Spacing.lg} />
+            {/* Duration */}
+            <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
+              <DirectionalRow
+                style={[styles.serviceRowNew, { justifyContent: "flex-start" }]}
+              >
+                <View
+                  style={[
+                    styles.serviceIcon,
+                    { backgroundColor: applyOpacity(theme.textSecondary, "15") },
+                  ]}
+                >
+                  <DDIcon name="clock" size={18} color={theme.text} />
+                </View>
+                <View>
+                  <ThemedText
+                    style={[Typography.body, { fontWeight: "600", fontSize: 15 }]}
+                  >
+                    {t("form.duration")}
+                  </ThemedText>
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      { color: theme.textSecondary, marginTop: 2, fontSize: 13 },
+                    ]}
+                  >
+                    {parseISODuration(request.duration)}
+                  </ThemedText>
+                </View>
+              </DirectionalRow>
+              {!isWebLayout && <Spacer height={Spacing.lg} />}
+            </View>
 
-          <DirectionalRow style={[styles.serviceRowNew]}>
-            <View
-              style={[
-                styles.serviceIcon,
-                { backgroundColor: applyOpacity(theme.textSecondary, "15") },
-              ]}
-            >
-              <DDIcon name="briefcase" size={18} color={theme.text} />
+            {/* Purpose */}
+            <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
+              <DirectionalRow style={[styles.serviceRowNew]}>
+                <View
+                  style={[
+                    styles.serviceIcon,
+                    { backgroundColor: applyOpacity(theme.textSecondary, "15") },
+                  ]}
+                >
+                  <DDIcon name="briefcase" size={18} color={theme.text} />
+                </View>
+                <View>
+                  <ThemedText
+                    style={[Typography.body, { fontWeight: "600", fontSize: 15 }]}
+                  >
+                    {t("form.purpose")}
+                  </ThemedText>
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      {
+                        color: theme.textSecondary,
+                        marginTop: 2,
+                        fontSize: 13,
+                        lineHeight: 20,
+                      },
+                    ]}
+                  >
+                    {request.purpose}
+                  </ThemedText>
+                </View>
+              </DirectionalRow>
             </View>
-            <View>
-              <ThemedText
-                style={[
-                  Typography.body,
-                  {
-                    fontWeight: "600",
-                    fontSize: 15,
-                    //   
-                  },
-                ]}
-              >
-                {t("form.purpose")}
-              </ThemedText>
-              <ThemedText
-                style={[
-                  Typography.caption,
-                  {
-                    color: theme.textSecondary,
-                    marginTop: 2,
-                    fontSize: 13,
-                    lineHeight: 20,
-                    //     
-                  },
-                ]}
-              >
-                {request.purpose}
-              </ThemedText>
-            </View>
-          </DirectionalRow>
+          </View>
         </ThemedView>
 
         <Spacer height={Spacing.lg} />
+
+        {/* Host Details Section - only show if we have host phone info */}
+        {(request.employeePhoneNumber || request.employeeBusinessPhone) && (
+          <>
+            <ThemedView
+              style={[styles.cardNew, { backgroundColor: theme.surface }]}
+            >
+              <ThemedText
+                style={[
+                  Typography.subtitle,
+                  { fontSize: 16, fontWeight: "600", color: theme.text },
+                ]}
+              >
+                {t("visitor.hostDetails")}
+              </ThemedText>
+              <Spacer height={Spacing.xl} />
+
+              {/* Responsive grid for Host Details items */}
+              <View style={isWebLayout ? styles.responsiveGrid : undefined}>
+                {/* Host Name */}
+                <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
+                  <DirectionalRow
+                    style={[styles.serviceRowNew, { justifyContent: "flex-start" }]}
+                  >
+                    <View
+                      style={[
+                        styles.serviceIcon,
+                        { backgroundColor: applyOpacity(theme.textSecondary, "15") },
+                      ]}
+                    >
+                      <DDIcon name="user" size={18} color={theme.text} />
+                    </View>
+                    <View>
+                      <ThemedText
+                        style={[Typography.body, { fontWeight: "600", fontSize: 15 }]}
+                      >
+                        {t("visitor.hostName")}
+                      </ThemedText>
+                      <ThemedText
+                        style={[
+                          Typography.caption,
+                          { color: theme.textSecondary, marginTop: 2, fontSize: 13 },
+                        ]}
+                      >
+                        {request.employeeName}
+                        {request.employeeDepartment ? ` (${request.employeeDepartment})` : ''}
+                      </ThemedText>
+                    </View>
+                  </DirectionalRow>
+                  {!isWebLayout && <Spacer height={Spacing.md} />}
+                </View>
+
+                {/* Host Phone */}
+                {request.employeePhoneNumber && (
+                  <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
+                    <DirectionalRow
+                      style={[styles.serviceRowNew, { justifyContent: "flex-start" }]}
+                    >
+                      <View
+                        style={[
+                          styles.serviceIcon,
+                          { backgroundColor: applyOpacity(theme.textSecondary, "15") },
+                        ]}
+                      >
+                        <DDIcon name="phone" size={18} color={theme.text} />
+                      </View>
+                      <View>
+                        <ThemedText
+                          style={[Typography.body, { fontWeight: "600", fontSize: 15 }]}
+                        >
+                          {t("form.phone")}
+                        </ThemedText>
+                        <ThemedText
+                          style={[
+                            Typography.caption,
+                            { color: theme.textSecondary, marginTop: 2, fontSize: 13 },
+                          ]}
+                        >
+                          {formatPhoneNumber(request.employeePhoneNumber || '')}
+                        </ThemedText>
+                      </View>
+                    </DirectionalRow>
+                    {!isWebLayout && <Spacer height={Spacing.md} />}
+                  </View>
+                )}
+
+                {/* Host Landline */}
+                {request.employeeBusinessPhone && (
+                  <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
+                    <DirectionalRow
+                      style={[styles.serviceRowNew, { justifyContent: "flex-start" }]}
+                    >
+                      <View
+                        style={[
+                          styles.serviceIcon,
+                          { backgroundColor: applyOpacity(theme.textSecondary, "15") },
+                        ]}
+                      >
+                        <DDIcon name="phone" size={18} color={theme.text} />
+                      </View>
+                      <View>
+                        <ThemedText
+                          style={[Typography.body, { fontWeight: "600", fontSize: 15 }]}
+                        >
+                          {t("form.landline")}
+                        </ThemedText>
+                        <ThemedText
+                          style={[
+                            Typography.caption,
+                            { color: theme.textSecondary, marginTop: 2, fontSize: 13 },
+                          ]}
+                        >
+                          {formatPhoneForDisplay(request.employeeBusinessPhone || '')}
+                        </ThemedText>
+                      </View>
+                    </DirectionalRow>
+                  </View>
+                )}
+              </View>
+            </ThemedView>
+            <Spacer height={Spacing.lg} />
+          </>
+        )}
 
         <ThemedView
           style={[styles.cardNew, { backgroundColor: theme.surface }]}
@@ -1676,439 +1808,363 @@ export default function RequestDetailsScreen({
           </ThemedText>
           <Spacer height={Spacing.xl} />
 
-          <DirectionalRow
-            style={[
-              styles.serviceItemNew,
-              { backgroundColor: theme.surfaceSecondary },
-            ]}
-          >
-            <View
-              style={[
-                styles.serviceIcon,
-                {
-                  backgroundColor: applyOpacity(
-                    request.meetingRoom || request.isMeetingRoom
-                      ? theme.secondary
-                      : theme.textSecondary,
-                    "15",
-                  ),
-                },
-              ]}
-            >
-              <DDIcon
-                name="briefcase"
-                size={18}
-                color={
-                  request.meetingRoom || request.isMeetingRoom
-                    ? theme.secondary
-                    : theme.textSecondary
-                }
-              />
-            </View>
-            <View style={{ flex: 1 }}>
-              <ThemedText
+          {/* Responsive grid for Additional Services items */}
+          <View style={isWebLayout ? styles.responsiveGrid : undefined}>
+            {/* Meeting Room */}
+            <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
+              <DirectionalRow
                 style={[
-                  Typography.body,
-                  {
-                    fontWeight: "600",
-                    fontSize: 14,
-                    color: theme.text,
-                    //     
-                  },
+                  styles.serviceItemNew,
+                  { backgroundColor: theme.surfaceSecondary },
                 ]}
               >
-                {t("services.meetingRoom")}
-              </ThemedText>
-              {(request.meetingRoom?.name ||
-                request.isMeetingRoom ||
-                (request as any).meetingRoomPending) &&
-              (request.status === REQUEST_STATUS.REJECTED ||
-                request.status === REQUEST_STATUS.CANCELLED) ? (
-                <ThemedText
+                <View
                   style={[
-                    Typography.caption,
+                    styles.serviceIcon,
                     {
-                      color: theme.error,
-                      fontSize: 12,
-                      marginTop: 2,
+                      backgroundColor: applyOpacity(
+                        request.meetingRoom || request.isMeetingRoom
+                          ? theme.secondary
+                          : theme.textSecondary,
+                        "15",
+                      ),
                     },
                   ]}
                 >
-                  {t("status.cancelled")}
-                </ThemedText>
-              ) : request.meetingRoom?.name ? (
-                <>
+                  <DDIcon
+                    name="briefcase"
+                    size={18}
+                    color={
+                      request.meetingRoom || request.isMeetingRoom
+                        ? theme.secondary
+                        : theme.textSecondary
+                    }
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
                   <ThemedText
                     style={[
-                      Typography.caption,
-                      {
-                        color: theme.textSecondary,
-                        fontSize: 12,
-                        marginTop: 2,
-                      },
+                      Typography.body,
+                      { fontWeight: "600", fontSize: 14, color: theme.text },
                     ]}
                   >
-                    {request.meetingRoom.name} - {request.meetingRoom.floor}
+                    {t("services.meetingRoom")}
                   </ThemedText>
-                  <ThemedText
-                    style={[
-                      Typography.caption,
-                      {
-                        color: theme.textSecondary,
-                        fontSize: 12,
-                      },
-                    ]}
-                  >
-                    {formatDateShort(request.visitDate)} •{" "}
-                    {formatVisitTimeRange(request.visitTime, request.endTime)}
-                  </ThemedText>
-                </>
-              ) : request.isMeetingRoom || (request as any).meetingRoomPending ? (
-                <ThemedText
-                  style={[
-                    Typography.caption,
-                    {
-                      color: theme.warning,
-                      fontSize: 12,
-                      marginTop: 2,
-                    },
-                  ]}
-                >
-                  {request.status === REQUEST_STATUS.PENDING_APPROVAL || request.status === REQUEST_STATUS.PENDING_HOST_APPROVAL
-                    ? t("status.pendingApproval")
-                    : t("status.pending")}
-                </ThemedText>
-              ) : request.status === REQUEST_STATUS.CANCELLED || request.status === REQUEST_STATUS.AUTO_CANCELLED || request.status === REQUEST_STATUS.VISITOR_REJECTED ? (
-                <ThemedText
-                  style={[
-                    Typography.caption,
-                    {
-                      color: theme.error,
-                      fontSize: 12,
-                      marginTop: 2,
-                    },
-                  ]}
-                >
-                  {t("status.cancelled")}
-                </ThemedText>
-              ) : (
-                <ThemedText
-                  style={[
-                    Typography.caption,
-                    {
-                      color: theme.textSecondary,
-                      fontSize: 12,
-                      marginTop: 2,
-                      fontStyle: "italic",
-                    },
-                  ]}
-                >
-                  {t("common.notRequested")}
-                </ThemedText>
-              )}
-            </View>
-            {request.meetingRoom?.status ? (
-              <StatusBadge
-                label={formatServiceStatus(request.meetingRoom.status)}
-                variant={getServiceStatusVariant(request.meetingRoom.status)}
-                size="sm"
-              />
-            ) : null}
-          </DirectionalRow>
-          <Spacer height={Spacing.md} />
-
-          <DirectionalRow
-            style={[
-              styles.serviceItemNew,
-              { backgroundColor: theme.surfaceSecondary },
-            ]}
-          >
-            <View
-              style={[
-                styles.serviceIcon,
-                {
-                  backgroundColor: applyOpacity(
-                    request.buffet ||
-                      request.isBuffet ||
-                      (request as any).buffetPending
-                      ? theme.secondary
-                      : theme.textSecondary,
-                    "15",
-                  ),
-                },
-              ]}
-            >
-              <DDIcon
-                name="cloche"
-                size={18}
-                color={
-                  request.buffet ||
-                  request.isBuffet ||
-                  (request as any).buffetPending
-                    ? theme.secondary
-                    : theme.textSecondary
-                }
-              />
-            </View>
-            <View style={{ flex: 1 }}>
-              <ThemedText
-                style={[
-                  Typography.body,
-                  {
-                    fontWeight: "600",
-                    fontSize: 14,
-                    color: theme.text,
-                    //    
-                  },
-                ]}
-              >
-                {t("buffet.buffetService")}
-              </ThemedText>
-              {(request.buffet?.mealType ||
-                request.isBuffet ||
-                (request as any).buffetPending) &&
-              (request.status === REQUEST_STATUS.REJECTED ||
-                request.status === REQUEST_STATUS.CANCELLED) ? (
-                <ThemedText
-                  style={[
-                    Typography.caption,
-                    {
-                      color: theme.error,
-                      fontSize: 12,
-                      marginTop: 2,
-                    },
-                  ]}
-                >
-                  {t("status.cancelled")}
-                </ThemedText>
-              ) : request.buffet?.mealType ? (
-                <ThemedText
-                  style={[
-                    Typography.caption,
-                    {
-                      color: theme.textSecondary,
-                      fontSize: 12,
-                      marginTop: 2,
-                    },
-                  ]}
-                >
-                  {request.buffet.location} -{" "}
-                  {request.buffet.mealType.charAt(0).toUpperCase() +
-                    request.buffet.mealType.slice(1)}
-                </ThemedText>
-              ) : request.isBuffet || (request as any).buffetPending ? (
-                <ThemedText
-                  style={[
-                    Typography.caption,
-                    {
-                      color: theme.warning,
-                      fontSize: 12,
-                      marginTop: 2,
-                    },
-                  ]}
-                >
-                  {request.status === REQUEST_STATUS.PENDING_APPROVAL || request.status === REQUEST_STATUS.PENDING_HOST_APPROVAL
-                    ? t("status.pendingApproval")
-                    : t("status.pending")}
-                </ThemedText>
-              ) : request.status === REQUEST_STATUS.CANCELLED || request.status === REQUEST_STATUS.AUTO_CANCELLED || request.status === REQUEST_STATUS.VISITOR_REJECTED ? (
-                <ThemedText
-                  style={[
-                    Typography.caption,
-                    {
-                      color: theme.error,
-                      fontSize: 12,
-                      marginTop: 2,
-                    },
-                  ]}
-                >
-                  {t("status.cancelled")}
-                </ThemedText>
-              ) : (
-                <ThemedText
-                  style={[
-                    Typography.caption,
-                    {
-                      color: theme.textSecondary,
-                      fontSize: 12,
-                      marginTop: 2,
-                      fontStyle: "italic",
-                    },
-                  ]}
-                >
-                  {t("common.notRequested")}
-                </ThemedText>
-              )}
-            </View>
-            {request.buffet?.status ? (
-              <StatusBadge
-                label={formatServiceStatus(request.buffet.status)}
-                variant={getServiceStatusVariant(request.buffet.status)}
-                size="sm"
-              />
-            ) : null}
-          </DirectionalRow>
-          <Spacer height={Spacing.md} />
-
-          {/* Parking */}
-          <DirectionalRow
-            style={[
-              styles.serviceItemNew,
-              { backgroundColor: theme.surfaceSecondary },
-            ]}
-          >
-            <View
-              style={[
-                styles.serviceIcon,
-                {
-                  backgroundColor: applyOpacity(
-                    request.visitorNeedsParking
-                      ? theme.secondary
-                      : theme.textSecondary,
-                    "15",
-                  ),
-                },
-              ]}
-            >
-              <DDIcon
-                name="truck"
-                size={18}
-                color={
-                  request.visitorNeedsParking
-                    ? theme.secondary
-                    : theme.textSecondary
-                }
-              />
-            </View>
-            <View style={{ flex: 1 }}>
-              <ThemedText
-                style={[
-                  Typography.body,
-                  {
-                    fontWeight: "600",
-                    fontSize: 14,
-                    color: theme.text,
-                  },
-                ]}
-              >
-                {t("services.parking")}
-              </ThemedText>
-              {request.visitorNeedsParking ? (
-                request.licensePlate || request.carModel || request.carColor ? (
-                  <>
+                  {(request.meetingRoom?.name ||
+                    request.isMeetingRoom ||
+                    (request as any).meetingRoomPending) &&
+                  (request.status === REQUEST_STATUS.REJECTED ||
+                    request.status === REQUEST_STATUS.CANCELLED) ? (
                     <ThemedText
                       style={[
                         Typography.caption,
-                        {
-                          color: theme.textSecondary,
-                          fontSize: 12,
-                          marginTop: 2,
-                        },
+                        { color: theme.error, fontSize: 12, marginTop: 2 },
                       ]}
                     >
-                      {[
-                        request.licensePlate,
-                        request.carModel,
-                        request.carColor,
-                      ]
-                        .filter(Boolean)
-                        .join(" • ")}
+                      {t("status.cancelled")}
                     </ThemedText>
-                  </>
-                ) : (
+                  ) : request.meetingRoom?.name ? (
+                    <>
+                      <ThemedText
+                        style={[
+                          Typography.caption,
+                          { color: theme.textSecondary, fontSize: 12, marginTop: 2 },
+                        ]}
+                      >
+                        {request.meetingRoom.name} - {request.meetingRoom.floor}
+                      </ThemedText>
+                      <ThemedText
+                        style={[
+                          Typography.caption,
+                          { color: theme.textSecondary, fontSize: 12 },
+                        ]}
+                      >
+                        {formatDateShort(request.visitDate)} •{" "}
+                        {formatVisitTimeRange(request.visitTime, request.endTime)}
+                      </ThemedText>
+                    </>
+                  ) : request.isMeetingRoom || (request as any).meetingRoomPending ? (
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.warning, fontSize: 12, marginTop: 2 },
+                      ]}
+                    >
+                      {request.status === REQUEST_STATUS.PENDING_APPROVAL || request.status === REQUEST_STATUS.PENDING_HOST_APPROVAL
+                        ? t("status.pendingApproval")
+                        : t("status.pending")}
+                    </ThemedText>
+                  ) : request.status === REQUEST_STATUS.CANCELLED || request.status === REQUEST_STATUS.AUTO_CANCELLED || request.status === REQUEST_STATUS.VISITOR_REJECTED ? (
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.error, fontSize: 12, marginTop: 2 },
+                      ]}
+                    >
+                      {t("status.cancelled")}
+                    </ThemedText>
+                  ) : (
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.textSecondary, fontSize: 12, marginTop: 2, fontStyle: "italic" },
+                      ]}
+                    >
+                      {t("common.notRequested")}
+                    </ThemedText>
+                  )}
+                </View>
+                {request.meetingRoom?.status ? (
+                  <StatusBadge
+                    label={formatServiceStatus(request.meetingRoom.status)}
+                    variant={getServiceStatusVariant(request.meetingRoom.status)}
+                    size="sm"
+                  />
+                ) : null}
+              </DirectionalRow>
+              {!isWebLayout && <Spacer height={Spacing.md} />}
+            </View>
+
+            {/* Buffet Service */}
+            <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
+              <DirectionalRow
+                style={[
+                  styles.serviceItemNew,
+                  { backgroundColor: theme.surfaceSecondary },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.serviceIcon,
+                    {
+                      backgroundColor: applyOpacity(
+                        request.buffet || request.isBuffet || (request as any).buffetPending
+                          ? theme.secondary
+                          : theme.textSecondary,
+                        "15",
+                      ),
+                    },
+                  ]}
+                >
+                  <DDIcon
+                    name="cloche"
+                    size={18}
+                    color={
+                      request.buffet || request.isBuffet || (request as any).buffetPending
+                        ? theme.secondary
+                        : theme.textSecondary
+                    }
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
                   <ThemedText
                     style={[
-                      Typography.caption,
-                      {
-                        color: theme.warning,
-                        fontSize: 12,
-                        marginTop: 2,
-                      },
+                      Typography.body,
+                      { fontWeight: "600", fontSize: 14, color: theme.text },
                     ]}
                   >
-                    {request.status === REQUEST_STATUS.PENDING_APPROVAL || request.status === REQUEST_STATUS.PENDING_HOST_APPROVAL
-                      ? t("status.pendingApproval")
-                      : t("parking.parkingPending")}
+                    {t("buffet.buffetService")}
                   </ThemedText>
-                )
-              ) : request.status === REQUEST_STATUS.CANCELLED || request.status === REQUEST_STATUS.AUTO_CANCELLED || request.status === REQUEST_STATUS.VISITOR_REJECTED ? (
-                <ThemedText
-                  style={[
-                    Typography.caption,
-                    {
-                      color: theme.error,
-                      fontSize: 12,
-                      marginTop: 2,
-                    },
-                  ]}
-                >
-                  {t("status.cancelled")}
-                </ThemedText>
-              ) : (
-                <ThemedText
-                  style={[
-                    Typography.caption,
-                    {
-                      color: theme.textSecondary,
-                      fontSize: 12,
-                      marginTop: 2,
-                      fontStyle: "italic",
-                    },
-                  ]}
-                >
-                  {t("common.notRequested")}
-                </ThemedText>
-              )}
+                  {(request.buffet?.mealType ||
+                    request.isBuffet ||
+                    (request as any).buffetPending) &&
+                  (request.status === REQUEST_STATUS.REJECTED ||
+                    request.status === REQUEST_STATUS.CANCELLED) ? (
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.error, fontSize: 12, marginTop: 2 },
+                      ]}
+                    >
+                      {t("status.cancelled")}
+                    </ThemedText>
+                  ) : request.buffet?.mealType ? (
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.textSecondary, fontSize: 12, marginTop: 2 },
+                      ]}
+                    >
+                      {request.meetingRoom?.name ? `${request.meetingRoom.name} - ${request.meetingRoom.floor}` : request.buffet.location}
+                    </ThemedText>
+                  ) : request.isBuffet || (request as any).buffetPending ? (
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.warning, fontSize: 12, marginTop: 2 },
+                      ]}
+                    >
+                      {request.status === REQUEST_STATUS.PENDING_APPROVAL || request.status === REQUEST_STATUS.PENDING_HOST_APPROVAL
+                        ? t("status.pendingApproval")
+                        : t("status.pending")}
+                    </ThemedText>
+                  ) : request.status === REQUEST_STATUS.CANCELLED || request.status === REQUEST_STATUS.AUTO_CANCELLED || request.status === REQUEST_STATUS.VISITOR_REJECTED ? (
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.error, fontSize: 12, marginTop: 2 },
+                      ]}
+                    >
+                      {t("status.cancelled")}
+                    </ThemedText>
+                  ) : (
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.textSecondary, fontSize: 12, marginTop: 2, fontStyle: "italic" },
+                      ]}
+                    >
+                      {t("common.notRequested")}
+                    </ThemedText>
+                  )}
+                </View>
+                {request.buffet?.status ? (
+                  <StatusBadge
+                    label={formatServiceStatus(request.buffet.status)}
+                    variant={getServiceStatusVariant(request.buffet.status)}
+                    size="sm"
+                  />
+                ) : null}
+              </DirectionalRow>
+              {!isWebLayout && <Spacer height={Spacing.md} />}
             </View>
-          </DirectionalRow>
-        </ThemedView>
-        <Spacer height={Spacing.lg} />
 
-        <RequestTimeline steps={timelineSteps} />
-
-        <Spacer height={Spacing.lg} />
-
-        <ThemedView
-          style={[
-            styles.cardNew,
-            { backgroundColor: theme.surface, alignItems: "center" },
-          ]}
-        >
-          <ThemedText
-            style={[
-              Typography.subtitle,
-              { fontSize: 16, fontWeight: "600", color: theme.text },
-            ]}
-          >
-            {t("invitation.qrCode")}
-          </ThemedText>
-          <Spacer height={Spacing.xl} />
-
-          <View
-            style={[
-              styles.qrContainerNew,
-              {
-                backgroundColor: theme.surfaceSecondary,
-                borderColor: theme.border,
-              },
-            ]}
-          >
-            {request.qrCode ? (
-              <QRCode
-                value={request.qrCode}
-                size={150}
-                backgroundColor={theme.surfaceSecondary}
-                color={theme.text}
-              />
-            ) : (
-              <View
-                style={[styles.qrPlaceholder, { borderColor: theme.border }]}
+            {/* Parking */}
+            <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
+              <DirectionalRow
+                style={[
+                  styles.serviceItemNew,
+                  { backgroundColor: theme.surfaceSecondary },
+                ]}
               >
-                <DDIcon name="maximize" size={80} color={theme.border} />
-              </View>
-            )}
+                <View
+                  style={[
+                    styles.serviceIcon,
+                    {
+                      backgroundColor: applyOpacity(
+                        request.visitorNeedsParking ? theme.secondary : theme.textSecondary,
+                        "15",
+                      ),
+                    },
+                  ]}
+                >
+                  <DDIcon
+                    name="truck"
+                    size={18}
+                    color={request.visitorNeedsParking ? theme.secondary : theme.textSecondary}
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <ThemedText
+                    style={[
+                      Typography.body,
+                      { fontWeight: "600", fontSize: 14, color: theme.text },
+                    ]}
+                  >
+                    {t("services.parking")}
+                  </ThemedText>
+                  {request.visitorNeedsParking ? (
+                    request.licensePlate || request.carModel || request.carColor ? (
+                      <ThemedText
+                        style={[
+                          Typography.caption,
+                          { color: theme.textSecondary, fontSize: 12, marginTop: 2 },
+                        ]}
+                      >
+                        {[request.licensePlate, request.carModel, request.carColor]
+                          .filter(Boolean)
+                          .join(" • ")}
+                      </ThemedText>
+                    ) : (
+                      <ThemedText
+                        style={[
+                          Typography.caption,
+                          { color: theme.warning, fontSize: 12, marginTop: 2 },
+                        ]}
+                      >
+                        {request.status === REQUEST_STATUS.PENDING_APPROVAL || request.status === REQUEST_STATUS.PENDING_HOST_APPROVAL
+                          ? t("status.pendingApproval")
+                          : t("parking.parkingPending")}
+                      </ThemedText>
+                    )
+                  ) : request.status === REQUEST_STATUS.CANCELLED || request.status === REQUEST_STATUS.AUTO_CANCELLED || request.status === REQUEST_STATUS.VISITOR_REJECTED ? (
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.error, fontSize: 12, marginTop: 2 },
+                      ]}
+                    >
+                      {t("status.cancelled")}
+                    </ThemedText>
+                  ) : (
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.textSecondary, fontSize: 12, marginTop: 2, fontStyle: "italic" },
+                      ]}
+                    >
+                      {t("common.notRequested")}
+                    </ThemedText>
+                  )}
+                </View>
+              </DirectionalRow>
+            </View>
           </View>
         </ThemedView>
+        <Spacer height={Spacing.lg} />
+
+        {/* Responsive 2-column layout for Timeline and QR Code on web */}
+        <View style={isWebLayout ? { flexDirection: 'row', gap: Spacing.lg } : undefined}>
+          <View style={isWebLayout ? { width: '48%' } : undefined}>
+            <RequestTimeline steps={timelineSteps} />
+          </View>
+
+          {!isWebLayout && <Spacer height={Spacing.lg} />}
+
+          <View style={isWebLayout ? { width: '48%' } : undefined}>
+            <ThemedView
+              style={[
+                styles.cardNew,
+                { backgroundColor: theme.surface, alignItems: "center", flex: isWebLayout ? 1 : undefined },
+              ]}
+            >
+              <ThemedText
+                style={[
+                  Typography.subtitle,
+                  { fontSize: 16, fontWeight: "600", color: theme.text },
+                ]}
+              >
+                {t("invitation.qrCode")}
+              </ThemedText>
+              <Spacer height={Spacing.xl} />
+
+              <View
+                style={[
+                  styles.qrContainerNew,
+                  {
+                    backgroundColor: theme.surfaceSecondary,
+                    borderColor: theme.border,
+                  },
+                ]}
+              >
+                {request.qrCode ? (
+                  <QRCode
+                    value={request.qrCode}
+                    size={150}
+                    backgroundColor={theme.surfaceSecondary}
+                    color={theme.text}
+                  />
+                ) : (
+                  <View
+                    style={[styles.qrPlaceholder, { borderColor: theme.border }]}
+                  >
+                    <DDIcon name="maximize" size={80} color={theme.border} />
+                  </View>
+                )}
+              </View>
+            </ThemedView>
+          </View>
+        </View>
 
         <Spacer height={Spacing.xl} />
 
@@ -2453,20 +2509,26 @@ export default function RequestDetailsScreen({
           transparent
           animationType="fade"
           onRequestClose={closeEditModal}
+          onShow={() => console.log("[DEBUG Modal] Edit Modal SHOWN - visible:", showEditModal)}
+          onDismiss={() => console.log("[DEBUG Modal] Edit Modal DISMISSED")}
         >
-          <Pressable
-            style={[
-              styles.modalOverlay,
-              createModalOverlayStyle(theme, "50"),
-            ]}
-            onPress={closeEditModal}
-          >
+          {/* Container for backdrop + content as siblings (not nested) */}
+          {/* This prevents touch propagation issues on iOS */}
+          <View style={[styles.modalOverlay, createModalOverlayStyle(theme, "50")]}>
+            {/* Backdrop - positioned absolutely, closes modal on tap */}
             <Pressable
+              style={StyleSheet.absoluteFill}
+              onPress={() => {
+                console.log("[DEBUG Modal] Backdrop PRESSED - closing modal");
+                closeEditModal();
+              }}
+            />
+            {/* Content - positioned on top of backdrop, touches don't affect backdrop */}
+            <View
               style={[
                 styles.editModalContent,
                 { backgroundColor: theme.surface },
               ]}
-              onPress={(e) => e.stopPropagation()}
             >
               <DirectionalRow style={styles.modalHeader}>
                 <ThemedText
@@ -2487,7 +2549,14 @@ export default function RequestDetailsScreen({
                       ? t("actions.editServices")
                       : t("actions.editRequest")}
                 </ThemedText>
-                <Pressable onPress={closeEditModal}>
+                <Pressable 
+                  onPress={() => {
+                    console.log("[DEBUG Modal] Close X button PRESSED");
+                    closeEditModal();
+                  }}
+                  onPressIn={() => console.log("[DEBUG Modal] Close X button onPressIn")}
+                  onPressOut={() => console.log("[DEBUG Modal] Close X button onPressOut")}
+                >
                   <DDIcon name="x" size={22} variant="muted" />
                 </Pressable>
               </DirectionalRow>
@@ -2499,6 +2568,9 @@ export default function RequestDetailsScreen({
                 showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled"
                 nestedScrollEnabled={true}
+                onTouchStart={() => console.log("[DEBUG Modal] ScrollView onTouchStart")}
+                onTouchEnd={() => console.log("[DEBUG Modal] ScrollView onTouchEnd")}
+                onScrollBeginDrag={() => console.log("[DEBUG Modal] ScrollView onScrollBeginDrag")}
               >
                 <ThemedText
                   style={[
@@ -2522,7 +2594,17 @@ export default function RequestDetailsScreen({
                       flexDirection: getFlexDirection(isRTL),
                     },
                   ]}
-                  onPress={() => setShowPurposePicker(true)}
+                  onPress={() => {
+                    console.log("[DEBUG Modal] Purpose picker button PRESSED");
+                    // iOS can't stack Modals, use inline overlay instead
+                    if (Platform.OS === 'ios') {
+                      setInlinePickerMode('purpose');
+                    } else {
+                      setShowPurposePicker(true);
+                    }
+                  }}
+                  onPressIn={() => console.log("[DEBUG Modal] Purpose picker onPressIn")}
+                  onPressOut={() => console.log("[DEBUG Modal] Purpose picker onPressOut")}
                 >
                   <DDIcon name="clipboard" size={16} variant="muted" />
                   <ThemedText
@@ -2630,7 +2712,17 @@ export default function RequestDetailsScreen({
                           flexDirection: getFlexDirection(isRTL),
                         },
                       ]}
-                      onPress={() => setShowEditEndTimePicker(true)}
+                      onPress={() => {
+                        console.log("[DEBUG Modal] Walk-in End time picker button PRESSED");
+                        // iOS can't stack Modals, use inline overlay instead
+                        if (Platform.OS === 'ios') {
+                          setInlinePickerMode('endTime');
+                        } else {
+                          setShowEditEndTimePicker(true);
+                        }
+                      }}
+                      onPressIn={() => console.log("[DEBUG Modal] Walk-in End time picker onPressIn")}
+                      onPressOut={() => console.log("[DEBUG Modal] Walk-in End time picker onPressOut")}
                     >
                       <DDIcon
                         name="clock"
@@ -2718,9 +2810,15 @@ export default function RequestDetailsScreen({
                         },
                       ]}
                       onPress={() => {
-                        console.log("[Edit Modal] Date picker button pressed");
-                        setShowEditDatePicker(true);
+                        console.log("[DEBUG Modal] Date picker button PRESSED");
+                        if (Platform.OS === 'ios') {
+                          setInlinePickerMode('date');
+                        } else {
+                          setShowEditDatePicker(true);
+                        }
                       }}
+                      onPressIn={() => console.log("[DEBUG Modal] Date picker onPressIn")}
+                      onPressOut={() => console.log("[DEBUG Modal] Date picker onPressOut")}
                       android_ripple={{ color: theme.border }}
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
@@ -2766,9 +2864,15 @@ export default function RequestDetailsScreen({
                         },
                       ]}
                       onPress={() => {
-                        console.log("[Edit Modal] Time picker button pressed");
-                        setShowEditTimePicker(true);
+                        console.log("[DEBUG Modal] Time picker button PRESSED");
+                        if (Platform.OS === 'ios') {
+                          setInlinePickerMode('startTime');
+                        } else {
+                          setShowEditTimePicker(true);
+                        }
                       }}
+                      onPressIn={() => console.log("[DEBUG Modal] Time picker onPressIn")}
+                      onPressOut={() => console.log("[DEBUG Modal] Time picker onPressOut")}
                       android_ripple={{ color: theme.border }}
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
@@ -2814,11 +2918,16 @@ export default function RequestDetailsScreen({
                         },
                       ]}
                       onPress={() => {
-                        console.log(
-                          "[Edit Modal] End time picker button pressed",
-                        );
-                        setShowEditEndTimePicker(true);
+                        console.log("[DEBUG Modal] End time picker button PRESSED");
+                        // iOS can't stack Modals, use inline overlay instead
+                        if (Platform.OS === 'ios') {
+                          setInlinePickerMode('endTime');
+                        } else {
+                          setShowEditEndTimePicker(true);
+                        }
                       }}
+                      onPressIn={() => console.log("[DEBUG Modal] End time picker onPressIn")}
+                      onPressOut={() => console.log("[DEBUG Modal] End time picker onPressOut")}
                       android_ripple={{ color: theme.border }}
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
@@ -2921,9 +3030,10 @@ export default function RequestDetailsScreen({
                     <View style={getGridStyle(isRTL)}>
                       <View style={getCardWrapper3ColStyle()}>
                         <SelectableCard
-                          onPress={() =>
-                            setEditRequiresMeetingRoom(!editRequiresMeetingRoom)
-                          }
+                          onPress={() => {
+                            console.log("[DEBUG Modal] Meeting Room card PRESSED, toggling to:", !editRequiresMeetingRoom);
+                            setEditRequiresMeetingRoom(!editRequiresMeetingRoom);
+                          }}
                           selected={editRequiresMeetingRoom}
                         >
                           <View
@@ -2955,7 +3065,10 @@ export default function RequestDetailsScreen({
 
                       <View style={getCardWrapper3ColStyle()}>
                         <SelectableCard
-                          onPress={() => setEditRequiresBuffet(!editRequiresBuffet)}
+                          onPress={() => {
+                            console.log("[DEBUG Modal] Buffet card PRESSED, toggling to:", !editRequiresBuffet);
+                            setEditRequiresBuffet(!editRequiresBuffet);
+                          }}
                           selected={editRequiresBuffet}
                         >
                           <View
@@ -3095,7 +3208,12 @@ export default function RequestDetailsScreen({
                               : theme.border,
                           },
                         ]}
-                        onPress={() => setEditSendWhatsApp(!editSendWhatsApp)}
+                        onPress={() => {
+                          console.log("[DEBUG Modal] WhatsApp channel PRESSED, toggling to:", !editSendWhatsApp);
+                          setEditSendWhatsApp(!editSendWhatsApp);
+                        }}
+                        onPressIn={() => console.log("[DEBUG Modal] WhatsApp channel onPressIn")}
+                        onPressOut={() => console.log("[DEBUG Modal] WhatsApp channel onPressOut")}
                       >
                         <View
                           style={[
@@ -3148,7 +3266,12 @@ export default function RequestDetailsScreen({
                               : theme.border,
                           },
                         ]}
-                        onPress={() => setEditSendSMS(!editSendSMS)}
+                        onPress={() => {
+                          console.log("[DEBUG Modal] SMS channel PRESSED, toggling to:", !editSendSMS);
+                          setEditSendSMS(!editSendSMS);
+                        }}
+                        onPressIn={() => console.log("[DEBUG Modal] SMS channel onPressIn")}
+                        onPressOut={() => console.log("[DEBUG Modal] SMS channel onPressOut")}
                       >
                         <View
                           style={[
@@ -3241,7 +3364,10 @@ export default function RequestDetailsScreen({
 
               <View style={styles.modalActions}>
                 <LoadingButton
-                  onPress={closeEditModal}
+                  onPress={() => {
+                    console.log("[DEBUG Modal] Cancel button PRESSED");
+                    closeEditModal();
+                  }}
                   variant="secondary"
                   size="medium"
                   style={{ flex: 1 }}
@@ -3252,7 +3378,10 @@ export default function RequestDetailsScreen({
                 <Spacer width={12} />
 
                 <LoadingButton
-                  onPress={handleEditConfirm}
+                  onPress={() => {
+                    console.log("[DEBUG Modal] Save/Submit button PRESSED");
+                    handleEditConfirm();
+                  }}
                   loading={updateMutation.isPending}
                   disabled={updateMutation.isPending}
                   variant={isApprovalFlow ? "success" : "primary"}
@@ -3266,8 +3395,190 @@ export default function RequestDetailsScreen({
                   {isApprovalFlow ? t("actions.approve") : t("common.save")}
                 </LoadingButton>
               </View>
-            </Pressable>
-          </Pressable>
+
+              {/* iOS Inline Picker Overlays - rendered inside the Edit Modal to avoid Modal stacking issues */}
+              {Platform.OS === 'ios' && inlinePickerMode === 'purpose' && (
+                <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.surface, borderRadius: 12 }]}>
+                  <View style={{ flex: 1, padding: 24 }}>
+                    <View style={[styles.modalHeader, { borderBottomWidth: 1, borderBottomColor: theme.border, paddingBottom: Spacing.md, marginBottom: Spacing.md }]}>
+                      <ThemedText style={[Typography.subtitle, { fontSize: 18, fontWeight: '600', color: theme.text, flex: 1 }]}>
+                        {t("visitor.selectVisitType")}
+                      </ThemedText>
+                      <Pressable onPress={() => setInlinePickerMode('none')} hitSlop={8}>
+                        <DDIcon name="x" size={20} variant="muted" />
+                      </Pressable>
+                    </View>
+                    <ScrollView>
+                      {PURPOSE_OPTIONS.map((option) => (
+                        <Pressable
+                          key={option.value}
+                          style={[
+                            {
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              padding: Spacing.md,
+                              borderRadius: BorderRadius.md,
+                              borderWidth: 1,
+                              marginBottom: Spacing.sm,
+                              borderColor: editPurpose === option.value ? theme.primary : theme.border,
+                              backgroundColor: editPurpose === option.value ? applyOpacity(theme.primary, '10') : 'transparent',
+                            },
+                          ]}
+                          onPress={() => {
+                            setEditPurpose(option.value);
+                            setInlinePickerMode('none');
+                          }}
+                        >
+                          <ThemedText style={[Typography.body, { flex: 1, color: theme.text }]}>
+                            {t(option.labelKey)}
+                          </ThemedText>
+                          {editPurpose === option.value && (
+                            <DDIcon name="check" size={18} color={theme.primary} />
+                          )}
+                        </Pressable>
+                      ))}
+                      <Spacer height={Spacing.xl} />
+                    </ScrollView>
+                  </View>
+                </View>
+              )}
+
+              {Platform.OS === 'ios' && inlinePickerMode === 'endTime' && (
+                <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.surface, borderRadius: 12 }]}>
+                  <View style={{ flex: 1, padding: 24 }}>
+                    <View style={[styles.modalHeader, { borderBottomWidth: 1, borderBottomColor: theme.border, paddingBottom: Spacing.md, marginBottom: Spacing.md }]}>
+                      <ThemedText style={[Typography.subtitle, { fontSize: 18, fontWeight: '600', color: theme.text, flex: 1 }]}>
+                        {t("time.selectTime")}
+                      </ThemedText>
+                      <Pressable onPress={() => setInlinePickerMode('none')} hitSlop={8}>
+                        <DDIcon name="x" size={20} variant="muted" />
+                      </Pressable>
+                    </View>
+                    <DateTimePicker
+                      value={editEndTime}
+                      mode="time"
+                      display="spinner"
+                      onChange={(event: DateTimePickerEvent, date?: Date) => {
+                        if (date) {
+                          setEditEndTime(date);
+                        }
+                      }}
+                      style={{ height: 180 }}
+                      minuteInterval={5}
+                    />
+                    <View style={{ flexDirection: 'row', gap: Spacing.md, marginTop: Spacing.md }}>
+                      <LoadingButton
+                        onPress={() => setInlinePickerMode('none')}
+                        variant="secondary"
+                        size="medium"
+                        style={{ flex: 1 }}
+                      >
+                        {t("common.cancel")}
+                      </LoadingButton>
+                      <LoadingButton
+                        onPress={() => setInlinePickerMode('none')}
+                        variant="primary"
+                        size="medium"
+                        style={{ flex: 1 }}
+                      >
+                        {t("common.confirm")}
+                      </LoadingButton>
+                    </View>
+                  </View>
+                </View>
+              )}
+
+              {Platform.OS === 'ios' && inlinePickerMode === 'startTime' && (
+                <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.surface, borderRadius: 12 }]}>
+                  <View style={{ flex: 1, padding: 24 }}>
+                    <View style={[styles.modalHeader, { borderBottomWidth: 1, borderBottomColor: theme.border, paddingBottom: Spacing.md, marginBottom: Spacing.md }]}>
+                      <ThemedText style={[Typography.subtitle, { fontSize: 18, fontWeight: '600', color: theme.text, flex: 1 }]}>
+                        {t("time.selectTime")}
+                      </ThemedText>
+                      <Pressable onPress={() => setInlinePickerMode('none')} hitSlop={8}>
+                        <DDIcon name="x" size={20} variant="muted" />
+                      </Pressable>
+                    </View>
+                    <DateTimePicker
+                      value={editTime}
+                      mode="time"
+                      display="spinner"
+                      onChange={(event: DateTimePickerEvent, date?: Date) => {
+                        if (date) {
+                          setEditTime(date);
+                        }
+                      }}
+                      style={{ height: 180 }}
+                      minuteInterval={5}
+                    />
+                    <View style={{ flexDirection: 'row', gap: Spacing.md, marginTop: Spacing.md }}>
+                      <LoadingButton
+                        onPress={() => setInlinePickerMode('none')}
+                        variant="secondary"
+                        size="medium"
+                        style={{ flex: 1 }}
+                      >
+                        {t("common.cancel")}
+                      </LoadingButton>
+                      <LoadingButton
+                        onPress={() => setInlinePickerMode('none')}
+                        variant="primary"
+                        size="medium"
+                        style={{ flex: 1 }}
+                      >
+                        {t("common.confirm")}
+                      </LoadingButton>
+                    </View>
+                  </View>
+                </View>
+              )}
+
+              {Platform.OS === 'ios' && inlinePickerMode === 'date' && (
+                <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.surface, borderRadius: 12 }]}>
+                  <View style={{ flex: 1, padding: 24 }}>
+                    <View style={[styles.modalHeader, { borderBottomWidth: 1, borderBottomColor: theme.border, paddingBottom: Spacing.md, marginBottom: Spacing.md }]}>
+                      <ThemedText style={[Typography.subtitle, { fontSize: 18, fontWeight: '600', color: theme.text, flex: 1 }]}>
+                        {t("form.date")}
+                      </ThemedText>
+                      <Pressable onPress={() => setInlinePickerMode('none')} hitSlop={8}>
+                        <DDIcon name="x" size={20} variant="muted" />
+                      </Pressable>
+                    </View>
+                    <DateTimePicker
+                      value={editDate}
+                      mode="date"
+                      display="spinner"
+                      onChange={(event: DateTimePickerEvent, date?: Date) => {
+                        if (date) {
+                          setEditDate(date);
+                        }
+                      }}
+                      style={{ height: 180 }}
+                      minimumDate={new Date()}
+                    />
+                    <View style={{ flexDirection: 'row', gap: Spacing.md, marginTop: Spacing.md }}>
+                      <LoadingButton
+                        onPress={() => setInlinePickerMode('none')}
+                        variant="secondary"
+                        size="medium"
+                        style={{ flex: 1 }}
+                      >
+                        {t("common.cancel")}
+                      </LoadingButton>
+                      <LoadingButton
+                        onPress={() => setInlinePickerMode('none')}
+                        variant="primary"
+                        size="medium"
+                        style={{ flex: 1 }}
+                      >
+                        {t("common.confirm")}
+                      </LoadingButton>
+                    </View>
+                  </View>
+                </View>
+              )}
+            </View>
+          </View>
         </Modal>
 
         {/* Date/Time Picker Modals for Edit */}
@@ -3682,6 +3993,11 @@ const styles = StyleSheet.create({
   },
   serviceRowNew: {
     alignItems: "flex-start",
+    gap: Spacing.md,
+  },
+  responsiveGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: Spacing.md,
   },
   serviceIcon: {

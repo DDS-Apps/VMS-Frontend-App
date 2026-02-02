@@ -30,6 +30,7 @@ import { Colors } from "@/constants/theme";
 import { UserRole } from "@/types/vms.types";
 import { setCurrentStaff } from "@/services/state/buffetAdminState";
 import { setCurrentDriver } from "@/services/state/valetAdminState";
+import { apiConfig } from "@/api/config";
 
 
 function getInviteTokenFromUrl(): string | null {
@@ -203,7 +204,10 @@ function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
 
   const userName = user.name || user.email;
   const userRole = user.role as UserRole;
-  const userPhotoUrl = user.photoUrl || user.thumbnailUrl;
+  const rawPhotoUrl = user.thumbnailUrl || user.photoUrl;
+  const userPhotoUrl = rawPhotoUrl 
+    ? (rawPhotoUrl.startsWith('http') ? rawPhotoUrl : `${apiConfig.baseUrl}${rawPhotoUrl}`)
+    : undefined;
 
   return (
     <DashboardContainer 

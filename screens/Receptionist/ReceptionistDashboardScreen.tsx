@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
-import { View, StyleSheet, Pressable, Dimensions, GestureResponderEvent, LayoutAnimation, Platform, UIManager, Alert, useWindowDimensions } from "react-native";
+import { View, StyleSheet, Pressable, Dimensions, GestureResponderEvent, LayoutAnimation, Platform, UIManager, Alert, useWindowDimensions, ScrollView } from "react-native";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { ROUTES } from "@/constants";
 import { ThemedText } from "@/components/ThemedText";
@@ -12,18 +12,54 @@ import { useFormatters } from "@/hooks/useFormatters";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { VisitorActionButton } from "@/components/VisitorActionButton";
-import { applyOpacity } from "@/utils/statusStyles";
+import { applyOpacity, getStatusConfig as getSharedStatusConfig } from "@/utils/statusStyles";
 import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTodayVisitorsQuery, useReceptionCheckInMutation, useReceptionCheckOutMutation } from "@/hooks/queries/useReceptionQueries";
-import type { TodayVisitorDto } from "@/types";
+import { useInfiniteVisitsQuery } from "@/hooks/queries/useApprovalQueries";
+import type { TodayVisitorDto, VisitListItemDto } from "@/types";
 import { SkeletonDashboard, WalkInBadge } from "@/components/shared";
 import type { ReceptionistDashboardScreenProps } from "@/types/receptionistNavigation.types";
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
+
+/**
+ * Parse a time string to minutes since midnight for sorting.
+ * Handles formats: "HH:MM", "H:MM", "HH:MM AM/PM", "H:MM AM/PM"
+ * Returns Infinity for invalid/empty times (sorts to end)
+ */
+const parseTimeToMinutes = (timeStr: string | undefined | null): number => {
+  if (!timeStr) return Infinity;
+  
+  const cleanTime = timeStr.trim().toUpperCase();
+  
+  // Check for AM/PM format
+  const isPM = cleanTime.includes('PM');
+  const isAM = cleanTime.includes('AM');
+  
+  // Remove AM/PM and extra spaces
+  const timePart = cleanTime.replace(/\s*(AM|PM)\s*/gi, '').trim();
+  
+  // Split by colon
+  const parts = timePart.split(':');
+  if (parts.length < 2) return Infinity;
+  
+  let hours = parseInt(parts[0], 10);
+  const minutes = parseInt(parts[1], 10);
+  
+  if (isNaN(hours) || isNaN(minutes)) return Infinity;
+  
+  // Convert to 24-hour format if AM/PM was specified
+  if (isAM || isPM) {
+    if (isPM && hours < 12) hours += 12;
+    if (isAM && hours === 12) hours = 0;
+  }
+  
+  return hours * 60 + minutes;
+};
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -112,9 +148,34 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
   const checkInMutation = useReceptionCheckInMutation();
   const checkOutMutation = useReceptionCheckOutMutation();
 
-  const todaysVisitors = todayResponse?.data ?? [];
+  // Sort today's visitors by visitTime ascending (earliest first)
+  const todaysVisitors = useMemo(() => {
+    const visitors = todayResponse?.data ?? [];
+    return [...visitors].sort((a, b) => {
+      const timeA = parseTimeToMinutes(a.visitTime);
+      const timeB = parseTimeToMinutes(b.visitTime);
+      return timeA - timeB;
+    });
+  }, [todayResponse?.data]);
+  
   const summary = todayResponse?.summary;
   const errorMessage = visitorError?.message || t('common.loadError');
+
+  // All Visitors query - fetch all visits for today
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  
+  const { data: allVisitsData, isLoading: isLoadingAllVisitors } = useInfiniteVisitsQuery({
+    startDate: todayStr,
+    endDate: todayStr,
+    myRequestsOnly: false,
+    limit: 20,
+  });
+  
+  // All visitors - use API order (no time sorting)
+  const allVisitors = useMemo(() => {
+    return allVisitsData?.pages.flatMap(page => page.data) ?? [];
+  }, [allVisitsData]);
 
   const hasShownError = useRef(false);
 
@@ -190,14 +251,8 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
   };
 
   const getStatusConfig = (status: string) => {
-    switch (status) {
-      case 'checked_in':
-        return { label: t('status.checkedIn'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: theme.success };
-      case 'completed':
-        return { label: t('timeline.visitCompleted'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: theme.success };
-      default:
-        return { label: t('visitor.expectedVisitors'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: theme.warning };
-    }
+    const config = getSharedStatusConfig(theme, status, t);
+    return { label: config.label, bg: config.bg, text: config.text, border: config.borderColor || config.text };
   };
 
   const handleVisitorPress = (visitor: TodayVisitorDto) => {
@@ -370,38 +425,6 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
 
         <Spacer height={Spacing.xl} />
 
-        <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
-          {t('dashboard.quickActions')}
-        </ThemedText>
-
-        <Spacer height={Spacing.md} />
-
-        <DirectionalRow style={styles.quickActionsRow}>
-          <QuickActionButton
-            icon="users"
-            label={t('navigation.allVisitors')}
-            iconBgColor={applyOpacity(theme.primary, '12')}
-            iconColor={theme.primary}
-            onPress={() => navigation.navigate(ROUTES.ALL_VISITORS as never)}
-          />
-          <QuickActionButton
-            icon="user-plus"
-            label={t('navigation.walkInVisitors')}
-            iconBgColor={applyOpacity(theme.success, '12')}
-            iconColor={theme.success}
-            onPress={() => navigation.navigate(ROUTES.ALL_VISITORS as never, { initialFilter: 'walk_in' } as never)}
-          />
-          <QuickActionButton
-            icon="clock"
-            label={t('navigation.todaysVisitors')}
-            iconBgColor={applyOpacity(theme.warning, '12')}
-            iconColor={theme.warning}
-            onPress={() => navigation.navigate(ROUTES.ALL_VISITORS_TODAY as never)}
-          />
-        </DirectionalRow>
-
-        <Spacer height={Spacing.xl} />
-
         <DirectionalRow style={styles.sectionHeader} justifyContent="space-between">
           <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
             {t('navigation.todaysVisitors')}
@@ -425,22 +448,155 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
         <Spacer height={Spacing.md} />
 
         {todaysVisitors.length > 0 ? (
-          <View style={styles.visitorsList}>
-            {todaysVisitors.slice(0, 3).map((visitor) => (
-              <View 
-                key={visitor.id} 
-                style={numColumns > 1 ? { width: numColumns === 2 ? '50%' : '33.33%', flexGrow: 0, marginBottom: LAYOUT.contentGap, paddingRight: Spacing.sm } : { width: '100%' }}
-              >
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.horizontalScrollContent}
+          >
+            {todaysVisitors.map((visitor) => (
+              <View key={visitor.id} style={styles.horizontalCardWrapper}>
                 {renderVisitorCard(visitor)}
               </View>
             ))}
-          </View>
+          </ScrollView>
         ) : (
           <ThemedView style={[styles.emptyState, { backgroundColor: theme.surface }]}>
             <DDIcon name="users" size={32} variant="muted" />
             <Spacer height={Spacing.sm} />
             <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
               {t('dashboard.noUpcomingVisitors')}
+            </ThemedText>
+          </ThemedView>
+        )}
+
+        <Spacer height={Spacing.xl} />
+
+        <DirectionalRow style={styles.sectionHeader} justifyContent="space-between">
+          <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
+            {t('navigation.allVisitors')}
+          </ThemedText>
+          {allVisitors.length > 5 ? (
+            <Pressable 
+              onPress={() => navigation.navigate(ROUTES.ALL_VISITORS as never)}
+              style={({ pressed }) => [
+                styles.viewAllButton,
+                { opacity: pressed ? 0.7 : 1, flexDirection: getFlexDirection(isRTL) }
+              ]}
+            >
+              <ThemedText style={[styles.viewAllText, { color: theme.primary }]}>
+                {t('common.viewAll')}
+              </ThemedText>
+              <DDIcon name="chevron-right" size={16} variant="primary" directionAware />
+            </Pressable>
+          ) : null}
+        </DirectionalRow>
+
+        <Spacer height={Spacing.md} />
+
+        {isLoadingAllVisitors ? (
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.horizontalScrollContent}
+          >
+            {[1, 2, 3].map((i) => (
+              <View key={i} style={[styles.horizontalCardWrapper, styles.visitorCard, { backgroundColor: theme.surface, opacity: 0.5 }]}>
+                <View style={{ height: 120 }} />
+              </View>
+            ))}
+          </ScrollView>
+        ) : allVisitors.length > 0 ? (
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.horizontalScrollContent}
+          >
+            {allVisitors.map((visitor) => {
+              const statusConfig = getStatusConfig(visitor.status);
+              const visitorName = visitor.visitor.fullName;
+              const initials = visitorName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+              
+              return (
+                <View key={visitor.id} style={styles.horizontalCardWrapper}>
+                  <Pressable 
+                    onPress={() => navigation.navigate(ROUTES.VISITOR_DETAIL as never, { 
+                      visitor: {
+                        id: visitor.id,
+                        name: visitor.visitor.fullName,
+                        company: visitor.visitor.company ?? '',
+                        time: visitor.visitTime,
+                        host: visitor.employeeName,
+                        status: (visitor.status === 'expected' ? 'pending' : visitor.status) as 'pending' | 'checked_in' | 'completed',
+                        isWalkIn: visitor.isWalkIn,
+                        phone: visitor.visitor.phone ?? '',
+                        origin: visitor.isWalkIn ? 'walk_in' as const : 'scheduled' as const,
+                        scheduledFor: visitor.visitDate,
+                        createdAt: visitor.createdAt,
+                      }
+                    } as never)}
+                    style={({ pressed }) => [
+                      styles.visitorCard,
+                      { 
+                        backgroundColor: theme.surface,
+                        borderStartColor: statusConfig.border,
+                        opacity: pressed ? 0.9 : 1,
+                      },
+                    ]}
+                  >
+                  <DirectionalRow style={styles.visitorCardHeader}>
+                    <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '12') }]}>
+                      <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
+                        {initials}
+                      </ThemedText>
+                    </View>
+                    <View style={[styles.visitorHeaderInfo, { marginStart: isRTL ? 0 : Spacing.sm, marginEnd: isRTL ? Spacing.sm : 0 }]}>
+                      <DirectionalRow style={styles.nameRow}>
+                        <ThemedText style={[styles.visitorName, { color: theme.text }]} numberOfLines={1}>
+                          {visitorName}
+                        </ThemedText>
+                        {visitor.isWalkIn ? <WalkInBadge size="sm" /> : null}
+                      </DirectionalRow>
+                      <ThemedText style={[styles.visitorCompany, { color: theme.textSecondary }]} numberOfLines={1}>
+                        {visitor.visitor.company ?? ''}
+                      </ThemedText>
+                    </View>
+                  </DirectionalRow>
+
+                  <Spacer height={Spacing.md} />
+
+                  <DirectionalRow style={styles.visitorMetaRow}>
+                    <DDIcon name="clock" size={14} color={theme.textSecondary} />
+                    <ThemedText style={[styles.visitorMetaText, { color: theme.textSecondary }]}>
+                      {formatTimeFromString(visitor.visitTime)}
+                    </ThemedText>
+                    <View style={styles.metaDot} />
+                    <DDIcon name="user" size={14} color={theme.textSecondary} />
+                    <ThemedText style={[styles.visitorMetaText, { color: theme.textSecondary }]} numberOfLines={1}>
+                      {t('reception.hostName')}: {visitor.employeeName}
+                    </ThemedText>
+                  </DirectionalRow>
+
+                  <Spacer height={Spacing.md} />
+
+                  <DirectionalRow style={styles.servicesStatusRow} justifyContent="space-between">
+                    <View />
+                    <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: 1 }]}>
+                      <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
+                        {statusConfig.label}
+                      </ThemedText>
+                    </View>
+                  </DirectionalRow>
+                  </Pressable>
+                </View>
+              );
+            })}
+          </ScrollView>
+        ) : (
+          <ThemedView style={[styles.emptyState, { backgroundColor: theme.surface }]}>
+            <DDIcon name="users" size={32} variant="muted" />
+            <Spacer height={Spacing.sm} />
+            <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
+              {t('dashboard.noVisitors')}
             </ThemedText>
           </ThemedView>
         )}
@@ -618,6 +774,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: Spacing.md,
+  },
+  horizontalScrollContent: {
+    paddingEnd: Spacing.lg,
+    gap: Spacing.md,
+  },
+  horizontalCardWrapper: {
+    width: 300,
+    minWidth: 280,
   },
   visitorCard: {
     borderRadius: 12,

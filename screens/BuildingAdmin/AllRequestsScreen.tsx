@@ -363,6 +363,21 @@ export default function AllRequestsScreen() {
   const { isRTL } = useLanguage();
   const { width } = useWindowDimensions();
   const isLargeScreen = width >= 768;
+  
+  // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
+  const numColumns = width > 1024 ? 3 : width >= 768 ? 2 : 1;
+  
+  // Calculate card width accounting for gaps
+  const getCardStyle = useMemo(() => {
+    const gap = LAYOUT.contentGap;
+    if (numColumns === 1) {
+      return { width: '100%' as const, marginBottom: gap };
+    } else if (numColumns === 2) {
+      return { width: '48.5%' as const, marginBottom: gap };
+    } else {
+      return { width: '32%' as const, marginBottom: gap };
+    }
+  }, [numColumns]);
   const queryClient = useQueryClient();  
   const [typeFilter, setTypeFilter] = useState<RequestFilter>('visitor');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -994,11 +1009,10 @@ export default function AllRequestsScreen() {
             <View style={styles.cardGrid}>
               {displayRequests.map(request => {
                 const cardKey = `${request.type}-${request.id}`;
-                const numColumns = width > 1024 ? 3 : width >= 768 ? 2 : 1;
                 return (
                   <View 
                     key={cardKey}
-                    style={numColumns > 1 ? { width: numColumns === 2 ? '50%' : '33.33%', flexGrow: 0, marginBottom: LAYOUT.contentGap, paddingRight: Spacing.sm } : { width: '100%', marginBottom: LAYOUT.contentGap }}
+                    style={getCardStyle}
                   >
                     <RequestCard
                       request={request}
@@ -1117,7 +1131,7 @@ const styles = StyleSheet.create({
   cardGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: Spacing.md,
+    justifyContent: 'space-between',
   },
   statsRow: {
     flexDirection: 'row',

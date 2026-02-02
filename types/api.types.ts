@@ -687,6 +687,7 @@ export interface CreateUserDto {
   role: string;
   department?: string;
   phoneNumber?: string;
+  businessPhone?: string;
   status?: 'active' | 'inactive';
   autoApproval?: boolean;
   managerId?: string;
@@ -697,6 +698,7 @@ export interface UpdateUserDto {
   role?: string;
   department?: string;
   phoneNumber?: string;
+  businessPhone?: string;
   status?: 'active' | 'inactive';
   autoApproval?: boolean;
   managerId?: string;
@@ -1504,6 +1506,8 @@ export interface VisitDetailsDto {
   employeeId: string;
   employeeName: string;
   employeeDepartment?: string;
+  employeePhoneNumber?: string;
+  employeeBusinessPhone?: string;
   visitor: {
     id: string;
     fullName: string;
@@ -1771,4 +1775,54 @@ export interface ValetParkingVisitorDto {
 export interface ValetParkingDashboardResponse {
   summary: ValetParkingDashboardSummary;
   data: ValetParkingVisitorDto[];
+}
+
+// Manager Approval History Types
+export type ApprovalHistoryStatus = 'pending' | 'approved' | 'rejected';
+
+export interface ApprovalHistoryListParams {
+  page?: number;
+  limit?: number;
+  status?: ApprovalHistoryStatus;
+  isWalkIn?: boolean;
+  search?: string;
+}
+
+export interface ApprovalHistoryVisitorDto {
+  id: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  company?: string;
+}
+
+export interface ApprovalHistoryItemDto {
+  id: string;
+  status: string;
+  employeeName: string;
+  employeeDepartment?: string;
+  visitor: ApprovalHistoryVisitorDto;
+  visitDate: string;
+  visitTime: string;
+  duration?: string;
+  purpose: string;
+  isWalkIn: boolean;
+  hasMeetingRoom?: boolean;
+  hasParking?: boolean;
+  hasBuffet?: boolean;
+  approvedAt?: string;
+  rejectedAt?: string;
+  rejectionReason?: string;
+  managerComment?: string;
+  createdAt: string;
+}
+
+export interface ApprovalHistoryResponse {
+  data: ApprovalHistoryItemDto[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }

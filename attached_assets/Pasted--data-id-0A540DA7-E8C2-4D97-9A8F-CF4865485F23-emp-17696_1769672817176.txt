@@ -1,0 +1,219 @@
+{
+    "data": [
+        {
+            "id": "0A540DA7-E8C2-4D97-9A8F-CF4865485F23",
+            "employeeName": "Employee 001",
+            "employeeDepartment": "Engineering",
+            "visitor": {
+                "id": "7487F9AB-0274-4BE7-9F1F-7E232DADD71E",
+                "fullName": "testbuffet1",
+                "email": "muzzammilabdulhai+testbuffet1@folio3.com",
+                "phone": "+966 84 520 4520",
+                "company": "Folio3"
+            },
+            "visitDate": "2026-01-29",
+            "visitTime": "9:00 AM",
+            "duration": "1 hour",
+            "purpose": "Interview",
+            "isWalkIn": false,
+            "hasMeetingRoom": false,
+            "hasParking": false,
+            "hasBuffet": false,
+            "createdAt": "2026-01-27T08:59:27.200Z"
+        },
+        {
+            "id": "93B3F0B2-29C1-4C56-83E1-1F469832F40B",
+            "employeeName": "Sarah Employee",
+            "employeeDepartment": "Engineering",
+            "visitor": {
+                "id": "076C0C14-69E1-45DD-AC2B-B938F4280E35",
+                "fullName": "New Push",
+                "email": "ahsanshafiq+71@folio3.com",
+                "phone": "+966 11 111 1171",
+                "company": "New Push"
+            },
+            "visitDate": "2026-01-28",
+            "visitTime": "12:05 PM",
+            "duration": "1 hour",
+            "purpose": "Events",
+            "isWalkIn": false,
+            "hasMeetingRoom": false,
+            "hasParking": false,
+            "hasBuffet": false,
+            "createdAt": "2026-01-26T23:06:06.320Z"
+        },
+        {
+            "id": "514ED0F9-7655-4558-8846-9760D2B4748A",
+            "employeeName": "Sarah Employee",
+            "employeeDepartment": "Engineering",
+            "visitor": {
+                "id": "6185934B-7E08-4E63-8963-DACDFEECDB91",
+                "fullName": "Ronaldo",
+                "email": "ahsanshafiq+57@folio3.com",
+                "phone": "+966 11 111 1175",
+                "company": "HI"
+            },
+            "visitDate": "2026-01-29",
+            "visitTime": "3:57 PM",
+            "duration": "1 hour",
+            "purpose": "Interview",
+            "isWalkIn": false,
+            "hasMeetingRoom": false,
+            "hasParking": false,
+            "hasBuffet": false,
+            "createdAt": "2026-01-26T02:58:10.350Z"
+        },
+        {
+            "id": "C872C1F9-C22D-4413-8BA6-8EA61F8E7115",
+            "employeeName": "Sarah Employee",
+            "employeeDepartment": "Engineering",
+            "visitor": {
+                "id": "5D9BE3BC-2543-4A75-BD92-7BCD259799B5",
+                "fullName": "Hello",
+                "email": "ahsanshafiq+51@folio3.com",
+                "phone": "+966 11 111 1151"
+            },
+            "visitDate": "2026-01-27",
+            "visitTime": "12:00 PM",
+            "duration": "1 hour",
+            "purpose": "Meeting",
+            "isWalkIn": false,
+            "hasMeetingRoom": false,
+            "hasParking": false,
+            "hasBuffet": false,
+            "createdAt": "2026-01-25T23:01:32.430Z"
+        },
+        {
+            "id": "F7F7BDD7-A535-44F8-9E38-B15418A16462",
+            "employeeName": "Employee 001",
+            "employeeDepartment": "Engineering",
+            "visitor": {
+                "id": "C9A9388D-025D-4958-BB2C-85DC508ACFA8",
+                "fullName": "cal1",
+                "email": "muzzammilabdulhai+cal1@folio3.com",
+                "phone": "+966 84 527 4851",
+                "company": "folio3"
+            },
+            "visitDate": "2026-01-25",
+            "visitTime": "11:50 AM",
+            "duration": "1 hour",
+            "purpose": "Interview",
+            "isWalkIn": false,
+            "hasMeetingRoom": false,
+            "hasParking": false,
+            "hasBuffet": false,
+            "createdAt": "2026-01-23T11:48:43.833Z"
+        },
+        {
+            "id": "C46F9169-E53B-416E-B2E8-73F351C5FF7C",
+            "employeeName": "Employee 001",
+            "employeeDepartment": "Engineering",
+            "visitor": {
+                "id": "B1A42C95-DAA4-44F2-A76A-9681186EB087",
+                "fullName": "aftab 03",
+                "email": "aftabahmed+1@folio3.com",
+                "phone": "+966 66 666 666",
+                "company": "folio3"
+            },
+            "visitDate": "2026-01-22",
+            "visitTime": "3:50 PM",
+            "duration": "1 hour",
+            "purpose": "Interview",
+            "isWalkIn": false,
+            "hasMeetingRoom": false,
+            "hasParking": false,
+            "hasBuffet": false,
+            "createdAt": "2026-01-21T23:53:39.043Z"
+        },
+        {
+            "id": "9C957CAE-2E06-4279-B61C-BE4BF4ACAA22",
+            "employeeName": "Employee 001",
+            "employeeDepartment": "Engineering",
+            "visitor": {
+                "id": "E97A86EE-2D80-40C3-A5A8-B2DFF50F4009",
+                "fullName": "aftab 02",
+                "email": "aftabahmed+1@folio3.com",
+                "phone": "+966 66 666 666",
+                "company": "folio3"
+            },
+            "visitDate": "2026-01-22",
+            "visitTime": "10:36 AM",
+            "duration": "1 hour",
+            "purpose": "General Visit",
+            "isWalkIn": true,
+            "hasMeetingRoom": false,
+            "hasParking": false,
+            "hasBuffet": false,
+            "createdAt": "2026-01-21T23:36:09.860Z"
+        },
+        {
+            "id": "02B7A92F-0A3B-4301-B12E-96B8B2D254E7",
+            "employeeName": "Employee 001",
+            "employeeDepartment": "Engineering",
+            "visitor": {
+                "id": "353582E9-8521-4EB4-9FAC-586628A59202",
+                "fullName": "aftab 01",
+                "email": "aftabahmed+1@folio3.com",
+                "phone": "+966 66 666 66",
+                "company": "foio3"
+            },
+            "visitDate": "2026-01-22",
+            "visitTime": "10:30 AM",
+            "duration": "1 hour",
+            "purpose": "General Visit",
+            "isWalkIn": true,
+            "hasMeetingRoom": false,
+            "hasParking": false,
+            "hasBuffet": false,
+            "createdAt": "2026-01-21T23:30:36.206Z"
+        },
+        {
+            "id": "646441C1-353F-49B5-974C-19A89969FC47",
+            "employeeName": "Sarah Employee",
+            "employeeDepartment": "Engineering",
+            "visitor": {
+                "id": "1697068A-FB4D-41FE-8B9F-7A9559BB5438",
+                "fullName": "Help Help",
+                "email": "ahsanshafiq+40@example.com",
+                "phone": "+966 11 111 1140",
+                "company": "Helping Hand"
+            },
+            "visitDate": "2026-01-22",
+            "visitTime": "10:40 AM",
+            "duration": "40 minutes",
+            "purpose": "Meeting",
+            "isWalkIn": false,
+            "hasMeetingRoom": false,
+            "hasParking": false,
+            "hasBuffet": true,
+            "createdAt": "2026-01-21T09:19:41.890Z"
+        },
+        {
+            "id": "D728A5F5-B421-437B-BC4A-596906FD5CED",
+            "employeeName": "Employee 001",
+            "employeeDepartment": "Engineering",
+            "visitor": {
+                "id": "B3FB3D15-9376-4510-8AAA-D34C88C22662",
+                "fullName": "charger2",
+                "email": "muzzammilabdulhai+charger2@folio3.com",
+                "phone": "+966 78 451 7845",
+                "company": "folio3"
+            },
+            "visitDate": "2026-01-22",
+            "visitTime": "2:00 PM",
+            "duration": "1 hour",
+            "purpose": "Interview",
+            "isWalkIn": false,
+            "hasMeetingRoom": true,
+            "hasParking": false,
+            "hasBuffet": true,
+            "createdAt": "2026-01-20T06:34:54.860Z"
+        }
+    ],
+    "pagination": {
+        "page": 1,
+        "limit": 10,
+        "total": 12,
+        "totalPages": 2
+    }
+}

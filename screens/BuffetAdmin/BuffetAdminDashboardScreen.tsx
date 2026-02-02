@@ -64,33 +64,6 @@ const mapAdminStaffDto = (staff: BuffetAdminStaffDto): BuffetStaff => {
 
 import { KPICard, KPICardRow } from '@/components/shared/KPICard';
 
-interface QuickActionProps {
-  icon: string;
-  label: string;
-  iconBgColor: string;
-  iconColor: string;
-  onPress: () => void;
-}
-
-function QuickActionButton({ icon, label, iconBgColor, iconColor, onPress }: QuickActionProps) {
-  const { theme } = useTheme();
-  
-  return (
-    <Pressable
-      style={[styles.quickActionCard, { backgroundColor: theme.surface }]}
-      onPress={onPress}
-    >
-      <View style={[styles.quickActionIconContainer, { backgroundColor: iconBgColor }]}>
-        <DDIcon name={icon as IconName} size={24} color={iconColor} />
-      </View>
-      <Spacer height={Spacing.sm} />
-      <ThemedText style={[styles.quickActionLabel, { color: theme.text }]}>
-        {label}
-      </ThemedText>
-    </Pressable>
-  );
-}
-
 export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDashboardScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
@@ -102,6 +75,20 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
   
   // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
   const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
+  
+  // Calculate card width accounting for gaps
+  const getCardStyle = useMemo(() => {
+    const gap = Spacing.md;
+    if (numColumns === 1) {
+      return { width: '100%' as const, marginBottom: gap };
+    } else if (numColumns === 2) {
+      // 2 columns: each card takes ~49% (leaving room for gap)
+      return { width: '48.5%' as const, marginBottom: gap };
+    } else {
+      // 3 columns: each card takes ~32% (leaving room for gaps)
+      return { width: '32%' as const, marginBottom: gap };
+    }
+  }, [numColumns]);
 
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<BuffetRequest | null>(null);
@@ -383,19 +370,10 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
           <ThemedText style={[styles.metaText, { color: theme.textSecondary }]} numberOfLines={1}>
             {item.location}
           </ThemedText>
-        </View>
-
-        <Spacer height={Spacing.xs} />
-
-        <View style={styles.metaRow}>
+          <View style={styles.metaDot} />
           <DDIcon name="clock" size={14} color={theme.textSecondary} />
           <ThemedText style={[styles.metaText, { color: theme.textSecondary }]}>
             {formatTimeFromString(item.visitTime)}
-          </ThemedText>
-          <View style={styles.metaDot} />
-          <DDIcon name="users" size={14} color={theme.textSecondary} />
-          <ThemedText style={[styles.metaText, { color: theme.textSecondary }]}>
-            {item.guestCount} {t('buffet.numberOfGuests').toLowerCase()}
           </ThemedText>
         </View>
 
@@ -411,28 +389,17 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
           </>
         ) : null}
 
-        <Spacer height={Spacing.md} />
-
-        <View style={styles.cardFooter}>
-          {showActions ? (
-            <Pressable
-              style={[styles.assignButton, { backgroundColor: applyOpacity(theme.warning, '12') }]}
-              onPress={(e) => handleOpenAssignModal(item, e)}
-            >
-              <DDIcon name="user-plus" size={14} color={theme.warning} />
-              <ThemedText style={[styles.assignButtonText, { color: theme.warning }]}>
-                {item.assignedTo ? t('buffet.reassign') : t('buffet.assignStaff')}
-              </ThemedText>
-            </Pressable>
-          ) : (
+        {!showActions ? (
+          <>
+            <Spacer height={Spacing.md} />
             <View style={[styles.completedBadge, { backgroundColor: applyOpacity(theme.success, '15') }]}>
               <DDIcon name="check-circle" size={14} color={theme.success} />
               <ThemedText style={[styles.completedText, { color: theme.success }]}>
                 {t('common.done')}
               </ThemedText>
             </View>
-          )}
-        </View>
+          </>
+        ) : null}
       </Pressable>
     );
   };
@@ -473,38 +440,6 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
 
       <Spacer height={Spacing.xl} />
 
-      <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
-        {t('dashboard.quickActions')}
-      </ThemedText>
-
-      <Spacer height={Spacing.md} />
-
-      <DirectionalRow style={styles.quickActionsRow}>
-        <QuickActionButton
-          icon="users"
-          label={t('navigation.staffManagement')}
-          iconBgColor={applyOpacity(theme.primary, '12')}
-          iconColor={theme.primary}
-          onPress={() => navigation.navigate(ROUTES.BUFFET_STAFF as never)}
-        />
-        <QuickActionButton
-          icon="map-pin"
-          label={t('navigation.locations')}
-          iconBgColor={applyOpacity(theme.success, '12')}
-          iconColor={theme.success}
-          onPress={() => navigation.navigate(ROUTES.BUFFET_LOCATIONS as never)}
-        />
-        <QuickActionButton
-          icon="list"
-          label={t('navigation.allRequests')}
-          iconBgColor={applyOpacity(theme.warning, '12')}
-          iconColor={theme.warning}
-          onPress={() => navigation.navigate(ROUTES.BUFFET_ALL_REQUESTS as never)}
-        />
-      </DirectionalRow>
-
-      <Spacer height={Spacing.xl} />
-
       <DirectionalRow style={styles.sectionHeader}>
         <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
           {t('buffet.buffetService')}
@@ -532,7 +467,7 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
           {requests.slice(0, 6).map((request) => (
             <View 
               key={request.id}
-              style={numColumns > 1 ? { width: numColumns === 2 ? '50%' : '33.33%', flexGrow: 0, marginBottom: Spacing.md, paddingRight: Spacing.sm } : { width: '100%', marginBottom: Spacing.md }}
+              style={getCardStyle}
             >
               {renderRequestCard(request)}
             </View>
@@ -612,39 +547,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
   },
-  quickActionsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: Spacing.sm,
-  },
-  quickActionCard: {
-    flex: 1,
-    paddingVertical: Spacing.lg,
-    paddingHorizontal: Spacing.md,
-    borderRadius: 12,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  quickActionIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  quickActionLabel: {
-    fontSize: 12,
-    fontWeight: '500',
-    textAlign: 'center',
-  },
   requestsList: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: Spacing.md,
+    justifyContent: 'space-between',
   },
   requestCard: {
     borderRadius: 12,

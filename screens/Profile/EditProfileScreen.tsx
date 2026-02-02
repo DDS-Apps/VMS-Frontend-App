@@ -21,7 +21,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { authService } from "@/services/api/authService";
 import { useToast } from "@/contexts/ToastContext";
 import { ApiException } from "@/api/errors";
-import { formatPhoneInput, formatPhoneNumber, normalizePhoneNumber } from "@/utils/formatters";
+import { normalizePhoneNumber, formatPhoneNumber } from "@/utils/formatters";
+import { PhoneInputWithCountry } from "@/components/PhoneInputWithCountry";
+import { getFlexDirection } from "@/components/DirectionalRow";
+import { apiConfig } from "@/api/config";
 
 interface EditProfileScreenProps {
   userRole?: UserRole;
@@ -41,18 +44,58 @@ export default function EditProfileScreen({
   const { user, refreshUser } = useAuth();
   const { showSuccess, showError } = useToast();
   
+  const parseBusinessPhoneBaseInitial = (phoneStr: string): string => {
+    if (!phoneStr) return "";
+    const extMatch = phoneStr.match(/(.+?)\s*(?:ext\.?|x)\s*\d+$/i);
+    return extMatch ? extMatch[1].trim() : phoneStr;
+  };
+  
+  const parseBusinessPhoneExtInitial = (phoneStr: string): string => {
+    if (!phoneStr) return "";
+    const extMatch = phoneStr.match(/(?:ext\.?|x)\s*(\d+)$/i);
+    return extMatch ? extMatch[1] : "";
+  };
+
+  // Normalize phone number to ensure it has "+" prefix for proper parsing
+  const normalizePhoneForDisplay = (phoneStr: string): string => {
+    if (!phoneStr) return "";
+    // If phone doesn't start with "+", add it
+    return phoneStr.startsWith('+') ? phoneStr : `+${phoneStr}`;
+  };
+
   const [name, setName] = useState(user?.name || '');
-  const [phone, setPhone] = useState('');
+  const [phone, setPhone] = useState(normalizePhoneForDisplay(user?.phoneNumber || ''));
+  const [businessPhone, setBusinessPhone] = useState(parseBusinessPhoneBaseInitial(user?.businessPhone || ''));
+  const [businessPhoneExt, setBusinessPhoneExt] = useState(parseBusinessPhoneExtInitial(user?.businessPhone || ''));
   const [department, setDepartment] = useState(user?.department || '');
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
-  const [isDeletingPhoto, setIsDeletingPhoto] = useState(false);
-  const [errors, setErrors] = useState<{ name?: string; phone?: string }>({});
+  const [errors, setErrors] = useState<{ name?: string; phone?: string; businessPhone?: string }>({});
+  const [localPhotoUrl, setLocalPhotoUrl] = useState<string | null>(null);
+
+  const isSSOUser = user?.source === 'microsoft_ad';
+
+  const formatBusinessPhoneForApi = (phoneNumber: string, ext: string): string => {
+    const formatted = formatPhoneNumber(phoneNumber);
+    if (ext) {
+      return `${formatted} ext. ${ext}`;
+    }
+    return formatted;
+  };
 
   // Refresh user data when screen gains focus and update form fields
   useFocusEffect(
     useCallback(() => {
-      refreshUser();
+      const doRefresh = async () => {
+        setIsRefreshing(true);
+        try {
+          await refreshUser();
+        } finally {
+          setIsRefreshing(false);
+        }
+      };
+      doRefresh();
     }, [refreshUser])
   );
 
@@ -60,7 +103,9 @@ export default function EditProfileScreen({
   useEffect(() => {
     if (user) {
       setName(user.name || '');
-      setPhone(user.phoneNumber ? formatPhoneInput(user.phoneNumber) : '');
+      setPhone(normalizePhoneForDisplay(user.phoneNumber || ''));
+      setBusinessPhone(parseBusinessPhoneBaseInitial(user.businessPhone || ''));
+      setBusinessPhoneExt(parseBusinessPhoneExtInitial(user.businessPhone || ''));
       setDepartment(user.department || '');
     }
   }, [user]);
@@ -71,8 +116,23 @@ export default function EditProfileScreen({
     paddingBottom: insets.bottom + Spacing.xl
   };
 
-  const handlePhoneChange = (text: string) => {
-    setPhone(formatPhoneInput(text));
+  const handlePhoneChange = (fullNumber: string) => {
+    setPhone(fullNumber);
+    if (errors.phone) {
+      setErrors({ ...errors, phone: undefined });
+    }
+  };
+
+  const handleBusinessPhoneChange = (fullNumber: string) => {
+    setBusinessPhone(fullNumber);
+    if (errors.businessPhone) {
+      setErrors({ ...errors, businessPhone: undefined });
+    }
+  };
+
+  const handleBusinessPhoneExtChange = (text: string) => {
+    const digitsOnly = text.replace(/\D/g, '').slice(0, 6);
+    setBusinessPhoneExt(digitsOnly);
   };
 
   const getRoleLabel = (role: string) => {
@@ -114,13 +174,28 @@ export default function EditProfileScreen({
     setIsSaving(true);
     
     try {
-      await authService.updateProfile({
+      const payload = {
         name: name.trim(),
         phoneNumber: normalizePhoneNumber(phone) || undefined,
+        businessPhone: businessPhone ? formatBusinessPhoneForApi(businessPhone, businessPhoneExt) : undefined,
         department: department.trim() || undefined,
-      });
+      };
       
-      await refreshUser();
+      await authService.updateProfile(payload);
+      
+      // Refresh user data from backend and get the updated user
+      const updatedUser = await refreshUser();
+      
+      // Update form state with the refreshed user data from backend
+      // This confirms the data was persisted correctly
+      if (updatedUser) {
+        setName(updatedUser.name || '');
+        setPhone(normalizePhoneForDisplay(updatedUser.phoneNumber || ''));
+        setBusinessPhone(parseBusinessPhoneBaseInitial(updatedUser.businessPhone || ''));
+        setBusinessPhoneExt(parseBusinessPhoneExtInitial(updatedUser.businessPhone || ''));
+        setDepartment(updatedUser.department || '');
+      }
+      
       showSuccess(t('settings.profileUpdated'), t('common.success'));
       
       if (onSave) {
@@ -207,7 +282,12 @@ export default function EditProfileScreen({
         } as any);
       }
       
-      await authService.uploadPhoto(formData);
+      const uploadResponse = await authService.uploadPhoto(formData);
+      const newPhotoUrl = uploadResponse.thumbnailUrl || uploadResponse.photoUrl;
+      if (newPhotoUrl) {
+        const cacheBuster = `?t=${Date.now()}`;
+        setLocalPhotoUrl(newPhotoUrl + cacheBuster);
+      }
       await refreshUser();
       showSuccess(t('settings.photoUpdated'), t('common.success'));
     } catch (err) {
@@ -220,42 +300,6 @@ export default function EditProfileScreen({
     }
   };
 
-  const handleDeletePhoto = async () => {
-    const confirmDelete = () => {
-      return new Promise<boolean>((resolve) => {
-        if (Platform.OS === 'web') {
-          resolve(confirm(t('settings.deletePhotoConfirm')));
-        } else {
-          Alert.alert(
-            t('settings.deletePhoto'),
-            t('settings.deletePhotoConfirm'),
-            [
-              { text: t('common.cancel'), style: 'cancel', onPress: () => resolve(false) },
-              { text: t('common.delete'), style: 'destructive', onPress: () => resolve(true) },
-            ]
-          );
-        }
-      });
-    };
-
-    const confirmed = await confirmDelete();
-    if (!confirmed) return;
-
-    setIsDeletingPhoto(true);
-    
-    try {
-      await authService.deletePhoto();
-      await refreshUser();
-      showSuccess(t('settings.photoDeleted'), t('common.success'));
-    } catch (err) {
-      const errorMessage = err instanceof ApiException 
-        ? err.message 
-        : t('common.errorOccurred');
-      showError(errorMessage, t('common.error'));
-    } finally {
-      setIsDeletingPhoto(false);
-    }
-  };
 
   const handleCancel = () => {
     if (onCancel) {
@@ -325,8 +369,19 @@ export default function EditProfileScreen({
       .slice(0, 2);
   };
 
-  const hasPhoto = user?.photoUrl || user?.thumbnailUrl;
-  const photoUrl = user?.thumbnailUrl || user?.photoUrl;
+  const getFullPhotoUrl = (relativeUrl: string | null | undefined): string | undefined => {
+    if (!relativeUrl) return undefined;
+    if (relativeUrl.startsWith('http')) return relativeUrl;
+    const baseUrl = relativeUrl.includes('?') 
+      ? `${apiConfig.baseUrl}${relativeUrl}` 
+      : `${apiConfig.baseUrl}${relativeUrl}`;
+    return baseUrl;
+  };
+
+  const hasPhoto = localPhotoUrl || user?.photoUrl || user?.thumbnailUrl;
+  const photoUrl = localPhotoUrl 
+    ? getFullPhotoUrl(localPhotoUrl)
+    : getFullPhotoUrl(user?.thumbnailUrl || user?.photoUrl);
 
   return (
     <ScreenKeyboardAwareScrollView contentContainerStyle={scrollContentStyle}>
@@ -355,7 +410,7 @@ export default function EditProfileScreen({
                 </ThemedText>
               </View>
             )}
-            {(isUploadingPhoto || isDeletingPhoto) ? (
+            {isUploadingPhoto ? (
               <View style={[styles.avatarOverlay, { backgroundColor: applyOpacity(theme.background, '70') }]}>
                 <ActivityIndicator size="small" color={theme.primary} />
               </View>
@@ -365,7 +420,7 @@ export default function EditProfileScreen({
             <LoadingButton
               onPress={handlePickPhoto}
               loading={isUploadingPhoto}
-              disabled={isUploadingPhoto || isDeletingPhoto}
+              disabled={isUploadingPhoto}
               variant="ghost"
               size="small"
               icon="camera"
@@ -373,19 +428,6 @@ export default function EditProfileScreen({
             >
               {hasPhoto ? t('settings.changePhoto') : t('settings.addPhoto')}
             </LoadingButton>
-            {hasPhoto ? (
-              <LoadingButton
-                onPress={handleDeletePhoto}
-                loading={isDeletingPhoto}
-                disabled={isUploadingPhoto || isDeletingPhoto}
-                variant="danger"
-                size="small"
-                icon="trash-2"
-                iconPosition="left"
-              >
-                {t('settings.deletePhoto')}
-              </LoadingButton>
-            ) : null}
           </DirectionalRow>
           <View style={styles.avatarInfo}>
             <ThemedText style={[styles.roleBadge, { color: theme.primary, backgroundColor: applyOpacity(theme.primary, '10') }]}>
@@ -431,12 +473,33 @@ export default function EditProfileScreen({
 
         <Spacer height={Spacing.lg} />
 
-        {renderInput(
-          t('form.fullName'),
-          name,
-          setName,
-          t('form.enterFullName'),
-          errors.name
+        {isSSOUser ? (
+          <View style={styles.inputContainer}>
+            <DirectionalRow style={[styles.labelRow, { justifyContent: 'space-between' }]}>
+              <ThemedText style={[styles.inputLabel, { color: theme.text, flex: 1 }]}>
+                {t('form.fullName')}
+              </ThemedText>
+              <DirectionalRow style={[styles.readOnlyBadge, { backgroundColor: applyOpacity(theme.textSecondary, '15'), gap: 4 }]}>
+                <DDIcon name="lock" size={10} color={theme.textSecondary} />
+                <ThemedText style={[styles.readOnlyText, { color: theme.textSecondary }]}>
+                  {t('form.readOnly')}
+                </ThemedText>
+              </DirectionalRow>
+            </DirectionalRow>
+            <View style={[styles.input, { backgroundColor: applyOpacity(theme.surfaceSecondary, '60'), borderColor: theme.border }]}>
+              <ThemedText style={{ color: theme.textSecondary }}>
+                {name || t('form.notProvided')}
+              </ThemedText>
+            </View>
+          </View>
+        ) : (
+          renderInput(
+            t('form.fullName'),
+            name,
+            setName,
+            t('form.enterFullName'),
+            errors.name
+          )
         )}
 
         <Spacer height={Spacing.md} />
@@ -453,13 +516,94 @@ export default function EditProfileScreen({
 
         <Spacer height={Spacing.md} />
 
-        {renderInput(
-          t('form.phone'),
-          phone,
-          handlePhoneChange,
-          t('form.enterPhone'),
-          errors.phone,
-          'phone-pad'
+        {isSSOUser ? (
+          <View style={styles.inputContainer}>
+            <DirectionalRow style={[styles.labelRow, { justifyContent: 'space-between' }]}>
+              <ThemedText style={[styles.inputLabel, { color: theme.text, flex: 1 }]}>
+                {t('form.phone')}
+              </ThemedText>
+              <DirectionalRow style={[styles.readOnlyBadge, { backgroundColor: applyOpacity(theme.textSecondary, '15'), gap: 4 }]}>
+                <DDIcon name="lock" size={10} color={theme.textSecondary} />
+                <ThemedText style={[styles.readOnlyText, { color: theme.textSecondary }]}>
+                  {t('form.readOnly')}
+                </ThemedText>
+              </DirectionalRow>
+            </DirectionalRow>
+            <View style={[styles.input, { backgroundColor: applyOpacity(theme.surfaceSecondary, '60'), borderColor: theme.border }]}>
+              <ThemedText style={{ color: theme.textSecondary }}>
+                {phone ? formatPhoneNumber(phone) : t('form.notProvided')}
+              </ThemedText>
+            </View>
+          </View>
+        ) : (
+          <PhoneInputWithCountry
+            value={phone}
+            onChangeText={handlePhoneChange}
+            label={t('form.phone')}
+            error={errors.phone}
+            testID="input-phone"
+          />
+        )}
+
+        <Spacer height={Spacing.md} />
+
+        {isSSOUser ? (
+          <View style={styles.inputContainer}>
+            <DirectionalRow style={[styles.labelRow, { justifyContent: 'space-between' }]}>
+              <ThemedText style={[styles.inputLabel, { color: theme.text, flex: 1 }]}>
+                {t('form.businessPhone')}
+              </ThemedText>
+              <DirectionalRow style={[styles.readOnlyBadge, { backgroundColor: applyOpacity(theme.textSecondary, '15'), gap: 4 }]}>
+                <DDIcon name="lock" size={10} color={theme.textSecondary} />
+                <ThemedText style={[styles.readOnlyText, { color: theme.textSecondary }]}>
+                  {t('form.readOnly')}
+                </ThemedText>
+              </DirectionalRow>
+            </DirectionalRow>
+            <View style={[styles.input, { backgroundColor: applyOpacity(theme.surfaceSecondary, '60'), borderColor: theme.border }]}>
+              <ThemedText style={{ color: theme.textSecondary }}>
+                {businessPhone ? `${formatPhoneNumber(businessPhone)}${businessPhoneExt ? ` ext. ${businessPhoneExt}` : ''}` : t('form.notProvided')}
+              </ThemedText>
+            </View>
+          </View>
+        ) : (
+          <>
+            <PhoneInputWithCountry
+              value={businessPhone}
+              onChangeText={handleBusinessPhoneChange}
+              label={t('form.businessPhone')}
+              error={errors.businessPhone}
+              testID="input-business-phone"
+            />
+            <Spacer height={Spacing.sm} />
+            <View style={styles.inputContainer}>
+              <ThemedText style={[styles.inputLabel, { color: theme.text }]}>
+                {t('form.extension')}
+              </ThemedText>
+              <View style={{ flexDirection: getFlexDirection(isRTL), alignItems: 'center', gap: Spacing.sm }}>
+                <TextInput
+                  style={[
+                    styles.input,
+                    styles.extensionInput,
+                    {
+                      backgroundColor: theme.surface,
+                      borderColor: theme.border,
+                      color: theme.text,
+                    },
+                  ]}
+                  value={businessPhoneExt}
+                  onChangeText={handleBusinessPhoneExtChange}
+                  placeholder="123"
+                  placeholderTextColor={theme.textSecondary}
+                  keyboardType="number-pad"
+                  maxLength={6}
+                />
+                <ThemedText style={[styles.extensionHint, { color: theme.textSecondary }]}>
+                  {t('form.optional')}
+                </ThemedText>
+              </View>
+            </View>
+          </>
         )}
       </ThemedView>
 
@@ -496,7 +640,7 @@ export default function EditProfileScreen({
         <LoadingButton
           onPress={handleSave}
           loading={isSaving}
-          disabled={isSaving}
+          disabled={isSaving || isRefreshing}
           variant="primary"
           size="large"
           icon="check"
@@ -624,5 +768,12 @@ const styles = StyleSheet.create({
   },
   button: {
     flex: 1,
+  },
+  extensionInput: {
+    width: 100,
+  },
+  extensionHint: {
+    fontSize: 12,
+    fontStyle: 'italic',
   },
 });

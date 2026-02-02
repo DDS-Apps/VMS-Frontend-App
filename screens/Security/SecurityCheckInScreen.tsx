@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { View, StyleSheet, Pressable, ScrollView, ActivityIndicator } from "react-native";
+import { View, StyleSheet, Pressable, ScrollView, ActivityIndicator, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ROUTES } from "@/constants";
 import { DDIcon } from "@/components/DDIcon";
@@ -53,6 +53,8 @@ interface SecurityVisitor {
   company: string;
   visitDate: string;
   visitTime: string;
+  endTime?: string;
+  duration?: string;
   host: string;
   status: SecurityVisitorStatus;
   checkInTime?: string;
@@ -73,6 +75,8 @@ interface SecurityVisitor {
     driverName?: string;
     status?: string;
   };
+  isBuffet?: boolean;
+  isMeetingRoom?: boolean;
   meetingRoom?: {
     roomName: string;
     floor: string;
@@ -90,6 +94,8 @@ const mapApiToSecurityVisitor = (dto: SecurityVisitorDto): SecurityVisitor => {
       case 'completed':
         return 'checked_out';
       case 'cancelled':
+      case 'auto_cancelled':
+      case 'rejected':
         return 'cancelled';
       default:
         return 'expected';
@@ -102,6 +108,8 @@ const mapApiToSecurityVisitor = (dto: SecurityVisitorDto): SecurityVisitor => {
     company: dto.visitorCompany || '',
     visitDate: dto.scheduledDate,
     visitTime: dto.scheduledTime,
+    endTime: dto.endTime,
+    duration: dto.duration,
     host: dto.hostName,
     status: mapStatus(dto.status),
     checkInTime: dto.checkInTime,
@@ -120,6 +128,8 @@ const mapApiToSecurityVisitor = (dto: SecurityVisitorDto): SecurityVisitor => {
       driverName: dto.valetDriverName,
       status: dto.valetStatus,
     },
+    isBuffet: dto.isBuffet,
+    isMeetingRoom: dto.isMeetingRoom,
   };
 };
 
@@ -132,13 +142,19 @@ interface DateRange {
 
 export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScreenProps) {
   const { theme } = useTheme();
-  const { t, isRTL } = useTranslation();  const { formatTimeFromString } = useFormatters();
+  const { t, isRTL } = useTranslation();
+  const { formatDate, formatTimeFromString } = useFormatters();
   const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [dateRange, setDateRange] = useState<DateRange>({ startDate: null, endDate: null });
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
+  
+  // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
+  const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
 
   const queryParams = useMemo(() => {
     const formatDate = (date: Date) => {
@@ -384,54 +400,59 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
   };
 
 
-  const renderVisitorCard = (visitor: SecurityVisitor) => {
-    const statusConfig = getStatusConfig(visitor.status);
+  // Calculate duration from visitTime and endTime (fallback when API doesn't provide duration)
+  const calculateDuration = (startTime: string, endTime?: string, apiDuration?: string): string => {
+    // Prefer API-provided duration if available
+    if (apiDuration) return apiDuration;
+    if (!endTime) return '1 hour';
     
-    const detailParts = [
-      visitor.host,
-      formatTimeFromString(visitor.visitTime),
-      visitor.checkInTime ? `${t('actions.checkIn')}: ${formatTimeFromString(visitor.checkInTime)}` : null,
-      visitor.checkOutTime ? `${t('actions.checkOut')}: ${formatTimeFromString(visitor.checkOutTime)}` : null,
-    ].filter(Boolean);
-
-    const getServiceInfo = () => {
-      const parts: string[] = [];
+    const parseTime = (timeStr: string): number => {
+      // Support both 12h (AM/PM) and 24h formats
+      const match12h = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+      const match24h = timeStr.match(/^(\d{1,2}):(\d{2})$/);
       
-      // Check parking status based on isVisitorNeedsParking or visitorNeedsParking field
-      const needsParking = visitor.parking.isVisitorNeedsParking ?? visitor.parking.visitorNeedsParking;
-      if (needsParking === false) {
-        // Visitor explicitly doesn't need parking
-        parts.push(t('security.noParking'));
-      } else if (needsParking === true) {
-        // Visitor needs parking - check if car details are available
-        const carDetails: string[] = [];
-        if (visitor.parking.licensePlate) carDetails.push(visitor.parking.licensePlate);
-        if (visitor.parking.carModel) carDetails.push(visitor.parking.carModel);
-        if (visitor.parking.carColor) carDetails.push(visitor.parking.carColor);
-        
-        if (carDetails.length > 0) {
-          parts.push(`${t('security.needsParking')}: ${carDetails.join(' - ')}`);
-        } else {
-          parts.push(`${t('security.needsParking')} (${t('security.parkingDetailsPending')})`);
-        }
-      } else if (visitor.parking.hasParking) {
-        // Fallback: parking slot assigned
-        parts.push(visitor.parking.slotNumber || t('parking.parkingAssigned'));
-      } else {
-        // Default: no parking
-        parts.push(t('security.noParking'));
+      if (match12h) {
+        let hours = parseInt(match12h[1], 10);
+        const minutes = parseInt(match12h[2], 10);
+        const period = match12h[3].toUpperCase();
+        if (period === 'PM' && hours !== 12) hours += 12;
+        if (period === 'AM' && hours === 12) hours = 0;
+        return hours * 60 + minutes;
       }
       
-      return parts;
+      if (match24h) {
+        const hours = parseInt(match24h[1], 10);
+        const minutes = parseInt(match24h[2], 10);
+        return hours * 60 + minutes;
+      }
+      
+      return 0;
     };
+    
+    const startMinutes = parseTime(startTime);
+    const endMinutes = parseTime(endTime);
+    let diffMinutes = endMinutes - startMinutes;
+    
+    // Handle overnight visits
+    if (diffMinutes <= 0) diffMinutes += 24 * 60;
+    
+    if (diffMinutes < 60) return `${diffMinutes} min`;
+    const hours = Math.floor(diffMinutes / 60);
+    const mins = diffMinutes % 60;
+    if (mins === 0) return `${hours} hour${hours > 1 ? 's' : ''}`;
+    return `${hours}h ${mins}m`;
+  };
 
-    const serviceParts = getServiceInfo();
+  const renderVisitorCard = (visitor: SecurityVisitor, isGridMode: boolean = false) => {
+    const statusConfig = getStatusConfig(visitor.status);
     const hasParking = visitor.parking.isVisitorNeedsParking === true || visitor.parking.visitorNeedsParking === true || visitor.parking.hasParking;
+    const duration = calculateDuration(visitor.visitTime, visitor.endTime, visitor.duration);
     
     return (
       <Pressable 
         key={visitor.id}
         onPress={() => navigation.navigate(ROUTES.SECURITY_VISITOR_DETAIL as never, { visitorId: visitor.id } as never)}
+        style={isGridMode ? { flex: 1 } : undefined}
       >
         <ThemedView 
           style={[
@@ -465,26 +486,49 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
 
             <Spacer height={Spacing.sm} />
 
-            <DirectionalRow style={styles.compactDetailsRow}>
-              <DDIcon name="user" size={14} variant="muted" />
-              <ThemedText style={[styles.compactDetailText, { color: theme.textSecondary, textAlign: 'right', marginEnd: 8 }]} numberOfLines={1}>
-                {detailParts.join('  |  ')}
+            <DirectionalRow style={styles.dateTimeRow}>
+              <DirectionalRow style={styles.dateTimeItem}>
+                <DDIcon name="calendar" size={13} variant="muted" />
+                <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
+                  {formatDate(new Date(visitor.visitDate), 'short')}
+                </ThemedText>
+              </DirectionalRow>
+              <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
+              <DirectionalRow style={styles.dateTimeItem}>
+                <DDIcon name="clock" size={13} variant="muted" />
+                <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
+                  {formatTimeFromString(visitor.visitTime)}
+                </ThemedText>
+              </DirectionalRow>
+              <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
+              <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
+                {duration}
               </ThemedText>
             </DirectionalRow>
 
             <Spacer height={Spacing.sm} />
 
-            <DirectionalRow style={[styles.compactServiceRow, { 
-              backgroundColor: hasParking ? applyOpacity(theme.success, '08') : applyOpacity(theme.textSecondary, '08')
-            }]}>
-              <DDIcon 
-                name={hasParking ? "map-pin" : "x-circle"} 
-                size={14} 
-                color={hasParking ? theme.success : theme.textSecondary} 
-              />
-              <ThemedText style={[styles.compactServiceText, { color: hasParking ? theme.success : theme.textSecondary, marginEnd: 8 }]}>
-                {serviceParts.join('  |  ')}
-              </ThemedText>
+            <DirectionalRow style={styles.servicesStatusRow}>
+              <DirectionalRow style={styles.servicesContainer}>
+                {hasParking && (
+                  <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '20') }]}>
+                    <DDIcon name="map-pin" size={14} color={theme.info} />
+                  </View>
+                )}
+                {visitor.isBuffet && (
+                  <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.warning, '20') }]}>
+                    <DDIcon name="cloche" size={14} variant="warning" />
+                  </View>
+                )}
+                {visitor.isMeetingRoom && (
+                  <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.secondary, '20') }]}>
+                    <DDIcon name="briefcase" size={14} color={theme.secondary} />
+                  </View>
+                )}
+                {!hasParking && !visitor.isBuffet && !visitor.isMeetingRoom && (
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>-</ThemedText>
+                )}
+              </DirectionalRow>
             </DirectionalRow>
           </View>
         </ThemedView>
@@ -527,9 +571,25 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
     }
 
     if (filteredVisitors.length > 0) {
+      // Grid view for card mode on web/tablet (numColumns > 1)
+      if (viewMode === 'card' && numColumns > 1) {
+        // Calculate flex basis based on numColumns: 3 cols = 31%, 2 cols = 48%
+        const itemBasis = numColumns === 3 ? '31%' : '48%';
+        return (
+          <View style={styles.webGridContainer}>
+            {filteredVisitors.map((visitor) => (
+              <View key={visitor.id} style={[styles.webGridItem, { flexBasis: itemBasis }]}>
+                {renderVisitorCard(visitor, true)}
+              </View>
+            ))}
+          </View>
+        );
+      }
+      
+      // List view or single column mobile (always single column)
       return (
         <View style={styles.cardList}>
-          {filteredVisitors.map(renderVisitorCard)}
+          {filteredVisitors.map((visitor) => renderVisitorCard(visitor, false))}
         </View>
       );
     }
@@ -555,9 +615,48 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
   return (
     <>
       <ScreenScrollView contentContainerStyle={scrollContentStyle}>
-        <ThemedText style={[Typography.title, { fontSize: 24, fontWeight: '600' }]}>
-          {t('navigation.visitorVerification')}
-        </ThemedText>
+        <DirectionalRow style={styles.titleRow}>
+          <ThemedText style={[Typography.title, { fontSize: 24, fontWeight: '600' }]}>
+            {t('navigation.visitorVerification')}
+          </ThemedText>
+          
+          <DirectionalRow style={styles.viewToggle}>
+            <Pressable
+              style={[
+                styles.viewToggleButton,
+                styles.viewToggleButtonLeft,
+                {
+                  backgroundColor: viewMode === 'card' ? theme.primary : theme.surface,
+                  borderColor: theme.border,
+                },
+              ]}
+              onPress={() => setViewMode('card')}
+            >
+              <DDIcon
+                name="grid"
+                size={16}
+                color={viewMode === 'card' ? theme.buttonText : theme.textSecondary}
+              />
+            </Pressable>
+            <Pressable
+              style={[
+                styles.viewToggleButton,
+                styles.viewToggleButtonRight,
+                {
+                  backgroundColor: viewMode === 'list' ? theme.primary : theme.surface,
+                  borderColor: theme.border,
+                },
+              ]}
+              onPress={() => setViewMode('list')}
+            >
+              <DDIcon
+                name="menu"
+                size={16}
+                color={viewMode === 'list' ? theme.buttonText : theme.textSecondary}
+              />
+            </Pressable>
+          </DirectionalRow>
+        </DirectionalRow>
         
         <Spacer height={Spacing.sm} />
         
@@ -642,6 +741,44 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
 }
 
 const styles = StyleSheet.create({
+  titleRow: {
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  viewToggle: {
+    borderRadius: BorderRadius.sm,
+    overflow: 'hidden',
+  },
+  viewToggleButton: {
+    padding: Spacing.sm,
+    minWidth: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+  },
+  viewToggleButtonLeft: {
+    borderTopStartRadius: BorderRadius.sm,
+    borderBottomStartRadius: BorderRadius.sm,
+    borderTopEndRadius: 0,
+    borderBottomEndRadius: 0,
+    borderEndWidth: 0,
+  },
+  viewToggleButtonRight: {
+    borderTopEndRadius: BorderRadius.sm,
+    borderBottomEndRadius: BorderRadius.sm,
+    borderTopStartRadius: 0,
+    borderBottomStartRadius: 0,
+  },
+  webGridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.md,
+  },
+  webGridItem: {
+    flexGrow: 1,
+    minWidth: 280,
+  },
   dateDisplayRow: {
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -666,6 +803,7 @@ const styles = StyleSheet.create({
     paddingEnd: Spacing.sm,
   },
   filterPill: {
+    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
@@ -693,6 +831,7 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
   },
   visitorCard: {
+    flexDirection: 'row',
     borderRadius: BorderRadius.md,
     overflow: 'hidden',
   },
@@ -729,26 +868,51 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontFamily: 'Inter_600SemiBold',
   },
-  compactDetailsRow: {
+  dateTimeRow: {
     alignItems: 'center',
-    gap: 6,
+    flexWrap: 'wrap',
+    gap: 4,
   },
-  compactDetailText: {
+  dateTimeItem: {
+    alignItems: 'center',
+    gap: 4,
+  },
+  dateTimeText: {
     fontSize: 13,
     fontFamily: 'Inter_400Regular',
-    flex: 1,
   },
-  compactServiceRow: {
+  separator: {
+    fontSize: 10,
+    marginHorizontal: 2,
+  },
+  servicesStatusRow: {
     alignItems: 'center',
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
+    justifyContent: 'space-between',
+  },
+  servicesContainer: {
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  servicePill: {
+    width: 28,
+    height: 28,
     borderRadius: BorderRadius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkInButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.md,
     gap: 6,
   },
-  compactServiceText: {
+  checkInButtonText: {
     fontSize: 13,
-    fontFamily: 'Inter_500Medium',
-    flex: 1,
+    fontWeight: '600',
+    fontFamily: 'Inter_600SemiBold',
+    color: '#FFFFFF',
   },
   valetBadge: {
     alignItems: 'center',
