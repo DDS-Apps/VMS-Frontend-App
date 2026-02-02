@@ -4,7 +4,7 @@
 
 set -e  # Exit on any error
 
-CORRECT_BACKEND="vms-backend-app-qa.replit.app"
+CORRECT_BACKEND="vms-backend-folio3.replit.app"
 
 echo "=========================================="
 echo "VMS Frontend QA Build"
