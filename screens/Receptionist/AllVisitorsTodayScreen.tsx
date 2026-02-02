@@ -78,12 +78,6 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
   // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
   const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
   
-  // Calculate item width: (containerWidth - gaps) / numColumns
-  // Container has paddingHorizontal of Spacing.lg (24px) on each side, and gap of Spacing.md (16px) between items
-  const containerPadding = Spacing.lg * 2; // 48px total horizontal padding
-  const totalGaps = Spacing.md * (numColumns - 1); // gaps between columns
-  const itemWidth = numColumns > 1 ? (screenWidth - containerPadding - totalGaps) / numColumns : screenWidth - containerPadding;
-  
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [expandedVisitors, setExpandedVisitors] = useState<Set<string>>(new Set());
@@ -437,7 +431,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
           {filteredVisitors.map((visitor) => (
             <View 
               key={visitor.id} 
-              style={{ width: itemWidth }}
+              style={numColumns === 3 ? styles.gridItem3 : numColumns === 2 ? styles.gridItem2 : styles.gridItem1}
             >
               {renderVisitorCard(visitor)}
             </View>
@@ -516,8 +510,22 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: Spacing.md,
   },
-  gridItem: {
+  gridItem3: {
+    flexBasis: '32%',
+    flexGrow: 0,
+    flexShrink: 0,
+    maxWidth: '32%',
     minWidth: 0,
+  },
+  gridItem2: {
+    flexBasis: '48%',
+    flexGrow: 0,
+    flexShrink: 0,
+    maxWidth: '48%',
+    minWidth: 0,
+  },
+  gridItem1: {
+    width: '100%',
   },
   visitorCard: {
     borderRadius: BorderRadius.lg,
