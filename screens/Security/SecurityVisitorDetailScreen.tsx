@@ -386,6 +386,209 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
 
       <Spacer height={Spacing.lg} />
 
+      {/* Additional Services Section */}
+      <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
+        <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text }]}>
+          {t('services.additionalServices')}
+        </ThemedText>
+        <Spacer height={Spacing.xl} />
+
+        <View style={isWebLayout ? styles.responsiveGrid : undefined}>
+          {/* Meeting Room */}
+          <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
+            <DirectionalRow
+              style={[
+                styles.serviceItemNew,
+                { backgroundColor: theme.surfaceSecondary },
+              ]}
+            >
+              <View
+                style={[
+                  styles.serviceIcon,
+                  {
+                    backgroundColor: applyOpacity(
+                      visitorData.isMeetingRoom
+                        ? theme.secondary
+                        : theme.textSecondary,
+                      '15',
+                    ),
+                  },
+                ]}
+              >
+                <DDIcon
+                  name="briefcase"
+                  size={18}
+                  color={
+                    visitorData.isMeetingRoom
+                      ? theme.secondary
+                      : theme.textSecondary
+                  }
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <ThemedText
+                  style={[
+                    Typography.body,
+                    { fontWeight: '600', fontSize: 14, color: theme.text },
+                  ]}
+                >
+                  {t('services.meetingRoom')}
+                </ThemedText>
+                {visitorData.isMeetingRoom ? (
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      { color: theme.warning, fontSize: 12, marginTop: 2 },
+                    ]}
+                  >
+                    {t('status.scheduled')}
+                  </ThemedText>
+                ) : (
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      { color: theme.textSecondary, fontSize: 12, marginTop: 2, fontStyle: 'italic' },
+                    ]}
+                  >
+                    {t('common.notRequested')}
+                  </ThemedText>
+                )}
+              </View>
+            </DirectionalRow>
+            {!isWebLayout && <Spacer height={Spacing.md} />}
+          </View>
+
+          {/* Buffet Service */}
+          <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
+            <DirectionalRow
+              style={[
+                styles.serviceItemNew,
+                { backgroundColor: theme.surfaceSecondary },
+              ]}
+            >
+              <View
+                style={[
+                  styles.serviceIcon,
+                  {
+                    backgroundColor: applyOpacity(
+                      visitorData.isBuffet
+                        ? theme.secondary
+                        : theme.textSecondary,
+                      '15',
+                    ),
+                  },
+                ]}
+              >
+                <DDIcon
+                  name="coffee"
+                  size={18}
+                  color={
+                    visitorData.isBuffet
+                      ? theme.secondary
+                      : theme.textSecondary
+                  }
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <ThemedText
+                  style={[
+                    Typography.body,
+                    { fontWeight: '600', fontSize: 14, color: theme.text },
+                  ]}
+                >
+                  {t('services.buffetService')}
+                </ThemedText>
+                {visitorData.isBuffet ? (
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      { color: theme.warning, fontSize: 12, marginTop: 2 },
+                    ]}
+                  >
+                    {t('status.pending')}
+                  </ThemedText>
+                ) : (
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      { color: theme.textSecondary, fontSize: 12, marginTop: 2, fontStyle: 'italic' },
+                    ]}
+                  >
+                    {t('common.notRequested')}
+                  </ThemedText>
+                )}
+              </View>
+            </DirectionalRow>
+            {!isWebLayout && <Spacer height={Spacing.md} />}
+          </View>
+
+          {/* Parking */}
+          <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
+            <DirectionalRow
+              style={[
+                styles.serviceItemNew,
+                { backgroundColor: theme.surfaceSecondary },
+              ]}
+            >
+              <View
+                style={[
+                  styles.serviceIcon,
+                  {
+                    backgroundColor: applyOpacity(
+                      visitorData.parkingAssigned
+                        ? theme.secondary
+                        : theme.textSecondary,
+                      '15',
+                    ),
+                  },
+                ]}
+              >
+                <DDIcon
+                  name="car"
+                  size={18}
+                  color={
+                    visitorData.parkingAssigned
+                      ? theme.secondary
+                      : theme.textSecondary
+                  }
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <ThemedText
+                  style={[
+                    Typography.body,
+                    { fontWeight: '600', fontSize: 14, color: theme.text },
+                  ]}
+                >
+                  {t('services.parking')}
+                </ThemedText>
+                {visitorData.parkingAssigned ? (
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      { color: theme.textSecondary, fontSize: 12, marginTop: 2 },
+                    ]}
+                  >
+                    {visitorData.parkingSpot || t('status.assigned')}
+                  </ThemedText>
+                ) : (
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      { color: theme.textSecondary, fontSize: 12, marginTop: 2, fontStyle: 'italic' },
+                    ]}
+                  >
+                    {t('common.notRequested')}
+                  </ThemedText>
+                )}
+              </View>
+            </DirectionalRow>
+          </View>
+        </View>
+      </ThemedView>
+
+      <Spacer height={Spacing.lg} />
+
       {/* Request Timeline Section */}
       <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
         <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text }]}>
@@ -475,6 +678,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  serviceItemNew: {
+    padding: Spacing.md,
+    borderRadius: BorderRadius.sm,
+    gap: Spacing.md,
+    alignItems: 'flex-start',
   },
   responsiveGrid: {
     flexDirection: 'row',
