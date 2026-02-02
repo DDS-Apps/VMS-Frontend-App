@@ -68,9 +68,10 @@ function getDateRange(filter: DateFilter): { startDate?: string; endDate?: strin
   }
 }
 
-function mapStatusToApi(status: StatusFilter): string | undefined {
-  if (status === 'all') return undefined;
-  return status;
+function mapStatusesToApi(statuses: Set<StatusFilter>): string | undefined {
+  if (statuses.has('all') || statuses.size === 0) return undefined;
+  const statusArray = Array.from(statuses).filter(s => s !== 'all');
+  return statusArray.length > 0 ? statusArray.join(',') : undefined;
 }
 
 const PAGE_SIZE = 20;
@@ -91,7 +92,7 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [dateFilter, setDateFilter] = useState<DateFilter>('this_week');
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [selectedStatuses, setSelectedStatuses] = useState<Set<StatusFilter>>(new Set(['all']));
   const [isWalkInFilter, setIsWalkInFilter] = useState(initialFilter === 'walk_in');
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
@@ -117,12 +118,12 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
 
   const queryParams: Omit<VisitListParams, 'page'> = useMemo(() => ({
     ...getDateRange(dateFilter),
-    status: mapStatusToApi(statusFilter),
+    status: mapStatusesToApi(selectedStatuses),
     search: debouncedSearch || undefined,
     isWalkIn: isWalkInFilter || undefined,
     myRequestsOnly: false,
     limit: PAGE_SIZE,
-  }), [dateFilter, statusFilter, debouncedSearch, isWalkInFilter]);
+  }), [dateFilter, selectedStatuses, debouncedSearch, isWalkInFilter]);
 
   const { 
     data, 
@@ -265,6 +266,37 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
     const option = DATE_FILTER_OPTIONS.find(o => o.key === dateFilter);
     return option?.label || t('common.all');
   };
+
+  const handleWalkInToggle = useCallback(() => {
+    const newWalkInState = !isWalkInFilter;
+    setIsWalkInFilter(newWalkInState);
+    if (newWalkInState) {
+      setSelectedStatuses(new Set(['all']));
+    }
+  }, [isWalkInFilter]);
+
+  const handleStatusChipPress = useCallback((status: StatusFilter) => {
+    if (status === 'all') {
+      setSelectedStatuses(new Set(['all']));
+      setIsWalkInFilter(false);
+    } else {
+      setSelectedStatuses(prev => {
+        const newSet = new Set(prev);
+        newSet.delete('all');
+        
+        if (newSet.has(status)) {
+          newSet.delete(status);
+          if (newSet.size === 0) {
+            return new Set(['all']);
+          }
+        } else {
+          newSet.add(status);
+        }
+        return newSet;
+      });
+      setIsWalkInFilter(false);
+    }
+  }, []);
 
   const renderVisitorCard = useCallback(({ item }: { item: VisitListItemDto }) => {
     const statusConfig = getStatusConfig(item.status);
@@ -558,7 +590,7 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
               gap: Spacing.xs,
             }
           ]}
-          onPress={() => setIsWalkInFilter(!isWalkInFilter)}
+          onPress={handleWalkInToggle}
           accessibilityLabel={t('common.walkIn')}
           accessibilityRole="button"
           accessibilityState={{ selected: isWalkInFilter }}
@@ -571,7 +603,7 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
         
         {/* Status filter chips */}
         {STATUS_FILTER_OPTIONS.map((option) => {
-          const isSelected = statusFilter === option.key;
+          const isSelected = selectedStatuses.has(option.key);
           const chipColor = getStatusChipColor(option.key);
           return (
             <Pressable
@@ -583,7 +615,7 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
                   borderColor: isSelected ? chipColor : theme.border,
                 }
               ]}
-              onPress={() => setStatusFilter(option.key)}
+              onPress={() => handleStatusChipPress(option.key)}
               accessibilityLabel={option.label}
               accessibilityRole="button"
               accessibilityState={{ selected: isSelected }}
@@ -601,7 +633,7 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
 
       <Spacer height={Spacing.md} />
     </View>
-  ), [t, theme, totalCount, isFetching, isFetchingNextPage, searchQuery, isWalkInFilter, statusFilter, getSelectedDateLabel, getStatusChipColor, STATUS_FILTER_OPTIONS, isRTL]);
+  ), [t, theme, totalCount, isFetching, isFetchingNextPage, searchQuery, isWalkInFilter, selectedStatuses, getSelectedDateLabel, getStatusChipColor, STATUS_FILTER_OPTIONS, isRTL, handleWalkInToggle, handleStatusChipPress]);
 
   if (isLoading) {
     return (
@@ -910,6 +942,7 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.full,
     borderWidth: 1,
+    alignItems: 'center',
   },
   statusChipText: {
     fontSize: 12,
