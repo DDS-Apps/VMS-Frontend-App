@@ -26,6 +26,41 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
+/**
+ * Parse a time string to minutes since midnight for sorting.
+ * Handles formats: "HH:MM", "H:MM", "HH:MM AM/PM", "H:MM AM/PM"
+ * Returns Infinity for invalid/empty times (sorts to end)
+ */
+const parseTimeToMinutes = (timeStr: string | undefined | null): number => {
+  if (!timeStr) return Infinity;
+  
+  const cleanTime = timeStr.trim().toUpperCase();
+  
+  // Check for AM/PM format
+  const isPM = cleanTime.includes('PM');
+  const isAM = cleanTime.includes('AM');
+  
+  // Remove AM/PM and extra spaces
+  const timePart = cleanTime.replace(/\s*(AM|PM)\s*/gi, '').trim();
+  
+  // Split by colon
+  const parts = timePart.split(':');
+  if (parts.length < 2) return Infinity;
+  
+  let hours = parseInt(parts[0], 10);
+  const minutes = parseInt(parts[1], 10);
+  
+  if (isNaN(hours) || isNaN(minutes)) return Infinity;
+  
+  // Convert to 24-hour format if AM/PM was specified
+  if (isAM || isPM) {
+    if (isPM && hours < 12) hours += 12;
+    if (isAM && hours === 12) hours = 0;
+  }
+  
+  return hours * 60 + minutes;
+};
+
 const screenWidth = Dimensions.get('window').width;
 
 const LAYOUT = {
@@ -113,7 +148,16 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
   const checkInMutation = useReceptionCheckInMutation();
   const checkOutMutation = useReceptionCheckOutMutation();
 
-  const todaysVisitors = todayResponse?.data ?? [];
+  // Sort today's visitors by visitTime ascending (earliest first)
+  const todaysVisitors = useMemo(() => {
+    const visitors = todayResponse?.data ?? [];
+    return [...visitors].sort((a, b) => {
+      const timeA = parseTimeToMinutes(a.visitTime);
+      const timeB = parseTimeToMinutes(b.visitTime);
+      return timeA - timeB;
+    });
+  }, [todayResponse?.data]);
+  
   const summary = todayResponse?.summary;
   const errorMessage = visitorError?.message || t('common.loadError');
 
@@ -128,8 +172,14 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
     limit: 20,
   });
   
+  // Sort all visitors by visitTime ascending (earliest first)
   const allVisitors = useMemo(() => {
-    return allVisitsData?.pages.flatMap(page => page.data) ?? [];
+    const visitors = allVisitsData?.pages.flatMap(page => page.data) ?? [];
+    return [...visitors].sort((a, b) => {
+      const timeA = parseTimeToMinutes(a.visitTime);
+      const timeB = parseTimeToMinutes(b.visitTime);
+      return timeA - timeB;
+    });
   }, [allVisitsData]);
 
   const hasShownError = useRef(false);
