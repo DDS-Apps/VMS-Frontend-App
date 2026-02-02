@@ -34,6 +34,8 @@ interface LegacyVisitor {
   name: string;
   company: string;
   time: string;
+  endTime?: string | null;
+  visitDate?: string;
   host: string;
   hostDepartment?: string;
   hostPhone?: string;
@@ -65,7 +67,7 @@ interface LegacyVisitor {
 export default function VisitorDetailScreen({ navigation, route }: VisitorDetailScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { formatTime, toLocalNumerals } = useFormatters();
+  const { formatTime, toLocalNumerals, formatDateShort } = useFormatters();
   const { isRTL } = useLanguage();
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
@@ -98,6 +100,8 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
     name: visitDetails.visitor.fullName,
     company: visitDetails.visitor.company ?? '',
     time: visitDetails.visitTime,
+    endTime: visitDetails.endTime,
+    visitDate: visitDetails.visitDate,
     host: visitDetails.employeeName,
     hostDepartment: visitDetails.employeeDepartment,
     hostPhone: visitDetails.employeePhoneNumber,
@@ -447,7 +451,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
                   {t('visitor.visitTime')}
                 </ThemedText>
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
-                  {visitor.time}
+                  {visitor.visitDate ? formatDateShort(visitor.visitDate) : ''}{visitor.visitDate && visitor.time ? ' • ' : ''}{visitor.time}{visitor.endTime ? ` - ${visitor.endTime}` : ''}
                 </ThemedText>
               </View>
             </DirectionalRow>
