@@ -240,9 +240,9 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
       case 'rejected':
         return { label: t('status.rejected'), bg: applyOpacity(theme.error, '15'), text: theme.error, border: theme.error };
       case 'cancelled':
-        return { label: t('status.cancelled'), bg: applyOpacity(theme.textSecondary, '15'), text: theme.textSecondary, border: theme.textSecondary };
+        return { label: t('status.cancelled'), bg: applyOpacity(theme.error, '15'), text: theme.error, border: theme.error };
       case 'auto_cancelled':
-        return { label: t('status.autoCancelled'), bg: applyOpacity(theme.textSecondary, '15'), text: theme.textSecondary, border: theme.textSecondary };
+        return { label: t('status.autoCancelled'), bg: applyOpacity(theme.error, '15'), text: theme.error, border: theme.error };
       case 'no_show':
         return { label: t('status.noShow'), bg: applyOpacity(theme.error, '15'), text: theme.error, border: theme.error };
       case 'expired':
@@ -490,9 +490,9 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
         return theme.success;
       case 'rejected':
       case 'no_show':
-        return theme.error;
       case 'cancelled':
       case 'auto_cancelled':
+        return theme.error;
       case 'expired':
         return theme.textSecondary;
       default:
