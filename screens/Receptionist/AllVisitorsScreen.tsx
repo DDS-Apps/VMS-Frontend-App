@@ -16,6 +16,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
 import { VisitorActionButton } from "@/components/VisitorActionButton";
 import { applyOpacity } from "@/utils/statusStyles";
+import { toServerDateString } from "@/utils/dateTimeUtils";
 import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 import { useInfiniteVisitsQuery } from "@/hooks/queries/useApprovalQueries";
 import { useReceptionCheckInMutation, useReceptionCheckOutMutation } from "@/hooks/queries/useReceptionQueries";
@@ -271,7 +272,13 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
     const statusConfig = getStatusConfig(item.status);
     const visitorName = item.visitor.fullName;
     const initials = visitorName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-    const showCheckIn = item.status === 'approved' || item.status === 'accepted' || item.status === 'visitor_accepted';
+    
+    // Only show check-in for today's visitors with eligible status
+    // Compare visitDate (YYYY-MM-DD from server) with today's date in server timezone
+    const todayServerDate = toServerDateString(new Date());
+    const isVisitToday = item.visitDate === todayServerDate;
+    const hasCheckInStatus = item.status === 'approved' || item.status === 'accepted' || item.status === 'visitor_accepted';
+    const showCheckIn = hasCheckInStatus && isVisitToday;
     const showCheckOut = item.status === 'checked_in';
     const isExpanded = expandedCards.has(item.id);
     const hasDetails = item.purpose || item.visitor.email || item.visitor.phone;
