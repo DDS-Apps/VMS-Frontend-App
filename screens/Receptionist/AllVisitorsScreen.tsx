@@ -509,21 +509,21 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
 
   const ListHeader = useMemo(() => (
     <View>
-      <ThemedText style={[Typography.title, { fontSize: 22, fontWeight: '700' }]}>
-        {t('navigation.allVisitors')}
-      </ThemedText>
-      
-      <Spacer height={4} />
-      
-      <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
-        {totalCount} {totalCount === 1 ? 'visitor' : 'visitors'} found
-        {isFetching && !isFetchingNextPage ? ' ...' : ''}
-      </ThemedText>
+      {/* Title row with count on the right */}
+      <DirectionalRow style={{ justifyContent: 'space-between', alignItems: 'baseline', gap: Spacing.md, flexWrap: 'wrap' }}>
+        <ThemedText style={[Typography.title, { fontSize: 22, fontWeight: '700' }]}>
+          {t('navigation.allVisitors')}
+        </ThemedText>
+        <ThemedText style={[Typography.caption, { color: theme.textSecondary, flexShrink: 1 }]} numberOfLines={1}>
+          {totalCount} {totalCount === 1 ? 'visitor' : 'visitors'} found
+          {isFetching && !isFetchingNextPage ? ' ...' : ''}
+        </ThemedText>
+      </DirectionalRow>
 
       <Spacer height={Spacing.lg} />
 
       {/* Search bar with date picker button */}
-      <DirectionalRow style={{ gap: Spacing.sm }}>
+      <DirectionalRow style={{ gap: Spacing.sm, alignItems: 'stretch' }}>
         <View style={{ flex: 1 }}>
           <SearchInput
             placeholder={t('reception.searchVisitor')}
@@ -532,7 +532,7 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
           />
         </View>
         <Pressable
-          style={[styles.datePickerButton, { backgroundColor: theme.surface, borderColor: theme.border }]}
+          style={[styles.datePickerButton, { backgroundColor: theme.surface, borderColor: theme.border, height: 56 }]}
           onPress={() => setShowDatePicker(true)}
         >
           <DDIcon name="calendar" size={18} color={theme.primary} />
@@ -545,15 +545,21 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
 
       <Spacer height={Spacing.md} />
 
-      {/* Walk-In toggle chip */}
-      <DirectionalRow style={styles.filtersRow}>
+      {/* Horizontal scrollable status chips with Walk-In toggle */}
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.statusChipsContainer}
+      >
+        {/* Walk-In toggle chip */}
         <Pressable
           style={[
-            styles.filterChip,
+            styles.statusChip,
             { 
               backgroundColor: isWalkInFilter ? applyOpacity(theme.warning, '15') : theme.surface,
               borderColor: isWalkInFilter ? theme.warning : theme.border,
-              flexDirection: getFlexDirection(isRTL)
+              flexDirection: getFlexDirection(isRTL),
+              gap: Spacing.xs,
             }
           ]}
           onPress={() => setIsWalkInFilter(!isWalkInFilter)}
@@ -562,20 +568,12 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
           accessibilityState={{ selected: isWalkInFilter }}
         >
           <DDIcon name="user-plus" size={12} color={isWalkInFilter ? theme.warning : theme.textSecondary} />
-          <ThemedText style={[styles.filterChipText, { color: isWalkInFilter ? theme.warning : theme.textSecondary }]}>
+          <ThemedText style={[styles.statusChipText, { color: isWalkInFilter ? theme.warning : theme.textSecondary }]}>
             {t('common.walkIn')}
           </ThemedText>
         </Pressable>
-      </DirectionalRow>
-
-      <Spacer height={Spacing.sm} />
-
-      {/* Horizontal scrollable status chips */}
-      <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.statusChipsContainer}
-      >
+        
+        {/* Status filter chips */}
         {STATUS_FILTER_OPTIONS.map((option) => {
           const isSelected = statusFilter === option.key;
           const chipColor = getStatusChipColor(option.key);
