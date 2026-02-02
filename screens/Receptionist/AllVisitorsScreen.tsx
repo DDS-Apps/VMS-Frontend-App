@@ -271,6 +271,8 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
     const newWalkInState = !isWalkInFilter;
     setIsWalkInFilter(newWalkInState);
     if (newWalkInState) {
+      setSelectedStatuses(new Set());
+    } else {
       setSelectedStatuses(new Set(['all']));
     }
   }, [isWalkInFilter]);
