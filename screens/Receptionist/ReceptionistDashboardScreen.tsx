@@ -12,7 +12,7 @@ import { useFormatters } from "@/hooks/useFormatters";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { VisitorActionButton } from "@/components/VisitorActionButton";
-import { applyOpacity } from "@/utils/statusStyles";
+import { applyOpacity, getStatusConfig as getSharedStatusConfig } from "@/utils/statusStyles";
 import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -251,20 +251,8 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
   };
 
   const getStatusConfig = (status: string) => {
-    switch (status) {
-      case 'checked_in':
-        return { label: t('status.checkedIn'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: theme.success };
-      case 'completed':
-        return { label: t('timeline.visitCompleted'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: theme.success };
-      case 'rejected':
-        return { label: t('status.rejected'), bg: applyOpacity(theme.error, '15'), text: theme.error, border: theme.error };
-      case 'cancelled':
-      case 'auto_cancelled':
-        return { label: t('status.cancelled'), bg: applyOpacity(theme.error, '15'), text: theme.error, border: theme.error };
-      default:
-        // approved, expected, pending all show as expected
-        return { label: t('visitor.expectedVisitors'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: theme.warning };
-    }
+    const config = getSharedStatusConfig(theme, status, t);
+    return { label: config.label, bg: config.bg, text: config.text, border: config.borderColor || config.text };
   };
 
   const handleVisitorPress = (visitor: TodayVisitorDto) => {
