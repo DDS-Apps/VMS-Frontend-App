@@ -496,7 +496,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                     { fontWeight: '600', fontSize: 14, color: theme.text },
                   ]}
                 >
-                  {t('services.buffetService')}
+                  {t('buffet.buffetService')}
                 </ThemedText>
                 {visitorData.isBuffet ? (
                   <ThemedText
