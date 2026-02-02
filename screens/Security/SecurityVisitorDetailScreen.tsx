@@ -435,13 +435,33 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                   {t('services.meetingRoom')}
                 </ThemedText>
                 {visitorData.isMeetingRoom ? (
+                  visitorData.status === 'cancelled' || visitorData.status === 'rejected' ? (
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.error, fontSize: 12, marginTop: 2 },
+                      ]}
+                    >
+                      {t('status.cancelled')}
+                    </ThemedText>
+                  ) : (
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.warning, fontSize: 12, marginTop: 2 },
+                      ]}
+                    >
+                      {t('status.scheduled')}
+                    </ThemedText>
+                  )
+                ) : visitorData.status === 'cancelled' ? (
                   <ThemedText
                     style={[
                       Typography.caption,
-                      { color: theme.warning, fontSize: 12, marginTop: 2 },
+                      { color: theme.error, fontSize: 12, marginTop: 2 },
                     ]}
                   >
-                    {t('status.scheduled')}
+                    {t('status.cancelled')}
                   </ThemedText>
                 ) : (
                   <ThemedText
@@ -499,13 +519,33 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                   {t('buffet.buffetService')}
                 </ThemedText>
                 {visitorData.isBuffet ? (
+                  visitorData.status === 'cancelled' || visitorData.status === 'rejected' ? (
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.error, fontSize: 12, marginTop: 2 },
+                      ]}
+                    >
+                      {t('status.cancelled')}
+                    </ThemedText>
+                  ) : (
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.warning, fontSize: 12, marginTop: 2 },
+                      ]}
+                    >
+                      {t('status.pending')}
+                    </ThemedText>
+                  )
+                ) : visitorData.status === 'cancelled' ? (
                   <ThemedText
                     style={[
                       Typography.caption,
-                      { color: theme.warning, fontSize: 12, marginTop: 2 },
+                      { color: theme.error, fontSize: 12, marginTop: 2 },
                     ]}
                   >
-                    {t('status.pending')}
+                    {t('status.cancelled')}
                   </ThemedText>
                 ) : (
                   <ThemedText
@@ -535,7 +575,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                   styles.serviceIcon,
                   {
                     backgroundColor: applyOpacity(
-                      visitorData.parkingAssigned
+                      visitorData.visitorNeedsParking || visitorData.isVisitorNeedsParking || visitorData.parkingAssigned
                         ? theme.secondary
                         : theme.textSecondary,
                       '15',
@@ -547,7 +587,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                   name="car"
                   size={18}
                   color={
-                    visitorData.parkingAssigned
+                    visitorData.visitorNeedsParking || visitorData.isVisitorNeedsParking || visitorData.parkingAssigned
                       ? theme.secondary
                       : theme.textSecondary
                   }
@@ -562,14 +602,52 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                 >
                   {t('services.parking')}
                 </ThemedText>
-                {visitorData.parkingAssigned ? (
+                {visitorData.visitorNeedsParking || visitorData.isVisitorNeedsParking || visitorData.parkingAssigned ? (
+                  visitorData.status === 'cancelled' || visitorData.status === 'rejected' ? (
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.error, fontSize: 12, marginTop: 2 },
+                      ]}
+                    >
+                      {t('status.cancelled')}
+                    </ThemedText>
+                  ) : visitorData.parkingSpot ? (
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.textSecondary, fontSize: 12, marginTop: 2 },
+                      ]}
+                    >
+                      {visitorData.parkingSpot}
+                    </ThemedText>
+                  ) : visitorData.licensePlate || visitorData.carModel || visitorData.carColor ? (
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.textSecondary, fontSize: 12, marginTop: 2 },
+                      ]}
+                    >
+                      {[visitorData.licensePlate, visitorData.carModel, visitorData.carColor].filter(Boolean).join(' • ')}
+                    </ThemedText>
+                  ) : (
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.warning, fontSize: 12, marginTop: 2 },
+                      ]}
+                    >
+                      {t('parking.parkingPending')}
+                    </ThemedText>
+                  )
+                ) : visitorData.status === 'cancelled' ? (
                   <ThemedText
                     style={[
                       Typography.caption,
-                      { color: theme.textSecondary, fontSize: 12, marginTop: 2 },
+                      { color: theme.error, fontSize: 12, marginTop: 2 },
                     ]}
                   >
-                    {visitorData.parkingSpot || t('status.assigned')}
+                    {t('status.cancelled')}
                   </ThemedText>
                 ) : (
                   <ThemedText
