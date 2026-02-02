@@ -90,6 +90,8 @@ function mapVisitDetailsToSecurityVisitor(visit: VisitDetailsDto): SecurityVisit
     carColor: visit.carColor,
     isBuffet: visit.isBuffet,
     isMeetingRoom: visit.isMeetingRoom,
+    meetingRoom: visit.meetingRoom,
+    buffet: visit.buffet,
     qrCode: visit.qrCode,
   };
 }

@@ -43,6 +43,8 @@ export interface SecurityVisitorDto {
   carColor?: string | null;
   isBuffet?: boolean;
   isMeetingRoom?: boolean;
+  meetingRoom?: { id: string; name: string; floor: string; capacity?: number; timeSlot?: string };
+  buffet?: { id: string; mealType: string; location: string };
   valetAssigned?: boolean;
   valetDriverName?: string;
   valetStatus?: string;

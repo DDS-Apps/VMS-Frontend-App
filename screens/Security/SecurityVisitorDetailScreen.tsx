@@ -407,7 +407,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                   styles.serviceIcon,
                   {
                     backgroundColor: applyOpacity(
-                      visitorData.isMeetingRoom
+                      visitorData.isMeetingRoom || visitorData.meetingRoom
                         ? theme.secondary
                         : theme.textSecondary,
                       '15',
@@ -419,7 +419,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                   name="briefcase"
                   size={18}
                   color={
-                    visitorData.isMeetingRoom
+                    visitorData.isMeetingRoom || visitorData.meetingRoom
                       ? theme.secondary
                       : theme.textSecondary
                   }
@@ -434,7 +434,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                 >
                   {t('services.meetingRoom')}
                 </ThemedText>
-                {visitorData.isMeetingRoom ? (
+                {visitorData.isMeetingRoom || visitorData.meetingRoom ? (
                   visitorData.status === 'cancelled' || visitorData.status === 'rejected' ? (
                     <ThemedText
                       style={[
@@ -443,6 +443,15 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                       ]}
                     >
                       {t('status.cancelled')}
+                    </ThemedText>
+                  ) : visitorData.meetingRoom?.name ? (
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.textSecondary, fontSize: 12, marginTop: 2 },
+                      ]}
+                    >
+                      {visitorData.meetingRoom.name}{visitorData.meetingRoom.floor ? ` - ${visitorData.meetingRoom.floor}` : ''}
                     </ThemedText>
                   ) : (
                     <ThemedText
@@ -491,7 +500,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                   styles.serviceIcon,
                   {
                     backgroundColor: applyOpacity(
-                      visitorData.isBuffet
+                      visitorData.isBuffet || visitorData.buffet
                         ? theme.secondary
                         : theme.textSecondary,
                       '15',
@@ -503,7 +512,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                   name="coffee"
                   size={18}
                   color={
-                    visitorData.isBuffet
+                    visitorData.isBuffet || visitorData.buffet
                       ? theme.secondary
                       : theme.textSecondary
                   }
@@ -518,7 +527,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                 >
                   {t('buffet.buffetService')}
                 </ThemedText>
-                {visitorData.isBuffet ? (
+                {visitorData.isBuffet || visitorData.buffet ? (
                   visitorData.status === 'cancelled' || visitorData.status === 'rejected' ? (
                     <ThemedText
                       style={[
@@ -527,6 +536,15 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                       ]}
                     >
                       {t('status.cancelled')}
+                    </ThemedText>
+                  ) : visitorData.buffet?.location ? (
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.textSecondary, fontSize: 12, marginTop: 2 },
+                      ]}
+                    >
+                      {visitorData.meetingRoom?.name ? `${visitorData.meetingRoom.name} - ${visitorData.meetingRoom.floor}` : visitorData.buffet.location}
                     </ThemedText>
                   ) : (
                     <ThemedText
