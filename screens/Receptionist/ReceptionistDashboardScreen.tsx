@@ -172,14 +172,9 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
     limit: 20,
   });
   
-  // Sort all visitors by visitTime ascending (earliest first)
+  // All visitors - use API order (no time sorting)
   const allVisitors = useMemo(() => {
-    const visitors = allVisitsData?.pages.flatMap(page => page.data) ?? [];
-    return [...visitors].sort((a, b) => {
-      const timeA = parseTimeToMinutes(a.visitTime);
-      const timeB = parseTimeToMinutes(b.visitTime);
-      return timeA - timeB;
-    });
+    return allVisitsData?.pages.flatMap(page => page.data) ?? [];
   }, [allVisitsData]);
 
   const hasShownError = useRef(false);
