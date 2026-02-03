@@ -372,7 +372,7 @@ export function VisitorRequestCard({
     return (
       <>
         <Spacer height={Spacing.md} />
-        <View onStartShouldSetResponder={() => true}>
+        <Pressable onPress={(e) => e.stopPropagation()}>
           <ApprovalActionGroup
             onApprove={onApprove || (() => {})}
             onReject={onReject || (() => {})}
@@ -381,7 +381,7 @@ export function VisitorRequestCard({
             rejectLoading={rejectLoading}
             size="medium"
           />
-        </View>
+        </Pressable>
       </>
     );
   };
