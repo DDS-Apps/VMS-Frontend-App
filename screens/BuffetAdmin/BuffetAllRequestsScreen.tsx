@@ -493,35 +493,6 @@ const EmptyState = ({ theme, t }: { theme: Theme; t: (key: string) => string }) 
   </ThemedView>
 );
 
-function getStatusColor(status: string, theme: Theme) {
-  switch (status) {
-    case 'pending':
-      return theme.primary;
-    case 'in_progress':
-      return theme.warning;
-    case 'completed':
-      return theme.success;
-    case 'cancelled':
-      return theme.error;
-    default:
-      return theme.textSecondary;
-  }
-}
-
-function getStatusLabel(status: string, t: (key: string) => string) {
-  switch (status) {
-    case 'pending':
-      return t('status.pending');
-    case 'in_progress':
-      return t('status.inProgress');
-    case 'completed':
-      return t('status.completed');
-    case 'cancelled':
-      return t('status.cancelled');
-    default:
-      return status;
-  }
-}
 
 export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequestsScreenProps) {
   const { theme } = useTheme();

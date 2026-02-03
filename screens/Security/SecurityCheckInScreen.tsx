@@ -13,7 +13,7 @@ import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
-import { applyOpacity } from "@/utils/statusStyles";
+import { applyOpacity, getStatusConfig } from "@/utils/statusStyles";
 import { useSecurityVisitorsQuery } from "@/hooks/queries/useSecurityQueries";
 import type { SecurityVisitorDto } from "@/types";
 import type { SecurityCheckInScreenProps } from "@/types/securityNavigation.types";
@@ -259,39 +259,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
       return parseTimeToMinutes(b.visitTime) - parseTimeToMinutes(a.visitTime);
     });
 
-  const getStatusConfig = (status: SecurityVisitor['status']) => {
-    switch (status) {
-      case 'expected':
-        return { 
-          color: theme.warning, 
-          bgColor: applyOpacity(theme.warning, '12'), 
-          label: t('visitor.expectedVisitors').split(' ')[0],
-          borderColor: theme.warning 
-        };
-      case 'checked_in':
-        return { 
-          color: theme.success, 
-          bgColor: applyOpacity(theme.success, '12'), 
-          label: t('status.checkedIn'),
-          borderColor: theme.success 
-        };
-      case 'checked_out':
-        return { 
-          color: theme.textSecondary, 
-          bgColor: applyOpacity(theme.textSecondary, '12'), 
-          label: t('status.checkedOut'),
-          borderColor: theme.textSecondary 
-        };
-      case 'cancelled':
-        return { 
-          color: theme.error, 
-          bgColor: applyOpacity(theme.error, '12'), 
-          label: t('status.cancelled'),
-          borderColor: theme.error 
-        };
-    }
-  };
-
+  
   const formatDisplayDate = () => {
     const today = new Date();
     const tomorrow = new Date(today);
@@ -444,7 +412,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
   };
 
   const renderVisitorCard = (visitor: SecurityVisitor, isGridMode: boolean = false) => {
-    const statusConfig = getStatusConfig(visitor.status);
+    const statusConfig = getStatusConfig(theme, visitor.status, t);
     const hasParking = visitor.parking.isVisitorNeedsParking === true || visitor.parking.visitorNeedsParking === true || visitor.parking.hasParking;
     const duration = calculateDuration(visitor.visitTime, visitor.endTime, visitor.duration);
     
@@ -460,7 +428,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
             { backgroundColor: theme.surface }
           ]}
         >
-          <View style={[styles.cardAccent, { backgroundColor: statusConfig.borderColor }]} />
+          <View style={[styles.cardAccent, { backgroundColor: statusConfig.text }]} />
           
           <View style={styles.cardMainSection}>
             <DirectionalRow style={styles.cardHeaderRow}>
@@ -477,8 +445,8 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
                 ) : null}
               </View>
 
-              <View style={[styles.statusBadge, { backgroundColor: statusConfig.bgColor, borderColor: applyOpacity(statusConfig.color, '30') }]}>
-                <ThemedText style={[styles.statusText, { color: statusConfig.color }]}>
+              <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border }]}>
+                <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
                   {statusConfig.label}
                 </ThemedText>
               </View>

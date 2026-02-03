@@ -10,4 +10,5 @@ export type StatusConfig = {
   bg: string;
   border: string;
   borderColor: string;
+  icon?: string;
 };

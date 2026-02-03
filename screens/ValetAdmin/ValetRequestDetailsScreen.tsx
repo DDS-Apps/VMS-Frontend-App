@@ -12,7 +12,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useFormatters } from "@/hooks/useFormatters";
 import { DDIcon, IconName } from "@/components/DDIcon";
-import { applyOpacity } from "@/utils/statusStyles";
+import { applyOpacity, getStatusConfig } from "@/utils/statusStyles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 import {
@@ -26,43 +26,6 @@ import {
 import type { ValetRequestDetailsScreenProps } from "@/types/valetAdminNavigation.types";
 import type { Theme } from "@/types/theme.types";
 
-function getStatusColor(status: string, theme: Theme) {
-  switch (status) {
-    case 'pending':
-      return theme.primary;
-    case 'assigned':
-      return theme.warning;
-    case 'parked':
-      return theme.info;
-    case 'ready_for_pickup':
-      return theme.success;
-    case 'completed':
-      return theme.secondary;
-    case 'cancelled':
-      return theme.error;
-    default:
-      return theme.textSecondary;
-  }
-}
-
-function getStatusLabel(status: string, t: (key: string) => string) {
-  switch (status) {
-    case 'pending':
-      return t('status.pending');
-    case 'assigned':
-      return t('status.assigned');
-    case 'parked':
-      return t('parking.parked');
-    case 'ready_for_pickup':
-      return t('valet.readyForPickup');
-    case 'completed':
-      return t('status.completed');
-    case 'cancelled':
-      return t('status.cancelled');
-    default:
-      return status;
-  }
-}
 
 export default function ValetRequestDetailsScreen({ route, navigation }: ValetRequestDetailsScreenProps) {
   const { theme } = useTheme();
@@ -113,8 +76,7 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
     }, [request.id])
   );
 
-  const statusColor = getStatusColor(request.status, theme);
-  const statusLabel = getStatusLabel(request.status, t);
+  const statusConfig = getStatusConfig(theme, request.status, t);
   const initials = request.visitorName.split(' ').map(n => n[0]).join('');
 
   const handleStatusUpdate = (newStatus: ValetRequest['status']) => {
@@ -186,16 +148,16 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
             <View
               style={{
                 alignSelf: 'center',
-                backgroundColor: applyOpacity(statusColor, '15'),
-                borderColor: applyOpacity(statusColor, '30'),
+                backgroundColor: statusConfig.bg,
+                borderColor: statusConfig.border,
                 borderWidth: StyleSheet.hairlineWidth,
                 paddingHorizontal: Spacing.md,
                 paddingVertical: 6,
                 borderRadius: BorderRadius.full,
               }}
             >
-              <ThemedText style={[Typography.caption, { color: statusColor, fontWeight: '600', fontSize: 12 }]}>
-                {statusLabel}
+              <ThemedText style={[Typography.caption, { color: statusConfig.text, fontWeight: '600', fontSize: 12 }]}>
+                {statusConfig.label}
               </ThemedText>
             </View>
           </View>
@@ -436,14 +398,14 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
             </LoadingButton>
           </View>
         ) : (
-          <DirectionalRow style={[styles.completedContainer, { backgroundColor: applyOpacity(statusColor, '10') }]}>
+          <DirectionalRow style={[styles.completedContainer, { backgroundColor: applyOpacity(statusConfig.text, '10') }]}>
             <DDIcon 
-              name={request.status === 'completed' ? 'check-circle' : 'x-circle'} 
+              name={(statusConfig.icon || 'check-circle') as IconName} 
               size={24} 
-              color={statusColor} 
+              color={statusConfig.text} 
             />
-            <ThemedText style={[Typography.body, { color: statusColor, fontWeight: '600', marginStart: Spacing.sm }]}>
-              {request.status === 'completed' ? t('status.completed') : t('status.cancelled')}
+            <ThemedText style={[Typography.body, { color: statusConfig.text, fontWeight: '600', marginStart: Spacing.sm }]}>
+              {statusConfig.label}
             </ThemedText>
           </DirectionalRow>
         )}
