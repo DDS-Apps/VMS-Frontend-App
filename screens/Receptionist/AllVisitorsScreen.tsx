@@ -34,6 +34,7 @@ type StatusFilter =
   | 'auto_cancelled'
   | 'waiting_acceptance'
   | 'accepted'
+  | 'visitor_accepted'
   | 'checked_in'
   | 'checked_out'
   | 'completed';
@@ -157,6 +158,7 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
     { key: 'approved', label: t('status.approved') },
     { key: 'waiting_acceptance', label: t('status.waitingAcceptance') },
     { key: 'accepted', label: t('status.accepted') },
+    { key: 'visitor_accepted', label: t('status.visitorAccepted') },
     { key: 'checked_in', label: t('status.checkedIn') },
     { key: 'checked_out', label: t('status.checkedOut') },
     { key: 'completed', label: t('timeline.visitCompleted') },
