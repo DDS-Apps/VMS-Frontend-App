@@ -27,6 +27,7 @@ export interface UnifiedRequest {
   date: string;
   time: string;
   status: UnifiedStatus;
+  originalStatus: string;
   location?: string;
   originalData: VisitListItemDto | BuffetAdminTaskDto | ValetTaskDto;
   canApprove: boolean;
@@ -135,6 +136,7 @@ function mapVisitToUnified(visit: VisitListItemDto): UnifiedRequest {
     date: visit.visitDate,
     time: visit.visitTime,
     status: normalizedStatus,
+    originalStatus: visit.status,
     location: visit.purpose,
     originalData: visit,
     canApprove: normalizedStatus === 'pending',
@@ -155,6 +157,7 @@ function mapBuffetToUnified(buffet: BuffetAdminTaskDto): UnifiedRequest {
     date: buffet.visitDate,
     time: buffet.visitTime,
     status: normalizedStatus,
+    originalStatus: buffet.status,
     location: buffet.location,
     originalData: buffet,
     canApprove: normalizedStatus === 'pending',
@@ -177,6 +180,7 @@ function mapValetToUnified(valet: ValetTaskDto): UnifiedRequest {
     date: valet.visitDate,
     time: valet.pickupTime || '',
     status: normalizedStatus,
+    originalStatus: valet.valet?.status || 'pending',
     location: valet.location || valet.dropOffLocation,
     originalData: valet,
     canApprove: normalizedStatus === 'pending',

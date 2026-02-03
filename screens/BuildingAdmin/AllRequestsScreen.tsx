@@ -108,7 +108,7 @@ interface RequestCardProps {
 
 function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDate, formatTimeFromString, isRTL, isExpanded, onToggleExpand }: RequestCardProps) {
   const typeColor = getTypeColor(request.type, theme);
-  const statusConfig = getStatusConfig(theme, request.status, t);
+  const statusConfig = getStatusConfig(theme, request.originalStatus, t);
   const typeIcon = getTypeIcon(request.type);
   const hasExpandableDetails = useMemo(() => {
     if (request.type === 'visitor') {
