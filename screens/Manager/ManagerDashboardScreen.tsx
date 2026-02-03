@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { View, StyleSheet, Pressable, TextInput, ScrollView, Modal, FlatList, Alert, useWindowDimensions } from "react-native";
+import { capitalizeFirst } from "@/utils/formatters";
 import { useFocusEffect } from '@react-navigation/native';
 import { ROUTES } from "@/constants";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -316,7 +317,7 @@ const ApprovalTableRow = React.memo(({
 }) => {  
   const nameText = (
     <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, flex: 1 }]} numberOfLines={2}>
-      {request.visitor.fullName}
+      {capitalizeFirst(request.visitor.fullName)}
     </ThemedText>
   );
   const walkInBadge = request.isWalkIn ? <WalkInBadge /> : null;

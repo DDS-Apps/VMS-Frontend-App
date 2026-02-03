@@ -55,7 +55,7 @@ import { mapVisitDetailsToVisitorRequest } from "@/utils/requestMappers";
 import { calculateServerDuration } from "@/utils/dateTimeUtils";
 import { useServerDateTime } from "@/hooks/useServerDateTime";
 import { applyOpacity } from "@/utils/statusStyles";
-import { formatPhoneNumber } from "@/utils/formatters";
+import { formatPhoneNumber, capitalizeFirst } from "@/utils/formatters";
 import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
 
 const LAYOUT = {
@@ -931,7 +931,7 @@ export default function ManagerApprovalDetailScreen({
                     style={[Typography.title, { fontWeight: "600", fontSize: 18, color: theme.text }]}
                     numberOfLines={1}
                   >
-                    {request.visitor.fullName}
+                    {capitalizeFirst(request.visitor.fullName)}
                   </ThemedText>
                   {request.visitor.company ? (
                     <ThemedText
@@ -1037,7 +1037,7 @@ export default function ManagerApprovalDetailScreen({
                 <ThemedText
                   style={[Typography.title, { fontWeight: "600", fontSize: 22, color: theme.text }]}
                 >
-                  {request.visitor.fullName}
+                  {capitalizeFirst(request.visitor.fullName)}
                 </ThemedText>
                 {request.visitor.company ? (
                   <ThemedText

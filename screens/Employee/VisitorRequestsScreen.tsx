@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { View, StyleSheet, Pressable, ScrollView, Alert, Platform, useWindowDimensions } from "react-native";
+import { capitalizeFirst } from "@/utils/formatters";
 import { DDIcon } from "@/components/DDIcon";
 import { SkeletonList } from "@/components/shared/Skeleton";
 import {
@@ -377,7 +378,7 @@ const VisitorRequestTableRow = React.memo(
                     ]}
                     numberOfLines={2}
                   >
-                    {request.visitor.fullName}
+                    {capitalizeFirst(request.visitor.fullName)}
                   </ThemedText>
                   {request.isWalkIn ? (
                     <DDIcon name="user-check" size={14} color={theme.warning} />

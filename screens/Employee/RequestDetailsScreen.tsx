@@ -73,7 +73,7 @@ import {
   getDurationOptions,
 } from "@/utils/requestMappers";
 import { calculateServerDuration } from "@/utils/dateTimeUtils";
-import { formatPhoneNumber, formatPhoneForDisplay } from "@/utils/formatters";
+import { formatPhoneNumber, formatPhoneForDisplay, capitalizeFirst } from "@/utils/formatters";
 import { useServerDateTime } from "@/hooks/useServerDateTime";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -1289,7 +1289,7 @@ export default function RequestDetailsScreen({
                     style={[Typography.title, { fontWeight: "600", fontSize: 18, color: theme.text }]}
                     numberOfLines={1}
                   >
-                    {request.visitor.fullName}
+                    {capitalizeFirst(request.visitor.fullName)}
                   </ThemedText>
                   {request.visitor.company && (
                     <ThemedText
@@ -1378,7 +1378,7 @@ export default function RequestDetailsScreen({
                 <ThemedText
                   style={[Typography.title, { fontWeight: "600", fontSize: 22, color: theme.text }]}
                 >
-                  {request.visitor.fullName}
+                  {capitalizeFirst(request.visitor.fullName)}
                 </ThemedText>
                 <ThemedText
                   style={[Typography.body, { color: theme.textSecondary, fontSize: 14, marginTop: 4 }]}
