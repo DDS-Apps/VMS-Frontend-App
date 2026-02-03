@@ -76,19 +76,25 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
   // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
   const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
   
-  // Calculate card width accounting for gaps
+  // Calculate card width accounting for gaps (gap is applied via container)
+  // Container has paddingHorizontal: Spacing.lg, so available width = screenWidth - (Spacing.lg * 2)
   const getCardStyle = useMemo(() => {
+    const containerPadding = Spacing.lg * 2;
+    const availableWidth = screenWidth - containerPadding;
     const gap = Spacing.md;
+    
     if (numColumns === 1) {
-      return { width: '100%' as const, marginBottom: gap };
+      return { width: '100%' as const };
     } else if (numColumns === 2) {
-      // 2 columns: each card takes ~49% (leaving room for gap)
-      return { width: '48.5%' as const, marginBottom: gap };
+      // 2 columns: (availableWidth - 1 gap) / 2
+      const cardWidth = (availableWidth - gap) / 2;
+      return { width: cardWidth };
     } else {
-      // 3 columns: each card takes ~32% (leaving room for gaps)
-      return { width: '32%' as const, marginBottom: gap };
+      // 3 columns: (availableWidth - 2 gaps) / 3
+      const cardWidth = (availableWidth - (gap * 2)) / 3;
+      return { width: cardWidth };
     }
-  }, [numColumns]);
+  }, [numColumns, screenWidth]);
 
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<BuffetRequest | null>(null);
@@ -550,7 +556,8 @@ const styles = StyleSheet.create({
   requestsList: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
+    gap: Spacing.md,
   },
   requestCard: {
     borderRadius: 12,
