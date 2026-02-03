@@ -315,6 +315,10 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
     const hasCheckInStatus = item.status === 'approved' || item.status === 'accepted' || item.status === 'visitor_accepted';
     const showCheckIn = hasCheckInStatus && isVisitToday;
     const showCheckOut = item.status === 'checked_in';
+    
+    const isMutating = checkInMutation.isPending || checkOutMutation.isPending;
+    const activeVisitorId = checkInMutation.variables?.visitId || checkOutMutation.variables?.visitId;
+    const isThisVisitorLoading = activeVisitorId === item.id;
     const isExpanded = expandedCards.has(item.id);
     const hasDetails = item.purpose || item.visitor.email || item.visitor.phone;
     
@@ -431,12 +435,16 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
                   {showCheckIn ? (
                     <VisitorActionButton 
                       type="check_in" 
-                      onPress={(e) => handleCheckIn(item.id, visitorName, e)} 
+                      onPress={(e) => handleCheckIn(item.id, visitorName, e)}
+                      loading={isThisVisitorLoading}
+                      disabled={isMutating && !isThisVisitorLoading}
                     />
                   ) : showCheckOut ? (
                     <VisitorActionButton 
                       type="check_out" 
-                      onPress={(e) => handleCheckOut(item.id, visitorName, e)} 
+                      onPress={(e) => handleCheckOut(item.id, visitorName, e)}
+                      loading={isThisVisitorLoading}
+                      disabled={isMutating && !isThisVisitorLoading}
                     />
                   ) : null}
                 </View>
@@ -446,7 +454,7 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
         </ThemedView>
       </Pressable>
     );
-  }, [getStatusConfig, handleVisitorPress, handleCheckIn, handleCheckOut, theme, formatTimeFromString, isRTL, expandedCards, toggleCardExpanded, t]);
+  }, [getStatusConfig, handleVisitorPress, handleCheckIn, handleCheckOut, theme, formatTimeFromString, isRTL, expandedCards, toggleCardExpanded, t, checkInMutation.isPending, checkOutMutation.isPending, checkInMutation.variables, checkOutMutation.variables]);
 
   const renderFooter = useCallback(() => {
     if (!isFetchingNextPage) return null;

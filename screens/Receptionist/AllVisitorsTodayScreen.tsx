@@ -259,6 +259,10 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
     const initials = visitorName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
     const showCheckIn = item.status === 'approved' || item.status === 'visitor_accepted' || item.status === 'expected';
     const showCheckOut = item.status === 'checked_in';
+    
+    const isMutating = checkInMutation.isPending || checkOutMutation.isPending;
+    const activeVisitorId = checkInMutation.variables?.visitId || checkOutMutation.variables?.visitId;
+    const isThisVisitorLoading = activeVisitorId === item.id;
     const isExpanded = expandedVisitors.has(item.id);
     const hasDetails = item.visitor.phone;
 
@@ -312,6 +316,8 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
                     <VisitorActionButton
                       type="check_in"
                       onPress={(e) => handleCheckIn(item.id, visitorName, e)}
+                      loading={isThisVisitorLoading}
+                      disabled={isMutating && !isThisVisitorLoading}
                     />
                   </View>
                 ) : showCheckOut ? (
@@ -319,6 +325,8 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
                     <VisitorActionButton
                       type="check_out"
                       onPress={(e) => handleCheckOut(item.id, visitorName, e)}
+                      loading={isThisVisitorLoading}
+                      disabled={isMutating && !isThisVisitorLoading}
                     />
                   </View>
                 ) : null}

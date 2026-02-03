@@ -285,6 +285,8 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
     const showCheckIn = item.status === 'pending' || item.status === 'expected';
     const showCheckOut = item.status === 'checked_in';
     const isMutating = checkInMutation.isPending || checkOutMutation.isPending;
+    const activeVisitorId = checkInMutation.variables?.visitId || checkOutMutation.variables?.visitId;
+    const isThisVisitorLoading = activeVisitorId === item.id;
     const isExpanded = expandedVisitors.has(item.id);
     const hasDetails = item.visitor.phone;
     
@@ -365,13 +367,15 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
             <VisitorActionButton 
               type="check_in" 
               onPress={(e) => handleCheckIn(item.id, visitorName, e)}
-              disabled={isMutating}
+              loading={isThisVisitorLoading}
+              disabled={isMutating && !isThisVisitorLoading}
             />
           ) : showCheckOut ? (
             <VisitorActionButton 
               type="check_out" 
               onPress={(e) => handleCheckOut(item.id, visitorName, e)}
-              disabled={isMutating}
+              loading={isThisVisitorLoading}
+              disabled={isMutating && !isThisVisitorLoading}
             />
           ) : null}
         </DirectionalRow>
