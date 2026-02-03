@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { View, StyleSheet, ViewStyle, Pressable, Platform } from "react-native";
+import { capitalizeFirst } from "@/utils/formatters";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { DDIcon } from "@/components/DDIcon";
@@ -218,7 +219,7 @@ export function VisitorRequestCard({
         {renderAvatar()}
         <View style={styles.nameSection}>
           <ThemedText style={[styles.visitorName, { color: theme.text, width: '100%' }]} align="start" numberOfLines={1}>
-            {request.visitor.fullName}
+            {capitalizeFirst(request.visitor.fullName)}
           </ThemedText>
           {request.visitor.company ? (
             <ThemedText style={[styles.companyText, { color: theme.textSecondary, width: '100%' }]} align="start">

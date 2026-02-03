@@ -76,17 +76,16 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
   // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
   const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
   
-  // Calculate card width accounting for gaps
+  // Get card style based on numColumns - use percentage widths for reliable layout
   const getCardStyle = useMemo(() => {
-    const gap = Spacing.md;
     if (numColumns === 1) {
-      return { width: '100%' as const, marginBottom: gap };
+      return { width: '100%' as const };
     } else if (numColumns === 2) {
-      // 2 columns: each card takes ~49% (leaving room for gap)
-      return { width: '48.5%' as const, marginBottom: gap };
+      // 2 columns: ~48% each with gap handling spacing
+      return { width: '48%' as const };
     } else {
-      // 3 columns: each card takes ~32% (leaving room for gaps)
-      return { width: '32%' as const, marginBottom: gap };
+      // 3 columns: ~32% each with gap handling spacing
+      return { width: '32%' as const };
     }
   }, [numColumns]);
 
@@ -550,7 +549,8 @@ const styles = StyleSheet.create({
   requestsList: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
+    gap: Spacing.md,
   },
   requestCard: {
     borderRadius: 12,

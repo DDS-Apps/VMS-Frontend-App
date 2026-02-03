@@ -17,7 +17,7 @@ import { useUserQuery, useDeleteUserMutation } from '@/hooks/queries/useUserQuer
 import { useFormatters } from '@/hooks/useFormatters';
 import { UserRole } from '@/types/vms.types';
 import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
-import { formatPhoneNumber } from '@/utils/formatters';
+import { formatPhoneNumber, formatPhoneForDisplay } from '@/utils/formatters';
 
 type RootStackParamList = {
   UserDetail: { userId: string };
@@ -219,7 +219,7 @@ export default function UserDetailScreen() {
                   <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
                     {t('form.businessPhone')}
                   </ThemedText>
-                  <ThemedText style={[Typography.body, {}]}>{formatPhoneNumber(userBusinessPhone)}</ThemedText>
+                  <ThemedText style={[Typography.body, {}]}>{formatPhoneForDisplay(userBusinessPhone)}</ThemedText>
                 </View>
               </DirectionalRow>
             </>
@@ -234,7 +234,7 @@ export default function UserDetailScreen() {
                   <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
                     {t('form.landline')}
                   </ThemedText>
-                  <ThemedText style={[Typography.body, {}]}>{formatPhoneNumber(userLandline)}</ThemedText>
+                  <ThemedText style={[Typography.body, {}]}>{formatPhoneForDisplay(userLandline)}</ThemedText>
                 </View>
               </DirectionalRow>
             </>

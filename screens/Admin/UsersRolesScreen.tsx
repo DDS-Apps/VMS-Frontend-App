@@ -359,7 +359,7 @@ export default function UsersRolesScreen() {
       errors.password = t("form.passwordRequired");
     }
     if (!formData.phoneNumber) {
-      errors.phone = t("form.phoneRequired");
+      errors.phone = t("errors.phoneRequired");
     } else if (!validatePhone(formData.phoneNumber)) {
       errors.phone = t("errors.invalidPhone");
     }

@@ -38,6 +38,7 @@ interface SidebarProps {
   userPhotoUrl?: string | null;
   currentScreen: string;
   onNavigate: (screen: string, params?: Record<string, unknown>) => void;
+  onNavigateHome?: () => void;
   onLogout: () => void;
   onToggleDarkMode: () => void;
   isDarkMode: boolean;
@@ -182,6 +183,7 @@ export default function Sidebar({
   userPhotoUrl,
   currentScreen,
   onNavigate,
+  onNavigateHome,
   onLogout,
   onToggleDarkMode,
   isDarkMode,
@@ -351,7 +353,18 @@ export default function Sidebar({
     >
       <Pressable 
         style={({ pressed }) => [styles.profileHeader, pressed && { opacity: 0.7 }]}
-        onPress={() => handleItemPress('Dashboard')}
+        onPress={() => {
+          if (onNavigateHome) {
+            onNavigateHome();
+            if (!isLargeScreen) {
+              setTimeout(() => {
+                onClose();
+              }, 100);
+            }
+          } else {
+            handleItemPress('Dashboard');
+          }
+        }}
       >
         <DirectionalRow style={styles.profileRow} gap={Spacing.md}>
           {userPhotoUrl ? (

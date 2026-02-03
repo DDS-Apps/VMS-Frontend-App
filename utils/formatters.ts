@@ -166,10 +166,6 @@ export const truncateText = (text: string, maxLength: number): string => {
   return `${text.substring(0, maxLength)}...`;
 };
 
-export const capitalizeFirst = (text: string): string => {
-  return text.charAt(0).toUpperCase() + text.slice(1);
-};
-
 /**
  * Formats a phone number for display in unified international format.
  * Pattern: +CCC XX XXX XXXX (always 3-2-3-4 grouping)
@@ -253,12 +249,14 @@ export const normalizePhoneNumber = (phone: string): string => {
 /**
  * Formats a phone number for display, preserving extension if present.
  * Handles phone numbers stored with "ext. XXX" or "x XXX" suffixes.
+ * Also detects embedded extensions for landline numbers that have more digits than expected.
  * Example: "+966 34 531 1234 ext. 223" stays formatted with extension visible.
+ * Example: "+966 44 444 4444222" becomes "+966 44 444 4444 ext. 222" (embedded extension detected).
  */
 export const formatPhoneForDisplay = (phone: string): string => {
   if (!phone) return '';
   
-  // Check if phone has an extension
+  // Check if phone has an explicit extension marker
   const extMatch = phone.match(/(.+?)\s*(ext\.?\s*|x\s*)(\d+)$/i);
   
   if (extMatch) {
@@ -268,7 +266,38 @@ export const formatPhoneForDisplay = (phone: string): string => {
     return `${formattedBase} ext. ${extension}`;
   }
   
-  // No extension, just format normally
+  // Check for embedded extension (no explicit marker)
+  // Extract only digits to analyze the number length
+  const digitsOnly = phone.replace(/\D/g, '');
+  
+  // Saudi landline numbers starting with 966 typically have 12 digits (966 + 9 digit number)
+  // If there are more digits, the extra trailing digits are likely an extension
+  if (digitsOnly.startsWith('966') && digitsOnly.length > 12) {
+    const baseDigits = digitsOnly.substring(0, 12);
+    const extensionDigits = digitsOnly.substring(12);
+    
+    // Reconstruct the base number with country code
+    const baseNumber = '+' + baseDigits;
+    const formattedBase = formatPhoneNumber(baseNumber);
+    return `${formattedBase} ext. ${extensionDigits}`;
+  }
+  
+  // For other countries or numbers with 10+ digits that might have embedded extensions
+  // Standard international numbers are typically 10-13 digits
+  // If we have more than 13 digits total, assume last 3-4 digits are extension
+  if (digitsOnly.length > 13) {
+    const extensionLength = Math.min(digitsOnly.length - 10, 4); // Extension is 3-4 digits
+    const baseDigits = digitsOnly.substring(0, digitsOnly.length - extensionLength);
+    const extensionDigits = digitsOnly.substring(digitsOnly.length - extensionLength);
+    
+    // Try to preserve the original format prefix (+ sign if present)
+    const hasPlus = phone.trim().startsWith('+');
+    const baseNumber = hasPlus ? '+' + baseDigits : baseDigits;
+    const formattedBase = formatPhoneNumber(baseNumber);
+    return `${formattedBase} ext. ${extensionDigits}`;
+  }
+  
+  // No extension detected, just format normally
   return formatPhoneNumber(phone);
 };
 
@@ -432,4 +461,14 @@ export const parseTimeString = (timeStr: string, dateStr?: string): Date => {
   }
   
   return now;
+};
+
+/**
+ * Capitalizes the first letter of a string
+ * @param str - The string to capitalize
+ * @returns The string with first letter capitalized
+ */
+export const capitalizeFirst = (str: string | null | undefined): string => {
+  if (!str) return '';
+  return str.charAt(0).toUpperCase() + str.slice(1);
 };

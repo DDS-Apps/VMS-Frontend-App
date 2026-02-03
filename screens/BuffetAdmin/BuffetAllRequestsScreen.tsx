@@ -75,7 +75,7 @@ const LAYOUT = {
   statCardRadius: BorderRadius.md,
   statusBorderWidth: 3,
   tableRowHeight: 110,
-  tableFixedColumnWidth: 160,
+  tableFixedColumnWidth: 240,
   tableScrollColumnWidth: 200,
 };
 
@@ -471,22 +471,6 @@ const BuffetRequestTableRow = React.memo(({
 
           <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
             <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
-              {t('buffet.assignedTo').toUpperCase()}
-            </ThemedText>
-            <Spacer height={10} />
-            {request.assignedStaff ? (
-              <ThemedText style={[styles.columnValue, { fontSize: 14, color: theme.success }]} numberOfLines={1}>
-                {request.assignedStaff}
-              </ThemedText>
-            ) : (
-              <ThemedText style={[styles.columnValue, { fontSize: 14, color: theme.textSecondary }]}>
-                {t('buffet.unassigned')}
-              </ThemedText>
-            )}
-          </View>
-
-          <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
-            <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
               {t('common.status').toUpperCase()}
             </ThemedText>
             <Spacer height={10} />
@@ -550,15 +534,16 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
   // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
   const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
   
-  // Calculate card width accounting for gaps
+  // Get card style based on numColumns - use percentage widths for reliable layout
   const getCardStyle = useMemo(() => {
-    const gap = LAYOUT.contentGap;
     if (numColumns === 1) {
-      return { width: '100%' as const, marginBottom: gap };
+      return { width: '100%' as const };
     } else if (numColumns === 2) {
-      return { width: '48.5%' as const, marginBottom: gap };
+      // 2 columns: ~48% each with gap handling spacing
+      return { width: '48%' as const };
     } else {
-      return { width: '32%' as const, marginBottom: gap };
+      // 3 columns: ~32% each with gap handling spacing
+      return { width: '32%' as const };
     }
   }, [numColumns]);
   
@@ -1086,7 +1071,9 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
               </View>
             ))
           ) : (
-            <EmptyState theme={theme} t={t} />
+            <View style={{ width: '100%' }}>
+              <EmptyState theme={theme} t={t} />
+            </View>
           )}
         </View>
 
@@ -1156,7 +1143,8 @@ const styles = StyleSheet.create({
   cardGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
+    gap: Spacing.md,
   },
   dateNavRow: {
     alignItems: 'center',
