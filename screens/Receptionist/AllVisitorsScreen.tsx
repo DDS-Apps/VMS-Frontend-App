@@ -237,8 +237,9 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
         return { label: t('status.waitingAcceptance'), bg: applyOpacity(theme.info, '15'), text: theme.info, border: theme.info };
       case 'approved':
       case 'accepted':
-      case 'visitor_accepted':
         return { label: t('status.approved'), bg: applyOpacity(theme.info, '15'), text: theme.info, border: theme.info };
+      case 'visitor_accepted':
+        return { label: t('status.visitorAccepted'), bg: applyOpacity(theme.info, '15'), text: theme.info, border: theme.info };
       case 'rejected':
         return { label: t('status.rejected'), bg: applyOpacity(theme.error, '15'), text: theme.error, border: theme.error };
       case 'cancelled':

@@ -268,10 +268,11 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
       case 'pending_host_approval':
         return { label: t('status.pendingHostApproval'), variant: 'warning', icon: 'clock' };
       case 'approved':
+        return { label: t('status.approved'), variant: 'info', icon: 'check-circle' };
       case 'visitor_accepted':
-        return { label: t('visitor.expectedVisitors'), variant: 'info', icon: 'check-circle' };
+        return { label: t('status.visitorAccepted'), variant: 'info', icon: 'check-circle' };
       default:
-        return { label: t('visitor.expectedVisitors'), variant: 'warning', icon: 'clock' };
+        return { label: t('status.pending'), variant: 'warning', icon: 'clock' };
     }
   };
 
