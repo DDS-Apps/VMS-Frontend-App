@@ -414,7 +414,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
   };
 
   const renderVisitorCard = (visitor: SecurityVisitor, isGridMode: boolean = false) => {
-    const statusConfig = getStatusConfig(theme, visitor.status, t);
+    const statusConfig = getStatusConfig(theme, visitor.originalStatus, t);
     const hasParking = visitor.parking.isVisitorNeedsParking === true || visitor.parking.visitorNeedsParking === true || visitor.parking.hasParking;
     const duration = calculateDuration(visitor.visitTime, visitor.endTime, visitor.duration);
     
