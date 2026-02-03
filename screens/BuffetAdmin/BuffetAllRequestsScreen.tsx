@@ -1071,7 +1071,9 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
               </View>
             ))
           ) : (
-            <EmptyState theme={theme} t={t} />
+            <View style={{ width: '100%' }}>
+              <EmptyState theme={theme} t={t} />
+            </View>
           )}
         </View>
 
