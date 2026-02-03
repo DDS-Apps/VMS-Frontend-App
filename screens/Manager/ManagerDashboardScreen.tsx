@@ -322,30 +322,25 @@ const ApprovalTableRow = React.memo(({
   );
   const walkInBadge = request.isWalkIn ? <WalkInBadge /> : null;
   
-  const rejectBtn = (
-    <Pressable
-      style={[styles.actionButton, styles.rejectActionButton, { borderColor: theme.error, opacity: isProcessing || isExpired ? 0.5 : 1 }]}
-      onPress={(e) => { e.stopPropagation(); onReject(); }}
-      disabled={isProcessing || isExpired}
-    >
-      <DDIcon name="x" size={16} color={theme.error} />
-    </Pressable>
-  );
-  const approveBtn = (
-    <Pressable
-      style={[styles.actionButton, styles.approveActionButton, { backgroundColor: theme.success, opacity: isProcessing || isExpired ? 0.5 : 1 }]}
-      onPress={(e) => { e.stopPropagation(); onApprove(); }}
-      disabled={isProcessing || isExpired}
-    >
-      <DDIcon name="check" size={16} color={theme.buttonText} />
-    </Pressable>
-  );
-  const detailsBtn = (
-    <Pressable
-      style={[styles.actionButton, styles.detailsActionButton, { borderColor: theme.border }]}
-      onPress={onViewDetails}
-    >
-      <DDIcon name="eye" size={16} variant="muted" />
+  const actionButtons = (
+    <Pressable onPress={(e) => e.stopPropagation()}>
+      <DirectionalRow style={{ alignItems: 'center' }}>
+        <ApprovalActionGroup
+          onApprove={onApprove}
+          onReject={onReject}
+          disabled={isProcessing || isExpired}
+          size="small"
+          showIcons={false}
+          fullWidth={false}
+        />
+        <Spacer width={Spacing.sm} />
+        <Pressable
+          style={[styles.actionButton, styles.detailsActionButton, { borderColor: theme.border }]}
+          onPress={(e) => { e.stopPropagation(); onViewDetails(); }}
+        >
+          <DDIcon name="eye" size={16} variant="muted" />
+        </Pressable>
+      </DirectionalRow>
     </Pressable>
   );
   
@@ -435,13 +430,7 @@ const ApprovalTableRow = React.memo(({
             {t('common.actions').toUpperCase()}
           </ThemedText>
           <Spacer height={10} />
-          <DirectionalRow style={styles.actionsRow}>
-            {rejectBtn}
-            <Spacer width={Spacing.sm} />
-            {approveBtn}
-            <Spacer width={Spacing.sm} />
-            {detailsBtn}
-          </DirectionalRow>
+          {actionButtons}
         </View>
       ) : null}
     </ScrollView>
