@@ -326,8 +326,8 @@ const ApprovalTableRow = React.memo(({
     <View pointerEvents="box-none">
       <DirectionalRow style={{ alignItems: 'center' }}>
         <ApprovalActionGroup
-          onApprove={() => { console.log('[ApprovalTableRow] onApprove called'); onApprove(); }}
-          onReject={() => { console.log('[ApprovalTableRow] onReject called'); onReject(); }}
+          onApprove={onApprove}
+          onReject={onReject}
           disabled={isProcessing || isExpired}
           size="small"
           showIcons={false}
@@ -336,7 +336,7 @@ const ApprovalTableRow = React.memo(({
         <Spacer width={Spacing.sm} />
         <Pressable
           style={[styles.actionButton, styles.detailsActionButton, { borderColor: theme.border }]}
-          onPress={() => { console.log('[ApprovalTableRow] onViewDetails called'); onViewDetails(); }}
+          onPress={onViewDetails}
         >
           <DDIcon name="eye" size={16} variant="muted" />
         </Pressable>
@@ -696,7 +696,6 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
   };
 
   const handleApprove = (requestId: string) => {
-    console.log('[ManagerDashboard] handleApprove called with requestId:', requestId);
     if (isProcessing) return;
     setApprovingRequestId(requestId);
     approveMutation.mutate(
@@ -714,7 +713,6 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
   };
 
   const handleReject = (requestId: string) => {
-    console.log('[ManagerDashboard] handleReject called with requestId:', requestId);
     if (isProcessing) return;
     setActiveRequestId(requestId);
     setIsBulkReject(false);

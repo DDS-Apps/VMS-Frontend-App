@@ -57,7 +57,7 @@ export const ApprovalActionGroup = ({
 
   const rejectButton = (
     <LoadingButton
-      onPress={() => { console.log('[ApprovalActionGroup] Reject button pressed'); onReject(); }}
+      onPress={onReject}
       loading={rejectLoading}
       disabled={isDisabled && !rejectLoading}
       variant="danger-outline"
@@ -73,7 +73,7 @@ export const ApprovalActionGroup = ({
 
   const approveButton = (
     <LoadingButton
-      onPress={() => { console.log('[ApprovalActionGroup] Approve button pressed'); onApprove(); }}
+      onPress={onApprove}
       loading={approveLoading}
       disabled={isDisabled && !approveLoading}
       variant="success"

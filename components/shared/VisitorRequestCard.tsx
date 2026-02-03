@@ -130,7 +130,6 @@ export function VisitorRequestCard({
   onToggleSelection,
   onLongPress,
 }: VisitorRequestCardProps) {
-  console.log('[VisitorRequestCard] Props received - showActions:', showActions, 'onApprove:', !!onApprove, 'onReject:', !!onReject);
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { formatDateShort, formatTimeFromString, toLocalNumerals } = useFormatters();
@@ -373,10 +372,10 @@ export function VisitorRequestCard({
     return (
       <>
         <Spacer height={Spacing.md} />
-        <Pressable onPress={(e) => { console.log('[VisitorRequestCard] Wrapper Pressable onPress - stopPropagation'); e.stopPropagation(); }}>
+        <Pressable onPress={(e) => e.stopPropagation()}>
           <ApprovalActionGroup
-            onApprove={() => { console.log('[VisitorRequestCard] onApprove called, handler exists:', !!onApprove); if (onApprove) onApprove(); }}
-            onReject={() => { console.log('[VisitorRequestCard] onReject called, handler exists:', !!onReject); if (onReject) onReject(); }}
+            onApprove={() => { if (onApprove) onApprove(); }}
+            onReject={() => { if (onReject) onReject(); }}
             disabled={isProcessing}
             approveLoading={approveLoading}
             rejectLoading={rejectLoading}
