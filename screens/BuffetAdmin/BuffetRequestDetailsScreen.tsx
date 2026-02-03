@@ -413,21 +413,23 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
             </DirectionalRow>
           </View>
 
-          <View style={styles.orderDetailItem}>
-            <DirectionalRow style={styles.serviceRowNew}>
-              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-                <DDIcon name="map-pin" size={18} color={theme.text} />
-              </View>
-              <View style={{ flex: 1, marginStart: Spacing.md }}>
-                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
-                  {t('invitation.location')}
-                </ThemedText>
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
-                  {request.meetingRoom || request.hostName}
-                </ThemedText>
-              </View>
-            </DirectionalRow>
-          </View>
+          {request.meetingRoom ? (
+            <View style={styles.orderDetailItem}>
+              <DirectionalRow style={styles.serviceRowNew}>
+                <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                  <DDIcon name="map-pin" size={18} color={theme.text} />
+                </View>
+                <View style={{ flex: 1, marginStart: Spacing.md }}>
+                  <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+                    {t('invitation.location')}
+                  </ThemedText>
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+                    {request.meetingRoom}
+                  </ThemedText>
+                </View>
+              </DirectionalRow>
+            </View>
+          ) : null}
 
           <View style={styles.orderDetailItem}>
             <DirectionalRow style={styles.serviceRowNew}>
@@ -452,7 +454,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
               </View>
               <View style={{ flex: 1, marginStart: Spacing.md }}>
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
-                  {t('invitation.visitDate')}
+                  {t('form.visitDate')}
                 </ThemedText>
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
                   {request.visitDate || '-'}
