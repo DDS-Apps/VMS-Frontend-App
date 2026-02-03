@@ -501,6 +501,8 @@ export default function AllRequestsScreen() {
           { id: 'approved', label: t('status.approved') },
           { id: 'in_progress', label: t('status.checkedIn') },
           { id: 'completed', label: t('status.checkedOut') },
+          { id: 'cancelled', label: t('status.cancelled') },
+          { id: 'auto_cancelled', label: t('status.autoCancelled') },
           { id: 'rejected', label: t('status.rejected') },
         ];
       case 'buffet':
@@ -510,6 +512,7 @@ export default function AllRequestsScreen() {
           { id: 'in_progress', label: t('status.preparing') },
           { id: 'completed', label: t('status.delivered') },
           { id: 'cancelled', label: t('status.cancelled') },
+          { id: 'auto_cancelled', label: t('status.autoCancelled') },
         ];
       case 'valet':
         return [
@@ -518,6 +521,7 @@ export default function AllRequestsScreen() {
           { id: 'in_progress', label: t('status.inProgress') },
           { id: 'completed', label: t('status.completed') },
           { id: 'cancelled', label: t('status.cancelled') },
+          { id: 'auto_cancelled', label: t('status.autoCancelled') },
         ];
       default:
         return [
@@ -526,6 +530,8 @@ export default function AllRequestsScreen() {
           { id: 'in_progress', label: t('status.inProgress') },
           { id: 'completed', label: t('status.completed') },
           { id: 'cancelled', label: t('status.cancelled') },
+          { id: 'auto_cancelled', label: t('status.autoCancelled') },
+          { id: 'rejected', label: t('status.rejected') },
         ];
     }
   }, [t]);
