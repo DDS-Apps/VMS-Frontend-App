@@ -193,7 +193,7 @@ function mapValetToUnified(valet: ValetTaskDto): UnifiedRequest {
 
 export interface AllRequestsFilters {
   type?: UnifiedRequestType | 'all';
-  status?: UnifiedStatus | 'all';
+  status?: UnifiedStatus | 'all' | 'visitor_accepted' | 'visitor_rejected';
   searchQuery?: string;
   startDate?: string;
   endDate?: string;
@@ -309,7 +309,11 @@ export function useAllRequestsQuery(filters: AllRequestsFilters = {}) {
   let filteredRequests = processedRequests;
 
   if (status !== 'all') {
-    filteredRequests = filteredRequests.filter(r => r.status === status);
+    if (status === 'visitor_accepted' || status === 'visitor_rejected') {
+      filteredRequests = filteredRequests.filter(r => r.originalStatus === status);
+    } else {
+      filteredRequests = filteredRequests.filter(r => r.status === status);
+    }
   }
 
   if (filters.searchQuery) {

@@ -41,7 +41,7 @@ const LAYOUT = {
 };
 
 type RequestFilter = UnifiedRequestType | 'all';
-type StatusFilter = UnifiedStatus | 'all';
+type StatusFilter = UnifiedStatus | 'all' | 'visitor_accepted' | 'visitor_rejected';
 
 const getTypeIcon = (type: UnifiedRequestType): IconName => {
   switch (type) {
@@ -499,11 +499,13 @@ export default function AllRequestsScreen() {
         return [
           ...baseFilters,
           { id: 'approved', label: t('status.approved') },
+          { id: 'visitor_accepted', label: t('status.visitorAccepted') },
           { id: 'in_progress', label: t('status.checkedIn') },
           { id: 'completed', label: t('status.checkedOut') },
           { id: 'cancelled', label: t('status.cancelled') },
           { id: 'auto_cancelled', label: t('status.autoCancelled') },
           { id: 'rejected', label: t('status.rejected') },
+          { id: 'visitor_rejected', label: t('status.visitorRejected') },
         ];
       case 'buffet':
         return [
