@@ -824,26 +824,31 @@ export default function VisitorRequestsScreen({
   };
   const initialTabFromParams = getInitialTab();
 
+  // Use ref to track initial tab application to prevent flickering from double-updates
+  const appliedInitialTabRef = useRef<string | undefined>(initialTabFromParams);
+  
   const [selectedTab, setSelectedTab] = useState<TabType>(
     initialTabFromParams || defaultTab,
   );
   const [viewMode, setViewMode] = useState<"card" | "list">("card");
-  const [lastInitialTab, setLastInitialTab] = useState<string | undefined>(
-    initialTabFromParams,
-  );
 
+  // Only update tab if navigation params change AFTER initial mount (e.g., navigating back with different tab)
+  // Skip if the param matches what we already applied to prevent flickering
   useEffect(() => {
     const paramTab = routeParams?.initialTab;
-    if (!paramTab || paramTab === lastInitialTab) return;
+    
+    // Skip if no param, or if it matches what we've already applied
+    if (!paramTab || paramTab === appliedInitialTabRef.current) return;
 
+    // Validate and apply the new tab
     if (isManager && isValidManagerTab(paramTab)) {
       setSelectedTab(paramTab);
-      setLastInitialTab(paramTab);
+      appliedInitialTabRef.current = paramTab;
     } else if (!isManager && isValidEmployeeTab(paramTab)) {
       setSelectedTab(paramTab);
-      setLastInitialTab(paramTab);
+      appliedInitialTabRef.current = paramTab;
     }
-  }, [isManager, routeParams?.initialTab, lastInitialTab]);
+  }, [isManager, routeParams?.initialTab]);
 
   const isWalkInTab = selectedTab === "walkin";
 
@@ -924,7 +929,9 @@ export default function VisitorRequestsScreen({
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  if (isLoading || isFetching) {
+  // Only show skeleton on initial load (no cached data), not during background refetches
+  // This prevents flickering when the screen gains focus and refetches in the background
+  if (isLoading && requests.length === 0) {
     return (
       <View
         style={{
