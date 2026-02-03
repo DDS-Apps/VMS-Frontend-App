@@ -2,7 +2,7 @@
   "expo": {
     "name": "Dallah Albaraka VMS",
     "slug": "dallah-vms",
-    "version": "1.0.29",
+    "version": "1.0.30",
     "orientation": "portrait",
     "icon": "./assets/images/header-icon-dark.png",
     "scheme": "dallahvms",
@@ -24,7 +24,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.dallah.vms",
       "appleTeamId": "SNJM77V43A",
-      "buildNumber": "57",
+      "buildNumber": "58",
       "googleServicesFile": "./config/qa/GoogleService-Info.plist",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
