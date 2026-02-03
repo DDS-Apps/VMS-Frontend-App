@@ -325,7 +325,7 @@ const ApprovalTableRow = React.memo(({
   const rejectBtn = (
     <Pressable
       style={[styles.actionButton, styles.rejectActionButton, { borderColor: theme.error, opacity: isProcessing || isExpired ? 0.5 : 1 }]}
-      onPress={onReject}
+      onPress={(e) => { e.stopPropagation(); onReject(); }}
       disabled={isProcessing || isExpired}
     >
       <DDIcon name="x" size={16} color={theme.error} />
@@ -334,7 +334,7 @@ const ApprovalTableRow = React.memo(({
   const approveBtn = (
     <Pressable
       style={[styles.actionButton, styles.approveActionButton, { backgroundColor: theme.success, opacity: isProcessing || isExpired ? 0.5 : 1 }]}
-      onPress={onApprove}
+      onPress={(e) => { e.stopPropagation(); onApprove(); }}
       disabled={isProcessing || isExpired}
     >
       <DDIcon name="check" size={16} color={theme.buttonText} />
