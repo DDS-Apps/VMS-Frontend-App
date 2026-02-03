@@ -323,11 +323,11 @@ const ApprovalTableRow = React.memo(({
   const walkInBadge = request.isWalkIn ? <WalkInBadge /> : null;
   
   const actionButtons = (
-    <Pressable onPress={(e) => e.stopPropagation()}>
+    <Pressable onPress={(e) => { console.log('[ApprovalTableRow] Wrapper Pressable onPress - stopPropagation'); e.stopPropagation(); }}>
       <DirectionalRow style={{ alignItems: 'center' }}>
         <ApprovalActionGroup
-          onApprove={onApprove}
-          onReject={onReject}
+          onApprove={() => { console.log('[ApprovalTableRow] onApprove called'); onApprove(); }}
+          onReject={() => { console.log('[ApprovalTableRow] onReject called'); onReject(); }}
           disabled={isProcessing || isExpired}
           size="small"
           showIcons={false}
@@ -696,6 +696,7 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
   };
 
   const handleApprove = (requestId: string) => {
+    console.log('[ManagerDashboard] handleApprove called with requestId:', requestId);
     if (isProcessing) return;
     setApprovingRequestId(requestId);
     approveMutation.mutate(
@@ -713,6 +714,7 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
   };
 
   const handleReject = (requestId: string) => {
+    console.log('[ManagerDashboard] handleReject called with requestId:', requestId);
     if (isProcessing) return;
     setActiveRequestId(requestId);
     setIsBulkReject(false);
