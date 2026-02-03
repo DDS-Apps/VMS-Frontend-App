@@ -830,7 +830,7 @@ const styles = StyleSheet.create({
   statusBadge: {
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,
-    borderRadius: BorderRadius.full,
+    borderRadius: BorderRadius.sm,
     borderWidth: 1,
   },
   statusText: {

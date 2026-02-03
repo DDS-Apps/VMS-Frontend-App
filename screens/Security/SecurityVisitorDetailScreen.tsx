@@ -125,7 +125,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                   borderWidth: StyleSheet.hairlineWidth,
                   paddingHorizontal: Spacing.md,
                   paddingVertical: 6,
-                  borderRadius: BorderRadius.full,
+                  borderRadius: BorderRadius.sm,
                   gap: 4,
                 }}
               >
@@ -188,7 +188,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                   borderWidth: StyleSheet.hairlineWidth,
                   paddingHorizontal: Spacing.md,
                   paddingVertical: 6,
-                  borderRadius: BorderRadius.full,
+                  borderRadius: BorderRadius.sm,
                 }}
               >
                 <ThemedText style={[Typography.caption, { color: statusConfig.text, fontWeight: '600', fontSize: 12 }]}>
