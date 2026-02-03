@@ -130,6 +130,7 @@ export function VisitorRequestCard({
   onToggleSelection,
   onLongPress,
 }: VisitorRequestCardProps) {
+  console.log('[VisitorRequestCard] Props received - showActions:', showActions, 'onApprove:', !!onApprove, 'onReject:', !!onReject);
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { formatDateShort, formatTimeFromString, toLocalNumerals } = useFormatters();
