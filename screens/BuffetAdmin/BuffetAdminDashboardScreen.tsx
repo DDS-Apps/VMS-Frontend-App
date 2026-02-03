@@ -76,25 +76,18 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
   // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
   const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
   
-  // Calculate card width accounting for gaps (container uses gap)
-  // Container has paddingHorizontal: Spacing.lg
+  // Get card style based on numColumns - use percentage widths for reliable layout
   const getCardStyle = useMemo(() => {
-    const containerPadding = Spacing.lg * 2;
-    const availableWidth = screenWidth - containerPadding;
-    const gap = Spacing.md;
-    
     if (numColumns === 1) {
       return { width: '100%' as const };
     } else if (numColumns === 2) {
-      // 2 columns: (availableWidth - 1 gap) / 2
-      const cardWidth = (availableWidth - gap) / 2;
-      return { width: cardWidth };
+      // 2 columns: ~48% each with gap handling spacing
+      return { width: '48%' as const };
     } else {
-      // 3 columns: (availableWidth - 2 gaps) / 3
-      const cardWidth = (availableWidth - (gap * 2)) / 3;
-      return { width: cardWidth };
+      // 3 columns: ~32% each with gap handling spacing
+      return { width: '32%' as const };
     }
-  }, [numColumns, screenWidth]);
+  }, [numColumns]);
 
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<BuffetRequest | null>(null);
