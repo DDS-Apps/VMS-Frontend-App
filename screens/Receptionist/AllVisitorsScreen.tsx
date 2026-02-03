@@ -27,13 +27,16 @@ type StatusFilter =
   | 'all'
   | 'pending_approval'
   | 'pending_host_approval'
+  | 'approved'
   | 'rejected'
+  | 'visitor_rejected'
   | 'cancelled'
   | 'auto_cancelled'
   | 'waiting_acceptance'
   | 'accepted'
   | 'checked_in'
-  | 'checked_out';
+  | 'checked_out'
+  | 'completed';
 
 function getDateRange(filter: DateFilter): { startDate?: string; endDate?: string } {
   const today = new Date();
@@ -151,11 +154,14 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
     { key: 'all', label: t('common.all') },
     { key: 'pending_approval', label: t('status.pendingApproval') },
     { key: 'pending_host_approval', label: t('status.pendingHostApproval') },
+    { key: 'approved', label: t('status.approved') },
     { key: 'waiting_acceptance', label: t('status.waitingAcceptance') },
     { key: 'accepted', label: t('status.accepted') },
     { key: 'checked_in', label: t('status.checkedIn') },
     { key: 'checked_out', label: t('status.checkedOut') },
+    { key: 'completed', label: t('timeline.visitCompleted') },
     { key: 'rejected', label: t('status.rejected') },
+    { key: 'visitor_rejected', label: t('status.visitorRejected') },
     { key: 'cancelled', label: t('status.cancelled') },
     { key: 'auto_cancelled', label: t('status.autoCancelled') },
   ];
@@ -242,6 +248,8 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
         return { label: t('status.visitorAccepted'), bg: applyOpacity(theme.info, '15'), text: theme.info, border: theme.info };
       case 'rejected':
         return { label: t('status.rejected'), bg: applyOpacity(theme.error, '15'), text: theme.error, border: theme.error };
+      case 'visitor_rejected':
+        return { label: t('status.visitorRejected'), bg: applyOpacity(theme.error, '15'), text: theme.error, border: theme.error };
       case 'cancelled':
         return { label: t('status.cancelled'), bg: applyOpacity(theme.error, '15'), text: theme.error, border: theme.error };
       case 'auto_cancelled':
@@ -533,13 +541,16 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
       case 'pending_approval':
       case 'pending_host_approval':
         return theme.warning;
+      case 'approved':
       case 'accepted':
       case 'waiting_acceptance':
         return theme.info;
       case 'checked_in':
       case 'checked_out':
+      case 'completed':
         return theme.success;
       case 'rejected':
+      case 'visitor_rejected':
       case 'cancelled':
       case 'auto_cancelled':
         return theme.error;
