@@ -218,9 +218,11 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
       case 'pending_host_approval':
         return { label: t('status.pendingHostApproval'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: theme.warning };
       case 'approved':
+        return { label: t('status.approved'), bg: applyOpacity(theme.info, '15'), text: theme.info, border: theme.info };
       case 'visitor_accepted':
+        return { label: t('status.visitorAccepted'), bg: applyOpacity(theme.info, '15'), text: theme.info, border: theme.info };
       case 'expected':
-        return { label: t('visitor.expectedVisitors'), bg: applyOpacity(theme.info, '15'), text: theme.info, border: theme.info };
+        return { label: t('status.approved'), bg: applyOpacity(theme.info, '15'), text: theme.info, border: theme.info };
       case 'rejected':
         return { label: t('status.rejected'), bg: applyOpacity(theme.error, '15'), text: theme.error, border: theme.error };
       case 'cancelled':
@@ -257,6 +259,10 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
     const initials = visitorName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
     const showCheckIn = item.status === 'approved' || item.status === 'visitor_accepted' || item.status === 'expected';
     const showCheckOut = item.status === 'checked_in';
+    
+    const isMutating = checkInMutation.isPending || checkOutMutation.isPending;
+    const activeVisitorId = checkInMutation.variables?.visitId || checkOutMutation.variables?.visitId;
+    const isThisVisitorLoading = activeVisitorId === item.id;
     const isExpanded = expandedVisitors.has(item.id);
     const hasDetails = item.visitor.phone;
 
@@ -310,6 +316,8 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
                     <VisitorActionButton
                       type="check_in"
                       onPress={(e) => handleCheckIn(item.id, visitorName, e)}
+                      loading={isThisVisitorLoading}
+                      disabled={isMutating && !isThisVisitorLoading}
                     />
                   </View>
                 ) : showCheckOut ? (
@@ -317,6 +325,8 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
                     <VisitorActionButton
                       type="check_out"
                       onPress={(e) => handleCheckOut(item.id, visitorName, e)}
+                      loading={isThisVisitorLoading}
+                      disabled={isMutating && !isThisVisitorLoading}
                     />
                   </View>
                 ) : null}

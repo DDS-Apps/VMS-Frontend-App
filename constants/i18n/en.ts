@@ -1154,6 +1154,7 @@ export const en: TranslationKeys = {
     overloaded: 'Overloaded',
     underutilized: 'Underutilized',
     todaysVisitors: "Today's Visitors",
+    visitors: 'Visitors',
     noVisitorsToday: 'No visitors expected today',
     noRequests: 'No valet requests yet',
     noMatchingRequests: 'No matching valet requests found',
@@ -1585,5 +1586,10 @@ export const en: TranslationKeys = {
     rejected: 'Request has been rejected.',
     approvalSuccess: 'Request approved successfully.',
     rejectionSuccess: 'Request rejected successfully.',
+  },
+  manager: {
+    rejectRequest: 'Reject Request',
+    rejectReasonPrompt: 'Please provide a reason for rejecting this request',
+    rejectReasonPlaceholder: 'Enter rejection reason...',
   },
 };

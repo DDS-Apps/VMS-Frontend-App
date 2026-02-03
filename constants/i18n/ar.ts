@@ -1154,6 +1154,7 @@ export const ar: TranslationKeys = {
     overloaded: 'محمل بشكل زائد',
     underutilized: 'غير مستغل',
     todaysVisitors: 'زوار اليوم',
+    visitors: 'الزوار',
     noVisitorsToday: 'لا يوجد زوار متوقعون اليوم',
     noRequests: 'لا توجد طلبات صف سيارات بعد',
     noMatchingRequests: 'لم يتم العثور على طلبات صف سيارات مطابقة',
@@ -1585,5 +1586,10 @@ export const ar: TranslationKeys = {
     rejected: 'تم رفض الطلب.',
     approvalSuccess: 'تمت الموافقة على الطلب بنجاح.',
     rejectionSuccess: 'تم رفض الطلب بنجاح.',
+  },
+  manager: {
+    rejectRequest: 'رفض الطلب',
+    rejectReasonPrompt: 'يرجى تقديم سبب لرفض هذا الطلب',
+    rejectReasonPlaceholder: 'أدخل سبب الرفض...',
   },
 };

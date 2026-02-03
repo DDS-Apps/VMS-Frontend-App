@@ -34,6 +34,9 @@ export const applyOpacity = (color: string, alpha: string): string => {
  * Map status code to i18n translation key
  */
 export const getStatusTranslationKey = (status: string): string => {
+  if (!status) {
+    return 'status.pending';
+  }
   switch (status.toLowerCase()) {
     case 'pending_approval':
       return 'status.pendingApproval';
@@ -48,7 +51,7 @@ export const getStatusTranslationKey = (status: string): string => {
     case 'checked_out':
       return 'status.checkedOut';
     case 'completed':
-      return 'status.completed';
+      return 'timeline.visitCompleted';
     case 'rejected':
       return 'status.rejected';
     case 'visitor_rejected':
@@ -73,6 +76,14 @@ export const getStatusTranslationKey = (status: string): string => {
       return 'status.ready';
     case 'served':
       return 'status.served';
+    case 'assigned':
+      return 'status.assigned';
+    case 'parked':
+      return 'parking.parked';
+    case 'ready_for_pickup':
+      return 'valet.readyForPickup';
+    case 'expected':
+      return 'status.expected';
     default:
       return `status.${status}`;
   }
@@ -86,11 +97,12 @@ export const getStatusTranslationKey = (status: string): string => {
  * @param t - Optional translation function. If provided, label will be translated.
  */
 export const getStatusConfig = (theme: Theme, status: string, t?: (key: string) => string): StatusConfig => {
-  const translationKey = getStatusTranslationKey(status);
-  const fallbackLabel = status.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  const safeStatus = status || 'pending';
+  const translationKey = getStatusTranslationKey(safeStatus);
+  const fallbackLabel = safeStatus.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
   const label = t ? t(translationKey) : fallbackLabel;
 
-  switch (status.toLowerCase()) {
+  switch (safeStatus.toLowerCase()) {
     case 'pending_approval':
     case 'pending_host_approval':
       return {
@@ -98,7 +110,8 @@ export const getStatusConfig = (theme: Theme, status: string, t?: (key: string) 
         text: StatusColors.warning,
         border: applyOpacity(StatusColors.warning, '40'),
         borderColor: StatusColors.warning,
-        label
+        label,
+        icon: 'clock'
       };
     case 'approved':
       return {
@@ -106,7 +119,8 @@ export const getStatusConfig = (theme: Theme, status: string, t?: (key: string) 
         text: StatusColors.success,
         border: applyOpacity(StatusColors.success, '30'),
         borderColor: StatusColors.success,
-        label
+        label,
+        icon: 'check-circle'
       };
     case 'visitor_accepted':
       return {
@@ -114,7 +128,8 @@ export const getStatusConfig = (theme: Theme, status: string, t?: (key: string) 
         text: BrandColors.brandGreen,
         border: applyOpacity(BrandColors.brandGreen, '30'),
         borderColor: BrandColors.brandGreen,
-        label
+        label,
+        icon: 'check-circle'
       };
     case 'checked_in':
       return {
@@ -122,7 +137,17 @@ export const getStatusConfig = (theme: Theme, status: string, t?: (key: string) 
         text: BrandColors.brandGreen,
         border: applyOpacity(BrandColors.brandGreen, '40'),
         borderColor: BrandColors.brandGreen,
-        label
+        label,
+        icon: 'log-in'
+      };
+    case 'checked_out':
+      return {
+        bg: applyOpacity(theme.textSecondary, '15'),
+        text: theme.textSecondary,
+        border: applyOpacity(theme.textSecondary, '30'),
+        borderColor: theme.textSecondary,
+        label,
+        icon: 'log-out'
       };
     case 'completed':
       return {
@@ -130,7 +155,8 @@ export const getStatusConfig = (theme: Theme, status: string, t?: (key: string) 
         text: StatusColors.success,
         border: applyOpacity(StatusColors.success, '30'),
         borderColor: StatusColors.success,
-        label
+        label,
+        icon: 'check-circle'
       };
     case 'rejected':
     case 'visitor_rejected':
@@ -139,7 +165,8 @@ export const getStatusConfig = (theme: Theme, status: string, t?: (key: string) 
         text: StatusColors.error,
         border: applyOpacity(StatusColors.error, '30'),
         borderColor: StatusColors.error,
-        label
+        label,
+        icon: 'x-circle'
       };
     case 'cancelled':
     case 'auto_cancelled':
@@ -148,7 +175,8 @@ export const getStatusConfig = (theme: Theme, status: string, t?: (key: string) 
         text: StatusColors.error,
         border: applyOpacity(StatusColors.error, '30'),
         borderColor: StatusColors.error,
-        label
+        label,
+        icon: 'x-circle'
       };
     case 'visitor_pending':
     case 'waiting_on_visitor':
@@ -157,7 +185,8 @@ export const getStatusConfig = (theme: Theme, status: string, t?: (key: string) 
         text: StatusColors.warning,
         border: applyOpacity(StatusColors.warning, '30'),
         borderColor: StatusColors.warning,
-        label
+        label,
+        icon: 'clock'
       };
     case 'pending':
       return {
@@ -165,7 +194,8 @@ export const getStatusConfig = (theme: Theme, status: string, t?: (key: string) 
         text: BrandColors.brandOrange,
         border: applyOpacity(BrandColors.brandOrange, '30'),
         borderColor: BrandColors.brandOrange,
-        label
+        label,
+        icon: 'clock'
       };
     case 'in_progress':
     case 'preparing':
@@ -174,7 +204,8 @@ export const getStatusConfig = (theme: Theme, status: string, t?: (key: string) 
         text: StatusColors.warning,
         border: applyOpacity(StatusColors.warning, '30'),
         borderColor: StatusColors.warning,
-        label
+        label,
+        icon: 'loader'
       };
     case 'ready':
       return {
@@ -182,7 +213,8 @@ export const getStatusConfig = (theme: Theme, status: string, t?: (key: string) 
         text: BrandColors.brandGreen,
         border: applyOpacity(BrandColors.brandGreen, '30'),
         borderColor: BrandColors.brandGreen,
-        label
+        label,
+        icon: 'check'
       };
     case 'served':
       return {
@@ -190,7 +222,44 @@ export const getStatusConfig = (theme: Theme, status: string, t?: (key: string) 
         text: StatusColors.success,
         border: applyOpacity(StatusColors.success, '30'),
         borderColor: StatusColors.success,
-        label
+        label,
+        icon: 'check-circle'
+      };
+    case 'expected':
+      return {
+        bg: applyOpacity(StatusColors.warning, '15'),
+        text: StatusColors.warning,
+        border: applyOpacity(StatusColors.warning, '30'),
+        borderColor: StatusColors.warning,
+        label,
+        icon: 'clock'
+      };
+    case 'assigned':
+      return {
+        bg: applyOpacity(StatusColors.warning, '15'),
+        text: StatusColors.warning,
+        border: applyOpacity(StatusColors.warning, '30'),
+        borderColor: StatusColors.warning,
+        label,
+        icon: 'user-check'
+      };
+    case 'parked':
+      return {
+        bg: applyOpacity(StatusColors.info, '15'),
+        text: StatusColors.info,
+        border: applyOpacity(StatusColors.info, '30'),
+        borderColor: StatusColors.info,
+        label,
+        icon: 'parking'
+      };
+    case 'ready_for_pickup':
+      return {
+        bg: applyOpacity(StatusColors.success, '15'),
+        text: StatusColors.success,
+        border: applyOpacity(StatusColors.success, '30'),
+        borderColor: StatusColors.success,
+        label,
+        icon: 'car'
       };
     default:
       return {
@@ -198,7 +267,8 @@ export const getStatusConfig = (theme: Theme, status: string, t?: (key: string) 
         text: theme.textSecondary,
         border: theme.border,
         borderColor: theme.textSecondary,
-        label
+        label,
+        icon: 'clock'
       };
   }
 };

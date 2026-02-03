@@ -16,7 +16,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useFormatters } from '@/hooks/useFormatters';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { applyOpacity } from '@/utils/statusStyles';
+import { applyOpacity, getStatusConfig } from '@/utils/statusStyles';
 import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 import { 
   useAllRequestsQuery,
@@ -41,7 +41,7 @@ const LAYOUT = {
 };
 
 type RequestFilter = UnifiedRequestType | 'all';
-type StatusFilter = UnifiedStatus | 'all';
+type StatusFilter = UnifiedStatus | 'all' | 'visitor_accepted' | 'visitor_rejected';
 
 const getTypeIcon = (type: UnifiedRequestType): IconName => {
   switch (type) {
@@ -61,31 +61,6 @@ const getTypeColor = (type: UnifiedRequestType, theme: Theme) => {
   }
 };
 
-const getStatusColor = (status: UnifiedStatus, theme: Theme) => {
-  switch (status) {
-    case 'approved': return theme.success;
-    case 'completed': return theme.success;
-    case 'pending': return theme.warning;
-    case 'in_progress': return theme.info;
-    case 'rejected': return theme.error;
-    case 'cancelled': return theme.error;
-    case 'auto_cancelled': return theme.error;
-    default: return theme.textSecondary;
-  }
-};
-
-const getStatusLabel = (status: UnifiedStatus, t: (key: string) => string) => {
-  switch (status) {
-    case 'pending': return t('status.pending');
-    case 'approved': return t('status.approved');
-    case 'in_progress': return t('status.inProgress');
-    case 'completed': return t('status.completed');
-    case 'cancelled': return t('status.cancelled');
-    case 'auto_cancelled': return t('status.autoCancelled');
-    case 'rejected': return t('status.rejected');
-    default: return status;
-  }
-};
 
 interface StatCardProps {
   value: number;
@@ -133,7 +108,7 @@ interface RequestCardProps {
 
 function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDate, formatTimeFromString, isRTL, isExpanded, onToggleExpand }: RequestCardProps) {
   const typeColor = getTypeColor(request.type, theme);
-  const statusColor = getStatusColor(request.status, theme);
+  const statusConfig = getStatusConfig(theme, request.originalStatus, t);
   const typeIcon = getTypeIcon(request.type);
   const hasExpandableDetails = useMemo(() => {
     if (request.type === 'visitor') {
@@ -236,7 +211,7 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
   return (
     <Pressable onPress={onPress}>
       <ThemedView style={[styles.requestCard, { backgroundColor: theme.surface }]}>
-        <View style={[styles.typeAccent, { backgroundColor: statusColor }]} />
+        <View style={[styles.typeAccent, { backgroundColor: statusConfig.text }]} />
         
         <View style={styles.cardContent}>
           <DirectionalRow style={styles.cardHeader}>
@@ -288,9 +263,9 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
                  request.type === 'buffet' ? t('services.buffet') : t('services.valet')}
               </ThemedText>
             </View>
-            <View style={[styles.statusBadge, { backgroundColor: applyOpacity(statusColor, '12'), borderColor: statusColor }]}>
-              <ThemedText style={[styles.statusText, { color: statusColor }]}>
-                {getStatusLabel(request.status, t)}
+            <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border }]}>
+              <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
+                {statusConfig.label}
               </ThemedText>
             </View>
           </DirectionalRow>
@@ -524,9 +499,13 @@ export default function AllRequestsScreen() {
         return [
           ...baseFilters,
           { id: 'approved', label: t('status.approved') },
+          { id: 'visitor_accepted', label: t('status.visitorAccepted') },
           { id: 'in_progress', label: t('status.checkedIn') },
           { id: 'completed', label: t('status.checkedOut') },
+          { id: 'cancelled', label: t('status.cancelled') },
+          { id: 'auto_cancelled', label: t('status.autoCancelled') },
           { id: 'rejected', label: t('status.rejected') },
+          { id: 'visitor_rejected', label: t('status.visitorRejected') },
         ];
       case 'buffet':
         return [
@@ -535,6 +514,7 @@ export default function AllRequestsScreen() {
           { id: 'in_progress', label: t('status.preparing') },
           { id: 'completed', label: t('status.delivered') },
           { id: 'cancelled', label: t('status.cancelled') },
+          { id: 'auto_cancelled', label: t('status.autoCancelled') },
         ];
       case 'valet':
         return [
@@ -543,6 +523,7 @@ export default function AllRequestsScreen() {
           { id: 'in_progress', label: t('status.inProgress') },
           { id: 'completed', label: t('status.completed') },
           { id: 'cancelled', label: t('status.cancelled') },
+          { id: 'auto_cancelled', label: t('status.autoCancelled') },
         ];
       default:
         return [
@@ -551,6 +532,8 @@ export default function AllRequestsScreen() {
           { id: 'in_progress', label: t('status.inProgress') },
           { id: 'completed', label: t('status.completed') },
           { id: 'cancelled', label: t('status.cancelled') },
+          { id: 'auto_cancelled', label: t('status.autoCancelled') },
+          { id: 'rejected', label: t('status.rejected') },
         ];
     }
   }, [t]);

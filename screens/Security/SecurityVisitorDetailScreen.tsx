@@ -10,7 +10,7 @@ import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
-import { applyOpacity } from "@/utils/statusStyles";
+import { applyOpacity, getStatusConfig } from "@/utils/statusStyles";
 import { formatPhoneNumber, formatPhoneForDisplay } from "@/utils/formatters";
 import { useSecurityVisitorQuery } from "@/hooks/queries/useSecurityQueries";
 import type { SecurityVisitorDetailScreenProps } from "@/types/securityNavigation.types";
@@ -35,38 +35,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
     paddingBottom: insets.bottom + Spacing.xl
   };
 
-  const getStatusConfig = (status: string): { label: string; bg: string; text: string; border: string; icon: IconName } => {
-    switch (status) {
-      case 'checked_in':
-      case 'on_site':
-        return { label: t('status.checkedIn'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: applyOpacity(theme.success, '30'), icon: 'check-circle' };
-      case 'checked_out':
-      case 'completed':
-        return { label: t('status.checkedOut'), bg: applyOpacity(theme.textSecondary, '15'), text: theme.textSecondary, border: applyOpacity(theme.textSecondary, '30'), icon: 'log-out' };
-      case 'cancelled':
-        return { label: t('status.cancelled'), bg: applyOpacity(theme.error, '15'), text: theme.error, border: applyOpacity(theme.error, '30'), icon: 'x-circle' };
-      case 'auto_cancelled':
-        return { label: t('status.autoCancelled'), bg: applyOpacity(theme.error, '15'), text: theme.error, border: applyOpacity(theme.error, '30'), icon: 'x-circle' };
-      case 'accepted':
-        return { label: t('status.accepted'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: applyOpacity(theme.success, '30'), icon: 'check-circle' };
-      case 'pending_approval':
-      case 'pending_host_approval':
-        return { label: t('status.pendingApproval'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: applyOpacity(theme.warning, '30'), icon: 'clock' };
-      case 'approved':
-        return { label: t('status.approved'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: applyOpacity(theme.success, '30'), icon: 'check-circle' };
-      case 'rejected':
-        return { label: t('status.rejected'), bg: applyOpacity(theme.error, '15'), text: theme.error, border: applyOpacity(theme.error, '30'), icon: 'x-circle' };
-      case 'waiting_acceptance':
-        return { label: t('status.waitingAcceptance'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: applyOpacity(theme.warning, '30'), icon: 'clock' };
-      case 'no_show':
-        return { label: t('status.noShow'), bg: applyOpacity(theme.error, '15'), text: theme.error, border: applyOpacity(theme.error, '30'), icon: 'user-x' };
-      case 'expired':
-        return { label: t('status.expired'), bg: applyOpacity(theme.textSecondary, '15'), text: theme.textSecondary, border: applyOpacity(theme.textSecondary, '30'), icon: 'clock' };
-      default:
-        return { label: t('visitor.expectedVisitors'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: applyOpacity(theme.warning, '30'), icon: 'clock' };
-    }
-  };
-
+  
   if (isLoading) {
     return (
       <ScreenScrollView contentContainerStyle={[scrollContentStyle, { flex: 1, justifyContent: 'center', alignItems: 'center' }]}>
@@ -91,7 +60,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
     );
   }
 
-  const statusConfig = getStatusConfig(visitorData.status);
+  const statusConfig = getStatusConfig(theme, visitorData.status, t);
   const initials = visitorData.visitorName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
 
   const getTimelineSteps = () => {
@@ -156,11 +125,11 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                   borderWidth: StyleSheet.hairlineWidth,
                   paddingHorizontal: Spacing.md,
                   paddingVertical: 6,
-                  borderRadius: BorderRadius.full,
+                  borderRadius: BorderRadius.sm,
                   gap: 4,
                 }}
               >
-                <DDIcon name={statusConfig.icon} size={14} color={statusConfig.text} />
+                <DDIcon name={(statusConfig.icon || 'clock') as IconName} size={14} color={statusConfig.text} />
                 <ThemedText style={[Typography.caption, { color: statusConfig.text, fontWeight: '600', fontSize: 12 }]}>
                   {statusConfig.label}
                 </ThemedText>
@@ -219,7 +188,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                   borderWidth: StyleSheet.hairlineWidth,
                   paddingHorizontal: Spacing.md,
                   paddingVertical: 6,
-                  borderRadius: BorderRadius.full,
+                  borderRadius: BorderRadius.sm,
                 }}
               >
                 <ThemedText style={[Typography.caption, { color: statusConfig.text, fontWeight: '600', fontSize: 12 }]}>

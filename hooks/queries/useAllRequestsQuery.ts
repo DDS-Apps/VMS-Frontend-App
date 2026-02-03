@@ -27,6 +27,7 @@ export interface UnifiedRequest {
   date: string;
   time: string;
   status: UnifiedStatus;
+  originalStatus: string;
   location?: string;
   originalData: VisitListItemDto | BuffetAdminTaskDto | ValetTaskDto;
   canApprove: boolean;
@@ -74,6 +75,8 @@ function normalizeVisitStatus(status: string): UnifiedStatus {
 function normalizeBuffetStatus(status: string): UnifiedStatus {
   const statusLower = status.toLowerCase();
   switch (statusLower) {
+    case 'expected':
+      return 'pending';
     case 'pending':
     case 'pending_assignment':
       return 'pending';
@@ -135,6 +138,7 @@ function mapVisitToUnified(visit: VisitListItemDto): UnifiedRequest {
     date: visit.visitDate,
     time: visit.visitTime,
     status: normalizedStatus,
+    originalStatus: visit.status,
     location: visit.purpose,
     originalData: visit,
     canApprove: normalizedStatus === 'pending',
@@ -155,6 +159,7 @@ function mapBuffetToUnified(buffet: BuffetAdminTaskDto): UnifiedRequest {
     date: buffet.visitDate,
     time: buffet.visitTime,
     status: normalizedStatus,
+    originalStatus: buffet.status,
     location: buffet.location,
     originalData: buffet,
     canApprove: normalizedStatus === 'pending',
@@ -177,6 +182,7 @@ function mapValetToUnified(valet: ValetTaskDto): UnifiedRequest {
     date: valet.visitDate,
     time: valet.pickupTime || '',
     status: normalizedStatus,
+    originalStatus: valet.valet?.status || 'pending',
     location: valet.location || valet.dropOffLocation,
     originalData: valet,
     canApprove: normalizedStatus === 'pending',
@@ -189,7 +195,7 @@ function mapValetToUnified(valet: ValetTaskDto): UnifiedRequest {
 
 export interface AllRequestsFilters {
   type?: UnifiedRequestType | 'all';
-  status?: UnifiedStatus | 'all';
+  status?: UnifiedStatus | 'all' | 'visitor_accepted' | 'visitor_rejected';
   searchQuery?: string;
   startDate?: string;
   endDate?: string;
@@ -305,7 +311,11 @@ export function useAllRequestsQuery(filters: AllRequestsFilters = {}) {
   let filteredRequests = processedRequests;
 
   if (status !== 'all') {
-    filteredRequests = filteredRequests.filter(r => r.status === status);
+    if (status === 'visitor_accepted' || status === 'visitor_rejected') {
+      filteredRequests = filteredRequests.filter(r => r.originalStatus === status);
+    } else {
+      filteredRequests = filteredRequests.filter(r => r.status === status);
+    }
   }
 
   if (filters.searchQuery) {

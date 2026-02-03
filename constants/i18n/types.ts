@@ -1154,6 +1154,7 @@ export interface TranslationKeys {
     overloaded: string;
     underutilized: string;
     todaysVisitors: string;
+    visitors: string;
     noVisitorsToday: string;
     noRequests: string;
     noMatchingRequests: string;
@@ -1585,6 +1586,11 @@ export interface TranslationKeys {
     rejected: string;
     approvalSuccess: string;
     rejectionSuccess: string;
+  };
+  manager: {
+    rejectRequest: string;
+    rejectReasonPrompt: string;
+    rejectReasonPlaceholder: string;
   };
 }
 

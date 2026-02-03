@@ -4,6 +4,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
+import { CalendarDatePicker } from "@/components/CalendarDatePicker";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -255,12 +256,50 @@ export default function ValetAllRequestsScreen() {
   const { isRTL } = useLanguage();
   const { width: screenWidth } = useWindowDimensions();
   const [filterType, setFilterType] = useState<'all' | 'with_parking' | 'without_parking'>('all');
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
   
   // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
   const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
   
-  const today = new Date().toISOString().split('T')[0];
-  const { data, isLoading, isError, refetch, isRefetching } = useValetParkingDashboard(today);
+  const formatDateForApi = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const dateStr = formatDateForApi(selectedDate);
+  const { data, isLoading, isError, refetch, isRefetching } = useValetParkingDashboard(dateStr);
+
+  const handleDateSelect = (date: Date) => {
+    setSelectedDate(date);
+    setShowDatePicker(false);
+  };
+
+  const getMonthKey = (monthIndex: number): string => {
+    const months = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
+    return months[monthIndex];
+  };
+
+  const getDisplayDate = () => {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    if (selectedDate.toDateString() === today.toDateString()) {
+      return t('time.today');
+    }
+    if (selectedDate.toDateString() === tomorrow.toDateString()) {
+      return t('time.tomorrow');
+    }
+    if (selectedDate.toDateString() === yesterday.toDateString()) {
+      return t('time.yesterday');
+    }
+    return `${selectedDate.getDate()} ${t(`months.${getMonthKey(selectedDate.getMonth())}`).slice(0, 3)} ${selectedDate.getFullYear()}`;
+  };
 
   const filteredVisitors = useMemo(() => {
     if (!data?.data) return [];
@@ -312,8 +351,14 @@ export default function ValetAllRequestsScreen() {
 
         <DirectionalRow style={styles.sectionTitleRow}>
           <ThemedText style={[Typography.subtitle]}>
-            {t('valet.todaysVisitors')}
+            {getDisplayDate()} {t('valet.visitors')}
           </ThemedText>
+          <Pressable
+            onPress={() => setShowDatePicker(true)}
+            hitSlop={8}
+          >
+            <DDIcon name="calendar" size={20} color={theme.primary} />
+          </Pressable>
         </DirectionalRow>
       </View>
 
@@ -382,6 +427,14 @@ export default function ValetAllRequestsScreen() {
       </View>
 
       <Spacer height={Spacing.md} />
+
+      <CalendarDatePicker
+        visible={showDatePicker}
+        onClose={() => setShowDatePicker(false)}
+        selectedDate={selectedDate}
+        onDateSelect={handleDateSelect}
+        mode="single"
+      />
     </ScreenScrollView>
   );
 }

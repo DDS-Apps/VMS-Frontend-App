@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback } from "react";
+import React, { useMemo, useCallback, useState } from "react";
 import {
   View,
   StyleSheet,
@@ -6,6 +6,10 @@ import {
   Pressable,
   ScrollView,
   Platform,
+  Modal,
+  TextInput,
+  Alert,
+  KeyboardAvoidingView,
 } from "react-native";
 import {
   useNavigation,
@@ -26,12 +30,15 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { UserRole, VisitorRequest } from "@/types/vms.types";
-import { SkeletonDashboard, VisitorRequestCard } from "@/components/shared";
+import { SkeletonDashboard, VisitorRequestCard, LoadingButton } from "@/components/shared";
+import { BlurView } from 'expo-blur';
 import {
   useVisitsQuery,
   usePendingApprovalsQuery,
   useAwaitingVisitorQuery,
   usePendingHostWalkInsQuery,
+  useApproveVisitMutation,
+  useRejectVisitMutation,
 } from "@/hooks/queries/useApprovalQueries";
 import {
   mapVisitListItemToVisitorRequest,
@@ -94,6 +101,73 @@ export default function OverviewScreen({
     { limit: 10 },
     userRole === "manager" || userRole === "employee",
   );
+
+  // Approval mutations
+  const approveMutation = useApproveVisitMutation();
+  const rejectMutation = useRejectVisitMutation();
+  
+  // State for approval actions
+  const [approvingRequestId, setApprovingRequestId] = useState<string | null>(null);
+  const [rejectingRequestId, setRejectingRequestId] = useState<string | null>(null);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [activeRequestId, setActiveRequestId] = useState<string | null>(null);
+  const [rejectionReason, setRejectionReason] = useState('');
+  
+  const isProcessing = approveMutation.isPending || rejectMutation.isPending;
+  const { isDark } = useTheme();
+
+  const handleApprove = useCallback((requestId: string) => {
+    if (isProcessing) return;
+    setApprovingRequestId(requestId);
+    approveMutation.mutate(
+      { id: requestId, payload: {} },
+      {
+        onSuccess: () => {
+          setApprovingRequestId(null);
+          refetchPending();
+        },
+        onError: (error) => {
+          setApprovingRequestId(null);
+          Alert.alert(t('errors.somethingWentWrong'), error.message);
+        },
+      }
+    );
+  }, [isProcessing, approveMutation, refetchPending, t]);
+
+  const handleReject = useCallback((requestId: string) => {
+    if (isProcessing) return;
+    setActiveRequestId(requestId);
+    setShowRejectModal(true);
+  }, [isProcessing]);
+
+  const handleRejectSubmit = useCallback(() => {
+    if (!activeRequestId) return;
+    const reason = rejectionReason.trim() || 'No reason provided';
+    setRejectingRequestId(activeRequestId);
+    rejectMutation.mutate(
+      { id: activeRequestId, payload: { reason } },
+      {
+        onSuccess: () => {
+          setRejectingRequestId(null);
+          setShowRejectModal(false);
+          setActiveRequestId(null);
+          setRejectionReason('');
+          refetchPending();
+        },
+        onError: (error) => {
+          setRejectingRequestId(null);
+          Alert.alert(t('errors.somethingWentWrong'), error.message);
+        },
+      }
+    );
+  }, [activeRequestId, rejectionReason, rejectMutation, refetchPending, t]);
+
+  const handleRejectCancel = useCallback(() => {
+    if (rejectMutation.isPending) return;
+    setShowRejectModal(false);
+    setActiveRequestId(null);
+    setRejectionReason('');
+  }, [rejectMutation.isPending]);
 
   // Refetch all data when screen gains focus to show latest status
   // Note: refetch() bypasses 'enabled' check, so we must guard conditionally
@@ -804,6 +878,11 @@ export default function OverviewScreen({
                         accentColor={theme.primary}
                         showRequestedBy={true}
                         showActions={true}
+                        onApprove={() => handleApprove(request.id)}
+                        onReject={() => handleReject(request.id)}
+                        isProcessing={isProcessing}
+                        approveLoading={approvingRequestId === request.id}
+                        rejectLoading={rejectingRequestId === request.id}
                         isExpired={expired}
                         style={
                           index > 0
@@ -1329,6 +1408,103 @@ export default function OverviewScreen({
           <DDIcon name="user-plus" size={24} color={theme.buttonText} />
         </Pressable>
       )}
+
+      {/* Reject Request Modal */}
+      <Modal
+        visible={showRejectModal}
+        transparent
+        animationType="fade"
+        onRequestClose={handleRejectCancel}
+        statusBarTranslucent
+      >
+        <Pressable 
+          style={styles.modalOverlay} 
+          onPress={!rejectMutation.isPending ? handleRejectCancel : undefined}
+        >
+          <BlurView
+            intensity={isDark ? 40 : 60}
+            tint={isDark ? "dark" : "light"}
+            style={StyleSheet.absoluteFill}
+          />
+          <KeyboardAvoidingView 
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.keyboardAvoidingView}
+          >
+            <Pressable 
+              style={[
+                styles.rejectModalContainer,
+                { 
+                  backgroundColor: theme.surface,
+                  marginBottom: insets.bottom,
+                }
+              ]}
+              onPress={(e) => e.stopPropagation()}
+            >
+              <ThemedView style={styles.rejectModalContent}>
+                <Pressable 
+                  onPress={handleRejectCancel}
+                  style={styles.rejectModalCloseButton}
+                >
+                  <DDIcon name="x" size={20} variant="muted" />
+                </Pressable>
+                
+                <ThemedText style={[Typography.h3, { textAlign: 'center' }]}>
+                  {t('manager.rejectRequest')}
+                </ThemedText>
+                <Spacer height={Spacing.xs} />
+                <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, textAlign: 'center' }]}>
+                  {t('manager.rejectReasonPrompt')}
+                </ThemedText>
+                
+                <Spacer height={Spacing.lg} />
+                
+                <TextInput
+                  style={[
+                    styles.rejectReasonInput,
+                    { 
+                      backgroundColor: theme.inputBackground,
+                      borderColor: theme.border,
+                      color: theme.text,
+                      textAlign: isRTL ? 'right' : 'left',
+                    }
+                  ]}
+                  placeholder={t('manager.rejectReasonPlaceholder')}
+                  placeholderTextColor={theme.textSecondary}
+                  value={rejectionReason}
+                  onChangeText={setRejectionReason}
+                  multiline
+                  numberOfLines={4}
+                  textAlignVertical="top"
+                  editable={!rejectMutation.isPending}
+                />
+                
+                <Spacer height={Spacing.lg} />
+                
+                <View style={styles.rejectModalButtons}>
+                  <LoadingButton
+                    onPress={handleRejectCancel}
+                    variant="outline"
+                    disabled={rejectMutation.isPending}
+                    style={{ flex: 1 }}
+                  >
+                    {t('common.cancel')}
+                  </LoadingButton>
+                  <Spacer width={Spacing.md} />
+                  <LoadingButton
+                    onPress={handleRejectSubmit}
+                    variant="danger"
+                    loading={rejectMutation.isPending}
+                    loadingText={t('common.rejecting')}
+                    style={{ flex: 1 }}
+                  >
+                    {t('actions.reject')}
+                  </LoadingButton>
+                </View>
+              </ThemedView>
+            </Pressable>
+          </KeyboardAvoidingView>
+        </Pressable>
+      </Modal>
     </>
   );
 }
@@ -1615,5 +1791,41 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  keyboardAvoidingView: {
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  rejectModalContainer: {
+    width: '90%',
+    maxWidth: 400,
+    borderRadius: BorderRadius.lg,
+    overflow: 'hidden',
+  },
+  rejectModalContent: {
+    padding: Spacing.xl,
+  },
+  rejectModalCloseButton: {
+    position: 'absolute',
+    top: Spacing.md,
+    right: Spacing.md,
+    zIndex: 10,
+    padding: Spacing.xs,
+  },
+  rejectReasonInput: {
+    borderWidth: 1,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    minHeight: 100,
+    fontSize: 14,
+  },
+  rejectModalButtons: {
+    flexDirection: 'row',
   },
 });

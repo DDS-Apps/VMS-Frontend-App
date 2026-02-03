@@ -27,13 +27,17 @@ type StatusFilter =
   | 'all'
   | 'pending_approval'
   | 'pending_host_approval'
+  | 'approved'
   | 'rejected'
+  | 'visitor_rejected'
   | 'cancelled'
   | 'auto_cancelled'
   | 'waiting_acceptance'
   | 'accepted'
+  | 'visitor_accepted'
   | 'checked_in'
-  | 'checked_out';
+  | 'checked_out'
+  | 'completed';
 
 function getDateRange(filter: DateFilter): { startDate?: string; endDate?: string } {
   const today = new Date();
@@ -151,11 +155,15 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
     { key: 'all', label: t('common.all') },
     { key: 'pending_approval', label: t('status.pendingApproval') },
     { key: 'pending_host_approval', label: t('status.pendingHostApproval') },
+    { key: 'approved', label: t('status.approved') },
     { key: 'waiting_acceptance', label: t('status.waitingAcceptance') },
     { key: 'accepted', label: t('status.accepted') },
+    { key: 'visitor_accepted', label: t('status.visitorAccepted') },
     { key: 'checked_in', label: t('status.checkedIn') },
     { key: 'checked_out', label: t('status.checkedOut') },
+    { key: 'completed', label: t('timeline.visitCompleted') },
     { key: 'rejected', label: t('status.rejected') },
+    { key: 'visitor_rejected', label: t('status.visitorRejected') },
     { key: 'cancelled', label: t('status.cancelled') },
     { key: 'auto_cancelled', label: t('status.autoCancelled') },
   ];
@@ -227,6 +235,8 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
         return { label: t('status.checkedIn'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: theme.success };
       case 'checked_out':
         return { label: t('status.checkedOut'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: theme.success };
+      case 'completed':
+        return { label: t('timeline.visitCompleted'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: theme.success };
       case 'pending_approval':
         return { label: t('status.pendingApproval'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: theme.warning };
       case 'pending_host_approval':
@@ -235,10 +245,13 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
         return { label: t('status.waitingAcceptance'), bg: applyOpacity(theme.info, '15'), text: theme.info, border: theme.info };
       case 'approved':
       case 'accepted':
-      case 'visitor_accepted':
         return { label: t('status.approved'), bg: applyOpacity(theme.info, '15'), text: theme.info, border: theme.info };
+      case 'visitor_accepted':
+        return { label: t('status.visitorAccepted'), bg: applyOpacity(theme.info, '15'), text: theme.info, border: theme.info };
       case 'rejected':
         return { label: t('status.rejected'), bg: applyOpacity(theme.error, '15'), text: theme.error, border: theme.error };
+      case 'visitor_rejected':
+        return { label: t('status.visitorRejected'), bg: applyOpacity(theme.error, '15'), text: theme.error, border: theme.error };
       case 'cancelled':
         return { label: t('status.cancelled'), bg: applyOpacity(theme.error, '15'), text: theme.error, border: theme.error };
       case 'auto_cancelled':
@@ -312,6 +325,10 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
     const hasCheckInStatus = item.status === 'approved' || item.status === 'accepted' || item.status === 'visitor_accepted';
     const showCheckIn = hasCheckInStatus && isVisitToday;
     const showCheckOut = item.status === 'checked_in';
+    
+    const isMutating = checkInMutation.isPending || checkOutMutation.isPending;
+    const activeVisitorId = checkInMutation.variables?.visitId || checkOutMutation.variables?.visitId;
+    const isThisVisitorLoading = activeVisitorId === item.id;
     const isExpanded = expandedCards.has(item.id);
     const hasDetails = item.purpose || item.visitor.email || item.visitor.phone;
     
@@ -428,12 +445,16 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
                   {showCheckIn ? (
                     <VisitorActionButton 
                       type="check_in" 
-                      onPress={(e) => handleCheckIn(item.id, visitorName, e)} 
+                      onPress={(e) => handleCheckIn(item.id, visitorName, e)}
+                      loading={isThisVisitorLoading}
+                      disabled={isMutating && !isThisVisitorLoading}
                     />
                   ) : showCheckOut ? (
                     <VisitorActionButton 
                       type="check_out" 
-                      onPress={(e) => handleCheckOut(item.id, visitorName, e)} 
+                      onPress={(e) => handleCheckOut(item.id, visitorName, e)}
+                      loading={isThisVisitorLoading}
+                      disabled={isMutating && !isThisVisitorLoading}
                     />
                   ) : null}
                 </View>
@@ -443,7 +464,7 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
         </ThemedView>
       </Pressable>
     );
-  }, [getStatusConfig, handleVisitorPress, handleCheckIn, handleCheckOut, theme, formatTimeFromString, isRTL, expandedCards, toggleCardExpanded, t]);
+  }, [getStatusConfig, handleVisitorPress, handleCheckIn, handleCheckOut, theme, formatTimeFromString, isRTL, expandedCards, toggleCardExpanded, t, checkInMutation.isPending, checkOutMutation.isPending, checkInMutation.variables, checkOutMutation.variables]);
 
   const renderFooter = useCallback(() => {
     if (!isFetchingNextPage) return null;
@@ -522,13 +543,16 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
       case 'pending_approval':
       case 'pending_host_approval':
         return theme.warning;
+      case 'approved':
       case 'accepted':
       case 'waiting_acceptance':
         return theme.info;
       case 'checked_in':
       case 'checked_out':
+      case 'completed':
         return theme.success;
       case 'rejected':
+      case 'visitor_rejected':
       case 'cancelled':
       case 'auto_cancelled':
         return theme.error;

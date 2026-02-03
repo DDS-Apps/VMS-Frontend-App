@@ -163,7 +163,7 @@ const StatsCards = ({ totalRequests, inProgress, completed, theme, t }: { totalR
   </KPICardRow>
 );
 
-type StatusFilter = 'all' | 'pending' | 'preparing' | 'ready' | 'served' | 'completed';
+type StatusFilter = 'all' | 'expected' | 'pending' | 'preparing' | 'ready' | 'served' | 'completed';
 
 const getFilterPillColors = (filterKey: StatusFilter, isActive: boolean, theme: Theme) => {
   if (!isActive) {
@@ -176,6 +176,13 @@ const getFilterPillColors = (filterKey: StatusFilter, isActive: boolean, theme: 
   }
   
   switch (filterKey) {
+    case 'expected':
+      return {
+        bg: applyOpacity(theme.warning, '15'),
+        text: theme.warning,
+        countBg: applyOpacity(theme.warning, '25'),
+        countText: theme.warning,
+      };
     case 'pending':
       return {
         bg: applyOpacity(theme.primary, '15'),
@@ -242,6 +249,7 @@ const SectionHeader = ({
 }) => {
   const filterOptions: { key: StatusFilter; label: string }[] = [
     { key: 'all', label: t('common.all') },
+    { key: 'expected', label: t('status.expected') },
     { key: 'pending', label: t('status.pending') },
     { key: 'preparing', label: t('buffet.preparing') },
     { key: 'ready', label: t('buffet.ready') },
@@ -493,35 +501,6 @@ const EmptyState = ({ theme, t }: { theme: Theme; t: (key: string) => string }) 
   </ThemedView>
 );
 
-function getStatusColor(status: string, theme: Theme) {
-  switch (status) {
-    case 'pending':
-      return theme.primary;
-    case 'in_progress':
-      return theme.warning;
-    case 'completed':
-      return theme.success;
-    case 'cancelled':
-      return theme.error;
-    default:
-      return theme.textSecondary;
-  }
-}
-
-function getStatusLabel(status: string, t: (key: string) => string) {
-  switch (status) {
-    case 'pending':
-      return t('status.pending');
-    case 'in_progress':
-      return t('status.inProgress');
-    case 'completed':
-      return t('status.completed');
-    case 'cancelled':
-      return t('status.cancelled');
-    default:
-      return status;
-  }
-}
 
 export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequestsScreenProps) {
   const { theme } = useTheme();
@@ -696,11 +675,12 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
     : requests.filter(r => r.status === filterStatus);
 
   const totalRequests = requests.length;
-  const activeCount = requests.filter(r => ['pending', 'preparing', 'ready', 'served'].includes(r.status)).length;
+  const activeCount = requests.filter(r => ['expected', 'pending', 'preparing', 'ready', 'served'].includes(r.status)).length;
   const completedCount = requests.filter(r => r.status === 'completed').length;
 
   const statusCounts: Record<StatusFilter, number> = {
     all: requests.length,
+    expected: requests.filter(r => r.status === 'expected').length,
     pending: requests.filter(r => r.status === 'pending').length,
     preparing: requests.filter(r => r.status === 'preparing').length,
     ready: requests.filter(r => r.status === 'ready').length,

@@ -40,7 +40,7 @@ interface LegacyVisitor {
   hostDepartment?: string;
   hostPhone?: string;
   hostLandline?: string;
-  status: 'pending' | 'approved' | 'checked_in' | 'completed' | 'rejected' | 'cancelled' | 'pending_approval' | 'pending_host_approval' | 'visitor_accepted';
+  status: string;
   isWalkIn: boolean;
   email: string;
   phone: string;
@@ -51,9 +51,9 @@ interface LegacyVisitor {
   isBuffet?: boolean;
   buffet?: { status?: string; location?: string };
   isParking?: boolean;
-  licensePlate?: string;
-  carModel?: string;
-  carColor?: string;
+  licensePlate?: string | null;
+  carModel?: string | null;
+  carColor?: string | null;
   origin: 'scheduled' | 'walk_in';
   scheduledFor: string;
   createdAt: string;
@@ -82,16 +82,20 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
   const effectiveVisitId = visitId ?? legacyVisitor?.id ?? '';
   const { data: visitDetails, isLoading, isError } = useVisitDetailsQuery(effectiveVisitId, !!effectiveVisitId);
   
-  const mapVisitStatus = (status: string): 'pending' | 'approved' | 'checked_in' | 'completed' | 'rejected' | 'cancelled' | 'pending_approval' | 'pending_host_approval' | 'visitor_accepted' => {
+  const mapVisitStatus = (status: string): string => {
     if (status === 'rejected') return 'rejected';
+    if (status === 'visitor_rejected') return 'visitor_rejected';
     if (status === 'cancelled') return 'cancelled';
+    if (status === 'auto_cancelled') return 'auto_cancelled';
     if (status === 'pending_approval') return 'pending_approval';
     if (status === 'pending_host_approval') return 'pending_host_approval';
+    if (status === 'visitor_pending') return 'visitor_pending';
     if (status === 'approved') return 'approved';
     if (status === 'visitor_accepted') return 'visitor_accepted';
     if (status === 'checked_in') return 'checked_in';
-    if (status === 'completed' || status === 'checked_out') return 'completed';
-    return 'pending';
+    if (status === 'checked_out') return 'checked_out';
+    if (status === 'completed') return 'completed';
+    return status || 'pending';
   };
   
   // Always prefer server data (visitDetails) over passed legacyVisitor for complete information
@@ -257,21 +261,30 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
     switch (status) {
       case 'checked_in':
         return { label: t('status.checkedIn'), variant: 'success', icon: 'check-circle' };
+      case 'checked_out':
+        return { label: t('status.checkedOut'), variant: 'success', icon: 'check-circle' };
       case 'completed':
         return { label: t('timeline.visitCompleted'), variant: 'success', icon: 'check-circle' };
       case 'rejected':
         return { label: t('status.rejected'), variant: 'error', icon: 'x-circle' };
+      case 'visitor_rejected':
+        return { label: t('status.visitorRejected'), variant: 'error', icon: 'x-circle' };
       case 'cancelled':
         return { label: t('status.cancelled'), variant: 'error', icon: 'x-circle' };
+      case 'auto_cancelled':
+        return { label: t('status.autoCancelled'), variant: 'error', icon: 'x-circle' };
       case 'pending_approval':
         return { label: t('status.pendingApproval'), variant: 'warning', icon: 'clock' };
       case 'pending_host_approval':
         return { label: t('status.pendingHostApproval'), variant: 'warning', icon: 'clock' };
+      case 'visitor_pending':
+        return { label: t('status.visitorPending'), variant: 'warning', icon: 'clock' };
       case 'approved':
+        return { label: t('status.approved'), variant: 'info', icon: 'check-circle' };
       case 'visitor_accepted':
-        return { label: t('visitor.expectedVisitors'), variant: 'info', icon: 'check-circle' };
+        return { label: t('status.visitorAccepted'), variant: 'info', icon: 'check-circle' };
       default:
-        return { label: t('visitor.expectedVisitors'), variant: 'warning', icon: 'clock' };
+        return { label: t('status.pending'), variant: 'warning', icon: 'clock' };
     }
   };
 
