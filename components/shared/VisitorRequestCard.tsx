@@ -372,10 +372,10 @@ export function VisitorRequestCard({
     return (
       <>
         <Spacer height={Spacing.md} />
-        <Pressable onPress={(e) => e.stopPropagation()}>
+        <Pressable onPress={(e) => { console.log('[VisitorRequestCard] Wrapper Pressable onPress - stopPropagation'); e.stopPropagation(); }}>
           <ApprovalActionGroup
-            onApprove={onApprove || (() => {})}
-            onReject={onReject || (() => {})}
+            onApprove={() => { console.log('[VisitorRequestCard] onApprove called, handler exists:', !!onApprove); if (onApprove) onApprove(); }}
+            onReject={() => { console.log('[VisitorRequestCard] onReject called, handler exists:', !!onReject); if (onReject) onReject(); }}
             disabled={isProcessing}
             approveLoading={approveLoading}
             rejectLoading={rejectLoading}
