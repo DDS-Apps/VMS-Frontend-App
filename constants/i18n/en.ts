@@ -1154,6 +1154,7 @@ export const en: TranslationKeys = {
     overloaded: 'Overloaded',
     underutilized: 'Underutilized',
     todaysVisitors: "Today's Visitors",
+    visitors: 'Visitors',
     noVisitorsToday: 'No visitors expected today',
     noRequests: 'No valet requests yet',
     noMatchingRequests: 'No matching valet requests found',

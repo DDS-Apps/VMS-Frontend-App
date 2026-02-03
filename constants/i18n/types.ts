@@ -1154,6 +1154,7 @@ export interface TranslationKeys {
     overloaded: string;
     underutilized: string;
     todaysVisitors: string;
+    visitors: string;
     noVisitorsToday: string;
     noRequests: string;
     noMatchingRequests: string;

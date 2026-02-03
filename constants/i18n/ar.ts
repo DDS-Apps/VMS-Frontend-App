@@ -1154,6 +1154,7 @@ export const ar: TranslationKeys = {
     overloaded: 'محمل بشكل زائد',
     underutilized: 'غير مستغل',
     todaysVisitors: 'زوار اليوم',
+    visitors: 'الزوار',
     noVisitorsToday: 'لا يوجد زوار متوقعون اليوم',
     noRequests: 'لا توجد طلبات صف سيارات بعد',
     noMatchingRequests: 'لم يتم العثور على طلبات صف سيارات مطابقة',
