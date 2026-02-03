@@ -227,6 +227,8 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
         return { label: t('status.checkedIn'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: theme.success };
       case 'checked_out':
         return { label: t('status.checkedOut'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: theme.success };
+      case 'completed':
+        return { label: t('timeline.visitCompleted'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: theme.success };
       case 'pending_approval':
         return { label: t('status.pendingApproval'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: theme.warning };
       case 'pending_host_approval':

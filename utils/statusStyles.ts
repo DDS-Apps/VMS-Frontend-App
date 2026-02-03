@@ -48,7 +48,7 @@ export const getStatusTranslationKey = (status: string): string => {
     case 'checked_out':
       return 'status.checkedOut';
     case 'completed':
-      return 'status.completed';
+      return 'timeline.visitCompleted';
     case 'rejected':
       return 'status.rejected';
     case 'visitor_rejected':
