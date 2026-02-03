@@ -75,6 +75,8 @@ function normalizeVisitStatus(status: string): UnifiedStatus {
 function normalizeBuffetStatus(status: string): UnifiedStatus {
   const statusLower = status.toLowerCase();
   switch (statusLower) {
+    case 'expected':
+      return 'pending';
     case 'pending':
     case 'pending_assignment':
       return 'pending';

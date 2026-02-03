@@ -842,7 +842,7 @@ export interface UpdateBuffetStaffTaskStatusResponseDto {
 }
 
 // Buffet Admin Task types
-export type BuffetAdminTaskStatus = 'pending' | 'preparing' | 'ready' | 'served' | 'completed' | 'cancelled';
+export type BuffetAdminTaskStatus = 'expected' | 'pending' | 'preparing' | 'ready' | 'served' | 'completed' | 'cancelled';
 
 export interface BuffetAdminTaskDto {
   id: string;

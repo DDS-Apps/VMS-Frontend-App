@@ -59,7 +59,7 @@ const mapStaffDto = (staff: BuffetAdminStaffDto): StaffDisplayItem => ({
   currentTasks: staff.currentTasks,
 });
 
-const BUFFET_STATUS_ORDER = ['pending', 'preparing', 'ready', 'served', 'completed'] as const;
+const BUFFET_STATUS_ORDER = ['expected', 'pending', 'preparing', 'ready', 'served', 'completed'] as const;
 
 const getStepStatus = (stepIndex: number, currentStatusIndex: number, isCancelled: boolean): 'completed' | 'current' | 'pending' => {
   if (isCancelled) return 'pending';
@@ -77,11 +77,12 @@ const buildBuffetTimelineSteps = (
 
   // Define all possible steps
   const allSteps: Array<{ id: string; label: string; icon: string; statusIndex: number }> = [
-    { id: 'pending', label: t('buffet.pending'), icon: 'clock', statusIndex: 0 },
-    { id: 'preparing', label: t('buffet.preparing'), icon: 'loader', statusIndex: 1 },
-    { id: 'ready', label: t('buffet.ready'), icon: 'check-circle', statusIndex: 2 },
-    { id: 'served', label: t('buffet.served'), icon: 'coffee', statusIndex: 3 },
-    { id: 'completed', label: t('buffet.completed'), icon: 'check', statusIndex: 4 },
+    { id: 'expected', label: t('status.expected'), icon: 'clock', statusIndex: 0 },
+    { id: 'pending', label: t('buffet.pending'), icon: 'clock', statusIndex: 1 },
+    { id: 'preparing', label: t('buffet.preparing'), icon: 'loader', statusIndex: 2 },
+    { id: 'ready', label: t('buffet.ready'), icon: 'check-circle', statusIndex: 3 },
+    { id: 'served', label: t('buffet.served'), icon: 'coffee', statusIndex: 4 },
+    { id: 'completed', label: t('buffet.completed'), icon: 'check', statusIndex: 5 },
   ];
 
   // Always start with Request Created
@@ -219,6 +220,8 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
 
   const getStatusLabel = (status: string) => {
     switch (status) {
+      case 'expected':
+        return t('status.expected');
       case 'pending':
         return t('status.pending');
       case 'preparing':
@@ -238,6 +241,8 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
 
   const getStatusColor = (status: string) => {
     switch (status) {
+      case 'expected':
+        return theme.warning;
       case 'pending':
         return theme.primary;
       case 'preparing':
