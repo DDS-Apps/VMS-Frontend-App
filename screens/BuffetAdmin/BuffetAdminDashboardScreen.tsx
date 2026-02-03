@@ -76,8 +76,8 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
   // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
   const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
   
-  // Calculate card width accounting for gaps (gap is applied via container)
-  // Container has paddingHorizontal: Spacing.lg, so available width = screenWidth - (Spacing.lg * 2)
+  // Calculate card width accounting for gaps (container uses gap)
+  // Container has paddingHorizontal: Spacing.lg
   const getCardStyle = useMemo(() => {
     const containerPadding = Spacing.lg * 2;
     const availableWidth = screenWidth - containerPadding;

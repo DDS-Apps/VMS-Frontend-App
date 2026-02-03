@@ -534,17 +534,25 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
   // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
   const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
   
-  // Calculate card width accounting for gaps
+  // Calculate card width accounting for gaps (container uses gap, so no marginBottom needed)
+  // Container has paddingHorizontal: Spacing.xl
   const getCardStyle = useMemo(() => {
-    const gap = LAYOUT.contentGap;
+    const containerPadding = Spacing.xl * 2;
+    const availableWidth = screenWidth - containerPadding;
+    const gap = Spacing.md;
+    
     if (numColumns === 1) {
-      return { width: '100%' as const, marginBottom: gap };
+      return { width: '100%' as const };
     } else if (numColumns === 2) {
-      return { width: '48.5%' as const, marginBottom: gap };
+      // 2 columns: (availableWidth - 1 gap) / 2
+      const cardWidth = (availableWidth - gap) / 2;
+      return { width: cardWidth };
     } else {
-      return { width: '32%' as const, marginBottom: gap };
+      // 3 columns: (availableWidth - 2 gaps) / 3
+      const cardWidth = (availableWidth - (gap * 2)) / 3;
+      return { width: cardWidth };
     }
-  }, [numColumns]);
+  }, [numColumns, screenWidth]);
   
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
@@ -1140,7 +1148,8 @@ const styles = StyleSheet.create({
   cardGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
+    gap: Spacing.md,
   },
   dateNavRow: {
     alignItems: 'center',
