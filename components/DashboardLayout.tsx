@@ -583,6 +583,7 @@ export default function DashboardLayout({
                   userName={userName}
                   currentScreen={currentScreen}
                   onNavigate={onNavigate}
+                  onNavigateHome={onNavigateHome}
                   onLogout={onLogout}
                   onToggleDarkMode={toggleTheme}
                   isDarkMode={isDark}
@@ -607,6 +608,7 @@ export default function DashboardLayout({
                 userPhotoUrl={userPhotoUrl}
                 currentScreen={currentScreen}
                 onNavigate={onNavigate}
+                onNavigateHome={onNavigateHome}
                 onLogout={onLogout}
                 onToggleDarkMode={toggleTheme}
                 isDarkMode={isDark}
