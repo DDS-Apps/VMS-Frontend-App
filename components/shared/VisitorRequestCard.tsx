@@ -218,7 +218,7 @@ export function VisitorRequestCard({
         {renderAvatar()}
         <View style={styles.nameSection}>
           <ThemedText style={[styles.visitorName, { color: theme.text, width: '100%' }]} align="start" numberOfLines={1}>
-            {request.visitor.fullName}
+            {request.visitor.fullName ? request.visitor.fullName.charAt(0).toUpperCase() + request.visitor.fullName.slice(1) : ''}
           </ThemedText>
           {request.visitor.company ? (
             <ThemedText style={[styles.companyText, { color: theme.textSecondary, width: '100%' }]} align="start">
