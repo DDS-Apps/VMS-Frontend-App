@@ -1587,4 +1587,9 @@ export const ar: TranslationKeys = {
     approvalSuccess: 'تمت الموافقة على الطلب بنجاح.',
     rejectionSuccess: 'تم رفض الطلب بنجاح.',
   },
+  manager: {
+    rejectRequest: 'رفض الطلب',
+    rejectReasonPrompt: 'يرجى تقديم سبب لرفض هذا الطلب',
+    rejectReasonPlaceholder: 'أدخل سبب الرفض...',
+  },
 };

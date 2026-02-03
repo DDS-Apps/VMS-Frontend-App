@@ -1587,6 +1587,11 @@ export interface TranslationKeys {
     approvalSuccess: string;
     rejectionSuccess: string;
   };
+  manager: {
+    rejectRequest: string;
+    rejectReasonPrompt: string;
+    rejectReasonPlaceholder: string;
+  };
 }
 
 export type TranslationPath = string;
