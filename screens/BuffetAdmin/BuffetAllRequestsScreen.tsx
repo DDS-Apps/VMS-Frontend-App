@@ -75,7 +75,7 @@ const LAYOUT = {
   statCardRadius: BorderRadius.md,
   statusBorderWidth: 3,
   tableRowHeight: 110,
-  tableFixedColumnWidth: 160,
+  tableFixedColumnWidth: 240,
   tableScrollColumnWidth: 200,
 };
 
@@ -467,22 +467,6 @@ const BuffetRequestTableRow = React.memo(({
             <ThemedText style={[styles.columnValue, { fontSize: 14 }]} numberOfLines={2}>
               {request.location}
             </ThemedText>
-          </View>
-
-          <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
-            <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
-              {t('buffet.assignedTo').toUpperCase()}
-            </ThemedText>
-            <Spacer height={10} />
-            {request.assignedStaff ? (
-              <ThemedText style={[styles.columnValue, { fontSize: 14, color: theme.success }]} numberOfLines={1}>
-                {request.assignedStaff}
-              </ThemedText>
-            ) : (
-              <ThemedText style={[styles.columnValue, { fontSize: 14, color: theme.textSecondary }]}>
-                {t('buffet.unassigned')}
-              </ThemedText>
-            )}
           </View>
 
           <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
