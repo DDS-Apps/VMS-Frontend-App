@@ -166,10 +166,6 @@ export const truncateText = (text: string, maxLength: number): string => {
   return `${text.substring(0, maxLength)}...`;
 };
 
-export const capitalizeFirst = (text: string): string => {
-  return text.charAt(0).toUpperCase() + text.slice(1);
-};
-
 /**
  * Formats a phone number for display in unified international format.
  * Pattern: +CCC XX XXX XXXX (always 3-2-3-4 grouping)
