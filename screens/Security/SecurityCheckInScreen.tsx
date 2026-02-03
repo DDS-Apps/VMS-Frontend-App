@@ -57,6 +57,7 @@ interface SecurityVisitor {
   duration?: string;
   host: string;
   status: SecurityVisitorStatus;
+  originalStatus: string;
   checkInTime?: string;
   checkOutTime?: string;
   parking: {
@@ -112,6 +113,7 @@ const mapApiToSecurityVisitor = (dto: SecurityVisitorDto): SecurityVisitor => {
     duration: dto.duration,
     host: dto.hostName,
     status: mapStatus(dto.status),
+    originalStatus: dto.status,
     checkInTime: dto.checkInTime,
     checkOutTime: dto.checkOutTime,
     parking: {
