@@ -323,7 +323,7 @@ const ApprovalTableRow = React.memo(({
   const walkInBadge = request.isWalkIn ? <WalkInBadge /> : null;
   
   const actionButtons = (
-    <Pressable onPress={(e) => { console.log('[ApprovalTableRow] Wrapper Pressable onPress - stopPropagation'); e.stopPropagation(); }}>
+    <View pointerEvents="box-none">
       <DirectionalRow style={{ alignItems: 'center' }}>
         <ApprovalActionGroup
           onApprove={() => { console.log('[ApprovalTableRow] onApprove called'); onApprove(); }}
@@ -336,12 +336,12 @@ const ApprovalTableRow = React.memo(({
         <Spacer width={Spacing.sm} />
         <Pressable
           style={[styles.actionButton, styles.detailsActionButton, { borderColor: theme.border }]}
-          onPress={(e) => { e.stopPropagation(); onViewDetails(); }}
+          onPress={() => { console.log('[ApprovalTableRow] onViewDetails called'); onViewDetails(); }}
         >
           <DDIcon name="eye" size={16} variant="muted" />
         </Pressable>
       </DirectionalRow>
-    </Pressable>
+    </View>
   );
   
   const statusAccent = <StatusAccent color={theme.primary} />;
