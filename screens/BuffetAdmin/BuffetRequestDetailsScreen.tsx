@@ -11,6 +11,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
 import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
 import { applyOpacity } from "@/utils/statusStyles";
+import { formatDate } from "@/utils/dateTimeUtils";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LoadingButton } from "@/components/shared/LoadingButton";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
@@ -457,7 +458,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
                   {t('form.visitDate')}
                 </ThemedText>
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
-                  {request.visitDate || '-'}
+                  {request.visitDate ? formatDate(request.visitDate, { isRTL, includeYear: true }) : '-'}
                 </ThemedText>
               </View>
             </DirectionalRow>
