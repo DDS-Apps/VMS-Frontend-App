@@ -561,7 +561,10 @@ export default function ManagerApprovalDetailScreen({
     const startTime = approvalStartTime || new Date();
 
     // Calculate duration from approval start time to selected end time using timezone utility
-    const isoDuration = calculateServerDuration(startTime, walkInEndTime);
+    // Normalize end time to same date as start time to avoid date-mismatch issues from picker initialization
+    const endNormalized = new Date(startTime);
+    endNormalized.setHours(walkInEndTime.getHours(), walkInEndTime.getMinutes(), 0, 0);
+    const isoDuration = calculateServerDuration(startTime, endNormalized);
 
     // Build payload based on whether manager is the host
     // If manager IS the host: can edit services

@@ -522,7 +522,14 @@ export default function VisitorRequestFormScreen({
       if (sendWhatsApp) communicationChannels.push("whatsapp");
 
       // Calculate human-readable duration using timezone utility
-      const duration = calculateServerDuration(selectedTime, selectedEndTime);
+      // Normalize both times to the same reference date to only compare time-of-day
+      // (selectedTime and selectedEndTime may have different date parts from picker initialization)
+      const referenceDate = new Date(selectedDate);
+      const startNormalized = new Date(referenceDate);
+      startNormalized.setHours(selectedTime.getHours(), selectedTime.getMinutes(), 0, 0);
+      const endNormalized = new Date(referenceDate);
+      endNormalized.setHours(selectedEndTime.getHours(), selectedEndTime.getMinutes(), 0, 0);
+      const duration = calculateServerDuration(startNormalized, endNormalized);
 
       const payload: CreateVisitPayload = {
         visitor: {

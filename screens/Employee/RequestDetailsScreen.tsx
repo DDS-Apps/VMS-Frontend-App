@@ -847,7 +847,12 @@ export default function RequestDetailsScreen({
       payload.endTime = formatTimeForApiLocal(editEndTime);
 
       // Calculate human-readable duration from start and end times
-      payload.duration = calculateServerDuration(editTime, editEndTime);
+      // Normalize both times to the same date to avoid date-mismatch issues from picker initialization
+      const startNormalized = new Date(editDate);
+      startNormalized.setHours(editTime.getHours(), editTime.getMinutes(), 0, 0);
+      const endNormalized = new Date(editDate);
+      endNormalized.setHours(editEndTime.getHours(), editEndTime.getMinutes(), 0, 0);
+      payload.duration = calculateServerDuration(startNormalized, endNormalized);
     } else if (editModalMode === "services-only" && visitData) {
       // Services-only mode
       if (isApprovalFlow && visitData.isWalkIn) {
@@ -866,7 +871,10 @@ export default function RequestDetailsScreen({
         payload.endTime = formatTimeForApiLocal(editEndTime);
 
         // Calculate duration from approval start time to selected end time using timezone utility
-        payload.duration = calculateServerDuration(startTime, editEndTime);
+        // Normalize end time to same date as start time to avoid date-mismatch issues
+        const endNormalizedForWalkIn = new Date(startTime);
+        endNormalizedForWalkIn.setHours(editEndTime.getHours(), editEndTime.getMinutes(), 0, 0);
+        payload.duration = calculateServerDuration(startTime, endNormalizedForWalkIn);
 
         // Clear approvalStartTime after use
         setApprovalStartTime(null);
@@ -893,9 +901,12 @@ export default function RequestDetailsScreen({
           existingVisitDate,
           existingVisitTime,
         );
+        // Normalize end time to same date as existing start time to avoid date-mismatch issues
+        const endNormalizedForEdit = new Date(existingStartTime);
+        endNormalizedForEdit.setHours(editEndTime.getHours(), editEndTime.getMinutes(), 0, 0);
         payload.duration = calculateServerDuration(
           existingStartTime,
-          editEndTime,
+          endNormalizedForEdit,
         );
       } else {
         // Non-walk-in services-only edit: use existing schedule fields
