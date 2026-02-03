@@ -55,7 +55,7 @@ import { mapVisitDetailsToVisitorRequest } from "@/utils/requestMappers";
 import { calculateServerDuration } from "@/utils/dateTimeUtils";
 import { useServerDateTime } from "@/hooks/useServerDateTime";
 import { applyOpacity } from "@/utils/statusStyles";
-import { formatPhoneNumber, capitalizeFirst } from "@/utils/formatters";
+import { formatPhoneNumber, formatPhoneForDisplay, capitalizeFirst } from "@/utils/formatters";
 import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
 
 const LAYOUT = {
@@ -1527,7 +1527,7 @@ export default function ManagerApprovalDetailScreen({
                         <ThemedText
                           style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}
                         >
-                          {formatPhoneNumber(request.employeeBusinessPhone || '')}
+                          {formatPhoneForDisplay(request.employeeBusinessPhone || '')}
                         </ThemedText>
                       </View>
                     </DirectionalRow>
