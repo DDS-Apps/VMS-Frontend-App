@@ -54,7 +54,7 @@ import { Theme } from "@/types/theme.types";
 import { mapVisitDetailsToVisitorRequest } from "@/utils/requestMappers";
 import { calculateServerDuration } from "@/utils/dateTimeUtils";
 import { useServerDateTime } from "@/hooks/useServerDateTime";
-import { applyOpacity } from "@/utils/statusStyles";
+import { applyOpacity, getStatusConfig as getSharedStatusConfig } from "@/utils/statusStyles";
 import { formatPhoneNumber, formatPhoneForDisplay, capitalizeFirst } from "@/utils/formatters";
 import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
 
@@ -763,34 +763,7 @@ export default function ManagerApprovalDetailScreen({
     });
   };
 
-  const getStatusInfo = () => {
-    let statusColor = theme.warning;
-    let statusText = t("status.pending");
-
-    if (
-      request.status === REQUEST_STATUS.APPROVED ||
-      request.status === REQUEST_STATUS.VISITOR_ACCEPTED
-    ) {
-      statusColor = theme.success;
-      statusText = t("status.approved");
-    } else if (request.status === REQUEST_STATUS.REJECTED) {
-      statusColor = theme.error;
-      statusText = t("status.rejected");
-    } else if (request.status === REQUEST_STATUS.CANCELLED) {
-      statusColor = theme.error;
-      statusText = t("status.cancelled");
-    } else if (request.status === REQUEST_STATUS.AUTO_CANCELLED) {
-      statusColor = theme.error;
-      statusText = t("status.autoCancelled");
-    } else if (request.status === REQUEST_STATUS.VISITOR_PENDING) {
-      statusColor = theme.warning;
-      statusText = t("status.waitingOnVisitor");
-    }
-
-    return { statusColor, statusText };
-  };
-
-  const { statusColor, statusText } = getStatusInfo();
+  const statusConfig = getSharedStatusConfig(theme, request.status, t);
   const initials = request.visitor.fullName
     .split(" ")
     .map((n) => n[0])
@@ -965,8 +938,8 @@ export default function ManagerApprovalDetailScreen({
                   ) : null}
                   <View
                     style={{
-                      backgroundColor: applyOpacity(statusColor, "15"),
-                      borderColor: applyOpacity(statusColor, "30"),
+                      backgroundColor: statusConfig.bg,
+                      borderColor: statusConfig.border,
                       borderWidth: StyleSheet.hairlineWidth,
                       paddingHorizontal: Spacing.md,
                       paddingVertical: 6,
@@ -974,9 +947,9 @@ export default function ManagerApprovalDetailScreen({
                     }}
                   >
                     <ThemedText
-                      style={[Typography.caption, { color: statusColor, fontWeight: "600", fontSize: 12 }]}
+                      style={[Typography.caption, { color: statusConfig.text, fontWeight: "600", fontSize: 12 }]}
                     >
-                      {statusText}
+                      {statusConfig.label}
                     </ThemedText>
                   </View>
                 </DirectionalRow>
@@ -1070,8 +1043,8 @@ export default function ManagerApprovalDetailScreen({
                   ) : null}
                   <View
                     style={{
-                      backgroundColor: applyOpacity(statusColor, "15"),
-                      borderColor: applyOpacity(statusColor, "30"),
+                      backgroundColor: statusConfig.bg,
+                      borderColor: statusConfig.border,
                       borderWidth: StyleSheet.hairlineWidth,
                       paddingHorizontal: Spacing.md,
                       paddingVertical: 6,
@@ -1079,9 +1052,9 @@ export default function ManagerApprovalDetailScreen({
                     }}
                   >
                     <ThemedText
-                      style={[Typography.caption, { color: statusColor, fontWeight: "600", fontSize: 12 }]}
+                      style={[Typography.caption, { color: statusConfig.text, fontWeight: "600", fontSize: 12 }]}
                     >
-                      {statusText}
+                      {statusConfig.label}
                     </ThemedText>
                   </View>
                 </DirectionalRow>

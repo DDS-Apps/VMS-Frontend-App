@@ -34,6 +34,9 @@ export const applyOpacity = (color: string, alpha: string): string => {
  * Map status code to i18n translation key
  */
 export const getStatusTranslationKey = (status: string): string => {
+  if (!status) {
+    return 'status.pending';
+  }
   switch (status.toLowerCase()) {
     case 'pending_approval':
       return 'status.pendingApproval';
@@ -86,11 +89,12 @@ export const getStatusTranslationKey = (status: string): string => {
  * @param t - Optional translation function. If provided, label will be translated.
  */
 export const getStatusConfig = (theme: Theme, status: string, t?: (key: string) => string): StatusConfig => {
-  const translationKey = getStatusTranslationKey(status);
-  const fallbackLabel = status.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  const safeStatus = status || 'pending';
+  const translationKey = getStatusTranslationKey(safeStatus);
+  const fallbackLabel = safeStatus.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
   const label = t ? t(translationKey) : fallbackLabel;
 
-  switch (status.toLowerCase()) {
+  switch (safeStatus.toLowerCase()) {
     case 'pending_approval':
     case 'pending_host_approval':
       return {
