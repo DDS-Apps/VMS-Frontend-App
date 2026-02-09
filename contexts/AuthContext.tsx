@@ -47,6 +47,7 @@ interface AuthState {
   isLoading: boolean;
   isAuthenticated: boolean;
   error: string | null;
+  userDataVersion: number;
 }
 
 interface SSOTokens {
@@ -64,6 +65,7 @@ interface AuthContextType extends AuthState {
   clearError: () => void;
   checkHealth: () => Promise<boolean>;
   isTokenValid: () => Promise<boolean>;
+  userDataVersion: number;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -80,6 +82,7 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
     isLoading: true,
     isAuthenticated: false,
     error: null,
+    userDataVersion: 0,
   });
 
   const handleLogout = useCallback(async () => {
@@ -104,12 +107,13 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
     } finally {
       clearTokens();
       await AsyncStorage.multiRemove([AUTH_STORAGE_KEY, TOKEN_STORAGE_KEY]);
-      setState({
+      setState((prev) => ({
         user: null,
         isLoading: false,
         isAuthenticated: false,
         error: null,
-      });
+        userDataVersion: prev.userDataVersion,
+      }));
       onLogout?.();
     }
   }, [onLogout]);
@@ -257,12 +261,13 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
         user.isSSOUser = true;
         await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
 
-        setState({
+        setState((prev) => ({
           user,
           isLoading: false,
           isAuthenticated: true,
           error: null,
-        });
+          userDataVersion: prev.userDataVersion,
+        }));
 
         clearUrlHash();
         console.log('[AuthContext] SSO login successful');
@@ -315,12 +320,13 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
               user.isSSOUser = true;
             }
             
-            setState({
+            setState((prev) => ({
               user,
               isLoading: false,
               isAuthenticated: true,
               error: null,
-            });
+              userDataVersion: prev.userDataVersion,
+            }));
             await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
 
             pushNotificationService.initialize().catch((pushError) => {
@@ -338,28 +344,31 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
           } catch (error) {
             await AsyncStorage.multiRemove([AUTH_STORAGE_KEY, TOKEN_STORAGE_KEY]);
             clearTokens();
-            setState({
+            setState((prev) => ({
               user: null,
               isLoading: false,
               isAuthenticated: false,
               error: null,
-            });
+              userDataVersion: prev.userDataVersion,
+            }));
           }
         } else {
-          setState({
+          setState((prev) => ({
             user: null,
             isLoading: false,
             isAuthenticated: false,
             error: null,
-          });
+            userDataVersion: prev.userDataVersion,
+          }));
         }
       } catch (error) {
-        setState({
+        setState((prev) => ({
           user: null,
           isLoading: false,
           isAuthenticated: false,
           error: 'Failed to initialize authentication',
-        });
+          userDataVersion: prev.userDataVersion,
+        }));
       }
     };
 
@@ -375,12 +384,13 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
     
     if (!user) {
       console.error('[AuthContext] Invalid user data received from server. Response keys:', Object.keys(response || {}));
-      setState({
+      setState((prev) => ({
         user: null,
         isLoading: false,
         isAuthenticated: false,
         error: 'Invalid user data received from server',
-      });
+        userDataVersion: prev.userDataVersion,
+      }));
       throw new Error('Invalid user data received from server');
     }
     
@@ -390,12 +400,13 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
     await persistTokens(response.accessToken, response.refreshToken, response.expiresIn);
     await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
 
-    setState({
+    setState((prev) => ({
       user,
       isLoading: false,
       isAuthenticated: true,
       error: null,
-    });
+      userDataVersion: prev.userDataVersion,
+    }));
 
     pushNotificationService.initialize().catch((error) => {
       console.warn('[AuthContext] Failed to initialize push notifications:', error);
@@ -495,12 +506,13 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
       user.isSSOUser = true;
       await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
 
-      setState({
+      setState((prev) => ({
         user,
         isLoading: false,
         isAuthenticated: true,
         error: null,
-      });
+        userDataVersion: prev.userDataVersion,
+      }));
 
       console.log('[AuthContext] SSO login complete, user:', user.email, 'role:', user.role);
 
@@ -556,7 +568,7 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
         user.isSSOUser = true;
       }
       
-      setState((prev) => ({ ...prev, user }));
+      setState((prev) => ({ ...prev, user, userDataVersion: prev.userDataVersion + 1 }));
       await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
       return user;
     } catch (error) {

@@ -84,7 +84,7 @@ function getInviteTokenFromUrl(): string | null {
 }
 
 function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
-  const { user, isAuthenticated, isLoading: authLoading, logout } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading, logout, userDataVersion } = useAuth();
   const { layoutKey, isLoading: languageLoading, isRTL, locale, setLocale } = useLanguage();
   const [showSplash, setShowSplash] = useState(true);
   const [inviteToken, setInviteToken] = useState<string | null>(null);
@@ -206,7 +206,7 @@ function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
   const userRole = user.role as UserRole;
   const rawPhotoUrl = user.thumbnailUrl || user.photoUrl;
   const userPhotoUrl = rawPhotoUrl 
-    ? (rawPhotoUrl.startsWith('http') ? rawPhotoUrl : `${apiConfig.baseUrl}${rawPhotoUrl}`)
+    ? `${rawPhotoUrl.startsWith('http') ? rawPhotoUrl : `${apiConfig.baseUrl}${rawPhotoUrl}`}${rawPhotoUrl.includes('?') ? '&' : '?'}v=${userDataVersion}`
     : undefined;
 
   return (
