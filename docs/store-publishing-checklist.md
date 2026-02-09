@@ -64,8 +64,9 @@
   - Declare data is encrypted in transit
   - Declare data is not shared with third parties
   - Provide data deletion mechanism info
-- [ ] Privacy Policy page live at: {backend-url}/privacy-policy
-- [ ] Terms & Conditions page live at: {backend-url}/terms-conditions
+- [x] Privacy Policy page built as in-app screen at `/privacy-policy` (accessible on web without login)
+- [x] Terms & Conditions page built as in-app screen at `/terms-conditions` (accessible on web without login)
+- [ ] Verify legal pages are accessible at your deployed frontend URL (e.g., `https://your-app.replit.app/privacy-policy`)
 
 ## Apple Review Preparation
 - [ ] **Test Account Credentials**: Provide Apple review team with:
@@ -118,7 +119,7 @@ eas submit --platform android --profile production
 ## Common Rejection Reasons to Avoid
 1. **Missing permission purpose strings** — FIXED: Added NSPhotoLibraryUsageDescription
 2. **Login issues during review** — Provide clear test credentials and instructions
-3. **Privacy policy missing/inaccessible** — FIXED: Added to Settings screen
+3. **Privacy policy missing/inaccessible** — FIXED: Built as in-app frontend pages, linked from Settings screen
 4. **App crashes during review** — Test thoroughly on real production builds
 5. **Incomplete functionality** — Ensure all visible features work end-to-end
 6. **iPad support issues** — supportsTablet is true; test on iPad or iPad simulator

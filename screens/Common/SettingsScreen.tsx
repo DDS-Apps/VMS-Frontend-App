@@ -1,12 +1,11 @@
 import React, { useState } from "react";
-import { View, StyleSheet, Pressable, Switch, ActivityIndicator, Platform, Image, Linking } from "react-native";
+import { View, StyleSheet, Pressable, Switch, ActivityIndicator, Platform, Image } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { DDIcon } from "@/components/DDIcon";
 import { ROUTES } from "@/constants";
 import Constants from "expo-constants";
-import { apiConfig } from "@/api/config";
 import { authService } from "@/services/api/authService";
 import { InAppNotificationToast } from "@/components/InAppNotificationToast";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
@@ -46,7 +45,7 @@ export default function SettingsScreen({
   const { theme, isDark, toggleTheme } = useTheme();
   const { t, locale, setLocale, locales, isRTL, isChangingLanguage } = useTranslation();
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation<NativeStackNavigationProp<{ EditProfile: undefined }>>();
+  const navigation = useNavigation<NativeStackNavigationProp<{ EditProfile: undefined; PrivacyPolicy: undefined; TermsConditions: undefined }>>();
   
   const { data: preferences, isLoading: isLoadingPrefs } = useNotificationPreferencesQuery();
   const updatePreferencesMutation = useUpdateNotificationPreferencesMutation();
@@ -301,7 +300,7 @@ export default function SettingsScreen({
             styles.legalItem,
             { opacity: pressed ? 0.7 : 1 },
           ]}
-          onPress={() => Linking.openURL(`${apiConfig.baseUrl}/privacy-policy`)}
+          onPress={() => navigation.navigate('PrivacyPolicy')}
         >
           <DirectionalRow style={[styles.settingItem, { gap: Spacing.md }]}>
             <DDIcon name="shield" size={20} variant="muted" />
@@ -319,7 +318,7 @@ export default function SettingsScreen({
             styles.legalItem,
             { opacity: pressed ? 0.7 : 1 },
           ]}
-          onPress={() => Linking.openURL(`${apiConfig.baseUrl}/terms-conditions`)}
+          onPress={() => navigation.navigate('TermsConditions')}
         >
           <DirectionalRow style={[styles.settingItem, { gap: Spacing.md }]}>
             <DDIcon name="file-text" size={20} variant="muted" />
