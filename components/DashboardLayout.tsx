@@ -591,6 +591,7 @@ export default function DashboardLayout({
                 <Sidebar
                   userRole={userRole}
                   userName={userName}
+                  userPhotoUrl={userPhotoUrl}
                   currentScreen={currentScreen}
                   onNavigate={onNavigate}
                   onNavigateHome={onNavigateHome}

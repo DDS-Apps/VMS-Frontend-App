@@ -476,11 +476,13 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   profileRow: {
-    flex: 1,
+    width: '100%',
     alignItems: 'center',
   },
   profileInfo: {
     flex: 1,
+    flexShrink: 1,
+    minWidth: 0,
   },
   profileAvatar: {
     width: 48,

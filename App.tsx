@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { StyleSheet, View, ActivityIndicator, Platform } from "react-native";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { StyleSheet, View, ActivityIndicator, Platform, AppState } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as ExpoSplashScreen from "expo-splash-screen";
@@ -84,17 +84,31 @@ function getInviteTokenFromUrl(): string | null {
 }
 
 function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
-  const { user, isAuthenticated, isLoading: authLoading, logout, userDataVersion } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading, logout, userDataVersion, refreshUser } = useAuth();
   const { layoutKey, isLoading: languageLoading, isRTL, locale, setLocale } = useLanguage();
   const [showSplash, setShowSplash] = useState(true);
   const [inviteToken, setInviteToken] = useState<string | null>(null);
   const [hasAppliedUserLanguage, setHasAppliedUserLanguage] = useState(false);
+  const appStateRef = useRef(AppState.currentState);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (
+        appStateRef.current.match(/inactive|background/) &&
+        nextAppState === 'active' &&
+        isAuthenticated
+      ) {
+        refreshUser();
+      }
+      appStateRef.current = nextAppState;
+    });
+    return () => subscription.remove();
+  }, [isAuthenticated, refreshUser]);
 
   useEffect(() => {
     const token = getInviteTokenFromUrl();
     if (token) {
       setInviteToken(token);
-      // Don't hide splash yet - wait for language to load
     }
   }, []);
 
