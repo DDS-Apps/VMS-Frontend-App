@@ -303,6 +303,16 @@ export default function RequestDetailsScreen({
     return terminalStatuses.includes(request.status as any);
   }, [request]);
 
+  const isCancelledVisit = useMemo(() => {
+    if (!request) return false;
+    return [
+      REQUEST_STATUS.CANCELLED,
+      REQUEST_STATUS.AUTO_CANCELLED,
+      REQUEST_STATUS.REJECTED,
+      REQUEST_STATUS.VISITOR_REJECTED,
+    ].includes(request.status as any);
+  }, [request]);
+
   const scrollContentStyle = {
     paddingHorizontal: Spacing.xl,
     paddingTop: Spacing.lg,
@@ -1834,9 +1844,11 @@ export default function RequestDetailsScreen({
                     styles.serviceIcon,
                     {
                       backgroundColor: applyOpacity(
-                        request.meetingRoom || request.isMeetingRoom
-                          ? theme.secondary
-                          : theme.textSecondary,
+                        isCancelledVisit
+                          ? theme.textSecondary
+                          : (request.meetingRoom || request.isMeetingRoom)
+                            ? theme.secondary
+                            : theme.textSecondary,
                         "15",
                       ),
                     },
@@ -1846,9 +1858,11 @@ export default function RequestDetailsScreen({
                     name="briefcase"
                     size={18}
                     color={
-                      request.meetingRoom || request.isMeetingRoom
-                        ? theme.secondary
-                        : theme.textSecondary
+                      isCancelledVisit
+                        ? theme.textSecondary
+                        : (request.meetingRoom || request.isMeetingRoom)
+                          ? theme.secondary
+                          : theme.textSecondary
                     }
                   />
                 </View>
@@ -1861,11 +1875,16 @@ export default function RequestDetailsScreen({
                   >
                     {t("services.meetingRoom")}
                   </ThemedText>
-                  {(request.meetingRoom?.name ||
-                    request.isMeetingRoom ||
-                    (request as any).meetingRoomPending) &&
-                  (request.status === REQUEST_STATUS.REJECTED ||
-                    request.status === REQUEST_STATUS.CANCELLED) ? (
+                  {isCancelledVisit && (request.meetingRoom?.name || request.isMeetingRoom || (request as any).meetingRoomPending) ? (
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.error, fontSize: 12, marginTop: 2 },
+                      ]}
+                    >
+                      {t("status.cancelled")}
+                    </ThemedText>
+                  ) : isCancelledVisit ? (
                     <ThemedText
                       style={[
                         Typography.caption,
@@ -1905,15 +1924,6 @@ export default function RequestDetailsScreen({
                         ? t("status.pendingApproval")
                         : t("status.pending")}
                     </ThemedText>
-                  ) : request.status === REQUEST_STATUS.CANCELLED || request.status === REQUEST_STATUS.AUTO_CANCELLED || request.status === REQUEST_STATUS.VISITOR_REJECTED ? (
-                    <ThemedText
-                      style={[
-                        Typography.caption,
-                        { color: theme.error, fontSize: 12, marginTop: 2 },
-                      ]}
-                    >
-                      {t("status.cancelled")}
-                    </ThemedText>
                   ) : (
                     <ThemedText
                       style={[
@@ -1925,7 +1935,7 @@ export default function RequestDetailsScreen({
                     </ThemedText>
                   )}
                 </View>
-                {request.meetingRoom?.status ? (
+                {!isCancelledVisit && request.meetingRoom?.status ? (
                   <StatusBadge
                     label={formatServiceStatus(request.meetingRoom.status)}
                     variant={getServiceStatusVariant(request.meetingRoom.status)}
@@ -1949,9 +1959,11 @@ export default function RequestDetailsScreen({
                     styles.serviceIcon,
                     {
                       backgroundColor: applyOpacity(
-                        request.buffet || request.isBuffet || (request as any).buffetPending
-                          ? theme.secondary
-                          : theme.textSecondary,
+                        isCancelledVisit
+                          ? theme.textSecondary
+                          : (request.buffet || request.isBuffet || (request as any).buffetPending)
+                            ? theme.secondary
+                            : theme.textSecondary,
                         "15",
                       ),
                     },
@@ -1961,9 +1973,11 @@ export default function RequestDetailsScreen({
                     name="cloche"
                     size={18}
                     color={
-                      request.buffet || request.isBuffet || (request as any).buffetPending
-                        ? theme.secondary
-                        : theme.textSecondary
+                      isCancelledVisit
+                        ? theme.textSecondary
+                        : (request.buffet || request.isBuffet || (request as any).buffetPending)
+                          ? theme.secondary
+                          : theme.textSecondary
                     }
                   />
                 </View>
@@ -1976,11 +1990,16 @@ export default function RequestDetailsScreen({
                   >
                     {t("buffet.buffetService")}
                   </ThemedText>
-                  {(request.buffet?.mealType ||
-                    request.isBuffet ||
-                    (request as any).buffetPending) &&
-                  (request.status === REQUEST_STATUS.REJECTED ||
-                    request.status === REQUEST_STATUS.CANCELLED) ? (
+                  {isCancelledVisit && (request.buffet?.mealType || request.isBuffet || (request as any).buffetPending) ? (
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.error, fontSize: 12, marginTop: 2 },
+                      ]}
+                    >
+                      {t("status.cancelled")}
+                    </ThemedText>
+                  ) : isCancelledVisit ? (
                     <ThemedText
                       style={[
                         Typography.caption,
@@ -2009,15 +2028,6 @@ export default function RequestDetailsScreen({
                         ? t("status.pendingApproval")
                         : t("status.pending")}
                     </ThemedText>
-                  ) : request.status === REQUEST_STATUS.CANCELLED || request.status === REQUEST_STATUS.AUTO_CANCELLED || request.status === REQUEST_STATUS.VISITOR_REJECTED ? (
-                    <ThemedText
-                      style={[
-                        Typography.caption,
-                        { color: theme.error, fontSize: 12, marginTop: 2 },
-                      ]}
-                    >
-                      {t("status.cancelled")}
-                    </ThemedText>
                   ) : (
                     <ThemedText
                       style={[
@@ -2029,7 +2039,7 @@ export default function RequestDetailsScreen({
                     </ThemedText>
                   )}
                 </View>
-                {request.buffet?.status ? (
+                {!isCancelledVisit && request.buffet?.status ? (
                   <StatusBadge
                     label={formatServiceStatus(request.buffet.status)}
                     variant={getServiceStatusVariant(request.buffet.status)}
@@ -2053,7 +2063,11 @@ export default function RequestDetailsScreen({
                     styles.serviceIcon,
                     {
                       backgroundColor: applyOpacity(
-                        request.visitorNeedsParking ? theme.secondary : theme.textSecondary,
+                        isCancelledVisit
+                          ? theme.textSecondary
+                          : request.visitorNeedsParking
+                            ? theme.secondary
+                            : theme.textSecondary,
                         "15",
                       ),
                     },
@@ -2062,7 +2076,13 @@ export default function RequestDetailsScreen({
                   <DDIcon
                     name="truck"
                     size={18}
-                    color={request.visitorNeedsParking ? theme.secondary : theme.textSecondary}
+                    color={
+                      isCancelledVisit
+                        ? theme.textSecondary
+                        : request.visitorNeedsParking
+                          ? theme.secondary
+                          : theme.textSecondary
+                    }
                   />
                 </View>
                 <View style={{ flex: 1 }}>
@@ -2074,7 +2094,25 @@ export default function RequestDetailsScreen({
                   >
                     {t("services.parking")}
                   </ThemedText>
-                  {request.visitorNeedsParking ? (
+                  {isCancelledVisit && request.visitorNeedsParking ? (
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.error, fontSize: 12, marginTop: 2 },
+                      ]}
+                    >
+                      {t("status.cancelled")}
+                    </ThemedText>
+                  ) : isCancelledVisit ? (
+                    <ThemedText
+                      style={[
+                        Typography.caption,
+                        { color: theme.error, fontSize: 12, marginTop: 2 },
+                      ]}
+                    >
+                      {t("status.cancelled")}
+                    </ThemedText>
+                  ) : request.visitorNeedsParking ? (
                     request.licensePlate || request.carModel || request.carColor ? (
                       <ThemedText
                         style={[
@@ -2098,15 +2136,6 @@ export default function RequestDetailsScreen({
                           : t("parking.parkingPending")}
                       </ThemedText>
                     )
-                  ) : request.status === REQUEST_STATUS.CANCELLED || request.status === REQUEST_STATUS.AUTO_CANCELLED || request.status === REQUEST_STATUS.VISITOR_REJECTED ? (
-                    <ThemedText
-                      style={[
-                        Typography.caption,
-                        { color: theme.error, fontSize: 12, marginTop: 2 },
-                      ]}
-                    >
-                      {t("status.cancelled")}
-                    </ThemedText>
                   ) : (
                     <ThemedText
                       style={[

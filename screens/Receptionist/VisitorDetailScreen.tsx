@@ -138,6 +138,10 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
   const checkOutMutation = useReceptionCheckOutMutation();
   const [showCancelModal, setShowCancelModal] = useState(false);
 
+  const isCancelledVisit = visitor && [
+    'cancelled', 'auto_cancelled', 'rejected', 'visitor_rejected',
+  ].includes(visitor.status);
+
   const showStickyFooter = visitor && (
     visitor.status === 'approved' || 
     visitor.status === 'visitor_accepted' || 
@@ -519,14 +523,22 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
           {/* Meeting Room */}
           <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
             <DirectionalRow style={[styles.serviceItemNew, { backgroundColor: theme.surfaceSecondary }]}>
-              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(visitor.isMeetingRoom || visitor.meetingRoom ? theme.secondary : theme.textSecondary, '15') }]}>
-                <DDIcon name="briefcase" size={18} color={visitor.isMeetingRoom || visitor.meetingRoom ? theme.secondary : theme.textSecondary} />
+              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(isCancelledVisit ? theme.textSecondary : (visitor.isMeetingRoom || visitor.meetingRoom) ? theme.secondary : theme.textSecondary, '15') }]}>
+                <DDIcon name="briefcase" size={18} color={isCancelledVisit ? theme.textSecondary : (visitor.isMeetingRoom || visitor.meetingRoom) ? theme.secondary : theme.textSecondary} />
               </View>
               <View style={{ flex: 1 }}>
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 14, color: theme.text }]}>
                   {t('services.meetingRoom')}
                 </ThemedText>
-                {visitor.meetingRoom ? (
+                {isCancelledVisit && (visitor.meetingRoom || visitor.isMeetingRoom) ? (
+                  <ThemedText style={[Typography.caption, { color: theme.error, fontSize: 12, marginTop: 2 }]}>
+                    {t('status.cancelled')}
+                  </ThemedText>
+                ) : isCancelledVisit ? (
+                  <ThemedText style={[Typography.caption, { color: theme.error, fontSize: 12, marginTop: 2 }]}>
+                    {t('status.cancelled')}
+                  </ThemedText>
+                ) : visitor.meetingRoom ? (
                   <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12, marginTop: 2 }]}>
                     {visitor.meetingRoom.name}{visitor.meetingRoom.floor ? ` (${visitor.meetingRoom.floor})` : ''}
                   </ThemedText>
@@ -543,14 +555,22 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
           {/* Buffet Service */}
           <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
             <DirectionalRow style={[styles.serviceItemNew, { backgroundColor: theme.surfaceSecondary }]}>
-              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(visitor.isBuffet || visitor.buffet ? theme.secondary : theme.textSecondary, '15') }]}>
-                <DDIcon name="cloche" size={18} color={visitor.isBuffet || visitor.buffet ? theme.secondary : theme.textSecondary} />
+              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(isCancelledVisit ? theme.textSecondary : (visitor.isBuffet || visitor.buffet) ? theme.secondary : theme.textSecondary, '15') }]}>
+                <DDIcon name="cloche" size={18} color={isCancelledVisit ? theme.textSecondary : (visitor.isBuffet || visitor.buffet) ? theme.secondary : theme.textSecondary} />
               </View>
               <View style={{ flex: 1 }}>
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 14, color: theme.text }]}>
                   {t('buffet.buffetService')}
                 </ThemedText>
-                {visitor.isBuffet || visitor.buffet ? (
+                {isCancelledVisit && (visitor.isBuffet || visitor.buffet) ? (
+                  <ThemedText style={[Typography.caption, { color: theme.error, fontSize: 12, marginTop: 2 }]}>
+                    {t('status.cancelled')}
+                  </ThemedText>
+                ) : isCancelledVisit ? (
+                  <ThemedText style={[Typography.caption, { color: theme.error, fontSize: 12, marginTop: 2 }]}>
+                    {t('status.cancelled')}
+                  </ThemedText>
+                ) : visitor.isBuffet || visitor.buffet ? (
                   <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12, marginTop: 2 }]}>
                     {visitor.meetingRoom?.name ? `${visitor.meetingRoom.name} - ${visitor.meetingRoom.floor}` : (visitor.buffet?.location || t('status.pending'))}
                   </ThemedText>
@@ -567,14 +587,22 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
           {/* Parking */}
           <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
             <DirectionalRow style={[styles.serviceItemNew, { backgroundColor: theme.surfaceSecondary }]}>
-              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(visitor.isParking || visitor.parking ? theme.secondary : theme.textSecondary, '15') }]}>
-                <DDIcon name="truck" size={18} color={visitor.isParking || visitor.parking ? theme.secondary : theme.textSecondary} />
+              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(isCancelledVisit ? theme.textSecondary : (visitor.isParking || visitor.parking) ? theme.secondary : theme.textSecondary, '15') }]}>
+                <DDIcon name="truck" size={18} color={isCancelledVisit ? theme.textSecondary : (visitor.isParking || visitor.parking) ? theme.secondary : theme.textSecondary} />
               </View>
               <View style={{ flex: 1 }}>
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 14, color: theme.text }]}>
                   {t('parking.parking')}
                 </ThemedText>
-                {visitor.parking ? (
+                {isCancelledVisit && (visitor.isParking || visitor.parking) ? (
+                  <ThemedText style={[Typography.caption, { color: theme.error, fontSize: 12, marginTop: 2 }]}>
+                    {t('status.cancelled')}
+                  </ThemedText>
+                ) : isCancelledVisit ? (
+                  <ThemedText style={[Typography.caption, { color: theme.error, fontSize: 12, marginTop: 2 }]}>
+                    {t('status.cancelled')}
+                  </ThemedText>
+                ) : visitor.parking ? (
                   <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12, marginTop: 2 }]}>
                     {visitor.parking}
                   </ThemedText>
