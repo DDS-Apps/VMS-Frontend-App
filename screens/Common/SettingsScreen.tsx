@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { View, StyleSheet, Pressable, Switch, ActivityIndicator, Platform, Image } from "react-native";
+import { View, StyleSheet, Pressable, Switch, ActivityIndicator, Platform, Image, Linking } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { DDIcon } from "@/components/DDIcon";
 import { ROUTES } from "@/constants";
 import Constants from "expo-constants";
+import { apiConfig } from "@/api/config";
 import { authService } from "@/services/api/authService";
 import { InAppNotificationToast } from "@/components/InAppNotificationToast";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
@@ -288,7 +289,59 @@ export default function SettingsScreen({
 
       </ThemedView>
 
-      {/* Email Notifications, Event Notifications, and About sections hidden - app info shown in sidebar */}
+      <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
+        <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
+          {t('settings.legalInfo')}
+        </ThemedText>
+
+        <Spacer height={Spacing.md} />
+
+        <Pressable
+          style={({ pressed }) => [
+            styles.legalItem,
+            { opacity: pressed ? 0.7 : 1 },
+          ]}
+          onPress={() => Linking.openURL(`${apiConfig.baseUrl}/privacy-policy`)}
+        >
+          <DirectionalRow style={[styles.settingItem, { gap: Spacing.md }]}>
+            <DDIcon name="shield" size={20} variant="muted" />
+            <ThemedText style={[styles.settingLabel, { color: theme.text, flex: 1 }]}>
+              {t('settings.privacyPolicy')}
+            </ThemedText>
+            <DDIcon name={isRTL ? "chevron-left" : "chevron-right"} size={18} variant="muted" />
+          </DirectionalRow>
+        </Pressable>
+
+        <View style={[styles.sectionDivider, { backgroundColor: theme.surfaceSecondary }]} />
+
+        <Pressable
+          style={({ pressed }) => [
+            styles.legalItem,
+            { opacity: pressed ? 0.7 : 1 },
+          ]}
+          onPress={() => Linking.openURL(`${apiConfig.baseUrl}/terms-conditions`)}
+        >
+          <DirectionalRow style={[styles.settingItem, { gap: Spacing.md }]}>
+            <DDIcon name="file-text" size={20} variant="muted" />
+            <ThemedText style={[styles.settingLabel, { color: theme.text, flex: 1 }]}>
+              {t('settings.termsOfService')}
+            </ThemedText>
+            <DDIcon name={isRTL ? "chevron-left" : "chevron-right"} size={18} variant="muted" />
+          </DirectionalRow>
+        </Pressable>
+
+        <View style={[styles.sectionDivider, { backgroundColor: theme.surfaceSecondary }]} />
+
+        <DirectionalRow style={[styles.settingItem, { gap: Spacing.md }]}>
+          <DDIcon name="info" size={20} variant="muted" />
+          <ThemedText style={[styles.settingLabel, { color: theme.text, flex: 1 }]}>
+            {t('settings.version')}
+          </ThemedText>
+          <ThemedText style={[styles.settingDescription, { color: theme.textSecondary }]}>
+            {appVersion}
+          </ThemedText>
+        </DirectionalRow>
+      </ThemedView>
 
       {onLogout ? (
         <Pressable
@@ -468,6 +521,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.xs,
+  },
+  legalItem: {
+    paddingVertical: Spacing.xs,
   },
   logoutButton: {
     alignItems: 'center',
