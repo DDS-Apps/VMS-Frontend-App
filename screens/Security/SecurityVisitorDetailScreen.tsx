@@ -66,7 +66,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
   const getTimelineSteps = () => {
     const status = visitorData.status;
     const isCheckedIn = status === 'checked_in';
-    const isCheckedOut = status === 'checked_out';
+    const isCheckedOut = status === 'checked_out' || status === 'completed';
     
     return [
       {
