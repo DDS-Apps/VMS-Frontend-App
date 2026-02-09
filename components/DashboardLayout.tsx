@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, StyleSheet, Pressable, I18nManager, useWindowDimensions, Image, Modal, Switch, Platform } from "react-native";
+import { View, StyleSheet, Pressable, I18nManager, useWindowDimensions, Modal, Switch, Platform } from "react-native";
+import { Image } from "expo-image";
 import { GestureDetector, Gesture, NativeViewGestureHandler } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, {
@@ -393,11 +394,19 @@ export default function DashboardLayout({
                   { opacity: pressed ? 0.7 : 1 }
                 ]}
               >
-                <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
-                  <ThemedText style={[Typography.caption, { color: '#FFFFFF', fontWeight: '700' }]}>
-                    {getInitials(userName)}
-                  </ThemedText>
-                </View>
+                {userPhotoUrl ? (
+                  <Image
+                    source={{ uri: userPhotoUrl }}
+                    style={styles.avatar}
+                    contentFit="cover"
+                  />
+                ) : (
+                  <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
+                    <ThemedText style={[Typography.caption, { color: '#FFFFFF', fontWeight: '700' }]}>
+                      {getInitials(userName)}
+                    </ThemedText>
+                  </View>
+                )}
               </Pressable>
             </DirectionalRow>
           </DirectionalRow>
@@ -427,6 +436,7 @@ export default function DashboardLayout({
                   <Image
                     source={{ uri: userPhotoUrl }}
                     style={styles.avatarLarge}
+                    contentFit="cover"
                   />
                 ) : (
                   <View style={[styles.avatarLarge, { backgroundColor: theme.primary }]}>
@@ -694,6 +704,7 @@ export default function DashboardLayout({
                         <Image
                           source={{ uri: userPhotoUrl }}
                           style={styles.avatar}
+                          contentFit="cover"
                         />
                       ) : (
                         <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
@@ -837,6 +848,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
+    overflow: 'hidden',
   },
   avatarLarge: {
     width: 56,
@@ -844,6 +856,7 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
+    overflow: 'hidden',
   },
   modalOverlay: {
     flex: 1,
