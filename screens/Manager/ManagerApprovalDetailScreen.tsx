@@ -37,7 +37,7 @@ import {
 } from "@/components/SelectableCard";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { Spacing, BorderRadius, Typography } from "@/constants/theme";
+import { Spacing, BorderRadius, Typography, FontFamily, getLocaleFontFamily } from "@/constants/theme";
 import { REQUEST_STATUS } from "@/constants/requestConstants";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -2256,6 +2256,7 @@ export default function ManagerApprovalDetailScreen({
                     borderColor: theme.border,
                     backgroundColor: theme.background,
                     color: theme.text,
+                    fontFamily: getLocaleFontFamily(FontFamily.latinRegular, isRTL),
                   },
                 ]}
                 placeholder={t("form.enterNotes")}
@@ -2862,7 +2863,7 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
     minHeight: 110,
     fontSize: 14,
-    fontFamily: "Inter_400Regular",
+    fontFamily: FontFamily.latinRegular,
     lineHeight: 21,
   },
   modalActions: {

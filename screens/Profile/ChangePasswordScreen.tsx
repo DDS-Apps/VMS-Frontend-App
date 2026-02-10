@@ -7,7 +7,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { LoadingButton } from "@/components/shared/LoadingButton";
 import Spacer from "@/components/Spacer";
 import { DirectionalRow } from "@/components/DirectionalRow";
-import { Spacing, BorderRadius, Typography } from "@/constants/theme";
+import { Spacing, BorderRadius, Typography, FontFamily, getLocaleFontFamily } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { DDIcon } from "@/components/DDIcon";
@@ -155,7 +155,7 @@ export default function ChangePasswordScreen({ onSuccess, onCancel }: ChangePass
             <TextInput
               style={[
                 styles.input,
-                { color: theme.text },
+                { color: theme.text, fontFamily: getLocaleFontFamily(FontFamily.latinRegular, isRTL) },
               ]}
               placeholder={t('auth.currentPasswordPlaceholder')}
               placeholderTextColor={theme.textSecondary}
@@ -191,7 +191,7 @@ export default function ChangePasswordScreen({ onSuccess, onCancel }: ChangePass
             <TextInput
               style={[
                 styles.input,
-                { color: theme.text },
+                { color: theme.text, fontFamily: getLocaleFontFamily(FontFamily.latinRegular, isRTL) },
               ]}
               placeholder={t('auth.enterNewPassword')}
               placeholderTextColor={theme.textSecondary}
@@ -227,7 +227,7 @@ export default function ChangePasswordScreen({ onSuccess, onCancel }: ChangePass
             <TextInput
               style={[
                 styles.input,
-                { color: theme.text },
+                { color: theme.text, fontFamily: getLocaleFontFamily(FontFamily.latinRegular, isRTL) },
               ]}
               placeholder={t('auth.confirmNewPasswordPlaceholder')}
               placeholderTextColor={theme.textSecondary}
@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: INPUT_FONT_SIZE,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: FontFamily.latinRegular,
     height: '100%',
   },
   primaryButton: {

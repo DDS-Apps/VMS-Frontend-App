@@ -12,7 +12,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
 import Spacer from "@/components/Spacer";
 import { ServiceIcons, SelectionCheckbox, StatusAccent, WalkInBadge, SkeletonDashboard, LoadingSpinner, ApprovalActionGroup, LoadingButton, VisitorRequestCard } from "@/components/shared";
-import { Spacing, BorderRadius, Typography } from "@/constants/theme";
+import { Spacing, BorderRadius, Typography, FontFamily, getLocaleFontFamily } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
@@ -550,7 +550,8 @@ const RejectRequestModal = ({
                 { 
                   borderColor: theme.border,
                   backgroundColor: theme.background,
-                  color: theme.text
+                  color: theme.text,
+                  fontFamily: getLocaleFontFamily(FontFamily.latinRegular, isRTL)
                 }
               ]}
               placeholder={t('form.enterNotes')}
@@ -800,7 +801,7 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
       <View style={[styles.searchBar, { backgroundColor: theme.surfaceSecondary, borderColor: theme.border }]}>
         <DDIcon name="search" size={20} variant="muted" />
         <TextInput
-          style={[styles.searchInput, { color: theme.text }]}
+          style={[styles.searchInput, { color: theme.text, fontFamily: getLocaleFontFamily(FontFamily.latinRegular, isRTL) }]}
           placeholder={t('common.search')}
           placeholderTextColor={theme.textSecondary}
           value={searchQuery}
@@ -1152,7 +1153,7 @@ const styles = StyleSheet.create({
     flex: 1,
     marginStart: Spacing.sm,
     fontSize: 15,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: FontFamily.latinRegular,
   },
 
   statusAccent: {
@@ -1374,7 +1375,7 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
     minHeight: 110,
     fontSize: 14,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: FontFamily.latinRegular,
     lineHeight: 21,
   },
   modalActions: {

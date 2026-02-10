@@ -2,7 +2,7 @@ import React, { useState, useMemo } from "react";
 import { View, StyleSheet, Pressable, Modal, I18nManager } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { DDIcon } from "@/components/DDIcon";
-import { Spacing, BorderRadius, Typography } from "@/constants/theme";
+import { Spacing, BorderRadius, Typography, FontFamily } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -385,7 +385,7 @@ const styles = StyleSheet.create({
   weekDayText: {
     fontSize: 12,
     fontWeight: '500',
-    fontFamily: 'Inter_500Medium',
+    fontFamily: FontFamily.latinMedium,
   },
   daysGrid: {
     flexDirection: 'row',
@@ -406,7 +406,7 @@ const styles = StyleSheet.create({
   },
   dayText: {
     fontSize: 14,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: FontFamily.latinRegular,
   },
   rangeHint: {
     padding: Spacing.md,

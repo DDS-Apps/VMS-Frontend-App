@@ -8,7 +8,7 @@ import {
 
 import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Typography, FontFamily } from "@/constants/theme";
+import { Typography, FontFamily, getLocaleFontFamily } from "@/constants/theme";
 import { getPlatformTextAlign } from "@/utils/rtlInitializer";
 import {
   arabicFontSize,
@@ -141,6 +141,7 @@ export function ThemedText({
       if (!isRTL) return baseStyle;
       return {
         ...baseStyle,
+        fontFamily: getLocaleFontFamily(baseStyle.fontFamily, isRTL),
         fontSize: arabicFontSize(baseStyle.fontSize, isRTL, category),
         lineHeight: arabicLineHeight(baseStyle.lineHeight, isRTL, category),
       };

@@ -256,83 +256,104 @@ export const BorderRadius = {
 // ============================================
 
 // Font families for locale-aware rendering
-// Using FS Albert Pro (Latin) and FS Albert Arabic Web (Arabic)
-// Falls back to Inter/Noto Sans Arabic if FS Albert fonts are not available
+// Using Albert Sans (Latin) and Cairo (Arabic) from Google Fonts
+// Falls back to Inter/system fonts if Google Fonts are not available
 export const FontFamily = {
-  // Latin UI (English, numbers) - FS Albert Pro with fallbacks
+  // Latin UI (English, numbers) - Albert Sans with fallbacks
   latinLight: Platform.select({
-    web: "'FS Albert Pro', Inter, system-ui, -apple-system, sans-serif",
-    default: "FSAlbertPro-Light",
+    web: "'Albert Sans', Inter, system-ui, -apple-system, sans-serif",
+    default: "AlbertSans_300Light",
   }) as string,
   latinRegular: Platform.select({
-    web: "'FS Albert Pro', Inter, system-ui, -apple-system, sans-serif",
-    default: "FSAlbertPro-Regular",
+    web: "'Albert Sans', Inter, system-ui, -apple-system, sans-serif",
+    default: "AlbertSans_400Regular",
   }) as string,
   latinMedium: Platform.select({
-    web: "'FS Albert Pro', Inter, system-ui, -apple-system, sans-serif",
-    default: "FSAlbertPro-Regular",
+    web: "'Albert Sans', Inter, system-ui, -apple-system, sans-serif",
+    default: "AlbertSans_500Medium",
   }) as string,
   latinSemiBold: Platform.select({
-    web: "'FS Albert Pro', Inter, system-ui, -apple-system, sans-serif",
-    default: "FSAlbertPro-Bold",
+    web: "'Albert Sans', Inter, system-ui, -apple-system, sans-serif",
+    default: "AlbertSans_600SemiBold",
   }) as string,
   latinBold: Platform.select({
-    web: "'FS Albert Pro', Inter, system-ui, -apple-system, sans-serif",
-    default: "FSAlbertPro-Bold",
+    web: "'Albert Sans', Inter, system-ui, -apple-system, sans-serif",
+    default: "AlbertSans_700Bold",
   }) as string,
   latinExtraBold: Platform.select({
-    web: "'FS Albert Pro', Inter, system-ui, -apple-system, sans-serif",
-    default: "FSAlbertPro-ExtraBold",
+    web: "'Albert Sans', Inter, system-ui, -apple-system, sans-serif",
+    default: "AlbertSans_800ExtraBold",
   }) as string,
 
-  // Arabic UI - FS Albert Arabic Web with fallbacks
+  // Arabic UI - Cairo with fallbacks
   arabicLight: Platform.select({
-    web: "'FS Albert Arabic Web', 'Noto Sans Arabic', sans-serif",
-    default: "FSAlbertArabicWeb-Light",
+    web: "'Cairo', 'Noto Sans Arabic', sans-serif",
+    default: "Cairo_300Light",
   }) as string,
   arabicRegular: Platform.select({
-    web: "'FS Albert Arabic Web', 'Noto Sans Arabic', sans-serif",
-    default: "FSAlbertArabicWeb-Regular",
+    web: "'Cairo', 'Noto Sans Arabic', sans-serif",
+    default: "Cairo_400Regular",
   }) as string,
   arabicMedium: Platform.select({
-    web: "'FS Albert Arabic Web', 'Noto Sans Arabic', sans-serif",
-    default: "FSAlbertArabicWeb-Regular",
+    web: "'Cairo', 'Noto Sans Arabic', sans-serif",
+    default: "Cairo_500Medium",
   }) as string,
   arabicSemiBold: Platform.select({
-    web: "'FS Albert Arabic Web', 'Noto Sans Arabic', sans-serif",
-    default: "FSAlbertArabicWeb-Bold",
+    web: "'Cairo', 'Noto Sans Arabic', sans-serif",
+    default: "Cairo_600SemiBold",
   }) as string,
   arabicBold: Platform.select({
-    web: "'FS Albert Arabic Web', 'Noto Sans Arabic', sans-serif",
-    default: "FSAlbertArabicWeb-Bold",
+    web: "'Cairo', 'Noto Sans Arabic', sans-serif",
+    default: "Cairo_700Bold",
   }) as string,
   arabicExtraBold: Platform.select({
-    web: "'FS Albert Arabic Web', 'Noto Sans Arabic', sans-serif",
-    default: "FSAlbertArabicWeb-ExtraBold",
+    web: "'Cairo', 'Noto Sans Arabic', sans-serif",
+    default: "Cairo_800ExtraBold",
   }) as string,
 
   // Display fonts (for marketing/hero sections)
   latinDisplay: Platform.select({
-    web: "'FS Albert Pro', Inter, system-ui, sans-serif",
-    default: "FSAlbertPro-ExtraBold",
+    web: "'Albert Sans', Inter, system-ui, sans-serif",
+    default: "AlbertSans_800ExtraBold",
   }) as string,
   arabicDisplay: Platform.select({
-    web: "'FS Albert Arabic Web', 'Noto Sans Arabic', sans-serif",
-    default: "FSAlbertArabicWeb-ExtraBold",
+    web: "'Cairo', 'Noto Sans Arabic', sans-serif",
+    default: "Cairo_800ExtraBold",
   }) as string,
 };
 
-// Fallback font family tokens (used when FS Albert fonts are not loaded)
+// Fallback font family tokens (used when Google Fonts are not loaded)
 export const FontFamilyFallback = {
   latinRegular: "Inter_400Regular",
   latinMedium: "Inter_500Medium",
   latinSemiBold: "Inter_600SemiBold",
   latinBold: "Inter_700Bold",
-  arabicRegular: "NotoSansArabic_400Regular",
-  arabicMedium: "NotoSansArabic_500Medium",
-  arabicSemiBold: "NotoSansArabic_600SemiBold",
-  arabicBold: "NotoSansArabic_700Bold",
+  arabicRegular: "Cairo_400Regular",
+  arabicMedium: "Cairo_500Medium",
+  arabicSemiBold: "Cairo_600SemiBold",
+  arabicBold: "Cairo_700Bold",
 };
+
+const latinToArabicMap: Record<string, string> = {
+  [FontFamily.latinLight]: FontFamily.arabicLight,
+  [FontFamily.latinRegular]: FontFamily.arabicRegular,
+  [FontFamily.latinMedium]: FontFamily.arabicMedium,
+  [FontFamily.latinSemiBold]: FontFamily.arabicSemiBold,
+  [FontFamily.latinBold]: FontFamily.arabicBold,
+  [FontFamily.latinExtraBold]: FontFamily.arabicExtraBold,
+  [FontFamily.latinDisplay]: FontFamily.arabicDisplay,
+  'AlbertSans_300Light': 'Cairo_300Light',
+  'AlbertSans_400Regular': 'Cairo_400Regular',
+  'AlbertSans_500Medium': 'Cairo_500Medium',
+  'AlbertSans_600SemiBold': 'Cairo_600SemiBold',
+  'AlbertSans_700Bold': 'Cairo_700Bold',
+  'AlbertSans_800ExtraBold': 'Cairo_800ExtraBold',
+};
+
+export function getLocaleFontFamily(latinFont: string, isRTL: boolean): string {
+  if (!isRTL) return latinFont;
+  return latinToArabicMap[latinFont] || latinFont;
+}
 
 // Typography tokens with type scale
 export const Typography = {
@@ -503,21 +524,21 @@ export const Shadows = {
 // ============================================
 export const Fonts = Platform.select({
   ios: {
-    sans: "FS Albert Pro",
+    sans: "AlbertSans_400Regular",
     serif: "ui-serif",
     rounded: "ui-rounded",
     mono: "ui-monospace",
   },
   default: {
-    sans: "FS Albert Pro",
+    sans: "AlbertSans_400Regular",
     serif: "serif",
-    rounded: "FS Albert Pro",
+    rounded: "AlbertSans_400Regular",
     mono: "monospace",
   },
   web: {
-    sans: "'FS Albert Pro', Inter, 'Noto Sans Arabic', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+    sans: "'Albert Sans', Inter, 'Cairo', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
     serif: "Georgia, 'Times New Roman', serif",
-    rounded: "'FS Albert Pro', Inter, 'SF Pro Rounded', sans-serif",
+    rounded: "'Albert Sans', Inter, 'SF Pro Rounded', sans-serif",
     mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
   },
 });

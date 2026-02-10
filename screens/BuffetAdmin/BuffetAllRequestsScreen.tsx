@@ -7,7 +7,7 @@ import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { ScreenFlatList } from "@/components/ScreenFlatList";
-import { Spacing, BorderRadius, Typography } from "@/constants/theme";
+import { Spacing, BorderRadius, Typography, FontFamily } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -1212,7 +1212,7 @@ const styles = StyleSheet.create({
   filterPillText: {
     fontSize: 13,
     fontWeight: '500',
-    fontFamily: 'Inter_500Medium',
+    fontFamily: FontFamily.latinMedium,
   },
   filterCount: {
     paddingHorizontal: 7,
@@ -1224,7 +1224,7 @@ const styles = StyleSheet.create({
   filterCountText: {
     fontSize: 11,
     fontWeight: '600',
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: FontFamily.latinSemiBold,
   },
   viewToggle: {
     flexDirection: 'row',

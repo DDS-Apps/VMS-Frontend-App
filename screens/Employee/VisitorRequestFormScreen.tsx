@@ -27,7 +27,7 @@ import {
 } from "@/components/SelectableCard";
 import { LoadingButton } from "@/components/shared/LoadingButton";
 import Spacer from "@/components/Spacer";
-import { Spacing, BorderRadius, Typography } from "@/constants/theme";
+import { Spacing, BorderRadius, Typography, FontFamily, getLocaleFontFamily } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
@@ -399,14 +399,9 @@ export default function VisitorRequestFormScreen({
       newErrors.fullName = t("errors.fullNameRequired");
     }
 
-    // Email is required for walk-in registrations
-    if (isWalkIn) {
-      if (!email.trim()) {
-        newErrors.email = t("form.fieldRequired");
-      } else if (!validateEmail(email)) {
-        newErrors.email = t("errors.invalidEmail");
-      }
-    } else if (email.trim() && !validateEmail(email)) {
+    if (!email.trim()) {
+      newErrors.email = t("form.fieldRequired");
+    } else if (!validateEmail(email)) {
       newErrors.email = t("errors.invalidEmail");
     }
 
@@ -663,7 +658,7 @@ export default function VisitorRequestFormScreen({
                 backgroundColor: theme.background,
                 borderColor: errors.fullName ? theme.error : theme.border,
                 color: theme.text,
-                
+                fontFamily: getLocaleFontFamily(FontFamily.latinRegular, isRTL),
                 writingDirection: isRTL ? "rtl" : "ltr",
               },
             ]}
@@ -705,7 +700,7 @@ export default function VisitorRequestFormScreen({
               },
             ]}
           >
-            {t("form.email").toUpperCase()}
+            {t("form.email").toUpperCase()} *
           </ThemedText>
           <Spacer height={Spacing.xs} />
           <TextInput
@@ -715,7 +710,7 @@ export default function VisitorRequestFormScreen({
                 backgroundColor: theme.background,
                 borderColor: errors.email ? theme.error : theme.border,
                 color: theme.text,
-                // 
+                fontFamily: getLocaleFontFamily(FontFamily.latinRegular, isRTL),
                 writingDirection: isRTL ? "rtl" : "ltr",
               },
             ]}
@@ -780,7 +775,7 @@ export default function VisitorRequestFormScreen({
                 backgroundColor: theme.background,
                 borderColor: theme.border,
                 color: theme.text,
-                //  
+                fontFamily: getLocaleFontFamily(FontFamily.latinRegular, isRTL),
                 writingDirection: isRTL ? "rtl" : "ltr",
               },
             ]}
@@ -921,7 +916,7 @@ export default function VisitorRequestFormScreen({
                     backgroundColor: theme.background,
                     borderColor: errors.idNumber ? theme.error : theme.border,
                     color: theme.text,
-                    //  
+                    fontFamily: getLocaleFontFamily(FontFamily.latinRegular, isRTL),
                     writingDirection: isRTL ? "rtl" : "ltr",
                   },
                 ]}
@@ -2043,7 +2038,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     alignItems: "center",
     justifyContent: "space-between",
-    fontFamily: "Inter_400Regular",
+    fontFamily: FontFamily.latinRegular,
     fontSize: 16,
   },
   pickerButton: {
@@ -2078,7 +2073,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.md,
     minHeight: 100,
-    fontFamily: "Inter_400Regular",
+    fontFamily: FontFamily.latinRegular,
     fontSize: 16,
   },
   row: {

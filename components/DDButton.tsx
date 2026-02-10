@@ -21,6 +21,7 @@ import {
   Spacing,
   BorderRadius,
   FontFamily,
+  getLocaleFontFamily,
 } from "@/constants/theme";
 
 type ButtonVariant = "primary" | "secondary" | "ghost" | "outline" | "danger";
@@ -138,7 +139,7 @@ export function DDButton({
           },
           text: {
             fontSize: 14,
-            fontFamily: FontFamily.latinMedium,
+            fontFamily: getLocaleFontFamily(FontFamily.latinMedium, isRTL),
           },
         };
       case "lg":
@@ -150,7 +151,7 @@ export function DDButton({
           },
           text: {
             fontSize: 18,
-            fontFamily: FontFamily.latinSemiBold,
+            fontFamily: getLocaleFontFamily(FontFamily.latinSemiBold, isRTL),
           },
         };
       case "md":
@@ -163,7 +164,7 @@ export function DDButton({
           },
           text: {
             fontSize: 16,
-            fontFamily: FontFamily.latinMedium,
+            fontFamily: getLocaleFontFamily(FontFamily.latinMedium, isRTL),
           },
         };
     }

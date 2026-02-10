@@ -6,7 +6,7 @@ import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
-import { Spacing, BorderRadius, Typography } from "@/constants/theme";
+import { Spacing, BorderRadius, Typography, FontFamily } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
@@ -724,7 +724,7 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 18,
     fontWeight: '600',
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: FontFamily.latinSemiBold,
   },
   divider: {
     height: 1,

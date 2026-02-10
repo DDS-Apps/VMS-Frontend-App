@@ -43,7 +43,7 @@ The VMS app employs a Clean Architecture pattern, segmenting the application int
 
 **UI/UX Decisions:**
 - **Color Scheme:** Dallah Albaraka branding (Brand Orange: #F58423, Brand Green: #009933, Brand Grey: #282829, Soft Orange: #FEF3E8). Default light mode background #FFFFFF, dark mode #1a1a1a.
-- **Typography:** FS Albert Pro (Latin) and FS Albert Arabic (Arabic) font families, with fallback to Inter/Noto Sans Arabic.
+- **Typography:** Albert Sans (Latin/English) and Cairo (Arabic) from Google Fonts, with fallback to Inter. Loaded via `@expo-google-fonts/albert-sans` and `@expo-google-fonts/cairo` packages. Web also loads via Google Fonts CSS in `web/index.html`.
 - **Accessibility:** WCAG contrast compliant text and button colors.
 - **Card Styling:** Selectable cards with subtle grey border, turning orange when selected. Card icons use grey in light mode and orange in dark mode.
 - **Navigation:** Dashboard-style interface with a responsive, collapsible left sidebar supporting touch-swipe gestures, hamburger menu, and RTL support. Features accordion-style grouped navigation.
