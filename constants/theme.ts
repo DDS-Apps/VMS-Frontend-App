@@ -334,6 +334,27 @@ export const FontFamilyFallback = {
   arabicBold: "Cairo_700Bold",
 };
 
+const latinToArabicMap: Record<string, string> = {
+  [FontFamily.latinLight]: FontFamily.arabicLight,
+  [FontFamily.latinRegular]: FontFamily.arabicRegular,
+  [FontFamily.latinMedium]: FontFamily.arabicMedium,
+  [FontFamily.latinSemiBold]: FontFamily.arabicSemiBold,
+  [FontFamily.latinBold]: FontFamily.arabicBold,
+  [FontFamily.latinExtraBold]: FontFamily.arabicExtraBold,
+  [FontFamily.latinDisplay]: FontFamily.arabicDisplay,
+  'AlbertSans_300Light': 'Cairo_300Light',
+  'AlbertSans_400Regular': 'Cairo_400Regular',
+  'AlbertSans_500Medium': 'Cairo_500Medium',
+  'AlbertSans_600SemiBold': 'Cairo_600SemiBold',
+  'AlbertSans_700Bold': 'Cairo_700Bold',
+  'AlbertSans_800ExtraBold': 'Cairo_800ExtraBold',
+};
+
+export function getLocaleFontFamily(latinFont: string, isRTL: boolean): string {
+  if (!isRTL) return latinFont;
+  return latinToArabicMap[latinFont] || latinFont;
+}
+
 // Typography tokens with type scale
 export const Typography = {
   // Headings (ExtraBold for headlines)
