@@ -942,6 +942,7 @@ export const en: TranslationKeys = {
     pastTimeNotAllowed: 'Cannot select a time in the past',
     endTimeBeforeStartTime: 'End time must be after start time',
     endTimeMustBeLater: 'End time must be later than current time',
+    startTimeMustBeToday: 'Start time must be today and not in the past',
     connectionError: 'Connection Error',
     serverUnavailable: 'Unable to connect to server. Please check your internet connection and try again.',
     visitDatePassed: 'The visit date and time has already passed. Actions are no longer available.',

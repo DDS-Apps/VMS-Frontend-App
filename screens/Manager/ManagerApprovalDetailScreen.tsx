@@ -216,6 +216,7 @@ export default function ManagerApprovalDetailScreen({
   });
   const [approvalStartTime, setApprovalStartTime] = useState<Date | null>(null);
   const [showEndTimePicker, setShowEndTimePicker] = useState(false);
+  const [showStartTimePicker, setShowStartTimePicker] = useState(false);
 
   // Inline end time editing state (for approved walk-ins)
   const [showInlineEndTimePicker, setShowInlineEndTimePicker] = useState(false);
@@ -508,7 +509,6 @@ export default function ManagerApprovalDetailScreen({
     // Initialize with existing data from the visit - preserve original start time
     const now = new Date();
 
-    // Parse existing start time from visit data using proper 12-hour format parser
     let existingStartTime = now;
     if (visitData.visitDate && visitData.visitTime) {
       const parsedStart = parseDateTime(
@@ -518,6 +518,9 @@ export default function ManagerApprovalDetailScreen({
       if (!isNaN(parsedStart.getTime())) {
         existingStartTime = parsedStart;
       }
+    }
+    if (existingStartTime.getTime() < now.getTime()) {
+      existingStartTime = now;
     }
     setApprovalStartTime(existingStartTime);
 
@@ -551,14 +554,23 @@ export default function ManagerApprovalDetailScreen({
   const handleWalkInApprovalSubmit = () => {
     if (isReadOnlyRole) return;
 
-    // Validate end time is after current time
-    if (walkInEndTime.getTime() <= new Date().getTime()) {
-      Alert.alert(t("errors.validation"), t("errors.endTimeMustBeLater"));
+    const now = new Date();
+    const startTime = approvalStartTime || now;
+
+    const todayStart = new Date(now);
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date(now);
+    todayEnd.setHours(23, 59, 59, 999);
+
+    if (startTime.getTime() < todayStart.getTime() || startTime.getTime() > todayEnd.getTime()) {
+      Alert.alert(t("errors.validation"), t("errors.startTimeMustBeToday"));
       return;
     }
 
-    // Use the captured approval start time (or fallback to now)
-    const startTime = approvalStartTime || new Date();
+    if (walkInEndTime.getTime() <= startTime.getTime()) {
+      Alert.alert(t("errors.validation"), t("errors.endTimeMustBeLater"));
+      return;
+    }
 
     // Calculate duration from approval start time to selected end time using timezone utility
     // Normalize end time to same date as start time to avoid date-mismatch issues from picker initialization
@@ -593,8 +605,9 @@ export default function ManagerApprovalDetailScreen({
           onSuccess: () => {
             setShowWalkInApprovalModal(false);
             setApprovalStartTime(null);
+            setShowStartTimePicker(false);
+            setShowEndTimePicker(false);
             setIsWalkInEditMode(false);
-            // Reset service states
             setWalkInRequiresMeetingRoom(false);
             setWalkInRequiresParking(false);
             setWalkInRequiresBuffet(false);
@@ -619,8 +632,9 @@ export default function ManagerApprovalDetailScreen({
                 onSuccess: () => {
                   setShowWalkInApprovalModal(false);
                   setApprovalStartTime(null);
+                  setShowStartTimePicker(false);
+                  setShowEndTimePicker(false);
                   setIsWalkInEditMode(false);
-                  // Reset service states
                   setWalkInRequiresMeetingRoom(false);
                   setWalkInRequiresParking(false);
                   setWalkInRequiresBuffet(false);
@@ -640,6 +654,28 @@ export default function ManagerApprovalDetailScreen({
           },
         },
       );
+    }
+  };
+
+  const handleStartTimeChange = (
+    event: DateTimePickerEvent,
+    selectedTime?: Date,
+  ) => {
+    if (Platform.OS === "android") {
+      setShowStartTimePicker(false);
+    }
+    if (selectedTime) {
+      const now = new Date();
+      const clampedTime = new Date(selectedTime);
+      clampedTime.setFullYear(now.getFullYear(), now.getMonth(), now.getDate());
+      clampedTime.setSeconds(0, 0);
+      if (clampedTime.getTime() < now.getTime()) {
+        clampedTime.setHours(now.getHours(), now.getMinutes(), 0, 0);
+      }
+      setApprovalStartTime(clampedTime);
+      if (walkInEndTime.getTime() <= clampedTime.getTime()) {
+        setWalkInEndTime(new Date(clampedTime.getTime() + 60 * 60 * 1000));
+      }
     }
   };
 
@@ -2268,9 +2304,13 @@ export default function ManagerApprovalDetailScreen({
         visible={showWalkInApprovalModal}
         transparent
         animationType="fade"
-        onRequestClose={() =>
-          !isProcessing && setShowWalkInApprovalModal(false)
-        }
+        onRequestClose={() => {
+          if (!isProcessing) {
+            setShowWalkInApprovalModal(false);
+            setShowStartTimePicker(false);
+            setShowEndTimePicker(false);
+          }
+        }}
         statusBarTranslucent
       >
         <View style={styles.modalOverlay} pointerEvents="box-none">
@@ -2279,16 +2319,26 @@ export default function ManagerApprovalDetailScreen({
               styles.modalBackdrop,
               { backgroundColor: "rgba(0, 0, 0, 0.5)" },
             ]}
-            onPress={() => !isProcessing && setShowWalkInApprovalModal(false)}
+            onPress={() => {
+              if (!isProcessing) {
+                setShowWalkInApprovalModal(false);
+                setShowStartTimePicker(false);
+                setShowEndTimePicker(false);
+              }
+            }}
           />
           <View style={styles.modalContainer}>
             <ThemedView
               style={[styles.modalContent, { backgroundColor: theme.surface }]}
             >
               <Pressable
-                onPress={() =>
-                  !isProcessing && setShowWalkInApprovalModal(false)
-                }
+                onPress={() => {
+                  if (!isProcessing) {
+                    setShowWalkInApprovalModal(false);
+                    setShowStartTimePicker(false);
+                    setShowEndTimePicker(false);
+                  }
+                }}
                 style={styles.closeButton}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
@@ -2348,7 +2398,7 @@ export default function ManagerApprovalDetailScreen({
 
               <Spacer height={Spacing.xl} />
 
-              {/* Disabled Start Time Field */}
+              {/* Start Time Field */}
               <View style={{ width: "100%" }}>
                 <ThemedText
                   style={[
@@ -2356,48 +2406,27 @@ export default function ManagerApprovalDetailScreen({
                     { color: theme.textSecondary, marginBottom: Spacing.xs },
                   ]}
                 >
-                  {t("form.startTime")}
+                  {t("form.startTime")} *
                 </ThemedText>
-                <DirectionalRow
-                  style={{
-                    borderWidth: 1,
-                    borderRadius: BorderRadius.md,
-                    borderColor: theme.border,
-                    backgroundColor: applyOpacity(theme.surfaceSecondary, "50"),
-                    paddingVertical: Spacing.md,
-                    paddingHorizontal: Spacing.lg,
-                    alignItems: "center",
-                    opacity: 0.7,
-                  }}
-                >
-                  <DDIcon name="clock" size={16} variant="muted" />
-                  <ThemedText
-                    style={[
-                      Typography.body,
-                      {
-                        marginStart: Spacing.sm,
-                        color: theme.textSecondary,
-                        fontSize: 14,
-                        flex: 1,
-                      },
-                    ]}
-                  >
-                    {formatDisplayTime(approvalStartTime || new Date())}
-                  </ThemedText>
-                  <DDIcon name="lock" size={14} variant="muted" />
-                </DirectionalRow>
-                <ThemedText
+                <Pressable
+                  onPress={() => setShowStartTimePicker(true)}
                   style={[
-                    Typography.caption,
+                    styles.reasonInput,
                     {
-                      color: theme.textSecondary,
-                      marginTop: Spacing.xs,
-                      fontSize: 11,
+                      borderColor: theme.border,
+                      backgroundColor: theme.background,
+                      paddingVertical: Spacing.md,
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      flexDirection: getFlexDirection(isRTL),
                     },
                   ]}
                 >
-                  {t("form.startTimeReadOnly")}
-                </ThemedText>
+                  <ThemedText style={{ color: theme.text }}>
+                    {formatDisplayTime(approvalStartTime || new Date())}
+                  </ThemedText>
+                  <DDIcon name="clock" size={18} variant="muted" />
+                </Pressable>
               </View>
 
               <Spacer height={Spacing.lg} />
@@ -2485,13 +2514,71 @@ export default function ManagerApprovalDetailScreen({
                 </View>
               )}
 
+              {showStartTimePicker && Platform.OS === 'android' && (
+                <DateTimePicker
+                  value={approvalStartTime || new Date()}
+                  mode="time"
+                  is24Hour={false}
+                  display="default"
+                  minimumDate={new Date()}
+                  onChange={handleStartTimeChange}
+                />
+              )}
+
+              {showStartTimePicker && Platform.OS === 'ios' && (
+                <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.surface, borderRadius: 12 }]}>
+                  <View style={{ flex: 1, padding: 24 }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: theme.border, paddingBottom: Spacing.md, marginBottom: Spacing.md }}>
+                      <ThemedText style={[Typography.subtitle, { fontSize: 18, fontWeight: '600', color: theme.text, flex: 1 }]}>
+                        {t("form.startTime")}
+                      </ThemedText>
+                      <Pressable onPress={() => setShowStartTimePicker(false)} hitSlop={8}>
+                        <DDIcon name="x" size={20} variant="muted" />
+                      </Pressable>
+                    </View>
+                    <DateTimePicker
+                      value={approvalStartTime || new Date()}
+                      mode="time"
+                      is24Hour={false}
+                      display="spinner"
+                      minimumDate={new Date()}
+                      onChange={handleStartTimeChange}
+                      style={{ height: 180 }}
+                    />
+                    <Spacer height={Spacing.lg} />
+                    <DirectionalRow style={{ gap: Spacing.md }}>
+                      <LoadingButton
+                        onPress={() => setShowStartTimePicker(false)}
+                        variant="secondary"
+                        size="medium"
+                        style={{ flex: 1 }}
+                      >
+                        {t("common.cancel")}
+                      </LoadingButton>
+                      <LoadingButton
+                        onPress={() => setShowStartTimePicker(false)}
+                        variant="primary"
+                        size="medium"
+                        style={{ flex: 1 }}
+                      >
+                        {t("common.done")}
+                      </LoadingButton>
+                    </DirectionalRow>
+                  </View>
+                </View>
+              )}
+
               {/* Additional Services Section - Hidden for walk-in requests */}
 
               <Spacer height={Spacing.xl} />
 
               <DirectionalRow style={styles.modalActions}>
                 <LoadingButton
-                  onPress={() => setShowWalkInApprovalModal(false)}
+                  onPress={() => {
+                    setShowWalkInApprovalModal(false);
+                    setShowStartTimePicker(false);
+                    setShowEndTimePicker(false);
+                  }}
                   disabled={isProcessing}
                   variant="secondary"
                   size="medium"
