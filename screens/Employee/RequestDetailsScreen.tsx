@@ -373,6 +373,7 @@ export default function RequestDetailsScreen({
             setEditSendSMS(channels.includes("sms"));
             if (visitData.isWalkIn) {
               setApprovalStartTime(approvalTime);
+              setEditTime(approvalTime);
               const defaultEndTime = new Date(
                 approvalTime.getTime() + 60 * 60 * 1000,
               );
@@ -530,6 +531,7 @@ export default function RequestDetailsScreen({
             // For walk-in approval: store approval start time and set default end time to 1 hour later
             if (visitData.isWalkIn) {
               setApprovalStartTime(approvalTime);
+              setEditTime(approvalTime);
               const defaultEndTime = new Date(
                 approvalTime.getTime() + 60 * 60 * 1000,
               ); // 1 hour from approval time
@@ -775,7 +777,7 @@ export default function RequestDetailsScreen({
   };
 
   const isWalkInEndTimeBeforeStartTime = (): boolean => {
-    const startTime = isApprovalFlow ? (approvalStartTime || editTime) : editTime;
+    const startTime = editTime;
     const refDate = new Date(2000, 0, 1);
     const startNorm = new Date(refDate);
     startNorm.setHours(startTime.getHours(), startTime.getMinutes(), 0, 0);
@@ -785,7 +787,7 @@ export default function RequestDetailsScreen({
   };
 
   const calculateWalkInDuration = (): string => {
-    const startTime = isApprovalFlow ? (approvalStartTime || editTime) : editTime;
+    const startTime = editTime;
     const refDate = new Date(2000, 0, 1);
     const startNorm = new Date(refDate);
     startNorm.setHours(startTime.getHours(), startTime.getMinutes(), 0, 0);
@@ -888,8 +890,8 @@ export default function RequestDetailsScreen({
     } else if (editModalMode === "services-only" && visitData) {
       // Services-only mode
       if (isApprovalFlow && visitData.isWalkIn) {
-        // Walk-in approval: use user-selected start time
-        const startTime = approvalStartTime || editTime || new Date();
+        // Walk-in approval: use user-selected start time (editTime is always kept in sync)
+        const startTime = editTime || approvalStartTime || new Date();
 
         // Validate end time is after start time (normalize to same date for time-of-day comparison)
         const refDate = new Date(2000, 0, 1);
@@ -3661,7 +3663,18 @@ export default function RequestDetailsScreen({
           onClose={() => setShowEditTimePicker(false)}
           selectedTime={editTime}
           onTimeSelect={(time) => {
-            setEditTime(time);
+            let timeToSet = time;
+            if (isApprovalFlow) {
+              const now = new Date();
+              if (timeToSet < now) {
+                timeToSet = now;
+              }
+              setApprovalStartTime(timeToSet);
+            }
+            setEditTime(timeToSet);
+            if (editEndTime <= timeToSet) {
+              setEditEndTime(new Date(timeToSet.getTime() + 60 * 60 * 1000));
+            }
             setShowEditTimePicker(false);
           }}
           minuteInterval={5}
