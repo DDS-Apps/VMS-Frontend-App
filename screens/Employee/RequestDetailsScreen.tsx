@@ -774,14 +774,24 @@ export default function RequestDetailsScreen({
     return endNormalized.getTime() <= startNormalized.getTime();
   };
 
-  const isWalkInEndTimeBeforeNow = (): boolean => {
-    return editEndTime.getTime() <= new Date().getTime();
+  const isWalkInEndTimeBeforeStartTime = (): boolean => {
+    const startTime = isApprovalFlow ? (approvalStartTime || editTime) : editTime;
+    const refDate = new Date(2000, 0, 1);
+    const startNorm = new Date(refDate);
+    startNorm.setHours(startTime.getHours(), startTime.getMinutes(), 0, 0);
+    const endNorm = new Date(refDate);
+    endNorm.setHours(editEndTime.getHours(), editEndTime.getMinutes(), 0, 0);
+    return endNorm.getTime() <= startNorm.getTime();
   };
 
   const calculateWalkInDuration = (): string => {
-    const now = new Date();
-    const endMs = editEndTime.getTime();
-    const diffMs = endMs - now.getTime();
+    const startTime = isApprovalFlow ? (approvalStartTime || editTime) : editTime;
+    const refDate = new Date(2000, 0, 1);
+    const startNorm = new Date(refDate);
+    startNorm.setHours(startTime.getHours(), startTime.getMinutes(), 0, 0);
+    const endNorm = new Date(refDate);
+    endNorm.setHours(editEndTime.getHours(), editEndTime.getMinutes(), 0, 0);
+    const diffMs = endNorm.getTime() - startNorm.getTime();
 
     if (diffMs <= 0) return "--";
 
@@ -818,7 +828,19 @@ export default function RequestDetailsScreen({
       setShowEditTimePicker(false);
     }
     if (selectedTime) {
-      setEditTime(selectedTime);
+      let timeToSet = selectedTime;
+      if (isApprovalFlow) {
+        const now = new Date();
+        if (timeToSet < now) {
+          timeToSet = now;
+        }
+        setApprovalStartTime(timeToSet);
+      }
+      setEditTime(timeToSet);
+      if (editEndTime <= timeToSet) {
+        const newEnd = new Date(timeToSet.getTime() + 60 * 60 * 1000);
+        setEditEndTime(newEnd);
+      }
     }
   };
 
@@ -866,57 +888,57 @@ export default function RequestDetailsScreen({
     } else if (editModalMode === "services-only" && visitData) {
       // Services-only mode
       if (isApprovalFlow && visitData.isWalkIn) {
-        // Walk-in approval: validate end time is after current time
-        if (isWalkInEndTimeBeforeNow()) {
-          Alert.alert(t("errors.validation"), t("errors.endTimeMustBeLater"));
+        // Walk-in approval: use user-selected start time
+        const startTime = approvalStartTime || editTime || new Date();
+
+        // Validate end time is after start time (normalize to same date for time-of-day comparison)
+        const refDate = new Date(2000, 0, 1);
+        const startNorm = new Date(refDate);
+        startNorm.setHours(startTime.getHours(), startTime.getMinutes(), 0, 0);
+        const endNorm = new Date(refDate);
+        endNorm.setHours(editEndTime.getHours(), editEndTime.getMinutes(), 0, 0);
+        if (endNorm.getTime() <= startNorm.getTime()) {
+          Alert.alert(t("errors.validation"), t("errors.endTimeBeforeStartTime"));
           return;
         }
 
-        // Use the captured approval start time (or fallback to now)
-        const startTime = approvalStartTime || new Date();
         payload.visitDate = formatDateForApiLocal(startTime);
         payload.visitTime = formatTimeForApiLocal(startTime);
-
-        // Add end time to payload (format as HH:mm AM/PM)
         payload.endTime = formatTimeForApiLocal(editEndTime);
 
-        // Calculate duration from approval start time to selected end time using timezone utility
-        // Normalize end time to same date as start time to avoid date-mismatch issues
         const endNormalizedForWalkIn = new Date(startTime);
         endNormalizedForWalkIn.setHours(editEndTime.getHours(), editEndTime.getMinutes(), 0, 0);
         payload.duration = calculateServerDuration(startTime, endNormalizedForWalkIn);
 
-        // Clear approvalStartTime after use
         setApprovalStartTime(null);
       } else if (visitData.isWalkIn) {
-        // Walk-in edit (not approval flow): validate end time is after current time
-        if (isWalkInEndTimeBeforeNow()) {
-          Alert.alert(t("errors.validation"), t("errors.endTimeMustBeLater"));
+        // Walk-in edit (not approval flow): use user-selected start time
+        const startTime = editTime || new Date();
+
+        // Validate end time is after start time (normalize to same date for time-of-day comparison)
+        const refDate = new Date(2000, 0, 1);
+        const startNorm = new Date(refDate);
+        startNorm.setHours(startTime.getHours(), startTime.getMinutes(), 0, 0);
+        const endNorm = new Date(refDate);
+        endNorm.setHours(editEndTime.getHours(), editEndTime.getMinutes(), 0, 0);
+        if (endNorm.getTime() <= startNorm.getTime()) {
+          Alert.alert(t("errors.validation"), t("errors.endTimeBeforeStartTime"));
           return;
         }
 
-        // Use existing visit date and time
-        const existingVisitDate =
-          visitData.visitDate || formatDateForApiLocal(new Date());
-        const existingVisitTime =
-          visitData.visitTime || formatTimeForApiLocal(new Date());
-        payload.visitDate = existingVisitDate;
-        payload.visitTime = existingVisitTime;
-
-        // Add updated end time to payload
+        // Use the visit's existing date with the user-selected time
+        const visitDate = visitData.visitDate || formatDateForApiLocal(new Date());
+        payload.visitDate = visitDate;
+        payload.visitTime = formatTimeForApiLocal(startTime);
         payload.endTime = formatTimeForApiLocal(editEndTime);
 
-        // Calculate duration from existing start time to new end time using parseDateTime for consistency
-        const existingStartTime = parseDateTime(
-          existingVisitDate,
-          existingVisitTime,
-        );
-        // Normalize end time to same date as existing start time to avoid date-mismatch issues
-        const endNormalizedForEdit = new Date(existingStartTime);
-        endNormalizedForEdit.setHours(editEndTime.getHours(), editEndTime.getMinutes(), 0, 0);
+        const startForDuration = new Date(refDate);
+        startForDuration.setHours(startTime.getHours(), startTime.getMinutes(), 0, 0);
+        const endForDuration = new Date(refDate);
+        endForDuration.setHours(editEndTime.getHours(), editEndTime.getMinutes(), 0, 0);
         payload.duration = calculateServerDuration(
-          existingStartTime,
-          endNormalizedForEdit,
+          startForDuration,
+          endForDuration,
         );
       } else {
         // Non-walk-in services-only edit: use existing schedule fields
@@ -2664,7 +2686,7 @@ export default function RequestDetailsScreen({
                   <DDIcon name="chevron-down" size={16} variant="muted" />
                 </Pressable>
 
-                {/* Walk-in: Start Time (disabled/read-only) and End Time picker (only in services-only mode) */}
+                {/* Walk-in: Start Time and End Time picker (only in services-only mode) */}
                 {visitData?.isWalkIn && editModalMode === "services-only" ? (
                   <>
                     <Spacer height={Spacing.lg} />
@@ -2675,24 +2697,27 @@ export default function RequestDetailsScreen({
                           color: theme.textSecondary,
                           fontSize: 12,
                           marginBottom: 8,
-                          //    
                         },
                       ]}
                     >
-                      {t("form.startTime")}
+                      {t("form.startTime")} *
                     </ThemedText>
-                    <DirectionalRow
+                    <Pressable
                       style={[
                         styles.pickerButton,
                         {
-                          backgroundColor: applyOpacity(
-                            theme.surfaceSecondary,
-                            "50",
-                          ),
+                          backgroundColor: theme.surfaceSecondary,
                           borderColor: theme.border,
-                          opacity: 0.7,
+                          flexDirection: getFlexDirection(isRTL),
                         },
                       ]}
+                      onPress={() => {
+                        if (Platform.OS === 'ios') {
+                          setInlinePickerMode('startTime');
+                        } else {
+                          setShowEditTimePicker(true);
+                        }
+                      }}
                     >
                       <DDIcon name="clock" size={16} variant="muted" />
                       <ThemedText
@@ -2700,10 +2725,9 @@ export default function RequestDetailsScreen({
                           Typography.body,
                           {
                             marginStart: Spacing.sm,
-                            color: theme.textSecondary,
+                            color: theme.text,
                             fontSize: 14,
                             flex: 1,
-                            //    
                           },
                         ]}
                       >
@@ -2711,21 +2735,8 @@ export default function RequestDetailsScreen({
                           ? formatDisplayTime(approvalStartTime)
                           : formatDisplayTime(editTime)}
                       </ThemedText>
-                      <DDIcon name="lock" size={14} variant="muted" />
-                    </DirectionalRow>
-                    <ThemedText
-                      style={[
-                        Typography.caption,
-                        {
-                          color: theme.textSecondary,
-                          marginTop: Spacing.xs,
-                          fontSize: 11,
-                          //   
-                        },
-                      ]}
-                    >
-                      {t("form.startTimeReadOnly")}
-                    </ThemedText>
+                      <DDIcon name="chevron-down" size={16} variant="muted" />
+                    </Pressable>
 
                     <Spacer height={Spacing.lg} />
                     <ThemedText
@@ -2746,7 +2757,7 @@ export default function RequestDetailsScreen({
                         styles.pickerButton,
                         {
                           backgroundColor: theme.surfaceSecondary,
-                          borderColor: isWalkInEndTimeBeforeNow()
+                          borderColor: isWalkInEndTimeBeforeStartTime()
                             ? theme.error
                             : theme.border,
                           flexDirection: getFlexDirection(isRTL),
@@ -2768,7 +2779,7 @@ export default function RequestDetailsScreen({
                         name="clock"
                         size={16}
                         color={
-                          isWalkInEndTimeBeforeNow()
+                          isWalkInEndTimeBeforeStartTime()
                             ? theme.error
                             : theme.textSecondary
                         }
@@ -2778,7 +2789,7 @@ export default function RequestDetailsScreen({
                           Typography.body,
                           {
                             marginStart: Spacing.sm,
-                            color: isWalkInEndTimeBeforeNow()
+                            color: isWalkInEndTimeBeforeStartTime()
                               ? theme.error
                               : theme.text,
                             fontSize: 14,
@@ -2791,7 +2802,7 @@ export default function RequestDetailsScreen({
                       </ThemedText>
                       <DDIcon name="chevron-down" size={16} variant="muted" />
                     </Pressable>
-                    {isWalkInEndTimeBeforeNow() ? (
+                    {isWalkInEndTimeBeforeStartTime() ? (
                       <ThemedText
                         style={[
                           Typography.caption,
@@ -3545,7 +3556,18 @@ export default function RequestDetailsScreen({
                       display="spinner"
                       onChange={(event: DateTimePickerEvent, date?: Date) => {
                         if (date) {
-                          setEditTime(date);
+                          let timeToSet = date;
+                          if (isApprovalFlow) {
+                            const now = new Date();
+                            if (timeToSet < now) {
+                              timeToSet = now;
+                            }
+                            setApprovalStartTime(timeToSet);
+                          }
+                          setEditTime(timeToSet);
+                          if (editEndTime <= timeToSet) {
+                            setEditEndTime(new Date(timeToSet.getTime() + 60 * 60 * 1000));
+                          }
                         }
                       }}
                       style={{ height: 180 }}
