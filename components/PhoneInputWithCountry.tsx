@@ -314,7 +314,9 @@ export const PhoneInputWithCountry = ({
             <Pressable 
               style={styles.androidModalBackdrop} 
               onPress={() => setShowCountryPicker(false)}
-            />
+            >
+              <View style={{ flex: 1 }} />
+            </Pressable>
             <KeyboardAvoidingView
               style={[
                 styles.androidModalContent,
@@ -378,6 +380,7 @@ export const PhoneInputWithCountry = ({
                 contentContainerStyle={styles.countryListContent}
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
+                nestedScrollEnabled={true}
                 ListEmptyComponent={
                   <View style={styles.emptyState}>
                     <ThemedText style={[Typography.body, { color: theme.textSecondary }]}>
@@ -515,7 +518,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   androidModalBackdrop: {
-    ...StyleSheet.absoluteFillObject,
+    flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   androidModalContent: {

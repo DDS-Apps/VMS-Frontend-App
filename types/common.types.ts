@@ -23,6 +23,7 @@ export type VisitStatus =
   | 'accepted'
   | 'checked_in'
   | 'checked_out'
+  | 'completed'
   | 'no_show'
   | 'expired';
 

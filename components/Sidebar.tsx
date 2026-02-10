@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { View, StyleSheet, Pressable, ScrollView, Platform, Dimensions } from "react-native";
 import { Image } from "expo-image";
 import { DDIcon, IconName } from "@/components/DDIcon";
@@ -214,15 +214,6 @@ export default function Sidebar({
     }
     return initial;
   });
-
-  useEffect(() => {
-    groups.forEach(group => {
-      const hasActiveItem = group.items.some(item => item.screen === currentScreen);
-      if (hasActiveItem && !expandedGroups.has(group.id)) {
-        setExpandedGroups(prev => new Set(prev).add(group.id));
-      }
-    });
-  }, [currentScreen, groups]);
 
   const handleGroupToggle = (groupId: string) => {
     setExpandedGroups(prev => {
@@ -476,11 +467,13 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   profileRow: {
-    flex: 1,
+    width: '100%',
     alignItems: 'center',
   },
   profileInfo: {
     flex: 1,
+    flexShrink: 1,
+    minWidth: 0,
   },
   profileAvatar: {
     width: 48,

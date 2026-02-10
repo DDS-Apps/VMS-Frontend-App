@@ -28,7 +28,8 @@
       "googleServicesFile": "./config/qa/GoogleService-Info.plist",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "UIBackgroundModes": ["remote-notification"]
+        "UIBackgroundModes": ["remote-notification"],
+        "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to update your profile picture."
       }
     },
     "web": {
@@ -68,7 +69,13 @@
       "@react-native-firebase/app",
       "@react-native-firebase/messaging",
       "@react-native-firebase/crashlytics",
-      "./plugins/withNotificationManifestFix"
+      "./plugins/withNotificationManifestFix",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "This app needs access to your photo library to update your profile picture."
+        }
+      ]
     ],
     "experiments": {
       "reactCompiler": true

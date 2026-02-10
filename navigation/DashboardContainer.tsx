@@ -52,6 +52,8 @@ import BuildingAdminDashboardScreen from "@/screens/BuildingAdmin/BuildingAdminD
 import AllRequestsScreen from "@/screens/BuildingAdmin/AllRequestsScreen";
 import ChangePasswordScreen from "@/screens/Profile/ChangePasswordScreen";
 import EditProfileScreen from "@/screens/Profile/EditProfileScreen";
+import PrivacyPolicyScreen from "@/screens/Legal/PrivacyPolicyScreen";
+import TermsConditionsScreen from "@/screens/Legal/TermsConditionsScreen";
 import { UserRole } from "@/types/vms.types";
 import { useUnreadNotificationCountQuery } from "@/hooks/queries/useNotificationQueries";
 import type { NativeStackScreenProps, NativeStackNavigationOptions } from "@react-navigation/native-stack";
@@ -217,6 +219,16 @@ export default function DashboardContainer({ userRole, userName, userEmail, user
             <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout} asManager={asManager} isSSOUser={isSSOUser}>
               <SettingsScreen userRole={effectiveRole} userName={userName} userEmail={userEmail} userPhotoUrl={userPhotoUrl} onLogout={onLogout} />
             </ScreenWrapper>
+          )}
+        </Stack.Screen>
+        <Stack.Screen name="PrivacyPolicy">
+          {({ navigation }) => (
+            <PrivacyPolicyScreen onBack={() => navigation.goBack()} />
+          )}
+        </Stack.Screen>
+        <Stack.Screen name="TermsConditions">
+          {({ navigation }) => (
+            <TermsConditionsScreen onBack={() => navigation.goBack()} />
           )}
         </Stack.Screen>
         {!isSSOUser ? (

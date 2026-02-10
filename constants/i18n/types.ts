@@ -942,6 +942,7 @@ export interface TranslationKeys {
     pastTimeNotAllowed: string;
     endTimeBeforeStartTime: string;
     endTimeMustBeLater: string;
+    startTimeMustBeToday: string;
     connectionError: string;
     serverUnavailable: string;
     visitDatePassed: string;

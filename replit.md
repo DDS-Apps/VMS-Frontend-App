@@ -12,6 +12,15 @@ This Replit project is configured for the **QA/Testing environment**.
 
 All environment variables are stored in Replit Secrets (not hardcoded in code).
 
+### Multi-Environment Configuration (Added Feb 2026)
+- **dotenv integration**: `app.config.js` uses `dotenv` to load `.env.staging` or `.env.production` based on `APP_VARIANT` env var
+- **EAS build profiles**: `eas.json` sets `APP_VARIANT=staging` for dev/preview profiles and `APP_VARIANT=production` for production profiles
+- **Priority**: `EXPO_PUBLIC_*` env vars take precedence over `.env` file values (backward compat with Replit secrets)
+- **Note**: `.env.production` must be created manually (Replit security blocks creating files with "production" in name containing sensitive data). Copy `.env.staging` and update `API_BASE_URL`/`MICROSOFT_AUTH_URL` to production values.
+- **iOS Permissions**: `NSPhotoLibraryUsageDescription` and `expo-image-picker` plugin added to `app.json` for App Store compliance
+- **Legal Section**: Privacy Policy and Terms of Service links added to Settings screen, opening `{apiConfig.baseUrl}/privacy-policy` and `/terms-conditions`
+- **Store Checklist**: See `docs/store-publishing-checklist.md` for full submission requirements
+
 ## Overview
 The Dallah Albaraka Visitor Management System (VMS) is a comprehensive React Native and Expo mobile application. Its primary purpose is to streamline visitor management for organizations, supporting nine distinct user roles with specialized interfaces for various functions including visitor requests, check-ins, parking, valet services, and buffet bookings. Visitors interact through unique external invitation links via a lightweight web view. The system is branded with Dallah Albaraka's color scheme, defaults to light mode, and emphasizes UI/UX design and visual analytics.
 
