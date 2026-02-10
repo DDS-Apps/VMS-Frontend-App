@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { DDIcon, IconName } from '@/components/DDIcon';
 import { ThemedText } from '@/components/ThemedText';
-import { Spacing, BorderRadius, Typography } from '@/constants/theme';
+import { Spacing, BorderRadius, Typography, FontFamily, getLocaleFontFamily } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ArabicFontScaling } from '@/utils/rtlStyles';
@@ -97,7 +97,7 @@ export const StyledInput = forwardRef<TextInput, StyledInputProps>(({
             styles.input,
             { 
               color: theme.text, 
-               
+              fontFamily: getLocaleFontFamily(FontFamily.latinRegular, isRTL),
               writingDirection: isRTL ? 'rtl' : 'ltr',
               fontSize: isRTL 
                 ? Math.round(INPUT_FONT_SIZE * ArabicFontScaling.body * 10) / 10 

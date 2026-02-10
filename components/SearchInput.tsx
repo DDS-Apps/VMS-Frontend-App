@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, TextInput, StyleSheet, Platform, Pressable, TextInputProps, ViewStyle, StyleProp } from 'react-native';
 import { DDIcon } from '@/components/DDIcon';
-import { Spacing, BorderRadius } from '@/constants/theme';
+import { Spacing, BorderRadius, FontFamily, getLocaleFontFamily } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ArabicFontScaling } from '@/utils/rtlStyles';
@@ -59,7 +59,7 @@ export function SearchInput({
         styles.input,
         { 
           color: theme.text,
-          
+          fontFamily: getLocaleFontFamily(FontFamily.latinRegular, isRTL),
           writingDirection: isRTL ? 'rtl' : 'ltr',
           fontSize: scaledFontSize,
         },
