@@ -2043,7 +2043,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     alignItems: "center",
     justifyContent: "space-between",
-    fontFamily: "Inter_400Regular",
+    fontFamily: "AlbertSans_400Regular",
     fontSize: 16,
   },
   pickerButton: {
@@ -2078,7 +2078,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.md,
     minHeight: 100,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "AlbertSans_400Regular",
     fontSize: 16,
   },
   row: {

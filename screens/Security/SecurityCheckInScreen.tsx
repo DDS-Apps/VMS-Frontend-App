@@ -783,7 +783,7 @@ const styles = StyleSheet.create({
   filterPillText: {
     fontSize: 13,
     fontWeight: '500',
-    fontFamily: 'Inter_500Medium',
+    fontFamily: 'AlbertSans_500Medium',
   },
   filterCount: {
     paddingHorizontal: 7,
@@ -795,7 +795,7 @@ const styles = StyleSheet.create({
   filterCountText: {
     fontSize: 11,
     fontWeight: '600',
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'AlbertSans_600SemiBold',
   },
   cardList: {
     gap: Spacing.md,
@@ -821,7 +821,7 @@ const styles = StyleSheet.create({
   },
   avatarText: {
     fontWeight: '600',
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'AlbertSans_600SemiBold',
   },
   cardNameSection: {
     flex: 1,
@@ -836,7 +836,7 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 11,
     fontWeight: '600',
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'AlbertSans_600SemiBold',
   },
   dateTimeRow: {
     alignItems: 'center',
@@ -849,7 +849,7 @@ const styles = StyleSheet.create({
   },
   dateTimeText: {
     fontSize: 13,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'AlbertSans_400Regular',
   },
   separator: {
     fontSize: 10,
@@ -881,7 +881,7 @@ const styles = StyleSheet.create({
   checkInButtonText: {
     fontSize: 13,
     fontWeight: '600',
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'AlbertSans_600SemiBold',
     color: '#FFFFFF',
   },
   valetBadge: {
@@ -894,7 +894,7 @@ const styles = StyleSheet.create({
   valetBadgeText: {
     fontSize: 11,
     fontWeight: '500',
-    fontFamily: 'Inter_500Medium',
+    fontFamily: 'AlbertSans_500Medium',
   },
   emptyState: {
     alignItems: 'center',

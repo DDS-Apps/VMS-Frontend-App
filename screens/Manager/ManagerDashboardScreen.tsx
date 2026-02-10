@@ -1152,7 +1152,7 @@ const styles = StyleSheet.create({
     flex: 1,
     marginStart: Spacing.sm,
     fontSize: 15,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'AlbertSans_400Regular',
   },
 
   statusAccent: {
@@ -1374,7 +1374,7 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
     minHeight: 110,
     fontSize: 14,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'AlbertSans_400Regular',
     lineHeight: 21,
   },
   modalActions: {

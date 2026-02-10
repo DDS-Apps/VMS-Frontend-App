@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: INPUT_FONT_SIZE,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'AlbertSans_400Regular',
     height: '100%',
   },
 });

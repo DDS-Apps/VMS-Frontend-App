@@ -385,7 +385,7 @@ const styles = StyleSheet.create({
   weekDayText: {
     fontSize: 12,
     fontWeight: '500',
-    fontFamily: 'Inter_500Medium',
+    fontFamily: 'AlbertSans_500Medium',
   },
   daysGrid: {
     flexDirection: 'row',
@@ -406,7 +406,7 @@ const styles = StyleSheet.create({
   },
   dayText: {
     fontSize: 14,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'AlbertSans_400Regular',
   },
   rangeHint: {
     padding: Spacing.md,

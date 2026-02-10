@@ -724,7 +724,7 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 18,
     fontWeight: '600',
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'AlbertSans_600SemiBold',
   },
   divider: {
     height: 1,

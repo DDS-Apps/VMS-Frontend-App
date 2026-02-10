@@ -748,7 +748,7 @@ const styles = StyleSheet.create({
   filterPillText: {
     fontSize: 13,
     fontWeight: '500',
-    fontFamily: 'Inter_500Medium',
+    fontFamily: 'AlbertSans_500Medium',
   },
   filterCount: {
     paddingHorizontal: 7,
@@ -760,7 +760,7 @@ const styles = StyleSheet.create({
   filterCountText: {
     fontSize: 11,
     fontWeight: '600',
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'AlbertSans_600SemiBold',
   },
   cardList: {
     gap: Spacing.md,
@@ -797,7 +797,7 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 11,
     fontWeight: '600',
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'AlbertSans_600SemiBold',
   },
   infoGrid: {
     gap: Spacing.xs,
@@ -821,7 +821,7 @@ const styles = StyleSheet.create({
   actionButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'AlbertSans_600SemiBold',
   },
   emptyState: {
     alignItems: 'center',
