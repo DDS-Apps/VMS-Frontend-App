@@ -66,7 +66,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
   const getTimelineSteps = () => {
     const status = visitorData.status;
     const isCheckedIn = status === 'checked_in';
-    const isCheckedOut = status === 'checked_out';
+    const isCheckedOut = status === 'checked_out' || status === 'completed';
     
     return [
       {
@@ -478,7 +478,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                 ]}
               >
                 <DDIcon
-                  name="coffee"
+                  name="cloche"
                   size={18}
                   color={
                     visitorData.isBuffet || visitorData.buffet
@@ -571,7 +571,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                 ]}
               >
                 <DDIcon
-                  name="car"
+                  name="truck"
                   size={18}
                   color={
                     visitorData.visitorNeedsParking || visitorData.isVisitorNeedsParking || visitorData.parkingAssigned

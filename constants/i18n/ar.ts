@@ -942,6 +942,7 @@ export const ar: TranslationKeys = {
     pastTimeNotAllowed: 'لا يمكن اختيار وقت في الماضي',
     endTimeBeforeStartTime: 'وقت الانتهاء يجب أن يكون بعد وقت البدء',
     endTimeMustBeLater: 'وقت الانتهاء يجب أن يكون بعد الوقت الحالي',
+    startTimeMustBeToday: 'وقت البدء يجب أن يكون اليوم وليس في الماضي',
     connectionError: 'خطأ في الاتصال',
     serverUnavailable: 'تعذر الاتصال بالخادم. يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.',
     visitDatePassed: 'تاريخ ووقت الزيارة قد مضى. لم تعد الإجراءات متاحة.',

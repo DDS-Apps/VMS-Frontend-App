@@ -45,7 +45,7 @@ export default function SettingsScreen({
   const { theme, isDark, toggleTheme } = useTheme();
   const { t, locale, setLocale, locales, isRTL, isChangingLanguage } = useTranslation();
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation<NativeStackNavigationProp<{ EditProfile: undefined }>>();
+  const navigation = useNavigation<NativeStackNavigationProp<{ EditProfile: undefined; PrivacyPolicy: undefined; TermsConditions: undefined }>>();
   
   const { data: preferences, isLoading: isLoadingPrefs } = useNotificationPreferencesQuery();
   const updatePreferencesMutation = useUpdateNotificationPreferencesMutation();
@@ -288,7 +288,59 @@ export default function SettingsScreen({
 
       </ThemedView>
 
-      {/* Email Notifications, Event Notifications, and About sections hidden - app info shown in sidebar */}
+      <ThemedView style={[styles.section, { backgroundColor: theme.surface }]}>
+        <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
+          {t('settings.legalInfo')}
+        </ThemedText>
+
+        <Spacer height={Spacing.md} />
+
+        <Pressable
+          style={({ pressed }) => [
+            styles.legalItem,
+            { opacity: pressed ? 0.7 : 1 },
+          ]}
+          onPress={() => navigation.navigate('PrivacyPolicy')}
+        >
+          <DirectionalRow style={[styles.settingItem, { gap: Spacing.md }]}>
+            <DDIcon name="shield" size={20} variant="muted" />
+            <ThemedText style={[styles.settingLabel, { color: theme.text, flex: 1 }]}>
+              {t('settings.privacyPolicy')}
+            </ThemedText>
+            <DDIcon name={isRTL ? "chevron-left" : "chevron-right"} size={18} variant="muted" />
+          </DirectionalRow>
+        </Pressable>
+
+        <View style={[styles.sectionDivider, { backgroundColor: theme.surfaceSecondary }]} />
+
+        <Pressable
+          style={({ pressed }) => [
+            styles.legalItem,
+            { opacity: pressed ? 0.7 : 1 },
+          ]}
+          onPress={() => navigation.navigate('TermsConditions')}
+        >
+          <DirectionalRow style={[styles.settingItem, { gap: Spacing.md }]}>
+            <DDIcon name="file-text" size={20} variant="muted" />
+            <ThemedText style={[styles.settingLabel, { color: theme.text, flex: 1 }]}>
+              {t('settings.termsOfService')}
+            </ThemedText>
+            <DDIcon name={isRTL ? "chevron-left" : "chevron-right"} size={18} variant="muted" />
+          </DirectionalRow>
+        </Pressable>
+
+        <View style={[styles.sectionDivider, { backgroundColor: theme.surfaceSecondary }]} />
+
+        <DirectionalRow style={[styles.settingItem, { gap: Spacing.md }]}>
+          <DDIcon name="info" size={20} variant="muted" />
+          <ThemedText style={[styles.settingLabel, { color: theme.text, flex: 1 }]}>
+            {t('settings.version')}
+          </ThemedText>
+          <ThemedText style={[styles.settingDescription, { color: theme.textSecondary }]}>
+            {appVersion}
+          </ThemedText>
+        </DirectionalRow>
+      </ThemedView>
 
       {onLogout ? (
         <Pressable
@@ -468,6 +520,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.xs,
+  },
+  legalItem: {
+    paddingVertical: Spacing.xs,
   },
   logoutButton: {
     alignItems: 'center',

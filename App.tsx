@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { StyleSheet, View, ActivityIndicator, Platform } from "react-native";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { StyleSheet, View, ActivityIndicator, Platform, AppState } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as ExpoSplashScreen from "expo-splash-screen";
@@ -31,7 +31,27 @@ import { UserRole } from "@/types/vms.types";
 import { setCurrentStaff } from "@/services/state/buffetAdminState";
 import { setCurrentDriver } from "@/services/state/valetAdminState";
 import { apiConfig } from "@/api/config";
+import PrivacyPolicyScreen from "@/screens/Legal/PrivacyPolicyScreen";
+import TermsConditionsScreen from "@/screens/Legal/TermsConditionsScreen";
 
+type LegalPage = 'privacy-policy' | 'terms-conditions' | null;
+
+function getLegalPageFromUrl(): LegalPage {
+  if (Platform.OS !== 'web') return null;
+
+  try {
+    const pathname = window.location.pathname;
+    if (pathname === '/privacy-policy' || pathname.startsWith('/privacy-policy')) {
+      return 'privacy-policy';
+    }
+    if (pathname === '/terms-conditions' || pathname.startsWith('/terms-conditions')) {
+      return 'terms-conditions';
+    }
+  } catch (e) {
+    console.error('[VMS] Error checking legal page URL:', e);
+  }
+  return null;
+}
 
 function getInviteTokenFromUrl(): string | null {
   if (Platform.OS !== 'web') return null;
@@ -84,17 +104,37 @@ function getInviteTokenFromUrl(): string | null {
 }
 
 function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
-  const { user, isAuthenticated, isLoading: authLoading, logout } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading, logout, userDataVersion, refreshUser } = useAuth();
   const { layoutKey, isLoading: languageLoading, isRTL, locale, setLocale } = useLanguage();
   const [showSplash, setShowSplash] = useState(true);
   const [inviteToken, setInviteToken] = useState<string | null>(null);
+  const [legalPage, setLegalPage] = useState<LegalPage>(null);
   const [hasAppliedUserLanguage, setHasAppliedUserLanguage] = useState(false);
+  const appStateRef = useRef(AppState.currentState);
 
   useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (
+        appStateRef.current.match(/inactive|background/) &&
+        nextAppState === 'active' &&
+        isAuthenticated
+      ) {
+        refreshUser();
+      }
+      appStateRef.current = nextAppState;
+    });
+    return () => subscription.remove();
+  }, [isAuthenticated, refreshUser]);
+
+  useEffect(() => {
+    const legal = getLegalPageFromUrl();
+    if (legal) {
+      setLegalPage(legal);
+      return;
+    }
     const token = getInviteTokenFromUrl();
     if (token) {
       setInviteToken(token);
-      // Don't hide splash yet - wait for language to load
     }
   }, []);
 
@@ -179,6 +219,14 @@ function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
     return <SplashScreen onFinish={handleSplashFinish} />;
   }
 
+  if (legalPage) {
+    console.log('[AppContent] Showing legal page:', legalPage);
+    if (legalPage === 'privacy-policy') {
+      return <PrivacyPolicyScreen />;
+    }
+    return <TermsConditionsScreen />;
+  }
+
   if (inviteToken) {
     console.log('[AppContent] Showing VisitorInviteScreen');
     return (
@@ -206,7 +254,7 @@ function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
   const userRole = user.role as UserRole;
   const rawPhotoUrl = user.thumbnailUrl || user.photoUrl;
   const userPhotoUrl = rawPhotoUrl 
-    ? (rawPhotoUrl.startsWith('http') ? rawPhotoUrl : `${apiConfig.baseUrl}${rawPhotoUrl}`)
+    ? `${rawPhotoUrl.startsWith('http') ? rawPhotoUrl : `${apiConfig.baseUrl}${rawPhotoUrl}`}${rawPhotoUrl.includes('?') ? '&' : '?'}v=${userDataVersion}`
     : undefined;
 
   return (
