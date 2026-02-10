@@ -37,7 +37,7 @@ import {
 } from "@/components/SelectableCard";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { Spacing, BorderRadius, Typography } from "@/constants/theme";
+import { Spacing, BorderRadius, Typography, FontFamily } from "@/constants/theme";
 import { REQUEST_STATUS } from "@/constants/requestConstants";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -2862,7 +2862,7 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
     minHeight: 110,
     fontSize: 14,
-    fontFamily: "AlbertSans_400Regular",
+    fontFamily: FontFamily.latinRegular,
     lineHeight: 21,
   },
   modalActions: {

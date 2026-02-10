@@ -7,7 +7,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { LoadingButton } from "@/components/shared/LoadingButton";
 import Spacer from "@/components/Spacer";
 import { DirectionalRow } from "@/components/DirectionalRow";
-import { Spacing, BorderRadius, Typography } from "@/constants/theme";
+import { Spacing, BorderRadius, Typography, FontFamily } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { DDIcon } from "@/components/DDIcon";
@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: INPUT_FONT_SIZE,
-    fontFamily: 'AlbertSans_400Regular',
+    fontFamily: FontFamily.latinRegular,
     height: '100%',
   },
   primaryButton: {

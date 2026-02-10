@@ -27,7 +27,7 @@ import {
 } from "@/components/SelectableCard";
 import { LoadingButton } from "@/components/shared/LoadingButton";
 import Spacer from "@/components/Spacer";
-import { Spacing, BorderRadius, Typography } from "@/constants/theme";
+import { Spacing, BorderRadius, Typography, FontFamily } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
@@ -2043,7 +2043,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     alignItems: "center",
     justifyContent: "space-between",
-    fontFamily: "AlbertSans_400Regular",
+    fontFamily: FontFamily.latinRegular,
     fontSize: 16,
   },
   pickerButton: {
@@ -2078,7 +2078,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.md,
     minHeight: 100,
-    fontFamily: "AlbertSans_400Regular",
+    fontFamily: FontFamily.latinRegular,
     fontSize: 16,
   },
   row: {

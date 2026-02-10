@@ -12,7 +12,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
 import Spacer from "@/components/Spacer";
 import { ServiceIcons, SelectionCheckbox, StatusAccent, WalkInBadge, SkeletonDashboard, LoadingSpinner, ApprovalActionGroup, LoadingButton, VisitorRequestCard } from "@/components/shared";
-import { Spacing, BorderRadius, Typography } from "@/constants/theme";
+import { Spacing, BorderRadius, Typography, FontFamily } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
@@ -1152,7 +1152,7 @@ const styles = StyleSheet.create({
     flex: 1,
     marginStart: Spacing.sm,
     fontSize: 15,
-    fontFamily: 'AlbertSans_400Regular',
+    fontFamily: FontFamily.latinRegular,
   },
 
   statusAccent: {
@@ -1374,7 +1374,7 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
     minHeight: 110,
     fontSize: 14,
-    fontFamily: 'AlbertSans_400Regular',
+    fontFamily: FontFamily.latinRegular,
     lineHeight: 21,
   },
   modalActions: {

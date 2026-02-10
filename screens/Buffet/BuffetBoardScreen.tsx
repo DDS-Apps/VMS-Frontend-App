@@ -9,7 +9,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import Spacer from '@/components/Spacer';
 import { CalendarDatePicker } from '@/components/CalendarDatePicker';
-import { Spacing, BorderRadius, Typography } from '@/constants/theme';
+import { Spacing, BorderRadius, Typography, FontFamily } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useFormatters } from '@/hooks/useFormatters';
@@ -692,7 +692,7 @@ const styles = StyleSheet.create({
   filterPillText: {
     fontSize: 13,
     fontWeight: '500',
-    fontFamily: 'AlbertSans_500Medium',
+    fontFamily: FontFamily.latinMedium,
   },
   filterCount: {
     paddingHorizontal: 7,
@@ -704,7 +704,7 @@ const styles = StyleSheet.create({
   filterCountText: {
     fontSize: 11,
     fontWeight: '600',
-    fontFamily: 'AlbertSans_600SemiBold',
+    fontFamily: FontFamily.latinSemiBold,
   },
   cardList: {
     gap: Spacing.md,
@@ -740,7 +740,7 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 11,
     fontWeight: '600',
-    fontFamily: 'AlbertSans_600SemiBold',
+    fontFamily: FontFamily.latinSemiBold,
   },
   infoGrid: {
     gap: Spacing.xs,
@@ -764,7 +764,7 @@ const styles = StyleSheet.create({
   actionButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    fontFamily: 'AlbertSans_600SemiBold',
+    fontFamily: FontFamily.latinSemiBold,
   },
   emptyState: {
     alignItems: 'center',
@@ -779,6 +779,6 @@ const styles = StyleSheet.create({
   retryButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    fontFamily: 'AlbertSans_600SemiBold',
+    fontFamily: FontFamily.latinSemiBold,
   },
 });

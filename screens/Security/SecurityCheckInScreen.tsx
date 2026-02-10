@@ -9,7 +9,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
 import { CalendarDatePicker } from "@/components/CalendarDatePicker";
-import { Spacing, BorderRadius, Typography } from "@/constants/theme";
+import { Spacing, BorderRadius, Typography, FontFamily } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
@@ -783,7 +783,7 @@ const styles = StyleSheet.create({
   filterPillText: {
     fontSize: 13,
     fontWeight: '500',
-    fontFamily: 'AlbertSans_500Medium',
+    fontFamily: FontFamily.latinMedium,
   },
   filterCount: {
     paddingHorizontal: 7,
@@ -795,7 +795,7 @@ const styles = StyleSheet.create({
   filterCountText: {
     fontSize: 11,
     fontWeight: '600',
-    fontFamily: 'AlbertSans_600SemiBold',
+    fontFamily: FontFamily.latinSemiBold,
   },
   cardList: {
     gap: Spacing.md,
@@ -821,7 +821,7 @@ const styles = StyleSheet.create({
   },
   avatarText: {
     fontWeight: '600',
-    fontFamily: 'AlbertSans_600SemiBold',
+    fontFamily: FontFamily.latinSemiBold,
   },
   cardNameSection: {
     flex: 1,
@@ -836,7 +836,7 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 11,
     fontWeight: '600',
-    fontFamily: 'AlbertSans_600SemiBold',
+    fontFamily: FontFamily.latinSemiBold,
   },
   dateTimeRow: {
     alignItems: 'center',
@@ -849,7 +849,7 @@ const styles = StyleSheet.create({
   },
   dateTimeText: {
     fontSize: 13,
-    fontFamily: 'AlbertSans_400Regular',
+    fontFamily: FontFamily.latinRegular,
   },
   separator: {
     fontSize: 10,
@@ -881,7 +881,7 @@ const styles = StyleSheet.create({
   checkInButtonText: {
     fontSize: 13,
     fontWeight: '600',
-    fontFamily: 'AlbertSans_600SemiBold',
+    fontFamily: FontFamily.latinSemiBold,
     color: '#FFFFFF',
   },
   valetBadge: {
@@ -894,7 +894,7 @@ const styles = StyleSheet.create({
   valetBadgeText: {
     fontSize: 11,
     fontWeight: '500',
-    fontFamily: 'AlbertSans_500Medium',
+    fontFamily: FontFamily.latinMedium,
   },
   emptyState: {
     alignItems: 'center',
