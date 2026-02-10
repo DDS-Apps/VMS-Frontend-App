@@ -399,14 +399,9 @@ export default function VisitorRequestFormScreen({
       newErrors.fullName = t("errors.fullNameRequired");
     }
 
-    // Email is required for walk-in registrations
-    if (isWalkIn) {
-      if (!email.trim()) {
-        newErrors.email = t("form.fieldRequired");
-      } else if (!validateEmail(email)) {
-        newErrors.email = t("errors.invalidEmail");
-      }
-    } else if (email.trim() && !validateEmail(email)) {
+    if (!email.trim()) {
+      newErrors.email = t("form.fieldRequired");
+    } else if (!validateEmail(email)) {
       newErrors.email = t("errors.invalidEmail");
     }
 
@@ -705,7 +700,7 @@ export default function VisitorRequestFormScreen({
               },
             ]}
           >
-            {t("form.email").toUpperCase()}
+            {t("form.email").toUpperCase()} *
           </ThemedText>
           <Spacer height={Spacing.xs} />
           <TextInput
