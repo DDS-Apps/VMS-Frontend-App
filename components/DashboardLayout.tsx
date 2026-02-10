@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { View, StyleSheet, Pressable, I18nManager, useWindowDimensions, Modal, Switch, Platform } from "react-native";
 import { Image } from "expo-image";
-import { GestureDetector, Gesture, NativeViewGestureHandler } from "react-native-gesture-handler";
+import { GestureDetector, Gesture } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, {
   useSharedValue,
@@ -132,9 +132,6 @@ export default function DashboardLayout({
   const translateX = useSharedValue(isRTL ? sidebarWidth : -sidebarWidth);
   const prevIsLargeScreenRef = useRef<boolean | null>(null);
   
-  // Ref for native scroll gesture coordination on Android
-  // This allows horizontal ScrollViews to take precedence over the edge swipe gesture
-  const nativeScrollRef = useRef<any>(null);
   
   // Sync sidebar state only when screen size crosses breakpoint
   useEffect(() => {
@@ -187,23 +184,15 @@ export default function DashboardLayout({
   const isWeb = Platform.OS === 'web';
   const isAndroid = Platform.OS === 'android';
   
-  // Calculate hitSlop to restrict gesture to edge only
-  // Shrink from opposite side by (width - threshold) so only edge strip is active
-  // Android uses a narrower edge area to reduce conflicts with horizontal ScrollViews
+  // Edge swipe threshold determines the width of the invisible edge strip
   const edgeSwipeThreshold = isAndroid ? EDGE_SWIPE_THRESHOLD_ANDROID : EDGE_SWIPE_THRESHOLD_IOS;
-  const edgeHitSlop = isRTL
-    ? { left: -(width - edgeSwipeThreshold), right: 0, top: 0, bottom: 0 }
-    : { left: 0, right: -(width - edgeSwipeThreshold), top: 0, bottom: 0 };
   
   // Use higher thresholds on Android to prevent conflicts with horizontal ScrollViews
   const activeOffset = isAndroid ? ANDROID_ACTIVE_OFFSET : IOS_ACTIVE_OFFSET;
   
-  // Build the edge swipe gesture with Android-specific scroll coordination
-  // On Android: higher thresholds + minDistance + NativeViewGestureHandler with disallowInterruption
-  // ensures horizontal ScrollViews take precedence over the sidebar swipe
+  // Edge swipe gesture - now attached to a thin edge strip View (not the full layout)
+  // so it cannot intercept touches on the main content area
   const edgeSwipeGesture = Gesture.Pan()
-    .enabled(!isWeb && !isLargeScreen && !sidebarOpen && !canGoBack)
-    .hitSlop(edgeHitSlop)
     .activeOffsetX(isRTL ? [-activeOffset, 0] : [0, activeOffset])
     .failOffsetY([-20, 20])
     .minDistance(isAndroid ? 40 : 0)
@@ -293,7 +282,6 @@ export default function DashboardLayout({
   return (
     <>
       <LanguageChangeOverlay visible={isChangingLanguage} />
-      <GestureDetector gesture={edgeSwipeGesture}>
         <View 
           key={layoutKey} 
           style={[styles.container, { backgroundColor: theme.background }]}
@@ -724,24 +712,30 @@ export default function DashboardLayout({
               </DirectionalRow>
             )}
             
-            {/* On Android, wrap content with NativeViewGestureHandler to coordinate with sidebar gesture */}
-            {isAndroid ? (
-              <NativeViewGestureHandler ref={nativeScrollRef} disallowInterruption>
-                <View style={styles.contentInner}>
-                  {Platform.OS === 'web' && <EnableNotificationsPrompt />}
-                  {children}
-                </View>
-              </NativeViewGestureHandler>
-            ) : (
-              <View style={styles.contentInner}>
-                {Platform.OS === 'web' && <EnableNotificationsPrompt />}
-                {children}
-              </View>
-            )}
+            <View style={styles.contentInner}>
+              {Platform.OS === 'web' && <EnableNotificationsPrompt />}
+              {children}
+            </View>
           </View>
         </DirectionalRow>
+
+          {/* Edge Swipe Strip - thin absolute-positioned view for sidebar gesture on mobile */}
+          {/* Placed outside the main content flow so it doesn't intercept content touches */}
+          {!isWeb && !isLargeScreen && !sidebarOpen && !canGoBack && (
+            <GestureDetector gesture={edgeSwipeGesture}>
+              <View
+                style={[
+                  styles.edgeSwipeStrip,
+                  isRTL
+                    ? { right: 0, left: undefined }
+                    : { left: 0, right: undefined },
+                  { width: edgeSwipeThreshold },
+                ]}
+                pointerEvents="box-only"
+              />
+            </GestureDetector>
+          )}
       </View>
-      </GestureDetector>
     </>
   );
 }
@@ -818,6 +812,12 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.xs,
     paddingHorizontal: Spacing.sm,
     borderRadius: BorderRadius.sm,
+  },
+  edgeSwipeStrip: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    zIndex: 50,
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
