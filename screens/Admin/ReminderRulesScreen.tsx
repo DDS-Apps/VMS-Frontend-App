@@ -412,7 +412,7 @@ export default function ReminderRulesScreen() {
                     },
                   ]}
                 >
-                  {getDayName(day.name).substring(0, 3)}
+                  {getDayName(day.name)}
                 </ThemedText>
               </Pressable>
             ))}
