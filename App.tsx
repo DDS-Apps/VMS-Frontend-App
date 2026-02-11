@@ -349,6 +349,12 @@ export default function App() {
     return () => clearTimeout(timer);
   }, [appIsReady, localeBootstrapReady]);
 
+  useEffect(() => {
+    if (appIsReady && localeBootstrapReady) {
+      ExpoSplashScreen.hideAsync().catch(() => {});
+    }
+  }, [appIsReady, localeBootstrapReady]);
+
   const onLayoutRootView = useCallback(async () => {
     if (appIsReady) {
       await ExpoSplashScreen.hideAsync().catch(() => {});
