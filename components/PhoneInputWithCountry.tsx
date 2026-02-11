@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Platform,
   KeyboardAvoidingView,
+  Dimensions,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -317,15 +318,15 @@ export const PhoneInputWithCountry = ({
             >
               <View style={{ flex: 1 }} />
             </Pressable>
-            <KeyboardAvoidingView
+            <View
               style={[
                 styles.androidModalContent,
                 { 
                   backgroundColor: theme.background,
                   paddingBottom: insets.bottom,
+                  height: Dimensions.get('window').height * 0.7,
                 },
               ]}
-              behavior="padding"
             >
               {/* Modal Header */}
               <DirectionalRow style={[styles.modalHeader, { borderBottomColor: theme.border }]}>
@@ -389,7 +390,7 @@ export const PhoneInputWithCountry = ({
                   </View>
                 }
               />
-            </KeyboardAvoidingView>
+            </View>
           </View>
         ) : (
           // iOS: Native pageSheet
@@ -522,7 +523,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   androidModalContent: {
-    maxHeight: '70%',
     borderTopLeftRadius: BorderRadius.lg,
     borderTopRightRadius: BorderRadius.lg,
     overflow: 'hidden',
