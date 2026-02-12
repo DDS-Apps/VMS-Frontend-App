@@ -206,7 +206,7 @@ export default function SettingsScreen({
               {t('settings.darkModeDesc')}
             </ThemedText>
           </View>
-          <View style={{ direction: 'ltr' } as any}>
+          <View style={{ direction: 'ltr', minWidth: 51 } as any}>
             <Switch
               value={isDark}
               onValueChange={toggleTheme}
@@ -278,7 +278,7 @@ export default function SettingsScreen({
           {isLoadingPrefs ? (
             <ActivityIndicator size="small" color={theme.primary} />
           ) : (
-            <View style={{ direction: 'ltr' } as any}>
+            <View style={{ direction: 'ltr', minWidth: 51 } as any}>
               <Switch
                 value={pushEnabled}
                 onValueChange={handlePushToggle}
