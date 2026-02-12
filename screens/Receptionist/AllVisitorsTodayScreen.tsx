@@ -284,10 +284,10 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
               </View>
 
               <View style={[styles.nameSection, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
-                <ThemedText style={[styles.visitorName, { color: theme.text }]} numberOfLines={1}>
+                <ThemedText style={[styles.visitorName, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
                   {visitorName}
                 </ThemedText>
-                <ThemedText style={[styles.companyText, { color: theme.textSecondary }]} numberOfLines={1}>
+                <ThemedText style={[styles.companyText, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
                   {item.visitor.company ?? ''}
                 </ThemedText>
               </View>
