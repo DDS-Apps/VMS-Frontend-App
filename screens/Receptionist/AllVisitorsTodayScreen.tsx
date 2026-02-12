@@ -310,25 +310,21 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
 
             <DirectionalRow style={styles.servicesStatusRow} justifyContent="space-between">
               <ServiceIconsRow visitor={item} />
-              <DirectionalRow alignItems="center">
+              <DirectionalRow alignItems="center" gap={Spacing.sm}>
                 {showCheckIn ? (
-                  <View style={{ marginEnd: Spacing.sm }}>
-                    <VisitorActionButton
-                      type="check_in"
-                      onPress={(e) => handleCheckIn(item.id, visitorName, e)}
-                      loading={isThisVisitorLoading}
-                      disabled={isMutating && !isThisVisitorLoading}
-                    />
-                  </View>
+                  <VisitorActionButton
+                    type="check_in"
+                    onPress={(e) => handleCheckIn(item.id, visitorName, e)}
+                    loading={isThisVisitorLoading}
+                    disabled={isMutating && !isThisVisitorLoading}
+                  />
                 ) : showCheckOut ? (
-                  <View style={{ marginEnd: Spacing.sm }}>
-                    <VisitorActionButton
-                      type="check_out"
-                      onPress={(e) => handleCheckOut(item.id, visitorName, e)}
-                      loading={isThisVisitorLoading}
-                      disabled={isMutating && !isThisVisitorLoading}
-                    />
-                  </View>
+                  <VisitorActionButton
+                    type="check_out"
+                    onPress={(e) => handleCheckOut(item.id, visitorName, e)}
+                    loading={isThisVisitorLoading}
+                    disabled={isMutating && !isThisVisitorLoading}
+                  />
                 ) : null}
                 <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: 1 }]}>
                   <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
