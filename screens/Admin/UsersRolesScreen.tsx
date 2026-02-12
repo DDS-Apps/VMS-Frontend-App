@@ -773,11 +773,12 @@ export default function UsersRolesScreen() {
             <DirectionalRow style={styles.cardFooter}>
               <DirectionalRow style={styles.cardBadgesRow} gap={Spacing.xs}>
                 {item.autoApproval && (
-                  <View
+                  <DirectionalRow
                     style={[
                       styles.cardAutoApprovalBadge,
                       { backgroundColor: applyOpacity(theme.success, "15") },
                     ]}
+                    gap={Spacing.xs}
                   >
                     <DDIcon
                       name="check-circle"
@@ -787,12 +788,12 @@ export default function UsersRolesScreen() {
                     <ThemedText
                       style={[
                         styles.cardBadgeText,
-                        { color: theme.success, marginStart: 2 },
+                        { color: theme.success },
                       ]}
                     >
                       {t("common.auto")}
                     </ThemedText>
-                  </View>
+                  </DirectionalRow>
                 )}
               </DirectionalRow>
 
@@ -2432,7 +2433,6 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.sm,
   },
   cardAutoApprovalBadge: {
-    flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: Spacing.xs,
     paddingVertical: 4,
