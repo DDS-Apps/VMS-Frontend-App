@@ -1696,11 +1696,13 @@ export default function VisitorRequestFormScreen({
                         </ThemedText>
                       </View>
                       {selectedEmployeeId === employee.id ? (
-                        <DDIcon
-                          name="check-circle"
-                          size={24}
-                          variant="primary"
-                        />
+                        <View style={{ marginStart: Spacing.sm }}>
+                          <DDIcon
+                            name="check-circle"
+                            size={24}
+                            variant="primary"
+                          />
+                        </View>
                       ) : null}
                     </Pressable>
                   ))
@@ -1797,7 +1799,9 @@ export default function VisitorRequestFormScreen({
                       </ThemedText>
                     </View>
                     {idType === option.value ? (
-                      <DDIcon name="check-circle" size={24} variant="primary" />
+                      <View style={{ marginStart: Spacing.sm }}>
+                        <DDIcon name="check-circle" size={24} variant="primary" />
+                      </View>
                     ) : null}
                   </Pressable>
                 ))}
