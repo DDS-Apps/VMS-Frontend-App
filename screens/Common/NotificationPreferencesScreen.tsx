@@ -185,12 +185,14 @@ export default function NotificationPreferencesScreen() {
                   {setting.label}
                 </ThemedText>
               </DirectionalRow>
-              <Switch
-                value={localPrefs[setting.field]}
-                onValueChange={(value) => handleToggle(setting.field, value)}
-                trackColor={{ false: theme.border, true: theme.primary + "80" }}
-                thumbColor={localPrefs[setting.field] ? theme.primary : theme.textSecondary}
-              />
+              <View style={{ direction: 'ltr' } as any}>
+                <Switch
+                  value={localPrefs[setting.field]}
+                  onValueChange={(value) => handleToggle(setting.field, value)}
+                  trackColor={{ false: theme.border, true: theme.primary + "80" }}
+                  thumbColor={localPrefs[setting.field] ? theme.primary : theme.textSecondary}
+                />
+              </View>
             </DirectionalRow>
             {index < channelSettings.length - 1 && (
               <View style={[styles.divider, { backgroundColor: theme.border }]} />
@@ -220,12 +222,14 @@ export default function NotificationPreferencesScreen() {
                   {setting.label}
                 </ThemedText>
               </DirectionalRow>
-              <Switch
-                value={localPrefs[setting.field]}
-                onValueChange={(value) => handleToggle(setting.field, value)}
-                trackColor={{ false: theme.border, true: theme.primary + "80" }}
-                thumbColor={localPrefs[setting.field] ? theme.primary : theme.textSecondary}
-              />
+              <View style={{ direction: 'ltr' } as any}>
+                <Switch
+                  value={localPrefs[setting.field]}
+                  onValueChange={(value) => handleToggle(setting.field, value)}
+                  trackColor={{ false: theme.border, true: theme.primary + "80" }}
+                  thumbColor={localPrefs[setting.field] ? theme.primary : theme.textSecondary}
+                />
+              </View>
             </DirectionalRow>
             {index < eventSettings.length - 1 && (
               <View style={[styles.divider, { backgroundColor: theme.border }]} />

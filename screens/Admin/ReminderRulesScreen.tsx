@@ -236,12 +236,14 @@ export default function ReminderRulesScreen() {
                 {t("admin.enableAutomatedReminders")}
               </ThemedText>
             </View>
-            <Switch
-              value={localRules.isActive}
-              onValueChange={(value) => handleUpdate({ isActive: value })}
-              trackColor={{ false: theme.border, true: theme.primary + "80" }}
-              thumbColor={localRules.isActive ? theme.primary : theme.textSecondary}
-            />
+            <View style={{ direction: 'ltr' } as any}>
+              <Switch
+                value={localRules.isActive}
+                onValueChange={(value) => handleUpdate({ isActive: value })}
+                trackColor={{ false: theme.border, true: theme.primary + "80" }}
+                thumbColor={localRules.isActive ? theme.primary : theme.textSecondary}
+              />
+            </View>
           </DirectionalRow>
         </View>
 

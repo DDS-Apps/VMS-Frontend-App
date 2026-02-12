@@ -206,13 +206,15 @@ export default function SettingsScreen({
               {t('settings.darkModeDesc')}
             </ThemedText>
           </View>
-          <Switch
-            value={isDark}
-            onValueChange={toggleTheme}
-            trackColor={{ false: theme.border, true: applyOpacity(theme.primary, '80') }}
-            thumbColor={isDark ? theme.primary : theme.buttonText}
-            ios_backgroundColor={theme.border}
-          />
+          <View style={{ direction: 'ltr' } as any}>
+            <Switch
+              value={isDark}
+              onValueChange={toggleTheme}
+              trackColor={{ false: theme.border, true: applyOpacity(theme.primary, '80') }}
+              thumbColor={isDark ? theme.primary : theme.buttonText}
+              ios_backgroundColor={theme.border}
+            />
+          </View>
         </DirectionalRow>
 
         <View style={[styles.sectionDivider, { backgroundColor: theme.surfaceSecondary }]} />
@@ -276,13 +278,15 @@ export default function SettingsScreen({
           {isLoadingPrefs ? (
             <ActivityIndicator size="small" color={theme.primary} />
           ) : (
-            <Switch
-              value={pushEnabled}
-              onValueChange={handlePushToggle}
-              trackColor={{ false: theme.border, true: applyOpacity(theme.primary, '80') }}
-              thumbColor={pushEnabled ? theme.primary : theme.buttonText}
-              ios_backgroundColor={theme.border}
-            />
+            <View style={{ direction: 'ltr' } as any}>
+              <Switch
+                value={pushEnabled}
+                onValueChange={handlePushToggle}
+                trackColor={{ false: theme.border, true: applyOpacity(theme.primary, '80') }}
+                thumbColor={pushEnabled ? theme.primary : theme.buttonText}
+                ios_backgroundColor={theme.border}
+              />
+            </View>
           )}
         </DirectionalRow>
 

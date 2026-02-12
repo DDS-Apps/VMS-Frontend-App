@@ -2196,22 +2196,24 @@ export default function UsersRolesScreen() {
                         {t("common.autoApprovalDescription")}
                       </ThemedText>
                     </View>
-                    <Switch
-                      value={formData.autoApproval}
-                      onValueChange={(value) =>
-                        setFormData({ ...formData, autoApproval: value })
-                      }
-                      trackColor={{
-                        false: theme.border,
-                        true: theme.success + "80",
-                      }}
-                      thumbColor={
-                        formData.autoApproval
-                          ? theme.success
-                          : theme.textSecondary
-                      }
-                      accessibilityLabel={t("common.autoApproval")}
-                    />
+                    <View style={{ direction: 'ltr' } as any}>
+                      <Switch
+                        value={formData.autoApproval}
+                        onValueChange={(value) =>
+                          setFormData({ ...formData, autoApproval: value })
+                        }
+                        trackColor={{
+                          false: theme.border,
+                          true: theme.success + "80",
+                        }}
+                        thumbColor={
+                          formData.autoApproval
+                            ? theme.success
+                            : theme.textSecondary
+                        }
+                        accessibilityLabel={t("common.autoApproval")}
+                      />
+                    </View>
                   </View>
 
                   <Spacer height={Spacing.lg} />
