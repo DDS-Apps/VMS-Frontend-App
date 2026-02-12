@@ -1316,32 +1316,14 @@ export default function UsersRolesScreen() {
             {totalUsers} {t("roles.employee").toLowerCase()}
           </ThemedText>
         </View>
-        <DirectionalRow style={styles.viewToggle}>
+        <View style={[styles.viewToggle, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <Pressable
             style={[
               styles.viewToggleButton,
-              styles.viewToggleButtonLeft,
               {
-                backgroundColor:
-                  viewMode === "grid" ? theme.primary : theme.surface,
-                borderColor: viewMode === "grid" ? theme.primary : theme.border,
-              },
-            ]}
-            onPress={() => setViewMode("grid")}
-          >
-            <DDIcon
-              name="grid"
-              size={16}
-              color={
-                viewMode === "grid" ? theme.buttonText : theme.textSecondary
-              }
-            />
-          </Pressable>
-          <Pressable
-            style={[
-              styles.viewToggleButton,
-              styles.viewToggleButtonMiddle,
-              {
+                borderTopLeftRadius: BorderRadius.sm,
+                borderBottomLeftRadius: BorderRadius.sm,
+                borderRightWidth: 0,
                 backgroundColor:
                   viewMode === "list" ? theme.primary : theme.surface,
                 borderColor: viewMode === "list" ? theme.primary : theme.border,
@@ -1360,12 +1342,11 @@ export default function UsersRolesScreen() {
           <Pressable
             style={[
               styles.viewToggleButton,
-              styles.viewToggleButtonRight,
               {
+                borderRightWidth: 0,
                 backgroundColor:
                   viewMode === "table" ? theme.primary : theme.surface,
-                borderColor:
-                  viewMode === "table" ? theme.primary : theme.border,
+                borderColor: viewMode === "table" ? theme.primary : theme.border,
               },
             ]}
             onPress={() => setViewMode("table")}
@@ -1378,7 +1359,28 @@ export default function UsersRolesScreen() {
               }
             />
           </Pressable>
-        </DirectionalRow>
+          <Pressable
+            style={[
+              styles.viewToggleButton,
+              {
+                borderTopRightRadius: BorderRadius.sm,
+                borderBottomRightRadius: BorderRadius.sm,
+                backgroundColor:
+                  viewMode === "grid" ? theme.primary : theme.surface,
+                borderColor: viewMode === "grid" ? theme.primary : theme.border,
+              },
+            ]}
+            onPress={() => setViewMode("grid")}
+          >
+            <DDIcon
+              name="grid"
+              size={16}
+              color={
+                viewMode === "grid" ? theme.buttonText : theme.textSecondary
+              }
+            />
+          </Pressable>
+        </View>
       </DirectionalRow>
 
       <View style={styles.searchContainer}>
@@ -2333,7 +2335,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   viewToggle: {
-    flexDirection: "row",
   },
   viewToggleButton: {
     width: 36,
@@ -2341,18 +2342,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-  },
-  viewToggleButtonLeft: {
-    borderTopStartRadius: BorderRadius.sm,
-    borderBottomStartRadius: BorderRadius.sm,
-    borderEndWidth: 0,
-  },
-  viewToggleButtonMiddle: {
-    borderEndWidth: 0,
-  },
-  viewToggleButtonRight: {
-    borderTopEndRadius: BorderRadius.sm,
-    borderBottomEndRadius: BorderRadius.sm,
   },
   listContainer: {
     paddingHorizontal: HORIZONTAL_PADDING,
