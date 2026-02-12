@@ -284,7 +284,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
               </ThemedText>
             </View>
 
-            <View style={[styles.nameSection, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
+            <View style={styles.nameSection}>
               <ThemedText style={[styles.visitorName, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
                 {visitorName}
               </ThemedText>
