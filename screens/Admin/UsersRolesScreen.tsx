@@ -1350,7 +1350,7 @@ export default function UsersRolesScreen() {
             onPress={() => setViewMode("list")}
           >
             <DDIcon
-              name="menu"
+              name="list"
               size={16}
               color={
                 viewMode === "list" ? theme.buttonText : theme.textSecondary
@@ -1371,7 +1371,7 @@ export default function UsersRolesScreen() {
             onPress={() => setViewMode("table")}
           >
             <DDIcon
-              name="list"
+              name="menu"
               size={16}
               color={
                 viewMode === "table" ? theme.buttonText : theme.textSecondary
@@ -2168,12 +2168,13 @@ export default function UsersRolesScreen() {
                     })}
                   </View>
 
-                  <DirectionalRow
+                  <View
                     style={[
                       styles.autoApprovalRow,
                       {
                         backgroundColor: theme.surface,
                         borderColor: theme.border,
+                        flexDirection: isRTL ? 'row-reverse' : 'row',
                       },
                     ]}
                   >
@@ -2208,7 +2209,7 @@ export default function UsersRolesScreen() {
                       }
                       accessibilityLabel={t("common.autoApproval")}
                     />
-                  </DirectionalRow>
+                  </View>
 
                   <Spacer height={Spacing.lg} />
 
@@ -2654,7 +2655,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   autoApprovalRow: {
-    flexDirection: "row",
     alignItems: "center",
     padding: Spacing.md,
     borderRadius: BorderRadius.md,

@@ -138,13 +138,13 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           <ThemedText style={[Typography.bodySmall, styles.errorMessage, { color: theme.textSecondary }]}>
             {errorMessage}
           </ThemedText>
-          <DirectionalRow style={styles.errorActions}>
+          <DirectionalRow style={styles.errorActions} gap={Spacing.sm}>
             <LoadingButton
               onPress={handleRetry}
               variant="outline"
               size="medium"
               fullWidth={false}
-              style={{ flex: 1, marginEnd: Spacing.sm }}
+              style={{ flex: 1 }}
             >
               {t("common.tryAgain")}
             </LoadingButton>
@@ -182,13 +182,13 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           </ThemedText>
         ) : null}
 
-        <DirectionalRow style={styles.buttonContainer}>
+        <DirectionalRow style={styles.buttonContainer} gap={Spacing.sm}>
           <LoadingButton
             onPress={handleCancel}
             variant="outline"
             size="medium"
             fullWidth={false}
-            style={{ flex: 1, marginEnd: Spacing.sm }}
+            style={{ flex: 1 }}
           >
             {cancelLabel || t("common.cancel")}
           </LoadingButton>
