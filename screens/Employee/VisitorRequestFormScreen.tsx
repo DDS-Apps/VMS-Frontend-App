@@ -1636,6 +1636,7 @@ export default function VisitorRequestFormScreen({
                         {
                           borderBottomColor: theme.border,
                           flexDirection: getFlexDirection(isRTL),
+                          gap: Spacing.md,
                         },
                         selectedEmployeeId === employee.id && {
                           backgroundColor: applyOpacity(theme.primary, "10"),
@@ -1668,7 +1669,6 @@ export default function VisitorRequestFormScreen({
                       <View
                         style={{
                           flex: 1,
-                          marginStart: Spacing.md,
                           alignItems: isRTL ? "flex-end" : "flex-start",
                         }}
                       >
