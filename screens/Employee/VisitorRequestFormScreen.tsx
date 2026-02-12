@@ -1070,7 +1070,7 @@ export default function VisitorRequestFormScreen({
                       {
                         color: theme.text,
                         flex: 1,
-                        // 
+                        lineHeight: 26,
                       },
                     ]}
                   >
@@ -1124,7 +1124,7 @@ export default function VisitorRequestFormScreen({
                       {
                         color: theme.text,
                         flex: 1,
-                        //  
+                        lineHeight: 26,
                       },
                     ]}
                   >
@@ -1178,7 +1178,7 @@ export default function VisitorRequestFormScreen({
                       {
                         color: theme.text,
                         flex: 1,
-                        //      
+                        lineHeight: 26,
                       },
                     ]}
                   >
@@ -1234,7 +1234,7 @@ export default function VisitorRequestFormScreen({
                           ? theme.error
                           : theme.textSecondary,
                         flex: 1,
-                        //   
+                        lineHeight: 26,
                       },
                     ]}
                   >
@@ -1447,7 +1447,7 @@ export default function VisitorRequestFormScreen({
               >
                 <DDIcon name="message-circle" size={16} variant="success" />
               </View>
-              <ThemedText style={[Typography.bodySmall, { fontWeight: "500" }]}>
+              <ThemedText style={[Typography.bodySmall, { fontWeight: "500", lineHeight: 24 }]}>
                 {t("services.whatsapp")}
               </ThemedText>
               {sendWhatsApp ? (
@@ -1482,7 +1482,7 @@ export default function VisitorRequestFormScreen({
               >
                 <DDIcon name="smartphone" size={16} color={theme.info} />
               </View>
-              <ThemedText style={[Typography.bodySmall, { fontWeight: "500" }]}>
+              <ThemedText style={[Typography.bodySmall, { fontWeight: "500", lineHeight: 24 }]}>
                 {t("services.sms")}
               </ThemedText>
               {sendSMS ? (
@@ -1517,7 +1517,7 @@ export default function VisitorRequestFormScreen({
               >
                 <DDIcon name="mail" size={16} color={theme.warning} />
               </View>
-              <ThemedText style={[Typography.bodySmall, { fontWeight: "500" }]}>
+              <ThemedText style={[Typography.bodySmall, { fontWeight: "500", lineHeight: 24 }]}>
                 {t("services.email")}
               </ThemedText>
               <View
@@ -2042,18 +2042,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   pickerButton: {
-    height: Spacing.inputHeight,
+    minHeight: Spacing.inputHeight,
     borderWidth: 1,
     borderRadius: BorderRadius.sm,
     paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
     alignItems: "center",
     justifyContent: "space-between",
   },
   iconInputButton: {
-    height: Spacing.inputHeight,
+    minHeight: Spacing.inputHeight,
     borderWidth: 1,
     borderRadius: BorderRadius.sm,
     paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
     flexDirection: "row",
     alignItems: "center",
   },

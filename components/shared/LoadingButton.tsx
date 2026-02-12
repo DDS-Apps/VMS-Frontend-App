@@ -42,10 +42,10 @@ const springConfig: WithSpringConfig = {
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-const sizeStyles: Record<ButtonSize, { height: number; paddingHorizontal: number; fontSize: number; iconSize: number }> = {
-  small: { height: 36, paddingHorizontal: Spacing.md, fontSize: 14, iconSize: 16 },
-  medium: { height: 44, paddingHorizontal: Spacing.lg, fontSize: 16, iconSize: 18 },
-  large: { height: 52, paddingHorizontal: Spacing.xl, fontSize: 18, iconSize: 20 },
+const sizeStyles: Record<ButtonSize, { minHeight: number; paddingHorizontal: number; fontSize: number; lineHeight: number; iconSize: number }> = {
+  small: { minHeight: 36, paddingHorizontal: Spacing.md, fontSize: 14, lineHeight: 22, iconSize: 16 },
+  medium: { minHeight: 44, paddingHorizontal: Spacing.lg, fontSize: 16, lineHeight: 26, iconSize: 18 },
+  large: { minHeight: 52, paddingHorizontal: Spacing.xl, fontSize: 18, lineHeight: 28, iconSize: 20 },
 };
 
 export const LoadingButton = ({
@@ -164,7 +164,7 @@ export const LoadingButton = ({
         <ThemedText
           style={[
             styles.buttonText,
-            { color: variantStyles.text, fontSize: sizeStyle.fontSize },
+            { color: variantStyles.text, fontSize: sizeStyle.fontSize, lineHeight: sizeStyle.lineHeight },
             textStyle,
           ]}
         >
@@ -184,7 +184,8 @@ export const LoadingButton = ({
       style={[
         styles.button,
         {
-          height: sizeStyle.height,
+          minHeight: sizeStyle.minHeight,
+          paddingVertical: Spacing.sm,
           paddingHorizontal: sizeStyle.paddingHorizontal,
           backgroundColor: variantStyles.bg,
           borderColor: variantStyles.border,

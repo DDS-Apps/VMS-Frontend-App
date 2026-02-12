@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: INPUT_FONT_SIZE,
     fontFamily: 'AlbertSans_400Regular',
-    height: '100%',
+    paddingVertical: Spacing.sm,
   },
 });
 

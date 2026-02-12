@@ -139,6 +139,7 @@ export function DDButton({
           },
           text: {
             fontSize: 14,
+            lineHeight: 22,
             fontFamily: getLocaleFontFamily(FontFamily.latinMedium, isRTL),
           },
         };
@@ -151,6 +152,7 @@ export function DDButton({
           },
           text: {
             fontSize: 18,
+            lineHeight: 28,
             fontFamily: getLocaleFontFamily(FontFamily.latinSemiBold, isRTL),
           },
         };
@@ -164,6 +166,7 @@ export function DDButton({
           },
           text: {
             fontSize: 16,
+            lineHeight: 26,
             fontFamily: getLocaleFontFamily(FontFamily.latinMedium, isRTL),
           },
         };
