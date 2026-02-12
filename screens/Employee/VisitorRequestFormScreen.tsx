@@ -1882,7 +1882,9 @@ export default function VisitorRequestFormScreen({
                       </ThemedText>
                     </View>
                     {purposeValue === option.value ? (
-                      <DDIcon name="check-circle" size={24} variant="primary" />
+                      <View style={{ marginStart: Spacing.sm }}>
+                        <DDIcon name="check-circle" size={24} variant="primary" />
+                      </View>
                     ) : null}
                   </Pressable>
                 ))}

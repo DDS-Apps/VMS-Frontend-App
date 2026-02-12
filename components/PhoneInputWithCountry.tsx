@@ -212,7 +212,7 @@ export const PhoneInputWithCountry = ({
             <ThemedText style={[styles.countryName, { color: theme.text }]} numberOfLines={1}>
               {displayName}
             </ThemedText>
-            <ThemedText style={[styles.dialCode, { color: theme.textSecondary }]}>
+            <ThemedText style={[styles.dialCode, { color: theme.textSecondary, writingDirection: 'ltr' }]}>
               {item.dialCode}
             </ThemedText>
           </View>
@@ -267,7 +267,7 @@ export const PhoneInputWithCountry = ({
         >
           <DirectionalRow gap={Spacing.xs} style={styles.countryButtonContent}>
             <FlagAvatar countryCode={selectedCountry.code} size={20} />
-            <ThemedText style={[styles.dialCodeText, { color: theme.text, lineHeight: isRTL ? 29 : 20 }]}>
+            <ThemedText style={[styles.dialCodeText, { color: theme.text, lineHeight: isRTL ? 29 : 20, writingDirection: 'ltr' }]}>
               {selectedCountry.code} {selectedCountry.dialCode}
             </ThemedText>
             <DDIcon name="chevron-down" size={14} color={theme.textSecondary} />
