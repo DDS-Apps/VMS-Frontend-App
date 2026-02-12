@@ -104,7 +104,7 @@ export const StyledInput = forwardRef<TextInput, StyledInputProps>(({
                 ? Math.round(INPUT_FONT_SIZE * ArabicFontScaling.body * 10) / 10 
                 : INPUT_FONT_SIZE,
               lineHeight: isRTL
-                ? Math.round(INPUT_FONT_SIZE * ArabicLineHeightScaling.body * 1.5)
+                ? Math.round(INPUT_FONT_SIZE * ArabicLineHeightScaling.body * 1.65)
                 : Math.round(INPUT_FONT_SIZE * 1.4),
             },
             Platform.OS === 'web' ? { outlineStyle: 'none' } as any : {},

@@ -2075,7 +2075,7 @@ const styles = StyleSheet.create({
     minHeight: 100,
     fontFamily: FontFamily.latinRegular,
     fontSize: 16,
-    lineHeight: 26,
+    lineHeight: 28,
   },
   row: {
     alignItems: "center",

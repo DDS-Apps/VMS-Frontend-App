@@ -406,7 +406,7 @@ const styles = StyleSheet.create({
   },
   dayText: {
     fontSize: 14,
-    lineHeight: 22,
+    lineHeight: 24,
     fontFamily: FontFamily.latinRegular,
   },
   rangeHint: {
