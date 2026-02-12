@@ -60,6 +60,7 @@ export function SearchInput({
         { 
           color: theme.text,
           fontFamily: getInputFontFamily(value, isRTL),
+          textAlign: isRTL ? 'right' : 'left',
           writingDirection: isRTL ? 'rtl' : 'ltr',
           fontSize: scaledFontSize,
           lineHeight: isRTL
