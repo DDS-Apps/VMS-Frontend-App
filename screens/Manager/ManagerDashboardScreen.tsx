@@ -12,7 +12,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
 import Spacer from "@/components/Spacer";
 import { ServiceIcons, SelectionCheckbox, StatusAccent, WalkInBadge, SkeletonDashboard, LoadingSpinner, ApprovalActionGroup, LoadingButton, VisitorRequestCard } from "@/components/shared";
-import { Spacing, BorderRadius, Typography, FontFamily, getLocaleFontFamily } from "@/constants/theme";
+import { Spacing, BorderRadius, Typography, FontFamily, getLocaleFontFamily, getInputFontFamily } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
@@ -551,7 +551,7 @@ const RejectRequestModal = ({
                   borderColor: theme.border,
                   backgroundColor: theme.background,
                   color: theme.text,
-                  fontFamily: getLocaleFontFamily(FontFamily.latinRegular, isRTL)
+                  fontFamily: getInputFontFamily(rejectionReason, isRTL)
                 }
               ]}
               placeholder={t('form.enterNotes')}
@@ -801,7 +801,7 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
       <View style={[styles.searchBar, { backgroundColor: theme.surfaceSecondary, borderColor: theme.border }]}>
         <DDIcon name="search" size={20} variant="muted" />
         <TextInput
-          style={[styles.searchInput, { color: theme.text, fontFamily: getLocaleFontFamily(FontFamily.latinRegular, isRTL) }]}
+          style={[styles.searchInput, { color: theme.text, fontFamily: getInputFontFamily(searchQuery, isRTL) }]}
           placeholder={t('common.search')}
           placeholderTextColor={theme.textSecondary}
           value={searchQuery}

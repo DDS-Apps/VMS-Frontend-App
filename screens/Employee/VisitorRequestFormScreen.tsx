@@ -27,7 +27,7 @@ import {
 } from "@/components/SelectableCard";
 import { LoadingButton } from "@/components/shared/LoadingButton";
 import Spacer from "@/components/Spacer";
-import { Spacing, BorderRadius, Typography, FontFamily, getLocaleFontFamily } from "@/constants/theme";
+import { Spacing, BorderRadius, Typography, FontFamily, getLocaleFontFamily, getInputFontFamily } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
@@ -658,7 +658,7 @@ export default function VisitorRequestFormScreen({
                 backgroundColor: theme.background,
                 borderColor: errors.fullName ? theme.error : theme.border,
                 color: theme.text,
-                fontFamily: getLocaleFontFamily(FontFamily.latinRegular, isRTL),
+                fontFamily: getInputFontFamily(fullName, isRTL),
                 writingDirection: isRTL ? "rtl" : "ltr",
               },
             ]}
@@ -710,7 +710,7 @@ export default function VisitorRequestFormScreen({
                 backgroundColor: theme.background,
                 borderColor: errors.email ? theme.error : theme.border,
                 color: theme.text,
-                fontFamily: getLocaleFontFamily(FontFamily.latinRegular, isRTL),
+                fontFamily: getInputFontFamily(email, isRTL),
                 writingDirection: isRTL ? "rtl" : "ltr",
               },
             ]}
@@ -775,7 +775,7 @@ export default function VisitorRequestFormScreen({
                 backgroundColor: theme.background,
                 borderColor: theme.border,
                 color: theme.text,
-                fontFamily: getLocaleFontFamily(FontFamily.latinRegular, isRTL),
+                fontFamily: getInputFontFamily(company, isRTL),
                 writingDirection: isRTL ? "rtl" : "ltr",
               },
             ]}
@@ -916,7 +916,7 @@ export default function VisitorRequestFormScreen({
                     backgroundColor: theme.background,
                     borderColor: errors.idNumber ? theme.error : theme.border,
                     color: theme.text,
-                    fontFamily: getLocaleFontFamily(FontFamily.latinRegular, isRTL),
+                    fontFamily: getInputFontFamily(idNumber, isRTL),
                     writingDirection: isRTL ? "rtl" : "ltr",
                   },
                 ]}
@@ -1609,7 +1609,7 @@ export default function VisitorRequestFormScreen({
               >
                 <DDIcon name="search" size={20} variant="muted" />
                 <TextInput
-                  style={[styles.searchInput, { color: theme.text }]}
+                  style={[styles.searchInput, { color: theme.text, fontFamily: getInputFontFamily(employeeSearchQuery, isRTL) }]}
                   placeholder={t("common.search")}
                   placeholderTextColor={theme.textSecondary}
                   value={employeeSearchQuery}

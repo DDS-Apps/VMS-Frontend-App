@@ -17,7 +17,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { DDIcon } from '@/components/DDIcon';
 import { DirectionalRow } from '@/components/DirectionalRow';
 import Spacer from '@/components/Spacer';
-import { Spacing, BorderRadius, Typography } from '@/constants/theme';
+import { Spacing, BorderRadius, Typography, FontFamily, getInputFontFamily } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -280,6 +280,7 @@ export const PhoneInputWithCountry = ({
             {
               color: theme.text,
               textAlign: isRTL ? 'right' : 'left',
+              fontFamily: getInputFontFamily(displayedNumber, isRTL),
             },
           ]}
           value={displayedNumber}
@@ -355,6 +356,7 @@ export const PhoneInputWithCountry = ({
                       {
                         color: theme.text,
                         textAlign: isRTL ? 'right' : 'left',
+                        fontFamily: getInputFontFamily(searchQuery, isRTL),
                       },
                     ]}
                     value={searchQuery}
@@ -426,6 +428,7 @@ export const PhoneInputWithCountry = ({
                       {
                         color: theme.text,
                         textAlign: isRTL ? 'right' : 'left',
+                        fontFamily: getInputFontFamily(searchQuery, isRTL),
                       },
                     ]}
                     value={searchQuery}

@@ -355,6 +355,20 @@ export function getLocaleFontFamily(latinFont: string, isRTL: boolean): string {
   return latinToArabicMap[latinFont] || latinFont;
 }
 
+const ARABIC_REGEX = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
+
+export function containsArabic(text: string | undefined | null): boolean {
+  if (!text) return false;
+  return ARABIC_REGEX.test(text);
+}
+
+export function getInputFontFamily(text: string | undefined | null, isRTL: boolean, latinFont: string = FontFamily.latinRegular): string {
+  if (isRTL || containsArabic(text)) {
+    return latinToArabicMap[latinFont] || FontFamily.arabicRegular;
+  }
+  return latinFont;
+}
+
 // Typography tokens with type scale
 export const Typography = {
   // Headings (ExtraBold for headlines)

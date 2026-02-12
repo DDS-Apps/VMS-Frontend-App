@@ -6,7 +6,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { LoadingButton } from "@/components/shared/LoadingButton";
 import { ApprovalActionGroup } from "@/components/shared/ApprovalActionGroup";
 import Spacer from "@/components/Spacer";
-import { Spacing, BorderRadius, Typography, BrandColors, NeutralColors, FontFamily } from "@/constants/theme";
+import { Spacing, BorderRadius, Typography, BrandColors, NeutralColors, FontFamily, getInputFontFamily } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -95,7 +95,7 @@ const RejectModal = memo(function RejectModal({
             {translations.subtitle}
           </ThemedText>
           <TextInput
-            style={[modalStyles.input, isLoading && { opacity: 0.6 }]}
+            style={[modalStyles.input, { fontFamily: getInputFontFamily(localReason, isRTL) }, isLoading && { opacity: 0.6 }]}
             placeholder={translations.placeholder}
             placeholderTextColor={PageColors.textMuted}
             value={localReason}
@@ -340,7 +340,7 @@ const ParkingSelectionModal = memo(function ParkingSelectionModal({
             {selectedOption === 'parking_with_car_info' ? (
               <View style={parkingModalStyles.carInfoContainer}>
                 <TextInput
-                  style={parkingModalStyles.carInfoInput}
+                  style={[parkingModalStyles.carInfoInput, { fontFamily: getInputFontFamily(licensePlate, isRTL) }]}
                   placeholder={translations.licensePlate}
                   placeholderTextColor={PageColors.textMuted}
                   value={licensePlate}
@@ -349,7 +349,7 @@ const ParkingSelectionModal = memo(function ParkingSelectionModal({
                   autoCapitalize="characters"
                 />
                 <TextInput
-                  style={parkingModalStyles.carInfoInput}
+                  style={[parkingModalStyles.carInfoInput, { fontFamily: getInputFontFamily(carModel, isRTL) }]}
                   placeholder={translations.carModel}
                   placeholderTextColor={PageColors.textMuted}
                   value={carModel}
@@ -357,7 +357,7 @@ const ParkingSelectionModal = memo(function ParkingSelectionModal({
                   editable={!isLoading}
                 />
                 <TextInput
-                  style={parkingModalStyles.carInfoInput}
+                  style={[parkingModalStyles.carInfoInput, { fontFamily: getInputFontFamily(carColor, isRTL) }]}
                   placeholder={translations.carColor}
                   placeholderTextColor={PageColors.textMuted}
                   value={carColor}
@@ -1390,7 +1390,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
           selectedParkingOption !== 'parking_with_car_info' && { height: 0, overflow: 'hidden', marginTop: 0 }
         ]}>
           <TextInput
-            style={styles.carInfoInput}
+            style={[styles.carInfoInput, { fontFamily: getInputFontFamily(licensePlate, isRTL) }]}
             placeholder={t('visitorInvite.licensePlate')}
             placeholderTextColor={PageColors.textMuted}
             value={licensePlate}
@@ -1398,14 +1398,14 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
             autoCapitalize="characters"
           />
           <TextInput
-            style={styles.carInfoInput}
+            style={[styles.carInfoInput, { fontFamily: getInputFontFamily(carModel, isRTL) }]}
             placeholder={t('visitorInvite.carModel')}
             placeholderTextColor={PageColors.textMuted}
             value={carModel}
             onChangeText={setCarModel}
           />
           <TextInput
-            style={styles.carInfoInput}
+            style={[styles.carInfoInput, { fontFamily: getInputFontFamily(carColor, isRTL) }]}
             placeholder={t('visitorInvite.carColor')}
             placeholderTextColor={PageColors.textMuted}
             value={carColor}

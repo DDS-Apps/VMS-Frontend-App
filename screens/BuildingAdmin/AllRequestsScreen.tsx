@@ -11,7 +11,7 @@ import { ThemedView } from '@/components/ThemedView';
 import Spacer from '@/components/Spacer';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { CalendarDatePicker } from '@/components/CalendarDatePicker';
-import { Spacing, BorderRadius, Typography, StatusCardColors } from '@/constants/theme';
+import { Spacing, BorderRadius, Typography, StatusCardColors, getInputFontFamily } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useFormatters } from '@/hooks/useFormatters';
@@ -1057,6 +1057,7 @@ export default function AllRequestsScreen() {
                   backgroundColor: theme.background,
                   borderColor: theme.border,
                   color: theme.text,
+                  fontFamily: getInputFontFamily(rejectReason, isRTL),
                 }
               ]}
               value={rejectReason}

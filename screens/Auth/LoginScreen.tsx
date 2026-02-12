@@ -13,7 +13,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import Spacer from "@/components/Spacer";
-import { Spacing, BorderRadius, Typography, FontFamily, getLocaleFontFamily } from "@/constants/theme";
+import { Spacing, BorderRadius, Typography, FontFamily, getLocaleFontFamily, getInputFontFamily } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -350,7 +350,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                   styles.input,
                   {
                     color: theme.text,
-                    fontFamily: getLocaleFontFamily(FontFamily.latinRegular, isRTL),
+                    fontFamily: getInputFontFamily(email, isRTL),
                     writingDirection: isRTL ? "rtl" : "ltr",
                   },
                   Platform.OS === "web"
@@ -412,7 +412,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                   styles.input,
                   {
                     color: theme.text,
-                    fontFamily: getLocaleFontFamily(FontFamily.latinRegular, isRTL),
+                    fontFamily: getInputFontFamily(password, isRTL),
                     writingDirection: isRTL ? "rtl" : "ltr",
                   },
                   Platform.OS === "web"

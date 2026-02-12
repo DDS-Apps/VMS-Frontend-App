@@ -7,7 +7,7 @@ import { LoadingButton } from '@/components/shared/LoadingButton';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import Spacer from '@/components/Spacer';
-import { Spacing, BorderRadius, Typography } from '@/constants/theme';
+import { Spacing, BorderRadius, Typography, getInputFontFamily } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
 import { DirectionalRow } from '@/components/DirectionalRow';
@@ -301,7 +301,7 @@ export default function ParkingValetSettingsScreen() {
                     {t('form.fullName')} *
                   </ThemedText>
                   <TextInput
-                    style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
+                    style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border, fontFamily: getInputFontFamily(parkingForm.name, isRTL) }]}
                     value={parkingForm.name}
                     onChangeText={(text) => setParkingForm({ ...parkingForm, name: text })}
                     placeholder={t('form.enterFullName')}
@@ -314,7 +314,7 @@ export default function ParkingValetSettingsScreen() {
                     {t('invitation.location')} *
                   </ThemedText>
                   <TextInput
-                    style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
+                    style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border, fontFamily: getInputFontFamily(parkingForm.location, isRTL) }]}
                     value={parkingForm.location}
                     onChangeText={(text) => setParkingForm({ ...parkingForm, location: text })}
                     placeholder={t('invitation.location')}
@@ -327,7 +327,7 @@ export default function ParkingValetSettingsScreen() {
                     {t('parking.totalSlots')} *
                   </ThemedText>
                   <TextInput
-                    style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
+                    style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border, fontFamily: getInputFontFamily(parkingForm.totalSpots, isRTL) }]}
                     value={parkingForm.totalSpots}
                     onChangeText={(text) => setParkingForm({ ...parkingForm, totalSpots: text })}
                     placeholder="50"
@@ -352,7 +352,7 @@ export default function ParkingValetSettingsScreen() {
                     {t('form.fullName')} *
                   </ThemedText>
                   <TextInput
-                    style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
+                    style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border, fontFamily: getInputFontFamily(valetForm.name, isRTL) }]}
                     value={valetForm.name}
                     onChangeText={(text) => setValetForm({ ...valetForm, name: text })}
                     placeholder={t('form.enterFullName')}
@@ -365,7 +365,7 @@ export default function ParkingValetSettingsScreen() {
                     {t('invitation.location')} *
                   </ThemedText>
                   <TextInput
-                    style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
+                    style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border, fontFamily: getInputFontFamily(valetForm.location, isRTL) }]}
                     value={valetForm.location}
                     onChangeText={(text) => setValetForm({ ...valetForm, location: text })}
                     placeholder={t('invitation.location')}
@@ -378,7 +378,7 @@ export default function ParkingValetSettingsScreen() {
                     {t('buffet.numberOfGuests')} *
                   </ThemedText>
                   <TextInput
-                    style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
+                    style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border, fontFamily: getInputFontFamily(valetForm.capacity, isRTL) }]}
                     value={valetForm.capacity}
                     onChangeText={(text) => setValetForm({ ...valetForm, capacity: text })}
                     placeholder="30"

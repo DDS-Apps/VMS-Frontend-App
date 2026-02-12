@@ -11,7 +11,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { LoadingButton } from "@/components/shared/LoadingButton";
 import Spacer from "@/components/Spacer";
 import { DirectionalRow } from "@/components/DirectionalRow";
-import { Spacing, BorderRadius, Typography } from "@/constants/theme";
+import { Spacing, BorderRadius, Typography, getInputFontFamily } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
@@ -337,7 +337,7 @@ export default function EditProfileScreen({
             backgroundColor: editable ? theme.surface : applyOpacity(theme.surfaceSecondary, '60'),
             borderColor: error ? theme.error : theme.border,
             color: editable ? theme.text : theme.textSecondary,
-            
+            fontFamily: getInputFontFamily(value, isRTL),
           },
         ]}
         value={value}
@@ -589,6 +589,7 @@ export default function EditProfileScreen({
                       backgroundColor: theme.surface,
                       borderColor: theme.border,
                       color: theme.text,
+                      fontFamily: getInputFontFamily(businessPhoneExt, isRTL),
                     },
                   ]}
                   value={businessPhoneExt}

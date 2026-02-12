@@ -6,7 +6,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { LoadingButton } from "@/components/shared/LoadingButton";
 import Spacer from "@/components/Spacer";
-import { Spacing, BorderRadius, Typography } from "@/constants/theme";
+import { Spacing, BorderRadius, Typography, getInputFontFamily } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -300,7 +300,7 @@ export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLo
                 {t('invitation.location')}
               </ThemedText>
               <TextInput
-                style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
+                style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border, fontFamily: getInputFontFamily(formData.name, isRTL) }]}
                 value={formData.name}
                 onChangeText={(text) => setFormData({ ...formData, name: text })}
                 placeholder={t('invitation.location')}
@@ -315,7 +315,7 @@ export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLo
                 {t('buffet.numberOfGuests')}
               </ThemedText>
               <TextInput
-                style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
+                style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border, fontFamily: getInputFontFamily(formData.capacity, isRTL) }]}
                 value={formData.capacity}
                 onChangeText={(text) => setFormData({ ...formData, capacity: text })}
                 placeholder={t('buffet.numberOfGuests')}
@@ -331,7 +331,7 @@ export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLo
                 {t('parking.floor')}
               </ThemedText>
               <TextInput
-                style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
+                style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border, fontFamily: getInputFontFamily(formData.building, isRTL) }]}
                 value={formData.building}
                 onChangeText={(text) => setFormData({ ...formData, building: text })}
                 placeholder={t('parking.floor')}
@@ -346,7 +346,7 @@ export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLo
                 {t('parking.floor')}
               </ThemedText>
               <TextInput
-                style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
+                style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border, fontFamily: getInputFontFamily(formData.floor, isRTL) }]}
                 value={formData.floor}
                 onChangeText={(text) => setFormData({ ...formData, floor: text })}
                 placeholder={t('parking.floor')}

@@ -7,7 +7,7 @@ import { ScreenKeyboardAwareScrollView } from "@/components/ScreenKeyboardAwareS
 import { ThemedText } from "@/components/ThemedText";
 import { LoadingButton } from "@/components/shared/LoadingButton";
 import Spacer from "@/components/Spacer";
-import { Spacing, BorderRadius, Colors } from "@/constants/theme";
+import { Spacing, BorderRadius, Colors, getInputFontFamily } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -123,7 +123,7 @@ export default function BuffetAdminCreateLocationScreen({ navigation }: BuffetAd
               backgroundColor: theme.surface,
               color: theme.text,
               borderColor: theme.border,
-              
+              fontFamily: getInputFontFamily(name, isRTL),
             }
           ]}
           value={name}
@@ -148,7 +148,7 @@ export default function BuffetAdminCreateLocationScreen({ navigation }: BuffetAd
               backgroundColor: theme.surface,
               color: theme.text,
               borderColor: theme.border,
-              
+              fontFamily: getInputFontFamily(building, isRTL),
             }
           ]}
           value={building}
@@ -173,7 +173,7 @@ export default function BuffetAdminCreateLocationScreen({ navigation }: BuffetAd
               backgroundColor: theme.surface,
               color: theme.text,
               borderColor: theme.border,
-              
+              fontFamily: getInputFontFamily(floor, isRTL),
             }
           ]}
           value={floor}
@@ -198,7 +198,7 @@ export default function BuffetAdminCreateLocationScreen({ navigation }: BuffetAd
               backgroundColor: theme.surface,
               color: theme.text,
               borderColor: theme.border,
-              
+              fontFamily: getInputFontFamily(capacity, isRTL),
             }
           ]}
           value={capacity}
@@ -225,7 +225,7 @@ export default function BuffetAdminCreateLocationScreen({ navigation }: BuffetAd
               backgroundColor: theme.surface,
               color: theme.text,
               borderColor: theme.border,
-              
+              fontFamily: getInputFontFamily(description, isRTL),
             }
           ]}
           value={description}

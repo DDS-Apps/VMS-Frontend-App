@@ -37,7 +37,7 @@ import {
 } from "@/components/SelectableCard";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { Spacing, BorderRadius, Typography, FontFamily, getLocaleFontFamily } from "@/constants/theme";
+import { Spacing, BorderRadius, Typography, FontFamily, getLocaleFontFamily, getInputFontFamily } from "@/constants/theme";
 import { REQUEST_STATUS } from "@/constants/requestConstants";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -2256,7 +2256,7 @@ export default function ManagerApprovalDetailScreen({
                     borderColor: theme.border,
                     backgroundColor: theme.background,
                     color: theme.text,
-                    fontFamily: getLocaleFontFamily(FontFamily.latinRegular, isRTL),
+                    fontFamily: getInputFontFamily(rejectionReason, isRTL),
                   },
                 ]}
                 placeholder={t("form.enterNotes")}

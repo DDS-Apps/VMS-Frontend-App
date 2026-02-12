@@ -6,7 +6,7 @@ import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
-import { Spacing, BorderRadius, Typography } from "@/constants/theme";
+import { Spacing, BorderRadius, Typography, getInputFontFamily } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { createModalOverlayStyle } from "@/utils/statusStyles";
@@ -489,7 +489,7 @@ export default function BuffetAdministrationScreen() {
                   {t('form.fullName')} *
                 </ThemedText>
                 <TextInput
-                  style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
+                  style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border, fontFamily: getInputFontFamily(formData.name, isRTL) }]}
                   placeholder={t('form.enterFullName')}
                   placeholderTextColor={theme.textSecondary}
                   value={formData.name}
@@ -502,7 +502,7 @@ export default function BuffetAdministrationScreen() {
                   {t('parking.floor')} *
                 </ThemedText>
                 <TextInput
-                  style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
+                  style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border, fontFamily: getInputFontFamily(formData.floor, isRTL) }]}
                   placeholder={t('parking.floor')}
                   placeholderTextColor={theme.textSecondary}
                   value={formData.floor}
@@ -515,7 +515,7 @@ export default function BuffetAdministrationScreen() {
                   {t('form.time')} *
                 </ThemedText>
                 <TextInput
-                  style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
+                  style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border, fontFamily: getInputFontFamily(formData.hours, isRTL) }]}
                   placeholder="7:00 AM - 6:00 PM"
                   placeholderTextColor={theme.textSecondary}
                   value={formData.hours}
@@ -528,7 +528,7 @@ export default function BuffetAdministrationScreen() {
                   {t('buffet.numberOfGuests')} *
                 </ThemedText>
                 <TextInput
-                  style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
+                  style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border, fontFamily: getInputFontFamily(formData.capacity, isRTL) }]}
                   placeholder="150"
                   placeholderTextColor={theme.textSecondary}
                   value={formData.capacity}
@@ -613,7 +613,7 @@ export default function BuffetAdministrationScreen() {
                   {t('form.fullName')} *
                 </ThemedText>
                 <TextInput
-                  style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
+                  style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border, fontFamily: getInputFontFamily(formData.name, isRTL) }]}
                   placeholder={t('form.enterFullName')}
                   placeholderTextColor={theme.textSecondary}
                   value={formData.name}
@@ -626,7 +626,7 @@ export default function BuffetAdministrationScreen() {
                   {t('parking.floor')} *
                 </ThemedText>
                 <TextInput
-                  style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
+                  style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border, fontFamily: getInputFontFamily(formData.floor, isRTL) }]}
                   placeholder={t('parking.floor')}
                   placeholderTextColor={theme.textSecondary}
                   value={formData.floor}
@@ -639,7 +639,7 @@ export default function BuffetAdministrationScreen() {
                   {t('form.time')} *
                 </ThemedText>
                 <TextInput
-                  style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
+                  style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border, fontFamily: getInputFontFamily(formData.hours, isRTL) }]}
                   placeholder="7:00 AM - 6:00 PM"
                   placeholderTextColor={theme.textSecondary}
                   value={formData.hours}
@@ -652,7 +652,7 @@ export default function BuffetAdministrationScreen() {
                   {t('buffet.numberOfGuests')} *
                 </ThemedText>
                 <TextInput
-                  style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
+                  style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border, fontFamily: getInputFontFamily(formData.capacity, isRTL) }]}
                   placeholder="150"
                   placeholderTextColor={theme.textSecondary}
                   value={formData.capacity}
