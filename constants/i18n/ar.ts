@@ -304,6 +304,7 @@ export const ar: TranslationKeys = {
     idNumberPlaceholder: 'أدخل رقم الهوية',
     nationalId: 'الهوية الوطنية',
     passport: 'جواز السفر',
+    iqama: 'إقامة',
     driverLicense: 'رخصة القيادة',
     selectEndTime: 'يرجى تحديد وقت انتهاء لهذه الزيارة',
     walkIn: 'زائر بدون موعد',

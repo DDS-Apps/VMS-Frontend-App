@@ -81,8 +81,8 @@ interface VisitorRequestFormScreenPropsExtended
 const ID_TYPE_OPTIONS: { value: VisitorIdType; labelKey: string }[] = [
   { value: "national_id", labelKey: "visitor.nationalId" },
   { value: "passport", labelKey: "visitor.passport" },
+  { value: "iqama", labelKey: "visitor.iqama" },
   { value: "driver_license", labelKey: "visitor.driverLicense" },
-  { value: "other", labelKey: "common.other" },
 ];
 
 export default function VisitorRequestFormScreen({

@@ -304,6 +304,7 @@ export interface TranslationKeys {
     idNumberPlaceholder: string;
     nationalId: string;
     passport: string;
+    iqama: string;
     driverLicense: string;
     selectEndTime: string;
     walkIn: string;

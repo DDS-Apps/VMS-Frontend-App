@@ -10,7 +10,7 @@ export type ReceptionAlertType =
 
 export type RoomStatus = 'available' | 'occupied' | 'reserved' | 'maintenance';
 
-export type VisitorIdType = 'national_id' | 'passport' | 'driver_license' | 'other';
+export type VisitorIdType = 'national_id' | 'passport' | 'iqama' | 'driver_license';
 
 export type CommunicationChannel = 'sms' | 'email' | 'whatsapp' | 'call';
 

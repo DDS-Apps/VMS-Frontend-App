@@ -304,6 +304,7 @@ export const en: TranslationKeys = {
     idNumberPlaceholder: 'Enter ID number',
     nationalId: 'National ID',
     passport: 'Passport',
+    iqama: 'Iqama',
     driverLicense: "Driver's License",
     selectEndTime: 'Please select an end time for this visit',
     walkIn: 'Walk-In',
