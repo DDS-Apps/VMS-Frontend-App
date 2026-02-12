@@ -575,7 +575,9 @@ const styles = StyleSheet.create({
   },
   avatarText: {
     fontSize: 16,
+    lineHeight: 18,
     fontWeight: '600',
+    textAlignVertical: 'center',
   },
   headerInfo: {
     marginStart: Spacing.md,

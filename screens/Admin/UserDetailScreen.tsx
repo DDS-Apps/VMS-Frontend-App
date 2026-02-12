@@ -425,8 +425,9 @@ const styles = StyleSheet.create({
   },
   avatarText: {
     fontSize: 28,
-    lineHeight: 36,
+    lineHeight: 30,
     fontWeight: '700',
+    textAlignVertical: 'center',
   },
   badgeRow: {
     flexWrap: 'wrap',

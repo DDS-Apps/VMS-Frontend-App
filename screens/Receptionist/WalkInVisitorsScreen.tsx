@@ -439,7 +439,9 @@ const styles = StyleSheet.create({
   },
   avatarText: {
     fontSize: 14,
+    lineHeight: 16,
     fontWeight: '700',
+    textAlignVertical: 'center',
   },
   nameSection: {
     flex: 1,

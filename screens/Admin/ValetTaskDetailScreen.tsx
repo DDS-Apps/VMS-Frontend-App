@@ -561,8 +561,9 @@ const styles = StyleSheet.create({
   },
   avatarText: {
     fontSize: 32,
-    lineHeight: 40,
+    lineHeight: 34,
     fontWeight: '700',
+    textAlignVertical: 'center',
   },
   serviceRowNew: {
     alignItems: 'flex-start',

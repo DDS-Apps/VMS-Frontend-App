@@ -1582,9 +1582,10 @@ const styles = StyleSheet.create({
   },
   avatarText: {
     fontSize: 24,
-    lineHeight: 32,
+    lineHeight: 26,
     fontWeight: '700',
     color: PageColors.background,
+    textAlignVertical: 'center',
   },
   visitorName: {
     fontSize: 20,

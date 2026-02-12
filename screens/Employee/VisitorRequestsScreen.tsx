@@ -1296,6 +1296,7 @@ const styles = StyleSheet.create({
   },
   avatarText: {
     fontWeight: "700",
+    textAlignVertical: 'center',
   },
   servicesRow: {
     gap: 8,

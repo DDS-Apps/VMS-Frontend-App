@@ -723,8 +723,10 @@ const styles = StyleSheet.create({
   },
   avatarText: {
     fontSize: 18,
+    lineHeight: 20,
     fontWeight: '600',
     fontFamily: FontFamily.latinSemiBold,
+    textAlignVertical: 'center',
   },
   divider: {
     height: 1,

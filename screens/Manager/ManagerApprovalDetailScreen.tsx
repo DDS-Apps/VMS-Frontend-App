@@ -931,7 +931,7 @@ export default function ManagerApprovalDetailScreen({
                   ]}
                 >
                   <ThemedText
-                    style={[styles.avatarTextNew, { color: theme.primary, fontSize: 20 }]}
+                    style={[styles.avatarTextNew, { color: theme.primary, fontSize: 20, lineHeight: 22 }]}
                   >
                     {initials}
                   </ThemedText>
@@ -2653,8 +2653,9 @@ const styles = StyleSheet.create({
   },
   avatarTextNew: {
     fontSize: 32,
-    lineHeight: 40,
+    lineHeight: 34,
     fontWeight: "700",
+    textAlignVertical: 'center',
   },
 
   statusHeader: {
@@ -2705,7 +2706,9 @@ const styles = StyleSheet.create({
   },
   avatarText: {
     fontSize: 20,
+    lineHeight: 22,
     fontWeight: "700",
+    textAlignVertical: 'center',
   },
   visitorInfo: {
     flex: 1,

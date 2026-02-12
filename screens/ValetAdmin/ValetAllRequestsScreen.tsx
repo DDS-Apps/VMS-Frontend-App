@@ -520,6 +520,7 @@ const styles = StyleSheet.create({
   },
   avatarText: {
     fontWeight: '600',
+    textAlignVertical: 'center',
   },
   detailsRow: {
     alignItems: 'center',
