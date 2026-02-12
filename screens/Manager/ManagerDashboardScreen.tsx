@@ -801,7 +801,7 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
       <View style={[styles.searchBar, { backgroundColor: theme.surfaceSecondary, borderColor: theme.border }]}>
         <DDIcon name="search" size={20} variant="muted" />
         <TextInput
-          style={[styles.searchInput, { color: theme.text, fontFamily: getInputFontFamily(searchQuery, isRTL) }]}
+          style={[styles.searchInput, { color: theme.text, fontFamily: getInputFontFamily(searchQuery, isRTL), textAlign: isRTL ? 'right' : 'left', writingDirection: isRTL ? 'rtl' : 'ltr' }]}
           placeholder={t('common.search')}
           placeholderTextColor={theme.textSecondary}
           value={searchQuery}
