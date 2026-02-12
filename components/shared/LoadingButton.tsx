@@ -43,9 +43,9 @@ const springConfig: WithSpringConfig = {
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 const sizeStyles: Record<ButtonSize, { minHeight: number; paddingHorizontal: number; fontSize: number; lineHeight: number; iconSize: number }> = {
-  small: { minHeight: 36, paddingHorizontal: Spacing.md, fontSize: 14, lineHeight: 22, iconSize: 16 },
-  medium: { minHeight: 44, paddingHorizontal: Spacing.lg, fontSize: 16, lineHeight: 26, iconSize: 18 },
-  large: { minHeight: 52, paddingHorizontal: Spacing.xl, fontSize: 18, lineHeight: 28, iconSize: 20 },
+  small: { minHeight: 36, paddingHorizontal: Spacing.md, fontSize: 14, lineHeight: 25, iconSize: 16 },
+  medium: { minHeight: 44, paddingHorizontal: Spacing.lg, fontSize: 16, lineHeight: 30, iconSize: 18 },
+  large: { minHeight: 52, paddingHorizontal: Spacing.xl, fontSize: 18, lineHeight: 32, iconSize: 20 },
 };
 
 export const LoadingButton = ({
