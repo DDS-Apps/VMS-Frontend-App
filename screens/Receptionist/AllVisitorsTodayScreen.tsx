@@ -541,6 +541,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     bottom: 0,
+    start: 0,
     width: 3,
     borderTopStartRadius: BorderRadius.lg,
     borderBottomStartRadius: BorderRadius.lg,
