@@ -8,7 +8,7 @@ import {
 
 import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Typography, FontFamily, getLocaleFontFamily } from "@/constants/theme";
+import { Typography, FontFamily, getLocaleFontFamily, containsArabic } from "@/constants/theme";
 import { getPlatformTextAlign } from "@/utils/rtlInitializer";
 import {
   arabicFontSize,
@@ -53,6 +53,11 @@ export function ThemedText({
   const { isRTL } = useLanguage();
 
   const textVariant = variant || type || "body";
+
+  const childrenText = typeof rest.children === 'string' ? rest.children : 
+    (Array.isArray(rest.children) ? rest.children.filter(c => typeof c === 'string').join('') : '');
+  const contentHasArabic = !isRTL && containsArabic(childrenText);
+  const useArabicFont = isRTL || contentHasArabic;
 
   const writingDirection = isRTL ? "rtl" : "ltr";
   // Platform-aware text alignment:
@@ -138,12 +143,12 @@ export function ThemedText({
       letterSpacing: number;
     };
     const scaleForArabic = <T extends TypographyStyle>(baseStyle: T): T => {
-      if (!isRTL) return baseStyle;
+      if (!useArabicFont) return baseStyle;
       return {
         ...baseStyle,
-        fontFamily: getLocaleFontFamily(baseStyle.fontFamily, isRTL),
-        fontSize: arabicFontSize(baseStyle.fontSize, isRTL, category),
-        lineHeight: arabicLineHeight(baseStyle.lineHeight, isRTL, category),
+        fontFamily: getLocaleFontFamily(baseStyle.fontFamily, true),
+        fontSize: arabicFontSize(baseStyle.fontSize, true, category),
+        lineHeight: arabicLineHeight(baseStyle.lineHeight, true, category),
       };
     };
 
@@ -182,7 +187,7 @@ export function ThemedText({
 
   // Extract and scale custom fontSize from style prop for Arabic
   const getScaledCustomStyle = (): TextStyle | null => {
-    if (!style || !isRTL) return null;
+    if (!style || !useArabicFont) return null;
 
     // Flatten style array if needed
     const flatStyle = StyleSheet.flatten(style);
@@ -202,6 +207,11 @@ export function ThemedText({
       scaledStyle.lineHeight = Math.round(
         flatStyle.lineHeight * ArabicFontScaling[category],
       );
+    }
+
+    // Map fontFamily override to Arabic equivalent
+    if (typeof flatStyle.fontFamily === "string") {
+      scaledStyle.fontFamily = getLocaleFontFamily(flatStyle.fontFamily, true);
     }
 
     return Object.keys(scaledStyle).length > 0 ? scaledStyle : null;

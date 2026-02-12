@@ -688,7 +688,7 @@ export default function DashboardLayout({
                       { opacity: pressed ? 0.7 : 1 }
                     ]}
                   >
-                    <DirectionalRow style={{ alignItems: 'center' }}>
+                    <DirectionalRow style={{ alignItems: 'center' }} gap={Spacing.sm}>
                       {userPhotoUrl ? (
                         <Image
                           source={{ uri: userPhotoUrl }}
@@ -702,7 +702,7 @@ export default function DashboardLayout({
                           </ThemedText>
                         </View>
                       )}
-                      <ThemedText style={[Typography.body, { marginStart: Spacing.sm, fontWeight: '500' }]}>
+                      <ThemedText style={[Typography.body, { fontWeight: '500' }]}>
                         {userName}
                       </ThemedText>
                       <DDIcon name="chevron-down" size={16} color={theme.textSecondary} />

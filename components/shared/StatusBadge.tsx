@@ -50,7 +50,6 @@ export const StatusBadge = ({
       { 
         color,
         fontSize: isSmall ? 11 : 12,
-        marginStart: icon ? Spacing.xs : 0,
       }
     ]}>
       {label}
@@ -65,7 +64,7 @@ export const StatusBadge = ({
         paddingHorizontal: isSmall ? Spacing.sm : Spacing.md,
         paddingVertical: isSmall ? Spacing.xs / 2 : Spacing.xs,
       }
-    ]}>
+    ]} gap={icon ? Spacing.xs : 0}>
       {iconEl}
       {textEl}
     </DirectionalRow>
