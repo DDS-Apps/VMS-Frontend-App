@@ -1022,7 +1022,7 @@ export default function ManagerApprovalDetailScreen({
                     <DDIcon name="phone" size={16} color={theme.text} />
                   </View>
                   <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 13, writingDirection: 'ltr' }]}>
-                    {request.visitor.phone}
+                    {formatPhoneNumber(request.visitor.phone || '')}
                   </ThemedText>
                 </DirectionalRow>
               </DirectionalRow>
@@ -1131,7 +1131,7 @@ export default function ManagerApprovalDetailScreen({
                 <ThemedText
                   style={[Typography.caption, { color: theme.textSecondary, fontSize: 13, flex: 1, writingDirection: 'ltr' }]}
                 >
-                  {request.visitor.phone}
+                  {formatPhoneNumber(request.visitor.phone || '')}
                 </ThemedText>
               </DirectionalRow>
             </>
