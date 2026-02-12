@@ -1021,7 +1021,7 @@ export default function ManagerApprovalDetailScreen({
                   >
                     <DDIcon name="phone" size={16} color={theme.text} />
                   </View>
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 13 }]}>
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 13, writingDirection: 'ltr' }]}>
                     {request.visitor.phone}
                   </ThemedText>
                 </DirectionalRow>
@@ -1129,7 +1129,7 @@ export default function ManagerApprovalDetailScreen({
                   <DDIcon name="phone" size={18} color={theme.text} />
                 </View>
                 <ThemedText
-                  style={[Typography.caption, { color: theme.textSecondary, fontSize: 13, flex: 1 }]}
+                  style={[Typography.caption, { color: theme.textSecondary, fontSize: 13, flex: 1, writingDirection: 'ltr' }]}
                 >
                   {request.visitor.phone}
                 </ThemedText>
@@ -1508,7 +1508,7 @@ export default function ManagerApprovalDetailScreen({
                           {t("form.phone")}
                         </ThemedText>
                         <ThemedText
-                          style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}
+                          style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, writingDirection: 'ltr' }]}
                         >
                           {formatPhoneNumber(request.employeePhoneNumber || '')}
                         </ThemedText>
@@ -1537,7 +1537,7 @@ export default function ManagerApprovalDetailScreen({
                           {t("form.landline")}
                         </ThemedText>
                         <ThemedText
-                          style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}
+                          style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, writingDirection: 'ltr' }]}
                         >
                           {formatPhoneForDisplay(request.employeeBusinessPhone || '')}
                         </ThemedText>

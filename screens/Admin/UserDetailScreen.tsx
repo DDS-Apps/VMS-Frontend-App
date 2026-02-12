@@ -204,7 +204,7 @@ export default function UserDetailScreen() {
                   <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
                     {t('form.phone')}
                   </ThemedText>
-                  <ThemedText style={[Typography.body, {}]}>{formatPhoneNumber(userPhone)}</ThemedText>
+                  <ThemedText style={[Typography.body, { writingDirection: 'ltr' }]}>{formatPhoneNumber(userPhone)}</ThemedText>
                 </View>
               </DirectionalRow>
             </>
@@ -219,7 +219,7 @@ export default function UserDetailScreen() {
                   <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
                     {t('form.businessPhone')}
                   </ThemedText>
-                  <ThemedText style={[Typography.body, {}]}>{formatPhoneForDisplay(userBusinessPhone)}</ThemedText>
+                  <ThemedText style={[Typography.body, { writingDirection: 'ltr' }]}>{formatPhoneForDisplay(userBusinessPhone)}</ThemedText>
                 </View>
               </DirectionalRow>
             </>
@@ -234,7 +234,7 @@ export default function UserDetailScreen() {
                   <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
                     {t('form.landline')}
                   </ThemedText>
-                  <ThemedText style={[Typography.body, {}]}>{formatPhoneForDisplay(userLandline)}</ThemedText>
+                  <ThemedText style={[Typography.body, { writingDirection: 'ltr' }]}>{formatPhoneForDisplay(userLandline)}</ThemedText>
                 </View>
               </DirectionalRow>
             </>

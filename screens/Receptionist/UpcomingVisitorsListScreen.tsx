@@ -172,7 +172,7 @@ export default function UpcomingVisitorsListScreen() {
                 {item.visitor.phone ? (
                   <DirectionalRow style={styles.expandedDetailRow}>
                     <DDIcon name="phone" size={14} variant="muted" />
-                    <ThemedText style={[styles.expandedDetailText, { color: theme.textSecondary, marginEnd: 8 }]}>
+                    <ThemedText style={[styles.expandedDetailText, { color: theme.textSecondary, marginEnd: 8, writingDirection: 'ltr' }]}>
                       {item.visitor.phone}
                     </ThemedText>
                   </DirectionalRow>

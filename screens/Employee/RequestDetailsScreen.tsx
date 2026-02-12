@@ -1392,7 +1392,7 @@ export default function RequestDetailsScreen({
                   >
                     <DDIcon name="phone" size={16} color={theme.text} />
                   </View>
-                  <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14 }]}>
+                  <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, writingDirection: 'ltr' }]}>
                     {formatPhoneForDisplay(request.visitor.phone || '')}
                   </ThemedText>
                 </DirectionalRow>
@@ -1487,7 +1487,7 @@ export default function RequestDetailsScreen({
                 >
                   <DDIcon name="phone" size={18} color={theme.text} />
                 </View>
-                <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14 }]}>
+                <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, writingDirection: 'ltr' }]}>
                   {formatPhoneForDisplay(request.visitor.phone || '')}
                 </ThemedText>
               </DirectionalRow>
@@ -1791,7 +1791,7 @@ export default function RequestDetailsScreen({
                         <ThemedText
                           style={[
                             Typography.caption,
-                            { color: theme.textSecondary, marginTop: 2, fontSize: 13 },
+                            { color: theme.textSecondary, marginTop: 2, fontSize: 13, writingDirection: 'ltr' },
                           ]}
                         >
                           {formatPhoneNumber(request.employeePhoneNumber || '')}
@@ -1825,7 +1825,7 @@ export default function RequestDetailsScreen({
                         <ThemedText
                           style={[
                             Typography.caption,
-                            { color: theme.textSecondary, marginTop: 2, fontSize: 13 },
+                            { color: theme.textSecondary, marginTop: 2, fontSize: 13, writingDirection: 'ltr' },
                           ]}
                         >
                           {formatPhoneForDisplay(request.employeeBusinessPhone || '')}

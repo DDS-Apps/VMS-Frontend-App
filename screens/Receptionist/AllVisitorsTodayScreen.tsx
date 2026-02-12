@@ -343,7 +343,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
                 {item.visitor.phone ? (
                   <DirectionalRow style={styles.expandedDetailRow}>
                     <DDIcon name="phone" size={14} color={theme.textSecondary} />
-                    <ThemedText style={[styles.expandedDetailText, { color: theme.text }]} numberOfLines={1}>
+                    <ThemedText style={[styles.expandedDetailText, { color: theme.text, writingDirection: 'ltr' }]} numberOfLines={1}>
                       {formatPhoneNumber(item.visitor.phone)}
                     </ThemedText>
                   </DirectionalRow>

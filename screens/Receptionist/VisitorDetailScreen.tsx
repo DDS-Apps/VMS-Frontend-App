@@ -355,7 +355,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
                 <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15'), width: 32, height: 32 }]}>
                   <DDIcon name="phone" size={16} color={theme.text} />
                 </View>
-                <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14 }]}>
+                <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, writingDirection: 'ltr' }]}>
                   {visitor.phone ? formatPhoneNumber(visitor.phone) : '-'}
                 </ThemedText>
               </DirectionalRow>
@@ -410,7 +410,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
               <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
                 <DDIcon name="phone" size={16} color={theme.text} />
               </View>
-              <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14 }]}>
+              <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, writingDirection: 'ltr' }]}>
                 {visitor.phone ? formatPhoneNumber(visitor.phone) : '-'}
               </ThemedText>
             </DirectionalRow>
@@ -447,9 +447,9 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
             {t('visitor.visitorDetails')}
           </ThemedText>
           {visitor.isWalkIn ? (
-            <DirectionalRow style={{ backgroundColor: applyOpacity(theme.warning, '15'), paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: BorderRadius.sm }}>
+            <DirectionalRow style={{ backgroundColor: applyOpacity(theme.warning, '15'), paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: BorderRadius.sm }} gap={Spacing.xs}>
               <DDIcon name="user-check" size={14} color={theme.warning} />
-              <ThemedText style={[Typography.caption, { color: theme.warning, fontWeight: '600', marginStart: Spacing.xs, fontSize: 11 }]}>
+              <ThemedText style={[Typography.caption, { color: theme.warning, fontWeight: '600', fontSize: 11 }]}>
                 {t('reception.walkInVisitor')}
               </ThemedText>
             </DirectionalRow>
@@ -670,7 +670,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
                       <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
                         {t('form.phone')}
                       </ThemedText>
-                      <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+                      <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, writingDirection: 'ltr' }]}>
                         {formatPhoneNumber(visitor.hostPhone || '')}
                       </ThemedText>
                     </View>
@@ -690,7 +690,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
                       <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
                         {t('form.landline')}
                       </ThemedText>
-                      <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+                      <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, writingDirection: 'ltr' }]}>
                         {formatPhoneForDisplay(visitor.hostLandline || '')}
                       </ThemedText>
                     </View>

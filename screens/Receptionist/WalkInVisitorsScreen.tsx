@@ -272,7 +272,7 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
                 {item.visitor.phone ? (
                   <DirectionalRow style={styles.expandedDetailRow}>
                     <DDIcon name="phone" size={14} color={theme.textSecondary} />
-                    <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: 'right', marginEnd: 8 }]} numberOfLines={1}>
+                    <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: 'right', marginEnd: 8, writingDirection: 'ltr' }]} numberOfLines={1}>
                       {item.visitor.phone}
                     </ThemedText>
                   </DirectionalRow>

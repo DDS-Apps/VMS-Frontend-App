@@ -153,7 +153,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                 <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15'), width: 32, height: 32 }]}>
                   <DDIcon name="phone" size={16} color={theme.text} />
                 </View>
-                <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14 }]}>
+                <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, writingDirection: 'ltr' }]}>
                   {visitorData.visitorPhone ? formatPhoneNumber(visitorData.visitorPhone) : '-'}
                 </ThemedText>
               </DirectionalRow>
@@ -218,7 +218,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
               <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
                 <DDIcon name="phone" size={18} color={theme.text} />
               </View>
-              <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14 }]}>
+              <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, writingDirection: 'ltr' }]}>
                 {visitorData.visitorPhone ? formatPhoneNumber(visitorData.visitorPhone) : '-'}
               </ThemedText>
             </DirectionalRow>
@@ -327,7 +327,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
                   {t('form.phone')}
                 </ThemedText>
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, writingDirection: 'ltr' }]}>
                   {visitorData.hostPhoneNumber ? formatPhoneNumber(visitorData.hostPhoneNumber) : '-'}
                 </ThemedText>
               </View>
@@ -344,7 +344,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
                   {t('form.landline')}
                 </ThemedText>
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, writingDirection: 'ltr' }]}>
                   {visitorData.hostBusinessPhone ? formatPhoneForDisplay(visitorData.hostBusinessPhone) : '-'}
                 </ThemedText>
               </View>

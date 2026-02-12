@@ -749,7 +749,7 @@ export default function UsersRolesScreen() {
                   <ThemedText
                     style={[
                       styles.cardInfoText,
-                      { color: theme.textSecondary },
+                      { color: theme.textSecondary, writingDirection: 'ltr' },
                     ]}
                     numberOfLines={2}
                   >

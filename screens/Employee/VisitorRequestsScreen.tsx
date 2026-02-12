@@ -540,6 +540,7 @@ const VisitorRequestTableRow = React.memo(
                           marginStart: 8,
                           color: theme.textSecondary,
                           flex: 1,
+                          writingDirection: 'ltr',
                         },
                       ]}
                       numberOfLines={1}

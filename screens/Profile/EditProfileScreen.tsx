@@ -531,7 +531,7 @@ export default function EditProfileScreen({
               </DirectionalRow>
             </DirectionalRow>
             <View style={[styles.input, { backgroundColor: applyOpacity(theme.surfaceSecondary, '60'), borderColor: theme.border }]}>
-              <ThemedText style={{ color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }}>
+              <ThemedText style={{ color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left', writingDirection: 'ltr' }}>
                 {phone ? formatPhoneNumber(phone) : t('form.notProvided')}
               </ThemedText>
             </View>
@@ -562,7 +562,7 @@ export default function EditProfileScreen({
               </DirectionalRow>
             </DirectionalRow>
             <View style={[styles.input, { backgroundColor: applyOpacity(theme.surfaceSecondary, '60'), borderColor: theme.border }]}>
-              <ThemedText style={{ color: theme.textSecondary }}>
+              <ThemedText style={{ color: theme.textSecondary, writingDirection: 'ltr' }}>
                 {businessPhone ? `${formatPhoneNumber(businessPhone)}${businessPhoneExt ? ` ext. ${businessPhoneExt}` : ''}` : t('form.notProvided')}
               </ThemedText>
             </View>
