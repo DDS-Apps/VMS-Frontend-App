@@ -624,8 +624,7 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
           </ThemedText>
         </Pressable>
         
-        {/* Status filter chips */}
-        {STATUS_FILTER_OPTIONS.map((option) => {
+        {!isWalkInFilter ? STATUS_FILTER_OPTIONS.map((option) => {
           const isSelected = selectedStatuses.has(option.key);
           const chipColor = getStatusChipColor(option.key);
           return (
@@ -651,7 +650,7 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
               </ThemedText>
             </Pressable>
           );
-        })}
+        }) : null}
       </ScrollView>
 
       <Spacer height={Spacing.md} />
