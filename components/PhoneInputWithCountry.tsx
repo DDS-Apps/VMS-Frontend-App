@@ -508,15 +508,16 @@ const styles = StyleSheet.create({
   },
   dialCodeText: {
     fontSize: 14,
-    lineHeight: 22,
+    lineHeight: 24,
     fontWeight: '500',
   },
   phoneInput: {
     flex: 1,
     paddingHorizontal: Spacing.md,
     fontSize: 16,
-    lineHeight: 26,
-    minHeight: 52,
+    lineHeight: 30,
+    minHeight: 58,
+    paddingVertical: 6,
   },
   // Android half-screen modal
   androidModalOverlay: {

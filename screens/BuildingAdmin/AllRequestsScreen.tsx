@@ -1194,7 +1194,7 @@ const styles = StyleSheet.create({
   },
   filterChipText: {
     fontSize: 13,
-    lineHeight: 22,
+    lineHeight: 24,
     fontWeight: '500',
   },
   statusChip: {
@@ -1205,7 +1205,7 @@ const styles = StyleSheet.create({
   },
   statusChipText: {
     fontSize: 12,
-    lineHeight: 20,
+    lineHeight: 22,
     fontWeight: '500',
   },
   resultsSummary: {

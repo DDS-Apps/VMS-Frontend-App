@@ -761,6 +761,7 @@ const styles = StyleSheet.create({
   },
   filterChipText: {
     fontSize: 12,
+    lineHeight: 22,
     fontWeight: '600' as const,
   },
   visitorCard: {
@@ -953,6 +954,7 @@ const styles = StyleSheet.create({
   },
   statusChipText: {
     fontSize: 12,
+    lineHeight: 22,
     fontWeight: '500',
   },
 });

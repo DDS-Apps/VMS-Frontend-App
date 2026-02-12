@@ -2189,8 +2189,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: BorderRadius.full,
     borderWidth: 2,
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
   },
   channelChipIcon: {
     width: 24,
