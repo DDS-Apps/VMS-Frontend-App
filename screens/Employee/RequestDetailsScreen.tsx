@@ -42,7 +42,7 @@ import {
   type TimelineActionCallbacks,
 } from "@/components/shared/RequestTimeline";
 import Spacer from "@/components/Spacer";
-import { Spacing, BorderRadius, Typography } from "@/constants/theme";
+import { Spacing, BorderRadius, Typography, getInputFontFamily } from "@/constants/theme";
 import { REQUEST_STATUS, PURPOSE_OPTIONS } from "@/constants/requestConstants";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -2415,6 +2415,7 @@ export default function RequestDetailsScreen({
                     backgroundColor: theme.surfaceSecondary,
                     borderColor: theme.border,
                     color: theme.text,
+                    fontFamily: getInputFontFamily(hostRejectReason, isRTL),
                   },
                 ]}
                 value={hostRejectReason}
@@ -2521,6 +2522,7 @@ export default function RequestDetailsScreen({
                     backgroundColor: theme.surfaceSecondary,
                     borderColor: theme.border,
                     color: theme.text,
+                    fontFamily: getInputFontFamily(managerRejectReason, isRTL),
                   },
                 ]}
                 value={managerRejectReason}

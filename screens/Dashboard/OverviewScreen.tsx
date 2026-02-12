@@ -24,7 +24,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { DDIcon, IconName } from "@/components/DDIcon";
 import Spacer from "@/components/Spacer";
-import { Spacing, BorderRadius, Typography } from "@/constants/theme";
+import { Spacing, BorderRadius, Typography, getInputFontFamily } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
@@ -1466,6 +1466,7 @@ export default function OverviewScreen({
                       borderColor: theme.border,
                       color: theme.text,
                       textAlign: isRTL ? 'right' : 'left',
+                      fontFamily: getInputFontFamily(rejectionReason, isRTL),
                     }
                   ]}
                   placeholder={t('manager.rejectReasonPlaceholder')}
