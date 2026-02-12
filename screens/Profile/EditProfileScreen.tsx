@@ -338,6 +338,7 @@ export default function EditProfileScreen({
             borderColor: error ? theme.error : theme.border,
             color: editable ? theme.text : theme.textSecondary,
             fontFamily: getInputFontFamily(value, isRTL),
+            textAlign: isRTL ? 'right' : 'left',
           },
         ]}
         value={value}
@@ -487,7 +488,7 @@ export default function EditProfileScreen({
               </DirectionalRow>
             </DirectionalRow>
             <View style={[styles.input, { backgroundColor: applyOpacity(theme.surfaceSecondary, '60'), borderColor: theme.border }]}>
-              <ThemedText style={{ color: theme.textSecondary }}>
+              <ThemedText style={{ color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }}>
                 {name || t('form.notProvided')}
               </ThemedText>
             </View>
@@ -530,7 +531,7 @@ export default function EditProfileScreen({
               </DirectionalRow>
             </DirectionalRow>
             <View style={[styles.input, { backgroundColor: applyOpacity(theme.surfaceSecondary, '60'), borderColor: theme.border }]}>
-              <ThemedText style={{ color: theme.textSecondary }}>
+              <ThemedText style={{ color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }}>
                 {phone ? formatPhoneNumber(phone) : t('form.notProvided')}
               </ThemedText>
             </View>
@@ -590,6 +591,7 @@ export default function EditProfileScreen({
                       borderColor: theme.border,
                       color: theme.text,
                       fontFamily: getInputFontFamily(businessPhoneExt, isRTL),
+                      textAlign: isRTL ? 'right' : 'left',
                     },
                   ]}
                   value={businessPhoneExt}
