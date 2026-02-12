@@ -8,6 +8,7 @@ import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { SearchInput } from "@/components/SearchInput";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { Card } from "@/components/Card";
 import Spacer from "@/components/Spacer";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
@@ -267,88 +268,87 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
     const hasDetails = item.visitor.phone;
 
     return (
-      <Pressable
+      <Card
         key={item.id}
+        variant="elevated"
         onPress={() => handleVisitorPress(item)}
-        style={({ pressed }) => [pressed && { opacity: 0.95 }]}
+        style={{ overflow: 'hidden', padding: 0 }}
       >
-        <ThemedView style={[styles.visitorCard, { backgroundColor: theme.surface }]}>
-          <View style={[styles.statusBorderLine, { backgroundColor: statusConfig.border }]} />
+        <View style={[styles.statusBorderLine, { backgroundColor: statusConfig.border }]} />
 
-          <View style={styles.cardContent}>
-            <DirectionalRow style={styles.cardHeader}>
-              <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
-                <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
-                  {initials}
-                </ThemedText>
-              </View>
+        <View style={styles.cardContent}>
+          <DirectionalRow style={styles.cardHeader} gap={Spacing.sm}>
+            <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
+              <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
+                {initials}
+              </ThemedText>
+            </View>
 
-              <View style={[styles.nameSection, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
-                <ThemedText style={[styles.visitorName, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
-                  {visitorName}
-                </ThemedText>
-                <ThemedText style={[styles.companyText, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
-                  {item.visitor.company ?? ''}
+            <View style={[styles.nameSection, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
+              <ThemedText style={[styles.visitorName, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+                {visitorName}
+              </ThemedText>
+              <ThemedText style={[styles.companyText, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+                {item.visitor.company ?? ''}
+              </ThemedText>
+            </View>
+          </DirectionalRow>
+
+          <DirectionalRow style={styles.detailsRow}>
+            <DirectionalRow style={styles.detailItem}>
+              <DDIcon name="clock" size={12} variant="muted" />
+              <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
+                {formatTimeFromString(item.visitTime)}
+              </ThemedText>
+            </DirectionalRow>
+            <DirectionalRow style={styles.detailItem}>
+              <DDIcon name="user" size={12} variant="muted" />
+              <ThemedText style={[styles.detailText, { color: theme.textSecondary }]} numberOfLines={1}>
+                {item.hostName}{item.hostDepartment ? ` - ${item.hostDepartment}` : ''}
+              </ThemedText>
+            </DirectionalRow>
+          </DirectionalRow>
+
+          <DirectionalRow style={styles.servicesStatusRow} justifyContent="space-between">
+            <ServiceIconsRow visitor={item} />
+            <DirectionalRow alignItems="center" gap={Spacing.sm}>
+              {showCheckIn ? (
+                <VisitorActionButton
+                  type="check_in"
+                  onPress={(e) => handleCheckIn(item.id, visitorName, e)}
+                  loading={isThisVisitorLoading}
+                  disabled={isMutating && !isThisVisitorLoading}
+                />
+              ) : showCheckOut ? (
+                <VisitorActionButton
+                  type="check_out"
+                  onPress={(e) => handleCheckOut(item.id, visitorName, e)}
+                  loading={isThisVisitorLoading}
+                  disabled={isMutating && !isThisVisitorLoading}
+                />
+              ) : null}
+              <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: 1 }]}>
+                <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
+                  {statusConfig.label}
                 </ThemedText>
               </View>
             </DirectionalRow>
+          </DirectionalRow>
 
-            <DirectionalRow style={styles.detailsRow}>
-              <DirectionalRow style={styles.detailItem}>
-                <DDIcon name="clock" size={12} variant="muted" />
-                <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
-                  {formatTimeFromString(item.visitTime)}
-                </ThemedText>
-              </DirectionalRow>
-              <DirectionalRow style={styles.detailItem}>
-                <DDIcon name="user" size={12} variant="muted" />
-                <ThemedText style={[styles.detailText, { color: theme.textSecondary }]} numberOfLines={1}>
-                  {item.hostName}{item.hostDepartment ? ` - ${item.hostDepartment}` : ''}
-                </ThemedText>
-              </DirectionalRow>
-            </DirectionalRow>
-
-            <DirectionalRow style={styles.servicesStatusRow} justifyContent="space-between">
-              <ServiceIconsRow visitor={item} />
-              <DirectionalRow alignItems="center" gap={Spacing.sm}>
-                {showCheckIn ? (
-                  <VisitorActionButton
-                    type="check_in"
-                    onPress={(e) => handleCheckIn(item.id, visitorName, e)}
-                    loading={isThisVisitorLoading}
-                    disabled={isMutating && !isThisVisitorLoading}
-                  />
-                ) : showCheckOut ? (
-                  <VisitorActionButton
-                    type="check_out"
-                    onPress={(e) => handleCheckOut(item.id, visitorName, e)}
-                    loading={isThisVisitorLoading}
-                    disabled={isMutating && !isThisVisitorLoading}
-                  />
-                ) : null}
-                <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: 1 }]}>
-                  <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
-                    {statusConfig.label}
+          {isExpanded && hasDetails ? (
+            <View style={styles.expandedSection}>
+              {item.visitor.phone ? (
+                <DirectionalRow style={styles.expandedDetailRow}>
+                  <DDIcon name="phone" size={14} color={theme.textSecondary} />
+                  <ThemedText style={[styles.expandedDetailText, { color: theme.text, writingDirection: 'ltr' }]} numberOfLines={1}>
+                    {formatPhoneNumber(item.visitor.phone)}
                   </ThemedText>
-                </View>
-              </DirectionalRow>
-            </DirectionalRow>
-
-            {isExpanded && hasDetails ? (
-              <View style={styles.expandedSection}>
-                {item.visitor.phone ? (
-                  <DirectionalRow style={styles.expandedDetailRow}>
-                    <DDIcon name="phone" size={14} color={theme.textSecondary} />
-                    <ThemedText style={[styles.expandedDetailText, { color: theme.text, writingDirection: 'ltr' }]} numberOfLines={1}>
-                      {formatPhoneNumber(item.visitor.phone)}
-                    </ThemedText>
-                  </DirectionalRow>
-                ) : null}
-              </View>
-            ) : null}
-          </View>
-        </ThemedView>
-      </Pressable>
+                </DirectionalRow>
+              ) : null}
+            </View>
+          ) : null}
+        </View>
+      </Card>
     );
   };
 
