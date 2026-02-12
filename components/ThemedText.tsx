@@ -132,6 +132,9 @@ export function ThemedText({
     }
   };
 
+  const flattenedStyle = style ? StyleSheet.flatten(style) : null;
+  const isAvatarMode = flattenedStyle?.includeFontPadding === false;
+
   const getTypeStyle = () => {
     const category = getCategory(textVariant);
 
@@ -145,6 +148,12 @@ export function ThemedText({
     };
     const scaleForArabic = <T extends TypographyStyle>(baseStyle: T): T => {
       if (!useArabicFont) return baseStyle;
+      if (isAvatarMode) {
+        return {
+          ...baseStyle,
+          fontFamily: getLocaleFontFamily(baseStyle.fontFamily, true),
+        };
+      }
       return {
         ...baseStyle,
         fontFamily: getLocaleFontFamily(baseStyle.fontFamily, true),
@@ -190,21 +199,22 @@ export function ThemedText({
   const getScaledCustomStyle = (): TextStyle | null => {
     if (!style || !useArabicFont) return null;
 
-    // Flatten style array if needed
-    const flatStyle = StyleSheet.flatten(style);
+    const flatStyle = flattenedStyle;
     if (!flatStyle) return null;
+
+    const skipScaling = isAvatarMode;
 
     const scaledStyle: TextStyle = {};
     const category = getCategory(textVariant);
 
     // Scale custom fontSize if present
-    if (typeof flatStyle.fontSize === "number") {
+    if (typeof flatStyle.fontSize === "number" && !skipScaling) {
       scaledStyle.fontSize =
         Math.round(flatStyle.fontSize * ArabicFontScaling[category] * 10) / 10;
     }
 
     // Scale custom lineHeight if present
-    if (typeof flatStyle.lineHeight === "number") {
+    if (typeof flatStyle.lineHeight === "number" && !skipScaling) {
       scaledStyle.lineHeight = Math.round(
         flatStyle.lineHeight * ArabicLineHeightScaling[category],
       );
