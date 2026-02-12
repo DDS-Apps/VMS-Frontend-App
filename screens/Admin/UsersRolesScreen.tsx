@@ -1845,7 +1845,7 @@ export default function UsersRolesScreen() {
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 style={{ marginBottom: Spacing.md }}
-                contentContainerStyle={{ paddingEnd: Spacing.xl }}
+                contentContainerStyle={{ paddingEnd: Spacing.xl, flexDirection: isRTL ? 'row-reverse' : 'row' }}
                 nestedScrollEnabled={true}
               >
                 {CREATABLE_ROLES.map((role) => {
@@ -1959,7 +1959,7 @@ export default function UsersRolesScreen() {
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 style={{ marginBottom: Spacing.md }}
-                contentContainerStyle={{ paddingEnd: Spacing.xl }}
+                contentContainerStyle={{ paddingEnd: Spacing.xl, flexDirection: isRTL ? 'row-reverse' : 'row' }}
                 nestedScrollEnabled={true}
               >
                 <Pressable
