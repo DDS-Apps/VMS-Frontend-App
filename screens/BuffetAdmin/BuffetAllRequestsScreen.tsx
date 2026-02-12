@@ -1105,7 +1105,9 @@ const styles = StyleSheet.create({
   },
   avatarText: {
     fontWeight: '700',
+    textAlign: 'center',
     textAlignVertical: 'center',
+    includeFontPadding: false,
   },
   statusBadge: {
     borderRadius: BorderRadius.sm,

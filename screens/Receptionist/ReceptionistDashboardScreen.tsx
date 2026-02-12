@@ -804,9 +804,10 @@ const styles = StyleSheet.create({
   },
   avatarText: {
     fontSize: 16,
-    lineHeight: 18,
     fontWeight: '700',
+    textAlign: 'center',
     textAlignVertical: 'center',
+    includeFontPadding: false,
   },
   visitorHeaderInfo: {
     flex: 1,

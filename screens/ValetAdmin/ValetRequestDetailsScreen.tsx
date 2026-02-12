@@ -494,9 +494,10 @@ const styles = StyleSheet.create({
   },
   avatarText: {
     fontSize: 32,
-    lineHeight: 34,
     fontWeight: '700',
+    textAlign: 'center',
     textAlignVertical: 'center',
+    includeFontPadding: false,
   },
   serviceRowNew: {
     alignItems: 'flex-start',

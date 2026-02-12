@@ -822,7 +822,9 @@ const styles = StyleSheet.create({
   avatarText: {
     fontWeight: '600',
     fontFamily: FontFamily.latinSemiBold,
+    textAlign: 'center',
     textAlignVertical: 'center',
+    includeFontPadding: false,
   },
   cardNameSection: {
     flex: 1,

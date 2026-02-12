@@ -1321,7 +1321,7 @@ export default function RequestDetailsScreen({
                   <ThemedText
                     style={[
                       styles.avatarText,
-                      { color: theme.primary, fontSize: 24, lineHeight: 26, fontWeight: "700" },
+                      { color: theme.primary, fontSize: 24, fontWeight: "700" },
                     ]}
                   >
                     {request.visitor.fullName.split(" ").map((n) => n[0]).join("")}
@@ -1411,7 +1411,7 @@ export default function RequestDetailsScreen({
                   <ThemedText
                     style={[
                       styles.avatarText,
-                      { color: theme.primary, fontSize: 32, lineHeight: 34, fontWeight: "700" },
+                      { color: theme.primary, fontSize: 32, fontWeight: "700" },
                     ]}
                   >
                     {request.visitor.fullName.split(" ").map((n) => n[0]).join("")}
@@ -4033,9 +4033,10 @@ const styles = StyleSheet.create({
   },
   avatarText: {
     fontSize: 28,
-    lineHeight: 30,
     fontWeight: "600",
+    textAlign: 'center',
     textAlignVertical: 'center',
+    includeFontPadding: false,
   },
   infoRow: {
     alignItems: "center",
