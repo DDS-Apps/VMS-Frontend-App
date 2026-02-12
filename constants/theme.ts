@@ -256,7 +256,7 @@ export const BorderRadius = {
 // ============================================
 
 // Font families for locale-aware rendering
-// Using Albert Sans (Latin) and Cairo (Arabic) from Google Fonts
+// Using Albert Sans (Latin) and FS Albert Arabic (Arabic)
 // Falls back to Inter/system fonts if Google Fonts are not available
 export const FontFamily = {
   // Latin UI (English, numbers) - Albert Sans with fallbacks
@@ -536,7 +536,7 @@ export const Fonts = Platform.select({
     mono: "monospace",
   },
   web: {
-    sans: "'Albert Sans', Inter, 'Cairo', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+    sans: "'Albert Sans', Inter, 'FS Albert Arabic', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
     serif: "Georgia, 'Times New Roman', serif",
     rounded: "'Albert Sans', Inter, 'SF Pro Rounded', sans-serif",
     mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
