@@ -17,6 +17,7 @@ export default function TermsConditionsScreen({ onBack }: TermsConditionsScreenP
   const { theme } = useTheme();
   const { t, isRTL } = useTranslation();
   const insets = useSafeAreaInsets();
+  const textAlign = isRTL ? 'right' as const : 'left' as const;
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -43,111 +44,111 @@ export default function TermsConditionsScreen({ onBack }: TermsConditionsScreenP
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + Spacing.xxl }]}
       >
         <View style={[styles.brandHeader, { backgroundColor: BrandColors.brandOrange }]}>
-          <ThemedText style={styles.brandTitle}>Dallah Albaraka</ThemedText>
-          <ThemedText style={styles.brandSubtitle}>Visitor Management System</ThemedText>
+          <ThemedText style={styles.brandTitle}>{t('common.brandName')}</ThemedText>
+          <ThemedText style={styles.brandSubtitle}>{t('common.welcomeSubtitle')}</ThemedText>
         </View>
 
         <View style={[styles.card, { backgroundColor: theme.surface }]}>
-          <ThemedText style={[styles.lastUpdated, { color: theme.textSecondary }]}>
-            Last Updated: February 2026
+          <ThemedText style={[styles.lastUpdated, { color: theme.textSecondary, textAlign }]}>
+            {t('legal.lastUpdated')}
           </ThemedText>
 
-          <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
-            1. Acceptance of Terms
+          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign }]}>
+            {t('legal.termsConditions.acceptance')}
           </ThemedText>
-          <ThemedText style={[styles.bodyText, { color: theme.textSecondary }]}>
-            By accessing or using the Dallah Albaraka Visitor Management System ("VMS" or "the Application"), you agree to be bound by these Terms and Conditions. If you do not agree to these terms, you must not use the Application.
-          </ThemedText>
-
-          <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
-            2. Description of Service
-          </ThemedText>
-          <ThemedText style={[styles.bodyText, { color: theme.textSecondary }]}>
-            The VMS is a corporate visitor management application that enables organizations to manage visitor registrations, approvals, check-ins, parking, valet services, meeting room bookings, and buffet services. The Application supports multiple user roles including employees, managers, receptionists, security personnel, and administrators.
+          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign }]}>
+            {t('legal.termsConditions.acceptanceBody')}
           </ThemedText>
 
-          <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
-            3. User Accounts and Access
+          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign }]}>
+            {t('legal.termsConditions.description')}
           </ThemedText>
-          <ThemedText style={[styles.bodyText, { color: theme.textSecondary }]}>
-            {`\u2022 Access to the Application is provided by your organization's administrator\n\u2022 You are responsible for maintaining the confidentiality of your account credentials\n\u2022 You must not share your login credentials with unauthorized individuals\n\u2022 You must immediately notify your administrator of any unauthorized use of your account\n\u2022 Access privileges are determined by your assigned role and may be modified by administrators at any time`}
-          </ThemedText>
-
-          <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
-            4. Acceptable Use
-          </ThemedText>
-          <ThemedText style={[styles.bodyText, { color: theme.textSecondary }]}>
-            {`You agree to use the Application only for its intended purposes. You must not:\n\n\u2022 Use the Application for any unlawful purpose\n\u2022 Attempt to gain unauthorized access to any part of the system\n\u2022 Submit false or misleading information\n\u2022 Interfere with or disrupt the Application's functionality\n\u2022 Attempt to reverse engineer, decompile, or disassemble the Application\n\u2022 Use automated tools or scripts to access or extract data from the Application`}
+          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign }]}>
+            {t('legal.termsConditions.descriptionBody')}
           </ThemedText>
 
-          <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
-            5. Visitor Obligations
+          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign }]}>
+            {t('legal.termsConditions.userAccounts')}
           </ThemedText>
-          <ThemedText style={[styles.bodyText, { color: theme.textSecondary }]}>
-            {`Visitors using the Application to accept invitations or check in must:\n\n\u2022 Provide accurate personal and identification information\n\u2022 Comply with all facility security requirements\n\u2022 Follow check-in and check-out procedures\n\u2022 Adhere to all applicable facility rules and regulations\n\u2022 Provide accurate vehicle information if requesting parking or valet services`}
-          </ThemedText>
-
-          <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
-            6. Intellectual Property
-          </ThemedText>
-          <ThemedText style={[styles.bodyText, { color: theme.textSecondary }]}>
-            The Application, including its design, features, content, and underlying technology, is owned by Dallah Albaraka Group and is protected by intellectual property laws. You may not copy, modify, distribute, or create derivative works based on the Application without prior written consent.
+          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign }]}>
+            {t('legal.termsConditions.userAccountsBody')}
           </ThemedText>
 
-          <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
-            7. Data and Privacy
+          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign }]}>
+            {t('legal.termsConditions.acceptableUse')}
           </ThemedText>
-          <ThemedText style={[styles.bodyText, { color: theme.textSecondary }]}>
-            Your use of the Application is also governed by our Privacy Policy, which describes how we collect, use, and protect your personal information. By using the Application, you consent to the data practices described in the Privacy Policy.
-          </ThemedText>
-
-          <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
-            8. Push Notifications
-          </ThemedText>
-          <ThemedText style={[styles.bodyText, { color: theme.textSecondary }]}>
-            The Application may send push notifications related to visit approvals, check-in reminders, and other operational updates. You can manage your notification preferences within the Application settings. Critical security notifications may not be disabled.
+          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign }]}>
+            {t('legal.termsConditions.acceptableUseBody')}
           </ThemedText>
 
-          <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
-            9. Service Availability
+          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign }]}>
+            {t('legal.termsConditions.visitorObligations')}
           </ThemedText>
-          <ThemedText style={[styles.bodyText, { color: theme.textSecondary }]}>
-            We strive to maintain continuous availability of the Application but do not guarantee uninterrupted access. The Application may be temporarily unavailable due to maintenance, updates, or circumstances beyond our control. We reserve the right to modify, suspend, or discontinue any feature of the Application at any time.
-          </ThemedText>
-
-          <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
-            10. Limitation of Liability
-          </ThemedText>
-          <ThemedText style={[styles.bodyText, { color: theme.textSecondary }]}>
-            To the maximum extent permitted by applicable law, Dallah Albaraka Group shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the Application. Our total liability for any claims related to the Application shall not exceed the amount you paid for access to the Application.
+          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign }]}>
+            {t('legal.termsConditions.visitorObligationsBody')}
           </ThemedText>
 
-          <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
-            11. Indemnification
+          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign }]}>
+            {t('legal.termsConditions.intellectualProperty')}
           </ThemedText>
-          <ThemedText style={[styles.bodyText, { color: theme.textSecondary }]}>
-            You agree to indemnify and hold harmless Dallah Albaraka Group, its officers, directors, employees, and agents from any claims, damages, losses, or expenses arising from your violation of these Terms and Conditions or your misuse of the Application.
-          </ThemedText>
-
-          <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
-            12. Governing Law
-          </ThemedText>
-          <ThemedText style={[styles.bodyText, { color: theme.textSecondary }]}>
-            These Terms and Conditions shall be governed by and construed in accordance with the laws of the Kingdom of Saudi Arabia. Any disputes arising from these terms shall be subject to the exclusive jurisdiction of the courts of the Kingdom of Saudi Arabia.
+          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign }]}>
+            {t('legal.termsConditions.intellectualPropertyBody')}
           </ThemedText>
 
-          <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
-            13. Changes to Terms
+          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign }]}>
+            {t('legal.termsConditions.dataPrivacy')}
           </ThemedText>
-          <ThemedText style={[styles.bodyText, { color: theme.textSecondary }]}>
-            We reserve the right to update or modify these Terms and Conditions at any time. Material changes will be communicated through the Application. Your continued use of the Application after such modifications constitutes acceptance of the updated terms.
+          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign }]}>
+            {t('legal.termsConditions.dataPrivacyBody')}
           </ThemedText>
 
-          <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
-            14. Contact Information
+          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign }]}>
+            {t('legal.termsConditions.pushNotifications')}
           </ThemedText>
-          <ThemedText style={[styles.bodyText, { color: theme.textSecondary }]}>
-            For questions about these Terms and Conditions, please contact:{"\n\n"}Dallah Albaraka Group{"\n"}Email: support@dallahdigital.com
+          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign }]}>
+            {t('legal.termsConditions.pushNotificationsBody')}
+          </ThemedText>
+
+          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign }]}>
+            {t('legal.termsConditions.serviceAvailability')}
+          </ThemedText>
+          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign }]}>
+            {t('legal.termsConditions.serviceAvailabilityBody')}
+          </ThemedText>
+
+          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign }]}>
+            {t('legal.termsConditions.limitation')}
+          </ThemedText>
+          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign }]}>
+            {t('legal.termsConditions.limitationBody')}
+          </ThemedText>
+
+          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign }]}>
+            {t('legal.termsConditions.indemnification')}
+          </ThemedText>
+          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign }]}>
+            {t('legal.termsConditions.indemnificationBody')}
+          </ThemedText>
+
+          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign }]}>
+            {t('legal.termsConditions.governingLaw')}
+          </ThemedText>
+          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign }]}>
+            {t('legal.termsConditions.governingLawBody')}
+          </ThemedText>
+
+          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign }]}>
+            {t('legal.termsConditions.changesToTerms')}
+          </ThemedText>
+          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign }]}>
+            {t('legal.termsConditions.changesToTermsBody')}
+          </ThemedText>
+
+          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign }]}>
+            {t('legal.termsConditions.contactInfo')}
+          </ThemedText>
+          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign }]}>
+            {t('legal.termsConditions.contactInfoBody')}
           </ThemedText>
         </View>
       </ScrollView>

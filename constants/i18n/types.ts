@@ -1594,6 +1594,66 @@ export interface TranslationKeys {
     rejectReasonPrompt: string;
     rejectReasonPlaceholder: string;
   };
+  legal: {
+    lastUpdated: string;
+    privacyPolicy: {
+      introduction: string;
+      introductionBody: string;
+      infoCollect: string;
+      personalInfo: string;
+      personalInfoBody: string;
+      technicalInfo: string;
+      technicalInfoBody: string;
+      howWeUse: string;
+      howWeUseBody: string;
+      dataSharing: string;
+      dataSharingBody: string;
+      dataSecurity: string;
+      dataSecurityBody: string;
+      dataRetention: string;
+      dataRetentionBody: string;
+      yourRights: string;
+      yourRightsBody: string;
+      thirdParty: string;
+      thirdPartyBody: string;
+      childrenPrivacy: string;
+      childrenPrivacyBody: string;
+      changesToPolicy: string;
+      changesToPolicyBody: string;
+      contactUs: string;
+      contactUsBody: string;
+    };
+    termsConditions: {
+      acceptance: string;
+      acceptanceBody: string;
+      description: string;
+      descriptionBody: string;
+      userAccounts: string;
+      userAccountsBody: string;
+      acceptableUse: string;
+      acceptableUseBody: string;
+      visitorObligations: string;
+      visitorObligationsBody: string;
+      intellectualProperty: string;
+      intellectualPropertyBody: string;
+      dataPrivacy: string;
+      dataPrivacyBody: string;
+      pushNotifications: string;
+      pushNotificationsBody: string;
+      serviceAvailability: string;
+      serviceAvailabilityBody: string;
+      limitation: string;
+      limitationBody: string;
+      indemnification: string;
+      indemnificationBody: string;
+      governingLaw: string;
+      governingLawBody: string;
+      changesToTerms: string;
+      changesToTermsBody: string;
+      contactInfo: string;
+      contactInfoBody: string;
+    };
+  };
 }
 
 export type TranslationPath = string;
