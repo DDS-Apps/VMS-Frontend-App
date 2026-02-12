@@ -28,14 +28,22 @@ import { ViewStyle, TextStyle } from "react-native";
  * Adjust these values to fine-tune Arabic typography across the app.
  */
 export const ArabicFontScaling = {
-  /** Scaling factor for body text (20% larger = 1.20) */
   body: 1.05,
-  /** Scaling factor for headings (can be adjusted separately if needed) */
   heading: 1,
-  /** Scaling factor for captions/small text (16% larger = 1.16) */
   caption: 1,
-  /** Default scaling factor for any text type not specified */
   default: 1,
+};
+
+/**
+ * Line height scaling factors for Arabic text (separate from font size).
+ * FS Albert Arabic has taller ascenders/descenders than Albert Sans,
+ * so line height needs to scale more than font size to prevent clipping.
+ */
+export const ArabicLineHeightScaling = {
+  body: 1.15,
+  heading: 1.12,
+  caption: 1.12,
+  default: 1.1,
 };
 
 /**
@@ -85,7 +93,7 @@ export function arabicLineHeight(
   if (!isRTL) {
     return baseLineHeight;
   }
-  const scaleFactor = ArabicFontScaling[category];
+  const scaleFactor = ArabicLineHeightScaling[category];
   return Math.round(baseLineHeight * scaleFactor);
 }
 

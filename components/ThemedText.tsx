@@ -15,6 +15,7 @@ import {
   arabicLineHeight,
   TextCategory,
   ArabicFontScaling,
+  ArabicLineHeightScaling,
 } from "@/utils/rtlStyles";
 
 export type TextVariant =
@@ -205,7 +206,7 @@ export function ThemedText({
     // Scale custom lineHeight if present
     if (typeof flatStyle.lineHeight === "number") {
       scaledStyle.lineHeight = Math.round(
-        flatStyle.lineHeight * ArabicFontScaling[category],
+        flatStyle.lineHeight * ArabicLineHeightScaling[category],
       );
     }
 
