@@ -172,8 +172,9 @@ export const PhoneInputWithCountry = ({
   }, [nationalNumber, onChangeText]);
 
   const handlePhoneChange = useCallback((text: string) => {
-    // Only allow digits
-    const digits = text.replace(/\D/g, '');
+    const normalized = text.replace(/[\u0660-\u0669]/g, (c) => String(c.charCodeAt(0) - 0x0660))
+                           .replace(/[\u06F0-\u06F9]/g, (c) => String(c.charCodeAt(0) - 0x06F0));
+    const digits = normalized.replace(/\D/g, '');
     
     // Limit to country's max length
     const limitedDigits = digits.slice(0, selectedCountry.maxLength);
@@ -508,16 +509,16 @@ const styles = StyleSheet.create({
   },
   dialCodeText: {
     fontSize: 14,
-    lineHeight: 28,
+    lineHeight: 29,
     fontWeight: '500',
   },
   phoneInput: {
     flex: 1,
     paddingHorizontal: Spacing.md,
     fontSize: 16,
-    lineHeight: 34,
-    minHeight: 62,
-    paddingVertical: 8,
+    lineHeight: 41,
+    minHeight: 68,
+    paddingVertical: 10,
   },
   // Android half-screen modal
   androidModalOverlay: {
