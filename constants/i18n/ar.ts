@@ -981,6 +981,8 @@ export const ar: TranslationKeys = {
     walkInOnly: 'زوار بدون موعد فقط',
     registerWalkIn: 'تسجيل زائر بدون موعد',
     searchVisitor: 'البحث عن زائر',
+    visitorsFound: 'زائر موجود',
+    visitorsFoundPlural: 'زوار موجودين',
     verifyVisitor: 'التحقق من الزائر',
     hostName: 'اسم المضيف',
     hostDepartment: 'قسم المضيف',

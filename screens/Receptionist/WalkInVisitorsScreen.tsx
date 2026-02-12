@@ -311,7 +311,7 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
       <Spacer height={4} />
       
       <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
-        {filteredVisitors.length} {t('reception.walkInVisitor').toLowerCase()}{filteredVisitors.length === 1 ? '' : 's'} found
+        {filteredVisitors.length} {filteredVisitors.length === 1 ? t('reception.visitorsFound') : t('reception.visitorsFoundPlural')}
       </ThemedText>
 
       <Spacer height={Spacing.lg} />

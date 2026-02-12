@@ -551,7 +551,7 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
           {t('navigation.allVisitors')}
         </ThemedText>
         <ThemedText style={[Typography.caption, { color: theme.textSecondary, flexShrink: 1 }]} numberOfLines={1}>
-          {totalCount} {totalCount === 1 ? 'visitor' : 'visitors'} found
+          {totalCount} {totalCount === 1 ? t('reception.visitorsFound') : t('reception.visitorsFoundPlural')}
           {isFetching && !isFetchingNextPage ? ' ...' : ''}
         </ThemedText>
       </DirectionalRow>

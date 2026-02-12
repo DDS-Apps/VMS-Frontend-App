@@ -981,6 +981,8 @@ export const en: TranslationKeys = {
     walkInOnly: 'Walk-in Only',
     registerWalkIn: 'Register Walk-in',
     searchVisitor: 'Search Visitor',
+    visitorsFound: 'visitor found',
+    visitorsFoundPlural: 'visitors found',
     verifyVisitor: 'Verify Visitor',
     hostName: 'Host Name',
     hostDepartment: 'Host Department',
