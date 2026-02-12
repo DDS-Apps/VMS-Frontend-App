@@ -129,11 +129,20 @@ export const CardGridStyles = StyleSheet.create({
   cardWrapper2ColWeb: webStyles.cardWrapper2Col,
 });
 
-export const getGridStyle = (isRTL: boolean = false) => ({
-  ...(isWeb ? webStyles.grid : mobileStyles.grid),
-  flexDirection: (isWeb && isRTL) ? 'row-reverse' as const : 'row' as const,
-  justifyContent: 'flex-start' as const,
-});
+export const getGridStyle = (isRTL: boolean = false) => {
+  const base = isWeb ? webStyles.grid : mobileStyles.grid;
+  if (isWeb && isRTL) {
+    return {
+      ...base,
+      flexDirection: 'row' as const,
+      direction: 'rtl' as any,
+    };
+  }
+  return {
+    ...base,
+    flexDirection: 'row' as const,
+  };
+};
 export const getCardWrapper3ColStyle = () => isWeb ? webStyles.cardWrapper3Col : mobileStyles.cardWrapper3Col;
 export const getCardWrapper2ColStyle = () => isWeb ? webStyles.cardWrapper2Col : mobileStyles.cardWrapper2Col;
 
