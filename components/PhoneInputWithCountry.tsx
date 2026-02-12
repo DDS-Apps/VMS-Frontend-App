@@ -508,13 +508,15 @@ const styles = StyleSheet.create({
   },
   dialCodeText: {
     fontSize: 14,
+    lineHeight: 22,
     fontWeight: '500',
   },
   phoneInput: {
     flex: 1,
     paddingHorizontal: Spacing.md,
     fontSize: 16,
-    minHeight: 48,
+    lineHeight: 26,
+    minHeight: 52,
   },
   // Android half-screen modal
   androidModalOverlay: {
@@ -584,10 +586,12 @@ const styles = StyleSheet.create({
   },
   countryName: {
     fontSize: 15,
+    lineHeight: 24,
     fontWeight: '500',
   },
   dialCode: {
     fontSize: 13,
+    lineHeight: 20,
     marginTop: 2,
   },
   emptyState: {

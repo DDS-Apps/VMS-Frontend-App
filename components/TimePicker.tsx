@@ -602,7 +602,7 @@ const styles = StyleSheet.create({
   },
   timeDigitBox: {
     width: 72,
-    height: 64,
+    minHeight: 64,
     borderRadius: BorderRadius.lg,
     borderWidth: 2,
     alignItems: 'center',
@@ -610,13 +610,13 @@ const styles = StyleSheet.create({
   },
   timeDigitText: {
     fontSize: 32,
-    lineHeight: 40,
+    lineHeight: 48,
     fontWeight: '700',
     fontVariant: ['tabular-nums'],
   },
   timeSeparator: {
     fontSize: 32,
-    lineHeight: 40,
+    lineHeight: 48,
     fontWeight: '700',
   },
   periodToggle: {
@@ -633,6 +633,7 @@ const styles = StyleSheet.create({
   },
   periodOptionText: {
     fontSize: 13,
+    lineHeight: 20,
     fontWeight: '600',
   },
   selectorGrid: {
@@ -653,6 +654,7 @@ const styles = StyleSheet.create({
   },
   selectorItemText: {
     fontSize: 16,
+    lineHeight: 24,
     fontWeight: '500',
   },
   quickSelectSection: {
