@@ -25,20 +25,13 @@ import type { VisitListParams, VisitListItemDto } from "@/types";
 type DateFilter = 'all' | 'today' | 'this_week' | 'this_month';
 type StatusFilter = 
   | 'all'
-  | 'approved'
   | 'waiting_acceptance'
-  | 'accepted'
-  | 'visitor_accepted'
-  | 'checked_in'
-  | 'checked_out';
+  | 'accepted';
 
 const RECEPTIONIST_ALLOWED_STATUSES = [
-  'approved',
   'waiting_acceptance',
   'accepted',
   'visitor_accepted',
-  'checked_in',
-  'checked_out',
 ];
 
 function getDateRange(filter: DateFilter): { startDate?: string; endDate?: string } {
@@ -78,8 +71,16 @@ function mapStatusesToApi(statuses: Set<StatusFilter>): string | undefined {
   if (statuses.has('all') || statuses.size === 0) {
     return RECEPTIONIST_ALLOWED_STATUSES.join(',');
   }
-  const statusArray = Array.from(statuses).filter(s => s !== 'all');
-  return statusArray.length > 0 ? statusArray.join(',') : undefined;
+  const apiStatuses: string[] = [];
+  for (const s of statuses) {
+    if (s === 'all') continue;
+    if (s === 'accepted') {
+      apiStatuses.push('accepted', 'visitor_accepted');
+    } else {
+      apiStatuses.push(s);
+    }
+  }
+  return apiStatuses.length > 0 ? apiStatuses.join(',') : undefined;
 }
 
 const PAGE_SIZE = 20;
@@ -157,12 +158,8 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
 
   const STATUS_FILTER_OPTIONS: { key: StatusFilter; label: string }[] = [
     { key: 'all', label: t('common.all') },
-    { key: 'approved', label: t('status.approved') },
     { key: 'waiting_acceptance', label: t('status.waitingAcceptance') },
     { key: 'accepted', label: t('status.accepted') },
-    { key: 'visitor_accepted', label: t('status.visitorAccepted') },
-    { key: 'checked_in', label: t('status.checkedIn') },
-    { key: 'checked_out', label: t('status.checkedOut') },
   ];
 
   const visitors = useMemo(() => {
@@ -537,22 +534,10 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
     switch (status) {
       case 'all':
         return theme.primary;
-      case 'pending_approval':
-      case 'pending_host_approval':
-        return theme.warning;
-      case 'approved':
-      case 'accepted':
       case 'waiting_acceptance':
+        return theme.warning;
+      case 'accepted':
         return theme.info;
-      case 'checked_in':
-      case 'checked_out':
-      case 'completed':
-        return theme.success;
-      case 'rejected':
-      case 'visitor_rejected':
-      case 'cancelled':
-      case 'auto_cancelled':
-        return theme.error;
       default:
         return theme.textSecondary;
     }
