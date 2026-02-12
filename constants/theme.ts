@@ -285,30 +285,30 @@ export const FontFamily = {
     default: "AlbertSans_800ExtraBold",
   }) as string,
 
-  // Arabic UI - Cairo with fallbacks
+  // Arabic UI - FS Albert Arabic with fallbacks
   arabicLight: Platform.select({
-    web: "'Cairo', 'Noto Sans Arabic', sans-serif",
-    default: "Cairo_300Light",
+    web: "'FS Albert Arabic', 'Noto Sans Arabic', sans-serif",
+    default: "FSAlbertArabic_300Light",
   }) as string,
   arabicRegular: Platform.select({
-    web: "'Cairo', 'Noto Sans Arabic', sans-serif",
-    default: "Cairo_400Regular",
+    web: "'FS Albert Arabic', 'Noto Sans Arabic', sans-serif",
+    default: "FSAlbertArabic_400Regular",
   }) as string,
   arabicMedium: Platform.select({
-    web: "'Cairo', 'Noto Sans Arabic', sans-serif",
-    default: "Cairo_500Medium",
+    web: "'FS Albert Arabic', 'Noto Sans Arabic', sans-serif",
+    default: "FSAlbertArabic_400Regular",
   }) as string,
   arabicSemiBold: Platform.select({
-    web: "'Cairo', 'Noto Sans Arabic', sans-serif",
-    default: "Cairo_600SemiBold",
+    web: "'FS Albert Arabic', 'Noto Sans Arabic', sans-serif",
+    default: "FSAlbertArabic_700Bold",
   }) as string,
   arabicBold: Platform.select({
-    web: "'Cairo', 'Noto Sans Arabic', sans-serif",
-    default: "Cairo_700Bold",
+    web: "'FS Albert Arabic', 'Noto Sans Arabic', sans-serif",
+    default: "FSAlbertArabic_700Bold",
   }) as string,
   arabicExtraBold: Platform.select({
-    web: "'Cairo', 'Noto Sans Arabic', sans-serif",
-    default: "Cairo_800ExtraBold",
+    web: "'FS Albert Arabic', 'Noto Sans Arabic', sans-serif",
+    default: "FSAlbertArabic_800ExtraBold",
   }) as string,
 
   // Display fonts (for marketing/hero sections)
@@ -317,8 +317,8 @@ export const FontFamily = {
     default: "AlbertSans_800ExtraBold",
   }) as string,
   arabicDisplay: Platform.select({
-    web: "'Cairo', 'Noto Sans Arabic', sans-serif",
-    default: "Cairo_800ExtraBold",
+    web: "'FS Albert Arabic', 'Noto Sans Arabic', sans-serif",
+    default: "FSAlbertArabic_400Regular",
   }) as string,
 };
 
@@ -328,10 +328,10 @@ export const FontFamilyFallback = {
   latinMedium: "Inter_500Medium",
   latinSemiBold: "Inter_600SemiBold",
   latinBold: "Inter_700Bold",
-  arabicRegular: "Cairo_400Regular",
-  arabicMedium: "Cairo_500Medium",
-  arabicSemiBold: "Cairo_600SemiBold",
-  arabicBold: "Cairo_700Bold",
+  arabicRegular: "FSAlbertArabic_400Regular",
+  arabicMedium: "FSAlbertArabic_400Regular",
+  arabicSemiBold: "FSAlbertArabic_700Bold",
+  arabicBold: "FSAlbertArabic_700Bold",
 };
 
 const latinToArabicMap: Record<string, string> = {
@@ -342,12 +342,12 @@ const latinToArabicMap: Record<string, string> = {
   [FontFamily.latinBold]: FontFamily.arabicBold,
   [FontFamily.latinExtraBold]: FontFamily.arabicExtraBold,
   [FontFamily.latinDisplay]: FontFamily.arabicDisplay,
-  'AlbertSans_300Light': 'Cairo_300Light',
-  'AlbertSans_400Regular': 'Cairo_400Regular',
-  'AlbertSans_500Medium': 'Cairo_500Medium',
-  'AlbertSans_600SemiBold': 'Cairo_600SemiBold',
-  'AlbertSans_700Bold': 'Cairo_700Bold',
-  'AlbertSans_800ExtraBold': 'Cairo_800ExtraBold',
+  'AlbertSans_300Light': 'FSAlbertArabic_300Light',
+  'AlbertSans_400Regular': 'FSAlbertArabic_400Regular',
+  'AlbertSans_500Medium': 'FSAlbertArabic_400Regular',
+  'AlbertSans_600SemiBold': 'FSAlbertArabic_700Bold',
+  'AlbertSans_700Bold': 'FSAlbertArabic_700Bold',
+  'AlbertSans_800ExtraBold': 'FSAlbertArabic_800ExtraBold',
 };
 
 export function getLocaleFontFamily(latinFont: string, isRTL: boolean): string {

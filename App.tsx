@@ -292,12 +292,11 @@ export default function App() {
     'AlbertSans_600SemiBold': require('@expo-google-fonts/albert-sans/600SemiBold/AlbertSans_600SemiBold.ttf'),
     'AlbertSans_700Bold': require('@expo-google-fonts/albert-sans/700Bold/AlbertSans_700Bold.ttf'),
     'AlbertSans_800ExtraBold': require('@expo-google-fonts/albert-sans/800ExtraBold/AlbertSans_800ExtraBold.ttf'),
-    'Cairo_300Light': require('@expo-google-fonts/cairo/300Light/Cairo_300Light.ttf'),
-    'Cairo_400Regular': require('@expo-google-fonts/cairo/400Regular/Cairo_400Regular.ttf'),
-    'Cairo_500Medium': require('@expo-google-fonts/cairo/500Medium/Cairo_500Medium.ttf'),
-    'Cairo_600SemiBold': require('@expo-google-fonts/cairo/600SemiBold/Cairo_600SemiBold.ttf'),
-    'Cairo_700Bold': require('@expo-google-fonts/cairo/700Bold/Cairo_700Bold.ttf'),
-    'Cairo_800ExtraBold': require('@expo-google-fonts/cairo/800ExtraBold/Cairo_800ExtraBold.ttf'),
+    'FSAlbertArabic_100Thin': require('./assets/fonts/arabic/alfont_com_AlFont_com_FSAlbertArabic-Thin.ttf'),
+    'FSAlbertArabic_300Light': require('./assets/fonts/arabic/alfont_com_AlFont_com_FSAlbertArabic-Light.ttf'),
+    'FSAlbertArabic_400Regular': require('./assets/fonts/arabic/alfont_com_AlFont_com_FSAlbertArabic-Regular.ttf'),
+    'FSAlbertArabic_700Bold': require('./assets/fonts/arabic/alfont_com_AlFont_com_FSAlbertArabic-Bold.ttf'),
+    'FSAlbertArabic_800ExtraBold': require('./assets/fonts/arabic/alfont_com_AlFont_com_FSAlbertArabic-ExtraBold.ttf'),
   });
 
   // Wait for locale bootstrap on mobile before rendering LanguageProvider
