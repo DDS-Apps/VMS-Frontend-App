@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
   value: {
     ...Typography.title,
     fontSize: 28,
-    lineHeight: 34,
+    lineHeight: 42,
     fontWeight: '700',
   },
 });

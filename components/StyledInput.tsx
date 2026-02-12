@@ -15,7 +15,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { Spacing, BorderRadius, Typography, FontFamily, getInputFontFamily } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { ArabicFontScaling } from '@/utils/rtlStyles';
+import { ArabicFontScaling, ArabicLineHeightScaling } from '@/utils/rtlStyles';
 import { DirectionalRow } from '@/components/DirectionalRow';
 
 const INPUT_ICON_SIZE = 22;
@@ -103,6 +103,9 @@ export const StyledInput = forwardRef<TextInput, StyledInputProps>(({
               fontSize: isRTL 
                 ? Math.round(INPUT_FONT_SIZE * ArabicFontScaling.body * 10) / 10 
                 : INPUT_FONT_SIZE,
+              lineHeight: isRTL
+                ? Math.round(INPUT_FONT_SIZE * ArabicLineHeightScaling.body * 1.5)
+                : Math.round(INPUT_FONT_SIZE * 1.4),
             },
             Platform.OS === 'web' ? { outlineStyle: 'none' } as any : {},
             !leftIcon ? { paddingStart: 0 } : null,
