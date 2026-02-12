@@ -42,7 +42,12 @@ import type {
   UserRole as ApiUserRole,
 } from "@/types/api.types";
 import { UserRole, USER_ROLES } from "@/types/vms.types";
-import { formatPhoneInput, formatPhoneNumber, formatPhoneForDisplay, normalizePhoneNumber } from "@/utils/formatters";
+import {
+  formatPhoneInput,
+  formatPhoneNumber,
+  formatPhoneForDisplay,
+  normalizePhoneNumber,
+} from "@/utils/formatters";
 import { applyOpacity } from "@/utils/statusStyles";
 import { PhoneInputWithCountry } from "@/components/PhoneInputWithCountry";
 
@@ -103,9 +108,15 @@ function mapUserDtoToDisplayUser(dto: UserDto): DisplayUser {
   };
 }
 
-const ALL_ROLES: UserRole[] = USER_ROLES.filter((role) => role !== "visitor" && role !== "buffet_staff");
+const ALL_ROLES: UserRole[] = USER_ROLES.filter(
+  (role) => role !== "visitor" && role !== "buffet_staff",
+);
 
-const HIDDEN_ROLES_IN_CREATE: UserRole[] = ["valet_driver", "visitor", "buffet_staff"];
+const HIDDEN_ROLES_IN_CREATE: UserRole[] = [
+  "valet_driver",
+  "visitor",
+  "buffet_staff",
+];
 const DISABLED_ROLES_IN_CREATE: UserRole[] = ["employee", "manager"];
 const CREATABLE_ROLES: UserRole[] = ALL_ROLES.filter(
   (role) => !HIDDEN_ROLES_IN_CREATE.includes(role),
@@ -151,7 +162,7 @@ export default function UsersRolesScreen() {
   const { showError, showSuccess } = useToast();
   const navigation = useNavigation<NavigationProp>();
   const { width: screenWidth } = useWindowDimensions();
-  
+
   // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
   const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
 
@@ -232,7 +243,7 @@ export default function UsersRolesScreen() {
   const managers: UserDto[] = useMemo(() => {
     if (!usersResponse?.data) return [];
     return usersResponse.data.filter(
-      (user) => user.role.toLowerCase() === "manager"
+      (user) => user.role.toLowerCase() === "manager",
     );
   }, [usersResponse?.data]);
 
@@ -317,7 +328,7 @@ export default function UsersRolesScreen() {
 
   const handleBusinessPhoneExtChange = (text: string) => {
     // Only allow digits for extension
-    const digitsOnly = text.replace(/\D/g, '');
+    const digitsOnly = text.replace(/\D/g, "");
     setFormData({ ...formData, businessPhoneExt: digitsOnly });
   };
 
@@ -377,8 +388,15 @@ export default function UsersRolesScreen() {
           name: formData.name,
           role: formData.role,
           department: formData.department || undefined,
-          phoneNumber: formData.phoneNumber ? formatPhoneNumber(formData.phoneNumber) : undefined,
-          businessPhone: formData.businessPhone ? formatBusinessPhoneForApi(formData.businessPhone, formData.businessPhoneExt) : undefined,
+          phoneNumber: formData.phoneNumber
+            ? formatPhoneNumber(formData.phoneNumber)
+            : undefined,
+          businessPhone: formData.businessPhone
+            ? formatBusinessPhoneForApi(
+                formData.businessPhone,
+                formData.businessPhoneExt,
+              )
+            : undefined,
           status: formData.status,
           autoApproval: formData.autoApproval,
           managerId: formData.managerId || undefined,
@@ -395,8 +413,15 @@ export default function UsersRolesScreen() {
           password: formData.password || undefined,
           role: formData.role,
           department: formData.department || undefined,
-          phoneNumber: formData.phoneNumber ? formatPhoneNumber(formData.phoneNumber) : undefined,
-          businessPhone: formData.businessPhone ? formatBusinessPhoneForApi(formData.businessPhone, formData.businessPhoneExt) : undefined,
+          phoneNumber: formData.phoneNumber
+            ? formatPhoneNumber(formData.phoneNumber)
+            : undefined,
+          businessPhone: formData.businessPhone
+            ? formatBusinessPhoneForApi(
+                formData.businessPhone,
+                formData.businessPhoneExt,
+              )
+            : undefined,
           status: formData.status,
           autoApproval: formData.autoApproval,
           managerId: formData.managerId || undefined,
@@ -617,7 +642,8 @@ export default function UsersRolesScreen() {
   const renderUserCard = ({ item }: { item: DisplayUser }) => {
     const isSelected = selectedUserIds.has(item.id);
     const roleColor = getRoleAccentColor(item.role);
-    const accentColor = item.status === "active" ? theme.success : theme.textSecondary;
+    const accentColor =
+      item.status === "active" ? theme.success : theme.textSecondary;
     const initials = getInitials(item.name);
 
     return (
@@ -633,13 +659,17 @@ export default function UsersRolesScreen() {
             backgroundColor: theme.surface,
             opacity: pressed ? 0.9 : 1,
             borderWidth: isSelected && bulkMode ? 2 : 0,
-            borderColor: isSelected && bulkMode ? theme.primary : 'transparent',
+            borderColor: isSelected && bulkMode ? theme.primary : "transparent",
           },
         ]}
       >
-        <View style={[styles.userCardInner, { backgroundColor: theme.surface }]}>
-          <View style={[styles.cardAccentLine, { backgroundColor: accentColor }]} />
-          
+        <View
+          style={[styles.userCardInner, { backgroundColor: theme.surface }]}
+        >
+          <View
+            style={[styles.cardAccentLine, { backgroundColor: accentColor }]}
+          />
+
           {bulkMode && (
             <View style={styles.cardCheckboxContainer}>
               {renderCheckbox(item.id)}
@@ -648,23 +678,50 @@ export default function UsersRolesScreen() {
 
           <View style={styles.cardMainContent}>
             <DirectionalRow style={styles.cardHeader} gap={Spacing.md}>
-              <View style={[styles.cardAvatar, { backgroundColor: applyOpacity(roleColor, '15') }]}>
-                <ThemedText style={[styles.cardAvatarText, { color: roleColor }]}>
+              <View
+                style={[
+                  styles.cardAvatar,
+                  { backgroundColor: applyOpacity(roleColor, "15") },
+                ]}
+              >
+                <ThemedText
+                  style={[styles.cardAvatarText, { color: roleColor }]}
+                >
                   {initials}
                 </ThemedText>
               </View>
               <View style={styles.cardNameSection}>
                 <DirectionalRow style={styles.cardNameRow} gap={Spacing.sm}>
-                  <ThemedText style={[styles.cardUserName, { color: theme.text, flex: 1 }]} numberOfLines={1}>
+                  <ThemedText
+                    style={[
+                      styles.cardUserName,
+                      { color: theme.text, flex: 1 },
+                    ]}
+                    numberOfLines={1}
+                  >
                     {item.name}
                   </ThemedText>
-                  <View style={[styles.cardRoleBadge, { backgroundColor: applyOpacity(roleColor, '15'), borderColor: applyOpacity(roleColor, '30'), borderWidth: 1 }]}>
-                    <ThemedText style={[styles.cardBadgeText, { color: roleColor }]}>
+                  <View
+                    style={[
+                      styles.cardRoleBadge,
+                      {
+                        backgroundColor: applyOpacity(roleColor, "15"),
+                        borderColor: applyOpacity(roleColor, "30"),
+                        borderWidth: 1,
+                      },
+                    ]}
+                  >
+                    <ThemedText
+                      style={[styles.cardBadgeText, { color: roleColor }]}
+                    >
                       {getRoleLabel(item.role)}
                     </ThemedText>
                   </View>
                 </DirectionalRow>
-                <ThemedText style={[styles.cardEmail, { color: theme.textSecondary }]} numberOfLines={1}>
+                <ThemedText
+                  style={[styles.cardEmail, { color: theme.textSecondary }]}
+                  numberOfLines={1}
+                >
                   {item.email}
                 </ThemedText>
               </View>
@@ -675,7 +732,10 @@ export default function UsersRolesScreen() {
             {item.department && (
               <DirectionalRow style={styles.cardInfoRow} gap={Spacing.sm}>
                 <DDIcon name="briefcase" variant="muted" size={13} />
-                <ThemedText style={[styles.cardInfoText, { color: theme.textSecondary }]} numberOfLines={1}>
+                <ThemedText
+                  style={[styles.cardInfoText, { color: theme.textSecondary }]}
+                  numberOfLines={1}
+                >
                   {item.department}
                 </ThemedText>
               </DirectionalRow>
@@ -686,11 +746,23 @@ export default function UsersRolesScreen() {
                 <Spacer height={Spacing.xs} />
                 <DirectionalRow style={styles.cardInfoRow} gap={Spacing.sm}>
                   <DDIcon name="phone" variant="muted" size={13} />
-                  <ThemedText style={[styles.cardInfoText, { color: theme.textSecondary }]} numberOfLines={2}>
+                  <ThemedText
+                    style={[
+                      styles.cardInfoText,
+                      { color: theme.textSecondary },
+                    ]}
+                    numberOfLines={2}
+                  >
                     {[
-                      item.phoneNumber ? formatPhoneNumber(item.phoneNumber) : null,
-                      item.businessPhone ? formatPhoneForDisplay(item.businessPhone) : null,
-                    ].filter(Boolean).join(" | ")}
+                      item.phoneNumber
+                        ? formatPhoneNumber(item.phoneNumber)
+                        : null,
+                      item.businessPhone
+                        ? formatPhoneForDisplay(item.businessPhone)
+                        : null,
+                    ]
+                      .filter(Boolean)
+                      .join(" | ")}
                   </ThemedText>
                 </DirectionalRow>
               </>
@@ -701,9 +773,23 @@ export default function UsersRolesScreen() {
             <DirectionalRow style={styles.cardFooter}>
               <DirectionalRow style={styles.cardBadgesRow} gap={Spacing.xs}>
                 {item.autoApproval && (
-                  <View style={[styles.cardAutoApprovalBadge, { backgroundColor: applyOpacity(theme.success, '15') }]}>
-                    <DDIcon name="check-circle" size={10} color={theme.success} />
-                    <ThemedText style={[styles.cardBadgeText, { color: theme.success, marginStart: 2 }]}>
+                  <View
+                    style={[
+                      styles.cardAutoApprovalBadge,
+                      { backgroundColor: applyOpacity(theme.success, "15") },
+                    ]}
+                  >
+                    <DDIcon
+                      name="check-circle"
+                      size={10}
+                      color={theme.success}
+                    />
+                    <ThemedText
+                      style={[
+                        styles.cardBadgeText,
+                        { color: theme.success, marginStart: 2 },
+                      ]}
+                    >
                       {t("common.auto")}
                     </ThemedText>
                   </View>
@@ -713,14 +799,20 @@ export default function UsersRolesScreen() {
               {!bulkMode && (
                 <DirectionalRow style={styles.cardActions} gap={Spacing.sm}>
                   <Pressable
-                    style={[styles.cardActionButton, { backgroundColor: applyOpacity(theme.primary, '15') }]}
+                    style={[
+                      styles.cardActionButton,
+                      { backgroundColor: applyOpacity(theme.primary, "15") },
+                    ]}
                     onPress={() => handleEditUser(item)}
                   >
                     <DDIcon name="edit-2" size={14} variant="primary" />
                   </Pressable>
                   {item.source !== "microsoft_ad" && (
                     <Pressable
-                      style={[styles.cardActionButton, { backgroundColor: applyOpacity(theme.error, '15') }]}
+                      style={[
+                        styles.cardActionButton,
+                        { backgroundColor: applyOpacity(theme.error, "15") },
+                      ]}
                       onPress={() => handleDeleteUser(item.id)}
                     >
                       <DDIcon name="trash-2" size={14} variant="danger" />
@@ -786,14 +878,11 @@ export default function UsersRolesScreen() {
           <View
             style={[
               styles.cardRoleBadge,
-              { backgroundColor: applyOpacity(theme.primary, '20') },
+              { backgroundColor: applyOpacity(theme.primary, "20") },
             ]}
           >
             <ThemedText
-              style={[
-                styles.cardBadgeText,
-                { color: theme.primary },
-              ]}
+              style={[styles.cardBadgeText, { color: theme.primary }]}
               numberOfLines={1}
             >
               {getRoleLabel(item.role)}
@@ -822,7 +911,7 @@ export default function UsersRolesScreen() {
               { flex: 1.5, justifyContent: "center", gap: Spacing.xs },
             ]}
           >
-              <Pressable
+            <Pressable
               style={[
                 styles.tableActionButton,
                 { backgroundColor: theme.primary + "15" },
@@ -1677,10 +1766,25 @@ export default function UsersRolesScreen() {
 
     if (viewMode === "grid") {
       const getItemStyle = () => {
-        if (numColumns === 1) return { width: "100%" as const, paddingHorizontal: HORIZONTAL_PADDING, paddingBottom: Spacing.md };
+        if (numColumns === 1)
+          return {
+            width: "100%" as const,
+            paddingHorizontal: HORIZONTAL_PADDING,
+            paddingBottom: Spacing.md,
+          };
         // Use percentage-based widths with flexGrow: 0 to prevent stretching
-        const widthPercent = numColumns === 3 ? "33.33%" as const : numColumns === 2 ? "50%" as const : "100%" as const;
-        return { width: widthPercent, flexGrow: 0, paddingBottom: Spacing.md, paddingEnd: Spacing.sm };
+        const widthPercent =
+          numColumns === 3
+            ? ("33.33%" as const)
+            : numColumns === 2
+              ? ("50%" as const)
+              : ("100%" as const);
+        return {
+          width: widthPercent,
+          flexGrow: 0,
+          paddingBottom: Spacing.md,
+          paddingEnd: Spacing.sm,
+        };
       };
 
       return (
@@ -1689,11 +1793,12 @@ export default function UsersRolesScreen() {
           data={filteredAndSortedUsers}
           keyExtractor={(item) => item.id}
           numColumns={numColumns}
-          contentContainerStyle={[styles.gridContainer, { paddingHorizontal: HORIZONTAL_PADDING }]}
+          contentContainerStyle={[
+            styles.gridContainer,
+            { paddingHorizontal: HORIZONTAL_PADDING },
+          ]}
           renderItem={({ item }) => (
-            <View style={getItemStyle()}>
-              {renderUserCard({ item })}
-            </View>
+            <View style={getItemStyle()}>{renderUserCard({ item })}</View>
           )}
           ListFooterComponent={listFooter}
           ListEmptyComponent={renderEmptyComponent}
@@ -1740,285 +1845,262 @@ export default function UsersRolesScreen() {
 
       {/* Helper: SSO users can only edit Auto Approval */}
       {(() => {
-        const isSsoUser = editingUser?.source === 'microsoft_ad';
+        const isSsoUser = editingUser?.source === "microsoft_ad";
         return (
-      <Modal
-        visible={showModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowModal(false)}
-      >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={styles.modalOverlay}
-        >
-          <Pressable
-            style={styles.modalBackdrop}
-            onPress={() => setShowModal(false)}
-          />
-          <View
-            style={[
-              styles.modalContent,
-              {
-                backgroundColor: theme.background,
-                paddingBottom: insets.bottom + Spacing.xl,
-              },
-            ]}
+          <Modal
+            visible={showModal}
+            transparent
+            animationType="slide"
+            onRequestClose={() => setShowModal(false)}
           >
-            <DirectionalRow style={styles.modalHeader}>
-              <ThemedText style={[Typography.subtitle, { fontWeight: "600" }]}>
-                {editingUser ? (isSsoUser ? t("common.editAutoApproval") : t("common.edit")) : t("common.addUser")}
-              </ThemedText>
-              <Pressable onPress={() => setShowModal(false)}>
-                <DDIcon name="x" size={24} variant="muted" />
-              </Pressable>
-            </DirectionalRow>
-
-            <ScrollView
-              style={styles.formContainer}
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
+            <KeyboardAvoidingView
+              behavior={Platform.OS === "ios" ? "padding" : "height"}
+              style={styles.modalOverlay}
             >
-              <StyledInput
-                label={`${t("form.fullName")} *`}
-                value={formData.name}
-                onChangeText={(text) => {
-                  setFormData({ ...formData, name: text });
-                  if (formErrors.name)
-                    setFormErrors({ ...formErrors, name: undefined });
-                }}
-                placeholder={t("form.enterFullName")}
-                error={formErrors.name}
-                returnKeyType="next"
-                editable={!isSsoUser}
+              <Pressable
+                style={styles.modalBackdrop}
+                onPress={() => setShowModal(false)}
               />
+              <View
+                style={[
+                  styles.modalContent,
+                  {
+                    backgroundColor: theme.background,
+                    paddingBottom: insets.bottom + Spacing.xl,
+                  },
+                ]}
+              >
+                <DirectionalRow style={styles.modalHeader}>
+                  <ThemedText
+                    style={[Typography.subtitle, { fontWeight: "600" }]}
+                  >
+                    {editingUser
+                      ? isSsoUser
+                        ? t("common.editAutoApproval")
+                        : t("common.edit")
+                      : t("common.addUser")}
+                  </ThemedText>
+                  <Pressable onPress={() => setShowModal(false)}>
+                    <DDIcon name="x" size={24} variant="muted" />
+                  </Pressable>
+                </DirectionalRow>
 
-              <Spacer height={Spacing.md} />
-
-              <StyledInput
-                label={`${t("auth.email")} *`}
-                value={formData.email}
-                onChangeText={(text) => {
-                  setFormData({ ...formData, email: text });
-                  if (formErrors.email)
-                    setFormErrors({ ...formErrors, email: undefined });
-                }}
-                placeholder={t("auth.emailPlaceholder")}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                editable={!editingUser}
-                error={formErrors.email}
-                returnKeyType="next"
-              />
-
-              {!editingUser ? (
-                <>
-                  <Spacer height={Spacing.md} />
+                <ScrollView
+                  style={styles.formContainer}
+                  showsVerticalScrollIndicator={false}
+                  keyboardShouldPersistTaps="handled"
+                >
                   <StyledInput
-                    label={`${t("auth.password")} *`}
-                    value={formData.password}
+                    label={`${t("form.fullName")} *`}
+                    value={formData.name}
                     onChangeText={(text) => {
-                      setFormData({ ...formData, password: text });
-                      if (formErrors.password)
-                        setFormErrors({ ...formErrors, password: undefined });
+                      setFormData({ ...formData, name: text });
+                      if (formErrors.name)
+                        setFormErrors({ ...formErrors, name: undefined });
                     }}
-                    placeholder={t("auth.passwordPlaceholder")}
-                    secureTextEntry={true}
+                    placeholder={t("form.enterFullName")}
+                    error={formErrors.name}
+                    returnKeyType="next"
+                    editable={!isSsoUser}
+                  />
+
+                  <Spacer height={Spacing.md} />
+
+                  <StyledInput
+                    label={`${t("auth.email")} *`}
+                    value={formData.email}
+                    onChangeText={(text) => {
+                      setFormData({ ...formData, email: text });
+                      if (formErrors.email)
+                        setFormErrors({ ...formErrors, email: undefined });
+                    }}
+                    placeholder={t("auth.emailPlaceholder")}
+                    keyboardType="email-address"
                     autoCapitalize="none"
-                    error={formErrors.password}
+                    editable={!editingUser}
+                    error={formErrors.email}
                     returnKeyType="next"
                   />
-                </>
-              ) : null}
 
-              <Spacer height={Spacing.md} />
+                  {!editingUser ? (
+                    <>
+                      <Spacer height={Spacing.md} />
+                      <StyledInput
+                        label={`${t("auth.password")} *`}
+                        value={formData.password}
+                        onChangeText={(text) => {
+                          setFormData({ ...formData, password: text });
+                          if (formErrors.password)
+                            setFormErrors({
+                              ...formErrors,
+                              password: undefined,
+                            });
+                        }}
+                        placeholder={t("auth.passwordPlaceholder")}
+                        secureTextEntry={true}
+                        autoCapitalize="none"
+                        error={formErrors.password}
+                        returnKeyType="next"
+                      />
+                    </>
+                  ) : null}
 
-              <ThemedText
-                style={[
-                  Typography.caption,
-                  { color: theme.textSecondary, marginBottom: Spacing.xs },
-                ]}
-              >
-                {t("common.selectRole").toUpperCase()} *
-              </ThemedText>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={{ marginBottom: Spacing.md }}
-                contentContainerStyle={{ paddingEnd: Spacing.xl, flexDirection: isRTL ? 'row-reverse' : 'row' }}
-                nestedScrollEnabled={true}
-              >
-                {CREATABLE_ROLES.map((role) => {
-                  const isDisabled = DISABLED_ROLES_IN_CREATE.includes(role);
-                  const isSelected = formData.role === role;
-                  return (
-                    <Pressable
-                      key={role}
-                      style={[
-                        styles.roleOption,
-                        {
-                          backgroundColor: isDisabled
-                            ? theme.surfaceSecondary
-                            : isSelected
-                              ? theme.primary
-                              : theme.surface,
-                          borderColor: isDisabled
-                            ? theme.border
-                            : isSelected
-                              ? theme.primary
-                              : theme.border,
-                          marginEnd: Spacing.sm,
-                          opacity: isDisabled ? 0.5 : 1,
-                        },
-                      ]}
-                      onPress={() =>
-                        !isDisabled && !isSsoUser && setFormData({ ...formData, role })
-                      }
-                      disabled={isDisabled || isSsoUser}
-                    >
-                      <ThemedText
-                        style={[
-                          Typography.caption,
-                          {
-                            color: isDisabled
-                              ? theme.textSecondary
-                              : isSelected
-                                ? theme.buttonText
-                                : theme.text,
-                            fontWeight: isSelected ? "600" : "400",
-                          },
-                        ]}
-                      >
-                        {getRoleLabel(role)}
-                      </ThemedText>
-                    </Pressable>
-                  );
-                })}
-              </ScrollView>
+                  <Spacer height={Spacing.md} />
 
-              <StyledInput
-                label={t("form.company")}
-                value={formData.department}
-                onChangeText={(text) =>
-                  setFormData({ ...formData, department: text })
-                }
-                placeholder={t("form.enterCompany")}
-                returnKeyType="next"
-                editable={!isSsoUser}
-              />
-
-              <Spacer height={Spacing.md} />
-
-              <PhoneInputWithCountry
-                value={formData.phoneNumber}
-                onChangeText={handlePhoneChange}
-                label={t("form.phoneNumber")}
-                required
-                error={formErrors.phone}
-                testID="input-phone"
-                editable={!isSsoUser}
-              />
-
-              <Spacer height={Spacing.md} />
-
-              <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', gap: Spacing.sm }}>
-                <View style={{ flex: 2 }}>
-                  <PhoneInputWithCountry
-                    value={formData.businessPhone}
-                    onChangeText={handleBusinessPhoneChange}
-                    label={t("form.businessPhone")}
-                    testID="input-business-phone"
-                    editable={!isSsoUser}
-                  />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <StyledInput
-                    label={t("form.extension")}
-                    value={formData.businessPhoneExt}
-                    onChangeText={handleBusinessPhoneExtChange}
-                    placeholder="123"
-                    keyboardType="number-pad"
-                    testID="input-business-phone-ext"
-                    maxLength={6}
-                    editable={!isSsoUser}
-                  />
-                </View>
-              </View>
-
-              <Spacer height={Spacing.md} />
-
-              <ThemedText
-                style={[
-                  Typography.caption,
-                  { color: theme.textSecondary, marginBottom: Spacing.xs },
-                ]}
-              >
-                {t("common.manager").toUpperCase()}
-              </ThemedText>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={{ marginBottom: Spacing.md }}
-                contentContainerStyle={{ paddingEnd: Spacing.xl, flexDirection: isRTL ? 'row-reverse' : 'row' }}
-                nestedScrollEnabled={true}
-              >
-                <Pressable
-                  style={[
-                    styles.roleOption,
-                    {
-                      backgroundColor: !formData.managerId
-                        ? theme.primary
-                        : theme.surface,
-                      borderColor: !formData.managerId
-                        ? theme.primary
-                        : theme.border,
-                      marginEnd: Spacing.sm,
-                      opacity: isSsoUser ? 0.5 : 1,
-                    },
-                  ]}
-                  onPress={() =>
-                    !isSsoUser && setFormData({ ...formData, managerId: undefined })
-                  }
-                  disabled={isSsoUser}
-                >
                   <ThemedText
                     style={[
                       Typography.caption,
-                      {
-                        color: !formData.managerId
-                          ? theme.buttonText
-                          : theme.text,
-                        fontWeight: !formData.managerId ? "600" : "400",
-                      },
+                      { color: theme.textSecondary, marginBottom: Spacing.xs },
                     ]}
                   >
-                    {t("common.none")}
+                    {t("common.selectRole").toUpperCase()} *
                   </ThemedText>
-                </Pressable>
-                {managers.map((manager) => {
-                  const managerName =
-                    `${manager.firstName || ""} ${manager.lastName || ""}`.trim() ||
-                    manager.email;
-                  return (
+                  <View
+                    style={{
+                      marginBottom: Spacing.md,
+                      flexDirection: isRTL ? 'row-reverse' : 'row',
+                      flexWrap: 'wrap',
+                      gap: Spacing.sm,
+                    }}
+                  >
+                    {CREATABLE_ROLES.map((role) => {
+                      const isDisabled =
+                        DISABLED_ROLES_IN_CREATE.includes(role);
+                      const isSelected = formData.role === role;
+                      return (
+                        <Pressable
+                          key={role}
+                          style={[
+                            styles.roleOption,
+                            {
+                              backgroundColor: isDisabled
+                                ? theme.surfaceSecondary
+                                : isSelected
+                                  ? theme.primary
+                                  : theme.surface,
+                              borderColor: isDisabled
+                                ? theme.border
+                                : isSelected
+                                  ? theme.primary
+                                  : theme.border,
+                              opacity: isDisabled ? 0.5 : 1,
+                            },
+                          ]}
+                          onPress={() =>
+                            !isDisabled &&
+                            !isSsoUser &&
+                            setFormData({ ...formData, role })
+                          }
+                          disabled={isDisabled || isSsoUser}
+                        >
+                          <ThemedText
+                            style={[
+                              Typography.caption,
+                              {
+                                color: isDisabled
+                                  ? theme.textSecondary
+                                  : isSelected
+                                    ? theme.buttonText
+                                    : theme.text,
+                                fontWeight: isSelected ? "600" : "400",
+                              },
+                            ]}
+                          >
+                            {getRoleLabel(role)}
+                          </ThemedText>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+
+                  <StyledInput
+                    label={t("form.company")}
+                    value={formData.department}
+                    onChangeText={(text) =>
+                      setFormData({ ...formData, department: text })
+                    }
+                    placeholder={t("form.enterCompany")}
+                    returnKeyType="next"
+                    editable={!isSsoUser}
+                  />
+
+                  <Spacer height={Spacing.md} />
+
+                  <PhoneInputWithCountry
+                    value={formData.phoneNumber}
+                    onChangeText={handlePhoneChange}
+                    label={t("form.phoneNumber")}
+                    required
+                    error={formErrors.phone}
+                    testID="input-phone"
+                    editable={!isSsoUser}
+                  />
+
+                  <Spacer height={Spacing.md} />
+
+                  <View
+                    style={{
+                      flexDirection: isRTL ? "row-reverse" : "row",
+                      gap: Spacing.sm,
+                    }}
+                  >
+                    <View style={{ flex: 2 }}>
+                      <PhoneInputWithCountry
+                        value={formData.businessPhone}
+                        onChangeText={handleBusinessPhoneChange}
+                        label={t("form.businessPhone")}
+                        testID="input-business-phone"
+                        editable={!isSsoUser}
+                      />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <StyledInput
+                        label={t("form.extension")}
+                        value={formData.businessPhoneExt}
+                        onChangeText={handleBusinessPhoneExtChange}
+                        placeholder="123"
+                        keyboardType="number-pad"
+                        testID="input-business-phone-ext"
+                        maxLength={6}
+                        editable={!isSsoUser}
+                      />
+                    </View>
+                  </View>
+
+                  <Spacer height={Spacing.md} />
+
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      { color: theme.textSecondary, marginBottom: Spacing.xs },
+                    ]}
+                  >
+                    {t("common.manager").toUpperCase()}
+                  </ThemedText>
+                  <View
+                    style={{
+                      marginBottom: Spacing.md,
+                      flexDirection: isRTL ? 'row-reverse' : 'row',
+                      flexWrap: 'wrap',
+                      gap: Spacing.sm,
+                    }}
+                  >
                     <Pressable
-                      key={manager.id}
                       style={[
                         styles.roleOption,
                         {
-                          backgroundColor:
-                            formData.managerId === manager.id
-                              ? theme.primary
-                              : theme.surface,
-                          borderColor:
-                            formData.managerId === manager.id
-                              ? theme.primary
-                              : theme.border,
-                          marginEnd: Spacing.sm,
+                          backgroundColor: !formData.managerId
+                            ? theme.primary
+                            : theme.surface,
+                          borderColor: !formData.managerId
+                            ? theme.primary
+                            : theme.border,
                           opacity: isSsoUser ? 0.5 : 1,
                         },
                       ]}
                       onPress={() =>
-                        !isSsoUser && setFormData({ ...formData, managerId: manager.id })
+                        !isSsoUser &&
+                        setFormData({ ...formData, managerId: undefined })
                       }
                       disabled={isSsoUser}
                     >
@@ -2026,75 +2108,129 @@ export default function UsersRolesScreen() {
                         style={[
                           Typography.caption,
                           {
-                            color:
-                              formData.managerId === manager.id
-                                ? theme.buttonText
-                                : theme.text,
-                            fontWeight:
-                              formData.managerId === manager.id ? "600" : "400",
+                            color: !formData.managerId
+                              ? theme.buttonText
+                              : theme.text,
+                            fontWeight: !formData.managerId ? "600" : "400",
                           },
                         ]}
-                        numberOfLines={1}
                       >
-                        {managerName}
+                        {t("common.none")}
                       </ThemedText>
                     </Pressable>
-                  );
-                })}
-              </ScrollView>
+                    {managers.map((manager) => {
+                      const managerName =
+                        `${manager.firstName || ""} ${manager.lastName || ""}`.trim() ||
+                        manager.email;
+                      return (
+                        <Pressable
+                          key={manager.id}
+                          style={[
+                            styles.roleOption,
+                            {
+                              backgroundColor:
+                                formData.managerId === manager.id
+                                  ? theme.primary
+                                  : theme.surface,
+                              borderColor:
+                                formData.managerId === manager.id
+                                  ? theme.primary
+                                  : theme.border,
+                              opacity: isSsoUser ? 0.5 : 1,
+                            },
+                          ]}
+                          onPress={() =>
+                            !isSsoUser &&
+                            setFormData({ ...formData, managerId: manager.id })
+                          }
+                          disabled={isSsoUser}
+                        >
+                          <ThemedText
+                            style={[
+                              Typography.caption,
+                              {
+                                color:
+                                  formData.managerId === manager.id
+                                    ? theme.buttonText
+                                    : theme.text,
+                                fontWeight:
+                                  formData.managerId === manager.id
+                                    ? "600"
+                                    : "400",
+                              },
+                            ]}
+                            numberOfLines={1}
+                          >
+                            {managerName}
+                          </ThemedText>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
 
-              <DirectionalRow
-                style={[
-                  styles.autoApprovalRow,
-                  { backgroundColor: theme.surface, borderColor: theme.border },
-                ]}
-              >
-                <View style={{ flex: 1 }}>
-                  <ThemedText style={[Typography.body, { fontWeight: "500" }]}>
-                    {t("common.autoApproval")}
-                  </ThemedText>
-                  <ThemedText
+                  <DirectionalRow
                     style={[
-                      Typography.caption,
-                      { color: theme.textSecondary, marginTop: 2 },
+                      styles.autoApprovalRow,
+                      {
+                        backgroundColor: theme.surface,
+                        borderColor: theme.border,
+                      },
                     ]}
                   >
-                    {t("common.autoApprovalDescription")}
-                  </ThemedText>
-                </View>
-                <Switch
-                  value={formData.autoApproval}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, autoApproval: value })
-                  }
-                  trackColor={{
-                    false: theme.border,
-                    true: theme.success + "80",
-                  }}
-                  thumbColor={
-                    formData.autoApproval ? theme.success : theme.textSecondary
-                  }
-                  accessibilityLabel={t("common.autoApproval")}
-                />
-              </DirectionalRow>
+                    <View style={{ flex: 1 }}>
+                      <ThemedText
+                        style={[Typography.body, { fontWeight: "500" }]}
+                      >
+                        {t("common.autoApproval")}
+                      </ThemedText>
+                      <ThemedText
+                        style={[
+                          Typography.caption,
+                          { color: theme.textSecondary, marginTop: 2 },
+                        ]}
+                      >
+                        {t("common.autoApprovalDescription")}
+                      </ThemedText>
+                    </View>
+                    <Switch
+                      value={formData.autoApproval}
+                      onValueChange={(value) =>
+                        setFormData({ ...formData, autoApproval: value })
+                      }
+                      trackColor={{
+                        false: theme.border,
+                        true: theme.success + "80",
+                      }}
+                      thumbColor={
+                        formData.autoApproval
+                          ? theme.success
+                          : theme.textSecondary
+                      }
+                      accessibilityLabel={t("common.autoApproval")}
+                    />
+                  </DirectionalRow>
 
-              <Spacer height={Spacing.lg} />
+                  <Spacer height={Spacing.lg} />
 
-              <LoadingButton
-                onPress={handleSaveUser}
-                loading={createMutation.isPending || updateMutation.isPending}
-                disabled={createMutation.isPending || updateMutation.isPending}
-                variant="primary"
-                size="medium"
-                loadingText={t("common.loading")}
-                fullWidth
-              >
-                {t("common.save")}
-              </LoadingButton>
-            </ScrollView>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
+                  <LoadingButton
+                    onPress={handleSaveUser}
+                    loading={
+                      createMutation.isPending || updateMutation.isPending
+                    }
+                    disabled={
+                      createMutation.isPending || updateMutation.isPending
+                    }
+                    variant="primary"
+                    size="medium"
+                    loadingText={t("common.loading")}
+                    fullWidth
+                  >
+                    {t("common.save")}
+                  </LoadingButton>
+                </ScrollView>
+              </View>
+            </KeyboardAvoidingView>
+          </Modal>
         );
       })()}
 
