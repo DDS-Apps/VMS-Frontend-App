@@ -581,7 +581,7 @@ export default function EditProfileScreen({
               <ThemedText style={[styles.inputLabel, { color: theme.text }]}>
                 {t('form.extension')}
               </ThemedText>
-              <View style={{ flexDirection: getFlexDirection(isRTL), alignItems: 'center', gap: Spacing.sm }}>
+              <DirectionalRow style={{ alignItems: 'center' }} gap={Spacing.sm}>
                 <TextInput
                   style={[
                     styles.input,
@@ -604,7 +604,7 @@ export default function EditProfileScreen({
                 <ThemedText style={[styles.extensionHint, { color: theme.textSecondary }]}>
                   {t('form.optional')}
                 </ThemedText>
-              </View>
+              </DirectionalRow>
             </View>
           </>
         )}
