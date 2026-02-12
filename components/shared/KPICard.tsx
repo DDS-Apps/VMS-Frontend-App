@@ -51,6 +51,7 @@ export function KPICard({ title, value, icon, color }: KPICardProps) {
       <Spacer height={Spacing.xs} />
 
       <ThemedText
+        variant="h3"
         style={[
           styles.value,
           { color: theme.text },
@@ -118,8 +119,10 @@ const styles = StyleSheet.create({
   },
   card: {
     padding: Spacing.lg,
+    paddingBottom: Spacing.xl,
     borderRadius: BorderRadius.lg,
     alignItems: 'center',
+    overflow: 'visible' as const,
   },
   iconContainer: {
     width: 48,
