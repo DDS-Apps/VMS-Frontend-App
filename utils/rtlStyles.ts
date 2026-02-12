@@ -40,10 +40,10 @@ export const ArabicFontScaling = {
  * so line height needs to scale more than font size to prevent clipping.
  */
 export const ArabicLineHeightScaling = {
-  body: 1.2,
-  heading: 1.18,
-  caption: 1.15,
-  default: 1.15,
+  body: 1.3,
+  heading: 1.25,
+  caption: 1.2,
+  default: 1.2,
 };
 
 /**

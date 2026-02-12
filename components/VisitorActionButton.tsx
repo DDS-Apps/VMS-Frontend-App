@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: 20,
     minWidth: 100,
-    height: 34,
+    minHeight: 34,
     gap: 6,
   },
   buttonText: {
