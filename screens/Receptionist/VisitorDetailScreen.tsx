@@ -459,7 +459,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
 
         <View style={isWebLayout ? styles.responsiveGrid : undefined}>
           <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
-            <DirectionalRow style={styles.serviceRowNew} alignItems="flex-start">
+            <DirectionalRow style={styles.serviceRowNew} alignItems="center">
               <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
                 <DDIcon name="clock" size={18} color={theme.text} />
               </View>
@@ -476,7 +476,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
           </View>
 
           <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
-            <DirectionalRow style={styles.serviceRowNew} alignItems="flex-start">
+            <DirectionalRow style={styles.serviceRowNew} alignItems="center">
               <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
                 <DDIcon name="user" size={18} color={theme.text} />
               </View>
@@ -493,7 +493,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
           </View>
 
           <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
-            <DirectionalRow style={styles.serviceRowNew} alignItems="flex-start">
+            <DirectionalRow style={styles.serviceRowNew} alignItems="center">
               <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
                 <DDIcon name="home" size={18} color={theme.text} />
               </View>
@@ -522,7 +522,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
         <View style={isWebLayout ? styles.responsiveGrid : undefined}>
           {/* Meeting Room */}
           <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
-            <DirectionalRow style={[styles.serviceItemNew, { backgroundColor: theme.surfaceSecondary }]} alignItems="flex-start">
+            <DirectionalRow style={[styles.serviceItemNew, { backgroundColor: theme.surfaceSecondary }]} alignItems="center">
               <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(isCancelledVisit ? theme.textSecondary : (visitor.isMeetingRoom || visitor.meetingRoom) ? theme.secondary : theme.textSecondary, '15') }]}>
                 <DDIcon name="briefcase" size={18} color={isCancelledVisit ? theme.textSecondary : (visitor.isMeetingRoom || visitor.meetingRoom) ? theme.secondary : theme.textSecondary} />
               </View>
@@ -554,7 +554,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
 
           {/* Buffet Service */}
           <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
-            <DirectionalRow style={[styles.serviceItemNew, { backgroundColor: theme.surfaceSecondary }]} alignItems="flex-start">
+            <DirectionalRow style={[styles.serviceItemNew, { backgroundColor: theme.surfaceSecondary }]} alignItems="center">
               <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(isCancelledVisit ? theme.textSecondary : (visitor.isBuffet || visitor.buffet) ? theme.secondary : theme.textSecondary, '15') }]}>
                 <DDIcon name="cloche" size={18} color={isCancelledVisit ? theme.textSecondary : (visitor.isBuffet || visitor.buffet) ? theme.secondary : theme.textSecondary} />
               </View>
@@ -586,7 +586,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
 
           {/* Parking */}
           <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
-            <DirectionalRow style={[styles.serviceItemNew, { backgroundColor: theme.surfaceSecondary }]} alignItems="flex-start">
+            <DirectionalRow style={[styles.serviceItemNew, { backgroundColor: theme.surfaceSecondary }]} alignItems="center">
               <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(isCancelledVisit ? theme.textSecondary : (visitor.isParking || visitor.parking) ? theme.secondary : theme.textSecondary, '15') }]}>
                 <DDIcon name="truck" size={18} color={isCancelledVisit ? theme.textSecondary : (visitor.isParking || visitor.parking) ? theme.secondary : theme.textSecondary} />
               </View>
@@ -642,7 +642,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
             <View style={isWebLayout ? styles.responsiveGrid : undefined}>
               {/* Host Name */}
               <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
-                <DirectionalRow style={styles.serviceRowNew} alignItems="flex-start">
+                <DirectionalRow style={styles.serviceRowNew} alignItems="center">
                   <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
                     <DDIcon name="user" size={18} color={theme.text} />
                   </View>
@@ -662,7 +662,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
               {/* Host Phone */}
               {visitor.hostPhone && (
                 <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
-                  <DirectionalRow style={styles.serviceRowNew} alignItems="flex-start">
+                  <DirectionalRow style={styles.serviceRowNew} alignItems="center">
                     <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
                       <DDIcon name="phone" size={18} color={theme.text} />
                     </View>
@@ -682,7 +682,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
               {/* Host Landline */}
               {visitor.hostLandline && (
                 <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
-                  <DirectionalRow style={styles.serviceRowNew} alignItems="flex-start">
+                  <DirectionalRow style={styles.serviceRowNew} alignItems="center">
                     <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
                       <DDIcon name="phone" size={18} color={theme.text} />
                     </View>
@@ -892,13 +892,13 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
   },
   serviceRowNew: {
-    alignItems: 'flex-start',
+    alignItems: 'center',
     gap: Spacing.md,
   },
   serviceItemNew: {
     padding: Spacing.md,
     borderRadius: BorderRadius.md,
-    alignItems: 'flex-start',
+    alignItems: 'center',
     gap: Spacing.md,
   },
   responsiveGrid: {
