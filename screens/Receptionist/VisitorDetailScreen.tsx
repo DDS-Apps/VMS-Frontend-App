@@ -67,7 +67,7 @@ interface LegacyVisitor {
 export default function VisitorDetailScreen({ navigation, route }: VisitorDetailScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { formatTime, toLocalNumerals, formatDateShort } = useFormatters();
+  const { formatTime, formatTimeFromString, toLocalNumerals, formatDateShort } = useFormatters();
   const { isRTL } = useLanguage();
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
@@ -468,7 +468,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
                   {t('visitor.visitTime')}
                 </ThemedText>
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
-                  {visitor.visitDate ? formatDateShort(visitor.visitDate) : ''}{visitor.visitDate && visitor.time ? ' • ' : ''}{visitor.time}{visitor.endTime ? ` - ${visitor.endTime}` : ''}
+                  {visitor.visitDate ? formatDateShort(visitor.visitDate) : ''}{visitor.visitDate && visitor.time ? ' • ' : ''}{visitor.time ? formatTimeFromString(visitor.time) : ''}{visitor.endTime ? ` - ${formatTimeFromString(visitor.endTime)}` : ''}
                 </ThemedText>
               </View>
             </DirectionalRow>

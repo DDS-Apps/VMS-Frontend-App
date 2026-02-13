@@ -79,6 +79,13 @@ export const formatTime = (
 ): string => {
   if (typeof timeInput === 'string') {
     if (timeInput.includes('AM') || timeInput.includes('PM')) {
+      if (isRTL) {
+        const arabicNumerals = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+        return timeInput
+          .replace(/AM/g, 'ص')
+          .replace(/PM/g, 'م')
+          .replace(/[0-9]/g, (d) => arabicNumerals[parseInt(d, 10)]);
+      }
       return timeInput;
     }
     if (timeInput.includes(':') && !timeInput.includes('T')) {
@@ -86,7 +93,15 @@ export const formatTime = (
       const hour = parseInt(hours, 10);
       const period = hour >= 12 ? 'PM' : 'AM';
       const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-      return `${displayHour}:${minutes} ${period}`;
+      const formatted = `${displayHour}:${minutes} ${period}`;
+      if (isRTL) {
+        const arabicNumerals = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+        return formatted
+          .replace(/AM/g, 'ص')
+          .replace(/PM/g, 'م')
+          .replace(/[0-9]/g, (d) => arabicNumerals[parseInt(d, 10)]);
+      }
+      return formatted;
     }
     const date = new Date(timeInput);
     if (!isNaN(date.getTime())) {
