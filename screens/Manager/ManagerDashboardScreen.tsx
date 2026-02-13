@@ -33,6 +33,7 @@ import type { ManagerDashboardScreenProps } from "@/types/managerNavigation.type
 import type { Theme } from "@/types/theme.types";
 import { mapPendingApprovalToVisitorRequest } from "@/utils/requestMappers";
 import { isVisitExpired } from "@/utils/dateTimeUtils";
+import { PURPOSE_VALUE_TO_KEY, normalizePurposeValue } from "@/constants/requestConstants";
 
 const LAYOUT = {
   cardPadding: Spacing.lg,
@@ -412,7 +413,7 @@ const ApprovalTableRow = React.memo(({
         </ThemedText>
         <Spacer height={10} />
         <ThemedText style={[styles.columnValue, { fontSize: 15 }]} numberOfLines={3}>
-          {request.purpose}
+          {(() => { const pv = normalizePurposeValue(request.purpose || ''); return PURPOSE_VALUE_TO_KEY[pv] ? t(PURPOSE_VALUE_TO_KEY[pv] as any) : (request.purpose || '-'); })()}
         </ThemedText>
       </View>
 

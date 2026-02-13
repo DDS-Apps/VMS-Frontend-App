@@ -54,7 +54,7 @@ import { PhoneInputWithCountry } from "@/components/PhoneInputWithCountry";
 import type { VisitorRequestFormScreenProps } from "@/types/employeeNavigation.types";
 import { calculateServerDuration } from "@/utils/dateTimeUtils";
 import { useServerDateTime } from "@/hooks/useServerDateTime";
-import { PURPOSE_OPTIONS } from "@/constants/requestConstants";
+import { PURPOSE_OPTIONS, PURPOSE_VALUE_TO_KEY } from "@/constants/requestConstants";
 
 const MONTHS = [
   "January",
@@ -479,8 +479,8 @@ export default function VisitorRequestFormScreen({
           visitorPhone: phone.trim() || undefined,
           hostId: selectedEmployeeId,
           hostName: hostEmployee,
-          visitType: purposeLabel || t("visitor.generalVisit"),
-          purpose: purposeLabel || t("visitor.generalVisit"),
+          visitType: purposeValue || 'general',
+          purpose: purposeValue || 'general',
           idType: idType,
           idNumber: idNumber.trim(),
         };
@@ -537,7 +537,7 @@ export default function VisitorRequestFormScreen({
         visitTime: formatTimeForApi(selectedTime),
         endTime: formatTimeForApi(selectedEndTime),
         duration: duration,
-        purpose: purposeLabel || t("visitor.generalVisit"),
+        purpose: purposeValue || 'general',
         communicationChannels,
         needsMeetingRoom: asReceptionist ? false : needsMeetingRoom,
         needsBuffet: asReceptionist ? false : needsBuffet,
@@ -990,7 +990,7 @@ export default function VisitorRequestFormScreen({
                       },
                     ]}
                   >
-                    {purposeLabel || t("form.selectPurpose")}
+                    {purposeValue && PURPOSE_VALUE_TO_KEY[purposeValue] ? t(PURPOSE_VALUE_TO_KEY[purposeValue] as any) : t("form.selectPurpose")}
                   </ThemedText>
                   <DDIcon name="chevron-down" size={20} variant="muted" />
                 </DirectionalRow>

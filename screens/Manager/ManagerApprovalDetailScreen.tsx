@@ -38,7 +38,7 @@ import {
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Spacing, BorderRadius, Typography, FontFamily, getLocaleFontFamily, getInputFontFamily } from "@/constants/theme";
-import { REQUEST_STATUS } from "@/constants/requestConstants";
+import { REQUEST_STATUS, PURPOSE_VALUE_TO_KEY, normalizePurposeValue } from "@/constants/requestConstants";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
@@ -58,19 +58,6 @@ import { applyOpacity, getStatusConfig as getSharedStatusConfig } from "@/utils/
 import { formatPhoneNumber, formatPhoneForDisplay, capitalizeFirst } from "@/utils/formatters";
 import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
 
-const PURPOSE_VALUE_TO_KEY: Record<string, string> = {
-  business_meeting: 'visitor.businessMeeting',
-  interview: 'visitor.interview',
-  delivery: 'visitor.delivery',
-  maintenance: 'visitor.maintenance',
-  general: 'visitor.generalVisit',
-  partners: 'visitor.partners',
-  government: 'visitor.government',
-  vip: 'visitor.vip',
-  contractor: 'visitor.contractor',
-  vendors: 'visitor.vendors',
-  meeting: 'visitor.meeting',
-};
 
 const LAYOUT = {
   cardPadding: 20,
@@ -1285,7 +1272,7 @@ export default function ManagerApprovalDetailScreen({
                   ]}
                   numberOfLines={1}
                 >
-                  {PURPOSE_VALUE_TO_KEY[request.purpose?.toLowerCase()] ? t(PURPOSE_VALUE_TO_KEY[request.purpose.toLowerCase()] as any) : (request.purpose || '-')}
+                  {(() => { const pv = normalizePurposeValue(request.purpose || ''); return PURPOSE_VALUE_TO_KEY[pv] ? t(PURPOSE_VALUE_TO_KEY[pv] as any) : (request.purpose || '-'); })()}
                 </ThemedText>
               </View>
             </DirectionalRow>

@@ -15,6 +15,60 @@ export const PURPOSE_OPTIONS = [
   { value: 'vendors', labelKey: 'visitor.vendors' },
 ] as const;
 
+export const PURPOSE_VALUE_TO_KEY: Record<string, string> = {
+  business_meeting: 'visitor.businessMeeting',
+  interview: 'visitor.interview',
+  delivery: 'visitor.delivery',
+  maintenance: 'visitor.maintenance',
+  general: 'visitor.generalVisit',
+  partners: 'visitor.partners',
+  government: 'visitor.government',
+  vip: 'visitor.vip',
+  contractor: 'visitor.contractor',
+  vendors: 'visitor.vendors',
+  meeting: 'visitor.meeting',
+};
+
+const ARABIC_PURPOSE_TO_VALUE: Record<string, string> = {
+  'اجتماع عمل': 'business_meeting',
+  'مقابلة': 'interview',
+  'توصيل': 'delivery',
+  'صيانة': 'maintenance',
+  'زيارة عامة': 'general',
+  'شركاء': 'partners',
+  'حكومي': 'government',
+  'شخصية مهمة': 'vip',
+  'مقاول': 'contractor',
+  'موردون': 'vendors',
+  'اجتماع': 'meeting',
+};
+
+const ENGLISH_PURPOSE_TO_VALUE: Record<string, string> = {
+  'Business Meeting': 'business_meeting',
+  'Interview': 'interview',
+  'Delivery': 'delivery',
+  'Maintenance': 'maintenance',
+  'General Visit': 'general',
+  'Partners': 'partners',
+  'Government': 'government',
+  'VIP': 'vip',
+  'Contractor': 'contractor',
+  'Vendors': 'vendors',
+  'Meeting': 'meeting',
+};
+
+export function normalizePurposeValue(purpose: string): string {
+  if (!purpose) return '';
+  const lower = purpose.toLowerCase();
+  if (PURPOSE_VALUE_TO_KEY[lower]) return lower;
+  if (PURPOSE_VALUE_TO_KEY[purpose]) return purpose;
+  const fromArabic = ARABIC_PURPOSE_TO_VALUE[purpose];
+  if (fromArabic) return fromArabic;
+  const fromEnglish = ENGLISH_PURPOSE_TO_VALUE[purpose];
+  if (fromEnglish) return fromEnglish;
+  return purpose;
+}
+
 export const MEAL_TYPES: readonly BuffetMealType[] = [
   'breakfast',
   'lunch',

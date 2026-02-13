@@ -15,6 +15,7 @@ import { DDIcon } from "@/components/DDIcon";
 import { usePublicInviteQuery, useAcceptInviteMutation, useRejectInviteMutation } from "@/hooks/queries";
 import type { PublicInviteDto, VisitorParkingOption } from "@/types/api.types";
 import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
+import { PURPOSE_VALUE_TO_KEY, normalizePurposeValue } from "@/constants/requestConstants";
 
 // Dallah Albaraka Light Theme Colors for this page
 const PageColors = {
@@ -1298,7 +1299,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
         <InfoRow 
           icon="briefcase" 
           label={t('form.purpose')} 
-          value={invite.purpose}
+          value={(() => { const pv = normalizePurposeValue(invite.purpose || ''); return PURPOSE_VALUE_TO_KEY[pv] ? t(PURPOSE_VALUE_TO_KEY[pv] as any) : (invite.purpose || '-'); })()}
         />
 
         <View style={styles.infoDivider} />

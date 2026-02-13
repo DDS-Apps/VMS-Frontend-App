@@ -20,6 +20,7 @@ import { applyOpacity } from "@/utils/statusStyles";
 import { useTodayVisitorsQuery, useReceptionCheckInMutation, useReceptionCheckOutMutation } from "@/hooks/queries/useReceptionQueries";
 import type { TodayVisitorDto } from "@/types";
 import { DirectionalRow } from '@/components/DirectionalRow';
+import { PURPOSE_VALUE_TO_KEY, normalizePurposeValue } from "@/constants/requestConstants";
 
 type StatusFilter = 'all' | 'pending' | 'checked_in' | 'completed';
 
@@ -257,7 +258,7 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
                   <DirectionalRow style={styles.expandedDetailRow}>
                     <DDIcon name="briefcase" size={14} color={theme.textSecondary} />
                     <ThemedText style={[styles.expandedDetailText, { color: theme.text, textAlign: 'right', marginEnd: 8 }]} numberOfLines={2}>
-                      {(item as any).purpose}
+                      {(() => { const pv = normalizePurposeValue((item as any).purpose || ''); return PURPOSE_VALUE_TO_KEY[pv] ? t(PURPOSE_VALUE_TO_KEY[pv] as any) : ((item as any).purpose || '-'); })()}
                     </ThemedText>
                   </DirectionalRow>
                 ) : null}

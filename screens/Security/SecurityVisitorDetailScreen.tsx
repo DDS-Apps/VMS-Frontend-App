@@ -15,6 +15,7 @@ import { formatPhoneNumber, formatPhoneForDisplay } from "@/utils/formatters";
 import { useSecurityVisitorQuery } from "@/hooks/queries/useSecurityQueries";
 import type { SecurityVisitorDetailScreenProps } from "@/types/securityNavigation.types";
 import { DirectionalRow } from '@/components/DirectionalRow';
+import { PURPOSE_VALUE_TO_KEY, normalizePurposeValue } from "@/constants/requestConstants";
 
 export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDetailScreenProps) {
   const { theme } = useTheme();
@@ -283,7 +284,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                   {t('form.purpose')}
                 </ThemedText>
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
-                  {visitorData.purpose || '-'}
+                  {(() => { const pv = normalizePurposeValue(visitorData.purpose || ''); return PURPOSE_VALUE_TO_KEY[pv] ? t(PURPOSE_VALUE_TO_KEY[pv] as any) : (visitorData.purpose || '-'); })()}
                 </ThemedText>
               </View>
             </DirectionalRow>

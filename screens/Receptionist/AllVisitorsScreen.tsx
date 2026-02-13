@@ -18,6 +18,7 @@ import { VisitorActionButton } from "@/components/VisitorActionButton";
 import { applyOpacity } from "@/utils/statusStyles";
 import { toServerDateString } from "@/utils/dateTimeUtils";
 import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
+import { PURPOSE_VALUE_TO_KEY, normalizePurposeValue } from "@/constants/requestConstants";
 import { useInfiniteVisitsQuery } from "@/hooks/queries/useApprovalQueries";
 import { useReceptionCheckInMutation, useReceptionCheckOutMutation } from "@/hooks/queries/useReceptionQueries";
 import type { VisitListParams, VisitListItemDto } from "@/types";
@@ -410,7 +411,7 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
                   <DirectionalRow style={styles.expandedDetailRow}>
                     <DDIcon name="briefcase" size={14} color={theme.textSecondary} />
                     <ThemedText style={[styles.expandedDetailText, { color: theme.text }]} numberOfLines={2}>
-                      {item.purpose}
+                      {(() => { const pv = normalizePurposeValue(item.purpose || ''); return PURPOSE_VALUE_TO_KEY[pv] ? t(PURPOSE_VALUE_TO_KEY[pv] as any) : (item.purpose || '-'); })()}
                     </ThemedText>
                   </DirectionalRow>
                 ) : null}

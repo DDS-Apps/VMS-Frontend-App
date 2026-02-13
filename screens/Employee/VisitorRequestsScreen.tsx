@@ -20,6 +20,8 @@ import {
   REQUEST_STATUS,
   UPCOMING_STATUSES,
   CANCELLED_STATUSES,
+  PURPOSE_VALUE_TO_KEY,
+  normalizePurposeValue,
 } from "@/constants/requestConstants";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -442,7 +444,7 @@ const VisitorRequestTableRow = React.memo(
                 style={[styles.columnValue, { fontSize: 15 }]}
                 numberOfLines={3}
               >
-                {request.purpose}
+                {(() => { const pv = normalizePurposeValue(request.purpose || ''); return PURPOSE_VALUE_TO_KEY[pv] ? t(PURPOSE_VALUE_TO_KEY[pv] as any) : (request.purpose || '-'); })()}
               </ThemedText>
             </View>
 

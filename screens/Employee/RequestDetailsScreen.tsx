@@ -43,7 +43,7 @@ import {
 } from "@/components/shared/RequestTimeline";
 import Spacer from "@/components/Spacer";
 import { Spacing, BorderRadius, Typography, getInputFontFamily } from "@/constants/theme";
-import { REQUEST_STATUS, PURPOSE_OPTIONS } from "@/constants/requestConstants";
+import { REQUEST_STATUS, PURPOSE_OPTIONS, PURPOSE_VALUE_TO_KEY, normalizePurposeValue } from "@/constants/requestConstants";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
@@ -77,19 +77,6 @@ import { formatPhoneNumber, formatPhoneForDisplay, capitalizeFirst } from "@/uti
 import { useServerDateTime } from "@/hooks/useServerDateTime";
 import { useAuth } from "@/contexts/AuthContext";
 
-const PURPOSE_VALUE_TO_KEY: Record<string, string> = {
-  business_meeting: 'visitor.businessMeeting',
-  interview: 'visitor.interview',
-  delivery: 'visitor.delivery',
-  maintenance: 'visitor.maintenance',
-  general: 'visitor.generalVisit',
-  partners: 'visitor.partners',
-  government: 'visitor.government',
-  vip: 'visitor.vip',
-  contractor: 'visitor.contractor',
-  vendors: 'visitor.vendors',
-  meeting: 'visitor.meeting',
-};
 
 export default function RequestDetailsScreen({
   navigation,
@@ -375,7 +362,7 @@ export default function RequestDetailsScreen({
       {
         onSuccess: () => {
           if (visitData) {
-            setEditPurpose(visitData.purpose || "");
+            setEditPurpose(normalizePurposeValue(visitData.purpose || ""));
             setEditRequiresParking(visitData.parkingType !== "none");
             setEditRequiresValet(visitData.parkingType === "valet");
             setEditRequiresMeetingRoom(!!visitData.meetingRoom);
@@ -529,7 +516,7 @@ export default function RequestDetailsScreen({
         onSuccess: () => {
           // Approval successful, now open edit modal in services-only mode for service selection
           if (visitData) {
-            setEditPurpose(visitData.purpose || "");
+            setEditPurpose(normalizePurposeValue(visitData.purpose || ""));
             setEditRequiresParking(visitData.parkingType !== "none");
             setEditRequiresValet(visitData.parkingType === "valet");
             setEditRequiresMeetingRoom(!!visitData.meetingRoom);
@@ -662,7 +649,7 @@ export default function RequestDetailsScreen({
 
     setIsApprovalFlow(false);
     setEditModalMode(mode);
-    setEditPurpose(visitData.purpose || "");
+    setEditPurpose(normalizePurposeValue(visitData.purpose || ""));
     const visitDateStr = visitData.visitDate || formatDateForApi(new Date());
     const visitDate = new Date(visitDateStr);
     setEditDate(visitDate);
@@ -1721,7 +1708,7 @@ export default function RequestDetailsScreen({
                       },
                     ]}
                   >
-                    {PURPOSE_VALUE_TO_KEY[request.purpose?.toLowerCase()] ? t(PURPOSE_VALUE_TO_KEY[request.purpose.toLowerCase()] as any) : (request.purpose || '-')}
+                    {(() => { const pv = normalizePurposeValue(request.purpose || ''); return PURPOSE_VALUE_TO_KEY[pv] ? t(PURPOSE_VALUE_TO_KEY[pv] as any) : (request.purpose || '-'); })()}
                   </ThemedText>
                 </View>
               </DirectionalRow>
@@ -2699,7 +2686,7 @@ export default function RequestDetailsScreen({
                       },
                     ]}
                   >
-                    {editPurpose || t("visitor.selectVisitType")}
+                    {editPurpose ? (PURPOSE_VALUE_TO_KEY[editPurpose] ? t(PURPOSE_VALUE_TO_KEY[editPurpose] as any) : editPurpose) : t("visitor.selectVisitType")}
                   </ThemedText>
                   <DDIcon name="chevron-down" size={16} variant="muted" />
                 </Pressable>
@@ -3756,13 +3743,13 @@ export default function RequestDetailsScreen({
                       {
                         borderBottomColor: theme.border,
                         backgroundColor:
-                          editPurpose === t(option.labelKey as any)
+                          editPurpose === option.value
                             ? applyOpacity(theme.primary, "10")
                             : "transparent",
                       },
                     ]}
                     onPress={() => {
-                      setEditPurpose(t(option.labelKey as any));
+                      setEditPurpose(option.value);
                       setShowPurposePicker(false);
                     }}
                   >
@@ -3779,7 +3766,7 @@ export default function RequestDetailsScreen({
                           {
                             color: theme.text,
                             fontWeight:
-                              editPurpose === t(option.labelKey as any)
+                              editPurpose === option.value
                                 ? "600"
                                 : "400",
                           },
@@ -3787,7 +3774,7 @@ export default function RequestDetailsScreen({
                       >
                         {t(option.labelKey as any)}
                       </ThemedText>
-                      {editPurpose === t(option.labelKey as any) ? (
+                      {editPurpose === option.value ? (
                         <DDIcon name="check" size={18} variant="primary" />
                       ) : null}
                     </View>
