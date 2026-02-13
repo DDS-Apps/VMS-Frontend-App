@@ -448,12 +448,12 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
             <DirectionalRow style={styles.cardHeaderRow}>
               <VisitorAvatar name={visitor.name} theme={theme} size={LAYOUT.avatarSize} />
               
-              <View style={[styles.cardNameSection, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
-                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 16, textAlign: isRTL ? 'right' : 'left' }]}>
+              <View style={[styles.cardNameSection, { alignItems: isRTL ? 'flex-end' : 'flex-start', direction: isRTL ? 'rtl' : 'ltr' } as any]}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 16, textAlign: isRTL ? 'right' : 'left', width: '100%' }]}>
                   {visitor.name}
                 </ThemedText>
                 {visitor.company ? (
-                  <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 2, textAlign: isRTL ? 'right' : 'left' }]}>
+                  <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 2, textAlign: isRTL ? 'right' : 'left', width: '100%' }]}>
                     {visitor.company}
                   </ThemedText>
                 ) : null}
