@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, StyleSheet, Pressable, ScrollView } from 'react-native';
+import { View, StyleSheet, Pressable } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { ROUTES } from "@/constants";
 import { DDIcon, IconName } from '@/components/DDIcon';
@@ -24,6 +24,7 @@ import {
 import type { BuildingAdminDashboardScreenProps } from '@/types/buildingAdminNavigation.types';
 
 import { KPICard, KPICardRow } from '@/components/shared/KPICard';
+import { RTLHorizontalScrollView } from '@/components/shared';
 
 interface QuickActionProps {
   icon: string;
@@ -227,8 +228,7 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
 
       <Spacer height={Spacing.md} />
 
-      <ScrollView 
-        horizontal 
+      <RTLHorizontalScrollView
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.staffScrollContent}
         nestedScrollEnabled={true}
@@ -276,7 +276,7 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
             { label: t('dashboard.active'), value: staffOverview.receptionists.active, color: theme.success },
           ]}
         />
-      </ScrollView>
+      </RTLHorizontalScrollView>
 
       <Spacer height={Spacing.xxl} />
 

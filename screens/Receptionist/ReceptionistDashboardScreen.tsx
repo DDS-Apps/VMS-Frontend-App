@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
-import { View, StyleSheet, Pressable, Dimensions, GestureResponderEvent, LayoutAnimation, Platform, UIManager, Alert, useWindowDimensions, ScrollView } from "react-native";
+import { View, StyleSheet, Pressable, Dimensions, GestureResponderEvent, LayoutAnimation, Platform, UIManager, Alert, useWindowDimensions } from "react-native";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { ROUTES } from "@/constants";
 import { ThemedText } from "@/components/ThemedText";
@@ -19,7 +19,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTodayVisitorsQuery, useReceptionCheckInMutation, useReceptionCheckOutMutation } from "@/hooks/queries/useReceptionQueries";
 import { useInfiniteVisitsQuery } from "@/hooks/queries/useApprovalQueries";
 import type { TodayVisitorDto, VisitListItemDto } from "@/types";
-import { SkeletonDashboard, WalkInBadge } from "@/components/shared";
+import { SkeletonDashboard, WalkInBadge, RTLHorizontalScrollView } from "@/components/shared";
 import type { ReceptionistDashboardScreenProps } from "@/types/receptionistNavigation.types";
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -452,8 +452,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
         <Spacer height={Spacing.md} />
 
         {todaysVisitors.length > 0 ? (
-          <ScrollView 
-            horizontal 
+          <RTLHorizontalScrollView 
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.horizontalScrollContent}
           >
@@ -462,7 +461,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
                 {renderVisitorCard(visitor)}
               </View>
             ))}
-          </ScrollView>
+          </RTLHorizontalScrollView>
         ) : (
           <ThemedView style={[styles.emptyState, { backgroundColor: theme.surface }]}>
             <DDIcon name="users" size={32} variant="muted" />
@@ -498,8 +497,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
         <Spacer height={Spacing.md} />
 
         {isLoadingAllVisitors ? (
-          <ScrollView 
-            horizontal 
+          <RTLHorizontalScrollView 
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.horizontalScrollContent}
           >
@@ -508,10 +506,9 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
                 <View style={{ height: 120 }} />
               </View>
             ))}
-          </ScrollView>
+          </RTLHorizontalScrollView>
         ) : allVisitors.length > 0 ? (
-          <ScrollView 
-            horizontal 
+          <RTLHorizontalScrollView 
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.horizontalScrollContent}
           >
@@ -594,7 +591,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
                 </View>
               );
             })}
-          </ScrollView>
+          </RTLHorizontalScrollView>
         ) : (
           <ThemedView style={[styles.emptyState, { backgroundColor: theme.surface }]}>
             <DDIcon name="users" size={32} variant="muted" />

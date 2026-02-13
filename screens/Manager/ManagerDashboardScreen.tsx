@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from "react";
-import { View, StyleSheet, Pressable, TextInput, ScrollView, Modal, FlatList, Alert, useWindowDimensions } from "react-native";
+import { View, StyleSheet, Pressable, TextInput, Modal, FlatList, Alert, useWindowDimensions } from "react-native";
 import { capitalizeFirst } from "@/utils/formatters";
 import { useFocusEffect } from '@react-navigation/native';
 import { ROUTES } from "@/constants";
@@ -11,7 +11,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
 import Spacer from "@/components/Spacer";
-import { ServiceIcons, SelectionCheckbox, StatusAccent, WalkInBadge, SkeletonDashboard, LoadingSpinner, ApprovalActionGroup, LoadingButton, VisitorRequestCard } from "@/components/shared";
+import { ServiceIcons, SelectionCheckbox, StatusAccent, WalkInBadge, SkeletonDashboard, LoadingSpinner, ApprovalActionGroup, LoadingButton, VisitorRequestCard, RTLHorizontalScrollView } from "@/components/shared";
 import { Spacing, BorderRadius, Typography, FontFamily, getLocaleFontFamily, getInputFontFamily } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -376,8 +376,7 @@ const ApprovalTableRow = React.memo(({
   );
   
   const scrollableContent = (
-    <ScrollView 
-      horizontal 
+    <RTLHorizontalScrollView
       showsHorizontalScrollIndicator={true}
       style={styles.scrollableColumns}
       contentContainerStyle={styles.scrollableColumnsContent}
@@ -434,7 +433,7 @@ const ApprovalTableRow = React.memo(({
           {actionButtons}
         </View>
       ) : null}
-    </ScrollView>
+    </RTLHorizontalScrollView>
   );
   
   return (
