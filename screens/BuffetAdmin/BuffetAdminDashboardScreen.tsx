@@ -339,14 +339,14 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
           },
         ]}
       >
-        <View style={styles.cardHeader}>
+        <DirectionalRow style={styles.cardHeader}>
           <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '12') }]}>
             <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
               {initials}
             </ThemedText>
           </View>
           <View style={styles.headerInfo}>
-            <View style={styles.nameWithBadgeRow}>
+            <DirectionalRow style={styles.nameWithBadgeRow}>
               <ThemedText style={[styles.visitorName, { color: theme.text, flex: 1 }]} numberOfLines={1}>
                 {item.visitorName}
               </ThemedText>
@@ -355,12 +355,12 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
                   {statusConfig.label}
                 </ThemedText>
               </View>
-            </View>
+            </DirectionalRow>
             <ThemedText style={[styles.hostName, { color: theme.textSecondary }]} numberOfLines={1}>
               {t('reception.hostName')}: {item.hostName}
             </ThemedText>
           </View>
-        </View>
+        </DirectionalRow>
 
         <Spacer height={Spacing.md} />
 
@@ -563,7 +563,6 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   cardHeader: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.md,
   },
@@ -593,7 +592,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   nameWithBadgeRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
   },
