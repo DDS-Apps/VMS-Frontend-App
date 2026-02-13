@@ -565,6 +565,7 @@ const styles = StyleSheet.create({
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: Spacing.md,
   },
   avatar: {
     width: 44,
@@ -581,7 +582,6 @@ const styles = StyleSheet.create({
     includeFontPadding: false,
   },
   headerInfo: {
-    marginStart: Spacing.md,
     flex: 1,
   },
   visitorName: {
