@@ -335,10 +335,11 @@ export function RTLWrapper({
     wrapperDirection = calculateFlexDirection(isRTL, false);
   }
   
+  const flatStyle = StyleSheet.flatten(style) as ViewStyle;
   const wrapperStyle: ViewStyle = {
-    ...StyleSheet.flatten(style),
+    ...flatStyle,
     flexDirection: wrapperDirection,
-    alignItems: 'center',
+    alignItems: flatStyle?.alignItems ?? alignItems ?? 'center',
   };
   
   return (
