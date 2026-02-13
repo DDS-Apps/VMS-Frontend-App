@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScreenScrollView } from '@/components/ScreenScrollView';
 import { DDIcon } from '@/components/DDIcon';
 import { LoadingButton } from '@/components/shared/LoadingButton';
+import { RTLHorizontalScrollView } from '@/components/shared';
 import { ThemedText } from '@/components/ThemedText';
 import Spacer from '@/components/Spacer';
 import { Spacing, BorderRadius, Typography, getInputFontFamily } from '@/constants/theme';
@@ -185,7 +186,7 @@ export default function BuffetSettingsScreen() {
                   <DirectionalRow style={[styles.infoRow, { marginTop: Spacing.sm }]}>
                     <DDIcon name="check-circle" variant="muted" size={16} />
                     <View style={{ flex: 1, marginStart: Spacing.sm }}>
-                      <ScrollView horizontal showsHorizontalScrollIndicator={false} nestedScrollEnabled={true}>
+                      <RTLHorizontalScrollView showsHorizontalScrollIndicator={false} nestedScrollEnabled={true}>
                         <View style={styles.amenitiesContainer}>
                           {location.amenities.map((amenity, idx) => (
                             <View
@@ -196,7 +197,7 @@ export default function BuffetSettingsScreen() {
                             </View>
                           ))}
                         </View>
-                      </ScrollView>
+                      </RTLHorizontalScrollView>
                     </View>
                   </DirectionalRow>
                 ) : null}

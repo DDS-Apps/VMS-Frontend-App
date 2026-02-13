@@ -14,6 +14,7 @@ import { Spacing, BorderRadius, Typography, FontFamily } from '@/constants/theme
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { RTLHorizontalScrollView } from '@/components/shared';
 import { applyOpacity } from '@/utils/statusStyles';
 import {
   getRequestsByDriverId,
@@ -643,8 +644,7 @@ export default function DriverTasksScreen({ onNavigateToDetail }: DriverTasksScr
 
         <Spacer height={Spacing.lg} />
 
-        <ScrollView 
-          horizontal 
+        <RTLHorizontalScrollView
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.filtersContainer}
           nestedScrollEnabled={true}
@@ -674,7 +674,7 @@ export default function DriverTasksScreen({ onNavigateToDetail }: DriverTasksScr
               </Pressable>
             );
           })}
-        </ScrollView>
+        </RTLHorizontalScrollView>
 
         <Spacer height={Spacing.xl} />
 

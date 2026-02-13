@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { View, StyleSheet, Pressable, ScrollView, RefreshControl, ActivityIndicator, Modal, TextInput, Alert, Platform, useWindowDimensions } from 'react-native';
+import { View, StyleSheet, Pressable, RefreshControl, ActivityIndicator, Modal, TextInput, Alert, Platform, useWindowDimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ROUTES } from "@/constants";
 import type { NavigationProp } from '@react-navigation/native';
@@ -9,7 +9,7 @@ import { SearchInput } from '@/components/SearchInput';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import Spacer from '@/components/Spacer';
-import { EmptyState } from '@/components/shared/EmptyState';
+import { EmptyState, RTLHorizontalScrollView } from '@/components/shared';
 import { CalendarDatePicker } from '@/components/CalendarDatePicker';
 import { Spacing, BorderRadius, Typography, StatusCardColors, getInputFontFamily } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
@@ -773,8 +773,7 @@ export default function AllRequestsScreen() {
             />
           </DirectionalRow>
         ) : (
-          <ScrollView
-            horizontal
+          <RTLHorizontalScrollView
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.statsScrollContent}
             nestedScrollEnabled={true}
@@ -835,7 +834,7 @@ export default function AllRequestsScreen() {
               onPress={() => handleStatPress('rejected')}
               theme={theme}
             />
-          </ScrollView>
+          </RTLHorizontalScrollView>
         )}
 
         <Spacer height={Spacing.lg} />
@@ -885,8 +884,7 @@ export default function AllRequestsScreen() {
 
       <Spacer height={Spacing.md} />
 
-      <ScrollView 
-        horizontal 
+      <RTLHorizontalScrollView
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.filtersRow}
         nestedScrollEnabled={true}
@@ -918,12 +916,11 @@ export default function AllRequestsScreen() {
             </ThemedText>
           </Pressable>
         ))}
-      </ScrollView>
+      </RTLHorizontalScrollView>
 
       <Spacer height={Spacing.sm} />
 
-      <ScrollView 
-        horizontal 
+      <RTLHorizontalScrollView
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.statusFiltersRow}
         nestedScrollEnabled={true}
@@ -950,7 +947,7 @@ export default function AllRequestsScreen() {
             </ThemedText>
           </Pressable>
         ))}
-      </ScrollView>
+      </RTLHorizontalScrollView>
 
       <Spacer height={Spacing.lg} />
 

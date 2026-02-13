@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, StyleSheet, Pressable, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, StyleSheet, Pressable, ActivityIndicator, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScreenScrollView } from '@/components/ScreenScrollView';
 import { SearchInput } from '@/components/SearchInput';
@@ -14,6 +14,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useFormatters } from '@/hooks/useFormatters';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { RTLHorizontalScrollView } from '@/components/shared';
 import { applyOpacity } from '@/utils/statusStyles';
 import { useMyBuffetTasksQuery, useUpdateBuffetTaskStatusMutation } from '@/hooks/queries/useBuffetQueries';
 import type { BuffetStaffTaskDto, BuffetStaffTaskStatus } from '@/types/api.types';
@@ -580,8 +581,7 @@ export default function BuffetBoardScreen() {
 
         <Spacer height={Spacing.lg} />
 
-        <ScrollView 
-          horizontal 
+        <RTLHorizontalScrollView
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.filtersContainer}
           nestedScrollEnabled={true}
@@ -611,7 +611,7 @@ export default function BuffetBoardScreen() {
               </Pressable>
             );
           })}
-        </ScrollView>
+        </RTLHorizontalScrollView>
 
         <Spacer height={Spacing.xl} />
 

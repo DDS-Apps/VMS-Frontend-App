@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { View, StyleSheet, Pressable, ScrollView, ActivityIndicator } from "react-native";
+import { View, StyleSheet, Pressable, ActivityIndicator } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
@@ -10,6 +10,7 @@ import Spacer from "@/components/Spacer";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
+import { RTLHorizontalScrollView } from "@/components/shared";
 import { applyOpacity } from "@/utils/statusStyles";
 import { formatTimestamp as formatTimestampUtil } from "@/utils/dateTimeUtils";
 import { useSecurityGateLogsQuery } from "@/hooks/queries/useSecurityQueries";
@@ -313,8 +314,7 @@ export default function GateEventsLogScreen({ navigation }: GateEventsLogScreenP
 
       <Spacer height={Spacing.lg} />
 
-      <ScrollView
-        horizontal
+      <RTLHorizontalScrollView
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.filtersContainer}
         nestedScrollEnabled={true}
@@ -341,7 +341,7 @@ export default function GateEventsLogScreen({ navigation }: GateEventsLogScreenP
             </Pressable>
           );
         })}
-      </ScrollView>
+      </RTLHorizontalScrollView>
 
       <Spacer height={Spacing.xl} />
 

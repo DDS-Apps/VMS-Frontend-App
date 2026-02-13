@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
-import { View, StyleSheet, Pressable, ScrollView, Alert, Platform, useWindowDimensions } from "react-native";
+import { View, StyleSheet, Pressable, Alert, Platform, useWindowDimensions } from "react-native";
 import { capitalizeFirst } from "@/utils/formatters";
 import { DDIcon } from "@/components/DDIcon";
 import { SkeletonList } from "@/components/shared/Skeleton";
@@ -34,7 +34,7 @@ import {
   useInfiniteVisitsQuery,
   usePendingHostWalkInsQuery,
 } from "@/hooks/queries/useApprovalQueries";
-import { ListLoadingFooter, VisitorRequestCard } from "@/components/shared";
+import { ListLoadingFooter, VisitorRequestCard, RTLHorizontalScrollView } from "@/components/shared";
 import type { VisitListItemDto } from "@/types/api.types";
 import {
   getStatusConfig as getStatusStyle,
@@ -398,8 +398,7 @@ const VisitorRequestTableRow = React.memo(
           </View>
 
           {/* Scrollable Columns - All Details */}
-          <ScrollView
-            horizontal
+          <RTLHorizontalScrollView
             showsHorizontalScrollIndicator={true}
             style={styles.scrollableColumns}
             contentContainerStyle={styles.scrollableContent}
@@ -560,7 +559,7 @@ const VisitorRequestTableRow = React.memo(
                 ) : null}
               </View>
             </View>
-          </ScrollView>
+          </RTLHorizontalScrollView>
         </ThemedView>
       </Pressable>
     );
@@ -716,8 +715,7 @@ const SectionHeader = ({
 
       <Spacer height={LAYOUT.contentGap} />
 
-      <ScrollView
-        horizontal
+      <RTLHorizontalScrollView
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={[
           styles.tabsContainer,
@@ -754,7 +752,7 @@ const SectionHeader = ({
             </ThemedText>
           </Pressable>
         ))}
-      </ScrollView>
+      </RTLHorizontalScrollView>
     </>
   );
 };

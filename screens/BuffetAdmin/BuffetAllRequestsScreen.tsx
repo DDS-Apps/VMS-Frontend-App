@@ -18,6 +18,7 @@ import { applyOpacity, getStatusConfig as getStatusStyle } from "@/utils/statusS
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { LoadingButton } from "@/components/shared/LoadingButton";
+import { RTLHorizontalScrollView } from "@/components/shared";
 import { useToast } from "@/contexts/ToastContext";
 import {
   useBuffetAdminTasksQuery,
@@ -295,8 +296,7 @@ const SectionHeader = ({
 
       <Spacer height={Spacing.md} />
 
-      <ScrollView 
-        horizontal 
+      <RTLHorizontalScrollView
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.filtersContainer}
         nestedScrollEnabled={true}
@@ -326,7 +326,7 @@ const SectionHeader = ({
             </Pressable>
           );
         })}
-      </ScrollView>
+      </RTLHorizontalScrollView>
     </>
   );
 };
@@ -459,8 +459,7 @@ const BuffetRequestTableRow = React.memo(({
           </View>
         </View>
 
-        <ScrollView 
-          horizontal 
+        <RTLHorizontalScrollView
           showsHorizontalScrollIndicator={true}
           style={styles.scrollableColumns}
           contentContainerStyle={styles.scrollableContent}
@@ -485,7 +484,7 @@ const BuffetRequestTableRow = React.memo(({
             <StatusBadge statusConfig={statusConfig} compact />
           </View>
 
-        </ScrollView>
+        </RTLHorizontalScrollView>
       </ThemedView>
     </Pressable>
   );

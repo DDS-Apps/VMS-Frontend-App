@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { View, StyleSheet, Pressable, GestureResponderEvent, Alert, Switch, FlatList, ActivityIndicator, Modal, Platform, useWindowDimensions, ScrollView } from "react-native";
+import { View, StyleSheet, Pressable, GestureResponderEvent, Alert, Switch, FlatList, ActivityIndicator, Modal, Platform, useWindowDimensions } from "react-native";
 import type { AllVisitorsScreenProps } from "@/types/receptionistNavigation.types";
 import { ROUTES } from "@/constants";
-import { SkeletonList, WalkInBadge } from "@/components/shared";
+import { SkeletonList, WalkInBadge, RTLHorizontalScrollView } from "@/components/shared";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SearchInput } from "@/components/SearchInput";
 import { ThemedText } from "@/components/ThemedText";
@@ -583,8 +583,7 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
       <Spacer height={Spacing.md} />
 
       {/* Horizontal scrollable status chips with Walk-In toggle */}
-      <ScrollView 
-        horizontal 
+      <RTLHorizontalScrollView
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.statusChipsContainer}
       >
@@ -637,7 +636,7 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
             </Pressable>
           );
         }) : null}
-      </ScrollView>
+      </RTLHorizontalScrollView>
 
       <Spacer height={Spacing.md} />
     </View>

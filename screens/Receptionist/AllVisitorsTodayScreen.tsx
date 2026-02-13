@@ -1,8 +1,9 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
-import { View, StyleSheet, Pressable, GestureResponderEvent, Alert, ScrollView, LayoutAnimation, Platform, UIManager, useWindowDimensions } from "react-native";
+import { View, StyleSheet, Pressable, GestureResponderEvent, Alert, LayoutAnimation, Platform, UIManager, useWindowDimensions } from "react-native";
 import type { AllVisitorsTodayScreenProps } from "@/types/receptionistNavigation.types";
 import { ROUTES } from "@/constants";
 import { SkeletonList } from "@/components/shared/Skeleton";
+import { RTLHorizontalScrollView } from "@/components/shared";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { SearchInput } from "@/components/SearchInput";
@@ -392,8 +393,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
 
       <Spacer height={Spacing.md} />
 
-      <ScrollView
-        horizontal
+      <RTLHorizontalScrollView
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.filterScrollContent}
         nestedScrollEnabled={true}
@@ -428,7 +428,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
             );
           })}
         </View>
-      </ScrollView>
+      </RTLHorizontalScrollView>
 
       <Spacer height={Spacing.lg} />
 

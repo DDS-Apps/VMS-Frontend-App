@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { View, StyleSheet, Pressable, ScrollView, ActivityIndicator, useWindowDimensions } from "react-native";
+import { View, StyleSheet, Pressable, ActivityIndicator, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ROUTES } from "@/constants";
 import { DDIcon } from "@/components/DDIcon";
@@ -13,6 +13,7 @@ import { Spacing, BorderRadius, Typography, FontFamily } from "@/constants/theme
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
+import { RTLHorizontalScrollView } from "@/components/shared";
 import { applyOpacity, getStatusConfig } from "@/utils/statusStyles";
 import { useSecurityVisitorsQuery } from "@/hooks/queries/useSecurityQueries";
 import type { SecurityVisitorDto } from "@/types";
@@ -672,8 +673,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
 
         <Spacer height={Spacing.lg} />
 
-        <ScrollView 
-          horizontal 
+        <RTLHorizontalScrollView
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.filtersContainer}
           nestedScrollEnabled={true}
@@ -703,7 +703,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
               </Pressable>
             );
           })}
-        </ScrollView>
+        </RTLHorizontalScrollView>
 
         <Spacer height={Spacing.xl} />
 

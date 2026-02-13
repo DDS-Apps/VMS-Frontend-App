@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { View, StyleSheet, Pressable, ScrollView, ActivityIndicator, RefreshControl, useWindowDimensions } from "react-native";
+import { View, StyleSheet, Pressable, ActivityIndicator, RefreshControl, useWindowDimensions } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
@@ -17,6 +17,7 @@ import type { Theme } from "@/types/theme.types";
 import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 import { KPICard, KPICardRow } from '@/components/shared/KPICard';
 import { StatusBadge } from '@/components/shared/StatusBadge';
+import { RTLHorizontalScrollView } from '@/components/shared';
 
 const LAYOUT = {
   cardPadding: Spacing.sm,
@@ -364,8 +365,7 @@ export default function ValetAllRequestsScreen() {
 
       <Spacer height={Spacing.xs} />
 
-      <ScrollView 
-        horizontal 
+      <RTLHorizontalScrollView
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.tabsContainer}
         nestedScrollEnabled={true}
@@ -400,7 +400,7 @@ export default function ValetAllRequestsScreen() {
             );
           })}
         </View>
-      </ScrollView>
+      </RTLHorizontalScrollView>
 
       <Spacer height={Spacing.sm} />
 

@@ -6,7 +6,6 @@ import {
   FlatList,
   Alert,
   useWindowDimensions,
-  ScrollView,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { DDIcon } from "@/components/DDIcon";
@@ -19,6 +18,7 @@ import {
   ApprovalRequestListRow,
   ListLoadingFooter,
   SkeletonList,
+  RTLHorizontalScrollView,
 } from "@/components/shared";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
@@ -197,8 +197,7 @@ const SectionHeaderWithTabs = ({
 
       <Spacer height={LAYOUT.contentGap} />
 
-      <ScrollView
-        horizontal
+      <RTLHorizontalScrollView
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={[
           styles.tabsContainer,
@@ -234,7 +233,7 @@ const SectionHeaderWithTabs = ({
             </ThemedText>
           </Pressable>
         ))}
-      </ScrollView>
+      </RTLHorizontalScrollView>
     </>
   );
 };
