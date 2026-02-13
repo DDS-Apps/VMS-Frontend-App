@@ -659,6 +659,7 @@ export default function VisitorRequestFormScreen({
                 borderColor: errors.fullName ? theme.error : theme.border,
                 color: theme.text,
                 fontFamily: getInputFontFamily(fullName, isRTL),
+                textAlign: isRTL ? "right" : "left",
                 writingDirection: isRTL ? "rtl" : "ltr",
               },
             ]}
@@ -777,6 +778,7 @@ export default function VisitorRequestFormScreen({
                 borderColor: theme.border,
                 color: theme.text,
                 fontFamily: getInputFontFamily(company, isRTL),
+                textAlign: isRTL ? "right" : "left",
                 writingDirection: isRTL ? "rtl" : "ltr",
               },
             ]}
@@ -918,6 +920,7 @@ export default function VisitorRequestFormScreen({
                     borderColor: errors.idNumber ? theme.error : theme.border,
                     color: theme.text,
                     fontFamily: getInputFontFamily(idNumber, isRTL),
+                    textAlign: isRTL ? "right" : "left",
                     writingDirection: isRTL ? "rtl" : "ltr",
                   },
                 ]}
