@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from "react";
-import { View, StyleSheet, Pressable, TextInput, Modal, FlatList, Alert, useWindowDimensions } from "react-native";
+import { View, StyleSheet, Pressable, ScrollView, TextInput, Modal, FlatList, Alert, useWindowDimensions } from "react-native";
 import { capitalizeFirst } from "@/utils/formatters";
 import { useFocusEffect } from '@react-navigation/native';
 import { ROUTES } from "@/constants";
@@ -376,7 +376,8 @@ const ApprovalTableRow = React.memo(({
   );
   
   const scrollableContent = (
-    <RTLHorizontalScrollView
+    <ScrollView
+      horizontal
       showsHorizontalScrollIndicator={true}
       style={styles.scrollableColumns}
       contentContainerStyle={styles.scrollableColumnsContent}
@@ -433,7 +434,7 @@ const ApprovalTableRow = React.memo(({
           {actionButtons}
         </View>
       ) : null}
-    </RTLHorizontalScrollView>
+    </ScrollView>
   );
   
   return (

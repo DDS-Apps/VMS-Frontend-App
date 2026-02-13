@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
-import { View, StyleSheet, Pressable, Alert, Platform, useWindowDimensions } from "react-native";
+import { View, StyleSheet, Pressable, ScrollView, Alert, Platform, useWindowDimensions } from "react-native";
 import { capitalizeFirst } from "@/utils/formatters";
 import { DDIcon } from "@/components/DDIcon";
 import { SkeletonList } from "@/components/shared/Skeleton";
@@ -398,7 +398,8 @@ const VisitorRequestTableRow = React.memo(
           </View>
 
           {/* Scrollable Columns - All Details */}
-          <RTLHorizontalScrollView
+          <ScrollView
+            horizontal
             showsHorizontalScrollIndicator={true}
             style={styles.scrollableColumns}
             contentContainerStyle={styles.scrollableContent}
@@ -559,7 +560,7 @@ const VisitorRequestTableRow = React.memo(
                 ) : null}
               </View>
             </View>
-          </RTLHorizontalScrollView>
+          </ScrollView>
         </ThemedView>
       </Pressable>
     );

@@ -459,7 +459,8 @@ const BuffetRequestTableRow = React.memo(({
           </View>
         </View>
 
-        <RTLHorizontalScrollView
+        <ScrollView
+          horizontal
           showsHorizontalScrollIndicator={true}
           style={styles.scrollableColumns}
           contentContainerStyle={styles.scrollableContent}
@@ -484,7 +485,7 @@ const BuffetRequestTableRow = React.memo(({
             <StatusBadge statusConfig={statusConfig} compact />
           </View>
 
-        </RTLHorizontalScrollView>
+        </ScrollView>
       </ThemedView>
     </Pressable>
   );
