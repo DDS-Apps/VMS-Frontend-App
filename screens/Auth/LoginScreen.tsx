@@ -351,6 +351,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                   {
                     color: theme.text,
                     fontFamily: getInputFontFamily(email, isRTL),
+                    textAlign: isRTL ? "right" : "left",
                     writingDirection: isRTL ? "rtl" : "ltr",
                   },
                   Platform.OS === "web"
@@ -413,6 +414,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                   {
                     color: theme.text,
                     fontFamily: getInputFontFamily(password, isRTL),
+                    textAlign: isRTL ? "right" : "left",
                     writingDirection: isRTL ? "rtl" : "ltr",
                   },
                   Platform.OS === "web"
