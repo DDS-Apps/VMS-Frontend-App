@@ -1609,7 +1609,7 @@ export default function VisitorRequestFormScreen({
               >
                 <DDIcon name="search" size={20} variant="muted" />
                 <TextInput
-                  style={[styles.searchInput, { color: theme.text, fontFamily: getInputFontFamily(employeeSearchQuery, isRTL) }]}
+                  style={[styles.searchInput, { color: theme.text, fontFamily: getInputFontFamily(employeeSearchQuery, isRTL), textAlign: isRTL ? 'right' : 'left', writingDirection: isRTL ? 'rtl' : 'ltr' }]}
                   placeholder={t("common.search")}
                   placeholderTextColor={theme.textSecondary}
                   value={employeeSearchQuery}
