@@ -34,7 +34,7 @@ const convert24To12Hour = (time24: string, isRTL: boolean = false): string => {
   const period = hours >= 12 ? "PM" : "AM";
   hours = hours % 12;
   if (hours === 0) hours = 12;
-  let result = `${period} ${hours}:${minutes}`;
+  let result = `${hours}:${minutes} ${period}`;
   if (isRTL) {
     const arabicNumerals = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
     result = result
