@@ -376,8 +376,18 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
     return String(num).replace(/[0-9]/g, (d) => arabicNumerals[parseInt(d, 10)]);
   };
 
+  const localizeDuration = (duration: string): string => {
+    if (!isRTL) return duration;
+    let result = duration
+      .replace(/\bhours?\b/gi, (m) => m.toLowerCase().endsWith('s') ? t('time.hours') : t('time.hour'))
+      .replace(/\bmin(ute)?s?\b/gi, (m) => m.toLowerCase().includes('utes') || m.toLowerCase().endsWith('s') ? t('time.minutes') : t('time.minute'));
+    const arabicNumerals = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+    result = result.replace(/[0-9]/g, (d) => arabicNumerals[parseInt(d, 10)]);
+    return result;
+  };
+
   const calculateDuration = (startTime: string, endTime?: string, apiDuration?: string): string => {
-    if (apiDuration) return apiDuration;
+    if (apiDuration) return localizeDuration(apiDuration);
     if (!endTime) return `${localizeNumber(1)} ${t('time.hour')}`;
     
     const parseTime = (timeStr: string): number => {
@@ -592,7 +602,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
             {t('navigation.visitorVerification')}
           </ThemedText>
           
-          <DirectionalRow style={styles.viewToggle}>
+          <View style={[styles.viewToggle, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <Pressable
               style={[
                 styles.viewToggleButton,
@@ -627,7 +637,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
                 color={viewMode === 'list' ? theme.buttonText : theme.textSecondary}
               />
             </Pressable>
-          </DirectionalRow>
+          </View>
         </DirectionalRow>
         
         <Spacer height={Spacing.sm} />
