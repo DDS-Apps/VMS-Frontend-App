@@ -58,6 +58,20 @@ import { applyOpacity, getStatusConfig as getSharedStatusConfig } from "@/utils/
 import { formatPhoneNumber, formatPhoneForDisplay, capitalizeFirst } from "@/utils/formatters";
 import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
 
+const PURPOSE_VALUE_TO_KEY: Record<string, string> = {
+  business_meeting: 'visitor.businessMeeting',
+  interview: 'visitor.interview',
+  delivery: 'visitor.delivery',
+  maintenance: 'visitor.maintenance',
+  general: 'visitor.generalVisit',
+  partners: 'visitor.partners',
+  government: 'visitor.government',
+  vip: 'visitor.vip',
+  contractor: 'visitor.contractor',
+  vendors: 'visitor.vendors',
+  meeting: 'visitor.meeting',
+};
+
 const LAYOUT = {
   cardPadding: 20,
   cardRadius: 10,
@@ -1271,7 +1285,7 @@ export default function ManagerApprovalDetailScreen({
                   ]}
                   numberOfLines={1}
                 >
-                  {request.purpose}
+                  {PURPOSE_VALUE_TO_KEY[request.purpose?.toLowerCase()] ? t(PURPOSE_VALUE_TO_KEY[request.purpose.toLowerCase()] as any) : (request.purpose || '-')}
                 </ThemedText>
               </View>
             </DirectionalRow>
@@ -2746,7 +2760,7 @@ const styles = StyleSheet.create({
   },
 
   serviceRow: {
-    alignItems: "flex-start",
+    alignItems: "center",
     gap: Spacing.md,
   },
   visitDetailsGrid: {
@@ -2757,7 +2771,7 @@ const styles = StyleSheet.create({
   visitDetailItem: {
     flex: 1,
     minWidth: 150,
-    alignItems: "flex-start",
+    alignItems: "center",
     gap: Spacing.sm,
   },
   visitDetailText: {

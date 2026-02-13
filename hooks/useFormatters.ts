@@ -42,7 +42,15 @@ export function useFormatters() {
     formatCurrency: (amount: number, currency?: string) => baseFmtCurrency(amount, currency, localeCode),
     formatLocalNumber: (num: number) => formatNumberWithDigits(num, isRTL),
     toLocalNumerals: (str: string) => isRTL ? toArabicNumerals(str) : str,
-    parseISODuration: baseParseDuration,
+    parseISODuration: (isoDuration: string) => {
+      const parsed = baseParseDuration(isoDuration);
+      if (!isRTL) return parsed;
+      const arabicNumerals = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+      const toAr = (s: string) => s.replace(/[0-9]/g, d => arabicNumerals[parseInt(d, 10)]);
+      return toAr(parsed)
+        .replace(/hours?/gi, (m) => m.toLowerCase().startsWith('hours') ? 'ساعات' : 'ساعة')
+        .replace(/minutes?/gi, (m) => m.toLowerCase().startsWith('minutes') ? 'دقائق' : 'دقيقة');
+    },
     parseTimeString: baseParseTime,
     localeCode,
     isRTL,

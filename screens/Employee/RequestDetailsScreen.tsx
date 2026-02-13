@@ -77,6 +77,20 @@ import { formatPhoneNumber, formatPhoneForDisplay, capitalizeFirst } from "@/uti
 import { useServerDateTime } from "@/hooks/useServerDateTime";
 import { useAuth } from "@/contexts/AuthContext";
 
+const PURPOSE_VALUE_TO_KEY: Record<string, string> = {
+  business_meeting: 'visitor.businessMeeting',
+  interview: 'visitor.interview',
+  delivery: 'visitor.delivery',
+  maintenance: 'visitor.maintenance',
+  general: 'visitor.generalVisit',
+  partners: 'visitor.partners',
+  government: 'visitor.government',
+  vip: 'visitor.vip',
+  contractor: 'visitor.contractor',
+  vendors: 'visitor.vendors',
+  meeting: 'visitor.meeting',
+};
+
 export default function RequestDetailsScreen({
   navigation,
   route,
@@ -1707,7 +1721,7 @@ export default function RequestDetailsScreen({
                       },
                     ]}
                   >
-                    {request.purpose}
+                    {PURPOSE_VALUE_TO_KEY[request.purpose?.toLowerCase()] ? t(PURPOSE_VALUE_TO_KEY[request.purpose.toLowerCase()] as any) : (request.purpose || '-')}
                   </ThemedText>
                 </View>
               </DirectionalRow>
@@ -4071,7 +4085,7 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
   },
   serviceRowNew: {
-    alignItems: "flex-start",
+    alignItems: "center",
     gap: Spacing.md,
   },
   responsiveGrid: {
