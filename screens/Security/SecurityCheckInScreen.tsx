@@ -437,11 +437,11 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
               <VisitorAvatar name={visitor.name} theme={theme} size={LAYOUT.avatarSize} />
               
               <View style={[styles.cardNameSection, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
-                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 16 }]}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 16, textAlign: isRTL ? 'right' : 'left' }]}>
                   {visitor.name}
                 </ThemedText>
                 {visitor.company ? (
-                  <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 2 }]}>
+                  <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 2, textAlign: isRTL ? 'right' : 'left' }]}>
                     {visitor.company}
                   </ThemedText>
                 ) : null}
