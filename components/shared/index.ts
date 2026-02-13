@@ -19,3 +19,4 @@ export { ApprovalRequestListRow, COLUMN_WIDTHS } from './ApprovalRequestListRow'
 export { ListLoadingFooter } from './ListLoadingFooter';
 export { EnableNotificationsPrompt } from './EnableNotificationsPrompt';
 export { SectionHeader } from './SectionHeader';
+export { RTLHorizontalScrollView, RTLScrollChild } from './RTLHorizontalScrollView';
