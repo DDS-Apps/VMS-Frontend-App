@@ -408,7 +408,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
               <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
                 <DDIcon name="user" size={18} color={theme.text} />
               </View>
-              <View style={{ flex: 1, marginStart: Spacing.md }}>
+              <View style={{ flex: 1 }}>
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
                   {t('reception.hostName')}
                 </ThemedText>
@@ -425,7 +425,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
                 <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
                   <DDIcon name="map-pin" size={18} color={theme.text} />
                 </View>
-                <View style={{ flex: 1, marginStart: Spacing.md }}>
+                <View style={{ flex: 1 }}>
                   <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
                     {t('invitation.location')}
                   </ThemedText>
@@ -442,7 +442,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
               <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
                 <DDIcon name="clock" size={18} color={theme.text} />
               </View>
-              <View style={{ flex: 1, marginStart: Spacing.md }}>
+              <View style={{ flex: 1 }}>
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
                   {t('buffet.servingTime')}
                 </ThemedText>
@@ -458,7 +458,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
               <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
                 <DDIcon name="calendar" size={18} color={theme.text} />
               </View>
-              <View style={{ flex: 1, marginStart: Spacing.md }}>
+              <View style={{ flex: 1 }}>
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
                   {t('form.visitDate')}
                 </ThemedText>
@@ -656,7 +656,8 @@ const styles = StyleSheet.create({
     includeFontPadding: false,
   },
   serviceRowNew: {
-    alignItems: 'flex-start',
+    alignItems: 'center',
+    gap: Spacing.md,
   },
   serviceIcon: {
     width: 40,
