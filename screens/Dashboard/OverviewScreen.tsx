@@ -4,7 +4,6 @@ import {
   StyleSheet,
   Dimensions,
   Pressable,
-  ScrollView,
   Platform,
   Modal,
   TextInput,
@@ -30,7 +29,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { UserRole, VisitorRequest } from "@/types/vms.types";
-import { SkeletonDashboard, VisitorRequestCard, LoadingButton } from "@/components/shared";
+import { SkeletonDashboard, VisitorRequestCard, LoadingButton, RTLHorizontalScrollView } from "@/components/shared";
 import { BlurView } from 'expo-blur';
 import {
   useVisitsQuery,
@@ -582,8 +581,7 @@ export default function OverviewScreen({
               <Spacer height={Spacing.lg} />
 
               {upcomingThisWeek.length > 0 ? (
-                <ScrollView
-                  horizontal
+                <RTLHorizontalScrollView
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={styles.carouselContainer}
                   snapToInterval={cardWidth + Spacing.md}
@@ -613,7 +611,7 @@ export default function OverviewScreen({
                       }
                     />
                   ))}
-                </ScrollView>
+                </RTLHorizontalScrollView>
               ) : (
                 <ThemedView
                   style={[
@@ -718,8 +716,7 @@ export default function OverviewScreen({
               <Spacer height={Spacing.lg} />
 
               {recentRequests.length > 0 ? (
-                <ScrollView
-                  horizontal
+                <RTLHorizontalScrollView
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={styles.carouselContainer}
                   snapToInterval={cardWidth + Spacing.md}
@@ -749,7 +746,7 @@ export default function OverviewScreen({
                       }
                     />
                   ))}
-                </ScrollView>
+                </RTLHorizontalScrollView>
               ) : (
                 <ThemedView
                   style={[
@@ -851,8 +848,7 @@ export default function OverviewScreen({
               <Spacer height={Spacing.lg} />
 
               {pendingApprovals.length > 0 ? (
-                <ScrollView
-                  horizontal
+                <RTLHorizontalScrollView
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={styles.carouselContainer}
                   snapToInterval={cardWidth + Spacing.md}
@@ -894,7 +890,7 @@ export default function OverviewScreen({
                       />
                     );
                   })}
-                </ScrollView>
+                </RTLHorizontalScrollView>
               ) : (
                 <ThemedView
                   style={[
@@ -995,8 +991,7 @@ export default function OverviewScreen({
               <Spacer height={Spacing.lg} />
 
               {awaitingVisitorAcceptance.length > 0 ? (
-                <ScrollView
-                  horizontal
+                <RTLHorizontalScrollView
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={styles.carouselContainer}
                   snapToInterval={cardWidth + Spacing.md}
@@ -1030,7 +1025,7 @@ export default function OverviewScreen({
                         }
                       />
                     ))}
-                </ScrollView>
+                </RTLHorizontalScrollView>
               ) : (
                 <ThemedView
                   style={[
@@ -1132,8 +1127,7 @@ export default function OverviewScreen({
               <Spacer height={Spacing.lg} />
 
               {walkInVisitors.length > 0 ? (
-                <ScrollView
-                  horizontal
+                <RTLHorizontalScrollView
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={styles.carouselContainer}
                   snapToInterval={cardWidth + Spacing.md}
@@ -1165,7 +1159,7 @@ export default function OverviewScreen({
                       }
                     />
                   ))}
-                </ScrollView>
+                </RTLHorizontalScrollView>
               ) : (
                 <ThemedView
                   style={[
