@@ -12,6 +12,7 @@ import { DDIcon } from "@/components/DDIcon";
 import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
 import { applyOpacity } from "@/utils/statusStyles";
 import { formatDate } from "@/utils/dateTimeUtils";
+import { useFormatters } from "@/hooks/useFormatters";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LoadingButton } from "@/components/shared/LoadingButton";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
@@ -130,7 +131,9 @@ const buildBuffetTimelineSteps = (
 export default function BuffetRequestDetailsScreen({ route, navigation }: BuffetRequestDetailsScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { isRTL } = useLanguage();  const insets = useSafeAreaInsets();
+  const { isRTL } = useLanguage();
+  const insets = useSafeAreaInsets();
+  const { formatTimeFromString } = useFormatters();
   const { showSuccess } = useToast();
   const { user } = useAuth();
   const isReadOnlyRole = user?.role === 'building_admin';
@@ -447,7 +450,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
                   {t('buffet.servingTime')}
                 </ThemedText>
                 <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
-                  {request.timeSlot}
+                  {formatTimeFromString(request.timeSlot)}
                 </ThemedText>
               </View>
             </DirectionalRow>
