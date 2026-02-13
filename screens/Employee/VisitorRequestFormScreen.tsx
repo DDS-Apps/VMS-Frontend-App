@@ -711,6 +711,7 @@ export default function VisitorRequestFormScreen({
                 borderColor: errors.email ? theme.error : theme.border,
                 color: theme.text,
                 fontFamily: getInputFontFamily(email, isRTL),
+                textAlign: isRTL ? "right" : "left",
                 writingDirection: isRTL ? "rtl" : "ltr",
               },
             ]}
