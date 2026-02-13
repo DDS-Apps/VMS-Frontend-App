@@ -232,7 +232,7 @@ export default function ReminderRulesScreen() {
         </View>
 
         <View style={[styles.section, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <DirectionalRow style={styles.sectionHeader}>
+          <DirectionalRow style={styles.sectionHeader} gap={Spacing.md}>
             <View style={[styles.iconContainer, { backgroundColor: theme.primary + "15" }]}>
               <DDIcon name="power" size={24} color={theme.primary} />
             </View>
@@ -264,11 +264,11 @@ export default function ReminderRulesScreen() {
           </DirectionalRow>
 
           <View style={styles.ruleCard}>
-            <DirectionalRow style={styles.ruleHeader}>
+            <DirectionalRow style={styles.ruleHeader} gap={Spacing.sm}>
               <View style={[styles.ruleBadge, { backgroundColor: theme.info + "20" }]}>
                 <ThemedText style={[Typography.caption, { color: theme.info, fontWeight: "600" }]}>1st</ThemedText>
               </View>
-              <ThemedText style={[Typography.body, { flex: 1, marginStart: Spacing.sm }]}>
+              <ThemedText style={[Typography.body, { flex: 1 }]}>
                 {t("admin.firstReminderDelay")}
               </ThemedText>
             </DirectionalRow>
@@ -286,11 +286,11 @@ export default function ReminderRulesScreen() {
           </View>
 
           <View style={styles.ruleCard}>
-            <DirectionalRow style={styles.ruleHeader}>
+            <DirectionalRow style={styles.ruleHeader} gap={Spacing.sm}>
               <View style={[styles.ruleBadge, { backgroundColor: theme.warning + "20" }]}>
                 <ThemedText style={[Typography.caption, { color: theme.warning, fontWeight: "600" }]}>2nd</ThemedText>
               </View>
-              <ThemedText style={[Typography.body, { flex: 1, marginStart: Spacing.sm }]}>
+              <ThemedText style={[Typography.body, { flex: 1 }]}>
                 {t("admin.secondReminderDelay")}
               </ThemedText>
             </DirectionalRow>
@@ -308,11 +308,11 @@ export default function ReminderRulesScreen() {
           </View>
 
           <View style={styles.ruleCard}>
-            <DirectionalRow style={styles.ruleHeader}>
+            <DirectionalRow style={styles.ruleHeader} gap={Spacing.sm}>
               <View style={[styles.ruleBadge, { backgroundColor: theme.error + "20" }]}>
                 <DDIcon name="x-circle" size={14} color={theme.error} />
               </View>
-              <ThemedText style={[Typography.body, { flex: 1, marginStart: Spacing.sm }]}>
+              <ThemedText style={[Typography.body, { flex: 1 }]}>
                 {t("admin.autoCancelDelay")}
               </ThemedText>
             </DirectionalRow>
