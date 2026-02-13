@@ -434,7 +434,7 @@ const BuffetRequestTableRow = React.memo(({
 
   return (
     <Pressable onPress={onPress}>
-      <ThemedView style={[styles.tableRow, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+      <ThemedView style={[styles.tableRow, { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: getFlexDirection(isRTL) }]}>
         <StatusAccent color={statusConfig.borderColor} />
         
         <View style={[styles.fixedColumn, { width: LAYOUT.tableFixedColumnWidth }]}>
@@ -1212,7 +1212,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   tableRow: {
-    flexDirection: 'row',
     minHeight: LAYOUT.tableRowHeight,
     borderRadius: LAYOUT.cardRadius,
     borderWidth: 1,
@@ -1229,8 +1228,8 @@ const styles = StyleSheet.create({
     borderEndColor: 'rgba(0,0,0,0.06)',
   },
   fixedColumnContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
     padding: Spacing.md,
   },
   scrollableColumns: {

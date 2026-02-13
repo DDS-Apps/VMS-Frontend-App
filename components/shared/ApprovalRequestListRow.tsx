@@ -3,7 +3,7 @@ import { View, StyleSheet, ScrollView, Pressable } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { DDIcon } from "@/components/DDIcon";
-import { DirectionalRow } from "@/components/DirectionalRow";
+import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
 import { ApprovalActionGroup } from "@/components/shared/ApprovalActionGroup";
 import { StatusAccent } from "@/components/shared/StatusBadge";
 import Spacer from "@/components/Spacer";
@@ -78,7 +78,7 @@ export function ApprovalRequestListRow({
       <ThemedView
         style={[
           styles.tableRow,
-          { backgroundColor: theme.surface, borderColor: theme.border },
+          { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: getFlexDirection(isRTL) },
         ]}
       >
         <StatusAccent color={statusConfig.borderColor} />
@@ -303,7 +303,6 @@ export function ApprovalRequestListRow({
 
 const styles = StyleSheet.create({
   tableRow: {
-    flexDirection: "row",
     minHeight: LAYOUT.tableRowHeight,
     borderRadius: LAYOUT.cardRadius,
     borderWidth: 1,
@@ -320,7 +319,8 @@ const styles = StyleSheet.create({
     borderEndColor: "rgba(0,0,0,0.06)",
   },
   fixedColumnContent: {
-    alignItems: "center",
+    flex: 1,
+    justifyContent: "center",
     padding: Spacing.md,
   },
   scrollableColumns: {

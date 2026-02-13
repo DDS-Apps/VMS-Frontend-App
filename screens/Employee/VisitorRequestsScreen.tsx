@@ -358,7 +358,7 @@ const VisitorRequestTableRow = React.memo(
         <ThemedView
           style={[
             styles.tableRow,
-            { backgroundColor: theme.surface, borderColor: theme.border },
+            { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: getFlexDirection(isRTL) },
           ]}
         >
           <StatusAccent color={statusConfig.borderColor} />
@@ -1406,7 +1406,6 @@ const styles = StyleSheet.create({
 
   // Table View Styles
   tableRow: {
-    flexDirection: "row",
     minHeight: LAYOUT.tableRowHeight,
     borderRadius: LAYOUT.cardRadius,
     borderWidth: 1,
@@ -1423,7 +1422,8 @@ const styles = StyleSheet.create({
     borderEndColor: "rgba(0,0,0,0.06)",
   },
   fixedColumnContent: {
-    alignItems: "center",
+    flex: 1,
+    justifyContent: "center",
     padding: Spacing.md,
   },
   scrollableColumns: {
