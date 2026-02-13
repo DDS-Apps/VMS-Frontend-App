@@ -370,14 +370,17 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
   };
 
 
-  // Calculate duration from visitTime and endTime (fallback when API doesn't provide duration)
+  const localizeNumber = (num: number): string => {
+    if (!isRTL) return String(num);
+    const arabicNumerals = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+    return String(num).replace(/[0-9]/g, (d) => arabicNumerals[parseInt(d, 10)]);
+  };
+
   const calculateDuration = (startTime: string, endTime?: string, apiDuration?: string): string => {
-    // Prefer API-provided duration if available
     if (apiDuration) return apiDuration;
-    if (!endTime) return '1 hour';
+    if (!endTime) return `${localizeNumber(1)} ${t('time.hour')}`;
     
     const parseTime = (timeStr: string): number => {
-      // Support both 12h (AM/PM) and 24h formats
       const match12h = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
       const match24h = timeStr.match(/^(\d{1,2}):(\d{2})$/);
       
@@ -403,14 +406,13 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
     const endMinutes = parseTime(endTime);
     let diffMinutes = endMinutes - startMinutes;
     
-    // Handle overnight visits
     if (diffMinutes <= 0) diffMinutes += 24 * 60;
     
-    if (diffMinutes < 60) return `${diffMinutes} min`;
+    if (diffMinutes < 60) return `${localizeNumber(diffMinutes)} ${t('time.minute')}`;
     const hours = Math.floor(diffMinutes / 60);
     const mins = diffMinutes % 60;
-    if (mins === 0) return `${hours} hour${hours > 1 ? 's' : ''}`;
-    return `${hours}h ${mins}m`;
+    if (mins === 0) return `${localizeNumber(hours)} ${hours > 1 ? t('time.hours') : t('time.hour')}`;
+    return `${localizeNumber(hours)}${isRTL ? 'س' : 'h'} ${localizeNumber(mins)}${isRTL ? 'د' : 'm'}`;
   };
 
   const renderVisitorCard = (visitor: SecurityVisitor, isGridMode: boolean = false) => {
