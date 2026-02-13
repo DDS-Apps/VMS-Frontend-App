@@ -26,7 +26,7 @@ const DAYS = [
   { id: 6, name: "saturday" },
 ];
 
-const convert24To12Hour = (time24: string): string => {
+const convert24To12Hour = (time24: string, isRTL: boolean = false): string => {
   if (!time24) return "";
   const [hoursStr, minutes] = time24.split(":");
   let hours = parseInt(hoursStr, 10);
@@ -34,7 +34,15 @@ const convert24To12Hour = (time24: string): string => {
   const period = hours >= 12 ? "PM" : "AM";
   hours = hours % 12;
   if (hours === 0) hours = 12;
-  return `${hours}:${minutes} ${period}`;
+  let result = `${period} ${hours}:${minutes}`;
+  if (isRTL) {
+    const arabicNumerals = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+    result = result
+      .replace(/AM/g, 'ص')
+      .replace(/PM/g, 'م')
+      .replace(/[0-9]/g, (d) => arabicNumerals[parseInt(d, 10)]);
+  }
+  return result;
 };
 
 const timeStringToDate = (time24: string): Date => {
@@ -343,7 +351,7 @@ export default function ReminderRulesScreen() {
                   <DDIcon name="clock" size={18} color={theme.primary} />
                 </View>
                 <ThemedText style={[Typography.body, { flex: 1 }]}>
-                  {convert24To12Hour(localRules.officeStartTime)}
+                  {convert24To12Hour(localRules.officeStartTime, isRTL)}
                 </ThemedText>
                 <DDIcon name="chevron-down" size={18} color={theme.textSecondary} />
               </Pressable>
@@ -360,7 +368,7 @@ export default function ReminderRulesScreen() {
                   <DDIcon name="clock" size={18} color={theme.primary} />
                 </View>
                 <ThemedText style={[Typography.body, { flex: 1 }]}>
-                  {convert24To12Hour(localRules.officeEndTime)}
+                  {convert24To12Hour(localRules.officeEndTime, isRTL)}
                 </ThemedText>
                 <DDIcon name="chevron-down" size={18} color={theme.textSecondary} />
               </Pressable>
