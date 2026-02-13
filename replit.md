@@ -35,7 +35,7 @@ The VMS app employs a Clean Architecture pattern, segmenting the application int
 **Technical Implementations:**
 - **Core Technologies:** React Native, Expo, TypeScript.
 - **Iconography & RTL Support:** `DDIcon` component for theme-aware icons with automatic RTL mirroring. Full RTL compatibility.
-- **RTL Pattern (DirectionalRow as Single Source of Truth):** All horizontal row layouts must use the `DirectionalRow` component for consistent RTL behavior across web and mobile. `RTLHorizontalScrollView` is used for horizontal ScrollViews with tappable children on iOS to correct touch alignment issues in RTL.
+- **RTL Pattern (DirectionalRow as Single Source of Truth):** All horizontal row layouts must use the `DirectionalRow` component for consistent RTL behavior across web and mobile. `RTLHorizontalScrollView` is used for horizontal ScrollViews with tappable children (cards, tabs, filter pills) on iOS to correct touch alignment issues in RTL. **Exception:** Table-column scrollable sections (`scrollableColumns` pattern in list view rows) must use plain `ScrollView horizontal` — the child-wrapping in RTLHorizontalScrollView breaks fixed-width column layouts.
 - **State Management:** Centralized state service using mutable mock data and `useFocusEffect` for reactive updates.
 - **Role-Based Access:** Specialized interfaces and navigation for nine distinct user roles.
 - **Internationalization (i18n):** Bilingual support for English (LTR) and Arabic (RTL) across all screens using type-safe translation keys.
