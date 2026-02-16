@@ -195,6 +195,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "800",
     color: "#FFFFFF",
+    lineHeight: 33,
     marginBottom: Spacing.xs,
   },
   brandSubtitle: {
