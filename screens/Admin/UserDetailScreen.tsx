@@ -135,12 +135,12 @@ export default function UserDetailScreen() {
       <View style={styles.content}>
         <View style={[styles.header, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
           <View style={[styles.avatarContainer, { backgroundColor: theme.primary + '20' }]}>
-            <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
+            <ThemedText style={[styles.avatarText, { color: theme.primary, lineHeight: 80 }]}>
               {userFirstName.charAt(0).toUpperCase()}{userLastName.charAt(0).toUpperCase() || userFirstName.charAt(1)?.toUpperCase() || ''}
             </ThemedText>
           </View>
           <Spacer height={Spacing.md} />
-          <ThemedText style={[Typography.h2, { textAlign: 'center' }]}>
+          <ThemedText style={[Typography.h2, { textAlign: 'center', lineHeight: 42 }]}>
             {userName}
           </ThemedText>
           <ThemedText style={[Typography.body, { color: theme.textSecondary, textAlign: 'center' }]}>
