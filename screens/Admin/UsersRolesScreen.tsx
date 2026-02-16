@@ -1399,12 +1399,16 @@ export default function UsersRolesScreen() {
         />
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={[styles.filterContainer, { borderBottomColor: theme.border, direction: isRTL ? 'rtl' : 'ltr' }]}
-        contentContainerStyle={styles.filterContent}
-        nestedScrollEnabled={true}
+      <View
+        style={[
+          styles.filterContainer,
+          {
+            borderBottomColor: theme.border,
+            flexDirection: isRTL ? 'row-reverse' : 'row',
+            flexWrap: 'wrap',
+            paddingHorizontal: HORIZONTAL_PADDING,
+          },
+        ]}
       >
         <Pressable
           style={[
@@ -1457,13 +1461,13 @@ export default function UsersRolesScreen() {
             </ThemedText>
           </Pressable>
         ))}
-      </ScrollView>
+      </View>
 
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        style={[styles.toolbar, { borderBottomColor: theme.border, direction: isRTL ? 'rtl' : 'ltr' }]}
-        contentContainerStyle={styles.toolbarContent}
+        style={[styles.toolbar, { borderBottomColor: theme.border }]}
+        contentContainerStyle={[styles.toolbarContent, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
         nestedScrollEnabled={true}
       >
         <Pressable
@@ -2232,7 +2236,8 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.full,
     borderWidth: 1,
-    marginVertical: Spacing.sm,
+    marginVertical: 4,
+    marginEnd: Spacing.sm,
   },
   toolbar: {
     flexGrow: 0,
