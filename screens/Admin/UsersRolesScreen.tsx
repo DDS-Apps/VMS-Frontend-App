@@ -1155,6 +1155,7 @@ export default function UsersRolesScreen() {
                   color: theme.success,
                   marginStart: Spacing.xs,
                   fontWeight: "600",
+                  flexShrink: 1,
                 },
               ]}
             >
@@ -1182,6 +1183,7 @@ export default function UsersRolesScreen() {
                   color: theme.error,
                   marginStart: Spacing.xs,
                   fontWeight: "600",
+                  flexShrink: 1,
                 },
               ]}
             >
@@ -2444,7 +2446,7 @@ const styles = StyleSheet.create({
   checkbox: {
     width: 22,
     height: 22,
-    borderRadius: BorderRadius.sm,
+    borderRadius: 4,
     borderWidth: 2,
     alignItems: "center",
     justifyContent: "center",
@@ -2492,18 +2494,21 @@ const styles = StyleSheet.create({
   bulkActionInfo: {
     flexDirection: "row",
     alignItems: "center",
+    flexShrink: 0,
   },
   bulkActions: {
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.sm,
+    flexShrink: 1,
   },
   bulkActionButton: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: Spacing.md,
+    paddingHorizontal: Spacing.sm,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.sm,
+    flexShrink: 1,
   },
   paginationContainer: {
     flexDirection: "row",
