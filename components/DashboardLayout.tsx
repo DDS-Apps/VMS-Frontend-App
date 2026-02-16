@@ -901,7 +901,7 @@ const styles = StyleSheet.create({
   },
   langOption: {
     paddingHorizontal: Spacing.md,
-    height: 32,
+    paddingVertical: Spacing.xs,
     minWidth: 36,
     alignItems: 'center',
     justifyContent: 'center',
@@ -909,7 +909,7 @@ const styles = StyleSheet.create({
   },
   langOptionText: {
     fontSize: 13,
-    lineHeight: 18,
+    lineHeight: 28,
     fontWeight: '600',
     textAlign: 'center',
     textAlignVertical: 'center',
