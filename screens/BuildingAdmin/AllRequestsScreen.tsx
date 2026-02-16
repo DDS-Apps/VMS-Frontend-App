@@ -905,7 +905,8 @@ export default function AllRequestsScreen() {
         nestedScrollEnabled={true}
       >
         {typeFilters.map(filter => (
-          <Pressable
+          <TouchableOpacity
+            activeOpacity={0.7}
             key={filter.id}
             style={[
               styles.filterChip,
@@ -929,7 +930,7 @@ export default function AllRequestsScreen() {
             >
               {filter.label}
             </ThemedText>
-          </Pressable>
+          </TouchableOpacity>
         ))}
       </RTLHorizontalScrollView>
 
@@ -942,7 +943,8 @@ export default function AllRequestsScreen() {
         nestedScrollEnabled={true}
       >
         {statusFilters.map(filter => (
-          <Pressable
+          <TouchableOpacity
+            activeOpacity={0.7}
             key={filter.id}
             style={[
               styles.statusChip,
@@ -961,7 +963,7 @@ export default function AllRequestsScreen() {
             >
               {filter.label}
             </ThemedText>
-          </Pressable>
+          </TouchableOpacity>
         ))}
       </RTLHorizontalScrollView>
 
