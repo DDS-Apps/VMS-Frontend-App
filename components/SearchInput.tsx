@@ -4,7 +4,7 @@ import { DDIcon } from '@/components/DDIcon';
 import { Spacing, BorderRadius, FontFamily, getInputFontFamily } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { ArabicFontScaling, ArabicLineHeightScaling } from '@/utils/rtlStyles';
+import { ArabicFontScaling } from '@/utils/rtlStyles';
 import { DirectionalRow } from '@/components/DirectionalRow';
 
 const INPUT_HEIGHT = 56;
@@ -63,7 +63,6 @@ export function SearchInput({
           textAlign: isRTL ? 'right' : 'left',
           writingDirection: isRTL ? 'rtl' : 'ltr',
           fontSize: scaledFontSize,
-          lineHeight: Math.round(INPUT_FONT_SIZE * (isRTL ? ArabicLineHeightScaling.body : 1.4)),
         },
         Platform.OS === 'web' ? { outlineStyle: 'none' } as any : {},
       ]}
