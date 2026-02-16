@@ -52,6 +52,31 @@ export function SearchInput({
     ? Math.round(INPUT_FONT_SIZE * ArabicFontScaling.body * 10) / 10 
     : INPUT_FONT_SIZE;
 
+  const computedFontFamily = getInputFontFamily(value, isRTL);
+  const computedPaddingTop = isRTL ? Spacing.md : Spacing.sm;
+  const computedPaddingBottom = isRTL ? Spacing.xs : Spacing.sm;
+
+  console.log('[SearchInput] ==============================');
+  console.log('[SearchInput] isRTL:', isRTL);
+  console.log('[SearchInput] Platform.OS:', Platform.OS);
+  console.log('[SearchInput] fontFamily:', computedFontFamily);
+  console.log('[SearchInput] fontSize:', scaledFontSize);
+  console.log('[SearchInput] paddingTop:', computedPaddingTop, '| paddingBottom:', computedPaddingBottom);
+  console.log('[SearchInput] paddingVertical (base):', Spacing.sm);
+  console.log('[SearchInput] container minHeight:', INPUT_HEIGHT);
+  console.log('[SearchInput] value:', value?.substring(0, 20) ?? '(empty)');
+
+  const handleContainerLayout = (e: any) => {
+    const { width, height } = e.nativeEvent.layout;
+    console.log('[SearchInput] Container onLayout -> width:', width, 'height:', height);
+  };
+
+  const handleInputLayout = (e: any) => {
+    const { width, height, x, y } = e.nativeEvent.layout;
+    console.log('[SearchInput] TextInput onLayout -> width:', width, 'height:', height, 'x:', x, 'y:', y);
+    console.log('[SearchInput] Available text space = inputHeight - paddingTop - paddingBottom =', height - computedPaddingTop - computedPaddingBottom);
+  };
+
   const searchIcon = <DDIcon name="search" size={ICON_SIZE} variant="muted" />;
   const inputEl = (
     <TextInput
@@ -74,6 +99,7 @@ export function SearchInput({
       onChangeText={onChangeText}
       onFocus={handleFocus}
       onBlur={handleBlur}
+      onLayout={handleInputLayout}
       {...textInputProps}
     />
   );
@@ -95,6 +121,7 @@ export function SearchInput({
         containerStyle,
       ]}
       alignItems="center"
+      onLayout={handleContainerLayout}
     >
       {searchIcon}
       {inputEl}

@@ -61,6 +61,37 @@ export const StyledInput = forwardRef<TextInput, StyledInputProps>(({
   };
 
   const isDisabled = textInputProps.editable === false;
+
+  const computedFontFamily = getInputFontFamily(textInputProps.value ?? textInputProps.defaultValue, isRTL);
+  const computedFontSize = isRTL 
+    ? Math.round(INPUT_FONT_SIZE * ArabicFontScaling.body * 10) / 10 
+    : INPUT_FONT_SIZE;
+  const computedPaddingTop = isRTL ? Spacing.md : Spacing.sm;
+  const computedPaddingBottom = isRTL ? Spacing.xs : Spacing.sm;
+
+  console.log('[StyledInput] ==============================');
+  console.log('[StyledInput] label:', label);
+  console.log('[StyledInput] isRTL:', isRTL);
+  console.log('[StyledInput] Platform.OS:', Platform.OS);
+  console.log('[StyledInput] fontFamily:', computedFontFamily);
+  console.log('[StyledInput] fontSize:', computedFontSize);
+  console.log('[StyledInput] ArabicFontScaling.body:', ArabicFontScaling.body);
+  console.log('[StyledInput] paddingTop:', computedPaddingTop, '| paddingBottom:', computedPaddingBottom);
+  console.log('[StyledInput] paddingVertical (base):', Spacing.sm);
+  console.log('[StyledInput] container minHeight:', INPUT_HEIGHT);
+  console.log('[StyledInput] value:', textInputProps.value?.substring(0, 20) ?? '(empty)');
+
+  const handleContainerLayout = (e: any) => {
+    const { width, height } = e.nativeEvent.layout;
+    console.log('[StyledInput] Container onLayout -> width:', width, 'height:', height);
+  };
+
+  const handleInputLayout = (e: any) => {
+    const { width, height, x, y } = e.nativeEvent.layout;
+    console.log('[StyledInput] TextInput onLayout -> width:', width, 'height:', height, 'x:', x, 'y:', y);
+    console.log('[StyledInput] Available text space = inputHeight - paddingTop - paddingBottom =', height - computedPaddingTop - computedPaddingBottom);
+  };
+
   
   const getInputContainerStyle = () => {
     return [
@@ -86,7 +117,7 @@ export const StyledInput = forwardRef<TextInput, StyledInputProps>(({
         </ThemedText>
       ) : null}
       
-      <DirectionalRow style={getInputContainerStyle()} alignItems="center">
+      <DirectionalRow style={getInputContainerStyle()} alignItems="center" onLayout={handleContainerLayout}>
         {leftIcon ? (
           <DDIcon name={leftIcon} size={INPUT_ICON_SIZE} variant="muted" />
         ) : null}
@@ -112,6 +143,7 @@ export const StyledInput = forwardRef<TextInput, StyledInputProps>(({
           placeholderTextColor={theme.textSecondary}
           onFocus={handleFocus}
           onBlur={handleBlur}
+          onLayout={handleInputLayout}
           secureTextEntry={effectiveSecureTextEntry}
           {...textInputProps}
         />
