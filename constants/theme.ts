@@ -286,28 +286,29 @@ export const FontFamily = {
   }) as string,
 
   // Arabic UI - FS Albert Arabic with fallbacks
+  // Web uses the useFonts-registered names (same as mobile) for reliable loading
   arabicLight: Platform.select({
-    web: "'FS Albert Arabic', 'Noto Sans Arabic', sans-serif",
+    web: "FSAlbertArabic_300Light, 'FS Albert Arabic', 'Noto Sans Arabic', sans-serif",
     default: "FSAlbertArabic_300Light",
   }) as string,
   arabicRegular: Platform.select({
-    web: "'FS Albert Arabic', 'Noto Sans Arabic', sans-serif",
+    web: "FSAlbertArabic_400Regular, 'FS Albert Arabic', 'Noto Sans Arabic', sans-serif",
     default: "FSAlbertArabic_400Regular",
   }) as string,
   arabicMedium: Platform.select({
-    web: "'FS Albert Arabic', 'Noto Sans Arabic', sans-serif",
+    web: "FSAlbertArabic_400Regular, 'FS Albert Arabic', 'Noto Sans Arabic', sans-serif",
     default: "FSAlbertArabic_400Regular",
   }) as string,
   arabicSemiBold: Platform.select({
-    web: "'FS Albert Arabic', 'Noto Sans Arabic', sans-serif",
+    web: "FSAlbertArabic_700Bold, 'FS Albert Arabic', 'Noto Sans Arabic', sans-serif",
     default: "FSAlbertArabic_700Bold",
   }) as string,
   arabicBold: Platform.select({
-    web: "'FS Albert Arabic', 'Noto Sans Arabic', sans-serif",
+    web: "FSAlbertArabic_700Bold, 'FS Albert Arabic', 'Noto Sans Arabic', sans-serif",
     default: "FSAlbertArabic_700Bold",
   }) as string,
   arabicExtraBold: Platform.select({
-    web: "'FS Albert Arabic', 'Noto Sans Arabic', sans-serif",
+    web: "FSAlbertArabic_800ExtraBold, 'FS Albert Arabic', 'Noto Sans Arabic', sans-serif",
     default: "FSAlbertArabic_800ExtraBold",
   }) as string,
 
@@ -550,7 +551,7 @@ export const Fonts = Platform.select({
     mono: "monospace",
   },
   web: {
-    sans: "'Albert Sans', Inter, 'FS Albert Arabic', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+    sans: "'Albert Sans', Inter, FSAlbertArabic_400Regular, 'FS Albert Arabic', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
     serif: "Georgia, 'Times New Roman', serif",
     rounded: "'Albert Sans', Inter, 'SF Pro Rounded', sans-serif",
     mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
