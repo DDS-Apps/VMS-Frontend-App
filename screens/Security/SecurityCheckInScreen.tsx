@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { View, StyleSheet, Pressable, ActivityIndicator, useWindowDimensions } from "react-native";
+import { View, StyleSheet, Pressable, ActivityIndicator, useWindowDimensions, Platform } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ROUTES } from "@/constants";
 import { DDIcon } from "@/components/DDIcon";
@@ -603,42 +603,44 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
             {t('navigation.visitorVerification')}
           </ThemedText>
           
-          <View style={[styles.viewToggle, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <Pressable
-              style={[
-                styles.viewToggleButton,
-                styles.viewToggleButtonLeft,
-                {
-                  backgroundColor: viewMode === 'card' ? theme.primary : theme.surface,
-                  borderColor: theme.border,
-                },
-              ]}
-              onPress={() => setViewMode('card')}
-            >
-              <DDIcon
-                name="grid"
-                size={16}
-                color={viewMode === 'card' ? theme.buttonText : theme.textSecondary}
-              />
-            </Pressable>
-            <Pressable
-              style={[
-                styles.viewToggleButton,
-                styles.viewToggleButtonRight,
-                {
-                  backgroundColor: viewMode === 'list' ? theme.primary : theme.surface,
-                  borderColor: theme.border,
-                },
-              ]}
-              onPress={() => setViewMode('list')}
-            >
-              <DDIcon
-                name="menu"
-                size={16}
-                color={viewMode === 'list' ? theme.buttonText : theme.textSecondary}
-              />
-            </Pressable>
-          </View>
+          {Platform.OS === 'web' ? (
+            <View style={[styles.viewToggle, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <Pressable
+                style={[
+                  styles.viewToggleButton,
+                  styles.viewToggleButtonLeft,
+                  {
+                    backgroundColor: viewMode === 'card' ? theme.primary : theme.surface,
+                    borderColor: theme.border,
+                  },
+                ]}
+                onPress={() => setViewMode('card')}
+              >
+                <DDIcon
+                  name="grid"
+                  size={16}
+                  color={viewMode === 'card' ? theme.buttonText : theme.textSecondary}
+                />
+              </Pressable>
+              <Pressable
+                style={[
+                  styles.viewToggleButton,
+                  styles.viewToggleButtonRight,
+                  {
+                    backgroundColor: viewMode === 'list' ? theme.primary : theme.surface,
+                    borderColor: theme.border,
+                  },
+                ]}
+                onPress={() => setViewMode('list')}
+              >
+                <DDIcon
+                  name="menu"
+                  size={16}
+                  color={viewMode === 'list' ? theme.buttonText : theme.textSecondary}
+                />
+              </Pressable>
+            </View>
+          ) : null}
         </DirectionalRow>
         
         <Spacer height={Spacing.sm} />

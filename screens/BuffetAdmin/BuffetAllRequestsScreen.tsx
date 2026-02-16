@@ -264,34 +264,36 @@ const SectionHeader = ({
         <ThemedText style={[Typography.subtitle]}>
           {t('navigation.buffetRequests')}
         </ThemedText>
-        <View style={styles.viewToggle}>
-          <Pressable
-            style={[
-              styles.viewToggleButton,
-              { backgroundColor: viewMode === 'card' ? theme.primary : theme.surface },
-            ]}
-            onPress={() => onViewModeChange('card')}
-          >
-            <DDIcon 
-              name="grid" 
-              size={18} 
-              color={viewMode === 'card' ? theme.buttonText : theme.textSecondary} 
-            />
-          </Pressable>
-          <Pressable
-            style={[
-              styles.viewToggleButton,
-              { backgroundColor: viewMode === 'list' ? theme.primary : theme.surface },
-            ]}
-            onPress={() => onViewModeChange('list')}
-          >
-            <DDIcon 
-              name="list" 
-              size={18} 
-              color={viewMode === 'list' ? theme.buttonText : theme.textSecondary} 
-            />
-          </Pressable>
-        </View>
+        {Platform.OS === 'web' ? (
+          <View style={styles.viewToggle}>
+            <Pressable
+              style={[
+                styles.viewToggleButton,
+                { backgroundColor: viewMode === 'card' ? theme.primary : theme.surface },
+              ]}
+              onPress={() => onViewModeChange('card')}
+            >
+              <DDIcon 
+                name="grid" 
+                size={18} 
+                color={viewMode === 'card' ? theme.buttonText : theme.textSecondary} 
+              />
+            </Pressable>
+            <Pressable
+              style={[
+                styles.viewToggleButton,
+                { backgroundColor: viewMode === 'list' ? theme.primary : theme.surface },
+              ]}
+              onPress={() => onViewModeChange('list')}
+            >
+              <DDIcon 
+                name="list" 
+                size={18} 
+                color={viewMode === 'list' ? theme.buttonText : theme.textSecondary} 
+              />
+            </Pressable>
+          </View>
+        ) : null}
       </DirectionalRow>
 
       <Spacer height={Spacing.md} />

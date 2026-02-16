@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from "react";
-import { View, StyleSheet, Pressable, ScrollView, TextInput, Modal, FlatList, Alert, useWindowDimensions } from "react-native";
+import { View, StyleSheet, Pressable, ScrollView, TextInput, Modal, FlatList, Alert, useWindowDimensions, Platform } from "react-native";
 import { capitalizeFirst } from "@/utils/formatters";
 import { useFocusEffect } from '@react-navigation/native';
 import { ROUTES } from "@/constants";
@@ -167,11 +167,15 @@ const SectionHeader = ({
   const actionsContent = (
     <DirectionalRow style={styles.headerActions}>
       {selectButton}
-      <Spacer width={Spacing.sm} />
-      <DirectionalRow style={styles.viewModeToggle}>
-        {gridButton}
-        {listButton}
-      </DirectionalRow>
+      {Platform.OS === 'web' ? (
+        <>
+          <Spacer width={Spacing.sm} />
+          <DirectionalRow style={styles.viewModeToggle}>
+            {gridButton}
+            {listButton}
+          </DirectionalRow>
+        </>
+      ) : null}
     </DirectionalRow>
   );
   

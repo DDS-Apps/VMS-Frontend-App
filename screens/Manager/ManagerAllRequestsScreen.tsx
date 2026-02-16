@@ -6,6 +6,7 @@ import {
   FlatList,
   Alert,
   useWindowDimensions,
+  Platform,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { DDIcon } from "@/components/DDIcon";
@@ -192,7 +193,7 @@ const SectionHeaderWithTabs = ({
     <>
       <DirectionalRow style={[styles.sectionTitleRow, styles.paddedContent]}>
         {titleElement}
-        {viewToggleElement}
+        {Platform.OS === 'web' ? viewToggleElement : null}
       </DirectionalRow>
 
       <Spacer height={LAYOUT.contentGap} />

@@ -711,7 +711,7 @@ const SectionHeader = ({
     <>
       <DirectionalRow style={[styles.sectionTitleRow, styles.paddedContent]}>
         {titleElement}
-        {viewToggleElement}
+        {Platform.OS === 'web' ? viewToggleElement : null}
       </DirectionalRow>
 
       <Spacer height={LAYOUT.contentGap} />
