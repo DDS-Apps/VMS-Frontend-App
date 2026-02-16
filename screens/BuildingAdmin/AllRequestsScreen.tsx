@@ -306,7 +306,6 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
                     }}
                   >
                     <DirectionalRow>
-                      <DDIcon name="x" size={14} color={theme.error} />
                       <ThemedText style={[styles.actionButtonText, { color: theme.error }]}>
                         {t('actions.reject')}
                       </ThemedText>
