@@ -1941,7 +1941,7 @@ export default function UsersRolesScreen() {
                         >
                           <ThemedText
                             style={[
-                              Typography.caption,
+                              styles.roleOptionText,
                               {
                                 color: isDisabled
                                   ? theme.textSecondary
@@ -2045,7 +2045,7 @@ export default function UsersRolesScreen() {
                     >
                       <ThemedText
                         style={[
-                          Typography.caption,
+                          styles.roleOptionText,
                           {
                             color: !formData.managerId
                               ? theme.buttonText
@@ -2086,7 +2086,7 @@ export default function UsersRolesScreen() {
                         >
                           <ThemedText
                             style={[
-                              Typography.caption,
+                              styles.roleOptionText,
                               {
                                 color:
                                   formData.managerId === manager.id
@@ -2569,11 +2569,15 @@ const styles = StyleSheet.create({
   },
   roleOption: {
     paddingHorizontal: Spacing.md,
-    height: 36,
+    paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.sm,
     borderWidth: 1,
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
+  },
+  roleOptionText: {
+    fontSize: 13,
+    lineHeight: 20,
+    letterSpacing: 0.2,
+    includeFontPadding: false,
   },
   autoApprovalRow: {
     alignItems: "center",
