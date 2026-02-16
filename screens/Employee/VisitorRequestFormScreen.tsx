@@ -666,6 +666,7 @@ export default function VisitorRequestFormScreen({
             placeholder={t("form.fullNamePlaceholder")}
             placeholderTextColor={theme.textSecondary}
             value={fullName}
+            scrollEnabled={false}
             onChangeText={(text) => {
               setFullName(text);
               if (errors.fullName) {
@@ -719,6 +720,7 @@ export default function VisitorRequestFormScreen({
             placeholder={t("form.emailPlaceholder")}
             placeholderTextColor={theme.textSecondary}
             value={email}
+            scrollEnabled={false}
             onChangeText={(text) => {
               setEmail(text);
               if (errors.email) {
@@ -785,6 +787,7 @@ export default function VisitorRequestFormScreen({
             placeholder={t("form.companyPlaceholder")}
             placeholderTextColor={theme.textSecondary}
             value={company}
+            scrollEnabled={false}
             onChangeText={setCompany}
           />
 
@@ -927,6 +930,7 @@ export default function VisitorRequestFormScreen({
                 placeholder={t("visitor.idNumberPlaceholder")}
                 placeholderTextColor={theme.textSecondary}
                 value={idNumber}
+                scrollEnabled={false}
                 onChangeText={(text) => {
                   setIdNumber(text);
                   if (errors.idNumber) {
@@ -1613,11 +1617,12 @@ export default function VisitorRequestFormScreen({
               >
                 <DDIcon name="search" size={20} variant="muted" />
                 <TextInput
-                  style={[styles.searchInput, { color: theme.text, fontFamily: getInputFontFamily(employeeSearchQuery, isRTL), textAlign: isRTL ? 'right' : 'left', writingDirection: isRTL ? 'rtl' : 'ltr' }]}
+                  style={[styles.searchInput, { color: theme.text, fontFamily: getInputFontFamily(employeeSearchQuery, isRTL), textAlign: isRTL ? 'right' : 'left', writingDirection: isRTL ? 'rtl' : 'ltr', textAlignVertical: 'center' as const }]}
                   placeholder={t("common.search")}
                   placeholderTextColor={theme.textSecondary}
                   value={employeeSearchQuery}
                   onChangeText={setEmployeeSearchQuery}
+                  scrollEnabled={false}
                   autoCapitalize="none"
                   autoCorrect={false}
                 />
@@ -2042,14 +2047,14 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
   },
   input: {
-    height: Spacing.inputHeight,
+    minHeight: 48,
     borderWidth: 1,
     borderRadius: BorderRadius.sm,
     paddingHorizontal: Spacing.md,
-    alignItems: "center",
-    justifyContent: "space-between",
+    paddingVertical: Spacing.sm,
     fontFamily: FontFamily.latinRegular,
     fontSize: 16,
+    textAlignVertical: "center" as const,
   },
   pickerButton: {
     minHeight: Spacing.inputHeight,

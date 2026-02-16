@@ -229,31 +229,6 @@ export const PhoneInputWithCountry = ({
     return formatNationalNumber(digits, selectedCountry.format);
   }, [nationalNumber, selectedCountry]);
 
-  const computedFontFamily = getInputFontFamily(displayedNumber, isRTL);
-  const computedPaddingTop = isRTL ? 14 : 0;
-  const computedPaddingBottom = isRTL ? 4 : 0;
-
-  console.log('[PhoneInput] ==============================');
-  console.log('[PhoneInput] isRTL:', isRTL);
-  console.log('[PhoneInput] Platform.OS:', Platform.OS);
-  console.log('[PhoneInput] fontFamily:', computedFontFamily);
-  console.log('[PhoneInput] fontSize:', 16);
-  console.log('[PhoneInput] paddingTop:', computedPaddingTop, '| paddingBottom:', computedPaddingBottom);
-  console.log('[PhoneInput] container paddingVertical:', Spacing.sm, '(no height/minHeight)');
-  console.log('[PhoneInput] displayedNumber:', displayedNumber || '(empty)');
-  console.log('[PhoneInput] selectedCountry:', selectedCountry.code, selectedCountry.dialCode);
-
-  const handlePhoneContainerLayout = (e: any) => {
-    const { width, height } = e.nativeEvent.layout;
-    console.log('[PhoneInput] Container onLayout -> width:', width, 'height:', height);
-  };
-
-  const handlePhoneInputLayout = (e: any) => {
-    const { width, height, x, y } = e.nativeEvent.layout;
-    console.log('[PhoneInput] TextInput onLayout -> width:', width, 'height:', height, 'x:', x, 'y:', y);
-    console.log('[PhoneInput] Available text space = inputHeight - paddingTop - paddingBottom =', height - computedPaddingTop - computedPaddingBottom);
-  };
-
   return (
     <View style={styles.container}>
       {label && (
@@ -279,7 +254,7 @@ export const PhoneInputWithCountry = ({
             opacity: editable === false ? 0.6 : 1,
           },
         ]}
-        onLayout={handlePhoneContainerLayout}
+
       >
         {/* Country Code Button */}
         <Pressable
@@ -309,12 +284,10 @@ export const PhoneInputWithCountry = ({
               textAlign: isRTL ? 'right' : 'left',
               fontFamily: getInputFontFamily(displayedNumber, isRTL),
               textAlignVertical: 'center',
-              ...(isRTL ? { paddingTop: 14, paddingBottom: 4 } : {}),
             },
           ]}
           value={displayedNumber}
           onChangeText={handlePhoneChange}
-          onLayout={handlePhoneInputLayout}
           scrollEnabled={false}
           placeholder={placeholder || selectedCountry.format.replace(/X/g, '0')}
           placeholderTextColor={theme.textSecondary}
