@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { View, StyleSheet, Pressable, Dimensions, GestureResponderEvent, LayoutAnimation, Platform, UIManager, Alert, useWindowDimensions } from "react-native";
+import { TouchableOpacity as GHTouchableOpacity } from "react-native-gesture-handler";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { ROUTES } from "@/constants";
 import { ThemedText } from "@/components/ThemedText";
@@ -291,15 +292,15 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
     const hasDetails = item.visitor.phone;
     
     return (
-      <Pressable 
+      <GHTouchableOpacity 
         key={item.id}
         onPress={() => handleVisitorPress(item)}
-        style={({ pressed }) => [
+        activeOpacity={0.9}
+        style={[
           styles.visitorCard,
           { 
             backgroundColor: theme.surface,
             borderStartColor: statusConfig.border,
-            opacity: pressed ? 0.9 : 1,
           },
         ]}
       >
@@ -379,7 +380,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
             />
           ) : null}
         </DirectionalRow>
-      </Pressable>
+      </GHTouchableOpacity>
     );
   };
 
@@ -519,7 +520,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
               
               return (
                 <View key={visitor.id} style={styles.horizontalCardWrapper}>
-                  <Pressable 
+                  <GHTouchableOpacity 
                     onPress={() => navigation.navigate(ROUTES.VISITOR_DETAIL as never, { 
                       visitor: {
                         id: visitor.id,
@@ -535,12 +536,12 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
                         createdAt: visitor.createdAt,
                       }
                     } as never)}
-                    style={({ pressed }) => [
+                    activeOpacity={0.9}
+                    style={[
                       styles.visitorCard,
                       { 
                         backgroundColor: theme.surface,
                         borderStartColor: statusConfig.border,
-                        opacity: pressed ? 0.9 : 1,
                       },
                     ]}
                   >
@@ -587,7 +588,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
                       </ThemedText>
                     </View>
                   </DirectionalRow>
-                  </Pressable>
+                  </GHTouchableOpacity>
                 </View>
               );
             })}
