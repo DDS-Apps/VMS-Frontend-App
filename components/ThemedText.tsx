@@ -149,9 +149,10 @@ export function ThemedText({
     const scaleForArabic = <T extends TypographyStyle>(baseStyle: T): T => {
       if (isAvatarMode) {
         const { fontSize: _fs, lineHeight: _lh, ...avatarBase } = baseStyle;
+        const avatarContentIsArabic = containsArabic(childrenText);
         return {
           ...avatarBase,
-          fontFamily: useArabicFont
+          fontFamily: avatarContentIsArabic
             ? getLocaleFontFamily(baseStyle.fontFamily, true)
             : baseStyle.fontFamily,
         } as T;
@@ -198,52 +199,60 @@ export function ThemedText({
     textAlign,
   };
 
-  // Extract and scale custom fontSize from style prop for Arabic
   const getScaledCustomStyle = (): TextStyle | null => {
-    if (!style || !useArabicFont) return null;
+    if (!style) return null;
 
     const flatStyle = flattenedStyle;
     if (!flatStyle) return null;
 
-    const skipScaling = isAvatarMode;
-
     const scaledStyle: TextStyle = {};
+
+    if (isAvatarMode) {
+      if (typeof flatStyle.fontSize === "number" && typeof flatStyle.lineHeight !== "number") {
+        scaledStyle.lineHeight = Math.round(flatStyle.fontSize * 1.35);
+      }
+      if (flatStyle.fontWeight) {
+        const contentIsArabic = containsArabic(childrenText);
+        const weightToFont: Record<string, { arabic: string; latin: string }> = {
+          '300': { arabic: FontFamily.arabicLight, latin: FontFamily.latinLight },
+          '400': { arabic: FontFamily.arabicRegular, latin: FontFamily.latinRegular },
+          '500': { arabic: FontFamily.arabicMedium, latin: FontFamily.latinMedium },
+          '600': { arabic: FontFamily.arabicSemiBold, latin: FontFamily.latinSemiBold },
+          '700': { arabic: FontFamily.arabicBold, latin: FontFamily.latinBold },
+          '800': { arabic: FontFamily.arabicExtraBold, latin: FontFamily.latinExtraBold },
+          'bold': { arabic: FontFamily.arabicBold, latin: FontFamily.latinBold },
+        };
+        const mapped = weightToFont[String(flatStyle.fontWeight)];
+        if (mapped) {
+          scaledStyle.fontFamily = contentIsArabic ? mapped.arabic : mapped.latin;
+        }
+      }
+      if (typeof flatStyle.fontFamily === "string") {
+        const contentIsArabic = containsArabic(childrenText);
+        scaledStyle.fontFamily = contentIsArabic
+          ? getLocaleFontFamily(flatStyle.fontFamily, true)
+          : flatStyle.fontFamily;
+      }
+      return Object.keys(scaledStyle).length > 0 ? scaledStyle : null;
+    }
+
+    if (!useArabicFont) return null;
+
     const category = getCategory(textVariant);
 
-    // Scale custom fontSize if present
-    if (typeof flatStyle.fontSize === "number" && !skipScaling) {
+    if (typeof flatStyle.fontSize === "number") {
       scaledStyle.fontSize =
         Math.round(flatStyle.fontSize * ArabicFontScaling[category] * 10) / 10;
     }
 
-    // Scale custom lineHeight if present
-    if (typeof flatStyle.lineHeight === "number" && !skipScaling) {
+    if (typeof flatStyle.lineHeight === "number") {
       scaledStyle.lineHeight = Math.round(
         flatStyle.lineHeight * ArabicLineHeightScaling[category],
       );
     }
 
-    if (isAvatarMode && typeof flatStyle.fontSize === "number" && typeof flatStyle.lineHeight !== "number") {
-      scaledStyle.lineHeight = Math.round(flatStyle.fontSize * 1.35);
-    }
-
-    // Map fontFamily override to Arabic equivalent
     if (typeof flatStyle.fontFamily === "string") {
       scaledStyle.fontFamily = getLocaleFontFamily(flatStyle.fontFamily, true);
-    } else if (isAvatarMode && flatStyle.fontWeight) {
-      const weightToArabicFont: Record<string, string> = {
-        '300': FontFamily.arabicLight,
-        '400': FontFamily.arabicRegular,
-        '500': FontFamily.arabicMedium,
-        '600': FontFamily.arabicSemiBold,
-        '700': FontFamily.arabicBold,
-        '800': FontFamily.arabicExtraBold,
-        'bold': FontFamily.arabicBold,
-      };
-      const mappedFont = weightToArabicFont[String(flatStyle.fontWeight)];
-      if (mappedFont) {
-        scaledStyle.fontFamily = mappedFont;
-      }
     }
 
     return Object.keys(scaledStyle).length > 0 ? scaledStyle : null;
