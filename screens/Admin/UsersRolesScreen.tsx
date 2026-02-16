@@ -1831,7 +1831,7 @@ export default function UsersRolesScreen() {
                 </DirectionalRow>
 
                 <ScrollView
-                  style={styles.formContainer}
+                  contentContainerStyle={styles.formContainer}
                   showsVerticalScrollIndicator={false}
                   keyboardShouldPersistTaps="handled"
                 >
