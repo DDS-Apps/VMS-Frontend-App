@@ -141,6 +141,32 @@ type NavigationProp = NativeStackNavigationProp<
 const HORIZONTAL_PADDING = Spacing.lg;
 const ITEMS_PER_PAGE = 20;
 
+const SearchBarComponent = React.memo(({ onSearch, placeholder }: { onSearch: (text: string) => void; placeholder: string }) => {
+  const localRef = useRef('');
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handleChange = useCallback((text: string) => {
+    localRef.current = text;
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      onSearch(text);
+    }, 400);
+  }, [onSearch]);
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
+  return (
+    <StyledInput
+      defaultValue=""
+      onChangeText={handleChange}
+      placeholder={placeholder}
+      leftIcon="search"
+      containerStyle={{ marginHorizontal: HORIZONTAL_PADDING }}
+    />
+  );
+});
+
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
 
@@ -172,17 +198,8 @@ export default function UsersRolesScreen() {
   const [editingUser, setEditingUser] = useState<DisplayUser | null>(null);
   const [filterRole, setFilterRole] = useState<UserRole | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const handleSearchChange = useCallback((text: string) => {
-    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
-    searchTimerRef.current = setTimeout(() => {
-      setSearchQuery(text);
-    }, 300);
-  }, []);
-  useEffect(() => {
-    return () => {
-      if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
-    };
+  const stableSetSearchQuery = useCallback((text: string) => {
+    setSearchQuery(text);
   }, []);
   const [sortBy, setSortBy] = useState<SortOption>("createdAt");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
@@ -1403,12 +1420,9 @@ export default function UsersRolesScreen() {
       </DirectionalRow>
 
       <View style={styles.searchContainer}>
-        <StyledInput
-          defaultValue=""
-          onChangeText={handleSearchChange}
+        <SearchBarComponent
+          onSearch={stableSetSearchQuery}
           placeholder={t("common.searchPlaceholder")}
-          leftIcon="search"
-          containerStyle={{ marginHorizontal: HORIZONTAL_PADDING }}
         />
       </View>
 
@@ -1715,6 +1729,7 @@ export default function UsersRolesScreen() {
             ListFooterComponent={listFooter}
             ListEmptyComponent={renderEmptyComponent}
             stickySectionHeadersEnabled={false}
+            keyboardShouldPersistTaps="handled"
             style={{ flex: 1, width: "100%" }}
             nestedScrollEnabled={true}
           />
@@ -1729,6 +1744,7 @@ export default function UsersRolesScreen() {
           ListHeaderComponent={combinedTableHeader}
           ListFooterComponent={listFooter}
           ListEmptyComponent={renderEmptyComponent}
+          keyboardShouldPersistTaps="handled"
           style={{ flex: 1, width: "100%" }}
           nestedScrollEnabled={true}
           removeClippedSubviews={true}
@@ -1750,6 +1766,7 @@ export default function UsersRolesScreen() {
           ListFooterComponent={listFooter}
           ListEmptyComponent={renderEmptyComponent}
           stickySectionHeadersEnabled={false}
+          keyboardShouldPersistTaps="handled"
           contentContainerStyle={styles.listContainer}
           style={{ flex: 1, backgroundColor: theme.background }}
         />
@@ -1795,6 +1812,7 @@ export default function UsersRolesScreen() {
           ListHeaderComponent={renderListHeader}
           ListFooterComponent={listFooter}
           ListEmptyComponent={renderEmptyComponent}
+          keyboardShouldPersistTaps="handled"
           style={{ flex: 1, backgroundColor: theme.background }}
         />
       );
@@ -1808,6 +1826,7 @@ export default function UsersRolesScreen() {
         ListHeaderComponent={renderListHeader}
         ListFooterComponent={listFooter}
         ListEmptyComponent={renderEmptyComponent}
+        keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.listContainer}
         style={{ flex: 1, backgroundColor: theme.background }}
       />
