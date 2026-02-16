@@ -1408,7 +1408,7 @@ export default function UsersRolesScreen() {
         nestedScrollEnabled={true}
         keyboardShouldPersistTaps="always"
         delaysContentTouches={false}
-        canCancelContentTouches={false}
+        canCancelContentTouches={true}
       >
         <GHTouchableOpacity
           activeOpacity={0.7}
@@ -1473,7 +1473,7 @@ export default function UsersRolesScreen() {
         nestedScrollEnabled={true}
         keyboardShouldPersistTaps="always"
         delaysContentTouches={false}
-        canCancelContentTouches={false}
+        canCancelContentTouches={true}
       >
         <GHTouchableOpacity
           activeOpacity={0.7}
