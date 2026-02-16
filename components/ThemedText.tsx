@@ -223,6 +223,20 @@ export function ThemedText({
     // Map fontFamily override to Arabic equivalent
     if (typeof flatStyle.fontFamily === "string") {
       scaledStyle.fontFamily = getLocaleFontFamily(flatStyle.fontFamily, true);
+    } else if (isAvatarMode && flatStyle.fontWeight) {
+      const weightToArabicFont: Record<string, string> = {
+        '300': FontFamily.arabicLight,
+        '400': FontFamily.arabicRegular,
+        '500': FontFamily.arabicMedium,
+        '600': FontFamily.arabicSemiBold,
+        '700': FontFamily.arabicBold,
+        '800': FontFamily.arabicExtraBold,
+        'bold': FontFamily.arabicBold,
+      };
+      const mappedFont = weightToArabicFont[String(flatStyle.fontWeight)];
+      if (mappedFont) {
+        scaledStyle.fontFamily = mappedFont;
+      }
     }
 
     return Object.keys(scaledStyle).length > 0 ? scaledStyle : null;
