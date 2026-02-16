@@ -223,10 +223,10 @@ export default function ReminderRulesScreen() {
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <ThemedText style={[Typography.h2, { fontWeight: "700", textAlign: isRTL ? 'right' : 'left' }]}>
+          <ThemedText style={[Typography.h2, { fontWeight: "700" }]}>
             {t("admin.reminderRules")}
           </ThemedText>
-          <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 4, textAlign: isRTL ? 'right' : 'left' }]}>
+          <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 4 }]}>
             {t("admin.autoCancelSettings")}
           </ThemedText>
         </View>
@@ -237,10 +237,10 @@ export default function ReminderRulesScreen() {
               <DDIcon name="power" size={24} color={theme.primary} />
             </View>
             <View style={styles.sectionInfo}>
-              <ThemedText style={[Typography.subtitle, { fontWeight: "600", textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.subtitle, { fontWeight: "600" }]}>
                 {t("admin.systemActive")}
               </ThemedText>
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2 }]}>
                 {t("admin.enableAutomatedReminders")}
               </ThemedText>
             </View>
@@ -268,7 +268,7 @@ export default function ReminderRulesScreen() {
               <View style={[styles.ruleBadge, { backgroundColor: theme.info + "20" }]}>
                 <ThemedText style={[{ fontSize: 11, lineHeight: 28, color: theme.info, fontWeight: "600", textAlign: 'center' }]}>1st</ThemedText>
               </View>
-              <ThemedText style={[Typography.body, { flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.body, { flex: 1 }]}>
                 {t("admin.firstReminderDelay")}
               </ThemedText>
             </DirectionalRow>
@@ -279,7 +279,7 @@ export default function ReminderRulesScreen() {
                 keyboardType="number-pad"
                 placeholder="120"
               />
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 4, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 4 }]}>
                 {formatMinutesToDisplay(localRules.firstReminderDelayMinutes)} {t("admin.afterOfficeHoursStart")}
               </ThemedText>
             </View>
@@ -290,7 +290,7 @@ export default function ReminderRulesScreen() {
               <View style={[styles.ruleBadge, { backgroundColor: theme.warning + "20" }]}>
                 <ThemedText style={[{ fontSize: 11, lineHeight: 28, color: theme.warning, fontWeight: "600", textAlign: 'center' }]}>2nd</ThemedText>
               </View>
-              <ThemedText style={[Typography.body, { flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.body, { flex: 1 }]}>
                 {t("admin.secondReminderDelay")}
               </ThemedText>
             </DirectionalRow>
@@ -301,7 +301,7 @@ export default function ReminderRulesScreen() {
                 keyboardType="number-pad"
                 placeholder="240"
               />
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 4, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 4 }]}>
                 {formatMinutesToDisplay(localRules.secondReminderDelayMinutes)} {t("admin.afterFirstReminder")}
               </ThemedText>
             </View>
@@ -312,7 +312,7 @@ export default function ReminderRulesScreen() {
               <View style={[styles.ruleBadge, { backgroundColor: theme.error + "20" }]}>
                 <DDIcon name="x-circle" size={14} color={theme.error} />
               </View>
-              <ThemedText style={[Typography.body, { flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.body, { flex: 1 }]}>
                 {t("admin.autoCancelDelay")}
               </ThemedText>
             </DirectionalRow>
@@ -323,7 +323,7 @@ export default function ReminderRulesScreen() {
                 keyboardType="number-pad"
                 placeholder="60"
               />
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 4, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 4 }]}>
                 {formatMinutesToDisplay(localRules.autoCancelDelayMinutes)} {t("admin.afterSecondReminder")}
               </ThemedText>
             </View>
@@ -340,7 +340,7 @@ export default function ReminderRulesScreen() {
 
           <DirectionalRow style={styles.timeInputs}>
             <View style={styles.timeField}>
-              <ThemedText style={[Typography.label, { marginBottom: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.label, { marginBottom: Spacing.sm }]}>
                 {t("admin.officeStartTime")}
               </ThemedText>
               <Pressable
@@ -357,7 +357,7 @@ export default function ReminderRulesScreen() {
               </Pressable>
             </View>
             <View style={styles.timeField}>
-              <ThemedText style={[Typography.label, { marginBottom: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}>
+              <ThemedText style={[Typography.label, { marginBottom: Spacing.sm }]}>
                 {t("admin.officeEndTime")}
               </ThemedText>
               <Pressable
