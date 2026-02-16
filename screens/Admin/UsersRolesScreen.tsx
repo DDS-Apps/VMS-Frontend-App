@@ -1903,9 +1903,10 @@ export default function UsersRolesScreen() {
                   <View
                     style={{
                       marginBottom: Spacing.md,
-                      flexDirection: isRTL ? 'row-reverse' : 'row',
+                      flexDirection: 'row',
                       flexWrap: 'wrap',
                       gap: Spacing.sm,
+                      direction: isRTL ? 'rtl' : 'ltr',
                     }}
                   >
                     {CREATABLE_ROLES.map((role) => {
@@ -2017,9 +2018,10 @@ export default function UsersRolesScreen() {
                   <View
                     style={{
                       marginBottom: Spacing.md,
-                      flexDirection: isRTL ? 'row-reverse' : 'row',
+                      flexDirection: 'row',
                       flexWrap: 'wrap',
                       gap: Spacing.sm,
+                      direction: isRTL ? 'rtl' : 'ltr',
                     }}
                   >
                     <Pressable
