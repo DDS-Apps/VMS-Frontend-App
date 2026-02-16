@@ -307,7 +307,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
           <ThemedText
             style={[
               Typography.display,
-              { textAlign: "center", marginTop: Spacing.xxxl },
+              { textAlign: "center", marginTop: Spacing.xxxl, lineHeight: 48 },
             ]}
           >
             {t("common.welcomeTitle")}
