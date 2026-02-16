@@ -140,7 +140,7 @@ export default function UserDetailScreen() {
             </ThemedText>
           </View>
           <Spacer height={Spacing.md} />
-          <ThemedText style={[Typography.h2, { textAlign: 'center', lineHeight: 42 }]}>
+          <ThemedText variant="h2" align="center">
             {userName}
           </ThemedText>
           <ThemedText style={[Typography.body, { color: theme.textSecondary, textAlign: 'center' }]}>

@@ -2371,12 +2371,12 @@ const styles = StyleSheet.create({
   cardUserName: {
     fontSize: 15,
     fontWeight: "600",
-    lineHeight: 18,
+    lineHeight: 22,
   },
   cardEmail: {
     fontSize: 12,
     marginTop: 1,
-    lineHeight: 14,
+    lineHeight: 18,
   },
   cardInfoRow: {
     alignItems: "center",
