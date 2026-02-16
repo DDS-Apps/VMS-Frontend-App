@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: Spacing.md,
     borderRadius: BorderRadius.sm,
-    minHeight: INPUT_HEIGHT,
+    height: INPUT_HEIGHT,
     gap: Spacing.md,
   },
   input: {

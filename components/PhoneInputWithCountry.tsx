@@ -267,7 +267,7 @@ export const PhoneInputWithCountry = ({
         >
           <DirectionalRow gap={Spacing.xs} style={styles.countryButtonContent}>
             <FlagAvatar countryCode={selectedCountry.code} size={20} />
-            <ThemedText style={[styles.dialCodeText, { color: theme.text, lineHeight: isRTL ? 29 : 20, writingDirection: 'ltr' }]}>
+            <ThemedText style={[styles.dialCodeText, { color: theme.text, writingDirection: 'ltr' }]}>
               {selectedCountry.code} {selectedCountry.dialCode}
             </ThemedText>
             <DDIcon name="chevron-down" size={14} color={theme.textSecondary} />
@@ -282,8 +282,8 @@ export const PhoneInputWithCountry = ({
               color: theme.text,
               textAlign: isRTL ? 'right' : 'left',
               fontFamily: getInputFontFamily(displayedNumber, isRTL),
-              lineHeight: isRTL ? 41 : 22,
-              minHeight: isRTL ? 68 : 48,
+              textAlignVertical: 'center',
+              includeFontPadding: false,
             },
           ]}
           value={displayedNumber}
@@ -482,13 +482,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: BorderRadius.md,
     overflow: 'hidden',
-    minHeight: 48,
+    height: 48,
   },
   countryButton: {
     paddingHorizontal: Spacing.md,
     justifyContent: 'center',
     borderEndWidth: 1,
-    minHeight: 48,
+    height: '100%',
   },
   countryButtonContent: {
     alignItems: 'center',
@@ -517,7 +517,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: Spacing.md,
     fontSize: 16,
-    paddingVertical: 10,
+    height: '100%',
   },
   // Android half-screen modal
   androidModalOverlay: {
