@@ -151,6 +151,9 @@ export function TimePicker({
   const formatDisplayTime = () => {
     const hours = String(selectedHour).padStart(2, '0');
     const minutes = String(selectedMinute).padStart(2, '0');
+    if (isRTL) {
+      return `${toArabicNumerals(hours)}:${toArabicNumerals(minutes)}`;
+    }
     return `${hours}:${minutes}`;
   };
 
@@ -211,6 +214,7 @@ export function TimePicker({
               onChange={handleNativeTimeChange}
               textColor={theme.text}
               style={{ height: 180 }}
+              locale={isRTL ? 'ar' : undefined}
             />
             <View style={styles.quickSelectRowCompact}>
               <ScrollView 
