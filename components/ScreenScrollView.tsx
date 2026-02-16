@@ -37,7 +37,7 @@ export function ScreenScrollView({
         contentContainerStyle,
       ]}
       scrollIndicatorInsets={{ bottom: scrollInsetBottom }}
-      nestedScrollEnabled={nestedScrollEnabled ?? Platform.OS === 'android'}
+      nestedScrollEnabled={nestedScrollEnabled ?? true}
       keyboardShouldPersistTaps="handled"
       {...scrollViewProps}
     >

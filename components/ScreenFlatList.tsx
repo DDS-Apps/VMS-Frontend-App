@@ -30,7 +30,7 @@ export function ScreenFlatList<T>({
         contentContainerStyle,
       ]}
       scrollIndicatorInsets={{ bottom: scrollInsetBottom }}
-      nestedScrollEnabled={nestedScrollEnabled ?? Platform.OS === 'android'}
+      nestedScrollEnabled={nestedScrollEnabled ?? true}
       keyboardShouldPersistTaps="handled"
       {...flatListProps}
     />

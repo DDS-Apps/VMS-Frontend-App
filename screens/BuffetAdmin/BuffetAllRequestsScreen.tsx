@@ -303,6 +303,7 @@ const SectionHeader = ({
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.filtersContainer}
         nestedScrollEnabled={true}
+        keyboardShouldPersistTaps="handled"
       >
         {filterOptions.map((option) => {
           const isActive = filterStatus === option.key;
