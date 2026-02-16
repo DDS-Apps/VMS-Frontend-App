@@ -1,4 +1,4 @@
-import { ViewStyle, TextStyle } from "react-native";
+import { ViewStyle, TextStyle, Platform } from "react-native";
 
 /**
  * RTL Style Helpers
@@ -23,28 +23,55 @@ import { ViewStyle, TextStyle } from "react-native";
 // ============================================
 
 /**
- * Font size scaling factors for Arabic text.
- * Arabic script often requires slightly larger sizes for optimal readability.
- * Adjust these values to fine-tune Arabic typography across the app.
+ * Platform-aware font size scaling for Arabic text.
+ *
+ * FS Albert Arabic font metrics analysis:
+ * - Win metrics ratio: 2.29x (usWinAscent=1356, usWinDescent=934, unitsPerEm=1000)
+ * - Typo metrics ratio: 0.996x (sTypoAscender=776, sTypoDescender=-220)
+ *
+ * Web browsers use Win metrics by default, so they already allocate ~2.3x the
+ * font size as the natural line box. Native platforms use different metric
+ * resolution and need slightly more scaling.
  */
-export const ArabicFontScaling = {
-  body: 1.05,
-  heading: 1,
-  caption: 1,
-  default: 1,
-};
+export const ArabicFontScaling = Platform.select({
+  web: {
+    body: 1.0,
+    heading: 1.0,
+    caption: 1.0,
+    default: 1.0,
+  },
+  default: {
+    body: 1.05,
+    heading: 1.0,
+    caption: 1.0,
+    default: 1.0,
+  },
+}) as Record<string, number>;
 
 /**
- * Line height scaling factors for Arabic text (separate from font size).
- * FS Albert Arabic has taller ascenders/descenders than Albert Sans,
- * so line height needs to scale more than font size to prevent clipping.
+ * Platform-aware line height scaling for Arabic text.
+ *
+ * Web: Minimal scaling needed — the browser's natural line box from the font's
+ * extreme Win metrics (2.29x) already provides ample vertical space. Adding
+ * significant scaling on top creates excessive gaps between lines.
+ *
+ * Native (iOS/Android): Moderate scaling needed — native text renderers use
+ * tighter metric resolution and need help preventing Arabic glyph clipping.
  */
-export const ArabicLineHeightScaling = {
-  body: 1.3,
-  heading: 1.25,
-  caption: 1.2,
-  default: 1.2,
-};
+export const ArabicLineHeightScaling = Platform.select({
+  web: {
+    body: 1.05,
+    heading: 1.05,
+    caption: 1.0,
+    default: 1.05,
+  },
+  default: {
+    body: 1.2,
+    heading: 1.15,
+    caption: 1.1,
+    default: 1.15,
+  },
+}) as Record<string, number>;
 
 /**
  * Text category types for font scaling
