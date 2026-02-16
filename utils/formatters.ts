@@ -473,3 +473,16 @@ export const capitalizeFirst = (str: string | null | undefined): string => {
   if (!str) return '';
   return str.charAt(0).toUpperCase() + str.slice(1);
 };
+
+export const getInitials = (name: string | null | undefined, maxChars: number = 2): string => {
+  if (!name || !name.trim()) return '?';
+  return name
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map(part => [...part][0] || '')
+    .filter(Boolean)
+    .join('')
+    .substring(0, maxChars)
+    .toUpperCase();
+};
