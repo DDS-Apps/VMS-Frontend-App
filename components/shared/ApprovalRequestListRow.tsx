@@ -133,7 +133,6 @@ export function ApprovalRequestListRow({
           persistentScrollbar={true}
           nestedScrollEnabled={true}
         >
-          <Pressable onPress={onPress} style={{ flexDirection: getFlexDirection(isRTL) }}>
           {/* Company Column */}
           <View
             style={[
@@ -296,7 +295,6 @@ export function ApprovalRequestListRow({
               </View>
             )}
           </View>
-          </Pressable>
         </ScrollView>
       </ThemedView>
     </Pressable>
