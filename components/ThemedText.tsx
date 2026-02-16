@@ -209,7 +209,7 @@ export function ThemedText({
 
     if (isAvatarMode) {
       if (typeof flatStyle.fontSize === "number" && typeof flatStyle.lineHeight !== "number") {
-        scaledStyle.lineHeight = Math.round(flatStyle.fontSize * 1.35);
+        scaledStyle.lineHeight = Math.round(flatStyle.fontSize * 1.70);
       }
       if (flatStyle.fontWeight) {
         const contentIsArabic = containsArabic(childrenText);
