@@ -1940,17 +1940,15 @@ export default function UsersRolesScreen() {
                           disabled={isDisabled || isSsoUser}
                         >
                           <ThemedText
-                            style={[
-                              styles.roleOptionText,
-                              {
-                                color: isDisabled
-                                  ? theme.textSecondary
-                                  : isSelected
-                                    ? theme.buttonText
-                                    : theme.text,
-                                fontWeight: isSelected ? "600" : "400",
-                              },
-                            ]}
+                            variant="caption"
+                            style={{
+                              color: isDisabled
+                                ? theme.textSecondary
+                                : isSelected
+                                  ? theme.buttonText
+                                  : theme.text,
+                              fontWeight: isSelected ? "600" : "400",
+                            }}
                           >
                             {getRoleLabel(role)}
                           </ThemedText>
@@ -2044,15 +2042,13 @@ export default function UsersRolesScreen() {
                       disabled={isSsoUser}
                     >
                       <ThemedText
-                        style={[
-                          styles.roleOptionText,
-                          {
-                            color: !formData.managerId
-                              ? theme.buttonText
-                              : theme.text,
-                            fontWeight: !formData.managerId ? "600" : "400",
-                          },
-                        ]}
+                        variant="caption"
+                        style={{
+                          color: !formData.managerId
+                            ? theme.buttonText
+                            : theme.text,
+                          fontWeight: !formData.managerId ? "600" : "400",
+                        }}
                       >
                         {t("common.none")}
                       </ThemedText>
@@ -2085,19 +2081,17 @@ export default function UsersRolesScreen() {
                           disabled={isSsoUser}
                         >
                           <ThemedText
-                            style={[
-                              styles.roleOptionText,
-                              {
-                                color:
-                                  formData.managerId === manager.id
-                                    ? theme.buttonText
-                                    : theme.text,
-                                fontWeight:
-                                  formData.managerId === manager.id
-                                    ? "600"
-                                    : "400",
-                              },
-                            ]}
+                            variant="caption"
+                            style={{
+                              color:
+                                formData.managerId === manager.id
+                                  ? theme.buttonText
+                                  : theme.text,
+                              fontWeight:
+                                formData.managerId === manager.id
+                                  ? "600"
+                                  : "400",
+                            }}
                             numberOfLines={1}
                           >
                             {managerName}
@@ -2569,14 +2563,9 @@ const styles = StyleSheet.create({
   },
   roleOption: {
     paddingHorizontal: Spacing.md,
-    paddingVertical: Platform.OS === 'ios' ? 10 : Spacing.sm,
+    paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.sm,
     borderWidth: 1,
-  },
-  roleOptionText: {
-    fontSize: 13,
-    lineHeight: 16,
-    letterSpacing: 0.2,
   },
   autoApprovalRow: {
     alignItems: "center",
