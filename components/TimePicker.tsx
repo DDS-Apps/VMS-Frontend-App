@@ -214,7 +214,7 @@ export function TimePicker({
               onChange={handleNativeTimeChange}
               textColor={theme.text}
               style={{ height: 180 }}
-              locale={isRTL ? 'ar' : undefined}
+              locale={isRTL ? 'ar-SA' : undefined}
             />
             <View style={styles.quickSelectRowCompact}>
               <ScrollView 
@@ -292,7 +292,7 @@ export function TimePicker({
         mode="time"
         display="default"
         onChange={handleNativeTimeChange}
-        locale={isRTL ? 'ar' : undefined}
+        locale={isRTL ? 'ar-SA' : undefined}
       />
     );
   }
