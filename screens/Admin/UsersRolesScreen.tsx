@@ -1405,7 +1405,9 @@ export default function UsersRolesScreen() {
         style={[styles.filterContainer, { borderBottomColor: theme.border }]}
         contentContainerStyle={styles.filterContent}
         nestedScrollEnabled={true}
-        keyboardShouldPersistTaps="handled"
+        keyboardShouldPersistTaps="always"
+        delaysContentTouches={false}
+        canCancelContentTouches={true}
       >
         <Pressable
           style={[
@@ -1466,7 +1468,9 @@ export default function UsersRolesScreen() {
         style={[styles.toolbar, { borderBottomColor: theme.border }]}
         contentContainerStyle={styles.toolbarContent}
         nestedScrollEnabled={true}
-        keyboardShouldPersistTaps="handled"
+        keyboardShouldPersistTaps="always"
+        delaysContentTouches={false}
+        canCancelContentTouches={true}
       >
         <Pressable
           style={[
