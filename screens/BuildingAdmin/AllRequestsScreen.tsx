@@ -73,14 +73,20 @@ interface StatCardProps {
 }
 
 function StatCard({ value, label, color, isActive, onPress, theme, isLargeScreen }: StatCardProps) {
+  const handlePress = () => {
+    console.log('[StatCard] PRESSED:', label, 'value:', value, 'isActive:', isActive);
+    onPress();
+  };
+
   return (
     <Pressable 
-      onPress={onPress}
-      style={[
+      onPress={handlePress}
+      style={({ pressed }) => [
         styles.statCard, 
         isLargeScreen && styles.statCardFlex,
         { 
           backgroundColor: isActive ? applyOpacity(color, '20') : applyOpacity(color, '08'),
+          opacity: pressed ? 0.7 : 1,
         }
       ]}
     >
@@ -541,6 +547,7 @@ export default function AllRequestsScreen() {
   const statusFilters = useMemo(() => getStatusFiltersForType(typeFilter), [getStatusFiltersForType, typeFilter]);
 
   const handleStatPress = (filter: StatusFilter) => {
+    console.log('[AllRequests] handleStatPress called:', filter, 'current:', statusFilter);
     setStatusFilter(statusFilter === filter ? 'all' : filter);
   };
 
@@ -1142,7 +1149,7 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 22,
     fontWeight: '700',
-    lineHeight: 30,
+    lineHeight: 34,
   },
   statLabel: {
     fontSize: 11,
