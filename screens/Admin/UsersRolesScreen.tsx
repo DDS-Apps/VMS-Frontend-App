@@ -2569,15 +2569,15 @@ const styles = StyleSheet.create({
   },
   roleOption: {
     paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
+    height: 36,
     borderRadius: BorderRadius.sm,
     borderWidth: 1,
+    justifyContent: 'center' as const,
   },
   roleOptionText: {
     fontSize: 13,
-    lineHeight: 24,
+    lineHeight: 36,
     letterSpacing: 0.2,
-    includeFontPadding: false,
   },
   autoApprovalRow: {
     alignItems: "center",
