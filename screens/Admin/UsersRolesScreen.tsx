@@ -21,7 +21,7 @@ import { StyledInput } from "@/components/StyledInput";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { LoadingButton } from "@/components/shared/LoadingButton";
-import { RTLHorizontalScrollView } from "@/components/shared";
+
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
@@ -1399,9 +1399,10 @@ export default function UsersRolesScreen() {
         />
       </View>
 
-      <RTLHorizontalScrollView
+      <ScrollView
+        horizontal
         showsHorizontalScrollIndicator={false}
-        style={[styles.filterContainer, { borderBottomColor: theme.border }]}
+        style={[styles.filterContainer, { borderBottomColor: theme.border, direction: isRTL ? 'rtl' : 'ltr' }]}
         contentContainerStyle={styles.filterContent}
         nestedScrollEnabled={true}
       >
@@ -1456,11 +1457,12 @@ export default function UsersRolesScreen() {
             </ThemedText>
           </Pressable>
         ))}
-      </RTLHorizontalScrollView>
+      </ScrollView>
 
-      <RTLHorizontalScrollView
+      <ScrollView
+        horizontal
         showsHorizontalScrollIndicator={false}
-        style={[styles.toolbar, { borderBottomColor: theme.border }]}
+        style={[styles.toolbar, { borderBottomColor: theme.border, direction: isRTL ? 'rtl' : 'ltr' }]}
         contentContainerStyle={styles.toolbarContent}
         nestedScrollEnabled={true}
       >
@@ -1533,7 +1535,7 @@ export default function UsersRolesScreen() {
             color={bulkMode ? theme.buttonText : theme.textSecondary}
           />
         </Pressable>
-      </RTLHorizontalScrollView>
+      </ScrollView>
 
       {isFetching && !isLoading ? (
         <View style={styles.fetchingIndicator}>
