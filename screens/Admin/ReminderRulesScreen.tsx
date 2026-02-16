@@ -222,11 +222,11 @@ export default function ReminderRulesScreen() {
       ) : null}
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <View style={[styles.header, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
-          <ThemedText style={[Typography.h2, { fontWeight: "700" }]}>
+        <View style={styles.header}>
+          <ThemedText style={[Typography.h2, { fontWeight: "700", textAlign: isRTL ? 'right' : 'left' }]}>
             {t("admin.reminderRules")}
           </ThemedText>
-          <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 4 }]}>
+          <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 4, textAlign: isRTL ? 'right' : 'left' }]}>
             {t("admin.autoCancelSettings")}
           </ThemedText>
         </View>
@@ -266,7 +266,7 @@ export default function ReminderRulesScreen() {
           <View style={styles.ruleCard}>
             <DirectionalRow style={styles.ruleHeader} gap={Spacing.sm}>
               <View style={[styles.ruleBadge, { backgroundColor: theme.info + "20" }]}>
-                <ThemedText style={[Typography.caption, { color: theme.info, fontWeight: "600" }]}>1st</ThemedText>
+                <ThemedText style={[{ fontSize: 11, lineHeight: 28, color: theme.info, fontWeight: "600", textAlign: 'center' }]}>1st</ThemedText>
               </View>
               <ThemedText style={[Typography.body, { flex: 1 }]}>
                 {t("admin.firstReminderDelay")}
@@ -288,7 +288,7 @@ export default function ReminderRulesScreen() {
           <View style={styles.ruleCard}>
             <DirectionalRow style={styles.ruleHeader} gap={Spacing.sm}>
               <View style={[styles.ruleBadge, { backgroundColor: theme.warning + "20" }]}>
-                <ThemedText style={[Typography.caption, { color: theme.warning, fontWeight: "600" }]}>2nd</ThemedText>
+                <ThemedText style={[{ fontSize: 11, lineHeight: 28, color: theme.warning, fontWeight: "600", textAlign: 'center' }]}>2nd</ThemedText>
               </View>
               <ThemedText style={[Typography.body, { flex: 1 }]}>
                 {t("admin.secondReminderDelay")}
@@ -521,7 +521,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   ruleInput: {
-    marginTop: Spacing.xs,
+    marginStart: 36,
   },
   timeInputs: {
     paddingHorizontal: Spacing.md,
