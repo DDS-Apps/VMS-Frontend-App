@@ -13,6 +13,7 @@ import {
   ActivityIndicator,
   useWindowDimensions,
 } from "react-native";
+import { TouchableOpacity as GHTouchableOpacity } from "react-native-gesture-handler";
 import { ConfirmationModal } from "@/components/shared/ConfirmationModal";
 import { useNavigation } from "@react-navigation/native";
 import { ROUTES } from "@/constants";
@@ -1407,9 +1408,10 @@ export default function UsersRolesScreen() {
         nestedScrollEnabled={true}
         keyboardShouldPersistTaps="always"
         delaysContentTouches={false}
-        canCancelContentTouches={true}
+        canCancelContentTouches={false}
       >
-        <Pressable
+        <GHTouchableOpacity
+          activeOpacity={0.7}
           style={[
             styles.filterButton,
             {
@@ -1432,9 +1434,10 @@ export default function UsersRolesScreen() {
           >
             {t("common.all")}
           </ThemedText>
-        </Pressable>
+        </GHTouchableOpacity>
         {ALL_ROLES.map((role) => (
-          <Pressable
+          <GHTouchableOpacity
+            activeOpacity={0.7}
             key={role}
             style={[
               styles.filterButton,
@@ -1458,7 +1461,7 @@ export default function UsersRolesScreen() {
             >
               {getRoleLabel(role)}
             </ThemedText>
-          </Pressable>
+          </GHTouchableOpacity>
         ))}
       </ScrollView>
 
@@ -1470,9 +1473,10 @@ export default function UsersRolesScreen() {
         nestedScrollEnabled={true}
         keyboardShouldPersistTaps="always"
         delaysContentTouches={false}
-        canCancelContentTouches={true}
+        canCancelContentTouches={false}
       >
-        <Pressable
+        <GHTouchableOpacity
+          activeOpacity={0.7}
           style={[
             styles.sortButton,
             {
@@ -1493,9 +1497,10 @@ export default function UsersRolesScreen() {
             {getSortLabel(sortBy)}
           </ThemedText>
           <DDIcon name="chevron-down" size={14} variant="muted" />
-        </Pressable>
+        </GHTouchableOpacity>
 
-        <Pressable
+        <GHTouchableOpacity
+          activeOpacity={0.7}
           style={[
             styles.groupButton,
             {
@@ -1523,9 +1528,10 @@ export default function UsersRolesScreen() {
           >
             {t("common.group")}
           </ThemedText>
-        </Pressable>
+        </GHTouchableOpacity>
 
-        <Pressable
+        <GHTouchableOpacity
+          activeOpacity={0.7}
           style={[
             styles.bulkButton,
             {
@@ -1540,7 +1546,7 @@ export default function UsersRolesScreen() {
             size={16}
             color={bulkMode ? theme.buttonText : theme.textSecondary}
           />
-        </Pressable>
+        </GHTouchableOpacity>
       </ScrollView>
 
       {isFetching && !isLoading ? (
