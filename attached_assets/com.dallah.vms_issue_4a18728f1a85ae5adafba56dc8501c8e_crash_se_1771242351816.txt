@@ -1,0 +1,185 @@
+# Crashlytics - Stack trace
+# Application: com.dallah.vms
+# Platform: apple
+# Version: 1.0.34 (65)
+# Issue: 4a18728f1a85ae5adafba56dc8501c8e
+# Session: 6b468a52356d4860ab57c8fb57ad5ba7_DNE_0_v2
+# Date: Fri Feb 13 2026 21:45:00 GMT+0500 (Pakistan Standard Time)
+
+com.apple.main-thread
+0  hermes                         0x3398c hermes::vm::CallResult<hermes::vm::HermesValue, (hermes::vm::detail::CallResultSpecialize)2> hermes::vm::Interpreter::interpretFunction<false, false>(hermes::vm::Runtime&, hermes::vm::InterpreterState&) + 60
+1  hermes                         0x33928 hermes::vm::Runtime::interpretFunctionImpl(hermes::vm::CodeBlock*) + 52
+2  hermes                         0x33928 hermes::vm::Runtime::interpretFunctionImpl(hermes::vm::CodeBlock*) + 52
+3  hermes                         0x26288 hermes::vm::JSFunction::_callImpl(hermes::vm::Handle<hermes::vm::Callable>, hermes::vm::Runtime&) + 40
+4  hermes                         0x25e94 hermes::vm::BoundFunction::_boundCall(hermes::vm::BoundFunction*, hermes::inst::Inst const*, hermes::vm::Runtime&) + 344
+5  hermes                         0x9a34c hermes::vm::hermesBuiltinApply(void*, hermes::vm::Runtime&, hermes::vm::NativeArgs) + 840
+6  hermes                         0x261a0 hermes::vm::NativeFunction::_nativeCall(hermes::vm::NativeFunction*, hermes::vm::Runtime&) + 140
+7  hermes                         0x3a14c hermes::vm::Interpreter::implCallBuiltin(hermes::vm::Runtime&, hermes::vm::PinnedHermesValue*, hermes::vm::CodeBlock*, unsigned int) + 80
+8  hermes                         0x34250 hermes::vm::CallResult<hermes::vm::HermesValue, (hermes::vm::detail::CallResultSpecialize)2> hermes::vm::Interpreter::interpretFunction<false, false>(hermes::vm::Runtime&, hermes::vm::InterpreterState&) + 2304
+9  hermes                         0x33928 hermes::vm::Runtime::interpretFunctionImpl(hermes::vm::CodeBlock*) + 52
+10 hermes                         0x26288 hermes::vm::JSFunction::_callImpl(hermes::vm::Handle<hermes::vm::Callable>, hermes::vm::Runtime&) + 40
+11 hermes                         0x24d3c hermes::vm::Callable::executeCall3(hermes::vm::Handle<hermes::vm::Callable>, hermes::vm::Runtime&, hermes::vm::Handle<hermes::vm::HermesValue>, hermes::vm::HermesValue, hermes::vm::HermesValue, hermes::vm::HermesValue, bool) + 180
+12 hermes                         0x7c904 hermes::vm::arrayPrototypeForEach(void*, hermes::vm::Runtime&, hermes::vm::NativeArgs) + 636
+13 hermes                         0x261a0 hermes::vm::NativeFunction::_nativeCall(hermes::vm::NativeFunction*, hermes::vm::Runtime&) + 140
+14 hermes                         0x32928 hermes::vm::Interpreter::handleCallSlowPath(hermes::vm::Runtime&, hermes::vm::PinnedHermesValue*) + 60
+15 hermes                         0x34118 hermes::vm::CallResult<hermes::vm::HermesValue, (hermes::vm::detail::CallResultSpecialize)2> hermes::vm::Interpreter::interpretFunction<false, false>(hermes::vm::Runtime&, hermes::vm::InterpreterState&) + 1992
+16 hermes                         0x33928 hermes::vm::Runtime::interpretFunctionImpl(hermes::vm::CodeBlock*) + 52
+17 hermes                         0x26288 hermes::vm::JSFunction::_callImpl(hermes::vm::Handle<hermes::vm::Callable>, hermes::vm::Runtime&) + 40
+18 hermes                         0x25e94 hermes::vm::BoundFunction::_boundCall(hermes::vm::BoundFunction*, hermes::inst::Inst const*, hermes::vm::Runtime&) + 344
+19 hermes                         0xb804 facebook::hermes::(anonymous namespace)::HermesRuntimeImpl::call(facebook::jsi::Function const&, facebook::jsi::Value const&, facebook::jsi::Value const*, unsigned long) + 300
+20 DallahAlbarakaVMS              0x4bf4c0 facebook::jsi::WithRuntimeDecorator<worklets::AroundLock, facebook::jsi::Runtime, facebook::jsi::Runtime>::call(facebook::jsi::Function const&, facebook::jsi::Value const&, facebook::jsi::Value const*, unsigned long) + 634 (shared_ptr.h:634)
+21 DallahAlbarakaVMS              0x4adbb4 facebook::jsi::Value worklets::runOnRuntimeGuarded<>(facebook::jsi::Runtime&, facebook::jsi::Value const&) + 282 (jsi-inl.h:282)
+22 DallahAlbarakaVMS              0x4adaa0 worklets::scheduleOnUI(std::__1::shared_ptr<worklets::UIScheduler> const&, std::__1::weak_ptr<worklets::WorkletRuntime> const&, facebook::jsi::Runtime&, facebook::jsi::Value const&)::'lambda'()::operator()() const + 51 (WorkletRuntime.h:51)
+23 DallahAlbarakaVMS              0x4ba2b0 worklets::UIScheduler::triggerUI() + 403 (function.h:403)
+24 DallahAlbarakaVMS              0x4a54d4 invocation function for block in worklets::IOSUIScheduler::scheduleOnUI(std::__1::function<void ()>) + 90 (shared_count.h:90)
+25 libdispatch.dylib              0x1aac _dispatch_call_block_and_release + 32
+26 libdispatch.dylib              0x1b584 _dispatch_client_callout + 16
+27 libdispatch.dylib              0x385c8 _dispatch_main_queue_drain.cold.5 + 812
+28 libdispatch.dylib              0x10d30 _dispatch_main_queue_drain + 180
+29 libdispatch.dylib              0x10c6c _dispatch_main_queue_callback_4CF + 44
+30 CoreFoundation                 0x6cb74 <redacted> + 16
+31 CoreFoundation                 0x102c4 <redacted> + 1980
+32 CoreFoundation                 0x11a0c CFRunLoopRunSpecific + 572
+33 GraphicsServices               0x1454 GSEventRunModal + 168
+34 UIKitCore                      0x135274 -[UIApplication _run] + 816
+35 UIKitCore                      0x100a28 UIApplicationMain + 336
+36 DallahAlbarakaVMS              0x5638 main + 7 (AppDelegate.swift:7)
+37 ???                            0x1c5379f08 (Missing)
+
+com.apple.uikit.eventfetch-thread
+0  libsystem_kernel.dylib         0xce4 mach_msg2_trap + 8
+1  libsystem_kernel.dylib         0x439c mach_msg2_internal + 76
+2  libsystem_kernel.dylib         0x42b8 mach_msg_overwrite + 428
+3  libsystem_kernel.dylib         0x4100 mach_msg + 24
+4  CoreFoundation                 0x116d0 <redacted> + 160
+5  CoreFoundation                 0xffc0 <redacted> + 1208
+6  CoreFoundation                 0x11a0c CFRunLoopRunSpecific + 572
+7  Foundation                     0xf79c <redacted> + 212
+8  Foundation                     0x15020 <redacted> + 64
+9  UIKitCore                      0x11f56c -[UIEventFetcher threadMain] + 424
+10 Foundation                     0x75804 <redacted> + 732
+11 libsystem_pthread.dylib        0x3344 _pthread_start + 136
+12 libsystem_pthread.dylib        0xab8 thread_start + 8
+
+com.google.firebase.crashlytics.MachExceptionServer
+0  DallahAlbarakaVMS              0x253e60 FIRCLSProcessRecordAllThreads + 392 (FIRCLSProcess.c:392)
+1  DallahAlbarakaVMS              0x25426c FIRCLSProcessRecordAllThreads + 423 (FIRCLSProcess.c:423)
+2  DallahAlbarakaVMS              0x24bfc4 FIRCLSHandler + 39 (FIRCLSHandler.m:39)
+3  DallahAlbarakaVMS              0x24eb7c FIRCLSMachExceptionServer + 525 (FIRCLSMachException.c:525)
+4  libsystem_pthread.dylib        0x3344 _pthread_start + 136
+5  libsystem_pthread.dylib        0xab8 thread_start + 8
+
+com.apple.NSURLConnectionLoader
+0  libsystem_kernel.dylib         0xce4 mach_msg2_trap + 8
+1  libsystem_kernel.dylib         0x439c mach_msg2_internal + 76
+2  libsystem_kernel.dylib         0x42b8 mach_msg_overwrite + 428
+3  libsystem_kernel.dylib         0x4100 mach_msg + 24
+4  CoreFoundation                 0x116d0 <redacted> + 160
+5  CoreFoundation                 0xffc0 <redacted> + 1208
+6  CoreFoundation                 0x11a0c CFRunLoopRunSpecific + 572
+7  CFNetwork                      0x9fdb8 +[__CFN_CoreSchedulingSetRunnable _run:] + 416
+8  Foundation                     0x75804 <redacted> + 732
+9  libsystem_pthread.dylib        0x3344 _pthread_start + 136
+10 libsystem_pthread.dylib        0xab8 thread_start + 8
+
+Crashed: com.facebook.react.runtime.JavaScript
+0  DallahAlbarakaVMS              0x5b9a10 std::__1::__function::__func<facebook::react::Scheduler::uiManagerDidFinishTransaction(std::__1::shared_ptr<facebook::react::MountingCoordinator const>, bool)::$_0, std::__1::allocator<facebook::react::Scheduler::uiManagerDidFinishTransaction(std::__1::shared_ptr<facebook::react::MountingCoordinator const>, bool)::$_0>, void ()>::operator()() + 258 (Scheduler.cpp:258)
+1  DallahAlbarakaVMS              0x66c958 facebook::react::RuntimeScheduler_Modern::updateRendering() + 415 (queue:415)
+2  DallahAlbarakaVMS              0x66c53c facebook::react::RuntimeScheduler_Modern::runEventLoopTick(facebook::jsi::Runtime&, facebook::react::Task&) + 324 (RuntimeScheduler_Modern.cpp:324)
+3  DallahAlbarakaVMS              0x66c214 facebook::react::RuntimeScheduler_Modern::runEventLoop(facebook::jsi::Runtime&) + 267 (RuntimeScheduler_Modern.cpp:267)
+4  DallahAlbarakaVMS              0x6456bc _ZNSt3__110__function6__funcIZZN8facebook5react13ReactInstanceC1ENS_10unique_ptrINS3_9JSRuntimeENS_14default_deleteIS6_EEEENS_10shared_ptrINS3_18MessageQueueThreadEEENSA_INS3_12TimerManagerEEENS_8functionIFvRNS2_3jsi7RuntimeERKNS3_14JsErrorHandler14ProcessedErrorEEEEPNS3_18jsinspector_modern10HostTargetEENK3$_0clINSF_IFvSI_EEEEEDaT_EUlvE_NS_9allocatorISY_EEFvvEEclEv + 164 (TraceSection.h:164)
+5  DallahAlbarakaVMS              0x4e8d18 facebook::react::tryAndReturnError(std::__1::function<void ()> const&) + 436 (function.h:436)
+6  DallahAlbarakaVMS              0x4f56f4 facebook::react::RCTMessageThread::tryFunc(std::__1::function<void ()> const&) + 68 (RCTMessageThread.mm:68)
+7  DallahAlbarakaVMS              0x4f5500 invocation function for block in facebook::react::RCTMessageThread::runAsync(std::__1::function<void ()>) + 45 (RCTMessageThread.mm:45)
+8  CoreFoundation                 0x6c794 <redacted> + 28
+9  CoreFoundation                 0xef58 <redacted> + 352
+10 CoreFoundation                 0x10458 <redacted> + 2384
+11 CoreFoundation                 0x11a0c CFRunLoopRunSpecific + 572
+12 DallahAlbarakaVMS              0x64120c +[RCTJSThreadManager runRunLoop] + 102 (RCTJSThreadManager.mm:102)
+13 Foundation                     0x75804 <redacted> + 732
+14 libsystem_pthread.dylib        0x3344 _pthread_start + 136
+15 libsystem_pthread.dylib        0xab8 thread_start + 8
+
+hades
+0  libsystem_kernel.dylib         0x6438 __psynch_cvwait + 8
+1  libsystem_pthread.dylib        0x1e50 _pthread_cond_wait + 984
+2  libc++.1.dylib                 0x21294 std::__1::condition_variable::wait(std::__1::unique_lock<std::__1::mutex>&) + 32
+3  hermes                         0xcf9c4 hermes::vm::HadesGC::Executor::worker() + 116
+4  hermes                         0xcf92c void* std::__1::__thread_proxy[abi:nn180100]<std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct>>, hermes::vm::HadesGC::Executor::Executor()::'lambda'()>>(void*) + 44
+5  libsystem_pthread.dylib        0x3344 _pthread_start + 136
+6  libsystem_pthread.dylib        0xab8 thread_start + 8
+
+hades
+0  libsystem_kernel.dylib         0x6438 __psynch_cvwait + 8
+1  libsystem_pthread.dylib        0x1e50 _pthread_cond_wait + 984
+2  libc++.1.dylib                 0x21294 std::__1::condition_variable::wait(std::__1::unique_lock<std::__1::mutex>&) + 32
+3  hermes                         0xcf9c4 hermes::vm::HadesGC::Executor::worker() + 116
+4  hermes                         0xcf92c void* std::__1::__thread_proxy[abi:nn180100]<std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct>>, hermes::vm::HadesGC::Executor::Executor()::'lambda'()>>(void*) + 44
+5  libsystem_pthread.dylib        0x3344 _pthread_start + 136
+6  libsystem_pthread.dylib        0xab8 thread_start + 8
+
+Thread
+0  libsystem_kernel.dylib         0xa90 __workq_kernreturn + 8
+1  libsystem_pthread.dylib        0xa58 _pthread_wqthread + 368
+2  libsystem_pthread.dylib        0xaac start_wqthread + 8
+
+Thread
+0  libsystem_kernel.dylib         0xa90 __workq_kernreturn + 8
+1  libsystem_pthread.dylib        0xa58 _pthread_wqthread + 368
+2  libsystem_pthread.dylib        0xaac start_wqthread + 8
+
+Thread
+0  libsystem_pthread.dylib        0xaa4 start_wqthread + 442
+
+Thread
+0  libsystem_pthread.dylib        0xaa4 start_wqthread + 442
+
+Thread
+0  libsystem_kernel.dylib         0xa90 __workq_kernreturn + 8
+1  libsystem_pthread.dylib        0xa58 _pthread_wqthread + 368
+2  libsystem_pthread.dylib        0xaac start_wqthread + 8
+
+Thread
+0  libsystem_kernel.dylib         0xa90 __workq_kernreturn + 8
+1  libsystem_pthread.dylib        0xa58 _pthread_wqthread + 368
+2  libsystem_pthread.dylib        0xaac start_wqthread + 8
+
+com.facebook.react.runtime.JavaScript
+0  hermes                         0x56c48 hermes::vm::isSameValue(hermes::vm::HermesValue, hermes::vm::HermesValue) + 158
+1  hermes                         0x2c7a0 hermes::vm::OrderedHashMap::lookupInBucket(hermes::vm::Runtime&, unsigned int, hermes::vm::HermesValue) + 92
+2  hermes                         0x2cc4c hermes::vm::OrderedHashMap::has(hermes::vm::Handle<hermes::vm::OrderedHashMap>, hermes::vm::Runtime&, hermes::vm::Handle<hermes::vm::HermesValue>) + 76
+3  hermes                         0xa2c84 hermes::vm::mapPrototypeHas(void*, hermes::vm::Runtime&, hermes::vm::NativeArgs) + 132
+4  hermes                         0x261a0 hermes::vm::NativeFunction::_nativeCall(hermes::vm::NativeFunction*, hermes::vm::Runtime&) + 140
+5  hermes                         0x32928 hermes::vm::Interpreter::handleCallSlowPath(hermes::vm::Runtime&, hermes::vm::PinnedHermesValue*) + 60
+6  hermes                         0x34118 hermes::vm::CallResult<hermes::vm::HermesValue, (hermes::vm::detail::CallResultSpecialize)2> hermes::vm::Interpreter::interpretFunction<false, false>(hermes::vm::Runtime&, hermes::vm::InterpreterState&) + 1992
+7  hermes                         0x33928 hermes::vm::Runtime::interpretFunctionImpl(hermes::vm::CodeBlock*) + 52
+8  hermes                         0x60c48 hermes::vm::Runtime::runBytecode(std::__1::shared_ptr<hermes::hbc::BCProviderBase>&&, hermes::vm::RuntimeModuleFlags, llvh::StringRef, hermes::vm::Handle<hermes::vm::Environment>, hermes::vm::Handle<hermes::vm::HermesValue>) + 1136
+9  hermes                         0x8100 facebook::hermes::(anonymous namespace)::HermesRuntimeImpl::evaluatePreparedJavaScript(std::__1::shared_ptr<facebook::jsi::PreparedJavaScript const> const&) + 232
+10 hermes                         0xdce8 facebook::hermes::(anonymous namespace)::HermesRuntimeImpl::evaluateJavaScriptWithSourceMap(std::__1::shared_ptr<facebook::jsi::Buffer const> const&, std::__1::shared_ptr<facebook::jsi::Buffer const> const&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&) + 116
+11 hermes                         0x7f40 facebook::hermes::(anonymous namespace)::HermesRuntimeImpl::evaluateJavaScript(std::__1::shared_ptr<facebook::jsi::Buffer const> const&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&) + 32
+12 DallahAlbarakaVMS              0x6473e4 std::__1::__function::__func<facebook::react::ReactInstance::loadScript(std::__1::unique_ptr<facebook::react::JSBigString const, std::__1::default_delete<facebook::react::JSBigString const>>, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::function<void (facebook::jsi::Runtime&)>&&, std::__1::function<void (facebook::jsi::Runtime&)>&&)::$_0, std::__1::allocator<facebook::react::ReactInstance::loadScript(std::__1::unique_ptr<facebook::react::JSBigString const, std::__1::default_delete<facebook::react::JSBigString const>>, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::function<void (facebook::jsi::Runtime&)>&&, std::__1::function<void (facebook::jsi::Runtime&)>&&)::$_0>, void (facebook::jsi::Runtime&)>::operator()(facebook::jsi::Runtime&) + 243 (ReactInstance.cpp:243)
+13 DallahAlbarakaVMS              0x6706d8 facebook::react::Task::execute(facebook::jsi::Runtime&, bool) + 779 (variant:779)
+14 DallahAlbarakaVMS              0x66bd3c facebook::react::RuntimeScheduler_Modern::executeTask(facebook::jsi::Runtime&, facebook::react::Task&, bool) const + 1496 (jsi.h:1496)
+15 DallahAlbarakaVMS              0x66c4d0 facebook::react::RuntimeScheduler_Modern::runEventLoopTick(facebook::jsi::Runtime&, facebook::react::Task&) + 315 (RuntimeScheduler_Modern.cpp:315)
+16 DallahAlbarakaVMS              0x66c214 facebook::react::RuntimeScheduler_Modern::runEventLoop(facebook::jsi::Runtime&) + 267 (RuntimeScheduler_Modern.cpp:267)
+17 DallahAlbarakaVMS              0x6456bc _ZNSt3__110__function6__funcIZZN8facebook5react13ReactInstanceC1ENS_10unique_ptrINS3_9JSRuntimeENS_14default_deleteIS6_EEEENS_10shared_ptrINS3_18MessageQueueThreadEEENSA_INS3_12TimerManagerEEENS_8functionIFvRNS2_3jsi7RuntimeERKNS3_14JsErrorHandler14ProcessedErrorEEEEPNS3_18jsinspector_modern10HostTargetEENK3$_0clINSF_IFvSI_EEEEEDaT_EUlvE_NS_9allocatorISY_EEFvvEEclEv + 164 (TraceSection.h:164)
+18 DallahAlbarakaVMS              0x4e8d18 facebook::react::tryAndReturnError(std::__1::function<void ()> const&) + 436 (function.h:436)
+19 DallahAlbarakaVMS              0x4f56f4 facebook::react::RCTMessageThread::tryFunc(std::__1::function<void ()> const&) + 68 (RCTMessageThread.mm:68)
+20 DallahAlbarakaVMS              0x4f5500 invocation function for block in facebook::react::RCTMessageThread::runAsync(std::__1::function<void ()>) + 45 (RCTMessageThread.mm:45)
+21 CoreFoundation                 0x6c794 <redacted> + 28
+22 CoreFoundation                 0xef58 <redacted> + 352
+23 CoreFoundation                 0x10458 <redacted> + 2384
+24 CoreFoundation                 0x11a0c CFRunLoopRunSpecific + 572
+25 DallahAlbarakaVMS              0x64120c +[RCTJSThreadManager runRunLoop] + 102 (RCTJSThreadManager.mm:102)
+26 Foundation                     0x75804 <redacted> + 732
+27 libsystem_pthread.dylib        0x3344 _pthread_start + 136
+28 libsystem_pthread.dylib        0xab8 thread_start + 8
+
+hades
+0  libsystem_kernel.dylib         0x6438 __psynch_cvwait + 8
+1  libsystem_pthread.dylib        0x1e50 _pthread_cond_wait + 984
+2  libc++.1.dylib                 0x21294 std::__1::condition_variable::wait(std::__1::unique_lock<std::__1::mutex>&) + 32
+3  hermes                         0xcf9c4 hermes::vm::HadesGC::Executor::worker() + 116
+4  hermes                         0xcf92c void* std::__1::__thread_proxy[abi:nn180100]<std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct>>, hermes::vm::HadesGC::Executor::Executor()::'lambda'()>>(void*) + 44
+5  libsystem_pthread.dylib        0x3344 _pthread_start + 136
+6  libsystem_pthread.dylib        0xab8 thread_start + 8
