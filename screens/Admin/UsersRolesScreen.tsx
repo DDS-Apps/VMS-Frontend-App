@@ -1307,7 +1307,7 @@ export default function UsersRolesScreen() {
   };
 
   const renderListHeader = () => (
-    <>
+    <View>
       <DirectionalRow style={styles.header}>
         <View>
           <ThemedText style={[Typography.title, { fontWeight: "700" }]}>
@@ -1548,7 +1548,7 @@ export default function UsersRolesScreen() {
           <ActivityIndicator size="small" color={theme.primary} />
         </View>
       ) : null}
-    </>
+    </View>
   );
 
   const renderEmptyComponent = () => (
@@ -1578,7 +1578,12 @@ export default function UsersRolesScreen() {
 
   const renderContent = () => {
     if (isLoading || isFetching) {
-      return renderLoadingComponent();
+      return (
+        <View style={{ flex: 1 }}>
+          {renderListHeader()}
+          {renderLoadingComponent()}
+        </View>
+      );
     }
 
     const listFooter = (
@@ -1674,6 +1679,13 @@ export default function UsersRolesScreen() {
         );
       };
 
+      const combinedTableHeader = () => (
+        <View style={{ width: "100%" }}>
+          {renderListHeader()}
+          {renderTableHeader()}
+        </View>
+      );
+
       if (groupBy === "role" && groupedUsers && groupedUsers.length > 0) {
         return (
           <SectionList
@@ -1681,7 +1693,7 @@ export default function UsersRolesScreen() {
             renderItem={tableListItem}
             renderSectionHeader={renderTableSectionHeader}
             keyExtractor={(item) => item.id}
-            ListHeaderComponent={tableListHeader}
+            ListHeaderComponent={combinedTableHeader}
             ListFooterComponent={listFooter}
             ListEmptyComponent={renderEmptyComponent}
             stickySectionHeadersEnabled={false}
@@ -1696,7 +1708,7 @@ export default function UsersRolesScreen() {
           data={filteredAndSortedUsers}
           renderItem={tableListItem}
           keyExtractor={(item) => item.id}
-          ListHeaderComponent={tableListHeader}
+          ListHeaderComponent={combinedTableHeader}
           ListFooterComponent={listFooter}
           ListEmptyComponent={renderEmptyComponent}
           style={{ flex: 1, width: "100%" }}
@@ -1716,6 +1728,7 @@ export default function UsersRolesScreen() {
           renderItem={renderUserCard}
           renderSectionHeader={renderSectionHeader}
           keyExtractor={(item) => item.id}
+          ListHeaderComponent={renderListHeader}
           ListFooterComponent={listFooter}
           ListEmptyComponent={renderEmptyComponent}
           stickySectionHeadersEnabled={false}
@@ -1761,6 +1774,7 @@ export default function UsersRolesScreen() {
           renderItem={({ item }) => (
             <View style={getItemStyle()}>{renderUserCard({ item })}</View>
           )}
+          ListHeaderComponent={renderListHeader}
           ListFooterComponent={listFooter}
           ListEmptyComponent={renderEmptyComponent}
           style={{ flex: 1, backgroundColor: theme.background }}
@@ -1773,6 +1787,7 @@ export default function UsersRolesScreen() {
         data={filteredAndSortedUsers}
         renderItem={renderUserCard}
         keyExtractor={(item) => item.id}
+        ListHeaderComponent={renderListHeader}
         ListFooterComponent={listFooter}
         ListEmptyComponent={renderEmptyComponent}
         contentContainerStyle={styles.listContainer}
@@ -1783,7 +1798,6 @@ export default function UsersRolesScreen() {
 
   return (
     <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
-      {renderListHeader()}
       {renderContent()}
 
       {!bulkMode ? (
