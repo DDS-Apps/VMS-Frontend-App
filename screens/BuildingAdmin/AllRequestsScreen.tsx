@@ -85,7 +85,7 @@ function StatCard({ value, label, color, isActive, onPress, theme, isLargeScreen
       ]}
     >
       <ThemedText style={[styles.statValue, { color }]}>{value}</ThemedText>
-      <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]} numberOfLines={1}>
+      <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]} numberOfLines={2}>
         {label}
       </ThemedText>
     </Pressable>
@@ -1123,8 +1123,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
   },
   statCard: {
-    minWidth: 90,
-    padding: Spacing.md,
+    minWidth: 100,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.md,
     alignItems: 'center',
   },
@@ -1140,6 +1141,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '500',
     marginTop: 2,
+    textAlign: 'center',
   },
   searchRow: {
     flexDirection: 'row',
@@ -1171,12 +1173,10 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   filtersRow: {
-    flexDirection: 'row',
     gap: Spacing.sm,
     paddingHorizontal: Spacing.lg,
   },
   statusFiltersRow: {
-    flexDirection: 'row',
     gap: Spacing.sm,
     paddingHorizontal: Spacing.lg,
   },
