@@ -101,7 +101,6 @@ export const StyledInput = forwardRef<TextInput, StyledInputProps>(({
               writingDirection: isRTL ? 'rtl' : 'ltr',
               textAlign: isRTL ? 'right' : 'left',
               textAlignVertical: 'center',
-              includeFontPadding: false,
               fontSize: isRTL 
                 ? Math.round(INPUT_FONT_SIZE * ArabicFontScaling.body * 10) / 10 
                 : INPUT_FONT_SIZE,
@@ -154,14 +153,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: Spacing.md,
     borderRadius: BorderRadius.sm,
-    height: INPUT_HEIGHT,
+    minHeight: INPUT_HEIGHT,
     gap: Spacing.md,
   },
   input: {
     flex: 1,
     fontSize: INPUT_FONT_SIZE,
     fontFamily: 'AlbertSans_400Regular',
-    height: '100%',
+    paddingVertical: Spacing.sm,
   },
 });
 

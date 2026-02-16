@@ -63,7 +63,6 @@ export function SearchInput({
           textAlign: isRTL ? 'right' : 'left',
           writingDirection: isRTL ? 'rtl' : 'ltr',
           textAlignVertical: 'center',
-          includeFontPadding: false,
           fontSize: scaledFontSize,
         },
         Platform.OS === 'web' ? { outlineStyle: 'none' } as any : {},
@@ -107,7 +106,7 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     paddingHorizontal: Spacing.md,
-    height: INPUT_HEIGHT,
+    minHeight: INPUT_HEIGHT,
     borderRadius: BorderRadius.sm,
     gap: Spacing.md,
   },
@@ -115,7 +114,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: INPUT_FONT_SIZE,
     fontFamily: 'AlbertSans_400Regular',
-    height: '100%',
+    paddingVertical: Spacing.sm,
   },
 });
 

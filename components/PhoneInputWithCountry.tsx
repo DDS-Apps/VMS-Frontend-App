@@ -283,7 +283,6 @@ export const PhoneInputWithCountry = ({
               textAlign: isRTL ? 'right' : 'left',
               fontFamily: getInputFontFamily(displayedNumber, isRTL),
               textAlignVertical: 'center',
-              includeFontPadding: false,
             },
           ]}
           value={displayedNumber}
@@ -482,13 +481,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: BorderRadius.md,
     overflow: 'hidden',
-    height: 48,
+    minHeight: 48,
   },
   countryButton: {
     paddingHorizontal: Spacing.md,
     justifyContent: 'center',
     borderEndWidth: 1,
-    height: '100%',
+    minHeight: 48,
   },
   countryButtonContent: {
     alignItems: 'center',
@@ -517,7 +516,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: Spacing.md,
     fontSize: 16,
-    height: '100%',
+    paddingVertical: 10,
   },
   // Android half-screen modal
   androidModalOverlay: {
