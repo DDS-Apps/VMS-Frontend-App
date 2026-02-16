@@ -223,7 +223,7 @@ export default function ReminderRulesScreen() {
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <ThemedText style={[Typography.h2, { fontWeight: "700" }]}>
+          <ThemedText style={[Typography.h2, { fontWeight: "700", lineHeight: 44 }]}>
             {t("admin.reminderRules")}
           </ThemedText>
           <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 4 }]}>
