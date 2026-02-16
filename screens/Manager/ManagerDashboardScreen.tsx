@@ -803,21 +803,11 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
 
       <Spacer height={Spacing.lg} />
 
-      <View style={[styles.searchBar, { backgroundColor: theme.surfaceSecondary, borderColor: theme.border }]}>
-        <DDIcon name="search" size={20} variant="muted" />
-        <TextInput
-          style={[styles.searchInput, { color: theme.text, fontFamily: getInputFontFamily(searchQuery, isRTL), textAlign: isRTL ? 'right' : 'left', writingDirection: isRTL ? 'rtl' : 'ltr' }]}
-          placeholder={t('common.search')}
-          placeholderTextColor={theme.textSecondary}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-        {searchQuery ? (
-          <Pressable onPress={() => setSearchQuery('')}>
-            <DDIcon name="x-circle" size={18} variant="muted" />
-          </Pressable>
-        ) : null}
-      </View>
+      <SearchInput
+        placeholder={t('common.search')}
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+      />
 
       {isSelectionMode && filteredRequests.length > 0 ? (
         <>
