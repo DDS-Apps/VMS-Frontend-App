@@ -2575,7 +2575,7 @@ const styles = StyleSheet.create({
   },
   roleOptionText: {
     fontSize: 13,
-    lineHeight: 20,
+    lineHeight: 24,
     letterSpacing: 0.2,
     includeFontPadding: false,
   },
