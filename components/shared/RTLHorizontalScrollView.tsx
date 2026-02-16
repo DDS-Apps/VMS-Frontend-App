@@ -20,6 +20,8 @@ export function RTLHorizontalScrollView({ children, contentContainerStyle, style
   return (
     <ScrollView
       horizontal
+      delaysContentTouches={false}
+      canCancelContentTouches={true}
       {...props}
       style={[style, applyFix && fixStyles.flipped]}
       contentContainerStyle={[

@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { View, StyleSheet, Pressable, RefreshControl, ActivityIndicator, Modal, TextInput, Alert, Platform, useWindowDimensions } from 'react-native';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import { ROUTES } from "@/constants";
 import type { NavigationProp } from '@react-navigation/native';
@@ -79,14 +80,14 @@ function StatCard({ value, label, color, isActive, onPress, theme, isLargeScreen
   };
 
   return (
-    <Pressable 
+    <TouchableOpacity
       onPress={handlePress}
-      style={({ pressed }) => [
+      activeOpacity={0.7}
+      style={[
         styles.statCard, 
         isLargeScreen && styles.statCardFlex,
         { 
           backgroundColor: isActive ? applyOpacity(color, '20') : applyOpacity(color, '08'),
-          opacity: pressed ? 0.7 : 1,
         }
       ]}
     >
@@ -94,7 +95,7 @@ function StatCard({ value, label, color, isActive, onPress, theme, isLargeScreen
       <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]} numberOfLines={2}>
         {label}
       </ThemedText>
-    </Pressable>
+    </TouchableOpacity>
   );
 }
 
