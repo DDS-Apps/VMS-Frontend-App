@@ -8,11 +8,12 @@ import {
   useWindowDimensions,
   Platform,
 } from "react-native";
+import { TouchableOpacity as GHTouchableOpacity } from "react-native-gesture-handler";
 import { useFocusEffect } from "@react-navigation/native";
 import { DDIcon } from "@/components/DDIcon";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
+import { DirectionalRow } from "@/components/DirectionalRow";
 import Spacer from "@/components/Spacer";
 import {
   VisitorRequestCard,
@@ -187,8 +188,6 @@ const SectionHeaderWithTabs = ({
     </DirectionalRow>
   );
 
-  const displayTabs = isRTL ? [...tabs].reverse() : tabs;
-
   return (
     <>
       <DirectionalRow style={[styles.sectionTitleRow, styles.paddedContent]}>
@@ -200,15 +199,12 @@ const SectionHeaderWithTabs = ({
 
       <RTLHorizontalScrollView
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={[
-          styles.tabsContainer,
-          { flexDirection: getFlexDirection(isRTL) },
-        ]}
+        contentContainerStyle={styles.tabsContainer}
         nestedScrollEnabled={true}
         keyboardShouldPersistTaps="handled"
       >
-        {displayTabs.map((tab) => (
-          <Pressable
+        {tabs.map((tab) => (
+          <GHTouchableOpacity
             key={tab}
             style={[
               styles.tab,
@@ -218,7 +214,7 @@ const SectionHeaderWithTabs = ({
               },
             ]}
             onPress={() => onTabChange(tab)}
-            android_ripple={{ color: applyOpacity(theme.primary, "10") }}
+            activeOpacity={0.7}
           >
             <ThemedText
               style={[
@@ -232,7 +228,7 @@ const SectionHeaderWithTabs = ({
             >
               {getTabLabel(tab)}
             </ThemedText>
-          </Pressable>
+          </GHTouchableOpacity>
         ))}
       </RTLHorizontalScrollView>
     </>

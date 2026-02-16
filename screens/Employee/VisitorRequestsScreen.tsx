@@ -705,9 +705,6 @@ const SectionHeader = ({
     </DirectionalRow>
   );
 
-  // For RTL: reverse tabs order so they start from right
-  const displayTabs = isRTL ? [...tabs].reverse() : tabs;
-
   return (
     <>
       <DirectionalRow style={[styles.sectionTitleRow, styles.paddedContent]}>
@@ -719,14 +716,11 @@ const SectionHeader = ({
 
       <RTLHorizontalScrollView
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={[
-          styles.tabsContainer,
-          { flexDirection: getFlexDirection(isRTL) },
-        ]}
+        contentContainerStyle={styles.tabsContainer}
         nestedScrollEnabled={true}
         keyboardShouldPersistTaps="handled"
       >
-        {displayTabs.map((tab) => (
+        {tabs.map((tab) => (
           <GHTouchableOpacity
             key={tab}
             style={[
