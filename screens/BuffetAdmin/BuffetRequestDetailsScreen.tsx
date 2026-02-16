@@ -406,7 +406,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
         <Spacer height={Spacing.xl} />
 
         <View style={styles.orderDetailsGrid}>
-          <View style={styles.orderDetailItem}>
+          <View style={[styles.orderDetailItem, { flexBasis: '100%' }]}>
             <DirectionalRow style={styles.serviceRowNew}>
               <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
                 <DDIcon name="user" size={18} color={theme.text} />
@@ -415,7 +415,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
                   {t('reception.hostName')}
                 </ThemedText>
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]} numberOfLines={1}>
                   {request.hostName}
                 </ThemedText>
               </View>
