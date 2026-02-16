@@ -684,39 +684,27 @@ export default function UsersRolesScreen() {
                 ]}
               >
                 <ThemedText
-                  style={[styles.cardAvatarText, { color: roleColor }]}
+                  style={[
+                    styles.cardAvatarText,
+                    {
+                      color: roleColor,
+                      lineHeight: isRTL ? 20 : undefined,
+                    },
+                  ]}
                 >
                   {initials}
                 </ThemedText>
               </View>
               <View style={styles.cardNameSection}>
-                <DirectionalRow style={styles.cardNameRow} gap={Spacing.sm}>
-                  <ThemedText
-                    style={[
-                      styles.cardUserName,
-                      { color: theme.text, flex: 1 },
-                    ]}
-                    numberOfLines={1}
-                  >
-                    {item.name}
-                  </ThemedText>
-                  <View
-                    style={[
-                      styles.cardRoleBadge,
-                      {
-                        backgroundColor: applyOpacity(roleColor, "15"),
-                        borderColor: applyOpacity(roleColor, "30"),
-                        borderWidth: 1,
-                      },
-                    ]}
-                  >
-                    <ThemedText
-                      style={[styles.cardBadgeText, { color: roleColor }]}
-                    >
-                      {getRoleLabel(item.role)}
-                    </ThemedText>
-                  </View>
-                </DirectionalRow>
+                <ThemedText
+                  style={[
+                    styles.cardUserName,
+                    { color: theme.text },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {item.name}
+                </ThemedText>
                 <ThemedText
                   style={[styles.cardEmail, { color: theme.textSecondary }]}
                   numberOfLines={1}
@@ -771,6 +759,22 @@ export default function UsersRolesScreen() {
 
             <DirectionalRow style={styles.cardFooter}>
               <DirectionalRow style={styles.cardBadgesRow} gap={Spacing.xs}>
+                <View
+                  style={[
+                    styles.cardRoleBadge,
+                    {
+                      backgroundColor: applyOpacity(roleColor, "15"),
+                      borderColor: applyOpacity(roleColor, "30"),
+                      borderWidth: 1,
+                    },
+                  ]}
+                >
+                  <ThemedText
+                    style={[styles.cardBadgeText, { color: roleColor }]}
+                  >
+                    {getRoleLabel(item.role)}
+                  </ThemedText>
+                </View>
                 {item.autoApproval && (
                   <DirectionalRow
                     style={[
