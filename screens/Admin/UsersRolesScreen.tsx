@@ -143,23 +143,18 @@ const ITEMS_PER_PAGE = 20;
 
 const SearchBarComponent = React.memo(({ onSearch, placeholder }: { onSearch: (text: string) => void; placeholder: string }) => {
   const localRef = useRef('');
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const handleChange = useCallback((text: string) => {
     localRef.current = text;
-    if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => {
-      onSearch(text);
-    }, 400);
-  }, [onSearch]);
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
   }, []);
+  const handleSubmit = useCallback(() => {
+    onSearch(localRef.current);
+  }, [onSearch]);
   return (
     <StyledInput
       defaultValue=""
       onChangeText={handleChange}
+      onSubmitEditing={handleSubmit}
+      returnKeyType="search"
       placeholder={placeholder}
       leftIcon="search"
       containerStyle={{ marginHorizontal: HORIZONTAL_PADDING }}
@@ -1338,7 +1333,7 @@ export default function UsersRolesScreen() {
     <View>
       <DirectionalRow style={styles.header}>
         <View>
-          <ThemedText style={[Typography.title, { fontWeight: "700" }]}>
+          <ThemedText style={[Typography.title, { fontWeight: "700", lineHeight: 40 }]}>
             {t("navigation.manageUsers")}
           </ThemedText>
           <ThemedText
