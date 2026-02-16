@@ -1662,10 +1662,12 @@ export default function VisitorRequestFormScreen({
                         ]}
                       >
                         <ThemedText
-                          style={[
-                            Typography.body,
-                            { color: theme.primary, fontWeight: "600", lineHeight: 16 },
-                          ]}
+                          style={{
+                            fontSize: 14,
+                            lineHeight: 18,
+                            color: theme.primary,
+                            fontWeight: "600",
+                          }}
                         >
                           {employee.name
                             ?.split(" ")
@@ -1678,7 +1680,6 @@ export default function VisitorRequestFormScreen({
                       <View
                         style={{
                           flex: 1,
-                          alignItems: isRTL ? "flex-end" : "flex-start",
                         }}
                       >
                         <ThemedText
