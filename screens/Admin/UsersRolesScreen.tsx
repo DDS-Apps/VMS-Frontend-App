@@ -21,7 +21,7 @@ import { StyledInput } from "@/components/StyledInput";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { LoadingButton } from "@/components/shared/LoadingButton";
-
+import { RTLHorizontalScrollView } from "@/components/shared";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
@@ -1399,16 +1399,15 @@ export default function UsersRolesScreen() {
         />
       </View>
 
-      <View
-        style={[
-          styles.filterContainer,
-          {
-            borderBottomColor: theme.border,
-            flexDirection: isRTL ? 'row-reverse' : 'row',
-            flexWrap: 'wrap',
-            paddingHorizontal: HORIZONTAL_PADDING,
-          },
+      <RTLHorizontalScrollView
+        showsHorizontalScrollIndicator={false}
+        style={[styles.filterContainer, { borderBottomColor: theme.border }]}
+        contentContainerStyle={[
+          styles.filterContent,
+          { flexDirection: getFlexDirection(isRTL) },
         ]}
+        nestedScrollEnabled={true}
+        keyboardShouldPersistTaps="handled"
       >
         <Pressable
           style={[
@@ -1461,14 +1460,17 @@ export default function UsersRolesScreen() {
             </ThemedText>
           </Pressable>
         ))}
-      </View>
+      </RTLHorizontalScrollView>
 
-      <ScrollView
-        horizontal
+      <RTLHorizontalScrollView
         showsHorizontalScrollIndicator={false}
         style={[styles.toolbar, { borderBottomColor: theme.border }]}
-        contentContainerStyle={[styles.toolbarContent, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
+        contentContainerStyle={[
+          styles.toolbarContent,
+          { flexDirection: getFlexDirection(isRTL) },
+        ]}
         nestedScrollEnabled={true}
+        keyboardShouldPersistTaps="handled"
       >
         <Pressable
           style={[
@@ -1539,7 +1541,7 @@ export default function UsersRolesScreen() {
             color={bulkMode ? theme.buttonText : theme.textSecondary}
           />
         </Pressable>
-      </ScrollView>
+      </RTLHorizontalScrollView>
 
       {isFetching && !isLoading ? (
         <View style={styles.fetchingIndicator}>
@@ -2236,8 +2238,7 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.full,
     borderWidth: 1,
-    marginVertical: 4,
-    marginEnd: Spacing.sm,
+    marginVertical: Spacing.sm,
   },
   toolbar: {
     flexGrow: 0,
