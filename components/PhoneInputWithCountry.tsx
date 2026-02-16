@@ -230,8 +230,8 @@ export const PhoneInputWithCountry = ({
   }, [nationalNumber, selectedCountry]);
 
   const computedFontFamily = getInputFontFamily(displayedNumber, isRTL);
-  const computedPaddingTop = isRTL ? 14 : 10;
-  const computedPaddingBottom = isRTL ? 4 : 10;
+  const computedPaddingTop = isRTL ? 14 : 0;
+  const computedPaddingBottom = isRTL ? 4 : 0;
 
   console.log('[PhoneInput] ==============================');
   console.log('[PhoneInput] isRTL:', isRTL);
@@ -544,7 +544,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: Spacing.md,
     fontSize: 16,
-    paddingVertical: 10,
+    height: 48,
   },
   // Android half-screen modal
   androidModalOverlay: {

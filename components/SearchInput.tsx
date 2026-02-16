@@ -53,8 +53,8 @@ export function SearchInput({
     : INPUT_FONT_SIZE;
 
   const computedFontFamily = getInputFontFamily(value, isRTL);
-  const computedPaddingTop = isRTL ? Spacing.md : Spacing.sm;
-  const computedPaddingBottom = isRTL ? Spacing.xs : Spacing.sm;
+  const computedPaddingTop = isRTL ? Spacing.md : 0;
+  const computedPaddingBottom = isRTL ? Spacing.xs : 0;
 
   console.log('[SearchInput] ==============================');
   console.log('[SearchInput] isRTL:', isRTL);
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: INPUT_FONT_SIZE,
     fontFamily: 'AlbertSans_400Regular',
-    paddingVertical: Spacing.sm,
+    height: INPUT_HEIGHT,
   },
 });
 

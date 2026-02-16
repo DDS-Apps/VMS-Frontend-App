@@ -66,8 +66,8 @@ export const StyledInput = forwardRef<TextInput, StyledInputProps>(({
   const computedFontSize = isRTL 
     ? Math.round(INPUT_FONT_SIZE * ArabicFontScaling.body * 10) / 10 
     : INPUT_FONT_SIZE;
-  const computedPaddingTop = isRTL ? Spacing.md : Spacing.sm;
-  const computedPaddingBottom = isRTL ? Spacing.xs : Spacing.sm;
+  const computedPaddingTop = isRTL ? Spacing.md : 0;
+  const computedPaddingBottom = isRTL ? Spacing.xs : 0;
 
   console.log('[StyledInput] ==============================');
   console.log('[StyledInput] label:', label);
@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: INPUT_FONT_SIZE,
     fontFamily: 'AlbertSans_400Regular',
-    paddingVertical: Spacing.sm,
+    height: INPUT_HEIGHT,
   },
 });
 
