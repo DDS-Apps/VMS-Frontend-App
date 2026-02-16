@@ -1664,7 +1664,7 @@ export default function VisitorRequestFormScreen({
                         <ThemedText
                           style={{
                             fontSize: 14,
-                            lineHeight: 24,
+                            lineHeight: 26,
                             color: theme.primary,
                             fontWeight: "600",
                           }}
