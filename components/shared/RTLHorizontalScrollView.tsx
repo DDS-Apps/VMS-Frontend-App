@@ -1,8 +1,9 @@
 import React from 'react';
-import { ScrollView, ScrollViewProps, View, ViewStyle, Platform, StyleSheet } from 'react-native';
+import { ScrollView, ScrollViewProps, View, ViewStyle, Platform, StyleSheet, I18nManager } from 'react-native';
 import { useLanguage } from '@/contexts';
 
-const needsRTLFix = (isRTL: boolean) => isRTL && Platform.OS === 'ios';
+const needsRTLFix = (isRTL: boolean) =>
+  isRTL && Platform.OS === 'ios' && !I18nManager.isRTL;
 
 interface RTLHorizontalScrollViewProps extends ScrollViewProps {
   children: React.ReactNode;
@@ -17,7 +18,10 @@ export function RTLHorizontalScrollView({ children, contentContainerStyle, style
       horizontal
       {...props}
       style={[style, applyFix && fixStyles.flipped]}
-      contentContainerStyle={[contentContainerStyle, applyFix && fixStyles.flippedContent]}
+      contentContainerStyle={[
+        contentContainerStyle,
+        applyFix && fixStyles.flippedContent,
+      ]}
     >
       {applyFix
         ? React.Children.map(children, (child) =>

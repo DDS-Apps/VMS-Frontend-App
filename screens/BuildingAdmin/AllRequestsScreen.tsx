@@ -1173,10 +1173,12 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   filtersRow: {
+    flexDirection: 'row',
     gap: Spacing.sm,
     paddingHorizontal: Spacing.lg,
   },
   statusFiltersRow: {
+    flexDirection: 'row',
     gap: Spacing.sm,
     paddingHorizontal: Spacing.lg,
   },
