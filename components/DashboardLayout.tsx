@@ -390,7 +390,7 @@ export default function DashboardLayout({
                   />
                 ) : (
                   <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
-                    <ThemedText style={[Typography.caption, { color: '#FFFFFF', fontWeight: '700', lineHeight: 13, textAlignVertical: 'center', includeFontPadding: false }]}>
+                    <ThemedText style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 13, lineHeight: 32, textAlign: 'center' }}>
                       {getInitials(userName)}
                     </ThemedText>
                   </View>
@@ -428,7 +428,7 @@ export default function DashboardLayout({
                   />
                 ) : (
                   <View style={[styles.avatarLarge, { backgroundColor: theme.primary }]}>
-                    <ThemedText style={[Typography.subtitle, { color: '#FFFFFF', fontWeight: '700', textAlignVertical: 'center', includeFontPadding: false }]}>
+                    <ThemedText style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 18, lineHeight: 56, textAlign: 'center' }}>
                       {getInitials(userName)}
                     </ThemedText>
                   </View>
@@ -697,7 +697,7 @@ export default function DashboardLayout({
                         />
                       ) : (
                         <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
-                          <ThemedText style={[Typography.caption, { color: '#FFFFFF', fontWeight: '700', lineHeight: 13, textAlignVertical: 'center', includeFontPadding: false }]}>
+                          <ThemedText style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 13, lineHeight: 32, textAlign: 'center' }}>
                             {getInitials(userName)}
                           </ThemedText>
                         </View>
