@@ -292,6 +292,7 @@ export function TimePicker({
         mode="time"
         display="default"
         onChange={handleNativeTimeChange}
+        locale={isRTL ? 'ar' : undefined}
       />
     );
   }
