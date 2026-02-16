@@ -140,7 +140,16 @@ export default function UserDetailScreen() {
             </ThemedText>
           </View>
           <Spacer height={Spacing.md} />
-          <ThemedText variant="h2" align="center">
+          <ThemedText
+            style={[
+              {
+                fontSize: 26,
+                fontWeight: '700',
+                textAlign: 'center',
+                lineHeight: 36,
+              },
+            ]}
+          >
             {userName}
           </ThemedText>
           <ThemedText style={[Typography.body, { color: theme.textSecondary, textAlign: 'center' }]}>
@@ -415,6 +424,7 @@ const styles = StyleSheet.create({
     padding: Spacing.xl,
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
+    overflow: 'visible',
   },
   avatarContainer: {
     width: 80,
