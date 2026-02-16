@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect } from "react";
+import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import {
   View,
   StyleSheet,
@@ -172,6 +172,18 @@ export default function UsersRolesScreen() {
   const [editingUser, setEditingUser] = useState<DisplayUser | null>(null);
   const [filterRole, setFilterRole] = useState<UserRole | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handleSearchChange = useCallback((text: string) => {
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    searchTimerRef.current = setTimeout(() => {
+      setSearchQuery(text);
+    }, 300);
+  }, []);
+  useEffect(() => {
+    return () => {
+      if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    };
+  }, []);
   const [sortBy, setSortBy] = useState<SortOption>("createdAt");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [groupBy, setGroupBy] = useState<GroupMode>("none");
@@ -207,18 +219,16 @@ export default function UsersRolesScreen() {
     phone?: string;
   }>({});
 
-  const debouncedSearch = useDebounce(searchQuery, 300);
-
   const queryParams = useMemo(
     () => ({
       page: currentPage,
       limit: ITEMS_PER_PAGE,
       role: filterRole !== "all" ? (filterRole as ApiUserRole) : undefined,
-      search: debouncedSearch || undefined,
+      search: searchQuery || undefined,
       sortBy: "createdAt" as const,
       sortOrder: "desc" as const,
     }),
-    [currentPage, filterRole, debouncedSearch],
+    [currentPage, filterRole, searchQuery],
   );
 
   const {
@@ -256,7 +266,7 @@ export default function UsersRolesScreen() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [filterRole, debouncedSearch]);
+  }, [filterRole, searchQuery]);
 
   useEffect(() => {
     if (isError && error) {
@@ -1394,8 +1404,8 @@ export default function UsersRolesScreen() {
 
       <View style={styles.searchContainer}>
         <StyledInput
-          value={searchQuery}
-          onChangeText={setSearchQuery}
+          defaultValue=""
+          onChangeText={handleSearchChange}
           placeholder={t("common.searchPlaceholder")}
           leftIcon="search"
           containerStyle={{ marginHorizontal: HORIZONTAL_PADDING }}
