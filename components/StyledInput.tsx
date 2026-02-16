@@ -99,7 +99,7 @@ export const StyledInput = forwardRef<TextInput, StyledInputProps>(
       computedPaddingBottom,
     );
     console.log("[StyledInput] paddingVertical (base):", Spacing.sm);
-    console.log("[StyledInput] container minHeight:", INPUT_HEIGHT);
+    console.log("[StyledInput] container paddingVertical:", Spacing.sm, "(no height/minHeight)");
     console.log(
       "[StyledInput] value:",
       textInputProps.value?.substring(0, 20) ?? "(empty)",
@@ -203,6 +203,7 @@ export const StyledInput = forwardRef<TextInput, StyledInputProps>(
             onFocus={handleFocus}
             onBlur={handleBlur}
             onLayout={handleInputLayout}
+            scrollEnabled={false}
             secureTextEntry={effectiveSecureTextEntry}
             {...textInputProps}
           />
@@ -251,14 +252,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: Spacing.md,
     borderRadius: BorderRadius.sm,
-    //   minHeight: INPUT_HEIGHT,
+    paddingVertical: Spacing.sm,
     gap: Spacing.md,
   },
   input: {
     flex: 1,
     fontSize: INPUT_FONT_SIZE,
     fontFamily: "AlbertSans_400Regular",
-    //  height: INPUT_HEIGHT,
   },
 });
 

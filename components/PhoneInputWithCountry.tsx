@@ -239,7 +239,7 @@ export const PhoneInputWithCountry = ({
   console.log('[PhoneInput] fontFamily:', computedFontFamily);
   console.log('[PhoneInput] fontSize:', 16);
   console.log('[PhoneInput] paddingTop:', computedPaddingTop, '| paddingBottom:', computedPaddingBottom);
-  console.log('[PhoneInput] container minHeight:', 48);
+  console.log('[PhoneInput] container paddingVertical:', Spacing.sm, '(no height/minHeight)');
   console.log('[PhoneInput] displayedNumber:', displayedNumber || '(empty)');
   console.log('[PhoneInput] selectedCountry:', selectedCountry.code, selectedCountry.dialCode);
 
@@ -315,6 +315,7 @@ export const PhoneInputWithCountry = ({
           value={displayedNumber}
           onChangeText={handlePhoneChange}
           onLayout={handlePhoneInputLayout}
+          scrollEnabled={false}
           placeholder={placeholder || selectedCountry.format.replace(/X/g, '0')}
           placeholderTextColor={theme.textSecondary}
           keyboardType="phone-pad"
@@ -509,13 +510,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: BorderRadius.md,
     overflow: 'hidden',
-    minHeight: 48,
   },
   countryButton: {
     paddingHorizontal: Spacing.md,
     justifyContent: 'center',
     borderEndWidth: 1,
-    minHeight: 48,
+    paddingVertical: Spacing.sm,
   },
   countryButtonContent: {
     alignItems: 'center',
@@ -543,8 +543,8 @@ const styles = StyleSheet.create({
   phoneInput: {
     flex: 1,
     paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
     fontSize: 16,
-    height: 48,
   },
   // Android half-screen modal
   androidModalOverlay: {

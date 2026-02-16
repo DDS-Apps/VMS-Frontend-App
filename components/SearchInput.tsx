@@ -63,7 +63,7 @@ export function SearchInput({
   console.log('[SearchInput] fontSize:', scaledFontSize);
   console.log('[SearchInput] paddingTop:', computedPaddingTop, '| paddingBottom:', computedPaddingBottom);
   console.log('[SearchInput] paddingVertical (base):', Spacing.sm);
-  console.log('[SearchInput] container minHeight:', INPUT_HEIGHT);
+  console.log('[SearchInput] container paddingVertical:', Spacing.sm, '(no height/minHeight)');
   console.log('[SearchInput] value:', value?.substring(0, 20) ?? '(empty)');
 
   const handleContainerLayout = (e: any) => {
@@ -100,6 +100,7 @@ export function SearchInput({
       onFocus={handleFocus}
       onBlur={handleBlur}
       onLayout={handleInputLayout}
+      scrollEnabled={false}
       {...textInputProps}
     />
   );
@@ -134,7 +135,7 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     paddingHorizontal: Spacing.md,
-    minHeight: INPUT_HEIGHT,
+    paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.sm,
     gap: Spacing.md,
   },
@@ -142,7 +143,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: INPUT_FONT_SIZE,
     fontFamily: 'AlbertSans_400Regular',
-    height: INPUT_HEIGHT,
   },
 });
 
