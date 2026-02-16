@@ -390,7 +390,7 @@ export default function DashboardLayout({
                   />
                 ) : (
                   <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
-                    <ThemedText style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 13, lineHeight: 32, textAlign: 'center' }}>
+                    <ThemedText style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 13, lineHeight: 30, textAlign: 'center' }}>
                       {getInitials(userName)}
                     </ThemedText>
                   </View>
@@ -697,7 +697,7 @@ export default function DashboardLayout({
                         />
                       ) : (
                         <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
-                          <ThemedText style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 13, lineHeight: 32, textAlign: 'center' }}>
+                          <ThemedText style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 13, lineHeight: 30, textAlign: 'center' }}>
                             {getInitials(userName)}
                           </ThemedText>
                         </View>

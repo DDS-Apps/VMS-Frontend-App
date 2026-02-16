@@ -787,6 +787,7 @@ export default function AllRequestsScreen() {
       ) : (
         <RTLHorizontalScrollView
           showsHorizontalScrollIndicator={false}
+          style={styles.statsScrollContainer}
           contentContainerStyle={styles.statsScrollContent}
           nestedScrollEnabled={true}
         >
@@ -899,6 +900,7 @@ export default function AllRequestsScreen() {
 
       <RTLHorizontalScrollView
         showsHorizontalScrollIndicator={false}
+        style={styles.filtersContainer}
         contentContainerStyle={styles.filtersRow}
         nestedScrollEnabled={true}
       >
@@ -935,6 +937,7 @@ export default function AllRequestsScreen() {
 
       <RTLHorizontalScrollView
         showsHorizontalScrollIndicator={false}
+        style={styles.statusFiltersContainer}
         contentContainerStyle={styles.statusFiltersRow}
         nestedScrollEnabled={true}
       >
@@ -1120,7 +1123,7 @@ export default function AllRequestsScreen() {
 
 const styles = StyleSheet.create({
   paddedContent: {
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: 0,
   },
   cardGrid: {
     flexDirection: 'row',
@@ -1131,9 +1134,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: Spacing.sm,
   },
+  statsScrollContainer: {
+    marginHorizontal: -Spacing.xl,
+  },
   statsScrollContent: {
     gap: Spacing.sm,
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: Spacing.xl,
   },
   statCard: {
     minWidth: 100,
@@ -1187,15 +1193,21 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '500',
   },
+  filtersContainer: {
+    marginHorizontal: -Spacing.xl,
+  },
   filtersRow: {
     flexDirection: 'row',
     gap: Spacing.sm,
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: Spacing.xl,
+  },
+  statusFiltersContainer: {
+    marginHorizontal: -Spacing.xl,
   },
   statusFiltersRow: {
     flexDirection: 'row',
     gap: Spacing.sm,
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: Spacing.xl,
   },
   filterChip: {
     flexDirection: 'row',
