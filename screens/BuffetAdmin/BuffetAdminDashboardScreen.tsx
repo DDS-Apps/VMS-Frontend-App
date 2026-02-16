@@ -575,6 +575,7 @@ const styles = StyleSheet.create({
   },
   avatarText: {
     fontSize: 16,
+    lineHeight: 26,
     fontWeight: '600',
     textAlign: 'center',
     textAlignVertical: 'center',

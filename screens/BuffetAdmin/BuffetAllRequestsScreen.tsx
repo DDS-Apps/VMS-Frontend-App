@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { View, StyleSheet, Pressable, ScrollView, Modal, GestureResponderEvent, ActivityIndicator, Platform, useWindowDimensions } from "react-native";
+import { TouchableOpacity as GHTouchableOpacity } from "react-native-gesture-handler";
 import { CalendarDatePicker } from "@/components/CalendarDatePicker";
 import { ROUTES } from "@/constants";
 import { ThemedText } from "@/components/ThemedText";
@@ -309,13 +310,14 @@ const SectionHeader = ({
           const colors = getFilterPillColors(option.key, isActive, theme);
           
           return (
-            <Pressable
+            <GHTouchableOpacity
               key={option.key}
               style={[
                 styles.filterPill,
                 { backgroundColor: colors.bg }
               ]}
               onPress={() => onFilterChange(option.key)}
+              activeOpacity={0.7}
             >
               <ThemedText style={[styles.filterPillText, { color: colors.text }]}>
                 {option.label}
@@ -325,7 +327,7 @@ const SectionHeader = ({
                   {count}
                 </ThemedText>
               </View>
-            </Pressable>
+            </GHTouchableOpacity>
           );
         })}
       </RTLHorizontalScrollView>
@@ -1107,6 +1109,7 @@ const styles = StyleSheet.create({
   },
   avatarText: {
     fontWeight: '700',
+    lineHeight: 26,
     textAlign: 'center',
     textAlignVertical: 'center',
     includeFontPadding: false,
