@@ -1687,7 +1687,6 @@ export default function VisitorRequestFormScreen({
                             Typography.body,
                             {
                               fontWeight: "500",
-                              textAlign: isRTL ? "right" : "left",
                             },
                           ]}
                         >
@@ -1698,7 +1697,6 @@ export default function VisitorRequestFormScreen({
                             Typography.caption,
                             {
                               color: theme.textSecondary,
-                              textAlign: isRTL ? "right" : "left",
                             },
                           ]}
                         >
