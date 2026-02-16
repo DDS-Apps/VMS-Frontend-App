@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { View, StyleSheet, Pressable, ActivityIndicator, useWindowDimensions, Platform } from "react-native";
+import { TouchableOpacity as GHTouchableOpacity } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ROUTES } from "@/constants";
 import { DDIcon } from "@/components/DDIcon";
@@ -449,12 +450,12 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
             <DirectionalRow style={styles.cardHeaderRow}>
               <VisitorAvatar name={visitor.name} theme={theme} size={LAYOUT.avatarSize} />
               
-              <View style={[styles.cardNameSection, { alignItems: isRTL ? 'flex-end' : 'flex-start', direction: isRTL ? 'rtl' : 'ltr' } as any]}>
-                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 16, textAlign: isRTL ? 'right' : 'left', width: '100%' }]}>
+              <View style={styles.cardNameSection}>
+                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 16 }]}>
                   {visitor.name}
                 </ThemedText>
                 {visitor.company ? (
-                  <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 2, textAlign: isRTL ? 'right' : 'left', width: '100%' }]}>
+                  <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 2 }]}>
                     {visitor.company}
                   </ThemedText>
                 ) : null}
@@ -686,13 +687,14 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
             const colors = getFilterPillColors(option.key, isActive);
             
             return (
-              <Pressable
+              <GHTouchableOpacity
                 key={option.key}
                 style={[
                   styles.filterPill,
                   { backgroundColor: colors.bg }
                 ]}
                 onPress={() => setStatusFilter(option.key)}
+                activeOpacity={0.7}
               >
                 <ThemedText style={[styles.filterPillText, { color: colors.text }]}>
                   {option.label}
@@ -702,7 +704,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
                     {count}
                   </ThemedText>
                 </View>
-              </Pressable>
+              </GHTouchableOpacity>
             );
           })}
         </RTLHorizontalScrollView>
@@ -836,6 +838,7 @@ const styles = StyleSheet.create({
   avatarText: {
     fontWeight: '600',
     fontFamily: FontFamily.latinSemiBold,
+    lineHeight: 26,
     textAlign: 'center',
     textAlignVertical: 'center',
     includeFontPadding: false,
