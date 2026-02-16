@@ -1983,34 +1983,26 @@ export default function UsersRolesScreen() {
 
                   <Spacer height={Spacing.md} />
 
-                  <View
-                    style={{
-                      flexDirection: isRTL ? "row-reverse" : "row",
-                      gap: Spacing.sm,
-                    }}
-                  >
-                    <View style={{ flex: 2 }}>
-                      <PhoneInputWithCountry
-                        value={formData.businessPhone}
-                        onChangeText={handleBusinessPhoneChange}
-                        label={t("form.businessPhone")}
-                        testID="input-business-phone"
-                        editable={!isSsoUser}
-                      />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <StyledInput
-                        label={t("form.extension")}
-                        value={formData.businessPhoneExt}
-                        onChangeText={handleBusinessPhoneExtChange}
-                        placeholder="123"
-                        keyboardType="number-pad"
-                        testID="input-business-phone-ext"
-                        maxLength={6}
-                        editable={!isSsoUser}
-                      />
-                    </View>
-                  </View>
+                  <PhoneInputWithCountry
+                    value={formData.businessPhone}
+                    onChangeText={handleBusinessPhoneChange}
+                    label={t("form.businessPhone")}
+                    testID="input-business-phone"
+                    editable={!isSsoUser}
+                  />
+
+                  <Spacer height={Spacing.md} />
+
+                  <StyledInput
+                    label={t("form.extension")}
+                    value={formData.businessPhoneExt}
+                    onChangeText={handleBusinessPhoneExtChange}
+                    placeholder="123"
+                    keyboardType="number-pad"
+                    testID="input-business-phone-ext"
+                    maxLength={6}
+                    editable={!isSsoUser}
+                  />
 
                   <Spacer height={Spacing.md} />
 
