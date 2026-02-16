@@ -1948,7 +1948,7 @@ export default function UsersRolesScreen() {
                                   ? theme.buttonText
                                   : theme.text,
                               fontWeight: isSelected ? "600" : "400",
-                              lineHeight: isRTL ? 42 : undefined,
+                              lineHeight: isRTL ? 26 : undefined,
                             }}
                           >
                             {getRoleLabel(role)}
@@ -2049,7 +2049,7 @@ export default function UsersRolesScreen() {
                             ? theme.buttonText
                             : theme.text,
                           fontWeight: !formData.managerId ? "600" : "400",
-                          lineHeight: isRTL ? 42 : undefined,
+                          lineHeight: isRTL ? 26 : undefined,
                         }}
                       >
                         {t("common.none")}
@@ -2093,7 +2093,7 @@ export default function UsersRolesScreen() {
                                 formData.managerId === manager.id
                                   ? "600"
                                   : "400",
-                              lineHeight: isRTL ? 42 : undefined,
+                              lineHeight: isRTL ? 26 : undefined,
                             }}
                             numberOfLines={1}
                           >
