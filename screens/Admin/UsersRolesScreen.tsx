@@ -2569,14 +2569,13 @@ const styles = StyleSheet.create({
   },
   roleOption: {
     paddingHorizontal: Spacing.md,
-    height: 36,
+    paddingVertical: Platform.OS === 'ios' ? 10 : Spacing.sm,
     borderRadius: BorderRadius.sm,
     borderWidth: 1,
-    justifyContent: 'center' as const,
   },
   roleOptionText: {
     fontSize: 13,
-    lineHeight: 36,
+    lineHeight: 16,
     letterSpacing: 0.2,
   },
   autoApprovalRow: {
