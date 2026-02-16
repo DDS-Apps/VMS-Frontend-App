@@ -7,9 +7,9 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { ArabicFontScaling } from '@/utils/rtlStyles';
 import { DirectionalRow } from '@/components/DirectionalRow';
 
-const INPUT_HEIGHT = 56;
-const INPUT_FONT_SIZE = 17;
-const ICON_SIZE = 20;
+const INPUT_HEIGHT = 44;
+const INPUT_FONT_SIZE = 15;
+const ICON_SIZE = 18;
 
 interface SearchInputProps extends Omit<TextInputProps, 'style'> {
   onClear?: () => void;
@@ -107,14 +107,16 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
+    height: INPUT_HEIGHT,
     borderRadius: BorderRadius.sm,
-    gap: Spacing.md,
+    gap: Spacing.sm,
   },
   input: {
     flex: 1,
     fontSize: INPUT_FONT_SIZE,
     fontFamily: 'AlbertSans_400Regular',
+    height: INPUT_HEIGHT,
+    paddingVertical: 0,
   },
 });
 
