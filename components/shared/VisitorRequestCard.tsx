@@ -357,16 +357,14 @@ export function VisitorRequestCard({
     return (
       <>
         <Spacer height={Spacing.md} />
-        <Pressable onPress={(e) => e.stopPropagation()}>
-          <ApprovalActionGroup
-            onApprove={() => { if (onApprove) onApprove(); }}
-            onReject={() => { if (onReject) onReject(); }}
-            disabled={isProcessing}
-            approveLoading={approveLoading}
-            rejectLoading={rejectLoading}
-            size="medium"
-          />
-        </Pressable>
+        <ApprovalActionGroup
+          onApprove={() => { if (onApprove) onApprove(); }}
+          onReject={() => { if (onReject) onReject(); }}
+          disabled={isProcessing}
+          approveLoading={approveLoading}
+          rejectLoading={rejectLoading}
+          size="medium"
+        />
       </>
     );
   };
