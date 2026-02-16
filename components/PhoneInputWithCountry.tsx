@@ -516,7 +516,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: Spacing.md,
     fontSize: 16,
-    paddingVertical: 10,
+    height: 48,
   },
   // Android half-screen modal
   androidModalOverlay: {
