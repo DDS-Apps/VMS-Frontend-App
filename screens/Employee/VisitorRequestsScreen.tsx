@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { View, StyleSheet, Pressable, ScrollView, Alert, Platform, useWindowDimensions } from "react-native";
+import { TouchableOpacity as GHTouchableOpacity } from "react-native-gesture-handler";
 import { capitalizeFirst } from "@/utils/formatters";
 import { DDIcon } from "@/components/DDIcon";
 import { SkeletonList } from "@/components/shared/Skeleton";
@@ -726,7 +727,7 @@ const SectionHeader = ({
         keyboardShouldPersistTaps="handled"
       >
         {displayTabs.map((tab) => (
-          <Pressable
+          <GHTouchableOpacity
             key={tab}
             style={[
               styles.tab,
@@ -736,7 +737,7 @@ const SectionHeader = ({
               },
             ]}
             onPress={() => onTabChange(tab)}
-            android_ripple={{ color: applyOpacity(theme.primary, "10") }}
+            activeOpacity={0.7}
           >
             <ThemedText
               style={[
@@ -751,7 +752,7 @@ const SectionHeader = ({
             >
               {getTabLabel(tab)}
             </ThemedText>
-          </Pressable>
+          </GHTouchableOpacity>
         ))}
       </RTLHorizontalScrollView>
     </>

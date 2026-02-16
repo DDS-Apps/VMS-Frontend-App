@@ -219,11 +219,11 @@ export function VisitorRequestCard({
       <DirectionalRow style={styles.cardHeader} gap={Spacing.md}>
         {renderAvatar()}
         <View style={styles.nameSection}>
-          <ThemedText style={[styles.visitorName, { color: theme.text, width: '100%' }]} align="start" numberOfLines={1}>
+          <ThemedText style={[styles.visitorName, { color: theme.text }]} numberOfLines={1}>
             {capitalizeFirst(request.visitor.fullName)}
           </ThemedText>
           {request.visitor.company ? (
-            <ThemedText style={[styles.companyText, { color: theme.textSecondary, width: '100%' }]} align="start">
+            <ThemedText style={[styles.companyText, { color: theme.textSecondary }]}>
               {request.visitor.company}
             </ThemedText>
           ) : null}
@@ -456,6 +456,7 @@ const styles = StyleSheet.create({
   },
   avatarText: {
     fontSize: 16,
+    lineHeight: 26,
     fontWeight: '700',
     textAlign: 'center',
     textAlignVertical: 'center',
