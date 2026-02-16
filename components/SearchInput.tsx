@@ -62,6 +62,8 @@ export function SearchInput({
           fontFamily: getInputFontFamily(value, isRTL),
           textAlign: isRTL ? 'right' : 'left',
           writingDirection: isRTL ? 'rtl' : 'ltr',
+          textAlignVertical: 'center',
+          includeFontPadding: false,
           fontSize: scaledFontSize,
         },
         Platform.OS === 'web' ? { outlineStyle: 'none' } as any : {},

@@ -100,6 +100,8 @@ export const StyledInput = forwardRef<TextInput, StyledInputProps>(({
               fontFamily: getInputFontFamily(textInputProps.value ?? textInputProps.defaultValue, isRTL),
               writingDirection: isRTL ? 'rtl' : 'ltr',
               textAlign: isRTL ? 'right' : 'left',
+              textAlignVertical: 'center',
+              includeFontPadding: false,
               fontSize: isRTL 
                 ? Math.round(INPUT_FONT_SIZE * ArabicFontScaling.body * 10) / 10 
                 : INPUT_FONT_SIZE,
