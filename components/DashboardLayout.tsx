@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, StyleSheet, Pressable, I18nManager, useWindowDimensions, Modal, Switch, Platform } from "react-native";
+import { View, StyleSheet, Pressable, I18nManager, useWindowDimensions, Modal, Switch, Platform, ActivityIndicator } from "react-native";
 import { Image } from "expo-image";
 import { GestureDetector, Gesture } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -94,6 +94,7 @@ export default function DashboardLayout({
   const insets = useSafeAreaInsets();
   
   const [profileMenuVisible, setProfileMenuVisible] = useState(false);
+  const [isLanguageChanging, setIsLanguageChanging] = useState(false);
   
   const getInitials = (name: string | undefined | null): string => {
     if (!name) return '??';
@@ -107,18 +108,17 @@ export default function DashboardLayout({
   };
   
   const handleLanguageToggle = async () => {
+    if (isLanguageChanging) return;
     const newLocale = locale === 'en' ? 'ar' : 'en';
-    // Persist language preference to server first
+    setIsLanguageChanging(true);
     try {
       await authService.updateProfile({ language: newLocale });
-      console.log('[DashboardLayout] Language preference saved to server:', newLocale);
-      // Only apply locally if server update succeeded
       await setLocale(newLocale);
       setProfileMenuVisible(false);
     } catch (error) {
       console.warn('[DashboardLayout] Failed to save language to server:', error);
-      // Keep menu open so user knows something failed
-      // Note: In a future enhancement, we could add a toast notification here
+    } finally {
+      setIsLanguageChanging(false);
     }
   };
   
@@ -473,35 +473,39 @@ export default function DashboardLayout({
               <View style={[styles.dropdownDivider, { backgroundColor: theme.border }]} />
               
               <View style={styles.dropdownItem}>
-                <DirectionalRow gap={Spacing.md} style={{ flex: 1 }}>
+                <DirectionalRow gap={Spacing.md} style={{ flex: 1, alignItems: 'center' }}>
                   <DDIcon name="globe" size={20} variant="muted" />
                   <ThemedText style={[Typography.body, { flex: 1 }]}>
                     {t('settings.language')}
                   </ThemedText>
-                  <View style={styles.languageToggle}>
-                    <Pressable 
-                      onPress={handleLanguageToggle}
-                      style={[
-                        styles.langOption,
-                        locale === 'en' && { backgroundColor: theme.primary }
-                      ]}
-                    >
-                      <ThemedText style={[Typography.caption, { color: locale === 'en' ? '#FFFFFF' : theme.textSecondary, fontWeight: '600' }]}>
-                        EN
-                      </ThemedText>
-                    </Pressable>
-                    <Pressable 
-                      onPress={handleLanguageToggle}
-                      style={[
-                        styles.langOption,
-                        locale === 'ar' && { backgroundColor: theme.primary }
-                      ]}
-                    >
-                      <ThemedText style={[Typography.caption, { color: locale === 'ar' ? '#FFFFFF' : theme.textSecondary, fontWeight: '600' }]}>
-                        AR
-                      </ThemedText>
-                    </Pressable>
-                  </View>
+                  {isLanguageChanging ? (
+                    <ActivityIndicator size="small" color={theme.primary} />
+                  ) : (
+                    <View style={styles.languageToggle}>
+                      <Pressable 
+                        onPress={() => { if (locale !== 'en') handleLanguageToggle(); }}
+                        style={[
+                          styles.langOption,
+                          locale === 'en' && { backgroundColor: theme.primary }
+                        ]}
+                      >
+                        <ThemedText style={[styles.langOptionText, { color: locale === 'en' ? '#FFFFFF' : theme.textSecondary }]}>
+                          EN
+                        </ThemedText>
+                      </Pressable>
+                      <Pressable 
+                        onPress={() => { if (locale !== 'ar') handleLanguageToggle(); }}
+                        style={[
+                          styles.langOption,
+                          locale === 'ar' && { backgroundColor: theme.primary }
+                        ]}
+                      >
+                        <ThemedText style={[styles.langOptionText, { color: locale === 'ar' ? '#FFFFFF' : theme.textSecondary }]}>
+                          AR
+                        </ThemedText>
+                      </Pressable>
+                    </View>
+                  )}
                 </DirectionalRow>
               </View>
               
@@ -890,12 +894,24 @@ const styles = StyleSheet.create({
   },
   languageToggle: {
     flexDirection: 'row',
+    alignItems: 'center',
     borderRadius: BorderRadius.sm,
     overflow: 'hidden',
+    gap: 2,
   },
   langOption: {
     paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
+    height: 32,
+    minWidth: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: BorderRadius.sm,
+  },
+  langOptionText: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: '600',
+    textAlign: 'center',
+    textAlignVertical: 'center',
   },
 });
