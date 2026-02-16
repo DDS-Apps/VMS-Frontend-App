@@ -18,6 +18,7 @@ export default function PrivacyPolicyScreen({ onBack }: PrivacyPolicyScreenProps
   const { t, isRTL } = useTranslation();
   const insets = useSafeAreaInsets();
   const textAlign = isRTL ? 'right' as const : 'left' as const;
+  const writingDirection = isRTL ? 'rtl' as const : 'ltr' as const;
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -49,93 +50,93 @@ export default function PrivacyPolicyScreen({ onBack }: PrivacyPolicyScreenProps
         </View>
 
         <View style={[styles.card, { backgroundColor: theme.surface }]}>
-          <ThemedText style={[styles.lastUpdated, { color: theme.textSecondary, textAlign }]}>
+          <ThemedText style={[styles.lastUpdated, { color: theme.textSecondary, textAlign, writingDirection }]}>
             {t('legal.lastUpdated')}
           </ThemedText>
 
-          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign }]}>
+          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign, writingDirection }]}>
             {t('legal.privacyPolicy.introduction')}
           </ThemedText>
-          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign }]}>
+          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign, writingDirection }]}>
             {t('legal.privacyPolicy.introductionBody')}
           </ThemedText>
 
-          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign }]}>
+          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign, writingDirection }]}>
             {t('legal.privacyPolicy.infoCollect')}
           </ThemedText>
-          <ThemedText style={[styles.subSectionTitle, { color: theme.text, textAlign }]}>
+          <ThemedText style={[styles.subSectionTitle, { color: theme.text, textAlign, writingDirection }]}>
             {t('legal.privacyPolicy.personalInfo')}
           </ThemedText>
-          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign }]}>
+          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign, writingDirection }]}>
             {t('legal.privacyPolicy.personalInfoBody')}
           </ThemedText>
-          <ThemedText style={[styles.subSectionTitle, { color: theme.text, textAlign }]}>
+          <ThemedText style={[styles.subSectionTitle, { color: theme.text, textAlign, writingDirection }]}>
             {t('legal.privacyPolicy.technicalInfo')}
           </ThemedText>
-          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign }]}>
+          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign, writingDirection }]}>
             {t('legal.privacyPolicy.technicalInfoBody')}
           </ThemedText>
 
-          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign }]}>
+          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign, writingDirection }]}>
             {t('legal.privacyPolicy.howWeUse')}
           </ThemedText>
-          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign }]}>
+          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign, writingDirection }]}>
             {t('legal.privacyPolicy.howWeUseBody')}
           </ThemedText>
 
-          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign }]}>
+          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign, writingDirection }]}>
             {t('legal.privacyPolicy.dataSharing')}
           </ThemedText>
-          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign }]}>
+          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign, writingDirection }]}>
             {t('legal.privacyPolicy.dataSharingBody')}
           </ThemedText>
 
-          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign }]}>
+          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign, writingDirection }]}>
             {t('legal.privacyPolicy.dataSecurity')}
           </ThemedText>
-          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign }]}>
+          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign, writingDirection }]}>
             {t('legal.privacyPolicy.dataSecurityBody')}
           </ThemedText>
 
-          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign }]}>
+          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign, writingDirection }]}>
             {t('legal.privacyPolicy.dataRetention')}
           </ThemedText>
-          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign }]}>
+          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign, writingDirection }]}>
             {t('legal.privacyPolicy.dataRetentionBody')}
           </ThemedText>
 
-          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign }]}>
+          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign, writingDirection }]}>
             {t('legal.privacyPolicy.yourRights')}
           </ThemedText>
-          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign }]}>
+          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign, writingDirection }]}>
             {t('legal.privacyPolicy.yourRightsBody')}
           </ThemedText>
 
-          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign }]}>
+          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign, writingDirection }]}>
             {t('legal.privacyPolicy.thirdParty')}
           </ThemedText>
-          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign }]}>
+          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign, writingDirection }]}>
             {t('legal.privacyPolicy.thirdPartyBody')}
           </ThemedText>
 
-          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign }]}>
+          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign, writingDirection }]}>
             {t('legal.privacyPolicy.childrenPrivacy')}
           </ThemedText>
-          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign }]}>
+          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign, writingDirection }]}>
             {t('legal.privacyPolicy.childrenPrivacyBody')}
           </ThemedText>
 
-          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign }]}>
+          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign, writingDirection }]}>
             {t('legal.privacyPolicy.changesToPolicy')}
           </ThemedText>
-          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign }]}>
+          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign, writingDirection }]}>
             {t('legal.privacyPolicy.changesToPolicyBody')}
           </ThemedText>
 
-          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign }]}>
+          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign, writingDirection }]}>
             {t('legal.privacyPolicy.contactUs')}
           </ThemedText>
-          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign }]}>
+          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign, writingDirection }]}>
             {t('legal.privacyPolicy.contactUsBody')}
           </ThemedText>
         </View>
@@ -208,12 +209,14 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: "700",
+    lineHeight: 26,
     marginTop: Spacing.lg,
     marginBottom: Spacing.sm,
   },
   subSectionTitle: {
     fontSize: 14,
     fontWeight: "600",
+    lineHeight: 22,
     marginTop: Spacing.sm,
     marginBottom: Spacing.xs,
   },

@@ -18,6 +18,7 @@ export default function TermsConditionsScreen({ onBack }: TermsConditionsScreenP
   const { t, isRTL } = useTranslation();
   const insets = useSafeAreaInsets();
   const textAlign = isRTL ? 'right' as const : 'left' as const;
+  const writingDirection = isRTL ? 'rtl' as const : 'ltr' as const;
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -49,105 +50,105 @@ export default function TermsConditionsScreen({ onBack }: TermsConditionsScreenP
         </View>
 
         <View style={[styles.card, { backgroundColor: theme.surface }]}>
-          <ThemedText style={[styles.lastUpdated, { color: theme.textSecondary, textAlign }]}>
+          <ThemedText style={[styles.lastUpdated, { color: theme.textSecondary, textAlign, writingDirection }]}>
             {t('legal.lastUpdated')}
           </ThemedText>
 
-          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign }]}>
+          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign, writingDirection }]}>
             {t('legal.termsConditions.acceptance')}
           </ThemedText>
-          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign }]}>
+          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign, writingDirection }]}>
             {t('legal.termsConditions.acceptanceBody')}
           </ThemedText>
 
-          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign }]}>
+          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign, writingDirection }]}>
             {t('legal.termsConditions.description')}
           </ThemedText>
-          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign }]}>
+          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign, writingDirection }]}>
             {t('legal.termsConditions.descriptionBody')}
           </ThemedText>
 
-          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign }]}>
+          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign, writingDirection }]}>
             {t('legal.termsConditions.userAccounts')}
           </ThemedText>
-          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign }]}>
+          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign, writingDirection }]}>
             {t('legal.termsConditions.userAccountsBody')}
           </ThemedText>
 
-          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign }]}>
+          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign, writingDirection }]}>
             {t('legal.termsConditions.acceptableUse')}
           </ThemedText>
-          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign }]}>
+          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign, writingDirection }]}>
             {t('legal.termsConditions.acceptableUseBody')}
           </ThemedText>
 
-          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign }]}>
+          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign, writingDirection }]}>
             {t('legal.termsConditions.visitorObligations')}
           </ThemedText>
-          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign }]}>
+          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign, writingDirection }]}>
             {t('legal.termsConditions.visitorObligationsBody')}
           </ThemedText>
 
-          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign }]}>
+          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign, writingDirection }]}>
             {t('legal.termsConditions.intellectualProperty')}
           </ThemedText>
-          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign }]}>
+          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign, writingDirection }]}>
             {t('legal.termsConditions.intellectualPropertyBody')}
           </ThemedText>
 
-          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign }]}>
+          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign, writingDirection }]}>
             {t('legal.termsConditions.dataPrivacy')}
           </ThemedText>
-          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign }]}>
+          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign, writingDirection }]}>
             {t('legal.termsConditions.dataPrivacyBody')}
           </ThemedText>
 
-          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign }]}>
+          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign, writingDirection }]}>
             {t('legal.termsConditions.pushNotifications')}
           </ThemedText>
-          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign }]}>
+          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign, writingDirection }]}>
             {t('legal.termsConditions.pushNotificationsBody')}
           </ThemedText>
 
-          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign }]}>
+          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign, writingDirection }]}>
             {t('legal.termsConditions.serviceAvailability')}
           </ThemedText>
-          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign }]}>
+          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign, writingDirection }]}>
             {t('legal.termsConditions.serviceAvailabilityBody')}
           </ThemedText>
 
-          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign }]}>
+          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign, writingDirection }]}>
             {t('legal.termsConditions.limitation')}
           </ThemedText>
-          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign }]}>
+          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign, writingDirection }]}>
             {t('legal.termsConditions.limitationBody')}
           </ThemedText>
 
-          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign }]}>
+          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign, writingDirection }]}>
             {t('legal.termsConditions.indemnification')}
           </ThemedText>
-          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign }]}>
+          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign, writingDirection }]}>
             {t('legal.termsConditions.indemnificationBody')}
           </ThemedText>
 
-          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign }]}>
+          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign, writingDirection }]}>
             {t('legal.termsConditions.governingLaw')}
           </ThemedText>
-          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign }]}>
+          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign, writingDirection }]}>
             {t('legal.termsConditions.governingLawBody')}
           </ThemedText>
 
-          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign }]}>
+          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign, writingDirection }]}>
             {t('legal.termsConditions.changesToTerms')}
           </ThemedText>
-          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign }]}>
+          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign, writingDirection }]}>
             {t('legal.termsConditions.changesToTermsBody')}
           </ThemedText>
 
-          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign }]}>
+          <ThemedText style={[styles.sectionTitle, { color: theme.text, textAlign, writingDirection }]}>
             {t('legal.termsConditions.contactInfo')}
           </ThemedText>
-          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign }]}>
+          <ThemedText style={[styles.bodyText, { color: theme.textSecondary, textAlign, writingDirection }]}>
             {t('legal.termsConditions.contactInfoBody')}
           </ThemedText>
         </View>
@@ -220,6 +221,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: "700",
+    lineHeight: 26,
     marginTop: Spacing.lg,
     marginBottom: Spacing.sm,
   },
