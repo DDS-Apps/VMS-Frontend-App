@@ -147,13 +147,16 @@ export function ThemedText({
       letterSpacing: number;
     };
     const scaleForArabic = <T extends TypographyStyle>(baseStyle: T): T => {
-      if (!useArabicFont) return baseStyle;
       if (isAvatarMode) {
+        const { fontSize: _fs, lineHeight: _lh, ...avatarBase } = baseStyle;
         return {
-          ...baseStyle,
-          fontFamily: getLocaleFontFamily(baseStyle.fontFamily, true),
-        };
+          ...avatarBase,
+          fontFamily: useArabicFont
+            ? getLocaleFontFamily(baseStyle.fontFamily, true)
+            : baseStyle.fontFamily,
+        } as T;
       }
+      if (!useArabicFont) return baseStyle;
       return {
         ...baseStyle,
         fontFamily: getLocaleFontFamily(baseStyle.fontFamily, true),
@@ -218,6 +221,10 @@ export function ThemedText({
       scaledStyle.lineHeight = Math.round(
         flatStyle.lineHeight * ArabicLineHeightScaling[category],
       );
+    }
+
+    if (isAvatarMode && typeof flatStyle.fontSize === "number" && typeof flatStyle.lineHeight !== "number") {
+      scaledStyle.lineHeight = Math.round(flatStyle.fontSize * 1.35);
     }
 
     // Map fontFamily override to Arabic equivalent
