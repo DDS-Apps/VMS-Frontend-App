@@ -71,68 +71,66 @@ export function ApprovalRequestListRow({
   const canApproveReject = isPending && !isExpired && onApprove && onReject;
 
   return (
-    <Pressable
-      onPress={onPress}
-      android_ripple={{ color: applyOpacity(theme.primary, "10") }}
+    <ThemedView
+      style={[
+        styles.tableRow,
+        { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: getFlexDirection(isRTL) },
+      ]}
     >
-      <ThemedView
+      <StatusAccent color={statusConfig.borderColor} />
+
+      {/* Fixed Column - Always Visible: Name & Time */}
+      <Pressable
+        onPress={onPress}
+        android_ripple={{ color: applyOpacity(theme.primary, "10") }}
         style={[
-          styles.tableRow,
-          { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: getFlexDirection(isRTL) },
+          styles.fixedColumn,
+          { width: LAYOUT.tableFixedColumnWidth },
         ]}
       >
-        <StatusAccent color={statusConfig.borderColor} />
-
-        {/* Fixed Column - Always Visible: Name & Time */}
-        <View
-          style={[
-            styles.fixedColumn,
-            { width: LAYOUT.tableFixedColumnWidth },
-          ]}
-        >
-          <View style={styles.fixedColumnContent}>
-            <View style={{ flex: 1 }}>
-              <DirectionalRow style={{ alignItems: "center", gap: 6 }}>
-                <ThemedText
-                  style={[
-                    Typography.body,
-                    { fontWeight: "600", fontSize: 15, flexShrink: 1 },
-                  ]}
-                  numberOfLines={2}
-                >
-                  {request.visitor?.fullName}
-                </ThemedText>
-                {request.isWalkIn ? (
-                  <DDIcon name="user-check" size={14} color={theme.warning} />
-                ) : null}
-              </DirectionalRow>
-              <Spacer height={6} />
-              <DirectionalRow style={{ alignItems: "center", gap: 4 }}>
-                <DDIcon name="calendar" size={12} color={theme.textSecondary} />
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
-                  {formatDate(request.visitDate)}
-                </ThemedText>
-              </DirectionalRow>
-              <Spacer height={2} />
-              <DirectionalRow style={{ alignItems: "center", gap: 4 }}>
-                <DDIcon name="clock" size={12} color={theme.textSecondary} />
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
-                  {formatTime(request.visitTime)}
-                </ThemedText>
-              </DirectionalRow>
-            </View>
+        <View style={styles.fixedColumnContent}>
+          <View style={{ flex: 1 }}>
+            <DirectionalRow style={{ alignItems: "center", gap: 6 }}>
+              <ThemedText
+                style={[
+                  Typography.body,
+                  { fontWeight: "600", fontSize: 15, flexShrink: 1 },
+                ]}
+                numberOfLines={2}
+              >
+                {request.visitor?.fullName}
+              </ThemedText>
+              {request.isWalkIn ? (
+                <DDIcon name="user-check" size={14} color={theme.warning} />
+              ) : null}
+            </DirectionalRow>
+            <Spacer height={6} />
+            <DirectionalRow style={{ alignItems: "center", gap: 4 }}>
+              <DDIcon name="calendar" size={12} color={theme.textSecondary} />
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary }]} numberOfLines={1}>
+                {formatDate(request.visitDate)}
+              </ThemedText>
+            </DirectionalRow>
+            <Spacer height={2} />
+            <DirectionalRow style={{ alignItems: "center", gap: 4 }}>
+              <DDIcon name="clock" size={12} color={theme.textSecondary} />
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary }]} numberOfLines={1}>
+                {formatTime(request.visitTime)}
+              </ThemedText>
+            </DirectionalRow>
           </View>
         </View>
+      </Pressable>
 
-        {/* Scrollable Columns - All Details */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={true}
-          style={styles.scrollableColumns}
-          contentContainerStyle={styles.scrollableContent}
-          persistentScrollbar={true}
-          nestedScrollEnabled={true}
-        >
+      {/* Scrollable Columns - All Details */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={true}
+        style={styles.scrollableColumns}
+        contentContainerStyle={styles.scrollableContent}
+        persistentScrollbar={true}
+        nestedScrollEnabled={true}
+      >
           {/* Company Column */}
           <View
             style={[
@@ -297,7 +295,6 @@ export function ApprovalRequestListRow({
           </View>
         </ScrollView>
       </ThemedView>
-    </Pressable>
   );
 }
 
@@ -317,6 +314,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderEndWidth: 1,
     borderEndColor: "rgba(0,0,0,0.06)",
+    overflow: "hidden",
   },
   fixedColumnContent: {
     flex: 1,
