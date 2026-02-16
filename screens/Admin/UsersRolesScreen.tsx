@@ -170,7 +170,6 @@ export default function UsersRolesScreen() {
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState<DisplayUser | null>(null);
   const [filterRole, setFilterRole] = useState<UserRole | "all">("all");
-  const [filterActive, setFilterActive] = useState<boolean | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("createdAt");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
@@ -215,11 +214,10 @@ export default function UsersRolesScreen() {
       limit: ITEMS_PER_PAGE,
       role: filterRole !== "all" ? (filterRole as ApiUserRole) : undefined,
       search: debouncedSearch || undefined,
-      isActive: filterActive !== "all" ? filterActive : undefined,
       sortBy: "createdAt" as const,
       sortOrder: "desc" as const,
     }),
-    [currentPage, filterRole, debouncedSearch, filterActive],
+    [currentPage, filterRole, debouncedSearch],
   );
 
   const {
@@ -257,7 +255,7 @@ export default function UsersRolesScreen() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [filterRole, debouncedSearch, filterActive]);
+  }, [filterRole, debouncedSearch]);
 
   useEffect(() => {
     if (isError && error) {
@@ -1513,61 +1511,6 @@ export default function UsersRolesScreen() {
 
         <Pressable
           style={[
-            styles.statusFilterButton,
-            {
-              backgroundColor:
-                filterActive === true
-                  ? theme.success
-                  : filterActive === false
-                    ? theme.error
-                    : theme.surface,
-              borderColor:
-                filterActive !== "all"
-                  ? filterActive
-                    ? theme.success
-                    : theme.error
-                  : theme.border,
-              flexDirection: getFlexDirection(isRTL),
-            },
-          ]}
-          onPress={() => {
-            if (filterActive === "all") setFilterActive(true);
-            else if (filterActive === true) setFilterActive(false);
-            else setFilterActive("all");
-          }}
-        >
-          <DDIcon
-            name={
-              filterActive === true
-                ? "check-circle"
-                : filterActive === false
-                  ? "x-circle"
-                  : "users"
-            }
-            size={16}
-            color={
-              filterActive !== "all" ? theme.buttonText : theme.textSecondary
-            }
-          />
-          <ThemedText
-            style={[
-              Typography.bodySmall,
-              {
-                color: filterActive !== "all" ? theme.buttonText : theme.text,
-                marginStart: Spacing.xs,
-              },
-            ]}
-          >
-            {filterActive === true
-              ? t("common.active")
-              : filterActive === false
-                ? t("common.inactive")
-                : t("common.status")}
-          </ThemedText>
-        </Pressable>
-
-        <Pressable
-          style={[
             styles.bulkButton,
             {
               backgroundColor: bulkMode ? theme.warning : theme.surface,
@@ -2313,14 +2256,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   groupButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.sm,
-    borderWidth: 1,
-  },
-  statusFilterButton: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: Spacing.md,
