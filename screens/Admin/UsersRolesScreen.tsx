@@ -689,7 +689,7 @@ export default function UsersRolesScreen() {
                     styles.cardAvatarText,
                     {
                       color: roleColor,
-                      lineHeight: isRTL ? 20 : 18,
+                      lineHeight: 44,
                     },
                   ]}
                 >
@@ -2371,10 +2371,12 @@ const styles = StyleSheet.create({
   cardUserName: {
     fontSize: 15,
     fontWeight: "600",
+    lineHeight: 18,
   },
   cardEmail: {
     fontSize: 12,
-    marginTop: 0,
+    marginTop: 1,
+    lineHeight: 14,
   },
   cardInfoRow: {
     alignItems: "center",
