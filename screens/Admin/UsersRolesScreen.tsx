@@ -1399,13 +1399,11 @@ export default function UsersRolesScreen() {
         />
       </View>
 
-      <RTLHorizontalScrollView
+      <ScrollView
+        horizontal
         showsHorizontalScrollIndicator={false}
         style={[styles.filterContainer, { borderBottomColor: theme.border }]}
-        contentContainerStyle={[
-          styles.filterContent,
-          { flexDirection: getFlexDirection(isRTL) },
-        ]}
+        contentContainerStyle={styles.filterContent}
         nestedScrollEnabled={true}
         keyboardShouldPersistTaps="handled"
       >
@@ -1418,7 +1416,7 @@ export default function UsersRolesScreen() {
               borderColor: filterRole === "all" ? theme.primary : theme.border,
             },
           ]}
-          onPress={() => setFilterRole("all")}
+          onPress={() => { console.log('[FILTER TAP] All pressed'); setFilterRole("all"); }}
         >
           <ThemedText
             style={[
@@ -1444,7 +1442,7 @@ export default function UsersRolesScreen() {
                 borderColor: filterRole === role ? theme.primary : theme.border,
               },
             ]}
-            onPress={() => setFilterRole(role)}
+            onPress={() => { console.log('[FILTER TAP] Role pressed:', role); setFilterRole(role); }}
           >
             <ThemedText
               style={[
@@ -1460,15 +1458,13 @@ export default function UsersRolesScreen() {
             </ThemedText>
           </Pressable>
         ))}
-      </RTLHorizontalScrollView>
+      </ScrollView>
 
-      <RTLHorizontalScrollView
+      <ScrollView
+        horizontal
         showsHorizontalScrollIndicator={false}
         style={[styles.toolbar, { borderBottomColor: theme.border }]}
-        contentContainerStyle={[
-          styles.toolbarContent,
-          { flexDirection: getFlexDirection(isRTL) },
-        ]}
+        contentContainerStyle={styles.toolbarContent}
         nestedScrollEnabled={true}
         keyboardShouldPersistTaps="handled"
       >
@@ -1541,7 +1537,7 @@ export default function UsersRolesScreen() {
             color={bulkMode ? theme.buttonText : theme.textSecondary}
           />
         </Pressable>
-      </RTLHorizontalScrollView>
+      </ScrollView>
 
       {isFetching && !isLoading ? (
         <View style={styles.fetchingIndicator}>
