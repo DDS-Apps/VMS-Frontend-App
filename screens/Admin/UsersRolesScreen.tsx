@@ -19,6 +19,7 @@ import { useNavigation } from "@react-navigation/native";
 import { ROUTES } from "@/constants";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { StyledInput } from "@/components/StyledInput";
+import { SearchInput } from "@/components/SearchInput";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { LoadingButton } from "@/components/shared/LoadingButton";
@@ -150,13 +151,12 @@ const SearchBarComponent = React.memo(({ onSearch, placeholder }: { onSearch: (t
     onSearch(localRef.current);
   }, [onSearch]);
   return (
-    <StyledInput
+    <SearchInput
       defaultValue=""
       onChangeText={handleChange}
       onSubmitEditing={handleSubmit}
       returnKeyType="search"
       placeholder={placeholder}
-      leftIcon="search"
       containerStyle={{ marginHorizontal: HORIZONTAL_PADDING }}
     />
   );
