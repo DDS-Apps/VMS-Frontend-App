@@ -196,17 +196,18 @@ export const formatPhoneNumber = (phone: string): string => {
   // All digits are preserved - the last group can be longer for >12 digit numbers
   
   // Progressive formatting (same 3-2-3 pattern, remaining goes to last group)
+  // \u200E (LTR mark) ensures digits render left-to-right in RTL contexts
   if (digits.length <= 3) {
-    return '+' + digits;
+    return '\u200E+' + digits;
   }
   if (digits.length <= 5) {
-    return '+' + digits.substring(0, 3) + ' ' + digits.substring(3);
+    return '\u200E+' + digits.substring(0, 3) + ' ' + digits.substring(3);
   }
   if (digits.length <= 8) {
-    return '+' + digits.substring(0, 3) + ' ' + digits.substring(3, 5) + ' ' + digits.substring(5);
+    return '\u200E+' + digits.substring(0, 3) + ' ' + digits.substring(3, 5) + ' ' + digits.substring(5);
   }
   // 9+ digits: +CCC XX XXX XXXX+ (last group takes all remaining)
-  return '+' + digits.substring(0, 3) + ' ' + digits.substring(3, 5) + ' ' + digits.substring(5, 8) + ' ' + digits.substring(8);
+  return '\u200E+' + digits.substring(0, 3) + ' ' + digits.substring(3, 5) + ' ' + digits.substring(5, 8) + ' ' + digits.substring(8);
 };
 
 /**
