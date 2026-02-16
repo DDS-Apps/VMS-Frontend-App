@@ -2570,6 +2570,9 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.sm,
     borderWidth: 1,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    minHeight: 36,
   },
   autoApprovalRow: {
     alignItems: "center",
