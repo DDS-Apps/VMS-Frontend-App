@@ -688,7 +688,7 @@ export default function UsersRolesScreen() {
                     styles.cardAvatarText,
                     {
                       color: roleColor,
-                      lineHeight: isRTL ? 20 : undefined,
+                      lineHeight: isRTL ? 20 : 18,
                     },
                   ]}
                 >
@@ -1422,6 +1422,7 @@ export default function UsersRolesScreen() {
               {
                 color: filterRole === "all" ? theme.buttonText : theme.text,
                 fontWeight: filterRole === "all" ? "600" : "400",
+                lineHeight: isRTL ? 25 : undefined,
               },
             ]}
           >
@@ -1447,6 +1448,7 @@ export default function UsersRolesScreen() {
                 {
                   color: filterRole === role ? theme.buttonText : theme.text,
                   fontWeight: filterRole === role ? "600" : "400",
+                  lineHeight: isRTL ? 25 : undefined,
                 },
               ]}
             >
@@ -2329,6 +2331,8 @@ const styles = StyleSheet.create({
   cardAvatarText: {
     fontSize: 16,
     fontWeight: "700",
+    textAlignVertical: "center",
+    includeFontPadding: false,
   },
   cardNameSection: {
     flex: 1,
@@ -2342,7 +2346,7 @@ const styles = StyleSheet.create({
   },
   cardEmail: {
     fontSize: 12,
-    marginTop: 2,
+    marginTop: 0,
   },
   cardInfoRow: {
     alignItems: "center",
