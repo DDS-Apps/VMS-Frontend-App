@@ -13,15 +13,11 @@ export function RTLHorizontalScrollView({ children, contentContainerStyle, style
   const { isRTL } = useLanguage();
   const applyFix = needsRTLFix(isRTL);
 
-  React.useEffect(() => {
-    console.log('[RTLHorizontalScrollView] isRTL:', isRTL, 'I18nManager.isRTL:', I18nManager.isRTL, 'Platform:', Platform.OS, 'applyFix:', applyFix);
-  }, [isRTL, applyFix]);
-
   return (
     <ScrollView
       horizontal
       delaysContentTouches={false}
-      canCancelContentTouches={true}
+      canCancelContentTouches={false}
       {...props}
       style={[style, applyFix && fixStyles.flipped]}
       contentContainerStyle={[

@@ -595,12 +595,12 @@ export default function OverviewScreen({
                     <VisitorRequestCard
                       key={request.id}
                       request={request}
-                      onPress={() =>
+                      onPress={() => {
                         navigation.navigate(
                           ROUTES.REQUEST_DETAILS as never,
                           { requestId: request.id } as never,
-                        )
-                      }
+                        );
+                      }}
                       width={cardWidth}
                       style={
                         index > 0
@@ -730,12 +730,12 @@ export default function OverviewScreen({
                     <VisitorRequestCard
                       key={request.id}
                       request={request}
-                      onPress={() =>
+                      onPress={() => {
                         navigation.navigate(
                           ROUTES.REQUEST_DETAILS as never,
                           { requestId: request.id } as never,
-                        )
-                      }
+                        );
+                      }}
                       width={cardWidth}
                       style={
                         index > 0
@@ -864,12 +864,12 @@ export default function OverviewScreen({
                       <VisitorRequestCard
                         key={request.id}
                         request={request}
-                        onPress={() =>
+                        onPress={() => {
                           navigation.navigate(
                             ROUTES.MANAGER_APPROVAL_DETAIL as never,
                             { requestId: request.id } as never,
-                          )
-                        }
+                          );
+                        }}
                         width={cardWidth}
                         accentColor={theme.primary}
                         showRequestedBy={true}
@@ -1007,12 +1007,12 @@ export default function OverviewScreen({
                       <VisitorRequestCard
                         key={request.id}
                         request={request}
-                        onPress={() =>
+                        onPress={() => {
                           navigation.navigate(
                             ROUTES.REQUEST_DETAILS as never,
                             { requestId: request.id } as never,
-                          )
-                        }
+                          );
+                        }}
                         width={cardWidth}
                         accentColor={theme.warning}
                         showRequestedBy={true}
@@ -1141,12 +1141,12 @@ export default function OverviewScreen({
                     <VisitorRequestCard
                       key={request.id}
                       request={request}
-                      onPress={() =>
+                      onPress={() => {
                         navigation.navigate(
                           ROUTES.REQUEST_DETAILS as never,
                           { requestId: request.id } as never,
-                        )
-                      }
+                        );
+                      }}
                       width={cardWidth}
                       accentColor={theme.info}
                       showRequestedBy={true}
