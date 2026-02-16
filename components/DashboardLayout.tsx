@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { View, StyleSheet, Pressable, I18nManager, useWindowDimensions, Modal, Switch, Platform, ActivityIndicator } from "react-native";
 import { Image } from "expo-image";
 import { GestureDetector, Gesture } from "react-native-gesture-handler";
@@ -7,6 +7,7 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
+  cancelAnimation,
   runOnJS,
 } from "react-native-reanimated";
 import Sidebar from "@/components/Sidebar";
@@ -131,8 +132,16 @@ export default function DashboardLayout({
   const [isOverlayActive, setIsOverlayActive] = useState(false);
   const translateX = useSharedValue(isRTL ? sidebarWidth : -sidebarWidth);
   const prevIsLargeScreenRef = useRef<boolean | null>(null);
-  
-  
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      cancelAnimation(translateX);
+    };
+  }, [translateX]);
+
   // Sync sidebar state only when screen size crosses breakpoint
   useEffect(() => {
     const prevIsLargeScreen = prevIsLargeScreenRef.current;
@@ -152,7 +161,8 @@ export default function DashboardLayout({
     }
   }, [isLargeScreen, sidebarWidth, isRTL, translateX]);
 
-  const openSidebar = () => {
+  const openSidebar = useCallback(() => {
+    if (!isMountedRef.current) return;
     setSidebarOpen(true);
     setIsOverlayActive(true);
     translateX.value = withSpring(0, { 
@@ -161,9 +171,15 @@ export default function DashboardLayout({
       mass: 0.8,
       overshootClamping: false,
     });
-  };
+  }, [translateX]);
 
-  const closeSidebar = () => {
+  const safeSetSidebarClosed = useCallback(() => {
+    if (!isMountedRef.current) return;
+    setSidebarOpen(false);
+  }, []);
+
+  const closeSidebar = useCallback(() => {
+    if (!isMountedRef.current) return;
     setIsOverlayActive(false);
     translateX.value = withSpring(
       isRTL ? sidebarWidth : -sidebarWidth,
@@ -175,11 +191,11 @@ export default function DashboardLayout({
       },
       (finished) => {
         if (finished) {
-          runOnJS(setSidebarOpen)(false);
+          runOnJS(safeSetSidebarClosed)();
         }
       }
     );
-  };
+  }, [isRTL, sidebarWidth, translateX, safeSetSidebarClosed]);
 
   const isWeb = Platform.OS === 'web';
   const isAndroid = Platform.OS === 'android';
