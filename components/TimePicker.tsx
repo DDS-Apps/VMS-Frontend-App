@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
-import { View, StyleSheet, Pressable, Modal, Platform, ScrollView } from "react-native";
+import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { View, StyleSheet, Pressable, Modal, Platform, ScrollView, NativeSyntheticEvent, NativeScrollEvent } from "react-native";
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { ThemedText } from "@/components/ThemedText";
 import { DDIcon } from "@/components/DDIcon";
@@ -10,6 +10,124 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { toArabicNumerals } from "@/utils/formatters";
 import { applyOpacity, createModalOverlayStyle } from "@/utils/statusStyles";
 import { DirectionalRow } from '@/components/DirectionalRow';
+
+const WHEEL_ITEM_HEIGHT = 40;
+const VISIBLE_ITEMS = 5;
+const WHEEL_HEIGHT = WHEEL_ITEM_HEIGHT * VISIBLE_ITEMS;
+
+interface WheelColumnProps {
+  items: { value: number; label: string }[];
+  selectedValue: number;
+  onValueChange: (value: number) => void;
+  theme: any;
+}
+
+function WheelColumn({ items, selectedValue, onValueChange, theme }: WheelColumnProps) {
+  const scrollRef = useRef<ScrollView>(null);
+  const isUserScrolling = useRef(false);
+  const selectedIndex = items.findIndex(item => item.value === selectedValue);
+
+  useEffect(() => {
+    if (!isUserScrolling.current && selectedIndex >= 0) {
+      setTimeout(() => {
+        scrollRef.current?.scrollTo({
+          y: selectedIndex * WHEEL_ITEM_HEIGHT,
+          animated: false,
+        });
+      }, 50);
+    }
+  }, [selectedIndex]);
+
+  const handleMomentumEnd = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const offsetY = e.nativeEvent.contentOffset.y;
+    const index = Math.round(offsetY / WHEEL_ITEM_HEIGHT);
+    const clampedIndex = Math.max(0, Math.min(index, items.length - 1));
+    isUserScrolling.current = false;
+    if (items[clampedIndex] && items[clampedIndex].value !== selectedValue) {
+      onValueChange(items[clampedIndex].value);
+    }
+  }, [items, selectedValue, onValueChange]);
+
+  const handleScrollBegin = useCallback(() => {
+    isUserScrolling.current = true;
+  }, []);
+
+  const paddingVertical = WHEEL_ITEM_HEIGHT * Math.floor(VISIBLE_ITEMS / 2);
+
+  return (
+    <View style={{ height: WHEEL_HEIGHT, overflow: 'hidden', flex: 1 }}>
+      <View
+        pointerEvents="none"
+        style={[
+          wheelStyles.selectionIndicator,
+          {
+            top: paddingVertical,
+            backgroundColor: applyOpacity(theme.primary, '12'),
+            borderTopColor: applyOpacity(theme.primary, '30'),
+            borderBottomColor: applyOpacity(theme.primary, '30'),
+          },
+        ]}
+      />
+      <ScrollView
+        ref={scrollRef}
+        showsVerticalScrollIndicator={false}
+        snapToInterval={WHEEL_ITEM_HEIGHT}
+        decelerationRate="fast"
+        onScrollBeginDrag={handleScrollBegin}
+        onMomentumScrollEnd={handleMomentumEnd}
+        contentContainerStyle={{ paddingVertical }}
+      >
+        {items.map((item, index) => {
+          const isSelected = item.value === selectedValue;
+          return (
+            <Pressable
+              key={`${item.value}-${index}`}
+              style={[wheelStyles.wheelItem]}
+              onPress={() => {
+                onValueChange(item.value);
+                scrollRef.current?.scrollTo({
+                  y: index * WHEEL_ITEM_HEIGHT,
+                  animated: true,
+                });
+              }}
+            >
+              <ThemedText
+                style={[
+                  wheelStyles.wheelItemText,
+                  { color: isSelected ? theme.text : theme.textTertiary },
+                  isSelected && { fontWeight: '700', fontSize: 20 },
+                ]}
+              >
+                {item.label}
+              </ThemedText>
+            </Pressable>
+          );
+        })}
+      </ScrollView>
+    </View>
+  );
+}
+
+const wheelStyles = StyleSheet.create({
+  selectionIndicator: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    height: WHEEL_ITEM_HEIGHT,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    zIndex: 1,
+  },
+  wheelItem: {
+    height: WHEEL_ITEM_HEIGHT,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  wheelItemText: {
+    fontSize: 17,
+    fontWeight: '400',
+  },
+});
 
 interface TimePickerProps {
   visible: boolean;
@@ -207,15 +325,47 @@ export function TimePicker({
                 <ThemedText style={[Typography.body, { fontWeight: '600', marginStart: Spacing.sm }]}>{t('time.selectTime')}</ThemedText>
               </DirectionalRow>
             </View>
-            <DateTimePicker
-              value={pendingTime}
-              mode="time"
-              display="spinner"
-              onChange={handleNativeTimeChange}
-              textColor={theme.text}
-              style={{ height: 180 }}
-              locale={isRTL ? 'ar-SA' : undefined}
-            />
+            <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: Spacing.md }}>
+              <WheelColumn
+                items={hoursArray.map(h => ({
+                  value: h,
+                  label: isRTL ? toArabicNumerals(String(h)) : String(h),
+                }))}
+                selectedValue={selectedHour}
+                onValueChange={(h) => {
+                  setSelectedHour(h);
+                  updatePendingTime(h, selectedMinute, selectedPeriod);
+                }}
+                theme={theme}
+              />
+              <WheelColumn
+                items={minutesArray.map(m => ({
+                  value: m,
+                  label: isRTL ? toArabicNumerals(String(m).padStart(2, '0')) : String(m).padStart(2, '0'),
+                }))}
+                selectedValue={selectedMinute}
+                onValueChange={(m) => {
+                  setSelectedMinute(m);
+                  updatePendingTime(selectedHour, m, selectedPeriod);
+                }}
+                theme={theme}
+              />
+              <View style={{ width: 50, height: WHEEL_HEIGHT, justifyContent: 'center', alignItems: 'center' }}>
+                <Pressable
+                  onPress={handlePeriodToggle}
+                  style={[{
+                    paddingVertical: Spacing.sm,
+                    paddingHorizontal: Spacing.md,
+                    borderRadius: BorderRadius.md,
+                    backgroundColor: applyOpacity(theme.primary, '12'),
+                  }]}
+                >
+                  <ThemedText style={{ fontSize: 17, fontWeight: '700', color: theme.primary }}>
+                    {t(`time.${selectedPeriod.toLowerCase()}`)}
+                  </ThemedText>
+                </Pressable>
+              </View>
+            </View>
             <View style={styles.quickSelectRowCompact}>
               <ScrollView 
                 horizontal 
