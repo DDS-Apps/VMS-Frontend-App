@@ -63,9 +63,7 @@ export function SearchInput({
           textAlign: isRTL ? 'right' : 'left',
           writingDirection: isRTL ? 'rtl' : 'ltr',
           fontSize: scaledFontSize,
-          lineHeight: isRTL
-            ? Math.round(INPUT_FONT_SIZE * ArabicLineHeightScaling.body * 1.65)
-            : Math.round(INPUT_FONT_SIZE * 1.4),
+          lineHeight: Math.round(INPUT_FONT_SIZE * (isRTL ? ArabicLineHeightScaling.body : 1.4)),
         },
         Platform.OS === 'web' ? { outlineStyle: 'none' } as any : {},
       ]}
