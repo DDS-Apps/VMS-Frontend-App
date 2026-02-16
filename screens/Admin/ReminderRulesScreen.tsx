@@ -222,7 +222,7 @@ export default function ReminderRulesScreen() {
       ) : null}
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
+        <View style={[styles.header, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
           <ThemedText style={[Typography.h2, { fontWeight: "700" }]}>
             {t("admin.reminderRules")}
           </ThemedText>
@@ -279,7 +279,7 @@ export default function ReminderRulesScreen() {
                 keyboardType="number-pad"
                 placeholder="120"
               />
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 4 }]}>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 4, textAlign: isRTL ? 'right' : 'left' }]}>
                 {formatMinutesToDisplay(localRules.firstReminderDelayMinutes)} {t("admin.afterOfficeHoursStart")}
               </ThemedText>
             </View>
@@ -301,7 +301,7 @@ export default function ReminderRulesScreen() {
                 keyboardType="number-pad"
                 placeholder="240"
               />
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 4 }]}>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 4, textAlign: isRTL ? 'right' : 'left' }]}>
                 {formatMinutesToDisplay(localRules.secondReminderDelayMinutes)} {t("admin.afterFirstReminder")}
               </ThemedText>
             </View>
@@ -323,7 +323,7 @@ export default function ReminderRulesScreen() {
                 keyboardType="number-pad"
                 placeholder="60"
               />
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 4 }]}>
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 4, textAlign: isRTL ? 'right' : 'left' }]}>
                 {formatMinutesToDisplay(localRules.autoCancelDelayMinutes)} {t("admin.afterSecondReminder")}
               </ThemedText>
             </View>
@@ -521,7 +521,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   ruleInput: {
-    marginStart: 36,
+    marginTop: Spacing.xs,
   },
   timeInputs: {
     paddingHorizontal: Spacing.md,
