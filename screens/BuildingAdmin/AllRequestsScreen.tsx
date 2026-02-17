@@ -686,8 +686,31 @@ export default function AllRequestsScreen() {
       case 'buffet':
         navigation.navigate(ROUTES.BUFFET_REQUEST_DETAILS as never, { request: request.originalData } as never);
         break;
-      case 'valet':
+      case 'valet': {
+        const valetVisitor = request.originalData as any;
+        const valetRequest = {
+          id: valetVisitor.requestId || request.id,
+          visitorName: valetVisitor.visitorName || request.visitorName,
+          visitorCompany: valetVisitor.visitorCompany || request.company || '',
+          hostName: valetVisitor.hostName || request.hostName,
+          visitDate: valetVisitor.visitDate || request.date,
+          pickupTime: valetVisitor.visitTime || '',
+          returnTime: '',
+          location: valetVisitor.hostDepartment || request.location || '',
+          status: valetVisitor.status?.toLowerCase() || 'pending',
+          vehicleInfo: valetVisitor.licensePlate ? {
+            make: '',
+            model: valetVisitor.carModel || '',
+            color: valetVisitor.carColor || '',
+            plateNumber: valetVisitor.licensePlate,
+          } : undefined,
+          notes: '',
+          createdAt: valetVisitor.visitDate || request.createdAt || '',
+          updatedAt: valetVisitor.visitDate || '',
+        };
+        navigation.navigate(ROUTES.VALET_REQUEST_DETAILS as never, { request: valetRequest } as never);
         break;
+      }
     }
   };
 

@@ -623,6 +623,13 @@ export default function DashboardContainer({ userRole, userName, userEmail, user
                 </ScreenWrapper>
               )}
             </Stack.Screen>
+            <Stack.Screen name="ValetRequestDetails">
+              {(props) => (
+                <ScreenWrapper userRole={userRole} userName={userName} userPhotoUrl={userPhotoUrl} onLogout={onLogout}>
+                  <ValetRequestDetailsScreen {...props} />
+                </ScreenWrapper>
+              )}
+            </Stack.Screen>
           </>
         )}
         {userRole === 'valet_driver' && (
