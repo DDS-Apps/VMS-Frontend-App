@@ -53,9 +53,9 @@ function getDateRange(filter: DateFilter): { startDate?: string; endDate?: strin
     case 'this_week': {
       const dayOfWeek = today.getDay();
       const startOfWeek = new Date(today);
-      startOfWeek.setDate(today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1));
+      startOfWeek.setDate(today.getDate() - dayOfWeek);
       const endOfWeek = new Date(startOfWeek);
-      endOfWeek.setDate(startOfWeek.getDate() + 6);
+      endOfWeek.setDate(startOfWeek.getDate() + 4);
       return { startDate: formatDate(startOfWeek), endDate: formatDate(endOfWeek) };
     }
     case 'this_month': {
