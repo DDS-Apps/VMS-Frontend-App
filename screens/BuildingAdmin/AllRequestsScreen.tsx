@@ -1071,6 +1071,7 @@ export default function AllRequestsScreen() {
           setSelectedDate(date);
           setShowDatePicker(false);
         }}
+        allowPastDates={true}
       />
 
       <Modal

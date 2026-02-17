@@ -23,6 +23,7 @@ interface CalendarDatePickerProps {
   onRangeSelect?: (range: DateRange) => void;
   mode?: 'single' | 'range';
   minimumDate?: Date;
+  allowPastDates?: boolean;
 }
 
 export function CalendarDatePicker({
@@ -34,6 +35,7 @@ export function CalendarDatePicker({
   onRangeSelect,
   mode = 'range',
   minimumDate,
+  allowPastDates = false,
 }: CalendarDatePickerProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
@@ -90,7 +92,7 @@ export function CalendarDatePicker({
     const selectedDay = new Date(year, month, day);
     selectedDay.setHours(0, 0, 0, 0);
 
-    if (minimumDate) {
+    if (minimumDate && !allowPastDates) {
       const minDateStart = new Date(minimumDate.getFullYear(), minimumDate.getMonth(), minimumDate.getDate());
       if (selectedDay < minDateStart) return;
     }
@@ -185,6 +187,7 @@ export function CalendarDatePicker({
   };
 
   const isPastDate = (day: number) => {
+    if (allowPastDates) return false;
     const date = new Date(year, month, day);
     const minDate = minimumDate || today;
     const minDateStart = new Date(minDate.getFullYear(), minDate.getMonth(), minDate.getDate());
