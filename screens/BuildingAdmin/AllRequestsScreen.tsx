@@ -365,6 +365,7 @@ export default function AllRequestsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [dateRange, setDateRange] = useState<{ startDate: Date | null; endDate: Date | null }>({ startDate: null, endDate: null });
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [selectedRequest, setSelectedRequest] = useState<UnifiedRequest | null>(null);
@@ -383,16 +384,26 @@ export default function AllRequestsScreen() {
     });
   }, []);
 
+  const toLocalDateString = (date: Date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
+
+  const hasDateFilter = dateRange.startDate !== null;
+
   const filters = useMemo(() => ({
     type: typeFilter,
     status: statusFilter,
     searchQuery,
-    startDate: selectedDate ? selectedDate.toISOString().split('T')[0] : undefined,
-  }), [typeFilter, statusFilter, searchQuery, selectedDate]);
+    startDate: dateRange.startDate ? toLocalDateString(dateRange.startDate) : undefined,
+    endDate: dateRange.endDate ? toLocalDateString(dateRange.endDate) : (dateRange.startDate ? toLocalDateString(dateRange.startDate) : undefined),
+  }), [typeFilter, statusFilter, searchQuery, dateRange]);
 
   const { data: requests, stats, isLoading, isFetching, isError, refetch } = useAllRequestsQuery(filters);
   
-  const valetDateParam = selectedDate ? selectedDate.toISOString().split('T')[0] : undefined;
+  const valetDateParam = dateRange.startDate ? toLocalDateString(dateRange.startDate) : undefined;
   const { 
     data: valetDashboardData, 
     isLoading: isValetLoading, 
@@ -716,6 +727,7 @@ export default function AllRequestsScreen() {
 
   const clearDateFilter = () => {
     setSelectedDate(null);
+    setDateRange({ startDate: null, endDate: null });
   };
 
   return (
@@ -887,8 +899,8 @@ export default function AllRequestsScreen() {
             style={[
               styles.dateFilterButton, 
               { 
-                backgroundColor: selectedDate ? applyOpacity(theme.primary, '12') : theme.surface,
-                borderColor: selectedDate ? theme.primary : theme.border,
+                backgroundColor: hasDateFilter ? applyOpacity(theme.primary, '12') : theme.surface,
+                borderColor: hasDateFilter ? theme.primary : theme.border,
               }
             ]}
             onPress={() => setShowDatePicker(true)}
@@ -896,12 +908,12 @@ export default function AllRequestsScreen() {
             <DDIcon 
               name="calendar" 
               size={18} 
-              color={selectedDate ? theme.primary : theme.textSecondary} 
+              color={hasDateFilter ? theme.primary : theme.textSecondary} 
             />
           </Pressable>
         </DirectionalRow>
 
-        {selectedDate ? (
+        {hasDateFilter ? (
           <>
             <Spacer height={Spacing.sm} />
             <Pressable 
@@ -910,7 +922,9 @@ export default function AllRequestsScreen() {
             >
               <DDIcon name="calendar" size={14} color={theme.primary} />
               <ThemedText style={[styles.dateChipText, { color: theme.primary }]}>
-                {formatDate(selectedDate.toISOString())}
+                {dateRange.endDate && dateRange.startDate && dateRange.endDate.getTime() !== dateRange.startDate.getTime()
+                  ? `${formatDate(toLocalDateString(dateRange.startDate))} - ${formatDate(toLocalDateString(dateRange.endDate))}`
+                  : formatDate(toLocalDateString(dateRange.startDate!))}
               </ThemedText>
               <DDIcon name="x" size={14} color={theme.primary} />
             </Pressable>
@@ -1066,10 +1080,16 @@ export default function AllRequestsScreen() {
       <CalendarDatePicker
         visible={showDatePicker}
         onClose={() => setShowDatePicker(false)}
-        selectedDate={selectedDate || new Date()}
+        selectedDate={dateRange.startDate || new Date()}
+        dateRange={dateRange}
+        mode="range"
         onDateSelect={(date) => {
           setSelectedDate(date);
-          setShowDatePicker(false);
+          setDateRange({ startDate: date, endDate: date });
+        }}
+        onRangeSelect={(range) => {
+          setSelectedDate(range.startDate);
+          setDateRange(range);
         }}
         allowPastDates={true}
       />
