@@ -4,7 +4,7 @@ import { ValetParkingDashboardResponse, ValetParkingVisitorDto } from '@/types/a
 
 export const valetAdminKeys = {
   all: ['valetAdmin'] as const,
-  parkingDashboard: (date?: string) => [...valetAdminKeys.all, 'parkingDashboard', date] as const,
+  parkingDashboard: (startDate?: string, endDate?: string) => [...valetAdminKeys.all, 'parkingDashboard', startDate, endDate] as const,
 };
 
 const normalizeBoolean = (value: unknown): boolean => {
@@ -17,10 +17,10 @@ const normalizeVisitorDto = (visitor: ValetParkingVisitorDto): ValetParkingVisit
   visitorNeedsParking: normalizeBoolean(visitor.visitorNeedsParking),
 });
 
-export function useValetParkingDashboard(date?: string) {
+export function useValetParkingDashboard(startDate?: string, endDate?: string) {
   return useQuery({
-    queryKey: valetAdminKeys.parkingDashboard(date),
-    queryFn: () => valetAdminApiService.getParkingDashboard(date),
+    queryKey: valetAdminKeys.parkingDashboard(startDate, endDate),
+    queryFn: () => valetAdminApiService.getParkingDashboard(startDate, endDate),
     staleTime: 1000 * 60 * 2,
     select: (data: ValetParkingDashboardResponse): ValetParkingDashboardResponse => ({
       ...data,

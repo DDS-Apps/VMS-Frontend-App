@@ -403,14 +403,15 @@ export default function AllRequestsScreen() {
 
   const { data: requests, stats, isLoading, isFetching, isError, refetch } = useAllRequestsQuery(filters);
   
-  const valetDateParam = dateRange.startDate ? toLocalDateString(dateRange.startDate) : undefined;
+  const valetStartDate = dateRange.startDate ? toLocalDateString(dateRange.startDate) : undefined;
+  const valetEndDate = dateRange.endDate ? toLocalDateString(dateRange.endDate) : valetStartDate;
   const { 
     data: valetDashboardData, 
     isLoading: isValetLoading, 
     isFetching: isValetFetching,
     isError: isValetError,
     refetch: refetchValet 
-  } = useValetParkingDashboard(valetDateParam);
+  } = useValetParkingDashboard(valetStartDate, valetEndDate);
 
   const mapValetVisitorToUnified = useCallback((visitor: ValetParkingVisitorDto): UnifiedRequest => {
     const mapStatus = (status: string): UnifiedStatus => {

@@ -5,8 +5,11 @@ import type { ValetParkingDashboardResponse } from '@/types/api.types';
 const { valetAdmin } = apiConfig.endpoints;
 
 export const valetAdminApiService = {
-  getParkingDashboard: (date?: string): Promise<ValetParkingDashboardResponse> => {
-    const params = date ? `?date=${date}` : '';
+  getParkingDashboard: (startDate?: string, endDate?: string): Promise<ValetParkingDashboardResponse> => {
+    const queryParts: string[] = [];
+    if (startDate) queryParts.push(`startDate=${startDate}`);
+    if (endDate) queryParts.push(`endDate=${endDate}`);
+    const params = queryParts.length > 0 ? `?${queryParts.join('&')}` : '';
     return get<ValetParkingDashboardResponse>(`${valetAdmin.parkingDashboard}${params}`);
   },
 };
