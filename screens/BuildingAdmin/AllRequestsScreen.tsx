@@ -477,7 +477,8 @@ export default function AllRequestsScreen() {
   const displayRequests = typeFilter === 'valet' ? valetRequests : requests;
   const displayIsLoading = typeFilter === 'valet' ? isValetLoading : isLoading;
   const displayIsFetching = typeFilter === 'valet' ? isValetFetching : isFetching;
-  const displayIsError = typeFilter === 'valet' ? isValetError : isError;
+  const hasData = displayRequests && displayRequests.length > 0;
+  const displayIsError = (typeFilter === 'valet' ? isValetError : isError) && !hasData;
 
   const approveVisitMutation = useApproveVisitMutation();
   const rejectVisitMutation = useRejectVisitMutation();

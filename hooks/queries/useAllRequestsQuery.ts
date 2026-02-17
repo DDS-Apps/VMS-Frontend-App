@@ -239,7 +239,7 @@ export function useAllRequestsQuery(filters: AllRequestsFilters = {}) {
         },
         enabled: shouldFetchVisits,
         staleTime: 30 * 1000,
-        retry: false,
+        retry: 2,
       },
       {
         queryKey: ['all-requests', 'buffet-admin-tasks', type, buffetParams],
@@ -249,7 +249,7 @@ export function useAllRequestsQuery(filters: AllRequestsFilters = {}) {
         },
         enabled: shouldFetchBuffet,
         staleTime: 30 * 1000,
-        retry: false,
+        retry: 2,
       },
       {
         queryKey: ['all-requests', 'valet-admin-tasks', type, valetParams],
@@ -259,7 +259,7 @@ export function useAllRequestsQuery(filters: AllRequestsFilters = {}) {
         },
         enabled: shouldFetchValet,
         staleTime: 30 * 1000,
-        retry: false,
+        retry: 2,
       },
     ],
   });
