@@ -569,7 +569,7 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
           />
         </View>
         <Pressable
-          style={[styles.datePickerButton, { backgroundColor: theme.surface, borderColor: theme.border, height: 56 }]}
+          style={[styles.datePickerButton, { backgroundColor: theme.surface, borderColor: theme.border, height: 44 }]}
           onPress={() => setShowDatePicker(true)}
         >
           <DDIcon name="calendar" size={18} color={theme.primary} />
