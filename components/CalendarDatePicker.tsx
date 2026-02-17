@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { View, StyleSheet, Pressable, Modal, I18nManager } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { DDIcon } from "@/components/DDIcon";
@@ -46,6 +46,15 @@ export function CalendarDatePicker({
     dateRange || { startDate: null, endDate: null }
   );
   const [selectionMode, setSelectionMode] = useState<'idle' | 'start_selected'>('idle');
+
+  useEffect(() => {
+    if (dateRange) {
+      setTempRange(dateRange);
+    } else {
+      setTempRange({ startDate: null, endDate: null });
+    }
+    setSelectionMode('idle');
+  }, [dateRange?.startDate?.getTime(), dateRange?.endDate?.getTime()]);
 
   const year = currentMonth.getFullYear();
   const month = currentMonth.getMonth();
