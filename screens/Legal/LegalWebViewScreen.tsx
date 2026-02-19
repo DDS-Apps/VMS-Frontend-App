@@ -1,5 +1,5 @@
-import React, { useState, useRef } from "react";
-import { StyleSheet, View, Pressable, ActivityIndicator, Platform } from "react-native";
+import React, { useState, useRef, useEffect } from "react";
+import { StyleSheet, View, Pressable, ActivityIndicator, Platform, Linking } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ThemedText } from "@/components/ThemedText";
 import { DDIcon } from "@/components/DDIcon";
@@ -25,41 +25,13 @@ interface LegalWebViewScreenProps {
   onBack?: () => void;
 }
 
-function WebContent({ url, isLoading, setIsLoading, hasError, setHasError, theme }: {
+function NativeWebContent({ url, isLoading, setIsLoading, setHasError, theme }: {
   url: string;
   isLoading: boolean;
   setIsLoading: (v: boolean) => void;
-  hasError: boolean;
   setHasError: (v: boolean) => void;
   theme: any;
 }) {
-  if (Platform.OS === 'web') {
-    return (
-      <>
-        {isLoading ? (
-          <View style={styles.loadingOverlay}>
-            <ActivityIndicator size="large" color={theme.primary} />
-          </View>
-        ) : null}
-        <iframe
-          src={url}
-          style={{
-            flex: 1,
-            width: '100%',
-            height: '100%',
-            border: 'none',
-            opacity: isLoading ? 0 : 1,
-          } as any}
-          onLoad={() => setIsLoading(false)}
-          onError={() => {
-            setIsLoading(false);
-            setHasError(true);
-          }}
-        />
-      </>
-    );
-  }
-
   const WebView = require("react-native-webview").WebView;
   const webViewRef = useRef<any>(null);
 
@@ -107,6 +79,15 @@ export default function LegalWebViewScreen({ page, title, onBack }: LegalWebView
   const pagePath = PAGE_PATHS[page] || `${page}.html`;
   const url = `${LEGAL_PAGES_BASE_URL}/${pagePath}?lang=${lang}&theme=${themeParam}`;
 
+  useEffect(() => {
+    if (Platform.OS === 'web' && LEGAL_PAGES_BASE_URL) {
+      Linking.openURL(url);
+      if (onBack) {
+        onBack();
+      }
+    }
+  }, []);
+
   const handleRetry = () => {
     setHasError(false);
     setIsLoading(true);
@@ -137,6 +118,44 @@ export default function LegalWebViewScreen({ page, title, onBack }: LegalWebView
           <ThemedText style={[styles.errorText, { color: theme.textSecondary }]}>
             {isRTL ? "الصفحة غير متوفرة حالياً" : "Page not available at this time"}
           </ThemedText>
+        </View>
+      </View>
+    );
+  }
+
+  if (Platform.OS === 'web') {
+    return (
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
+        <View style={[styles.header, {
+          paddingTop: insets.top + Spacing.md,
+          backgroundColor: theme.surface,
+          borderBottomColor: theme.border
+        }]}>
+          <DirectionalRow style={styles.headerRow} alignItems="center">
+            {onBack ? (
+              <Pressable onPress={onBack} style={styles.backButton}>
+                <DDIcon name={isRTL ? "chevron-right" : "chevron-left"} size={24} variant="primary" />
+              </Pressable>
+            ) : null}
+            <ThemedText style={[styles.headerTitle, { color: theme.text }]}>
+              {title}
+            </ThemedText>
+            <View style={{ width: 40 }} />
+          </DirectionalRow>
+        </View>
+        <View style={styles.centerContent}>
+          <DDIcon name="external-link" size={48} variant="muted" />
+          <ThemedText style={[styles.errorText, { color: theme.textSecondary }]}>
+            {isRTL ? "تم فتح الصفحة في نافذة جديدة" : "Page opened in a new tab"}
+          </ThemedText>
+          <Pressable
+            style={[styles.retryButton, { backgroundColor: theme.primary }]}
+            onPress={() => Linking.openURL(url)}
+          >
+            <ThemedText style={[styles.retryText, { color: "#FFFFFF" }]}>
+              {isRTL ? "فتح مرة أخرى" : "Open Again"}
+            </ThemedText>
+          </Pressable>
         </View>
       </View>
     );
@@ -178,11 +197,10 @@ export default function LegalWebViewScreen({ page, title, onBack }: LegalWebView
           </Pressable>
         </View>
       ) : (
-        <WebContent
+        <NativeWebContent
           url={url}
           isLoading={isLoading}
           setIsLoading={setIsLoading}
-          hasError={hasError}
           setHasError={setHasError}
           theme={theme}
         />
