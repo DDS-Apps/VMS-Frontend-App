@@ -74,7 +74,7 @@ function WebLegalContent({ page, isRTL, isDark }: {
                   <ThemedText style={[styles.webSubsectionTitle, { color: theme.text }]}>
                     {sub.subtitle}
                   </ThemedText>
-                  {sub.items?.map((item: string, itemIdx: number) => (
+                  {sub.items ? sub.items.map((item: string, itemIdx: number) => (
                     <View key={itemIdx} style={[styles.webListItem, isRTL ? { paddingRight: 20, paddingLeft: 0 } : null]}>
                       <ThemedText style={[styles.webBullet, isRTL ? { left: 'auto' as any, right: 4 } : null, { color: '#F58423' }]}>
                         {'\u2022'}
