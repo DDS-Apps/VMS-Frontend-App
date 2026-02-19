@@ -84,7 +84,25 @@ function mapStatusesToApi(statuses: Set<StatusFilter>): string | undefined {
   return apiStatuses.length > 0 ? apiStatuses.join(',') : undefined;
 }
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 30;
+
+const parseTimeToMinutes = (timeStr: string | undefined | null): number => {
+  if (!timeStr) return Infinity;
+  const cleanTime = timeStr.trim().toUpperCase();
+  const isPM = cleanTime.includes('PM');
+  const isAM = cleanTime.includes('AM');
+  const timePart = cleanTime.replace(/\s*(AM|PM)\s*/gi, '').trim();
+  const parts = timePart.split(':');
+  if (parts.length < 2) return Infinity;
+  let hours = parseInt(parts[0], 10);
+  const minutes = parseInt(parts[1], 10);
+  if (isNaN(hours) || isNaN(minutes)) return Infinity;
+  if (isAM || isPM) {
+    if (isPM && hours < 12) hours += 12;
+    if (isAM && hours === 12) hours = 0;
+  }
+  return hours * 60 + minutes;
+};
 
 export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScreenProps) {
   const { theme } = useTheme();
@@ -165,7 +183,17 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
 
   const visitors = useMemo(() => {
     if (!data?.pages) return [];
-    return data.pages.flatMap(page => page.data);
+    const allItems = data.pages.flatMap(page => page.data);
+    return [...allItems].sort((a, b) => {
+      const dateA = a.visitDate || '';
+      const dateB = b.visitDate || '';
+      if (dateA !== dateB) {
+        return dateB.localeCompare(dateA);
+      }
+      const timeA = parseTimeToMinutes(a.visitTime);
+      const timeB = parseTimeToMinutes(b.visitTime);
+      return timeA - timeB;
+    });
   }, [data]);
 
   const totalCount = data?.pages?.[0]?.pagination?.total ?? visitors.length;
