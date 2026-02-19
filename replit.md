@@ -95,3 +95,12 @@ The VMS app employs a Clean Architecture pattern, segmenting the application int
 - **@react-native-firebase/app:** React Native Firebase core.
 - **@react-native-firebase/messaging:** Firebase Cloud Messaging for iOS FCM token retrieval.
 - **@react-native-firebase/crashlytics:** Firebase Crashlytics for crash reporting.
+- **react-native-webview:** WebView for loading externally hosted legal pages.
+
+## Legal Pages (Independent Web Deployment)
+- **Location:** `legal-pages/public/` contains `terms.html` and `privacy.html`
+- **Purpose:** Externally hosted bilingual (EN/AR) Terms & Conditions and Privacy Policy pages loaded via WebView in the app, allowing content updates without republishing the app.
+- **Features:** Language toggle (EN/AR), dark/light theme support via query params (`?lang=ar&theme=dark`), Dallah Albaraka branding, fully responsive.
+- **Configuration:** Set `EXPO_PUBLIC_LEGAL_PAGES_URL` environment variable to the deployed base URL (e.g., `https://your-legal-pages.replit.app`). The app loads `{baseUrl}/terms.html` and `{baseUrl}/privacy.html`.
+- **Deployment:** Deploy `legal-pages/public/` as a static site to any hosting provider. A simple Node.js server is provided at `legal-pages/server.js` for local testing or Replit deployment.
+- **Updating Content:** Edit the HTML files in `legal-pages/public/`, redeploy just the static site — no app update needed.
