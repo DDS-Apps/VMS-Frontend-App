@@ -15,6 +15,11 @@ const LEGAL_PAGES_BASE_URL =
   process.env.EXPO_PUBLIC_LEGAL_PAGES_URL ||
   "";
 
+const PAGE_PATHS: Record<string, string> = {
+  terms: "terms-conditions.html",
+  privacy: "privacy-policy.html",
+};
+
 interface LegalWebViewScreenProps {
   page: "terms" | "privacy";
   title: string;
@@ -31,7 +36,8 @@ export default function LegalWebViewScreen({ page, title, onBack }: LegalWebView
 
   const lang = isRTL ? "ar" : "en";
   const themeParam = isDark ? "dark" : "light";
-  const url = `${LEGAL_PAGES_BASE_URL}/${page}.html?lang=${lang}&theme=${themeParam}`;
+  const pagePath = PAGE_PATHS[page] || `${page}.html`;
+  const url = `${LEGAL_PAGES_BASE_URL}/${pagePath}?lang=${lang}&theme=${themeParam}`;
 
   const handleRetry = () => {
     setHasError(false);

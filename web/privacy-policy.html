@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Privacy Policy | سياسة الخصوصية</title>
+<style>
+:root {
+  --brand-orange: #F58423;
+  --brand-green: #009933;
+  --brand-grey: #282829;
+  --soft-orange: #FEF3E8;
+  --bg: #f5f5f5;
+  --card-bg: #ffffff;
+  --text-primary: #1a1a1a;
+  --text-secondary: #555555;
+  --border-color: #e0e0e0;
+  --shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+.dark {
+  --bg: #1a1a1a;
+  --card-bg: #282829;
+  --text-primary: #f0f0f0;
+  --text-secondary: #b0b0b0;
+  --border-color: #3a3a3b;
+  --shadow: 0 2px 12px rgba(0,0,0,0.3);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Albert Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text-primary);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+[dir="rtl"] body {
+  font-family: 'FS Albert Arabic', 'Geeza Pro', 'Arabic Typesetting', 'Simplified Arabic', Tahoma, sans-serif;
+}
+.header {
+  background: var(--brand-orange);
+  color: #fff;
+  padding: 24px 20px 20px;
+  position: relative;
+}
+.header-content { max-width: 720px; margin: 0 auto; }
+.header h1 { font-size: 20px; font-weight: 700; margin-bottom: 2px; }
+.header .subtitle { font-size: 13px; opacity: 0.9; font-weight: 400; }
+.header .page-title { font-size: 16px; font-weight: 600; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.25); }
+.lang-toggle {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 100;
+  background: rgba(255,255,255,0.2);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+[dir="rtl"] .lang-toggle { right: auto; left: 12px; }
+.lang-toggle:hover { background: rgba(255,255,255,0.35); }
+.container { max-width: 720px; margin: 0 auto; padding: 20px 16px 40px; }
+.card {
+  background: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 24px 20px;
+  margin-bottom: 16px;
+}
+.last-updated {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+.section { margin-bottom: 24px; }
+.section:last-child { margin-bottom: 0; }
+.section h2 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--brand-orange);
+  margin-bottom: 8px;
+}
+.section h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 12px 0 6px;
+}
+.section p { font-size: 14px; color: var(--text-primary); margin-bottom: 8px; }
+.section ul {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0;
+}
+.section ul li {
+  font-size: 14px;
+  color: var(--text-primary);
+  padding: 4px 0 4px 20px;
+  position: relative;
+}
+[dir="rtl"] .section ul li { padding: 4px 20px 4px 0; }
+.section ul li::before {
+  content: "\2022";
+  color: var(--brand-orange);
+  font-weight: 700;
+  position: absolute;
+  left: 4px;
+  top: 4px;
+}
+[dir="rtl"] .section ul li::before { left: auto; right: 4px; }
+.contact-block { font-size: 14px; color: var(--text-primary); }
+.contact-block a { color: var(--brand-orange); text-decoration: none; }
+.footer-space { height: 20px; }
+</style>
+</head>
+<body>
+<button class="lang-toggle" id="langToggle" onclick="toggleLang()">AR</button>
+<div class="header">
+  <div class="header-content">
+    <h1 id="brandName">Dallah Albaraka</h1>
+    <div class="subtitle" id="brandSub">Visitor Management System</div>
+    <div class="page-title" id="pageTitle">Privacy Policy</div>
+  </div>
+</div>
+<div class="container">
+  <div class="card">
+    <div class="last-updated" id="lastUpdated">Last Updated: February 2026</div>
+
+    <div class="section" id="s1">
+      <h2>1. Introduction</h2>
+      <p>Dallah Albaraka Group ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our Visitor Management System (VMS) mobile application.</p>
+    </div>
+
+    <div class="section" id="s2">
+      <h2>2. Information We Collect</h2>
+      <h3>Personal Information</h3>
+      <ul>
+        <li>Full name and contact information (email address, phone number)</li>
+        <li>Profile photograph (optional)</li>
+        <li>Company/organization affiliation</li>
+        <li>Government-issued identification details (for visitor verification)</li>
+        <li>Vehicle information (license plate, make, model) for parking and valet services</li>
+      </ul>
+      <h3>Technical Information</h3>
+      <ul>
+        <li>Device identifiers for push notification delivery</li>
+        <li>App usage data and interaction logs</li>
+        <li>Crash reports and diagnostic data (via Firebase Crashlytics)</li>
+        <li>IP address and general location data</li>
+      </ul>
+    </div>
+
+    <div class="section" id="s3">
+      <h2>3. How We Use Your Information</h2>
+      <p>We use the collected information to:</p>
+      <ul>
+        <li>Manage visitor registrations, approvals, and check-ins</li>
+        <li>Provide parking and valet services</li>
+        <li>Send push notifications about visit status updates and approvals</li>
+        <li>Manage meeting room and buffet bookings</li>
+        <li>Authenticate and authorize users based on their assigned roles</li>
+        <li>Improve application performance and user experience</li>
+        <li>Ensure the security of our facilities and systems</li>
+      </ul>
+    </div>
+
+    <div class="section" id="s4">
+      <h2>4. Data Sharing and Disclosure</h2>
+      <p>We do not sell your personal information. We may share your data with:</p>
+      <ul>
+        <li>Authorized personnel within Dallah Albaraka Group who need access for visitor management purposes</li>
+        <li>Service providers who assist in operating the VMS (e.g., cloud hosting, push notification services)</li>
+        <li>Law enforcement or regulatory authorities when required by applicable law</li>
+      </ul>
+    </div>
+
+    <div class="section" id="s5">
+      <h2>5. Data Security</h2>
+      <p>We implement appropriate technical and organizational measures to protect your personal information, including encryption in transit (TLS/SSL), secure authentication with JWT tokens, and role-based access controls. However, no method of electronic transmission or storage is 100% secure.</p>
+    </div>
+
+    <div class="section" id="s6">
+      <h2>6. Data Retention</h2>
+      <p>We retain your personal information only for as long as necessary to fulfill the purposes for which it was collected, comply with legal obligations, resolve disputes, and enforce our agreements. Visit records may be retained for security audit purposes as required by applicable regulations.</p>
+    </div>
+
+    <div class="section" id="s7">
+      <h2>7. Your Rights</h2>
+      <p>You have the right to:</p>
+      <ul>
+        <li>Access and review your personal information</li>
+        <li>Request correction of inaccurate data</li>
+        <li>Request deletion of your account and associated data</li>
+        <li>Opt out of non-essential push notifications</li>
+        <li>Withdraw consent for optional data processing</li>
+      </ul>
+    </div>
+
+    <div class="section" id="s8">
+      <h2>8. Third-Party Services</h2>
+      <p>Our application uses the following third-party services:</p>
+      <ul>
+        <li>Firebase Cloud Messaging (FCM) for push notifications</li>
+        <li>Firebase Crashlytics for crash reporting and diagnostics</li>
+        <li>Microsoft Azure Active Directory for single sign-on authentication</li>
+      </ul>
+      <p>Each service has its own privacy policy governing data processing.</p>
+    </div>
+
+    <div class="section" id="s9">
+      <h2>9. Children's Privacy</h2>
+      <p>This application is designed for business use and is not intended for individuals under the age of 18. We do not knowingly collect personal information from children.</p>
+    </div>
+
+    <div class="section" id="s10">
+      <h2>10. Changes to This Policy</h2>
+      <p>We may update this Privacy Policy from time to time. We will notify you of any material changes by posting the updated policy within the application. Your continued use of the VMS after such modifications constitutes your acknowledgment of the modified policy.</p>
+    </div>
+
+    <div class="section" id="s11">
+      <h2>11. Contact Us</h2>
+      <p>If you have questions or concerns about this Privacy Policy or our data practices, please contact us at:</p>
+      <div class="contact-block">
+        <p>Dallah Albaraka Group<br>Email: <a href="mailto:support@dallahdigital.com">support@dallahdigital.com</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="footer-space"></div>
+
+<script>
+var currentLang = 'en';
+
+var content = {
+  en: {
+    brandName: 'Dallah Albaraka',
+    brandSub: 'Visitor Management System',
+    pageTitle: 'Privacy Policy',
+    lastUpdated: 'Last Updated: February 2026',
+    toggle: 'AR',
+    sections: [
+      { title: '1. Introduction', body: '<p>Dallah Albaraka Group ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our Visitor Management System (VMS) mobile application.</p>' },
+      { title: '2. Information We Collect', body: '<h3>Personal Information</h3><ul><li>Full name and contact information (email address, phone number)</li><li>Profile photograph (optional)</li><li>Company/organization affiliation</li><li>Government-issued identification details (for visitor verification)</li><li>Vehicle information (license plate, make, model) for parking and valet services</li></ul><h3>Technical Information</h3><ul><li>Device identifiers for push notification delivery</li><li>App usage data and interaction logs</li><li>Crash reports and diagnostic data (via Firebase Crashlytics)</li><li>IP address and general location data</li></ul>' },
+      { title: '3. How We Use Your Information', body: '<p>We use the collected information to:</p><ul><li>Manage visitor registrations, approvals, and check-ins</li><li>Provide parking and valet services</li><li>Send push notifications about visit status updates and approvals</li><li>Manage meeting room and buffet bookings</li><li>Authenticate and authorize users based on their assigned roles</li><li>Improve application performance and user experience</li><li>Ensure the security of our facilities and systems</li></ul>' },
+      { title: '4. Data Sharing and Disclosure', body: '<p>We do not sell your personal information. We may share your data with:</p><ul><li>Authorized personnel within Dallah Albaraka Group who need access for visitor management purposes</li><li>Service providers who assist in operating the VMS (e.g., cloud hosting, push notification services)</li><li>Law enforcement or regulatory authorities when required by applicable law</li></ul>' },
+      { title: '5. Data Security', body: '<p>We implement appropriate technical and organizational measures to protect your personal information, including encryption in transit (TLS/SSL), secure authentication with JWT tokens, and role-based access controls. However, no method of electronic transmission or storage is 100% secure.</p>' },
+      { title: '6. Data Retention', body: '<p>We retain your personal information only for as long as necessary to fulfill the purposes for which it was collected, comply with legal obligations, resolve disputes, and enforce our agreements. Visit records may be retained for security audit purposes as required by applicable regulations.</p>' },
+      { title: '7. Your Rights', body: '<p>You have the right to:</p><ul><li>Access and review your personal information</li><li>Request correction of inaccurate data</li><li>Request deletion of your account and associated data</li><li>Opt out of non-essential push notifications</li><li>Withdraw consent for optional data processing</li></ul>' },
+      { title: '8. Third-Party Services', body: '<p>Our application uses the following third-party services:</p><ul><li>Firebase Cloud Messaging (FCM) for push notifications</li><li>Firebase Crashlytics for crash reporting and diagnostics</li><li>Microsoft Azure Active Directory for single sign-on authentication</li></ul><p>Each service has its own privacy policy governing data processing.</p>' },
+      { title: '9. Children\'s Privacy', body: '<p>This application is designed for business use and is not intended for individuals under the age of 18. We do not knowingly collect personal information from children.</p>' },
+      { title: '10. Changes to This Policy', body: '<p>We may update this Privacy Policy from time to time. We will notify you of any material changes by posting the updated policy within the application. Your continued use of the VMS after such modifications constitutes your acknowledgment of the modified policy.</p>' },
+      { title: '11. Contact Us', body: '<p>If you have questions or concerns about this Privacy Policy or our data practices, please contact us at:</p><div class="contact-block"><p>Dallah Albaraka Group<br>Email: <a href="mailto:support@dallahdigital.com">support@dallahdigital.com</a></p></div>' }
+    ]
+  },
+  ar: {
+    brandName: 'دله البركة',
+    brandSub: 'نظام إدارة الزوار',
+    pageTitle: 'سياسة الخصوصية',
+    lastUpdated: 'آخر تحديث: فبراير 2026',
+    toggle: 'EN',
+    sections: [
+      { title: '1. المقدمة', body: '<p>تلتزم مجموعة دله البركة ("نحن" أو "لنا" أو "الخاصة بنا") بحماية خصوصيتك. توضح سياسة الخصوصية هذه كيفية جمعنا واستخدامنا والإفصاح عن معلوماتك وحمايتها عند استخدامك لتطبيق نظام إدارة الزوار (VMS) على الهاتف المحمول.</p>' },
+      { title: '2. المعلومات التي نجمعها', body: '<h3>المعلومات الشخصية</h3><ul><li>الاسم الكامل ومعلومات الاتصال (البريد الإلكتروني، رقم الهاتف)</li><li>صورة الملف الشخصي (اختياري)</li><li>الانتماء للشركة/المؤسسة</li><li>تفاصيل الهوية الحكومية (للتحقق من الزائر)</li><li>معلومات المركبة (لوحة الترخيص، الشركة المصنعة، الطراز) لخدمات المواقف وخدمة صف السيارات</li></ul><h3>المعلومات التقنية</h3><ul><li>معرّفات الجهاز لتسليم الإشعارات الفورية</li><li>بيانات استخدام التطبيق وسجلات التفاعل</li><li>تقارير الأعطال والبيانات التشخيصية (عبر Firebase Crashlytics)</li><li>عنوان IP وبيانات الموقع العامة</li></ul>' },
+      { title: '3. كيف نستخدم معلوماتك', body: '<p>نستخدم المعلومات المجمعة من أجل:</p><ul><li>إدارة تسجيل الزوار والموافقات وتسجيل الدخول</li><li>تقديم خدمات المواقف وصف السيارات</li><li>إرسال إشعارات فورية حول تحديثات حالة الزيارة والموافقات</li><li>إدارة حجوزات غرف الاجتماعات والبوفيه</li><li>مصادقة المستخدمين وتفويضهم بناءً على أدوارهم المعينة</li><li>تحسين أداء التطبيق وتجربة المستخدم</li><li>ضمان أمن منشآتنا وأنظمتنا</li></ul>' },
+      { title: '4. مشاركة البيانات والإفصاح', body: '<p>نحن لا نبيع معلوماتك الشخصية. قد نشارك بياناتك مع:</p><ul><li>الموظفين المصرح لهم داخل مجموعة دله البركة الذين يحتاجون الوصول لأغراض إدارة الزوار</li><li>مقدمي الخدمات الذين يساعدون في تشغيل نظام إدارة الزوار (مثل الاستضافة السحابية وخدمات الإشعارات الفورية)</li><li>جهات إنفاذ القانون أو السلطات التنظيمية عندما يقتضي القانون المعمول به</li></ul>' },
+      { title: '5. أمن البيانات', body: '<p>نطبق التدابير التقنية والتنظيمية المناسبة لحماية معلوماتك الشخصية، بما في ذلك التشفير أثناء النقل (TLS/SSL) والمصادقة الآمنة بواسطة رموز JWT وضوابط الوصول القائمة على الأدوار. ومع ذلك، لا توجد طريقة للنقل الإلكتروني أو التخزين آمنة بنسبة 100%.</p>' },
+      { title: '6. الاحتفاظ بالبيانات', body: '<p>نحتفظ بمعلوماتك الشخصية فقط طالما كان ذلك ضرورياً لتحقيق الأغراض التي تم جمعها من أجلها، والامتثال للالتزامات القانونية، وحل النزاعات، وإنفاذ اتفاقياتنا. قد يتم الاحتفاظ بسجلات الزيارات لأغراض التدقيق الأمني وفقاً للأنظمة المعمول بها.</p>' },
+      { title: '7. حقوقك', body: '<p>لديك الحق في:</p><ul><li>الوصول إلى معلوماتك الشخصية ومراجعتها</li><li>طلب تصحيح البيانات غير الدقيقة</li><li>طلب حذف حسابك والبيانات المرتبطة به</li><li>إلغاء الاشتراك في الإشعارات الفورية غير الأساسية</li><li>سحب الموافقة على معالجة البيانات الاختيارية</li></ul>' },
+      { title: '8. خدمات الطرف الثالث', body: '<p>يستخدم تطبيقنا خدمات الطرف الثالث التالية:</p><ul><li>Firebase Cloud Messaging (FCM) للإشعارات الفورية</li><li>Firebase Crashlytics لتقارير الأعطال والتشخيصات</li><li>Microsoft Azure Active Directory للمصادقة عبر تسجيل الدخول الموحد</li></ul><p>لكل خدمة سياسة خصوصية خاصة بها تحكم معالجة البيانات.</p>' },
+      { title: '9. خصوصية الأطفال', body: '<p>تم تصميم هذا التطبيق للاستخدام التجاري وليس مخصصاً للأفراد الذين تقل أعمارهم عن 18 عاماً. نحن لا نجمع عن علم معلومات شخصية من الأطفال.</p>' },
+      { title: '10. التغييرات على هذه السياسة', body: '<p>قد نقوم بتحديث سياسة الخصوصية هذه من وقت لآخر. سنخطرك بأي تغييرات جوهرية عن طريق نشر السياسة المحدثة داخل التطبيق. استمرارك في استخدام نظام إدارة الزوار بعد هذه التعديلات يشكل إقرارك بالسياسة المعدلة.</p>' },
+      { title: '11. اتصل بنا', body: '<p>إذا كانت لديك أسئلة أو مخاوف بشأن سياسة الخصوصية هذه أو ممارسات البيانات لدينا، يرجى الاتصال بنا على:</p><div class="contact-block"><p>مجموعة دله البركة<br>البريد الإلكتروني: <a href="mailto:support@dallahdigital.com">support@dallahdigital.com</a></p></div>' }
+    ]
+  }
+};
+
+function getQueryParam(name) {
+  var params = new URLSearchParams(window.location.search);
+  return params.get(name);
+}
+
+function applyTheme() {
+  var theme = getQueryParam('theme');
+  if (theme === 'dark') {
+    document.documentElement.classList.add('dark');
+  }
+}
+
+function setLang(lang) {
+  currentLang = lang;
+  var c = content[lang];
+  var html = document.documentElement;
+  html.setAttribute('lang', lang === 'ar' ? 'ar' : 'en');
+  html.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+  document.getElementById('brandName').textContent = c.brandName;
+  document.getElementById('brandSub').textContent = c.brandSub;
+  document.getElementById('pageTitle').textContent = c.pageTitle;
+  document.getElementById('lastUpdated').textContent = c.lastUpdated;
+  document.getElementById('langToggle').textContent = c.toggle;
+  for (var i = 0; i < c.sections.length; i++) {
+    var el = document.getElementById('s' + (i + 1));
+    if (el) {
+      el.querySelector('h2').textContent = c.sections[i].title;
+      var h2 = el.querySelector('h2');
+      el.innerHTML = '';
+      el.appendChild(h2);
+      el.insertAdjacentHTML('beforeend', c.sections[i].body);
+    }
+  }
+}
+
+function toggleLang() {
+  setLang(currentLang === 'en' ? 'ar' : 'en');
+}
+
+(function init() {
+  applyTheme();
+  var lang = getQueryParam('lang');
+  if (lang === 'ar') {
+    setLang('ar');
+  } else {
+    setLang('en');
+  }
+})();
+</script>
+</body>
+</html>
