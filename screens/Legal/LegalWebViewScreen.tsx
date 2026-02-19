@@ -1,6 +1,5 @@
 import React, { useState, useRef } from "react";
 import { StyleSheet, View, Pressable, ActivityIndicator, Platform } from "react-native";
-import { WebView } from "react-native-webview";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ThemedText } from "@/components/ThemedText";
 import { DDIcon } from "@/components/DDIcon";
@@ -26,13 +25,82 @@ interface LegalWebViewScreenProps {
   onBack?: () => void;
 }
 
+function WebContent({ url, isLoading, setIsLoading, hasError, setHasError, theme }: {
+  url: string;
+  isLoading: boolean;
+  setIsLoading: (v: boolean) => void;
+  hasError: boolean;
+  setHasError: (v: boolean) => void;
+  theme: any;
+}) {
+  if (Platform.OS === 'web') {
+    return (
+      <>
+        {isLoading ? (
+          <View style={styles.loadingOverlay}>
+            <ActivityIndicator size="large" color={theme.primary} />
+          </View>
+        ) : null}
+        <iframe
+          src={url}
+          style={{
+            flex: 1,
+            width: '100%',
+            height: '100%',
+            border: 'none',
+            opacity: isLoading ? 0 : 1,
+          } as any}
+          onLoad={() => setIsLoading(false)}
+          onError={() => {
+            setIsLoading(false);
+            setHasError(true);
+          }}
+        />
+      </>
+    );
+  }
+
+  const WebView = require("react-native-webview").WebView;
+  const webViewRef = useRef<any>(null);
+
+  return (
+    <>
+      {isLoading ? (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color={theme.primary} />
+        </View>
+      ) : null}
+      <WebView
+        ref={webViewRef}
+        source={{ uri: url }}
+        style={[styles.webView, { opacity: isLoading ? 0 : 1 }]}
+        onLoadEnd={() => setIsLoading(false)}
+        onError={() => {
+          setIsLoading(false);
+          setHasError(true);
+        }}
+        onHttpError={() => {
+          setIsLoading(false);
+          setHasError(true);
+        }}
+        startInLoadingState={false}
+        javaScriptEnabled={true}
+        domStorageEnabled={true}
+        scalesPageToFit={true}
+        showsVerticalScrollIndicator={false}
+        originWhitelist={["*"]}
+        cacheEnabled={false}
+      />
+    </>
+  );
+}
+
 export default function LegalWebViewScreen({ page, title, onBack }: LegalWebViewScreenProps) {
   const { theme, isDark } = useTheme();
   const { isRTL } = useTranslation();
   const insets = useSafeAreaInsets();
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
-  const webViewRef = useRef<WebView>(null);
 
   const lang = isRTL ? "ar" : "en";
   const themeParam = isDark ? "dark" : "light";
@@ -42,7 +110,6 @@ export default function LegalWebViewScreen({ page, title, onBack }: LegalWebView
   const handleRetry = () => {
     setHasError(false);
     setIsLoading(true);
-    webViewRef.current?.reload();
   };
 
   if (!LEGAL_PAGES_BASE_URL) {
@@ -111,34 +178,14 @@ export default function LegalWebViewScreen({ page, title, onBack }: LegalWebView
           </Pressable>
         </View>
       ) : (
-        <>
-          {isLoading ? (
-            <View style={styles.loadingOverlay}>
-              <ActivityIndicator size="large" color={theme.primary} />
-            </View>
-          ) : null}
-          <WebView
-            ref={webViewRef}
-            source={{ uri: url }}
-            style={[styles.webView, { opacity: isLoading ? 0 : 1 }]}
-            onLoadEnd={() => setIsLoading(false)}
-            onError={() => {
-              setIsLoading(false);
-              setHasError(true);
-            }}
-            onHttpError={() => {
-              setIsLoading(false);
-              setHasError(true);
-            }}
-            startInLoadingState={false}
-            javaScriptEnabled={true}
-            domStorageEnabled={true}
-            scalesPageToFit={true}
-            showsVerticalScrollIndicator={false}
-            originWhitelist={["*"]}
-            cacheEnabled={false}
-          />
-        </>
+        <WebContent
+          url={url}
+          isLoading={isLoading}
+          setIsLoading={setIsLoading}
+          hasError={hasError}
+          setHasError={setHasError}
+          theme={theme}
+        />
       )}
     </View>
   );
