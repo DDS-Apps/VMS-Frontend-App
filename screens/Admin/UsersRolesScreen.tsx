@@ -391,10 +391,13 @@ export default function UsersRolesScreen() {
     if (!editingUser && !formData.password) {
       errors.password = t("form.passwordRequired");
     }
-    if (!formData.phoneNumber) {
-      errors.phone = t("errors.phoneRequired");
-    } else if (!validatePhone(formData.phoneNumber)) {
-      errors.phone = t("errors.invalidPhone");
+    const isEditingSsoUser = editingUser?.source === "microsoft_ad";
+    if (!isEditingSsoUser) {
+      if (!formData.phoneNumber) {
+        errors.phone = t("errors.phoneRequired");
+      } else if (!validatePhone(formData.phoneNumber)) {
+        errors.phone = t("errors.invalidPhone");
+      }
     }
 
     if (Object.keys(errors).length > 0) {
@@ -2037,7 +2040,7 @@ export default function UsersRolesScreen() {
                     value={formData.phoneNumber}
                     onChangeText={handlePhoneChange}
                     label={t("form.phoneNumber")}
-                    required
+                    required={!isSsoUser}
                     error={formErrors.phone}
                     testID="input-phone"
                     editable={!isSsoUser}
