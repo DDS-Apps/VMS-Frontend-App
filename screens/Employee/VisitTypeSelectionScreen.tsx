@@ -71,9 +71,9 @@ export default function VisitTypeSelectionScreen({ navigation, onTypeSelect }: V
 
   const handleTypeSelect = (visitType: VisitType) => {
     if (onTypeSelect) {
-      onTypeSelect(visitType.title);
+      onTypeSelect(visitType.id);
     } else {
-      navigation.navigate(ROUTES.VISITOR_REQUEST_FORM as never, { visitType: visitType.title } as never);
+      navigation.navigate(ROUTES.VISITOR_REQUEST_FORM as never, { visitType: visitType.title, visitTypeId: visitType.id } as never);
     }
   };
 

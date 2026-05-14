@@ -54,7 +54,7 @@ import { PhoneInputWithCountry } from "@/components/PhoneInputWithCountry";
 import type { VisitorRequestFormScreenProps } from "@/types/employeeNavigation.types";
 import { calculateServerDuration } from "@/utils/dateTimeUtils";
 import { useServerDateTime } from "@/hooks/useServerDateTime";
-import { PURPOSE_OPTIONS, PURPOSE_VALUE_TO_KEY } from "@/constants/requestConstants";
+import { PURPOSE_OPTIONS, PURPOSE_VALUE_TO_KEY, normalizePurposeValue } from "@/constants/requestConstants";
 
 const MONTHS = [
   "January",
@@ -113,6 +113,8 @@ export default function VisitorRequestFormScreen({
     isWalkIn === true,
   );
   const visitType = route?.params?.visitType || t("visitor.generalVisit");
+  const visitTypeId = (route?.params as any)?.visitTypeId as string | undefined;
+  const initialPurposeValue = visitTypeId ? (normalizePurposeValue(visitTypeId) || visitTypeId) : 'general';
 
   const FOOTER_HEIGHT = 100;
   const scrollContentStyle = {
@@ -133,7 +135,7 @@ export default function VisitorRequestFormScreen({
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [showEndTimePicker, setShowEndTimePicker] = useState(false);
-  const [purposeValue, setPurposeValue] = useState("general");
+  const [purposeValue, setPurposeValue] = useState(initialPurposeValue);
   const [purposeLabel, setPurposeLabel] = useState(visitType);
 
   const [needsMeetingRoom, setNeedsMeetingRoom] = useState(false);
