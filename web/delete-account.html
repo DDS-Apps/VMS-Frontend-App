@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Delete Account Request | طلب حذف الحساب</title>
+<style>
+:root {
+  --brand-orange: #F58423;
+  --brand-green: #009933;
+  --brand-grey: #282829;
+  --soft-orange: #FEF3E8;
+  --bg: #f5f5f5;
+  --card-bg: #ffffff;
+  --text-primary: #1a1a1a;
+  --text-secondary: #555555;
+  --border-color: #e0e0e0;
+  --shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+.dark {
+  --bg: #1a1a1a;
+  --card-bg: #282829;
+  --text-primary: #f0f0f0;
+  --text-secondary: #b0b0b0;
+  --border-color: #3a3a3b;
+  --shadow: 0 2px 12px rgba(0,0,0,0.3);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Albert Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text-primary);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+[dir="rtl"] body {
+  font-family: 'FS Albert Arabic', 'Geeza Pro', 'Arabic Typesetting', 'Simplified Arabic', Tahoma, sans-serif;
+}
+.header {
+  background: var(--brand-orange);
+  color: #fff;
+  padding: 24px 20px 20px;
+  position: relative;
+}
+.header-content { max-width: 720px; margin: 0 auto; }
+.header h1 { font-size: 20px; font-weight: 700; margin-bottom: 2px; }
+.header .subtitle { font-size: 13px; opacity: 0.9; font-weight: 400; }
+.header .page-title { font-size: 16px; font-weight: 600; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.25); }
+.lang-toggle {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 100;
+  background: rgba(255,255,255,0.2);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+[dir="rtl"] .lang-toggle { right: auto; left: 12px; }
+.lang-toggle:hover { background: rgba(255,255,255,0.35); }
+.container { max-width: 720px; margin: 0 auto; padding: 20px 16px 40px; }
+.card {
+  background: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 24px 20px;
+  margin-bottom: 16px;
+}
+.notice-card {
+  background: var(--soft-orange);
+  border: 1px solid rgba(245,132,35,0.3);
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.dark .notice-card {
+  background: rgba(245,132,35,0.12);
+  border-color: rgba(245,132,35,0.25);
+}
+.notice-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.notice-text { font-size: 14px; color: var(--text-primary); }
+.notice-text strong { color: var(--brand-orange); }
+.section { margin-bottom: 24px; }
+.section:last-child { margin-bottom: 0; }
+.section h2 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--brand-orange);
+  margin-bottom: 10px;
+}
+.section p { font-size: 14px; color: var(--text-primary); margin-bottom: 8px; }
+.steps {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0;
+  counter-reset: step-counter;
+}
+.steps li {
+  font-size: 14px;
+  color: var(--text-primary);
+  padding: 10px 12px 10px 44px;
+  margin-bottom: 8px;
+  background: var(--bg);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  position: relative;
+  counter-increment: step-counter;
+}
+[dir="rtl"] .steps li { padding: 10px 44px 10px 12px; }
+.steps li::before {
+  content: counter(step-counter);
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 22px;
+  height: 22px;
+  background: var(--brand-orange);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 22px;
+  text-align: center;
+}
+[dir="rtl"] .steps li::before { left: auto; right: 12px; }
+.data-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+.data-table th {
+  background: var(--brand-orange);
+  color: #fff;
+  padding: 8px 12px;
+  text-align: left;
+  font-weight: 600;
+}
+[dir="rtl"] .data-table th { text-align: right; }
+.data-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+  vertical-align: top;
+}
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:nth-child(even) td { background: var(--bg); }
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.badge-deleted { background: #fdecea; color: #c62828; }
+.badge-kept { background: #e8f5e9; color: #2e7d32; }
+.dark .badge-deleted { background: rgba(198,40,40,0.2); color: #ef9a9a; }
+.dark .badge-kept { background: rgba(46,125,50,0.2); color: #a5d6a7; }
+.contact-box {
+  background: var(--bg);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 16px;
+  margin-top: 12px;
+}
+.contact-box p { font-size: 14px; margin-bottom: 6px; color: var(--text-primary); }
+.contact-box p:last-child { margin-bottom: 0; }
+.contact-box strong { color: var(--brand-orange); }
+.footer-space { height: 20px; }
+</style>
+</head>
+<body>
+
+<button class="lang-toggle" onclick="toggleLang()" id="langBtn">العربية</button>
+
+<div class="header">
+  <div class="header-content">
+    <h1 id="hdr-org">Dallah Albaraka</h1>
+    <div class="subtitle" id="hdr-app">Visitor Management System (VMS)</div>
+    <div class="page-title" id="hdr-title">Account &amp; Data Deletion Request</div>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="notice-card">
+    <div class="notice-icon">&#x1F4CB;</div>
+    <div class="notice-text" id="notice-text">
+      <strong>Organization-managed application.</strong> The Dallah Albaraka VMS is an internal enterprise application. All user accounts are created and managed by your organization's IT or HR administrators — not through self-registration. Account deletion requests must therefore be submitted through your organization.
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section">
+      <h2 id="s1-title">How to Request Account Deletion</h2>
+      <p id="s1-intro">To request the deletion of your account and associated data, follow these steps:</p>
+      <ol class="steps">
+        <li id="step1">Contact your organization's <strong>IT Administrator</strong> or <strong>HR Department</strong> and submit a written account deletion request.</li>
+        <li id="step2">Include your <strong>full name</strong> and the <strong>email address</strong> linked to your VMS account in the request.</li>
+        <li id="step3">Your administrator will verify your identity and submit the deletion request through the VMS administration panel.</li>
+        <li id="step4">You will receive a confirmation once your account and data have been removed. This process typically takes <strong>up to 30 days</strong>.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section">
+      <h2 id="s2-title">What Data is Deleted</h2>
+      <p id="s2-intro">The following table describes what happens to each category of your data upon account deletion:</p>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th id="th-type">Data Type</th>
+            <th id="th-action">Action</th>
+            <th id="th-retention">Retention Period</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td id="d1-type">Name, email address, phone number</td>
+            <td><span class="badge badge-deleted" id="d1-action">Deleted</span></td>
+            <td id="d1-ret">Immediately upon deletion</td>
+          </tr>
+          <tr>
+            <td id="d2-type">Profile photo</td>
+            <td><span class="badge badge-deleted" id="d2-action">Deleted</span></td>
+            <td id="d2-ret">Immediately upon deletion</td>
+          </tr>
+          <tr>
+            <td id="d3-type">Visit history and records</td>
+            <td><span class="badge badge-kept" id="d3-action">Retained</span></td>
+            <td id="d3-ret">Retained for audit and compliance purposes per organization policy (typically 1 year)</td>
+          </tr>
+          <tr>
+            <td id="d4-type">Notification preferences</td>
+            <td><span class="badge badge-deleted" id="d4-action">Deleted</span></td>
+            <td id="d4-ret">Immediately upon deletion</td>
+          </tr>
+          <tr>
+            <td id="d5-type">Device push notification tokens</td>
+            <td><span class="badge badge-deleted" id="d5-action">Deleted</span></td>
+            <td id="d5-ret">Immediately upon deletion</td>
+          </tr>
+          <tr>
+            <td id="d6-type">Crash and diagnostic logs</td>
+            <td><span class="badge badge-kept" id="d6-action">Retained</span></td>
+            <td id="d6-ret">Automatically purged within 90 days by Firebase</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section">
+      <h2 id="s3-title">Contact Your Administrator</h2>
+      <p id="s3-intro">If you are unsure who your IT administrator is, please reach out to:</p>
+      <div class="contact-box">
+        <p><strong id="c1-label">Organization:</strong> <span id="c1-val">Dallah Albaraka</span></p>
+        <p><strong id="c2-label">Application:</strong> <span id="c2-val">Visitor Management System (VMS)</span></p>
+        <p><strong id="c3-label">Support:</strong> <span id="c3-val">Contact your HR or IT department directly through your internal channels.</span></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-space"></div>
+</div>
+
+<script>
+const EN = {
+  langBtn: 'العربية',
+  hdrOrg: 'Dallah Albaraka',
+  hdrApp: 'Visitor Management System (VMS)',
+  hdrTitle: 'Account & Data Deletion Request',
+  noticeText: '<strong>Organization-managed application.</strong> The Dallah Albaraka VMS is an internal enterprise application. All user accounts are created and managed by your organization\'s IT or HR administrators — not through self-registration. Account deletion requests must therefore be submitted through your organization.',
+  s1Title: 'How to Request Account Deletion',
+  s1Intro: 'To request the deletion of your account and associated data, follow these steps:',
+  step1: 'Contact your organization\'s <strong>IT Administrator</strong> or <strong>HR Department</strong> and submit a written account deletion request.',
+  step2: 'Include your <strong>full name</strong> and the <strong>email address</strong> linked to your VMS account in the request.',
+  step3: 'Your administrator will verify your identity and submit the deletion request through the VMS administration panel.',
+  step4: 'You will receive a confirmation once your account and data have been removed. This process typically takes <strong>up to 30 days</strong>.',
+  s2Title: 'What Data is Deleted',
+  s2Intro: 'The following table describes what happens to each category of your data upon account deletion:',
+  thType: 'Data Type', thAction: 'Action', thRetention: 'Retention Period',
+  d1Type: 'Name, email address, phone number', d1Action: 'Deleted', d1Ret: 'Immediately upon deletion',
+  d2Type: 'Profile photo', d2Action: 'Deleted', d2Ret: 'Immediately upon deletion',
+  d3Type: 'Visit history and records', d3Action: 'Retained', d3Ret: 'Retained for audit and compliance purposes per organization policy (typically 1 year)',
+  d4Type: 'Notification preferences', d4Action: 'Deleted', d4Ret: 'Immediately upon deletion',
+  d5Type: 'Device push notification tokens', d5Action: 'Deleted', d5Ret: 'Immediately upon deletion',
+  d6Type: 'Crash and diagnostic logs', d6Action: 'Retained', d6Ret: 'Automatically purged within 90 days by Firebase',
+  s3Title: 'Contact Your Administrator',
+  s3Intro: 'If you are unsure who your IT administrator is, please reach out to:',
+  c1Label: 'Organization:', c1Val: 'Dallah Albaraka',
+  c2Label: 'Application:', c2Val: 'Visitor Management System (VMS)',
+  c3Label: 'Support:', c3Val: 'Contact your HR or IT department directly through your internal channels.'
+};
+
+const AR = {
+  langBtn: 'English',
+  hdrOrg: 'دلة البركة',
+  hdrApp: 'نظام إدارة الزوار (VMS)',
+  hdrTitle: 'طلب حذف الحساب والبيانات',
+  noticeText: '<strong>تطبيق مُدار من قِبل المنظمة.</strong> نظام إدارة الزوار الخاص بدلة البركة هو تطبيق مؤسسي داخلي. جميع حسابات المستخدمين تُنشأ وتُدار من قِبل مسؤولي تقنية المعلومات أو الموارد البشرية في مؤسستك — وليس من خلال التسجيل الذاتي. لذلك يجب تقديم طلبات حذف الحساب من خلال مؤسستك.',
+  s1Title: 'كيفية طلب حذف الحساب',
+  s1Intro: 'لطلب حذف حسابك والبيانات المرتبطة به، اتبع الخطوات التالية:',
+  step1: 'تواصل مع <strong>مسؤول تقنية المعلومات</strong> أو <strong>قسم الموارد البشرية</strong> في مؤسستك وقدّم طلب حذف حساب خطيًا.',
+  step2: 'أدرج <strong>اسمك الكامل</strong> و<strong>عنوان البريد الإلكتروني</strong> المرتبط بحسابك في النظام.',
+  step3: 'سيقوم المسؤول بالتحقق من هويتك وتقديم طلب الحذف عبر لوحة إدارة النظام.',
+  step4: 'ستتلقى تأكيدًا بعد إزالة حسابك وبياناتك. تستغرق هذه العملية عادةً <strong>ما يصل إلى 30 يومًا</strong>.',
+  s2Title: 'ما هي البيانات التي يتم حذفها',
+  s2Intro: 'يوضح الجدول التالي ما يحدث لكل فئة من بياناتك عند حذف الحساب:',
+  thType: 'نوع البيانات', thAction: 'الإجراء', thRetention: 'مدة الاحتفاظ',
+  d1Type: 'الاسم، عنوان البريد الإلكتروني، رقم الهاتف', d1Action: 'حذف', d1Ret: 'فور الحذف',
+  d2Type: 'الصورة الشخصية', d2Action: 'حذف', d2Ret: 'فور الحذف',
+  d3Type: 'سجل الزيارات والسجلات', d3Action: 'محتفظ به', d3Ret: 'يُحتفظ به لأغراض التدقيق والامتثال وفق سياسة المؤسسة (عادةً سنة واحدة)',
+  d4Type: 'تفضيلات الإشعارات', d4Action: 'حذف', d4Ret: 'فور الحذف',
+  d5Type: 'رموز إشعارات الجهاز', d5Action: 'حذف', d5Ret: 'فور الحذف',
+  d6Type: 'سجلات الأعطال والتشخيص', d6Action: 'محتفظ به', d6Ret: 'يتم المسح تلقائيًا خلال 90 يومًا بواسطة Firebase',
+  s3Title: 'تواصل مع المسؤول',
+  s3Intro: 'إذا كنت غير متأكد من هوية مسؤول تقنية المعلومات لديك، يرجى التواصل عبر:',
+  c1Label: 'المؤسسة:', c1Val: 'دلة البركة',
+  c2Label: 'التطبيق:', c2Val: 'نظام إدارة الزوار (VMS)',
+  c3Label: 'الدعم:', c3Val: 'تواصل مع قسم الموارد البشرية أو تقنية المعلومات مباشرةً عبر قنواتك الداخلية.'
+};
+
+let currentLang = 'en';
+
+function applyLang(lang) {
+  const t = lang === 'ar' ? AR : EN;
+  const isRTL = lang === 'ar';
+  document.documentElement.lang = lang;
+  document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
+  document.getElementById('langBtn').textContent = t.langBtn;
+  document.getElementById('hdr-org').textContent = t.hdrOrg;
+  document.getElementById('hdr-app').textContent = t.hdrApp;
+  document.getElementById('hdr-title').textContent = t.hdrTitle;
+  document.getElementById('notice-text').innerHTML = t.noticeText;
+  document.getElementById('s1-title').textContent = t.s1Title;
+  document.getElementById('s1-intro').textContent = t.s1Intro;
+  document.getElementById('step1').innerHTML = t.step1;
+  document.getElementById('step2').innerHTML = t.step2;
+  document.getElementById('step3').innerHTML = t.step3;
+  document.getElementById('step4').innerHTML = t.step4;
+  document.getElementById('s2-title').textContent = t.s2Title;
+  document.getElementById('s2-intro').textContent = t.s2Intro;
+  document.getElementById('th-type').textContent = t.thType;
+  document.getElementById('th-action').textContent = t.thAction;
+  document.getElementById('th-retention').textContent = t.thRetention;
+  document.getElementById('d1-type').textContent = t.d1Type;
+  document.getElementById('d1-action').textContent = t.d1Action;
+  document.getElementById('d1-ret').textContent = t.d1Ret;
+  document.getElementById('d2-type').textContent = t.d2Type;
+  document.getElementById('d2-action').textContent = t.d2Action;
+  document.getElementById('d2-ret').textContent = t.d2Ret;
+  document.getElementById('d3-type').textContent = t.d3Type;
+  document.getElementById('d3-action').textContent = t.d3Action;
+  document.getElementById('d3-ret').textContent = t.d3Ret;
+  document.getElementById('d4-type').textContent = t.d4Type;
+  document.getElementById('d4-action').textContent = t.d4Action;
+  document.getElementById('d4-ret').textContent = t.d4Ret;
+  document.getElementById('d5-type').textContent = t.d5Type;
+  document.getElementById('d5-action').textContent = t.d5Action;
+  document.getElementById('d5-ret').textContent = t.d5Ret;
+  document.getElementById('d6-type').textContent = t.d6Type;
+  document.getElementById('d6-action').textContent = t.d6Action;
+  document.getElementById('d6-ret').textContent = t.d6Ret;
+  document.getElementById('s3-title').textContent = t.s3Title;
+  document.getElementById('s3-intro').textContent = t.s3Intro;
+  document.getElementById('c1-label').textContent = t.c1Label;
+  document.getElementById('c1-val').textContent = t.c1Val;
+  document.getElementById('c2-label').textContent = t.c2Label;
+  document.getElementById('c2-val').textContent = t.c2Val;
+  document.getElementById('c3-label').textContent = t.c3Label;
+  document.getElementById('c3-val').textContent = t.c3Val;
+}
+
+function toggleLang() {
+  currentLang = currentLang === 'en' ? 'ar' : 'en';
+  applyLang(currentLang);
+}
+
+const params = new URLSearchParams(window.location.search);
+const initialLang = params.get('lang') === 'ar' ? 'ar' : 'en';
+const theme = params.get('theme');
+if (theme === 'dark') document.body.classList.add('dark');
+currentLang = initialLang;
+applyLang(initialLang);
+</script>
+</body>
+</html>
