@@ -26,6 +26,20 @@ interface LegalWebViewScreenProps {
   onBack?: () => void;
 }
 
+function WebIframeContent({ url, title }: { url: string; title: string }) {
+  return React.createElement('iframe', {
+    src: url,
+    title: title,
+    style: {
+      flex: 1,
+      border: 'none',
+      width: '100%',
+      height: '100%',
+    },
+    frameBorder: '0',
+  });
+}
+
 function WebLegalContent({ page, isRTL, isDark }: {
   page: "terms" | "privacy";
   isRTL: boolean;
@@ -199,7 +213,11 @@ export default function LegalWebViewScreen({ page, title, onBack }: LegalWebView
     return (
       <View style={[styles.container, { backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5' }]}>
         {renderHeader()}
-        <WebLegalContent page={page} isRTL={isRTL} isDark={isDark} />
+        {LEGAL_PAGES_BASE_URL ? (
+          <WebIframeContent url={url} title={title} />
+        ) : (
+          <WebLegalContent page={page} isRTL={isRTL} isDark={isDark} />
+        )}
       </View>
     );
   }
