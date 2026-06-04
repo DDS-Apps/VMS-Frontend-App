@@ -1,0 +1,69 @@
+Review Environment
+Submission ID: 3228b45d-5175-486a-aec2-a3a39c1c1e29
+Review date: May 26, 2026
+Review Device: iPad Air 11-inch (M3)
+Version reviewed: 1.12 (67)
+
+Guideline 3.2 - Business
+
+Issue Description
+
+We found in our review that the app is intended to be used by a specific business or organization, including partners, clients, or employees, but you've selected public distribution on the App Store in App Store Connect. Since the App Store is intended for apps with a public audience, we recommend reviewing the other distribution options available to you through your Apple Developer Program Account. 
+
+If you believe our assessment is incorrect and the app is intended for a general, public audience, clarify why in your response to the questions provided below.
+
+Next Steps
+
+If the app is intended for use by a specific business or organization, review the other distribution options available for apps designed for specific businesses or organizations and choose a distribution option that works for the app and users. You can review these app distribution options on Apple Developer. 
+
+If you believe the app is intended for a general public audience, review the following questions and provide as much detailed information as you can for each question:
+
+1. Is the app restricted to users who are part of a single company or organization? This may include users of the company's partners, employees, and contractors.
+2. Is the app designed for use by a limited or specific group of companies or organizations? 
+- If yes, which companies or organizations use this app? 
+- If not, can any company or organization become a client and utilize this app?
+3. What features in the app, if any, are intended for use by the general public? The general public refers to a wide range of users who can discover, download, and use an app without invitation, pre-approved registration, or affiliation with a specific organization.
+4. How do users obtain an account?
+5. Is there any paid content in the app and if so who pays for it? For example, do users pay for opening an account or using certain features in the app?
+
+Resources 
+
+- Learn more about custom app distribution using Apple Business Manager or Apple School Manager.
+- Learn more about unlisted app distribution.
+
+
+Guideline 2.1(a) - Performance - App Completeness
+Issue Description
+
+The app exhibited one or more bugs that would negatively impact users.
+
+Bug description: The app got stuck loading before timing out.
+
+
+Review device details:
+
+- Device type: iPad Air 11-inch (M3) 
+- OS version: iPadOS 26.5
+- Internet Connection: Active
+
+Next Steps
+
+Test the app on supported devices to identify and resolve bugs and stability issues before submitting for review.
+
+If the bug cannot be reproduced, try the following:
+
+- For new apps, uninstall all previous versions of the app from a device, then install and follow the steps to reproduce.
+- For app updates, install the new version as an update to the previous version, then follow the steps to reproduce.
+
+Note that users expect apps they download to function on all the devices where they are available. For example, apps that may be downloaded onto iPad devices should function as expected for iPad users. 
+
+Resources
+
+- For information about testing apps and preparing them for review, see Testing a Release Build.
+- To learn about troubleshooting networking issues, see Networking Overview.
+
+
+Support
+- Reply to this message in your preferred language if you need assistance. If you need additional support, use the Contact Us module.
+- Consult with fellow developers and Apple engineers on the Apple Developer Forums.
+- Provide feedback on this message and your review experience by completing a short survey.
