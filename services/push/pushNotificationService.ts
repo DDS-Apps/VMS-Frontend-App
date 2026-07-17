@@ -42,6 +42,9 @@ type NotificationCallback = (notification: Notifications.Notification) => void;
 
 class PushNotificationService {
   private static instance: PushNotificationService;
+  private static readonly SHOWN_IDS_STORAGE_KEY = 'vms_push_shown_toast_ids';
+  private static readonly SHOWN_IDS_TTL_MS = 30 * 60 * 1000; // 30 minutes
+
   private token: string | null = null;
   private isInitialized = false;
   private notificationListener: Notifications.EventSubscription | null = null;
@@ -96,11 +99,78 @@ class PushNotificationService {
   }
 
   /**
+   * Hydrates the in-memory shownToastIds Set from AsyncStorage on startup,
+   * discarding any entries older than SHOWN_IDS_TTL_MS (30 min). Must be
+   * called before notification listeners are registered so that a cold-launch
+   * triggered by tapping a notification does not re-show its toast.
+   */
+  private async hydrateShownIds(): Promise<void> {
+    try {
+      const AsyncStorage =
+        require('@react-native-async-storage/async-storage').default;
+      const raw: string | null = await AsyncStorage.getItem(
+        PushNotificationService.SHOWN_IDS_STORAGE_KEY
+      );
+      if (!raw) return;
+      const entries: Array<{ id: string; ts: number }> = JSON.parse(raw);
+      const now = Date.now();
+      const ttl = PushNotificationService.SHOWN_IDS_TTL_MS;
+      for (const entry of entries) {
+        if (now - entry.ts < ttl) {
+          this.shownToastIds.add(entry.id);
+        }
+      }
+      console.log(
+        '[Push] Hydrated shown toast IDs from storage:',
+        this.shownToastIds.size
+      );
+    } catch (error) {
+      console.warn('[Push] Failed to hydrate shown toast IDs:', error);
+    }
+  }
+
+  /**
+   * Persists a newly seen notification ID to AsyncStorage so it survives
+   * process termination. Expired entries are pruned on each write. This is
+   * fire-and-forget; failures are logged but do not block the caller.
+   */
+  private persistShownId(id: string): void {
+    (async () => {
+      try {
+        const AsyncStorage =
+          require('@react-native-async-storage/async-storage').default;
+        const now = Date.now();
+        const ttl = PushNotificationService.SHOWN_IDS_TTL_MS;
+        const storageKey = PushNotificationService.SHOWN_IDS_STORAGE_KEY;
+        const raw: string | null = await AsyncStorage.getItem(storageKey);
+        let entries: Array<{ id: string; ts: number }> = raw
+          ? JSON.parse(raw)
+          : [];
+        // Prune expired entries
+        entries = entries.filter((e) => now - e.ts < ttl);
+        // Append the new entry
+        entries.push({ id, ts: now });
+        // Cap at 200 to bound storage size
+        if (entries.length > 200) {
+          entries = entries.slice(entries.length - 200);
+        }
+        await AsyncStorage.setItem(storageKey, JSON.stringify(entries));
+      } catch (error) {
+        console.warn('[Push] Failed to persist shown toast ID:', error);
+      }
+    })();
+  }
+
+  /**
    * Tracks whether we have already triggered the in-app notification toast
    * for a given notification identifier. Used to prevent duplicate toasts
    * when an `upcoming_visit` push arrives via multiple channels (e.g. several
    * open web tabs or a reconnect) or when both the received and response
    * listeners fire for the same notification.
+   *
+   * The Set is hydrated from AsyncStorage on cold launch (see hydrateShownIds)
+   * so duplicate suppression survives process termination. New IDs are also
+   * persisted asynchronously via persistShownId.
    *
    * Capped at 200 entries; oldest entry is evicted when the cap is exceeded.
    */
@@ -115,6 +185,7 @@ class PushNotificationService {
         this.shownToastIds.delete(oldest);
       }
     }
+    this.persistShownId(notificationId);
     return true;
   }
 
@@ -133,6 +204,12 @@ class PushNotificationService {
     if (this.isInitialized) {
       return true;
     }
+
+    // Hydrate the deduplication Set from persistent storage before any
+    // listeners fire.  This prevents a cold-launch (e.g. tapping a push
+    // notification that opens the app) from re-showing a toast whose ID
+    // was already recorded in a previous session within the last 30 min.
+    await this.hydrateShownIds();
 
     try {
       let result: boolean;
