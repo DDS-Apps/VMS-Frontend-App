@@ -152,8 +152,14 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
       const statusA = statusOrder[a.status] ?? 99;
       const statusB = statusOrder[b.status] ?? 99;
       if (statusA !== statusB) return statusA - statusB;
-      const dateA = new Date(a.visitDate + 'T' + (a.visitTime?.replace(/\s*(AM|PM)/i, '') || '00:00')).getTime();
-      const dateB = new Date(b.visitDate + 'T' + (b.visitTime?.replace(/\s*(AM|PM)/i, '') || '00:00')).getTime();
+      const parseVisitTime = (visitDate: string, visitTime?: string): number => {
+        if (!visitTime) return Number.MIN_SAFE_INTEGER;
+        const cleaned = visitTime.replace(/\s*(AM|PM)/i, '').trim();
+        const ts = new Date(visitDate + 'T' + cleaned).getTime();
+        return isNaN(ts) ? Number.MIN_SAFE_INTEGER : ts;
+      };
+      const dateA = parseVisitTime(a.visitDate, a.visitTime);
+      const dateB = parseVisitTime(b.visitDate, b.visitTime);
       return dateB - dateA;
     });
   }, [tasksResponse]);

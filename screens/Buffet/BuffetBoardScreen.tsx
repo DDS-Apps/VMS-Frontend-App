@@ -137,8 +137,13 @@ export default function BuffetBoardScreen() {
       if (statusOrder[a.status] !== statusOrder[b.status]) {
         return statusOrder[a.status] - statusOrder[b.status];
       }
-      const dateA = new Date(a.visitDate + 'T' + (a.visitTime || '00:00')).getTime();
-      const dateB = new Date(b.visitDate + 'T' + (b.visitTime || '00:00')).getTime();
+      const parseVisitTime = (visitDate: string, visitTime?: string): number => {
+        if (!visitTime) return Number.MIN_SAFE_INTEGER;
+        const ts = new Date(visitDate + 'T' + visitTime).getTime();
+        return isNaN(ts) ? Number.MIN_SAFE_INTEGER : ts;
+      };
+      const dateA = parseVisitTime(a.visitDate, a.visitTime);
+      const dateB = parseVisitTime(b.visitDate, b.visitTime);
       return dateB - dateA;
     });
 
