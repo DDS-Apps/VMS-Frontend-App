@@ -73,3 +73,7 @@ EXPO_PUBLIC_LEGAL_PAGES_URL = "https://vms-frontend-folio3.replit.app"
 
 [agent]
 expertMode = true
+
+[postMerge]
+path = "scripts/post-merge.sh"
+timeoutMs = 120000
