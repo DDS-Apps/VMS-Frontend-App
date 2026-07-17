@@ -18,7 +18,10 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { VisitorRequest } from "@/types/vms.types";
 import { getStatusConfig as getStatusStyle, applyOpacity } from "@/utils/statusStyles";
 import { useUpcomingIndicator } from "@/hooks/useUpcomingVisitTimer";
-import { UPCOMING_INDICATOR_ELIGIBLE_STATUSES, UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES } from "@/constants/requestConstants";
+import {
+  isUpcomingIndicatorEligibleStatus,
+  UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES,
+} from "@/constants/requestConstants";
 
 type CardVariant = 'default' | 'compact' | 'actions' | 'selectable';
 
@@ -140,7 +143,7 @@ export function VisitorRequestCard({
   const statusConfig = getStatusStyle(theme, request.status, t);
   const borderColor = accentColor || statusConfig.borderColor;
 
-  const isStatusEligible = (UPCOMING_INDICATOR_ELIGIBLE_STATUSES as readonly string[]).includes(request.status);
+  const isStatusEligible = isUpcomingIndicatorEligibleStatus(request.status);
   const isUpcoming = useUpcomingIndicator({
     visitDate: request.visitDate ?? '',
     visitTime: request.visitTime ?? '',
