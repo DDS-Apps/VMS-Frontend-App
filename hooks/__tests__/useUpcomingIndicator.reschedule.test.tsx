@@ -376,6 +376,147 @@ describe('useUpcomingIndicator — reschedule (visitDate/visitTime prop changes)
     act(() => { renderer.unmount(); });
   });
 
+  // ---------------------------------------------------------------------------
+  // Midnight-crossing tests
+  //
+  // These two tests pin the clock to 23:56 tonight using fake timers, then
+  // reschedule a visit that starts near midnight to a time just past midnight
+  // tomorrow.  parseVisitDateTime builds the Date from year/month/day fields
+  // independently, so the date-increment path would previously go untested.
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Reschedule crosses midnight and lands INSIDE the 15-min window.
+   *
+   * Clock is frozen at today 23:56.
+   * Initial visit: today 23:58   →  2 min away → indicator ON.
+   * Reschedule to: tomorrow 00:05 →  9 min away → indicator must stay ON.
+   */
+  it('keeps the indicator ON when a reschedule crosses midnight but stays inside the window', () => {
+    jest.useFakeTimers();
+
+    // Pin "now" to 23:56:00.000 today.
+    const base = new Date();
+    base.setHours(23, 56, 0, 0);
+    jest.setSystemTime(base.getTime());
+
+    // Build visit at today 23:58 (2 min away — inside window).
+    const todayDate = [
+      base.getFullYear(),
+      String(base.getMonth() + 1).padStart(2, '0'),
+      String(base.getDate()).padStart(2, '0'),
+    ].join('-');
+    const initialTime = '23:58';
+
+    // Build visit at tomorrow 00:05 (9 min from 23:56 — still inside window).
+    const tomorrow = new Date(base);
+    tomorrow.setDate(base.getDate() + 1);
+    const tomorrowDate = [
+      tomorrow.getFullYear(),
+      String(tomorrow.getMonth() + 1).padStart(2, '0'),
+      String(tomorrow.getDate()).padStart(2, '0'),
+    ].join('-');
+    const rescheduledTime = '00:05';
+
+    const resultRef: React.MutableRefObject<boolean> = { current: false };
+    let renderer: ReturnType<typeof create>;
+
+    // Initial render: today 23:58 → ON.
+    act(() => {
+      renderer = create(
+        <HostComponent
+          visitDate={todayDate}
+          visitTime={initialTime}
+          eligible={true}
+          resultRef={resultRef}
+        />
+      );
+    });
+    expect(resultRef.current).toBe(true); // 2 min < 15 min → ON
+
+    // Reschedule to tomorrow 00:05 (cross-midnight, 9 min away) → still ON.
+    act(() => {
+      renderer.update(
+        <HostComponent
+          visitDate={tomorrowDate}
+          visitTime={rescheduledTime}
+          eligible={true}
+          resultRef={resultRef}
+        />
+      );
+    });
+    expect(resultRef.current).toBe(true); // 9 min < 15 min → ON
+
+    act(() => { renderer.unmount(); });
+    jest.useRealTimers();
+  });
+
+  /**
+   * Reschedule crosses midnight and lands OUTSIDE the 15-min window.
+   *
+   * Clock is frozen at today 23:56.
+   * Initial visit: today 23:58   →  2 min away  → indicator ON.
+   * Reschedule to: tomorrow 00:20 → 24 min away → indicator must turn OFF.
+   */
+  it('turns the indicator OFF when a reschedule crosses midnight and lands outside the window', () => {
+    jest.useFakeTimers();
+
+    // Pin "now" to 23:56:00.000 today.
+    const base = new Date();
+    base.setHours(23, 56, 0, 0);
+    jest.setSystemTime(base.getTime());
+
+    // Build visit at today 23:58 (2 min away — inside window).
+    const todayDate = [
+      base.getFullYear(),
+      String(base.getMonth() + 1).padStart(2, '0'),
+      String(base.getDate()).padStart(2, '0'),
+    ].join('-');
+    const initialTime = '23:58';
+
+    // Build visit at tomorrow 00:20 (24 min from 23:56 — outside window).
+    const tomorrow = new Date(base);
+    tomorrow.setDate(base.getDate() + 1);
+    const tomorrowDate = [
+      tomorrow.getFullYear(),
+      String(tomorrow.getMonth() + 1).padStart(2, '0'),
+      String(tomorrow.getDate()).padStart(2, '0'),
+    ].join('-');
+    const rescheduledTime = '00:20';
+
+    const resultRef: React.MutableRefObject<boolean> = { current: false };
+    let renderer: ReturnType<typeof create>;
+
+    // Initial render: today 23:58 → ON.
+    act(() => {
+      renderer = create(
+        <HostComponent
+          visitDate={todayDate}
+          visitTime={initialTime}
+          eligible={true}
+          resultRef={resultRef}
+        />
+      );
+    });
+    expect(resultRef.current).toBe(true); // 2 min < 15 min → ON
+
+    // Reschedule to tomorrow 00:20 (cross-midnight, 24 min away) → OFF.
+    act(() => {
+      renderer.update(
+        <HostComponent
+          visitDate={tomorrowDate}
+          visitTime={rescheduledTime}
+          eligible={true}
+          resultRef={resultRef}
+        />
+      );
+    });
+    expect(resultRef.current).toBe(false); // 24 min > 15 min → OFF
+
+    act(() => { renderer.unmount(); });
+    jest.useRealTimers();
+  });
+
   /**
    * Three-step full-cycle regression:
    *  20 min away, eligible  → OFF
