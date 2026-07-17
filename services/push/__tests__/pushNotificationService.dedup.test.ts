@@ -6,6 +6,7 @@
  *  2. Cold-launch deduplication  — IDs written to storage in session A suppress the toast in session B
  *  3. 30-min TTL                 — an entry older than 30 min is NOT loaded from storage
  *  4. Storage cap                — more than 200 entries are pruned correctly
+ *  5. Crashlytics error reporting — AsyncStorage failures are forwarded to crashlyticsService.recordError
  */
 
 // ---------------------------------------------------------------------------
@@ -93,6 +94,23 @@ jest.mock('@/services/crashlytics/crashlyticsService', () => ({
     recordError: jest.fn(),
     setUserAttributes: jest.fn(),
     clearUserAttributes: jest.fn(),
+  },
+}));
+
+// Crashlytics mock — spy on recordError to verify error-path forwarding
+jest.mock('@/services/crashlytics/crashlyticsService', () => ({
+  crashlyticsService: {
+    recordError: jest.fn(),
+    log: jest.fn(),
+    recordJSException: jest.fn(),
+    crash: jest.fn(),
+    setUserId: jest.fn().mockResolvedValue(undefined),
+    setAttribute: jest.fn().mockResolvedValue(undefined),
+    setAttributes: jest.fn().mockResolvedValue(undefined),
+    setUserAttributes: jest.fn().mockResolvedValue(undefined),
+    clearUserAttributes: jest.fn().mockResolvedValue(undefined),
+    setCrashlyticsCollectionEnabled: jest.fn().mockResolvedValue(undefined),
+    isNativeModuleAvailable: jest.fn().mockReturnValue(false),
   },
 }));
 
@@ -419,6 +437,98 @@ describe('PushNotificationService — toast deduplication', () => {
       expect(AsyncStorage.removeItem).not.toHaveBeenCalled();
       expect(crashlyticsService.log).not.toHaveBeenCalled();
       expect(svc.shownToastIds.has('good-id')).toBe(true);
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // 6. Crashlytics error reporting — storage failures must surface in Crashlytics
+  // -----------------------------------------------------------------------
+  describe('Crashlytics error reporting on AsyncStorage failures', () => {
+    // hydrateShownIds -------------------------------------------------------
+
+    it('calls crashlyticsService.recordError when AsyncStorage.getItem throws in hydrateShownIds', async () => {
+      const storageError = new Error('Disk full');
+      (AsyncStorage.getItem as jest.Mock).mockRejectedValue(storageError);
+
+      await svc.hydrateShownIds();
+
+      expect(crashlyticsService.recordError).toHaveBeenCalledTimes(1);
+      expect(crashlyticsService.recordError).toHaveBeenCalledWith(
+        storageError,
+        'Push.hydrateShownIds'
+      );
+    });
+
+    it('wraps non-Error throws from hydrateShownIds in an Error before forwarding to Crashlytics', async () => {
+      (AsyncStorage.getItem as jest.Mock).mockRejectedValue('string error');
+
+      await svc.hydrateShownIds();
+
+      expect(crashlyticsService.recordError).toHaveBeenCalledTimes(1);
+      const [firstArg, secondArg] = (crashlyticsService.recordError as jest.Mock).mock.calls[0];
+      expect(firstArg).toBeInstanceOf(Error);
+      expect(secondArg).toBe('Push.hydrateShownIds');
+    });
+
+    it('does not call crashlyticsService.recordError when hydrateShownIds succeeds', async () => {
+      (AsyncStorage.getItem as jest.Mock).mockResolvedValue(null);
+
+      await svc.hydrateShownIds();
+
+      expect(crashlyticsService.recordError).not.toHaveBeenCalled();
+    });
+
+    // persistShownId --------------------------------------------------------
+
+    it('calls crashlyticsService.recordError when AsyncStorage.getItem throws in persistShownId', async () => {
+      const storageError = new Error('Storage unavailable');
+      (AsyncStorage.getItem as jest.Mock).mockRejectedValue(storageError);
+
+      await svc.persistShownId('some-id');
+      await flushPromises();
+
+      expect(crashlyticsService.recordError).toHaveBeenCalledTimes(1);
+      expect(crashlyticsService.recordError).toHaveBeenCalledWith(
+        storageError,
+        'Push.persistShownId'
+      );
+    });
+
+    it('calls crashlyticsService.recordError when AsyncStorage.setItem throws in persistShownId', async () => {
+      const writeError = new Error('Write failed');
+      (AsyncStorage.getItem as jest.Mock).mockResolvedValue(null);
+      (AsyncStorage.setItem as jest.Mock).mockRejectedValue(writeError);
+
+      await svc.persistShownId('some-id');
+      await flushPromises();
+
+      expect(crashlyticsService.recordError).toHaveBeenCalledTimes(1);
+      expect(crashlyticsService.recordError).toHaveBeenCalledWith(
+        writeError,
+        'Push.persistShownId'
+      );
+    });
+
+    it('wraps non-Error throws from persistShownId in an Error before forwarding to Crashlytics', async () => {
+      (AsyncStorage.getItem as jest.Mock).mockRejectedValue(42);
+
+      await svc.persistShownId('some-id');
+      await flushPromises();
+
+      expect(crashlyticsService.recordError).toHaveBeenCalledTimes(1);
+      const [firstArg, secondArg] = (crashlyticsService.recordError as jest.Mock).mock.calls[0];
+      expect(firstArg).toBeInstanceOf(Error);
+      expect(secondArg).toBe('Push.persistShownId');
+    });
+
+    it('does not call crashlyticsService.recordError when persistShownId succeeds', async () => {
+      (AsyncStorage.getItem as jest.Mock).mockResolvedValue(null);
+      (AsyncStorage.setItem as jest.Mock).mockResolvedValue(undefined);
+
+      await svc.persistShownId('success-id');
+      await flushPromises();
+
+      expect(crashlyticsService.recordError).not.toHaveBeenCalled();
     });
   });
 });
