@@ -83,6 +83,16 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
   default: {
     getItem: jest.fn(),
     setItem: jest.fn(),
+    removeItem: jest.fn(),
+  },
+}));
+
+jest.mock('@/services/crashlytics/crashlyticsService', () => ({
+  crashlyticsService: {
+    log: jest.fn(),
+    recordError: jest.fn(),
+    setUserAttributes: jest.fn(),
+    clearUserAttributes: jest.fn(),
   },
 }));
 
@@ -91,6 +101,7 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
 // ---------------------------------------------------------------------------
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { crashlyticsService } from '@/services/crashlytics/crashlyticsService';
 import pushNotificationService from '../pushNotificationService';
 
 // ---------------------------------------------------------------------------
@@ -122,10 +133,16 @@ describe('PushNotificationService — toast deduplication', () => {
     // Reset AsyncStorage mock state
     (AsyncStorage.getItem as jest.Mock).mockReset();
     (AsyncStorage.setItem as jest.Mock).mockReset();
+    (AsyncStorage.removeItem as jest.Mock).mockReset();
+
+    // Reset crashlytics mocks
+    (crashlyticsService.log as jest.Mock).mockReset();
+    (crashlyticsService.recordError as jest.Mock).mockReset();
 
     // Default: nothing in storage
     (AsyncStorage.getItem as jest.Mock).mockResolvedValue(null);
     (AsyncStorage.setItem as jest.Mock).mockResolvedValue(undefined);
+    (AsyncStorage.removeItem as jest.Mock).mockResolvedValue(undefined);
   });
 
   // -----------------------------------------------------------------------
@@ -357,6 +374,51 @@ describe('PushNotificationService — toast deduplication', () => {
 
       expect(written.length).toBe(1);
       expect(written[0].id).toBe('first-ever');
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // 5. Self-heal path — corrupt (non-JSON) storage is cleared automatically
+  // -----------------------------------------------------------------------
+  describe('corrupt-storage self-heal', () => {
+    const HEAL_MSG =
+      '[Push] Corrupted deduplication storage cleared — next launch will start clean.';
+
+    it('calls removeItem with the correct key when storage contains corrupt JSON', async () => {
+      (AsyncStorage.getItem as jest.Mock).mockResolvedValue('not valid json {{{{');
+
+      await svc.hydrateShownIds();
+
+      expect(AsyncStorage.removeItem).toHaveBeenCalledTimes(1);
+      expect(AsyncStorage.removeItem).toHaveBeenCalledWith(STORAGE_KEY);
+    });
+
+    it('logs the heal message to crashlytics when corrupt storage is cleared', async () => {
+      (AsyncStorage.getItem as jest.Mock).mockResolvedValue('not valid json {{{{');
+
+      await svc.hydrateShownIds();
+
+      expect(crashlyticsService.log).toHaveBeenCalledTimes(1);
+      expect(crashlyticsService.log).toHaveBeenCalledWith(HEAL_MSG);
+    });
+
+    it('leaves shownToastIds empty after clearing corrupt storage', async () => {
+      (AsyncStorage.getItem as jest.Mock).mockResolvedValue('not valid json {{{{');
+
+      await svc.hydrateShownIds();
+
+      expect(svc.shownToastIds.size).toBe(0);
+    });
+
+    it('does not call removeItem when storage contains valid JSON', async () => {
+      const entry = [{ id: 'good-id', ts: Date.now() }];
+      (AsyncStorage.getItem as jest.Mock).mockResolvedValue(JSON.stringify(entry));
+
+      await svc.hydrateShownIds();
+
+      expect(AsyncStorage.removeItem).not.toHaveBeenCalled();
+      expect(crashlyticsService.log).not.toHaveBeenCalled();
+      expect(svc.shownToastIds.has('good-id')).toBe(true);
     });
   });
 });
