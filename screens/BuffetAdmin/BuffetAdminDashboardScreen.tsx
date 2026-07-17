@@ -347,7 +347,6 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
 
   const renderRequestCard = (item: BuffetAdminTaskDto) => {
     const statusConfig = getStatusConfig(theme, item.status, t);
-    const initials = item.visitorName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
     const showActions = item.status !== 'completed' && item.status !== 'cancelled';
     
     return (
@@ -366,14 +365,12 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
       >
         <DirectionalRow style={styles.cardHeader}>
           <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '12') }]}>
-            <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
-              {initials}
-            </ThemedText>
+            <DDIcon name="coffee" size={18} color={theme.primary} />
           </View>
           <View style={styles.headerInfo}>
             <DirectionalRow style={styles.nameWithBadgeRow}>
               <ThemedText style={[styles.visitorName, { color: theme.text, flex: 1 }]} numberOfLines={1}>
-                {item.visitorName}
+                {t('reception.hostName')}: {item.hostName}
               </ThemedText>
               <DirectionalRow style={{ alignItems: 'center' }}>
                 <UpcomingVisitAlertIcon visitDate={item.visitDate} visitTime={item.visitTime} status={item.status} />
@@ -384,9 +381,12 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
                 </View>
               </DirectionalRow>
             </DirectionalRow>
-            <ThemedText style={[styles.hostName, { color: theme.textSecondary }]} numberOfLines={1}>
-              {t('reception.hostName')}: {item.hostName}
-            </ThemedText>
+            <DirectionalRow style={{ alignItems: 'center', gap: Spacing.xs }}>
+              <DDIcon name="clock" size={12} color={theme.textSecondary} />
+              <ThemedText style={[styles.hostName, { color: theme.textSecondary }]} numberOfLines={1}>
+                {formatTimeFromString(item.visitTime)}
+              </ThemedText>
+            </DirectionalRow>
           </View>
         </DirectionalRow>
 

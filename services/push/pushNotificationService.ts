@@ -13,8 +13,8 @@ import {
 } from '@/services/firebase';
 import { handleNotificationTap, navigateFromInAppNotification } from '@/utils/notificationNavigator';
 import { invalidateQueriesForNotification, refreshAllNotificationData } from './notificationQueryMapper';
-import { showGlobalInfo } from '@/utils/globalToast';
 import { NOTIFICATION_TYPES } from '@/constants/notificationTypes';
+import { UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES } from '@/constants/requestConstants';
 import type { DevicePlatform, NotificationPayload } from '@/types';
 
 // Firebase Messaging for iOS FCM token retrieval
@@ -55,7 +55,12 @@ class PushNotificationService {
     this.queryClient = client;
   }
 
-  private handleNotificationReceived(data: Record<string, unknown>, notificationId?: string): void {
+  /**
+   * Invalidates queries for the given notification type and extracts any
+   * per-notification threshold (`upcomingVisitReminderMinutes`) so callers
+   * can use it when constructing in-app notifications.
+   */
+  private handleNotificationReceived(data: Record<string, unknown>): void {
     if (!this.queryClient) {
       return;
     }
@@ -63,28 +68,43 @@ class PushNotificationService {
     const notificationType = data?.type as string;
     if (notificationType) {
       invalidateQueriesForNotification(this.queryClient, notificationType);
-
-      if (notificationType === NOTIFICATION_TYPES.UPCOMING_VISIT) {
-        const toastKey = notificationId || String(data?.visitId || data?.requestId || Date.now());
-        if (!this.shownToastIds.has(toastKey)) {
-          this.shownToastIds.add(toastKey);
-          const visitorName = data?.visitorName as string | undefined;
-          const visitTime = data?.visitTime as string | undefined;
-          const message = visitorName && visitTime
-            ? `${visitorName} — ${visitTime}`
-            : visitorName || visitTime || '';
-          showGlobalInfo(message, 'Visit starting soon');
-          if (this.shownToastIds.size > 200) {
-            const oldest = this.shownToastIds.values().next().value;
-            if (oldest !== undefined) {
-              this.shownToastIds.delete(oldest);
-            }
-          }
-        }
-      }
     } else {
       refreshAllNotificationData(this.queryClient);
     }
+  }
+
+  /**
+   * Extracts the reminder threshold from the notification payload.
+   * Falls back to the app-wide default (15 min) when the field is absent.
+   */
+  private getThresholdMinutes(data: Record<string, unknown>): number {
+    const fromPayload = Number(data?.upcomingVisitReminderMinutes);
+    return Number.isFinite(fromPayload) && fromPayload > 0
+      ? fromPayload
+      : UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES;
+  }
+
+  /**
+   * Tracks whether we have already triggered the in-app notification toast
+   * for a given notification identifier. Used to prevent duplicate toasts
+   * when an `upcoming_visit` push arrives via multiple channels (e.g. several
+   * open web tabs or a reconnect) or when both the received and response
+   * listeners fire for the same notification.
+   *
+   * Capped at 200 entries; oldest entry is evicted when the cap is exceeded.
+   */
+  private shouldShowToast(notificationId: string): boolean {
+    if (this.shownToastIds.has(notificationId)) {
+      return false;
+    }
+    this.shownToastIds.add(notificationId);
+    if (this.shownToastIds.size > 200) {
+      const oldest = this.shownToastIds.values().next().value;
+      if (oldest !== undefined) {
+        this.shownToastIds.delete(oldest);
+      }
+    }
+    return true;
   }
 
   static getInstance(): PushNotificationService {
@@ -147,9 +167,8 @@ class PushNotificationService {
     this.webUnsubscribe = onWebForegroundMessage((payload: unknown) => {
       const typedPayload = payload as Record<string, unknown>;
       const data = typedPayload.data as Record<string, unknown> || {};
-      const webNotifId = (data?.messageId || data?.notification_id || data?.visitId) as string | undefined;
-      this.handleNotificationReceived(data, webNotifId);
-      
+      this.handleNotificationReceived(data);
+
       if (onNotificationReceived && typedPayload.notification) {
         const mockNotification = {
           request: {
@@ -160,7 +179,22 @@ class PushNotificationService {
             },
           },
         } as unknown as Notifications.Notification;
-        onNotificationReceived(mockNotification);
+
+        const notifType = data?.type as string | undefined;
+        if (notifType === NOTIFICATION_TYPES.UPCOMING_VISIT) {
+          // Deduplicate by a stable ID derived from the payload (FCM messageId,
+          // a backend-supplied notification_id, or the visitId as fallback).
+          const webNotifId = String(
+            data?.messageId || data?.notification_id || data?.visitId || Date.now()
+          );
+          const thresholdMinutes = this.getThresholdMinutes(data);
+          console.log('[Push Web] upcoming_visit threshold:', thresholdMinutes, 'min');
+          if (this.shouldShowToast(webNotifId)) {
+            onNotificationReceived(mockNotification);
+          }
+        } else {
+          onNotificationReceived(mockNotification);
+        }
       }
     });
 
@@ -300,14 +334,26 @@ class PushNotificationService {
     this.notificationListener = Notifications.addNotificationReceivedListener((notification) => {
       console.log('[Push Mobile] Notification received:', notification.request.content.title);
       const data = notification.request.content.data as Record<string, unknown>;
-      this.handleNotificationReceived(data, notification.request.identifier);
-      onNotificationReceived?.(notification);
+      this.handleNotificationReceived(data);
+      // For upcoming_visit: route through tappable in-app notification toast,
+      // deduplicated by notification identifier so multi-delivery doesn't
+      // show the toast more than once.
+      const notifType = data?.type as string | undefined;
+      if (notifType === NOTIFICATION_TYPES.UPCOMING_VISIT) {
+        const thresholdMinutes = this.getThresholdMinutes(data);
+        console.log('[Push Mobile] upcoming_visit threshold:', thresholdMinutes, 'min');
+        if (this.shouldShowToast(notification.request.identifier)) {
+          onNotificationReceived?.(notification);
+        }
+      } else {
+        onNotificationReceived?.(notification);
+      }
     });
 
     this.responseListener = Notifications.addNotificationResponseReceivedListener((response) => {
       console.log('[Push Mobile] Notification tapped:', response.notification.request.content.title);
       const data = response.notification.request.content.data as Record<string, unknown>;
-      this.handleNotificationReceived(data, response.notification.request.identifier);
+      this.handleNotificationReceived(data);
       handleNotificationTap(response);
     });
 

@@ -209,7 +209,7 @@ export function handleNotificationTap(response: NotificationResponse) {
       if (data.requestId) {
         navigate(ROUTES.VISIT_DETAILS, { visitId: data.requestId });
       } else {
-        navigate(ROUTES.VISIT_REQUESTS);
+        navigate(ROUTES.VISITOR_REQUESTS);
       }
       break;
 

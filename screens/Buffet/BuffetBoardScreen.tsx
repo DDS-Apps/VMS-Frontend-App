@@ -134,9 +134,9 @@ export default function BuffetBoardScreen() {
 
   const filteredTasks = tasks
     .filter(task =>
-      task.visitorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       task.hostName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      task.location.toLowerCase().includes(searchQuery.toLowerCase())
+      task.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (task.mealType ? task.mealType.toLowerCase().includes(searchQuery.toLowerCase()) : false)
     )
     .sort((a, b) => {
       const statusOrder: Record<BuffetStaffTaskStatus, number> = { 
@@ -416,17 +416,15 @@ export default function BuffetBoardScreen() {
           <View style={styles.cardContent}>
             <DirectionalRow style={styles.cardHeader}>
               <View style={styles.nameSection}>
-                <ThemedText style={[Typography.body, { fontWeight: '600' }]}>
-                  {task.visitorName}
-                </ThemedText>
-                {task.company ? (
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
-                    {task.company}
-                  </ThemedText>
-                ) : null}
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
+                <ThemedText style={[Typography.body, { fontWeight: '600' }]} numberOfLines={1}>
                   {t('reception.hostName')}: {task.hostName}
                 </ThemedText>
+                <DirectionalRow style={[styles.infoRow, { marginTop: 2 }]}>
+                  <DDIcon name="clock" size={13} variant="muted" />
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 4 }]}>
+                    {formatDateUtil(task.visitDate, 'short')} · {task.visitTime}
+                  </ThemedText>
+                </DirectionalRow>
               </View>
               <DirectionalRow style={{ alignItems: 'center' }}>
                 <BuffetUpcomingAlertIcon visitDate={task.visitDate} visitTime={task.visitTime} status={task.status} />
