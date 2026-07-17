@@ -172,6 +172,26 @@ export const UPCOMING_STATUSES: readonly RequestStatus[] = [
   REQUEST_STATUS.PENDING_APPROVAL,
 ] as const;
 
+/** Only visitor_accepted visits show the upcoming alert indicator */
+export const UPCOMING_INDICATOR_ELIGIBLE_STATUSES: readonly RequestStatus[] = [
+  REQUEST_STATUS.VISITOR_ACCEPTED,
+] as const;
+
+/** Statuses that must never show the upcoming alert indicator */
+export const UPCOMING_INDICATOR_EXCLUDED_STATUSES: readonly RequestStatus[] = [
+  REQUEST_STATUS.CHECKED_IN,
+  REQUEST_STATUS.COMPLETED,
+  REQUEST_STATUS.CANCELLED,
+  REQUEST_STATUS.AUTO_CANCELLED,
+  REQUEST_STATUS.REJECTED,
+  REQUEST_STATUS.VISITOR_REJECTED,
+  REQUEST_STATUS.VISITOR_PENDING,
+  REQUEST_STATUS.PENDING_APPROVAL,
+  REQUEST_STATUS.PENDING_HOST_APPROVAL,
+] as const;
+
+export const UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES = 15;
+
 export const isStatusActive = (status: RequestStatus | string): boolean => {
   return (ACTIVE_STATUSES as readonly string[]).includes(status);
 };

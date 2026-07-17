@@ -1,6 +1,8 @@
 import React, { useState, useCallback } from 'react';
 import { View, StyleSheet, Pressable, ActivityIndicator, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useUpcomingIndicator } from '@/hooks/useUpcomingVisitTimer';
+import { UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES } from '@/constants/requestConstants';
 import { ScreenScrollView } from '@/components/ScreenScrollView';
 import { SearchInput } from '@/components/SearchInput';
 import { DDIcon, IconName } from '@/components/DDIcon';
@@ -25,6 +27,29 @@ interface DateRange {
   startDate: Date | null;
   endDate: Date | null;
 }
+
+const BUFFET_STAFF_ELIGIBLE_STATUSES: BuffetStaffTaskStatus[] = ['pending', 'preparing', 'ready'];
+
+const BuffetUpcomingAlertIcon = React.memo(({ visitDate, visitTime, status }: { visitDate: string; visitTime: string; status: BuffetStaffTaskStatus }) => {
+  const { theme } = useTheme();
+  const eligible = BUFFET_STAFF_ELIGIBLE_STATUSES.includes(status);
+  const isUpcoming = useUpcomingIndicator({
+    visitDate,
+    visitTime,
+    eligible,
+    thresholdMinutes: UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES,
+  });
+  if (!isUpcoming) return null;
+  return (
+    <View
+      accessibilityLabel="Visit starts soon"
+      accessibilityRole="image"
+      style={{ marginEnd: 4 }}
+    >
+      <DDIcon name="alert-circle" size={14} color={theme.error} />
+    </View>
+  );
+});
 
 export default function BuffetBoardScreen() {
   const { theme } = useTheme();
@@ -403,11 +428,14 @@ export default function BuffetBoardScreen() {
                   {t('reception.hostName')}: {task.hostName}
                 </ThemedText>
               </View>
-              <View style={[styles.statusBadge, { backgroundColor: statusConfig.bgColor }]}>
-                <ThemedText style={[styles.statusText, { color: statusConfig.color }]}>
-                  {statusConfig.label}
-                </ThemedText>
-              </View>
+              <DirectionalRow style={{ alignItems: 'center' }}>
+                <BuffetUpcomingAlertIcon visitDate={task.visitDate} visitTime={task.visitTime} status={task.status} />
+                <View style={[styles.statusBadge, { backgroundColor: statusConfig.bgColor }]}>
+                  <ThemedText style={[styles.statusText, { color: statusConfig.color }]}>
+                    {statusConfig.label}
+                  </ThemedText>
+                </View>
+              </DirectionalRow>
             </DirectionalRow>
 
             <Spacer height={Spacing.md} />

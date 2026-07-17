@@ -25,6 +25,7 @@ export const NOTIFICATION_TYPES = {
 
   REMINDER: 'reminder',
   AUTO_CANCELLED: 'auto_cancelled',
+  UPCOMING_VISIT: 'upcoming_visit',
 } as const;
 
 export type NotificationTypeKey = keyof typeof NOTIFICATION_TYPES;

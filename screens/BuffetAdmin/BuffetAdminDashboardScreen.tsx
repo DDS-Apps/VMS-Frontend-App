@@ -14,6 +14,8 @@ import { DDIcon, IconName } from "@/components/DDIcon";
 import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
 import { applyOpacity, getStatusConfig } from "@/utils/statusStyles";
 import type { StatusConfig } from "@/types/theme.types";
+import { useUpcomingIndicator } from "@/hooks/useUpcomingVisitTimer";
+import { UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES } from "@/constants/requestConstants";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { useToast } from "@/contexts/ToastContext";
@@ -63,6 +65,29 @@ const mapAdminStaffDto = (staff: BuffetAdminStaffDto): BuffetStaff => {
 };
 
 import { KPICard, KPICardRow } from '@/components/shared/KPICard';
+
+const BUFFET_ADMIN_ELIGIBLE_STATUSES = ['pending', 'assigned', 'in_progress'];
+
+const UpcomingVisitAlertIcon = React.memo(({ visitDate, visitTime, status }: { visitDate: string; visitTime: string; status: string }) => {
+  const { theme } = useTheme();
+  const eligible = BUFFET_ADMIN_ELIGIBLE_STATUSES.includes(status);
+  const isUpcoming = useUpcomingIndicator({
+    visitDate,
+    visitTime,
+    eligible,
+    thresholdMinutes: UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES,
+  });
+  if (!isUpcoming) return null;
+  return (
+    <View
+      accessibilityLabel="Visit starts soon"
+      accessibilityRole="image"
+      style={{ marginEnd: 4 }}
+    >
+      <DDIcon name="alert-circle" size={14} color={theme.error} />
+    </View>
+  );
+});
 
 export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDashboardScreenProps) {
   const { theme } = useTheme();
@@ -350,11 +375,14 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
               <ThemedText style={[styles.visitorName, { color: theme.text, flex: 1 }]} numberOfLines={1}>
                 {item.visitorName}
               </ThemedText>
-              <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: StyleSheet.hairlineWidth }]}>
-                <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
-                  {statusConfig.label}
-                </ThemedText>
-              </View>
+              <DirectionalRow style={{ alignItems: 'center' }}>
+                <UpcomingVisitAlertIcon visitDate={item.visitDate} visitTime={item.visitTime} status={item.status} />
+                <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: StyleSheet.hairlineWidth }]}>
+                  <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
+                    {statusConfig.label}
+                  </ThemedText>
+                </View>
+              </DirectionalRow>
             </DirectionalRow>
             <ThemedText style={[styles.hostName, { color: theme.textSecondary }]} numberOfLines={1}>
               {t('reception.hostName')}: {item.hostName}

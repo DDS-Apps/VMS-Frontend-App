@@ -153,6 +153,14 @@ const NOTIFICATION_QUERY_MAP: Record<NotificationType, QueryKeyFactory[]> = {
     () => invitationKeys.all,
     () => allRequestsKeys.all,
   ],
+
+  [NOTIFICATION_TYPES.UPCOMING_VISIT]: [
+    () => visitorKeys.all,
+    () => requestKeys.all,
+    () => receptionKeys.all,
+    () => buffetKeys.all,
+    () => allRequestsKeys.all,
+  ],
 };
 
 export function getQueryKeysForNotificationType(type: string): (readonly unknown[])[] {

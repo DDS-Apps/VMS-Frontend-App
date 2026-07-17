@@ -17,6 +17,8 @@ import { useFormatters } from "@/hooks/useFormatters";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { VisitorRequest } from "@/types/vms.types";
 import { getStatusConfig as getStatusStyle, applyOpacity } from "@/utils/statusStyles";
+import { useUpcomingIndicator } from "@/hooks/useUpcomingVisitTimer";
+import { UPCOMING_INDICATOR_ELIGIBLE_STATUSES, UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES } from "@/constants/requestConstants";
 
 type CardVariant = 'default' | 'compact' | 'actions' | 'selectable';
 
@@ -137,6 +139,14 @@ export function VisitorRequestCard({
   const { isRTL } = useLanguage();
   const statusConfig = getStatusStyle(theme, request.status, t);
   const borderColor = accentColor || statusConfig.borderColor;
+
+  const isStatusEligible = (UPCOMING_INDICATOR_ELIGIBLE_STATUSES as readonly string[]).includes(request.status);
+  const isUpcoming = useUpcomingIndicator({
+    visitDate: request.visitDate ?? '',
+    visitTime: request.visitTime ?? '',
+    eligible: isStatusEligible,
+    thresholdMinutes: UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES,
+  });
 
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
@@ -274,7 +284,17 @@ export function VisitorRequestCard({
         <DirectionalRow style={styles.servicesContainer}>
           <ServiceIconsRow request={request} showWalkIn={true} />
         </DirectionalRow>
-        {renderStatusBadge()}
+        <DirectionalRow style={styles.statusWithAlert} gap={Spacing.xs}>
+          {isUpcoming ? (
+            <View
+              accessibilityLabel={isRTL ? 'الزيارة تبدأ قريباً' : 'Visit starts soon'}
+              accessibilityRole="image"
+            >
+              <DDIcon name="alert-circle" size={16} color={theme.error} />
+            </View>
+          ) : null}
+          {renderStatusBadge()}
+        </DirectionalRow>
       </DirectionalRow>
     );
   };
@@ -516,6 +536,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: Spacing.md,
+  },
+  statusWithAlert: {
+    alignItems: 'center',
+    flexShrink: 0,
   },
   servicesContainer: {
     flex: 1,

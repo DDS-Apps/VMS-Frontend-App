@@ -205,6 +205,14 @@ export function handleNotificationTap(response: NotificationResponse) {
       }
       break;
 
+    case NOTIFICATION_TYPES.UPCOMING_VISIT:
+      if (data.requestId) {
+        navigate(ROUTES.VISIT_DETAILS, { visitId: data.requestId });
+      } else {
+        navigate(ROUTES.VISIT_REQUESTS);
+      }
+      break;
+
     default:
       navigate(ROUTES.NOTIFICATIONS);
       break;
