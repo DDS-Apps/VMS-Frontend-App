@@ -127,10 +127,27 @@ class PushNotificationService {
       );
     } catch (error) {
       console.warn('[Push] Failed to hydrate shown toast IDs:', error);
-      crashlyticsService.recordError(
-        error instanceof Error ? error : new Error(String(error)),
-        'Push.hydrateShownIds'
-      );
+      const wrappedError = error instanceof Error ? error : new Error(String(error));
+      crashlyticsService.recordError(wrappedError, 'Push.hydrateShownIds');
+
+      if (error instanceof SyntaxError) {
+        try {
+          const AsyncStorage =
+            require('@react-native-async-storage/async-storage').default;
+          await AsyncStorage.removeItem(PushNotificationService.SHOWN_IDS_STORAGE_KEY);
+          const healMsg =
+            '[Push] Corrupted deduplication storage cleared — next launch will start clean.';
+          console.warn(healMsg);
+          crashlyticsService.log(healMsg);
+        } catch (removeError) {
+          const removeWrapped =
+            removeError instanceof Error
+              ? removeError
+              : new Error(String(removeError));
+          console.warn('[Push] Failed to clear corrupted storage key:', removeWrapped);
+          crashlyticsService.recordError(removeWrapped, 'Push.hydrateShownIds.clearCorrupted');
+        }
+      }
     }
   }
 
