@@ -223,6 +223,30 @@ describe('pushNotificationService — Crashlytics wiring guard', () => {
       expect(recordErrorSpy).toHaveBeenCalledWith(writeError, 'Push.persistShownId');
     });
 
+    it('routes removeItem failure through real crashlyticsService.recordError with clearCorrupted context', async () => {
+      // Make getItem return corrupt JSON so JSON.parse throws a SyntaxError.
+      (AsyncStorage.getItem as jest.Mock).mockResolvedValue('not-valid-json{{');
+      // Make removeItem also fail so the nested catch runs.
+      const removeError = new Error('removeItem disk error');
+      (AsyncStorage.removeItem as jest.Mock).mockRejectedValue(removeError);
+
+      await svc.hydrateShownIds();
+
+      // recordError is called twice:
+      //   call 0 — outer catch: SyntaxError → 'Push.hydrateShownIds'
+      //   call 1 — inner catch: removeItem failure → 'Push.hydrateShownIds.clearCorrupted'
+      const contexts = recordErrorSpy.mock.calls.map(
+        (args: [Error, string]) => args[1]
+      );
+      expect(contexts).toContain('Push.hydrateShownIds.clearCorrupted');
+
+      const clearCorruptedCall = recordErrorSpy.mock.calls.find(
+        (args: [Error, string]) => args[1] === 'Push.hydrateShownIds.clearCorrupted'
+      );
+      expect(clearCorruptedCall).toBeDefined();
+      expect(clearCorruptedCall![0]).toBe(removeError);
+    });
+
     it('does not call crashlyticsService.recordError on the happy path in hydrateShownIds', async () => {
       (AsyncStorage.getItem as jest.Mock).mockResolvedValue(null);
 
