@@ -604,11 +604,14 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
 
                   <DirectionalRow style={styles.servicesStatusRow} justifyContent="space-between">
                     <View />
-                    <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: 1 }]}>
-                      <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
-                        {statusConfig.label}
-                      </ThemedText>
-                    </View>
+                    <DirectionalRow style={{ alignItems: 'center' }}>
+                      <ReceptionistUpcomingAlertIcon visitDate={visitor.visitDate} visitTime={visitor.visitTime} status={visitor.status} />
+                      <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: 1 }]}>
+                        <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
+                          {statusConfig.label}
+                        </ThemedText>
+                      </View>
+                    </DirectionalRow>
                   </DirectionalRow>
                   </GHTouchableOpacity>
                 </View>

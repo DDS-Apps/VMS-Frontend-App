@@ -14,6 +14,11 @@ import { useFormatters } from "@/hooks/useFormatters";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { VisitorRequest } from "@/types/vms.types";
 import { getStatusConfig, applyOpacity } from "@/utils/statusStyles";
+import { useUpcomingIndicator } from "@/hooks/useUpcomingVisitTimer";
+import {
+  isUpcomingIndicatorEligibleStatus,
+  UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES,
+} from "@/constants/requestConstants";
 
 interface ApprovalRequestListRowProps {
   request: VisitorRequest;
@@ -58,6 +63,14 @@ export function ApprovalRequestListRow({
   const { isRTL } = useLanguage();
   const statusConfig = getStatusConfig(theme, request.status, t);
 
+  const eligible = isUpcomingIndicatorEligibleStatus(request.status);
+  const isUpcoming = useUpcomingIndicator({
+    visitDate: request.visitDate,
+    visitTime: request.visitTime,
+    eligible,
+    thresholdMinutes: UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES,
+  });
+
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     return formatDateShort(date);
@@ -100,6 +113,11 @@ export function ApprovalRequestListRow({
               >
                 {request.visitor?.fullName}
               </ThemedText>
+              {isUpcoming ? (
+                <View accessibilityLabel="Visit starts soon" accessibilityRole="image">
+                  <DDIcon name="alert-circle" size={14} color={theme.error} />
+                </View>
+              ) : null}
               {request.isWalkIn ? (
                 <DDIcon name="user-check" size={14} color={theme.warning} />
               ) : null}
