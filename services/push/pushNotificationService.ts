@@ -16,6 +16,7 @@ import { invalidateQueriesForNotification, refreshAllNotificationData } from './
 import { NOTIFICATION_TYPES } from '@/constants/notificationTypes';
 import { UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES } from '@/constants/requestConstants';
 import type { DevicePlatform, NotificationPayload } from '@/types';
+import { crashlyticsService } from '@/services/crashlytics/crashlyticsService';
 
 // Firebase Messaging for iOS FCM token retrieval
 let firebaseMessaging: typeof import('@react-native-firebase/messaging').default | null = null;
@@ -126,6 +127,10 @@ class PushNotificationService {
       );
     } catch (error) {
       console.warn('[Push] Failed to hydrate shown toast IDs:', error);
+      crashlyticsService.recordError(
+        error instanceof Error ? error : new Error(String(error)),
+        'Push.hydrateShownIds'
+      );
     }
   }
 
@@ -157,6 +162,10 @@ class PushNotificationService {
         await AsyncStorage.setItem(storageKey, JSON.stringify(entries));
       } catch (error) {
         console.warn('[Push] Failed to persist shown toast ID:', error);
+        crashlyticsService.recordError(
+          error instanceof Error ? error : new Error(String(error)),
+          'Push.persistShownId'
+        );
       }
     })();
   }
