@@ -484,6 +484,34 @@ describe('PushNotificationService — toast deduplication', () => {
       const innerCall = calls.find((c: [Error, string]) => c[1] === 'Push.hydrateShownIds.clearCorrupted');
       expect(innerCall[0]).toBe(removeError);
     });
+
+    it('forwards the exact SyntaxError instance (not a re-wrapped copy) to Crashlytics with tag Push.hydrateShownIds', async () => {
+      (AsyncStorage.getItem as jest.Mock).mockResolvedValue('not valid json {{{{');
+
+      // Capture the exact SyntaxError that JSON.parse throws so we can assert
+      // identity (toBe) rather than just shape (toBeInstanceOf / toEqual).
+      let capturedSyntaxError: SyntaxError | undefined;
+      const originalParse = JSON.parse;
+      jest.spyOn(JSON, 'parse').mockImplementationOnce((...args: [string]) => {
+        try {
+          return originalParse(...args);
+        } catch (e) {
+          capturedSyntaxError = e as SyntaxError;
+          throw e;
+        }
+      });
+
+      await svc.hydrateShownIds();
+
+      expect(capturedSyntaxError).toBeInstanceOf(SyntaxError);
+
+      const calls = (crashlyticsService.recordError as jest.Mock).mock.calls;
+      const outerCall = calls.find((c: [Error, string]) => c[1] === 'Push.hydrateShownIds');
+      expect(outerCall).toBeDefined();
+      // Must be the identical object — not a generic re-wrap — so the
+      // original stack trace is preserved in Crashlytics.
+      expect(outerCall[0]).toBe(capturedSyntaxError);
+    });
   });
 
   // -----------------------------------------------------------------------
