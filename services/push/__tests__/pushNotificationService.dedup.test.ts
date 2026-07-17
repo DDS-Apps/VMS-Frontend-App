@@ -438,6 +438,31 @@ describe('PushNotificationService — toast deduplication', () => {
       expect(crashlyticsService.log).not.toHaveBeenCalled();
       expect(svc.shownToastIds.has('good-id')).toBe(true);
     });
+
+    it('records a Crashlytics error with tag Push.hydrateShownIds.clearCorrupted when removeItem itself throws', async () => {
+      (AsyncStorage.getItem as jest.Mock).mockResolvedValue('not valid json {{{{');
+      const removeError = new Error('AsyncStorage.removeItem failed');
+      (AsyncStorage.removeItem as jest.Mock).mockRejectedValue(removeError);
+
+      await svc.hydrateShownIds();
+
+      expect(crashlyticsService.recordError).toHaveBeenCalledWith(
+        removeError,
+        'Push.hydrateShownIds.clearCorrupted'
+      );
+      expect(svc.shownToastIds.size).toBe(0);
+    });
+
+    it('leaves shownToastIds empty when both corrupt storage and removeItem fail', async () => {
+      (AsyncStorage.getItem as jest.Mock).mockResolvedValue('{corrupt:');
+      (AsyncStorage.removeItem as jest.Mock).mockRejectedValue(
+        new Error('storage unavailable')
+      );
+
+      await svc.hydrateShownIds();
+
+      expect(svc.shownToastIds.size).toBe(0);
+    });
   });
 
   // -----------------------------------------------------------------------
