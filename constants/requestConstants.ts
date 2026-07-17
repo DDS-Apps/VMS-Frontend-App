@@ -179,13 +179,13 @@ export const UPCOMING_INDICATOR_ELIGIBLE_STATUSES: readonly RequestStatus[] = [
 
 /**
  * Display-status equivalents eligible for the upcoming alert indicator.
- * Some screens map the raw API status `visitor_accepted` to display statuses
- * like `pending` (receptionist) or `expected` (security) before rendering.
- * This set covers both the canonical and display-mapped forms so a single
- * predicate can be used across all screens.
+ * Covers the canonical API status ('visitor_accepted'), its common API alias
+ * ('accepted'), and display-mapped forms used by Receptionist/Security screens
+ * ('pending', 'expected').
  */
 export const UPCOMING_INDICATOR_DISPLAY_ELIGIBLE_STATUSES: readonly string[] = [
   'visitor_accepted',
+  'accepted',
   'pending',
   'expected',
 ] as const;

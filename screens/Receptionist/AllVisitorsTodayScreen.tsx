@@ -21,8 +21,27 @@ import { VisitorActionButton } from "@/components/VisitorActionButton";
 import { applyOpacity } from "@/utils/statusStyles";
 import { formatPhoneNumber } from "@/utils/formatters";
 import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
+import { isUpcomingIndicatorEligibleStatus, UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES } from "@/constants/requestConstants";
+import { useUpcomingIndicator } from "@/hooks/useUpcomingVisitTimer";
 import { useTodayVisitorsQuery, useReceptionCheckInMutation, useReceptionCheckOutMutation } from "@/hooks/queries/useReceptionQueries";
 import type { TodayVisitorDto, ListReceptionTodayParams } from "@/types";
+
+const ReceptionistUpcomingAlertIcon = React.memo(({ visitDate, visitTime, status }: { visitDate: string; visitTime: string; status: string }) => {
+  const { theme } = useTheme();
+  const eligible = isUpcomingIndicatorEligibleStatus(status);
+  const isUpcoming = useUpcomingIndicator({
+    visitDate,
+    visitTime,
+    eligible,
+    thresholdMinutes: UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES,
+  });
+  if (!isUpcoming) return null;
+  return (
+    <View accessibilityLabel="Visit starts soon" accessibilityRole="image" style={{ marginEnd: 4 }}>
+      <DDIcon name="alert-circle" size={14} color={theme.error} />
+    </View>
+  );
+});
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -328,6 +347,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
                   disabled={isMutating && !isThisVisitorLoading}
                 />
               ) : null}
+              <ReceptionistUpcomingAlertIcon visitDate={new Date().toISOString().split('T')[0]} visitTime={item.visitTime} status={item.status} />
               <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: 1 }]}>
                 <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
                   {statusConfig.label}

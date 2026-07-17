@@ -18,10 +18,28 @@ import { VisitorActionButton } from "@/components/VisitorActionButton";
 import { applyOpacity } from "@/utils/statusStyles";
 import { toServerDateString } from "@/utils/dateTimeUtils";
 import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
-import { PURPOSE_VALUE_TO_KEY, normalizePurposeValue } from "@/constants/requestConstants";
+import { PURPOSE_VALUE_TO_KEY, normalizePurposeValue, isUpcomingIndicatorEligibleStatus, UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES } from "@/constants/requestConstants";
+import { useUpcomingIndicator } from "@/hooks/useUpcomingVisitTimer";
 import { useInfiniteVisitsQuery } from "@/hooks/queries/useApprovalQueries";
 import { useReceptionCheckInMutation, useReceptionCheckOutMutation } from "@/hooks/queries/useReceptionQueries";
 import type { VisitListParams, VisitListItemDto } from "@/types";
+
+const ReceptionistUpcomingAlertIcon = React.memo(({ visitDate, visitTime, status }: { visitDate: string; visitTime: string; status: string }) => {
+  const { theme } = useTheme();
+  const eligible = isUpcomingIndicatorEligibleStatus(status);
+  const isUpcoming = useUpcomingIndicator({
+    visitDate,
+    visitTime,
+    eligible,
+    thresholdMinutes: UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES,
+  });
+  if (!isUpcoming) return null;
+  return (
+    <View accessibilityLabel="Visit starts soon" accessibilityRole="image" style={{ marginEnd: 4 }}>
+      <DDIcon name="alert-circle" size={14} color={theme.error} />
+    </View>
+  );
+});
 
 type DateFilter = 'all' | 'today' | 'this_week' | 'this_month';
 type StatusFilter = 
@@ -426,11 +444,14 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
                 ) : null}
               </DirectionalRow>
 
-              <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: 1 }]}>
-                <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
-                  {statusConfig.label}
-                </ThemedText>
-              </View>
+              <DirectionalRow style={{ alignItems: 'center' }}>
+                <ReceptionistUpcomingAlertIcon visitDate={item.visitDate} visitTime={item.visitTime} status={item.status} />
+                <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: 1 }]}>
+                  <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
+                    {statusConfig.label}
+                  </ThemedText>
+                </View>
+              </DirectionalRow>
             </DirectionalRow>
 
             {isExpanded && hasDetails ? (
