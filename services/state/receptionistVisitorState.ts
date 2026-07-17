@@ -75,6 +75,29 @@ export function checkOutVisitor(visitorId: string): void {
   }
 }
 
+/**
+ * Registers a walk-in visitor in the receptionist's daily operational list.
+ *
+ * NOTE: Walk-in records are intentionally NOT mirrored into visitorRequestState.
+ *
+ * Architecture rationale:
+ * - receptionistVisitorState is the receptionist's same-day operational view
+ *   (a flat list of TodaysVisitor objects used by ReceptionistDashboardScreen,
+ *   AllVisitorsScreen, WalkInVisitorsScreen, etc.).
+ * - visitorRequestState is the formal approval-workflow store (VisitorRequest
+ *   objects with employee/manager approval chains), consumed by Employee and
+ *   Manager role screens.
+ * - In the live API flow, receptionist walk-in registration goes through
+ *   receptionApiService.registerWalkIn(), which persists the record on the
+ *   backend. The receptionist's daily list is then refreshed via
+ *   receptionApiService.getTodayVisitors(). Managers see pending walk-in
+ *   approvals through the dedicated pendingHostWalkIns API endpoint, mapped
+ *   to VisitorRequest shape by mapPendingHostWalkInToVisitorRequest() in
+ *   useApprovalQueries.ts.
+ * - Duplicating walk-ins into visitorRequestState would create a divergent
+ *   mock-only record that bypasses the real approval path and is never seen
+ *   by manager screens in production.
+ */
 export function addWalkInVisitor(visitorData: { name: string; company: string; phone: string; host: string; visitType?: VisitType; purpose?: string }): string {
   const newId = String(Date.now());
   const currentTime = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
