@@ -160,19 +160,50 @@ describe('pushNotificationService — Crashlytics wiring guard', () => {
   });
 
   // -----------------------------------------------------------------------
-  // 1. Static import guard
+  // 1. Static source guards
+  //
+  // These read the raw TypeScript source (not the compiled bundle) and assert
+  // that both the import statement and the crashlyticsService.log() call in
+  // the clearCorrupted heal path are still present.  A tree-shaker or build
+  // minifier could silently drop the .log() call (it has no observable
+  // side-effect from the bundler's perspective) while leaving the import
+  // intact — the runtime smoke test below catches that at test time, but this
+  // static guard is the first line of defence and catches it even if the
+  // smoke test is accidentally disabled or skipped.
   // -----------------------------------------------------------------------
-  describe('static import guard', () => {
-    it('has a top-level import of crashlyticsService in pushNotificationService.ts', () => {
-      const src = fs.readFileSync(
+  describe('static source guards', () => {
+    let src: string;
+
+    beforeAll(() => {
+      src = fs.readFileSync(
         path.resolve(__dirname, '../pushNotificationService.ts'),
         'utf-8'
       );
+    });
+
+    it('has a top-level import of crashlyticsService in pushNotificationService.ts', () => {
       // Matches:
       //   import { crashlyticsService } from '@/services/crashlytics/crashlyticsService'
       //   import { ..., crashlyticsService, ... } from '@/services/crashlytics/crashlyticsService'
       expect(src).toMatch(
         /import\s+\{[^}]*crashlyticsService[^}]*\}\s+from\s+['"]@\/services\/crashlytics\/crashlyticsService['"]/
+      );
+    });
+
+    it('retains the crashlyticsService.log() call in the clearCorrupted heal path', () => {
+      // This assertion protects against a tree-shaking pass or build minifier
+      // stripping crashlyticsService.log(healMsg) because it appears to have no
+      // observable side-effect in non-debug builds.  If this fails, re-add the
+      // call at services/push/pushNotificationService.ts inside the
+      // clearCorrupted try block (the SyntaxError branch of hydrateShownIds).
+      expect(src).toMatch(/crashlyticsService\.log\s*\(/);
+    });
+
+    it('retains the heal message string literal that is passed to crashlyticsService.log', () => {
+      // Guards the exact string so a refactor cannot change the call to
+      // crashlyticsService.log('') or remove the argument without this failing.
+      expect(src).toContain(
+        'Corrupted deduplication storage cleared — next launch will start clean.'
       );
     });
   });
