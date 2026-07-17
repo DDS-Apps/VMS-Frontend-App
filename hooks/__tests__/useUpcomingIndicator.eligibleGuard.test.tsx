@@ -54,6 +54,22 @@ function buildVisitInFiveMinutes(): { visitDate: string; visitTime: string } {
 }
 
 /**
+ * Returns a visitDate + visitTime that is 2 hours in the future.
+ * This is outside the 15-minute alert window, so the hook should return false
+ * even when eligible is true.
+ */
+function buildVisitInTwoHours(): { visitDate: string; visitTime: string } {
+  const target = new Date(Date.now() + 2 * 60 * 60 * 1000);
+  const visitDate = [
+    target.getFullYear(),
+    String(target.getMonth() + 1).padStart(2, '0'),
+    String(target.getDate()).padStart(2, '0'),
+  ].join('-');
+  const visitTime = `${String(target.getHours()).padStart(2, '0')}:${String(target.getMinutes()).padStart(2, '0')}`;
+  return { visitDate, visitTime };
+}
+
+/**
  * Returns a visitDate + visitTime that is 60 minutes in the past.
  * Useful for confirming the hook correctly returns false for visits that
  * have already started.
@@ -211,6 +227,70 @@ describe('useUpcomingIndicator — render-time eligible guard', () => {
     expect(resultRef.current).toBe(false);
 
     renderer.unmount();
+  });
+
+  /**
+   * Edge-case: eligible stays true across a re-render but visitDate/visitTime
+   * change to a value 2 hours away — well outside the 15-minute window.
+   *
+   * The synchronous guard path (`return eligible ? isUpcoming : false`) relies
+   * on `isUpcoming` being re-computed whenever `calculate` changes. Because
+   * `calculate` depends on visitDate and visitTime, any change to those props
+   * triggers the main useEffect, which calls `setIsUpcoming(calculate())`.
+   *
+   * However, the return statement itself is synchronous: on the re-render where
+   * visitDate/visitTime change, `calculate()` will reflect the new values
+   * (isUpcomingVisit returns false for 2 hours away), so the hook returns false
+   * immediately via the `eligible ? isUpcoming : false` path — no extra tick
+   * needed because the useState initialiser already used `calculate()` and the
+   * effect re-run propagates the new value before React commits the next paint.
+   *
+   * Note: the `isUpcoming` state is updated by the useEffect *after* render,
+   * so on the exact re-render cycle where props change, the hook returns
+   * `eligible ? isUpcoming : false` where `isUpcoming` is still the *previous*
+   * state value. This test therefore validates that the effect fires within the
+   * same `act()` call (which flushes effects synchronously), giving the
+   * correct false result by the time `act()` resolves.
+   */
+  it('returns false immediately when visitDate/visitTime change to outside the window while eligible stays true', () => {
+    const inFive = buildVisitInFiveMinutes();
+    const resultRef: React.MutableRefObject<boolean> = { current: false };
+
+    let renderer: ReturnType<typeof create>;
+
+    // Initial render: eligible=true, visit 5 min away → inside the window → true.
+    act(() => {
+      renderer = create(
+        <HostComponent
+          visitDate={inFive.visitDate}
+          visitTime={inFive.visitTime}
+          eligible={true}
+          resultRef={resultRef}
+        />
+      );
+    });
+
+    expect(resultRef.current).toBe(true);
+
+    // Re-render: eligible stays true, but visitDate/visitTime move 2 hours out.
+    // The hook must return false — the visit is no longer within the 15-min window.
+    const inTwoHours = buildVisitInTwoHours();
+    act(() => {
+      renderer.update(
+        <HostComponent
+          visitDate={inTwoHours.visitDate}
+          visitTime={inTwoHours.visitTime}
+          eligible={true}
+          resultRef={resultRef}
+        />
+      );
+    });
+
+    // act() flushes effects synchronously, so the useEffect-driven state update
+    // (setIsUpcoming(calculate())) has already run by the time we reach this assertion.
+    expect(resultRef.current).toBe(false);
+
+    act(() => { renderer.unmount(); });
   });
 
   it('remains false across multiple re-renders once eligible is false', () => {
