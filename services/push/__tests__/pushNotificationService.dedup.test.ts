@@ -556,4 +556,51 @@ describe('PushNotificationService — toast deduplication', () => {
       expect(crashlyticsService.recordError).not.toHaveBeenCalled();
     });
   });
+
+  // -----------------------------------------------------------------------
+  // 6. persistShownId write-side corruption — corrupt JSON in storage must
+  //    not silently drop the new entry; recovery path must be observable.
+  // -----------------------------------------------------------------------
+  describe('persistShownId — corrupt storage recovery', () => {
+    it('still writes the new entry when storage contains corrupt JSON', async () => {
+      (AsyncStorage.getItem as jest.Mock).mockResolvedValue('not-valid-json{{{{');
+
+      await svc.persistShownId('recover-id');
+      await flushPromises();
+
+      const setCall = (AsyncStorage.setItem as jest.Mock).mock.calls[0];
+      expect(setCall).toBeDefined();
+
+      const written: Array<{ id: string; ts: number }> = JSON.parse(setCall[1]);
+      expect(written).toHaveLength(1);
+      expect(written[0].id).toBe('recover-id');
+    });
+
+    it('calls crashlyticsService.recordError with Push.persistShownId.corrupt context when storage is corrupt', async () => {
+      (AsyncStorage.getItem as jest.Mock).mockResolvedValue('not-valid-json{{{{');
+
+      await svc.persistShownId('corrupt-context-id');
+      await flushPromises();
+
+      expect(crashlyticsService.recordError).toHaveBeenCalledTimes(1);
+      const [errorArg, contextArg] = (crashlyticsService.recordError as jest.Mock).mock.calls[0];
+      expect(errorArg).toBeInstanceOf(Error);
+      expect(contextArg).toBe('Push.persistShownId.corrupt');
+    });
+
+    it('does not call crashlyticsService.recordError when storage contains valid JSON', async () => {
+      const existing = [{ id: 'healthy-id', ts: Date.now() }];
+      (AsyncStorage.getItem as jest.Mock).mockResolvedValue(JSON.stringify(existing));
+
+      await svc.persistShownId('new-healthy-id');
+      await flushPromises();
+
+      expect(crashlyticsService.recordError).not.toHaveBeenCalled();
+
+      const setCall = (AsyncStorage.setItem as jest.Mock).mock.calls[0];
+      const written: Array<{ id: string }> = JSON.parse(setCall[1]);
+      expect(written.map((e) => e.id)).toContain('healthy-id');
+      expect(written.map((e) => e.id)).toContain('new-healthy-id');
+    });
+  });
 });
