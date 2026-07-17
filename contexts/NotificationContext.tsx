@@ -7,6 +7,7 @@ import { useAuth } from './AuthContext';
 import { notificationApiService } from '@/services/api/notificationApiService';
 import { notificationKeys } from '@/hooks/queries/useNotificationQueries';
 import { pushNotificationService } from '@/services/push';
+import { InAppNotificationToast } from '@/components/InAppNotificationToast';
 import type { UserRole } from '@/types/vms.types';
 
 // Check if notifications are supported in this environment
@@ -62,6 +63,11 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [permissionStatus, setPermissionStatus] = useState<'granted' | 'denied' | 'undetermined' | 'unsupported' | null>(null);
   const [pushToken, setPushToken] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ visible: boolean; title: string; body: string }>({
+    visible: false,
+    title: '',
+    body: '',
+  });
   
   const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const notificationListenerRef = useRef<Notifications.EventSubscription | null>(null);
@@ -302,6 +308,26 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
     };
   }, [isAuthenticated, fetchUnreadCount, markAsRead]);
 
+  // Register in-app toast callback with push service so it fires even after
+  // initialize() has already been called without a callback (e.g. from AuthContext).
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const handler = (notification: Notifications.Notification) => {
+      const content = notification.request.content;
+      setToast({
+        visible: true,
+        title: content.title ?? '',
+        body: content.body ?? '',
+      });
+      fetchUnreadCount();
+    };
+    pushNotificationService.setCallback(handler);
+    return () => {
+      // Clear the callback on logout so the stale handler doesn't fire.
+      pushNotificationService.setCallback(undefined);
+    };
+  }, [isAuthenticated, fetchUnreadCount]);
+
   // Refresh unread count when app comes to foreground
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -338,6 +364,13 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
   return (
     <NotificationContext.Provider value={value}>
       {children}
+      <InAppNotificationToast
+        visible={toast.visible}
+        title={toast.title}
+        body={toast.body}
+        onDismiss={() => setToast((prev) => ({ ...prev, visible: false }))}
+        type="info"
+      />
     </NotificationContext.Provider>
   );
 }

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { useUpcomingIndicator } from "@/hooks/useUpcomingVisitTimer";
-import { UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES } from "@/constants/requestConstants";
+import { UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES, isUpcomingIndicatorEligibleStatus } from "@/constants/requestConstants";
 import { View, StyleSheet, Pressable, ActivityIndicator, useWindowDimensions, Platform } from "react-native";
 import { TouchableOpacity as GHTouchableOpacity } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -32,7 +32,7 @@ const LAYOUT = {
 
 const SecurityUpcomingAlertIcon = React.memo(({ visitDate, visitTime, status }: { visitDate: string; visitTime: string; status: string }) => {
   const { theme } = useTheme();
-  const eligible = status === 'expected';
+  const eligible = isUpcomingIndicatorEligibleStatus(status);
   const isUpcoming = useUpcomingIndicator({
     visitDate,
     visitTime,

@@ -177,6 +177,26 @@ export const UPCOMING_INDICATOR_ELIGIBLE_STATUSES: readonly RequestStatus[] = [
   REQUEST_STATUS.VISITOR_ACCEPTED,
 ] as const;
 
+/**
+ * Display-status equivalents eligible for the upcoming alert indicator.
+ * Some screens map the raw API status `visitor_accepted` to display statuses
+ * like `pending` (receptionist) or `expected` (security) before rendering.
+ * This set covers both the canonical and display-mapped forms so a single
+ * predicate can be used across all screens.
+ */
+export const UPCOMING_INDICATOR_DISPLAY_ELIGIBLE_STATUSES: readonly string[] = [
+  'visitor_accepted',
+  'pending',
+  'expected',
+] as const;
+
+/**
+ * Returns true when a visit's status (raw API or display-mapped) makes it
+ * eligible for the upcoming-visit alert indicator.
+ */
+export const isUpcomingIndicatorEligibleStatus = (status: string): boolean =>
+  (UPCOMING_INDICATOR_DISPLAY_ELIGIBLE_STATUSES as readonly string[]).includes(status);
+
 /** Statuses that must never show the upcoming alert indicator */
 export const UPCOMING_INDICATOR_EXCLUDED_STATUSES: readonly RequestStatus[] = [
   REQUEST_STATUS.CHECKED_IN,

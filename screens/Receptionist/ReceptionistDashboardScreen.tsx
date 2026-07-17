@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { useUpcomingIndicator } from "@/hooks/useUpcomingVisitTimer";
-import { UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES } from "@/constants/requestConstants";
+import { UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES, isUpcomingIndicatorEligibleStatus } from "@/constants/requestConstants";
 import { View, StyleSheet, Pressable, Dimensions, GestureResponderEvent, LayoutAnimation, Platform, UIManager, Alert, useWindowDimensions } from "react-native";
 import { TouchableOpacity as GHTouchableOpacity } from "react-native-gesture-handler";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
@@ -101,7 +101,7 @@ function QuickActionButton({ icon, label, iconBgColor, iconColor, onPress }: Qui
 
 const ReceptionistUpcomingAlertIcon = React.memo(({ visitDate, visitTime, status }: { visitDate: string; visitTime: string; status: string }) => {
   const { theme } = useTheme();
-  const eligible = status === 'pending' || status === 'expected';
+  const eligible = isUpcomingIndicatorEligibleStatus(status);
   const isUpcoming = useUpcomingIndicator({
     visitDate,
     visitTime,

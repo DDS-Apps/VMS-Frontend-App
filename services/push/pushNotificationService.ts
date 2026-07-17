@@ -50,9 +50,20 @@ class PushNotificationService {
   private webMessageHandler: ((event: MessageEvent) => void) | null = null;
   private queryClient: QueryClient | null = null;
   private shownToastIds = new Set<string>();
+  private notificationCallback: NotificationCallback | undefined;
 
   setQueryClient(client: QueryClient): void {
     this.queryClient = client;
+  }
+
+  /**
+   * Register (or replace) the callback invoked when a foreground push
+   * notification should be shown as an in-app toast.  Safe to call after
+   * initialization; the new callback is picked up immediately by the
+   * already-running listeners.
+   */
+  setCallback(cb: NotificationCallback | undefined): void {
+    this.notificationCallback = cb;
   }
 
   /**
@@ -164,12 +175,16 @@ class PushNotificationService {
     console.log('[Push Web] Step 4: registerTokenWithBackend...');
     await this.registerTokenWithBackend();
 
+    if (onNotificationReceived) {
+      this.notificationCallback = onNotificationReceived;
+    }
+
     this.webUnsubscribe = onWebForegroundMessage((payload: unknown) => {
       const typedPayload = payload as Record<string, unknown>;
       const data = typedPayload.data as Record<string, unknown> || {};
       this.handleNotificationReceived(data);
 
-      if (onNotificationReceived && typedPayload.notification) {
+      if (this.notificationCallback && typedPayload.notification) {
         const mockNotification = {
           request: {
             content: {
@@ -190,10 +205,10 @@ class PushNotificationService {
           const thresholdMinutes = this.getThresholdMinutes(data);
           console.log('[Push Web] upcoming_visit threshold:', thresholdMinutes, 'min');
           if (this.shouldShowToast(webNotifId)) {
-            onNotificationReceived(mockNotification);
+            this.notificationCallback(mockNotification);
           }
         } else {
-          onNotificationReceived(mockNotification);
+          this.notificationCallback(mockNotification);
         }
       }
     });
@@ -330,6 +345,10 @@ class PushNotificationService {
     await this.registerTokenWithBackend();
     console.log('[Push Mobile] Backend registration complete');
 
+    if (onNotificationReceived) {
+      this.notificationCallback = onNotificationReceived;
+    }
+
     console.log('[Push Mobile] Step 7: Setting up notification listeners...');
     this.notificationListener = Notifications.addNotificationReceivedListener((notification) => {
       console.log('[Push Mobile] Notification received:', notification.request.content.title);
@@ -343,10 +362,10 @@ class PushNotificationService {
         const thresholdMinutes = this.getThresholdMinutes(data);
         console.log('[Push Mobile] upcoming_visit threshold:', thresholdMinutes, 'min');
         if (this.shouldShowToast(notification.request.identifier)) {
-          onNotificationReceived?.(notification);
+          this.notificationCallback?.(notification);
         }
       } else {
-        onNotificationReceived?.(notification);
+        this.notificationCallback?.(notification);
       }
     });
 
