@@ -1,4 +1,6 @@
 import React, { useState, useMemo } from "react";
+import { useUpcomingIndicator } from "@/hooks/useUpcomingVisitTimer";
+import { UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES } from "@/constants/requestConstants";
 import { View, StyleSheet, Pressable, ActivityIndicator, useWindowDimensions, Platform } from "react-native";
 import { TouchableOpacity as GHTouchableOpacity } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -27,6 +29,23 @@ const LAYOUT = {
   cardRadius: BorderRadius.md,
   avatarSize: 44,
 };
+
+const SecurityUpcomingAlertIcon = React.memo(({ visitDate, visitTime, status }: { visitDate: string; visitTime: string; status: string }) => {
+  const { theme } = useTheme();
+  const eligible = status === 'expected';
+  const isUpcoming = useUpcomingIndicator({
+    visitDate,
+    visitTime,
+    eligible,
+    thresholdMinutes: UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES,
+  });
+  if (!isUpcoming) return null;
+  return (
+    <View accessibilityLabel="Visit starts soon" accessibilityRole="image" style={{ marginEnd: 4 }}>
+      <DDIcon name="alert-circle" size={14} color={theme.error} />
+    </View>
+  );
+});
 
 const VisitorAvatar = ({ name, theme, size = 44 }: { name: string; theme: Theme; size?: number }) => {
   const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
@@ -461,11 +480,14 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
                 ) : null}
               </View>
 
-              <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border }]}>
-                <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
-                  {statusConfig.label}
-                </ThemedText>
-              </View>
+              <DirectionalRow style={{ alignItems: 'center' }}>
+                <SecurityUpcomingAlertIcon visitDate={visitor.visitDate} visitTime={visitor.visitTime} status={visitor.status} />
+                <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border }]}>
+                  <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
+                    {statusConfig.label}
+                  </ThemedText>
+                </View>
+              </DirectionalRow>
             </DirectionalRow>
 
             <Spacer height={Spacing.sm} />

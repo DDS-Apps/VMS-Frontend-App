@@ -55,7 +55,15 @@ export function navigateFromInAppNotification(notification: InAppNotificationDat
       if (data.requestId) {
         navigate(ROUTES.VISIT_DETAILS, { visitId: data.requestId });
       } else {
-        navigate(ROUTES.VISIT_REQUESTS);
+        navigate(ROUTES.VISITOR_REQUESTS);
+      }
+      break;
+
+    case 'upcoming_visit':
+      if (data.requestId || data.visitId) {
+        navigate(ROUTES.VISIT_DETAILS, { visitId: data.requestId || data.visitId });
+      } else {
+        navigate(ROUTES.VISITOR_REQUESTS);
       }
       break;
 

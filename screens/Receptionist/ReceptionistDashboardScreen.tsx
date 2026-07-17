@@ -1,4 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
+import { useUpcomingIndicator } from "@/hooks/useUpcomingVisitTimer";
+import { UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES } from "@/constants/requestConstants";
 import { View, StyleSheet, Pressable, Dimensions, GestureResponderEvent, LayoutAnimation, Platform, UIManager, Alert, useWindowDimensions } from "react-native";
 import { TouchableOpacity as GHTouchableOpacity } from "react-native-gesture-handler";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
@@ -96,6 +98,23 @@ function QuickActionButton({ icon, label, iconBgColor, iconColor, onPress }: Qui
     </Pressable>
   );
 }
+
+const ReceptionistUpcomingAlertIcon = React.memo(({ visitDate, visitTime, status }: { visitDate: string; visitTime: string; status: string }) => {
+  const { theme } = useTheme();
+  const eligible = status === 'pending' || status === 'expected';
+  const isUpcoming = useUpcomingIndicator({
+    visitDate,
+    visitTime,
+    eligible,
+    thresholdMinutes: UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES,
+  });
+  if (!isUpcoming) return null;
+  return (
+    <View accessibilityLabel="Visit starts soon" accessibilityRole="image" style={{ marginEnd: 4 }}>
+      <DDIcon name="alert-circle" size={14} color={theme.error} />
+    </View>
+  );
+});
 
 const ServiceIconsRow = ({ visitor, size = 14 }: { visitor: TodayVisitorDto; size?: number }) => {
   const { theme } = useTheme();
@@ -341,11 +360,14 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
 
         <DirectionalRow style={styles.servicesStatusRow} justifyContent="space-between">
           <ServiceIconsRow visitor={item} />
-          <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: 1 }]}>
-            <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
-              {statusConfig.label}
-            </ThemedText>
-          </View>
+          <DirectionalRow style={{ alignItems: 'center' }}>
+            <ReceptionistUpcomingAlertIcon visitDate={item.visitDate} visitTime={item.visitTime} status={item.status} />
+            <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: 1 }]}>
+              <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
+                {statusConfig.label}
+              </ThemedText>
+            </View>
+          </DirectionalRow>
         </DirectionalRow>
 
         {isExpanded && hasDetails ? (
