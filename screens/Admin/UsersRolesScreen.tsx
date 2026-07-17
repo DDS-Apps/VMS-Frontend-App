@@ -310,7 +310,7 @@ export default function UsersRolesScreen() {
 
   const handleViewUserDetail = (userId: string) => {
     if (bulkMode) return;
-    navigation.navigate(ROUTES.USER_DETAIL as never, { userId } as never);
+    navigation.navigate(ROUTES.USER_DETAIL as any, { userId } as any);
   };
 
   const handleEditUser = (user: DisplayUser) => {
@@ -1431,8 +1431,7 @@ export default function UsersRolesScreen() {
         contentContainerStyle={styles.filterContent}
         nestedScrollEnabled={true}
         keyboardShouldPersistTaps="always"
-        delaysContentTouches={false}
-        canCancelContentTouches={true}
+        {...({ delaysContentTouches: false, canCancelContentTouches: true } as any)}
       >
         <GHTouchableOpacity
           activeOpacity={0.7}
@@ -1496,8 +1495,7 @@ export default function UsersRolesScreen() {
         contentContainerStyle={styles.toolbarContent}
         nestedScrollEnabled={true}
         keyboardShouldPersistTaps="always"
-        delaysContentTouches={false}
-        canCancelContentTouches={true}
+        {...({ delaysContentTouches: false, canCancelContentTouches: true } as any)}
       >
         <GHTouchableOpacity
           activeOpacity={0.7}

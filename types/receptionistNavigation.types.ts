@@ -4,6 +4,7 @@ import type { TodaysVisitor } from "@/services/state/receptionistVisitorState";
 export type ReceptionistStackParamList = {
   ReceptionistDashboard: undefined;
   VisitTypeSelection: undefined;
+  VisitorRequestForm: { visitType?: string } | undefined;
   WalkInRegistration: { visitType?: string };
   AllVisitors: { initialFilter?: 'walk_in' | 'awaiting_visitor' | 'pending_approval' } | undefined;
   WalkInVisitors: undefined;

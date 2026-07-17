@@ -614,7 +614,7 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
   }, [staffData]);
 
   const handleViewDetails = (request: BuffetRequest) => {
-    navigation.navigate(ROUTES.BUFFET_REQUEST_DETAILS as never, { request: request as any } as never);
+    navigation.navigate(ROUTES.BUFFET_REQUEST_DETAILS as any, { request: request as any } as any);
   };
 
   const handleOpenAssignModal = (request: BuffetRequest, event?: GestureResponderEvent) => {

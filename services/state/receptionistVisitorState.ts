@@ -1,5 +1,4 @@
 import { addNotification, createPendingApprovalNotification, createCancellationNotification } from './notificationState';
-import { createWalkInRequest } from './visitorRequestState';
 
 export type VisitType = 'general' | 'parking' | 'valet' | 'buffet';
 export type VisitOrigin = 'scheduled' | 'walk_in';
@@ -97,16 +96,6 @@ export function addWalkInVisitor(visitorData: { name: string; company: string; p
   };
   
   mockTodaysVisitors = [newVisitor, ...mockTodaysVisitors];
-
-  createWalkInRequest({
-    visitorId: newId,
-    visitorName: visitorData.name,
-    visitorCompany: visitorData.company,
-    visitorPhone: visitorData.phone,
-    hostName: visitorData.host,
-    visitType: visitorData.visitType,
-    purpose: visitorData.purpose,
-  });
 
   addNotification({
     type: 'assignment',

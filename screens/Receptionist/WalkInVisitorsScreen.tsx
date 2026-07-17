@@ -124,7 +124,7 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
       {
         onSuccess: () => {
           const currentTime = formatTime(new Date());
-          navigation.navigate(ROUTES.CHECK_IN_OUT_CONFIRMATION as never, {
+          navigation.navigate(ROUTES.CHECK_IN_OUT_CONFIRMATION as any, {
             action: 'check_in',
             visitorName,
             time: currentTime
@@ -145,7 +145,7 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
       {
         onSuccess: () => {
           const currentTime = formatTime(new Date());
-          navigation.navigate(ROUTES.CHECK_IN_OUT_CONFIRMATION as never, {
+          navigation.navigate(ROUTES.CHECK_IN_OUT_CONFIRMATION as any, {
             action: 'check_out',
             visitorName,
             time: currentTime
@@ -185,7 +185,7 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
       scheduledFor: today,
       createdAt: today,
     };
-    navigation.navigate(ROUTES.VISITOR_DETAIL as never, { visitor: legacyVisitor } as never);
+    navigation.navigate(ROUTES.VISITOR_DETAIL as any, { visitor: legacyVisitor } as any);
   };
 
   const renderVisitorCard = (item: TodayVisitorDto) => {
@@ -374,7 +374,7 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
 
     <Pressable
       style={[styles.fab, { backgroundColor: theme.primary, bottom: insets.bottom + Spacing.xl }]}
-      onPress={() => navigation.navigate(ROUTES.WALK_IN_REGISTRATION as never)}
+      onPress={() => navigation.navigate(ROUTES.WALK_IN_REGISTRATION as any)}
     >
       <DDIcon name="user-plus" size={24} color="#FFFFFF" />
     </Pressable>

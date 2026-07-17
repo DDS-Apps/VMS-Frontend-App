@@ -339,7 +339,7 @@ export function RTLWrapper({
   const wrapperStyle: ViewStyle = {
     ...flatStyle,
     flexDirection: wrapperDirection,
-    alignItems: flatStyle?.alignItems ?? alignItems ?? 'center',
+    alignItems: flatStyle?.alignItems ?? 'center',
   };
   
   return (

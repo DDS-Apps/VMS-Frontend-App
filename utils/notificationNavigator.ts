@@ -26,7 +26,7 @@ export function navigateFromInAppNotification(notification: InAppNotificationDat
       if (data.requestId) {
         navigate(ROUTES.VISIT_DETAILS, { visitId: data.requestId });
       } else {
-        navigate(ROUTES.VISIT_REQUESTS);
+        navigate(ROUTES.VISITOR_REQUESTS);
       }
       break;
 
@@ -84,7 +84,7 @@ export function navigateFromInAppNotification(notification: InAppNotificationDat
       if (data.requestId) {
         navigate(ROUTES.VISIT_DETAILS, { visitId: data.requestId });
       } else {
-        navigate(ROUTES.PARKING_SPOTS);
+        navigate(ROUTES.PARKING);
       }
       break;
 
@@ -123,7 +123,7 @@ export function navigateFromInAppNotification(notification: InAppNotificationDat
       if (data.requestId) {
         navigate(ROUTES.VISIT_DETAILS, { visitId: data.requestId });
       } else {
-        navigate(ROUTES.VISIT_REQUESTS);
+        navigate(ROUTES.VISITOR_REQUESTS);
       }
       break;
 

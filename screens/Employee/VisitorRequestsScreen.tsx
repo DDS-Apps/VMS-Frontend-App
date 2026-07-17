@@ -1042,8 +1042,8 @@ export default function VisitorRequestsScreen({
                 request={item}
                 onPress={() =>
                   navigation.navigate(
-                    ROUTES.REQUEST_DETAILS as never,
-                    { requestId: item.id } as never,
+                    ROUTES.REQUEST_DETAILS as any,
+                    { requestId: item.id } as any,
                   )
                 }
                 theme={theme}
@@ -1102,7 +1102,7 @@ export default function VisitorRequestsScreen({
             },
           ]}
           onPress={() =>
-            navigation.navigate(ROUTES.VISIT_TYPE_SELECTION as never)
+            navigation.navigate(ROUTES.VISIT_TYPE_SELECTION as any)
           }
         >
           <DDIcon name="user-plus" size={24} color={theme.buttonText} />
@@ -1140,8 +1140,8 @@ export default function VisitorRequestsScreen({
               request={item}
               onPress={() =>
                 navigation.navigate(
-                  ROUTES.REQUEST_DETAILS as never,
-                  { requestId: item.id } as never,
+                  ROUTES.REQUEST_DETAILS as any,
+                  { requestId: item.id } as any,
                 )
               }
             />
@@ -1199,7 +1199,7 @@ export default function VisitorRequestsScreen({
           },
         ]}
         onPress={() =>
-          navigation.navigate(ROUTES.VISIT_TYPE_SELECTION as never)
+          navigation.navigate(ROUTES.VISIT_TYPE_SELECTION as any)
         }
       >
         <DDIcon name="user-plus" size={24} color={theme.buttonText} />

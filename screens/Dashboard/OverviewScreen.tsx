@@ -540,11 +540,11 @@ export default function OverviewScreen({
                   <Pressable
                     onPress={() =>
                       navigation.navigate(
-                        ROUTES.VISITOR_REQUESTS as never,
+                        ROUTES.VISITOR_REQUESTS as any,
                         {
                           initialTab:
                             userRole === "manager" ? "all" : "upcoming",
-                        } as never,
+                        } as any,
                       )
                     }
                     style={({ pressed }) => [
@@ -597,8 +597,8 @@ export default function OverviewScreen({
                       request={request}
                       onPress={() => {
                         navigation.navigate(
-                          ROUTES.REQUEST_DETAILS as never,
-                          { requestId: request.id } as never,
+                          ROUTES.REQUEST_DETAILS as any,
+                          { requestId: request.id } as any,
                         );
                       }}
                       width={cardWidth}
@@ -678,8 +678,8 @@ export default function OverviewScreen({
                   <Pressable
                     onPress={() =>
                       navigation.navigate(
-                        ROUTES.VISITOR_REQUESTS as never,
-                        { initialTab: "all" } as never,
+                        ROUTES.VISITOR_REQUESTS as any,
+                        { initialTab: "all" } as any,
                       )
                     }
                     style={({ pressed }) => [
@@ -732,8 +732,8 @@ export default function OverviewScreen({
                       request={request}
                       onPress={() => {
                         navigation.navigate(
-                          ROUTES.REQUEST_DETAILS as never,
-                          { requestId: request.id } as never,
+                          ROUTES.REQUEST_DETAILS as any,
+                          { requestId: request.id } as any,
                         );
                       }}
                       width={cardWidth}
@@ -812,7 +812,7 @@ export default function OverviewScreen({
                 {pendingApprovals.length > 0 && (
                   <Pressable
                     onPress={() =>
-                      navigation.navigate(ROUTES.APPROVALS as never)
+                      navigation.navigate(ROUTES.APPROVALS as any)
                     }
                     style={({ pressed }) => [
                       styles.viewAllButton,
@@ -866,8 +866,8 @@ export default function OverviewScreen({
                         request={request}
                         onPress={() => {
                           navigation.navigate(
-                            ROUTES.MANAGER_APPROVAL_DETAIL as never,
-                            { requestId: request.id } as never,
+                            ROUTES.MANAGER_APPROVAL_DETAIL as any,
+                            { requestId: request.id } as any,
                           );
                         }}
                         width={cardWidth}
@@ -1009,8 +1009,8 @@ export default function OverviewScreen({
                         request={request}
                         onPress={() => {
                           navigation.navigate(
-                            ROUTES.REQUEST_DETAILS as never,
-                            { requestId: request.id } as never,
+                            ROUTES.REQUEST_DETAILS as any,
+                            { requestId: request.id } as any,
                           );
                         }}
                         width={cardWidth}
@@ -1089,8 +1089,8 @@ export default function OverviewScreen({
                     <Pressable
                       onPress={() =>
                         navigation.navigate(
-                          ROUTES.VISITOR_REQUESTS as never,
-                          { initialTab: "walkin" } as never,
+                          ROUTES.VISITOR_REQUESTS as any,
+                          { initialTab: "walkin" } as any,
                         )
                       }
                       style={({ pressed }) => [
@@ -1143,8 +1143,8 @@ export default function OverviewScreen({
                       request={request}
                       onPress={() => {
                         navigation.navigate(
-                          ROUTES.REQUEST_DETAILS as never,
-                          { requestId: request.id } as never,
+                          ROUTES.REQUEST_DETAILS as any,
+                          { requestId: request.id } as any,
                         );
                       }}
                       width={cardWidth}
@@ -1396,7 +1396,7 @@ export default function OverviewScreen({
             },
           ]}
           onPress={() =>
-            navigation.navigate(ROUTES.VISIT_TYPE_SELECTION as never)
+            navigation.navigate(ROUTES.VISIT_TYPE_SELECTION as any)
           }
         >
           <DDIcon name="user-plus" size={24} color={theme.buttonText} />
@@ -1456,7 +1456,7 @@ export default function OverviewScreen({
                   style={[
                     styles.rejectReasonInput,
                     { 
-                      backgroundColor: theme.inputBackground,
+                      backgroundColor: theme.surface,
                       borderColor: theme.border,
                       color: theme.text,
                       textAlign: isRTL ? 'right' : 'left',

@@ -35,6 +35,7 @@ export interface VisitorInfo {
   fullName: string;
   company?: string;
   phone?: string;
+  email?: string;
 }
 
 export interface MeetingRoomSlot {
@@ -51,6 +52,7 @@ export interface TodayVisitorDto {
   visitor: VisitorInfo;
   hostName: string;
   hostDepartment?: string;
+  visitDate?: string;
   visitTime: string;
   status: string;
   meetingRoom?: MeetingRoomSlot;

@@ -981,6 +981,8 @@ export interface TranslationKeys {
     walkInOnly: string;
     registerWalkIn: string;
     searchVisitor: string;
+    visitorsFound: string;
+    visitorsFoundPlural: string;
     verifyVisitor: string;
     hostName: string;
     hostDepartment: string;

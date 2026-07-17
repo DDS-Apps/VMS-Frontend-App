@@ -2,6 +2,12 @@ import React from 'react';
 import { ScrollView, ScrollViewProps, View, ViewStyle, Platform, StyleSheet, I18nManager } from 'react-native';
 import { useLanguage } from '@/contexts';
 
+type ExtendedScrollViewProps = ScrollViewProps & {
+  delaysContentTouches?: boolean;
+  canCancelContentTouches?: boolean;
+};
+const ExtendedScrollView = ScrollView as React.ComponentType<ExtendedScrollViewProps>;
+
 const needsRTLFix = (isRTL: boolean) =>
   isRTL && Platform.OS === 'ios' && !I18nManager.isRTL;
 
@@ -14,7 +20,7 @@ export function RTLHorizontalScrollView({ children, contentContainerStyle, style
   const applyFix = needsRTLFix(isRTL);
 
   return (
-    <ScrollView
+    <ExtendedScrollView
       horizontal
       delaysContentTouches={false}
       canCancelContentTouches={true}
@@ -30,7 +36,7 @@ export function RTLHorizontalScrollView({ children, contentContainerStyle, style
             child ? <View style={fixStyles.flippedChild}>{child}</View> : null,
           )
         : children}
-    </ScrollView>
+    </ExtendedScrollView>
   );
 }
 

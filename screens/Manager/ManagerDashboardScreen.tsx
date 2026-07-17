@@ -786,7 +786,7 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
   };
 
   const handleViewDetails = (requestId: string) => {
-    navigation.navigate(ROUTES.MANAGER_APPROVAL_DETAIL as never, { requestId } as never);
+    navigation.navigate(ROUTES.MANAGER_APPROVAL_DETAIL as any, { requestId } as any);
   };
 
   const renderStickyHeader = () => (

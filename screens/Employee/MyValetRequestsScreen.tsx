@@ -288,7 +288,7 @@ export default function MyValetRequestsScreen({ navigation }: MyValetRequestsScr
   };
 
   const handleRequestPress = (requestId: string) => {
-    navigation.navigate(ROUTES.VALET_REQUEST_DETAILS as never, { requestId } as never);
+    navigation.navigate(ROUTES.VALET_REQUEST_DETAILS as any, { requestId } as any);
   };
 
 

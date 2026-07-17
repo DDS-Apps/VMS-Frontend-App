@@ -192,7 +192,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
       {
         onSuccess: () => {
           const currentTime = formatTime(new Date());
-          navigation.navigate(ROUTES.CHECK_IN_OUT_CONFIRMATION as never, {
+          navigation.navigate(ROUTES.CHECK_IN_OUT_CONFIRMATION as any, {
             action: 'check_in',
             visitorName,
             time: currentTime
@@ -213,7 +213,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
       {
         onSuccess: () => {
           const currentTime = formatTime(new Date());
-          navigation.navigate(ROUTES.CHECK_IN_OUT_CONFIRMATION as never, {
+          navigation.navigate(ROUTES.CHECK_IN_OUT_CONFIRMATION as any, {
             action: 'check_out',
             visitorName,
             time: currentTime
@@ -271,7 +271,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
       scheduledFor: today,
       createdAt: today,
     };
-    navigation.navigate(ROUTES.VISITOR_DETAIL as never, { visitor: legacyVisitor } as never);
+    navigation.navigate(ROUTES.VISITOR_DETAIL as any, { visitor: legacyVisitor } as any);
   };
 
   const renderVisitorCard = (item: TodayVisitorDto) => {

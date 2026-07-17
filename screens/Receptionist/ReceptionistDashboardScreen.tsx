@@ -236,11 +236,11 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
       {
         onSuccess: () => {
           const currentTime = formatTime(new Date());
-          navigation.navigate(ROUTES.CHECK_IN_OUT_CONFIRMATION as never, {
+          navigation.navigate(ROUTES.CHECK_IN_OUT_CONFIRMATION as any, {
             action: 'check_in',
             visitorName,
             time: currentTime
-          } as never);
+          } as any);
         },
         onError: (error) => {
           Alert.alert(t('common.error'), error.message || t('errors.checkInFailed'));
@@ -257,11 +257,11 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
       {
         onSuccess: () => {
           const currentTime = formatTime(new Date());
-          navigation.navigate(ROUTES.CHECK_IN_OUT_CONFIRMATION as never, {
+          navigation.navigate(ROUTES.CHECK_IN_OUT_CONFIRMATION as any, {
             action: 'check_out',
             visitorName,
             time: currentTime
-          } as never);
+          } as any);
         },
         onError: (error) => {
           Alert.alert(t('common.error'), error.message || t('errors.checkOutFailed'));
@@ -291,7 +291,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
       scheduledFor: today,
       createdAt: today,
     };
-    navigation.navigate(ROUTES.VISITOR_DETAIL as never, { visitor: legacyVisitor } as never);
+    navigation.navigate(ROUTES.VISITOR_DETAIL as any, { visitor: legacyVisitor } as any);
   };
 
   const checkedInCount = summary?.checkedIn ?? todaysVisitors.filter(v => v.status === 'checked_in').length;
@@ -361,7 +361,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
         <DirectionalRow style={styles.servicesStatusRow} justifyContent="space-between">
           <ServiceIconsRow visitor={item} />
           <DirectionalRow style={{ alignItems: 'center' }}>
-            <ReceptionistUpcomingAlertIcon visitDate={item.visitDate} visitTime={item.visitTime} status={item.status} />
+            <ReceptionistUpcomingAlertIcon visitDate={item.visitDate ?? ''} visitTime={item.visitTime} status={item.status} />
             <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: 1 }]}>
               <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
                 {statusConfig.label}
@@ -458,7 +458,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
           </ThemedText>
           {todaysVisitors.length > 3 ? (
             <Pressable 
-              onPress={() => navigation.navigate(ROUTES.ALL_VISITORS_TODAY as never)}
+              onPress={() => navigation.navigate(ROUTES.ALL_VISITORS_TODAY as any)}
               style={({ pressed }) => [
                 styles.viewAllButton,
                 { opacity: pressed ? 0.7 : 1, flexDirection: getFlexDirection(isRTL) }
@@ -503,7 +503,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
           </ThemedText>
           {allVisitors.length > 5 ? (
             <Pressable 
-              onPress={() => navigation.navigate(ROUTES.ALL_VISITORS as never)}
+              onPress={() => navigation.navigate(ROUTES.ALL_VISITORS as any)}
               style={({ pressed }) => [
                 styles.viewAllButton,
                 { opacity: pressed ? 0.7 : 1, flexDirection: getFlexDirection(isRTL) }
@@ -543,7 +543,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
               return (
                 <View key={visitor.id} style={styles.horizontalCardWrapper}>
                   <GHTouchableOpacity 
-                    onPress={() => navigation.navigate(ROUTES.VISITOR_DETAIL as never, { 
+                    onPress={() => navigation.navigate(ROUTES.VISITOR_DETAIL as any, { 
                       visitor: {
                         id: visitor.id,
                         name: visitor.visitor.fullName,
@@ -557,7 +557,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
                         scheduledFor: visitor.visitDate,
                         createdAt: visitor.createdAt,
                       }
-                    } as never)}
+                    } as any)}
                     activeOpacity={0.9}
                     style={[
                       styles.visitorCard,
@@ -639,7 +639,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
             bottom: insets.bottom + 80 + Spacing.lg,
           },
         ]}
-        onPress={() => navigation.navigate(ROUTES.WALK_IN_REGISTRATION as never)}
+        onPress={() => navigation.navigate(ROUTES.WALK_IN_REGISTRATION as any)}
       >
         <DDIcon name="user-plus" size={24} color="#FFFFFF" />
       </Pressable>

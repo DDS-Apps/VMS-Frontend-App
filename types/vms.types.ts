@@ -180,7 +180,8 @@ export type NotificationType =
   | 'valet_cancelled'
   | 'valet_task_assigned'
   | 'security_access_update'
-  | 'security_gate_pass';
+  | 'security_gate_pass'
+  | 'alert';
 
 export interface NotificationParams {
   visitorName?: string;

@@ -70,7 +70,7 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
       markAsReadMutation.mutate(notification.id);
     }
     
-    const notificationAny = notification as Record<string, unknown>;
+    const notificationAny = notification as unknown as Record<string, unknown>;
     const mergedData: Record<string, unknown> = {
       ...notification.data,
       requestId: notificationAny.requestId || notification.data?.requestId,

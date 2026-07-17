@@ -161,7 +161,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
       {
         onSuccess: () => {
           const currentTime = formatTime(new Date());
-          navigation.navigate(ROUTES.CHECK_IN_OUT_CONFIRMATION as never, {
+          navigation.navigate(ROUTES.CHECK_IN_OUT_CONFIRMATION as any, {
             action: 'check_in',
             visitorName: visitor.name,
             time: currentTime
@@ -181,7 +181,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
       {
         onSuccess: () => {
           const currentTime = formatTime(new Date());
-          navigation.navigate(ROUTES.CHECK_IN_OUT_CONFIRMATION as never, {
+          navigation.navigate(ROUTES.CHECK_IN_OUT_CONFIRMATION as any, {
             action: 'check_out',
             visitorName: visitor.name,
             time: currentTime

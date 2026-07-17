@@ -22,6 +22,21 @@ import CheckInOutConfirmationScreen from "@/screens/Receptionist/CheckInOutConfi
 import VisitorDetailScreen from "@/screens/Receptionist/VisitorDetailScreen";
 import AdminDashboardScreen from "@/screens/Admin/AdminDashboardScreen";
 import NotificationsScreen from "@/screens/Common/NotificationsScreen";
+import type {
+  VisitorRequestsScreenProps,
+  VisitorRequestFormScreenProps,
+  RequestDetailsScreenProps,
+  VisitTypeSelectionScreenProps,
+} from "@/types/employeeNavigation.types";
+import type { SecurityCheckInScreenProps } from "@/types/securityNavigation.types";
+import type {
+  ReceptionistDashboardScreenProps,
+  AllVisitorsScreenProps,
+  WalkInVisitorsScreenProps,
+  AllVisitorsTodayScreenProps,
+  VisitorDetailScreenProps,
+  CheckInOutConfirmationScreenProps,
+} from "@/types/receptionistNavigation.types";
 
 export type MainTabParamList = {
   DashboardTab: undefined;
@@ -44,19 +59,21 @@ function DashboardStack({ userRole }: { userRole: UserRole }) {
       >
         <Stack.Screen
           name="EmployeeDashboard"
-          component={VisitorRequestsScreen}
           options={{ headerTitle: "My Requests" }}
-        />
+        >
+          {(props) => <VisitorRequestsScreen {...(props as unknown as VisitorRequestsScreenProps)} />}
+        </Stack.Screen>
         <Stack.Screen
           name="VisitorRequestForm"
-          component={VisitorRequestFormScreen}
           options={{ headerTitle: "New Visitor Request" }}
-        />
+        >
+          {(props) => <VisitorRequestFormScreen {...(props as unknown as VisitorRequestFormScreenProps)} />}
+        </Stack.Screen>
         <Stack.Screen
           name="RequestDetails"
           options={{ headerTitle: "Request Details" }}
         >
-          {(props) => <RequestDetailsScreen {...props} userRole="employee" />}
+          {(props) => <RequestDetailsScreen {...(props as unknown as RequestDetailsScreenProps)} userRole="employee" />}
         </Stack.Screen>
       </Stack.Navigator>
     );
@@ -69,9 +86,10 @@ function DashboardStack({ userRole }: { userRole: UserRole }) {
       >
         <Stack.Screen
           name="SecurityCheckIn"
-          component={SecurityCheckInScreen}
           options={{ headerTitle: "Check-In" }}
-        />
+        >
+          {(props) => <SecurityCheckInScreen {...(props as unknown as SecurityCheckInScreenProps)} />}
+        </Stack.Screen>
       </Stack.Navigator>
     );
   } else if (userRole === 'receptionist') {
@@ -83,60 +101,68 @@ function DashboardStack({ userRole }: { userRole: UserRole }) {
       >
         <Stack.Screen
           name="ReceptionistDashboard"
-          component={ReceptionistDashboardScreen}
           options={{ headerShown: false }}
-        />
+        >
+          {(props) => <ReceptionistDashboardScreen {...(props as unknown as ReceptionistDashboardScreenProps)} />}
+        </Stack.Screen>
         <Stack.Screen
           name="VisitTypeSelection"
-          component={VisitTypeSelectionScreen}
           options={{ headerTitle: "Type of Visit" }}
-        />
+        >
+          {(props) => <VisitTypeSelectionScreen {...(props as unknown as VisitTypeSelectionScreenProps)} />}
+        </Stack.Screen>
         <Stack.Screen
           name="VisitorRequestForm"
           options={{ headerTitle: "Register Visitor" }}
         >
-          {(props) => <VisitorRequestFormScreen asReceptionist={true} {...props} />}
+          {(props) => <VisitorRequestFormScreen asReceptionist={true} {...(props as unknown as VisitorRequestFormScreenProps)} />}
         </Stack.Screen>
         <Stack.Screen
           name="WalkInRegistration"
           options={{ headerTitle: "Walk-In Registration" }}
         >
-          {(props) => <VisitorRequestFormScreen asReceptionist={true} isWalkIn={true} {...props} />}
+          {(props) => <VisitorRequestFormScreen asReceptionist={true} isWalkIn={true} {...(props as unknown as VisitorRequestFormScreenProps)} />}
         </Stack.Screen>
         <Stack.Screen
           name="AllVisitors"
-          component={AllVisitorsScreen}
           options={{ headerTitle: "All Upcoming Visitors" }}
-        />
+        >
+          {(props) => <AllVisitorsScreen {...(props as unknown as AllVisitorsScreenProps)} />}
+        </Stack.Screen>
         <Stack.Screen
           name="WalkInVisitors"
-          component={WalkInVisitorsScreen}
           options={{ headerTitle: "Walk-In Visitors" }}
-        />
+        >
+          {(props) => <WalkInVisitorsScreen {...(props as unknown as WalkInVisitorsScreenProps)} />}
+        </Stack.Screen>
         <Stack.Screen
           name="UpcomingVisitorsList"
-          component={UpcomingVisitorsListScreen}
           options={{ headerTitle: "Upcoming Visitors" }}
-        />
+        >
+          {() => <UpcomingVisitorsListScreen />}
+        </Stack.Screen>
         <Stack.Screen
           name="AllVisitorsToday"
-          component={AllVisitorsTodayScreen}
           options={{ headerTitle: "All Visitors Today" }}
-        />
+        >
+          {(props) => <AllVisitorsTodayScreen {...(props as unknown as AllVisitorsTodayScreenProps)} />}
+        </Stack.Screen>
         <Stack.Screen
           name="VisitorDetail"
-          component={VisitorDetailScreen}
           options={{ headerTitle: "Visitor Details" }}
-        />
+        >
+          {(props) => <VisitorDetailScreen {...(props as unknown as VisitorDetailScreenProps)} />}
+        </Stack.Screen>
         <Stack.Screen
           name="CheckInOutConfirmation"
-          component={CheckInOutConfirmationScreen}
           options={{ 
             headerShown: false,
             presentation: 'fullScreenModal',
             animation: 'fade',
           }}
-        />
+        >
+          {(props) => <CheckInOutConfirmationScreen {...(props as unknown as CheckInOutConfirmationScreenProps)} />}
+        </Stack.Screen>
       </Stack.Navigator>
     );
   } else {

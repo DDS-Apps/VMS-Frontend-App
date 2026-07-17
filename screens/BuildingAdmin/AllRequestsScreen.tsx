@@ -444,6 +444,7 @@ export default function AllRequestsScreen() {
         color: visitor.carColor ?? '',
         plateNumber: visitor.licensePlate,
       } : undefined,
+      originalStatus: visitor.status,
       originalData: visitor as any,
     };
   }, []);
@@ -694,10 +695,10 @@ export default function AllRequestsScreen() {
     }
     switch (request.type) {
       case 'visitor':
-        navigation.navigate(ROUTES.MANAGER_APPROVAL_DETAIL as never, { requestId: request.id } as never);
+        navigation.navigate(ROUTES.MANAGER_APPROVAL_DETAIL as any, { requestId: request.id } as any);
         break;
       case 'buffet':
-        navigation.navigate(ROUTES.BUFFET_REQUEST_DETAILS as never, { request: request.originalData } as never);
+        navigation.navigate(ROUTES.BUFFET_REQUEST_DETAILS as any, { request: request.originalData } as any);
         break;
       case 'valet': {
         const valetVisitor = request.originalData as any;
@@ -721,7 +722,7 @@ export default function AllRequestsScreen() {
           createdAt: valetVisitor.visitDate || request.createdAt || '',
           updatedAt: valetVisitor.visitDate || '',
         };
-        navigation.navigate(ROUTES.VALET_REQUEST_DETAILS as never, { request: valetRequest } as never);
+        navigation.navigate(ROUTES.VALET_REQUEST_DETAILS as any, { request: valetRequest } as any);
         break;
       }
     }

@@ -187,7 +187,7 @@ export default function GateEventsLogScreen({ navigation }: GateEventsLogScreenP
     return (
       <ThemedView
         key={event.id}
-        style={[styles.eventCard, { backgroundColor: theme.surface }, getFlexDirection(isRTL)]}
+        style={[styles.eventCard, { backgroundColor: theme.surface }, { flexDirection: getFlexDirection(isRTL) }]}
       >
         <View style={[styles.resultBorderLine, { backgroundColor: resultConfig.color }]} />
         

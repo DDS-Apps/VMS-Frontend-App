@@ -196,7 +196,7 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
   const handleViewDetails = (request: BuffetAdminTaskDto, event: GestureResponderEvent) => {
     event.stopPropagation();
     const mappedRequest = mapTaskToRequest(request);
-    navigation.navigate(ROUTES.BUFFET_REQUEST_DETAILS as never, { request: mappedRequest as any } as never);
+    navigation.navigate(ROUTES.BUFFET_REQUEST_DETAILS as any, { request: mappedRequest as any } as any);
   };
 
   const handleOpenAssignModal = (item: BuffetAdminTaskDto, event: GestureResponderEvent) => {
@@ -469,7 +469,7 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
         </ThemedText>
         {requests.length > 3 ? (
           <Pressable 
-            onPress={() => navigation.navigate(ROUTES.BUFFET_ALL_REQUESTS as never)}
+            onPress={() => navigation.navigate(ROUTES.BUFFET_ALL_REQUESTS as any)}
             style={({ pressed }) => [
               styles.viewAllButton,
               { flexDirection: getFlexDirection(isRTL), opacity: pressed ? 0.7 : 1 }

@@ -236,7 +236,7 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
       {
         onSuccess: () => {
           const currentTime = formatTime(new Date());
-          navigation.navigate(ROUTES.CHECK_IN_OUT_CONFIRMATION as never, {
+          navigation.navigate(ROUTES.CHECK_IN_OUT_CONFIRMATION as any, {
             action: 'check_in',
             visitorName,
             time: currentTime
@@ -257,7 +257,7 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
       {
         onSuccess: () => {
           const currentTime = formatTime(new Date());
-          navigation.navigate(ROUTES.CHECK_IN_OUT_CONFIRMATION as never, {
+          navigation.navigate(ROUTES.CHECK_IN_OUT_CONFIRMATION as any, {
             action: 'check_out',
             visitorName,
             time: currentTime
@@ -307,7 +307,7 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
   }, [t, theme]);
 
   const handleVisitorPress = useCallback((visitor: VisitListItemDto) => {
-    navigation.navigate(ROUTES.VISITOR_DETAIL as never, { visitId: visitor.id } as never);
+    navigation.navigate(ROUTES.VISITOR_DETAIL as any, { visitId: visitor.id } as any);
   }, [navigation]);
 
   const handleEndReached = useCallback(() => {

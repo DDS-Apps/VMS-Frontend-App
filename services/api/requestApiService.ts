@@ -152,7 +152,7 @@ export const requestApiService = {
   },
 
   cancelVisit: (id: string): Promise<CancelVisitResponse> => {
-    return del<CancelVisitResponse>(visits.byId(id));
+    return del<CancelVisitResponse>(visits.byId(id)) as Promise<CancelVisitResponse>;
   },
 
   hostApproveVisit: (id: string, payload?: HostApprovePayload): Promise<HostApproveResponse> => {

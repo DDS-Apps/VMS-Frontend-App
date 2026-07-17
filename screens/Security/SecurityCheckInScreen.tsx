@@ -454,7 +454,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
     return (
       <Pressable 
         key={visitor.id}
-        onPress={() => navigation.navigate(ROUTES.SECURITY_VISITOR_DETAIL as never, { visitorId: visitor.id } as never)}
+        onPress={() => navigation.navigate(ROUTES.SECURITY_VISITOR_DETAIL as any, { visitorId: visitor.id } as any)}
         style={isGridMode ? { flex: 1 } : undefined}
       >
         <ThemedView 

@@ -11,10 +11,10 @@ import type {
   UpdateMeetingRoomDto,
   CreateMeetingBookingDto,
   UpdateMeetingBookingDto,
-  PaginatedResponse,
   RoomAvailabilityParams,
   RoomAvailabilityResponse,
 } from '@/types/api.types';
+import type { PaginatedResponse } from '@/types';
 
 export const meetingRoomKeys = {
   all: ['meeting-rooms'] as const,
