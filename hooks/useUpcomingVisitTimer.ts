@@ -70,6 +70,34 @@ interface UseUpcomingIndicatorParams {
  * Uses smart boundary timeouts (not polling): schedules the next recalculation
  * at exactly the moment the window opens or closes, capped at 60 s.
  * Also recalculates on app foreground (AppState) and tab focus (web).
+ *
+ * ## Stale-state protection (regression notes)
+ *
+ * **Layer 1 — render-time guard (synchronous):**
+ * The hook always returns `eligible ? isUpcoming : false`. The moment the
+ * parent component renders with a new status that makes `eligible` false
+ * (e.g. `visitor_accepted` → `checked_in`), the indicator disappears
+ * immediately — no wait for a `useEffect` or the next timer tick.
+ *
+ * **Layer 2 — effect re-run on prop changes:**
+ * `calculate` is a `useCallback` that depends on `eligible`, `visitDate`,
+ * `visitTime`, and `thresholdMinutes`. Any prop change rebuilds `calculate`,
+ * which causes the main `useEffect` to fire and call `setIsUpcoming(calculate())`
+ * synchronously after the render, keeping the internal state in sync.
+ *
+ * **Key-by-visit-ID requirement:**
+ * Parent lists MUST supply the visit's unique ID as the React key (via
+ * `keyExtractor` for FlatList, or the `key` prop in `.map()`). Using a
+ * stable, unique key ensures React remounts this component — and resets
+ * the `useState` initialiser — when the underlying visit changes identity
+ * (e.g. after a pull-to-refresh that replaces a record with a different ID).
+ * Reusing the same component instance with a different visit's props is safe
+ * due to Layer 1 and Layer 2 above, but relying on that for correctness is
+ * fragile; always key by ID.
+ *
+ * **Do not remove the `return eligible ? isUpcoming : false` guard** at the
+ * bottom of the hook. It is the primary line of defence against a brief flash
+ * of the alert icon after a status transition, and it costs nothing at runtime.
  */
 export function useUpcomingIndicator({
   visitDate,
