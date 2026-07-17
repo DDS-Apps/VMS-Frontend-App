@@ -136,6 +136,7 @@ const svc = pushNotificationService as any;
 
 describe('pushNotificationService — Crashlytics wiring guard', () => {
   let recordErrorSpy: jest.SpyInstance;
+  let logSpy: jest.SpyInstance;
 
   beforeEach(() => {
     svc.shownToastIds = new Set<string>();
@@ -148,10 +149,14 @@ describe('pushNotificationService — Crashlytics wiring guard', () => {
     // Because Jest caches module instances, this is the same object reference
     // that pushNotificationService imported — so the spy fires on real calls.
     recordErrorSpy = jest.spyOn(crashlyticsService, 'recordError');
+
+    // Spy on the REAL crashlyticsService.log to verify the heal-message path.
+    logSpy = jest.spyOn(crashlyticsService, 'log');
   });
 
   afterEach(() => {
     recordErrorSpy.mockRestore();
+    logSpy.mockRestore();
   });
 
   // -----------------------------------------------------------------------
@@ -245,6 +250,19 @@ describe('pushNotificationService — Crashlytics wiring guard', () => {
       );
       expect(clearCorruptedCall).toBeDefined();
       expect(clearCorruptedCall![0]).toBe(removeError);
+    });
+
+    it('routes clearCorrupted heal message through real crashlyticsService.log when removeItem succeeds', async () => {
+      // Make getItem return corrupt JSON so JSON.parse throws a SyntaxError.
+      (AsyncStorage.getItem as jest.Mock).mockResolvedValue('not-valid-json{{');
+      // removeItem resolves successfully — this is the success path under test.
+      (AsyncStorage.removeItem as jest.Mock).mockResolvedValue(undefined);
+
+      await svc.hydrateShownIds();
+
+      const expectedHealMsg =
+        '[Push] Corrupted deduplication storage cleared — next launch will start clean.';
+      expect(logSpy).toHaveBeenCalledWith(expectedHealMsg);
     });
 
     it('does not call crashlyticsService.recordError on the happy path in hydrateShownIds', async () => {
