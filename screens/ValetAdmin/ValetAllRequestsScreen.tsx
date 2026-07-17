@@ -18,6 +18,8 @@ import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 import { KPICard, KPICardRow } from '@/components/shared/KPICard';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { RTLHorizontalScrollView } from '@/components/shared';
+import { useUpcomingIndicator } from "@/hooks/useUpcomingVisitTimer";
+import { UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES, isUpcomingIndicatorEligibleStatus } from "@/constants/requestConstants";
 
 const LAYOUT = {
   cardPadding: Spacing.sm,
@@ -28,6 +30,23 @@ const LAYOUT = {
   accentWidth: 4,
   avatarSize: 40,
 };
+
+const ValetUpcomingAlertIcon = React.memo(({ visitDate, visitTime, status }: { visitDate: string; visitTime: string; status: string }) => {
+  const { theme } = useTheme();
+  const eligible = isUpcomingIndicatorEligibleStatus(status);
+  const isUpcoming = useUpcomingIndicator({
+    visitDate,
+    visitTime,
+    eligible,
+    thresholdMinutes: UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES,
+  });
+  if (!isUpcoming) return null;
+  return (
+    <View accessibilityLabel="Visit starts soon" accessibilityRole="image" style={{ marginEnd: 4 }}>
+      <DDIcon name="alert-circle" size={14} color={theme.error} />
+    </View>
+  );
+});
 
 const VisitorAvatar = ({ name, theme, size = 44 }: { name: string; theme: Theme; size?: number }) => {
   const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
@@ -165,11 +184,18 @@ const VisitorCard = React.memo(({
             ) : null}
           </View>
 
-          <StatusBadge 
-            label={getStatusConfig(theme, visitor.status || 'pending', t).label}
-            variant={getVariantFromStatus(visitor.status || 'pending')}
-            size="sm"
-          />
+          <DirectionalRow alignItems="center" gap={Spacing.xs}>
+            <ValetUpcomingAlertIcon
+              visitDate={visitor.visitDate}
+              visitTime={visitor.visitTime}
+              status={visitor.status || 'pending'}
+            />
+            <StatusBadge 
+              label={getStatusConfig(theme, visitor.status || 'pending', t).label}
+              variant={getVariantFromStatus(visitor.status || 'pending')}
+              size="sm"
+            />
+          </DirectionalRow>
         </DirectionalRow>
 
         <View style={{ height: Spacing.xs }} />

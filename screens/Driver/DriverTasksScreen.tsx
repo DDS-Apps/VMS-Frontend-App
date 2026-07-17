@@ -16,6 +16,8 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { RTLHorizontalScrollView } from '@/components/shared';
 import { applyOpacity } from '@/utils/statusStyles';
+import { useUpcomingIndicator } from '@/hooks/useUpcomingVisitTimer';
+import { UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES, isUpcomingIndicatorEligibleStatus } from '@/constants/requestConstants';
 import {
   getRequestsByDriverId,
   getCurrentDriver,
@@ -29,6 +31,28 @@ import {
 } from '@/services/state/valetAdminState';
 
 type StatusFilter = 'all' | 'assigned' | 'parked' | 'ready_for_pickup' | 'completed' | 'cancelled';
+
+type DriverTaskStatus = ValetRequest['status'];
+
+const normalizeDriverStatusForEligibility = (status: DriverTaskStatus): string =>
+  status === 'assigned' ? 'pending' : status;
+
+const DriverUpcomingAlertIcon = React.memo(({ visitDate, pickupTime, status }: { visitDate: string; pickupTime: string; status: DriverTaskStatus }) => {
+  const { theme } = useTheme();
+  const eligible = isUpcomingIndicatorEligibleStatus(normalizeDriverStatusForEligibility(status));
+  const isUpcoming = useUpcomingIndicator({
+    visitDate,
+    visitTime: pickupTime,
+    eligible,
+    thresholdMinutes: UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES,
+  });
+  if (!isUpcoming) return null;
+  return (
+    <View accessibilityLabel="Visit starts soon" accessibilityRole="image" style={{ marginEnd: 4 }}>
+      <DDIcon name="alert-circle" size={14} color={theme.error} />
+    </View>
+  );
+});
 
 interface DateRange {
   startDate: Date | null;
@@ -432,11 +456,18 @@ export default function DriverTasksScreen({ onNavigateToDetail }: DriverTasksScr
                   {t('reception.hostName')}: {task.hostName}
                 </ThemedText>
               </View>
-              <View style={[styles.statusBadge, { backgroundColor: statusConfig.bgColor }]}>
-                <ThemedText style={[styles.statusText, { color: statusConfig.color }]}>
-                  {statusConfig.label}
-                </ThemedText>
-              </View>
+              <DirectionalRow alignItems="center" gap={Spacing.xs}>
+                <DriverUpcomingAlertIcon
+                  visitDate={task.visitDate}
+                  pickupTime={task.pickupTime}
+                  status={task.status}
+                />
+                <View style={[styles.statusBadge, { backgroundColor: statusConfig.bgColor }]}>
+                  <ThemedText style={[styles.statusText, { color: statusConfig.color }]}>
+                    {statusConfig.label}
+                  </ThemedText>
+                </View>
+              </DirectionalRow>
             </DirectionalRow>
 
             <Spacer height={Spacing.md} />

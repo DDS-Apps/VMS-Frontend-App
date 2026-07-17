@@ -13,10 +13,32 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { getValetTasks, ValetTask } from '@/services/state/valetTasksState';
 import type { ValetService } from '@/types/vms.types';
 import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
+import { useUpcomingIndicator } from '@/hooks/useUpcomingVisitTimer';
+import { UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES, isUpcomingIndicatorEligibleStatus } from '@/constants/requestConstants';
 
 interface ValetTasksScreenProps {
   onNavigateToDetail: (taskId: string) => void;
 }
+
+const normalizeValetStatusForEligibility = (status: ValetService['status']): string =>
+  status === 'assigned' ? 'pending' : status;
+
+const ValetTaskUpcomingAlertIcon = React.memo(({ visitDate, pickupTime, valetStatus }: { visitDate: string; pickupTime: string; valetStatus: ValetService['status'] }) => {
+  const { theme } = useTheme();
+  const eligible = isUpcomingIndicatorEligibleStatus(normalizeValetStatusForEligibility(valetStatus));
+  const isUpcoming = useUpcomingIndicator({
+    visitDate,
+    visitTime: pickupTime,
+    eligible,
+    thresholdMinutes: UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES,
+  });
+  if (!isUpcoming) return null;
+  return (
+    <View accessibilityLabel="Visit starts soon" accessibilityRole="image" style={{ marginEnd: 4 }}>
+      <DDIcon name="alert-circle" size={14} color={theme.error} />
+    </View>
+  );
+});
 
 interface StatusBadgeProps {
   status: ValetService['status'];
@@ -101,7 +123,14 @@ export default function ValetTasksScreen({ onNavigateToDetail }: ValetTasksScree
               {item.visitorCompany}
             </ThemedText>
           </View>
-          <StatusBadge status={item.valet.status} theme={theme} t={t} />
+          <DirectionalRow alignItems="center" gap={Spacing.xs}>
+            <ValetTaskUpcomingAlertIcon
+              visitDate={item.visitDate}
+              pickupTime={item.pickupTime}
+              valetStatus={item.valet.status}
+            />
+            <StatusBadge status={item.valet.status} theme={theme} t={t} />
+          </DirectionalRow>
         </DirectionalRow>
 
         <Spacer height={Spacing.md} />
