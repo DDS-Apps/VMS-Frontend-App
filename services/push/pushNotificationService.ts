@@ -165,9 +165,22 @@ class PushNotificationService {
         const ttl = PushNotificationService.SHOWN_IDS_TTL_MS;
         const storageKey = PushNotificationService.SHOWN_IDS_STORAGE_KEY;
         const raw: string | null = await AsyncStorage.getItem(storageKey);
-        let entries: Array<{ id: string; ts: number }> = raw
-          ? JSON.parse(raw)
-          : [];
+        let entries: Array<{ id: string; ts: number }>;
+        try {
+          entries = raw ? JSON.parse(raw) : [];
+        } catch (parseError) {
+          console.warn(
+            '[Push] persistShownId: corrupt storage detected, discarding and starting fresh:',
+            parseError
+          );
+          crashlyticsService.recordError(
+            parseError instanceof Error
+              ? parseError
+              : new Error(String(parseError)),
+            'Push.persistShownId.corrupt'
+          );
+          entries = [];
+        }
         // Prune expired entries
         entries = entries.filter((e) => now - e.ts < ttl);
         // Append the new entry
