@@ -70,6 +70,7 @@ const BUFFET_ADMIN_ELIGIBLE_STATUSES = ['pending', 'assigned', 'in_progress'];
 
 const UpcomingVisitAlertIcon = React.memo(({ visitDate, visitTime, status }: { visitDate: string; visitTime: string; status: string }) => {
   const { theme } = useTheme();
+  const { isRTL } = useLanguage();
   const eligible = BUFFET_ADMIN_ELIGIBLE_STATUSES.includes(status);
   const isUpcoming = useUpcomingIndicator({
     visitDate,
@@ -80,7 +81,7 @@ const UpcomingVisitAlertIcon = React.memo(({ visitDate, visitTime, status }: { v
   if (!isUpcoming) return null;
   return (
     <View
-      accessibilityLabel="Visit starts soon"
+      accessibilityLabel={isRTL ? 'الزيارة تبدأ قريباً' : 'Visit starts soon'}
       accessibilityRole="image"
       style={{ marginEnd: 4 }}
     >

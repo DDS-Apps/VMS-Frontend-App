@@ -32,6 +32,7 @@ const BUFFET_STAFF_ELIGIBLE_STATUSES: BuffetStaffTaskStatus[] = ['pending', 'pre
 
 const BuffetUpcomingAlertIcon = React.memo(({ visitDate, visitTime, status }: { visitDate: string; visitTime: string; status: BuffetStaffTaskStatus }) => {
   const { theme } = useTheme();
+  const { isRTL } = useLanguage();
   const eligible = BUFFET_STAFF_ELIGIBLE_STATUSES.includes(status);
   const isUpcoming = useUpcomingIndicator({
     visitDate,
@@ -42,7 +43,7 @@ const BuffetUpcomingAlertIcon = React.memo(({ visitDate, visitTime, status }: { 
   if (!isUpcoming) return null;
   return (
     <View
-      accessibilityLabel="Visit starts soon"
+      accessibilityLabel={isRTL ? 'الزيارة تبدأ قريباً' : 'Visit starts soon'}
       accessibilityRole="image"
       style={{ marginEnd: 4 }}
     >
