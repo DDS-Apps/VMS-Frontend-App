@@ -137,17 +137,6 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
     return { pending: 0, inProgress: 0, completed: 0, total: 0 };
   }, [loadSummaryData]);
 
-  const parseTimeSlot = (timeSlot: string): number => {
-    const match = timeSlot.match(/(\d+):(\d+)\s*(AM|PM)?/i);
-    if (!match) return 0;
-    let hours = parseInt(match[1], 10);
-    const minutes = parseInt(match[2], 10);
-    const period = match[3]?.toUpperCase();
-    if (period === 'PM' && hours !== 12) hours += 12;
-    if (period === 'AM' && hours === 12) hours = 0;
-    return hours * 60 + minutes;
-  };
-
   const requests = useMemo(() => {
     const responseData = tasksResponse?.data as { data?: BuffetAdminTaskDto[] } | BuffetAdminTaskDto[] | undefined;
     const tasks = Array.isArray(responseData) ? responseData : (Array.isArray((responseData as { data?: BuffetAdminTaskDto[] })?.data) ? (responseData as { data: BuffetAdminTaskDto[] }).data : []);
