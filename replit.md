@@ -17,6 +17,10 @@ The Dallah Albaraka Visitor Management System (VMS) is a comprehensive React Nat
 - Design-first approach
 - Role-based feature organization
 
+### Quality Gates (CI Checks)
+- **TypeScript (`typecheck`):** `npx tsc --noEmit` — enforces strict type correctness across the entire codebase. This check **must pass** before merging any PR. Run it via the Replit validation panel or `npx tsc --noEmit` locally. Type errors block merges.
+- `tsconfig.json` has `"strict": true` — all strict TypeScript checks are enabled.
+
 ## System Architecture
 The VMS app employs a Clean Architecture pattern, segmenting the application into Presentation, Business Logic (Domain), and Data layers.
 
