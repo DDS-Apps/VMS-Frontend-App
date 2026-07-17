@@ -1,0 +1,156 @@
+DAG-260 | Frontend prompt
+
+Implement upcoming-visit notification handling and dashboard alert indicators in the frontend/mobile application.
+
+First inspect the project’s role-based dashboards, API clients, notification state, push listener, and existing card components. Preserve unrelated worktree changes.
+
+Backend contract
+
+The backend will provide:
+
+- Notification type: `upcoming_visit`
+- Notification requestId
+- Canonical visit start: `visitStartAt` as an ISO UTC timestamp
+- Configured threshold: `upcomingVisitReminderMinutes`, default 15
+
+Relevant dashboard APIs include:
+
+- GET /api/v1/visits
+- GET /api/v1/reception/today
+- GET /api/v1/valet-admin/parking-dashboard
+- GET /api/v1/buffet-admin/tasks
+- GET /api/v1/buffet-staff/my-tasks
+
+Requirements
+
+1. Shared upcoming-state utility
+
+Create one shared utility/hook used by every role dashboard.
+
+The rule is:
+
+remainingMs = visitStartAt - currentTime
+
+show alert when:
+
+- the card is eligible for its role/status
+- remainingMs > 0
+- remainingMs <= thresholdMinutes * 60 * 1000
+
+Boundary behavior:
+
+- 15 minutes and 1 second away: hidden
+- Exactly 15 minutes away: visible
+- One second before start: visible
+- Exactly at start: hidden
+- After start: hidden
+
+Do not depend on whether the notification was received or read.
+
+2. Eligible statuses
+
+For normal visit cards, initially show the indicator only for `visitor_accepted`.
+
+Never show it for:
+
+- checked_in
+- completed
+- cancelled
+- auto_cancelled
+- rejected
+- visitor_rejected
+- visitor_pending
+- pending_approval
+- pending_host_approval
+
+For role-specific task cards such as buffet tasks, map eligibility from their operational status while still excluding cancelled/completed tasks.
+
+Keep eligibility rules centralized and documented.
+
+3. Timer behavior
+
+Do not calculate the state only once when the component mounts.
+
+Recalculate:
+
+- At the beginning of the upcoming window
+- At the exact visit start
+- At least once every minute as a fallback
+- When the app returns to the foreground
+- When the browser tab becomes visible
+- After dashboard data is refetched
+- After a visit status/reschedule push event
+
+Avoid a permanently running one-second timer.
+
+Use a timeout for the nearest boundary, capped by a one-minute fallback. Clean up timers when components unmount.
+
+4. Timezones and clock behavior
+
+Parse the backend-provided ISO `visitStartAt`. Do not manually concatenate visitDate and visitTime.
+
+If the API provides server time, calculate a server/device offset and use corrected time. Otherwise use Date.now(), but keep the time source injectable so tests can control it.
+
+Invalid or missing timestamps must fail safely by hiding the indicator.
+
+5. Visual indicator
+
+Display a red alert/upcoming icon on the relevant visitor/task card.
+
+Requirements:
+
+- Reuse the project’s established icon system.
+- Include an accessible label such as “Visit starts soon.”
+- Do not rely only on color.
+- Do not change the existing card layout more than necessary.
+- Ensure it works in RTL/Arabic layouts if supported.
+- Remove it automatically at the visit start.
+
+6. Notification handling
+
+Recognize notification type `upcoming_visit`.
+
+When a new unread upcoming notification arrives:
+
+- Add it to the existing notification list/bell.
+- Update unread count.
+- Display the existing in-app toast/banner pattern.
+- Navigate to the related request when selected.
+- Avoid showing the same toast repeatedly during notification polling; dedupe by notification ID.
+
+The card indicator must remain independent of notification read/dismissed state.
+
+7. Privacy
+
+Preserve role-specific visibility:
+
+- Buffet screens must not render visitor identity.
+- Buffet reminders/cards should use host, department, time, meeting room, and buffet-operational data only.
+- Do not introduce visitor-name fallbacks into buffet components.
+
+8. Tests
+
+Use fake timers.
+
+Test:
+
+- Icon appears exactly at the configured threshold.
+- Icon disappears exactly at visit start.
+- Returning from the background removes an expired icon immediately.
+- Cancelled/checked-in/completed visits do not show it.
+- Rescheduling recalculates boundaries.
+- Missing/invalid timestamps hide it safely.
+- Different timezone ISO values behave correctly.
+- Notification toast is shown once per notification ID.
+- Reading/dismissing the notification does not remove the card icon.
+- Buffet cards do not display visitor identity.
+- Every role dashboard uses the shared timing utility rather than duplicating time logic.
+
+Run lint, type-check, relevant component tests, and the production build. Report existing failures separately.
+
+Before finishing, report:
+
+- Components/screens changed
+- Shared hook/utility location
+- Notification handling changes
+- Tests run and results
