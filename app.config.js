@@ -8,7 +8,7 @@ dotenv.config({ path: path.resolve(__dirname, envFile) });
 const CONFIG_PATH = APP_VARIANT === 'production' ? 'prod' : 'qa';
 const ENVIRONMENT = APP_VARIANT === 'production' ? 'production' : 'qa';
 
-const BACKEND_URL = process.env.EXPO_PUBLIC_API_BASE_URL || process.env.API_BASE_URL || 'https://vms-backend-folio3.replit.app';
+const BACKEND_URL = process.env.EXPO_PUBLIC_API_BASE_URL || process.env.API_BASE_URL || 'https://vms.dallah.com';
 const MICROSOFT_AUTH_URL = process.env.EXPO_PUBLIC_MICROSOFT_AUTH_URL || process.env.MICROSOFT_AUTH_URL || BACKEND_URL;
 
 const FIREBASE_API_KEY = process.env.EXPO_PUBLIC_FIREBASE_API_KEY || process.env.FIREBASE_API_KEY || 'AIzaSyAY6g-50Gu5zlB3sbkKHuuG5DpBOLZd_xo';
