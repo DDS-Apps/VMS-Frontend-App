@@ -39,11 +39,11 @@ npm ci --include=dev
 | Target | Command | Output / caveat |
 |---|---|---|
 | Production IIS web | `npm run build:web:production -- --backend-origin http://localhost:3000` | `dist/`, including generated `web.config`; replace the example origin with the actual internal backend |
-| Replit publishing build | `bash scripts/build-and-verify.sh` | **Production**; no IIS `web.config`, precompressed assets for `server.js` |
+| Replit publishing build | `bash scripts/build-and-verify.sh` | QA backend; no IIS `web.config`, precompressed assets for `server.js` |
 | Production Android | `npm run build:android` | EAS production profile |
 | Production iOS | `npm run build:ios` | EAS production profile through the Apple authentication helper |
 
-The public hostname alone does not identify an export's backend: the current Replit publishing command also embeds production URLs. Confirm the intended environment before publishing.
+The Replit publishing command embeds QA backend URLs. The IIS production command and EAS production profiles continue to embed production URLs.
 
 The build verifies required assets, template substitution, the expected API origin and known non-production host leakage. It does not establish live API availability.
 
@@ -157,7 +157,7 @@ npm ci --include=dev
 npm run build:web:production -- --backend-origin http://localhost:3000
 ```
 
-Replace `http://localhost:3000` with the internal backend origin used by IIS. It is not the public task-pane URL. The existing Replit publishing build also renders production add-in assets, but deliberately omits IIS configuration.
+Replace `http://localhost:3000` with the internal backend origin used by IIS. It is not the public task-pane URL. The Replit publishing build is QA-only and deliberately omits IIS configuration.
 
 Expected current production values:
 
@@ -310,7 +310,7 @@ Verify inherited headers at the public URL. Protect the main application against
 | Browser receives old app | HTML/service-worker caching and mixed release files |
 | Outlook pane blocked | Effective frame headers, CSP and tenant network policy |
 
-For Replit-hosted output, the existing publishing build produces production-targeted assets for server.js and omits IIS web.config. Its hostname does not change the production API target embedded in the build.
+For Replit-hosted output, the publishing build produces QA-targeted assets for server.js and omits IIS web.config.
 
 ## 2. Mobile production build and store release
 
