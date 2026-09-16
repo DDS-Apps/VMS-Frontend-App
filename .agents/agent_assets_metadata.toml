@@ -42,3 +42,17 @@ mtime_ms = 1789554384036
 storage_uri = "gcs://replit-rams-assets-pike/rams/assets/repl:d02f58f1-0735-43a7-a13a-9cffc6e5f093/0181e0b5-9c7c-43f5-a49c-3efa844a383f/48d1689d-12d9-4eea-abad-b0eb804cd92d"
 storage_version_token = "1789554399314533"
 content_type = "text/markdown"
+
+[[outputs]]
+id = "qLnA8ERSMhkPDNI2y-2mQ"
+uri = "file://docs/production-client-handover.md"
+type = "text"
+title = "VMS — Complete Production and Client Handover Guide"
+description = "One consolidated document covering production readiness, IIS deployment, mobile releases, Microsoft sign-in, notifications, Outlook installation and manifest updates, calendar synchronization, rollback and sign-off."
+logical_id = "2e7e5b44-aa0a-456e-81dd-a6df4fc32fcf"
+content_hash = "sha256:9685bfee9fcb6d6b1f050e2cac376b960089c54490a37c6b896a377991af9420"
+size = 33418
+mtime_ms = 1789554545176
+storage_uri = "gcs://replit-rams-assets-pike/rams/assets/repl:d02f58f1-0735-43a7-a13a-9cffc6e5f093/2e7e5b44-aa0a-456e-81dd-a6df4fc32fcf/dd181b6d-c7bd-4c59-9fa2-398109d32467"
+storage_version_token = "1789554557665083"
+content_type = "text/markdown"
