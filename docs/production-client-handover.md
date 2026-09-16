@@ -4,42 +4,29 @@
 
 **Document reviewed:** 16 September 2026
 
-**Status:** Configuration reviewed against the frontend repository. Production infrastructure, Microsoft tenant settings, backend behavior and end-to-end acceptance remain subject to the checks below. This document is not a production sign-off.
+**Purpose:** Instructions for configuring, deploying and maintaining the production VMS application and Outlook integration.
 
 ## Document contents
 
-- Part I: Production readiness, ownership and acceptance checklist
+- Part I: Production configuration and prerequisites
 - Part II: Outlook add-in creation, installation, manifest updates and troubleshooting
 - Part III: IIS deployment, mobile release, calendar integration and operational handover
 
-## Part I — Production readiness
+## Part I — Production configuration
 
-## 1. Go-live responsibilities
+## 1. Environment and build configuration
 
-| Owner | Responsibility | Required evidence |
-|---|---|---|
-| Release team | Approved source revision, production builds, deployment and rollback package | Commit ID, build IDs and release notes |
-| Infrastructure team | DNS, TLS, IIS, reverse proxy, backend availability and monitoring | HTTPS and proxy checks |
-| Backend team | API compatibility, SSO, permissions, notifications and calendar integration | API and integration test results |
-| Microsoft 365 / Entra administrator | SSO registration, add-in deployment, Graph consent and mailbox access | Pilot assignment and consent confirmation |
-| Firebase / mobile release owner | Firebase configuration, push credentials, app identifiers and signing | Push and app-link tests on signed builds |
-| Business / QA owner | Role-based acceptance in English and Arabic | Signed acceptance record |
+| Setting | Production |
+|---|---|
+| App domain | vms.dallah.com |
+| API / Microsoft SSO origin | https://vms.dallah.com |
+| Native build variant | APP_VARIANT=production |
+| Outlook add-in name | VMS - Create Visit Request |
+| Firebase | Currently uses dallah-albaraka-vms; configure the intended production registrations |
 
-Do not mark a box complete merely because a file exists in the repository. Record the environment, tester, date and evidence for each production check. Use test visitors and do not include credentials or personal data in handover evidence.
+The environment map is in `config/app-environments.js`; `app.config.js` derives runtime URLs and native links. Production URL resolution ignores inherited process URL overrides and uses the production variant file, if provided, then committed defaults. Development workspace URLs are rejected/ignored as appropriate.
 
-## 2. Environment and build configuration
-
-| Setting | QA | Production |
-|---|---|---|
-| App domain | `vms-frontend-folio3.replit.app` | `vms.dallah.com` |
-| API / Microsoft SSO origin | `https://vms-backend-app-qa.replit.app` | `https://vms.dallah.com` |
-| Native build variant | `APP_VARIANT=staging` (resolves to QA) | `APP_VARIANT=production` |
-| Outlook add-in name | VMS QA - Create Visit Request | VMS - Create Visit Request |
-| Firebase | Currently configured for `dallah-albaraka-vms` | Currently shares the same project; confirm client approval |
-
-The environment map is in `config/app-environments.js`; `app.config.js` derives runtime URLs and native links. Production URL resolution ignores inherited process URL overrides and uses the production variant file, if provided, then committed defaults. QA can use process URL overrides, then its variant file, then defaults. Development workspace URLs are rejected/ignored as appropriate.
-
-For variant-file overrides, use unprefixed `API_BASE_URL`, `MICROSOFT_AUTH_URL`, `APP_DOMAIN` and `LEGAL_PAGES_URL`. Although the resolver accepts prefixed aliases, avoid `EXPO_PUBLIC_*` in variant files because Expo can auto-load `.env.production` during QA exports. The production URL guard is **not** a blanket guarantee that all inherited Firebase or other public settings are ignored; verify those separately.
+For variant-file overrides, use unprefixed `API_BASE_URL`, `MICROSOFT_AUTH_URL`, `APP_DOMAIN` and `LEGAL_PAGES_URL`. Although the resolver accepts prefixed aliases, avoid `EXPO_PUBLIC_*` in variant files because Expo can auto-load `.env.production` during exports for other environments. The production URL guard is **not** a blanket guarantee that all inherited Firebase or other public settings are ignored; verify those separately.
 
 ### Release commands
 
@@ -47,80 +34,68 @@ Run from the approved source revision after installing dependencies:
 
 ```bash
 npm ci --include=dev
-npx tsc --noEmit
-npx jest --runInBand __tests__/webBuildEnvironments.test.js __tests__/serverStaticCaching.test.js
 ```
 
 | Target | Command | Output / caveat |
 |---|---|---|
 | Production IIS web | `npm run build:web:production -- --backend-origin http://localhost:3000` | `dist/`, including generated `web.config`; replace the example origin with the actual internal backend |
-| Replit publishing build | `bash scripts/build-and-verify.sh` | **Production**, not QA; no IIS `web.config`, precompressed assets for `server.js` |
-| QA web export | `npm run build:web` | QA export; not the current Replit publishing command |
+| Replit publishing build | `bash scripts/build-and-verify.sh` | **Production**; no IIS `web.config`, precompressed assets for `server.js` |
 | Production Android | `npm run build:android` | EAS production profile |
 | Production iOS | `npm run build:ios` | EAS production profile through the Apple authentication helper |
-| QA native builds | `npm run build:preview:android` / `npm run build:preview:ios` | Preview profiles |
 
 The public hostname alone does not identify an export's backend: the current Replit publishing command also embeds production URLs. Confirm the intended environment before publishing.
 
-The build verifies required assets, template substitution, the expected API origin and known QA/development host leakage. It is not a security scan or proof of live API availability.
+The build verifies required assets, template substitution, the expected API origin and known non-production host leakage. It does not establish live API availability.
 
 - [ ] Approved commit is merged and the lockfile matches the manifest; external build URLs contain no Replit-only package registry hosts.
-- [ ] Clean dependency installation, TypeScript and release tests pass in the release environment.
 - [ ] Build output resolves to the production API; archive the completed `dist/` and build logs.
 - [ ] Correct production Android/iOS identifiers, signing profiles and store metadata confirmed.
 - [ ] Previous working frontend and backend release retained; rollback owner and procedure agreed.
 
 Detailed IIS deployment and mobile release procedures are included in Part III below.
 
-## 3. Infrastructure and backend gates
+## 2. Infrastructure and backend gates
 
 - [ ] DNS and valid TLS certificate configured for `vms.dallah.com`; HTTP redirects to HTTPS.
 - [ ] IIS URL Rewrite and ARR proxy configured; generated `dist/` deployed with `web.config` and all static subdirectories, including `.well-known` and `outlook-addin`.
 - [ ] Internal backend origin is correct, running and reachable by IIS; `/api/*` and `/auth/microsoft/*` reach the backend instead of the SPA.
 - [ ] Backend public origin and frontend redirect origin explicitly configured as `https://vms.dallah.com`; proxy headers and allowed origins reviewed.
-- [ ] API schema matches the released frontend. Verify `GET /api/v1/dashboard/kpis` with authorized users and each applicable role; do not assume QA and production have the same backend revision.
+- [ ] API schema matches the released frontend. Deploy the backend version supporting `GET /api/v1/dashboard/kpis` and the other API endpoints used by the released frontend.
 - [ ] Verify the backend's documented health endpoint (for example `/api/health` if implemented). `/health` on `server.js` checks the static frontend, not backend functionality.
 - [ ] Authentication, authorization, validation and role permissions enforced by the backend; no production mock data or test accounts exposed.
 - [ ] Database migrations, backups, restore procedure, service credentials, monitoring and alert recipients approved by the backend/infrastructure owners.
-- [ ] Invitation and notification payloads use production HTTPS links, including `/invite/<token>` and `/requests/<id>`; access and expiry behavior tested.
+- [ ] Invitation and notification payloads use production HTTPS links, including `/invite/<token>` and `/requests/<id>`.
 - [ ] Static legal pages `/privacy-policy.html` and `/terms-conditions.html` contain client-approved content.
 
-No dated backend outage or missing-endpoint claim is carried forward as a current fact: recheck the actual production release and record evidence.
-
-## 4. Microsoft sign-in
+## 3. Microsoft sign-in
 
 - [ ] Client Entra tenant and application registration confirmed; backend credentials valid and stored securely.
 - [ ] Actual backend HTTPS callback registered, expected to be `https://vms.dallah.com/auth/microsoft/callback`; confirm against backend configuration.
 - [ ] `/auth/microsoft/login?platform=web` redirects to Microsoft and the callback returns to the production frontend.
 - [ ] Backend token handoff matches the frontend's URL-hash handling; no tokens in query strings or logs.
-- [ ] Mobile return to `dallahvms://auth/callback` tested on signed production builds. Confirm with the backend which redirects belong in Entra and which are post-login app handoffs; do not blindly register every URL as an Entra callback.
-- [ ] Signed-out, session-expired, cancelled sign-in and unauthorized-user paths tested.
+- [ ] Configure the mobile return to `dallahvms://auth/callback`. Confirm with the backend which redirects belong in Entra and which are post-login app handoffs; do not blindly register every URL as an Entra callback.
 
-## 5. Push notifications and mobile links
+## 4. Push notifications and mobile links
 
 - [ ] Client approves the currently shared Firebase project and verifies production web and native app registrations.
 - [ ] Production web Firebase configuration and VAPID public configuration match the backend's intended FCM project; required authorized domains are checked where Firebase Authentication is used.
 - [ ] HTTPS `/firebase-messaging-sw.js` loads as JavaScript with root scope, not an HTML fallback.
-- [ ] Supported browser obtains notification permission, registers its token with the backend and receives a real notification; denied permission handled correctly.
+- [ ] Enable browser notification permission and device-token registration with the production backend.
 - [ ] Android Firebase package registration and iOS bundle ID/APNs credentials match the signed production builds. Native Firebase files currently come from `config/qa/`; the folder name does not establish production correctness.
-- [ ] Foreground, background and cold-launch push navigation tested on iOS and Android.
 - [ ] `/.well-known/apple-app-site-association` and `/.well-known/assetlinks.json` return JSON without login or SPA fallback.
 - [ ] Apple team/bundle identifiers and Android signing fingerprints match the distributed builds, including Play App Signing where applicable.
-- [ ] Invitation and request links tested with and without the native app installed.
 
-## 6. Outlook: two separate capabilities
+## 5. Outlook: two separate capabilities
 
 ### A. Create a VMS visit from an email
 
 The existing Outlook add-in reads the **sender name and email of an opened message**, then opens the VMS form in the browser at `/requests/new?name=...&email=...`. The user signs in if required, completes the form and submits it in VMS.
 
-This is a message-read add-in with `ReadItem` permission. It does not submit visits inside Outlook, process compose-mode messages, or create calendar events. The current XML has no mobile command extension; do not promise Outlook mobile support without implementation and testing.
+This is a message-read add-in with `ReadItem` permission. It does not submit visits inside Outlook, process compose-mode messages, or create calendar events. The current XML has no mobile command extension; Outlook mobile support is not included.
 
 - [ ] Generated production manifest validated and hosted over HTTPS.
-- [ ] Add-in deployed to a Microsoft 365 pilot group.
+- [ ] Add-in deployed to a intended Microsoft 365 users/group.
 - [ ] Task pane opens in each supported Outlook client without frame-policy errors.
-- [ ] Sender prefill and request submission pass both signed-in and signed-out tests.
-- [ ] Business owner approves pilot before wider assignment.
 
 Follow the complete Outlook add-in setup and manifest update instructions in Part II below.
 
@@ -133,31 +108,9 @@ Installing the add-in **does not enable calendar synchronization**. This is a se
 - [ ] Restrict application access to intended mailboxes using the client's approved Exchange application-access controls; this permission must not be granted broadly without review.
 - [ ] Backend tenant/client configuration and credential expiry checked securely; never add credentials to the manifest.
 - [ ] Host accounts have suitable Exchange Online mailboxes; room resource addresses provided if room booking is required.
-- [ ] Create, reschedule and cancel a test visit; confirm correct calendar event, attendees, Riyadh time, no duplicates, and appropriate VMS sync/error status.
 
-The calendar integration procedure is included in Part III below. It describes the expected backend contract, not proof that the deployed backend has passed these tests.
+The calendar integration procedure is included in Part III below. It describes the required backend configuration and event operations.
 
-## 7. Acceptance and release decision
-
-Test English and Arabic, supported desktop browsers and signed mobile builds:
-
-- [ ] Sign in/out, session restore, and access restrictions for every deployed role.
-- [ ] Create/edit/cancel a request, approval/rejection, invitation access and expiry.
-- [ ] Receptionist walk-in, check-in/out and services; Manager, Security, Buffet and administrator workflows as applicable.
-- [ ] KPI counts, filters, pagination, refresh and failure recovery.
-- [ ] Riyadh date/time handling and boundary cases.
-- [ ] Email delivery, push delivery, deep links, Outlook sender prefill and calendar synchronization tested separately.
-- [ ] No blocker defects remain; accepted limitations documented with an owner.
-- [ ] Monitoring and rollback checks complete before general availability.
-
-| Sign-off | Name / team | Date | Evidence / open conditions |
-|---|---|---|---|
-| Infrastructure and backend | | | |
-| Microsoft 365 / Entra | | | |
-| QA and mobile release | | | |
-| Business owner | | | |
-
-**Go-live decision:** Pending completion and approval of the applicable checks above.
 ---
 
 # Part II — Outlook add-in setup and manifest updates
@@ -174,16 +127,16 @@ The VMS Outlook add-in is already implemented in this repository. There is no ne
 
 Open an email → open **VMS - Create Visit Request** from Outlook's apps/add-ins menu → review the sender → choose the task-pane button → complete the prefilled VMS form in the browser.
 
-The XML manifest tells Outlook where the hosted task pane is and what message access it requires. It contains no passwords, client secrets or backend credentials. Existing VMS sign-in remains separate. Calendar synchronization requires separate backend/Graph setup described in the readiness checklist in Part I, section 6.
+The XML manifest tells Outlook where the hosted task pane is and what message access it requires. It contains no passwords, client secrets or backend credentials. Existing VMS sign-in remains separate. Calendar synchronization requires separate backend/Graph setup described in the readiness checklist in Part I, section 5.
 
 ## 2. Prerequisites
 
 - A working production HTTPS site and backend, including VMS sign-in and request creation.
 - Client-approved Microsoft 365 tenant with Exchange Online mailboxes and supported Outlook clients.
 - Administrator permissions to centrally deploy Office add-ins and assign users/groups.
-- Tenant policies permit the custom add-in; a small pilot group is identified.
+- Tenant policies permit the custom add-in; identify the users/groups who need access.
 - Network policy permits the VMS task pane and Microsoft's Office.js CDN.
-- Confirm intended desktop/web clients in the pilot. The existing manifest does not declare Outlook mobile commands.
+- Use supported Outlook desktop/web clients. The existing manifest does not declare Outlook mobile commands.
 
 ## 3. Create the production manifest
 
@@ -191,7 +144,7 @@ The release build generates it from committed sources:
 
 | File | Purpose |
 |---|---|
-| `config/app-environments.js` | Production/QA domains, separate add-in IDs, names and versions |
+| `config/app-environments.js` | Environment domains, separate add-in IDs, names and versions |
 | `public/outlook-addin/manifest.xml` | XML template; not suitable for uploading directly |
 | `public/outlook-addin/taskpane.html` and `.js` | Hosted add-in interface and sender-prefill behavior |
 | `scripts/lib/web-dist.js` | Replaces template placeholders during the build |
@@ -217,7 +170,7 @@ Expected current production values:
 | Task pane | `https://vms.dallah.com/outlook-addin/taskpane.html` |
 | App domain | `https://vms.dallah.com` |
 
-Do not upload `public/outlook-addin/manifest.xml`: its `%%...%%` values are placeholders. Do not hand-edit `dist/` as the source of truth; the next build overwrites it. Keep the QA identity separate.
+Do not upload `public/outlook-addin/manifest.xml`: its `%%...%%` values are placeholders. Do not hand-edit `dist/` as the source of truth; the next build overwrites it. Keep the non-production add-in identity separate.
 
 Validate the generated file using Microsoft's validator (this command downloads/runs the validator if not already available):
 
@@ -244,7 +197,7 @@ The generated IIS configuration removes `X-Frame-Options` for `/outlook-addin/`;
 
 Opening the HTML directly in a browser is only a hosting check. Sender access requires running inside Outlook.
 
-## 5. Install for a pilot group
+## 5. Install for users or groups
 
 1. Sign in to the **Microsoft 365 admin center** with an authorized administrator.
 2. Open **Settings → Integrated apps → Upload custom apps** (labels may vary by tenant).
@@ -252,27 +205,13 @@ Opening the HTML directly in a browser is only a hosting check. Sender access re
 4. Upload the validated `dist/outlook-addin/manifest.xml`. If the portal offers a manifest URL, use:
    `https://vms.dallah.com/outlook-addin/manifest.xml`
 5. Review the name, publisher, URLs and requested `ReadItem` permission.
-6. Assign only the approved pilot users/group and complete deployment.
+6. Assign the intended users/group and complete deployment.
 7. Allow deployment propagation, then restart or refresh Outlook. Microsoft notes that add-ins can take up to 72 hours to appear.
 8. Open a received email and locate the add-in in the message's **Apps / Add-ins / More apps** menu. Exact placement varies; the current manifest does not define a custom ribbon command.
 
 If Integrated apps is unavailable, follow Microsoft's documented centralized-deployment add-in portal alternative. Do not uninstall an existing production add-in merely to work around portal navigation.
 
-## 6. Pilot acceptance
-
-- [ ] Assigned user sees the expected production add-in, not the QA one.
-- [ ] Task pane loads without Office.js, framing or certificate errors.
-- [ ] Email sender name/email appear correctly.
-- [ ] Button opens the production `/requests/new` form; sender values are prefilled and editable.
-- [ ] Repeat while signed out; confirm sign-in preserves the request destination and sender prefill. Record any loss of context as a release defect.
-- [ ] Request submits successfully and enters the correct approval workflow.
-- [ ] Test names containing spaces, apostrophes and Arabic characters, and messages with incomplete sender details.
-- [ ] Repeat in each approved Outlook web/desktop client. Do not infer mobile support from desktop success.
-- [ ] Confirm calendar create/update/cancel separately if calendar synchronization is in scope.
-
-Only expand assignment after the client accepts the pilot.
-
-## 7. Update an existing manifest
+## 6. Update an existing manifest
 
 ### Manifest change: version, domain, name, permissions or activation settings
 
@@ -283,19 +222,19 @@ Only expand assignment after the client accepts the pilot.
 5. Deploy the matching hosted assets first. Confirm all new URLs are reachable.
 6. In the admin center, select the **existing VMS add-in** and its update/upload-new-manifest action. Supply the new XML (or updated URL if supported) and review any new permission approvals.
 7. Retain intended assignments. Do not create a new ID or install a duplicate production entry.
-8. Verify the admin portal shows the new version; allow propagation, refresh Outlook and repeat the pilot tests.
+8. Verify the admin portal shows the new version; allow propagation, refresh Outlook and refresh the add-in.
 
 Updating a file at the same URL is **not a substitute** for updating the centrally deployed manifest. Follow the tenant's update flow.
 
 ### Hosted HTML/JavaScript-only change
 
-If the manifest's metadata, URLs, permissions and activation remain unchanged, redeploy the updated task-pane web assets at the same URLs. Microsoft distinguishes these web-app updates from manifest updates: they do not require a new manifest deployment. Check caching and repeat the pilot tests.
+If the manifest's metadata, URLs, permissions and activation remain unchanged, redeploy the updated task-pane web assets at the same URLs. Microsoft distinguishes these web-app updates from manifest updates: they do not require a new manifest deployment. Ensure the updated assets are not retained in stale caches.
 
 ### Rollback
 
-Retain a matching manifest/web-asset release pair. Restore known-working hosted assets if needed. If manifest rollback is required, coordinate with the tenant administrator: republish the previous settings under an appropriately increased version rather than assuming a version downgrade will be accepted. Revalidate and retest.
+Retain a matching manifest/web-asset release pair. Restore known-working hosted assets if needed. If manifest rollback is required, coordinate with the tenant administrator: republish the previous settings under an appropriately increased version rather than assuming a version downgrade will be accepted. Validate the replacement manifest.
 
-## 8. Troubleshooting
+## 7. Troubleshooting
 
 | Symptom | Check |
 |---|---|
@@ -367,11 +306,11 @@ Verify inherited headers at the public URL. Protect the main application against
 | IIS 500.19 | Missing URL Rewrite module or invalid/locked configuration section |
 | Proxy 502/504 | Backend process, address/port, network reachability and timeouts |
 | API returns HTML | SPA fallback incorrectly intercepting API routes |
-| Microsoft sign-in returns to QA | Backend public/redirect URL and Entra callback configuration |
+| Microsoft sign-in returns to a non-production site | Backend public/redirect URL and Entra callback configuration |
 | Browser receives old app | HTML/service-worker caching and mixed release files |
 | Outlook pane blocked | Effective frame headers, CSP and tenant network policy |
 
-For Replit-hosted output, the existing publishing build produces production-targeted assets for server.js and omits IIS web.config. Do not treat that output as a QA release simply because its hostname is on Replit.
+For Replit-hosted output, the existing publishing build produces production-targeted assets for server.js and omits IIS web.config. Its hostname does not change the production API target embedded in the build.
 
 ## 2. Mobile production build and store release
 
@@ -394,11 +333,11 @@ npm run build:android
 npm run build:ios
 ```
 
-Use the project iOS command because it runs the dedicated Apple authentication helper. Record each EAS build ID and the source revision. Download and test the resulting signed builds before submission.
+Use the project iOS command because it runs the dedicated Apple authentication helper. Record each EAS build ID and the source revision. Retain the resulting signed build artifacts for store submission.
 
 ### Submit after approval
 
-Submission requires correctly configured store access and app records. Explicitly select the build that passed acceptance; do not assume the newest build is the approved release:
+Submission requires correctly configured store access and app records. Explicitly select the intended production build rather than assuming the newest build is the correct release:
 
 ```bash
 npx eas submit --platform android --profile production --id APPROVED_ANDROID_BUILD_ID
@@ -414,7 +353,6 @@ Replace the uppercase placeholders with the actual approved EAS build IDs. Submi
 - [ ] Permission purpose text accurately explains camera/photo/notification access where used.
 - [ ] Review access and clear login instructions provided through the stores' secure review fields; do not add fixed OTP bypasses or weaken production authentication.
 - [ ] Content rating, audience, encryption/export declarations and branding rights reviewed by the client.
-- [ ] Test supported OS/device versions, tablets where supported, Arabic/English, offline handling, role restrictions, push, deep links and cold launch.
 - [ ] App Store / Play review status monitored and client release approval obtained before rollout.
 - [ ] Use controlled rollout where available and monitor crash/error rates after release.
 
@@ -445,39 +383,20 @@ The documented integration uses Microsoft Graph client credentials and these eve
 
 The backend team must confirm the precise creation trigger, retain the Graph event identifier, avoid duplicate events during retries, handle Riyadh timezone correctly and report synchronization failures appropriately. Confirm host identity mapping, attendee behavior, room processing, and whether cancellation notices are sent as the business expects.
 
-Test permission denial, expired credentials, inaccessible mailboxes and unavailable Graph service. Verify the agreed behavior of the VMS visit when calendar synchronization fails; do not assume a badge or successful visit creation proves successful calendar delivery.
+Configure handling for permission denial, expired credentials, inaccessible mailboxes and Graph outages. Report synchronization failures separately from visit creation; a saved visit does not establish successful calendar delivery.
 
-## 4. Cutover, rollback and handover record
+## 4. Deployment order and rollback
 
-### Cutover order
+### Deployment order
 
-1. Approve release scope, maintenance window, owners, backups and rollback decision criteria.
-2. Deploy/verify compatible backend and required migrations using the backend team's approved procedure.
-3. Deploy production web assets; verify SSO, authenticated API operations and legal/static resources.
-4. Complete role-based acceptance, notifications and native association checks.
-5. Deploy the Outlook add-in to a pilot group and validate it; enable/verify calendar integration separately.
-6. Release approved mobile builds through the stores and expand Outlook assignment only after acceptance.
-7. Monitor errors, sign-in failures, notification delivery and calendar synchronization; record the final release decision.
+1. Retain backups of the current frontend/backend releases and database before changing production.
+2. Deploy the compatible backend and required database migrations using the approved deployment procedure.
+3. Deploy the production web assets and configure SSO, API routing and public static resources.
+4. Configure Firebase notifications and native app association files.
+5. Deploy the Outlook manifest to the intended users/groups; configure Microsoft Graph calendar integration separately.
+6. Submit the selected mobile builds to the stores and complete the store release process.
+7. Enable operational monitoring for server errors, sign-in failures, notifications and calendar synchronization.
 
 ### Rollback rules
 
 Restore a compatible known-working frontend/backend pair using the approved procedure. Database restoration or reversal requires backend/infrastructure approval and a plan for data created after release; never blindly restore a backup. Follow Part II for Outlook manifest versioning and rollback. Store releases may require a new corrective binary, so do not assume server rollback reverts installed mobile apps.
-
-### Client handover inventory
-
-| Item | Client / release team to complete |
-|---|---|
-| Approved commit and release version | |
-| Production web release / backup location | |
-| Backend version and migration record | |
-| Android and iOS build IDs / store status | |
-| Outlook manifest ID, version and assigned group | |
-| Entra tenant/application reference and consent owner | |
-| Firebase project / signing ownership | |
-| Acceptance evidence and approved limitations | |
-| Monitoring dashboards and escalation contacts | |
-| Credential rotation owner and expiry reminders (no secret values) | |
-| Rollback owner, procedure and decision threshold | |
-| Final business sign-off and release date | |
-
-**Final status:** Pending client/environment verification and signed acceptance. This consolidated guide does not certify that live production, Microsoft tenant deployment or store approval has completed.
