@@ -29,6 +29,16 @@ const QA_SHARED_ENV = {
   EXPO_PUBLIC_LEGAL_PAGES_URL: "https://vms-frontend-folio3.replit.app",
 };
 
+describe("Replit publishing build", () => {
+  it("builds the production variant without the IIS-only web.config", () => {
+    const script = fs.readFileSync(path.join(ROOT, "scripts", "build-and-verify.sh"), "utf8");
+
+    expect(script).toContain("--variant production");
+    expect(script).toContain("--no-web-config");
+    expect(script).not.toContain("--variant qa");
+  });
+});
+
 describe("resolveEnvironment", () => {
   it("defaults production to vms.dallah.com for every public URL", () => {
     const resolved = resolveEnvironment({ appVariant: "production", env: {} });
