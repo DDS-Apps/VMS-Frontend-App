@@ -16,6 +16,7 @@ export const NOTIFICATION_TYPES = {
 
   VALET_TASK: 'valet_task',
   VALET_ASSIGNMENT: 'valet_assignment',
+  VALET_NEW_REQUEST: 'valet_new_request',
 
   SECURITY_ALERT: 'security_alert',
   SECURITY_INCIDENT: 'security_incident',

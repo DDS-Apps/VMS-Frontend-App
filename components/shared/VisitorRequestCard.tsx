@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, StyleSheet, ViewStyle, Platform } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
-import { capitalizeFirst } from "@/utils/formatters";
+import { capitalizeFirst, getInitials } from "@/utils/formatters";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { DDIcon } from "@/components/DDIcon";
@@ -17,17 +17,21 @@ import { useFormatters } from "@/hooks/useFormatters";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { VisitorRequest } from "@/types/vms.types";
 import { getStatusConfig as getStatusStyle, applyOpacity } from "@/utils/statusStyles";
+import { RequestStatusBadge } from "@/components/shared/RequestStatusBadge";
 import { useUpcomingIndicator } from "@/hooks/useUpcomingVisitTimer";
 import {
   isUpcomingIndicatorEligibleStatus,
   UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES,
 } from "@/constants/requestConstants";
+import { resolveParkingDisplayDecision } from "@/utils/parkingDecision";
+import { getVisitorCardMetadataFlexWrap } from "@/utils/visitorCardLayout";
 
 type CardVariant = 'default' | 'compact' | 'actions' | 'selectable';
 
 interface VisitorRequestCardProps {
   request: VisitorRequest;
   onPress: () => void;
+  statusOverride?: string;
   width?: number;
   accentColor?: string;
   showRequestedBy?: boolean;
@@ -42,6 +46,7 @@ interface VisitorRequestCardProps {
   approveLoading?: boolean;
   rejectLoading?: boolean;
   isExpired?: boolean;
+  showExpiredState?: boolean;
   isSelectionMode?: boolean;
   isSelected?: boolean;
   onToggleSelection?: () => void;
@@ -58,7 +63,12 @@ const ServiceIconsRow = ({ request, size = 14, showWalkIn = false }: { request: 
   const { theme } = useTheme();
   const { isRTL } = useLanguage();
   
-  const showParking = request.isVisitorNeedsParking === true || request.visitorNeedsParking === true || !!request.parkingSlot;
+  const showParking = resolveParkingDisplayDecision({
+    parkingDecision: request.parkingDecision,
+    visitorNeedsParking: request.visitorNeedsParking,
+    isVisitorNeedsParking: request.isVisitorNeedsParking,
+    hasParkingAllocation: !!request.parkingSlot,
+  }) === 'required';
   const showMeetingRoom = request.isMeetingRoom === true || !!request.meetingRoom;
   const showBuffet = request.isBuffet === true || !!request.buffet;
   const showValet = !!request.valet;
@@ -117,6 +127,7 @@ const ServiceIconsRow = ({ request, size = 14, showWalkIn = false }: { request: 
 export function VisitorRequestCard({
   request,
   onPress,
+  statusOverride,
   width,
   accentColor,
   showRequestedBy = false,
@@ -131,6 +142,7 @@ export function VisitorRequestCard({
   approveLoading = false,
   rejectLoading = false,
   isExpired = false,
+  showExpiredState = false,
   isSelectionMode = false,
   isSelected = false,
   onToggleSelection,
@@ -140,13 +152,15 @@ export function VisitorRequestCard({
   const { t } = useTranslation();
   const { formatDateShort, formatTimeFromString, toLocalNumerals } = useFormatters();
   const { isRTL } = useLanguage();
-  const statusConfig = getStatusStyle(theme, request.status, t);
+  const displayedStatus = statusOverride ?? request.status;
+  const statusConfig = getStatusStyle(theme, displayedStatus, t);
   const borderColor = accentColor || statusConfig.borderColor;
 
   const isStatusEligible = isUpcomingIndicatorEligibleStatus(request.status);
   const isUpcoming = useUpcomingIndicator({
     visitDate: request.visitDate ?? '',
     visitTime: request.visitTime ?? '',
+    visitStartAt: request.visitStartAt,
     eligible: isStatusEligible,
     thresholdMinutes: UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES,
   });
@@ -190,12 +204,7 @@ export function VisitorRequestCard({
     return toLocalNumerals(durationStr);
   };
 
-  const initials = request.visitor.fullName
-    .split(' ')
-    .map(n => n[0])
-    .join('')
-    .substring(0, 2)
-    .toUpperCase();
+  const initials = getInitials(request.visitor.fullName);
 
   const handlePress = () => {
     if (isSelectionMode && onToggleSelection) {
@@ -207,21 +216,13 @@ export function VisitorRequestCard({
 
   const renderAvatar = () => (
     <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
-      <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
+      <ThemedText
+        style={[styles.avatarText, { color: theme.primary }]}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.5}
+      >
         {initials}
-      </ThemedText>
-    </View>
-  );
-
-  const renderStatusBadge = () => (
-    <View
-      style={[
-        styles.statusBadge,
-        { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: 1 },
-      ]}
-    >
-      <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
-        {statusConfig.label}
       </ThemedText>
     </View>
   );
@@ -232,9 +233,12 @@ export function VisitorRequestCard({
       <DirectionalRow style={styles.cardHeader} gap={Spacing.md}>
         {renderAvatar()}
         <View style={styles.nameSection}>
-          <ThemedText style={[styles.visitorName, { color: theme.text }]} numberOfLines={1}>
-            {capitalizeFirst(request.visitor.fullName)}
-          </ThemedText>
+          <DirectionalRow style={styles.nameWithBadgeRow}>
+            <ThemedText style={[styles.visitorName, { color: theme.text, flex: 1 }]} numberOfLines={1}>
+              {capitalizeFirst(request.visitor.fullName)}
+            </ThemedText>
+            <RequestStatusBadge status={displayedStatus} />
+          </DirectionalRow>
           {request.visitor.company ? (
             <ThemedText style={[styles.companyText, { color: theme.textSecondary }]}>
               {request.visitor.company}
@@ -267,17 +271,60 @@ export function VisitorRequestCard({
         style={styles.dateTimeRow}
       >
         {renderIconText('calendar', formatDate(request.visitDate))}
-        <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
-        {renderIconText('clock', formatTime(request.visitTime))}
         {request.duration ? (
-          <>
+          <DirectionalRow style={styles.durationGroup}>
             <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
-            <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
-              {formatDuration(request.duration)}
-            </ThemedText>
-          </>
+            {renderIconText('clock', `${t('visitor.duration')} ${formatDuration(request.duration)}`)}
+          </DirectionalRow>
         ) : null}
       </DirectionalRow>
+    );
+  };
+
+  const renderActualTimes = () => {
+    const checkedOutAt = request.checkedOutAt || request.timeline?.checkedOutAt;
+    const hasScheduledTime = !!request.visitTime && !!request.endTime;
+    const hasActualIn  = !!request.checkedInAt;
+    const hasActualOut = !!checkedOutAt;
+
+    if (!hasScheduledTime && !hasActualIn && !hasActualOut) return null;
+
+    return (
+      <>
+        <Spacer height={Spacing.xs} />
+        <View style={[styles.timingRow, { borderTopColor: theme.border }]}>
+          {hasScheduledTime ? (
+            <View style={styles.timingCell}>
+              <ThemedText style={[styles.timingLabel, { color: theme.textSecondary }]}>
+                {t('visitor.scheduledTime')}
+              </ThemedText>
+              <ThemedText style={[styles.timingValue, { color: theme.text }]}>
+                {formatTime(request.visitTime)} {t('visitor.timeRangeTo')} {formatTime(request.endTime!)}
+              </ThemedText>
+            </View>
+          ) : null}
+          {hasActualIn ? (
+            <View style={styles.timingCell}>
+              <ThemedText style={[styles.timingLabel, { color: theme.textSecondary }]}>
+                {t('visitor.actualIn')}
+              </ThemedText>
+              <ThemedText style={[styles.timingValue, { color: theme.success }]}>
+                {formatTime(request.checkedInAt!)}
+              </ThemedText>
+            </View>
+          ) : null}
+          {hasActualOut ? (
+            <View style={styles.timingCell}>
+              <ThemedText style={[styles.timingLabel, { color: theme.textSecondary }]}>
+                {t('visitor.actualOut')}
+              </ThemedText>
+              <ThemedText style={[styles.timingValue, { color: theme.textSecondary }]}>
+                {formatTime(checkedOutAt!)}
+              </ThemedText>
+            </View>
+          ) : null}
+        </View>
+      </>
     );
   };
 
@@ -287,17 +334,28 @@ export function VisitorRequestCard({
         <DirectionalRow style={styles.servicesContainer}>
           <ServiceIconsRow request={request} showWalkIn={true} />
         </DirectionalRow>
-        <DirectionalRow style={styles.statusWithAlert} gap={Spacing.xs}>
-          {isUpcoming ? (
-            <View
-              accessibilityLabel={isRTL ? 'الزيارة تبدأ قريباً' : 'Visit starts soon'}
-              accessibilityRole="image"
-            >
-              <DDIcon name="alert-circle" size={16} color={theme.error} />
-            </View>
-          ) : null}
-          {renderStatusBadge()}
-        </DirectionalRow>
+        {isUpcoming ? (
+          <View
+            accessibilityLabel={isRTL ? 'الزيارة تبدأ قريباً' : 'Visit starts soon'}
+            accessibilityRole="image"
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 4,
+              backgroundColor: applyOpacity(theme.error, '15'),
+              borderWidth: 1,
+              borderColor: theme.error,
+              borderRadius: 100,
+              paddingHorizontal: 8,
+              paddingVertical: 3,
+            }}
+          >
+            <DDIcon name="alert-circle" size={12} color={theme.error} />
+            <ThemedText style={{ color: theme.error, fontSize: 11, fontWeight: '700', lineHeight: 16 }}>
+              {t('admin.upcoming')}
+            </ThemedText>
+          </View>
+        ) : null}
       </DirectionalRow>
     );
   };
@@ -362,11 +420,11 @@ export function VisitorRequestCard({
   };
 
   const renderActions = () => {
-    if (!showActions || isSelectionMode) return null;
+    if (isSelectionMode) return null;
     
-    if (isExpired) {
+    if (isExpired && (showActions || showExpiredState)) {
       return (
-        <>
+        <View style={styles.actionsContainer}>
           <Spacer height={Spacing.md} />
           <View style={[styles.expiredBanner, { backgroundColor: applyOpacity(theme.textSecondary, '10'), borderColor: theme.border }]}>
             <DDIcon name="clock" size={14} color={theme.textSecondary} />
@@ -374,12 +432,14 @@ export function VisitorRequestCard({
               {t('visitor.visitExpired')}
             </ThemedText>
           </View>
-        </>
+        </View>
       );
     }
+
+    if (!showActions) return null;
     
     return (
-      <>
+      <View style={styles.actionsContainer}>
         <Spacer height={Spacing.md} />
         <ApprovalActionGroup
           onApprove={() => { if (onApprove) onApprove(); }}
@@ -389,7 +449,7 @@ export function VisitorRequestCard({
           rejectLoading={rejectLoading}
           size="medium"
         />
-      </>
+      </View>
     );
   };
 
@@ -403,10 +463,7 @@ export function VisitorRequestCard({
   };
 
   return (
-    <TouchableOpacity
-      onPress={handlePress}
-      onLongPress={onLongPress}
-      activeOpacity={0.9}
+    <View
       style={[
         styles.container,
         {
@@ -416,29 +473,34 @@ export function VisitorRequestCard({
         style,
       ]}
     >
-      <ThemedView style={[styles.cardInner, { backgroundColor: theme.surface }]}>
-        <View style={[styles.accentLine, { backgroundColor: borderColor }]} />
-        
-        {renderSelectionCheckbox()}
+      <View style={[styles.accentLine, { backgroundColor: borderColor }]} />
+      <TouchableOpacity
+        onPress={handlePress}
+        onLongPress={onLongPress}
+        activeOpacity={0.9}
+      >
+        <ThemedView style={[styles.cardInner, { backgroundColor: theme.surface }]}>
+          {renderSelectionCheckbox()}
 
-        <View style={styles.mainContent}>
-          {renderHeader()}
-          {renderRequestedBy()}
-          {renderHost()}
-          
-          <Spacer height={Spacing.sm} />
-          
-          {renderDateTime()}
-          
-          <Spacer height={Spacing.sm} />
-          
-          {renderServicesAndStatus()}
-          
-          {renderActions()}
-        </View>
+          <View style={styles.mainContent}>
+            {renderHeader()}
+            {renderRequestedBy()}
+            {renderHost()}
 
-      </ThemedView>
-    </TouchableOpacity>
+            <Spacer height={Spacing.sm} />
+
+            {renderDateTime()}
+
+            {renderActualTimes()}
+
+            <Spacer height={Spacing.sm} />
+
+            {renderServicesAndStatus()}
+          </View>
+        </ThemedView>
+      </TouchableOpacity>
+      {renderActions()}
+    </View>
   );
 }
 
@@ -466,6 +528,11 @@ const styles = StyleSheet.create({
     paddingEnd: Spacing.lg,
     paddingStart: Spacing.lg + LAYOUT.accentWidth,
   },
+  actionsContainer: {
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.lg,
+    paddingStart: Spacing.lg + LAYOUT.accentWidth,
+  },
   cardHeader: {
     alignItems: 'center',
     gap: Spacing.md,
@@ -488,6 +555,10 @@ const styles = StyleSheet.create({
   nameSection: {
     flex: 1,
   },
+  nameWithBadgeRow: {
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
   nameRow: {
     alignItems: 'center',
     gap: Spacing.xs,
@@ -499,15 +570,6 @@ const styles = StyleSheet.create({
   companyText: {
     fontSize: 12,
     marginTop: 2,
-  },
-  statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: BorderRadius.sm,
-  },
-  statusText: {
-    fontSize: 10,
-    fontWeight: '600',
   },
   infoRow: {
     alignItems: 'center',
@@ -522,15 +584,25 @@ const styles = StyleSheet.create({
   },
   dateTimeRow: {
     alignItems: 'center',
-    flexWrap: 'nowrap',
+    flexWrap: getVisitorCardMetadataFlexWrap(Platform.OS),
+    rowGap: Spacing.xs,
     gap: Spacing.xs,
   },
   dateTimeItem: {
     alignItems: 'center',
     gap: 4,
+    flexShrink: 1,
+    minWidth: 0,
   },
   dateTimeText: {
     fontSize: 13,
+    flexShrink: 1,
+  },
+  durationGroup: {
+    alignItems: 'center',
+    gap: Spacing.xs,
+    flexShrink: 1,
+    minWidth: 0,
   },
   separator: {
     fontSize: 13,
@@ -585,6 +657,25 @@ const styles = StyleSheet.create({
     top: Spacing.md,
     end: Spacing.md,
     zIndex: 1,
+  },
+  timingRow: {
+    flexDirection: 'row',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingTop: Spacing.sm,
+    gap: Spacing.md,
+    flexWrap: 'wrap',
+  },
+  timingCell: {
+    minWidth: 70,
+  },
+  timingLabel: {
+    fontSize: 10,
+    fontWeight: '500',
+    marginBottom: 2,
+  },
+  timingValue: {
+    fontSize: 12,
+    fontWeight: '600',
   },
   expiredBanner: {
     flexDirection: 'row', // Static - doesn't need RTL flip (centered icon + text)

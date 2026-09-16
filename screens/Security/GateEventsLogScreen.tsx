@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import { View, StyleSheet, Pressable, ActivityIndicator } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DDIcon, IconName } from "@/components/DDIcon";
@@ -10,7 +10,7 @@ import Spacer from "@/components/Spacer";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
-import { RTLHorizontalScrollView } from "@/components/shared";
+import { RTLHorizontalScrollView, FilterChip } from "@/components/shared";
 import { applyOpacity } from "@/utils/statusStyles";
 import { formatTimestamp as formatTimestampUtil } from "@/utils/dateTimeUtils";
 import { useSecurityGateLogsQuery } from "@/hooks/queries/useSecurityQueries";
@@ -28,15 +28,46 @@ export default function GateEventsLogScreen({ navigation }: GateEventsLogScreenP
   const { t, isRTL } = useTranslation();
   const insets = useSafeAreaInsets();  const [searchQuery, setSearchQuery] = useState('');
   const [resultFilter, setResultFilter] = useState<ResultFilter>('all');
+  const isFilteredView = resultFilter !== 'all';
 
-  const { data: allLogsResponse } = useSecurityGateLogsQuery({
-    limit: 100,
-  });
+  const {
+    data: allLogsResponse,
+    isFetching: isSummaryFetching,
+    isError: isSummaryError,
+    refetch: refetchSummary,
+  } = useSecurityGateLogsQuery({ limit: 100 });
 
-  const { data: gateLogsResponse, isLoading, isError, refetch } = useSecurityGateLogsQuery({
-    result: resultFilter === 'all' ? undefined : resultFilter,
-    limit: 100,
-  });
+  const {
+    data: filteredLogsResponse,
+    isFetching: isFilteredFetching,
+    isError: isFilteredError,
+    isPlaceholderData: isFilteredPlaceholderData,
+    refetch: refetchFiltered,
+  } = useSecurityGateLogsQuery(
+    {
+      result: isFilteredView ? resultFilter : undefined,
+      limit: 100,
+    },
+    {
+      enabled: isFilteredView,
+      placeholderData: (previousData) => previousData,
+    },
+  );
+
+  const lastSuccessfulFilteredResponseRef = useRef(filteredLogsResponse);
+  if (filteredLogsResponse && !isFilteredPlaceholderData) {
+    lastSuccessfulFilteredResponseRef.current = filteredLogsResponse;
+  }
+  const displayedFilteredResponse =
+    filteredLogsResponse ?? lastSuccessfulFilteredResponseRef.current;
+  const displayedLogsResponse = isFilteredView
+    ? displayedFilteredResponse
+    : allLogsResponse;
+  const isLogsFetching = isFilteredView
+    ? isFilteredFetching
+    : isSummaryFetching;
+  const isLogsError = isFilteredView ? isFilteredError : isSummaryError;
+  const refetchLogs = isFilteredView ? refetchFiltered : refetchSummary;
 
   const scrollContentStyle = {
     paddingHorizontal: Spacing.lg,
@@ -50,9 +81,9 @@ export default function GateEventsLogScreen({ navigation }: GateEventsLogScreenP
   }, [allLogsResponse]);
 
   const events = useMemo(() => {
-    if (!gateLogsResponse?.data) return [];
-    return gateLogsResponse.data;
-  }, [gateLogsResponse]);
+    if (!displayedLogsResponse?.data) return [];
+    return displayedLogsResponse.data;
+  }, [displayedLogsResponse]);
 
   const filteredEvents = useMemo(() => {
     if (!searchQuery) return events;
@@ -237,39 +268,6 @@ export default function GateEventsLogScreen({ navigation }: GateEventsLogScreenP
     );
   };
 
-  if (isLoading) {
-    return (
-      <ScreenScrollView contentContainerStyle={[scrollContentStyle, { flex: 1, justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator size="large" color={theme.primary} />
-        <Spacer height={Spacing.md} />
-        <ThemedText style={[Typography.body, { color: theme.textSecondary }]}>
-          {t('common.loading')}
-        </ThemedText>
-      </ScreenScrollView>
-    );
-  }
-
-  if (isError) {
-    return (
-      <ScreenScrollView contentContainerStyle={[scrollContentStyle, { flex: 1, justifyContent: 'center', alignItems: 'center' }]}>
-        <DDIcon name="alert-circle" size={48} color={theme.error} />
-        <Spacer height={Spacing.md} />
-        <ThemedText style={[Typography.body, { color: theme.error, textAlign: 'center' }]}>
-          {t('errors.failedToLoadData')}
-        </ThemedText>
-        <Spacer height={Spacing.lg} />
-        <Pressable
-          style={[styles.retryButton, { backgroundColor: theme.primary }]}
-          onPress={() => refetch()}
-        >
-          <ThemedText style={[Typography.body, { color: '#FFFFFF', fontWeight: '600' }]}>
-            {t('common.retry')}
-          </ThemedText>
-        </Pressable>
-      </ScreenScrollView>
-    );
-  }
-
   return (
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
       <ThemedText style={[Typography.title, { fontSize: 24, fontWeight: '600' }]}>
@@ -278,30 +276,125 @@ export default function GateEventsLogScreen({ navigation }: GateEventsLogScreenP
       
       <Spacer height={Spacing.sm} />
       
-      <DirectionalRow style={styles.summaryRow}>
-        <DirectionalRow style={[styles.summaryCard, { backgroundColor: applyOpacity(theme.success, '12') }]}>
-          <DDIcon name="check-circle" size={20} color={theme.success} />
-          <View>
-            <ThemedText style={[Typography.title, { fontSize: 20, fontWeight: '700', color: theme.success }]}>
-              {eventCounts.allowed}
+      {isSummaryFetching && !allLogsResponse ? (
+        <View style={styles.sectionLoadingState}>
+          <ActivityIndicator size="small" color={theme.primary} />
+          <ThemedText
+            style={[Typography.caption, { color: theme.textSecondary }]}
+          >
+            {t('common.loading')}
+          </ThemedText>
+        </View>
+      ) : isSummaryError && !allLogsResponse ? (
+        <DirectionalRow
+          style={[
+            styles.inlineQueryState,
+            { backgroundColor: applyOpacity(theme.error, '10') },
+          ]}
+        >
+          <DDIcon name="alert-circle" size={16} color={theme.error} />
+          <ThemedText
+            style={[Typography.caption, { color: theme.error, flex: 1 }]}
+          >
+            {t('errors.failedToLoadData')}
+          </ThemedText>
+          <Pressable onPress={() => refetchSummary()} hitSlop={8}>
+            <ThemedText
+              style={[
+                Typography.caption,
+                { color: theme.primary, fontWeight: '600' },
+              ]}
+            >
+              {t('common.retry')}
             </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.success }]}>
-              {t('security.allowed')}
-            </ThemedText>
-          </View>
+          </Pressable>
         </DirectionalRow>
-        <DirectionalRow style={[styles.summaryCard, { backgroundColor: applyOpacity(theme.error, '12') }]}>
-          <DDIcon name="x-circle" size={20} color={theme.error} />
-          <View>
-            <ThemedText style={[Typography.title, { fontSize: 20, fontWeight: '700', color: theme.error }]}>
-              {eventCounts.denied}
-            </ThemedText>
-            <ThemedText style={[Typography.caption, { color: theme.error }]}>
-              {t('security.denied')}
-            </ThemedText>
-          </View>
-        </DirectionalRow>
-      </DirectionalRow>
+      ) : (
+        <>
+          {resultFilter !== 'all' &&
+          (isSummaryFetching || isSummaryError) ? (
+            <DirectionalRow
+              style={[
+                styles.inlineQueryState,
+                {
+                  backgroundColor: applyOpacity(
+                    isSummaryError && !isSummaryFetching
+                      ? theme.error
+                      : theme.primary,
+                    '10',
+                  ),
+                },
+              ]}
+            >
+              {isSummaryError && !isSummaryFetching ? (
+                <DDIcon name="alert-circle" size={16} color={theme.error} />
+              ) : (
+                <ActivityIndicator size="small" color={theme.primary} />
+              )}
+              <ThemedText
+                style={[
+                  Typography.caption,
+                  {
+                    color:
+                      isSummaryError && !isSummaryFetching
+                        ? theme.error
+                        : theme.textSecondary,
+                    flex: 1,
+                  },
+                ]}
+              >
+                {t(
+                  isSummaryError && !isSummaryFetching
+                    ? 'errors.failedToLoadData'
+                    : 'common.loading',
+                )}
+              </ThemedText>
+              {isSummaryError && !isSummaryFetching ? (
+                <Pressable onPress={() => refetchSummary()} hitSlop={8}>
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      { color: theme.primary, fontWeight: '600' },
+                    ]}
+                  >
+                    {t('common.retry')}
+                  </ThemedText>
+                </Pressable>
+              ) : null}
+            </DirectionalRow>
+          ) : null}
+
+          {resultFilter !== 'all' &&
+          (isSummaryFetching || isSummaryError) ? (
+            <Spacer height={Spacing.sm} />
+          ) : null}
+
+          <DirectionalRow style={styles.summaryRow}>
+            <DirectionalRow style={[styles.summaryCard, { backgroundColor: applyOpacity(theme.success, '12') }]}>
+              <DDIcon name="check-circle" size={20} color={theme.success} />
+              <View>
+                <ThemedText style={[Typography.title, { fontSize: 20, fontWeight: '700', color: theme.success }]}>
+                  {eventCounts.allowed}
+                </ThemedText>
+                <ThemedText style={[Typography.caption, { color: theme.success }]}>
+                  {t('security.allowed')}
+                </ThemedText>
+              </View>
+            </DirectionalRow>
+            <DirectionalRow style={[styles.summaryCard, { backgroundColor: applyOpacity(theme.error, '12') }]}>
+              <DDIcon name="x-circle" size={20} color={theme.error} />
+              <View>
+                <ThemedText style={[Typography.title, { fontSize: 20, fontWeight: '700', color: theme.error }]}>
+                  {eventCounts.denied}
+                </ThemedText>
+                <ThemedText style={[Typography.caption, { color: theme.error }]}>
+                  {t('security.denied')}
+                </ThemedText>
+              </View>
+            </DirectionalRow>
+          </DirectionalRow>
+        </>
+      )}
 
       <Spacer height={Spacing.lg} />
 
@@ -319,33 +412,112 @@ export default function GateEventsLogScreen({ navigation }: GateEventsLogScreenP
         contentContainerStyle={styles.filtersContainer}
         nestedScrollEnabled={true}
       >
-        {FILTER_OPTIONS.map((option) => {
-          const isActive = resultFilter === option.key;
-          const count = getFilterCount(option.key);
-          const colors = getFilterColors(option.key, isActive);
-
-          return (
-            <Pressable
-              key={option.key}
-              style={[styles.filterPill, { backgroundColor: colors.bg }]}
-              onPress={() => setResultFilter(option.key)}
-            >
-              <ThemedText style={[styles.filterPillText, { color: colors.text }]}>
-                {option.label}
-              </ThemedText>
-              <View style={[styles.filterCount, { backgroundColor: colors.countBg }]}>
-                <ThemedText style={[styles.filterCountText, { color: colors.countText }]}>
-                  {count}
-                </ThemedText>
-              </View>
-            </Pressable>
-          );
-        })}
+        {FILTER_OPTIONS.map((option) => (
+          <FilterChip
+            key={option.key}
+            label={option.label}
+            isSelected={resultFilter === option.key}
+            count={getFilterCount(option.key)}
+            onPress={() => setResultFilter(option.key)}
+          />
+        ))}
       </RTLHorizontalScrollView>
 
       <Spacer height={Spacing.xl} />
 
-      {filteredEvents.length > 0 ? (
+      {isLogsFetching || (isLogsError && displayedLogsResponse) ? (
+        <DirectionalRow
+          style={[
+            styles.inlineQueryState,
+            {
+              backgroundColor: applyOpacity(
+                isLogsError && !isLogsFetching
+                  ? theme.error
+                  : theme.primary,
+                '10',
+              ),
+            },
+          ]}
+        >
+          {isLogsError && !isLogsFetching ? (
+            <DDIcon name="alert-circle" size={16} color={theme.error} />
+          ) : (
+            <ActivityIndicator size="small" color={theme.primary} />
+          )}
+          <ThemedText
+            style={[
+              Typography.caption,
+              {
+                color:
+                  isLogsError && !isLogsFetching
+                    ? theme.error
+                    : theme.textSecondary,
+                flex: 1,
+              },
+            ]}
+          >
+            {t(
+              isLogsError && !isLogsFetching
+                ? 'errors.failedToLoadData'
+                : 'common.loading',
+            )}
+          </ThemedText>
+          {isLogsError && !isLogsFetching ? (
+            <Pressable onPress={() => refetchLogs()} hitSlop={8}>
+              <ThemedText
+                style={[
+                  Typography.caption,
+                  { color: theme.primary, fontWeight: '600' },
+                ]}
+              >
+                {t('common.retry')}
+              </ThemedText>
+            </Pressable>
+          ) : null}
+        </DirectionalRow>
+      ) : null}
+
+      {isLogsFetching || (isLogsError && displayedLogsResponse) ? (
+        <Spacer height={Spacing.md} />
+      ) : null}
+
+      {isLogsFetching && !displayedLogsResponse ? (
+        <View style={styles.sectionLoadingState}>
+          <ActivityIndicator size="small" color={theme.primary} />
+          <ThemedText
+            style={[Typography.caption, { color: theme.textSecondary }]}
+          >
+            {t('common.loading')}
+          </ThemedText>
+        </View>
+      ) : isLogsError && !displayedLogsResponse ? (
+        <View style={styles.errorState}>
+          <DDIcon name="alert-circle" size={48} color={theme.error} />
+          <Spacer height={Spacing.md} />
+          <ThemedText
+            style={[
+              Typography.body,
+              { color: theme.error, textAlign: 'center' },
+            ]}
+          >
+            {t('errors.failedToLoadData')}
+          </ThemedText>
+          <Spacer height={Spacing.lg} />
+          <Pressable
+            style={[styles.retryButton, { backgroundColor: theme.primary }]}
+            onPress={() => refetchLogs()}
+          >
+            <ThemedText
+              style={[
+                Typography.body,
+                { color: '#FFFFFF', fontWeight: '600' },
+              ]}
+            >
+              {t('common.retry')}
+            </ThemedText>
+          </Pressable>
+        </View>
+      ) : filteredEvents.length > 0 ? (
         <View style={styles.cardList}>
           {filteredEvents.map(renderEventCard)}
         </View>
@@ -363,6 +535,24 @@ export default function GateEventsLogScreen({ navigation }: GateEventsLogScreenP
 }
 
 const styles = StyleSheet.create({
+  inlineQueryState: {
+    alignItems: 'center',
+    gap: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+  },
+  sectionLoadingState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+    minHeight: 76,
+  },
+  errorState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.xxl,
+  },
   summaryRow: {
     gap: Spacing.md,
   },

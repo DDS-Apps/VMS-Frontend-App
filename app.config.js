@@ -5,7 +5,10 @@ const APP_VARIANT = process.env.APP_VARIANT || 'staging';
 const envFile = APP_VARIANT === 'production' ? '.env.production' : '.env.staging';
 dotenv.config({ path: path.resolve(__dirname, envFile) });
 
-const CONFIG_PATH = APP_VARIANT === 'production' ? 'prod' : 'qa';
+// QA and production backends share the same Firebase project. Keep the native
+// Firebase files aligned with the public Firebase configuration below so FCM
+// tokens are always issued by dallah-albaraka-vms (sender 913604772710).
+const FIREBASE_CONFIG_PATH = 'qa';
 const ENVIRONMENT = APP_VARIANT === 'production' ? 'production' : 'qa';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_API_BASE_URL || process.env.API_BASE_URL || 'https://vms.dallah.com';
@@ -27,11 +30,11 @@ module.exports = ({ config }) => ({
   owner: "ahsanshafiq",
   android: {
     ...config.android,
-    googleServicesFile: `./config/${CONFIG_PATH}/google-services.json`,
+    googleServicesFile: `./config/${FIREBASE_CONFIG_PATH}/google-services.json`,
   },
   ios: {
     ...config.ios,
-    googleServicesFile: `./config/${CONFIG_PATH}/GoogleService-Info.plist`,
+    googleServicesFile: `./config/${FIREBASE_CONFIG_PATH}/GoogleService-Info.plist`,
   },
   extra: {
     ...config.extra,

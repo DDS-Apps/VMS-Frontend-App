@@ -1,0 +1,16 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "6NlxUL0C6vwF00AGbSpBL"
+uri = "file://exports/KPI_Catalog.xlsx"
+type = "table"
+title = "KPI Catalog – Modules, Pages & KPI Details"
+description = "Excel workbook with 51 KPI/aggregate rows organized by module and page, plus module summary, duplicate-label comparisons, risks, sources, filters, caveats, and recommendations."
+logical_id = "460e28d1-8c49-4c4b-8330-a35be14d6d7a"
+content_hash = "sha256:d54bfe3f0a89ab2fe7984e3291a11b4b34a9fc3e8fe7c620f02ae290f4efe9a4"
+size = 24169
+mtime_ms = 1788515234674
+storage_uri = "gcs://replit-rams-assets-pike/rams/assets/repl:d02f58f1-0735-43a7-a13a-9cffc6e5f093/460e28d1-8c49-4c4b-8330-a35be14d6d7a/69aa23c3-bf5d-4f01-9c7f-8e55db91fe99"
+storage_version_token = "1788515253488664"
+content_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"

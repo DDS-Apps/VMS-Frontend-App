@@ -7,6 +7,7 @@ import Animated, {
   WithSpringConfig,
 } from "react-native-reanimated";
 
+import { DDIcon } from "@/components/DDIcon";
 import { useTheme } from "@/hooks/useTheme";
 import { Spacing, BorderRadius } from "@/constants/theme";
 
@@ -18,6 +19,7 @@ interface SelectableCardProps {
   aspectRatio?: number;
   backgroundColor?: string;
   borderColor?: string;
+  showCheckbox?: boolean;
 }
 
 const springConfig: WithSpringConfig = {
@@ -38,6 +40,7 @@ export function SelectableCard({
   aspectRatio = 1,
   backgroundColor,
   borderColor,
+  showCheckbox = false,
 }: SelectableCardProps) {
   const { theme, isDark } = useTheme();
   const scale = useSharedValue(1);
@@ -79,6 +82,23 @@ export function SelectableCard({
         style,
       ]}
     >
+      {showCheckbox && (
+        <View style={styles.checkboxOverlay}>
+          <View
+            style={[
+              styles.checkbox,
+              {
+                borderColor: selected ? theme.primary : theme.border,
+                backgroundColor: selected ? theme.primary : 'transparent',
+              },
+            ]}
+          >
+            {selected ? (
+              <DDIcon name="check" size={10} color={theme.buttonText} />
+            ) : null}
+          </View>
+        </View>
+      )}
       {children}
     </AnimatedPressable>
   );
@@ -142,5 +162,19 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  checkboxOverlay: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    zIndex: 1,
+  },
+  checkbox: {
+    width: 18,
+    height: 18,
+    borderRadius: 4,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

@@ -22,6 +22,7 @@ interface MenuItem {
   icon: IconName;
   screen?: string;
   params?: Record<string, unknown>;
+  badgeKey?: string;
 }
 
 interface MenuGroup {
@@ -48,7 +49,7 @@ interface SidebarProps {
   todaysVisitorsCount?: number;
 }
 
-const getMenuGroups = (role: UserRole): { groups: MenuGroup[]; standalone: MenuItem[] } => {
+export const getMenuGroups = (role: UserRole): { groups: MenuGroup[]; standalone: MenuItem[] } => {
   const result: { groups: MenuGroup[]; standalone: MenuItem[] } = {
     groups: [],
     standalone: [],
@@ -57,6 +58,7 @@ const getMenuGroups = (role: UserRole): { groups: MenuGroup[]; standalone: MenuI
   if (role === 'employee') {
     result.standalone = [
       { id: 'dashboard', labelKey: 'navigation.dashboard', icon: 'grid', screen: 'Dashboard' },
+      { id: 'reports', labelKey: 'reports.title', icon: 'bar-chart-2', screen: 'Reports' },
     ];
     result.groups = [
       {
@@ -64,14 +66,15 @@ const getMenuGroups = (role: UserRole): { groups: MenuGroup[]; standalone: MenuI
         labelKey: 'sidebar.visitsRequests',
         icon: 'users',
         items: [
-          { id: 'new_request', labelKey: 'navigation.newRequest', icon: 'user-plus', screen: 'VisitTypeSelection' },
-          { id: 'visitor_requests', labelKey: 'navigation.myRequests', icon: 'list', screen: 'VisitorRequests' },
+          { id: 'new_request', labelKey: 'sidebar.createVisit', icon: 'user-plus', screen: 'VisitorRequestForm' },
+          { id: 'visitor_requests', labelKey: 'sidebar.myVisits', icon: 'list', screen: 'VisitorRequests' },
         ],
       },
     ];
   } else if (role === 'manager') {
     result.standalone = [
       { id: 'dashboard', labelKey: 'navigation.dashboard', icon: 'grid', screen: 'Dashboard' },
+      { id: 'reports', labelKey: 'reports.title', icon: 'bar-chart-2', screen: 'Reports' },
     ];
     result.groups = [
       {
@@ -79,8 +82,8 @@ const getMenuGroups = (role: UserRole): { groups: MenuGroup[]; standalone: MenuI
         labelKey: 'sidebar.visitsRequests',
         icon: 'users',
         items: [
-          { id: 'new_request', labelKey: 'navigation.newRequest', icon: 'user-plus', screen: 'VisitTypeSelection' },
-          { id: 'visitor_requests', labelKey: 'navigation.myRequests', icon: 'list', screen: 'VisitorRequests' },
+          { id: 'new_request', labelKey: 'sidebar.createVisit', icon: 'user-plus', screen: 'VisitorRequestForm' },
+          { id: 'visitor_requests', labelKey: 'sidebar.myVisits', icon: 'list', screen: 'VisitorRequests' },
           { id: 'all_requests', labelKey: 'navigation.allRequests', icon: 'file-text', screen: 'AllRequests' },
           { id: 'pending_approvals', labelKey: 'navigation.pendingApprovals', icon: 'check-circle', screen: 'PendingApprovals' },
         ],
@@ -90,27 +93,10 @@ const getMenuGroups = (role: UserRole): { groups: MenuGroup[]; standalone: MenuI
   } else if (role === 'receptionist') {
     result.standalone = [
       { id: 'dashboard', labelKey: 'navigation.dashboard', icon: 'grid', screen: 'ReceptionistDashboard' },
+      { id: 'all_visitors', labelKey: 'navigation.allVisitors', icon: 'users', screen: 'AllVisitors', badgeKey: 'todaysVisitors' },
+      { id: 'walk_in', labelKey: 'navigation.walkInRegistration', icon: 'user-plus', screen: 'WalkInRegistration' },
     ];
-    result.groups = [
-      {
-        id: 'visitors',
-        labelKey: 'sidebar.visitors',
-        icon: 'users',
-        badgeKey: 'todaysVisitors',
-        items: [
-          { id: 'todays_visitors', labelKey: 'navigation.todaysVisitors', icon: 'clock', screen: 'AllVisitorsToday' },
-          { id: 'all_visitors', labelKey: 'navigation.allVisitors', icon: 'users', screen: 'AllVisitors' },
-        ],
-      },
-      {
-        id: 'registration',
-        labelKey: 'sidebar.registration',
-        icon: 'user-plus',
-        items: [
-          { id: 'walk_in', labelKey: 'navigation.walkInRegistration', icon: 'user-plus', screen: 'WalkInRegistration' },
-        ],
-      },
-    ];
+    result.groups = [];
   } else if (role === 'security') {
     result.standalone = [];
     result.groups = [
@@ -135,18 +121,9 @@ const getMenuGroups = (role: UserRole): { groups: MenuGroup[]; standalone: MenuI
     result.groups = [];
   } else if (role === 'buffet_admin') {
     result.standalone = [
-      { id: 'dashboard', labelKey: 'navigation.dashboard', icon: 'grid', screen: 'BuffetAdminDashboard' },
+      { id: 'dashboard', labelKey: 'navigation.dashboard', icon: 'grid', screen: 'BuffetAllRequests' },
     ];
-    result.groups = [
-      {
-        id: 'requests',
-        labelKey: 'sidebar.requests',
-        icon: 'clipboard',
-        items: [
-          { id: 'buffet_requests', labelKey: 'navigation.buffetRequests', icon: 'list', screen: 'BuffetAllRequests' },
-        ],
-      },
-    ];
+    result.groups = [];
   } else if (role === 'valet_admin') {
     result.standalone = [
       { id: 'parking_dashboard', labelKey: 'navigation.parkingDashboard', icon: 'truck', screen: 'ValetAllRequests' },
@@ -155,6 +132,7 @@ const getMenuGroups = (role: UserRole): { groups: MenuGroup[]; standalone: MenuI
   } else if (role === 'building_admin') {
     result.standalone = [
       { id: 'all_requests', labelKey: 'navigation.allRequests', icon: 'file-text', screen: 'AllRequests' },
+      { id: 'reports', labelKey: 'reports.title', icon: 'bar-chart-2', screen: 'Reports' },
     ];
     result.groups = [
       {
@@ -198,6 +176,7 @@ export default function Sidebar({
   const rtlStyles = useRTLStyles();
   const { groups, standalone } = getMenuGroups(userRole);
   const { width } = Dimensions.get('window');
+  const [avatarError, setAvatarError] = useState(false);
   const isLargeScreen = width >= 1024;
   const insets = useSafeAreaInsets();
   
@@ -282,6 +261,7 @@ export default function Sidebar({
 
   const renderStandaloneItem = (item: MenuItem) => {
     const isActive = currentScreen === item.screen;
+    const badge = getBadgeCount(item.badgeKey);
     
     return (
       <Pressable
@@ -293,7 +273,7 @@ export default function Sidebar({
         ]}
         onPress={() => handleItemPress(item.screen, item.params)}
       >
-        <DirectionalRow gap={Spacing.md}>
+        <DirectionalRow gap={Spacing.md} style={{ alignItems: 'center' }}>
           <DDIcon
             name={item.icon}
             size={20}
@@ -308,6 +288,13 @@ export default function Sidebar({
           >
             {t(item.labelKey)}
           </ThemedText>
+          {badge !== undefined && badge > 0 ? (
+            <View style={[styles.itemBadge, { backgroundColor: theme.primary }]}>
+              <ThemedText style={styles.itemBadgeText}>
+                {badge > 99 ? '99+' : badge}
+              </ThemedText>
+            </View>
+          ) : null}
         </DirectionalRow>
       </Pressable>
     );
@@ -358,17 +345,16 @@ export default function Sidebar({
         }}
       >
         <DirectionalRow style={styles.profileRow} gap={Spacing.md}>
-          {userPhotoUrl ? (
+          {userPhotoUrl && !avatarError ? (
             <Image
               source={{ uri: userPhotoUrl }}
               style={styles.profileAvatar}
               contentFit="cover"
+              onError={() => setAvatarError(true)}
             />
           ) : (
             <View style={[styles.profileAvatar, { backgroundColor: theme.primary }]}>
-              <ThemedText style={[Typography.title, { color: Colors.light.buttonText, fontWeight: '600', fontSize: 20 }]}>
-                {userName.split(' ').map(n => n[0]).join('')}
-              </ThemedText>
+              <DDIcon name="user" size={26} color="#FFFFFF" />
             </View>
           )}
           <View style={styles.profileInfo}>
@@ -501,6 +487,20 @@ const styles = StyleSheet.create({
   standaloneText: {
     fontSize: 15,
     fontWeight: '500',
+    flex: 1,
+  },
+  itemBadge: {
+    minWidth: 22,
+    height: 22,
+    paddingHorizontal: 6,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  itemBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '700',
   },
   menuItem: {
     alignItems: 'stretch',

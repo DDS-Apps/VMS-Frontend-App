@@ -13,8 +13,12 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { getValetTasks, ValetTask } from '@/services/state/valetTasksState';
 import type { ValetService } from '@/types/vms.types';
 import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
+import { RTLHorizontalScrollView, FilterChip } from '@/components/shared';
+import { applyOpacity } from '@/utils/statusStyles';
+import { RequestStatusBadge } from '@/components/shared/RequestStatusBadge';
 import { useUpcomingIndicator } from '@/hooks/useUpcomingVisitTimer';
 import { UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES, isUpcomingIndicatorEligibleStatus } from '@/constants/requestConstants';
+import { resolveParkingDisplayDecision } from '@/utils/parkingDecision';
 
 interface ValetTasksScreenProps {
   onNavigateToDetail: (taskId: string) => void;
@@ -23,69 +27,41 @@ interface ValetTasksScreenProps {
 const normalizeValetStatusForEligibility = (status: ValetService['status']): string =>
   status === 'assigned' ? 'pending' : status;
 
-const ValetTaskUpcomingAlertIcon = React.memo(({ visitDate, pickupTime, valetStatus }: { visitDate: string; pickupTime: string; valetStatus: ValetService['status'] }) => {
+const ValetTaskUpcomingAlertIcon = React.memo(({ visitDate, pickupTime, valetStatus, visitStartAt }: { visitDate: string; pickupTime: string; valetStatus: ValetService['status']; visitStartAt?: string }) => {
   const { theme } = useTheme();
   const eligible = isUpcomingIndicatorEligibleStatus(normalizeValetStatusForEligibility(valetStatus));
   const isUpcoming = useUpcomingIndicator({
     visitDate,
     visitTime: pickupTime,
+    visitStartAt,
     eligible,
     thresholdMinutes: UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES,
   });
   if (!isUpcoming) return null;
   return (
-    <View accessibilityLabel="Visit starts soon" accessibilityRole="image" style={{ marginEnd: 4 }}>
-      <DDIcon name="alert-circle" size={14} color={theme.error} />
-    </View>
-  );
-});
-
-interface StatusBadgeProps {
-  status: ValetService['status'];
-  theme: ReturnType<typeof useTheme>['theme'];
-  t: (key: string) => string;
-}
-
-const StatusBadge: React.FC<StatusBadgeProps> = ({ status, theme, t }) => {
-  const getStatusConfig = () => {
-    switch (status) {
-      case 'pending':
-        return { label: t('status.pending').toUpperCase(), color: theme.warning, bgColor: `${theme.warning}15` };
-      case 'assigned':
-        return { label: t('status.scheduled').toUpperCase(), color: theme.info, bgColor: `${theme.info}15` };
-      case 'in_progress':
-        return { label: t('status.inProgress').toUpperCase(), color: theme.primary, bgColor: `${theme.primary}15` };
-      case 'completed':
-        return { label: t('status.completed').toUpperCase(), color: theme.success, bgColor: `${theme.success}15` };
-      default:
-        return { label: status.toUpperCase(), color: theme.textSecondary, bgColor: `${theme.textSecondary}15` };
-    }
-  };
-
-  const config = getStatusConfig();
-
-  return (
     <View
-      style={[
-        styles.statusBadge,
-        { backgroundColor: config.bgColor, borderColor: config.color },
-      ]}
+      accessibilityLabel="Visit starts soon"
+      accessibilityRole="image"
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        backgroundColor: applyOpacity(theme.error, '15'),
+        borderWidth: 1,
+        borderColor: theme.error,
+        borderRadius: 100,
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+        marginEnd: 6,
+      }}
     >
-      <ThemedText
-        style={[
-          Typography.caption,
-          {
-            color: config.color,
-            fontWeight: '600',
-            fontSize: 11,
-          },
-        ]}
-      >
-        {config.label}
+      <DDIcon name="alert-circle" size={12} color={theme.error} />
+      <ThemedText style={{ color: theme.error, fontSize: 11, fontWeight: '700', lineHeight: 16 }}>
+        Upcoming
       </ThemedText>
     </View>
   );
-};
+});
 
 export default function ValetTasksScreen({ onNavigateToDetail }: ValetTasksScreenProps) {
   const { theme } = useTheme();
@@ -128,8 +104,9 @@ export default function ValetTasksScreen({ onNavigateToDetail }: ValetTasksScree
               visitDate={item.visitDate}
               pickupTime={item.pickupTime}
               valetStatus={item.valet.status}
+              visitStartAt={item.visitStartAt}
             />
-            <StatusBadge status={item.valet.status} theme={theme} t={t} />
+            <RequestStatusBadge status={item.valet.status} />
           </DirectionalRow>
         </DirectionalRow>
 
@@ -160,103 +137,17 @@ export default function ValetTasksScreen({ onNavigateToDetail }: ValetTasksScree
           </ThemedText>
         </DirectionalRow>
 
-        {item.valet.driver ? (
-          <>
-            <Spacer height={Spacing.md} />
-            <View
-              style={[
-                styles.driverInfo,
-                { backgroundColor: theme.surface, borderColor: theme.border },
-              ]}
-            >
-              <DirectionalRow style={styles.infoRow}>
-                <DDIcon name="truck" size={16} variant="primary" />
-                <ThemedText style={[Typography.body, { fontWeight: '600', marginEnd: Spacing.sm }]}>
-                  {item.valet.driver.name}
-                </ThemedText>
-              </DirectionalRow>
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: Spacing.xs }]}>
-                {item.valet.driver.phone}
-              </ThemedText>
-            </View>
-          </>
-        ) : (
-          <>
-            <Spacer height={Spacing.md} />
-            <DirectionalRow
-              style={[
-                styles.noDiverInfo,
-                { backgroundColor: `${theme.warning}10`, borderColor: theme.warning },
-              ]}
-            >
-              <DDIcon name="alert-circle" size={16} variant="warning" />
-              <ThemedText style={[Typography.caption, { color: theme.warning, marginEnd: Spacing.sm, fontWeight: '600' }]}>
-                {t('actions.assignDriver')}
-              </ThemedText>
-            </DirectionalRow>
-          </>
-        )}
-
-        {item.vehicleInfo ? (
-          <>
-            <Spacer height={Spacing.sm} />
-            <DirectionalRow style={styles.infoRow}>
-              <DDIcon name="truck" size={16} variant="muted" />
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginEnd: Spacing.sm }]}>
-                {item.vehicleInfo.color} {item.vehicleInfo.make} {item.vehicleInfo.model} • {item.vehicleInfo.plateNumber}
-              </ThemedText>
-            </DirectionalRow>
-          </>
+        <Spacer height={Spacing.md} />
+        {resolveParkingDisplayDecision({
+          hasParkingAllocation: Boolean(item.vehicleInfo),
+        }) === 'required' ? (
+          <DirectionalRow style={styles.infoRow}>
+            <DDIcon name="map-pin" size={16} variant="primary" />
+          </DirectionalRow>
         ) : null}
       </ThemedView>
     </Pressable>
   );
-
-  const renderFilterButton = (
-    filterValue: typeof filter,
-    label: string,
-    count: number
-  ) => {
-    const isActive = filter === filterValue;
-    return (
-      <Pressable
-        onPress={() => setFilter(filterValue)}
-        style={({ pressed }) => [
-          styles.filterButton,
-          {
-            backgroundColor: isActive ? theme.primary : theme.surface,
-            borderColor: isActive ? theme.primary : theme.border,
-            opacity: pressed ? 0.7 : 1,
-            flexDirection: getFlexDirection(isRTL),
-          },
-        ]}
-      >
-        <ThemedText
-          style={[
-            Typography.body,
-            {
-              color: isActive ? theme.buttonText : theme.text,
-              fontWeight: isActive ? '600' : '400',
-            },
-          ]}
-        >
-          {label}
-        </ThemedText>
-        <ThemedText
-          style={[
-            Typography.caption,
-            {
-              color: isActive ? theme.buttonText : theme.textSecondary,
-              marginStart: Spacing.xs,
-              fontWeight: '600',
-            },
-          ]}
-        >
-          {count}
-        </ThemedText>
-      </Pressable>
-    );
-  };
 
   const pendingCount = tasks.filter((t) => t.valet.status === 'pending').length;
   const inProgressCount = tasks.filter(
@@ -273,12 +164,16 @@ export default function ValetTasksScreen({ onNavigateToDetail }: ValetTasksScree
         </ThemedText>
       </View>
 
-      <DirectionalRow style={styles.filterContainer}>
-        {renderFilterButton('all', t('common.all'), tasks.length)}
-        {renderFilterButton('pending', t('status.pending'), pendingCount)}
-        {renderFilterButton('in_progress', t('status.inProgress'), inProgressCount)}
-        {renderFilterButton('completed', t('status.completed'), completedCount)}
-      </DirectionalRow>
+      <RTLHorizontalScrollView
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.filterContainer}
+        nestedScrollEnabled={true}
+      >
+        <FilterChip label={t('common.all')} count={tasks.length} isSelected={filter === 'all'} onPress={() => setFilter('all')} />
+        <FilterChip label={t('status.pending')} count={pendingCount} isSelected={filter === 'pending'} onPress={() => setFilter('pending')} />
+        <FilterChip label={t('status.inProgress')} count={inProgressCount} isSelected={filter === 'in_progress'} onPress={() => setFilter('in_progress')} />
+        <FilterChip label={t('status.completed')} count={completedCount} isSelected={filter === 'completed'} onPress={() => setFilter('completed')} />
+      </RTLHorizontalScrollView>
     </>
   );
 
@@ -292,7 +187,7 @@ export default function ValetTasksScreen({ onNavigateToDetail }: ValetTasksScree
         paddingTop: insets.top + Spacing.xl,
         paddingBottom: insets.bottom + Spacing.xl
       }}
-      ListHeaderComponent={renderHeader}
+      ListHeaderComponent={renderHeader()}
       ListFooterComponent={() => <View style={{ height: 100 }} />}
       showsVerticalScrollIndicator={false}
       ListEmptyComponent={
@@ -319,13 +214,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.lg,
     gap: Spacing.sm,
-  },
-  filterButton: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.lg,
-    borderWidth: 1,
   },
   listContainer: {
     paddingHorizontal: Spacing.xl,
@@ -340,12 +230,6 @@ const styles = StyleSheet.create({
   cardHeader: {
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-  },
-  statusBadge: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    borderRadius: BorderRadius.sm,
-    borderWidth: 1,
   },
   infoRow: {
     alignItems: 'center',

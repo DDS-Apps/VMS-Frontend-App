@@ -13,9 +13,10 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useFormatters } from "@/hooks/useFormatters";
 import { DDIcon } from "@/components/DDIcon";
 import { usePublicInviteQuery, useAcceptInviteMutation, useRejectInviteMutation } from "@/hooks/queries";
-import type { PublicInviteDto, VisitorParkingOption } from "@/types/api.types";
+import type { PublicInviteDto } from "@/types/api.types";
 import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 import { PURPOSE_VALUE_TO_KEY, normalizePurposeValue } from "@/constants/requestConstants";
+import { resolveParkingDisplayDecision } from "@/utils/parkingDecision";
 
 // Dallah Albaraka Light Theme Colors for this page
 const PageColors = {
@@ -32,6 +33,7 @@ const PageColors = {
   warning: '#FFA000',
   buttonPrimary: BrandColors.brandOrange,
   surfaceElevated: NeutralColors.grey50,
+  border: NeutralColors.grey300,
 };
 
 // Reject Modal Component - manages its own local state to prevent cursor issues
@@ -210,253 +212,6 @@ const modalStyles = StyleSheet.create({
   },
 });
 
-interface ParkingSelectionModalProps {
-  visible: boolean;
-  onCancel: () => void;
-  onConfirm: (data: {
-    parkingOption: VisitorParkingOption;
-    licensePlate?: string;
-    carModel?: string;
-    carColor?: string;
-  }) => void;
-  isLoading: boolean;
-  isRTL?: boolean;
-  translations: {
-    title: string;
-    noParking: string;
-    needsParking: string;
-    needsParkingInfoLater: string;
-    licensePlate: string;
-    carModel: string;
-    carColor: string;
-    confirm: string;
-    cancel: string;
-  };
-}
-
-const ParkingSelectionModal = memo(function ParkingSelectionModal({
-  visible,
-  onCancel,
-  onConfirm,
-  isLoading,
-  isRTL = false,
-  translations,
-}: ParkingSelectionModalProps) {
-  const [selectedOption, setSelectedOption] = useState<VisitorParkingOption | null>(null);
-  const [licensePlate, setLicensePlate] = useState('');
-  const [carModel, setCarModel] = useState('');
-  const [carColor, setCarColor] = useState('');
-  const wasLoadingRef = React.useRef(false);
-
-  useEffect(() => {
-    if (!visible && !isLoading && !wasLoadingRef.current) {
-      setSelectedOption(null);
-      setLicensePlate('');
-      setCarModel('');
-      setCarColor('');
-    }
-    wasLoadingRef.current = isLoading;
-  }, [visible, isLoading]);
-
-  const handleConfirm = useCallback(() => {
-    if (isLoading || !selectedOption) return;
-    onConfirm({
-      parkingOption: selectedOption,
-      licensePlate: selectedOption === 'parking_with_car_info' ? licensePlate : undefined,
-      carModel: selectedOption === 'parking_with_car_info' ? carModel : undefined,
-      carColor: selectedOption === 'parking_with_car_info' ? carColor : undefined,
-    });
-  }, [onConfirm, selectedOption, licensePlate, carModel, carColor, isLoading]);
-
-  const handleCancel = useCallback(() => {
-    if (isLoading) return;
-    setSelectedOption(null);
-    setLicensePlate('');
-    setCarModel('');
-    setCarColor('');
-    onCancel();
-  }, [onCancel, isLoading]);
-
-  const renderOptionCard = (
-    option: VisitorParkingOption,
-    label: string,
-    icon: 'slash' | 'truck' | 'clock'
-  ) => {
-    const isSelected = selectedOption === option;
-    return (
-      <Pressable
-        style={[
-          parkingModalStyles.optionCard,
-          isSelected && parkingModalStyles.optionCardSelected,
-          isLoading && { opacity: 0.6 },
-        ]}
-        onPress={() => !isLoading && setSelectedOption(option)}
-        disabled={isLoading}
-      >
-        <View style={[
-          parkingModalStyles.optionIconContainer,
-          isSelected && { backgroundColor: PageColors.accent + '30' }
-        ]}>
-          <DDIcon name={icon} size={20} color={isSelected ? PageColors.accent : PageColors.textSecondary} />
-        </View>
-        <ThemedText style={[
-          parkingModalStyles.optionLabel,
-          isSelected && { color: PageColors.accent }
-        ]}>
-          {label}
-        </ThemedText>
-        {isSelected ? (
-          <DDIcon name="check-circle" size={20} color={PageColors.accent} />
-        ) : (
-          <View style={parkingModalStyles.optionPlaceholder} />
-        )}
-      </Pressable>
-    );
-  };
-
-  return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={isLoading ? undefined : handleCancel}
-    >
-      <View style={modalStyles.overlay}>
-        <ScrollView 
-          style={{ maxHeight: '90%' }}
-          contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={modalStyles.content}>
-            <ThemedText style={modalStyles.title}>
-              {translations.title}
-            </ThemedText>
-
-            <View style={parkingModalStyles.optionsContainer}>
-              {renderOptionCard('no_parking', translations.noParking, 'slash')}
-              {renderOptionCard('parking_with_car_info', translations.needsParking, 'truck')}
-              {renderOptionCard('parking_without_car_info', translations.needsParkingInfoLater, 'clock')}
-            </View>
-
-            {selectedOption === 'parking_with_car_info' ? (
-              <View style={parkingModalStyles.carInfoContainer}>
-                <TextInput
-                  style={[parkingModalStyles.carInfoInput, { fontFamily: getInputFontFamily(licensePlate, isRTL) }]}
-                  placeholder={translations.licensePlate}
-                  placeholderTextColor={PageColors.textMuted}
-                  value={licensePlate}
-                  onChangeText={setLicensePlate}
-                  editable={!isLoading}
-                  autoCapitalize="characters"
-                />
-                <TextInput
-                  style={[parkingModalStyles.carInfoInput, { fontFamily: getInputFontFamily(carModel, isRTL) }]}
-                  placeholder={translations.carModel}
-                  placeholderTextColor={PageColors.textMuted}
-                  value={carModel}
-                  onChangeText={setCarModel}
-                  editable={!isLoading}
-                />
-                <TextInput
-                  style={[parkingModalStyles.carInfoInput, { fontFamily: getInputFontFamily(carColor, isRTL) }]}
-                  placeholder={translations.carColor}
-                  placeholderTextColor={PageColors.textMuted}
-                  value={carColor}
-                  onChangeText={setCarColor}
-                  editable={!isLoading}
-                />
-              </View>
-            ) : null}
-
-            <View style={modalStyles.buttons}>
-              <Pressable
-                style={[modalStyles.button, modalStyles.cancelButton, isLoading && { opacity: 0.6 }]}
-                onPress={handleCancel}
-                disabled={isLoading}
-              >
-                <ThemedText style={modalStyles.cancelText}>{translations.cancel}</ThemedText>
-              </Pressable>
-              <Pressable
-                style={[
-                  modalStyles.button,
-                  parkingModalStyles.confirmButton,
-                  (!selectedOption || isLoading) && { opacity: 0.6 }
-                ]}
-                onPress={handleConfirm}
-                disabled={!selectedOption || isLoading}
-              >
-                {isLoading ? (
-                  <DirectionalRow style={{ alignItems: 'center', gap: 8 }}>
-                    <DDIcon name="loader" size={16} color="#FFFFFF" />
-                    <ThemedText style={modalStyles.confirmText}>{translations.confirm}</ThemedText>
-                  </DirectionalRow>
-                ) : (
-                  <ThemedText style={modalStyles.confirmText}>{translations.confirm}</ThemedText>
-                )}
-              </Pressable>
-            </View>
-          </View>
-        </ScrollView>
-      </View>
-    </Modal>
-  );
-});
-
-const parkingModalStyles = StyleSheet.create({
-  optionsContainer: {
-    gap: Spacing.sm,
-    marginBottom: Spacing.lg,
-  },
-  optionCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: Spacing.md,
-    backgroundColor: PageColors.surfaceElevated,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    borderColor: PageColors.cardBorder,
-    gap: Spacing.md,
-  },
-  optionCardSelected: {
-    borderColor: PageColors.accent,
-    backgroundColor: BrandColors.softOrange,
-  },
-  optionIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: BorderRadius.sm,
-    backgroundColor: PageColors.cardBackground,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  optionLabel: {
-    flex: 1,
-    fontSize: 14,
-    color: PageColors.textPrimary,
-    fontFamily: FontFamily.latinMedium,
-  },
-  optionPlaceholder: {
-    width: 20,
-  },
-  carInfoContainer: {
-    gap: Spacing.sm,
-    marginBottom: Spacing.lg,
-  },
-  carInfoInput: {
-    backgroundColor: PageColors.surfaceElevated,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    borderColor: PageColors.cardBorder,
-    padding: Spacing.md,
-    color: PageColors.textPrimary,
-    fontSize: 15,
-    fontFamily: FontFamily.latinRegular,
-  },
-  confirmButton: {
-    backgroundColor: PageColors.success,
-  },
-});
-
 interface VisitorInviteScreenProps {
   route?: {
     params?: {
@@ -625,10 +380,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
   const inviteSnapshotRef = React.useRef<PublicInviteDto | null>(null);
   
   // Inline parking selection state
-  const [selectedParkingOption, setSelectedParkingOption] = useState<VisitorParkingOption>('no_parking');
-  const [licensePlate, setLicensePlate] = useState('');
-  const [carModel, setCarModel] = useState('');
-  const [carColor, setCarColor] = useState('');
+  const [selectedParkingOption, setSelectedParkingOption] = useState<'no_parking' | 'needs_parking'>('no_parking');
 
   const { data: invite, isLoading, isFetching, error, isError } = usePublicInviteQuery(token);
   const acceptMutation = useAcceptInviteMutation(token || '');
@@ -653,19 +405,16 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
     
     if (invite) inviteSnapshotRef.current = invite;
     try {
-      const needsParking = selectedParkingOption !== 'no_parking';
+      const needsParking = selectedParkingOption === 'needs_parking';
       const response = await acceptMutation.mutateAsync({
         needsParking,
-        licensePlate: selectedParkingOption === 'parking_with_car_info' ? licensePlate.trim() : undefined,
-        carModel: selectedParkingOption === 'parking_with_car_info' ? carModel.trim() : undefined,
-        carColor: selectedParkingOption === 'parking_with_car_info' ? carColor.trim() : undefined,
       });
       setResponseQrCode(response.qrCode || null);
       setActionCompleted('accepted');
     } catch (err) {
       console.error('Accept failed:', err);
     }
-  }, [acceptMutation, invite, selectedParkingOption, licensePlate, carModel, carColor]);
+  }, [acceptMutation, invite, selectedParkingOption]);
 
   const handleReject = useCallback(async (reason: string) => {
     // Prevent multiple submissions
@@ -782,59 +531,23 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
   };
 
   const getParkingExpectationText = (invite: PublicInviteDto): string => {
-    // Check visitor's parking selection first (for accepted invitations)
-    const needsParking = invite.isVisitorNeedsParking ?? invite.visitorNeedsParking;
-    if (needsParking !== undefined) {
-      if (!needsParking) {
-        return t('visitorInvite.noParking');
-      }
-      // Visitor needs parking
-      if (invite.licensePlate && invite.carModel && invite.carColor) {
-        return `${t('visitorInvite.licensePlate')}: ${invite.licensePlate}, ${t('visitorInvite.carModel')}: ${invite.carModel}, ${t('visitorInvite.carColor')}: ${invite.carColor}`;
-      }
-      return t('visitorInvite.needsParkingInfoLater');
-    }
-    
-    // Fallback to old logic for pending invitations
-    const parkingInfo = invite.parkingInfo || invite.parking;
-    if (!parkingInfo) {
-      return t('visitorInvite.parkingNotAvailable');
-    }
-    if (parkingInfo.type === 'valet' || invite.valetInfo || invite.hasValet) {
-      return t('visitorInvite.valetServiceAvailable');
-    }
-    if (parkingInfo.type === 'auto') {
-      const parts = [];
-      if (parkingInfo.location) parts.push(parkingInfo.location);
-      if (parkingInfo.slotNumber) parts.push(`${t('visitorInvite.slot')} ${parkingInfo.slotNumber}`);
-      return parts.length > 0 ? parts.join(' - ') : t('visitorInvite.parkingAvailableBasement');
-    }
-    return t('visitorInvite.parkingNotAvailable');
+    return resolveParkingDisplayDecision({
+      parkingDecision: invite.parkingDecision,
+      visitorNeedsParking: invite.visitorNeedsParking,
+      isVisitorNeedsParking: invite.isVisitorNeedsParking,
+      hasParking: (invite as any).hasParking,
+      hasParkingAllocation: !!(invite.parkingInfo || invite.parking || invite.valetInfo || invite.hasValet),
+    }) === 'required' ? t('parking.needsParking') : t('parking.noParking');
   };
 
-  const getParkingType = (invite: PublicInviteDto): 'valet' | 'auto' | 'none' | 'pending' => {
-    // Check visitor's parking selection first (for accepted invitations)
-    const needsParking = invite.isVisitorNeedsParking ?? invite.visitorNeedsParking;
-    if (needsParking !== undefined) {
-      if (!needsParking) {
-        return 'none';
-      }
-      // Visitor needs parking - check if car info is provided
-      if (invite.licensePlate && invite.carModel && invite.carColor) {
-        return 'auto';
-      }
-      return 'pending';
-    }
-    
-    // Fallback to old logic
-    const parkingInfo = invite.parkingInfo || invite.parking;
-    if (invite.valetInfo || invite.hasValet || parkingInfo?.type === 'valet') {
-      return 'valet';
-    }
-    if (parkingInfo?.type === 'auto') {
-      return 'auto';
-    }
-    return 'none';
+  const getParkingType = (invite: PublicInviteDto): 'required' | 'none' => {
+    return resolveParkingDisplayDecision({
+      parkingDecision: invite.parkingDecision,
+      visitorNeedsParking: invite.visitorNeedsParking,
+      isVisitorNeedsParking: invite.isVisitorNeedsParking,
+      hasParking: (invite as any).hasParking,
+      hasParkingAllocation: !!(invite.parkingInfo || invite.parking || invite.valetInfo || invite.hasValet),
+    }) === 'required' ? 'required' : 'none';
   };
 
   const getVisitorFullName = (invite: PublicInviteDto): string => {
@@ -876,13 +589,6 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
 
   const getBuildingAddress = (invite: PublicInviteDto): string => {
     return invite.location?.address || invite.building?.address || '';
-  };
-
-  const getInitials = (name: string): string => {
-    if (!name || name.trim() === '') return '?';
-    const parts = name.trim().split(' ').filter(n => n.length > 0);
-    if (parts.length === 0) return '?';
-    return parts.map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
   // If action was completed (accept/reject), show success immediately without waiting for refetch
@@ -940,7 +646,10 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
             </>
           ) : null}
 
+          {/* Visit Details */}
           <GlassCard>
+            <ThemedText style={styles.sectionTitle}>{t('visitorInvite.visitDetails')}</ThemedText>
+            <Spacer height={Spacing.lg} />
             <InfoRow 
               icon="user" 
               label={t('reception.hostName')} 
@@ -952,9 +661,69 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
               icon="calendar" 
               label={t('form.date')} 
               value={formatVisitDate(displayInvite.visitDate)}
-              subValue={formatVisitTime(getVisitTime(displayInvite))}
+              subValue={`${formatVisitTime(getVisitTime(displayInvite))}${displayInvite.duration ? ` (${formatDuration(displayInvite.duration)})` : ''}`}
+            />
+            {displayInvite.meetingRoom ? (
+              <>
+                <View style={styles.infoDivider} />
+                <InfoRow 
+                  icon="map-pin" 
+                  label={t('visitorInvite.meetingRoom')} 
+                  value={displayInvite.meetingRoom.name || ''}
+                  subValue={displayInvite.meetingRoom.floor || undefined}
+                />
+              </>
+            ) : null}
+            <View style={styles.infoDivider} />
+            <InfoRow 
+              icon="home" 
+              label={t('form.building')} 
+              value={getBuildingName(displayInvite)}
+              subValue={getBuildingAddress(displayInvite) || undefined}
             />
           </GlassCard>
+
+          <Spacer height={Spacing.xl} />
+
+          {/* Parking Section */}
+          {(() => {
+            const parkingType = getParkingType(displayInvite);
+            const getParkingColor = () => {
+              if (parkingType === 'none') return PageColors.textMuted;
+              if (parkingType === 'required') return PageColors.warning;
+              return PageColors.success;
+            };
+            const getParkingIcon = () => {
+              if (parkingType === 'required') return 'map-pin';
+              return 'slash';
+            };
+            const parkingColor = getParkingColor();
+            return (
+              <GlassCard style={[
+                styles.parkingCard,
+                { borderColor: parkingColor + '40' }
+              ]}>
+                <View style={styles.parkingHeader}>
+                  <View style={[
+                    styles.parkingIconContainer,
+                    { backgroundColor: parkingColor + '20' }
+                  ]}>
+                    <DDIcon 
+                      name={getParkingIcon()} 
+                      size={24} 
+                      color={parkingColor}
+                    />
+                  </View>
+                  <View style={styles.parkingContent}>
+                    <ThemedText style={styles.parkingTitle}>{t('services.parking')}</ThemedText>
+                    <ThemedText style={styles.parkingDescription}>
+                      {getParkingExpectationText(displayInvite)}
+                    </ThemedText>
+                  </View>
+                </View>
+              </GlassCard>
+            );
+          })()}
         </ContentWrapper>
       </ScrollView>
     );
@@ -1217,13 +986,11 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
               const parkingType = getParkingType(invite);
               const getParkingColor = () => {
                 if (parkingType === 'none') return PageColors.textMuted;
-                if (parkingType === 'pending') return PageColors.warning;
+                if (parkingType === 'required') return PageColors.warning;
                 return PageColors.success;
               };
               const getParkingIcon = () => {
-                if (parkingType === 'valet') return 'truck';
-                if (parkingType === 'auto') return 'navigation';
-                if (parkingType === 'pending') return 'clock';
+                if (parkingType === 'required') return 'map-pin';
                 return 'slash';
               };
               const parkingColor = getParkingColor();
@@ -1326,121 +1093,79 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
 
       <Spacer height={Spacing.xl} />
 
-      {/* Parking Selection Section */}
-      <GlassCard>
-        <ThemedText style={styles.parkingSectionTitle}>{t('visitorInvite.parkingPreference')}</ThemedText>
-        <Spacer height={Spacing.md} />
-        
-        {/* Option 1: No Parking */}
-        <Pressable
-          style={[
-            styles.parkingOptionCard,
-            selectedParkingOption === 'no_parking' && styles.parkingOptionCardSelected,
-          ]}
-          onPress={() => setSelectedParkingOption('no_parking')}
-        >
-          <View style={[
-            styles.parkingOptionIcon,
-            selectedParkingOption === 'no_parking' && { backgroundColor: PageColors.accent + '30' }
-          ]}>
-            <DDIcon name="slash" size={20} color={selectedParkingOption === 'no_parking' ? PageColors.accent : PageColors.textSecondary} />
-          </View>
-          <ThemedText style={[
-            styles.parkingOptionLabel,
-            selectedParkingOption === 'no_parking' && { color: PageColors.accent }
-          ]}>
-            {t('visitorInvite.noParking')}
-          </ThemedText>
-          {selectedParkingOption === 'no_parking' ? (
-            <DDIcon name="check-circle" size={20} color={PageColors.accent} />
-          ) : (
-            <View style={styles.parkingOptionPlaceholder} />
-          )}
-        </Pressable>
-        
-        {/* Option 2: Parking with Car Info */}
-        <Pressable
-          style={[
-            styles.parkingOptionCard,
-            selectedParkingOption === 'parking_with_car_info' && styles.parkingOptionCardSelected,
-          ]}
-          onPress={() => setSelectedParkingOption('parking_with_car_info')}
-        >
-          <View style={[
-            styles.parkingOptionIcon,
-            selectedParkingOption === 'parking_with_car_info' && { backgroundColor: PageColors.accent + '30' }
-          ]}>
-            <DDIcon name="truck" size={20} color={selectedParkingOption === 'parking_with_car_info' ? PageColors.accent : PageColors.textSecondary} />
-          </View>
-          <ThemedText style={[
-            styles.parkingOptionLabel,
-            selectedParkingOption === 'parking_with_car_info' && { color: PageColors.accent }
-          ]}>
-            {t('visitorInvite.needsParking')}
-          </ThemedText>
-          {selectedParkingOption === 'parking_with_car_info' ? (
-            <DDIcon name="check-circle" size={20} color={PageColors.accent} />
-          ) : (
-            <View style={styles.parkingOptionPlaceholder} />
-          )}
-        </Pressable>
-        
-        {/* Car Info Fields - always mounted to prevent focus loss, visibility controlled by style */}
-        <View style={[
-          styles.carInfoContainer,
-          selectedParkingOption !== 'parking_with_car_info' && { height: 0, overflow: 'hidden', marginTop: 0 }
-        ]}>
-          <TextInput
-            style={[styles.carInfoInput, { fontFamily: getInputFontFamily(licensePlate, isRTL) }]}
-            placeholder={t('visitorInvite.licensePlate')}
-            placeholderTextColor={PageColors.textMuted}
-            value={licensePlate}
-            onChangeText={setLicensePlate}
-            autoCapitalize="characters"
-          />
-          <TextInput
-            style={[styles.carInfoInput, { fontFamily: getInputFontFamily(carModel, isRTL) }]}
-            placeholder={t('visitorInvite.carModel')}
-            placeholderTextColor={PageColors.textMuted}
-            value={carModel}
-            onChangeText={setCarModel}
-          />
-          <TextInput
-            style={[styles.carInfoInput, { fontFamily: getInputFontFamily(carColor, isRTL) }]}
-            placeholder={t('visitorInvite.carColor')}
-            placeholderTextColor={PageColors.textMuted}
-            value={carColor}
-            onChangeText={setCarColor}
-          />
-        </View>
-        
-        {/* Option 3: Parking without Car Info */}
-        <Pressable
-          style={[
-            styles.parkingOptionCard,
-            selectedParkingOption === 'parking_without_car_info' && styles.parkingOptionCardSelected,
-          ]}
-          onPress={() => setSelectedParkingOption('parking_without_car_info')}
-        >
-          <View style={[
-            styles.parkingOptionIcon,
-            selectedParkingOption === 'parking_without_car_info' && { backgroundColor: PageColors.accent + '30' }
-          ]}>
-            <DDIcon name="clock" size={20} color={selectedParkingOption === 'parking_without_car_info' ? PageColors.accent : PageColors.textSecondary} />
-          </View>
-          <ThemedText style={[
-            styles.parkingOptionLabel,
-            selectedParkingOption === 'parking_without_car_info' && { color: PageColors.accent }
-          ]}>
-            {t('visitorInvite.needsParkingInfoLater')}
-          </ThemedText>
-          {selectedParkingOption === 'parking_without_car_info' ? (
-            <DDIcon name="check-circle" size={20} color={PageColors.accent} />
-          ) : (
-            <View style={styles.parkingOptionPlaceholder} />
-          )}
-        </Pressable>
-      </GlassCard>
+      {/* Parking Selection Section — only shown when host lets visitor decide */}
+      {invite.parkingDecision === 'visitor_decides' ? (
+        <GlassCard>
+          <ThemedText style={styles.parkingSectionTitle}>{t('visitorInvite.parkingPreference')}</ThemedText>
+          <Spacer height={Spacing.md} />
+
+          {/* Option 1: No Parking */}
+          <Pressable
+            style={[
+              styles.parkingOptionCard,
+              selectedParkingOption === 'no_parking' && styles.parkingOptionCardSelected,
+            ]}
+            onPress={() => setSelectedParkingOption('no_parking')}
+          >
+            <View style={[
+              styles.parkingOptionIcon,
+              selectedParkingOption === 'no_parking' && { backgroundColor: PageColors.accent + '30' }
+            ]}>
+              <DDIcon name="slash" size={20} color={selectedParkingOption === 'no_parking' ? PageColors.accent : PageColors.textSecondary} />
+            </View>
+            <ThemedText style={[
+              styles.parkingOptionLabel,
+              selectedParkingOption === 'no_parking' && { color: PageColors.accent }
+            ]}>
+              {t('parking.noParking')}
+            </ThemedText>
+            <View style={[
+              styles.parkingSquareCheckbox,
+              {
+                borderColor: selectedParkingOption === 'no_parking' ? PageColors.accent : PageColors.border,
+                backgroundColor: selectedParkingOption === 'no_parking' ? PageColors.accent : 'transparent',
+              }
+            ]}>
+              {selectedParkingOption === 'no_parking' ? (
+                <DDIcon name="check" size={10} color="#fff" />
+              ) : null}
+            </View>
+          </Pressable>
+
+          {/* Option 2: Needs Parking */}
+          <Pressable
+            style={[
+              styles.parkingOptionCard,
+              selectedParkingOption === 'needs_parking' && styles.parkingOptionCardSelected,
+            ]}
+            onPress={() => setSelectedParkingOption('needs_parking')}
+          >
+            <View style={[
+              styles.parkingOptionIcon,
+              selectedParkingOption === 'needs_parking' && { backgroundColor: PageColors.accent + '30' }
+            ]}>
+              <DDIcon name="map-pin" size={20} color={selectedParkingOption === 'needs_parking' ? PageColors.accent : PageColors.textSecondary} />
+            </View>
+            <ThemedText style={[
+              styles.parkingOptionLabel,
+              selectedParkingOption === 'needs_parking' && { color: PageColors.accent }
+            ]}>
+              {t('parking.needsParking')}
+            </ThemedText>
+            <View style={[
+              styles.parkingSquareCheckbox,
+              {
+                borderColor: selectedParkingOption === 'needs_parking' ? PageColors.accent : PageColors.border,
+                backgroundColor: selectedParkingOption === 'needs_parking' ? PageColors.accent : 'transparent',
+              }
+            ]}>
+              {selectedParkingOption === 'needs_parking' ? (
+                <DDIcon name="check" size={10} color="#fff" />
+              ) : null}
+            </View>
+          </Pressable>
+        </GlassCard>
+      ) : null}
 
       <Spacer height={Spacing.xl * 1.5} />
 
@@ -1465,7 +1190,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
         <LoadingButton
           onPress={handleAccept}
           loading={acceptMutation.isPending}
-          disabled={acceptMutation.isPending || rejectMutation.isPending || (selectedParkingOption === 'parking_with_car_info' && (!licensePlate.trim() || !carModel.trim() || !carColor.trim()))}
+          disabled={acceptMutation.isPending || rejectMutation.isPending}
           variant="success"
           size="large"
           icon="check"
@@ -1713,6 +1438,14 @@ const styles = StyleSheet.create({
   parkingOptionPlaceholder: {
     width: 20,
     height: 20,
+  },
+  parkingSquareCheckbox: {
+    width: 18,
+    height: 18,
+    borderRadius: 4,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   carInfoContainer: {
     gap: Spacing.sm,

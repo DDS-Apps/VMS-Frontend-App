@@ -1,47 +1,47 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { View, StyleSheet, Pressable, GestureResponderEvent, Alert, Switch, FlatList, ActivityIndicator, Modal, Platform, useWindowDimensions } from "react-native";
+import { useViewMode } from "@/hooks/useViewMode";
+import { View, StyleSheet, Pressable, Alert, Switch, FlatList, ActivityIndicator, Modal, Platform, RefreshControl, useWindowDimensions } from "react-native";
 import type { AllVisitorsScreenProps } from "@/types/receptionistNavigation.types";
 import { ROUTES } from "@/constants";
-import { SkeletonList, WalkInBadge, RTLHorizontalScrollView } from "@/components/shared";
+import { SkeletonList, RTLHorizontalScrollView, VisitorMatrixTable, FilterChip, VisitorRequestCard } from "@/components/shared";
+import type { VisitorMatrixItem } from "@/components/shared";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SearchInput } from "@/components/SearchInput";
 import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
-import { useFormatters } from "@/hooks/useFormatters";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
-import { VisitorActionButton } from "@/components/VisitorActionButton";
 import { applyOpacity } from "@/utils/statusStyles";
-import { toServerDateString } from "@/utils/dateTimeUtils";
 import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
-import { PURPOSE_VALUE_TO_KEY, normalizePurposeValue, isUpcomingIndicatorEligibleStatus, UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES } from "@/constants/requestConstants";
-import { useUpcomingIndicator } from "@/hooks/useUpcomingVisitTimer";
 import { useInfiniteVisitsQuery } from "@/hooks/queries/useApprovalQueries";
-import { useReceptionCheckInMutation, useReceptionCheckOutMutation } from "@/hooks/queries/useReceptionQueries";
 import type { VisitListParams, VisitListItemDto } from "@/types";
+import { CalendarDatePicker } from "@/components/CalendarDatePicker";
+import {
+  formatVisitDateLabel,
+  groupVisitsByDate,
+} from "@/utils/groupVisitsByDate";
+import { mapVisitListItemToVisitorRequest } from "@/utils/requestMappers";
+import { resolveParkingDisplayDecision } from "@/utils/parkingDecision";
+import {
+  getReceptionistStatusSources,
+  getReceptionistDateRange,
+  isReceptionistAllVisitorsRecordVisible,
+  type ReceptionistDateFilter,
+} from "@/utils/receptionistVisitorRules";
+import { canAutomaticallyFetchNextPage } from "@/utils/queryPaginationState";
+import { useRetainedDatedData } from "@/hooks/useRetainedDatedData";
+import { useRiyadhBusinessDateKey } from "@/hooks/useRiyadhBusinessDateKey";
+import {
+  computeIsPendingApprovalWalkInExpired,
+  computeIsPendingHostWalkInExpired,
+  getPendingApprovalWalkInScheduledEndMs,
+} from "@/utils/visitExpiredGuard";
+import { useTimeBoundaryTick } from "@/hooks/useTimeBoundaryTick";
 
-const ReceptionistUpcomingAlertIcon = React.memo(({ visitDate, visitTime, status }: { visitDate: string; visitTime: string; status: string }) => {
-  const { theme } = useTheme();
-  const eligible = isUpcomingIndicatorEligibleStatus(status);
-  const isUpcoming = useUpcomingIndicator({
-    visitDate,
-    visitTime,
-    eligible,
-    thresholdMinutes: UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES,
-  });
-  if (!isUpcoming) return null;
-  return (
-    <View accessibilityLabel="Visit starts soon" accessibilityRole="image" style={{ marginEnd: 4 }}>
-      <DDIcon name="alert-circle" size={14} color={theme.error} />
-    </View>
-  );
-});
-
-type DateFilter = 'all' | 'today' | 'this_week' | 'this_month';
+type DateFilter = ReceptionistDateFilter;
 type StatusFilter = 
   | 'all'
   | 'waiting_acceptance'
@@ -51,44 +51,23 @@ const RECEPTIONIST_ALLOWED_STATUSES = [
   'waiting_acceptance',
   'accepted',
   'visitor_accepted',
+  'pending_host_approval',
 ];
 
 function getDateRange(filter: DateFilter): { startDate?: string; endDate?: string } {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  // Use local timezone formatting instead of UTC (toISOString converts to UTC)
-  const formatDate = (d: Date) => {
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
-  
-  switch (filter) {
-    case 'today':
-      const todayStr = formatDate(today);
-      return { startDate: todayStr, endDate: todayStr };
-    case 'this_week': {
-      const dayOfWeek = today.getDay();
-      const startOfWeek = new Date(today);
-      startOfWeek.setDate(today.getDate() - dayOfWeek);
-      const endOfWeek = new Date(startOfWeek);
-      endOfWeek.setDate(startOfWeek.getDate() + 4);
-      return { startDate: formatDate(startOfWeek), endDate: formatDate(endOfWeek) };
-    }
-    case 'this_month': {
-      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-      const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-      return { startDate: formatDate(startOfMonth), endDate: formatDate(endOfMonth) };
-    }
-    default:
-      return {};
-  }
+  return getReceptionistDateRange(filter);
+}
+
+function toDateKey(date: Date): string {
+  const year = String(date.getFullYear());
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 function mapStatusesToApi(statuses: Set<StatusFilter>): string | undefined {
   if (statuses.has('all') || statuses.size === 0) {
-    return RECEPTIONIST_ALLOWED_STATUSES.join(',');
+    return undefined;
   }
   const apiStatuses: string[] = [];
   for (const s of statuses) {
@@ -102,7 +81,7 @@ function mapStatusesToApi(statuses: Set<StatusFilter>): string | undefined {
   return apiStatuses.length > 0 ? apiStatuses.join(',') : undefined;
 }
 
-const PAGE_SIZE = 30;
+const PAGE_SIZE = 20;
 
 const parseTimeToMinutes = (timeStr: string | undefined | null): number => {
   if (!timeStr) return Infinity;
@@ -125,13 +104,13 @@ const parseTimeToMinutes = (timeStr: string | undefined | null): number => {
 export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { formatTime, formatTimeFromString, formatDateShort } = useFormatters();
-  const { isRTL } = useLanguage();
+  const { isRTL, localeCode } = useLanguage();
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
+  const riyadhBusinessDateKey = useRiyadhBusinessDateKey();
   
   // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
-  const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
+  const numColumns = screenWidth >= 900 ? 3 : screenWidth >= 600 ? 2 : 1;
   
   const initialFilter = route.params?.initialFilter ?? null;
   
@@ -140,51 +119,89 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
   const [dateFilter, setDateFilter] = useState<DateFilter>('this_week');
   const [selectedStatuses, setSelectedStatuses] = useState<Set<StatusFilter>>(new Set(['all']));
   const [isWalkInFilter, setIsWalkInFilter] = useState(initialFilter === 'walk_in');
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
-
-  const toggleCardExpanded = useCallback((id: string) => {
-    setExpandedCards(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(id)) {
-        newSet.delete(id);
-      } else {
-        newSet.add(id);
-      }
-      return newSet;
-    });
-  }, []);
+  const [customDateRange, setCustomDateRange] = useState<{ startDate: Date | null; endDate: Date | null }>({
+    startDate: null,
+    endDate: null,
+  });
+  const [showQuickDatePicker, setShowQuickDatePicker] = useState(false);
+  const [showCustomDatePicker, setShowCustomDatePicker] = useState(false);
+  const [viewMode, setViewMode] = useViewMode('allVisitors');
 
   useEffect(() => {
+    if (!searchQuery) {
+      setDebouncedSearch('');
+      return;
+    }
     const timer = setTimeout(() => {
       setDebouncedSearch(searchQuery);
     }, 300);
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  const selectedDateRange = useMemo(
+    () =>
+      dateFilter === 'custom' && customDateRange.startDate
+        ? {
+            startDate: toDateKey(customDateRange.startDate),
+            endDate: toDateKey(customDateRange.endDate ?? customDateRange.startDate),
+          }
+        : getDateRange(dateFilter),
+    [customDateRange, dateFilter],
+  );
   const queryParams: Omit<VisitListParams, 'page'> = useMemo(() => ({
-    ...getDateRange(dateFilter),
+    ...selectedDateRange,
     status: mapStatusesToApi(selectedStatuses),
     search: debouncedSearch || undefined,
     isWalkIn: isWalkInFilter || undefined,
     myRequestsOnly: false,
     limit: PAGE_SIZE,
-  }), [dateFilter, selectedStatuses, debouncedSearch, isWalkInFilter]);
+  }), [selectedDateRange, selectedStatuses, debouncedSearch, isWalkInFilter]);
 
   const { 
     data, 
     isLoading, 
     isFetching,
     isFetchingNextPage,
+    isFetchNextPageError,
     isError, 
     error,
     fetchNextPage,
     hasNextPage,
     refetch,
   } = useInfiniteVisitsQuery(queryParams);
-
-  const checkInMutation = useReceptionCheckInMutation();
-  const checkOutMutation = useReceptionCheckOutMutation();
+  const retainedInput = useMemo(
+    () => (data ? { data, queryParams } : undefined),
+    [data, queryParams],
+  );
+  const retainedQuery = useRetainedDatedData(JSON.stringify(queryParams), retainedInput);
+  const displayedData = retainedQuery.data?.data;
+  const displayedQueryParams = retainedQuery.data?.queryParams ?? queryParams;
+  const displayedQuerySourceLabel = useMemo(() => {
+    const sourceParts: string[] = [];
+    if (displayedQueryParams.startDate) {
+      sourceParts.push(
+        displayedQueryParams.endDate &&
+          displayedQueryParams.endDate !== displayedQueryParams.startDate
+          ? `${displayedQueryParams.startDate} – ${displayedQueryParams.endDate}`
+          : displayedQueryParams.startDate,
+      );
+    }
+    if (displayedQueryParams.isWalkIn) {
+      sourceParts.push(t('visitor.walkIn'));
+    } else {
+      for (const statusSource of getReceptionistStatusSources(displayedQueryParams.status)) {
+        sourceParts.push(
+          statusSource === 'waiting_acceptance'
+            ? t('status.waitingAcceptance')
+            : t('status.accepted'),
+        );
+      }
+    }
+    if (displayedQueryParams.search) {
+      sourceParts.push(`${t('common.search')}: “${displayedQueryParams.search}”`);
+    }
+    return sourceParts.join(' · ') || t('common.all');
+  }, [displayedQueryParams, t]);
 
   const DATE_FILTER_OPTIONS: { key: DateFilter; label: string }[] = [
     { key: 'all', label: t('common.all') },
@@ -200,8 +217,10 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
   ];
 
   const visitors = useMemo(() => {
-    if (!data?.pages) return [];
-    const allItems = data.pages.flatMap(page => page.data);
+    if (!displayedData?.pages) return [];
+    const allItems = displayedData.pages
+      .flatMap(page => page.data)
+      .filter((visitor) => isReceptionistAllVisitorsRecordVisible(visitor));
     return [...allItems].sort((a, b) => {
       const dateA = a.visitDate || '';
       const dateB = b.visitDate || '';
@@ -212,111 +231,116 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
       const timeB = parseTimeToMinutes(b.visitTime);
       return timeA - timeB;
     });
-  }, [data]);
+  }, [displayedData]);
+  const expirationBoundaries = useMemo(
+    () =>
+      visitors.map((visitor) =>
+        getPendingApprovalWalkInScheduledEndMs({
+          isWalkIn: visitor.isWalkIn,
+          status: visitor.status,
+          visitDate: visitor.visitDate,
+          visitTime: visitor.visitTime,
+          endTime: visitor.endTime,
+          duration: visitor.duration,
+        }),
+      ),
+    [visitors],
+  );
+  const expirationTick = useTimeBoundaryTick(expirationBoundaries);
 
-  const totalCount = data?.pages?.[0]?.pagination?.total ?? visitors.length;
+  const groupedVisitors = useMemo(() => {
+    const todayKey = riyadhBusinessDateKey;
+    const rangeIncludesToday =
+      (!displayedQueryParams.startDate || displayedQueryParams.startDate <= todayKey) &&
+      (!displayedQueryParams.endDate || displayedQueryParams.endDate >= todayKey);
+
+    return groupVisitsByDate(
+      visitors,
+      rangeIncludesToday ? [todayKey] : [],
+    ).sort((a, b) => {
+        if (a.date === 'unknown') return 1;
+        if (b.date === 'unknown') return -1;
+        return b.date.localeCompare(a.date);
+      });
+  }, [displayedQueryParams, visitors, riyadhBusinessDateKey]);
+
+  const totalCount = visitors.length;
+
+  const toMatrixItem = useCallback((v: VisitListItemDto): VisitorMatrixItem => {
+    const isExpired = computeIsPendingHostWalkInExpired({
+      isWalkIn: v.isWalkIn,
+      status: v.status,
+      visitDate: v.visitDate,
+    }) || computeIsPendingApprovalWalkInExpired({
+      isWalkIn: v.isWalkIn,
+      status: v.status,
+      visitDate: v.visitDate,
+      visitTime: v.visitTime,
+      endTime: v.endTime,
+      duration: v.duration,
+    });
+
+    return {
+      id: v.id,
+      visitorName: v.visitor.fullName,
+      company: v.visitor.company ?? undefined,
+      visitDate: v.visitDate ?? undefined,
+      plannedInTime: v.visitTime,
+      plannedOutTime: v.endTime ?? undefined,
+      // Keep the raw status so Pending Host Approval remains distinguishable
+      // from the separately-rendered expired notice.
+      status: v.status,
+      actualInTime: v.checkedInAt ?? undefined,
+      actualOutTime: v.checkedOutAt ?? undefined,
+      hasParking: resolveParkingDisplayDecision({
+        parkingDecision: (v as any).parkingDecision,
+        visitorNeedsParking: v.visitorNeedsParking,
+        isVisitorNeedsParking: v.isVisitorNeedsParking,
+        hasParking: v.hasParking,
+      }) === 'required',
+      hasBuffet: !!(v.hasBuffet || v.isBuffet),
+      hasValet: !!v.hasValet,
+      hasMeetingRoom: !!(v.hasMeetingRoom || v.isMeetingRoom),
+      hostName: v.employeeName ?? undefined,
+      hostDepartment: undefined,
+      purpose: v.purpose ?? undefined,
+      isExpired,
+    };
+  }, [expirationTick, riyadhBusinessDateKey]);
 
   const hasShownError = useRef(false);
 
   useEffect(() => {
-    if (isError && error && !hasShownError.current) {
+    if (isError && !isFetchNextPageError && error && !hasShownError.current) {
       hasShownError.current = true;
       Alert.alert(t('common.error'), (error as Error)?.message || t('common.loadError'));
     }
-    if (!isError) {
+    if (!isError || isFetchNextPageError) {
       hasShownError.current = false;
     }
-  }, [isError, error, t]);
+  }, [isError, isFetchNextPageError, error, t]);
 
-  const handleCheckIn = useCallback((visitorId: string, visitorName: string, event: GestureResponderEvent) => {
-    event.stopPropagation();
-    
-    checkInMutation.mutate(
-      { visitId: visitorId },
-      {
-        onSuccess: () => {
-          const currentTime = formatTime(new Date());
-          navigation.navigate(ROUTES.CHECK_IN_OUT_CONFIRMATION as any, {
-            action: 'check_in',
-            visitorName,
-            time: currentTime
-          });
-        },
-        onError: (err) => {
-          Alert.alert(t('common.error'), err.message || t('errors.checkInFailed'));
-        }
-      }
-    );
-  }, [checkInMutation, formatTime, navigation, t]);
-
-  const handleCheckOut = useCallback((visitorId: string, visitorName: string, event: GestureResponderEvent) => {
-    event.stopPropagation();
-    
-    checkOutMutation.mutate(
-      { visitId: visitorId },
-      {
-        onSuccess: () => {
-          const currentTime = formatTime(new Date());
-          navigation.navigate(ROUTES.CHECK_IN_OUT_CONFIRMATION as any, {
-            action: 'check_out',
-            visitorName,
-            time: currentTime
-          });
-        },
-        onError: (err) => {
-          Alert.alert(t('common.error'), err.message || t('errors.checkOutFailed'));
-        }
-      }
-    );
-  }, [checkOutMutation, formatTime, navigation, t]);
-
-  const getStatusConfig = useCallback((status: string) => {
-    switch (status) {
-      case 'checked_in':
-        return { label: t('status.checkedIn'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: theme.success };
-      case 'checked_out':
-        return { label: t('status.checkedOut'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: theme.success };
-      case 'completed':
-        return { label: t('timeline.visitCompleted'), bg: applyOpacity(theme.success, '15'), text: theme.success, border: theme.success };
-      case 'pending_approval':
-        return { label: t('status.pendingApproval'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: theme.warning };
-      case 'pending_host_approval':
-        return { label: t('status.pendingHostApproval'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: theme.warning };
-      case 'waiting_acceptance':
-        return { label: t('status.waitingAcceptance'), bg: applyOpacity(theme.info, '15'), text: theme.info, border: theme.info };
-      case 'approved':
-      case 'accepted':
-        return { label: t('status.approved'), bg: applyOpacity(theme.info, '15'), text: theme.info, border: theme.info };
-      case 'visitor_accepted':
-        return { label: t('status.visitorAccepted'), bg: applyOpacity(theme.info, '15'), text: theme.info, border: theme.info };
-      case 'rejected':
-        return { label: t('status.rejected'), bg: applyOpacity(theme.error, '15'), text: theme.error, border: theme.error };
-      case 'visitor_rejected':
-        return { label: t('status.visitorRejected'), bg: applyOpacity(theme.error, '15'), text: theme.error, border: theme.error };
-      case 'cancelled':
-        return { label: t('status.cancelled'), bg: applyOpacity(theme.error, '15'), text: theme.error, border: theme.error };
-      case 'auto_cancelled':
-        return { label: t('status.autoCancelled'), bg: applyOpacity(theme.error, '15'), text: theme.error, border: theme.error };
-      case 'no_show':
-        return { label: t('status.noShow'), bg: applyOpacity(theme.error, '15'), text: theme.error, border: theme.error };
-      case 'expired':
-        return { label: t('status.expired'), bg: applyOpacity(theme.textSecondary, '15'), text: theme.textSecondary, border: theme.textSecondary };
-      default:
-        return { label: t('status.pending'), bg: applyOpacity(theme.warning, '15'), text: theme.warning, border: theme.warning };
-    }
-  }, [t, theme]);
 
   const handleVisitorPress = useCallback((visitor: VisitListItemDto) => {
     navigation.navigate(ROUTES.VISITOR_DETAIL as any, { visitId: visitor.id } as any);
   }, [navigation]);
 
   const handleEndReached = useCallback(() => {
-    if (hasNextPage && !isFetchingNextPage) {
+    if (
+      canAutomaticallyFetchNextPage({
+        hasNextPage,
+        isFetching,
+        isFetchNextPageError,
+      })
+    ) {
       fetchNextPage();
     }
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  }, [hasNextPage, isFetching, isFetchNextPageError, fetchNextPage]);
 
   const getSelectedDateLabel = () => {
+    if (dateFilter === 'custom') {
+      return t('visitor.date');
+    }
     const option = DATE_FILTER_OPTIONS.find(o => o.key === dateFilter);
     return option?.label || t('common.all');
   };
@@ -355,162 +379,46 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
   }, []);
 
   const renderVisitorCard = useCallback(({ item }: { item: VisitListItemDto }) => {
-    const statusConfig = getStatusConfig(item.status);
-    const visitorName = item.visitor.fullName;
-    const initials = visitorName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-    
-    // Only show check-in for today's visitors with eligible status
-    // Compare visitDate (YYYY-MM-DD from server) with today's date in server timezone
-    const todayServerDate = toServerDateString(new Date());
-    const isVisitToday = item.visitDate === todayServerDate;
-    const hasCheckInStatus = item.status === 'approved' || item.status === 'accepted' || item.status === 'visitor_accepted';
-    const showCheckIn = hasCheckInStatus && isVisitToday;
-    const showCheckOut = item.status === 'checked_in';
-    
-    const isMutating = checkInMutation.isPending || checkOutMutation.isPending;
-    const activeVisitorId = checkInMutation.variables?.visitId || checkOutMutation.variables?.visitId;
-    const isThisVisitorLoading = activeVisitorId === item.id;
-    const isExpanded = expandedCards.has(item.id);
-    const hasDetails = item.purpose || item.visitor.email || item.visitor.phone;
-    
+    const isExpired = computeIsPendingHostWalkInExpired({
+      isWalkIn: item.isWalkIn,
+      status: item.status,
+      visitDate: item.visitDate,
+    }) || computeIsPendingApprovalWalkInExpired({
+      isWalkIn: item.isWalkIn,
+      status: item.status,
+      visitDate: item.visitDate,
+      visitTime: item.visitTime,
+      endTime: item.endTime,
+      duration: item.duration,
+    });
+
     return (
-      <Pressable 
+      <VisitorRequestCard
+        request={mapVisitListItemToVisitorRequest(item)}
+        hostName={item.employeeName}
+        isExpired={isExpired}
+        showExpiredState={true}
         onPress={() => handleVisitorPress(item)}
-        style={({ pressed }) => [pressed && { opacity: 0.95 }]}
-      >
-        <ThemedView style={[styles.visitorCard, { backgroundColor: theme.surface }]}>
-          <View style={[styles.statusBorderLine, { backgroundColor: statusConfig.border }]} />
-          
-          <View style={styles.cardContent}>
-            <DirectionalRow style={styles.cardHeader}>
-              <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
-                <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
-                  {initials}
-                </ThemedText>
-              </View>
-              
-              <View style={[styles.nameSection, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
-                <DirectionalRow style={[styles.nameRow, { width: '100%' }]}>
-                  <ThemedText style={[styles.visitorName, { color: theme.text, width: '100%' }]} numberOfLines={1}>
-                    {visitorName}
-                  </ThemedText>
-                </DirectionalRow>
-                <ThemedText style={[styles.companyText, { color: theme.textSecondary, width: '100%' }]} numberOfLines={1}>
-                  {item.visitor.company ?? ''}
-                </ThemedText>
-              </View>
-            </DirectionalRow>
-
-            <DirectionalRow style={styles.detailsRow}>
-              <DirectionalRow style={styles.detailItem}>
-                <DDIcon name="calendar" size={12} color={theme.textSecondary} />
-                <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
-                  {formatDateShort(item.visitDate)}
-                </ThemedText>
-              </DirectionalRow>
-              <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
-              <DirectionalRow style={styles.detailItem}>
-                <DDIcon name="clock" size={12} color={theme.textSecondary} />
-                <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
-                  {formatTimeFromString(item.visitTime)}
-                </ThemedText>
-              </DirectionalRow>
-              <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
-              <DirectionalRow style={styles.detailItem}>
-                <DDIcon name="user" size={12} color={theme.textSecondary} />
-                <ThemedText style={[styles.detailText, { color: theme.textSecondary }]} numberOfLines={1}>
-                  {item.employeeName}
-                </ThemedText>
-              </DirectionalRow>
-            </DirectionalRow>
-
-            <DirectionalRow style={styles.servicesStatusRow} justifyContent="space-between">
-              <DirectionalRow style={styles.servicesRow}>
-                {item.isWalkIn ? <WalkInBadge size="sm" /> : null}
-                {item.hasParking ? (
-                  <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '20') }]}>
-                    <DDIcon name="map-pin" size={12} color={theme.info} />
-                  </View>
-                ) : null}
-                {item.hasMeetingRoom ? (
-                  <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.secondary, '20') }]}>
-                    <DDIcon name="briefcase" size={12} color={theme.secondary} />
-                  </View>
-                ) : null}
-                {item.hasBuffet ? (
-                  <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.warning, '20') }]}>
-                    <DDIcon name="cloche" size={12} color={theme.warning} />
-                  </View>
-                ) : null}
-              </DirectionalRow>
-
-              <DirectionalRow style={{ alignItems: 'center' }}>
-                <ReceptionistUpcomingAlertIcon visitDate={item.visitDate} visitTime={item.visitTime} status={item.status} />
-                <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: 1 }]}>
-                  <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
-                    {statusConfig.label}
-                  </ThemedText>
-                </View>
-              </DirectionalRow>
-            </DirectionalRow>
-
-            {isExpanded && hasDetails ? (
-              <View style={styles.expandedSection}>
-                {item.purpose ? (
-                  <DirectionalRow style={styles.expandedDetailRow}>
-                    <DDIcon name="briefcase" size={14} color={theme.textSecondary} />
-                    <ThemedText style={[styles.expandedDetailText, { color: theme.text }]} numberOfLines={2}>
-                      {(() => { const pv = normalizePurposeValue(item.purpose || ''); return PURPOSE_VALUE_TO_KEY[pv] ? t(PURPOSE_VALUE_TO_KEY[pv] as any) : (item.purpose || '-'); })()}
-                    </ThemedText>
-                  </DirectionalRow>
-                ) : null}
-                {item.visitor.email ? (
-                  <DirectionalRow style={styles.expandedDetailRow}>
-                    <DDIcon name="mail" size={14} color={theme.textSecondary} />
-                    <ThemedText style={[styles.expandedDetailText, { color: theme.text }]} numberOfLines={1}>
-                      {item.visitor.email}
-                    </ThemedText>
-                  </DirectionalRow>
-                ) : null}
-                {item.visitor.phone ? (
-                  <DirectionalRow style={styles.expandedDetailRow}>
-                    <DDIcon name="phone" size={14} color={theme.textSecondary} />
-                    <ThemedText style={[styles.expandedDetailText, { color: theme.text, writingDirection: 'ltr' }]} numberOfLines={1}>
-                      {item.visitor.phone}
-                    </ThemedText>
-                  </DirectionalRow>
-                ) : null}
-              </View>
-            ) : null}
-
-            {(showCheckIn || showCheckOut) && (
-              <DirectionalRow style={styles.cardFooter} justifyContent="flex-end">
-                <View style={styles.actionButtons}>
-                  {showCheckIn ? (
-                    <VisitorActionButton 
-                      type="check_in" 
-                      onPress={(e) => handleCheckIn(item.id, visitorName, e)}
-                      loading={isThisVisitorLoading}
-                      disabled={isMutating && !isThisVisitorLoading}
-                    />
-                  ) : showCheckOut ? (
-                    <VisitorActionButton 
-                      type="check_out" 
-                      onPress={(e) => handleCheckOut(item.id, visitorName, e)}
-                      loading={isThisVisitorLoading}
-                      disabled={isMutating && !isThisVisitorLoading}
-                    />
-                  ) : null}
-                </View>
-              </DirectionalRow>
-            )}
-          </View>
-        </ThemedView>
-      </Pressable>
+      />
     );
-  }, [getStatusConfig, handleVisitorPress, handleCheckIn, handleCheckOut, theme, formatTimeFromString, isRTL, expandedCards, toggleCardExpanded, t, checkInMutation.isPending, checkOutMutation.isPending, checkInMutation.variables, checkOutMutation.variables]);
+  }, [expirationTick, handleVisitorPress, riyadhBusinessDateKey]);
 
   const renderFooter = useCallback(() => {
+    if (isFetchNextPageError) {
+      return (
+        <DirectionalRow style={[styles.inlineFeedback, { backgroundColor: applyOpacity(theme.error, '10') }]}>
+          <DDIcon name="alert-circle" size={16} color={theme.error} />
+          <ThemedText style={[Typography.caption, { color: theme.error, flex: 1 }]}>
+            {t('common.loadError')}
+          </ThemedText>
+          <Pressable onPress={() => fetchNextPage()} hitSlop={8}>
+            <ThemedText style={[Typography.caption, { color: theme.primary, fontWeight: '600' }]}>
+              {t('common.retry')}
+            </ThemedText>
+          </Pressable>
+        </DirectionalRow>
+      );
+    }
     if (!isFetchingNextPage) return null;
     return (
       <View style={styles.footerLoader}>
@@ -520,7 +428,7 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
         </ThemedText>
       </View>
     );
-  }, [isFetchingNextPage, theme, t]);
+  }, [fetchNextPage, isFetchNextPageError, isFetchingNextPage, theme, t]);
 
   const renderEmpty = useCallback(() => {
     if (isLoading) return null;
@@ -593,17 +501,58 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
     }
   }, [theme]);
 
+  const renderDateGroupHeader = useCallback((date: string, count: number) => (
+    <DirectionalRow
+      style={[
+        styles.dateGroupHeader,
+        {
+          backgroundColor: theme.surface,
+          borderColor: theme.border,
+        },
+      ]}
+    >
+      <View style={[styles.dateGroupAccent, { backgroundColor: theme.primary }]} />
+      <ThemedText style={[styles.dateGroupLabel, { color: theme.text }]}>
+        {date === 'unknown'
+          ? t('visitor.date')
+          : formatVisitDateLabel(date, localeCode, {
+              today: t('common.today'),
+              tomorrow: t('time.tomorrow'),
+            })}
+      </ThemedText>
+      <ThemedText style={[styles.dateGroupCount, { color: theme.textSecondary }]}>
+        {count}
+      </ThemedText>
+    </DirectionalRow>
+  ), [localeCode, t, theme]);
+
   const ListHeader = useMemo(() => (
     <View>
-      {/* Title row with count on the right */}
-      <DirectionalRow style={{ justifyContent: 'space-between', alignItems: 'baseline', gap: Spacing.md, flexWrap: 'wrap' }}>
-        <ThemedText style={[Typography.title, { fontSize: 22, fontWeight: '700' }]}>
-          {t('navigation.allVisitors')}
-        </ThemedText>
-        <ThemedText style={[Typography.caption, { color: theme.textSecondary, flexShrink: 1 }]} numberOfLines={1}>
-          {totalCount} {totalCount === 1 ? t('reception.visitorsFound') : t('reception.visitorsFoundPlural')}
-          {isFetching && !isFetchingNextPage ? ' ...' : ''}
-        </ThemedText>
+      {/* Title row with count and view toggle */}
+      <DirectionalRow style={{ justifyContent: 'space-between', alignItems: 'center', gap: Spacing.md }}>
+        <View style={{ flex: 1 }}>
+          <ThemedText style={[Typography.title, { fontSize: 22, fontWeight: '700' }]}>
+            {t('navigation.allVisitors')}
+          </ThemedText>
+          <ThemedText style={[Typography.caption, { color: theme.textSecondary }]} numberOfLines={1}>
+            {totalCount} {totalCount === 1 ? t('reception.visitorsFound') : t('reception.visitorsFoundPlural')}
+            {isFetching && !isFetchingNextPage ? ' ...' : ''}
+          </ThemedText>
+        </View>
+        <DirectionalRow style={styles.viewToggle}>
+          <Pressable
+            style={[styles.viewToggleBtn, styles.viewToggleBtnLeft, { backgroundColor: viewMode === 'card' ? theme.primary : theme.surface, borderColor: theme.border }]}
+            onPress={() => setViewMode('card')}
+          >
+            <DDIcon name="grid" size={16} color={viewMode === 'card' ? theme.buttonText : theme.textSecondary} />
+          </Pressable>
+          <Pressable
+            style={[styles.viewToggleBtn, styles.viewToggleBtnRight, { backgroundColor: viewMode === 'list' ? theme.primary : theme.surface, borderColor: theme.border }]}
+            onPress={() => setViewMode('list')}
+          >
+            <DDIcon name="menu" size={16} color={viewMode === 'list' ? theme.buttonText : theme.textSecondary} />
+          </Pressable>
+        </DirectionalRow>
       </DirectionalRow>
 
       <Spacer height={Spacing.lg} />
@@ -619,7 +568,7 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
         </View>
         <Pressable
           style={[styles.datePickerButton, { backgroundColor: theme.surface, borderColor: theme.border, height: 44 }]}
-          onPress={() => setShowDatePicker(true)}
+          onPress={() => setShowQuickDatePicker(true)}
         >
           <DDIcon name="calendar" size={18} color={theme.primary} />
           <ThemedText style={[styles.datePickerLabel, { color: theme.text }]} numberOfLines={1}>
@@ -631,67 +580,70 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
 
       <Spacer height={Spacing.md} />
 
-      {/* Horizontal scrollable status chips with Walk-In toggle */}
+      {/* Horizontal scrollable status chips: All → Walk-In → other statuses */}
       <RTLHorizontalScrollView
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.statusChipsContainer}
       >
-        {/* Walk-In toggle chip */}
-        <Pressable
-          style={[
-            styles.statusChip,
-            { 
-              backgroundColor: isWalkInFilter ? applyOpacity(theme.warning, '15') : theme.surface,
-              borderColor: isWalkInFilter ? theme.warning : theme.border,
-              flexDirection: getFlexDirection(isRTL),
-              gap: Spacing.xs,
-            }
-          ]}
+        {/* All chip — always first */}
+        {STATUS_FILTER_OPTIONS.filter(o => o.key === 'all').map((option) => (
+          <FilterChip
+            key={option.key}
+            label={option.label}
+            isSelected={selectedStatuses.has(option.key)}
+            onPress={() => handleStatusChipPress(option.key)}
+          />
+        ))}
+
+        {/* Walk-In chip — always second */}
+        <FilterChip
+          label={t('common.walkIn')}
+          isSelected={isWalkInFilter}
+          color={theme.warning}
+          icon="user-plus"
           onPress={handleWalkInToggle}
-          accessibilityLabel={t('common.walkIn')}
-          accessibilityRole="button"
-          accessibilityState={{ selected: isWalkInFilter }}
-        >
-          <DDIcon name="user-plus" size={12} color={isWalkInFilter ? theme.warning : theme.textSecondary} />
-          <ThemedText style={[styles.statusChipText, { color: isWalkInFilter ? theme.warning : theme.textSecondary }]}>
-            {t('common.walkIn')}
-          </ThemedText>
-        </Pressable>
-        
-        {!isWalkInFilter ? STATUS_FILTER_OPTIONS.map((option) => {
-          const isSelected = selectedStatuses.has(option.key);
-          const chipColor = getStatusChipColor(option.key);
-          return (
-            <Pressable
-              key={option.key}
-              style={[
-                styles.statusChip,
-                { 
-                  backgroundColor: isSelected ? applyOpacity(chipColor, '15') : theme.surface,
-                  borderColor: isSelected ? chipColor : theme.border,
-                }
-              ]}
-              onPress={() => handleStatusChipPress(option.key)}
-              accessibilityLabel={option.label}
-              accessibilityRole="button"
-              accessibilityState={{ selected: isSelected }}
-            >
-              <ThemedText style={[
-                styles.statusChipText, 
-                { color: isSelected ? chipColor : theme.textSecondary }
-              ]}>
-                {option.label}
-              </ThemedText>
-            </Pressable>
-          );
-        }) : null}
+        />
+
+        {/* Remaining status chips (hidden when Walk-In is active) */}
+        {!isWalkInFilter ? STATUS_FILTER_OPTIONS.filter(o => o.key !== 'all').map((option) => (
+          <FilterChip
+            key={option.key}
+            label={option.label}
+            isSelected={selectedStatuses.has(option.key)}
+            color={getStatusChipColor(option.key)}
+            onPress={() => handleStatusChipPress(option.key)}
+          />
+        )) : null}
+
+        <FilterChip
+          label={t('time.today')}
+          icon="calendar"
+          color={theme.primary}
+          isSelected={dateFilter === 'today'}
+          onPress={() => setDateFilter(dateFilter === 'today' ? 'all' : 'today')}
+          onClear={dateFilter === 'today' ? () => setDateFilter('all') : undefined}
+          clearAccessibilityLabel={t('common.clear')}
+        />
+
+        <FilterChip
+          label={t('visitor.date')}
+          icon="calendar"
+          color={theme.primary}
+          isSelected={dateFilter === 'custom'}
+          onPress={() => setShowCustomDatePicker(true)}
+          onClear={() => {
+            setCustomDateRange({ startDate: null, endDate: null });
+            setDateFilter('all');
+          }}
+          clearAccessibilityLabel={t('common.clear')}
+        />
       </RTLHorizontalScrollView>
 
       <Spacer height={Spacing.md} />
     </View>
-  ), [t, theme, totalCount, isFetching, isFetchingNextPage, searchQuery, isWalkInFilter, selectedStatuses, getSelectedDateLabel, getStatusChipColor, STATUS_FILTER_OPTIONS, isRTL, handleWalkInToggle, handleStatusChipPress]);
+  ), [t, theme, totalCount, isFetching, isFetchingNextPage, searchQuery, isWalkInFilter, selectedStatuses, dateFilter, getSelectedDateLabel, getStatusChipColor, STATUS_FILTER_OPTIONS, isRTL, handleWalkInToggle, handleStatusChipPress, viewMode, setViewMode]);
 
-  if (isLoading) {
+  if (isLoading && !displayedData) {
     return (
       <View style={[styles.loadingContainer, { paddingTop: insets.top + Spacing.lg, paddingHorizontal: Spacing.lg, backgroundColor: theme.background }]}>
         <SkeletonList count={5} />
@@ -699,7 +651,7 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
     );
   }
 
-  if (isError) {
+  if (isError && !displayedData) {
     return (
       <View style={[styles.loadingContainer, { paddingTop: insets.top + Spacing.lg, paddingHorizontal: Spacing.lg, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.background }]}>
         <DDIcon name="alert-triangle" size={48} variant="muted" />
@@ -720,38 +672,170 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <FlatList
-        key={`flatlist-${numColumns}`}
-        data={visitors}
-        renderItem={({ item }) => (
-          <View style={numColumns === 3 ? styles.gridItem3 : numColumns === 2 ? styles.gridItem2 : styles.singleColumnItem}>
-            {renderVisitorCard({ item })}
-          </View>
-        )}
-        keyExtractor={(item) => item.id}
-        numColumns={numColumns}
-        columnWrapperStyle={numColumns > 1 ? styles.gridRow : undefined}
-        contentContainerStyle={{
-          paddingHorizontal: Spacing.lg,
-          paddingTop: insets.top + Spacing.lg,
-          paddingBottom: insets.bottom + Spacing.xl,
-        }}
-        ListHeaderComponent={ListHeader}
-        ListFooterComponent={renderFooter}
-        ListEmptyComponent={renderEmpty}
-        onEndReached={handleEndReached}
-        onEndReachedThreshold={0.3}
-        showsVerticalScrollIndicator={false}
-      />
+      {viewMode === 'list' ? <FlatList
+          key="flatlist-table"
+          data={[]}
+          extraData={expirationTick}
+          renderItem={() => null}
+          keyExtractor={() => '_'}
+          contentContainerStyle={{
+            paddingHorizontal: Spacing.lg,
+            paddingTop: insets.top + Spacing.lg,
+            paddingBottom: insets.bottom + Spacing.xl,
+          }}
+          ListHeaderComponent={
+            <View>
+              {ListHeader}
+              {retainedQuery.isRetained ? (
+                <DirectionalRow style={[styles.inlineFeedback, { backgroundColor: applyOpacity(theme.primary, '10') }]}>
+                  <DDIcon name="info" size={16} color={theme.primary} />
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, flex: 1 }]}>
+                  {t('requests.showingPreviousDataFrom').replace('{{source}}', displayedQuerySourceLabel)}
+                  </ThemedText>
+                  {isError ? (
+                    <Pressable onPress={() => refetch()} hitSlop={8}>
+                      <ThemedText style={[Typography.caption, { color: theme.primary, fontWeight: '600' }]}>
+                        {t('common.retry')}
+                      </ThemedText>
+                    </Pressable>
+                  ) : null}
+                </DirectionalRow>
+              ) : isError && !isFetchNextPageError ? (
+                <DirectionalRow style={[styles.inlineFeedback, { backgroundColor: applyOpacity(theme.error, '10') }]}>
+                  <DDIcon name="alert-circle" size={16} color={theme.error} />
+                  <ThemedText style={[Typography.caption, { color: theme.error, flex: 1 }]}>
+                    {t('common.loadError')}
+                  </ThemedText>
+                  <Pressable onPress={() => refetch()} hitSlop={8}>
+                    <ThemedText style={[Typography.caption, { color: theme.primary, fontWeight: '600' }]}>
+                      {t('common.retry')}
+                    </ThemedText>
+                  </Pressable>
+                </DirectionalRow>
+              ) : isFetching && !isFetchingNextPage ? (
+                <ActivityIndicator size="small" color={theme.primary} />
+              ) : null}
+              <Spacer height={Spacing.md} />
+              {groupedVisitors.map((group, index) => (
+                <View key={group.date}>
+                  {renderDateGroupHeader(group.date, group.visits.length)}
+                  <Spacer height={Spacing.md} />
+                  <VisitorMatrixTable
+                    variant="matrix"
+                    visitors={group.visits.map(toMatrixItem)}
+                    showExpiredState={true}
+                    onPressRow={(id) => {
+                      const visitor = group.visits.find((item) => item.id === id);
+                      if (visitor) handleVisitorPress(visitor);
+                    }}
+                    emptyMessage={t('common.noResults')}
+                  />
+                  {index < groupedVisitors.length - 1 ? (
+                    <Spacer height={Spacing.xl} />
+                  ) : null}
+                </View>
+              ))}
+            </View>
+          }
+          ListFooterComponent={renderFooter}
+          ListEmptyComponent={groupedVisitors.length === 0 ? renderEmpty : null}
+          onEndReached={handleEndReached}
+          onEndReachedThreshold={0.3}
+          showsVerticalScrollIndicator={false}
+          refreshControl={<RefreshControl refreshing={isFetching && !isFetchingNextPage} onRefresh={refetch} tintColor={theme.primary} />}
+        /> : <FlatList
+          key={`flatlist-${numColumns}`}
+          data={groupedVisitors}
+          extraData={expirationTick}
+          renderItem={({ item: group }) => (
+            <View style={styles.dateGroupSection}>
+              {renderDateGroupHeader(group.date, group.visits.length)}
+              <Spacer height={Spacing.md} />
+              <View style={styles.groupedVisitorGrid}>
+                {group.visits.map((visitor) => (
+                  <View
+                    key={visitor.id}
+                    style={numColumns === 3 ? styles.gridItem3 : numColumns === 2 ? styles.gridItem2 : styles.singleColumnItem}
+                  >
+                    {renderVisitorCard({ item: visitor })}
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+          keyExtractor={(group) => group.date}
+          contentContainerStyle={{
+            paddingHorizontal: Spacing.lg,
+            paddingTop: insets.top + Spacing.lg,
+            paddingBottom: insets.bottom + Spacing.xl,
+          }}
+          ListHeaderComponent={
+            <View>
+              {ListHeader}
+              {retainedQuery.isRetained ? (
+                <DirectionalRow style={[styles.inlineFeedback, { backgroundColor: applyOpacity(theme.primary, '10') }]}>
+                  <DDIcon name="info" size={16} color={theme.primary} />
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, flex: 1 }]}>
+                    {t('requests.showingPreviousDataFrom').replace('{{source}}', displayedQuerySourceLabel)}
+                  </ThemedText>
+                  {isError ? (
+                    <Pressable onPress={() => refetch()} hitSlop={8}>
+                      <ThemedText style={[Typography.caption, { color: theme.primary, fontWeight: '600' }]}>
+                        {t('common.retry')}
+                      </ThemedText>
+                    </Pressable>
+                  ) : null}
+                </DirectionalRow>
+              ) : isError && !isFetchNextPageError ? (
+                <DirectionalRow style={[styles.inlineFeedback, { backgroundColor: applyOpacity(theme.error, '10') }]}>
+                  <DDIcon name="alert-circle" size={16} color={theme.error} />
+                  <ThemedText style={[Typography.caption, { color: theme.error, flex: 1 }]}>
+                    {t('common.loadError')}
+                  </ThemedText>
+                  <Pressable onPress={() => refetch()} hitSlop={8}>
+                    <ThemedText style={[Typography.caption, { color: theme.primary, fontWeight: '600' }]}>
+                      {t('common.retry')}
+                    </ThemedText>
+                  </Pressable>
+                </DirectionalRow>
+              ) : isFetching && !isFetchingNextPage ? (
+                <ActivityIndicator size="small" color={theme.primary} />
+              ) : null}
+            </View>
+          }
+          ListFooterComponent={renderFooter}
+          ListEmptyComponent={renderEmpty}
+          onEndReached={handleEndReached}
+          onEndReachedThreshold={0.3}
+          showsVerticalScrollIndicator={false}
+          refreshControl={<RefreshControl refreshing={isFetching && !isFetchingNextPage} onRefresh={refetch} tintColor={theme.primary} />}
+        />}
 
       {renderPickerModal(
-        showDatePicker,
-        () => setShowDatePicker(false),
+        showQuickDatePicker,
+        () => setShowQuickDatePicker(false),
         DATE_FILTER_OPTIONS,
         dateFilter,
         (key) => setDateFilter(key as DateFilter),
         t('time.selectDate')
       )}
+      <CalendarDatePicker
+        visible={showCustomDatePicker}
+        onClose={() => setShowCustomDatePicker(false)}
+        mode="range"
+        dateRange={customDateRange}
+        allowPastDates
+        onDateSelect={(date) => {
+          setCustomDateRange({ startDate: date, endDate: date });
+          setDateFilter('custom');
+          setShowCustomDatePicker(false);
+        }}
+        onRangeSelect={(range) => {
+          setCustomDateRange(range);
+          setDateFilter('custom');
+          setShowCustomDatePicker(false);
+        }}
+      />
 
     </View>
   );
@@ -760,10 +844,6 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  gridRow: {
-    gap: Spacing.md,
-    marginBottom: Spacing.md,
   },
   gridItem3: {
     flexBasis: '32%',
@@ -782,6 +862,36 @@ const styles = StyleSheet.create({
   singleColumnItem: {
     width: '100%',
     marginBottom: Spacing.sm,
+  },
+  dateGroupSection: {
+    marginBottom: Spacing.xl,
+  },
+  groupedVisitorGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.md,
+  },
+  dateGroupHeader: {
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: BorderRadius.md,
+    minHeight: 42,
+    overflow: 'hidden',
+    paddingEnd: Spacing.md,
+  },
+  dateGroupAccent: {
+    alignSelf: 'stretch',
+    width: 4,
+    marginEnd: Spacing.sm,
+  },
+  dateGroupLabel: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  dateGroupCount: {
+    fontSize: 13,
+    fontWeight: '600',
   },
   filtersRow: {
     flexWrap: 'wrap',
@@ -900,15 +1010,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  statusBadge: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 5,
-    borderRadius: BorderRadius.sm,
-  },
-  statusText: {
-    fontSize: 11,
-    fontWeight: '600',
-  },
   expandedSection: {
     marginTop: Spacing.sm,
     gap: Spacing.sm,
@@ -952,6 +1053,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: Spacing.lg,
+  },
+  inlineFeedback: {
+    alignItems: 'center',
+    gap: Spacing.sm,
+    padding: Spacing.sm,
+    borderRadius: BorderRadius.sm,
   },
   modalOverlay: {
     flex: 1,
@@ -1008,5 +1115,24 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 22,
     fontWeight: '500',
+  },
+  viewToggle: {
+    flexShrink: 0,
+  },
+  viewToggleBtn: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+  },
+  viewToggleBtnLeft: {
+    borderTopStartRadius: BorderRadius.sm,
+    borderBottomStartRadius: BorderRadius.sm,
+    borderEndWidth: 0,
+  },
+  viewToggleBtnRight: {
+    borderTopEndRadius: BorderRadius.sm,
+    borderBottomEndRadius: BorderRadius.sm,
   },
 });

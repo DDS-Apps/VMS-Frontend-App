@@ -14,6 +14,7 @@ import { applyOpacity } from "@/utils/statusStyles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useBuffetAdminStaffQuery, useUpdateStaffDutyMutation } from "@/hooks/queries/useBuffetQueries";
 import type { BuffetAdminStaffDto } from "@/types/api.types";
+import { getInitials } from "@/utils/formatters";
 
 import { KPICard, KPICardRow } from '@/components/shared/KPICard';
 
@@ -92,7 +93,7 @@ export default function BuffetAdminStaffScreen() {
 
   const renderStaffCard = (item: BuffetAdminStaffDto) => {
     const isOnDuty = item.dutyStatus === 'on_duty';
-    const initials = item.name.split(' ').map(n => n[0]).join('').slice(0, 2);
+    const initials = getInitials(item.name);
     const roleColor = getRoleColor(item.role);
     
     return (
@@ -108,7 +109,12 @@ export default function BuffetAdminStaffScreen() {
       >
         <DirectionalRow style={styles.cardHeader}>
           <View style={[styles.avatar, { backgroundColor: applyOpacity(roleColor, '12') }]}>
-            <ThemedText style={[styles.avatarText, { color: roleColor }]}>
+            <ThemedText
+              style={[styles.avatarText, { color: roleColor }]}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.5}
+            >
               {initials}
             </ThemedText>
           </View>
@@ -182,7 +188,7 @@ export default function BuffetAdminStaffScreen() {
     );
   };
 
-  if (isLoading || isFetching) {
+  if (isLoading && !staffResponse) {
     return (
       <View style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
         <ActivityIndicator size="large" color={theme.primary} />

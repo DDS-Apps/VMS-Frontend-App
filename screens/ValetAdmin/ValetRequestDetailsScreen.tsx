@@ -13,6 +13,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useFormatters } from "@/hooks/useFormatters";
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { applyOpacity, getStatusConfig } from "@/utils/statusStyles";
+import { RequestStatusBadge } from "@/components/shared/RequestStatusBadge";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 import {
@@ -25,6 +26,8 @@ import {
 } from "@/services/state/valetAdminState";
 import type { ValetRequestDetailsScreenProps } from "@/types/valetAdminNavigation.types";
 import type { Theme } from "@/types/theme.types";
+import { resolveParkingDisplayDecision } from "@/utils/parkingDecision";
+import { getInitials } from "@/utils/formatters";
 
 
 export default function ValetRequestDetailsScreen({ route, navigation }: ValetRequestDetailsScreenProps) {
@@ -77,7 +80,7 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
   );
 
   const statusConfig = getStatusConfig(theme, request.status, t);
-  const initials = request.visitorName.split(' ').map(n => n[0]).join('');
+  const initials = getInitials(request.visitorName);
 
   const handleStatusUpdate = (newStatus: ValetRequest['status']) => {
     const updated = updateValetRequestStatus(request.id, newStatus);
@@ -129,7 +132,12 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
         <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
           <View style={{ alignItems: 'center' }}>
             <View style={[styles.avatarNew, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
-              <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
+              <ThemedText
+                style={[styles.avatarText, { color: theme.primary }]}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.5}
+              >
                 {initials}
               </ThemedText>
             </View>
@@ -145,21 +153,7 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
 
             <Spacer height={Spacing.sm} />
 
-            <View
-              style={{
-                alignSelf: 'center',
-                backgroundColor: statusConfig.bg,
-                borderColor: statusConfig.border,
-                borderWidth: StyleSheet.hairlineWidth,
-                paddingHorizontal: Spacing.md,
-                paddingVertical: 6,
-                borderRadius: BorderRadius.full,
-              }}
-            >
-              <ThemedText style={[Typography.caption, { color: statusConfig.text, fontWeight: '600', fontSize: 12 }]}>
-                {statusConfig.label}
-              </ThemedText>
-            </View>
+            <RequestStatusBadge status={request.status} />
           </View>
         </ThemedView>
 
@@ -210,47 +204,6 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
           />
         </ThemedView>
 
-        {request.vehicleInfo ? (
-          <>
-            <Spacer height={Spacing.lg} />
-
-            <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
-              <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text }]}>
-                {t('valet.vehicleInfo')}
-              </ThemedText>
-              <Spacer height={Spacing.xl} />
-
-              <ServiceRow 
-                iconName="truck" 
-                iconColor={theme.info} 
-                iconBg={applyOpacity(theme.info, '15')} 
-                label={t('valet.vehicle')} 
-                value={`${request.vehicleInfo.make} ${request.vehicleInfo.model}`} 
-              />
-
-              <Spacer height={Spacing.lg} />
-
-              <ServiceRow 
-                iconName="droplet" 
-                iconColor={theme.info} 
-                iconBg={applyOpacity(theme.info, '15')} 
-                label={t('valet.color')} 
-                value={request.vehicleInfo.color} 
-              />
-
-              <Spacer height={Spacing.lg} />
-
-              <ServiceRow 
-                iconName="tag" 
-                iconColor={theme.info} 
-                iconBg={applyOpacity(theme.info, '15')} 
-                label={t('valet.plateNumber')} 
-                value={request.vehicleInfo.plateNumber} 
-              />
-            </ThemedView>
-          </>
-        ) : null}
-
         <Spacer height={Spacing.lg} />
 
         <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
@@ -259,28 +212,7 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
           </ThemedText>
           <Spacer height={Spacing.xl} />
 
-          {request.assignedDriver ? (
-            <>
-              <ServiceRow 
-                iconName="user" 
-                iconColor={theme.success} 
-                iconBg={applyOpacity(theme.success, '15')} 
-                label={t('valet.driver')} 
-                value={request.assignedDriver.name} 
-                valueColor={theme.success}
-              />
-
-              <Spacer height={Spacing.lg} />
-
-              <ServiceRow 
-                iconName="phone" 
-                iconColor={theme.text} 
-                iconBg={applyOpacity(theme.textSecondary, '15')} 
-                label={t('form.phone')} 
-                value={request.assignedDriver.phone || 'N/A'} 
-              />
-            </>
-          ) : (
+          {!request.assignedDriver ? (
             <View style={styles.noDriverContainer}>
               <DDIcon name="user-x" size={24} variant="muted" />
               <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: Spacing.sm }]}>
@@ -298,21 +230,16 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
                 </Pressable>
               ) : null}
             </View>
-          )}
-
-          {request.parkingSlot ? (
-            <>
-              <Spacer height={Spacing.lg} />
-              <ServiceRow 
-                iconName="map-pin" 
-                iconColor={theme.info} 
-                iconBg={applyOpacity(theme.info, '15')} 
-                label={t('parking.parkingSlot')} 
-                value={request.parkingSlot} 
-                valueColor={theme.info}
-              />
-            </>
           ) : null}
+          <Spacer height={Spacing.lg} />
+          <ServiceRow
+            iconName="map-pin"
+            iconColor={theme.info}
+            iconBg={applyOpacity(theme.info, '15')}
+            label={t('parking.todaysParkingStatus')}
+            value={resolveParkingDisplayDecision({ hasParkingAllocation: Boolean(request.parkingSlot || request.vehicleInfo) }) === 'required' ? t('parking.needsParking') : t('parking.noParking')}
+            valueColor={theme.info}
+          />
         </ThemedView>
 
         {request.notes ? (
@@ -442,16 +369,18 @@ export default function ValetRequestDetailsScreen({ route, navigation }: ValetRe
                   >
                     <DirectionalRow style={{ flex: 1, alignItems: 'center' }}>
                       <View style={[styles.driverAvatar, { backgroundColor: applyOpacity(theme.success, '15') }]}>
-                        <ThemedText style={[styles.driverInitials, { color: theme.success }]}>
-                          {driver.name.split(' ').map(n => n[0]).join('')}
+                        <ThemedText
+                          style={[styles.driverInitials, { color: theme.success }]}
+                          numberOfLines={1}
+                          adjustsFontSizeToFit
+                          minimumFontScale={0.5}
+                        >
+                          {getInitials(driver.name)}
                         </ThemedText>
                       </View>
                       <View style={styles.driverInfo}>
                         <ThemedText style={[Typography.body, { fontWeight: '600' }]}>
                           {driver.name}
-                        </ThemedText>
-                        <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
-                          {driver.phone} - {driver.shift}
                         </ThemedText>
                       </View>
                       <DDIcon name="chevron-right" size={20} variant="muted" directionAware />

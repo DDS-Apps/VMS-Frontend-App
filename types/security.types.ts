@@ -29,6 +29,10 @@ export interface SecurityVisitorDto {
   purpose: string;
   scheduledDate: string;
   scheduledTime: string;
+  /** ISO 8601 UTC timestamp of the canonical visit start. Preferred for upcoming-alert calculations. */
+  visitStartAt?: string;
+  /** IANA timezone for the visit. Use for display formatting; never use device timezone for business logic. */
+  timezone?: string;
   endTime?: string;
   duration?: string;
   status: VisitStatus;
@@ -48,9 +52,18 @@ export interface SecurityVisitorDto {
   valetAssigned?: boolean;
   valetDriverName?: string;
   valetStatus?: string;
+  isWalkIn?: boolean;
   qrCode?: string;
   checkInTime?: string;
   checkOutTime?: string;
+  checkedInAt?: string;
+  checkedOutAt?: string;
+  completedAt?: string;
+  timeline?: {
+    checkedInAt?: string;
+    checkedOutAt?: string;
+    completedAt?: string;
+  };
   gateUsed?: string;
   notes?: string;
 }
@@ -61,6 +74,8 @@ export interface SecuritySummary {
   checkedOut: number;
   currentlyOnSite: number;
   blockedEntries: number;
+  /** Today's walk-in visitors (not pre-registered). Derived from isWalkIn flag on visit records. */
+  walkIns: number;
 }
 
 export interface SecurityAlert {

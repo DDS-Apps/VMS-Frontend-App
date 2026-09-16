@@ -1,0 +1,92 @@
+ne important note first: in the local checkout I can see, Swagger still looks like the old contract: rooms/availability returns only { available }, and CreateVisitDto does not show meetingRoomId. If your running branch is implemented correctly, Swagger should show both:
+GET /api/v1/visits/rooms/availability response has rooms: [...]
+POST /api/v1/visits body accepts meetingRoomId
+If not, rebuild/restart or check that the backend changes are actually in this branch.
+Run Order
+Authorize in Swagger
+Use an employee or manager token, because POST /visits allows those roles.
+POST /api/v1/auth/login
+Then click Authorize in Swagger and paste the bearer token.
+Fetch available rooms
+GET /api/v1/visits/rooms/availability?date=2026-07-15&startTime=09:00&endTime=10:00&minCapacity=1
+Expected:
+{
+  "available": true,
+  "totalRooms": 3,
+  "availableRooms": 2,
+  "rooms": [
+    {
+      "id": "local-room-uuid",
+      "roomEmail": "room@domain.com",
+      "name": "Baylisaan",
+      "floor": "2nd Floor",
+      "building": "Main Building",
+      "capacity": 10,
+      "features": [],
+      "status": "active"
+    }
+  ]
+}
+Copy one rooms[0].id. That is the meetingRoomId for the create call.
+Create a visit with selected room
+POST /api/v1/visits
+Body:
+{
+  "visitor": {
+    "fullName": "Swagger Room Test",
+    "email": "swagger-room-test-001@example.com",
+    "phone": "+966501234567",
+    "company": "Test Company"
+  },
+  "visitDate": "2026-07-15",
+  "visitTime": "09:00",
+  "endTime": "10:00",
+  "duration": "1 hour",
+  "purpose": "Meeting room selection verification",
+  "communicationChannels": ["email", "qr_code"],
+  "needsMeetingRoom": true,
+  "meetingRoomId": "PASTE_ROOM_ID_FROM_STEP_2"
+}
+Expected:
+201
+response includes meetingRoom
+meetingRoom.id equals the selected meetingRoomId
+request is created successfully
+save the returned visit id
+Get visit details
+GET /api/v1/visits/{visitId}
+Expected:
+meetingRoom.id is the selected room
+meetingBooking.roomId is the selected room
+meetingBooking.status is scheduled
+Check same slot availability again
+GET /api/v1/visits/rooms/availability?date=2026-07-15&startTime=09:00&endTime=10:00&minCapacity=1
+Expected:
+the selected room should no longer appear in rooms
+or availableRooms should be reduced
+Conflict test
+Create another visit for the same date/time with the same meetingRoomId.
+Expected:
+409 or 422
+clear message like: selected room is no longer available
+it must not silently book a different room when meetingRoomId was explicitly provided
+Backward compatibility test
+Create a visit with:
+"needsMeetingRoom": true
+but omit meetingRoomId.
+Expected:
+old auto-allocation still works
+response includes some allocated meetingRoom
+No meeting room test
+Create a visit with:
+"needsMeetingRoom": false
+and no meetingRoomId.
+Expected:
+visit creates normally
+no meetingRoom is assigned
+Cleanup test bookings
+For every test visit created:
+DELETE /api/v1/visits/{visitId}
+Expected:
+visit is cancelled
+associated room booking / Outlook event is released.

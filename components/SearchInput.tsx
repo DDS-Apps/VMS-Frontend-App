@@ -13,6 +13,7 @@ const ICON_SIZE = 18;
 
 interface SearchInputProps extends Omit<TextInputProps, 'style'> {
   onClear?: () => void;
+  onSubmitSearch?: () => void;
   containerStyle?: StyleProp<ViewStyle>;
   showClearButton?: boolean;
 }
@@ -21,6 +22,7 @@ export function SearchInput({
   value,
   onChangeText,
   onClear,
+  onSubmitSearch,
   placeholder,
   containerStyle,
   showClearButton = true,
@@ -52,12 +54,25 @@ export function SearchInput({
     ? Math.round(INPUT_FONT_SIZE * ArabicFontScaling.body * 10) / 10 
     : INPUT_FONT_SIZE;
 
-  const searchIcon = <DDIcon name="search" size={ICON_SIZE} variant="muted" />;
+  const searchButton = (
+    <Pressable
+      onPress={onSubmitSearch}
+      hitSlop={8}
+      disabled={!onSubmitSearch}
+      style={{ opacity: onSubmitSearch ? 1 : 0.5 }}
+    >
+      <DDIcon
+        name="search"
+        size={ICON_SIZE}
+        color={onSubmitSearch ? theme.primary : theme.textSecondary}
+      />
+    </Pressable>
+  );
   const inputEl = (
     <TextInput
       style={[
         styles.input,
-        { 
+        {
           color: theme.text,
           fontFamily: getInputFontFamily(value, isRTL),
           textAlign: isRTL ? 'right' : 'left',
@@ -96,9 +111,9 @@ export function SearchInput({
       ]}
       alignItems="center"
     >
-      {searchIcon}
       {inputEl}
       {clearButton}
+      {searchButton}
     </DirectionalRow>
   );
 }
@@ -114,7 +129,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: INPUT_FONT_SIZE,
-    fontFamily: 'AlbertSans_400Regular',
+    fontFamily: FontFamily.latinRegular,
     height: INPUT_HEIGHT,
     paddingVertical: 0,
   },

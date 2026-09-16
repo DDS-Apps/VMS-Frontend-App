@@ -11,6 +11,48 @@ export enum UserRole {
   VISITOR = 'visitor',
 }
 
+export type DashboardKpiRole =
+  | 'employee'
+  | 'manager'
+  | 'building_admin'
+  | 'buffet_admin'
+  | 'buffet_staff'
+  | 'valet_admin'
+  | 'valet_driver'
+  | 'security'
+  | 'receptionist';
+
+export type DashboardKpiDuration = 'today' | 'monthly';
+
+export interface DashboardKpi {
+  key: string;
+  label: string;
+  value: number;
+  duration: DashboardKpiDuration;
+}
+
+export interface DashboardPeriod {
+  start: string;
+  end: string;
+}
+
+export interface DashboardKpiData {
+  role: DashboardKpiRole;
+  generatedAt: string;
+  timezone: 'Asia/Riyadh';
+  periods: {
+    today?: DashboardPeriod;
+    month?: DashboardPeriod;
+  };
+  kpis: DashboardKpi[];
+}
+
+export interface DashboardKpiResponse {
+  success: true;
+  message: string;
+  data: DashboardKpiData;
+}
+
 export enum UserStatus {
   ACTIVE = 'active',
   INACTIVE = 'inactive',
@@ -376,6 +418,8 @@ export interface ValetTaskDto {
   visitorCompany?: string;
   hostName?: string;
   visitDate: string;
+  /** ISO 8601 UTC timestamp of the canonical visit start. Preferred for upcoming-alert calculations. */
+  visitStartAt?: string;
   employeeId?: string;
   employeeName?: string;
   vehicleInfo?: ValetTaskVehicleInfo;
@@ -469,6 +513,8 @@ export interface DriverTaskDto {
   hostName: string;
   hostPhone?: string;
   visitDate: string;
+  /** ISO 8601 UTC timestamp of the canonical visit start. Preferred for upcoming-alert calculations. */
+  visitStartAt?: string;
   pickupTime: string;
   returnTime?: string;
   location: string;
@@ -642,6 +688,8 @@ export interface UpdateInvitationDto {
 
 export type VisitorParkingOption = 'no_parking' | 'parking_with_car_info' | 'parking_without_car_info';
 
+export type ParkingDecision = 'required' | 'not_required' | 'visitor_decides';
+
 export interface RespondToInvitationDto {
   response: 'accept' | 'reject';
   reason?: string;
@@ -809,8 +857,11 @@ export interface BuffetStaffTaskDto {
   visitorName: string;
   company?: string;
   hostName: string;
+  hostDepartment?: string;
   visitDate: string;
   visitTime: string;
+  /** ISO 8601 UTC timestamp of the canonical visit start. Preferred for upcoming-alert calculations. */
+  visitStartAt?: string;
   mealType: BuffetMealType;
   guestCount: number;
   dietaryRequirements?: string[];
@@ -847,11 +898,15 @@ export type BuffetAdminTaskStatus = 'expected' | 'pending' | 'preparing' | 'read
 export interface BuffetAdminTaskDto {
   id: string;
   requestId: string;
-  visitorName: string;
+  /** Omitted by the server when the requesting role is buffet_admin; present for admin/building_admin oversight views. */
+  visitorName?: string;
   company?: string;
   hostName: string;
+  hostDepartment?: string;
   visitDate: string;
   visitTime: string;
+  /** ISO 8601 UTC timestamp of the canonical visit start. Preferred for upcoming-alert calculations. */
+  visitStartAt?: string;
   mealType: 'breakfast' | 'lunch' | 'dinner' | 'snacks';
   guestCount: number;
   dietaryRequirements?: string[];
@@ -1137,6 +1192,12 @@ export interface PendingApprovalDto {
   visitor: PendingApprovalVisitorDto;
   visitDate: string;
   visitTime: string;
+  /** ISO 8601 UTC timestamp of the canonical visit start. */
+  visitStartAt?: string;
+  /** IANA timezone for the visit (e.g. "Asia/Riyadh"). */
+  timezone?: string;
+  /** Scheduled end / departure time string. */
+  endTime?: string;
   duration: string;
   purpose: string;
   isWalkIn: boolean;
@@ -1149,6 +1210,10 @@ export interface PendingApprovalDto {
   isVisitorNeedsParking?: boolean;
   visitorNeedsParking?: boolean;
   createdAt: string;
+  /** Actual check-in timestamp (ISO string). Present once the visitor has checked in. */
+  checkedInAt?: string;
+  /** Actual check-out timestamp (ISO string). Present once the visitor has checked out. */
+  checkedOutAt?: string;
 }
 
 export interface PendingApprovalListParams {
@@ -1328,6 +1393,17 @@ export interface VisitListItemDto {
   };
   visitDate: string;
   visitTime: string;
+  /** ISO 8601 UTC timestamp of the canonical visit start. Preferred for upcoming-alert calculations. */
+  visitStartAt?: string;
+  /** IANA timezone for the visit (e.g. "Asia/Riyadh"). Use for display formatting; never use device timezone for business logic. */
+  timezone?: string;
+  endTime?: string | null;
+  /** Planned visit duration, usually an ISO 8601 duration such as PT1H30M. */
+  duration?: string;
+  /** Actual check-in timestamp (ISO string). Present once the visitor has checked in. */
+  checkedInAt?: string;
+  /** Actual check-out timestamp (ISO string). Present once the visitor has checked out. */
+  checkedOutAt?: string;
   status: string;
   purpose: string;
   isWalkIn: boolean;
@@ -1359,7 +1435,7 @@ export interface VisitListResponse {
 
 export interface CreateVisitVisitorPayload {
   fullName: string;
-  email: string;
+  email?: string;
   phone: string;
   company?: string;
 }
@@ -1382,6 +1458,7 @@ export interface CreateVisitPayload {
   meetingRoomId?: string;
   needsBuffet?: boolean;
   buffetPreferences?: BuffetPreferencesPayload;
+  parkingDecision?: ParkingDecision;
 }
 
 export interface CreateVisitResponseApproval {
@@ -1517,6 +1594,8 @@ export interface VisitDetailsDto {
   };
   visitDate: string;
   visitTime: string;
+  /** ISO 8601 UTC timestamp of the canonical visit start. Preferred for upcoming-alert calculations. */
+  visitStartAt?: string;
   duration?: string;
   endTime?: string;
   purpose: string;
@@ -1533,7 +1612,13 @@ export interface VisitDetailsDto {
   reminders?: VisitDetailsReminders;
   qrCode?: string;
   isWalkIn?: boolean;
+  /** True once the Outlook calendar event has been created/synced by the backend. */
+  calendarSynced?: boolean;
+  /** Outlook event ID — may be omitted from the response. */
+  calendarEventId?: string;
   notes?: string;
+  /** Server-computed: true only when the current viewer is authorised to approve/reject this request. Use this instead of checking user role. */
+  canApprove?: boolean;
   visitorDecision?: {
     accepted: boolean;
     reason?: string;
@@ -1543,6 +1628,8 @@ export interface VisitDetailsDto {
   isMeetingRoom?: boolean;
   isVisitorNeedsParking?: boolean;
   visitorNeedsParking?: boolean;
+  /** Who owns the parking decision for this visit. */
+  parkingDecision?: 'required' | 'not_required' | 'visitor_decides';
   licensePlate?: string | null;
   carModel?: string | null;
   carColor?: string | null;
@@ -1552,6 +1639,14 @@ export interface VisitDetailsDto {
   checkedInAt?: string;
   checkedOutAt?: string;
   completedAt?: string;
+  timeline?: {
+    requestedAt?: string;
+    approvedAt?: string;
+    visitorAcceptedAt?: string;
+    checkedInAt?: string;
+    checkedOutAt?: string;
+    completedAt?: string;
+  };
 }
 
 export interface UpdateVisitPayload {
@@ -1624,8 +1719,22 @@ export interface RoomAvailabilityParams {
   minCapacity?: number;
 }
 
+export interface RoomAvailabilityRoomDto {
+  id: string;
+  roomEmail?: string;
+  name: string;
+  floor?: string;
+  building?: string;
+  capacity: number;
+  features?: string[];
+  status: string;
+}
+
 export interface RoomAvailabilityResponse {
   available: boolean;
+  totalRooms?: number;
+  availableRooms?: number;
+  rooms?: RoomAvailabilityRoomDto[];
 }
 
 export interface PublicInviteHostDto {
@@ -1711,6 +1820,7 @@ export interface PublicInviteDto {
   isMeetingRoom?: boolean;
   isVisitorNeedsParking?: boolean;
   visitorNeedsParking?: boolean;
+  parkingDecision?: 'required' | 'visitor_decides' | 'not_required' | string;
   licensePlate?: string | null;
   carModel?: string | null;
   carColor?: string | null;
@@ -1719,9 +1829,6 @@ export interface PublicInviteDto {
 export interface AcceptInviteDto {
   visitorNotes?: string;
   needsParking?: boolean;
-  licensePlate?: string;
-  carModel?: string;
-  carColor?: string;
 }
 
 export interface RejectInviteDto {
@@ -1761,11 +1868,16 @@ export interface ValetParkingVisitorDto {
   hostDepartment?: string;
   visitDate: string;
   visitTime: string;
+  /** ISO 8601 UTC timestamp of the canonical visit start. Preferred for upcoming-alert calculations. */
+  visitStartAt?: string;
   status: string;
   isBuffet?: boolean;
   isMeetingRoom?: boolean;
   isVisitorNeedsParking?: boolean;
   visitorNeedsParking: boolean;
+  parkingDecision?: ParkingDecision;
+  /** Canonical parking type from the system — 'none' | 'valet' | 'auto'. Preferred over the needsParking boolean. */
+  parkingType?: 'none' | 'valet' | 'auto';
   licensePlate?: string | null;
   carModel?: string | null;
   carColor?: string | null;
@@ -1786,6 +1898,8 @@ export interface ApprovalHistoryListParams {
   status?: ApprovalHistoryStatus;
   isWalkIn?: boolean;
   search?: string;
+  startDate?: string;
+  endDate?: string;
 }
 
 export interface ApprovalHistoryVisitorDto {
@@ -1804,6 +1918,12 @@ export interface ApprovalHistoryItemDto {
   visitor: ApprovalHistoryVisitorDto;
   visitDate: string;
   visitTime: string;
+  /** ISO 8601 UTC timestamp of the canonical visit start. */
+  visitStartAt?: string;
+  /** IANA timezone for the visit (e.g. "Asia/Riyadh"). */
+  timezone?: string;
+  /** Scheduled end / departure time string. */
+  endTime?: string;
   duration?: string;
   purpose: string;
   isWalkIn: boolean;
@@ -1815,6 +1935,10 @@ export interface ApprovalHistoryItemDto {
   rejectionReason?: string;
   managerComment?: string;
   createdAt: string;
+  /** Actual check-in timestamp (ISO string). Present once the visitor has checked in. */
+  checkedInAt?: string;
+  /** Actual check-out timestamp (ISO string). Present once the visitor has checked out. */
+  checkedOutAt?: string;
 }
 
 export interface ApprovalHistoryResponse {

@@ -4,6 +4,7 @@
  */
 
 import { getVisitorRequests, getRequestsByStatus, getPendingApprovals } from './visitorRequestState';
+import { getBusinessDateKey, getServerDateParts } from '@/utils/dateTimeUtils';
 import { 
   getBuffetRequests, 
   getBuffetStaff, 
@@ -22,7 +23,7 @@ import {
   deleteUser,
   User
 } from './userMockData';
-import { UserRole } from '@/types/vms.types';
+import { UserRole, RequestStatus } from '@/types/vms.types';
 
 export interface SystemStats {
   totalVisitors: number;
@@ -81,10 +82,8 @@ export interface RecentActivity {
   icon: string;
 }
 
-const getToday = () => {
-  const today = new Date();
-  return today.toISOString().split('T')[0];
-};
+const TZ = 'Asia/Riyadh';
+const getToday = () => getBusinessDateKey(new Date(), TZ);
 
 export const getSystemStats = (): SystemStats => {
   const visitorRequests = getVisitorRequests();
@@ -93,8 +92,15 @@ export const getSystemStats = (): SystemStats => {
   const users = getUsers();
   const today = getToday();
 
-  const todayVisitors = visitorRequests.filter(r => r.visitDate === today);
-  
+  const CONFIRMED_STATUSES: RequestStatus[] = ['approved', 'visitor_accepted', 'checked_in', 'completed'];
+  const now = new Date();
+  // Use Riyadh month boundary: first day of the current month in Asia/Riyadh.
+  const { year: ry, month: rm } = getServerDateParts(now, TZ);
+  const startOfCurrentMonth = `${ry}-${String(rm).padStart(2, '0')}-01`;
+  const monthConfirmedVisitors = visitorRequests.filter(r =>
+    CONFIRMED_STATUSES.includes(r.status) && r.visitDate >= startOfCurrentMonth
+  );
+
   const approvedRequests = visitorRequests.filter(r => r.status === 'approved').length;
   const pendingRequests = visitorRequests.filter(r => 
     r.status === 'pending_approval'
@@ -112,7 +118,7 @@ export const getSystemStats = (): SystemStats => {
   const activeUsers = users.filter(u => u.status === 'active').length;
 
   return {
-    totalVisitors: todayVisitors.length,
+    totalVisitors: monthConfirmedVisitors.length,
     activeRequests: approvedRequests + pendingRequests,
     approvedRequests,
     pendingRequests,
@@ -151,7 +157,7 @@ export const getAllRequests = (): RequestSummary[] => {
     requests.push({
       id: r.id,
       type: 'buffet',
-      visitorName: r.visitorName,
+      visitorName: r.hostName, // buffet tasks don't expose visitor names; use host as display label
       hostName: r.hostName,
       status: r.status,
       date: r.visitDate,
@@ -240,7 +246,7 @@ export const getRecentActivity = (): RecentActivity[] => {
       id: `activity_buffet_${r.id}`,
       type: 'buffet',
       action: r.status === 'completed' ? 'Buffet Completed' : r.status === 'preparing' ? 'Buffet Started' : 'New Buffet Request',
-      description: `${r.visitorName} at ${r.location}`,
+      description: `${r.hostName} at ${r.location}`,
       time: getRelativeTime(r.createdAt),
       icon: 'disc',
     });

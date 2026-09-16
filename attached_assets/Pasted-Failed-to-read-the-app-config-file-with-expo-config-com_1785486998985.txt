@@ -1,0 +1,55 @@
+Failed to read the app config file with `expo config` command:
+The `expo` package was not found.
+[dotenv@17.2.4] injecting env (0) from .env.staging -- tip: ⚙️  write to custom object with { processEnv: myObject }
+Unable to resolve a valid config plugin for expo-build-properties.
+• main export of expo-build-properties does not appear to be a config plugin: the following error was thrown when importing /Users/expo/workingdir/build/node_modules/expo-build-properties/app.plugin.js: Cannot find module 'expo/config-plugins'
+Require stack:
+- /Users/expo/workingdir/build/node_modules/expo-build-properties/build/android.js
+- /Users/expo/workingdir/build/node_modules/expo-build-properties/build/withBuildProperties.js
+- /Users/expo/workingdir/build/node_modules/expo-build-properties/app.plugin.js
+- /usr/local/eas-build-worker/node_modules/@expo/config-plugins/build/utils/plugin-resolver.js
+- /usr/local/eas-build-worker/node_modules/@expo/config-plugins/build/plugins/withStaticPlugin.js
+- /usr/local/eas-build-worker/node_modules/@expo/config-plugins/build/plugins/withPlugins.js
+- /usr/local/eas-build-worker/node_modules/@expo/config-plugins/build/index.js
+- /usr/local/eas-build-worker/packages/build-tools/dist/utils/resolveRuntimeVersionAsync.js
+- /usr/local/eas-build-worker/packages/build-tools/dist/utils/expoUpdates.js
+- /usr/local/eas-build-worker/packages/build-tools/dist/steps/functions/calculateEASUpdateRuntimeVersion.js
+- /usr/local/eas-build-worker/packages/build-tools/dist/steps/functionGroups/build.js
+- /usr/local/eas-build-worker/packages/build-tools/dist/steps/easFunctionGroups.js
+- /usr/local/eas-build-worker/packages/build-tools/dist/builders/custom.js
+- /usr/local/eas-build-worker/packages/build-tools/dist/builders/android.js
+- /usr/local/eas-build-worker/packages/build-tools/dist/builders/index.js
+- /usr/local/eas-build-worker/packages/build-tools/dist/index.js
+- /usr/local/eas-build-worker/packages/worker/dist/config.js
+- /usr/local/eas-build-worker/packages/worker/dist/main.js MODULE_NOT_FOUND
+Verify that expo-build-properties includes a config plugin. If it does not, then remove the entry from plugins in your app config file. Learn more: https://docs.expo.dev/guides/config-plugins/
+
+Fail job
+
+1ms
+
+
+Build failed
+
+Unable to resolve a valid config plugin for expo-build-properties.
+• main export of expo-build-properties does not appear to be a config plugin: the following error was thrown when importing /Users/expo/workingdir/build/node_modules/expo-build-properties/app.plugin.js: Cannot find module 'expo/config-plugins'
+Require stack:
+- /Users/expo/workingdir/build/node_modules/expo-build-properties/build/android.js
+- /Users/expo/workingdir/build/node_modules/expo-build-properties/build/withBuildProperties.js
+- /Users/expo/workingdir/build/node_modules/expo-build-properties/app.plugin.js
+- /usr/local/eas-build-worker/node_modules/@expo/config-plugins/build/utils/plugin-resolver.js
+- /usr/local/eas-build-worker/node_modules/@expo/config-plugins/build/plugins/withStaticPlugin.js
+- /usr/local/eas-build-worker/node_modules/@expo/config-plugins/build/plugins/withPlugins.js
+- /usr/local/eas-build-worker/node_modules/@expo/config-plugins/build/index.js
+- /usr/local/eas-build-worker/packages/build-tools/dist/utils/resolveRuntimeVersionAsync.js
+- /usr/local/eas-build-worker/packages/build-tools/dist/utils/expoUpdates.js
+- /usr/local/eas-build-worker/packages/build-tools/dist/steps/functions/calculateEASUpdateRuntimeVersion.js
+- /usr/local/eas-build-worker/packages/build-tools/dist/steps/functionGroups/build.js
+- /usr/local/eas-build-worker/packages/build-tools/dist/steps/easFunctionGroups.js
+- /usr/local/eas-build-worker/packages/build-tools/dist/builders/custom.js
+- /usr/local/eas-build-worker/packages/build-tools/dist/builders/android.js
+- /usr/local/eas-build-worker/packages/build-tools/dist/builders/index.js
+- /usr/local/eas-build-worker/packages/build-tools/dist/index.js
+- /usr/local/eas-build-worker/packages/worker/dist/config.js
+- /usr/local/eas-build-worker/packages/worker/dist/main.js MODULE_NOT_FOUND
+Verify that expo-build-properties includes a config plugin. If it does not, then remove the entry from plugins in your app config file. Learn more: https://docs.expo.dev/guides/config-plugins/

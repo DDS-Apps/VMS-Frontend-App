@@ -66,7 +66,7 @@ const translations = {
 function normalizeNotificationType(type: string): NotificationType {
   // Convert to snake_case lowercase
   const normalized = type
-    .replace(/([A-Z])/g, '_$1') // camelCase to snake_case
+    .replace(/([a-z0-9])([A-Z])/g, '$1_$2') // camelCase to snake_case
     .replace(/[-\s]+/g, '_')    // hyphens/spaces to underscores
     .replace(/_+/g, '_')        // multiple underscores to single
     .replace(/^_/, '')          // remove leading underscore
@@ -75,10 +75,52 @@ function normalizeNotificationType(type: string): NotificationType {
   return normalized;
 }
 
+/**
+ * Removes vehicle details from valet request messages.
+ * Push notifications may still arrive with the legacy "{{vehicleInfo}}"
+ * placeholder or with the vehicle value already interpolated by the backend.
+ */
+export function removeValetVehicleInfo(type: string, message: string): string {
+  if (normalizeNotificationType(type) !== 'valet_new_request') {
+    return message;
+  }
+
+  const trimmedMessage = message.trim();
+  const withoutPlaceholder = trimmedMessage
+    .replace(/\s*[-–—]\s*\{\{\s*vehicleInfo\s*\}\}\s*$/i, '')
+    .trim();
+
+  if (withoutPlaceholder !== trimmedMessage) {
+    return withoutPlaceholder;
+  }
+
+  return trimmedMessage.replace(/\s+[-–—]\s+[^-–—]+$/, '').trim();
+}
+
+/**
+ * Replaces legacy parking allocation copy with the only two parking states
+ * that may be presented to users. This is also applied to backend fallbacks
+ * and incoming push toast bodies, which can predate the localized templates.
+ */
+export function sanitizeParkingNotificationMessage(
+  type: string,
+  message: string,
+  locale: SupportedLocale,
+): string {
+  switch (normalizeNotificationType(type)) {
+    case 'parking_assigned':
+      return translations[locale].parking.needsParking;
+    case 'parking_full':
+      return translations[locale].parking.noParking;
+    default:
+      return message;
+  }
+}
+
 function interpolate(template: string, params: NotificationParams): string {
-  return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
+  return template.replace(/\{\{(\w+)\}\}/g, (_match, key) => {
     const value = params[key as keyof NotificationParams];
-    return value !== undefined ? String(value) : match;
+    return value !== undefined && value !== null ? String(value) : '';
   });
 }
 
@@ -96,10 +138,18 @@ export function localizeNotification(
   const notificationType = normalizeNotificationType(type);
   const template = templates[notificationType];
 
+  if (notificationType === 'parking_assigned' || notificationType === 'parking_full') {
+    const parkingState = sanitizeParkingNotificationMessage(type, '', locale);
+    return {
+      title: parkingState,
+      message: parkingState,
+    };
+  }
+
   if (!template) {
     return {
       title: fallbackTitle || type,
-      message: fallbackMessage || '',
+      message: sanitizeParkingNotificationMessage(type, fallbackMessage || '', locale),
     };
   }
 
@@ -109,8 +159,8 @@ export function localizeNotification(
   // When params are empty/missing, use the template's static text.
   if (!params || Object.keys(params).length === 0) {
     return {
-      title: template.title,
-      message: template.message,
+      title: interpolate(template.title, {}),
+      message: interpolate(template.message, {}),
     };
   }
 

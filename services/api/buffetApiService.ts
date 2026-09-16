@@ -143,12 +143,12 @@ export const buffetApiService = {
   },
 
   // Buffet Admin endpoints
-  getBuffetAdminTasks: (params?: ListBuffetAdminTasksParams): Promise<{ data: BuffetAdminTaskDto[] }> => {
+  getBuffetAdminTasks: async (params?: ListBuffetAdminTasksParams): Promise<{ data: BuffetAdminTaskDto[] }> => {
     const queryString = params ? buildQueryString(params as unknown as Record<string, unknown>) : '';
     return get<{ data: BuffetAdminTaskDto[] }>(`${buffetAdmin.tasks}${queryString}`);
   },
 
-  getBuffetAdminTaskById: (id: string): Promise<BuffetAdminTaskDto> => {
+  getBuffetAdminTaskById: async (id: string): Promise<BuffetAdminTaskDto> => {
     return get<BuffetAdminTaskDto>(buffetAdmin.taskById(id));
   },
 

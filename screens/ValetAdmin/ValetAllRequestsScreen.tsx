@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from "react";
-import { View, StyleSheet, Pressable, ActivityIndicator, RefreshControl, useWindowDimensions } from "react-native";
+import React, { useState, useMemo, useCallback } from "react";
+import { View, StyleSheet, Pressable, ActivityIndicator, RefreshControl, LayoutChangeEvent } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
@@ -9,17 +9,30 @@ import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { DDIcon } from "@/components/DDIcon";
 import { applyOpacity, getStatusConfig } from "@/utils/statusStyles";
+import { VALET_GRID_PADDING_SIDE } from "@/utils/gridLayout";
 import { useValetParkingDashboard } from "@/hooks/queries/useValetAdminQueries";
+import { useRetainedDatedData } from "@/hooks/useRetainedDatedData";
 import type { ValetParkingVisitorDto } from "@/types/api.types";
 import type { Theme } from "@/types/theme.types";
 import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
+import { RequestStatusBadge } from '@/components/shared/RequestStatusBadge';
+import { DashboardKpiSection, VisitorMatrixTable, WalkInBadge } from '@/components/shared';
 import { KPICard, KPICardRow } from '@/components/shared/KPICard';
-import { StatusBadge } from '@/components/shared/StatusBadge';
-import { RTLHorizontalScrollView } from '@/components/shared';
+import { useRefreshDashboardKpis } from '@/hooks/queries/useDashboardKpiQuery';
+import { SkeletonCard } from '@/components/shared/Skeleton';
 import { useUpcomingIndicator } from "@/hooks/useUpcomingVisitTimer";
+import { getInitials } from "@/utils/formatters";
 import { UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES, isUpcomingIndicatorEligibleStatus } from "@/constants/requestConstants";
+import {
+  filterAndSortValetVisitors,
+  getValetVisitorParkingDecision,
+  mapValetVisitorToMatrixItem,
+  VALET_ADMIN_DEFAULT_VIEW_MODE,
+  type ValetAdminVisitorsViewMode,
+} from "@/utils/valetAdminVisitorsTable";
 
 const LAYOUT = {
   cardPadding: Spacing.sm,
@@ -31,12 +44,13 @@ const LAYOUT = {
   avatarSize: 40,
 };
 
-const ValetUpcomingAlertIcon = React.memo(({ visitDate, visitTime, status }: { visitDate: string; visitTime: string; status: string }) => {
+const ValetUpcomingAlertIcon = React.memo(({ visitDate, visitTime, status, visitStartAt }: { visitDate: string; visitTime: string; status: string; visitStartAt?: string }) => {
   const { theme } = useTheme();
   const eligible = isUpcomingIndicatorEligibleStatus(status);
   const isUpcoming = useUpcomingIndicator({
     visitDate,
     visitTime,
+    visitStartAt,
     eligible,
     thresholdMinutes: UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES,
   });
@@ -49,7 +63,7 @@ const ValetUpcomingAlertIcon = React.memo(({ visitDate, visitTime, status }: { v
 });
 
 const VisitorAvatar = ({ name, theme, size = 44 }: { name: string; theme: Theme; size?: number }) => {
-  const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  const initials = getInitials(name);
   return (
     <View style={[
       styles.avatar, 
@@ -60,70 +74,48 @@ const VisitorAvatar = ({ name, theme, size = 44 }: { name: string; theme: Theme;
         borderRadius: LAYOUT.cardRadius - 2,
       }
     ]}>
-      <ThemedText style={[styles.avatarText, { color: theme.primary, fontSize: size * 0.36 }]}>
+      <ThemedText
+        style={[styles.avatarText, { color: theme.primary, fontSize: size * 0.36 }]}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.5}
+      >
         {initials}
       </ThemedText>
     </View>
   );
 };
 
-const getVariantFromStatus = (status: string): 'success' | 'warning' | 'error' | 'info' | 'muted' | 'primary' => {
-  switch (status.toLowerCase()) {
-    case 'approved':
-    case 'visitor_accepted':
-    case 'checked_in':
-    case 'completed':
-    case 'in_progress':
-      return 'success';
-    case 'pending':
-    case 'pending_approval':
-    case 'pending_host_approval':
-    case 'waiting_on_visitor':
-      return 'warning';
-    case 'rejected':
-    case 'cancelled':
-    case 'no_show':
-    case 'auto_cancelled':
-    case 'visitor_rejected':
-      return 'error';
-    case 'checked_out':
-    case 'scheduled':
-      return 'info';
-    default:
-      return 'muted';
-  }
-};
-
-const StatsCards = ({ 
-  totalVisitors, 
-  withParking, 
-  withoutParking, 
-  theme, 
-  t 
-}: { 
+const StatsCards = ({
+  totalVisitors,
+  withParking,
+  withoutParking,
+  theme,
+  t,
+}: {
   totalVisitors: number;
   withParking: number;
   withoutParking: number;
-  theme: Theme; 
+  theme: Theme;
   t: (key: string) => string;
 }) => (
   <KPICardRow>
-    <KPICard 
-      title={t('dashboard.totalVisitors')} 
-      value={totalVisitors} 
-      icon="users" 
+    <KPICard
+      title={t('dashboard.totalVisitors')}
+      value={totalVisitors}
+      icon="users"
       color={theme.primary}
     />
-    <KPICard 
-      title={t('parking.withParking')} 
-      value={withParking} 
-      icon="truck" 
+    <KPICard
+      title={t('parking.needsParking')}
+      value={withParking}
+      icon="truck"
       color={theme.success}
     />
-    <KPICard 
-      title={t('parking.withoutParking')} 
-      value={withoutParking} 
-      icon="x-circle" 
+    <KPICard
+      title={t('parking.noParking')}
+      value={withoutParking}
+      icon="x-circle"
       color={theme.textSecondary}
     />
   </KPICardRow>
@@ -140,15 +132,8 @@ const VisitorCard = React.memo(({
   t: (key: string) => string;
   isRTL: boolean;
 }) => {
-  const hasCarInfo = !!(visitor.licensePlate || visitor.carModel);
-  const needsParking = visitor.isVisitorNeedsParking === true || visitor.visitorNeedsParking === true;
+  const parkingDecision = getValetVisitorParkingDecision(visitor);
   const statusConfig = getStatusConfig(theme, visitor.status || 'pending', t);
-
-  const carInfoParts = [
-    visitor.licensePlate,
-    visitor.carModel,
-    visitor.carColor,
-  ].filter(Boolean);
 
   return (
     <ThemedView style={[
@@ -189,12 +174,9 @@ const VisitorCard = React.memo(({
               visitDate={visitor.visitDate}
               visitTime={visitor.visitTime}
               status={visitor.status || 'pending'}
+              visitStartAt={visitor.visitStartAt}
             />
-            <StatusBadge 
-              label={getStatusConfig(theme, visitor.status || 'pending', t).label}
-              variant={getVariantFromStatus(visitor.status || 'pending')}
-              size="sm"
-            />
+            <RequestStatusBadge status={visitor.status || 'pending'} />
           </DirectionalRow>
         </DirectionalRow>
 
@@ -205,35 +187,17 @@ const VisitorCard = React.memo(({
           <ThemedText style={[styles.compactDetailText, { color: theme.textSecondary }]} numberOfLines={1}>
             {[visitor.hostName, visitor.hostDepartment, visitor.visitTime].filter(Boolean).join(' · ')}
           </ThemedText>
-          {visitor.isWalkIn ? (
-            <View style={[styles.walkInBadge, { backgroundColor: applyOpacity(theme.info, '15') }]}>
-              <ThemedText style={[styles.walkInText, { color: theme.info }]}>
-                {t('reception.walkIn')}
-              </ThemedText>
-            </View>
-          ) : null}
+          {visitor.isWalkIn ? <WalkInBadge size="sm" /> : null}
         </DirectionalRow>
 
-        {needsParking ? (
+        {parkingDecision === 'required' ? (
           <>
             <View style={{ height: Spacing.xs }} />
-            <DirectionalRow 
-              style={[
-                styles.compactCarInfo, 
-                { backgroundColor: hasCarInfo ? applyOpacity(theme.success, '10') : applyOpacity(theme.warning, '10') }
-              ]} 
+            <DirectionalRow
+              style={[styles.compactCarInfo, { backgroundColor: applyOpacity(theme.primary, '10') }]}
               alignItems="center"
             >
-              <DDIcon name="truck" size={12} color={hasCarInfo ? theme.success : theme.warning} />
-              <ThemedText 
-                style={[
-                  styles.compactCarText, 
-                  { color: hasCarInfo ? theme.success : theme.warning }
-                ]} 
-                numberOfLines={1}
-              >
-                {hasCarInfo ? carInfoParts.join(' · ') : t('parking.carInfoPending')}
-              </ThemedText>
+              <DDIcon name="map-pin" size={12} color={theme.primary} />
             </DirectionalRow>
           </>
         ) : null}
@@ -252,9 +216,11 @@ const EmptyState = ({ theme, t }: { theme: Theme; t: (key: string) => string }) 
   </ThemedView>
 );
 
-const LoadingState = ({ theme }: { theme: Theme }) => (
+const LoadingState = () => (
   <View style={styles.loadingContainer}>
-    <ActivityIndicator size="large" color={theme.primary} />
+    <SkeletonCard showImage={false} lines={2} />
+    <SkeletonCard showImage={false} lines={2} />
+    <SkeletonCard showImage={false} lines={2} />
   </View>
 );
 
@@ -281,13 +247,25 @@ export default function ValetAllRequestsScreen() {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { isRTL } = useLanguage();
-  const { width: screenWidth } = useWindowDimensions();
-  const [filterType, setFilterType] = useState<'all' | 'with_parking' | 'without_parking'>('all');
+  const { user } = useAuth();
+  const isValetAdminHome = user?.role === 'valet_admin';
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
-  
-  // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
-  const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
+  const [viewMode, setViewMode] = useState<ValetAdminVisitorsViewMode>(
+    VALET_ADMIN_DEFAULT_VIEW_MODE,
+  );
+
+  // Measure the card grid's actual rendered width instead of guessing from screen width,
+  // so the column count and card sizing always match the space really available. Widths
+  // are percentages, not fixed pixel math, so they never fight with the row's padding/gap.
+  const [gridWidth, setGridWidth] = useState(0);
+  const handleGridLayout = (event: LayoutChangeEvent) => {
+    const width = event.nativeEvent.layout.width;
+    setGridWidth((prev) => (Math.abs(prev - width) > 1 ? width : prev));
+  };
+  const numColumns = gridWidth >= 900 ? 3 : gridWidth >= 600 ? 2 : 1;
+  const cardWidthPercent: `${number}%` | undefined =
+    numColumns === 3 ? '33.33%' : numColumns === 2 ? '50%' : undefined;
   
   const formatDateForApi = (date: Date) => {
     const year = date.getFullYear();
@@ -297,7 +275,18 @@ export default function ValetAllRequestsScreen() {
   };
 
   const dateStr = formatDateForApi(selectedDate);
-  const { data, isLoading, isError, refetch, isRefetching } = useValetParkingDashboard(dateStr);
+  const {
+    data,
+    isLoading,
+    isFetching,
+    isError,
+    refetch,
+    isRefetching,
+  } = useValetParkingDashboard(dateStr);
+  const {
+    data: displayedData,
+    dateKey: displayedDateStr,
+  } = useRetainedDatedData(dateStr, data);
 
   const handleDateSelect = (date: Date) => {
     setSelectedDate(date);
@@ -309,49 +298,49 @@ export default function ValetAllRequestsScreen() {
     return months[monthIndex];
   };
 
-  const getDisplayDate = () => {
+  const getDisplayDate = (date: Date) => {
     const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
 
-    if (selectedDate.toDateString() === today.toDateString()) {
+    if (date.toDateString() === today.toDateString()) {
       return t('time.today');
     }
-    if (selectedDate.toDateString() === tomorrow.toDateString()) {
+    if (date.toDateString() === tomorrow.toDateString()) {
       return t('time.tomorrow');
     }
-    if (selectedDate.toDateString() === yesterday.toDateString()) {
+    if (date.toDateString() === yesterday.toDateString()) {
       return t('time.yesterday');
     }
-    return `${selectedDate.getDate()} ${t(`months.${getMonthKey(selectedDate.getMonth())}`).slice(0, 3)} ${selectedDate.getFullYear()}`;
+    return `${date.getDate()} ${t(`months.${getMonthKey(date.getMonth())}`).slice(0, 3)} ${date.getFullYear()}`;
   };
 
+  const getDateFromApiString = (value: string) => {
+    const [year, month, day] = value.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  };
+  const displayedDate = getDateFromApiString(displayedDateStr);
+
   const filteredVisitors = useMemo(() => {
-    if (!data?.data) return [];
-    
-    switch (filterType) {
-      case 'with_parking':
-        return data.data.filter(v => v.isVisitorNeedsParking === true || v.visitorNeedsParking === true);
-      case 'without_parking':
-        return data.data.filter(v => v.isVisitorNeedsParking !== true && v.visitorNeedsParking !== true);
-      default:
-        return data.data;
-    }
-  }, [data?.data, filterType]);
+    if (!displayedData?.data) return [];
+    return filterAndSortValetVisitors(displayedData.data);
+  }, [displayedData?.data]);
+  const tableVisitors = useMemo(
+    () => filteredVisitors.map(mapValetVisitorToMatrixItem),
+    [filteredVisitors],
+  );
+  const refreshDashboardKpis = useRefreshDashboardKpis();
+  const refreshDashboard = useCallback(async () => {
+    await Promise.all([refetch(), refreshDashboardKpis()]);
+  }, [refetch, refreshDashboardKpis]);
 
-  const filterOptions = [
-    { key: 'all' as const, label: t('common.all') },
-    { key: 'with_parking' as const, label: t('parking.withParking') },
-    { key: 'without_parking' as const, label: t('parking.withoutParking') },
-  ];
-
-  if (isLoading) {
-    return <LoadingState theme={theme} />;
+  if (isLoading && !displayedData) {
+    return <LoadingState />;
   }
 
-  if (isError) {
+  if (isError && !displayedData) {
     return <ErrorState theme={theme} t={t} onRetry={refetch} />;
   }
 
@@ -360,85 +349,178 @@ export default function ValetAllRequestsScreen() {
       refreshControl={
         <RefreshControl
           refreshing={isRefetching}
-          onRefresh={refetch}
+          onRefresh={refreshDashboard}
           tintColor={theme.primary}
         />
       }
     >
       <View style={styles.paddedContent}>
-        <StatsCards 
-          totalVisitors={data?.summary.totalVisitors ?? 0}
-          withParking={data?.summary.withParking ?? 0}
-          withoutParking={data?.summary.withoutParking ?? 0}
-          theme={theme} 
-          t={t} 
-        />
+        {isValetAdminHome ? (
+          <DashboardKpiSection />
+        ) : (
+          <StatsCards
+            totalVisitors={displayedData?.summary.totalVisitors ?? 0}
+            withParking={displayedData?.summary.withParking ?? 0}
+            withoutParking={displayedData?.summary.withoutParking ?? 0}
+            theme={theme}
+            t={t}
+          />
+        )}
+
+        {isFetching || (isError && displayedData) ? (
+          <>
+            <Spacer height={Spacing.md} />
+            <DirectionalRow
+              style={[
+                styles.inlineQueryState,
+                {
+                  backgroundColor: applyOpacity(
+                    isError && !isFetching ? theme.error : theme.primary,
+                    '10',
+                  ),
+                },
+              ]}
+            >
+              {isError && !isFetching ? (
+                <DDIcon name="alert-circle" size={16} color={theme.error} />
+              ) : (
+                <ActivityIndicator size="small" color={theme.primary} />
+              )}
+              <ThemedText
+                style={[
+                  Typography.caption,
+                  {
+                    color:
+                      isError && !isFetching
+                        ? theme.error
+                        : theme.textSecondary,
+                    flex: 1,
+                  },
+                ]}
+              >
+                {t(
+                  isError && !isFetching
+                    ? 'common.errorLoadingData'
+                    : 'common.loading',
+                )}
+              </ThemedText>
+              {isError && !isFetching ? (
+                <Pressable onPress={() => refetch()} hitSlop={8}>
+                  <ThemedText
+                    style={[
+                      Typography.caption,
+                      { color: theme.primary, fontWeight: '600' },
+                    ]}
+                  >
+                    {t('common.retry')}
+                  </ThemedText>
+                </Pressable>
+              ) : null}
+            </DirectionalRow>
+          </>
+        ) : null}
 
         <Spacer height={Spacing.md} />
 
         <DirectionalRow style={styles.sectionTitleRow}>
-          <ThemedText style={[Typography.subtitle]}>
-            {getDisplayDate()} {t('valet.visitors')}
+          <ThemedText style={[Typography.subtitle, styles.sectionTitle]}>
+            {getDisplayDate(displayedDate)} {t('valet.visitors')}
           </ThemedText>
-          <Pressable
-            onPress={() => setShowDatePicker(true)}
-            hitSlop={8}
+          <DirectionalRow
+            style={styles.sectionControls}
+            alignItems="center"
           >
-            <DDIcon name="calendar" size={20} color={theme.primary} />
-          </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('form.selectDate')}
+              onPress={() => setShowDatePicker(true)}
+              hitSlop={8}
+              style={styles.calendarButton}
+            >
+              <DDIcon name="calendar" size={20} color={theme.primary} />
+            </Pressable>
+            <DirectionalRow
+              style={[
+                styles.viewToggle,
+                {
+                  backgroundColor: theme.surfaceSecondary,
+                  borderColor: theme.border,
+                },
+              ]}
+            >
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('common.cardView')}
+                accessibilityState={{ selected: viewMode === 'card' }}
+                onPress={() => setViewMode('card')}
+                hitSlop={6}
+                style={[
+                  styles.viewToggleButton,
+                  {
+                    backgroundColor:
+                      viewMode === 'card' ? theme.primary : 'transparent',
+                  },
+                ]}
+              >
+                <DDIcon
+                  name="grid"
+                  size={18}
+                  color={
+                    viewMode === 'card'
+                      ? theme.buttonText
+                      : theme.textSecondary
+                  }
+                />
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('common.tableView')}
+                accessibilityState={{ selected: viewMode === 'table' }}
+                onPress={() => setViewMode('table')}
+                hitSlop={6}
+                style={[
+                  styles.viewToggleButton,
+                  {
+                    backgroundColor:
+                      viewMode === 'table' ? theme.primary : 'transparent',
+                  },
+                ]}
+              >
+                <DDIcon
+                  name="list"
+                  size={18}
+                  color={
+                    viewMode === 'table'
+                      ? theme.buttonText
+                      : theme.textSecondary
+                  }
+                />
+              </Pressable>
+            </DirectionalRow>
+          </DirectionalRow>
         </DirectionalRow>
       </View>
-
-      <Spacer height={Spacing.xs} />
-
-      <RTLHorizontalScrollView
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.tabsContainer}
-        nestedScrollEnabled={true}
-      >
-        <View style={[styles.segmentedControl, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          {filterOptions.map((option, index) => {
-            const isActive = filterType === option.key;
-            const isFirst = index === 0;
-            const isLast = index === filterOptions.length - 1;
-
-            return (
-              <Pressable
-                key={option.key}
-                style={[
-                  styles.segmentButton,
-                  isActive && { backgroundColor: theme.primary },
-                  isFirst && styles.segmentFirst,
-                  isLast && styles.segmentLast,
-                ]}
-                onPress={() => setFilterType(option.key)}
-              >
-                <ThemedText
-                  style={[
-                    styles.segmentText,
-                    { color: isActive ? '#FFFFFF' : theme.text }
-                  ]}
-                  numberOfLines={1}
-                >
-                  {option.label}
-                </ThemedText>
-              </Pressable>
-            );
-          })}
-        </View>
-      </RTLHorizontalScrollView>
 
       <Spacer height={Spacing.sm} />
 
       <View style={styles.paddedContent}>
         {filteredVisitors.length === 0 ? (
           <EmptyState theme={theme} t={t} />
+        ) : viewMode === 'table' ? (
+          <VisitorMatrixTable
+            visitors={tableVisitors}
+            variant="matrix"
+          />
         ) : (
-          <View style={styles.cardGrid}>
+          <View style={styles.cardGrid} onLayout={handleGridLayout}>
             {filteredVisitors.map((visitor) => (
               <View 
                 key={visitor.requestId}
-                style={numColumns > 1 ? { width: numColumns === 2 ? '50%' : '33.33%', flexGrow: 0, marginBottom: LAYOUT.contentGap, paddingRight: Spacing.sm } : { width: '100%', marginBottom: LAYOUT.contentGap }}
+                style={
+                  cardWidthPercent
+                    ? { width: cardWidthPercent, paddingEnd: Spacing.sm, marginBottom: LAYOUT.contentGap }
+                    : { width: '100%', marginBottom: LAYOUT.contentGap }
+                }
               >
                 <VisitorCard 
                   visitor={visitor} 
@@ -467,7 +549,14 @@ export default function ValetAllRequestsScreen() {
 
 const styles = StyleSheet.create({
   paddedContent: {
-    paddingHorizontal: Spacing.sm,
+    paddingHorizontal: VALET_GRID_PADDING_SIDE,
+  },
+  inlineQueryState: {
+    alignItems: 'center',
+    gap: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.sm,
   },
   statsGrid: {
     flexDirection: 'row' as const,
@@ -489,39 +578,41 @@ const styles = StyleSheet.create({
   sectionTitleRow: {
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  sectionTitle: {
+    flexShrink: 1,
+  },
+  sectionControls: {
+    flexShrink: 0,
+    gap: Spacing.sm,
+  },
+  viewToggle: {
+    borderWidth: 1,
+    borderRadius: BorderRadius.sm,
+    padding: 2,
+    overflow: 'hidden',
+  },
+  viewToggleButton: {
+    width: 36,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: BorderRadius.xs,
+  },
+  calendarButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   tabsContainer: {
     paddingHorizontal: Spacing.sm,
     gap: Spacing.xs,
   },
-  segmentedControl: {
-    flexDirection: 'row',
-    borderRadius: BorderRadius.lg,
-    borderWidth: 1,
-    overflow: 'hidden',
-    height: 36,
-  },
-  segmentButton: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-  },
-  segmentFirst: {
-    borderTopStartRadius: BorderRadius.lg - 1,
-    borderBottomStartRadius: BorderRadius.lg - 1,
-  },
-  segmentLast: {
-    borderTopEndRadius: BorderRadius.lg - 1,
-    borderBottomEndRadius: BorderRadius.lg - 1,
-  },
-  segmentText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
   cardGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: Spacing.sm,
   },
   visitorCard: {
     borderRadius: LAYOUT.cardRadius,
@@ -561,16 +652,6 @@ const styles = StyleSheet.create({
   },
   detailText: {
     fontSize: 12,
-  },
-  walkInBadge: {
-    paddingHorizontal: Spacing.xs,
-    paddingVertical: 2,
-    borderRadius: BorderRadius.xs,
-    marginStart: Spacing.xs,
-  },
-  walkInText: {
-    fontSize: 10,
-    fontWeight: '500',
   },
   carInfoSection: {
     padding: Spacing.sm,

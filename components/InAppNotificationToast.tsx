@@ -12,6 +12,7 @@ interface InAppNotificationToastProps {
   title: string;
   body: string;
   onDismiss: () => void;
+  onPress?: () => void;
   duration?: number;
   type?: 'info' | 'success' | 'warning' | 'error';
 }
@@ -21,6 +22,7 @@ export function InAppNotificationToast({
   title,
   body,
   onDismiss,
+  onPress,
   duration = 4000,
   type = 'info',
 }: InAppNotificationToastProps) {
@@ -116,10 +118,22 @@ export function InAppNotificationToast({
             backgroundColor: theme.surface,
             borderStartColor: getAccentColor(),
             shadowColor: theme.text,
-            flexDirection: 'row',
+            flexDirection: isRTL ? 'row-reverse' : 'row',
           },
         ]}
-        onPress={hideToast}
+        onPress={() => {
+          if (onPress) {
+            hideToast();
+            onPress();
+          } else {
+            hideToast();
+          }
+        }}
+        accessibilityLabel={`${title}. ${body}`}
+        accessibilityRole="button"
+        accessibilityHint={onPress
+          ? (isRTL ? 'اضغط للانتقال إلى الطلب' : 'Press to view the request')
+          : (isRTL ? 'اضغط للرفض' : 'Press to dismiss')}
       >
         <View style={[styles.iconContainer, { backgroundColor: getAccentColor() + '20' }]}>
           <DDIcon name={getIconName()} size={20} color={getAccentColor()} />
@@ -132,7 +146,12 @@ export function InAppNotificationToast({
             {body}
           </ThemedText>
         </View>
-        <Pressable onPress={hideToast} style={styles.closeButton}>
+        <Pressable
+          onPress={hideToast}
+          style={styles.closeButton}
+          accessibilityLabel={isRTL ? 'إغلاق الإشعار' : 'Close notification'}
+          accessibilityRole="button"
+        >
           <DDIcon name="x" size={18} color={theme.textSecondary} />
         </Pressable>
       </Pressable>

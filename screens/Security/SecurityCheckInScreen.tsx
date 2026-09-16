@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { useUpcomingIndicator } from "@/hooks/useUpcomingVisitTimer";
+import { getInitials } from "@/utils/formatters";
 import { UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES, isUpcomingIndicatorEligibleStatus } from "@/constants/requestConstants";
 import { View, StyleSheet, Pressable, ActivityIndicator, useWindowDimensions, Platform } from "react-native";
 import { TouchableOpacity as GHTouchableOpacity } from "react-native-gesture-handler";
@@ -16,13 +17,23 @@ import { Spacing, BorderRadius, Typography, FontFamily } from "@/constants/theme
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
-import { RTLHorizontalScrollView } from "@/components/shared";
+import {
+  RTLHorizontalScrollView,
+  RequestStatusBadge,
+  FilterChip,
+  DashboardKpiSection,
+  VisitorMatrixTable,
+} from "@/components/shared";
+import { SkeletonCard } from "@/components/shared/Skeleton";
 import { applyOpacity, getStatusConfig } from "@/utils/statusStyles";
 import { useSecurityVisitorsQuery } from "@/hooks/queries/useSecurityQueries";
 import type { SecurityVisitorDto } from "@/types";
 import type { SecurityCheckInScreenProps } from "@/types/securityNavigation.types";
 import type { Theme } from "@/types/theme.types";
 import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
+import { resolveParkingDisplayDecision } from "@/utils/parkingDecision";
+import { mapSecurityVisitorToMatrixItem } from "@/utils/securityVisitorTable";
+import { useRetainedDatedData } from "@/hooks/useRetainedDatedData";
 
 const LAYOUT = {
   cardPadding: Spacing.lg,
@@ -30,12 +41,13 @@ const LAYOUT = {
   avatarSize: 44,
 };
 
-const SecurityUpcomingAlertIcon = React.memo(({ visitDate, visitTime, status }: { visitDate: string; visitTime: string; status: string }) => {
+const SecurityUpcomingAlertIcon = React.memo(({ visitDate, visitTime, status, visitStartAt }: { visitDate: string; visitTime: string; status: string; visitStartAt?: string }) => {
   const { theme } = useTheme();
   const eligible = isUpcomingIndicatorEligibleStatus(status);
   const isUpcoming = useUpcomingIndicator({
     visitDate,
     visitTime,
+    visitStartAt,
     eligible,
     thresholdMinutes: UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES,
   });
@@ -48,7 +60,7 @@ const SecurityUpcomingAlertIcon = React.memo(({ visitDate, visitTime, status }: 
 });
 
 const VisitorAvatar = ({ name, theme, size = 44 }: { name: string; theme: Theme; size?: number }) => {
-  const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  const initials = getInitials(name);
   return (
     <View style={[
       styles.avatar, 
@@ -59,14 +71,19 @@ const VisitorAvatar = ({ name, theme, size = 44 }: { name: string; theme: Theme;
         borderRadius: LAYOUT.cardRadius - 2,
       }
     ]}>
-      <ThemedText style={[styles.avatarText, { color: theme.primary, fontSize: size * 0.36 }]}>
+      <ThemedText
+        style={[styles.avatarText, { color: theme.primary, fontSize: size * 0.36 }]}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.5}
+      >
         {initials}
       </ThemedText>
     </View>
   );
 };
 
-type SecurityVisitorStatus = 'expected' | 'checked_in' | 'checked_out' | 'cancelled';
+type SecurityVisitorStatus = 'expected' | 'checked_in' | 'checked_out';
 
 interface SecurityVisitor {
   id: string;
@@ -74,23 +91,23 @@ interface SecurityVisitor {
   company: string;
   visitDate: string;
   visitTime: string;
+  visitStartAt?: string;
   endTime?: string;
   duration?: string;
   host: string;
+  purpose?: string;
+  email?: string;
+  phone?: string;
   status: SecurityVisitorStatus;
   originalStatus: string;
   checkInTime?: string;
   checkOutTime?: string;
   parking: {
-    hasParking: boolean;
-    slotNumber?: string;
-    location?: string;
-    floor?: string;
+    parkingDecision?: unknown;
+    hasParking?: boolean | null;
     isVisitorNeedsParking?: boolean;
     visitorNeedsParking?: boolean;
-    licensePlate?: string | null;
-    carModel?: string | null;
-    carColor?: string | null;
+    hasParkingAllocation?: boolean;
   };
   valet: {
     hasValet: boolean;
@@ -115,10 +132,6 @@ const mapApiToSecurityVisitor = (dto: SecurityVisitorDto): SecurityVisitor => {
       case 'checked_out':
       case 'completed':
         return 'checked_out';
-      case 'cancelled':
-      case 'auto_cancelled':
-      case 'rejected':
-        return 'cancelled';
       default:
         return 'expected';
     }
@@ -130,21 +143,23 @@ const mapApiToSecurityVisitor = (dto: SecurityVisitorDto): SecurityVisitor => {
     company: dto.visitorCompany || '',
     visitDate: dto.scheduledDate,
     visitTime: dto.scheduledTime,
+    visitStartAt: dto.visitStartAt,
     endTime: dto.endTime,
     duration: dto.duration,
     host: dto.hostName,
+    purpose: dto.purpose,
+    email: dto.visitorEmail,
+    phone: dto.visitorPhone,
     status: mapStatus(dto.status),
     originalStatus: dto.status,
     checkInTime: dto.checkInTime,
     checkOutTime: dto.checkOutTime,
     parking: {
-      hasParking: dto.parkingAssigned || false,
-      slotNumber: dto.parkingSpot,
+      parkingDecision: (dto as any).parkingDecision,
+      hasParking: (dto as any).hasParking,
       isVisitorNeedsParking: dto.isVisitorNeedsParking,
       visitorNeedsParking: dto.visitorNeedsParking,
-      licensePlate: dto.licensePlate,
-      carModel: dto.carModel,
-      carColor: dto.carColor,
+      hasParkingAllocation: dto.parkingAssigned,
     },
     valet: {
       hasValet: dto.valetAssigned || false,
@@ -174,10 +189,10 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [dateRange, setDateRange] = useState<DateRange>({ startDate: null, endDate: null });
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
+  const [viewMode, setViewMode] = useState<'card' | 'list'>('list');
   
   // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
-  const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
+  const numColumns = screenWidth >= 900 ? 3 : screenWidth >= 600 ? 2 : 1;
 
   const queryParams = useMemo(() => {
     const formatDate = (date: Date) => {
@@ -203,20 +218,72 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
     };
   }, [selectedDate, dateRange]);
 
-  const { data: apiResponse, isLoading, isError, refetch } = useSecurityVisitorsQuery(queryParams);
+  const sourceContext = useMemo(() => {
+    const formatDate = (date: Date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+    if (dateRange.startDate && dateRange.endDate) {
+      return {
+        selection: 'range' as const,
+        startDate: formatDate(dateRange.startDate),
+        endDate: formatDate(dateRange.endDate),
+        status: statusFilter,
+      };
+    }
+    const date = formatDate(selectedDate);
+    return { selection: 'date' as const, date, status: statusFilter };
+  }, [dateRange.startDate, dateRange.endDate, selectedDate, statusFilter]);
+
+  const {
+    data: apiResponse,
+    isLoading,
+    isFetching,
+    isError,
+    isPlaceholderData,
+    refetch,
+  } = useSecurityVisitorsQuery(queryParams, {
+    placeholderData: (previousData) => previousData,
+  });
+
+  const retainedInput = useMemo(
+    () => apiResponse !== undefined && !isPlaceholderData
+      ? { response: apiResponse, context: sourceContext }
+      : undefined,
+    [apiResponse, isPlaceholderData, sourceContext],
+  );
+  const retainedVisitors = useRetainedDatedData(
+    JSON.stringify(sourceContext),
+    retainedInput,
+  );
+  const displayedApiResponse = retainedVisitors.data?.response;
+  const displayedSourceContext = retainedVisitors.data?.context ?? sourceContext;
+  const isShowingPreviousQueryData = retainedVisitors.isRetained || isPlaceholderData;
 
   const visitors = useMemo(() => {
-    if (!apiResponse?.data) return [];
-    return apiResponse.data.map(mapApiToSecurityVisitor);
-  }, [apiResponse]);
+    if (!displayedApiResponse?.data) return [];
+    // Security only sees invitation-verified visits — pending, rejected, cancelled are excluded.
+    const SECURITY_VISIBLE_STATUSES = ['approved', 'visitor_accepted', 'checked_in', 'on_site', 'checked_out', 'completed'];
+    return displayedApiResponse.data
+      .filter(dto => SECURITY_VISIBLE_STATUSES.includes(dto.status))
+      .map(mapApiToSecurityVisitor);
+  }, [displayedApiResponse]);
+
 
   const FILTER_OPTIONS: { key: StatusFilter; label: string }[] = [
     { key: 'all', label: t('common.all') },
     { key: 'expected', label: t('visitor.expectedVisitors').split(' ')[0] },
     { key: 'checked_in', label: t('status.checkedIn') },
     { key: 'checked_out', label: t('status.checkedOut') },
-    { key: 'cancelled', label: t('status.cancelled') },
   ];
+  const effectiveStatusFilter = isShowingPreviousQueryData
+    ? displayedSourceContext.status
+    : statusFilter;
+  const displayedSourceLabel = displayedSourceContext.selection === 'range'
+    ? `${displayedSourceContext.startDate} – ${displayedSourceContext.endDate}`
+    : displayedSourceContext.date;
 
   const scrollContentStyle = {
     paddingHorizontal: Spacing.lg,
@@ -254,8 +321,23 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
     return visitDateStr === formatDateForFilter(selectedDate);
   };
 
+  const getVisitTimestamp = (visitor: SecurityVisitor): number => {
+    if (visitor.visitStartAt) {
+      const timestamp = Date.parse(visitor.visitStartAt);
+      if (!Number.isNaN(timestamp)) return timestamp;
+    }
+
+    const dateStart = Date.parse(`${visitor.visitDate}T00:00:00+03:00`);
+    if (Number.isNaN(dateStart)) return Number.MAX_SAFE_INTEGER;
+    return dateStart + parseTimeToMinutes(visitor.visitTime) * 60 * 1000;
+  };
+
   const dateFilteredVisitors = visitors.filter(visitor => {
-    return isDateInRange(visitor.visitDate);
+    if (displayedSourceContext.selection === 'range') {
+      return visitor.visitDate >= displayedSourceContext.startDate &&
+        visitor.visitDate <= displayedSourceContext.endDate;
+    }
+    return visitor.visitDate === displayedSourceContext.date;
   });
 
   const filteredVisitors = dateFilteredVisitors
@@ -265,22 +347,28 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
       visitor.host.toLowerCase().includes(searchQuery.toLowerCase())
     )
     .filter(visitor => {
-      if (statusFilter === 'all') return true;
-      return visitor.status === statusFilter;
+      if (effectiveStatusFilter === 'all') return true;
+      return visitor.status === effectiveStatusFilter;
     })
     .sort((a, b) => {
-      // First sort by visitDate descending (latest first)
-      if (a.visitDate !== b.visitDate) {
-        return b.visitDate.localeCompare(a.visitDate);
-      }
-      // Then by status order
-      const statusOrder: Record<SecurityVisitorStatus, number> = { expected: 0, checked_in: 1, checked_out: 2, cancelled: 3 };
+      // Show cards in chronological order, matching the requested Buffet Admin behavior.
+      const timeDifference = getVisitTimestamp(a) - getVisitTimestamp(b);
+      if (timeDifference !== 0) return timeDifference;
+
+      // Use status order only when visits have the same date and time.
+      const statusOrder: Record<SecurityVisitorStatus, number> = { expected: 0, checked_in: 1, checked_out: 2 };
       if (statusOrder[a.status] !== statusOrder[b.status]) {
         return statusOrder[a.status] - statusOrder[b.status];
       }
-      // Then by time descending (latest first)
-      return parseTimeToMinutes(b.visitTime) - parseTimeToMinutes(a.visitTime);
+
+      // Keep the order deterministic when all visible values are identical.
+      return a.id.localeCompare(b.id);
     });
+
+  const tableVisitors = useMemo(
+    () => filteredVisitors.map(mapSecurityVisitorToMatrixItem),
+    [filteredVisitors],
+  );
 
   
   const formatDisplayDate = () => {
@@ -290,9 +378,9 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
     
-    if (dateRange.startDate && dateRange.endDate) {
-      const start = dateRange.startDate;
-      const end = dateRange.endDate;
+    if (displayedSourceContext.selection === 'range') {
+      const start = new Date(`${displayedSourceContext.startDate}T00:00:00`);
+      const end = new Date(`${displayedSourceContext.endDate}T00:00:00`);
       if (start.toDateString() === end.toDateString()) {
         if (start.toDateString() === today.toDateString()) return t('time.today');
         return `${start.getDate()} ${t(`months.${getMonthKey(start.getMonth())}`).slice(0, 3)} ${start.getFullYear()}`;
@@ -300,16 +388,19 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
       return `${start.getDate()} - ${end.getDate()} ${t(`months.${getMonthKey(end.getMonth())}`).slice(0, 3)} ${end.getFullYear()}`;
     }
     
-    if (selectedDate.toDateString() === today.toDateString()) {
+    const displayDate = displayedSourceContext.selection === 'date'
+      ? new Date(`${displayedSourceContext.date}T00:00:00`)
+      : selectedDate;
+    if (displayDate.toDateString() === today.toDateString()) {
       return t('time.today');
     }
-    if (selectedDate.toDateString() === tomorrow.toDateString()) {
+    if (displayDate.toDateString() === tomorrow.toDateString()) {
       return t('time.tomorrow');
     }
-    if (selectedDate.toDateString() === yesterday.toDateString()) {
+    if (displayDate.toDateString() === yesterday.toDateString()) {
       return t('time.yesterday');
     }
-    return `${selectedDate.getDate()} ${t(`months.${getMonthKey(selectedDate.getMonth())}`).slice(0, 3)} ${selectedDate.getFullYear()}`;
+    return `${displayDate.getDate()} ${t(`months.${getMonthKey(displayDate.getMonth())}`).slice(0, 3)} ${displayDate.getFullYear()}`;
   };
 
   const getMonthKey = (monthIndex: number): string => {
@@ -323,7 +414,6 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
       expected: dateFilteredVisitors.filter(v => v.status === 'expected').length,
       checked_in: dateFilteredVisitors.filter(v => v.status === 'checked_in').length,
       checked_out: dateFilteredVisitors.filter(v => v.status === 'checked_out').length,
-      cancelled: dateFilteredVisitors.filter(v => v.status === 'cancelled').length,
     };
   };
 
@@ -360,13 +450,6 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
           text: theme.textSecondary,
           countBg: applyOpacity(theme.textSecondary, '25'),
           countText: theme.textSecondary,
-        };
-      case 'cancelled':
-        return {
-          bg: applyOpacity(theme.error, '15'),
-          text: theme.error,
-          countBg: applyOpacity(theme.error, '25'),
-          countText: theme.error,
         };
       default:
         return {
@@ -448,7 +531,8 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
 
   const renderVisitorCard = (visitor: SecurityVisitor, isGridMode: boolean = false) => {
     const statusConfig = getStatusConfig(theme, visitor.originalStatus, t);
-    const hasParking = visitor.parking.isVisitorNeedsParking === true || visitor.parking.visitorNeedsParking === true || visitor.parking.hasParking;
+    const parkingDecision = resolveParkingDisplayDecision(visitor.parking);
+    const hasParking = parkingDecision === 'required';
     const duration = calculateDuration(visitor.visitTime, visitor.endTime, visitor.duration);
     
     return (
@@ -481,12 +565,8 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
               </View>
 
               <DirectionalRow style={{ alignItems: 'center' }}>
-                <SecurityUpcomingAlertIcon visitDate={visitor.visitDate} visitTime={visitor.visitTime} status={visitor.status} />
-                <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border }]}>
-                  <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
-                    {statusConfig.label}
-                  </ThemedText>
-                </View>
+                <SecurityUpcomingAlertIcon visitDate={visitor.visitDate} visitTime={visitor.visitTime} status={visitor.status} visitStartAt={visitor.visitStartAt} />
+                <RequestStatusBadge status={visitor.originalStatus} />
               </DirectionalRow>
             </DirectionalRow>
 
@@ -516,11 +596,11 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
 
             <DirectionalRow style={styles.servicesStatusRow}>
               <DirectionalRow style={styles.servicesContainer}>
-                {hasParking && (
+                {hasParking ? (
                   <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '20') }]}>
                     <DDIcon name="map-pin" size={14} color={theme.info} />
                   </View>
-                )}
+                ) : null}
                 {visitor.isBuffet && (
                   <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.warning, '20') }]}>
                     <DDIcon name="cloche" size={14} variant="warning" />
@@ -531,7 +611,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
                     <DDIcon name="briefcase" size={14} color={theme.secondary} />
                   </View>
                 )}
-                {!hasParking && !visitor.isBuffet && !visitor.isMeetingRoom && (
+                {!visitor.isBuffet && !visitor.isMeetingRoom && (
                   <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>-</ThemedText>
                 )}
               </DirectionalRow>
@@ -543,19 +623,17 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
   };
 
   const renderContent = () => {
-    if (isLoading) {
+    if (isLoading && !displayedApiResponse) {
       return (
         <View style={styles.loadingState}>
-          <ActivityIndicator size="large" color={theme.primary} />
-          <Spacer height={Spacing.md} />
-          <ThemedText style={[Typography.body, { color: theme.textSecondary }]}>
-            {t('common.loading')}
-          </ThemedText>
+          <SkeletonCard showImage={false} lines={3} />
+          <SkeletonCard showImage={false} lines={3} />
+          <SkeletonCard showImage={false} lines={3} />
         </View>
       );
     }
 
-    if (isError) {
+    if (isError && !displayedApiResponse) {
       return (
         <View style={styles.errorState}>
           <DDIcon name="alert-circle" size={48} color={theme.error} />
@@ -577,8 +655,23 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
     }
 
     if (filteredVisitors.length > 0) {
+      if (viewMode === 'list') {
+        return (
+          <VisitorMatrixTable
+            visitors={tableVisitors}
+            variant="matrix"
+            onPressRow={(visitorId) =>
+              navigation.navigate(
+                ROUTES.SECURITY_VISITOR_DETAIL as any,
+                { visitorId } as any,
+              )
+            }
+          />
+        );
+      }
+
       // Grid view for card mode on web/tablet (numColumns > 1)
-      if (viewMode === 'card' && numColumns > 1) {
+      if (numColumns > 1) {
         // Calculate flex basis based on numColumns: 3 cols = 31%, 2 cols = 48%
         const itemBasis = numColumns === 3 ? '31%' : '48%';
         return (
@@ -592,7 +685,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
         );
       }
       
-      // List view or single column mobile (always single column)
+      // Single-column card view on mobile.
       return (
         <View style={styles.cardList}>
           {filteredVisitors.map((visitor) => renderVisitorCard(visitor, false))}
@@ -667,6 +760,10 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
         </DirectionalRow>
         
         <Spacer height={Spacing.sm} />
+
+        <DashboardKpiSection />
+
+        <Spacer height={Spacing.lg} />
         
         <DirectionalRow style={styles.dateDisplayRow}>
           <ThemedText style={[Typography.bodySmall, { fontWeight: '600' }]}>
@@ -703,35 +800,74 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
           contentContainerStyle={styles.filtersContainer}
           nestedScrollEnabled={true}
         >
-          {FILTER_OPTIONS.map((option) => {
-            const isActive = statusFilter === option.key;
-            const count = statusCounts[option.key];
-            const colors = getFilterPillColors(option.key, isActive);
-            
-            return (
-              <GHTouchableOpacity
-                key={option.key}
-                style={[
-                  styles.filterPill,
-                  { backgroundColor: colors.bg }
-                ]}
-                onPress={() => setStatusFilter(option.key)}
-                activeOpacity={0.7}
-              >
-                <ThemedText style={[styles.filterPillText, { color: colors.text }]}>
-                  {option.label}
-                </ThemedText>
-                <View style={[styles.filterCount, { backgroundColor: colors.countBg }]}>
-                  <ThemedText style={[styles.filterCountText, { color: colors.countText }]}>
-                    {count}
-                  </ThemedText>
-                </View>
-              </GHTouchableOpacity>
-            );
-          })}
+          {FILTER_OPTIONS.map((option) => (
+            <FilterChip
+              key={option.key}
+              label={option.label}
+               isSelected={effectiveStatusFilter === option.key}
+              count={statusCounts[option.key]}
+              onPress={() => setStatusFilter(option.key)}
+            />
+          ))}
         </RTLHorizontalScrollView>
 
         <Spacer height={Spacing.xl} />
+
+        {isFetching || (isError && displayedApiResponse) ? (
+          <DirectionalRow
+            style={[
+              styles.inlineQueryState,
+              {
+                backgroundColor: applyOpacity(
+                  isError && !isFetching ? theme.error : theme.primary,
+                  "10",
+                ),
+              },
+            ]}
+          >
+            {isError && !isFetching ? (
+              <DDIcon name="alert-circle" size={16} color={theme.error} />
+            ) : (
+              <ActivityIndicator size="small" color={theme.primary} />
+            )}
+            <ThemedText
+              style={[
+                Typography.caption,
+                {
+                  color:
+                    isError && !isFetching
+                      ? theme.error
+                      : theme.textSecondary,
+                  flex: 1,
+                },
+              ]}
+            >
+              {isShowingPreviousQueryData
+                ? t('requests.showingPreviousDataFrom').replace('{{source}}', displayedSourceLabel)
+                : t(
+                    isError && !isFetching
+                      ? "errors.failedToLoadData"
+                      : "common.loading",
+                  )}
+            </ThemedText>
+            {isError && !isFetching ? (
+              <Pressable onPress={() => refetch()} hitSlop={8}>
+                <ThemedText
+                  style={[
+                    Typography.caption,
+                    { color: theme.primary, fontWeight: "600" },
+                  ]}
+                >
+                  {t("common.retry")}
+                </ThemedText>
+              </Pressable>
+            ) : null}
+          </DirectionalRow>
+        ) : null}
+
+        {isFetching || (isError && displayedApiResponse) ? (
+          <Spacer height={Spacing.md} />
+        ) : null}
 
         {renderContent()}
       </ScreenScrollView>
@@ -869,17 +1005,6 @@ const styles = StyleSheet.create({
     flex: 1,
     marginHorizontal: Spacing.md,
   },
-  statusBadge: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    borderRadius: BorderRadius.sm,
-    borderWidth: 1,
-  },
-  statusText: {
-    fontSize: 11,
-    fontWeight: '600',
-    fontFamily: FontFamily.latinSemiBold,
-  },
   dateTimeRow: {
     alignItems: 'center',
     flexWrap: 'wrap',
@@ -947,6 +1072,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: Spacing.xxl * 2,
+  },
+  inlineQueryState: {
+    alignItems: "center",
+    gap: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.sm,
   },
   errorState: {
     alignItems: 'center',

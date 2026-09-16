@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: INPUT_FONT_SIZE,
-    fontFamily: "AlbertSans_400Regular",
+    fontFamily: FontFamily.latinRegular,
   },
 });
 

@@ -6,12 +6,16 @@ import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { applyOpacity } from "@/utils/statusStyles";
 import { Spacing } from "@/constants/theme";
+import { resolveParkingDisplayDecision } from "@/utils/parkingDecision";
 
 interface ServiceIconsProps {
   parkingSlot?: unknown;
   meetingRoom?: unknown;
   buffet?: unknown;
   valet?: unknown;
+  parkingDecision?: unknown;
+  visitorNeedsParking?: boolean | null;
+  isVisitorNeedsParking?: boolean | null;
   size?: number;
 }
 
@@ -20,6 +24,9 @@ export const ServiceIcons = ({
   meetingRoom, 
   buffet, 
   valet, 
+  parkingDecision,
+  visitorNeedsParking,
+  isVisitorNeedsParking,
   size = 16 
 }: ServiceIconsProps) => {
   const { theme } = useTheme();
@@ -27,7 +34,12 @@ export const ServiceIcons = ({
   
   const items: React.ReactNode[] = [];
   
-  if (parkingSlot) {
+  if (resolveParkingDisplayDecision({
+    parkingDecision,
+    visitorNeedsParking,
+    isVisitorNeedsParking,
+    hasParkingAllocation: !!parkingSlot,
+  }) === 'required') {
     items.push(
       <View key="parking" style={[
         styles.pill, 

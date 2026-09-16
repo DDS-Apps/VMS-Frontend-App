@@ -1,5 +1,5 @@
 import React from "react";
-import { View, StyleSheet, RefreshControl } from "react-native";
+import { View, StyleSheet, Pressable, RefreshControl } from "react-native";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -13,12 +13,14 @@ import { useFormatters } from "@/hooks/useFormatters";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
 import { DirectionalRow } from "@/components/DirectionalRow";
-import { applyOpacity } from "@/utils/statusStyles";
+import { applyOpacity, getStatusIcon } from "@/utils/statusStyles";
+import { StatusIcon } from "@/components/shared";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useMyValetRequestDetailQuery } from "@/hooks/queries/useValetSelfServiceQueries";
 import type { ValetRequestDetailsScreenProps } from "@/types/employeeNavigation.types";
 import type { Theme } from "@/types/theme.types";
 import type { SelfValetRequestDto } from "@/types/api.types";
+import { resolveParkingDisplayDecision } from "@/utils/parkingDecision";
 
 function getStatusColor(status: string, theme: Theme) {
   switch (status) {
@@ -83,14 +85,6 @@ export default function ValetRequestDetailsScreen({ route }: ValetRequestDetails
     paddingBottom: insets.bottom + Spacing.xl + 80
   };
 
-  if (isLoading) {
-    return (
-      <View style={[styles.loadingContainer, { paddingTop: insets.top + Spacing.lg, paddingHorizontal: Spacing.lg }]}>
-        <SkeletonList count={3} />
-      </View>
-    );
-  }
-
   // Extract request from response - handle various API response formats
   // The httpClient.get() returns response.data, and the API wraps everything in { success, message, data: {...} }
   // So we might receive { data: SelfValetRequestDto } or directly SelfValetRequestDto
@@ -118,7 +112,15 @@ export default function ValetRequestDetailsScreen({ route }: ValetRequestDetails
     return null;
   }, [response]);
 
-  if (isError || (!isLoading && !request)) {
+  if (isLoading && !request) {
+    return (
+      <View style={[styles.loadingContainer, { paddingTop: insets.top + Spacing.lg, paddingHorizontal: Spacing.lg }]}>
+        <SkeletonList count={3} />
+      </View>
+    );
+  }
+
+  if (!request) {
     return (
       <ThemedView style={styles.container}>
         <View style={[styles.errorContainer, { paddingTop: insets.top + Spacing.xl }]}>
@@ -127,28 +129,41 @@ export default function ValetRequestDetailsScreen({ route }: ValetRequestDetails
           <ThemedText style={[Typography.body, { color: theme.textSecondary, textAlign: 'center' }]}>
             {isError ? t('common.loadError') : 'Request not found'}
           </ThemedText>
+          {isError ? (
+            <>
+              <Spacer height={Spacing.lg} />
+              <Pressable
+                style={[styles.retryButton, { backgroundColor: theme.primary }]}
+                onPress={() => refetch()}
+              >
+                <ThemedText
+                  style={[
+                    Typography.bodySmall,
+                    { color: theme.buttonText, fontWeight: '600' },
+                  ]}
+                >
+                  {t('common.retry')}
+                </ThemedText>
+              </Pressable>
+            </>
+          ) : null}
         </View>
       </ThemedView>
     );
   }
-  
-  if (!request) {
-    return null;
-  }
 
+  const parkingDecision = resolveParkingDisplayDecision({
+    parkingDecision: (request as any).parkingDecision,
+    visitorNeedsParking: (request as any).visitorNeedsParking,
+    isVisitorNeedsParking: (request as any).isVisitorNeedsParking,
+    hasParkingAllocation: true,
+  });
   const status = request.valet?.status || 'pending';
   const statusColor = getStatusColor(status, theme);
   const statusLabel = getStatusLabel(status);
 
-  const formatDate = (dateString: string) => {
-    const d = new Date(dateString);
-    return fmtDateLong(d, 'long');
-  };
-
-  const formatTime = (dateString: string) => {
-    const d = new Date(dateString);
-    return formatTimeUtil(d);
-  };
+  const formatDate = (dateString: string) => fmtDateLong(new Date(dateString), 'long');
+  const formatTime = (dateString: string) => formatTimeUtil(new Date(dateString));
 
   return (
     <ThemedView style={styles.container}>
@@ -158,132 +173,129 @@ export default function ValetRequestDetailsScreen({ route }: ValetRequestDetails
           <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.primary} />
         }
       >
+        {isError && !isRefetching ? (
+          <>
+            <DirectionalRow
+              style={[
+                styles.inlineErrorState,
+                { backgroundColor: applyOpacity(theme.error, '10') },
+              ]}
+            >
+              <DDIcon name="alert-circle" size={16} color={theme.error} />
+              <ThemedText
+                style={[
+                  Typography.caption,
+                  { color: theme.error, flex: 1 },
+                ]}
+              >
+                {t('common.loadError')}
+              </ThemedText>
+              <Pressable onPress={() => refetch()} hitSlop={8}>
+                <ThemedText
+                  style={[
+                    Typography.caption,
+                    { color: theme.primary, fontWeight: '600' },
+                  ]}
+                >
+                  {t('common.retry')}
+                </ThemedText>
+              </Pressable>
+            </DirectionalRow>
+            <Spacer height={Spacing.md} />
+          </>
+        ) : null}
+
         <Card style={styles.headerCard}>
-          <View style={[styles.statusContainer, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
-            <DirectionalRow style={[styles.statusBadge, { backgroundColor: applyOpacity(statusColor, '15'), borderColor: applyOpacity(statusColor, '30') }]}>
-              <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
-              <ThemedText style={[Typography.bodySmall, { color: statusColor, fontWeight: '600' }]}>
+            <DirectionalRow style={styles.statusContainer}>
+              <StatusIcon icon={getStatusIcon(status)} color={statusColor} />
+              <ThemedText style={[Typography.bodySmall, { color: statusColor, fontWeight: '600', marginStart: Spacing.sm }]}>
                 {statusLabel}
               </ThemedText>
-            </DirectionalRow>
-          </View>
-          
-          <Spacer height={Spacing.lg} />
-          
-          <DirectionalRow style={styles.vehicleInfo}>
-            <DDIcon name="truck" size={24} color={theme.primary} />
-            <View style={styles.vehicleDetails}>
-              <ThemedText style={[Typography.h3, { color: theme.text }]}>
-                {request.vehicleInfo?.make} {request.vehicleInfo?.model}
-              </ThemedText>
-              <ThemedText style={[Typography.body, { color: theme.textSecondary }]}>
-                {request.vehicleInfo?.plateNumber} - {request.vehicleInfo?.color}
-              </ThemedText>
-            </View>
           </DirectionalRow>
+            <Spacer height={Spacing.lg} />
+            <DirectionalRow style={styles.vehicleInfo}>
+              <DDIcon name={parkingDecision === 'required' ? "map-pin" : "slash"} size={24} color={theme.primary} />
+              <ThemedText style={[Typography.h3, { color: theme.text, marginStart: Spacing.md }]}>
+                {parkingDecision === 'required' ? t('parking.needsParking') : t('parking.noParking')}
+              </ThemedText>
+            </DirectionalRow>
         </Card>
 
-        <Spacer height={Spacing.lg} />
+          <Spacer height={Spacing.lg} />
 
-        <ThemedText style={[Typography.h3, { color: theme.text, marginBottom: Spacing.md }]}>
-          Request Details
-        </ThemedText>
+          <ThemedText style={[Typography.h3, { color: theme.text, marginBottom: Spacing.md }]}>
+            Request Details
+          </ThemedText>
 
-        <Card style={styles.detailsCard}>
-          <InfoRow 
-            icon="map-pin" 
-            label="Drop-off Location" 
-            value={request.dropOffLocation} 
-            theme={theme}
-            isRTL={isRTL}
-          />
-          <View style={[styles.divider, { backgroundColor: theme.border }]} />
-          <InfoRow 
-            icon="clock" 
-            label="Requested Return Time" 
-            value={request.requestedReturnTime} 
-            theme={theme}
-            isRTL={isRTL}
-          />
-          <View style={[styles.divider, { backgroundColor: theme.border }]} />
-          <InfoRow 
-            icon="calendar" 
-            label="Created" 
-            value={`${formatDate(request.createdAt)} at ${formatTime(request.createdAt)}`} 
-            theme={theme}
-            isRTL={isRTL}
-          />
-          {request.notes ? (
+          <Card style={styles.detailsCard}>
+            <InfoRow
+              icon="map-pin"
+              label="Drop-off Location"
+              value={request.dropOffLocation}
+              theme={theme}
+              isRTL={isRTL}
+            />
+            <View style={[styles.divider, { backgroundColor: theme.border }]} />
+            <InfoRow
+              icon="clock"
+              label="Requested Return Time"
+              value={request.requestedReturnTime}
+              theme={theme}
+              isRTL={isRTL}
+            />
+            <View style={[styles.divider, { backgroundColor: theme.border }]} />
+            <InfoRow
+              icon="calendar"
+              label="Created"
+              value={`${formatDate(request.createdAt)} at ${formatTime(request.createdAt)}`}
+              theme={theme}
+              isRTL={isRTL}
+            />
+            {request.notes ? (
+              <>
+                <View style={[styles.divider, { backgroundColor: theme.border }]} />
+                <InfoRow
+                  icon="file-text"
+                  label="Notes"
+                  value={request.notes}
+                  theme={theme}
+                  isRTL={isRTL}
+                />
+              </>
+            ) : null}
+          </Card>
+
+          {request.valet?.pickupTime || request.valet?.returnTime ? (
             <>
-              <View style={[styles.divider, { backgroundColor: theme.border }]} />
-              <InfoRow 
-                icon="file-text" 
-                label="Notes" 
-                value={request.notes} 
-                theme={theme}
-                isRTL={isRTL}
-              />
+              <Spacer height={Spacing.lg} />
+              <ThemedText style={[Typography.h3, { color: theme.text, marginBottom: Spacing.md }]}>
+                Timeline
+              </ThemedText>
+              <Card style={styles.timelineCard}>
+                {request.valet.pickupTime ? (
+                  <InfoRow
+                    icon="log-in"
+                    label="Pickup Time"
+                    value={request.valet.pickupTime}
+                    theme={theme}
+                    isRTL={isRTL}
+                  />
+                ) : null}
+                {request.valet.pickupTime && request.valet.returnTime ? (
+                  <View style={[styles.divider, { backgroundColor: theme.border }]} />
+                ) : null}
+                {request.valet.returnTime ? (
+                  <InfoRow
+                    icon="log-out"
+                    label="Return Time"
+                    value={request.valet.returnTime}
+                    theme={theme}
+                    isRTL={isRTL}
+                  />
+                ) : null}
+              </Card>
             </>
           ) : null}
-        </Card>
-
-        {request.valet?.driver ? (
-          <>
-            <Spacer height={Spacing.lg} />
-            <ThemedText style={[Typography.h3, { color: theme.text, marginBottom: Spacing.md }]}>
-              Assigned Driver
-            </ThemedText>
-            <Card style={styles.driverCard}>
-              <DirectionalRow style={styles.driverInfo}>
-                <View style={[styles.driverAvatar, { backgroundColor: applyOpacity(theme.success, '15') }]}>
-                  <DDIcon name="user" size={20} color={theme.success} />
-                </View>
-                <View style={styles.driverDetails}>
-                  <ThemedText style={[Typography.body, { color: theme.text, fontWeight: '600' }]}>
-                    {request.valet.driver.name}
-                  </ThemedText>
-                  {request.valet.driver.phone ? (
-                    <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
-                      {request.valet.driver.phone}
-                    </ThemedText>
-                  ) : null}
-                </View>
-              </DirectionalRow>
-            </Card>
-          </>
-        ) : null}
-
-        {request.valet?.pickupTime || request.valet?.returnTime ? (
-          <>
-            <Spacer height={Spacing.lg} />
-            <ThemedText style={[Typography.h3, { color: theme.text, marginBottom: Spacing.md }]}>
-              Timeline
-            </ThemedText>
-            <Card style={styles.timelineCard}>
-              {request.valet.pickupTime ? (
-                <InfoRow 
-                  icon="log-in" 
-                  label="Pickup Time" 
-                  value={request.valet.pickupTime} 
-                  theme={theme}
-                  isRTL={isRTL}
-                />
-              ) : null}
-              {request.valet.pickupTime && request.valet.returnTime ? (
-                <View style={[styles.divider, { backgroundColor: theme.border }]} />
-              ) : null}
-              {request.valet.returnTime ? (
-                <InfoRow 
-                  icon="log-out" 
-                  label="Return Time" 
-                  value={request.valet.returnTime} 
-                  theme={theme}
-                  isRTL={isRTL}
-                />
-              ) : null}
-            </Card>
-          </>
-        ) : null}
       </ScreenScrollView>
     </ThemedView>
   );
@@ -302,18 +314,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: Spacing.lg,
   },
+  inlineErrorState: {
+    alignItems: 'center',
+    gap: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+  },
+  retryButton: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
+  },
   headerCard: {
     padding: Spacing.lg,
   },
   statusContainer: {
     alignItems: 'flex-start',
-  },
-  statusBadge: {
-    alignItems: 'center',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-    borderRadius: BorderRadius.full,
-    borderWidth: 1,
   },
   statusDot: {
     width: 8,

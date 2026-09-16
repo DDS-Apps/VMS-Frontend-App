@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
-import { View, StyleSheet, Pressable, ScrollView, Alert, Platform, useWindowDimensions } from "react-native";
-import { TouchableOpacity as GHTouchableOpacity } from "react-native-gesture-handler";
-import { capitalizeFirst } from "@/utils/formatters";
+import { View, StyleSheet, Pressable, ScrollView, Alert, Platform, useWindowDimensions, ActivityIndicator } from "react-native";
+import { capitalizeFirst, getInitials } from "@/utils/formatters";
 import { DDIcon } from "@/components/DDIcon";
 import { SkeletonList } from "@/components/shared/Skeleton";
 import {
@@ -12,15 +11,14 @@ import {
 } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ScreenFlatList } from "@/components/ScreenFlatList";
+import { SearchInput } from "@/components/SearchInput";
+import { CalendarDatePicker } from "@/components/CalendarDatePicker";
 import { ROUTES } from "@/constants";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import {
-  REQUEST_STATUS,
-  UPCOMING_STATUSES,
-  CANCELLED_STATUSES,
   PURPOSE_VALUE_TO_KEY,
   normalizePurposeValue,
 } from "@/constants/requestConstants";
@@ -33,24 +31,32 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   useInfiniteVisitsQuery,
-  usePendingHostWalkInsQuery,
 } from "@/hooks/queries/useApprovalQueries";
-import { ListLoadingFooter, VisitorRequestCard, RTLHorizontalScrollView } from "@/components/shared";
-import type { VisitListItemDto } from "@/types/api.types";
+import { ListLoadingFooter, VisitorRequestCard, RTLHorizontalScrollView, FilterChip, RequestStatusBadge, VisitorMatrixTable } from "@/components/shared";
+import type { VisitorMatrixItem } from "@/components/shared";
+import type { VisitListItemDto, VisitListParams } from "@/types/api.types";
 import {
   getStatusConfig as getStatusStyle,
   applyOpacity,
-  StatusConfig,
 } from "@/utils/statusStyles";
 import type { Theme } from "@/types/theme.types";
 import type { EmployeeStackParamList } from "@/types/employeeNavigation.types";
 import type { ManagerStackParamList } from "@/types/managerNavigation.types";
 import {
   mapVisitListItemToVisitorRequest,
-  mapPendingHostWalkInToVisitorRequest,
 } from "@/utils/requestMappers";
 import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
-import { KPICard, KPICardRow } from "@/components/shared/KPICard";
+import { formatAbsoluteTimestamp } from "@/utils/dateTimeUtils";
+import { resolveParkingDisplayDecision } from "@/utils/parkingDecision";
+import {
+  computeIsPendingApprovalWalkInExpired,
+  computeIsVisitExpired,
+  getPendingApprovalWalkInScheduledEndMs,
+} from "@/utils/visitExpiredGuard";
+import { useRiyadhBusinessDateKey } from "@/hooks/useRiyadhBusinessDateKey";
+import { useRetainedDatedData } from "@/hooks/useRetainedDatedData";
+import { canAutomaticallyFetchNextPage } from "@/utils/queryPaginationState";
+import { useTimeBoundaryTick } from "@/hooks/useTimeBoundaryTick";
 
 // Unified Layout Tokens
 const LAYOUT = {
@@ -58,7 +64,6 @@ const LAYOUT = {
   cardRadius: BorderRadius.md,
   sectionSpacing: Spacing.xxl,
   contentGap: Spacing.md,
-  statCardRadius: BorderRadius.md,
   statusBorderWidth: 3,
   // Table-specific
   tableRowHeight: 110,
@@ -66,9 +71,7 @@ const LAYOUT = {
   tableScrollColumnWidth: 240,
 };
 
-type EmployeeTab = "upcoming" | "waiting" | "past" | "all" | "walkin";
-type ManagerTab = "all" | "pending" | "awaiting" | "walkin";
-type TabType = EmployeeTab | ManagerTab;
+type TabType = "all" | "to_be_checked" | "checked_in" | "checked_out";
 
 interface VisitorRequestsScreenProps {
   navigation?: NativeStackNavigationProp<EmployeeStackParamList>;
@@ -92,7 +95,12 @@ const ServiceIcons = ({
 }) => {
   const { isRTL } = useLanguage();
   const hasServices =
-    request.parkingSlot ||
+    resolveParkingDisplayDecision({
+      parkingDecision: request.parkingDecision,
+      visitorNeedsParking: request.visitorNeedsParking,
+      isVisitorNeedsParking: request.isVisitorNeedsParking,
+      hasParkingAllocation: !!request.parkingSlot,
+    }) === 'required' ||
     request.meetingRoom ||
     request.buffet ||
     request.valet;
@@ -107,7 +115,12 @@ const ServiceIcons = ({
 
   return (
     <DirectionalRow style={styles.servicesRow}>
-      {request.parkingSlot ? (
+      {resolveParkingDisplayDecision({
+        parkingDecision: request.parkingDecision,
+        visitorNeedsParking: request.visitorNeedsParking,
+        isVisitorNeedsParking: request.isVisitorNeedsParking,
+        hasParkingAllocation: !!request.parkingSlot,
+      }) === 'required' ? (
         <View
           style={[
             styles.servicePill,
@@ -171,36 +184,6 @@ const ServiceIcons = ({
   );
 };
 
-// Shared: Status Badge Component - matches shared VisitorRequestCard styling
-const StatusBadge = ({
-  statusConfig,
-  compact = false,
-}: {
-  statusConfig: StatusConfig;
-  compact?: boolean;
-}) => (
-  <View
-    style={[
-      styles.statusBadge,
-      {
-        backgroundColor: statusConfig.bg,
-        borderColor: statusConfig.border,
-        paddingHorizontal: Spacing.sm,
-        paddingVertical: 4,
-      },
-    ]}
-  >
-    <ThemedText
-      style={[
-        styles.statusText,
-        { color: statusConfig.text, fontSize: compact ? 10 : 10 },
-      ]}
-    >
-      {statusConfig.label}
-    </ThemedText>
-  </View>
-);
-
 // Shared: Visitor Avatar Component
 const VisitorAvatar = ({
   name,
@@ -211,12 +194,7 @@ const VisitorAvatar = ({
   theme: Theme;
   size?: number;
 }) => {
-  const initials = name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .substring(0, 2)
-    .toUpperCase();
+  const initials = getInitials(name);
   return (
     <View
       style={[
@@ -234,6 +212,9 @@ const VisitorAvatar = ({
           styles.avatarText,
           { color: theme.primary, fontSize: size * 0.36 },
         ]}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.5}
       >
         {initials}
       </ThemedText>
@@ -289,7 +270,7 @@ const DateTimeDisplay = ({
       ]}
     >
       <DirectionalRow style={styles.dateTimeLeft}>
-        <DirectionalRow>
+        <DirectionalRow style={{ gap: 4 }}>
           <DDIcon name="calendar" size={compact ? 13 : 14} variant="muted" />
           <ThemedText
             style={[
@@ -305,7 +286,7 @@ const DateTimeDisplay = ({
           </ThemedText>
         </DirectionalRow>
       </DirectionalRow>
-      <DirectionalRow style={styles.dateTimeRight}>
+      <DirectionalRow style={[styles.dateTimeRight, { gap: 4 }]}>
         <DDIcon name="clock" size={compact ? 13 : 14} variant="muted" />
         <ThemedText
           style={[
@@ -335,325 +316,41 @@ const DateTimeDisplay = ({
   );
 };
 
-// Table View: Horizontal Scrolling Row Component
-const VisitorRequestTableRow = React.memo(
-  ({
-    request,
-    onPress,
-    theme,
-    t,
-    isRTL = false,
-  }: {
-    request: VisitorRequest;
-    onPress: () => void;
-    theme: Theme;
-    t: (key: string) => string;
-    isRTL?: boolean;
-  }) => {
-    const statusConfig = getStatusStyle(theme, request.status, t);
-    return (
-      <Pressable
-        onPress={onPress}
-        android_ripple={{ color: applyOpacity(theme.primary, "10") }}
-      >
-        <ThemedView
-          style={[
-            styles.tableRow,
-            { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: getFlexDirection(isRTL) },
-          ]}
-        >
-          <StatusAccent color={statusConfig.borderColor} />
-
-          {/* Fixed Column - Always Visible: Name & Time Only */}
-          <View
-            style={[
-              styles.fixedColumn,
-              { width: LAYOUT.tableFixedColumnWidth },
-            ]}
-          >
-            <View style={styles.fixedColumnContent}>
-              <View style={{ flex: 1 }}>
-                <DirectionalRow style={{ alignItems: "center", gap: 6 }}>
-                  <ThemedText
-                    style={[
-                      Typography.body,
-                      { fontWeight: "600", fontSize: 15, flexShrink: 1 },
-                    ]}
-                    numberOfLines={2}
-                  >
-                    {capitalizeFirst(request.visitor.fullName)}
-                  </ThemedText>
-                  {request.isWalkIn ? (
-                    <DDIcon name="user-check" size={14} color={theme.warning} />
-                  ) : null}
-                </DirectionalRow>
-                <Spacer height={6} />
-                <DateTimeDisplay
-                  date={request.visitDate}
-                  time={request.visitTime}
-                  theme={theme}
-                  compact
-                />
-              </View>
-            </View>
-          </View>
-
-          {/* Scrollable Columns - All Details */}
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={true}
-            style={styles.scrollableColumns}
-            contentContainerStyle={styles.scrollableContent}
-            persistentScrollbar={true}
-            nestedScrollEnabled={true}
-          >
-            {/* Company Column */}
-            <View
-              style={[
-                styles.tableColumn,
-                { width: LAYOUT.tableScrollColumnWidth },
-              ]}
-            >
-              <ThemedText
-                style={[styles.columnHeader, { color: theme.textSecondary }]}
-              >
-                {t("form.company").toUpperCase()}
-              </ThemedText>
-              <Spacer height={10} />
-              <ThemedText
-                style={[styles.columnValue, { fontSize: 15 }]}
-                numberOfLines={2}
-              >
-                {request.visitor.company || "-"}
-              </ThemedText>
-            </View>
-
-            {/* Purpose Column */}
-            <View
-              style={[
-                styles.tableColumn,
-                { width: LAYOUT.tableScrollColumnWidth },
-              ]}
-            >
-              <ThemedText
-                style={[styles.columnHeader, { color: theme.textSecondary }]}
-              >
-                {t("form.purpose").toUpperCase()}
-              </ThemedText>
-              <Spacer height={10} />
-              <ThemedText
-                style={[styles.columnValue, { fontSize: 15 }]}
-                numberOfLines={3}
-              >
-                {(() => { const pv = normalizePurposeValue(request.purpose || ''); return PURPOSE_VALUE_TO_KEY[pv] ? t(PURPOSE_VALUE_TO_KEY[pv] as any) : (request.purpose || '-'); })()}
-              </ThemedText>
-            </View>
-
-            {/* Status Column */}
-            <View
-              style={[
-                styles.tableColumn,
-                { width: LAYOUT.tableScrollColumnWidth },
-              ]}
-            >
-              <ThemedText
-                style={[styles.columnHeader, { color: theme.textSecondary }]}
-              >
-                {t("status.pending")
-                  .toUpperCase()
-                  .replace("PENDING", t("common.filter").toUpperCase())}
-              </ThemedText>
-              <Spacer height={10} />
-              <StatusBadge statusConfig={statusConfig} />
-            </View>
-
-            {/* Services Column */}
-            <View
-              style={[
-                styles.tableColumn,
-                { width: LAYOUT.tableScrollColumnWidth },
-              ]}
-            >
-              <ThemedText
-                style={[
-                  styles.columnHeader,
-                  {
-                    writingDirection: isRTL ? "rtl" : "ltr",
-                    color: theme.textSecondary,
-                  },
-                ]}
-              >
-                {t("services.additionalServices").toUpperCase()}
-              </ThemedText>
-              <Spacer height={10} />
-              <ServiceIcons request={request} theme={theme} size={16} />
-            </View>
-
-            {/* Contact Column */}
-            <View
-              style={[
-                styles.tableColumn,
-                { width: LAYOUT.tableScrollColumnWidth },
-              ]}
-            >
-              <ThemedText
-                style={[
-                  styles.columnHeader,
-                  {
-                    writingDirection: isRTL ? "rtl" : "ltr",
-                    color: theme.textSecondary,
-                  },
-                ]}
-              >
-                {t("security.manualEntry").toUpperCase().split(" ")[0]}
-              </ThemedText>
-              <Spacer height={10} />
-              <View style={styles.contactColumn}>
-                {request.visitor.email ? (
-                  <View style={styles.contactRow}>
-                    <DDIcon name="mail" size={14} variant="muted" />
-                    <ThemedText
-                      style={[
-                        Typography.caption,
-                        {
-                          writingDirection: isRTL ? "rtl" : "ltr",
-                          fontSize: 14,
-                          marginStart: 8,
-                          color: theme.textSecondary,
-                          flex: 1,
-                        },
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {request.visitor.email}
-                    </ThemedText>
-                  </View>
-                ) : null}
-                {request.visitor.email && request.visitor.phone ? (
-                  <Spacer height={6} />
-                ) : null}
-                {request.visitor.phone ? (
-                  <View style={styles.contactRow}>
-                    <DDIcon name="phone" size={14} variant="muted" />
-                    <ThemedText
-                      style={[
-                        Typography.caption,
-                        {
-                          fontSize: 14,
-                          marginStart: 8,
-                          color: theme.textSecondary,
-                          flex: 1,
-                          writingDirection: 'ltr',
-                        },
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {request.visitor.phone}
-                    </ThemedText>
-                  </View>
-                ) : null}
-                {!request.visitor.email && !request.visitor.phone ? (
-                  <ThemedText
-                    style={[Typography.caption, { color: theme.textSecondary }]}
-                  >
-                    -
-                  </ThemedText>
-                ) : null}
-              </View>
-            </View>
-          </ScrollView>
-        </ThemedView>
-      </Pressable>
-    );
-  },
-);
-
-// Shared: Stats Cards Component
-const StatsCards = ({
-  totalVisitors,
-  todaysVisitors,
-  theme,
-  t,
-}: {
-  totalVisitors: number;
-  todaysVisitors: number;
-  theme: Theme;
-  t: (key: string) => string;
-}) => (
-  <KPICardRow>
-    <KPICard 
-      title={t("dashboard.totalVisitors")} 
-      value={totalVisitors} 
-      icon="users" 
-      color={theme.info}
-    />
-    <KPICard 
-      title={t("dashboard.todaysVisitors")} 
-      value={todaysVisitors} 
-      icon="calendar" 
-      color={theme.success}
-    />
-  </KPICardRow>
-);
-
 // Shared: Header with Tabs and View Toggle
 const SectionHeader = ({
   selectedTab,
   onTabChange,
   viewMode,
   onViewModeChange,
+  isDateFilterActive,
+  onDatePress,
+  onClearDatePress,
   theme,
   t,
-  userRole = "employee",
 }: {
   selectedTab: TabType;
   onTabChange: (tab: TabType) => void;
   viewMode: "card" | "list";
   onViewModeChange: (mode: "card" | "list") => void;
+  isDateFilterActive: boolean;
+  onDatePress: () => void;
+  onClearDatePress: () => void;
   theme: Theme;
   t: (key: string) => string;
-  userRole?: "employee" | "manager";
 }) => {
   const { isRTL } = useLanguage();
-  const getEmployeeTabLabel = (tab: EmployeeTab) => {
+
+  const getTabLabel = (tab: TabType): string => {
     switch (tab) {
-      case "upcoming":
-        return t("visitor.upcomingVisitors");
-      case "waiting":
-        return t("status.waitingOnVisitor");
-      case "past":
-        return t("status.completed");
+      case "to_be_checked": return t("status.toBeChecked");
+      case "checked_in": return t("status.checkedIn");
+      case "checked_out": return t("status.checkedOut");
       case "all":
-        return t("common.all");
-      case "walkin":
-        return t("navigation.walkInVisitors");
+      default: return t("common.all");
     }
   };
 
-  const getManagerTabLabel = (tab: ManagerTab) => {
-    switch (tab) {
-      case "all":
-        return t("common.all");
-      case "pending":
-        return t("navigation.pendingApprovals");
-      case "awaiting":
-        return t("navigation.awaitingVisitor");
-      case "walkin":
-        return t("navigation.walkInVisitors");
-    }
-  };
-
-  const getTabLabel = (tab: TabType) => {
-    if (userRole === "manager") {
-      return getManagerTabLabel(tab as ManagerTab);
-    }
-    return getEmployeeTabLabel(tab as EmployeeTab);
-  };
-
-  const tabs: TabType[] =
-    userRole === "manager"
-      ? ["all", "pending", "awaiting", "walkin"]
-      : ["all", "upcoming", "waiting", "past", "walkin"];
+  const tabs: TabType[] = ["all", "to_be_checked", "checked_in", "checked_out"];
   const titleElement = (
     <ThemedText
       style={[Typography.subtitle, {}]}
@@ -709,7 +406,7 @@ const SectionHeader = ({
     <>
       <DirectionalRow style={[styles.sectionTitleRow, styles.paddedContent]}>
         {titleElement}
-        {Platform.OS === 'web' ? viewToggleElement : null}
+        {viewToggleElement}
       </DirectionalRow>
 
       <Spacer height={LAYOUT.contentGap} />
@@ -721,33 +418,22 @@ const SectionHeader = ({
         keyboardShouldPersistTaps="handled"
       >
         {tabs.map((tab) => (
-          <GHTouchableOpacity
+          <FilterChip
             key={tab}
-            style={[
-              styles.tab,
-              selectedTab === tab && {
-                borderBottomWidth: 2,
-                borderBottomColor: theme.primary,
-              },
-            ]}
+            label={getTabLabel(tab)}
+            isSelected={selectedTab === tab}
             onPress={() => onTabChange(tab)}
-            activeOpacity={0.7}
-          >
-            <ThemedText
-              style={[
-                Typography.body,
-                {
-                  color:
-                    selectedTab === tab ? theme.primary : theme.textSecondary,
-                  fontWeight: "600",
-                },
-              ]}
-              numberOfLines={1}
-            >
-              {getTabLabel(tab)}
-            </ThemedText>
-          </GHTouchableOpacity>
+          />
         ))}
+        <FilterChip
+          label={t("visitor.date")}
+          icon="calendar"
+          color={theme.primary}
+          isSelected={isDateFilterActive}
+          onPress={onDatePress}
+          onClear={onClearDatePress}
+          clearAccessibilityLabel={t("common.clear")}
+        />
       </RTLHorizontalScrollView>
     </>
   );
@@ -785,6 +471,7 @@ export default function VisitorRequestsScreen({
   const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
+  const riyadhBusinessDateKey = useRiyadhBusinessDateKey();
   const navigationHook =
     useNavigation<NativeStackNavigationProp<EmployeeStackParamList>>();
   const navigation = navProp || navigationHook;
@@ -792,31 +479,15 @@ export default function VisitorRequestsScreen({
   const routeParams = route.params as VisitorRequestsRouteParams | undefined;
   const { user } = useAuth();
   const isManager = userRole === "manager";
+  const validTabs: TabType[] = ["all", "to_be_checked", "checked_in", "checked_out"];
+  const isValidTab = (tab: string): tab is TabType =>
+    validTabs.includes(tab as TabType);
 
-  const validManagerTabs: ManagerTab[] = [
-    "all",
-    "pending",
-    "awaiting",
-    "walkin",
-  ];
-  const validEmployeeTabs: EmployeeTab[] = [
-    "all",
-    "upcoming",
-    "waiting",
-    "past",
-    "walkin",
-  ];
-  const isValidManagerTab = (tab: string): tab is ManagerTab =>
-    validManagerTabs.includes(tab as ManagerTab);
-  const isValidEmployeeTab = (tab: string): tab is EmployeeTab =>
-    validEmployeeTabs.includes(tab as EmployeeTab);
-
-  const defaultTab: TabType = isManager ? "all" : "all";
+  const defaultTab: TabType = "all";
   const getInitialTab = (): TabType | undefined => {
     const paramTab = routeParams?.initialTab;
     if (!paramTab) return undefined;
-    if (isManager && isValidManagerTab(paramTab)) return paramTab;
-    if (!isManager && isValidEmployeeTab(paramTab)) return paramTab;
+    if (isValidTab(paramTab)) return paramTab;
     return undefined;
   };
   const initialTabFromParams = getInitialTab();
@@ -827,44 +498,49 @@ export default function VisitorRequestsScreen({
   const [selectedTab, setSelectedTab] = useState<TabType>(
     initialTabFromParams || defaultTab,
   );
-  const [viewMode, setViewMode] = useState<"card" | "list">("card");
+  const [viewMode, setViewMode] = useState<"card" | "list">("list");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [submittedSearch, setSubmittedSearch] = useState("");
+  const [dateRange, setDateRange] = useState<{ startDate: Date | null; endDate: Date | null }>({ startDate: null, endDate: null });
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
-  // Only update tab if navigation params change AFTER initial mount (e.g., navigating back with different tab)
-  // Skip if the param matches what we already applied to prevent flickering
+  const handleSearchSubmit = useCallback(() => {
+    setSubmittedSearch(searchQuery);
+  }, [searchQuery]);
+
   useEffect(() => {
     const paramTab = routeParams?.initialTab;
-    
-    // Skip if no param, or if it matches what we've already applied
     if (!paramTab || paramTab === appliedInitialTabRef.current) return;
-
-    // Validate and apply the new tab
-    if (isManager && isValidManagerTab(paramTab)) {
-      setSelectedTab(paramTab);
-      appliedInitialTabRef.current = paramTab;
-    } else if (!isManager && isValidEmployeeTab(paramTab)) {
+    if (isValidTab(paramTab)) {
       setSelectedTab(paramTab);
       appliedInitialTabRef.current = paramTab;
     }
-  }, [isManager, routeParams?.initialTab]);
+  }, [routeParams?.initialTab]);
 
-  const isWalkInTab = selectedTab === "walkin";
+  const toLocalDateString = (date: Date) => {
+    const y = String(date.getFullYear());
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
+
+  const hasDateFilter = dateRange.startDate !== null;
 
   const visitsParams = useMemo(() => {
-    if (isManager) {
-      switch (selectedTab) {
-        case "pending":
-          return { pendingApproval: true };
-        case "awaiting":
-          return { awaitingVisitor: true };
-        case "walkin":
-          return {}; // Use separate pending host walk-ins query
-        default:
-          return {};
-      }
+    const params: Omit<VisitListParams, "page"> = {
+      myRequestsOnly: true,
+    };
+    if (submittedSearch.trim()) {
+      params.search = submittedSearch.trim();
     }
-    // Employee: use myRequestsOnly to fetch only their own requests
-    return { myRequestsOnly: true };
-  }, [isManager, selectedTab]);
+    if (dateRange.startDate) {
+      params.startDate = toLocalDateString(dateRange.startDate);
+    }
+    if (dateRange.endDate) {
+      params.endDate = toLocalDateString(dateRange.endDate);
+    }
+    return params;
+  }, [submittedSearch, dateRange]);
 
   const {
     data: visitsData,
@@ -875,23 +551,44 @@ export default function VisitorRequestsScreen({
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useInfiniteVisitsQuery(visitsParams, !isWalkInTab);
-
-  // Query for pending host walk-ins (used when walkin tab is selected)
+    isFetchNextPageError,
+  } = useInfiniteVisitsQuery(visitsParams, true);
+  const visitsSourceKey = JSON.stringify(visitsParams);
   const {
-    data: pendingHostWalkInsData,
-    isLoading: isPendingHostWalkInsLoading,
-    isFetching: isPendingHostWalkInsFetching,
-    error: pendingHostWalkInsError,
-    refetch: refetchPendingHostWalkIns,
-  } = usePendingHostWalkInsQuery({ limit: 100 }, isWalkInTab);
+    data: displayedVisitsData,
+    isRetained: isShowingPreviousVisits,
+    dateKey: displayedVisitsSourceKey,
+  } = useRetainedDatedData(visitsSourceKey, visitsData);
+  const displayedVisitsParams = useMemo(
+    () => JSON.parse(displayedVisitsSourceKey) as {
+      search?: string;
+      startDate?: string;
+      endDate?: string;
+    },
+    [displayedVisitsSourceKey],
+  );
+  const displayedVisitsSourceLabel = useMemo(() => {
+    const sourceParts: string[] = [];
+    if (displayedVisitsParams.startDate) {
+      sourceParts.push(
+        displayedVisitsParams.endDate &&
+          displayedVisitsParams.endDate !== displayedVisitsParams.startDate
+          ? `${displayedVisitsParams.startDate} – ${displayedVisitsParams.endDate}`
+          : displayedVisitsParams.startDate,
+      );
+    }
+    if (displayedVisitsParams.search) {
+      sourceParts.push(
+        `${t("common.search")}: “${displayedVisitsParams.search}”`,
+      );
+    }
+    return sourceParts.join(" · ") || t("common.all");
+  }, [displayedVisitsParams, t]);
 
-  const isLoading = isWalkInTab ? isPendingHostWalkInsLoading : isVisitsLoading;
-  const isFetching = isWalkInTab
-    ? isPendingHostWalkInsFetching
-    : isVisitsFetching;
-  const error = isWalkInTab ? pendingHostWalkInsError : visitsError;
-  const refetch = isWalkInTab ? refetchPendingHostWalkIns : refetchVisits;
+  const isLoading = isVisitsLoading;
+  const isFetching = isVisitsFetching;
+  const error = visitsError;
+  const refetch = refetchVisits;
 
   // Track if this is the initial mount to avoid double-fetching
   const isInitialMount = useRef(true);
@@ -908,27 +605,107 @@ export default function VisitorRequestsScreen({
   );
 
   const requests = useMemo(() => {
-    if (isWalkInTab) {
-      if (!pendingHostWalkInsData?.data) return [];
-      return pendingHostWalkInsData.data.map(
-        mapPendingHostWalkInToVisitorRequest,
-      );
-    }
-    if (!visitsData?.pages) return [];
-    return visitsData.pages.flatMap((page) =>
+    if (!displayedVisitsData?.pages) return [];
+    return displayedVisitsData.pages.flatMap((page) =>
       page.data.map(mapVisitListItemToVisitorRequest),
     );
-  }, [isWalkInTab, visitsData?.pages, pendingHostWalkInsData?.data]);
+  }, [displayedVisitsData?.pages]);
+  const expirationBoundaries = useMemo(
+    () =>
+      requests.map((request) =>
+        getPendingApprovalWalkInScheduledEndMs({
+          isWalkIn: request.isWalkIn,
+          status: request.status,
+          visitDate: request.visitDate,
+          visitTime: request.visitTime,
+          endTime: request.endTime,
+          duration: request.duration,
+        }),
+      ),
+    [requests],
+  );
+  const expirationTick = useTimeBoundaryTick(expirationBoundaries);
+
 
   const handleLoadMore = useCallback(() => {
-    if (hasNextPage && !isFetchingNextPage) {
+    if (
+      canAutomaticallyFetchNextPage({
+        hasNextPage,
+        isFetching,
+        isFetchNextPageError,
+      })
+    ) {
       fetchNextPage();
     }
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  }, [hasNextPage, isFetching, isFetchNextPageError, fetchNextPage]);
+
+  const isPendingApprovalWalkInExpired = useCallback(
+    (request: VisitorRequest) => {
+      return computeIsPendingApprovalWalkInExpired({
+        isWalkIn: request.isWalkIn,
+        status: request.status,
+        visitDate: request.visitDate,
+        visitTime: request.visitTime,
+        endTime: request.endTime,
+        duration: request.duration,
+      });
+    },
+    [expirationTick],
+  );
+
+  const isWalkInExpired = useCallback(
+    (request: VisitorRequest) => {
+      if (!request.isWalkIn) return false;
+      if (isPendingApprovalWalkInExpired(request)) return true;
+      return computeIsVisitExpired(
+        request.visitDate,
+        request.visitTime,
+        request.endTime,
+        request.duration,
+        { isWalkIn: true },
+      );
+    },
+    [isPendingApprovalWalkInExpired, riyadhBusinessDateKey],
+  );
+
+  const toMatrixItem = useCallback(
+    (request: VisitorRequest): VisitorMatrixItem => {
+      const purposeValue = normalizePurposeValue(request.purpose || "");
+      const purposeLabel = PURPOSE_VALUE_TO_KEY[purposeValue]
+        ? t(PURPOSE_VALUE_TO_KEY[purposeValue] as any)
+        : request.purpose;
+      return {
+        id: request.id,
+        visitorName: capitalizeFirst(request.visitor.fullName),
+        company: request.visitor.company || undefined,
+        visitDate: request.visitDate,
+        plannedInTime: request.visitTime,
+        plannedOutTime: request.endTime,
+        status: request.status,
+        actualInTime: request.checkedInAt,
+        actualOutTime: request.checkedOutAt,
+        hasParking:
+          resolveParkingDisplayDecision({
+            parkingDecision: request.parkingDecision,
+            visitorNeedsParking: request.visitorNeedsParking,
+            isVisitorNeedsParking: request.isVisitorNeedsParking,
+            hasParkingAllocation: !!request.parkingSlot,
+          }) === "required",
+        hasBuffet: !!(request.buffet || request.isBuffet),
+        hasValet: !!request.valet,
+        hasMeetingRoom: !!(request.meetingRoom || request.isMeetingRoom),
+        purpose: purposeLabel || undefined,
+        email: request.visitor.email || undefined,
+        phone: request.visitor.phone || undefined,
+        isExpired: isWalkInExpired(request),
+      };
+    },
+    [isPendingApprovalWalkInExpired, isWalkInExpired, t],
+  );
 
   // Only show skeleton on initial load (no cached data), not during background refetches
   // This prevents flickering when the screen gains focus and refetches in the background
-  if (isLoading && requests.length === 0) {
+  if (isLoading && !displayedVisitsData) {
     return (
       <View
         style={{
@@ -942,7 +719,7 @@ export default function VisitorRequestsScreen({
     );
   }
 
-  if (error) {
+  if (error && !displayedVisitsData) {
     return (
       <View
         style={{
@@ -961,7 +738,7 @@ export default function VisitorRequestsScreen({
             { color: theme.textSecondary, textAlign: "center" },
           ]}
         >
-          {t("errors.loadFailed")}
+          {t("common.loadError")}
         </ThemedText>
         <Spacer height={Spacing.lg} />
         <Pressable
@@ -976,121 +753,227 @@ export default function VisitorRequestsScreen({
     );
   }
 
-  const totalVisitors = requests.length;
-  const todaysVisitors = requests.filter((request) => {
-    const visitDate = new Date(request.visitDate);
-    const today = new Date();
-    return visitDate.toDateString() === today.toDateString();
-  }).length;
-
   const getFilteredRequests = () => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
     let filtered = requests;
 
     switch (selectedTab) {
-      case "upcoming":
-        filtered = requests.filter((request) => {
-          const visitDate = new Date(request.visitDate);
-          return (
-            visitDate >= today &&
-            (UPCOMING_STATUSES as readonly string[]).includes(request.status)
-          );
-        });
+      case "to_be_checked":
+        filtered = requests.filter(
+          (r) => r.status === 'approved' || r.status === 'visitor_accepted',
+        );
         break;
-      case "waiting":
-        filtered = requests.filter((request) => {
-          return request.status === REQUEST_STATUS.VISITOR_PENDING;
-        });
+      case "checked_in":
+        filtered = requests.filter((r) => r.status === 'checked_in');
         break;
-      case "past":
-        filtered = requests.filter((request) => {
-          const visitDate = new Date(request.visitDate);
-          return (
-            visitDate < today ||
-            request.status === REQUEST_STATUS.COMPLETED ||
-            (CANCELLED_STATUSES as readonly string[]).includes(request.status)
-          );
-        });
-        break;
-      case "walkin":
-        // For walkin tab, the data already comes from the pending-host API
-        // Just return all requests as they are already filtered
-        filtered = requests;
+      case "checked_out":
+        filtered = requests.filter((r) => r.status === 'completed');
         break;
       case "all":
       default:
         filtered = requests;
     }
 
+    if (
+      hasDateFilter &&
+      dateRange.startDate &&
+      displayedVisitsSourceKey === visitsSourceKey
+    ) {
+      const start = toLocalDateString(dateRange.startDate);
+      const end = toLocalDateString(dateRange.endDate ?? dateRange.startDate);
+      filtered = filtered.filter((request) => {
+        return request.visitDate >= start && request.visitDate <= end;
+      });
+    }
+
     return filtered;
   };
 
   const filteredRequests = getFilteredRequests();
+  const queryFeedback = isShowingPreviousVisits ? (
+    <DirectionalRow
+      style={[
+        styles.inlineQueryFeedback,
+        { backgroundColor: applyOpacity(theme.primary, "10") },
+      ]}
+    >
+      <DDIcon name="info" size={16} color={theme.primary} />
+      <ThemedText
+        style={[Typography.caption, { color: theme.textSecondary, flex: 1 }]}
+      >
+        {t("requests.showingPreviousDataFrom").replace(
+          "{{source}}",
+          displayedVisitsSourceLabel,
+        )}
+      </ThemedText>
+      {error ? (
+        <Pressable onPress={() => refetch()} hitSlop={8}>
+          <ThemedText
+            style={[
+              Typography.caption,
+              { color: theme.primary, fontWeight: "600" },
+            ]}
+          >
+            {t("common.retry")}
+          </ThemedText>
+        </Pressable>
+      ) : null}
+    </DirectionalRow>
+  ) : error && !isFetchNextPageError ? (
+    <DirectionalRow
+      style={[
+        styles.inlineQueryFeedback,
+        { backgroundColor: applyOpacity(theme.error, "10") },
+      ]}
+    >
+      <DDIcon name="alert-circle" size={16} color={theme.error} />
+      <ThemedText
+        style={[Typography.caption, { color: theme.error, flex: 1 }]}
+      >
+        {t("common.loadError")}
+      </ThemedText>
+      <Pressable onPress={() => refetch()} hitSlop={8}>
+        <ThemedText
+          style={[
+            Typography.caption,
+            { color: theme.primary, fontWeight: "600" },
+          ]}
+        >
+          {t("common.retry")}
+        </ThemedText>
+      </Pressable>
+    </DirectionalRow>
+  ) : isFetching && !isFetchingNextPage ? (
+    <DirectionalRow
+      style={[
+        styles.inlineQueryFeedback,
+        { backgroundColor: applyOpacity(theme.primary, "10") },
+      ]}
+    >
+      <ActivityIndicator size="small" color={theme.primary} />
+      <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
+        {t("common.loading")}
+      </ThemedText>
+    </DirectionalRow>
+  ) : null;
+  const paginationFooter = (
+    <>
+      <ListLoadingFooter isLoading={isFetchingNextPage} />
+      {isFetchNextPageError ? (
+        <View style={styles.paddedContent}>
+          <DirectionalRow
+            style={[
+              styles.inlineQueryFeedback,
+              { backgroundColor: applyOpacity(theme.error, "10") },
+            ]}
+          >
+            <DDIcon name="alert-circle" size={16} color={theme.error} />
+            <ThemedText
+              style={[Typography.caption, { color: theme.error, flex: 1 }]}
+            >
+              {t("common.loadError")}
+            </ThemedText>
+            <Pressable onPress={() => fetchNextPage()} hitSlop={8}>
+              <ThemedText
+                style={[
+                  Typography.caption,
+                  { color: theme.primary, fontWeight: "600" },
+                ]}
+              >
+                {t("common.retry")}
+              </ThemedText>
+            </Pressable>
+          </DirectionalRow>
+        </View>
+      ) : null}
+    </>
+  );
 
   // List View Layout - CRITICAL: ScreenFlatList as ROOT element
   if (viewMode === "list") {
     return (
       <>
         <ScreenFlatList
-          data={filteredRequests}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <View style={styles.paddedContent}>
-              <VisitorRequestTableRow
-                request={item}
-                onPress={() =>
-                  navigation.navigate(
-                    ROUTES.REQUEST_DETAILS as any,
-                    { requestId: item.id } as any,
-                  )
-                }
-                theme={theme}
-                t={t}
-                isRTL={isRTL}
-              />
-            </View>
-          )}
+          data={[]}
+          extraData={expirationTick}
+          keyExtractor={() => "_"}
+          renderItem={() => null}
           ListHeaderComponent={
             <>
-              {/* Stats Cards - needs padding */}
-              <View style={styles.paddedContent}>
-                <StatsCards
-                  totalVisitors={totalVisitors}
-                  todaysVisitors={todaysVisitors}
-                  theme={theme}
-                  t={t}
-                />
-              </View>
-
-              <Spacer height={LAYOUT.sectionSpacing} />
-
               {/* Header Controls - SectionHeader handles its own padding */}
               <SectionHeader
                 selectedTab={selectedTab}
                 onTabChange={setSelectedTab}
                 viewMode={viewMode}
                 onViewModeChange={setViewMode}
+                isDateFilterActive={hasDateFilter}
+                onDatePress={() => setShowDatePicker(true)}
+                onClearDatePress={() => setDateRange({ startDate: null, endDate: null })}
                 theme={theme}
                 t={t}
-                userRole={userRole}
               />
 
-              <Spacer height={Spacing.lg} />
+              <Spacer height={Spacing.md} />
+
+              {/* Search */}
+              <View style={styles.paddedContent}>
+                <View style={styles.searchRow}>
+                  <View style={styles.searchInputWrapper}>
+                    <SearchInput
+                      placeholder={t("common.search")}
+                      value={searchQuery}
+                      onChangeText={setSearchQuery}
+                      onClear={() => setSubmittedSearch("")}
+                      onSubmitSearch={handleSearchSubmit}
+                      onSubmitEditing={handleSearchSubmit}
+                      returnKeyType="search"
+                    />
+                  </View>
+                </View>
+              </View>
+
+              <Spacer height={Spacing.md} />
+
+              <View style={styles.paddedContent}>
+                {queryFeedback}
+                {queryFeedback ? <Spacer height={Spacing.md} /> : null}
+                {filteredRequests.length > 0 ? (
+                  <VisitorMatrixTable
+                    variant="matrix"
+                    visitors={filteredRequests.map(toMatrixItem)}
+                    onPressRow={(id) =>
+                      navigation.navigate(
+                        ROUTES.REQUEST_DETAILS as any,
+                        { requestId: id } as any,
+                      )
+                    }
+                    emptyMessage={t("common.noResults")}
+                    showExpiredState={true}
+                  />
+                ) : (
+                  <EmptyState theme={theme} t={t} />
+                )}
+              </View>
             </>
           }
-          ListEmptyComponent={
-            <View style={styles.paddedContent}>
-              <EmptyState theme={theme} t={t} />
-            </View>
-          }
-          ListFooterComponent={
-            <ListLoadingFooter isLoading={isFetchingNextPage && !isWalkInTab} />
-          }
-          ItemSeparatorComponent={() => <Spacer height={Spacing.md} />}
-          onEndReached={isWalkInTab ? undefined : handleLoadMore}
+          ListFooterComponent={paginationFooter}
+          onEndReached={handleLoadMore}
           onEndReachedThreshold={0.5}
+        />
+
+        <CalendarDatePicker
+          visible={showDatePicker}
+          onClose={() => setShowDatePicker(false)}
+          mode="range"
+          dateRange={dateRange}
+          onDateSelect={(date) => {
+            setDateRange({ startDate: date, endDate: date });
+            setShowDatePicker(false);
+          }}
+          onRangeSelect={(range) => {
+            setDateRange(range);
+            setShowDatePicker(false);
+          }}
+          allowPastDates
         />
 
         <Pressable
@@ -1102,7 +985,7 @@ export default function VisitorRequestsScreen({
             },
           ]}
           onPress={() =>
-            navigation.navigate(ROUTES.VISIT_TYPE_SELECTION as any)
+            navigation.navigate(ROUTES.VISITOR_REQUEST_FORM as any)
           }
         >
           <DDIcon name="user-plus" size={24} color={theme.buttonText} />
@@ -1113,7 +996,7 @@ export default function VisitorRequestsScreen({
 
   // Card View Layout - CRITICAL: ScreenFlatList as ROOT element for infinite scroll
   // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
-  const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
+  const numColumns = screenWidth >= 900 ? 3 : screenWidth >= 600 ? 2 : 1;
   
   // Get item style based on numColumns - use flexBasis percentage for reliable multi-column layout
   const getItemStyle = () => {
@@ -1131,6 +1014,7 @@ export default function VisitorRequestsScreen({
       <ScreenFlatList
         key={`flatlist-${numColumns}`}
         data={filteredRequests}
+        extraData={expirationTick}
         keyExtractor={(item) => item.id}
         numColumns={numColumns}
         columnWrapperStyle={numColumns > 1 ? styles.webGridRow : undefined}
@@ -1138,6 +1022,8 @@ export default function VisitorRequestsScreen({
           <View style={getItemStyle()}>
             <VisitorRequestCard
               request={item}
+              isExpired={isWalkInExpired(item)}
+              showExpiredState={true}
               onPress={() =>
                 navigation.navigate(
                   ROUTES.REQUEST_DETAILS as any,
@@ -1151,30 +1037,41 @@ export default function VisitorRequestsScreen({
           <>
             <Spacer height={Spacing.md} />
 
-            {/* Stats Cards - needs padding */}
-            <View style={styles.paddedContent}>
-              <StatsCards
-                totalVisitors={totalVisitors}
-                todaysVisitors={todaysVisitors}
-                theme={theme}
-                t={t}
-              />
-            </View>
-
-            <Spacer height={LAYOUT.sectionSpacing} />
-
             {/* Section Header - handles its own padding for horizontal scrolls */}
             <SectionHeader
               selectedTab={selectedTab}
               onTabChange={setSelectedTab}
               viewMode={viewMode}
               onViewModeChange={setViewMode}
+              isDateFilterActive={hasDateFilter}
+              onDatePress={() => setShowDatePicker(true)}
+              onClearDatePress={() => setDateRange({ startDate: null, endDate: null })}
               theme={theme}
               t={t}
-              userRole={userRole}
             />
 
-            <Spacer height={Spacing.lg} />
+            <Spacer height={Spacing.md} />
+
+            {/* Search */}
+            <View style={styles.paddedContent}>
+              <View style={styles.searchRow}>
+                <View style={styles.searchInputWrapper}>
+                  <SearchInput
+                    placeholder={t("common.search")}
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    onClear={() => setSubmittedSearch("")}
+                    onSubmitSearch={handleSearchSubmit}
+                    onSubmitEditing={handleSearchSubmit}
+                    returnKeyType="search"
+                  />
+                </View>
+              </View>
+            </View>
+
+            <Spacer height={Spacing.md} />
+            {queryFeedback}
+            {queryFeedback ? <Spacer height={Spacing.md} /> : null}
           </>
         }
         ListEmptyComponent={
@@ -1182,12 +1079,26 @@ export default function VisitorRequestsScreen({
             <EmptyState theme={theme} t={t} />
           </View>
         }
-        ListFooterComponent={
-          <ListLoadingFooter isLoading={isFetchingNextPage && !isWalkInTab} />
-        }
+        ListFooterComponent={paginationFooter}
         ItemSeparatorComponent={() => <Spacer height={LAYOUT.contentGap} />}
-        onEndReached={isWalkInTab ? undefined : handleLoadMore}
+        onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}
+      />
+
+      <CalendarDatePicker
+        visible={showDatePicker}
+        onClose={() => setShowDatePicker(false)}
+        mode="range"
+        dateRange={dateRange}
+        onDateSelect={(date) => {
+          setDateRange({ startDate: date, endDate: date });
+          setShowDatePicker(false);
+        }}
+        onRangeSelect={(range) => {
+          setDateRange(range);
+          setShowDatePicker(false);
+        }}
+        allowPastDates
       />
 
       <Pressable
@@ -1199,7 +1110,7 @@ export default function VisitorRequestsScreen({
           },
         ]}
         onPress={() =>
-          navigation.navigate(ROUTES.VISIT_TYPE_SELECTION as any)
+          navigation.navigate(ROUTES.VISITOR_REQUEST_FORM as any)
         }
       >
         <DDIcon name="user-plus" size={24} color={theme.buttonText} />
@@ -1305,13 +1216,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  statusBadge: {
-    borderRadius: BorderRadius.full,
-    borderWidth: 1,
-  },
-  statusText: {
-    fontWeight: "600",
-  },
   nameWithBadgeRow: {
     alignItems: "center",
     justifyContent: "space-between",
@@ -1353,6 +1257,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.md,
     borderRadius: BorderRadius.md,
+  },
+  inlineQueryFeedback: {
+    alignItems: "center",
+    gap: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.sm,
   },
 
   // Card View Styles
@@ -1447,6 +1358,16 @@ const styles = StyleSheet.create({
   },
   contactRow: {
     alignItems: "center",
+  },
+
+  // Search & Date Filter
+  searchRow: {
+    flexDirection: "row",
+    gap: Spacing.sm,
+    alignItems: "center",
+  },
+  searchInputWrapper: {
+    flex: 1,
   },
 
   // FAB

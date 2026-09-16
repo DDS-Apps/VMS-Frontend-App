@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { View, StyleSheet, Pressable, ActivityIndicator, I18nManager } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DDIcon, IconName } from "@/components/DDIcon";
@@ -12,9 +12,11 @@ import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
+import { useRetainedDatedData } from "@/hooks/useRetainedDatedData";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { UserRole } from "@/types/vms.types";
 import type { NotificationItemDto, NotificationEventType } from "@/types/notification.types";
+import type { PaginatedResponse } from "@/types";
 import { applyOpacity } from "@/utils/statusStyles";
 import { navigateFromInAppNotification } from "@/utils/notificationNavigator";
 import { localizeNotification } from "@/utils/notificationLocalization";
@@ -53,17 +55,52 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
   };
 
   const isReadFilter = selectedTab === 'unread' ? false : undefined;
-  const { data, isLoading, refetch } = useNotificationsQuery({ isRead: isReadFilter, limit: 50 });
+  const queryParams = useMemo(
+    () => ({ isRead: isReadFilter, limit: 50 }),
+    [isReadFilter],
+  );
+  const {
+    data,
+    isLoading,
+    isFetching,
+    isError,
+    refetch,
+  } = useNotificationsQuery(queryParams);
   const markAsReadMutation = useMarkNotificationAsReadMutation();
   const markAllAsReadMutation = useMarkAllNotificationsAsReadMutation();
 
-  const notifications = data?.data ?? [];
-  const totalCount = data?.total ?? 0;
+  const retainedInput = useMemo(
+    () => data !== undefined
+      ? { response: data, sourceTab: selectedTab }
+      : undefined,
+    [data, selectedTab],
+  );
+  const notificationsSourceKey = JSON.stringify(queryParams);
+  const retainedNotifications = useRetainedDatedData<
+    {
+      response: PaginatedResponse<NotificationItemDto>;
+      sourceTab: 'all' | 'unread';
+    }
+  >(notificationsSourceKey, retainedInput);
+  const displayedResponse = retainedNotifications.data?.response;
+  const displayedSourceTab = retainedNotifications.data?.sourceTab ?? selectedTab;
+  const hasDisplayedResponse = displayedResponse !== undefined;
+  const displayedSourceLabel = displayedSourceTab === 'all'
+    ? t('common.all')
+    : t('notifications.unread');
+  const notifications = displayedResponse?.data ?? [];
+  const totalCount = displayedResponse?.total ?? 0;
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
   const handleMarkAllAsRead = useCallback(() => {
     markAllAsReadMutation.mutate();
   }, [markAllAsReadMutation]);
+
+  const handleRetry = useCallback(() => {
+    if (!isFetching) {
+      refetch({ cancelRefetch: false });
+    }
+  }, [isFetching, refetch]);
 
   const handleNotificationPress = useCallback((notification: NotificationItemDto) => {
     if (!notification.isRead) {
@@ -228,20 +265,93 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
 
       <Spacer height={Spacing.lg} />
 
-      {isLoading ? (
+      {!hasDisplayedResponse && (isFetching || isLoading) ? (
         <ThemedView style={[styles.emptyState, { backgroundColor: theme.surface }]}>
           <ActivityIndicator size="large" color={theme.primary} />
         </ThemedView>
-      ) : notifications.length === 0 ? (
+      ) : !hasDisplayedResponse && isError ? (
         <ThemedView style={[styles.emptyState, { backgroundColor: theme.surface }]}>
-          <DDIcon name="inbox" size={48} variant="muted" />
+          <DDIcon name="alert-circle" size={48} color={theme.error} />
           <Spacer height={Spacing.md} />
-          <ThemedText style={[Typography.body, { color: theme.textSecondary }]}>
-            {t('notifications.noNotifications')}
+          <ThemedText style={[Typography.body, { color: theme.error }]}>
+            {t('errors.somethingWentWrong')}
           </ThemedText>
+          <Spacer height={Spacing.md} />
+          <Pressable
+            onPress={handleRetry}
+            disabled={isFetching}
+          >
+            <ThemedText style={[Typography.bodySmall, { color: theme.primary, fontWeight: '600' }]}>
+              {t('common.retry')}
+            </ThemedText>
+          </Pressable>
         </ThemedView>
-      ) : (
-        notifications.map((notification) => {
+      ) : hasDisplayedResponse ? (
+        <>
+          {isFetching || isError || retainedNotifications.isRetained ? (
+            <>
+              <DirectionalRow
+                style={[
+                  styles.inlineFeedback,
+                  {
+                    backgroundColor: applyOpacity(
+                      isError && !isFetching ? theme.error : theme.primary,
+                      '10',
+                    ),
+                  },
+                ]}
+                gap={Spacing.sm}
+              >
+                {isFetching ? (
+                  <ActivityIndicator size="small" color={theme.primary} />
+                ) : (
+                  <DDIcon
+                    name={isError ? "alert-circle" : "info"}
+                    size={16}
+                    color={isError ? theme.error : theme.primary}
+                  />
+                )}
+                <ThemedText
+                  style={[
+                    Typography.caption,
+                    {
+                      color: isError && !retainedNotifications.isRetained
+                        ? theme.error
+                        : theme.textSecondary,
+                      flex: 1,
+                    },
+                  ]}
+                >
+                  {retainedNotifications.isRetained
+                    ? t('requests.showingPreviousDataFrom').replace('{{source}}', displayedSourceLabel)
+                    : isFetching
+                      ? t('common.loading')
+                      : t('errors.somethingWentWrong')}
+                </ThemedText>
+                {isError && !isFetching ? (
+                  <Pressable
+                    onPress={handleRetry}
+                    disabled={isFetching}
+                    hitSlop={8}
+                  >
+                    <ThemedText style={[Typography.caption, { color: theme.primary, fontWeight: '600' }]}>
+                      {t('common.retry')}
+                    </ThemedText>
+                  </Pressable>
+                ) : null}
+              </DirectionalRow>
+              <Spacer height={Spacing.md} />
+            </>
+          ) : null}
+          {notifications.length === 0 ? (
+            <ThemedView style={[styles.emptyState, { backgroundColor: theme.surface }]}>
+              <DDIcon name="inbox" size={48} variant="muted" />
+              <Spacer height={Spacing.md} />
+              <ThemedText style={[Typography.body, { color: theme.textSecondary }]}>
+                {t('notifications.noNotifications')}
+              </ThemedText>
+            </ThemedView>
+          ) : notifications.map((notification) => {
           const { icon, variant } = getNotificationConfig(notification.type);
           const accentColor = getVariantColor(variant);
           const { title: localizedTitle, message: localizedMessage } = getLocalizedContent(notification);
@@ -299,8 +409,9 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
               <Spacer height={Spacing.md} />
             </View>
           );
-        })
-      )}
+          })}
+        </>
+      ) : null}
     </ScreenScrollView>
   );
 }
@@ -374,5 +485,11 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  inlineFeedback: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+    alignItems: 'center',
   },
 });

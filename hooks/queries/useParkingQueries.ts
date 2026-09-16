@@ -55,11 +55,12 @@ export function useParkingAllocationsQuery(params?: ListParkingAllocationsParams
   });
 }
 
-export function useParkingStatsQuery() {
+export function useParkingStatsQuery(enabled = true) {
   return useQuery<ParkingStatsDto>({
     queryKey: parkingKeys.stats(),
     queryFn: () => parkingApiService.getStats(),
     staleTime: 60 * 1000,
+    enabled,
   });
 }
 

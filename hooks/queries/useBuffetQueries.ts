@@ -1,5 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { buffetApiService, type ListBuffetRequestsParams } from '@/services/api/buffetApiService';
+import { invalidateDashboardKpis } from '@/hooks/queries/useDashboardKpiQuery';
 import type { PaginatedResponse } from '@/types';
 import type {
   BuffetLocationDto,
@@ -172,6 +173,7 @@ export function useCreateBuffetRequestMutation() {
     mutationFn: (data) => buffetApiService.createRequest(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: buffetKeys.requests() });
+      invalidateDashboardKpis(queryClient);
     },
   });
 }
@@ -184,6 +186,7 @@ export function useUpdateBuffetRequestMutation() {
     onSuccess: (data, variables) => {
       queryClient.setQueryData(buffetKeys.requestDetail(variables.id), data);
       queryClient.invalidateQueries({ queryKey: buffetKeys.requests() });
+      invalidateDashboardKpis(queryClient);
     },
   });
 }
@@ -196,6 +199,7 @@ export function useHandleBuffetRequestMutation() {
     onSuccess: (data, variables) => {
       queryClient.setQueryData(buffetKeys.requestDetail(variables.id), data);
       queryClient.invalidateQueries({ queryKey: buffetKeys.requests() });
+      invalidateDashboardKpis(queryClient);
     },
   });
 }
@@ -232,10 +236,21 @@ export function useUpdateBuffetTaskStatusMutation() {
 
 // ========== Buffet Admin Queries ==========
 
+/** Strip visitor PII from a buffet admin task at the client boundary. */
+function sanitizeBuffetAdminTask(task: Record<string, unknown>): BuffetAdminTaskDto {
+  const { visitorName: _vn, company: _co, ...safe } = task as Record<string, unknown> & { visitorName?: unknown; company?: unknown };
+  return safe as unknown as BuffetAdminTaskDto;
+}
+
 export function useBuffetAdminTasksQuery(params?: ListBuffetAdminTasksParams, enabled = true) {
   return useQuery<{ data: BuffetAdminTaskDto[] }>({
     queryKey: buffetKeys.adminTasksList(params),
     queryFn: () => buffetApiService.getBuffetAdminTasks(params),
+    select: (response) => {
+      const raw = response as { data?: unknown[] };
+      const tasks = Array.isArray(raw?.data) ? raw.data : [];
+      return { ...response, data: tasks.map(t => sanitizeBuffetAdminTask(t as Record<string, unknown>)) };
+    },
     enabled,
   });
 }
@@ -244,6 +259,7 @@ export function useBuffetAdminTaskQuery(id: string, enabled = true) {
   return useQuery<BuffetAdminTaskDto>({
     queryKey: buffetKeys.adminTaskDetail(id),
     queryFn: () => buffetApiService.getBuffetAdminTaskById(id),
+    select: (response) => sanitizeBuffetAdminTask(response as unknown as Record<string, unknown>),
     enabled: enabled && !!id,
   });
 }
@@ -259,6 +275,7 @@ export function useAssignBuffetTaskMutation() {
           query.queryKey[0] === 'buffet' &&
           (query.queryKey[1] === 'admin-tasks' || query.queryKey[1] === 'requests'),
       });
+      invalidateDashboardKpis(queryClient);
     },
   });
 }
@@ -274,6 +291,7 @@ export function useUpdateBuffetAdminTaskStatusMutation() {
           query.queryKey[0] === 'buffet' &&
           (query.queryKey[1] === 'admin-tasks' || query.queryKey[1] === 'requests'),
       });
+      invalidateDashboardKpis(queryClient);
     },
   });
 }
@@ -306,6 +324,9 @@ export function useBuffetAdminStaffQuery(enabled = true) {
     queryKey: buffetKeys.adminStaff(),
     queryFn: () => buffetApiService.getBuffetAdminStaff(),
     enabled,
+    // Keep previous data visible during refetch so any filters/UI are not
+    // unmounted and remounted on every background refresh.
+    placeholderData: keepPreviousData,
   });
 }
 

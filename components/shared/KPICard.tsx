@@ -13,9 +13,10 @@ export interface KPICardProps {
   value: string | number;
   icon: IconName;
   color: string;
+  subtitle?: string;
 }
 
-export function KPICard({ title, value, icon, color }: KPICardProps) {
+export function KPICard({ title, value, icon, color, subtitle }: KPICardProps) {
   const { theme } = useTheme();
   
   return (
@@ -34,31 +35,39 @@ export function KPICard({ title, value, icon, color }: KPICardProps) {
           { backgroundColor: color },
         ]}
       >
-        <DDIcon name={icon} size={24} color="#FFFFFF" />
+        <DDIcon name={icon} size={18} color="#FFFFFF" />
       </View>
 
-      <Spacer height={Spacing.md} />
+      <View style={styles.textContainer}>
+        <ThemedText
+          variant="h3"
+          style={[
+            styles.value,
+            { color: theme.text },
+          ]}
+          numberOfLines={1}
+        >
+          {value}
+        </ThemedText>
 
-      <ThemedText
-        style={[
-          styles.label,
-          { color: color },
-        ]}
-      >
-        {title}
-      </ThemedText>
-
-      <Spacer height={Spacing.xs} />
-
-      <ThemedText
-        variant="h3"
-        style={[
-          styles.value,
-          { color: theme.text },
-        ]}
-      >
-        {value}
-      </ThemedText>
+        <ThemedText
+          style={[
+            styles.label,
+            { color: color },
+          ]}
+          numberOfLines={1}
+        >
+          {title}
+        </ThemedText>
+        {subtitle ? (
+          <ThemedText
+            style={[styles.subtitle, { color: theme.textSecondary }]}
+            numberOfLines={1}
+          >
+            {subtitle}
+          </ThemedText>
+        ) : null}
+      </View>
     </ThemedView>
   );
 }
@@ -77,7 +86,7 @@ export function KPICardRow({ children }: KPICardRowProps) {
   if (childCount === 0) {
     return null;
   }
-  
+
   const effectiveColumns = Math.min(columnsPerRow, childCount);
   const flexBasisPercent = effectiveColumns === 2 ? '46%' : effectiveColumns === 3 ? '30%' : '22%';
   
@@ -118,28 +127,43 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   card: {
-    padding: Spacing.lg,
-    paddingBottom: Spacing.xl,
+    padding: Spacing.sm,
+    paddingLeft: Spacing.md,
     borderRadius: BorderRadius.lg,
+    flexDirection: 'row',
     alignItems: 'center',
     overflow: 'visible' as const,
+    gap: Spacing.sm,
   },
   iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: BorderRadius.md,
+    width: 36,
+    height: 36,
+    borderRadius: BorderRadius.sm,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  textContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+  },
   label: {
     ...Typography.bodySmall,
+    fontSize: 12,
     fontWeight: '600',
-    textAlign: 'center',
+    textAlign: 'left',
   },
   value: {
     ...Typography.title,
-    fontSize: 28,
-    lineHeight: 42,
+    fontSize: 20,
+    lineHeight: 28,
     fontWeight: '700',
+    textAlign: 'left',
+  },
+  subtitle: {
+    ...Typography.caption,
+    fontSize: 10,
+    textAlign: 'left',
+    marginTop: 2,
   },
 });

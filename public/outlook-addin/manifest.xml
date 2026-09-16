@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  CONFIGURE BEFORE DEPLOYING:
+  Replace every occurrence of "YOUR_APP_DOMAIN" below with the actual domain
+  stored in EXPO_PUBLIC_APP_DOMAIN (e.g. vms.dallahdigital.com).
+  QA value:  vms-backend-app-qa.replit.app
+  Prod value: set in EXPO_PUBLIC_APP_DOMAIN secret
+-->
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:type="MailApp">
+  <Id>a3f7c2d1-84b6-4e9a-bc12-5f3d8e6a1c7b</Id>
+  <Version>1.0.0</Version>
+  <ProviderName>Dallah Albaraka VMS</ProviderName>
+  <DefaultLocale>en-US</DefaultLocale>
+  <DisplayName DefaultValue="VMS - Create Visit Request"/>
+  <Description DefaultValue="Create a visitor request directly from Outlook"/>
+  <IconUrl DefaultValue="https://YOUR_APP_DOMAIN/outlook-addin/icon-80.png"/>
+  <HighResolutionIconUrl DefaultValue="https://YOUR_APP_DOMAIN/outlook-addin/icon-80.png"/>
+  <SupportUrl DefaultValue="https://YOUR_APP_DOMAIN"/>
+  <AppDomains>
+    <AppDomain>YOUR_APP_DOMAIN</AppDomain>
+  </AppDomains>
+  <Hosts>
+    <Host Name="Mailbox"/>
+  </Hosts>
+  <Requirements>
+    <Sets><Set Name="Mailbox" MinVersion="1.1"/></Sets>
+  </Requirements>
+  <FormSettings>
+    <Form xsi:type="ItemRead">
+      <DesktopSettings>
+        <SourceLocation DefaultValue="https://YOUR_APP_DOMAIN/outlook-addin/taskpane.html"/>
+        <RequestedHeight>250</RequestedHeight>
+      </DesktopSettings>
+    </Form>
+  </FormSettings>
+  <Permissions>ReadItem</Permissions>
+  <Rule xsi:type="RuleCollection" Mode="Or">
+    <Rule xsi:type="ItemIs" ItemType="Message" FormType="Read"/>
+  </Rule>
+</OfficeApp>

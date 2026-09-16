@@ -54,10 +54,15 @@ export interface TodayVisitorDto {
   hostDepartment?: string;
   visitDate?: string;
   visitTime: string;
+  /** ISO 8601 UTC timestamp of the canonical visit start. Preferred for upcoming-alert calculations. */
+  visitStartAt?: string;
+  /** IANA timezone for the visit. Use for formatting absolute timestamps. Falls back to Asia/Riyadh when absent. */
+  timezone?: string;
   status: string;
   meetingRoom?: MeetingRoomSlot;
   parkingSlot?: ParkingSlotInfo;
   qrCode?: string;
+  purpose?: string;
   isWalkIn?: boolean;
   hasMeetingRoom?: boolean;
   hasParking?: boolean;
@@ -67,6 +72,14 @@ export interface TodayVisitorDto {
   isMeetingRoom?: boolean;
   isVisitorNeedsParking?: boolean;
   visitorNeedsParking?: boolean;
+  /** Actual check-in timestamp from backend (ISO string) */
+  checkedInAt?: string;
+  /** Actual check-out timestamp from backend (ISO string) */
+  checkedOutAt?: string;
+  /** Scheduled end/departure time — wall-clock string (e.g. "2:45 PM") from backend */
+  endTime?: string;
+  /** @deprecated use endTime */
+  scheduledEndTime?: string;
 }
 
 export interface TodaySummary {
@@ -106,7 +119,7 @@ export interface RoomStatusDto {
 
 export interface WalkInRegistrationDto {
   visitorName: string;
-  visitorEmail: string;
+  visitorEmail?: string;
   visitorCompany?: string;
   visitorPhone?: string;
   hostId: string;

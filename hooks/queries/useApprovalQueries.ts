@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { requestApiService, type ListRequestsParams } from '@/services/api/requestApiService';
+import { invalidateDashboardKpis } from '@/hooks/queries/useDashboardKpiQuery';
 import type { PaginatedResponse } from '@/types';
 import type {
   RequestDto,
@@ -124,6 +125,7 @@ export function useCreateRequestMutation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: requestKeys.lists() });
       queryClient.invalidateQueries({ queryKey: requestKeys.myRequests() });
+      invalidateDashboardKpis(queryClient);
     },
   });
 }
@@ -138,6 +140,7 @@ export function useApproveRequestMutation() {
       queryClient.invalidateQueries({ queryKey: requestKeys.lists() });
       queryClient.invalidateQueries({ queryKey: requestKeys.pendingApprovals() });
       queryClient.invalidateQueries({ queryKey: invitationKeys.all });
+      invalidateDashboardKpis(queryClient);
     },
   });
 }
@@ -152,6 +155,7 @@ export function useRejectRequestMutation() {
       queryClient.invalidateQueries({ queryKey: requestKeys.lists() });
       queryClient.invalidateQueries({ queryKey: requestKeys.pendingApprovals() });
       queryClient.invalidateQueries({ queryKey: invitationKeys.all });
+      invalidateDashboardKpis(queryClient);
     },
   });
 }
@@ -165,6 +169,7 @@ export function useCancelRequestMutation() {
       queryClient.removeQueries({ queryKey: requestKeys.detail(id) });
       queryClient.invalidateQueries({ queryKey: requestKeys.lists() });
       queryClient.invalidateQueries({ queryKey: requestKeys.myRequests() });
+      invalidateDashboardKpis(queryClient);
     },
   });
 }
@@ -181,6 +186,7 @@ export function useBulkApproveRequestsMutation() {
         exact: false,
       });
       queryClient.invalidateQueries({ queryKey: invitationKeys.all });
+      invalidateDashboardKpis(queryClient);
     },
   });
 }
@@ -197,6 +203,7 @@ export function useBulkRejectRequestsMutation() {
         exact: false,
       });
       queryClient.invalidateQueries({ queryKey: invitationKeys.all });
+      invalidateDashboardKpis(queryClient);
     },
   });
 }
@@ -213,6 +220,7 @@ export function useApproveVisitMutation() {
         exact: false,
       });
       queryClient.invalidateQueries({ queryKey: invitationKeys.all });
+      invalidateDashboardKpis(queryClient);
     },
   });
 }
@@ -229,6 +237,7 @@ export function useRejectVisitMutation() {
         exact: false,
       });
       queryClient.invalidateQueries({ queryKey: invitationKeys.all });
+      invalidateDashboardKpis(queryClient);
     },
   });
 }
@@ -260,7 +269,17 @@ export function useVisitsQuery(params?: VisitListParams, enabled = true) {
   });
 }
 
-const DEFAULT_PAGE_SIZE = 10;
+export function useDuplicateCheckQuery(params?: { date: string; phone?: string; email?: string }, enabled = true) {
+  return useQuery<VisitListResponse>({
+    queryKey: [...requestKeys.all, 'duplicate-check', params] as const,
+    queryFn: () => requestApiService.checkDuplicateVisit(params || { date: '' }),
+    // Re-typing the same value (or a retry within the window) reuses the answer.
+    staleTime: 30 * 1000,
+    enabled: enabled && !!params?.date && !!(params?.phone || params?.email),
+  });
+}
+
+const DEFAULT_PAGE_SIZE = 20;
 
 export function useInfiniteVisitsQuery(params?: Omit<VisitListParams, 'page'>, enabled = true) {
   return useInfiniteQuery({
@@ -330,6 +349,7 @@ export function useCreateVisitMutation() {
       queryClient.invalidateQueries({ queryKey: requestKeys.all });
       queryClient.invalidateQueries({ queryKey: requestKeys.visits() });
       queryClient.invalidateQueries({ queryKey: invitationKeys.all });
+      invalidateDashboardKpis(queryClient);
     },
     onError: (error) => {
       console.error('[useCreateVisitMutation] onError callback:', error);
@@ -355,6 +375,7 @@ export function useUpdateVisitMutation() {
       queryClient.invalidateQueries({ queryKey: requestKeys.all });
       queryClient.invalidateQueries({ queryKey: requestKeys.visits() });
       queryClient.invalidateQueries({ queryKey: invitationKeys.all });
+      invalidateDashboardKpis(queryClient);
     },
   });
 }
@@ -369,6 +390,7 @@ export function useCancelVisitMutation() {
       queryClient.invalidateQueries({ queryKey: requestKeys.all });
       queryClient.invalidateQueries({ queryKey: requestKeys.visits() });
       queryClient.invalidateQueries({ queryKey: invitationKeys.all });
+      invalidateDashboardKpis(queryClient);
     },
   });
 }
@@ -384,6 +406,7 @@ export function useHostApproveVisitMutation() {
       queryClient.invalidateQueries({ queryKey: requestKeys.visits() });
       queryClient.invalidateQueries({ queryKey: requestKeys.pendingApprovals() });
       queryClient.invalidateQueries({ queryKey: invitationKeys.all });
+      invalidateDashboardKpis(queryClient);
     },
   });
 }
@@ -399,6 +422,7 @@ export function useHostRejectVisitMutation() {
       queryClient.invalidateQueries({ queryKey: requestKeys.visits() });
       queryClient.invalidateQueries({ queryKey: requestKeys.pendingApprovals() });
       queryClient.invalidateQueries({ queryKey: invitationKeys.all });
+      invalidateDashboardKpis(queryClient);
     },
   });
 }

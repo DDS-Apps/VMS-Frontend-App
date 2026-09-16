@@ -175,10 +175,15 @@ describe('isUpcomingVisit', () => {
 // useUpcomingIndicator hook
 // ---------------------------------------------------------------------------
 describe('useUpcomingIndicator', () => {
+  // Use an explicit UTC ISO timestamp so startMs is device-TZ independent.
+  // 2026-07-20T14:00:00Z is the canonical absolute instant under test.
+  const VISIT_START_AT = '2026-07-20T14:00:00.000Z';
+  // Keep date/time strings for passing to the hook interface (they are ignored
+  // by resolveStartDate when visitStartAt is present, but required by the type).
   const VISIT_DATE = '2026-07-20';
   const VISIT_TIME = '14:00';
 
-  const startMs = new Date(2026, 6, 20, 14, 0, 0, 0).getTime();
+  const startMs = Date.parse(VISIT_START_AT);
   const THRESHOLD = 15;
   const thresholdMs = THRESHOLD * 60 * 1000;
   const windowOpenMs = startMs - thresholdMs;
@@ -214,6 +219,7 @@ describe('useUpcomingIndicator', () => {
       useUpcomingIndicator({
         visitDate: VISIT_DATE,
         visitTime: VISIT_TIME,
+        visitStartAt: VISIT_START_AT,
         eligible: false,
         thresholdMinutes: THRESHOLD,
       })
@@ -230,6 +236,7 @@ describe('useUpcomingIndicator', () => {
       useUpcomingIndicator({
         visitDate: VISIT_DATE,
         visitTime: VISIT_TIME,
+        visitStartAt: VISIT_START_AT,
         eligible: true,
         thresholdMinutes: THRESHOLD,
       })
@@ -246,6 +253,7 @@ describe('useUpcomingIndicator', () => {
       useUpcomingIndicator({
         visitDate: VISIT_DATE,
         visitTime: VISIT_TIME,
+        visitStartAt: VISIT_START_AT,
         eligible: true,
         thresholdMinutes: THRESHOLD,
       })
@@ -264,6 +272,7 @@ describe('useUpcomingIndicator', () => {
       latestValue = useUpcomingIndicator({
         visitDate: VISIT_DATE,
         visitTime: VISIT_TIME,
+        visitStartAt: VISIT_START_AT,
         eligible: true,
         thresholdMinutes: THRESHOLD,
       });
@@ -289,6 +298,7 @@ describe('useUpcomingIndicator', () => {
       useUpcomingIndicator({
         visitDate: VISIT_DATE,
         visitTime: VISIT_TIME,
+        visitStartAt: VISIT_START_AT,
         eligible: true,
         thresholdMinutes: THRESHOLD,
       })
@@ -315,6 +325,7 @@ describe('useUpcomingIndicator', () => {
       useUpcomingIndicator({
         visitDate: VISIT_DATE,
         visitTime: VISIT_TIME,
+        visitStartAt: VISIT_START_AT,
         eligible: true,
         thresholdMinutes: THRESHOLD,
       })
@@ -334,6 +345,7 @@ describe('useUpcomingIndicator', () => {
       useUpcomingIndicator({
         visitDate: VISIT_DATE,
         visitTime: VISIT_TIME,
+        visitStartAt: VISIT_START_AT,
         eligible: true,
         thresholdMinutes: THRESHOLD,
       })
@@ -359,6 +371,7 @@ describe('useUpcomingIndicator', () => {
       useUpcomingIndicator({
         visitDate: VISIT_DATE,
         visitTime: VISIT_TIME,
+        visitStartAt: VISIT_START_AT,
         eligible: true,
         thresholdMinutes: THRESHOLD,
       })
@@ -388,6 +401,7 @@ describe('useUpcomingIndicator', () => {
       useUpcomingIndicator({
         visitDate: VISIT_DATE,
         visitTime: VISIT_TIME,
+        visitStartAt: VISIT_START_AT,
         eligible: true,
         thresholdMinutes: THRESHOLD,
       })

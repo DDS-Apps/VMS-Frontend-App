@@ -59,6 +59,19 @@ function buildQueryString(params: Record<string, unknown>): string {
   return queryString ? `?${queryString}` : '';
 }
 
+function normalizeUpdateVisitServices(
+  data: UpdateVisitPayload,
+): UpdateVisitPayload {
+  if (data.needsBuffet === true && data.needsMeetingRoom !== true) {
+    return {
+      ...data,
+      needsMeetingRoom: true,
+    };
+  }
+
+  return data;
+}
+
 export const requestApiService = {
   list: (params?: ListRequestsParams): Promise<PaginatedResponse<RequestDto>> => {
     const queryString = params ? buildQueryString(params as unknown as Record<string, unknown>) : '';
@@ -148,7 +161,10 @@ export const requestApiService = {
   },
 
   updateVisit: (id: string, data: UpdateVisitPayload): Promise<UpdateVisitResponse> => {
-    return put<UpdateVisitResponse, UpdateVisitPayload>(visits.byId(id), data);
+    return put<UpdateVisitResponse, UpdateVisitPayload>(
+      visits.byId(id),
+      normalizeUpdateVisitServices(data),
+    );
   },
 
   cancelVisit: (id: string): Promise<CancelVisitResponse> => {
@@ -166,6 +182,11 @@ export const requestApiService = {
   getApprovalHistory: (params?: ApprovalHistoryListParams): Promise<ApprovalHistoryResponse> => {
     const queryString = params ? buildQueryString(params as unknown as Record<string, unknown>) : '';
     return get<ApprovalHistoryResponse>(`${approvals.history}${queryString}`);
+  },
+
+  checkDuplicateVisit: async (params: { date: string; phone?: string; email?: string }): Promise<VisitListResponse> => {
+    const queryString = buildQueryString(params as unknown as Record<string, unknown>);
+    return get<VisitListResponse>(`${visits.base}${queryString}`);
   },
 };
 

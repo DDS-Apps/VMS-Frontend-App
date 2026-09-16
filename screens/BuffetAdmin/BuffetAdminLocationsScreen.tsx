@@ -13,6 +13,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
 import { applyOpacity } from "@/utils/statusStyles";
+import { StatusIcon } from "@/components/shared";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   useBuffetAdminLocationsQuery,
@@ -39,10 +40,10 @@ export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLo
   const { t } = useTranslation();
   const { isRTL } = useLanguage();  const insets = useSafeAreaInsets();
   
-  const { data: locationsResponse, isLoading: isLoadingLocations } = useBuffetAdminLocationsQuery();
-  const { data: loadSummary, isLoading: isLoadingLoadSummary } = useBuffetLoadSummaryQuery();
-  
-  const isLoading = isLoadingLocations || isLoadingLoadSummary;
+  const locationsQuery = useBuffetAdminLocationsQuery();
+  const loadSummaryQuery = useBuffetLoadSummaryQuery();
+  const locationsResponse = locationsQuery.data;
+  const loadSummary = loadSummaryQuery.data;
   
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingLocation, setEditingLocation] = useState<LocationDisplayItem | null>(null);
@@ -148,11 +149,7 @@ export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLo
               {item.building} - {item.floor}
             </ThemedText>
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: applyOpacity(isActive ? theme.success : theme.textSecondary, '15') }]}>
-            <ThemedText style={[styles.statusText, { color: isActive ? theme.success : theme.textSecondary }]}>
-              {isActive ? t('status.active') : t('status.inactive')}
-            </ThemedText>
-          </View>
+          <StatusIcon icon={isActive ? 'check-circle' : 'x-circle'} color={isActive ? theme.success : theme.textSecondary} />
         </DirectionalRow>
 
         <Spacer height={Spacing.lg} />
@@ -223,6 +220,27 @@ export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLo
           />
         </KPICardRow>
 
+        {loadSummaryQuery.isFetching ? (
+          <View style={styles.inlineQueryState}>
+            <ActivityIndicator size="small" color={theme.primary} />
+            <ThemedText style={[Typography.bodySmall, styles.inlineQueryText, { color: theme.textSecondary }]}>
+              {t('common.loading')}
+            </ThemedText>
+          </View>
+        ) : loadSummaryQuery.isError ? (
+          <View style={styles.inlineQueryState}>
+            <DDIcon name="alert-circle" size={16} color={theme.error} />
+            <ThemedText style={[Typography.bodySmall, styles.inlineQueryText, { color: theme.textSecondary }]}>
+              {t('common.errorLoadingData')}
+            </ThemedText>
+            <Pressable onPress={() => loadSummaryQuery.refetch()}>
+              <ThemedText style={[Typography.bodySmall, { color: theme.primary }]}>
+                {t('common.retry')}
+              </ThemedText>
+            </Pressable>
+          </View>
+        ) : null}
+
         <Spacer height={Spacing.xl} />
 
         <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
@@ -231,7 +249,7 @@ export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLo
 
         <Spacer height={Spacing.md} />
 
-        {isLoading ? (
+        {(locationsQuery.isLoading || locationsQuery.isFetching) && !locationsResponse ? (
           <View style={[styles.emptyState, { backgroundColor: theme.surface }]}>
             <ActivityIndicator size="large" color={theme.primary} />
             <Spacer height={Spacing.sm} />
@@ -239,18 +257,57 @@ export default function BuffetAdminLocationsScreen({ navigation }: BuffetAdminLo
               {t('common.loading')}
             </ThemedText>
           </View>
-        ) : locations.length > 0 ? (
-          <View style={styles.locationsList}>
-            {locations.map((location) => renderLocationCard(location))}
-          </View>
-        ) : (
+        ) : locationsQuery.isError && !locationsResponse ? (
           <ThemedView style={[styles.emptyState, { backgroundColor: theme.surface }]}>
-            <DDIcon name="map-pin" size={32} variant="muted" />
+            <DDIcon name="alert-circle" size={32} color={theme.error} />
             <Spacer height={Spacing.sm} />
             <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
-              {t('common.noData')}
+              {t('common.errorLoadingData')}
             </ThemedText>
+            <Spacer height={Spacing.md} />
+            <Pressable onPress={() => locationsQuery.refetch()}>
+              <ThemedText style={[Typography.bodySmall, { color: theme.primary }]}>
+                {t('common.retry')}
+              </ThemedText>
+            </Pressable>
           </ThemedView>
+        ) : (
+          <>
+            {locationsQuery.isFetching ? (
+              <View style={styles.inlineQueryState}>
+                <ActivityIndicator size="small" color={theme.primary} />
+                <ThemedText style={[Typography.bodySmall, styles.inlineQueryText, { color: theme.textSecondary }]}>
+                  {t('common.loading')}
+                </ThemedText>
+              </View>
+            ) : locationsQuery.isError ? (
+              <View style={styles.inlineQueryState}>
+                <DDIcon name="alert-circle" size={16} color={theme.error} />
+                <ThemedText style={[Typography.bodySmall, styles.inlineQueryText, { color: theme.textSecondary }]}>
+                  {t('common.errorLoadingData')}
+                </ThemedText>
+                <Pressable onPress={() => locationsQuery.refetch()}>
+                  <ThemedText style={[Typography.bodySmall, { color: theme.primary }]}>
+                    {t('common.retry')}
+                  </ThemedText>
+                </Pressable>
+              </View>
+            ) : null}
+
+            {locations.length > 0 ? (
+              <View style={styles.locationsList}>
+                {locations.map((location) => renderLocationCard(location))}
+              </View>
+            ) : (
+              <ThemedView style={[styles.emptyState, { backgroundColor: theme.surface }]}>
+                <DDIcon name="map-pin" size={32} variant="muted" />
+                <Spacer height={Spacing.sm} />
+                <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
+                  {t('common.noData')}
+                </ThemedText>
+              </ThemedView>
+            )}
+          </>
         )}
 
         <Spacer height={Spacing.xl} />
@@ -426,6 +483,15 @@ const styles = StyleSheet.create({
   },
   locationsList: {
     gap: Spacing.md,
+  },
+  inlineQueryState: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    paddingTop: Spacing.sm,
+  },
+  inlineQueryText: {
+    flex: 1,
   },
   locationCard: {
     borderRadius: 12,

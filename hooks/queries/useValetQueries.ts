@@ -89,11 +89,12 @@ export function useMyValetAssignmentsQuery() {
   });
 }
 
-export function useTodaysValetAssignmentsQuery() {
+export function useTodaysValetAssignmentsQuery(enabled = true) {
   return useQuery<ValetAssignmentDto[]>({
     queryKey: valetKeys.todaysAssignments(),
     queryFn: () => valetApiService.getTodaysAssignments(),
     staleTime: 30 * 1000,
+    enabled,
   });
 }
 

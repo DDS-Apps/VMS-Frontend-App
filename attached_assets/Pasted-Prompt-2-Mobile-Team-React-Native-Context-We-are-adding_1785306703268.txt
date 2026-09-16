@@ -1,0 +1,212 @@
+Prompt 2 — Mobile Team (React Native)
+Context
+We are adding Universal Links (iOS) and App Links (Android) so that URLs from Outlook emails, WhatsApp messages, and other external sources open the React Native app directly on the correct screen.
+
+The web app domain is the single source of truth for all URLs. The OS checks a verification file hosted on that domain, then routes to the app if installed, or falls back to the browser.
+
+URLs the App Must Handle
+These are the agreed deep link paths. The app must navigate to the correct screen for each:
+
+URL Pattern	Screen	Notes
+https://YOUR_DOMAIN/requests/new	New Visit Request form	May include query params (see below)
+https://YOUR_DOMAIN/invite/{token}	Invite acceptance screen	token is a UUID string
+https://YOUR_DOMAIN/requests/{id}	Request detail screen	id is a UUID string
+Query params on /requests/new
+Param	Field
+name	Visitor full name (pre-fill)
+email	Visitor email (pre-fill)
+company	Visitor company (pre-fill)
+phone	Visitor phone (pre-fill)
+Pre-filled values must be editable. Clear them from the URL after reading.
+
+iOS — Universal Links Setup
+Step 1 — Xcode entitlements
+In your Xcode project, enable Associated Domains under Signing & Capabilities and add:
+
+applinks:YOUR_DOMAIN
+
+If you have a staging domain, add that too:
+
+applinks:staging.YOUR_DOMAIN
+
+Step 2 — Info needed from you (give to backend team)
+Apple Team ID (10-character string from developer.apple.com, e.g. ABCD1234EF)
+App Bundle ID (e.g. com.dallahbaraka.vms)
+The backend team will serve the AASA file at: https://YOUR_DOMAIN/.well-known/apple-app-site-association
+
+Step 3 — Handle incoming URLs in React Native
+// In your root App.tsx or navigation setup
+import { Linking } from 'react-native';
+import { useEffect } from 'react';
+// Handle links when app is already open
+useEffect(() => {
+  const subscription = Linking.addEventListener('url', ({ url }) => {
+    handleDeepLink(url);
+  });
+  return () => subscription.remove();
+}, []);
+// Handle links that cold-launched the app
+useEffect(() => {
+  Linking.getInitialURL().then((url) => {
+    if (url) handleDeepLink(url);
+  });
+}, []);
+
+Step 4 — Deep link routing function
+import { NavigationContainerRef } from '@react-navigation/native';
+function handleDeepLink(url: string) {
+  try {
+    const parsed = new URL(url);
+    const path = parsed.pathname;
+    const params = Object.fromEntries(parsed.searchParams.entries());
+    if (path === '/requests/new') {
+      // Navigate to new request form with optional prefill
+      navigationRef.current?.navigate('NewRequest', {
+        prefill: {
+          name: params.name,
+          email: params.email,
+          company: params.company,
+          phone: params.phone,
+        },
+      });
+      return;
+    }
+    const inviteMatch = path.match(/^\/invite\/([a-f0-9-]+)$/i);
+    if (inviteMatch) {
+      navigationRef.current?.navigate('InviteAccept', { token: inviteMatch[1] });
+      return;
+    }
+    const requestMatch = path.match(/^\/requests\/([a-f0-9-]+)$/i);
+    if (requestMatch) {
+      navigationRef.current?.navigate('RequestDetail', { id: requestMatch[1] });
+      return;
+    }
+    // Unknown path — navigate to home
+    navigationRef.current?.navigate('Home');
+  } catch (e) {
+    console.warn('Deep link parse error:', url, e);
+  }
+}
+
+Android — App Links Setup
+Step 1 — AndroidManifest.xml
+Add the following intent filter to your main activity (or whichever activity handles navigation):
+
+<activity android:name=".MainActivity" ...>
+  <!-- existing intent filters... -->
+  <intent-filter android:autoVerify="true">
+    <action android:name="android.intent.action.VIEW" />
+    <category android:name="android.intent.category.DEFAULT" />
+    <category android:name="android.intent.category.BROWSABLE" />
+    <data
+      android:scheme="https"
+      android:host="YOUR_DOMAIN"
+      android:pathPrefix="/requests/new" />
+    <data
+      android:scheme="https"
+      android:host="YOUR_DOMAIN"
+      android:pathPrefix="/invite/" />
+    <data
+      android:scheme="https"
+      android:host="YOUR_DOMAIN"
+      android:pathPrefix="/requests/" />
+  </intent-filter>
+</activity>
+
+android:autoVerify="true" is critical — it makes Android silently verify the domain without showing the "Open with" chooser.
+
+Step 2 — Info needed from you (give to backend team)
+Android package name (e.g. com.dallahbaraka.vms)
+SHA-256 fingerprint of your release signing certificate
+To get the SHA-256 fingerprint:
+
+# From your release keystore
+keytool -list -v -keystore your-release-key.keystore -alias your-key-alias
+# From an installed APK
+keytool -printcert -jarfile your-app.apk
+
+Provide both debug and release fingerprints for development + production.
+
+Step 3 — Handle incoming URL in React Native
+The same handleDeepLink function used for iOS works for Android. React Native's Linking API is cross-platform — no Android-specific code needed in JS.
+
+For React Native 0.65+, no extra native module is needed.
+
+Navigation — Screen Contract
+Each screen must accept these params from the navigator:
+
+NewRequest screen
+type NewRequestParams = {
+  prefill?: {
+    name?: string;
+    email?: string;
+    company?: string;
+    phone?: string;
+  };
+};
+
+Pre-fill the visitor fields if prefill is present.
+All prefilled values must be editable by the user.
+If prefill is absent or undefined, behave as normal empty form.
+InviteAccept screen
+type InviteAcceptParams = {
+  token: string; // UUID — use to call GET /api/v1/invites/:token
+};
+
+On mount, fetch the invite using the token.
+If token is invalid/expired, show an appropriate error.
+This screen already exists for in-app flows — just ensure it also works when navigated to via deep link on a cold launch.
+RequestDetail screen
+type RequestDetailParams = {
+  id: string; // UUID — use to call GET /api/v1/visits/:id
+};
+
+On mount, fetch the request using the ID.
+Handle 403/404 gracefully (user may not have access).
+Fallback Behaviour — What to Verify
+Test each scenario before marking complete:
+
+Scenario	Expected
+App installed, link tapped in Outlook	App opens at correct screen
+App installed, link tapped in WhatsApp	App opens at correct screen
+App not installed, link tapped	Browser opens the web app
+App installed, cold launch from link	App starts and navigates to correct screen
+Link with unknown path	App opens at Home
+Link with malformed URL	App opens at Home, no crash
+Token expired on invite link	InviteAccept shows expired message
+Mobile Team — Info to Send Back
+Before the backend can configure the verification files, send the following:
+
+iOS:
+  Apple Team ID:       __________________
+  App Bundle ID:       __________________
+Android:
+  Package name:        __________________
+  SHA-256 (debug):     __________________
+  SHA-256 (release):   __________________
+Both:
+  Production domain:   __________________
+  Staging domain:      __________________  (if applicable)
+  Paths handled:       /requests/new, /invite/*, /requests/*
+                       (add any others)
+
+Mobile Team — Delivery Checklist
+iOS
+
+ Associated Domains entitlement added in Xcode
+ Apple Team ID + Bundle ID sent to backend team
+ App tested for cold launch + warm launch deep links
+ All three route patterns handled (/requests/new, /invite/*, /requests/*)
+Android
+
+ Intent filter with autoVerify="true" added to manifest
+ Package name + SHA-256 fingerprints (debug + release) sent to backend team
+ App tested on Android 12+ (stricter App Links verification)
+Both
+
+ handleDeepLink() function implemented and connected to Linking API
+ NewRequest screen accepts and uses prefill params
+ InviteAccept screen works from cold launch via token
+ RequestDetail screen works from cold launch via ID
+ All fallback/error scenarios tested
+ Tested on physical device (simulator/emulator do not fully test App Links/Universal Links)

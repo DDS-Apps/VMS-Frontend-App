@@ -1,0 +1,169 @@
+Prompt 1 — Web Frontend Team
+Context
+We are adding two features to the existing React web app:
+
+Outlook Add-in — a lightweight task pane that appears inside Outlook and lets users open the web app to create a visit request, with visitor details pre-filled from the selected email.
+Deep link pre-fill — the new request form accepts URL query params to auto-populate visitor fields.
+Calendar sync badge — the request detail page shows whether the visit has been synced to Outlook calendar.
+Well-known file serving — two static JSON files must be served for mobile deep link verification.
+The backend already handles calendar sync (create/update/cancel). The frontend just needs to display the sync status and serve the verification files.
+
+Feature 1 — Pre-fill New Request Form from URL Query Params
+What to do
+On the new visit request form (whatever route /requests/new or equivalent maps to), read the following query params from the URL on mount and pre-populate the corresponding visitor fields:
+
+Query param	Field to pre-fill
+name	Visitor full name
+email	Visitor email address
+company	Visitor company
+phone	Visitor phone number
+Rules
+Pre-fill is optional — if params are absent, the form behaves exactly as today.
+Pre-filled values should be editable by the user — do not lock them.
+If an email param is present and passes basic format validation, mark the email field as pre-filled (no special UI needed, just populate).
+Clear the URL query params from the browser address bar after reading them (use replaceState) so users don't accidentally share a pre-filled link.
+Example URL
+https://your-app.com/requests/new?name=John%20Smith&email=john@company.com&company=Acme
+
+Feature 2 — Calendar Sync Status Badge on Request Detail Page
+What to do
+The backend will return a new boolean field calendarSynced on the request detail API response. Display a subtle status indicator on the request detail page based on this value.
+
+Display rules
+calendarSynced value	Status shown	When it appears
+true	📅 Synced to Outlook (green/muted)	After visitor accepts
+false or absent	Nothing shown	Before visitor accepts
+Request cancelled + calendarSynced was true	📅 Calendar event cancelled (muted grey)	After cancellation
+UI guidelines
+Place it near the visit date/time section, not in the header.
+Keep it subtle — small text with an icon, not a prominent alert.
+It is read-only — no click action required.
+The cancelled state only needs to render if the request status is cancelled and calendarSynced is present.
+API contract to expect from backend
+// GET /api/v1/visits/:id response will include:
+{
+  // ... existing fields ...
+  calendarSynced: boolean;      // true once Outlook event created
+  calendarEventId?: string;     // Outlook event ID (optional, may be omitted from response)
+}
+
+Feature 3 — Outlook Add-in
+What to do
+Create a minimal Outlook task pane add-in. This is a standalone HTML page served by the backend. It does not use React — plain HTML + vanilla JS is sufficient.
+
+Files to create
+public/outlook-addin/manifest.xml
+public/outlook-addin/taskpane.html
+public/outlook-addin/taskpane.js
+public/outlook-addin/icon-16.png
+public/outlook-addin/icon-32.png
+public/outlook-addin/icon-80.png
+
+manifest.xml structure (fill in your app domain)
+<?xml version="1.0" encoding="UTF-8"?>
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:type="MailApp">
+  <Id><!-- generate a GUID --></Id>
+  <Version>1.0.0</Version>
+  <ProviderName>Dallah Baraka VMS</ProviderName>
+  <DefaultLocale>en-US</DefaultLocale>
+  <DisplayName DefaultValue="VMS - Create Visit Request"/>
+  <Description DefaultValue="Create a visitor request directly from Outlook"/>
+  <IconUrl DefaultValue="https://YOUR_DOMAIN/outlook-addin/icon-80.png"/>
+  <HighResolutionIconUrl DefaultValue="https://YOUR_DOMAIN/outlook-addin/icon-80.png"/>
+  <SupportUrl DefaultValue="https://YOUR_DOMAIN"/>
+  <AppDomains>
+    <AppDomain>YOUR_DOMAIN</AppDomain>
+  </AppDomains>
+  <Hosts>
+    <Host Name="Mailbox"/>
+  </Hosts>
+  <Requirements>
+    <Sets><Set Name="Mailbox" MinVersion="1.1"/></Sets>
+  </Requirements>
+  <FormSettings>
+    <Form xsi:type="ItemRead">
+      <DesktopSettings>
+        <SourceLocation DefaultValue="https://YOUR_DOMAIN/outlook-addin/taskpane.html"/>
+        <RequestedHeight>250</RequestedHeight>
+      </DesktopSettings>
+    </Form>
+  </FormSettings>
+  <Permissions>ReadItem</Permissions>
+  <Rule xsi:type="RuleCollection" Mode="Or">
+    <Rule xsi:type="ItemIs" ItemType="Message" FormType="Read"/>
+  </Rule>
+</OfficeApp>
+
+taskpane.html
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8"/>
+  <title>VMS - Create Visit Request</title>
+  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+  <script src="taskpane.js" defer></script>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; padding: 16px; }
+    h2 { font-size: 14px; margin-bottom: 8px; }
+    p { font-size: 12px; color: #555; margin-bottom: 16px; }
+    button {
+      width: 100%; padding: 10px;
+      background: #0078d4; color: white;
+      border: none; border-radius: 4px;
+      font-size: 14px; cursor: pointer;
+    }
+    button:hover { background: #106ebe; }
+    #status { font-size: 11px; color: #888; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <h2>Create Visit Request</h2>
+  <p>Opens the VMS portal with this sender's details pre-filled.</p>
+  <button id="openBtn">Open Visit Request Form</button>
+  <div id="status"></div>
+</body>
+</html>
+
+taskpane.js
+const APP_URL = 'https://YOUR_DOMAIN'; // replace with actual domain
+Office.onReady(() => {
+  document.getElementById('openBtn').addEventListener('click', openRequestForm);
+});
+function openRequestForm() {
+  const item = Office.context.mailbox.item;
+  if (!item) {
+    document.getElementById('status').textContent = 'Could not read email details.';
+    return;
+  }
+  const params = new URLSearchParams();
+  const from = item.from;
+  if (from) {
+    if (from.displayName) params.set('name', from.displayName);
+    if (from.emailAddress) params.set('email', from.emailAddress);
+  }
+  const url = `${APP_URL}/requests/new?${params.toString()}`;
+  // Opens in default browser — works in Outlook Desktop and OWA
+  Office.context.ui.openBrowserWindow(url);
+}
+
+Backend — serve the add-in files
+Ask the backend team to serve /public/outlook-addin/ as static files and ensure the manifest URL is accessible without authentication.
+
+Feature 4 — Serve Well-Known Files (Coordinate with Backend)
+The backend team will serve these. You do not need to implement this. Just ensure the following URLs return the correct JSON when tested:
+
+GET https://your-domain.com/.well-known/apple-app-site-association
+GET https://your-domain.com/.well-known/assetlinks.json
+
+Provide the backend team with the values given to you by the mobile team (bundle IDs, Team ID, SHA-256 fingerprint).
+
+Web Frontend — Delivery Checklist
+ New request form reads and pre-fills from URL query params (name, email, company, phone)
+ URL params cleared from address bar after reading
+ Request detail page shows calendarSynced badge
+ Outlook add-in manifest, taskpane.html, taskpane.js created
+ Add-in reads sender name + email and builds pre-fill URL
+ Add-in opens web app in browser via Office.context.ui.openBrowserWindow
+ Icons (16×16, 32×32, 80×80 PNG) created for the add-in

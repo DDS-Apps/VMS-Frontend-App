@@ -125,6 +125,7 @@ export interface VisitorRequest {
   timezone?: string;
   acceptedAt?: string;
   checkedInAt?: string;
+  checkedOutAt?: string;
   completedAt?: string;
   cancelledBy?: string;
   cancelledByName?: string;
@@ -136,9 +137,22 @@ export interface VisitorRequest {
   isMeetingRoom?: boolean;
   isVisitorNeedsParking?: boolean;
   visitorNeedsParking?: boolean;
+  /** Who decides parking: 'required' | 'not_required' | 'visitor_decides' */
+  parkingDecision?: 'required' | 'not_required' | 'visitor_decides';
   licensePlate?: string;
   carModel?: string;
   carColor?: string;
+  /** ISO 8601 UTC timestamp of the canonical visit start, e.g. "2025-01-15T09:00:00Z". Preferred over visitDate+visitTime for upcoming-alert calculations. */
+  visitStartAt?: string;
+  /** Canonical timeline timestamps from the backend. Preferred over legacy flat fields. */
+  timeline?: {
+    requestedAt?: string;
+    approvedAt?: string;
+    visitorAcceptedAt?: string;
+    checkedInAt?: string;
+    checkedOutAt?: string;
+    completedAt?: string;
+  };
 }
 
 export interface DashboardStats {

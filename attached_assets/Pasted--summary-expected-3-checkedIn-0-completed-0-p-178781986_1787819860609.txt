@@ -1,0 +1,116 @@
+{
+    "summary": {
+        "expected": 3,
+        "checkedIn": 0,
+        "completed": 0,
+        "pending": 1,
+        "pendingHost": 0,
+        "rejected": 0
+    },
+    "data": [
+        {
+            "id": "28224F11-A2A0-F111-90A2-00155DB21469",
+            "visitor": {
+                "id": "27224F11-A2A0-F111-90A2-00155DB21469",
+                "fullName": "gdfsfsefd",
+                "company": "fgfcg",
+                "phone": "+966666666666"
+            },
+            "hostName": "John Manager",
+            "hostDepartment": "Operations",
+            "visitTime": "7:28 PM",
+            "visitStartAt": "2026-08-27T16:28:00.000Z",
+            "timezone": "Asia/Riyadh",
+            "status": "visitor_accepted",
+            "meetingRoom": {
+                "name": "Meeting Room 1",
+                "floor": "Ground Floor"
+            },
+            "isBuffet": true,
+            "isMeetingRoom": true,
+            "isVisitorNeedsParking": false,
+            "qrCode": "524774890065137736",
+            "scheduledEndTime": "8:28 PM",
+            "checkedInAt": null,
+            "checkedOutAt": null
+        },
+        {
+            "id": "5FE5E369-CC9F-F111-90A2-00155DB21469",
+            "visitor": {
+                "id": "5EE5E369-CC9F-F111-90A2-00155DB21469",
+                "fullName": "meet 002",
+                "company": "meet",
+                "phone": "+923212305580"
+            },
+            "hostName": "Visitor3",
+            "hostDepartment": "Marketing",
+            "visitTime": "1:00 PM",
+            "visitStartAt": "2026-08-27T10:00:00.000Z",
+            "timezone": "Asia/Riyadh",
+            "status": "visitor_accepted",
+            "meetingRoom": {
+                "name": "Meeting Room 1",
+                "floor": "Ground Floor"
+            },
+            "isBuffet": true,
+            "isMeetingRoom": true,
+            "isVisitorNeedsParking": false,
+            "qrCode": "571136708345736500",
+            "scheduledEndTime": "2:00 PM",
+            "checkedInAt": null,
+            "checkedOutAt": null
+        },
+        {
+            "id": "F65EEB2E-769D-F111-90A2-00155DB21469",
+            "visitor": {
+                "id": "F55EEB2E-769D-F111-90A2-00155DB21469",
+                "fullName": "parking not req by visitor",
+                "company": "ddfds",
+                "phone": "+923212305580"
+            },
+            "hostName": "John Manager",
+            "hostDepartment": "Operations",
+            "visitTime": "6:36 PM",
+            "visitStartAt": "2026-08-27T15:36:00.000Z",
+            "timezone": "Asia/Riyadh",
+            "status": "visitor_accepted",
+            "meetingRoom": {
+                "name": "Meeting Room 2",
+                "floor": "First Floor"
+            },
+            "isBuffet": true,
+            "isMeetingRoom": true,
+            "isVisitorNeedsParking": true,
+            "qrCode": "925877901391424278",
+            "scheduledEndTime": "7:36 PM",
+            "checkedInAt": null,
+            "checkedOutAt": null
+        },
+        {
+            "id": "BDB084FA-679D-F111-90A2-00155DB21469",
+            "visitor": {
+                "id": "B9B084FA-679D-F111-90A2-00155DB21469",
+                "fullName": "email whatsapp 00001",
+                "company": "VMS Acc",
+                "phone": "+923212305580"
+            },
+            "hostName": "Visitor3",
+            "hostDepartment": "Marketing",
+            "visitTime": "4:54 PM",
+            "visitStartAt": "2026-08-27T13:54:00.000Z",
+            "timezone": "Asia/Riyadh",
+            "status": "pending_approval",
+            "meetingRoom": {
+                "name": "Meeting Room 2",
+                "floor": "First Floor"
+            },
+            "isBuffet": true,
+            "isMeetingRoom": true,
+            "isVisitorNeedsParking": false,
+            "qrCode": null,
+            "scheduledEndTime": "5:54 PM",
+            "checkedInAt": null,
+            "checkedOutAt": null
+        }
+    ]
+}

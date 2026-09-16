@@ -8,8 +8,11 @@ The VMS app supports two environments:
 
 | Environment | Git Branch | Firebase Project | Description |
 |-------------|-----------|------------------|-------------|
-| **Production** | `main` | `dallahdigital-vms` | Live production environment |
+| **Production** | `main` | `dallah-albaraka-vms` | Live production environment |
 | **QA** | `qa` | `dallah-albaraka-vms` | Testing/QA environment |
+
+Production and QA use the same Firebase project and native client files. Their
+backend URLs and data environments remain separate.
 
 ## Setup Instructions
 
@@ -30,17 +33,17 @@ Since Replit only supports one deployment per project, you need to create a sepa
 ### Production Environment
 | Variable | Value |
 |----------|-------|
-| `EXPO_PUBLIC_API_BASE_URL` | `https://vms-backend-folio3.replit.app` |
-| `EXPO_PUBLIC_VMS_API_BASE_URL` | `https://vms-backend-folio3.replit.app/api` |
-| `EXPO_PUBLIC_MICROSOFT_AUTH_URL` | `https://vms-backend-folio3.replit.app` |
-| `EXPO_PUBLIC_FIREBASE_PROJECT_ID` | `dallahdigital-vms` |
+| `EXPO_PUBLIC_API_BASE_URL` | `https://vms-backend-app-qa.replit.app` |
+| `EXPO_PUBLIC_VMS_API_BASE_URL` | `https://vms-backend-app-qa.replit.app/api` |
+| `EXPO_PUBLIC_MICROSOFT_AUTH_URL` | `https://vms-backend-app-qa.replit.app` |
+| `EXPO_PUBLIC_FIREBASE_PROJECT_ID` | `dallah-albaraka-vms` |
 
 ### QA Environment
 | Variable | Value |
 |----------|-------|
-| `EXPO_PUBLIC_API_BASE_URL` | `https://vms-backend-folio3.replit.app` |
-| `EXPO_PUBLIC_VMS_API_BASE_URL` | `https://vms-backend-folio3.replit.app` |
-| `EXPO_PUBLIC_MICROSOFT_AUTH_URL` | `https://vms-backend-folio3.replit.app` |
+| `EXPO_PUBLIC_API_BASE_URL` | `https://vms-backend-app-qa.replit.app` |
+| `EXPO_PUBLIC_VMS_API_BASE_URL` | `https://vms-backend-app-qa.replit.app` |
+| `EXPO_PUBLIC_MICROSOFT_AUTH_URL` | `https://vms-backend-app-qa.replit.app` |
 | `EXPO_PUBLIC_FIREBASE_PROJECT_ID` | `dallah-albaraka-vms` |
 
 ## Required Environment Variables
@@ -75,6 +78,22 @@ EXPO_PUBLIC_FIREBASE_APP_ID_IOS
 ```
 EXPO_PUBLIC_FIREBASE_VAPID_KEY
 ```
+
+### Native Push Credential Alignment
+
+- The backend Firebase Admin service account must belong to
+  `dallah-albaraka-vms` (sender/project number `913604772710`).
+- Firebase Cloud Messaging must have a valid Apple APNs authentication key for
+  bundle ID `com.dallah.vms` and Apple Team ID `SNJM77V43A`.
+- After changing native Firebase configuration, create a new Android/iOS build,
+  uninstall the previous app, and install the new build so each device
+  registers a fresh token from the shared Firebase project.
+- Never reuse tokens issued by the obsolete `dallahdigital-vms` Firebase
+  project.
+
+For the complete frontend/backend contract, secure Firebase Admin setup, APNs
+requirements, rollout checklist, and troubleshooting guide, see
+[`docs/FIREBASE_BACKEND_ALIGNMENT.md`](../docs/FIREBASE_BACKEND_ALIGNMENT.md).
 
 ## Files
 

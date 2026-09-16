@@ -7,7 +7,6 @@ export const PURPOSE_OPTIONS = [
   { value: 'interview', labelKey: 'visitor.interview' },
   { value: 'delivery', labelKey: 'visitor.delivery' },
   { value: 'maintenance', labelKey: 'visitor.maintenance' },
-  { value: 'general', labelKey: 'visitor.generalVisit' },
   { value: 'partners', labelKey: 'visitor.partners' },
   { value: 'government', labelKey: 'visitor.government' },
   { value: 'vip', labelKey: 'visitor.vip' },
@@ -67,6 +66,19 @@ export function normalizePurposeValue(purpose: string): string {
   const fromEnglish = ENGLISH_PURPOSE_TO_VALUE[purpose];
   if (fromEnglish) return fromEnglish;
   return purpose;
+}
+
+/** Display-only formatting; unknown/custom text is never rewritten. */
+export function getPurposeLabel(
+  purpose: string | null | undefined,
+  t: (key: string) => string,
+): string {
+  if (!purpose) return '';
+  const value = normalizePurposeValue(purpose);
+  return typeof value === 'string' &&
+    Object.prototype.hasOwnProperty.call(PURPOSE_VALUE_TO_KEY, value)
+    ? t(PURPOSE_VALUE_TO_KEY[value])
+    : purpose;
 }
 
 export const MEAL_TYPES: readonly BuffetMealType[] = [

@@ -1,0 +1,83 @@
+{
+    "id": "2A8C2E6D-ACA6-F111-90A2-00155DB21469",
+    "employeeId": "07EFE113-93D2-F011-A58B-00155D07A12B",
+    "employeeName": "John Manager",
+    "employeeDepartment": "Operations",
+    "employeePhoneNumber": "+966 12 345 6789",
+    "employeeBusinessPhone": "+966 12 313 2131",
+    "visitor": {
+        "id": "C35EE866-ACA6-F111-90A2-00155DB21469",
+        "fullName": "Renad",
+        "email": "r.baghdadi@dds.sa",
+        "phone": "+966540809209",
+        "company": "Dds"
+    },
+    "visitDate": "2026-09-02",
+    "visitTime": "12:10 PM",
+    "visitStartAt": "2026-09-02T09:10:00.000Z",
+    "endTime": "2:55 PM",
+    "duration": "2 hours 45 minutes",
+    "purpose": "business_meeting",
+    "status": "completed",
+    "isExpired": false,
+    "isMeetingRoom": false,
+    "isBuffet": false,
+    "isVisitorNeedsParking": true,
+    "communicationChannels": [
+        "qr_code",
+        "email",
+        "sms",
+        "whatsapp"
+    ],
+    "parkingType": "none",
+    "parkingSlot": {
+        "id": "17EFE113-93D2-F011-A58B-00155D07A12B",
+        "slotNumber": "B1-002",
+        "location": "skbc_basement",
+        "floor": "B1"
+    },
+    "visitorNeedsParking": true,
+    "parkingDecision": "required",
+    "parkingAllocation": {
+        "id": "2D8C2E6D-ACA6-F111-90A2-00155DB21469",
+        "spotId": "17EFE113-93D2-F011-A58B-00155D07A12B",
+        "spotNumber": "B1-002",
+        "location": "skbc_basement",
+        "floor": "B1",
+        "allocatedAt": "2026-09-02T01:58:15.563Z",
+        "releasedAt": "2026-09-02T11:55:00.003Z",
+        "status": "released"
+    },
+    "approval": {
+        "requiresApproval": false,
+        "autoApproved": true,
+        "managerId": "07EFE113-93D2-F011-A58B-00155D07A12B",
+        "managerName": "John Manager",
+        "approvedAt": "2026-09-02T08:58:12.453Z"
+    },
+    "reminders": {
+        "firstReminderAt": "2026-09-02T09:28:26.669Z",
+        "secondReminderAt": "2026-09-02T10:28:26.669Z",
+        "autoCancelAt": "2026-09-02T11:28:26.669Z",
+        "firstReminderSent": false,
+        "secondReminderSent": false
+    },
+    "isWalkIn": false,
+    "visitorDecision": {
+        "accepted": true,
+        "decidedAt": "2026-09-02T09:01:27.152Z"
+    },
+    "timeline": {
+        "requestedAt": "2026-09-02T08:58:13.154Z",
+        "approvedAt": "2026-09-02T08:58:12.453Z",
+        "visitorAcceptedAt": "2026-09-02T09:01:27.152Z",
+        "checkedInAt": "2026-09-02T11:01:40.000Z",
+        "checkedOutAt": "2026-09-02T11:45:15.000Z",
+        "completedAt": "2026-09-02T11:45:15.000Z"
+    },
+    "createdAt": "2026-09-02T08:58:13.154Z",
+    "updatedAt": "2026-09-02T05:04:16.000Z",
+    "timezone": "Asia/Riyadh",
+    "calendarSynced": false,
+    "canApprove": false
+}

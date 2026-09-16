@@ -1,4 +1,5 @@
 import { ValetDriver, ValetService, ParkingSlot } from '@/types/vms.types';
+import { getBusinessDateKey } from '@/utils/dateTimeUtils';
 
 export interface ValetRequest {
   id: string;
@@ -6,6 +7,8 @@ export interface ValetRequest {
   visitorCompany: string;
   hostName: string;
   visitDate: string;
+  /** ISO 8601 UTC timestamp of the canonical visit start. Preferred for upcoming-alert calculations. */
+  visitStartAt?: string;
   pickupTime: string;
   returnTime: string;
   location: string;
@@ -39,22 +42,15 @@ export interface ValetDriverExtended extends ValetDriver {
   shift: string;
 }
 
-const getToday = () => {
-  const today = new Date();
-  return today.toISOString().split('T')[0];
-};
+const TZ = 'Asia/Riyadh';
 
-const getTomorrow = () => {
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  return tomorrow.toISOString().split('T')[0];
-};
+const getToday = () => getBusinessDateKey(new Date(), TZ);
 
-const getYesterday = () => {
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  return yesterday.toISOString().split('T')[0];
-};
+const getTomorrow = () =>
+  getBusinessDateKey(new Date(Date.now() + 86_400_000), TZ);
+
+const getYesterday = () =>
+  getBusinessDateKey(new Date(Date.now() - 86_400_000), TZ);
 
 export const MOCK_VALET_DRIVERS: ValetDriverExtended[] = [
   {
@@ -540,16 +536,16 @@ export function driverParkVehicle(requestId: string, slotNumber: string): ValetR
   const request = valetRequestsState.find(r => r.id === requestId);
   if (request && (request.status === 'assigned' || request.status === 'pending')) {
     const slot = parkingSlotsState.find(s => s.slotNumber === slotNumber && s.status === 'available');
-    if (slot) {
-      const slotIndex = parkingSlotsState.findIndex(s => s.id === slot.id);
-      if (slotIndex !== -1) {
-        parkingSlotsState[slotIndex] = {
-          ...parkingSlotsState[slotIndex],
-          status: 'occupied',
-          vehiclePlate: request.vehicleInfo?.plateNumber,
-          assignedRequest: requestId,
-        };
-      }
+    if (!slot) return null;
+
+    const slotIndex = parkingSlotsState.findIndex(s => s.id === slot.id);
+    if (slotIndex !== -1) {
+      parkingSlotsState[slotIndex] = {
+        ...parkingSlotsState[slotIndex],
+        status: 'occupied',
+        vehiclePlate: request.vehicleInfo?.plateNumber,
+        assignedRequest: requestId,
+      };
     }
     
     const updatedRequest: ValetRequest = {
@@ -608,6 +604,13 @@ export function driverCompleteRequest(requestId: string): ValetRequest | null {
     return { ...updatedRequest };
   }
   return null;
+}
+
+export function driverParkVehicleAutomatically(requestId: string): ValetRequest | null {
+  const availableSlot = parkingSlotsState.find(slot => slot.status === 'available');
+  if (!availableSlot) return null;
+
+  return driverParkVehicle(requestId, availableSlot.slotNumber);
 }
 
 export function getAvailableParkingSlots(): ValetParkingSlot[] {

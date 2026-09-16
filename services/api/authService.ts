@@ -74,6 +74,7 @@ export const authService = {
       headers: {
         'Content-Type': undefined,
       },
+      timeout: apiConfig.uploadTimeout,
     });
     return response.data;
   },

@@ -11,7 +11,11 @@ import {
   registerServiceWorker,
   getWebNotificationPermissionStatus,
 } from '@/services/firebase';
-import { handleNotificationTap, navigateFromInAppNotification } from '@/utils/notificationNavigator';
+import {
+  handleNotificationTap,
+  isNotificationNavigationReady,
+  navigateFromInAppNotification,
+} from '@/utils/notificationNavigator';
 import { invalidateQueriesForNotification, refreshAllNotificationData } from './notificationQueryMapper';
 import { NOTIFICATION_TYPES } from '@/constants/notificationTypes';
 import { UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES } from '@/constants/requestConstants';
@@ -54,6 +58,7 @@ class PushNotificationService {
   private webMessageHandler: ((event: MessageEvent) => void) | null = null;
   private queryClient: QueryClient | null = null;
   private shownToastIds = new Set<string>();
+  private handledResponseIds = new Set<string>();
   private notificationCallback: NotificationCallback | undefined;
 
   setQueryClient(client: QueryClient): void {
@@ -86,6 +91,42 @@ class PushNotificationService {
     } else {
       refreshAllNotificationData(this.queryClient);
     }
+  }
+
+  handleNotificationResponse(response: Notifications.NotificationResponse): boolean {
+    const identifier = response.notification.request.identifier;
+    if (identifier && this.handledResponseIds.has(identifier)) {
+      return false;
+    }
+    if (!isNotificationNavigationReady()) {
+      return false;
+    }
+    if (identifier) {
+      this.handledResponseIds.add(identifier);
+    }
+
+    const data = response.notification.request.content.data as Record<string, unknown>;
+    this.handleNotificationReceived(data);
+    handleNotificationTap(response);
+    return true;
+  }
+
+  async processLastNotificationResponse(): Promise<Notifications.NotificationResponse | null> {
+    if (Platform.OS === 'web') {
+      return null;
+    }
+
+    const response = await Notifications.getLastNotificationResponseAsync();
+    if (!response) {
+      return null;
+    }
+
+    if (!this.handleNotificationResponse(response)) {
+      return null;
+    }
+
+    await Notifications.clearLastNotificationResponseAsync();
+    return response;
   }
 
   /**
@@ -316,7 +357,7 @@ class PushNotificationService {
           // Deduplicate by a stable ID derived from the payload (FCM messageId,
           // a backend-supplied notification_id, or the visitId as fallback).
           const webNotifId = String(
-            data?.messageId || data?.notification_id || data?.visitId || Date.now()
+            data?.messageId || data?.notification_id || data?.visitId || data?.requestId || Date.now()
           );
           const thresholdMinutes = this.getThresholdMinutes(data);
           console.log('[Push Web] upcoming_visit threshold:', thresholdMinutes, 'min');
@@ -487,12 +528,15 @@ class PushNotificationService {
 
     this.responseListener = Notifications.addNotificationResponseReceivedListener((response) => {
       console.log('[Push Mobile] Notification tapped:', response.notification.request.content.title);
-      const data = response.notification.request.content.data as Record<string, unknown>;
-      this.handleNotificationReceived(data);
-      handleNotificationTap(response);
+      if (this.handleNotificationResponse(response)) {
+        Notifications.clearLastNotificationResponseAsync().catch((error) => {
+          console.warn('[Push Mobile] Failed to clear handled notification response:', error);
+        });
+      }
     });
 
     this.isInitialized = true;
+    await this.processLastNotificationResponse();
     console.log('[Push Mobile] Initialization COMPLETE! Ready to receive notifications.');
     return true;
   }
@@ -617,6 +661,7 @@ class PushNotificationService {
     }
     this.token = null;
     this.isInitialized = false;
+    this.handledResponseIds.clear();
   }
 
   async getStatus() {

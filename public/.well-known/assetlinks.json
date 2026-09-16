@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.dallah.vms",
+      "sha256_cert_fingerprints": [
+        "0F:39:59:AA:12:59:A0:9A:8B:6E:0D:52:74:A0:B2:72:DA:76:24:F3:C1:86:FD:FE:06:F9:C3:BB:34:38:73:A2"
+      ]
+    }
+  }
+]

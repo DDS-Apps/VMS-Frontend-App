@@ -1,0 +1,331 @@
+Skip to:
+Top Bar
+Sidebar
+Main Content
+Space navigation
+
+
+Jira homepage
+
+Search
+
+Create
+
+Ask Rovo
+
+9+
+
+
+
+Recent
+
+Recent
+
+Spaces
+Dallah Albaraka Group
+Dallah Albaraka-Kanban
+
+
+
+
+
+More
+5
+As you type to search or apply filters, the board updates with work items to match.
+Search board
+Filter by assignee
+
+
+
+
+
+
+
+
+
+
+Version
+
+Epic
+
+Type
+
+Label
+
+Quick filters
+
+Clear filters
+
+Group: Query
+
+
+
+DAG-278
+DAG-316
+DAG-314
+DAG-271
+DAG-253
+DAG-311
+DAG-243
+DAG-251
+DAG-254
+DAG-263
+DAG-265
+DAG-264
+
+DAG-239
+
+DAG-316
+
+
+2
+
+
+
+
+
+Fix the sorting by date feature on Security Admin dashboard too
+
+
+
+
+Key details
+Description
+
+Add a description...
+Environment
+
+
+None
+
+Attachments
+2
+
+
+response_1788252451579.json
+response_1788252451579.json
+01 Sep 2026, 01:53 PM
+
+
+image-20260831-150151.png
+image-20260831-150151.png
+31 Aug 2026, 08:01 PM
+
+Subtasks
+
+Add subtask
+Linked work items
+
+Add linked work item
+Agents
+Uses AI. Verify results.
+
+Start work
+
+Activity
+
+All
+
+Comments
+
+History
+
+Work log
+
+
+
+Add a comment…
+
+Suggest a reply...
+
+Can I get more info...?
+
+Status update...
+Pro tip: press 
+M
+ to comment
+
+aftabahmed
+
+2 hours ago
+@Ahsan Shafiq I fixed the backend response and attached the API response for reference. The UI isn't reflecting the change—please take a look. Thanks. CC: @Muhammad Nasir response_1788252451579.json 
+
+
+
+
+
+
+In Progress
+
+Agents
+
+
+Improve Bug
+Details
+Assignee
+
+
+
+Ahsan Shafiq
+Reporter
+
+
+
+Muzzammil Abdul Hai
+Labels
+
+
+None
+Due date
+
+
+None
+Start date
+
+
+
+None
+Priority
+
+
+
+Medium
+Parent
+
+
+
+Epic icon
+DAG-239 Phase 2 - Post UAT Enhancements
+Zoom
+Open Zoom
+TestRail: Cases
+Open TestRail: Cases
+TestRail: Runs
+Open TestRail: Runs
+QA Touch Test Cases
+Open QA Touch Test Cases
+Zoom discussions
+Open Zoom discussions
+Development
+More fields
+Story Points, Original estimate, Time tracking, Components, Sprint, Team, Fix versions, Affects versions
+Automation
+Rule executions
+Clockify
+
+Start / Stop
+Created 20 hours ago
+Updated 2 hours ago
+
+
+response_1788252451579.json
+json · 9 KB
+
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+{
+  "data": [
+    {
+      "id": "5FE5E369-CC9F-F111-90A2-00155DB21469",
+      "employeeName": "Visitor3",
+      "visitor": {
+        "fullName": "meet 002",
+        "company": "meet"
+      },
+      "visitDate": "2026-08-27",
+      "visitTime": "1:00 PM",
+      "visitStartAt": "2026-08-27T10:00:00.000Z",
+      "endTime": "2:00 PM",
+      "status": "visitor_accepted",
+      "isExpired": false,
+      "purpose": "interview",
+      "isWalkIn": false,
+      "isBuffet": true,
+      "isMeetingRoom": true,
+      "isVisitorNeedsParking": false,
+      "visitorNeedsParking": false,
+      "parkingDecision": "not_required",
+      "visitorDecision": {
+        "accepted": true,
+        "decidedAt": "2026-08-24T15:01:19.712Z"
+      },
+      "createdAt": "2026-08-24T14:59:34.841Z",
+      "timezone": "Asia/Riyadh"
+    },
+    {
+      "id": "2D0F9BF1-A795-F111-90A2-00155DB21469",
+      "employeeName": "John Manager",
+      "visitor": {
+        "fullName": "azadi 4",
+        "company": "azadi 4"
+      },
+      "visitDate": "2026-08-27",
+      "visitTime": "1:10 PM",
+      "visitStartAt": "2026-08-27T10:10:00.000Z",
+      "endTime": "2:10 PM",
+      "status": "auto_cancelled",
+      "isExpired": false,
+      "purpose": "interview",
+      "isWalkIn": false,
+      "isBuffet": false,
+      "isMeetingRoom": true,
+      "isVisitorNeedsParking": false,
+      "visitorNeedsParking": false,
+      "parkingDecision": "not_required",
+      "createdAt": "2026-08-11T17:13:19.185Z",
+      "timezone": "Asia/Riyadh"
+    },
+    {
+      "id": "4C3AD838-09A2-F111-90A2-00155DB21469",

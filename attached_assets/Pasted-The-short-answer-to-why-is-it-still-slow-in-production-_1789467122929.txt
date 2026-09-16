@@ -1,0 +1,14 @@
+The short answer to "why is it still slow in production": none of the causes are environmental, so deploying doesn't remove them. They are in the app code and in server.js:
+
+5-second splash on every cold start (measured, not inferred). I executed the real App.tsx startup with fake timers: the splash's own 800 ms hand-off is a no-op because the callback it holds was captured while languageLoading was still true, so the app only proceeds when the 5 s "Initialization timeout" failsafe fires. First non-splash frame at exactly 5000 ms; 8000 ms in the worst case when the locale bootstrap is also slow. Same on web, TestFlight and Play Store.
+Web server sends ~7.2 MB uncompressed and forbids caching (server.js: no compression, no-store on the hashed JS bundle and fonts). Every reload is a full cold download: ~5.8 s on a 10 Mbps connection before the splash even starts. Cheapest fix in the report; not covered by any queued task.
+Fonts: 15 files loaded before first paint; 5 of them (1.47 MB, 65%) are referenced nowhere. On web the theme asks for CSS family names that are never defined (public/index.html is missing, dist/index.html has zero @font-face rules), so the browser downloads 2.3 MB, blocks first paint on it, then renders the system font.
+Session restore blocks on /users/me and deletes tokens on any network error (covered by #207).
+Request patterns: dashboards auto-page the entire month / last 3 days at 100 per page, refetch 3–4 sections on every focus, and hide the KPI numbers behind skeletons during each background refetch; admin lists download all 40 pages for one status filter (#208); the Create Visit form sends one request per keystroke (#209); nothing has a timeout (#210).
+Backend: the endpoints I could probe answered in 130–270 ms; heavy endpoints are unmeasured, so there is no evidence yet to hand the backend team — #210 produces that evidence.
+
+Gaps in the queue: three items have no task — server compression/caching, dead fonts + web @font-face template, and the dashboard request diet. #207's plan also needs one explicit line naming the stale-callback bug, otherwise removing the timers alone leaves the 5 s failsafe as the effective path. Switch me to Plan mode if you want those queued as tasks, or tell me to implement any of them directly.
+
+
+
+Worked for 3 minutes

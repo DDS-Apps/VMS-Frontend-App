@@ -1,0 +1,53 @@
+Frontend Change — Export Reports Page: KPI Cards Update
+
+API response shape (already updated on backend)
+
+GET /api/v1/admin/analytics/summary?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
+
+{
+  "success": true,
+  "data": {
+    "totalVisitorsPeriod": 2,
+    "totalVisitorsAllTime": 367,
+    "totalRecordsPeriod": 4,
+    "totalRecordsAllTime": 502
+  }
+}
+
+All four numbers are now scoped to the logged-in user's role (manager sees own team, admin sees all), so they will always match the numbers in the downloaded report.
+
+Changes needed on the Export Reports page
+
+1 — Add two new KPI cards
+
+The page currently shows 2 cards. Add 2 more so users can cross-reference the dashboard against the downloaded file without confusion.
+
+Display all four cards in this order:
+
+#	Field	Title	Subtitle
+1	totalVisitorsPeriod	Visitors in Selected Period	Excludes cancelled & auto-cancelled
+2	totalVisitorsAllTime	Total Visitors (All Time)	Excludes cancelled & auto-cancelled
+3	totalRecordsPeriod	Total Records in Period	All statuses — matches downloaded report
+4	totalRecordsAllTime	Total Records (All Time)	All statuses — matches downloaded report
+Cards 1 & 2 already exist — do not remove them, only update their subtitle (see point 2 below). Cards 3 & 4 are new.
+
+2 — Update subtitle on existing cards
+
+Change the subtitle on both existing cards from:
+
+Excludes cancelled
+
+To:
+
+Excludes cancelled & auto-cancelled
+
+3 — Visual style for the new cards
+
+Cards 3 & 4 should look visually secondary compared to cards 1 & 2 — for example, use a muted/grey icon colour and lighter text — so users immediately understand that cards 1 & 2 are the primary "active visitor" metrics, while cards 3 & 4 are the full audit totals.
+
+Why the numbers differ between the two pairs
+
+Cards 1 & 2 exclude visits with status: draft, rejected, visitor_rejected, cancelled, auto_cancelled
+Cards 3 & 4 include every record regardless of status
+The numbers in cards 3 & 4 will exactly match rows 2 and 3 in the downloaded CSV/XLSX report header
+No other changes needed — the API, download logic, and report file format are all unchanged.

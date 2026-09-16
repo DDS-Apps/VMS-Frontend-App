@@ -16,7 +16,11 @@ console.log('[API Config] Source: process.env =', process.env.EXPO_PUBLIC_API_BA
 export const apiConfig = {
   baseUrl: API_BASE_URL,
   microsoftAuthUrl: MICROSOFT_AUTH_BASE_URL,
-  timeout: 180000,
+  // Hard cap for ordinary requests. A backend that has not answered in 30 s is
+  // treated as unreachable so screens surface an error instead of hanging.
+  timeout: 30000,
+  // Multipart uploads (profile photos) get longer to finish on slow links.
+  uploadTimeout: 120000,
   endpoints: {
     health: "/api/health",
     healthDb: "/api/health/db",
@@ -46,6 +50,9 @@ export const apiConfig = {
         settings: "/api/v1/auth/biometric/settings",
         challenge: "/api/v1/auth/biometric/challenge",
       },
+    },
+    dashboard: {
+      kpis: "/api/v1/dashboard/kpis",
     },
     users: {
       base: "/api/v1/users",

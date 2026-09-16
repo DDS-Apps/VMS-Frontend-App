@@ -1,0 +1,15 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "SNJM77V43A.com.dallah.vms",
+        "paths": [
+          "/requests/new",
+          "/requests/*",
+          "/invite/*"
+        ]
+      }
+    ]
+  }
+}

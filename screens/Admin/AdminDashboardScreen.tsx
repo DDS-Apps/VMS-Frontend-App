@@ -27,32 +27,10 @@ const getDashboardData = (
         title: t('roles.buildingAdmin'),
         kpis: [
           {
-            label: t('parking.totalSlots'),
-            value: "150",
-            icon: "map-pin",
-            color: theme.info,
-            trend: "+5",
-          },
-          {
-            label: t('status.occupied'),
-            value: "87",
+            label: t('parking.needsParking'),
+            value: t('parking.needsParking'),
             icon: "check-circle",
             color: theme.success,
-            trend: "58%",
-          },
-          {
-            label: t('status.reserved'),
-            value: "23",
-            icon: "clock",
-            color: theme.warning,
-            trend: "15%",
-          },
-          {
-            label: t('status.available'),
-            value: "40",
-            icon: "circle",
-            color: theme.textSecondary,
-            trend: "27%",
           },
         ],
       };
@@ -95,11 +73,10 @@ const getDashboardData = (
         title: t('roles.valetAdmin'),
         kpis: [
           {
-            label: t('dashboard.activeDrivers'),
-            value: "12",
-            icon: "truck",
+            label: t('parking.needsParking'),
+            value: t('parking.needsParking'),
+            icon: "check-circle",
             color: theme.primary,
-            trend: "75%",
           },
           {
             label: t('dashboard.pendingTasks'),
@@ -191,14 +168,14 @@ export default function AdminDashboardScreen({
       id: "3",
       icon: "truck",
       title: t('valet.valetService'),
-      subtitle: "Ahmed Ali",
+      subtitle: t('parking.needsParking'),
       time: "23m",
     },
     {
       id: "4",
       icon: "map-pin",
       title: t('services.parking'),
-      subtitle: "B1-45",
+      subtitle: t('parking.needsParking'),
       time: "35m",
     },
   ];

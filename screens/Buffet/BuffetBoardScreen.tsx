@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { View, StyleSheet, Pressable, ActivityIndicator, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUpcomingIndicator } from '@/hooks/useUpcomingVisitTimer';
@@ -16,9 +16,11 @@ import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useFormatters } from '@/hooks/useFormatters';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { RTLHorizontalScrollView } from '@/components/shared';
+import { RTLHorizontalScrollView, FilterChip } from '@/components/shared';
+import { SkeletonCard } from '@/components/shared/Skeleton';
 import { applyOpacity } from '@/utils/statusStyles';
 import { useMyBuffetTasksQuery, useUpdateBuffetTaskStatusMutation } from '@/hooks/queries/useBuffetQueries';
+import { useRetainedDatedData } from '@/hooks/useRetainedDatedData';
 import type { BuffetStaffTaskDto, BuffetStaffTaskStatus } from '@/types/api.types';
 
 type StatusFilter = 'all' | BuffetStaffTaskStatus;
@@ -28,15 +30,29 @@ interface DateRange {
   endDate: Date | null;
 }
 
+type BuffetBoardSourceContext =
+  | {
+      selection: 'date';
+      date: string;
+      status: StatusFilter;
+    }
+  | {
+      selection: 'range';
+      startDate: string;
+      endDate: string;
+      status: StatusFilter;
+    };
+
 const BUFFET_STAFF_ELIGIBLE_STATUSES: BuffetStaffTaskStatus[] = ['pending', 'preparing', 'ready'];
 
-const BuffetUpcomingAlertIcon = React.memo(({ visitDate, visitTime, status }: { visitDate: string; visitTime: string; status: BuffetStaffTaskStatus }) => {
+const BuffetUpcomingAlertIcon = React.memo(({ visitDate, visitTime, status, visitStartAt }: { visitDate: string; visitTime: string; status: BuffetStaffTaskStatus; visitStartAt?: string }) => {
   const { theme } = useTheme();
   const { isRTL } = useLanguage();
   const eligible = BUFFET_STAFF_ELIGIBLE_STATUSES.includes(status);
   const isUpcoming = useUpcomingIndicator({
     visitDate,
     visitTime,
+    visitStartAt,
     eligible,
     thresholdMinutes: UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES,
   });
@@ -45,9 +61,23 @@ const BuffetUpcomingAlertIcon = React.memo(({ visitDate, visitTime, status }: { 
     <View
       accessibilityLabel={isRTL ? 'الزيارة تبدأ قريباً' : 'Visit starts soon'}
       accessibilityRole="image"
-      style={{ marginEnd: 4 }}
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        backgroundColor: applyOpacity(theme.error, '15'),
+        borderWidth: 1,
+        borderColor: theme.error,
+        borderRadius: 100,
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+        marginEnd: 6,
+      }}
     >
-      <DDIcon name="alert-circle" size={14} color={theme.error} />
+      <DDIcon name="alert-circle" size={12} color={theme.error} />
+      <ThemedText style={{ color: theme.error, fontSize: 11, fontWeight: '700', lineHeight: 16 }}>
+        {isRTL ? 'قريباً' : 'Upcoming'}
+      </ThemedText>
     </View>
   );
 });
@@ -62,7 +92,7 @@ export default function BuffetBoardScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [dateRange, setDateRange] = useState<DateRange>({ startDate: null, endDate: null });
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [updatingTaskId, setUpdatingTaskId] = useState<string | null>(null);
+  const [updatingTaskIds, setUpdatingTaskIds] = useState<Set<string>>(() => new Set());
 
   const formatDateForApi = (date: Date) => {
     const year = date.getFullYear();
@@ -71,16 +101,34 @@ export default function BuffetBoardScreen() {
     return `${year}-${month}-${day}`;
   };
 
-  const hasDateRange = dateRange.startDate && dateRange.endDate;
+  const hasDateRange = Boolean(dateRange.startDate && dateRange.endDate);
+  const queryDate = hasDateRange ? undefined : formatDateForApi(selectedDate);
 
-  const queryParams = {
-    date: hasDateRange ? undefined : formatDateForApi(selectedDate),
+  const queryParams = useMemo(() => ({
+    date: queryDate,
     status: statusFilter !== 'all' ? statusFilter : undefined,
-  };
+  }), [queryDate, statusFilter]);
+
+  const sourceContext = useMemo<BuffetBoardSourceContext>(() => {
+    if (dateRange.startDate && dateRange.endDate) {
+      return {
+        selection: 'range',
+        startDate: formatDateForApi(dateRange.startDate),
+        endDate: formatDateForApi(dateRange.endDate),
+        status: statusFilter,
+      };
+    }
+    return {
+      selection: 'date',
+      date: formatDateForApi(selectedDate),
+      status: statusFilter,
+    };
+  }, [dateRange.startDate, dateRange.endDate, selectedDate, statusFilter]);
 
   const { 
     data: tasksResponse, 
     isLoading, 
+    isFetching,
     isError, 
     refetch,
     isRefetching 
@@ -88,22 +136,29 @@ export default function BuffetBoardScreen() {
 
   const updateStatusMutation = useUpdateBuffetTaskStatusMutation();
 
-  const allTasks: BuffetStaffTaskDto[] = tasksResponse || [];
+  const retainedInput = useMemo(
+    () => tasksResponse !== undefined
+      ? { response: tasksResponse ?? [], context: sourceContext }
+      : undefined,
+    [tasksResponse, sourceContext],
+  );
+  const retainedTasks = useRetainedDatedData(
+    JSON.stringify(sourceContext),
+    retainedInput,
+  );
+  const displayedResponse = retainedTasks.data?.response;
+  const displayedSourceContext = retainedTasks.data?.context ?? sourceContext;
+  const allTasks: BuffetStaffTaskDto[] = displayedResponse ?? [];
+  const hasDisplayedData = displayedResponse !== undefined;
 
-  const isDateInRange = useCallback((visitDateStr: string) => {
-    if (hasDateRange && dateRange.startDate && dateRange.endDate) {
-      const startDateStr = formatDateForApi(dateRange.startDate);
-      const endDateStr = formatDateForApi(dateRange.endDate);
-      return visitDateStr >= startDateStr && visitDateStr <= endDateStr;
-    }
-    return visitDateStr === formatDateForApi(selectedDate);
-  }, [hasDateRange, dateRange.startDate, dateRange.endDate, selectedDate]);
-
-  const tasks = hasDateRange 
-    ? allTasks.filter(task => isDateInRange(task.visitDate))
+  const tasks = displayedSourceContext.selection === 'range'
+    ? allTasks.filter(task =>
+        task.visitDate >= displayedSourceContext.startDate &&
+        task.visitDate <= displayedSourceContext.endDate
+      )
     : allTasks;
 
-  const FILTER_OPTIONS: { key: StatusFilter; label: string }[] = [
+  const FILTER_OPTIONS: { key: StatusFilter; label: string }[] = useMemo(() => [
     { key: 'all', label: t('common.all') },
     { key: 'pending', label: t('status.pending') },
     { key: 'preparing', label: t('buffet.preparing') },
@@ -111,7 +166,17 @@ export default function BuffetBoardScreen() {
     { key: 'served', label: t('buffet.served') },
     { key: 'completed', label: t('status.completed') },
     { key: 'cancelled', label: t('status.cancelled') },
-  ];
+  ], [t]);
+
+  const displayedSourceLabel = useMemo(() => {
+    const dateLabel = displayedSourceContext.selection === 'range'
+      ? `${displayedSourceContext.startDate} – ${displayedSourceContext.endDate}`
+      : displayedSourceContext.date;
+    const statusLabel = FILTER_OPTIONS.find(
+      option => option.key === displayedSourceContext.status,
+    )?.label ?? displayedSourceContext.status;
+    return `${dateLabel} · ${statusLabel}`;
+  }, [displayedSourceContext, FILTER_OPTIONS]);
 
   const scrollContentStyle = {
     paddingHorizontal: Spacing.lg,
@@ -139,7 +204,9 @@ export default function BuffetBoardScreen() {
       }
       const parseVisitTime = (visitDate: string, visitTime?: string): number => {
         if (!visitTime) return Number.MIN_SAFE_INTEGER;
-        const ts = new Date(visitDate + 'T' + visitTime).getTime();
+        // Append Riyadh offset so sorting uses a consistent timezone, not device-local
+        const cleaned = visitTime.trim().replace(/\s*(AM|PM)\s*/i, '');
+        const ts = new Date(`${visitDate}T${cleaned}+03:00`).getTime();
         return isNaN(ts) ? Number.MIN_SAFE_INTEGER : ts;
       };
       const dateA = parseVisitTime(a.visitDate, a.visitTime);
@@ -251,23 +318,23 @@ export default function BuffetBoardScreen() {
     }
   };
 
-  const handleStatusUpdate = useCallback((taskId: string, newStatus: BuffetStaffTaskStatus) => {
-    setUpdatingTaskId(taskId);
-    updateStatusMutation.mutate(
-      { 
-        taskId, 
-        data: { status: newStatus } 
-      },
-      {
-        onSuccess: () => {
-          setUpdatingTaskId(null);
-          refetch();
-        },
-        onError: () => {
-          setUpdatingTaskId(null);
-        }
-      }
-    );
+  const handleStatusUpdate = useCallback(async (taskId: string, newStatus: BuffetStaffTaskStatus) => {
+    setUpdatingTaskIds((current) => new Set(current).add(taskId));
+    try {
+      await updateStatusMutation.mutateAsync({
+        taskId,
+        data: { status: newStatus },
+      });
+      refetch();
+    } catch (error) {
+      console.error('Failed to update buffet task status:', error);
+    } finally {
+      setUpdatingTaskIds((current) => {
+        const next = new Set(current);
+        next.delete(taskId);
+        return next;
+      });
+    }
   }, [updateStatusMutation, refetch]);
 
   const formatDisplayDate = () => {
@@ -393,7 +460,7 @@ export default function BuffetBoardScreen() {
     const statusConfig = getStatusConfig(task.status);
     const actionConfig = getActionButtonConfig(task.status);
     const nextStatus = getNextStatus(task.status);
-    const isUpdating = updatingTaskId === task.id;
+    const isUpdating = updatingTaskIds.has(task.id);
     
     return (
       <View key={task.id}>
@@ -411,6 +478,14 @@ export default function BuffetBoardScreen() {
                 <ThemedText style={[Typography.body, { fontWeight: '600' }]} numberOfLines={1}>
                   {t('reception.hostName')}: {task.hostName}
                 </ThemedText>
+                {task.hostDepartment ? (
+                  <DirectionalRow style={[styles.infoRow, { marginTop: 2 }]}>
+                    <DDIcon name="briefcase" size={13} variant="muted" />
+                    <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 4 }]} numberOfLines={1}>
+                      {task.hostDepartment}
+                    </ThemedText>
+                  </DirectionalRow>
+                ) : null}
                 <DirectionalRow style={[styles.infoRow, { marginTop: 2 }]}>
                   <DDIcon name="clock" size={13} variant="muted" />
                   <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 4 }]}>
@@ -419,7 +494,7 @@ export default function BuffetBoardScreen() {
                 </DirectionalRow>
               </View>
               <DirectionalRow style={{ alignItems: 'center' }}>
-                <BuffetUpcomingAlertIcon visitDate={task.visitDate} visitTime={task.visitTime} status={task.status} />
+                <BuffetUpcomingAlertIcon visitDate={task.visitDate} visitTime={task.visitTime} status={task.status} visitStartAt={task.visitStartAt} />
                 <View style={[styles.statusBadge, { backgroundColor: statusConfig.bgColor }]}>
                   <ThemedText style={[styles.statusText, { color: statusConfig.color }]}>
                     {statusConfig.label}
@@ -516,19 +591,17 @@ export default function BuffetBoardScreen() {
     );
   };
 
-  if (isLoading) {
+  if (!hasDisplayedData && (isFetching || isLoading)) {
     return (
-      <View style={[styles.centerContainer, { backgroundColor: theme.background }]}>
-        <ActivityIndicator size="large" color={theme.primary} />
-        <Spacer height={Spacing.md} />
-        <ThemedText style={[Typography.body, { color: theme.textSecondary }]}>
-          {t('common.loading')}
-        </ThemedText>
+      <View style={[styles.centerContainer, { backgroundColor: theme.background, padding: Spacing.lg }]}>
+        <SkeletonCard showImage={false} lines={3} />
+        <SkeletonCard showImage={false} lines={3} />
+        <SkeletonCard showImage={false} lines={3} />
       </View>
     );
   }
 
-  if (isError) {
+  if (!hasDisplayedData && isError) {
     return (
       <ScreenScrollView contentContainerStyle={scrollContentStyle}>
         <View style={styles.emptyState}>
@@ -540,7 +613,10 @@ export default function BuffetBoardScreen() {
           <Spacer height={Spacing.md} />
           <Pressable
             style={[styles.retryButton, { backgroundColor: theme.primary }]}
-            onPress={() => refetch()}
+            onPress={() => {
+              if (!isFetching) refetch();
+            }}
+            disabled={isFetching}
           >
             <ThemedText style={[styles.retryButtonText, { color: '#FFFFFF' }]}>
               {t('common.retry')}
@@ -604,34 +680,68 @@ export default function BuffetBoardScreen() {
           contentContainerStyle={styles.filtersContainer}
           nestedScrollEnabled={true}
         >
-          {FILTER_OPTIONS.map((option) => {
-            const isActive = statusFilter === option.key;
-            const count = statusCounts[option.key];
-            const colors = getFilterPillColors(option.key, isActive);
-            
-            return (
-              <Pressable
-                key={option.key}
-                style={[
-                  styles.filterPill,
-                  { backgroundColor: colors.bg }
-                ]}
-                onPress={() => setStatusFilter(option.key)}
-              >
-                <ThemedText style={[styles.filterPillText, { color: colors.text }]}>
-                  {option.label}
-                </ThemedText>
-                <View style={[styles.filterCount, { backgroundColor: colors.countBg }]}>
-                  <ThemedText style={[styles.filterCountText, { color: colors.countText }]}>
-                    {count}
-                  </ThemedText>
-                </View>
-              </Pressable>
-            );
-          })}
+          {FILTER_OPTIONS.map((option) => (
+            <FilterChip
+              key={option.key}
+              label={option.label}
+              isSelected={statusFilter === option.key}
+              count={statusCounts[option.key]}
+              onPress={() => setStatusFilter(option.key)}
+            />
+          ))}
         </RTLHorizontalScrollView>
 
         <Spacer height={Spacing.xl} />
+
+        {hasDisplayedData && (isFetching || isError || retainedTasks.isRetained) ? (
+          <DirectionalRow
+            style={[
+              styles.inlineFeedback,
+              {
+                backgroundColor: applyOpacity(
+                  isError && !isFetching ? theme.error : theme.primary,
+                  '10',
+                ),
+              },
+            ]}
+          >
+            {isFetching ? (
+              <ActivityIndicator size="small" color={theme.primary} />
+            ) : (
+              <DDIcon
+                name={isError ? 'alert-circle' : 'info'}
+                size={16}
+                color={isError ? theme.error : theme.primary}
+              />
+            )}
+            <ThemedText
+              style={[
+                Typography.caption,
+                {
+                  color: isError && !isFetching ? theme.error : theme.textSecondary,
+                  flex: 1,
+                },
+              ]}
+            >
+              {retainedTasks.isRetained
+                ? t('requests.showingPreviousDataFrom').replace('{{source}}', displayedSourceLabel)
+                : isFetching
+                  ? t('common.loading')
+                  : t('errors.generic')}
+            </ThemedText>
+            {isError && !isFetching ? (
+              <Pressable onPress={() => refetch()} hitSlop={8}>
+                <ThemedText style={[Typography.caption, { color: theme.primary, fontWeight: '600' }]}>
+                  {t('common.retry')}
+                </ThemedText>
+              </Pressable>
+            ) : null}
+          </DirectionalRow>
+        ) : null}
+
+        {hasDisplayedData && (isFetching || isError || retainedTasks.isRetained) ? (
+          <Spacer height={Spacing.md} />
+        ) : null}
 
         {filteredTasks.length > 0 ? (
           <View style={styles.cardList}>
@@ -798,5 +908,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     fontFamily: FontFamily.latinSemiBold,
+  },
+  inlineFeedback: {
+    alignItems: 'center',
+    gap: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
   },
 });

@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient, UseQueryOptions } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, UseQueryOptions, keepPreviousData } from '@tanstack/react-query';
 import { receptionApiService } from '@/services/api/receptionApiService';
 import type {
   TodayVisitorsResponse,
@@ -17,6 +17,7 @@ import type {
   CheckOutResponseDto,
 } from '@/types';
 import { ApiError } from '@/api/errors';
+import { invalidateDashboardKpis } from '@/hooks/queries/useDashboardKpiQuery';
 
 export const receptionKeys = {
   all: ['reception'] as const,
@@ -38,6 +39,10 @@ export function useTodayVisitorsQuery(
     queryFn: () => receptionApiService.getTodayVisitors(params),
     staleTime: 30 * 1000,
     refetchInterval: 60 * 1000,
+    // Keep previous data visible while a new search/filter fetch is in flight.
+    // Without this, every param change triggers isLoading=true, unmounting any
+    // active SearchBar and losing the typed text.
+    placeholderData: keepPreviousData,
     ...options,
   });
 }
@@ -111,6 +116,7 @@ export function useRegisterWalkInMutation() {
         predicate: (query) =>
           query.queryKey[0] === 'reception' && query.queryKey[1] === 'today',
       });
+      invalidateDashboardKpis(queryClient);
     },
   });
 }
@@ -135,6 +141,7 @@ export function useReceptionCheckInMutation() {
       queryClient.invalidateQueries({
         queryKey: ['requests', 'visit-detail', variables.visitId],
       });
+      invalidateDashboardKpis(queryClient);
     },
   });
 }
@@ -152,6 +159,7 @@ export function useReceptionCheckOutMutation() {
       queryClient.invalidateQueries({
         queryKey: ['requests', 'visit-detail', variables.visitId],
       });
+      invalidateDashboardKpis(queryClient);
     },
   });
 }

@@ -1,0 +1,1239 @@
+{
+    "data": [
+        {
+            "id": "6087BCAC-8C8A-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "2nd Aug",
+                "company": "2nddd"
+            },
+            "visitDate": "2026-08-02",
+            "visitTime": "6:58 PM",
+            "visitStartAt": "2026-08-02T15:58:00.000Z",
+            "endTime": "7:58 PM",
+            "status": "visitor_accepted",
+            "isExpired": false,
+            "purpose": "interview",
+            "isWalkIn": false,
+            "isBuffet": true,
+            "isMeetingRoom": true,
+            "isVisitorNeedsParking": false,
+            "visitorNeedsParking": false,
+            "parkingDecision": "visitor_decides",
+            "visitorDecision": {
+                "accepted": true,
+                "decidedAt": "2026-07-28T14:04:35.421Z"
+            },
+            "createdAt": "2026-07-28T14:00:23.328Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "F95E82EC-898A-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "31",
+                "company": "fgsfs"
+            },
+            "visitDate": "2026-07-31",
+            "visitTime": "6:39 PM",
+            "visitStartAt": "2026-07-31T15:39:00.000Z",
+            "endTime": "7:39 PM",
+            "status": "visitor_accepted",
+            "isExpired": false,
+            "purpose": "delivery",
+            "isWalkIn": false,
+            "isBuffet": true,
+            "isMeetingRoom": true,
+            "isVisitorNeedsParking": true,
+            "visitorNeedsParking": true,
+            "parkingDecision": "required",
+            "visitorDecision": {
+                "accepted": true,
+                "decidedAt": "2026-07-28T13:41:30.977Z"
+            },
+            "createdAt": "2026-07-28T13:40:41.831Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "1D04B682-898A-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "31",
+                "company": "fgsfs"
+            },
+            "visitDate": "2026-07-30",
+            "visitTime": "6:36 PM",
+            "visitStartAt": "2026-07-30T15:36:00.000Z",
+            "endTime": "7:36 PM",
+            "status": "visitor_accepted",
+            "isExpired": false,
+            "purpose": "maintenance",
+            "isWalkIn": false,
+            "isBuffet": true,
+            "isMeetingRoom": true,
+            "isVisitorNeedsParking": true,
+            "visitorNeedsParking": true,
+            "parkingDecision": "visitor_decides",
+            "visitorDecision": {
+                "accepted": true,
+                "decidedAt": "2026-07-28T13:38:31.785Z"
+            },
+            "createdAt": "2026-07-28T13:37:44.331Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "034C74FC-888A-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "Muzzammil Abdul Hai"
+            },
+            "visitDate": "2026-07-29",
+            "visitTime": "6:33 PM",
+            "visitStartAt": "2026-07-29T15:33:00.000Z",
+            "endTime": "7:33 PM",
+            "status": "visitor_accepted",
+            "isExpired": false,
+            "purpose": "interview",
+            "isWalkIn": false,
+            "isBuffet": true,
+            "isMeetingRoom": true,
+            "isVisitorNeedsParking": false,
+            "visitorNeedsParking": false,
+            "parkingDecision": "not_required",
+            "visitorDecision": {
+                "accepted": true,
+                "decidedAt": "2026-07-28T13:36:18.514Z"
+            },
+            "createdAt": "2026-07-28T13:33:59.086Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "709318F7-868A-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "31",
+                "company": "fgsfs"
+            },
+            "visitDate": "2026-07-28",
+            "visitTime": "6:30 PM",
+            "visitStartAt": "2026-07-28T15:30:00.000Z",
+            "endTime": "7:27 PM",
+            "status": "visitor_accepted",
+            "isExpired": false,
+            "purpose": "general",
+            "isWalkIn": true,
+            "isBuffet": false,
+            "isMeetingRoom": false,
+            "isVisitorNeedsParking": false,
+            "visitorNeedsParking": false,
+            "parkingDecision": "not_required",
+            "createdAt": "2026-07-28T13:19:31.102Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "079AEAF2-758A-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "Ahsan 2:35",
+                "company": "Folio3"
+            },
+            "visitDate": "2026-07-28",
+            "visitTime": "2:35 PM",
+            "visitStartAt": "2026-07-28T11:35:00.000Z",
+            "endTime": "3:05 PM",
+            "status": "visitor_accepted",
+            "isExpired": false,
+            "purpose": "maintenance",
+            "isWalkIn": false,
+            "isBuffet": false,
+            "isMeetingRoom": false,
+            "isVisitorNeedsParking": true,
+            "visitorNeedsParking": true,
+            "parkingDecision": "required",
+            "visitorDecision": {
+                "accepted": true,
+                "decidedAt": "2026-07-28T11:18:16.329Z"
+            },
+            "createdAt": "2026-07-28T11:17:42.646Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "66F8AD25-728A-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "Ahsan Notification 2:15",
+                "company": "Folio3"
+            },
+            "visitDate": "2026-07-28",
+            "visitTime": "2:15 PM",
+            "visitStartAt": "2026-07-28T11:15:00.000Z",
+            "endTime": "2:45 PM",
+            "status": "visitor_accepted",
+            "isExpired": false,
+            "purpose": "interview",
+            "isWalkIn": false,
+            "isBuffet": false,
+            "isMeetingRoom": false,
+            "isVisitorNeedsParking": true,
+            "visitorNeedsParking": true,
+            "parkingDecision": "required",
+            "visitorDecision": {
+                "accepted": true,
+                "decidedAt": "2026-07-28T10:51:17.181Z"
+            },
+            "createdAt": "2026-07-28T10:50:30.950Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "90869B5F-6B8A-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "Test 29",
+                "company": "4168638-1"
+            },
+            "visitDate": "2026-07-29",
+            "visitTime": "3:01 PM",
+            "visitStartAt": "2026-07-29T12:01:00.000Z",
+            "endTime": "4:01 PM",
+            "status": "visitor_accepted",
+            "isExpired": false,
+            "purpose": "business_meeting",
+            "isWalkIn": false,
+            "isBuffet": false,
+            "isMeetingRoom": false,
+            "isVisitorNeedsParking": true,
+            "visitorNeedsParking": true,
+            "parkingDecision": "required",
+            "visitorDecision": {
+                "accepted": true,
+                "decidedAt": "2026-07-28T10:02:38.971Z"
+            },
+            "createdAt": "2026-07-28T10:02:01.629Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "4DB17C7D-568A-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "Noor Fatima Khalid",
+                "company": "f4"
+            },
+            "visitDate": "2026-07-28",
+            "visitTime": "10:50 AM",
+            "visitStartAt": "2026-07-28T07:50:00.000Z",
+            "endTime": "11:31 AM",
+            "status": "visitor_accepted",
+            "isExpired": false,
+            "purpose": "business_meeting",
+            "isWalkIn": false,
+            "isBuffet": false,
+            "isMeetingRoom": false,
+            "isVisitorNeedsParking": false,
+            "visitorNeedsParking": false,
+            "parkingDecision": "not_required",
+            "visitorDecision": {
+                "accepted": true,
+                "decidedAt": "2026-07-28T07:33:11.720Z"
+            },
+            "createdAt": "2026-07-28T07:32:31.234Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "8F6D5E7C-548A-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "Noor Fatima Khalid",
+                "company": "f3"
+            },
+            "visitDate": "2026-07-28",
+            "visitTime": "10:35 AM",
+            "visitStartAt": "2026-07-28T07:35:00.000Z",
+            "endTime": "11:16 AM",
+            "status": "visitor_accepted",
+            "isExpired": false,
+            "purpose": "business_meeting",
+            "isWalkIn": false,
+            "isBuffet": false,
+            "isMeetingRoom": false,
+            "isVisitorNeedsParking": false,
+            "visitorNeedsParking": false,
+            "parkingDecision": "not_required",
+            "visitorDecision": {
+                "accepted": true,
+                "decidedAt": "2026-07-28T07:19:07.677Z"
+            },
+            "createdAt": "2026-07-28T07:18:10.364Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "DB0CE5CF-AF89-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "Noor Fatima Khalid",
+                "company": "f3"
+            },
+            "visitDate": "2026-07-27",
+            "visitTime": "2:39 PM",
+            "visitStartAt": "2026-07-27T11:39:00.000Z",
+            "endTime": null,
+            "status": "pending_host_approval",
+            "isExpired": false,
+            "purpose": "interview",
+            "isWalkIn": true,
+            "isBuffet": false,
+            "isMeetingRoom": false,
+            "isVisitorNeedsParking": false,
+            "visitorNeedsParking": false,
+            "parkingDecision": "not_required",
+            "createdAt": "2026-07-27T11:39:23.537Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "168143C7-AA89-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "31",
+                "company": "fgsfs"
+            },
+            "visitDate": "2026-07-27",
+            "visitTime": "2:03 PM",
+            "visitStartAt": "2026-07-27T11:03:00.000Z",
+            "endTime": null,
+            "status": "pending_host_approval",
+            "isExpired": false,
+            "purpose": "business_meeting",
+            "isWalkIn": true,
+            "isBuffet": false,
+            "isMeetingRoom": false,
+            "isVisitorNeedsParking": false,
+            "visitorNeedsParking": false,
+            "parkingDecision": "not_required",
+            "createdAt": "2026-07-27T11:03:21.573Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "D63A5C2F-A889-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "Noor Fatima Khalid",
+                "company": "f4"
+            },
+            "visitDate": "2026-07-27",
+            "visitTime": "3:50 PM",
+            "visitStartAt": "2026-07-27T12:50:00.000Z",
+            "endTime": "4:43 PM",
+            "status": "visitor_accepted",
+            "isExpired": false,
+            "purpose": "business_meeting",
+            "isWalkIn": false,
+            "isBuffet": false,
+            "isMeetingRoom": false,
+            "isVisitorNeedsParking": false,
+            "visitorNeedsParking": false,
+            "parkingDecision": "not_required",
+            "visitorDecision": {
+                "accepted": true,
+                "decidedAt": "2026-07-27T10:46:06.979Z"
+            },
+            "createdAt": "2026-07-27T10:44:47.728Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "8656946C-A289-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "Time Check",
+                "company": "Folio3"
+            },
+            "visitDate": "2026-07-27",
+            "visitTime": "4:00 PM",
+            "visitStartAt": "2026-07-27T13:00:00.000Z",
+            "endTime": "4:15 PM",
+            "status": "visitor_accepted",
+            "isExpired": false,
+            "purpose": "business_meeting",
+            "isWalkIn": false,
+            "isBuffet": false,
+            "isMeetingRoom": false,
+            "isVisitorNeedsParking": true,
+            "visitorNeedsParking": true,
+            "parkingDecision": "visitor_decides",
+            "visitorDecision": {
+                "accepted": true,
+                "decidedAt": "2026-07-27T10:04:40.466Z"
+            },
+            "createdAt": "2026-07-27T10:03:33.456Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "E77467EF-9289-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "Noor Fatima Khalid",
+                "company": "f3"
+            },
+            "visitDate": "2026-07-27",
+            "visitTime": "11:12 AM",
+            "visitStartAt": "2026-07-27T08:12:00.000Z",
+            "endTime": null,
+            "status": "pending_host_approval",
+            "isExpired": false,
+            "purpose": "business_meeting",
+            "isWalkIn": true,
+            "isBuffet": false,
+            "isMeetingRoom": false,
+            "isVisitorNeedsParking": false,
+            "visitorNeedsParking": false,
+            "parkingDecision": "not_required",
+            "createdAt": "2026-07-27T08:12:40.996Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "99766B03-9686-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "Noor Fatima Khalid",
+                "company": "f4"
+            },
+            "visitDate": "2026-07-23",
+            "visitTime": "6:55 PM",
+            "visitStartAt": "2026-07-23T15:55:00.000Z",
+            "endTime": "7:55 PM",
+            "status": "auto_cancelled",
+            "isExpired": false,
+            "purpose": "business_meeting",
+            "isWalkIn": false,
+            "isBuffet": false,
+            "isMeetingRoom": false,
+            "isVisitorNeedsParking": false,
+            "visitorNeedsParking": false,
+            "parkingDecision": "not_required",
+            "createdAt": "2026-07-23T05:57:09.586Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "CC695AB0-9186-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "Noor Fatima Khalid",
+                "company": "f3"
+            },
+            "visitDate": "2026-07-23",
+            "visitTime": "6:25 PM",
+            "visitStartAt": "2026-07-23T15:25:00.000Z",
+            "endTime": "7:25 PM",
+            "status": "visitor_accepted",
+            "isExpired": false,
+            "purpose": "interview",
+            "isWalkIn": false,
+            "isBuffet": false,
+            "isMeetingRoom": false,
+            "isVisitorNeedsParking": false,
+            "visitorNeedsParking": false,
+            "parkingDecision": "not_required",
+            "visitorDecision": {
+                "accepted": true,
+                "decidedAt": "2026-07-23T12:30:34.902Z"
+            },
+            "createdAt": "2026-07-23T05:26:12.230Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "2FEEA294-8686-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "tim zon",
+                "company": "f3"
+            },
+            "visitDate": "2026-07-23",
+            "visitTime": "2:06 PM",
+            "visitStartAt": "2026-07-23T11:06:00.000Z",
+            "endTime": null,
+            "status": "pending_host_approval",
+            "isExpired": false,
+            "purpose": "interview",
+            "isWalkIn": true,
+            "isBuffet": false,
+            "isMeetingRoom": false,
+            "isVisitorNeedsParking": false,
+            "visitorNeedsParking": false,
+            "parkingDecision": "not_required",
+            "createdAt": "2026-07-23T04:06:42.373Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "BE0E7930-BA85-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "Muzzammil Abdul Hai",
+                "company": "muzzy"
+            },
+            "visitDate": "2026-07-22",
+            "visitTime": "1:43 PM",
+            "visitStartAt": "2026-07-22T10:43:00.000Z",
+            "endTime": null,
+            "status": "pending_host_approval",
+            "isExpired": false,
+            "purpose": "interview",
+            "isWalkIn": true,
+            "isBuffet": false,
+            "isMeetingRoom": false,
+            "isVisitorNeedsParking": false,
+            "visitorNeedsParking": false,
+            "parkingDecision": "not_required",
+            "createdAt": "2026-07-22T03:43:36.993Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "541C4637-9185-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "Ahsan Shafiq",
+                "company": "4168638-1"
+            },
+            "visitDate": "2026-07-22",
+            "visitTime": "11:20 AM",
+            "visitStartAt": "2026-07-22T08:20:00.000Z",
+            "endTime": "11:49 AM",
+            "status": "visitor_accepted",
+            "isExpired": false,
+            "purpose": "vendors",
+            "isWalkIn": false,
+            "isBuffet": false,
+            "isMeetingRoom": false,
+            "isVisitorNeedsParking": true,
+            "visitorNeedsParking": true,
+            "parkingDecision": "required",
+            "visitorDecision": {
+                "accepted": true,
+                "decidedAt": "2026-07-22T05:51:01.685Z"
+            },
+            "createdAt": "2026-07-21T22:50:17.920Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "20B6FBF0-9085-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "Time Check",
+                "company": "Folio3"
+            },
+            "visitDate": "2026-07-22",
+            "visitTime": "11:10 AM",
+            "visitStartAt": "2026-07-22T08:10:00.000Z",
+            "endTime": "11:30 AM",
+            "status": "approved",
+            "isExpired": false,
+            "purpose": "business_meeting",
+            "isWalkIn": false,
+            "isBuffet": false,
+            "isMeetingRoom": false,
+            "isVisitorNeedsParking": false,
+            "visitorNeedsParking": false,
+            "parkingDecision": "visitor_decides",
+            "createdAt": "2026-07-21T22:48:20.000Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "A94673E6-4A84-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "001 parking req",
+                "company": "dfdfds"
+            },
+            "visitDate": "2026-07-20",
+            "visitTime": "5:54 PM",
+            "visitStartAt": "2026-07-20T14:54:00.000Z",
+            "endTime": null,
+            "status": "pending_host_approval",
+            "isExpired": false,
+            "purpose": "interview",
+            "isWalkIn": true,
+            "isBuffet": false,
+            "isMeetingRoom": false,
+            "isVisitorNeedsParking": false,
+            "visitorNeedsParking": false,
+            "parkingDecision": "not_required",
+            "createdAt": "2026-07-20T07:54:26.383Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "3E8F7987-0B84-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "Nasir",
+                "company": "Folio3"
+            },
+            "visitDate": "2026-07-20",
+            "visitTime": "12:21 PM",
+            "visitStartAt": "2026-07-20T09:21:00.000Z",
+            "endTime": "1:21 PM",
+            "status": "visitor_accepted",
+            "isExpired": false,
+            "purpose": "vendors",
+            "isWalkIn": true,
+            "isBuffet": false,
+            "isMeetingRoom": false,
+            "isVisitorNeedsParking": false,
+            "visitorNeedsParking": false,
+            "parkingDecision": "not_required",
+            "createdAt": "2026-07-20T00:20:48.770Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "FB4C1550-0B84-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "Time Check",
+                "company": "Folio3"
+            },
+            "visitDate": "2026-07-20",
+            "visitTime": "12:19 PM",
+            "visitStartAt": "2026-07-20T09:19:00.000Z",
+            "endTime": "1:19 PM",
+            "status": "visitor_accepted",
+            "isExpired": false,
+            "purpose": "interview",
+            "isWalkIn": true,
+            "isBuffet": false,
+            "isMeetingRoom": false,
+            "isVisitorNeedsParking": false,
+            "visitorNeedsParking": false,
+            "parkingDecision": "not_required",
+            "createdAt": "2026-07-20T00:19:15.833Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "DE0D8F59-FF81-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "Noor Fatima Khalid",
+                "company": "f3"
+            },
+            "visitDate": "2026-07-20",
+            "visitTime": "9:45 AM",
+            "visitStartAt": "2026-07-20T06:45:00.000Z",
+            "endTime": "10:45 AM",
+            "status": "auto_cancelled",
+            "isExpired": false,
+            "purpose": "interview",
+            "isWalkIn": false,
+            "isBuffet": false,
+            "isMeetingRoom": false,
+            "isVisitorNeedsParking": false,
+            "visitorNeedsParking": false,
+            "parkingDecision": "not_required",
+            "createdAt": "2026-07-17T09:48:35.440Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "775DA213-C381-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "Noor Fatima Khalid",
+                "company": "f3"
+            },
+            "visitDate": "2026-07-17",
+            "visitTime": "3:35 PM",
+            "visitStartAt": "2026-07-17T12:35:00.000Z",
+            "endTime": "3:40 PM",
+            "status": "auto_cancelled",
+            "isExpired": false,
+            "purpose": "interview",
+            "isWalkIn": false,
+            "isBuffet": false,
+            "isMeetingRoom": false,
+            "isVisitorNeedsParking": false,
+            "visitorNeedsParking": false,
+            "parkingDecision": "not_required",
+            "createdAt": "2026-07-17T02:37:09.446Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "5EFCF0A5-BF81-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "Noor Fatima Khalid",
+                "company": "f3"
+            },
+            "visitDate": "2026-07-17",
+            "visitTime": "3:10 PM",
+            "visitStartAt": "2026-07-17T12:10:00.000Z",
+            "endTime": "3:12 PM",
+            "status": "auto_cancelled",
+            "isExpired": false,
+            "purpose": "interview",
+            "isWalkIn": false,
+            "isBuffet": false,
+            "isMeetingRoom": false,
+            "isVisitorNeedsParking": false,
+            "visitorNeedsParking": false,
+            "parkingDecision": "not_required",
+            "createdAt": "2026-07-17T02:12:36.880Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "7814B432-AC81-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "Noor Fatima Khalid",
+                "company": "f3"
+            },
+            "visitDate": "2026-07-17",
+            "visitTime": "9:53 AM",
+            "visitStartAt": "2026-07-17T06:53:00.000Z",
+            "endTime": null,
+            "status": "pending_host_approval",
+            "isExpired": false,
+            "purpose": "interview",
+            "isWalkIn": true,
+            "isBuffet": false,
+            "isMeetingRoom": false,
+            "isVisitorNeedsParking": false,
+            "visitorNeedsParking": false,
+            "parkingDecision": "not_required",
+            "createdAt": "2026-07-16T23:53:22.023Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "F228B973-3181-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "001 parking req",
+                "company": "dfdfds"
+            },
+            "visitDate": "2026-07-16",
+            "visitTime": "7:14 PM",
+            "visitStartAt": "2026-07-16T16:14:00.000Z",
+            "endTime": null,
+            "status": "pending_host_approval",
+            "isExpired": false,
+            "purpose": "meeting",
+            "isWalkIn": true,
+            "isBuffet": false,
+            "isMeetingRoom": false,
+            "isVisitorNeedsParking": false,
+            "visitorNeedsParking": false,
+            "parkingDecision": "not_required",
+            "createdAt": "2026-07-16T09:14:43.000Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "70F8F563-2581-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "Visitorr diff manager",
+                "company": "hgdfgdf"
+            },
+            "visitDate": "2026-07-20",
+            "visitTime": "4:00 PM",
+            "visitStartAt": "2026-07-20T13:00:00.000Z",
+            "endTime": "5:00 PM",
+            "status": "auto_cancelled",
+            "isExpired": false,
+            "purpose": "interview",
+            "isWalkIn": false,
+            "isBuffet": true,
+            "isMeetingRoom": true,
+            "isVisitorNeedsParking": false,
+            "visitorNeedsParking": false,
+            "parkingDecision": "not_required",
+            "createdAt": "2026-07-16T07:48:22.613Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "CDEFE0E0-2481-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "Visitorr diff manager",
+                "company": "hgdfgdf"
+            },
+            "visitDate": "2026-07-20",
+            "visitTime": "4:00 PM",
+            "visitStartAt": "2026-07-20T13:00:00.000Z",
+            "endTime": "5:00 PM",
+            "status": "cancelled",
+            "isExpired": false,
+            "purpose": "interview",
+            "isWalkIn": false,
+            "isBuffet": true,
+            "isMeetingRoom": true,
+            "isVisitorNeedsParking": false,
+            "visitorNeedsParking": false,
+            "parkingDecision": "not_required",
+            "createdAt": "2026-07-16T07:44:42.683Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "3FD6F104-2481-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "Visitorr diff manager",
+                "company": "hgdfgdf"
+            },
+            "visitDate": "2026-07-20",
+            "visitTime": "2:00 PM",
+            "visitStartAt": "2026-07-20T11:00:00.000Z",
+            "endTime": "3:00 PM",
+            "status": "auto_cancelled",
+            "isExpired": false,
+            "purpose": "interview",
+            "isWalkIn": false,
+            "isBuffet": true,
+            "isMeetingRoom": true,
+            "isVisitorNeedsParking": false,
+            "visitorNeedsParking": false,
+            "parkingDecision": "not_required",
+            "createdAt": "2026-07-16T07:38:33.693Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "B1525E81-2381-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "Visitorr diff manager",
+                "company": "hgdfgdf"
+            },
+            "visitDate": "2026-07-20",
+            "visitTime": "2:00 PM",
+            "visitStartAt": "2026-07-20T11:00:00.000Z",
+            "endTime": "3:00 PM",
+            "status": "auto_cancelled",
+            "isExpired": false,
+            "purpose": "interview",
+            "isWalkIn": false,
+            "isBuffet": true,
+            "isMeetingRoom": true,
+            "isVisitorNeedsParking": false,
+            "visitorNeedsParking": false,
+            "parkingDecision": "not_required",
+            "createdAt": "2026-07-16T07:34:52.953Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "AE099DDA-0D81-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "Visitorr diff manager",
+                "company": "hgdfgdf"
+            },
+            "visitDate": "2026-07-16",
+            "visitTime": "5:00 PM",
+            "visitStartAt": "2026-07-16T14:00:00.000Z",
+            "endTime": "6:00 PM",
+            "status": "auto_cancelled",
+            "isExpired": false,
+            "purpose": "interview",
+            "isWalkIn": false,
+            "isBuffet": true,
+            "isMeetingRoom": true,
+            "isVisitorNeedsParking": false,
+            "visitorNeedsParking": false,
+            "parkingDecision": "not_required",
+            "createdAt": "2026-07-16T04:59:53.743Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "A7CF89FB-F380-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "Visitorr diff manager",
+                "company": "hgdfgdf"
+            },
+            "visitDate": "2026-07-16",
+            "visitTime": "5:00 PM",
+            "visitStartAt": "2026-07-16T14:00:00.000Z",
+            "endTime": "6:00 PM",
+            "status": "auto_cancelled",
+            "isExpired": false,
+            "purpose": "interview",
+            "isWalkIn": false,
+            "isBuffet": true,
+            "isMeetingRoom": true,
+            "isVisitorNeedsParking": true,
+            "visitorNeedsParking": true,
+            "parkingDecision": "required",
+            "createdAt": "2026-07-16T01:54:42.060Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "4BC39C7E-F380-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "Visitorr diff manager",
+                "company": "hgdfgdf"
+            },
+            "visitDate": "2026-07-16",
+            "visitTime": "3:00 PM",
+            "visitStartAt": "2026-07-16T12:00:00.000Z",
+            "endTime": "4:00 PM",
+            "status": "auto_cancelled",
+            "isExpired": false,
+            "purpose": "interview",
+            "isWalkIn": false,
+            "isBuffet": true,
+            "isMeetingRoom": true,
+            "isVisitorNeedsParking": true,
+            "visitorNeedsParking": true,
+            "parkingDecision": "required",
+            "createdAt": "2026-07-16T01:51:12.480Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "C846163F-5B80-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "r43",
+                "company": "f4"
+            },
+            "visitDate": "2026-07-15",
+            "visitTime": "8:40 PM",
+            "visitStartAt": "2026-07-15T17:40:00.000Z",
+            "endTime": "9:40 PM",
+            "status": "visitor_accepted",
+            "isExpired": false,
+            "purpose": "interview",
+            "isWalkIn": false,
+            "isBuffet": true,
+            "isMeetingRoom": true,
+            "isVisitorNeedsParking": true,
+            "visitorNeedsParking": true,
+            "parkingDecision": "required",
+            "visitorDecision": {
+                "accepted": true,
+                "decidedAt": "2026-07-15T14:42:28.710Z"
+            },
+            "createdAt": "2026-07-15T07:41:23.536Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "F2CC5302-5B80-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "erre",
+                "company": "f2"
+            },
+            "visitDate": "2026-07-15",
+            "visitTime": "7:40 PM",
+            "visitStartAt": "2026-07-15T16:40:00.000Z",
+            "endTime": "8:38 PM",
+            "status": "approved",
+            "isExpired": false,
+            "purpose": "meeting",
+            "isWalkIn": false,
+            "isBuffet": false,
+            "isMeetingRoom": true,
+            "isVisitorNeedsParking": true,
+            "visitorNeedsParking": true,
+            "parkingDecision": "required",
+            "createdAt": "2026-07-15T07:39:41.556Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "DFA1FD7D-5A80-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "Noor Fatima Khalid",
+                "company": "f3"
+            },
+            "visitDate": "2026-07-15",
+            "visitTime": "7:50 PM",
+            "visitStartAt": "2026-07-15T16:50:00.000Z",
+            "endTime": "8:34 PM",
+            "status": "visitor_accepted",
+            "isExpired": false,
+            "purpose": "interview",
+            "isWalkIn": false,
+            "isBuffet": false,
+            "isMeetingRoom": true,
+            "isVisitorNeedsParking": true,
+            "visitorNeedsParking": true,
+            "parkingDecision": "visitor_decides",
+            "visitorDecision": {
+                "accepted": true,
+                "decidedAt": "2026-07-15T14:37:40.866Z"
+            },
+            "createdAt": "2026-07-15T07:35:58.433Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "E9357264-4680-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "Noor Fatima Khalid",
+                "company": "f3"
+            },
+            "visitDate": "2026-07-16",
+            "visitTime": "6:05 PM",
+            "visitStartAt": "2026-07-16T15:05:00.000Z",
+            "endTime": "7:05 PM",
+            "status": "auto_cancelled",
+            "isExpired": false,
+            "purpose": "interview",
+            "isWalkIn": false,
+            "isBuffet": true,
+            "isMeetingRoom": true,
+            "isVisitorNeedsParking": false,
+            "visitorNeedsParking": false,
+            "parkingDecision": "not_required",
+            "createdAt": "2026-07-15T05:12:05.640Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "2FE6DA94-4580-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "Noor Fatima Khalid",
+                "company": "f3"
+            },
+            "visitDate": "2026-07-15",
+            "visitTime": "6:05 PM",
+            "visitStartAt": "2026-07-15T15:05:00.000Z",
+            "endTime": "7:05 PM",
+            "status": "visitor_accepted",
+            "isExpired": false,
+            "purpose": "interview",
+            "isWalkIn": false,
+            "isBuffet": false,
+            "isMeetingRoom": true,
+            "isVisitorNeedsParking": false,
+            "visitorNeedsParking": false,
+            "parkingDecision": "not_required",
+            "visitorDecision": {
+                "accepted": true,
+                "decidedAt": "2026-07-15T12:07:22.563Z"
+            },
+            "createdAt": "2026-07-15T05:06:17.353Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "DBC89AAC-3E80-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "Visitorr diff manager",
+                "company": "hgdfgdf"
+            },
+            "visitDate": "2026-07-16",
+            "visitTime": "4:00 PM",
+            "visitStartAt": "2026-07-16T13:00:00.000Z",
+            "endTime": "5:00 PM",
+            "status": "auto_cancelled",
+            "isExpired": false,
+            "purpose": "meeting",
+            "isWalkIn": false,
+            "isBuffet": true,
+            "isMeetingRoom": true,
+            "isVisitorNeedsParking": false,
+            "visitorNeedsParking": false,
+            "parkingDecision": "not_required",
+            "createdAt": "2026-07-15T04:16:51.850Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "F6882DA9-977F-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "walkin1",
+                "company": "hujnlkm"
+            },
+            "visitDate": "2026-07-14",
+            "visitTime": "6:21 PM",
+            "visitStartAt": "2026-07-14T15:21:00.000Z",
+            "endTime": null,
+            "status": "pending_host_approval",
+            "isExpired": false,
+            "purpose": "business",
+            "isWalkIn": true,
+            "isBuffet": false,
+            "isMeetingRoom": false,
+            "isVisitorNeedsParking": false,
+            "visitorNeedsParking": false,
+            "parkingDecision": "not_required",
+            "createdAt": "2026-07-14T08:21:20.136Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "C5A8C6DD-8E7F-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "car3",
+                "company": "dhfjnsm"
+            },
+            "visitDate": "2026-07-15",
+            "visitTime": "3:15 PM",
+            "visitStartAt": "2026-07-15T12:15:00.000Z",
+            "endTime": "4:15 PM",
+            "status": "visitor_accepted",
+            "isExpired": false,
+            "purpose": "vendors",
+            "isWalkIn": false,
+            "isBuffet": true,
+            "isMeetingRoom": true,
+            "isVisitorNeedsParking": false,
+            "visitorNeedsParking": false,
+            "parkingDecision": "not_required",
+            "visitorDecision": {
+                "accepted": true,
+                "decidedAt": "2026-07-14T14:19:16.765Z"
+            },
+            "createdAt": "2026-07-14T07:18:22.923Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "011F6863-8E7F-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "car2",
+                "company": "jnkjnm"
+            },
+            "visitDate": "2026-07-16",
+            "visitTime": "1:15 PM",
+            "visitStartAt": "2026-07-16T10:15:00.000Z",
+            "endTime": "2:15 PM",
+            "status": "visitor_accepted",
+            "isExpired": false,
+            "purpose": "events",
+            "isWalkIn": false,
+            "isBuffet": true,
+            "isMeetingRoom": true,
+            "isVisitorNeedsParking": false,
+            "visitorNeedsParking": false,
+            "parkingDecision": "not_required",
+            "visitorDecision": {
+                "accepted": true,
+                "decidedAt": "2026-07-14T14:16:23.362Z"
+            },
+            "createdAt": "2026-07-14T07:14:57.603Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "1CBD41FF-8C7F-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "car1",
+                "company": "dsfsfd"
+            },
+            "visitDate": "2026-07-16",
+            "visitTime": "2:05 PM",
+            "visitStartAt": "2026-07-16T11:05:00.000Z",
+            "endTime": "3:15 PM",
+            "status": "visitor_accepted",
+            "isExpired": false,
+            "purpose": "business",
+            "isWalkIn": false,
+            "isBuffet": true,
+            "isMeetingRoom": true,
+            "isVisitorNeedsParking": false,
+            "visitorNeedsParking": false,
+            "parkingDecision": "not_required",
+            "visitorDecision": {
+                "accepted": true,
+                "decidedAt": "2026-07-14T14:12:46.134Z"
+            },
+            "createdAt": "2026-07-14T07:05:00.116Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "5D256702-8A7F-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "Time Check",
+                "company": "Folio3"
+            },
+            "visitDate": "2026-07-15",
+            "visitTime": "2:00 PM",
+            "visitStartAt": "2026-07-15T11:00:00.000Z",
+            "endTime": "3:00 PM",
+            "status": "auto_cancelled",
+            "isExpired": false,
+            "purpose": "meeting",
+            "isWalkIn": false,
+            "isBuffet": true,
+            "isMeetingRoom": true,
+            "isVisitorNeedsParking": false,
+            "visitorNeedsParking": false,
+            "parkingDecision": "not_required",
+            "createdAt": "2026-07-14T06:43:35.770Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "E0D9FBDD-867F-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "John Smith",
+                "company": "TechCorp Inc"
+            },
+            "visitDate": "2026-07-15",
+            "visitTime": "10:00 AM",
+            "visitStartAt": "2026-07-15T07:00:00.000Z",
+            "endTime": "11:00 AM",
+            "status": "auto_cancelled",
+            "isExpired": false,
+            "purpose": "Business Meeting",
+            "isWalkIn": false,
+            "isBuffet": true,
+            "isMeetingRoom": true,
+            "isVisitorNeedsParking": false,
+            "visitorNeedsParking": false,
+            "parkingDecision": "not_required",
+            "createdAt": "2026-07-14T06:21:07.300Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "7F281D3C-627F-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "001 parking req",
+                "company": "dfdfds"
+            },
+            "visitDate": "2026-07-14",
+            "visitTime": "2:55 PM",
+            "visitStartAt": "2026-07-14T11:55:00.000Z",
+            "endTime": "3:55 PM",
+            "status": "auto_cancelled",
+            "isExpired": false,
+            "purpose": "interview",
+            "isWalkIn": false,
+            "isBuffet": true,
+            "isMeetingRoom": true,
+            "isVisitorNeedsParking": false,
+            "visitorNeedsParking": false,
+            "parkingDecision": "not_required",
+            "createdAt": "2026-07-14T01:58:52.733Z",
+            "timezone": "Asia/Riyadh"
+        },
+        {
+            "id": "3B8152A7-5C7F-F111-90A1-00155DB21469",
+            "employeeName": "John Manager",
+            "visitor": {
+                "fullName": "Time Check",
+                "company": "Folio3"
+            },
+            "visitDate": "2026-07-14",
+            "visitTime": "1:25 PM",
+            "visitStartAt": "2026-07-14T10:25:00.000Z",
+            "endTime": "2:18 PM",
+            "status": "visitor_accepted",
+            "isExpired": false,
+            "purpose": "interview",
+            "isWalkIn": false,
+            "isBuffet": true,
+            "isMeetingRoom": true,
+            "isVisitorNeedsParking": false,
+            "visitorNeedsParking": false,
+            "parkingDecision": "not_required",
+            "visitorDecision": {
+                "accepted": true,
+                "decidedAt": "2026-07-14T08:19:44.180Z"
+            },
+            "createdAt": "2026-07-14T01:18:55.616Z",
+            "timezone": "Asia/Riyadh"
+        }
+    ],
+    "pagination": {
+        "page": 1,
+        "limit": 50,
+        "total": 138,
+        "totalPages": 3
+    }
+}

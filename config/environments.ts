@@ -41,7 +41,7 @@ export interface EnvironmentConfig {
  */
 export const ENVIRONMENT_IDENTIFIERS = {
   production: {
-    firebaseProjectId: 'dallahdigital-vms',
+    firebaseProjectId: 'dallah-albaraka-vms',
     description: 'Production environment - Live users',
   },
   qa: {
@@ -61,6 +61,9 @@ export const ENV_VAR_KEYS = {
     'EXPO_PUBLIC_API_BASE_URL',
     'EXPO_PUBLIC_VMS_API_BASE_URL',
     'EXPO_PUBLIC_MICROSOFT_AUTH_URL',
+    // Web app public domain — used for iOS Universal Links, Android App Links,
+    // and must be substituted into outlook-addin/manifest.xml at deploy time.
+    'EXPO_PUBLIC_APP_DOMAIN',
   ],
   firebase: [
     'EXPO_PUBLIC_FIREBASE_API_KEY',
@@ -84,16 +87,17 @@ export function getAllEnvVarKeys(): string[] {
 }
 
 /**
- * Helper to detect current environment from env vars
- * Returns 'production' or 'qa' based on Firebase project ID
+ * Helper to detect the backend environment from the EAS build variant.
+ * Firebase cannot distinguish the environments because both intentionally
+ * use the same dallah-albaraka-vms project.
  */
 export function getCurrentEnvironment(): 'production' | 'qa' | 'unknown' {
-  const projectId = process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID;
-  
-  if (projectId === ENVIRONMENT_IDENTIFIERS.production.firebaseProjectId) {
+  const appVariant = process.env.APP_VARIANT;
+
+  if (appVariant === 'production') {
     return 'production';
   }
-  if (projectId === ENVIRONMENT_IDENTIFIERS.qa.firebaseProjectId) {
+  if (appVariant === 'staging' || appVariant === 'qa') {
     return 'qa';
   }
   return 'unknown';

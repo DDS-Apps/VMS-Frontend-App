@@ -10,15 +10,58 @@ import {
   getRefreshToken,
 } from '@/api/httpClient';
 import { authService } from '@/services/api/authService';
+import { isUnauthorizedError } from '@/api/errors';
 import { parseAuthHashFragment, clearUrlHash } from '@/utils/authTokenParser';
 import { pushNotificationService } from '@/services/push';
 import { crashlyticsService } from '@/services/crashlytics/crashlyticsService';
 import type { AuthTokenResponse, StoredTokens, AuthUserDto } from '@/types/auth.types';
 import { isValidRole } from '@/constants/roles';
 import type { UserRole } from '@/types/vms.types';
+import { queryClient } from '@/providers/QueryProvider';
+import { dashboardKpiKeys } from '@/hooks/queries/useDashboardKpiQuery';
 
 const AUTH_STORAGE_KEY = '@vms_auth';
 const TOKEN_STORAGE_KEY = '@vms_tokens';
+
+/**
+ * Fields compared when deciding whether a freshly fetched profile differs from
+ * the cached one restored at startup.
+ */
+const AUTH_USER_FIELDS: ReadonlyArray<keyof AuthUser> = [
+  'id',
+  'email',
+  'name',
+  'role',
+  'autoApproval',
+  'phoneNumber',
+  'businessPhone',
+  'department',
+  'status',
+  'source',
+  'managerId',
+  'managerName',
+  'photoUrl',
+  'thumbnailUrl',
+  'createdAt',
+  'lastLogin',
+  'isSSOUser',
+  'timezone',
+  'language',
+];
+
+function isSameAuthUser(a: AuthUser, b: AuthUser): boolean {
+  return AUTH_USER_FIELDS.every((field) => (a[field] ?? null) === (b[field] ?? null));
+}
+
+/**
+ * A stored session is only abandoned when the server definitively rejects it.
+ * By the time a 401 reaches this layer the http client has already tried the
+ * refresh token and failed (or had none), so UNAUTHORIZED is the definitive
+ * signal. Network errors, timeouts and server errors are not.
+ */
+function isDefinitiveAuthFailure(error: unknown): boolean {
+  return isUnauthorizedError(error);
+}
 
 export interface AuthUser {
   id: string;
@@ -84,8 +127,28 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
     error: null,
     userDataVersion: 0,
   });
+  const previousKpiIdentityRef = useRef<string | null>(null);
+  // Incremented whenever the signed-in identity changes (login, SSO, logout) so a
+  // startup profile refresh that resolves late cannot overwrite a newer session.
+  const sessionGenerationRef = useRef(0);
+
+  useEffect(() => {
+    const currentIdentity = state.user
+      ? `${state.user.id}:${state.user.role}`
+      : null;
+    const previousIdentity = previousKpiIdentityRef.current;
+
+    if (previousIdentity && previousIdentity !== currentIdentity) {
+      queryClient.removeQueries({
+        queryKey: dashboardKpiKeys.byIdentity(previousIdentity),
+      });
+    }
+    previousKpiIdentityRef.current = currentIdentity;
+  }, [state.user?.id, state.user?.role]);
 
   const handleLogout = useCallback(async () => {
+    sessionGenerationRef.current += 1;
+
     try {
       await pushNotificationService.unregister();
     } catch (pushError) {
@@ -105,6 +168,7 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
       }
     } catch (error) {
     } finally {
+      queryClient.removeQueries({ queryKey: dashboardKpiKeys.all });
       clearTokens();
       await AsyncStorage.multiRemove([AUTH_STORAGE_KEY, TOKEN_STORAGE_KEY]);
       setState((prev) => ({
@@ -127,6 +191,13 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
     };
     await AsyncStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify(tokens));
   }, []);
+
+  // The startup effect below runs once; it reaches the latest logout handler
+  // through this ref instead of re-running whenever the callback identity changes.
+  const handleLogoutRef = useRef(handleLogout);
+  useEffect(() => {
+    handleLogoutRef.current = handleLogout;
+  }, [handleLogout]);
 
   useEffect(() => {
     setOnTokenRefreshFailed(() => {
@@ -172,6 +243,37 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
       timezone: userDto.timezone,
       language: userDto.language,
     };
+  };
+
+  /**
+   * Parses the profile persisted by a previous login/refresh. Returns null when
+   * the entry is missing or unusable so callers fall back to a server fetch.
+   */
+  const parseStoredUser = (storedUserJson: string | null): AuthUser | null => {
+    if (!storedUserJson) {
+      return null;
+    }
+
+    try {
+      const parsed = JSON.parse(storedUserJson) as Partial<AuthUser> | null;
+      if (!parsed || typeof parsed !== 'object') {
+        return null;
+      }
+      if (typeof parsed.id !== 'string' || !parsed.id || typeof parsed.email !== 'string' || !parsed.email) {
+        return null;
+      }
+
+      return {
+        ...parsed,
+        id: parsed.id,
+        email: parsed.email,
+        name: typeof parsed.name === 'string' && parsed.name ? parsed.name : parsed.email.split('@')[0],
+        role: mapRoleToUserRole(typeof parsed.role === 'string' ? parsed.role : 'employee'),
+      };
+    } catch (error) {
+      console.warn('[AuthContext] Ignoring unreadable cached user profile:', error);
+      return null;
+    }
   };
 
   const mapLoginUserToAuthUser = (loginUser: AuthTokenResponse['user']): AuthUser | null => {
@@ -295,6 +397,91 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
       }
     };
 
+    const setSignedOutState = () => {
+      setState((prev) => ({
+        user: null,
+        isLoading: false,
+        isAuthenticated: false,
+        error: null,
+        userDataVersion: prev.userDataVersion,
+      }));
+    };
+
+    const setSignedInState = (user: AuthUser) => {
+      setState((prev) => ({
+        user,
+        isLoading: false,
+        isAuthenticated: true,
+        error: null,
+        userDataVersion: prev.userDataVersion,
+      }));
+    };
+
+    const startSessionServices = (user: AuthUser) => {
+      pushNotificationService.initialize().catch((pushError) => {
+        console.warn('[AuthContext] Failed to initialize push notifications:', pushError);
+      });
+
+      crashlyticsService.setUserAttributes({
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+      }).catch((crashlyticsError) => {
+        console.warn('[AuthContext] Failed to set crashlytics user attributes:', crashlyticsError);
+      });
+    };
+
+    const isCurrentSession = (generation: number) => generation === sessionGenerationRef.current;
+
+    /**
+     * Refreshes the profile behind an already-restored session. Only a
+     * definitive rejection signs the user out; anything else keeps the cached
+     * session so a flaky network never bounces a returning user to Login.
+     */
+    const refreshStartupProfile = async (cachedUser: AuthUser, generation: number) => {
+      try {
+        const userDto = await authService.getCurrentUser();
+        if (!isCurrentSession(generation)) {
+          return;
+        }
+
+        const freshUser = mapUserDtoToAuthUser(userDto);
+        if (cachedUser.isSSOUser) {
+          freshUser.isSSOUser = true;
+        }
+
+        if (isSameAuthUser(cachedUser, freshUser)) {
+          return;
+        }
+
+        setState((prev) => ({ ...prev, user: freshUser, userDataVersion: prev.userDataVersion + 1 }));
+        await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(freshUser));
+
+        crashlyticsService.setUserAttributes({
+          id: freshUser.id,
+          email: freshUser.email,
+          name: freshUser.name,
+          role: freshUser.role,
+        }).catch((crashlyticsError) => {
+          console.warn('[AuthContext] Failed to set crashlytics user attributes:', crashlyticsError);
+        });
+      } catch (error) {
+        if (!isCurrentSession(generation)) {
+          // A token-refresh failure already signed this session out.
+          return;
+        }
+
+        if (isDefinitiveAuthFailure(error)) {
+          console.warn('[AuthContext] Stored session was rejected by the server, signing out');
+          await handleLogoutRef.current();
+          return;
+        }
+
+        console.warn('[AuthContext] Startup profile refresh failed, keeping cached session:', error);
+      }
+    };
+
     const initializeAuth = async () => {
       try {
         const handledHash = await handleWebHashTokens();
@@ -303,63 +490,46 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
         }
 
         const tokensJson = await AsyncStorage.getItem(TOKEN_STORAGE_KEY);
-        
-        if (tokensJson) {
-          const tokens: StoredTokens = JSON.parse(tokensJson);
-          setAccessToken(tokens.accessToken);
-          setRefreshToken(tokens.refreshToken);
+        if (!tokensJson) {
+          setSignedOutState();
+          return;
+        }
 
-          try {
-            const storedUserJson = await AsyncStorage.getItem(AUTH_STORAGE_KEY);
-            const storedUser = storedUserJson ? JSON.parse(storedUserJson) : null;
-            
-            const userDto = await authService.getCurrentUser();
-            const user = mapUserDtoToAuthUser(userDto);
-            
-            if (storedUser?.isSSOUser) {
-              user.isSSOUser = true;
-            }
-            
-            setState((prev) => ({
-              user,
-              isLoading: false,
-              isAuthenticated: true,
-              error: null,
-              userDataVersion: prev.userDataVersion,
-            }));
-            await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
+        const tokens: StoredTokens = JSON.parse(tokensJson);
+        setAccessToken(tokens.accessToken);
+        setRefreshToken(tokens.refreshToken);
 
-            pushNotificationService.initialize().catch((pushError) => {
-              console.warn('[AuthContext] Failed to initialize push notifications:', pushError);
-            });
+        const cachedUser = parseStoredUser(await AsyncStorage.getItem(AUTH_STORAGE_KEY));
+        const generation = sessionGenerationRef.current;
 
-            crashlyticsService.setUserAttributes({
-              id: user.id,
-              email: user.email,
-              name: user.name,
-              role: user.role,
-            }).catch((crashlyticsError) => {
-              console.warn('[AuthContext] Failed to set crashlytics user attributes:', crashlyticsError);
-            });
-          } catch (error) {
+        if (cachedUser) {
+          // Optimistic restore: the app renders from the cached profile right
+          // away and the server copy is merged in behind it.
+          setSignedInState(cachedUser);
+          startSessionServices(cachedUser);
+          await refreshStartupProfile(cachedUser, generation);
+          return;
+        }
+
+        // Tokens without a usable cached profile: the first render has to wait
+        // for the server, exactly as before.
+        try {
+          const userDto = await authService.getCurrentUser();
+          const user = mapUserDtoToAuthUser(userDto);
+
+          setSignedInState(user);
+          await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
+          startSessionServices(user);
+        } catch (error) {
+          if (isDefinitiveAuthFailure(error)) {
             await AsyncStorage.multiRemove([AUTH_STORAGE_KEY, TOKEN_STORAGE_KEY]);
-            clearTokens();
-            setState((prev) => ({
-              user: null,
-              isLoading: false,
-              isAuthenticated: false,
-              error: null,
-              userDataVersion: prev.userDataVersion,
-            }));
+          } else {
+            // Nothing to render from, so Login is shown, but the tokens stay
+            // stored: a transient failure must not cost the user their session.
+            console.warn('[AuthContext] Could not load the profile for the stored session:', error);
           }
-        } else {
-          setState((prev) => ({
-            user: null,
-            isLoading: false,
-            isAuthenticated: false,
-            error: null,
-            userDataVersion: prev.userDataVersion,
-          }));
+          clearTokens();
+          setSignedOutState();
         }
       } catch (error) {
         setState((prev) => ({
@@ -394,6 +564,7 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
       throw new Error('Invalid user data received from server');
     }
     
+    sessionGenerationRef.current += 1;
     setAccessToken(response.accessToken);
     setRefreshToken(response.refreshToken);
 
@@ -476,6 +647,7 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
         throw new Error('No access token provided');
       }
 
+      sessionGenerationRef.current += 1;
       setAccessToken(tokens.accessToken);
       
       const refreshTokenValue = tokens.refreshToken || tokens.accessToken;

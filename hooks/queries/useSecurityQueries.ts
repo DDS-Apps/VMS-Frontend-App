@@ -14,6 +14,7 @@ import type {
   PaginatedResponse,
 } from '@/types';
 import { ApiError } from '@/api/errors';
+import { invalidateDashboardKpis } from '@/hooks/queries/useDashboardKpiQuery';
 
 export const securityKeys = {
   all: ['security'] as const,
@@ -170,6 +171,7 @@ export function useGateCheckInMutation() {
       queryClient.invalidateQueries({ queryKey: securityKeys.today() });
       queryClient.invalidateQueries({ queryKey: securityKeys.onSite() });
       queryClient.invalidateQueries({ queryKey: securityKeys.gateLogs() });
+      invalidateDashboardKpis(queryClient);
     },
   });
 }
@@ -184,6 +186,7 @@ export function useGateCheckOutMutation() {
       queryClient.invalidateQueries({ queryKey: securityKeys.today() });
       queryClient.invalidateQueries({ queryKey: securityKeys.onSite() });
       queryClient.invalidateQueries({ queryKey: securityKeys.gateLogs() });
+      invalidateDashboardKpis(queryClient);
     },
   });
 }

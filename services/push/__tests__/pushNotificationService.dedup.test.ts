@@ -62,6 +62,7 @@ jest.mock('@/services/firebase', () => ({
 
 jest.mock('@/utils/notificationNavigator', () => ({
   handleNotificationTap: jest.fn(),
+  isNotificationNavigationReady: jest.fn(() => true),
   navigateFromInAppNotification: jest.fn(),
 }));
 

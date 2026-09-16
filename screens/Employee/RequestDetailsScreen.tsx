@@ -1,4 +1,10 @@
-import React, { useState, useMemo, useRef, useEffect } from "react";
+import React, {
+  useState,
+  useMemo,
+  useRef,
+  useEffect,
+  useCallback,
+} from "react";
 import {
   View,
   StyleSheet,
@@ -33,6 +39,8 @@ import { LoadingButton } from "@/components/shared/LoadingButton";
 import { ApprovalActionGroup } from "@/components/shared/ApprovalActionGroup";
 import { SkeletonCard } from "@/components/shared/Skeleton";
 import { StatusBadge } from "@/components/shared/StatusBadge";
+import { RequestStatusBadge } from "@/components/shared/RequestStatusBadge";
+import { ExpiredVisitFooter } from "@/components/shared/ExpiredVisitFooter";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import {
@@ -58,7 +66,7 @@ import {
   useRejectVisitMutation,
 } from "@/hooks/queries/useApprovalQueries";
 import { useRoomAvailabilityQuery } from "@/hooks/queries/useMeetingRoomQueries";
-import type { RoomAvailabilityParams } from "@/types/api.types";
+import type { RoomAvailabilityParams, RoomAvailabilityRoomDto } from "@/types/api.types";
 import { VisitorRequest } from "@/types/vms.types";
 import {
   getStatusConfig as getStatusStyle,
@@ -72,10 +80,19 @@ import {
   calculateDuration,
   getDurationOptions,
 } from "@/utils/requestMappers";
-import { calculateServerDuration } from "@/utils/dateTimeUtils";
-import { formatPhoneNumber, formatPhoneForDisplay, capitalizeFirst } from "@/utils/formatters";
+import { calculateServerDuration, getServerDateParts } from "@/utils/dateTimeUtils";
+import { computeHasVisitStarted } from "@/utils/visitStartGuard";
+import {
+  computeIsPendingApprovalWalkInExpired,
+  computeIsVisitExpired,
+  getPendingApprovalWalkInScheduledEndMs,
+} from "@/utils/visitExpiredGuard";
+import { useTimeBoundaryTick } from "@/hooks/useTimeBoundaryTick";
+import { useRiyadhBusinessDateKey } from "@/hooks/useRiyadhBusinessDateKey";
+import { formatPhoneNumber, formatPhoneForDisplay, capitalizeFirst, getInitials } from "@/utils/formatters";
 import { useServerDateTime } from "@/hooks/useServerDateTime";
 import { useAuth } from "@/contexts/AuthContext";
+import { resolveParkingDisplayDecision } from "@/utils/parkingDecision";
 
 
 export default function RequestDetailsScreen({
@@ -108,12 +125,22 @@ export default function RequestDetailsScreen({
   } = useFormatters();
   const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
+  const [expiredFooterHeight, setExpiredFooterHeight] = useState(0);
+  const handleExpiredFooterLayout = useCallback(
+    (event: { nativeEvent: { layout: { height: number } } }) => {
+      const nextHeight = Math.ceil(event.nativeEvent.layout.height);
+      setExpiredFooterHeight((currentHeight) =>
+        currentHeight === nextHeight ? currentHeight : nextHeight,
+      );
+    },
+    [],
+  );
   const { width: screenWidth } = useWindowDimensions();
   const { requestId } = route.params;
   
   // Responsive layout: use grid on web (>768px), single column on mobile
   const isWebLayout = screenWidth >= 768;
-  const gridItemWidth = screenWidth > 1024 ? '32%' : '48%';
+  const gridItemWidth = screenWidth >= 900 ? '32%' : '48%';
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showHostRejectModal, setShowHostRejectModal] = useState(false);
@@ -127,6 +154,7 @@ export default function RequestDetailsScreen({
   const [editDuration, setEditDuration] = useState<string>("1 hour");
   const [editRequiresParking, setEditRequiresParking] = useState(false);
   const [editRequiresMeetingRoom, setEditRequiresMeetingRoom] = useState(false);
+  const [selectedEditRoomId, setSelectedEditRoomId] = useState<string | null>(null);
   const [editRequiresBuffet, setEditRequiresBuffet] = useState(false);
   const [editRequiresValet, setEditRequiresValet] = useState(false);
   const [editNotes, setEditNotes] = useState("");
@@ -161,6 +189,11 @@ export default function RequestDetailsScreen({
     error,
     refetch,
   } = useVisitDetailsQuery(requestId);
+  const initializeEditServices = (data: typeof visitData) => {
+    const requiresBuffet = !!data?.buffet;
+    setEditRequiresMeetingRoom(!!data?.meetingRoom || requiresBuffet);
+    setEditRequiresBuffet(requiresBuffet);
+  };
   const cancelMutation = useCancelVisitMutation();
   const updateMutation = useUpdateVisitMutation();
   const hostApproveMutation = useHostApproveVisitMutation();
@@ -190,107 +223,155 @@ export default function RequestDetailsScreen({
         }
       : null;
 
-  const { data: editRoomAvailability, isLoading: isLoadingEditRooms } =
-    useRoomAvailabilityQuery(editRoomAvailabilityParams);
+  const {
+    data: editRoomAvailability,
+    isLoading: isLoadingEditRooms,
+    isFetching: isFetchingEditRooms,
+  } = useRoomAvailabilityQuery(editRoomAvailabilityParams);
 
   const isEditRoomAvailable = editRoomAvailability?.available === true;
+  const availableEditRooms: RoomAvailabilityRoomDto[] = editRoomAvailability?.rooms ?? [];
   const hasCheckedEditAvailability =
-    editRoomAvailability !== undefined && !isLoadingEditRooms;
+    editRoomAvailability !== undefined && !isLoadingEditRooms && !isFetchingEditRooms;
+
+  // Reset room selection whenever the time slot changes so the user must re-pick
+  useEffect(() => {
+    setSelectedEditRoomId(null);
+  }, [editRoomAvailabilityParams?.date, editRoomAvailabilityParams?.startTime, editRoomAvailabilityParams?.endTime]);
 
   const request = useMemo(() => {
     if (!visitData) return null;
     return mapVisitDetailsToVisitorRequest(visitData);
   }, [visitData]);
 
-  // Helper to parse duration string to milliseconds for expiration check (supports various formats)
-  const parseDurationToMsForExpiry = (duration: string): number => {
-    if (!duration) return 60 * 60 * 1000; // default 1 hour
+  const riyadhBusinessDateKey = useRiyadhBusinessDateKey();
 
-    const durationStr = String(duration).trim();
+  // Tick every minute so hasVisitStarted re-evaluates while the screen is open.
+  const [minuteTick, setMinuteTick] = useState(0);
+  useEffect(() => {
+    const timer = setInterval(() => setMinuteTick(t => t + 1), 60_000);
+    return () => clearInterval(timer);
+  }, []);
 
-    // Handle "Full Day" or similar
-    if (/full\s*day/i.test(durationStr)) {
-      return 24 * 60 * 60 * 1000;
-    }
-
-    // Parse ISO 8601 duration (e.g., "PT1H30M", "PT24H", "P1D")
-    if (durationStr.startsWith("P")) {
-      let totalMs = 0;
-      const daysMatch = durationStr.match(/(\d+)D/i);
-      const hoursMatch = durationStr.match(/(\d+)H/i);
-      const minutesMatch = durationStr.match(/(\d+)M(?!O)/i); // M but not MO (month)
-      if (daysMatch) totalMs += parseInt(daysMatch[1]) * 24 * 60 * 60 * 1000;
-      if (hoursMatch) totalMs += parseInt(hoursMatch[1]) * 60 * 60 * 1000;
-      if (minutesMatch) totalMs += parseInt(minutesMatch[1]) * 60 * 1000;
-      return totalMs > 0 ? totalMs : 60 * 60 * 1000;
-    }
-
-    // Parse human-readable format (e.g., "2 hours 10 minutes", "1.5 hours", "1 day", "30 minutes")
-    let totalMs = 0;
-    const daysMatch = durationStr.match(/(\d+(?:\.\d+)?)\s*days?/i);
-    const hoursMatch = durationStr.match(/(\d+(?:\.\d+)?)\s*(?:hours?|h\b)/i);
-    const minutesMatch = durationStr.match(/(\d+)\s*(?:minutes?|mins?|m\b)/i);
-
-    if (daysMatch) totalMs += parseFloat(daysMatch[1]) * 24 * 60 * 60 * 1000;
-    if (hoursMatch) totalMs += parseFloat(hoursMatch[1]) * 60 * 60 * 1000;
-    if (minutesMatch) totalMs += parseInt(minutesMatch[1]) * 60 * 1000;
-
-    return totalMs > 0 ? totalMs : 60 * 60 * 1000; // Default 1 hour if parsing fails
-  };
+  // Check if the visit START time has passed — once started, the request is no longer editable.
+  // Logic lives in utils/visitStartGuard.ts so it can be unit-tested without rendering this screen.
+  const hasVisitStarted = useMemo(
+    () => computeHasVisitStarted(request?.visitStartAt, request?.visitDate, request?.visitTime),
+    [request?.visitStartAt, request?.visitDate, request?.visitTime, minuteTick], // minuteTick forces re-evaluation every minute
+  );
 
   // Check if the visit date/time has passed - disable approval actions for expired visits
-  // Uses mapped request object for consistency with display data
-  // A visit is only expired when the END time has passed, not the start time
-  const isVisitExpired = useMemo(() => {
-    if (!request?.visitDate) return false;
+  // Uses mapped request object for consistency with display data.
+  // A visit is only expired when the END time has passed, not the start time.
+  // minuteTick forces re-evaluation every minute so the buttons disappear in
+  // real-time if the visit ends while this screen is open.
+  const pendingApprovalExpirationBoundary = useMemo(
+    () =>
+      getPendingApprovalWalkInScheduledEndMs({
+        isWalkIn: request?.isWalkIn,
+        status: request?.status,
+        visitDate: request?.visitDate,
+        visitTime: request?.visitTime,
+        endTime: request?.endTime,
+        duration: request?.duration,
+      }),
+    [
+      request?.duration,
+      request?.endTime,
+      request?.isWalkIn,
+      request?.status,
+      request?.visitDate,
+      request?.visitTime,
+    ],
+  );
+  const pendingApprovalExpirationTick = useTimeBoundaryTick([
+    pendingApprovalExpirationBoundary,
+  ]);
+  const isPendingApprovalWalkInExpired = useMemo(
+    () =>
+      computeIsPendingApprovalWalkInExpired({
+        isWalkIn: request?.isWalkIn,
+        status: request?.status,
+        visitDate: request?.visitDate,
+        visitTime: request?.visitTime,
+        endTime: request?.endTime,
+        duration: request?.duration,
+      }),
+    [
+      pendingApprovalExpirationTick,
+      request?.duration,
+      request?.endTime,
+      request?.isWalkIn,
+      request?.status,
+      request?.visitDate,
+      request?.visitTime,
+    ],
+  );
+  const isVisitExpired = useMemo(
+    () =>
+      isPendingApprovalWalkInExpired ||
+      computeIsVisitExpired(
+        request?.visitDate,
+        request?.visitTime,
+        request?.endTime,
+        request?.duration,
+        { isWalkIn: request?.isWalkIn },
+      ),
+    [
+      request?.visitDate,
+      request?.visitTime,
+      request?.endTime,
+      request?.duration,
+      request?.isWalkIn,
+      riyadhBusinessDateKey,
+      minuteTick, // forces re-evaluation every minute while the screen is open
+      isPendingApprovalWalkInExpired,
+    ],
+  );
 
-    try {
-      const now = new Date();
-
-      // Priority 1: Check end time if available (endTime field)
-      const endTimeStr = request.endTime;
-      if (endTimeStr && request.visitDate) {
-        const visitEndDateTime = parseDateTime(request.visitDate, endTimeStr);
-        if (!isNaN(visitEndDateTime.getTime())) {
-          return visitEndDateTime < now;
-        }
-      }
-
-      // Priority 2: Calculate end time from start time + duration
-      if (request.visitTime && request.duration) {
-        const startDateTime = parseDateTime(
-          request.visitDate,
-          request.visitTime,
-        );
-        if (!isNaN(startDateTime.getTime())) {
-          const durationMs = parseDurationToMsForExpiry(request.duration);
-          const calculatedEndTime = new Date(
-            startDateTime.getTime() + durationMs,
-          );
-          return calculatedEndTime < now;
-        }
-      }
-
-      // Fallback: check if the visit date (end of day) has passed
-      const [year, month, day] = request.visitDate.split("-").map(Number);
-      if (year && month && day) {
-        const visitDateEndOfDay = new Date(year, month - 1, day, 23, 59, 59);
-        if (visitDateEndOfDay < now) {
-          return true;
-        }
-      }
-
-      return false;
-    } catch {
+  const computeCurrentPendingHostWalkInExpiration = useCallback(() => {
+    if (
+      !request?.isWalkIn ||
+      request.status !== REQUEST_STATUS.PENDING_HOST_APPROVAL
+    ) {
       return false;
     }
+
+    return computeIsVisitExpired(
+      request.visitDate,
+      request.visitTime,
+      request.endTime,
+      request.duration,
+      { isWalkIn: true },
+    );
   }, [
+    request?.duration,
+    request?.endTime,
+    request?.isWalkIn,
+    request?.status,
     request?.visitDate,
     request?.visitTime,
-    request?.endTime,
-    request?.duration,
-    parseDateTime,
   ]);
+
+  const isExpiredPendingHostWalkIn = useMemo(
+    () => computeCurrentPendingHostWalkInExpiration(),
+    [
+      computeCurrentPendingHostWalkInExpiration,
+      riyadhBusinessDateKey,
+      minuteTick,
+    ],
+  );
+
+  useEffect(() => {
+    if (!isExpiredPendingHostWalkIn || !showHostRejectModal) return;
+    setShowHostRejectModal(false);
+    setHostRejectReason("");
+  }, [isExpiredPendingHostWalkIn, showHostRejectModal]);
+  useEffect(() => {
+    if (!isVisitExpired || !showManagerRejectModal) return;
+    setShowManagerRejectModal(false);
+    setManagerRejectReason("");
+  }, [isVisitExpired, showManagerRejectModal]);
 
   const isTerminalStatus = useMemo(() => {
     if (!request) return false;
@@ -314,10 +395,18 @@ export default function RequestDetailsScreen({
     ].includes(request.status as any);
   }, [request]);
 
+  const showExpiredWalkInFooter =
+    request?.isWalkIn &&
+    ((request?.status === REQUEST_STATUS.PENDING_HOST_APPROVAL &&
+      isExpiredPendingHostWalkIn) ||
+      isPendingApprovalWalkInExpired);
+
   const scrollContentStyle = {
     paddingHorizontal: Spacing.xl,
     paddingTop: Spacing.lg,
-    paddingBottom: insets.bottom + Spacing.xl,
+    paddingBottom: showExpiredWalkInFooter
+      ? Math.max(expiredFooterHeight, insets.bottom + Spacing.xl)
+      : insets.bottom + Spacing.xl,
   };
 
   const isProcessing =
@@ -351,11 +440,14 @@ export default function RequestDetailsScreen({
       checkedOutAt: (request as any)?.checkedOutAt,
       completedAt: request?.completedAt,
       cancelledAt: request?.cancelledAt,
+      timeline: (request as any)?.timeline,
     }),
     [request],
   );
 
   const handleHostApproveForTimeline = () => {
+    if (computeCurrentPendingHostWalkInExpiration()) return;
+
     const approvalTime = new Date();
     hostApproveMutation.mutate(
       { id: requestId },
@@ -365,8 +457,7 @@ export default function RequestDetailsScreen({
             setEditPurpose(normalizePurposeValue(visitData.purpose || ""));
             setEditRequiresParking(visitData.parkingType !== "none");
             setEditRequiresValet(visitData.parkingType === "valet");
-            setEditRequiresMeetingRoom(!!visitData.meetingRoom);
-            setEditRequiresBuffet(!!visitData.buffet);
+            initializeEditServices(visitData);
             const channels = (visitData.communicationChannels || []).map((c) =>
               c.toLowerCase(),
             );
@@ -394,7 +485,8 @@ export default function RequestDetailsScreen({
   };
 
   const timelineActionCallbacks: TimelineActionCallbacks | undefined =
-    request?.status === "pending_host_approval"
+    request?.status === "pending_host_approval" &&
+    !isExpiredPendingHostWalkIn
       ? {
           onAccept: handleHostApproveForTimeline,
           onReject: () => setShowHostRejectModal(true),
@@ -408,7 +500,9 @@ export default function RequestDetailsScreen({
     role: "employee",
     flowType: "standard",
     actions: timelineActionCallbacks,
-    showActions: request?.status === "pending_host_approval",
+    showActions:
+      request?.status === "pending_host_approval" &&
+      !isExpiredPendingHostWalkIn,
   });
 
   // Success modal animation effect
@@ -480,6 +574,12 @@ export default function RequestDetailsScreen({
       </ScreenScrollView>
     );
   }
+  const parkingDisplayDecision = resolveParkingDisplayDecision({
+    parkingDecision: request.parkingDecision,
+    visitorNeedsParking: request.visitorNeedsParking,
+    isVisitorNeedsParking: request.isVisitorNeedsParking,
+    hasParkingAllocation: !!request.parkingSlot,
+  });
 
   const formatDateTimeLocal = (isoString: string, timezone?: string) => {
     const date = new Date(isoString);
@@ -507,6 +607,11 @@ export default function RequestDetailsScreen({
   };
 
   const handleHostApprove = () => {
+    // Defensive guard: reject approval attempts on an already-expired visit
+    // (can happen on a slow connection if the end-time passes between the
+    // last minuteTick re-render and the user tapping the button).
+    if (computeCurrentPendingHostWalkInExpiration()) return;
+
     // Capture approval start time NOW for walk-in requests
     const approvalTime = new Date();
 
@@ -519,8 +624,7 @@ export default function RequestDetailsScreen({
             setEditPurpose(normalizePurposeValue(visitData.purpose || ""));
             setEditRequiresParking(visitData.parkingType !== "none");
             setEditRequiresValet(visitData.parkingType === "valet");
-            setEditRequiresMeetingRoom(!!visitData.meetingRoom);
-            setEditRequiresBuffet(!!visitData.buffet);
+            initializeEditServices(visitData);
 
             // Initialize communication channels from existing request data
             const channels = (visitData.communicationChannels || []).map((c) =>
@@ -551,6 +655,8 @@ export default function RequestDetailsScreen({
   };
 
   const handleHostReject = () => {
+    if (computeCurrentPendingHostWalkInExpiration()) return;
+
     if (!hostRejectReason.trim()) {
       Alert.alert(t("errors.validation"), t("errors.reasonRequired"));
       return;
@@ -572,6 +678,7 @@ export default function RequestDetailsScreen({
   };
 
   const handleManagerApprove = () => {
+    if (isVisitExpired) return;
     managerApproveMutation.mutate(
       { id: requestId, payload: {} },
       {
@@ -587,6 +694,11 @@ export default function RequestDetailsScreen({
   };
 
   const handleManagerReject = () => {
+    if (isVisitExpired) {
+      setShowManagerRejectModal(false);
+      setManagerRejectReason("");
+      return;
+    }
     if (!managerRejectReason.trim()) {
       Alert.alert(t("errors.validation"), t("errors.reasonRequired"));
       return;
@@ -605,6 +717,11 @@ export default function RequestDetailsScreen({
         },
       },
     );
+  };
+
+  const handleManagerRejectOpen = () => {
+    if (isVisitExpired) return;
+    setShowManagerRejectModal(true);
   };
 
   const formatTimeForApiLocal = (time: Date): string => {
@@ -641,9 +758,16 @@ export default function RequestDetailsScreen({
 
   const openEditModal = (mode: "full" | "services-only" = "full") => {
     console.log("[DEBUG Modal] openEditModal called with mode:", mode);
-    console.log("[DEBUG Modal] visitData exists:", !!visitData, "isTerminalStatus:", isTerminalStatus);
+    console.log("[DEBUG Modal] visitData exists:", !!visitData, "isTerminalStatus:", isTerminalStatus, "hasVisitStarted:", hasVisitStarted);
     if (!visitData || isTerminalStatus) {
       console.log("[DEBUG Modal] openEditModal - early return (no visitData or terminal status)");
+      return;
+    }
+
+    // Block full edits once the visit has started. The services-only path (post-approval
+    // walk-in service selection) is intentionally exempt — it does not touch date/time.
+    if (mode === "full" && hasVisitStarted) {
+      console.log("[DEBUG Modal] openEditModal - early return (visit has already started)");
       return;
     }
 
@@ -687,8 +811,7 @@ export default function RequestDetailsScreen({
     setEditDuration(parseISODuration(rawDuration));
 
     setEditRequiresParking(visitData.parkingType !== "none");
-    setEditRequiresMeetingRoom(!!visitData.meetingRoom);
-    setEditRequiresBuffet(!!visitData.buffet);
+    initializeEditServices(visitData);
     setEditRequiresValet(visitData.parkingType === "valet");
 
     // Pre-select communication channels from existing request data (normalize to lowercase for comparison)
@@ -717,6 +840,7 @@ export default function RequestDetailsScreen({
     console.log("[DEBUG Modal] closeEditModal called - setting showEditModal to FALSE");
     setShowEditModal(false);
     setIsApprovalFlow(false);
+    setSelectedEditRoomId(null);
   };
 
   const parseDurationToMs = (duration: string): number => {
@@ -860,6 +984,18 @@ export default function RequestDetailsScreen({
   };
 
   const handleEditConfirm = () => {
+    const requiresMeetingRoom = editRequiresMeetingRoom || editRequiresBuffet;
+
+    // Validate meeting room selection before submitting
+    if (requiresMeetingRoom && (isLoadingEditRooms || isFetchingEditRooms)) {
+      Alert.alert(t("errors.validation"), t("errors.meetingRoomLoading"));
+      return;
+    }
+    if (requiresMeetingRoom && hasCheckedEditAvailability && isEditRoomAvailable && availableEditRooms.length > 0 && !selectedEditRoomId) {
+      Alert.alert(t("errors.validation"), t("errors.meetingRoomRequired"));
+      return;
+    }
+
     // Build communication channels array - always include email and qr_code
     const communicationChannels: ("email" | "sms" | "whatsapp" | "qr_code")[] =
       ["email", "qr_code"];
@@ -869,7 +1005,8 @@ export default function RequestDetailsScreen({
     const payload: Record<string, unknown> = {
       purpose: editPurpose,
       needsParking: editRequiresParking,
-      needsMeetingRoom: editRequiresMeetingRoom,
+      needsMeetingRoom: requiresMeetingRoom,
+      meetingRoomId: requiresMeetingRoom && selectedEditRoomId ? selectedEditRoomId : undefined,
       needsBuffet: editRequiresBuffet,
       needsValet: editRequiresValet,
       communicationChannels,
@@ -1023,12 +1160,24 @@ export default function RequestDetailsScreen({
       .join(" ");
   };
 
+  const canHostApproveWalkIn =
+    request.isWalkIn &&
+    request.status === REQUEST_STATUS.PENDING_HOST_APPROVAL &&
+    !isExpiredPendingHostWalkIn;
+  const canManagerApproveRequest =
+    request.canApprove === true &&
+    userRole === "manager" &&
+    !canHostApproveWalkIn &&
+    !isVisitExpired;
+  const showInlineExpiredVisitNotice =
+    isVisitExpired &&
+    !request.isWalkIn &&
+    request.status === REQUEST_STATUS.PENDING_APPROVAL &&
+    userRole === "manager";
   const showStickyFooter =
-    (request.isWalkIn &&
-      request.status === REQUEST_STATUS.PENDING_HOST_APPROVAL) ||
-    (request.status === REQUEST_STATUS.PENDING_APPROVAL &&
-      userRole === "manager" &&
-      !isVisitExpired) ||
+    showExpiredWalkInFooter ||
+    canHostApproveWalkIn ||
+    canManagerApproveRequest ||
     (request.status !== REQUEST_STATUS.PENDING_HOST_APPROVAL &&
       !(
         request.status === REQUEST_STATUS.PENDING_APPROVAL &&
@@ -1040,8 +1189,54 @@ export default function RequestDetailsScreen({
       request.status !== REQUEST_STATUS.VISITOR_REJECTED &&
       request.status !== REQUEST_STATUS.AUTO_CANCELLED);
 
+  const expiredVisitNotice = (
+    <View
+      style={{
+        alignItems: "center",
+        justifyContent: "center",
+        paddingVertical: Spacing.sm,
+        paddingHorizontal: Spacing.md,
+      }}
+    >
+      <DirectionalRow
+        style={{
+          alignItems: "center",
+          justifyContent: "center",
+          gap: Spacing.xs,
+        }}
+      >
+        <DDIcon name="alert-circle" size={16} color={theme.warning} />
+        <ThemedText
+          style={[
+            Typography.caption,
+            {
+              color: theme.warning,
+              fontWeight: "600",
+              textAlign: "center",
+            },
+          ]}
+        >
+          {t("status.visitExpired")}
+        </ThemedText>
+      </DirectionalRow>
+      <ThemedText
+        style={[
+          Typography.caption,
+          {
+            color: theme.textSecondary,
+            textAlign: "center",
+            marginTop: 2,
+            fontSize: 12,
+          },
+        ]}
+      >
+        {t("errors.visitDatePassed")}
+      </ThemedText>
+    </View>
+  );
+
   return (
-    <>
+    <View style={styles.screenContainer}>
       <ScreenScrollView
         contentContainerStyle={[
           scrollContentStyle,
@@ -1324,8 +1519,11 @@ export default function RequestDetailsScreen({
                       styles.avatarText,
                       { color: theme.primary, fontSize: 24, fontWeight: "700" },
                     ]}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.5}
                   >
-                    {request.visitor.fullName.split(" ").map((n) => n[0]).join("")}
+                    {getInitials(request.visitor.fullName)}
                   </ThemedText>
                 </View>
 
@@ -1348,40 +1546,27 @@ export default function RequestDetailsScreen({
                 </View>
 
                 {/* Status Badge */}
-                <View
-                  style={{
-                    backgroundColor: statusConfig.bg,
-                    borderColor: statusConfig.border,
-                    borderWidth: StyleSheet.hairlineWidth,
-                    paddingHorizontal: Spacing.md,
-                    paddingVertical: 6,
-                    borderRadius: BorderRadius.full,
-                  }}
-                >
-                  <ThemedText
-                    style={[Typography.caption, { color: statusConfig.text, fontWeight: "600", fontSize: 12 }]}
-                  >
-                    {statusConfig.label}
-                  </ThemedText>
-                </View>
+                <RequestStatusBadge status={request.status} />
               </DirectionalRow>
 
               {/* Right group: Contact info */}
               <DirectionalRow style={{ alignItems: 'center', gap: Spacing.lg, flexShrink: 0 }}>
-                {/* Email */}
-                <DirectionalRow style={{ alignItems: 'center', gap: Spacing.sm }}>
-                  <View
-                    style={[
-                      styles.serviceIcon,
-                      { backgroundColor: applyOpacity(theme.textSecondary, "15"), width: 32, height: 32 },
-                    ]}
-                  >
-                    <DDIcon name="mail" size={16} color={theme.text} />
-                  </View>
-                  <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14 }]}>
-                    {request.visitor.email}
-                  </ThemedText>
-                </DirectionalRow>
+                {/* Email — only shown when present */}
+                {request.visitor.email ? (
+                  <DirectionalRow style={{ alignItems: 'center', gap: Spacing.sm }}>
+                    <View
+                      style={[
+                        styles.serviceIcon,
+                        { backgroundColor: applyOpacity(theme.textSecondary, "15"), width: 32, height: 32 },
+                      ]}
+                    >
+                      <DDIcon name="mail" size={16} color={theme.text} />
+                    </View>
+                    <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14 }]}>
+                      {request.visitor.email}
+                    </ThemedText>
+                  </DirectionalRow>
+                ) : null}
 
                 {/* Phone */}
                 <DirectionalRow style={{ alignItems: 'center', gap: Spacing.sm }}>
@@ -1414,8 +1599,11 @@ export default function RequestDetailsScreen({
                       styles.avatarText,
                       { color: theme.primary, fontSize: 32, fontWeight: "700" },
                     ]}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.5}
                   >
-                    {request.visitor.fullName.split(" ").map((n) => n[0]).join("")}
+                    {getInitials(request.visitor.fullName)}
                   </ThemedText>
                 </View>
 
@@ -1434,22 +1622,8 @@ export default function RequestDetailsScreen({
 
                 <Spacer height={Spacing.sm} />
 
-                <View
-                  style={{
-                    alignSelf: "center",
-                    backgroundColor: statusConfig.bg,
-                    borderColor: statusConfig.border,
-                    borderWidth: StyleSheet.hairlineWidth,
-                    paddingHorizontal: Spacing.md,
-                    paddingVertical: 6,
-                    borderRadius: BorderRadius.full,
-                  }}
-                >
-                  <ThemedText
-                    style={[Typography.caption, { color: statusConfig.text, fontWeight: "600", fontSize: 12 }]}
-                  >
-                    {statusConfig.label}
-                  </ThemedText>
+                <View style={{ alignSelf: 'center' }}>
+                  <RequestStatusBadge status={request.status} />
                 </View>
               </View>
 
@@ -1459,23 +1633,26 @@ export default function RequestDetailsScreen({
 
               <Spacer height={Spacing.lg} />
 
-              <DirectionalRow
-                style={[styles.infoRowNew, { justifyContent: "flex-start", gap: Spacing.md }]}
-              >
-                <View
-                  style={[
-                    styles.serviceIcon,
-                    { backgroundColor: applyOpacity(theme.textSecondary, "15") },
-                  ]}
-                >
-                  <DDIcon name="mail" size={18} color={theme.text} />
-                </View>
-                <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14 }]}>
-                  {request.visitor.email}
-                </ThemedText>
-              </DirectionalRow>
-
-              <Spacer height={Spacing.md} />
+              {request.visitor.email ? (
+                <>
+                  <DirectionalRow
+                    style={[styles.infoRowNew, { justifyContent: "flex-start", gap: Spacing.md }]}
+                  >
+                    <View
+                      style={[
+                        styles.serviceIcon,
+                        { backgroundColor: applyOpacity(theme.textSecondary, "15") },
+                      ]}
+                    >
+                      <DDIcon name="mail" size={18} color={theme.text} />
+                    </View>
+                    <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14 }]}>
+                      {request.visitor.email}
+                    </ThemedText>
+                  </DirectionalRow>
+                  <Spacer height={Spacing.md} />
+                </>
+              ) : null}
 
               <DirectionalRow
                 style={[styles.infoRowNew, { justifyContent: "flex-start", gap: Spacing.md }]}
@@ -1643,6 +1820,25 @@ export default function RequestDetailsScreen({
                     {formatDateShort(request.visitDate)} •{" "}
                     {formatVisitTimeRange(request.visitTime, request.endTime)}
                   </ThemedText>
+                  {/* Calendar sync badge — visible once the Outlook event is created */}
+                  {(request as any).calendarSynced === true ? (() => {
+                    const isCancelled = request.status === 'cancelled' || request.status === 'auto_cancelled';
+                    return (
+                      <DirectionalRow style={{ alignItems: 'center', marginTop: 4, gap: 4 }}>
+                        <DDIcon
+                          name="calendar"
+                          size={12}
+                          color={isCancelled ? theme.textSecondary : theme.success}
+                        />
+                        <ThemedText style={[
+                          Typography.caption,
+                          { fontSize: 11, color: isCancelled ? theme.textSecondary : theme.success },
+                        ]}>
+                          {isCancelled ? t('calendar.eventCancelled') : t('calendar.syncedToOutlook')}
+                        </ThemedText>
+                      </DirectionalRow>
+                    );
+                  })() : null}
                 </View>
               </DirectionalRow>
               {!isWebLayout && <Spacer height={Spacing.lg} />}
@@ -2090,7 +2286,7 @@ export default function RequestDetailsScreen({
                       backgroundColor: applyOpacity(
                         isCancelledVisit
                           ? theme.textSecondary
-                          : request.visitorNeedsParking
+                          : parkingDisplayDecision === 'required'
                             ? theme.secondary
                             : theme.textSecondary,
                         "15",
@@ -2104,7 +2300,7 @@ export default function RequestDetailsScreen({
                     color={
                       isCancelledVisit
                         ? theme.textSecondary
-                        : request.visitorNeedsParking
+                        : parkingDisplayDecision === 'required'
                           ? theme.secondary
                           : theme.textSecondary
                     }
@@ -2119,58 +2315,9 @@ export default function RequestDetailsScreen({
                   >
                     {t("services.parking")}
                   </ThemedText>
-                  {isCancelledVisit && request.visitorNeedsParking ? (
-                    <ThemedText
-                      style={[
-                        Typography.caption,
-                        { color: theme.error, fontSize: 12, marginTop: 2 },
-                      ]}
-                    >
-                      {t("status.cancelled")}
-                    </ThemedText>
-                  ) : isCancelledVisit ? (
-                    <ThemedText
-                      style={[
-                        Typography.caption,
-                        { color: theme.error, fontSize: 12, marginTop: 2 },
-                      ]}
-                    >
-                      {t("status.cancelled")}
-                    </ThemedText>
-                  ) : request.visitorNeedsParking ? (
-                    request.licensePlate || request.carModel || request.carColor ? (
-                      <ThemedText
-                        style={[
-                          Typography.caption,
-                          { color: theme.textSecondary, fontSize: 12, marginTop: 2 },
-                        ]}
-                      >
-                        {[request.licensePlate, request.carModel, request.carColor]
-                          .filter(Boolean)
-                          .join(" • ")}
-                      </ThemedText>
-                    ) : (
-                      <ThemedText
-                        style={[
-                          Typography.caption,
-                          { color: theme.warning, fontSize: 12, marginTop: 2 },
-                        ]}
-                      >
-                        {request.status === REQUEST_STATUS.PENDING_APPROVAL || request.status === REQUEST_STATUS.PENDING_HOST_APPROVAL
-                          ? t("status.pendingApproval")
-                          : t("parking.parkingPending")}
-                      </ThemedText>
-                    )
-                  ) : (
-                    <ThemedText
-                      style={[
-                        Typography.caption,
-                        { color: theme.textSecondary, fontSize: 12, marginTop: 2, fontStyle: "italic" },
-                      ]}
-                    >
-                      {t("common.notRequested")}
-                    </ThemedText>
-                  )}
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12, marginTop: 2 }]}>
+                    {parkingDisplayDecision === 'required' ? t("parking.needsParking") : t("parking.noParking")}
+                  </ThemedText>
                 </View>
               </DirectionalRow>
             </View>
@@ -2181,7 +2328,7 @@ export default function RequestDetailsScreen({
         {/* Responsive 2-column layout for Timeline and QR Code on web */}
         <View style={isWebLayout ? { flexDirection: 'row', gap: Spacing.lg } : undefined}>
           <View style={isWebLayout ? { width: '48%' } : undefined}>
-            <RequestTimeline steps={timelineSteps} />
+            <RequestTimeline steps={timelineSteps} timezone={(request as any)?.timezone} />
           </View>
 
           {!isWebLayout && <Spacer height={Spacing.lg} />}
@@ -2233,54 +2380,8 @@ export default function RequestDetailsScreen({
 
         <Spacer height={Spacing.xl} />
 
-        {/* Expired visit message for managers - inline display */}
-        {request.status === REQUEST_STATUS.PENDING_APPROVAL &&
-        userRole === "manager" &&
-        isVisitExpired ? (
-          <View
-            style={{
-              alignItems: "center",
-              justifyContent: "center",
-              paddingVertical: Spacing.sm,
-              paddingHorizontal: Spacing.md,
-            }}
-          >
-            <DirectionalRow
-              style={{
-                alignItems: "center",
-                justifyContent: "center",
-                gap: Spacing.xs,
-              }}
-            >
-              <DDIcon name="alert-circle" size={16} color={theme.warning} />
-              <ThemedText
-                style={[
-                  Typography.caption,
-                  {
-                    color: theme.warning,
-                    fontWeight: "600",
-                    textAlign: "center",
-                  },
-                ]}
-              >
-                {t("status.visitExpired")}
-              </ThemedText>
-            </DirectionalRow>
-            <ThemedText
-              style={[
-                Typography.caption,
-                {
-                  color: theme.textSecondary,
-                  textAlign: "center",
-                  marginTop: 2,
-                  fontSize: 12,
-                },
-              ]}
-            >
-              {t("errors.visitDatePassed")}
-            </ThemedText>
-          </View>
-        ) : null}
+        {/* Existing scheduled manager expired message remains inline. */}
+        {showInlineExpiredVisitNotice ? expiredVisitNotice : null}
 
         <Modal
           visible={showCancelModal}
@@ -3087,8 +3188,13 @@ export default function RequestDetailsScreen({
                       <View style={getCardWrapper3ColStyle()}>
                         <SelectableCard
                           onPress={() => {
-                            console.log("[DEBUG Modal] Meeting Room card PRESSED, toggling to:", !editRequiresMeetingRoom);
-                            setEditRequiresMeetingRoom(!editRequiresMeetingRoom);
+                            const newRoomValue = !editRequiresMeetingRoom;
+                            console.log("[DEBUG Modal] Meeting Room card PRESSED, toggling to:", newRoomValue);
+                            setEditRequiresMeetingRoom(newRoomValue);
+                            if (!newRoomValue) {
+                              setEditRequiresBuffet(false);
+                              setSelectedEditRoomId(null);
+                            }
                           }}
                           selected={editRequiresMeetingRoom}
                         >
@@ -3123,7 +3229,11 @@ export default function RequestDetailsScreen({
                         <SelectableCard
                           onPress={() => {
                             console.log("[DEBUG Modal] Buffet card PRESSED, toggling to:", !editRequiresBuffet);
-                            setEditRequiresBuffet(!editRequiresBuffet);
+                            const newBuffetValue = !editRequiresBuffet;
+                            setEditRequiresBuffet(newBuffetValue);
+                            if (newBuffetValue) {
+                              setEditRequiresMeetingRoom(true);
+                            }
                           }}
                           selected={editRequiresBuffet}
                         >
@@ -3159,75 +3269,96 @@ export default function RequestDetailsScreen({
                       </View>
                     </View>
 
-                    {/* Meeting Room Availability Badge */}
+                    {/* Meeting Room Picker */}
                     {editRequiresMeetingRoom ? (
                       <View style={{ marginTop: Spacing.md }}>
-                        {hasCheckedEditAvailability ? (
+                        {isLoadingEditRooms || isFetchingEditRooms ? (
                           <DirectionalRow
-                            style={[
-                              styles.availabilityBadge,
-                              {
-                                backgroundColor: isEditRoomAvailable
-                                  ? applyOpacity(theme.success, "15")
-                                  : applyOpacity(theme.error, "15"),
-                                borderColor: isEditRoomAvailable
-                                  ? theme.success
-                                  : theme.error,
-                              },
-                            ]}
+                            style={[styles.availabilityBadge, { backgroundColor: theme.surface, borderColor: theme.border, justifyContent: "flex-start" }]}
                           >
-                            <DDIcon
-                              name={
-                                isEditRoomAvailable
-                                  ? "check-circle"
-                                  : "alert-circle"
-                              }
-                              size={16}
-                              color={
-                                isEditRoomAvailable ? theme.success : theme.error
-                              }
-                            />
-                            <ThemedText
-                              style={[
-                                Typography.bodySmall,
-                                {
-                                  color: isEditRoomAvailable
-                                    ? theme.success
-                                    : theme.error,
-                                  marginStart: Spacing.xs,
-                                  fontWeight: "500",
-                                },
-                              ]}
-                            >
-                              {isEditRoomAvailable
-                                ? t("form.meetingRoomAvailable")
-                                : t("errors.noRoomsAvailableForTime")}
-                            </ThemedText>
-                          </DirectionalRow>
-                        ) : isLoadingEditRooms ? (
-                          <DirectionalRow
-                            style={[
-                              styles.availabilityBadge,
-                              {
-                                backgroundColor: theme.surface,
-                                borderColor: theme.border,
-                              },
-                            ]}
-                          >
-                            <ActivityIndicator
-                              size="small"
-                              color={theme.primary}
-                              style={{ marginEnd: Spacing.xs }}
-                            />
-                            <ThemedText
-                              style={[
-                                Typography.bodySmall,
-                                { color: theme.textSecondary },
-                              ]}
-                            >
+                            <ActivityIndicator size="small" color={theme.primary} style={{ marginEnd: Spacing.xs }} />
+                            <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
                               {t("common.checkingAvailability")}...
                             </ThemedText>
                           </DirectionalRow>
+                        ) : hasCheckedEditAvailability && availableEditRooms.length === 0 ? (
+                          <DirectionalRow
+                            style={[styles.availabilityBadge, { backgroundColor: applyOpacity(theme.error, "15"), borderColor: theme.error, justifyContent: "flex-start" }]}
+                            gap={Spacing.xs}
+                          >
+                            <DDIcon name="alert-circle" size={16} color={theme.error} />
+                            <ThemedText style={[Typography.bodySmall, { color: theme.error, fontWeight: "500", flex: 1, flexWrap: "wrap" }]}>
+                              {t("errors.noRoomsAvailableForTime")}
+                            </ThemedText>
+                          </DirectionalRow>
+                        ) : hasCheckedEditAvailability && availableEditRooms.length > 0 ? (
+                          <View style={{ gap: Spacing.sm }}>
+                            <ThemedText style={[Typography.label, { color: theme.textSecondary }]}>
+                              {t("form.selectMeetingRoom").toUpperCase()}
+                            </ThemedText>
+                            {availableEditRooms.map((room) => {
+                              const isSelected = selectedEditRoomId === room.id;
+                              return (
+                                <Pressable
+                                  key={room.id}
+                                  onPress={() => setSelectedEditRoomId(room.id)}
+                                  style={[
+                                    styles.roomCard,
+                                    {
+                                      backgroundColor: isSelected ? applyOpacity(theme.primary, "10") : theme.background,
+                                      borderColor: isSelected ? theme.primary : theme.border,
+                                      borderWidth: isSelected ? 2 : 1,
+                                    },
+                                  ]}
+                                >
+                                  <DirectionalRow alignItems="stretch" style={{ gap: Spacing.sm }}>
+                                    <View
+                                      style={[
+                                        styles.roomCardIcon,
+                                        { backgroundColor: isSelected ? applyOpacity(theme.primary, "15") : applyOpacity(theme.cardIcon, "10") },
+                                      ]}
+                                    >
+                                      <DDIcon name="users" size={20} color={isSelected ? theme.primary : theme.cardIcon} />
+                                    </View>
+                                    <View style={{ flex: 1, gap: 3 }}>
+                                      <ThemedText style={[Typography.bodySmall, { fontWeight: "700", color: isSelected ? theme.primary : theme.text }]}>
+                                        {room.name}
+                                      </ThemedText>
+                                      {(room.floor || room.building) ? (
+                                        <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
+                                          {[room.floor, room.building].filter(Boolean).join(" · ")}
+                                        </ThemedText>
+                                      ) : null}
+                                      <DirectionalRow gap={Spacing.xs} style={{ flexWrap: "wrap" }}>
+                                        <DirectionalRow gap={4} alignItems="center">
+                                          <DDIcon name="users" size={12} color={theme.textSecondary} />
+                                          <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
+                                            {room.capacity}
+                                          </ThemedText>
+                                        </DirectionalRow>
+                                        {room.features && room.features.length > 0 &&
+                                          room.features.slice(0, 3).map((f) => (
+                                            <View key={f} style={[styles.featureTag, { backgroundColor: applyOpacity(theme.primary, "10") }]}>
+                                              <ThemedText style={[Typography.caption, { color: theme.primary, fontSize: 10 }]}>
+                                                {f.replace(/_/g, " ")}
+                                              </ThemedText>
+                                            </View>
+                                          ))}
+                                      </DirectionalRow>
+                                    </View>
+                                    <View
+                                      style={[
+                                        styles.squareCheckbox,
+                                        { borderColor: isSelected ? theme.primary : theme.border, backgroundColor: isSelected ? theme.primary : "transparent" },
+                                      ]}
+                                    >
+                                      {isSelected ? <DDIcon name="check" size={10} color={theme.buttonText} /> : null}
+                                    </View>
+                                  </DirectionalRow>
+                                </Pressable>
+                              );
+                            })}
+                          </View>
                         ) : null}
                       </View>
                     ) : null}
@@ -3439,7 +3570,13 @@ export default function RequestDetailsScreen({
                     handleEditConfirm();
                   }}
                   loading={updateMutation.isPending}
-                  disabled={updateMutation.isPending}
+                  disabled={
+                    updateMutation.isPending ||
+                    // Rooms still loading — wait before saving
+                    (editRequiresMeetingRoom && (isLoadingEditRooms || isFetchingEditRooms)) ||
+                    // Meeting room toggled on, rooms are available, but none selected yet
+                    (editRequiresMeetingRoom && hasCheckedEditAvailability && isEditRoomAvailable && availableEditRooms.length > 0 && !selectedEditRoomId)
+                  }
                   variant={isApprovalFlow ? "success" : "primary"}
                   size="medium"
                   icon={isApprovalFlow ? "check" : undefined}
@@ -3864,9 +4001,25 @@ export default function RequestDetailsScreen({
         </Modal>
       </ScreenScrollView>
 
+      {showExpiredWalkInFooter ? (
+        <View
+          testID="expired-visit-footer"
+          onLayout={handleExpiredFooterLayout}
+          style={[
+            styles.stickyFooter,
+            {
+              backgroundColor: theme.background,
+              borderTopColor: theme.border,
+              paddingBottom: insets.bottom + Spacing.lg,
+            },
+          ]}
+        >
+          <ExpiredVisitFooter theme={theme} t={t} />
+        </View>
+      ) : null}
+
       {/* Sticky Footer for Actions */}
-      {request.isWalkIn &&
-      request.status === REQUEST_STATUS.PENDING_HOST_APPROVAL ? (
+      {canHostApproveWalkIn ? (
         <View
           style={[
             styles.stickyFooter,
@@ -3888,9 +4041,7 @@ export default function RequestDetailsScreen({
         </View>
       ) : null}
 
-      {request.status === REQUEST_STATUS.PENDING_APPROVAL &&
-      userRole === "manager" &&
-      !isVisitExpired ? (
+      {canManagerApproveRequest ? (
         <View
           style={[
             styles.stickyFooter,
@@ -3903,7 +4054,7 @@ export default function RequestDetailsScreen({
         >
           <ApprovalActionGroup
             onApprove={handleManagerApprove}
-            onReject={() => setShowManagerRejectModal(true)}
+            onReject={handleManagerRejectOpen}
             approveLoading={managerApproveMutation.isPending}
             rejectLoading={managerRejectMutation.isPending}
             size="large"
@@ -3913,15 +4064,13 @@ export default function RequestDetailsScreen({
       ) : null}
 
       {request.status !== REQUEST_STATUS.PENDING_HOST_APPROVAL &&
-      !(
-        request.status === REQUEST_STATUS.PENDING_APPROVAL &&
-        userRole === "manager"
-      ) &&
+      !request.canApprove &&
       request.status !== REQUEST_STATUS.COMPLETED &&
       request.status !== REQUEST_STATUS.CANCELLED &&
       request.status !== REQUEST_STATUS.REJECTED &&
       request.status !== REQUEST_STATUS.VISITOR_REJECTED &&
-      request.status !== REQUEST_STATUS.AUTO_CANCELLED ? (
+      request.status !== REQUEST_STATUS.AUTO_CANCELLED &&
+      !isVisitExpired ? (
         <View
           style={[
             styles.stickyFooter,
@@ -3933,37 +4082,59 @@ export default function RequestDetailsScreen({
           ]}
         >
           <DirectionalRow style={styles.actionButtonsRow}>
-            <LoadingButton
-              onPress={() =>
-                openEditModal(request.isWalkIn ? "services-only" : "full")
-              }
-              variant="primary"
-              size="large"
-              icon={request.isWalkIn ? "settings" : "edit-2"}
-              iconPosition="left"
-              style={{ flex: 1 }}
-            >
-              {request.isWalkIn ? t("actions.editServices") : t("common.edit")}
-            </LoadingButton>
-            <View style={{ width: Spacing.md }} />
+            {/* Full edit: hidden once the visit has started — user must cancel and re-create */}
+            {!hasVisitStarted && !request.isWalkIn ? (
+              <>
+                <LoadingButton
+                  onPress={() => openEditModal("full")}
+                  variant="primary"
+                  size="large"
+                  icon="edit-2"
+                  iconPosition="left"
+                  style={{ flex: 1 }}
+                >
+                  {t("common.edit")}
+                </LoadingButton>
+                <View style={{ width: Spacing.md }} />
+              </>
+            ) : null}
+            {/* Walk-in Edit Services: always available — services-only mode is exempt from the start guard */}
+            {request.isWalkIn ? (
+              <>
+                <LoadingButton
+                  onPress={() => openEditModal("services-only")}
+                  variant="primary"
+                  size="large"
+                  icon="settings"
+                  iconPosition="left"
+                  style={{ flex: 1 }}
+                >
+                  {t("actions.editServices")}
+                </LoadingButton>
+                <View style={{ width: Spacing.md }} />
+              </>
+            ) : null}
             <LoadingButton
               onPress={() => setShowCancelModal(true)}
               variant="danger-outline"
               size="large"
               icon="x-circle"
               iconPosition="left"
-              style={{ flex: 1 }}
+              style={{ flex: hasVisitStarted && !request.isWalkIn ? undefined : 1 }}
             >
               {t("common.cancel")}
             </LoadingButton>
           </DirectionalRow>
         </View>
       ) : null}
-    </>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  screenContainer: {
+    flex: 1,
+  },
   stickyFooter: {
     position: "absolute",
     bottom: 0,
@@ -4380,5 +4551,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
+  },
+  roomCard: {
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    borderWidth: 1,
+  },
+  roomCardIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: BorderRadius.sm,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  squareCheckbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    borderWidth: 2,
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "center",
+  },
+  featureTag: {
+    borderRadius: BorderRadius.xs,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
   },
 });

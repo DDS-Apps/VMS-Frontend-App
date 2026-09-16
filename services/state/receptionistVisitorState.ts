@@ -1,4 +1,5 @@
 import { addNotification, createPendingApprovalNotification, createCancellationNotification } from './notificationState';
+import { getBusinessDateKey } from '@/utils/dateTimeUtils';
 
 export type VisitType = 'general' | 'parking' | 'valet' | 'buffet';
 export type VisitOrigin = 'scheduled' | 'walk_in';
@@ -20,7 +21,7 @@ interface TodaysVisitor {
   createdAt: string;
 }
 
-const today = new Date().toISOString().split('T')[0];
+const today = getBusinessDateKey(new Date(), 'Asia/Riyadh');
 
 let mockTodaysVisitors: TodaysVisitor[] = [
   { id: '1', name: 'Sarah Johnson', company: 'TechCorp Inc.', phone: '+966 50 123 4567', host: 'Renad', time: '10:00 AM', status: 'checked_in', parking: 'B1-23', visitType: 'parking', origin: 'scheduled', scheduledFor: today, createdAt: today },
@@ -101,7 +102,7 @@ export function checkOutVisitor(visitorId: string): void {
 export function addWalkInVisitor(visitorData: { name: string; company: string; phone: string; host: string; visitType?: VisitType; purpose?: string }): string {
   const newId = String(Date.now());
   const currentTime = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-  const currentDate = new Date().toISOString().split('T')[0];
+  const currentDate = getBusinessDateKey(new Date(), 'Asia/Riyadh');
   
   const newVisitor: TodaysVisitor = {
     id: newId,
@@ -133,7 +134,7 @@ export function addWalkInVisitor(visitorData: { name: string; company: string; p
 }
 
 export function getAllUpcomingVisitors(): TodaysVisitor[] {
-  const today = new Date().toISOString().split('T')[0];
+  const today = getBusinessDateKey(new Date(), 'Asia/Riyadh');
   return mockTodaysVisitors
     .filter(v => v.scheduledFor >= today && v.status !== 'completed')
     .map(v => ({ ...v }));
