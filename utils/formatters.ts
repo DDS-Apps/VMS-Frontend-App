@@ -474,15 +474,90 @@ export const capitalizeFirst = (str: string | null | undefined): string => {
   return str.charAt(0).toUpperCase() + str.slice(1);
 };
 
+const splitInitialGraphemes = (value: string): string[] => {
+  const graphemes: string[] = [];
+  let current = "";
+  let regionalIndicatorCount = 0;
+
+  for (const character of Array.from(value)) {
+    const codePoint = character.codePointAt(0) ?? 0;
+    const joinsPrevious =
+      isCombiningMark(codePoint) ||
+      isVariationSelector(codePoint) ||
+      isEmojiModifier(codePoint) ||
+      character === "\u200D" ||
+      current.endsWith("\u200D");
+
+    if (!current || (!joinsPrevious && !isRegionalIndicatorPair(codePoint, regionalIndicatorCount))) {
+      if (current) graphemes.push(current);
+      current = character;
+      regionalIndicatorCount = isRegionalIndicator(codePoint) ? 1 : 0;
+    } else {
+      current += character;
+      if (isRegionalIndicator(codePoint)) regionalIndicatorCount += 1;
+    }
+  }
+
+  if (current) graphemes.push(current);
+  return graphemes;
+};
+
+// Build this dynamically so Hermes versions without Unicode property escapes
+// can still load the module and use the explicit-range fallback below.
+const unicodeMarkRegex = (() => {
+  try {
+    return new RegExp("\\p{Mark}", "u");
+  } catch {
+    return null;
+  }
+})();
+
+const isCombiningMark = (codePoint: number): boolean => {
+  if (unicodeMarkRegex?.test(String.fromCodePoint(codePoint))) return true;
+
+  return (
+    (codePoint >= 0x0300 && codePoint <= 0x036f) ||
+    (codePoint >= 0x1ab0 && codePoint <= 0x1aff) ||
+    (codePoint >= 0x1dc0 && codePoint <= 0x1dff) ||
+    (codePoint >= 0x20d0 && codePoint <= 0x20ff) ||
+    (codePoint >= 0xfe20 && codePoint <= 0xfe2f)
+  );
+};
+
+const isVariationSelector = (codePoint: number): boolean =>
+  (codePoint >= 0xfe00 && codePoint <= 0xfe0f) ||
+  (codePoint >= 0xe0100 && codePoint <= 0xe01ef);
+
+const isEmojiModifier = (codePoint: number): boolean =>
+  codePoint >= 0x1f3fb && codePoint <= 0x1f3ff;
+
+const isRegionalIndicator = (codePoint: number): boolean =>
+  codePoint >= 0x1f1e6 && codePoint <= 0x1f1ff;
+
+const isRegionalIndicatorPair = (codePoint: number, count: number): boolean =>
+  isRegionalIndicator(codePoint) && count === 1;
+
+/**
+ * Returns at most two name initials for an avatar. The optional argument is
+ * retained for callers of the older formatter API but is intentionally
+ * capped at two visible characters.
+ */
 export const getInitials = (name: string | null | undefined, maxChars: number = 2): string => {
-  if (!name || !name.trim()) return '?';
-  return name
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean)
-    .map(part => [...part][0] || '')
-    .filter(Boolean)
-    .join('')
-    .substring(0, maxChars)
-    .toUpperCase();
+  const normalizedName = typeof name === "string" ? name.trim() : "";
+  if (!normalizedName) return "?";
+
+  const maxVisibleCharacters = Math.min(Math.max(Math.floor(maxChars) || 1, 1), 2);
+  const parts = normalizedName
+    .split(/[\s\u2010-\u2015\u2212-]+/)
+    .filter(Boolean);
+  if (parts.length === 0) return "?";
+
+  const sourceCharacters =
+    parts.length > 1
+      ? parts.slice(0, maxVisibleCharacters).flatMap((part) => splitInitialGraphemes(part).slice(0, 1))
+      : splitInitialGraphemes(parts[0]).slice(0, maxVisibleCharacters);
+  const uppercased = sourceCharacters.join("").toUpperCase();
+  const initials = splitInitialGraphemes(uppercased).slice(0, maxVisibleCharacters).join("");
+
+  return initials || "?";
 };

@@ -8,11 +8,16 @@ import { notificationApiService } from '@/services/api/notificationApiService';
 import { notificationKeys } from '@/hooks/queries/useNotificationQueries';
 import { pushNotificationService } from '@/services/push';
 import { InAppNotificationToast } from '@/components/InAppNotificationToast';
+import { navigateFromInAppNotification } from '@/utils/notificationNavigator';
+import { removeValetVehicleInfo, sanitizeParkingNotificationMessage } from '@/utils/notificationLocalization';
 import type { UserRole } from '@/types/vms.types';
+import { useTranslation } from '@/hooks/useTranslation';
 
 // Check if notifications are supported in this environment
 // Note: The main notification handler is set in pushNotificationService.ts
 // This context only manages unread counts, badge, and permission status
+import { valetAdminKeys } from '@/hooks/queries/useValetAdminQueries';
+import { valetKeys } from '@/hooks/queries/useValetQueries';
 let notificationsSupported = true;
 try {
   // Just check if the module is available, don't set handler (handled by pushNotificationService)
@@ -42,28 +47,28 @@ interface NotificationProviderProps {
   children: ReactNode;
 }
 
-const getPollingIntervalForRole = (role: UserRole | undefined): number => {
-  switch (role) {
-    case 'receptionist':
-    case 'security':
-      return 20 * 1000;
-    case 'manager':
-    case 'building_admin':
-      return 45 * 1000;
-    default:
-      return 60 * 1000;
-  }
+const NOTIFICATION_POLLING_INTERVAL_MS = 2 * 60 * 1000;
+
+const getPollingIntervalForRole = (_role: UserRole | undefined): number => {
+  return NOTIFICATION_POLLING_INTERVAL_MS;
 };
 
 export function NotificationProvider({ children }: NotificationProviderProps) {
   const { user, isAuthenticated } = useAuth();
+  const { locale } = useTranslation();
   const queryClient = useQueryClient();
   
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [permissionStatus, setPermissionStatus] = useState<'granted' | 'denied' | 'undetermined' | 'unsupported' | null>(null);
   const [pushToken, setPushToken] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ visible: boolean; title: string; body: string }>({
+  const [toast, setToast] = useState<{
+    visible: boolean;
+    title: string;
+    body: string;
+    notificationType?: string;
+    notificationData?: Record<string, unknown>;
+  }>({
     visible: false,
     title: '',
     body: '',
@@ -314,10 +319,24 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
     if (!isAuthenticated) return;
     const handler = (notification: Notifications.Notification) => {
       const content = notification.request.content;
+      const data = (content.data ?? {}) as Record<string, unknown>;
+      const notificationType = data.type as string | undefined;
+      const notificationBody = sanitizeParkingNotificationMessage(
+        notificationType ?? '',
+        removeValetVehicleInfo(notificationType ?? '', content.body ?? ''),
+        locale,
+      );
+      const notificationTitle = sanitizeParkingNotificationMessage(
+        notificationType ?? '',
+        content.title ?? '',
+        locale,
+      );
       setToast({
         visible: true,
-        title: content.title ?? '',
-        body: content.body ?? '',
+        title: notificationTitle,
+        body: notificationBody,
+        notificationType,
+        notificationData: data,
       });
       fetchUnreadCount();
     };
@@ -326,11 +345,20 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
       // Clear the callback on logout so the stale handler doesn't fire.
       pushNotificationService.setCallback(undefined);
     };
-  }, [isAuthenticated, fetchUnreadCount]);
+  }, [isAuthenticated, fetchUnreadCount, locale]);
 
   // Refresh unread count when app comes to foreground
   useEffect(() => {
     if (!isAuthenticated) return;
+
+    pushNotificationService.processLastNotificationResponse().then((response) => {
+      const notificationId = response?.notification.request.content.data?.notificationId;
+      if (notificationId) {
+        markAsRead(notificationId as string);
+      }
+    }).catch(() => {
+      console.log('[NotificationContext] Failed to process launch notification');
+    });
 
     const subscription = AppState.addEventListener('change', (nextAppState) => {
       if (
@@ -340,6 +368,13 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
       ) {
         fetchUnreadCount();
         updatePermissionStatus();
+        if (user?.role === 'valet_admin') {
+          queryClient.invalidateQueries({ queryKey: valetAdminKeys.all });
+          queryClient.invalidateQueries({ queryKey: valetKeys.all });
+        }
+        pushNotificationService.processLastNotificationResponse().catch(() => {
+          console.log('[NotificationContext] Failed to process resumed notification');
+        });
       }
       appStateRef.current = nextAppState;
     });
@@ -347,7 +382,14 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
     return () => {
       subscription.remove();
     };
-  }, [isAuthenticated, fetchUnreadCount, updatePermissionStatus]);
+  }, [
+    isAuthenticated,
+    fetchUnreadCount,
+    updatePermissionStatus,
+    markAsRead,
+    queryClient,
+    user?.role,
+  ]);
 
   const value: NotificationContextType = {
     unreadCount,
@@ -369,6 +411,13 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
         title={toast.title}
         body={toast.body}
         onDismiss={() => setToast((prev) => ({ ...prev, visible: false }))}
+        onPress={toast.notificationType ? () => {
+          navigateFromInAppNotification({
+            type: toast.notificationType!,
+            data: toast.notificationData,
+          });
+          setToast((prev) => ({ ...prev, visible: false }));
+        } : undefined}
         type="info"
       />
     </NotificationContext.Provider>

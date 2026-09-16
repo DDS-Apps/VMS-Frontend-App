@@ -12,6 +12,8 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { createModalOverlayStyle } from "@/utils/statusStyles";
 import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 import { KPICard, KPICardRow } from '@/components/shared/KPICard';
+import { StatusIcon } from '@/components/shared';
+import { getInitials } from '@/utils/formatters';
 
 const { width } = Dimensions.get('window');
 const isLargeScreen = width >= 768;
@@ -331,21 +333,7 @@ export default function BuffetAdministrationScreen() {
                   {location.capacity}
                 </ThemedText>
                 <View style={{ flex: 0.8, alignItems: 'center', justifyContent: 'center' }}>
-                  <View
-                    style={[
-                      styles.statusBadge,
-                      { backgroundColor: location.active ? theme.success + '20' : theme.textSecondary + '20' },
-                    ]}
-                  >
-                    <ThemedText
-                      style={[
-                        Typography.caption,
-                        { color: location.active ? theme.success : theme.textSecondary, fontSize: 11 },
-                      ]}
-                    >
-                      {location.active ? t('status.active') : t('status.inactive')}
-                    </ThemedText>
-                  </View>
+                  <StatusIcon icon={location.active ? 'check-circle' : 'x-circle'} color={location.active ? theme.success : theme.textSecondary} />
                 </View>
                 {isLargeScreen && (
                   <Pressable
@@ -397,8 +385,13 @@ export default function BuffetAdministrationScreen() {
               <ThemedView style={[styles.staffCard, { backgroundColor: theme.surface }]}>
                 <DirectionalRow style={styles.staffHeader}>
                   <View style={[styles.staffAvatar, { backgroundColor: theme.primary + '20' }]}>
-                    <ThemedText style={[Typography.subtitle, { color: theme.primary }]}>
-                      {staff.name.split(' ').map(n => n[0]).join('')}
+                    <ThemedText
+                      style={[Typography.subtitle, { color: theme.primary }]}
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.5}
+                    >
+                      {getInitials(staff.name)}
                     </ThemedText>
                   </View>
                   <View style={{ flex: 1 }}>
@@ -409,24 +402,7 @@ export default function BuffetAdministrationScreen() {
                       {staff.role}
                     </ThemedText>
                   </View>
-                  <View
-                    style={[
-                      styles.statusBadge,
-                      { backgroundColor: getStatusColor(staff.status) + '20' },
-                    ]}
-                  >
-                    <DDIcon
-                      name={staff.status === 'on_duty' ? 'check-circle' : staff.status === 'active' ? 'circle' : 'x-circle'}
-                      size={12}
-                      color={getStatusColor(staff.status)}
-                    />
-                    <Spacer width={Spacing.xs / 2} />
-                    <ThemedText
-                      style={[Typography.caption, { color: getStatusColor(staff.status) }]}
-                    >
-                      {getStatusLabel(staff.status)}
-                    </ThemedText>
-                  </View>
+                  <StatusIcon icon={staff.status === 'on_duty' ? 'check-circle' : staff.status === 'active' ? 'circle' : 'x-circle'} color={getStatusColor(staff.status)} />
                 </DirectionalRow>
 
                 <Spacer height={Spacing.md} />

@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from "react";
-import { View, StyleSheet, Pressable, ScrollView, Modal, GestureResponderEvent, ActivityIndicator, Platform, useWindowDimensions } from "react-native";
+import React, { useState, useMemo, useCallback } from "react";
+import { View, StyleSheet, Pressable, ScrollView, Modal, GestureResponderEvent, ActivityIndicator, Platform, RefreshControl, LayoutChangeEvent } from "react-native";
 import { TouchableOpacity as GHTouchableOpacity } from "react-native-gesture-handler";
 import { CalendarDatePicker } from "@/components/CalendarDatePicker";
 import { ROUTES } from "@/constants";
@@ -8,18 +8,20 @@ import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { ScreenFlatList } from "@/components/ScreenFlatList";
-import { Spacing, BorderRadius, Typography, FontFamily } from "@/constants/theme";
+import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
 import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
-import { KPICard, KPICardRow } from "@/components/shared/KPICard";
+import { DashboardKpiSection, VisitorMatrixTable, type VisitorMatrixItem } from "@/components/shared";
+import { useRefreshDashboardKpis } from "@/hooks/queries/useDashboardKpiQuery";
 import { applyOpacity, getStatusConfig as getStatusStyle } from "@/utils/statusStyles";
+import { BUFFET_GRID_PADDING_SIDE } from "@/utils/gridLayout";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { LoadingButton } from "@/components/shared/LoadingButton";
-import { RTLHorizontalScrollView } from "@/components/shared";
+import { SkeletonCard } from "@/components/shared/Skeleton";
 import { useToast } from "@/contexts/ToastContext";
 import {
   useBuffetAdminTasksQuery,
@@ -32,6 +34,8 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { BuffetAdminStackParamList } from "@/types/buffetAdminNavigation.types";
 import type { Theme } from "@/types/theme.types";
 import { formatDateForApi, formatDate } from "@/utils/dateTimeUtils";
+import { useRetainedDatedData } from "@/hooks/useRetainedDatedData";
+import { getInitials } from "@/utils/formatters";
 
 type BuffetRequest = BuffetAdminTaskDto & {
   timeSlot: string;
@@ -56,6 +60,16 @@ const mapTaskToRequest = (task: BuffetAdminTaskDto): BuffetRequest => ({
   assignedStaff: task.assignedTo,
   assignedStaffId: task.assignedToId,
   meetingRoom: task.location,
+});
+
+const toMatrixItem = (request: BuffetRequest): VisitorMatrixItem => ({
+  id: request.id,
+  visitorName: request.hostName,
+  visitorSubtitle: request.hostDepartment,
+  visitDate: request.visitDate,
+  plannedInTime: request.timeSlot,
+  status: request.status,
+  location: request.location,
 });
 
 const mapAdminStaffDto = (staff: BuffetAdminStaffDto): BuffetStaff => {
@@ -91,7 +105,7 @@ const StatusAccent = ({ color }: { color: string }) => (
 );
 
 const VisitorAvatar = ({ name, theme, size = 44 }: { name: string; theme: Theme; size?: number }) => {
-  const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  const initials = getInitials(name);
   return (
     <View style={[
       styles.avatar, 
@@ -102,25 +116,13 @@ const VisitorAvatar = ({ name, theme, size = 44 }: { name: string; theme: Theme;
         borderRadius: LAYOUT.cardRadius - 2,
       }
     ]}>
-      <ThemedText style={[styles.avatarText, { color: theme.primary, fontSize: size * 0.36 }]}>
+      <ThemedText
+        style={[styles.avatarText, { color: theme.primary, fontSize: size * 0.36 }]}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.5}
+      >
         {initials}
-      </ThemedText>
-    </View>
-  );
-};
-
-const DateTimeDisplay = ({ date, time, theme, compact = false, isRTL = false }: { date: string; time: string; theme: Theme; compact?: boolean; isRTL?: boolean }) => {
-  const formattedDate = formatDate(date, { isRTL, includeYear: true });
-  return (
-    <View style={styles.dateTimeRow}>
-      <DDIcon name="calendar" size={compact ? 13 : 14} variant="muted" />
-      <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
-        {formattedDate}
-      </ThemedText>
-      <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
-      <DDIcon name="clock" size={compact ? 13 : 14} variant="muted" />
-      <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
-        {time}
       </ThemedText>
     </View>
   );
@@ -132,207 +134,63 @@ const StatusBadge = ({ statusConfig, compact = false }: { statusConfig: { bg: st
     { 
       backgroundColor: statusConfig.bg, 
       borderColor: statusConfig.border,
-      paddingHorizontal: Spacing.sm,
-      paddingVertical: 4,
+      paddingHorizontal: 6,
+      paddingVertical: 2,
     }
   ]}>
-    <ThemedText style={[styles.statusText, { color: statusConfig.text, fontSize: compact ? 10 : 10 }]}>
+    <ThemedText style={[styles.statusText, { color: statusConfig.text, fontSize: 9 }]}>
       {statusConfig.label}
     </ThemedText>
   </View>
 );
 
-const StatsCards = ({ totalRequests, inProgress, completed, theme, t }: { totalRequests: number; inProgress: number; completed: number; theme: Theme; t: (key: string) => string }) => (
-  <KPICardRow>
-    <KPICard 
-      title={t('dashboard.totalRequests')} 
-      value={totalRequests} 
-      icon="clipboard" 
-      color={theme.primary}
-    />
-    <KPICard 
-      title={t('status.inProgress')} 
-      value={inProgress} 
-      icon="loader" 
-      color={theme.warning}
-    />
-    <KPICard 
-      title={t('status.completed')} 
-      value={completed} 
-      icon="check-circle" 
-      color={theme.success}
-    />
-  </KPICardRow>
-);
-
-type StatusFilter = 'all' | 'expected' | 'pending' | 'preparing' | 'ready' | 'served' | 'completed';
-
-const getFilterPillColors = (filterKey: StatusFilter, isActive: boolean, theme: Theme) => {
-  if (!isActive) {
-    return {
-      bg: theme.surfaceSecondary,
-      text: theme.textSecondary,
-      countBg: applyOpacity(theme.textSecondary, '15'),
-      countText: theme.textSecondary,
-    };
-  }
-  
-  switch (filterKey) {
-    case 'expected':
-      return {
-        bg: applyOpacity(theme.warning, '15'),
-        text: theme.warning,
-        countBg: applyOpacity(theme.warning, '25'),
-        countText: theme.warning,
-      };
-    case 'pending':
-      return {
-        bg: applyOpacity(theme.primary, '15'),
-        text: theme.primary,
-        countBg: applyOpacity(theme.primary, '25'),
-        countText: theme.primary,
-      };
-    case 'preparing':
-      return {
-        bg: applyOpacity(theme.warning, '15'),
-        text: theme.warning,
-        countBg: applyOpacity(theme.warning, '25'),
-        countText: theme.warning,
-      };
-    case 'ready':
-      return {
-        bg: applyOpacity('#10B981', '15'),
-        text: '#10B981',
-        countBg: applyOpacity('#10B981', '25'),
-        countText: '#10B981',
-      };
-    case 'served':
-      return {
-        bg: applyOpacity(theme.success, '15'),
-        text: theme.success,
-        countBg: applyOpacity(theme.success, '25'),
-        countText: theme.success,
-      };
-    case 'completed':
-      return {
-        bg: applyOpacity(theme.success, '15'),
-        text: theme.success,
-        countBg: applyOpacity(theme.success, '25'),
-        countText: theme.success,
-      };
-    default:
-      return {
-        bg: applyOpacity(theme.primary, '15'),
-        text: theme.primary,
-        countBg: applyOpacity(theme.primary, '25'),
-        countText: theme.primary,
-      };
-  }
-};
-
 const SectionHeader = ({ 
-  filterStatus, 
-  onFilterChange, 
   viewMode, 
   onViewModeChange, 
-  statusCounts,
   theme,
   t,
-  isRTL = false
 }: { 
-  filterStatus: string; 
-  onFilterChange: (status: string) => void;
   viewMode: 'card' | 'list';
   onViewModeChange: (mode: 'card' | 'list') => void;
-  statusCounts: Record<StatusFilter, number>;
   theme: Theme;
   t: (key: string) => string;
-  isRTL?: boolean;
 }) => {
-  const filterOptions: { key: StatusFilter; label: string }[] = [
-    { key: 'all', label: t('common.all') },
-    { key: 'expected', label: t('status.expected') },
-    { key: 'pending', label: t('status.pending') },
-    { key: 'preparing', label: t('buffet.preparing') },
-    { key: 'ready', label: t('buffet.ready') },
-    { key: 'served', label: t('buffet.served') },
-    { key: 'completed', label: t('status.completed') },
-  ];
-
   return (
-    <>
-      <DirectionalRow style={[styles.sectionTitleRow, styles.paddedContent]}>
-        <ThemedText style={[Typography.subtitle]}>
-          {t('navigation.buffetRequests')}
-        </ThemedText>
-        {Platform.OS === 'web' ? (
-          <View style={styles.viewToggle}>
-            <Pressable
-              style={[
-                styles.viewToggleButton,
-                { backgroundColor: viewMode === 'card' ? theme.primary : theme.surface },
-              ]}
-              onPress={() => onViewModeChange('card')}
-            >
-              <DDIcon 
-                name="grid" 
-                size={18} 
-                color={viewMode === 'card' ? theme.buttonText : theme.textSecondary} 
-              />
-            </Pressable>
-            <Pressable
-              style={[
-                styles.viewToggleButton,
-                { backgroundColor: viewMode === 'list' ? theme.primary : theme.surface },
-              ]}
-              onPress={() => onViewModeChange('list')}
-            >
-              <DDIcon 
-                name="list" 
-                size={18} 
-                color={viewMode === 'list' ? theme.buttonText : theme.textSecondary} 
-              />
-            </Pressable>
-          </View>
-        ) : null}
-      </DirectionalRow>
-
-      <Spacer height={Spacing.md} />
-
-      <RTLHorizontalScrollView
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filtersContainer}
-        nestedScrollEnabled={true}
-        keyboardShouldPersistTaps="handled"
-      >
-        {filterOptions.map((option) => {
-          const isActive = filterStatus === option.key;
-          const count = statusCounts[option.key];
-          const colors = getFilterPillColors(option.key, isActive, theme);
-          
-          return (
-            <GHTouchableOpacity
-              key={option.key}
-              style={[
-                styles.filterPill,
-                { backgroundColor: colors.bg }
-              ]}
-              onPress={() => onFilterChange(option.key)}
-              activeOpacity={0.7}
-            >
-              <ThemedText style={[styles.filterPillText, { color: colors.text }]}>
-                {option.label}
-              </ThemedText>
-              <View style={[styles.filterCount, { backgroundColor: colors.countBg }]}>
-                <ThemedText style={[styles.filterCountText, { color: colors.countText }]}>
-                  {count}
-                </ThemedText>
-              </View>
-            </GHTouchableOpacity>
-          );
-        })}
-      </RTLHorizontalScrollView>
-    </>
+    <DirectionalRow style={[styles.sectionTitleRow, styles.paddedContent]}>
+      <ThemedText style={[Typography.subtitle]}>
+        {t('navigation.buffetRequests')}
+      </ThemedText>
+      {Platform.OS === 'web' ? (
+        <View style={styles.viewToggle}>
+          <Pressable
+            style={[
+              styles.viewToggleButton,
+              { backgroundColor: viewMode === 'card' ? theme.primary : theme.surface },
+            ]}
+            onPress={() => onViewModeChange('card')}
+          >
+            <DDIcon
+              name="grid"
+              size={18}
+              color={viewMode === 'card' ? theme.buttonText : theme.textSecondary}
+            />
+          </Pressable>
+          <Pressable
+            style={[
+              styles.viewToggleButton,
+              { backgroundColor: viewMode === 'list' ? theme.primary : theme.surface },
+            ]}
+            onPress={() => onViewModeChange('list')}
+          >
+            <DDIcon
+              name="list"
+              size={18}
+              color={viewMode === 'list' ? theme.buttonText : theme.textSecondary}
+            />
+          </Pressable>
+        </View>
+      ) : null}
+    </DirectionalRow>
   );
 };
 
@@ -365,18 +223,20 @@ const BuffetRequestCard = React.memo(({
       <Pressable onPress={onPress} android_ripple={{ color: applyOpacity(theme.primary, '10') }}>
         <View style={styles.cardMainSection}>
           <DirectionalRow style={styles.cardHeaderRow}>
-            <VisitorAvatar name={request.visitorName} theme={theme} />
+            <VisitorAvatar name={request.hostName ?? ''} theme={theme} />
             
             <View style={styles.cardNameSection}>
               <DirectionalRow style={styles.nameWithBadgeRow}>
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 16, flex: 1 }]} numberOfLines={1}>
-                  {request.visitorName}
+                  {request.hostName}
                 </ThemedText>
                 <StatusBadge statusConfig={statusConfig} />
               </DirectionalRow>
-              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 2 }]}>
-                {t('reception.hostName')}: {request.hostName}
-              </ThemedText>
+              {request.hostDepartment ? (
+                <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 2 }]} numberOfLines={1}>
+                  {request.hostDepartment}
+                </ThemedText>
+              ) : null}
             </View>
           </DirectionalRow>
 
@@ -398,101 +258,11 @@ const BuffetRequestCard = React.memo(({
             </DirectionalRow>
           </DirectionalRow>
 
-          {request.assignedStaff ? (
-            <>
-              <Spacer height={Spacing.sm} />
-              <DirectionalRow style={styles.detailsRow}>
-                <DirectionalRow style={styles.detailItem}>
-                  <DDIcon name="user-check" size={14} variant="success" />
-                  <ThemedText style={[styles.detailText, { color: theme.success }]}>
-                    {request.assignedStaff}
-                  </ThemedText>
-                </DirectionalRow>
-              </DirectionalRow>
-            </>
-          ) : null}
 
         </View>
       </Pressable>
 
     </ThemedView>
-  );
-});
-
-const BuffetRequestTableRow = React.memo(({ 
-  request, 
-  onPress,
-  onComplete,
-  onAssignStaff,
-  isCompleting,
-  theme 
-}: { 
-  request: BuffetRequest; 
-  onPress: () => void;
-  onComplete: () => void;
-  onAssignStaff: (e: GestureResponderEvent) => void;
-  isCompleting?: boolean;
-  theme: Theme;
-}) => {
-  const { t } = useTranslation();
-  const { isRTL } = useLanguage();  const statusConfig = getStatusStyle(theme, request.status, t);
-
-  return (
-    <Pressable onPress={onPress}>
-      <ThemedView style={[styles.tableRow, { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: getFlexDirection(isRTL) }]}>
-        <StatusAccent color={statusConfig.borderColor} />
-        
-        <View style={[styles.fixedColumn, { width: LAYOUT.tableFixedColumnWidth }]}>
-          <View style={styles.fixedColumnContent}>
-            <View style={{ flex: 1 }}>
-              <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]} numberOfLines={2}>
-                {request.visitorName}
-              </ThemedText>
-              <Spacer height={4} />
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary }]} numberOfLines={1}>
-                {t('reception.hostName')}: {request.hostName}
-              </ThemedText>
-              <Spacer height={6} />
-              <DateTimeDisplay 
-                date={request.visitDate} 
-                time={request.timeSlot} 
-                theme={theme} 
-                compact
-                isRTL={isRTL}
-              />
-            </View>
-          </View>
-        </View>
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={true}
-          style={styles.scrollableColumns}
-          contentContainerStyle={styles.scrollableContent}
-          persistentScrollbar={true}
-          nestedScrollEnabled={true}
-        >
-          <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
-            <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
-              {t('invitation.location').toUpperCase()}
-            </ThemedText>
-            <Spacer height={10} />
-            <ThemedText style={[styles.columnValue, { fontSize: 14 }]} numberOfLines={2}>
-              {request.location}
-            </ThemedText>
-          </View>
-
-          <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
-            <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
-              {t('common.status').toUpperCase()}
-            </ThemedText>
-            <Spacer height={10} />
-            <StatusBadge statusConfig={statusConfig} compact />
-          </View>
-
-        </ScrollView>
-      </ThemedView>
-    </Pressable>
   );
 });
 
@@ -512,27 +282,30 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
   const { t } = useTranslation();
   const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
-  const { width: screenWidth } = useWindowDimensions();
   const { showSuccess, showError } = useToast();
-  
-  // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
-  const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
-  
-  // Get card style based on numColumns - use percentage widths for reliable layout
+
+  // Measure the card grid's actual rendered width (post-sidebar, post-padding) instead of
+  // guessing from screen width, so the column count and card sizing always match the space
+  // really available. Widths are percentages, not fixed pixel math, so they never fight
+  // with the row's gap/padding — each card's own end-padding creates the gutter instead.
+  const [gridWidth, setGridWidth] = useState(0);
+  const handleGridLayout = (event: LayoutChangeEvent) => {
+    const width = event.nativeEvent.layout.width;
+    setGridWidth((prev) => (Math.abs(prev - width) > 1 ? width : prev));
+  };
+  const numColumns = gridWidth >= 900 ? 3 : gridWidth >= 600 ? 2 : 1;
+  const cardWidthPercent: `${number}%` | undefined =
+    numColumns === 3 ? '33.33%' : numColumns === 2 ? '50%' : undefined;
+
+  // Get card style based on numColumns
   const getCardStyle = useMemo(() => {
-    if (numColumns === 1) {
-      return { width: '100%' as const };
-    } else if (numColumns === 2) {
-      // 2 columns: ~48% each with gap handling spacing
-      return { width: '48%' as const };
-    } else {
-      // 3 columns: ~32% each with gap handling spacing
-      return { width: '32%' as const };
+    if (!cardWidthPercent) {
+      return { width: '100%' as const, marginBottom: Spacing.md };
     }
-  }, [numColumns]);
+    return { width: cardWidthPercent, paddingEnd: Spacing.md, marginBottom: Spacing.md };
+  }, [cardWidthPercent]);
   
-  const [filterStatus, setFilterStatus] = useState<string>('all');
-  const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
+  const [viewMode, setViewMode] = useState<'card' | 'list'>('list');
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<BuffetRequest | null>(null);
@@ -543,7 +316,15 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   const dateParam = formatDateForApi(selectedDate);
-  const { data: tasksData, isLoading: isLoadingTasks, refetch: refetchTasks } = useBuffetAdminTasksQuery({ date: dateParam });
+  const {
+    data: tasksData,
+    isLoading: isLoadingTasks,
+    isFetching: isFetchingTasks,
+    isError: isTasksError,
+    refetch: refetchTasks,
+  } = useBuffetAdminTasksQuery({ date: dateParam });
+  const retainedTasks = useRetainedDatedData(dateParam, tasksData);
+  const displayedTasksData = retainedTasks.data;
   
   const handlePrevDay = () => {
     const newDate = new Date(selectedDate);
@@ -557,20 +338,26 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
     setSelectedDate(newDate);
   };
   
+  const [displayedYear, displayedMonth, displayedDay] = retainedTasks.dateKey.split('-').map(Number);
+  const displayedDate = new Date(displayedYear, displayedMonth - 1, displayedDay);
   const now = new Date();
-  const isToday = selectedDate.getFullYear() === now.getFullYear() &&
-    selectedDate.getMonth() === now.getMonth() &&
-    selectedDate.getDate() === now.getDate();
+  const isToday = displayedDate.getFullYear() === now.getFullYear() &&
+    displayedDate.getMonth() === now.getMonth() &&
+    displayedDate.getDate() === now.getDate();
   
   const getDisplayDate = () => {
     if (isToday) {
       return t('common.today');
     }
-    return formatDate(selectedDate, { isRTL });
+    return formatDate(displayedDate, { isRTL });
   };
   const { data: staffData } = useBuffetAdminStaffQuery();
   const updateStatusMutation = useUpdateBuffetAdminTaskStatusMutation();
   const assignTaskMutation = useAssignBuffetTaskMutation();
+  const refreshDashboardKpis = useRefreshDashboardKpis();
+  const refreshDashboard = useCallback(async () => {
+    await Promise.all([refetchTasks(), refreshDashboardKpis()]);
+  }, [refetchTasks, refreshDashboardKpis]);
 
   const parseTimeSlot = (timeSlot: string): number => {
     const match = timeSlot.match(/(\d+):(\d+)\s*(AM|PM)/i);
@@ -583,10 +370,15 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
     return hours * 60 + minutes;
   };
 
+  // Buffet admins should only see requests once the visit itself is confirmed —
+  // pending/awaiting-response/rejected/cancelled visits aren't actionable for buffet service.
+  const VISIBLE_STATUSES = ['visitor_accepted', 'checked_in', 'checked_out', 'completed'];
+
   const requests = useMemo(() => {
-    const responseData = tasksData?.data as { data?: BuffetAdminTaskDto[] } | BuffetAdminTaskDto[] | undefined;
+    const responseData = displayedTasksData?.data as { data?: BuffetAdminTaskDto[] } | BuffetAdminTaskDto[] | undefined;
     const tasks = Array.isArray(responseData) ? responseData : (Array.isArray((responseData as { data?: BuffetAdminTaskDto[] })?.data) ? (responseData as { data: BuffetAdminTaskDto[] }).data : []);
-    const mapped = tasks.map(mapTaskToRequest);
+    const visibleTasks = tasks.filter(task => VISIBLE_STATUSES.includes(task.status));
+    const mapped = visibleTasks.map(mapTaskToRequest);
     return [...mapped].sort((a, b) => {
       const statusOrder: Record<string, number> = { 
         pending: 0, 
@@ -599,11 +391,12 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
       const statusA = statusOrder[a.status] ?? 99;
       const statusB = statusOrder[b.status] ?? 99;
       if (statusA !== statusB) return statusA - statusB;
-      const dateA = new Date(a.visitDate + 'T' + (a.timeSlot?.replace(/\s*(AM|PM)/i, '') || '00:00')).getTime();
-      const dateB = new Date(b.visitDate + 'T' + (b.timeSlot?.replace(/\s*(AM|PM)/i, '') || '00:00')).getTime();
+      // Append Riyadh offset so sorting uses a consistent timezone, not device-local
+      const dateA = new Date(`${a.visitDate}T${(a.timeSlot?.replace(/\s*(AM|PM)/i, '') || '00:00')}+03:00`).getTime();
+      const dateB = new Date(`${b.visitDate}T${(b.timeSlot?.replace(/\s*(AM|PM)/i, '') || '00:00')}+03:00`).getTime();
       return dateB - dateA;
     });
-  }, [tasksData]);
+  }, [displayedTasksData]);
 
   const availableStaff = useMemo(() => {
     const responseData = staffData?.data as { data?: BuffetAdminStaffDto[] } | BuffetAdminStaffDto[] | undefined;
@@ -670,31 +463,49 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
     );
   };
 
-  const filteredRequests = filterStatus === 'all' 
-    ? requests 
-    : requests.filter(r => r.status === filterStatus);
-
-  const totalRequests = requests.length;
-  const activeCount = requests.filter(r => ['expected', 'pending', 'preparing', 'ready', 'served'].includes(r.status)).length;
-  const completedCount = requests.filter(r => r.status === 'completed').length;
-
-  const statusCounts: Record<StatusFilter, number> = {
-    all: requests.length,
-    expected: requests.filter(r => r.status === 'expected').length,
-    pending: requests.filter(r => r.status === 'pending').length,
-    preparing: requests.filter(r => r.status === 'preparing').length,
-    ready: requests.filter(r => r.status === 'ready').length,
-    served: requests.filter(r => r.status === 'served').length,
-    completed: requests.filter(r => r.status === 'completed').length,
-  };
-
-  if (isLoadingTasks) {
+  if ((isLoadingTasks || isFetchingTasks) && !displayedTasksData) {
     return (
-      <ThemedView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color={theme.primary} />
+      <ThemedView style={{ flex: 1, padding: Spacing.lg }}>
+        <SkeletonCard showImage={false} lines={3} />
+        <SkeletonCard showImage={false} lines={3} />
+        <SkeletonCard showImage={false} lines={3} />
       </ThemedView>
     );
   }
+
+  if (isTasksError && !displayedTasksData) {
+    return (
+      <ThemedView style={styles.queryState}>
+        <DDIcon name="alert-circle" size={40} color={theme.error} />
+        <Spacer height={Spacing.md} />
+        <ThemedText style={[Typography.body, { color: theme.error, textAlign: 'center' }]}>
+          {t('common.errorLoadingData')}
+        </ThemedText>
+        <Spacer height={Spacing.md} />
+        <Pressable onPress={() => refetchTasks()} style={[styles.retryButton, { backgroundColor: theme.primary }]}>
+          <ThemedText style={{ color: theme.buttonText, fontWeight: '600' }}>{t('common.retry')}</ThemedText>
+        </Pressable>
+      </ThemedView>
+    );
+  }
+
+  const warmQueryState = displayedTasksData && (isFetchingTasks || isTasksError || retainedTasks.isRetained) ? (
+    <DirectionalRow style={[styles.inlineQueryState, { backgroundColor: applyOpacity(isTasksError && !isFetchingTasks ? theme.error : theme.primary, '10') }]}>
+      {isTasksError && !isFetchingTasks ? (
+        <DDIcon name="alert-circle" size={16} color={theme.error} />
+      ) : (
+        <ActivityIndicator size="small" color={theme.primary} />
+      )}
+      <ThemedText style={[Typography.caption, { color: isTasksError && !isFetchingTasks ? theme.error : theme.textSecondary, flex: 1 }]}>
+        {t(isTasksError && !isFetchingTasks ? 'common.errorLoadingData' : 'common.loading')}
+      </ThemedText>
+      {isTasksError && !isFetchingTasks ? (
+        <Pressable onPress={() => refetchTasks()} hitSlop={8}>
+          <ThemedText style={[Typography.caption, { color: theme.primary, fontWeight: '600' }]}>{t('common.retry')}</ThemedText>
+        </Pressable>
+      ) : null}
+    </DirectionalRow>
+  ) : null;
 
   const renderStaffAssignModal = () => (
     <Modal
@@ -726,8 +537,13 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
                 {t('buffet.assigningStaffFor')}:
               </ThemedText>
               <ThemedText style={[Typography.body, { fontWeight: '600', marginTop: 4 }]}>
-                {selectedRequest.visitorName}
+                {selectedRequest.hostName}
               </ThemedText>
+              {selectedRequest.hostDepartment ? (
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2 }]}>
+                  {selectedRequest.hostDepartment}
+                </ThemedText>
+              ) : null}
               {selectedRequest.assignedStaff ? (
                 <ThemedText style={[Typography.caption, { color: theme.warning, marginTop: 4 }]}>
                   {t('buffet.currentlyAssigned')}: {selectedRequest.assignedStaff}
@@ -765,8 +581,13 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
                     </View>
                   ) : (
                     <View style={[styles.staffAvatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
-                      <ThemedText style={[styles.staffAvatarText, { color: theme.primary }]}>
-                        {staff.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
+                      <ThemedText
+                        style={[styles.staffAvatarText, { color: theme.primary }]}
+                        numberOfLines={1}
+                        adjustsFontSizeToFit
+                        minimumFontScale={0.5}
+                      >
+                        {getInitials(staff.name)}
                       </ThemedText>
                     </View>
                   )}
@@ -812,21 +633,18 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
     return (
       <>
         <ScreenFlatList
-          data={filteredRequests}
-          keyExtractor={(item) => item.id}
+          data={[]}
+          keyExtractor={() => '_'}
           contentContainerStyle={{ paddingTop: Spacing.xl }}
-          renderItem={({ item }) => (
-            <BuffetRequestTableRow 
-              request={item} 
-              onPress={() => handleViewDetails(item)}
-              onComplete={() => handleMarkComplete(item)}
-              onAssignStaff={(e) => handleOpenAssignModal(item, e)}
-              isCompleting={completingRequestId === item.id}
-              theme={theme}
-            />
-          )}
+          renderItem={() => null}
           ListHeaderComponent={
             <>
+              {warmQueryState ? (
+                <View style={styles.paddedContent}>
+                  {warmQueryState}
+                  <Spacer height={Spacing.md} />
+                </View>
+              ) : null}
               <DirectionalRow style={[styles.paddedContent, styles.dateNavRow]}>
                 <Pressable
                   style={[styles.dateNavButton, { backgroundColor: theme.surfaceSecondary }]}
@@ -856,33 +674,35 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
               <Spacer height={Spacing.lg} />
 
               <View style={styles.paddedContent}>
-                <StatsCards 
-                  totalRequests={totalRequests} 
-                  inProgress={activeCount} 
-                  completed={completedCount} 
-                  theme={theme}
-                  t={t}
-                />
+                <DashboardKpiSection />
               </View>
 
               <Spacer height={LAYOUT.sectionSpacing} />
 
               <SectionHeader 
-                filterStatus={filterStatus}
-                onFilterChange={setFilterStatus}
                 viewMode={viewMode}
                 onViewModeChange={setViewMode}
-                statusCounts={statusCounts}
                 theme={theme}
                 t={t}
-                isRTL={isRTL}
               />
 
               <Spacer height={Spacing.lg} />
+
+              <View style={styles.paddedContent}>
+                <VisitorMatrixTable
+                  variant="matrix"
+                  columns="simple"
+                  nameColumnLabel={t('dashboard.requestedBy')}
+                  visitors={requests.map(toMatrixItem)}
+                  onPressRow={(id) => {
+                    const request = requests.find((item) => item.id === id);
+                    if (request) handleViewDetails(request);
+                  }}
+                  emptyMessage={t('common.noResults')}
+                />
+              </View>
             </>
           }
-          ListEmptyComponent={<View style={styles.paddedContent}><EmptyState theme={theme} t={t} /></View>}
-          ItemSeparatorComponent={() => <Spacer height={Spacing.md} />}
         />
         {renderStaffAssignModal()}
         <CalendarDatePicker
@@ -901,7 +721,17 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
 
   return (
     <>
-      <ScreenScrollView>
+      <ScreenScrollView
+        refreshControl={
+          <RefreshControl refreshing={isLoadingTasks} onRefresh={refreshDashboard} tintColor={theme.primary} />
+        }
+      >
+        {warmQueryState ? (
+          <View style={styles.paddedContent}>
+            {warmQueryState}
+            <Spacer height={Spacing.md} />
+          </View>
+        ) : null}
         <DirectionalRow style={[styles.paddedContent, styles.dateNavRow]}>
           <Pressable
             style={[styles.dateNavButton, { backgroundColor: theme.surfaceSecondary }]}
@@ -931,33 +761,23 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
         <Spacer height={Spacing.lg} />
 
         <View style={styles.paddedContent}>
-          <StatsCards 
-            totalRequests={totalRequests} 
-            inProgress={activeCount} 
-            completed={completedCount} 
-            theme={theme}
-            t={t}
-          />
+          <DashboardKpiSection />
         </View>
 
         <Spacer height={LAYOUT.sectionSpacing} />
 
         <SectionHeader 
-          filterStatus={filterStatus}
-          onFilterChange={setFilterStatus}
           viewMode={viewMode}
           onViewModeChange={setViewMode}
-          statusCounts={statusCounts}
           theme={theme}
           t={t}
-          isRTL={isRTL}
         />
 
         <Spacer height={Spacing.lg} />
 
-        <View style={[styles.paddedContent, styles.cardGrid]}>
-          {filteredRequests.length > 0 ? (
-            filteredRequests.map((request) => (
+        <View style={[styles.paddedContent, styles.cardGrid]} onLayout={handleGridLayout}>
+          {requests.length > 0 ? (
+            requests.map((request) => (
               <View 
                 key={request.id}
                 style={getCardStyle}
@@ -999,14 +819,31 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
 }
 
 const styles = StyleSheet.create({
+  queryState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Spacing.xl,
+  },
+  retryButton: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+  },
+  inlineQueryState: {
+    alignItems: 'center',
+    gap: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+  },
   paddedContent: {
-    paddingHorizontal: Spacing.xl,
+    paddingHorizontal: BUFFET_GRID_PADDING_SIDE,
   },
   cardGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'flex-start',
-    gap: Spacing.md,
   },
   dateNavRow: {
     alignItems: 'center',
@@ -1050,37 +887,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  filtersContainer: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-    paddingHorizontal: Spacing.xl,
-    paddingEnd: Spacing.sm,
-  },
-  filterPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.full,
-    gap: Spacing.xs,
-  },
-  filterPillText: {
-    fontSize: 13,
-    fontWeight: '500',
-    fontFamily: FontFamily.latinMedium,
-  },
-  filterCount: {
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    borderRadius: BorderRadius.full,
-    minWidth: 22,
-    alignItems: 'center',
-  },
-  filterCountText: {
-    fontSize: 11,
-    fontWeight: '600',
-    fontFamily: FontFamily.latinSemiBold,
   },
   viewToggle: {
     flexDirection: 'row',

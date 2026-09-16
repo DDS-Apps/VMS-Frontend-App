@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { View, StyleSheet, Switch, Pressable } from "react-native";
+import React, { useState, useEffect, useRef } from "react";
+import { ActivityIndicator, View, StyleSheet, Switch, Pressable } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DDIcon } from "@/components/DDIcon";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
@@ -36,18 +36,24 @@ export default function NotificationPreferencesScreen() {
     isLoading,
     isFetching,
     error,
+    refetch,
   } = useNotificationPreferencesQuery();
   const updateMutation = useUpdateNotificationPreferencesMutation();
 
-  const [localPrefs, setLocalPrefs] = useState<NotificationPreferences | null>(null);
+  const [localPrefs, setLocalPrefs] = useState<NotificationPreferences | null>(
+    () => preferences ?? null,
+  );
   const [hasChanges, setHasChanges] = useState(false);
+  const localPrefsRef = useRef<NotificationPreferences | null>(preferences ?? null);
+  const editRevisionRef = useRef(0);
 
   useEffect(() => {
-    if (preferences) {
+    if (preferences && !hasChanges && !updateMutation.isPending) {
+      localPrefsRef.current = preferences;
       setLocalPrefs(preferences);
       setHasChanges(false);
     }
-  }, [preferences]);
+  }, [preferences, hasChanges, updateMutation.isPending]);
 
   const scrollContentStyle = {
     paddingHorizontal: Spacing.xl,
@@ -56,34 +62,49 @@ export default function NotificationPreferencesScreen() {
   };
 
   const handleToggle = (field: keyof NotificationPreferences, value: boolean) => {
-    if (!localPrefs) return;
-    setLocalPrefs({
-      ...localPrefs,
+    const currentPrefs = localPrefsRef.current;
+    if (!currentPrefs) return;
+
+    const nextPrefs = {
+      ...currentPrefs,
       [field]: value,
-    });
+    };
+    localPrefsRef.current = nextPrefs;
+    editRevisionRef.current += 1;
+    setLocalPrefs(nextPrefs);
     setHasChanges(true);
   };
 
   const handleSave = async () => {
-    if (!localPrefs || !hasChanges) return;
+    const submittedPrefs = localPrefsRef.current;
+    if (!submittedPrefs || !hasChanges) return;
 
+    const submittedRevision = editRevisionRef.current;
     const updateDto: UpdateNotificationPreferencesDto = {
-      emailEnabled: localPrefs.emailEnabled,
-      smsEnabled: localPrefs.smsEnabled,
-      whatsappEnabled: localPrefs.whatsappEnabled,
-      pushEnabled: localPrefs.pushEnabled,
-      visitReminders: localPrefs.visitReminders,
-      approvalRequests: localPrefs.approvalRequests,
-      checkInOut: localPrefs.checkInOut,
-      dailyAgenda: localPrefs.dailyAgenda,
+      emailEnabled: submittedPrefs.emailEnabled,
+      smsEnabled: submittedPrefs.smsEnabled,
+      whatsappEnabled: submittedPrefs.whatsappEnabled,
+      pushEnabled: submittedPrefs.pushEnabled,
+      visitReminders: submittedPrefs.visitReminders,
+      approvalRequests: submittedPrefs.approvalRequests,
+      checkInOut: submittedPrefs.checkInOut,
+      dailyAgenda: submittedPrefs.dailyAgenda,
     };
 
     try {
       await updateMutation.mutateAsync(updateDto);
       showSuccess(t('settings.preferencesSaved'));
-      setHasChanges(false);
+      if (editRevisionRef.current === submittedRevision) {
+        setHasChanges(false);
+      }
     } catch (err) {
       showError(t('settings.preferencesError'));
+    }
+  };
+
+  const handleRetry = () => {
+    if (!isFetching) {
+      refetch({ cancelRefetch: false });
     }
   };
 
@@ -96,7 +117,7 @@ export default function NotificationPreferencesScreen() {
     }
   };
 
-  if (isLoading || isFetching) {
+  if ((isLoading || isFetching) && !localPrefs) {
     return (
       <ScreenScrollView contentContainerStyle={scrollContentStyle}>
         <ThemedText style={Typography.title}>{t('settings.notificationPreferences')}</ThemedText>
@@ -106,7 +127,7 @@ export default function NotificationPreferencesScreen() {
     );
   }
 
-  if (error || !localPrefs) {
+  if (error && !localPrefs) {
     return (
       <ScreenScrollView contentContainerStyle={scrollContentStyle}>
         <ThemedText style={Typography.title}>{t('settings.notificationPreferences')}</ThemedText>
@@ -117,9 +138,23 @@ export default function NotificationPreferencesScreen() {
           <ThemedText style={[Typography.body, { textAlign: "center" }]}>
             {t('common.loadError')}
           </ThemedText>
+          {!isFetching ? (
+            <Pressable
+              style={[styles.retryButton, { backgroundColor: theme.primary }]}
+              onPress={handleRetry}
+            >
+              <ThemedText style={[Typography.bodySmall, { color: theme.buttonText }]}>
+                {t('common.retry')}
+              </ThemedText>
+            </Pressable>
+          ) : null}
         </ThemedView>
       </ScreenScrollView>
     );
+  }
+
+  if (!localPrefs) {
+    return null;
   }
 
   const channelSettings: { field: keyof NotificationPreferences; label: string; icon: string }[] = [
@@ -142,6 +177,42 @@ export default function NotificationPreferencesScreen() {
       <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
         {t('settings.notificationPreferencesDescription')}
       </ThemedText>
+
+      {localPrefs && (isFetching || error) ? (
+        <DirectionalRow
+          style={[
+            styles.inlineFeedback,
+            {
+              backgroundColor: (isFetching ? theme.primary : theme.error) + "15",
+              borderColor: isFetching ? theme.primary : theme.error,
+            },
+          ]}
+        >
+          {isFetching ? (
+            <ActivityIndicator size="small" color={theme.primary} />
+          ) : (
+            <DDIcon name="alert-circle" size={16} color={theme.error} />
+          )}
+          <ThemedText
+            style={[
+              Typography.caption,
+              {
+                color: isFetching ? theme.textSecondary : theme.error,
+                flex: 1,
+              },
+            ]}
+          >
+            {isFetching ? t('common.loading') : t('common.loadError')}
+          </ThemedText>
+          {error && !isFetching ? (
+            <Pressable onPress={handleRetry} hitSlop={8}>
+              <ThemedText style={[Typography.caption, { color: theme.primary, fontWeight: "600" }]}>
+                {t('common.retry')}
+              </ThemedText>
+            </Pressable>
+          ) : null}
+        </DirectionalRow>
+      ) : null}
 
       <Spacer height={Spacing.xl} />
 
@@ -292,5 +363,19 @@ const styles = StyleSheet.create({
     padding: Spacing.xl,
     borderRadius: BorderRadius.lg,
     alignItems: "center",
+  },
+  retryButton: {
+    marginTop: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
+  },
+  inlineFeedback: {
+    alignItems: "center",
+    gap: Spacing.sm,
+    marginTop: Spacing.md,
+    padding: Spacing.sm,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
   },
 });

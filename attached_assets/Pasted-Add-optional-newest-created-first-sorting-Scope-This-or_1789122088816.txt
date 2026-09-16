@@ -1,0 +1,77 @@
+Add optional newest-created-first sorting
+Scope
+This ordering will be used only by My Requests and Manager All Requests.
+
+Endpoints:
+
+GET /api/v1/visits — My Requests uses myRequestsOnly=true.
+
+GET /api/v1/approvals/history — Manager All Requests.
+
+Why this is needed
+These frontend screens preserve the order returned by the API. They do not currently sort the records themselves.
+
+Sorting must happen in the database before pagination. Sorting only loaded records in the frontend could leave the newest requests on later pages.
+
+Required backend changes
+Add optional query parameters to both endpoints:
+
+sortBy=createdAt
+
+sortOrder=desc
+
+Validate supported values using an allowlist. Do not interpolate arbitrary query values into SQL.
+
+Preserve existing ordering when these parameters are omitted.
+
+This is important because Building Admin and other screens may share these endpoints. Building Admin, Valet, Buffet, and other existing consumers must remain unchanged.
+
+When requested, apply deterministic ordering before pagination:
+
+ORDER BY request.created_at DESC, request.id DESC
+
+Use the actual database field names. The secondary ID order prevents unstable ordering when timestamps match.
+
+Use the original request creation timestamp.
+
+For approval history, sort by the underlying visit/request’s creation time, not the approval-history record’s creation time.
+
+Do not use:
+
+Scheduled visit date/time
+
+updatedAt
+
+Approval/rejection time
+
+Check-in time
+
+Editing or processing an older request must not change its creation timestamp or move it above newer requests.
+
+Preserve existing behavior otherwise.
+
+Keep permissions, filters, page sizes, total counts, and response structure unchanged. Ensure createdAt in the response represents the original request creation time.
+
+Frontend URLs after backend support
+GET /api/v1/visits?myRequestsOnly=true&sortBy=createdAt&sortOrder=desc&page=1&limit=20
+
+GET /api/v1/approvals/history?sortBy=createdAt&sortOrder=desc&page=1&limit=20
+
+Existing filters will be combined with these parameters.
+
+Verification
+Test that:
+
+Page 1 contains the newest matching requests; subsequent pages contain older ones.
+
+Equal timestamps have stable ordering.
+
+Requests with different scheduled visit dates still follow creation order.
+
+Editing an older request does not move it to the top.
+
+Status, search, date, and user-scope filters still work.
+
+Calls without sorting parameters retain their existing ordering.
+
+Pagination has no duplicates or omissions for an unchanged dataset.

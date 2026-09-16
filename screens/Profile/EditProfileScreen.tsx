@@ -10,7 +10,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { LoadingButton } from "@/components/shared/LoadingButton";
 import Spacer from "@/components/Spacer";
-import { DirectionalRow } from "@/components/DirectionalRow";
+import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
 import { Spacing, BorderRadius, Typography, getInputFontFamily } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -21,9 +21,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { authService } from "@/services/api/authService";
 import { useToast } from "@/contexts/ToastContext";
 import { ApiException } from "@/api/errors";
-import { normalizePhoneNumber, formatPhoneNumber } from "@/utils/formatters";
+import { normalizePhoneNumber, formatPhoneNumber, getInitials } from "@/utils/formatters";
 import { PhoneInputWithCountry } from "@/components/PhoneInputWithCountry";
-import { getFlexDirection } from "@/components/DirectionalRow";
 import { apiConfig } from "@/api/config";
 
 interface EditProfileScreenProps {
@@ -361,15 +360,6 @@ export default function EditProfileScreen({
     return fmtDate(new Date(dateString), 'medium');
   };
 
-  const getInitials = () => {
-    return (name || user?.name || '')
-      .split(' ')
-      .map(n => n[0] || '')
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
   const getFullPhotoUrl = (relativeUrl: string | null | undefined): string | undefined => {
     if (!relativeUrl) return undefined;
     if (relativeUrl.startsWith('http')) return relativeUrl;
@@ -406,8 +396,13 @@ export default function EditProfileScreen({
               />
             ) : (
               <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '20') }]}>
-                <ThemedText style={[Typography.title, { color: theme.primary, fontWeight: '700' }]}>
-                  {getInitials()}
+                <ThemedText
+                  style={[Typography.title, { color: theme.primary, fontWeight: '700' }]}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.5}
+                >
+                  {getInitials(name || user?.name)}
                 </ThemedText>
               </View>
             )}

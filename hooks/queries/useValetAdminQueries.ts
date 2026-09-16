@@ -17,11 +17,16 @@ const normalizeVisitorDto = (visitor: ValetParkingVisitorDto): ValetParkingVisit
   visitorNeedsParking: normalizeBoolean(visitor.visitorNeedsParking),
 });
 
-export function useValetParkingDashboard(startDate?: string, endDate?: string) {
+export function useValetParkingDashboard(
+  startDate?: string,
+  endDate?: string,
+  enabled = true,
+) {
   return useQuery({
     queryKey: valetAdminKeys.parkingDashboard(startDate, endDate),
     queryFn: () => valetAdminApiService.getParkingDashboard(startDate, endDate),
     staleTime: 1000 * 60 * 2,
+    enabled,
     select: (data: ValetParkingDashboardResponse): ValetParkingDashboardResponse => ({
       ...data,
       data: data.data.map(normalizeVisitorDto),

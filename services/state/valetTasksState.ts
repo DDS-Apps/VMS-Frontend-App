@@ -25,6 +25,8 @@ export interface ValetTask {
   visitorCompany: string;
   hostName: string;
   visitDate: string;
+  /** ISO 8601 UTC timestamp of the canonical visit start. Preferred for upcoming-alert calculations. */
+  visitStartAt?: string;
   pickupTime: string;
   returnTime: string;
   location: string;

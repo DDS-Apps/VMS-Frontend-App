@@ -1,6 +1,7 @@
-import React, { useState, useCallback } from 'react';
-import { View, StyleSheet, Pressable } from 'react-native';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import { View, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { useRefetchOnRefocus } from '@/hooks/useRefetchOnRefocus';
 import { ROUTES } from "@/constants";
 import { DDIcon, IconName } from '@/components/DDIcon';
 import { ScreenScrollView } from '@/components/ScreenScrollView';
@@ -14,17 +15,18 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { applyOpacity } from '@/utils/statusStyles';
 import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 import { 
-  getSystemStats, 
   getStaffOverview, 
   getRecentActivity,
-  SystemStats,
   StaffOverview,
   RecentActivity,
 } from '@/services/state/buildingAdminState';
 import type { BuildingAdminDashboardScreenProps } from '@/types/buildingAdminNavigation.types';
-
+import { useInfiniteVisitsQuery, usePendingApprovalsQuery } from '@/hooks/queries/useApprovalQueries';
+import { useBuffetLoadSummaryQuery } from '@/hooks/queries/useBuffetQueries';
+import { useTodaysValetAssignmentsQuery } from '@/hooks/queries/useValetQueries';
+import { getServerDateParts } from '@/utils/dateTimeUtils';
 import { KPICard, KPICardRow } from '@/components/shared/KPICard';
-import { RTLHorizontalScrollView } from '@/components/shared';
+import { RTLHorizontalScrollView, SkeletonCard, SkeletonDashboard } from '@/components/shared';
 
 interface QuickActionProps {
   icon: string;
@@ -105,24 +107,180 @@ function StaffCard({ title, icon, total, details, onPress }: StaffCardProps) {
 export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdminDashboardScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { isRTL } = useLanguage();  const [stats, setStats] = useState<SystemStats | null>(null);
+  const { isRTL } = useLanguage();
+
+  // Compute Riyadh month boundaries for visit counts
+  const { year: _ry, month: _rm } = getServerDateParts(new Date(), 'Asia/Riyadh');
+  const startDate = `${_ry}-${String(_rm).padStart(2, '0')}-01`;
+  const _lastDay = new Date(_ry, _rm, 0).getDate();
+  const endDate = `${_ry}-${String(_rm).padStart(2, '0')}-${String(_lastDay).padStart(2, '0')}`;
+
+  // Real API queries for KPI cards — infinite query so counts are never capped by a page limit
+  const {
+    data: visitsInfinite,
+    isLoading: visitsLoading,
+    isFetching: visitsFetching,
+    isError: visitsError,
+    refetch: refetchVisits,
+    hasNextPage: visitsHasNextPage,
+    fetchNextPage: visitsFetchNextPage,
+    isFetchingNextPage: visitsIsFetchingNextPage,
+  } = useInfiniteVisitsQuery({ myRequestsOnly: false, startDate, endDate, limit: 100 });
+
+  const {
+    data: pendingData,
+    isLoading: pendingLoading,
+    isFetching: pendingFetching,
+    isError: pendingError,
+    refetch: refetchPending,
+  } = usePendingApprovalsQuery({ limit: 1 });
+
+  const {
+    data: buffetData,
+    isLoading: buffetLoading,
+    isFetching: buffetFetching,
+    isError: buffetError,
+    refetch: refetchBuffet,
+  } = useBuffetLoadSummaryQuery(true);
+
+  const {
+    data: valetData,
+    isLoading: valetLoading,
+    isFetching: valetFetching,
+    isError: valetError,
+    refetch: refetchValet,
+  } = useTodaysValetAssignmentsQuery();
+
+  // Staff overview and recent activity still from local state (no dedicated API endpoints)
   const [staffOverview, setStaffOverview] = useState<StaffOverview | null>(null);
   const [activities, setActivities] = useState<RecentActivity[]>([]);
 
   useFocusEffect(
     useCallback(() => {
-      setStats(getSystemStats());
       setStaffOverview(getStaffOverview());
       setActivities(getRecentActivity());
     }, [])
   );
 
-  if (!stats || !staffOverview) {
-    return null;
+  // Refresh the API-backed sections when returning to the dashboard; the mount
+  // fetch covers the first focus.
+  useRefetchOnRefocus([refetchVisits, refetchPending, refetchBuffet, refetchValet]);
+
+  // Auto-page through all monthly records so counts are always accurate
+  useEffect(() => {
+    if (visitsHasNextPage && !visitsIsFetchingNextPage) {
+      visitsFetchNextPage();
+    }
+  }, [visitsHasNextPage, visitsIsFetchingNextPage, visitsFetchNextPage]);
+
+  // Derive KPI values from real API data
+  const CONFIRMED_STATUSES = ['approved', 'visitor_accepted', 'checked_in', 'checked_out', 'completed'];
+  const visits = useMemo(
+    () => visitsInfinite?.pages.flatMap((p) => p.data) ?? [],
+    [visitsInfinite]
+  );
+  const totalVisitors = useMemo(
+    () => visits.filter((v) => CONFIRMED_STATUSES.includes(v.status)).length,
+    [visits]
+  );
+  const approvedRequests = useMemo(
+    () => visits.filter((v) => ['approved', 'visitor_accepted'].includes(v.status)).length,
+    [visits]
+  );
+  // Total pending approvals from the pagination count (most accurate)
+  const pendingRequests = pendingData?.pagination?.total ?? 0;
+  const activeRequests = approvedRequests + pendingRequests;
+  const ongoingBuffets = useMemo(
+    () => buffetData?.locations.reduce((sum, loc) => sum + loc.pendingTasks + loc.activeTasks, 0) ?? 0,
+    [buffetData]
+  );
+  const activeValetOperations = useMemo(
+    () => (valetData ?? []).filter((a) => ['pending', 'accepted', 'in_progress'].includes(a.status)).length,
+    [valetData]
+  );
+
+  const hasVisitsData = visitsInfinite !== undefined;
+  const hasPendingData = pendingData !== undefined;
+  const hasBuffetData = buffetData !== undefined;
+  const hasValetData = valetData !== undefined;
+  const hasAnyUsableData =
+    hasVisitsData ||
+    hasPendingData ||
+    hasBuffetData ||
+    hasValetData ||
+    staffOverview !== null;
+  const isColdLoading =
+    !hasAnyUsableData &&
+    visitsLoading &&
+    pendingLoading &&
+    buffetLoading &&
+    valetLoading;
+  const isRefreshing =
+    hasAnyUsableData &&
+    (
+      (visitsFetching && !visitsIsFetchingNextPage) ||
+      pendingFetching ||
+      buffetFetching ||
+      valetFetching
+    );
+  const hasRefreshError =
+    visitsError || pendingError || buffetError || valetError;
+
+  const renderSectionState = (
+    loading: boolean,
+    failed: boolean,
+    retry: () => unknown,
+  ) => loading ? (
+    <SkeletonCard lines={2} />
+  ) : failed ? (
+    <ThemedView style={[styles.sectionState, { backgroundColor: theme.surface }]}>
+      <DDIcon name="alert-triangle" size={22} variant="muted" />
+      <ThemedText style={[Typography.caption, { color: theme.textSecondary, textAlign: 'center' }]}>
+        {t('common.loadError')}
+      </ThemedText>
+      <Pressable onPress={() => void retry()}>
+        <ThemedText style={[Typography.caption, { color: theme.primary, fontWeight: '600' }]}>
+          {t('common.retry')}
+        </ThemedText>
+      </Pressable>
+    </ThemedView>
+  ) : null;
+
+  if (isColdLoading) {
+    return (
+      <View style={[{ flex: 1, backgroundColor: theme.background }]}>
+        <SkeletonDashboard cards={6} />
+      </View>
+    );
   }
 
   return (
-    <ScreenScrollView skipTopPadding contentContainerStyle={styles.container}>
+      <ScreenScrollView skipTopPadding contentContainerStyle={styles.container}>
+      {hasAnyUsableData && (isRefreshing || hasRefreshError) ? (
+        <DirectionalRow style={[styles.inlineFeedback, { backgroundColor: applyOpacity(
+          hasRefreshError ? theme.error : theme.primary,
+          '10',
+        ) }]}>
+          {isRefreshing ? <ActivityIndicator size="small" color={theme.primary} /> : (
+            <DDIcon name="alert-triangle" size={16} color={theme.error} />
+          )}
+          <ThemedText style={[Typography.caption, { color: theme.textSecondary, flex: 1 }]}>
+            {hasRefreshError ? t('common.loadError') : t('common.loading')}
+          </ThemedText>
+          {hasRefreshError && !isRefreshing ? (
+            <Pressable onPress={() => {
+              if (visitsError) void refetchVisits();
+              else if (pendingError) void refetchPending();
+              else if (buffetError) void refetchBuffet();
+              else void refetchValet();
+            }}>
+              <ThemedText style={[Typography.caption, { color: theme.primary, fontWeight: '600' }]}>
+                {t('common.retry')}
+              </ThemedText>
+            </Pressable>
+          ) : null}
+        </DirectionalRow>
+      ) : null}
       <ThemedText style={Typography.title}>{t('navigation.controlCenter')}</ThemedText>
       <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
         {t('dashboard.overview')}
@@ -131,52 +289,68 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
       <Spacer height={Spacing.xl} />
 
       <KPICardRow>
-        <KPICard 
-          title={t('dashboard.totalVisitors')} 
-          value={String(stats.totalVisitors)} 
-          icon="users" 
-          color={theme.primary}
-        />
-        <KPICard 
-          title={t('dashboard.pendingRequests')} 
-          value={String(stats.activeRequests)} 
-          icon="file-text" 
-          color={theme.info}
-        />
+        {hasVisitsData ? (
+          <KPICard
+            title={t('dashboard.totalVisitors')}
+            value={String(totalVisitors)}
+            icon="users"
+            color={theme.primary}
+          />
+        ) : renderSectionState(visitsLoading, visitsError, refetchVisits)}
+        {hasVisitsData && hasPendingData ? (
+          <KPICard
+            title={t('dashboard.pendingRequests')}
+            value={String(activeRequests)}
+            icon="file-text"
+            color={theme.info}
+          />
+        ) : renderSectionState(
+          visitsLoading || pendingLoading,
+          visitsError || pendingError,
+          visitsError ? refetchVisits : refetchPending,
+        )}
       </KPICardRow>
 
       <Spacer height={Spacing.md} />
 
       <KPICardRow>
-        <KPICard 
-          title={t('status.approved')} 
-          value={String(stats.approvedRequests)} 
-          icon="check-circle" 
-          color={theme.success}
-        />
-        <KPICard 
-          title={t('status.pending')} 
-          value={String(stats.pendingRequests)} 
-          icon="clock" 
-          color={theme.warning}
-        />
+        {hasVisitsData ? (
+          <KPICard
+            title={t('status.approved')}
+            value={String(approvedRequests)}
+            icon="check-circle"
+            color={theme.success}
+          />
+        ) : renderSectionState(visitsLoading, visitsError, refetchVisits)}
+        {hasPendingData ? (
+          <KPICard
+            title={t('status.pending')}
+            value={String(pendingRequests)}
+            icon="clock"
+            color={theme.warning}
+          />
+        ) : renderSectionState(pendingLoading, pendingError, refetchPending)}
       </KPICardRow>
 
       <Spacer height={Spacing.md} />
 
       <KPICardRow>
-        <KPICard 
-          title={t('buffet.buffetService')} 
-          value={String(stats.ongoingBuffets)} 
-          icon="disc" 
-          color="#FF6B35"
-        />
-        <KPICard 
-          title={t('valet.valetService')} 
-          value={String(stats.activeValetOperations)} 
-          icon="navigation" 
-          color="#6366F1"
-        />
+        {hasBuffetData ? (
+          <KPICard
+            title={t('buffet.buffetService')}
+            value={String(ongoingBuffets)}
+            icon="disc"
+            color="#FF6B35"
+          />
+        ) : renderSectionState(buffetLoading, buffetError, refetchBuffet)}
+        {hasValetData ? (
+          <KPICard
+            title={t('valet.valetService')}
+            value={String(activeValetOperations)}
+            icon="navigation"
+            color="#6366F1"
+          />
+        ) : renderSectionState(valetLoading, valetError, refetchValet)}
       </KPICardRow>
 
       <Spacer height={Spacing.xxl} />
@@ -194,7 +368,6 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
           iconBgColor={applyOpacity(theme.primary, '12')}
           iconColor={theme.primary}
           onPress={() => navigation.navigate(ROUTES.USERS_ROLES as never)}
-          badge={stats.totalUsers}
         />
         <QuickActionButton
           icon="list"
@@ -202,7 +375,7 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
           iconBgColor={applyOpacity(theme.warning, '12')}
           iconColor={theme.warning}
           onPress={() => navigation.navigate(ROUTES.ALL_REQUESTS as never)}
-          badge={stats.pendingRequests}
+          badge={pendingRequests}
         />
         <QuickActionButton
           icon="map-pin"
@@ -210,13 +383,6 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
           iconBgColor={applyOpacity(theme.success, '12')}
           iconColor={theme.success}
           onPress={() => navigation.navigate(ROUTES.ALL_LOCATIONS as never)}
-        />
-        <QuickActionButton
-          icon="activity"
-          label={t('navigation.reportsAndLogs')}
-          iconBgColor={applyOpacity(theme.info, '12')}
-          iconColor={theme.info}
-          onPress={() => navigation.navigate(ROUTES.REPORTS as never)}
         />
       </DirectionalRow>
 
@@ -228,6 +394,7 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
 
       <Spacer height={Spacing.md} />
 
+      {staffOverview ? (
       <RTLHorizontalScrollView
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.staffScrollContent}
@@ -277,6 +444,9 @@ export default function BuildingAdminDashboardScreen({ navigation }: BuildingAdm
           ]}
         />
       </RTLHorizontalScrollView>
+      ) : (
+        <SkeletonCard lines={3} />
+      )}
 
       <Spacer height={Spacing.xxl} />
 
@@ -542,5 +712,21 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  sectionState: {
+    minHeight: 100,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.xs,
+  },
+  inlineFeedback: {
+    alignItems: 'center',
+    gap: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.md,
   },
 });

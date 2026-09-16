@@ -1,8 +1,8 @@
-import React, { useState, useMemo, useCallback } from "react";
-import { View, StyleSheet, Pressable, ScrollView, TextInput, Modal, FlatList, Alert, useWindowDimensions, Platform } from "react-native";
+import React, { useState, useMemo, useCallback, useRef } from "react";
+import { View, StyleSheet, Pressable, ScrollView, TextInput, Modal, FlatList, Alert, useWindowDimensions, ActivityIndicator } from "react-native";
 import { capitalizeFirst } from "@/utils/formatters";
-import { useFocusEffect } from '@react-navigation/native';
 import { ROUTES } from "@/constants";
+import { useRefetchOnRefocus } from "@/hooks/useRefetchOnRefocus";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import { DDIcon } from "@/components/DDIcon";
@@ -11,7 +11,8 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
 import Spacer from "@/components/Spacer";
-import { ServiceIcons, SelectionCheckbox, StatusAccent, WalkInBadge, SkeletonDashboard, LoadingSpinner, ApprovalActionGroup, LoadingButton, VisitorRequestCard, RTLHorizontalScrollView } from "@/components/shared";
+import { ServiceIcons, SelectionCheckbox, StatusAccent, WalkInBadge, SkeletonDashboard, LoadingSpinner, ApprovalActionGroup, LoadingButton, VisitorRequestCard, RTLHorizontalScrollView, ListLoadingFooter, VisitorMatrixTable } from "@/components/shared";
+import type { VisitorMatrixItem } from "@/components/shared";
 import { Spacing, BorderRadius, Typography, FontFamily, getLocaleFontFamily, getInputFontFamily } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -23,8 +24,9 @@ import {
   useRejectVisitMutation,
   useBulkApproveRequestsMutation,
   useBulkRejectRequestsMutation,
+  requestKeys,
 } from "@/hooks/queries/useApprovalQueries";
-import { ListLoadingFooter } from "@/components/shared";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { VisitorRequest } from "@/types/vms.types";
 import type { PendingApprovalDto } from "@/types/api.types";
@@ -34,6 +36,12 @@ import type { Theme } from "@/types/theme.types";
 import { mapPendingApprovalToVisitorRequest } from "@/utils/requestMappers";
 import { isVisitExpired } from "@/utils/dateTimeUtils";
 import { PURPOSE_VALUE_TO_KEY, normalizePurposeValue } from "@/constants/requestConstants";
+import { resolveParkingDisplayDecision } from "@/utils/parkingDecision";
+import {
+  computeIsPendingApprovalWalkInExpired,
+  getPendingApprovalWalkInScheduledEndMs,
+} from "@/utils/visitExpiredGuard";
+import { useTimeBoundaryTick } from "@/hooks/useTimeBoundaryTick";
 
 const LAYOUT = {
   cardPadding: Spacing.lg,
@@ -47,41 +55,6 @@ const LAYOUT = {
 };
 
 
-const DateTimeDisplay = ({ date, time, duration, theme, compact = false, fmtDate, fmtTime, isRTL = false }: { date: string; time: string; duration?: string; theme: Theme; compact?: boolean; fmtDate: (d: Date | string) => string; fmtTime: (t: string) => string; isRTL?: boolean }) => {  const calendarIcon = <DDIcon name="calendar" size={compact ? 13 : 14} variant="muted" />;
-  const dateText = (
-    <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
-      {fmtDate(date)}
-    </ThemedText>
-  );
-  const clockIcon = <DDIcon name="clock" size={compact ? 13 : 14} variant="muted" />;
-  const timeText = (
-    <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
-      {fmtTime(time)}
-    </ThemedText>
-  );
-  const durationText = duration ? (
-    <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary, fontSize: compact ? 12 : 13 }]}>
-      {duration}
-    </ThemedText>
-  ) : null;
-  
-  return (
-    <DirectionalRow style={styles.dateTimeRow}>
-      {calendarIcon}
-      {dateText}
-      <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
-      {clockIcon}
-      {timeText}
-      {duration ? (
-        <>
-          <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
-          {durationText}
-        </>
-      ) : null}
-    </DirectionalRow>
-  );
-};
-
 const SectionHeader = ({ 
   viewMode, 
   onViewModeChange,
@@ -89,7 +62,7 @@ const SectionHeader = ({
   onToggleSelectionMode,
   theme,
   t,
-  isRTL = false
+  isRTL = false,
 }: { 
   viewMode: 'card' | 'list'; 
   onViewModeChange: (mode: 'card' | 'list') => void;
@@ -167,15 +140,11 @@ const SectionHeader = ({
   const actionsContent = (
     <DirectionalRow style={styles.headerActions}>
       {selectButton}
-      {Platform.OS === 'web' ? (
-        <>
-          <Spacer width={Spacing.sm} />
-          <DirectionalRow style={styles.viewModeToggle}>
-            {gridButton}
-            {listButton}
-          </DirectionalRow>
-        </>
-      ) : null}
+      <Spacer width={Spacing.sm} />
+      <DirectionalRow style={styles.viewModeToggle}>
+        {gridButton}
+        {listButton}
+      </DirectionalRow>
     </DirectionalRow>
   );
   
@@ -286,172 +255,6 @@ const BulkActionBar = ({
     </View>
   );
 };
-
-const ApprovalTableRow = React.memo(({ 
-  request, 
-  onApprove,
-  onReject,
-  onViewDetails,
-  onLongPress,
-  isSelectionMode,
-  isSelected,
-  onToggleSelection,
-  theme,
-  isProcessing,
-  isExpired = false,
-  t,
-  fmtDate,
-  fmtTime,
-  isRTL = false
-}: { 
-  request: VisitorRequest; 
-  onApprove: () => void;
-  onReject: () => void;
-  onViewDetails: () => void;
-  onLongPress: () => void;
-  isSelectionMode: boolean;
-  isSelected: boolean;
-  onToggleSelection: () => void;
-  theme: Theme;
-  isProcessing: boolean;
-  isExpired?: boolean;
-  t: (key: string) => string;
-  fmtDate: (d: Date | string) => string;
-  fmtTime: (t: string) => string;
-  isRTL?: boolean;
-}) => {  
-  const nameText = (
-    <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15, flex: 1 }]} numberOfLines={2}>
-      {capitalizeFirst(request.visitor.fullName)}
-    </ThemedText>
-  );
-  const walkInBadge = request.isWalkIn ? <WalkInBadge /> : null;
-  
-  const actionButtons = (
-    <View pointerEvents="box-none">
-      <DirectionalRow style={{ alignItems: 'center' }}>
-        <ApprovalActionGroup
-          onApprove={onApprove}
-          onReject={onReject}
-          disabled={isProcessing || isExpired}
-          size="small"
-          showIcons={false}
-          fullWidth={false}
-        />
-        <Spacer width={Spacing.sm} />
-        <Pressable
-          style={[styles.actionButton, styles.detailsActionButton, { borderColor: theme.border }]}
-          onPress={onViewDetails}
-        >
-          <DDIcon name="eye" size={16} variant="muted" />
-        </Pressable>
-      </DirectionalRow>
-    </View>
-  );
-  
-  const statusAccent = <StatusAccent color={theme.primary} />;
-  const checkboxColumn = isSelectionMode ? (
-    <View style={styles.tableCheckboxColumn}>
-      <SelectionCheckbox isSelected={isSelected} onToggle={onToggleSelection} />
-    </View>
-  ) : null;
-  
-  const fixedColumnContent = (
-    <View style={[styles.fixedColumn, { width: isSelectionMode ? LAYOUT.tableFixedColumnWidth - 40 : LAYOUT.tableFixedColumnWidth }]}>
-      <View style={styles.fixedColumnContent}>
-        <View style={{ flex: 1 }}>
-          <DirectionalRow style={styles.nameWithBadge}>
-            {nameText}
-            {walkInBadge}
-          </DirectionalRow>
-          <Spacer height={6} />
-          <DateTimeDisplay 
-            date={request.visitDate} 
-            time={request.visitTime} 
-            theme={theme} 
-            compact 
-            fmtDate={fmtDate}
-            fmtTime={fmtTime}
-            isRTL={isRTL}
-          />
-        </View>
-      </View>
-    </View>
-  );
-  
-  const scrollableContent = (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={true}
-      style={styles.scrollableColumns}
-      contentContainerStyle={styles.scrollableColumnsContent}
-      persistentScrollbar={true}
-      nestedScrollEnabled={true}
-      directionalLockEnabled={true}
-      scrollEventThrottle={16}
-      keyboardShouldPersistTaps="handled"
-    >
-      <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
-        <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
-          {t('form.company').toUpperCase()}
-        </ThemedText>
-        <Spacer height={10} />
-        <ThemedText style={[styles.columnValue, { fontSize: 15 }]} numberOfLines={2}>
-          {request.visitor.company || '-'}
-        </ThemedText>
-      </View>
-
-      <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
-        <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
-          {t('dashboard.requestedBy').toUpperCase()}
-        </ThemedText>
-        <Spacer height={10} />
-        <ThemedText style={[styles.columnValue, { fontSize: 15 }]} numberOfLines={2}>
-          {request.employeeName}
-        </ThemedText>
-      </View>
-
-      <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
-        <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
-          {t('form.purpose').toUpperCase()}
-        </ThemedText>
-        <Spacer height={10} />
-        <ThemedText style={[styles.columnValue, { fontSize: 15 }]} numberOfLines={3}>
-          {(() => { const pv = normalizePurposeValue(request.purpose || ''); return PURPOSE_VALUE_TO_KEY[pv] ? t(PURPOSE_VALUE_TO_KEY[pv] as any) : (request.purpose || '-'); })()}
-        </ThemedText>
-      </View>
-
-      <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
-        <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
-          {t('services.additionalServices').toUpperCase()}
-        </ThemedText>
-        <Spacer height={10} />
-        <ServiceIcons parkingSlot={request.parkingSlot} meetingRoom={request.meetingRoom} buffet={request.buffet} valet={request.valet} size={16} />
-      </View>
-
-      {!isSelectionMode ? (
-        <View style={[styles.tableColumn, { width: LAYOUT.tableScrollColumnWidth }]}>
-          <ThemedText style={[styles.columnHeader, { color: theme.textSecondary }]}>
-            {t('common.actions').toUpperCase()}
-          </ThemedText>
-          <Spacer height={10} />
-          {actionButtons}
-        </View>
-      ) : null}
-    </ScrollView>
-  );
-  
-  return (
-    <Pressable onLongPress={onLongPress}>
-      <ThemedView style={[styles.tableRow, { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: getFlexDirection(isRTL) }]}>
-        {statusAccent}
-        {checkboxColumn}
-        {fixedColumnContent}
-        {scrollableContent}
-      </ThemedView>
-    </Pressable>
-  );
-});
 
 
 const RejectRequestModal = ({
@@ -610,9 +413,9 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
   const { paddingTop, paddingBottom } = useScreenInsets();
   const { user } = useAuth();
   const { width: screenWidth } = useWindowDimensions();
-  const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
+  const numColumns = screenWidth >= 900 ? 3 : screenWidth >= 600 ? 2 : 1;
   const [searchQuery, setSearchQuery] = useState('');
-  const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
+  const [viewMode, setViewMode] = useState<'card' | 'list'>('list');
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showRejectModal, setShowRejectModal] = useState(false);
@@ -630,15 +433,36 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    isFetchNextPageError,
   } = useInfinitePendingApprovalsQuery();
 
-  // Refetch data when screen gains focus to show latest status
-  useFocusEffect(
-    useCallback(() => {
-      refetchPending();
-    }, [refetchPending])
-  );
+  // Infinite-query data can briefly become undefined when its parameters or
+  // cache entry change. Keep the last successful snapshot mounted until the
+  // replacement request succeeds; an empty successful page is still usable.
+  const approvalSourceKey = `${user?.id ?? 'anonymous'}|manager-pending-approvals`;
+  const pendingRetention = useRef<{ key: string; data: typeof pendingApprovalsData } | null>(null);
+  const paginationRetryLock = useRef(false);
+  if (pendingApprovalsData !== undefined) {
+    pendingRetention.current = { key: approvalSourceKey, data: pendingApprovalsData };
+  }
+  const displayedPendingApprovalsData =
+    pendingApprovalsData !== undefined
+      ? pendingApprovalsData
+      : pendingRetention.current?.key === approvalSourceKey
+        ? pendingRetention.current.data
+        : undefined;
+  const pendingIsRetained =
+    pendingApprovalsData === undefined &&
+    pendingRetention.current?.key === approvalSourceKey &&
+    pendingRetention.current.data !== undefined;
+  const hasUsablePendingData = displayedPendingApprovalsData !== undefined;
+  const isBackgroundFetchingPending = isFetchingPending && !isFetchingNextPage;
+
+  // Refresh approvals when returning to the dashboard; the mount fetch covers
+  // the first focus.
+  useRefetchOnRefocus([refetchPending]);
   
+  const queryClient = useQueryClient();
   const approveMutation = useApproveVisitMutation();
   const rejectMutation = useRejectVisitMutation();
   const bulkApproveMutation = useBulkApproveRequestsMutation();
@@ -647,18 +471,61 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
   const isProcessing = approveMutation.isPending || rejectMutation.isPending || bulkApproveMutation.isPending || bulkRejectMutation.isPending;
   const isBulkProcessing = bulkApproveMutation.isPending || bulkRejectMutation.isPending;
   const bulkProcessingAction: 'approve' | 'reject' | null = bulkApproveMutation.isPending ? 'approve' : bulkRejectMutation.isPending ? 'reject' : null;
-  const isLoading = isLoadingPending;
-  const isFetching = isFetchingPending;
-
   const pendingApprovals = useMemo(() => {
-    if (!pendingApprovalsData?.pages) return [];
-    return pendingApprovalsData.pages.flatMap(page => page.data.map(mapPendingApprovalToVisitorRequest));
-  }, [pendingApprovalsData?.pages]);
+    if (!displayedPendingApprovalsData?.pages) return [];
+    return displayedPendingApprovalsData.pages.flatMap(page => page.data.map(mapPendingApprovalToVisitorRequest));
+  }, [displayedPendingApprovalsData?.pages]);
+  const expirationBoundaries = useMemo(
+    () =>
+      pendingApprovals.map((request) =>
+        getPendingApprovalWalkInScheduledEndMs({
+          isWalkIn: request.isWalkIn,
+          status: request.status,
+          visitDate: request.visitDate,
+          visitTime: request.visitTime,
+          endTime: request.endTime,
+          duration: request.duration,
+        }),
+      ),
+    [pendingApprovals],
+  );
+  const expirationTick = useTimeBoundaryTick(expirationBoundaries);
+  const isPendingApprovalWalkInExpired = useCallback(
+    (request: VisitorRequest) =>
+      computeIsPendingApprovalWalkInExpired({
+        isWalkIn: request.isWalkIn,
+        status: request.status,
+        visitDate: request.visitDate,
+        visitTime: request.visitTime,
+        endTime: request.endTime,
+        duration: request.duration,
+      }),
+    [expirationTick],
+  );
+  const isRequestExpired = useCallback(
+    (request: VisitorRequest) =>
+      isPendingApprovalWalkInExpired(request) ||
+      isVisitExpired(
+        request.visitDate,
+        request.visitTime,
+        request.endTime,
+        request.duration,
+      ),
+    [isPendingApprovalWalkInExpired],
+  );
 
   const handleLoadMore = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
     }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  const handleRetryNextPage = useCallback(() => {
+    if (!hasNextPage || isFetchingNextPage || paginationRetryLock.current) return;
+    paginationRetryLock.current = true;
+    void fetchNextPage({ cancelRefetch: false }).finally(() => {
+      paginationRetryLock.current = false;
+    });
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const filteredRequests = pendingApprovals.filter(request =>
@@ -703,12 +570,17 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
 
   const handleApprove = (requestId: string) => {
     if (isProcessing) return;
+    const request = pendingApprovals.find((candidate) => candidate.id === requestId);
+    if (!request || isPendingApprovalWalkInExpired(request)) return;
     setApprovingRequestId(requestId);
     approveMutation.mutate(
       { id: requestId, payload: {} },
       {
         onSuccess: () => {
           setApprovingRequestId(null);
+          // Remove stale visitDetail cache so the detail page loads fresh data
+          // rather than briefly showing pending-status action buttons.
+          queryClient.removeQueries({ queryKey: requestKeys.visitDetail(requestId) });
         },
         onError: (error) => {
           setApprovingRequestId(null);
@@ -720,6 +592,8 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
 
   const handleReject = (requestId: string) => {
     if (isProcessing) return;
+    const request = pendingApprovals.find((candidate) => candidate.id === requestId);
+    if (!request || isPendingApprovalWalkInExpired(request)) return;
     setActiveRequestId(requestId);
     setIsBulkReject(false);
     setShowRejectModal(true);
@@ -727,9 +601,17 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
 
   const handleBulkApprove = () => {
     if (selectedIds.size === 0 || isBulkProcessing) return;
+    const eligibleIds = Array.from(selectedIds).filter((id) => {
+      const request = pendingApprovals.find((candidate) => candidate.id === id);
+      return request && !isPendingApprovalWalkInExpired(request);
+    });
+    if (eligibleIds.length !== selectedIds.size) {
+      setSelectedIds(new Set(eligibleIds));
+    }
+    if (eligibleIds.length === 0) return;
     
     bulkApproveMutation.mutate(
-      { ids: Array.from(selectedIds) },
+      { ids: eligibleIds },
       {
         onSuccess: () => {
           setIsSelectionMode(false);
@@ -744,6 +626,14 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
 
   const handleBulkReject = () => {
     if (selectedIds.size === 0 || isBulkProcessing) return;
+    const eligibleIds = Array.from(selectedIds).filter((id) => {
+      const request = pendingApprovals.find((candidate) => candidate.id === id);
+      return request && !isPendingApprovalWalkInExpired(request);
+    });
+    if (eligibleIds.length !== selectedIds.size) {
+      setSelectedIds(new Set(eligibleIds));
+    }
+    if (eligibleIds.length === 0) return;
     setIsBulkReject(true);
     setShowRejectModal(true);
   };
@@ -752,8 +642,20 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
     const rejectReason = reason.trim() || 'No reason provided';
     
     if (isBulkReject) {
+      const eligibleIds = Array.from(selectedIds).filter((id) => {
+        const request = pendingApprovals.find((candidate) => candidate.id === id);
+        return request && !isPendingApprovalWalkInExpired(request);
+      });
+      if (eligibleIds.length !== selectedIds.size) {
+        setSelectedIds(new Set(eligibleIds));
+      }
+      if (eligibleIds.length === 0) {
+        setShowRejectModal(false);
+        setIsBulkReject(false);
+        return;
+      }
       bulkRejectMutation.mutate(
-        { ids: Array.from(selectedIds), reason: rejectReason },
+        { ids: eligibleIds, reason: rejectReason },
         {
           onSuccess: () => {
             setIsSelectionMode(false);
@@ -767,11 +669,20 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
         }
       );
     } else if (activeRequestId) {
+      const requestIdToReject = activeRequestId;
+      const request = pendingApprovals.find((candidate) => candidate.id === requestIdToReject);
+      if (!request || isPendingApprovalWalkInExpired(request)) {
+        setShowRejectModal(false);
+        setActiveRequestId(null);
+        return;
+      }
       setRejectingRequestId(activeRequestId);
       rejectMutation.mutate(
         { id: activeRequestId, payload: { reason: rejectReason } },
         {
           onSuccess: () => {
+            // Remove stale visitDetail cache so the detail page loads fresh data.
+            queryClient.removeQueries({ queryKey: requestKeys.visitDetail(requestIdToReject) });
             setShowRejectModal(false);
             setActiveRequestId(null);
             setRejectingRequestId(null);
@@ -788,6 +699,32 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
   const handleViewDetails = (requestId: string) => {
     navigation.navigate(ROUTES.MANAGER_APPROVAL_DETAIL as any, { requestId } as any);
   };
+
+  const toMatrixItem = useCallback((request: VisitorRequest): VisitorMatrixItem => {
+    const pv = normalizePurposeValue(request.purpose || '');
+    const purposeLabel = PURPOSE_VALUE_TO_KEY[pv] ? t(PURPOSE_VALUE_TO_KEY[pv] as any) : request.purpose;
+    return {
+      id: request.id,
+      visitorName: capitalizeFirst(request.visitor.fullName),
+      company: request.visitor.company || undefined,
+      visitDate: request.visitDate,
+      plannedInTime: request.visitTime,
+      plannedOutTime: request.endTime,
+      status: request.status,
+      hostName: request.employeeName || undefined,
+      hasParking: resolveParkingDisplayDecision({
+        parkingDecision: request.parkingDecision,
+        visitorNeedsParking: request.visitorNeedsParking,
+        isVisitorNeedsParking: request.isVisitorNeedsParking,
+        hasParkingAllocation: !!request.parkingSlot,
+      }) === 'required',
+      hasBuffet: !!request.buffet,
+      hasValet: !!request.valet,
+      hasMeetingRoom: !!request.meetingRoom,
+      purpose: purposeLabel || undefined,
+      isExpired: isRequestExpired(request),
+    };
+  }, [expirationTick, isRequestExpired, t]);
 
   const renderStickyHeader = () => (
     <View style={[styles.stickyHeader, { backgroundColor: theme.backgroundRoot }]}>
@@ -833,11 +770,72 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
       ) : null}
 
       <Spacer height={Spacing.lg} />
+
+      {hasUsablePendingData && (isBackgroundFetchingPending || (pendingError && !isFetchNextPageError) || pendingIsRetained) ? (
+        <>
+          <DirectionalRow
+            style={[
+              styles.inlineFeedback,
+              {
+                backgroundColor: applyOpacity(
+                  pendingError && !isFetchNextPageError && !isBackgroundFetchingPending ? theme.error : theme.primary,
+                  '10',
+                ),
+              },
+            ]}
+          >
+            {isBackgroundFetchingPending ? (
+              <ActivityIndicator size="small" color={theme.primary} />
+            ) : (
+              <DDIcon
+                name={pendingError && !isFetchNextPageError ? 'alert-circle' : 'info'}
+                size={16}
+                color={pendingError && !isFetchNextPageError ? theme.error : theme.primary}
+              />
+            )}
+            <ThemedText
+              style={[
+                Typography.caption,
+                {
+                  color: pendingError && !isFetchNextPageError && !isBackgroundFetchingPending ? theme.error : theme.textSecondary,
+                  flex: 1,
+                },
+              ]}
+            >
+              {isBackgroundFetchingPending ? t('common.loading') : t('errors.generic')}
+            </ThemedText>
+            {pendingError && !isFetchNextPageError && !isBackgroundFetchingPending ? (
+              <Pressable onPress={() => refetchPending()} hitSlop={8}>
+                <ThemedText style={[Typography.caption, { color: theme.primary, fontWeight: '600' }]}>
+                  {t('common.retry')}
+                </ThemedText>
+              </Pressable>
+            ) : null}
+          </DirectionalRow>
+          <Spacer height={Spacing.md} />
+        </>
+      ) : null}
     </View>
   );
 
   const renderListHeader = () => (
     <Spacer height={Spacing.md} />
+  );
+
+  const paginationFooter = (
+    <>
+      <ListLoadingFooter isLoading={isFetchingNextPage} />
+      {isFetchNextPageError ? (
+        <Pressable style={styles.paginationError} onPress={handleRetryNextPage}>
+          <ThemedText style={[Typography.caption, { color: theme.error, textAlign: 'center' }]}>
+            {t('common.loadError')}
+          </ThemedText>
+          <ThemedText style={[Typography.caption, { color: theme.primary, fontWeight: '600' }]}>
+            {t('common.retry')}
+          </ThemedText>
+        </Pressable>
+      ) : null}
+    </>
   );
 
   const renderEmptyState = () => (
@@ -853,10 +851,26 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
     </ThemedView>
   );
 
-  if (isLoading || isFetching) {
+  if (isLoadingPending && !hasUsablePendingData) {
     return (
       <View style={[styles.screenContainer, { backgroundColor: theme.backgroundRoot, paddingTop, paddingHorizontal: Spacing.xl }]}>
         <SkeletonDashboard cards={4} />
+      </View>
+    );
+  }
+
+  if (pendingError && !hasUsablePendingData) {
+    return (
+      <View style={[styles.screenContainer, styles.coldError, { backgroundColor: theme.backgroundRoot, paddingTop }]}>
+        <DDIcon name="alert-triangle" size={48} variant="muted" />
+        <Spacer height={Spacing.md} />
+        <ThemedText style={[Typography.body, { color: theme.textSecondary, textAlign: 'center' }]}>
+          {t('common.loadError')}
+        </ThemedText>
+        <Spacer height={Spacing.md} />
+        <Pressable onPress={() => refetchPending()}>
+          <ThemedText style={{ color: theme.primary, fontWeight: '600' }}>{t('common.retry')}</ThemedText>
+        </Pressable>
       </View>
     );
   }
@@ -869,31 +883,33 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
         </View>
         
         <FlatList
-          data={filteredRequests}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <ApprovalTableRow 
-              request={item}
-              onApprove={() => handleApprove(item.id)}
-              onReject={() => handleReject(item.id)}
-              onViewDetails={() => handleViewDetails(item.id)}
-              onLongPress={() => handleLongPress(item.id)}
-              isSelectionMode={isSelectionMode}
-              isSelected={selectedIds.has(item.id)}
-              onToggleSelection={() => toggleSelection(item.id)}
-              theme={theme}
-              isProcessing={isProcessing}
-              isExpired={isVisitExpired(item.visitDate, item.visitTime, item.endTime, item.duration)}
-              t={t}
-              fmtDate={formatDate}
-              fmtTime={formatTimeFromString}
-              isRTL={isRTL}
-            />
-          )}
-          ListHeaderComponent={renderListHeader()}
-          ListEmptyComponent={renderEmptyState()}
-          ListFooterComponent={<ListLoadingFooter isLoading={isFetchingNextPage} />}
-          ItemSeparatorComponent={() => <Spacer height={Spacing.md} />}
+          data={[]}
+          extraData={expirationTick}
+          keyExtractor={() => '_'}
+          renderItem={() => null}
+          ListHeaderComponent={
+            <View>
+              {renderListHeader()}
+              {filteredRequests.length > 0 ? (
+                <VisitorMatrixTable
+                  variant="matrix"
+                  visitors={filteredRequests.map(toMatrixItem)}
+                  onPressRow={handleViewDetails}
+                  showApproveReject
+                  onApprove={handleApprove}
+                  onReject={handleReject}
+                  isSelectionMode={isSelectionMode}
+                  selectedIds={selectedIds}
+                  onToggleSelection={toggleSelection}
+                  onLongPressRow={handleLongPress}
+                  emptyMessage={t('common.noResults')}
+                />
+              ) : (
+                renderEmptyState()
+              )}
+            </View>
+          }
+          ListFooterComponent={paginationFooter}
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.5}
           contentContainerStyle={{ 
@@ -946,6 +962,7 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
       <FlatList
         key={`flatlist-${numColumns}`}
         data={filteredRequests}
+        extraData={expirationTick}
         keyExtractor={(item) => item.id}
         numColumns={numColumns}
         renderItem={({ item }) => (
@@ -955,13 +972,14 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
               onPress={() => handleViewDetails(item.id)}
               onLongPress={() => handleLongPress(item.id)}
               showRequestedBy
-              showActions={!isSelectionMode}
+              showActions={!isSelectionMode && !isPendingApprovalWalkInExpired(item)}
               onApprove={() => handleApprove(item.id)}
               onReject={() => handleReject(item.id)}
               isProcessing={isProcessing}
               approveLoading={approvingRequestId === item.id}
               rejectLoading={rejectingRequestId === item.id}
-              isExpired={isVisitExpired(item.visitDate, item.visitTime, item.endTime, item.duration)}
+              isExpired={isRequestExpired(item)}
+              showExpiredState={isPendingApprovalWalkInExpired(item)}
               isSelectionMode={isSelectionMode}
               isSelected={selectedIds.has(item.id)}
               onToggleSelection={() => toggleSelection(item.id)}
@@ -971,7 +989,7 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
         )}
         ListHeaderComponent={renderListHeader()}
         ListEmptyComponent={renderEmptyState()}
-        ListFooterComponent={<ListLoadingFooter isLoading={isFetchingNextPage} />}
+        ListFooterComponent={paginationFooter}
         ItemSeparatorComponent={numColumns === 1 ? () => <Spacer height={LAYOUT.contentGap} /> : undefined}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}
@@ -1025,6 +1043,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
   },
   stickyHeader: {
+  },
+  inlineFeedback: {
+    alignItems: 'center',
+    gap: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+  },
+  coldError: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.xl,
+  },
+  paginationError: {
+    alignItems: 'center',
+    gap: Spacing.xs,
+    paddingVertical: Spacing.md,
   },
   scrollableContent: {
     flex: 1,

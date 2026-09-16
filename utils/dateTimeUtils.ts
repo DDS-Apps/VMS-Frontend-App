@@ -167,11 +167,36 @@ export const formatTimestamp = (
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
 
-  const today = new Date();
-  const isToday = date.toDateString() === today.toDateString();
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
-  const isYesterday = date.toDateString() === yesterday.toDateString();
+  // Use timezone-aware calendar comparison when a timezone is provided so
+  // isToday/isYesterday reflect the business date, not the device-local date.
+  let isToday: boolean;
+  let isYesterday: boolean;
+  if (timezone) {
+    try {
+      const tzFmt = new Intl.DateTimeFormat('en-CA', {
+        timeZone: timezone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      });
+      const dateKey = tzFmt.format(date);
+      const todayKey = tzFmt.format(now);
+      const yd = new Date(now.getTime() - 86400000);
+      const yesterdayKey = tzFmt.format(yd);
+      isToday = dateKey === todayKey;
+      isYesterday = dateKey === yesterdayKey;
+    } catch {
+      isToday = date.toDateString() === now.toDateString();
+      const yd = new Date(now);
+      yd.setDate(yd.getDate() - 1);
+      isYesterday = date.toDateString() === yd.toDateString();
+    }
+  } else {
+    isToday = date.toDateString() === now.toDateString();
+    const yd = new Date(now);
+    yd.setDate(yd.getDate() - 1);
+    isYesterday = date.toDateString() === yd.toDateString();
+  }
 
   const dateStr = formatDate(date, { isRTL, timezone });
   const timeStr = formatTime(date, isRTL, timezone);
@@ -245,9 +270,10 @@ export const getCountdownValues = (targetDate: Date): CountdownResult => {
 };
 
 export const isDatePast = (dateStr: string, timeStr?: string): boolean => {
-  const dateTimeStr = timeStr ? `${dateStr} ${timeStr}` : dateStr;
-  const date = new Date(dateTimeStr);
-  return date < new Date();
+  // Treat dateStr/timeStr as Riyadh wall-clock times (UTC+3) to avoid device-timezone drift
+  const timePart = timeStr ? timeStr.trim().replace(/\s*(AM|PM)\s*/i, '') : '00:00';
+  const date = new Date(`${dateStr}T${timePart}+03:00`);
+  return isNaN(date.getTime()) ? false : date < new Date();
 };
 
 export const isSameDay = (date1: Date, date2: Date): boolean => {
@@ -838,4 +864,99 @@ export const isVisitExpired = (
   } catch (err) {
     return false;
   }
+};
+
+// ============================================================
+// BUSINESS-TIMEZONE HELPERS
+// ============================================================
+
+/** Alias for readability — always Asia/Riyadh regardless of device locale. */
+export const DEFAULT_BUSINESS_TIMEZONE = DEFAULT_SERVER_TIMEZONE;
+
+/**
+ * Validate an IANA timezone identifier without throwing.
+ */
+function isValidTimezone(tz: unknown): tz is string {
+  if (!tz || typeof tz !== 'string') return false;
+  try {
+    Intl.DateTimeFormat(undefined, { timeZone: tz });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Format an absolute ISO-8601 UTC timestamp as a short time string (h:mm AM/PM)
+ * in the specified business timezone.
+ *
+ * Falls back to Asia/Riyadh when timezone is absent or invalid.
+ * Returns '' for null / undefined / unparseable input — never crashes.
+ */
+export const formatAbsoluteTimestamp = (
+  isoTimestamp: string | null | undefined,
+  options: DateTimeFormatOptions = {},
+  timezone: string = DEFAULT_SERVER_TIMEZONE,
+): string => {
+  if (!isoTimestamp) return '';
+  const validTz = isValidTimezone(timezone) ? timezone : DEFAULT_SERVER_TIMEZONE;
+  const date = new Date(isoTimestamp);
+  if (isNaN(date.getTime())) return '';
+  return formatTime(date, options.isRTL ?? false, validTz);
+};
+
+/**
+ * Return the calendar date key (YYYY-MM-DD) for `date` in the given timezone.
+ *
+ * - Falls back to Asia/Riyadh when timezone is absent or invalid.
+ * - Never uses device-local timezone for the key comparison.
+ */
+export const getBusinessDateKey = (
+  date: Date = new Date(),
+  timezone: string = DEFAULT_SERVER_TIMEZONE,
+): string => {
+  const validTz = isValidTimezone(timezone) ? timezone : DEFAULT_SERVER_TIMEZONE;
+  try {
+    // en-CA locale produces YYYY-MM-DD natively.
+    return new Intl.DateTimeFormat('en-CA', {
+      timeZone: validTz,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(date);
+  } catch {
+    // Absolute last resort — strip time from UTC ISO string (not device-local).
+    return new Date(date.getTime()).toISOString().slice(0, 10);
+  }
+};
+
+/**
+ * Returns true when `isoTimestamp` falls on today's calendar date in `timezone`.
+ *
+ * Falls back to Asia/Riyadh. Returns false for null / undefined / invalid input.
+ */
+export const isTodayInTimezone = (
+  isoTimestamp: string | null | undefined,
+  timezone: string = DEFAULT_SERVER_TIMEZONE,
+): boolean => {
+  if (!isoTimestamp) return false;
+  const d = new Date(isoTimestamp);
+  if (isNaN(d.getTime())) return false;
+  return getBusinessDateKey(d, timezone) === getBusinessDateKey(new Date(), timezone);
+};
+
+/**
+ * Returns true when `isoTimestamp` falls on yesterday's calendar date in `timezone`.
+ *
+ * Falls back to Asia/Riyadh. Returns false for null / undefined / invalid input.
+ */
+export const isYesterdayInTimezone = (
+  isoTimestamp: string | null | undefined,
+  timezone: string = DEFAULT_SERVER_TIMEZONE,
+): boolean => {
+  if (!isoTimestamp) return false;
+  const d = new Date(isoTimestamp);
+  if (isNaN(d.getTime())) return false;
+  const yesterday = new Date(new Date().getTime() - 86400000);
+  return getBusinessDateKey(d, timezone) === getBusinessDateKey(yesterday, timezone);
 };

@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, useState } from "react";
+import React, { useMemo, useCallback, useState, useEffect } from "react";
 import {
   View,
   StyleSheet,
@@ -9,30 +9,33 @@ import {
   TextInput,
   Alert,
   KeyboardAvoidingView,
+  Keyboard,
+  ActivityIndicator,
 } from "react-native";
 import {
   useNavigation,
   ParamListBase,
-  useFocusEffect,
 } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { ROUTES } from "@/constants";
+import { useRefetchOnRefocus } from "@/hooks/useRefetchOnRefocus";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { DDIcon, IconName } from "@/components/DDIcon";
+import { DDIcon } from "@/components/DDIcon";
 import Spacer from "@/components/Spacer";
 import { Spacing, BorderRadius, Typography, getInputFontFamily } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { UserRole, VisitorRequest } from "@/types/vms.types";
-import { SkeletonDashboard, VisitorRequestCard, LoadingButton, RTLHorizontalScrollView } from "@/components/shared";
+import { UserRole } from "@/types/vms.types";
+import { SkeletonCard, VisitorRequestCard, LoadingButton, RTLHorizontalScrollView, FilterChip, VisitorMatrixTable } from "@/components/shared";
+import type { VisitorMatrixItem } from "@/components/shared";
 import { BlurView } from 'expo-blur';
 import {
-  useVisitsQuery,
+  useInfiniteVisitsQuery,
   usePendingApprovalsQuery,
   useAwaitingVisitorQuery,
   usePendingHostWalkInsQuery,
@@ -46,8 +49,19 @@ import {
   mapPendingHostWalkInToVisitorRequest,
 } from "@/utils/requestMappers";
 import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
-import { isVisitExpired } from "@/utils/dateTimeUtils";
-import { KPICard, KPICardRow } from "@/components/shared/KPICard";
+import { isVisitExpired, getServerDateParts, getBusinessDateKey } from "@/utils/dateTimeUtils";
+import {
+  computeIsPendingApprovalWalkInExpired,
+  computeIsPendingHostWalkInExpired,
+  computeIsVisitExpired,
+} from "@/utils/visitExpiredGuard";
+import {
+  formatVisitDateLabel,
+  groupVisitsByDate,
+} from "@/utils/groupVisitsByDate";
+import { resolveParkingDisplayDecision } from "@/utils/parkingDecision";
+import { useRiyadhBusinessDateKey } from "@/hooks/useRiyadhBusinessDateKey";
+import { DashboardKpiSection } from "@/components/shared/DashboardKpiSection";
 
 const { width: screenWidth } = Dimensions.get("window");
 
@@ -60,32 +74,28 @@ export default function OverviewScreen({
   userRole,
   userName,
 }: OverviewScreenProps) {
+  const riyadhBusinessDateKey = useRiyadhBusinessDateKey();
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { isRTL } = useLanguage();
+  const { isRTL, localeCode } = useLanguage();
   const { formatDate: fmtDate } = useFormatters();
   const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
   const insets = useSafeAreaInsets();
-
   // ScreenScrollView already provides paddingHorizontal: Spacing.xl
   const scrollContentStyle = {};
 
   const {
-    data: visitsData,
-    isLoading: visitsLoading,
-    isFetching: visitsFetching,
-    refetch: refetchVisits,
-  } = useVisitsQuery({ myRequestsOnly: true, limit: 50 });
-  const {
     data: pendingData,
     isLoading: pendingLoading,
     isFetching: pendingFetching,
+    error: pendingError,
     refetch: refetchPending,
   } = usePendingApprovalsQuery({ limit: 10 }, userRole === "manager");
   const {
     data: awaitingData,
     isLoading: awaitingLoading,
     isFetching: awaitingFetching,
+    error: awaitingError,
     refetch: refetchAwaiting,
   } = useAwaitingVisitorQuery(
     { limit: 10 },
@@ -95,6 +105,7 @@ export default function OverviewScreen({
     data: walkInData,
     isLoading: walkInLoading,
     isFetching: walkInFetching,
+    error: walkInError,
     refetch: refetchWalkIn,
   } = usePendingHostWalkInsQuery(
     { limit: 10 },
@@ -111,6 +122,7 @@ export default function OverviewScreen({
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [activeRequestId, setActiveRequestId] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
+  const [dashboardViewMode, setDashboardViewMode] = useState<'card' | 'list'>('list');
   
   const isProcessing = approveMutation.isPending || rejectMutation.isPending;
   const { isDark } = useTheme();
@@ -168,35 +180,44 @@ export default function OverviewScreen({
     setRejectionReason('');
   }, [rejectMutation.isPending]);
 
-  // Refetch all data when screen gains focus to show latest status
-  // Note: refetch() bypasses 'enabled' check, so we must guard conditionally
-  useFocusEffect(
-    useCallback(() => {
-      refetchVisits();
-      // Only refetch pending approvals for managers (API returns 403 for other roles)
-      if (userRole === "manager") {
-        refetchPending();
-      }
-      if (userRole === "manager" || userRole === "employee") {
-        refetchAwaiting();
-        refetchWalkIn();
-      }
-    }, [
-      refetchVisits,
-      refetchPending,
-      refetchAwaiting,
-      refetchWalkIn,
-      userRole,
-    ]),
-  );
-
-  const visitorRequests = useMemo(() => {
-    return visitsData?.data?.map(mapVisitListItemToVisitorRequest) || [];
-  }, [visitsData]);
+  // Refresh the sections when the screen regains focus (the mount fetch covers
+  // the first focus). refetch() bypasses 'enabled', so the role guards stay:
+  // pending approvals return 403 for non-managers.
+  const refocusRefetchers = useMemo(() => {
+    const refetchers: Array<(options?: { cancelRefetch?: boolean }) => unknown> = [];
+    if (userRole === "manager") {
+      refetchers.push(refetchPending);
+    }
+    if (userRole === "manager" || userRole === "employee") {
+      refetchers.push(refetchAwaiting, refetchWalkIn);
+    }
+    return refetchers;
+  }, [refetchPending, refetchAwaiting, refetchWalkIn, userRole]);
+  useRefetchOnRefocus(refocusRefetchers);
 
   const pendingApprovals = useMemo(() => {
     return pendingData?.data?.map(mapPendingApprovalToVisitorRequest) || [];
   }, [pendingData]);
+
+  const pendingApprovalTableItems = useMemo<VisitorMatrixItem[]>(
+    () => pendingApprovals.slice(0, 5).map((request) => ({
+      id: request.id,
+      visitorName: request.visitor.fullName,
+      company: request.visitor.company || undefined,
+      visitDate: request.visitDate,
+      plannedInTime: request.visitTime,
+      plannedOutTime: request.endTime,
+      status: request.status,
+      hostName: request.employeeName || undefined,
+      hasParking: resolveParkingDisplayDecision(request) === 'required',
+      hasBuffet: !!request.buffet,
+      hasValet: !!request.valet,
+      hasMeetingRoom: !!request.meetingRoom,
+      purpose: request.purpose || undefined,
+      isExpired: isVisitExpired(request.visitDate, request.visitTime, request.endTime, request.duration),
+    })),
+    [pendingApprovals],
+  );
 
   const awaitingVisitorAcceptance = useMemo(() => {
     return awaitingData?.data?.map(mapAwaitingVisitorToVisitorRequest) || [];
@@ -206,259 +227,206 @@ export default function OverviewScreen({
     return walkInData?.data?.map(mapPendingHostWalkInToVisitorRequest) || [];
   }, [walkInData]);
 
-  const isLoading =
-    visitsLoading ||
-    ((userRole === "manager" || userRole === "employee") &&
-      (awaitingLoading || walkInLoading)) ||
-    (userRole === "manager" && pendingLoading);
-  const isFetching =
-    visitsFetching ||
-    ((userRole === "manager" || userRole === "employee") &&
-      (awaitingFetching || walkInFetching)) ||
-    (userRole === "manager" && pendingFetching);
+  const awaitingVisitorTableItems = useMemo<VisitorMatrixItem[]>(
+    () => awaitingVisitorAcceptance.slice(0, 5).map((request) => ({
+      id: request.id,
+      visitorName: request.visitor.fullName,
+      company: request.visitor.company || undefined,
+      visitDate: request.visitDate,
+      plannedInTime: request.visitTime,
+      plannedOutTime: request.endTime,
+      status: request.status,
+      hostName: request.employeeName || undefined,
+      hasParking: resolveParkingDisplayDecision(request) === 'required',
+      hasBuffet: !!request.buffet,
+      hasValet: !!request.valet,
+      hasMeetingRoom: !!request.meetingRoom,
+      purpose: request.purpose || undefined,
+      isExpired: isVisitExpired(request.visitDate, request.visitTime, request.endTime, request.duration),
+    })),
+    [awaitingVisitorAcceptance],
+  );
 
-  const totalVisitors = visitorRequests.length;
-  const todaysVisitors = visitorRequests.filter((request) => {
-    const visitDate = new Date(request.visitDate);
-    const today = new Date();
-    return visitDate.toDateString() === today.toDateString();
-  }).length;
+  const walkInVisitorTableItems = useMemo<VisitorMatrixItem[]>(
+    () => walkInVisitors.slice(0, 5).map((request) => ({
+      id: request.id,
+      visitorName: request.visitor.fullName,
+      company: request.visitor.company || undefined,
+      visitDate: request.visitDate,
+      plannedInTime: request.visitTime,
+      plannedOutTime: request.endTime,
+      status: request.status,
+      hostName: request.employeeName || undefined,
+      hasParking: resolveParkingDisplayDecision(request) === 'required',
+      hasBuffet: !!request.buffet,
+      hasValet: !!request.valet,
+      hasMeetingRoom: !!request.meetingRoom,
+      purpose: request.purpose || undefined,
+      isExpired: computeIsVisitExpired(
+        request.visitDate,
+        request.visitTime,
+        request.endTime,
+        request.duration,
+        { isWalkIn: request.isWalkIn },
+      ),
+    })),
+    [walkInVisitors, riyadhBusinessDateKey],
+  );
 
-  const upcomingThisWeek = visitorRequests.filter((request) => {
-    if (request.status !== "approved" && request.status !== "visitor_accepted")
-      return false;
+  // Upcoming Visits only ever shows today onward, so the query starts at the
+  // current Riyadh business date rather than the 1st of the month: days already
+  // gone would be downloaded (100 rows a page) and then discarded. The range
+  // still ends at the Riyadh month boundary to match server-side business logic.
+  const { year: _ry, month: _rm } = getServerDateParts(new Date(), 'Asia/Riyadh');
+  const _lastDayOfMonth = new Date(_ry, _rm, 0).getDate();
+  const endOfCurrentMonthStr = `${_ry}-${String(_rm).padStart(2, '0')}-${String(_lastDayOfMonth).padStart(2, '0')}`;
+  const upcomingRangeStartStr =
+    riyadhBusinessDateKey <= endOfCurrentMonthStr ? riyadhBusinessDateKey : endOfCurrentMonthStr;
+  const isEmployeeOrManager = userRole === 'employee' || userRole === 'manager';
 
-    const visitDate = new Date(request.visitDate);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+  // Employee/Manager dashboard query — pages through all of the current user's
+  // remaining records this month so the preview is never capped by a single
+  // page limit.
+  const {
+    data: monthlyVisitsInfinite,
+    hasNextPage: monthlyHasNextPage,
+    fetchNextPage: monthlyFetchNextPage,
+    isFetchingNextPage: monthlyIsFetchingNextPage,
+    isLoading: monthlyVisitsLoading,
+    isFetching: monthlyVisitsFetching,
+    error: monthlyVisitsError,
+    refetch: refetchMonthlyVisits,
+  } = useInfiniteVisitsQuery(
+    { startDate: upcomingRangeStartStr, endDate: endOfCurrentMonthStr, myRequestsOnly: true, limit: 100 },
+    isEmployeeOrManager,
+  );
 
-    const oneWeekFromNow = new Date(today);
-    oneWeekFromNow.setDate(oneWeekFromNow.getDate() + 7);
+  // Auto-page through the remaining records so the upcoming visit preview is complete.
+  useEffect(() => {
+    if (isEmployeeOrManager && monthlyHasNextPage && !monthlyIsFetchingNextPage) {
+      monthlyFetchNextPage();
+    }
+  }, [isEmployeeOrManager, monthlyHasNextPage, monthlyIsFetchingNextPage, monthlyFetchNextPage]);
 
-    return visitDate >= today && visitDate <= oneWeekFromNow;
-  });
+  // ── Upcoming Visits status filter (employee & manager home) ────────────────
+  const [visitorFilter, setVisitorFilter] = useState<'all' | 'to_be_checked' | 'checked_in' | 'checked_out'>('all');
 
-  const kpiData =
-    userRole === "visitor"
-      ? [
-          {
-            title: t("dashboard.myVisit"),
-            value: "1",
-            icon: "calendar",
-            color: theme.primary,
-          },
-          {
-            title: t("dashboard.visitStatus"),
-            value: t("status.pending"),
-            icon: "clock",
-            color: theme.warning,
-          },
-        ]
-      : userRole === "receptionist"
-        ? [
-            {
-              title: t("dashboard.expectedToday"),
-              value: "5",
-              icon: "users",
-              color: theme.info,
-            },
-            {
-              title: t("dashboard.checkedIn"),
-              value: "1",
-              icon: "user-check",
-              color: theme.success,
-            },
-            {
-              title: t("dashboard.walkIns"),
-              value: "0",
-              icon: "user-plus",
-              color: theme.warning,
-            },
-          ]
-        : userRole === "employee"
-          ? [
-              {
-                title: t("dashboard.totalVisitors"),
-                value: totalVisitors.toString(),
-                icon: "users",
-                color: theme.info,
-              },
-              {
-                title: t("dashboard.todaysVisitors"),
-                value: todaysVisitors.toString(),
-                icon: "calendar",
-                color: theme.primary,
-              },
-              {
-                title: t("dashboard.checkedIn"),
-                value: "0",
-                icon: "check-circle",
-                color: theme.chartPurple,
-              },
-              {
-                title: t("dashboard.thisWeek"),
-                value: upcomingThisWeek.length.toString(),
-                icon: "trending-up",
-                color: theme.secondary,
-              },
-            ]
-          : userRole === "manager"
-            ? [
-                {
-                  title: t("dashboard.pendingRequests"),
-                  value: pendingApprovals.length.toString(),
-                  icon: "clock",
-                  color: theme.primary,
-                },
-                {
-                  title: t("dashboard.todaysVisitors"),
-                  value: todaysVisitors.toString(),
-                  icon: "calendar",
-                  color: theme.info,
-                },
-                {
-                  title: t("dashboard.checkedIn"),
-                  value: "0",
-                  icon: "check-circle",
-                  color: theme.chartPurple,
-                },
-                {
-                  title: t("dashboard.thisWeek"),
-                  value: upcomingThisWeek.length.toString(),
-                  icon: "trending-up",
-                  color: theme.secondary,
-                },
-              ]
-            : userRole === "security"
-              ? [
-                  {
-                    title: t("dashboard.expectedToday"),
-                    value: "45",
-                    icon: "users",
-                    color: theme.info,
-                  },
-                  {
-                    title: t("dashboard.checkedIn"),
-                    value: "18",
-                    icon: "user-check",
-                    color: theme.secondary,
-                  },
-                  {
-                    title: t("dashboard.pendingAwaiting"),
-                    value: "27",
-                    icon: "clock",
-                    color: theme.primary,
-                  },
-                  {
-                    title: t("dashboard.walkIns"),
-                    value: "3",
-                    icon: "user-plus",
-                    color: theme.chartPurple,
-                  },
-                ]
-              : userRole === "building_admin"
-                ? [
-                    {
-                      title: t("dashboard.totalSlots"),
-                      value: "150",
-                      icon: "map-pin",
-                      color: theme.info,
-                    },
-                    {
-                      title: t("dashboard.occupied"),
-                      value: "87",
-                      icon: "check-circle",
-                      color: theme.secondary,
-                    },
-                    {
-                      title: t("dashboard.reserved"),
-                      value: "23",
-                      icon: "clock",
-                      color: theme.primary,
-                    },
-                    {
-                      title: t("dashboard.available"),
-                      value: "40",
-                      icon: "circle",
-                      color: theme.chartPurple,
-                    },
-                  ]
-                : userRole === "buffet_admin"
-                  ? [
-                      {
-                        title: t("dashboard.totalVisitors"),
-                        value: "4",
-                        icon: "disc",
-                        color: theme.primary,
-                      },
-                      {
-                        title: t("dashboard.buffetLocations"),
-                        value: "6",
-                        icon: "map",
-                        color: theme.info,
-                      },
-                      {
-                        title: t("dashboard.buffetStaff"),
-                        value: "0",
-                        icon: "users",
-                        color: theme.secondary,
-                      },
-                      {
-                        title: t("notifications.title"),
-                        value: "0",
-                        icon: "bell",
-                        color: theme.chartPurple,
-                      },
-                    ]
-                  : [
-                      {
-                        title: t("dashboard.activeDrivers"),
-                        value: "12",
-                        icon: "truck",
-                        color: theme.primary,
-                      },
-                      {
-                        title: t("dashboard.pendingTasks"),
-                        value: "7",
-                        icon: "list",
-                        color: theme.primary,
-                      },
-                      {
-                        title: t("dashboard.completedToday"),
-                        value: "23",
-                        icon: "check-square",
-                        color: theme.secondary,
-                      },
-                      {
-                        title: t("dashboard.avgWait"),
-                        value: "8m",
-                        icon: "clock",
-                        color: theme.info,
-                      },
-                    ];
+  const TO_BE_CHECKED_STATUSES = ['expected', 'pending', 'approved', 'visitor_accepted'];
 
-  const recentRequests =
-    userRole === "employee"
-      ? visitorRequests
-          .filter((req) => !req.approval?.autoApproved)
-          .sort(
-            (a, b) =>
-              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-          )
-          .slice(0, 5)
-      : [];
+  const allMonthlyRequests = useMemo(() => {
+    return (monthlyVisitsInfinite?.pages.flatMap((p) => p.data) ?? []).map(
+      mapVisitListItemToVisitorRequest,
+    );
+  }, [monthlyVisitsInfinite]);
+
+  const filteredDashboardRequests = useMemo(() => {
+    let result = allMonthlyRequests;
+    if (visitorFilter === 'to_be_checked') {
+      result = result.filter((r) => TO_BE_CHECKED_STATUSES.includes(r.status));
+    } else if (visitorFilter === 'checked_in') {
+      result = result.filter((r) => r.status === 'checked_in');
+    } else if (visitorFilter === 'checked_out') {
+      result = result.filter((r) => r.status === 'completed');
+    }
+    return result;
+  }, [allMonthlyRequests, visitorFilter]);
+
+  // Upcoming Visits must mean upcoming: today onward, earliest first — never a
+  // past date, and never today buried behind earlier records. The query already
+  // starts at today's Riyadh date, but cached pages can predate a midnight
+  // rollover, so filter to today-or-later here before picking the 10-card preview.
+  const upcomingDashboardRequests = useMemo(() => {
+    const todayKey = getBusinessDateKey(new Date(), 'Asia/Riyadh');
+    return filteredDashboardRequests
+      .filter((r) => Boolean(r.visitDate) && r.visitDate >= todayKey)
+      .sort((a, b) => {
+        const timeA = a.visitStartAt ? Date.parse(a.visitStartAt) : NaN;
+        const timeB = b.visitStartAt ? Date.parse(b.visitStartAt) : NaN;
+        if (!Number.isNaN(timeA) && !Number.isNaN(timeB)) return timeA - timeB;
+        // Fall back to the date/time strings when a canonical timestamp is missing.
+        if (a.visitDate !== b.visitDate) return a.visitDate.localeCompare(b.visitDate);
+        return (a.visitTime || '').localeCompare(b.visitTime || '');
+      });
+  }, [filteredDashboardRequests, riyadhBusinessDateKey]);
+
+  // Keep the existing 10-card dashboard preview, but present those cards in
+  // chronological visit-date sections instead of a flat list.
+  const groupedDashboardRequests = useMemo(
+    () => groupVisitsByDate(upcomingDashboardRequests.slice(0, 10)),
+    [upcomingDashboardRequests],
+  );
+
+  const upcomingVisitTableItems = useMemo<VisitorMatrixItem[]>(
+    () => upcomingDashboardRequests.slice(0, 10).map((request) => ({
+      id: request.id,
+      visitorName: request.visitor.fullName,
+      company: request.visitor.company || undefined,
+      visitDate: request.visitDate,
+      plannedInTime: request.visitTime,
+      plannedOutTime: request.endTime,
+      status: request.status,
+      hostName: request.employeeName || undefined,
+      hasParking: resolveParkingDisplayDecision(request) === 'required',
+      hasBuffet: !!request.buffet,
+      hasValet: !!request.valet,
+      hasMeetingRoom: !!request.meetingRoom,
+      purpose: request.purpose || undefined,
+      isExpired: request.isWalkIn && request.status === "pending_host_approval"
+        ? computeIsPendingHostWalkInExpired(request)
+        : isVisitExpired(request.visitDate, request.visitTime, request.endTime, request.duration),
+    })),
+    [upcomingDashboardRequests],
+  );
 
   const cardWidth = Math.min(screenWidth - 2 * Spacing.lg, 320);
 
-  if (isLoading || isFetching) {
+  const renderSectionFeedback = (
+    hasUsableData: boolean,
+    loading: boolean,
+    fetching: boolean,
+    error: unknown,
+    retry: () => unknown,
+  ) => {
+    if (!hasUsableData) {
+      if (loading || fetching) {
+        return <SkeletonCard showImage={false} lines={2} />;
+      }
+      return (
+        <View style={[styles.sectionFeedback, { backgroundColor: theme.surface }]}>
+          <DDIcon name="alert-triangle" size={20} color={theme.error} />
+          <ThemedText style={[Typography.caption, { color: theme.error, flex: 1 }]}>
+            {t("common.loadError")}
+          </ThemedText>
+          <Pressable onPress={retry} hitSlop={8}>
+            <ThemedText style={[Typography.caption, { color: theme.primary, fontWeight: "600" }]}>
+              {t("common.retry")}
+            </ThemedText>
+          </Pressable>
+        </View>
+      );
+    }
+
+    if (!fetching && !error) return null;
     return (
-      <View
-        style={[styles.loadingContainer, { backgroundColor: theme.background }]}
-      >
-        <SkeletonDashboard cards={4} />
+      <View style={[styles.sectionFeedback, { backgroundColor: theme.surface }]}>
+        {fetching ? (
+          <ActivityIndicator size="small" color={theme.primary} />
+        ) : (
+          <DDIcon name="alert-circle" size={16} color={theme.error} />
+        )}
+        <ThemedText style={[Typography.caption, { color: error && !fetching ? theme.error : theme.textSecondary, flex: 1 }]}>
+          {fetching ? t("common.loading") : t("errors.generic")}
+        </ThemedText>
+        {error && !fetching ? (
+          <Pressable onPress={retry} hitSlop={8}>
+            <ThemedText style={[Typography.caption, { color: theme.primary, fontWeight: "600" }]}>
+              {t("common.retry")}
+            </ThemedText>
+          </Pressable>
+        ) : null}
       </View>
     );
-  }
+  };
 
   return (
     <>
@@ -494,285 +462,241 @@ export default function OverviewScreen({
           </>
         )}
 
-        {/* 2. Stats Cards */}
-        <KPICardRow>
-          {kpiData.map((kpi, index) => (
-            <KPICard key={index} {...kpi} />
-          ))}
-        </KPICardRow>
+        {/* 2. API KPI cards are supported for employee and manager dashboards only. */}
+        {isEmployeeOrManager ? (
+          <DashboardKpiSection />
+        ) : null}
 
         <Spacer height={Spacing.xxl} />
 
-        {/* 3. Upcoming Visitors Section - Employee & Manager */}
+        {/* 3. Upcoming Visits Section - Employee & Manager */}
         {(userRole === "employee" || userRole === "manager") && (
           <>
             <View>
               <DirectionalRow style={styles.header}>
-                <View
-                  style={{
-                    flex: 1,
-                  }}
+                <View style={{ flex: 1 }}>
+                  <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>
+                    {t("dashboard.upcomingVisits")}
+                  </ThemedText>
+                  <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 4, fontSize: 12 }]}>
+                    {t("time.thisMonth")}
+                  </ThemedText>
+                </View>
+                <DirectionalRow style={styles.viewToggle}>
+                  <Pressable
+                    onPress={() => setDashboardViewMode('card')}
+                    style={[
+                      styles.viewToggleBtn,
+                      styles.viewToggleBtnLeft,
+                      {
+                        backgroundColor: dashboardViewMode === 'card' ? theme.primary : theme.surface,
+                        borderColor: theme.border,
+                      },
+                    ]}
+                  >
+                    <DDIcon
+                      name="grid"
+                      size={16}
+                      color={dashboardViewMode === 'card' ? theme.buttonText : theme.textSecondary}
+                    />
+                  </Pressable>
+                  <Pressable
+                    onPress={() => setDashboardViewMode('list')}
+                    style={[
+                      styles.viewToggleBtn,
+                      styles.viewToggleBtnRight,
+                      {
+                        backgroundColor: dashboardViewMode === 'list' ? theme.primary : theme.surface,
+                        borderColor: theme.border,
+                      },
+                    ]}
+                  >
+                    <DDIcon
+                      name="menu"
+                      size={16}
+                      color={dashboardViewMode === 'list' ? theme.buttonText : theme.textSecondary}
+                    />
+                  </Pressable>
+                </DirectionalRow>
+              </DirectionalRow>
+
+              <Spacer height={Spacing.md} />
+
+              {/* Status filter chips */}
+              <DirectionalRow style={styles.upcomingFilterRow}>
+                <RTLHorizontalScrollView
+                  style={styles.upcomingFilterScroller}
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ gap: Spacing.sm, paddingBottom: 2 }}
+                  nestedScrollEnabled={true}
+                >
+                  {(
+                    [
+                      { key: 'all', label: t('common.all') },
+                      { key: 'to_be_checked', label: t('status.toBeChecked') },
+                      { key: 'checked_in', label: t('status.checkedIn') },
+                      { key: 'checked_out', label: t('status.checkedOut') },
+                    ] as const
+                  ).map((opt) => (
+                    <FilterChip
+                      key={opt.key}
+                      label={opt.label}
+                      isSelected={visitorFilter === opt.key}
+                      onPress={() => setVisitorFilter(opt.key)}
+                    />
+                  ))}
+                </RTLHorizontalScrollView>
+                <Pressable
+                  onPress={() =>
+                    navigation.navigate(
+                      ROUTES.VISITOR_REQUESTS as any,
+                      { initialTab: "all" } as any,
+                    )
+                  }
+                  style={({ pressed }) => [
+                    styles.viewAllButton,
+                    {
+                      opacity: pressed ? 0.7 : 1,
+                      flexDirection: getFlexDirection(isRTL),
+                      gap: Spacing.xs,
+                    },
+                  ]}
                 >
                   <ThemedText
                     style={[
-                      styles.sectionTitle,
-                      {
-                        color: theme.text,
-                      },
-                    ]}
-                  >
-                    {t("dashboard.upcomingVisitors")}
-                  </ThemedText>
-                  <ThemedText
-                    style={[
                       Typography.bodySmall,
-                      {
-                        color: theme.textSecondary,
-                        marginTop: 4,
-                        fontSize: 12,
-                      },
+                      { color: theme.primary, fontWeight: "500", fontSize: 13 },
                     ]}
                   >
-                    {t("dashboard.thisWeek")}
+                    {t("common.viewAll")}
                   </ThemedText>
-                </View>
-                {upcomingThisWeek.length > 0 && (
-                  <Pressable
-                    onPress={() =>
-                      navigation.navigate(
-                        ROUTES.VISITOR_REQUESTS as any,
-                        {
-                          initialTab:
-                            userRole === "manager" ? "all" : "upcoming",
-                        } as any,
-                      )
-                    }
-                    style={({ pressed }) => [
-                      styles.viewAllButton,
-                      {
-                        opacity: pressed ? 0.7 : 1,
-                        flexDirection: getFlexDirection(isRTL),
-                        gap: Spacing.xs,
-                      },
-                    ]}
-                  >
-                    <ThemedText
-                      style={[
-                        Typography.bodySmall,
-                        {
-                          color: theme.primary,
-                          fontWeight: "500",
-                          fontSize: 13,
-                        },
-                      ]}
-                    >
-                      {t("common.viewAll")}
-                    </ThemedText>
-                    <DDIcon
-                      name="chevron-right"
-                      size={16}
-                      color={theme.primary}
-                      directionAware
-                    />
-                  </Pressable>
-                )}
+                  <DDIcon name="chevron-right" size={16} color={theme.primary} directionAware />
+                </Pressable>
               </DirectionalRow>
 
               <Spacer height={Spacing.lg} />
 
-              {upcomingThisWeek.length > 0 ? (
-                <RTLHorizontalScrollView
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.carouselContainer}
-                  snapToInterval={cardWidth + Spacing.md}
-                  decelerationRate="fast"
-                  nestedScrollEnabled={true}
-                  keyboardShouldPersistTaps="handled"
-                  directionalLockEnabled={true}
-                  scrollEventThrottle={16}
-                >
-                  {upcomingThisWeek.map((request, index) => (
-                    <VisitorRequestCard
-                      key={request.id}
-                      request={request}
-                      onPress={() => {
-                        navigation.navigate(
-                          ROUTES.REQUEST_DETAILS as any,
-                          { requestId: request.id } as any,
-                        );
-                      }}
-                      width={cardWidth}
-                      style={
-                        index > 0
-                          ? isRTL
-                            ? { marginEnd: Spacing.md }
-                            : { marginStart: Spacing.md }
-                          : undefined
-                      }
-                    />
-                  ))}
-                </RTLHorizontalScrollView>
+              {monthlyVisitsInfinite === undefined ? (
+                renderSectionFeedback(
+                  false,
+                  monthlyVisitsLoading,
+                  monthlyVisitsFetching,
+                  monthlyVisitsError,
+                  refetchMonthlyVisits,
+                )
               ) : (
+                <>
+                  {renderSectionFeedback(true, monthlyVisitsLoading, monthlyVisitsFetching, monthlyVisitsError, refetchMonthlyVisits)}
+                  {upcomingDashboardRequests.length > 0 && dashboardViewMode === 'list' ? (
+                <VisitorMatrixTable
+                  variant="matrix"
+                  visitors={upcomingVisitTableItems}
+                  onPressRow={(requestId) =>
+                    navigation.navigate(
+                      ROUTES.REQUEST_DETAILS as any,
+                      { requestId } as any,
+                    )
+                  }
+                  emptyMessage={t("dashboard.noUpcomingVisitors")}
+                />
+              ) : upcomingDashboardRequests.length > 0 ? (
+                <>
+                  {groupedDashboardRequests.map((group, index) => (
+                    <View key={group.date}>
+                      <DirectionalRow
+                        style={[
+                          styles.dateGroupHeader,
+                          {
+                            backgroundColor: theme.surface,
+                            borderColor: theme.border,
+                          },
+                        ]}
+                      >
+                        <View
+                          style={[
+                            styles.dateGroupAccent,
+                            { backgroundColor: theme.primary },
+                          ]}
+                        />
+                        <ThemedText
+                          style={[styles.dateGroupLabel, { color: theme.text }]}
+                        >
+                          {group.date === "unknown"
+                            ? t("common.date")
+                            : formatVisitDateLabel(group.date, localeCode, {
+                                today: t("common.today"),
+                                tomorrow: t("time.tomorrow"),
+                              })}
+                        </ThemedText>
+                        <ThemedText
+                          style={[
+                            styles.dateGroupCount,
+                            { color: theme.textSecondary },
+                          ]}
+                        >
+                          {group.visits.length}
+                        </ThemedText>
+                      </DirectionalRow>
+
+                      <Spacer height={Spacing.md} />
+
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          flexWrap: 'wrap',
+                          gap: Spacing.sm,
+                        }}
+                      >
+                        {group.visits.map((request) => (
+                          <View
+                            key={request.id}
+                            style={
+                              screenWidth >= 900
+                                ? { flex: 1, minWidth: 260 }
+                                : screenWidth >= 600
+                                ? { flex: 1, minWidth: 280 }
+                                : { width: '100%' }
+                            }
+                          >
+                            <VisitorRequestCard
+                              request={request}
+                              onPress={() =>
+                                navigation.navigate(
+                                  ROUTES.REQUEST_DETAILS as any,
+                                  { requestId: request.id } as any,
+                                )
+                              }
+                            />
+                          </View>
+                        ))}
+                      </View>
+
+                      {index < groupedDashboardRequests.length - 1 ? (
+                        <Spacer height={Spacing.xl} />
+                      ) : null}
+                    </View>
+                  ))}
+                </>
+                  ) : (
                 <ThemedView
                   style={[
                     styles.emptyCarousel,
                     { backgroundColor: theme.surface },
                   ]}
                 >
-                  <DDIcon
-                    name="calendar"
-                    size={32}
-                    color={theme.textSecondary}
-                  />
+                  <DDIcon name="calendar" size={32} color={theme.textSecondary} />
                   <Spacer height={Spacing.sm} />
-                  <ThemedText
-                    style={[
-                      Typography.bodySmall,
-                      { color: theme.textSecondary },
-                    ]}
-                  >
+                  <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
                     {t("dashboard.noUpcomingVisitors")}
                   </ThemedText>
                 </ThemedView>
+                  )}
+                </>
               )}
             </View>
 
             <Spacer height={Spacing.xxl} />
-          </>
-        )}
 
-        {/* 4. Recent Requests Section - Employee Only */}
-        {userRole === "employee" && (
-          <>
-            <View>
-              <DirectionalRow style={styles.header}>
-                <View
-                  style={{
-                    flex: 1,
-                  }}
-                >
-                  <ThemedText
-                    style={[
-                      styles.sectionTitle,
-                      {
-                        color: theme.text,
-                      },
-                    ]}
-                  >
-                    {t("dashboard.recentRequests")}
-                  </ThemedText>
-                  <ThemedText
-                    style={[
-                      Typography.bodySmall,
-                      {
-                        color: theme.textSecondary,
-                        marginTop: 4,
-                        fontSize: 12,
-                      },
-                    ]}
-                  >
-                    {t("dashboard.yourLatestRequests")}
-                  </ThemedText>
-                </View>
-                {recentRequests.length > 0 && (
-                  <Pressable
-                    onPress={() =>
-                      navigation.navigate(
-                        ROUTES.VISITOR_REQUESTS as any,
-                        { initialTab: "all" } as any,
-                      )
-                    }
-                    style={({ pressed }) => [
-                      styles.viewAllButton,
-                      {
-                        opacity: pressed ? 0.7 : 1,
-                        flexDirection: getFlexDirection(isRTL),
-                        gap: Spacing.xs,
-                      },
-                    ]}
-                  >
-                    <ThemedText
-                      style={[
-                        Typography.bodySmall,
-                        {
-                          color: theme.primary,
-                          fontWeight: "500",
-                          fontSize: 13,
-                        },
-                      ]}
-                    >
-                      {t("common.viewAll")}
-                    </ThemedText>
-                    <DDIcon
-                      name="chevron-right"
-                      size={16}
-                      color={theme.primary}
-                      directionAware
-                    />
-                  </Pressable>
-                )}
-              </DirectionalRow>
-
-              <Spacer height={Spacing.lg} />
-
-              {recentRequests.length > 0 ? (
-                <RTLHorizontalScrollView
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.carouselContainer}
-                  snapToInterval={cardWidth + Spacing.md}
-                  decelerationRate="fast"
-                  nestedScrollEnabled={true}
-                  keyboardShouldPersistTaps="handled"
-                  directionalLockEnabled={true}
-                  scrollEventThrottle={16}
-                >
-                  {recentRequests.map((request, index) => (
-                    <VisitorRequestCard
-                      key={request.id}
-                      request={request}
-                      onPress={() => {
-                        navigation.navigate(
-                          ROUTES.REQUEST_DETAILS as any,
-                          { requestId: request.id } as any,
-                        );
-                      }}
-                      width={cardWidth}
-                      style={
-                        index > 0
-                          ? isRTL
-                            ? { marginEnd: Spacing.md }
-                            : { marginStart: Spacing.md }
-                          : undefined
-                      }
-                    />
-                  ))}
-                </RTLHorizontalScrollView>
-              ) : (
-                <ThemedView
-                  style={[
-                    styles.emptyCarousel,
-                    { backgroundColor: theme.surface },
-                  ]}
-                >
-                  <DDIcon
-                    name="file-text"
-                    size={32}
-                    color={theme.textSecondary}
-                  />
-                  <Spacer height={Spacing.sm} />
-                  <ThemedText
-                    style={[
-                      Typography.bodySmall,
-                      { color: theme.textSecondary },
-                    ]}
-                  >
-                    {t("dashboard.noRecentRequests")}
-                  </ThemedText>
-                </ThemedView>
-              )}
-            </View>
-
-            <Spacer height={Spacing.xxl} />
           </>
         )}
 
@@ -809,45 +733,65 @@ export default function OverviewScreen({
                     {t("dashboard.requestsAwaitingApproval")}
                   </ThemedText>
                 </View>
-                {pendingApprovals.length > 0 && (
-                  <Pressable
-                    onPress={() =>
-                      navigation.navigate(ROUTES.APPROVALS as any)
-                    }
-                    style={({ pressed }) => [
-                      styles.viewAllButton,
-                      {
-                        opacity: pressed ? 0.7 : 1,
-                        flexDirection: getFlexDirection(isRTL),
-                        gap: Spacing.xs,
-                      },
-                    ]}
-                  >
-                    <ThemedText
-                      style={[
-                        Typography.bodySmall,
+                <DirectionalRow style={{ alignItems: 'center', gap: Spacing.sm }}>
+                  {pendingApprovals.length > 0 ? (
+                    <Pressable
+                      onPress={() => navigation.navigate(ROUTES.APPROVALS as any)}
+                      style={({ pressed }) => [
+                        styles.viewAllButton,
                         {
-                          color: theme.primary,
-                          fontWeight: "500",
-                          fontSize: 13,
+                          opacity: pressed ? 0.7 : 1,
+                          flexDirection: getFlexDirection(isRTL),
+                          gap: Spacing.xs,
                         },
                       ]}
                     >
-                      {t("common.viewAll")}
-                    </ThemedText>
-                    <DDIcon
-                      name="chevron-right"
-                      size={16}
-                      color={theme.primary}
-                      directionAware
-                    />
-                  </Pressable>
-                )}
+                      <ThemedText
+                        style={[
+                          Typography.bodySmall,
+                          {
+                            color: theme.primary,
+                            fontWeight: "500",
+                            fontSize: 13,
+                          },
+                        ]}
+                      >
+                        {t("common.viewAll")}
+                      </ThemedText>
+                      <DDIcon
+                        name="chevron-right"
+                        size={16}
+                        color={theme.primary}
+                        directionAware
+                      />
+                    </Pressable>
+                  ) : null}
+                </DirectionalRow>
               </DirectionalRow>
 
               <Spacer height={Spacing.lg} />
 
-              {pendingApprovals.length > 0 ? (
+              {pendingData === undefined ? (
+                renderSectionFeedback(false, pendingLoading, pendingFetching, pendingError, refetchPending)
+              ) : (
+                <>
+                  {renderSectionFeedback(true, pendingLoading, pendingFetching, pendingError, refetchPending)}
+                  {pendingApprovals.length > 0 && dashboardViewMode === 'list' ? (
+                <VisitorMatrixTable
+                  variant="matrix"
+                  visitors={pendingApprovalTableItems}
+                  onPressRow={(requestId) => {
+                    navigation.navigate(
+                      ROUTES.MANAGER_APPROVAL_DETAIL as any,
+                      { requestId } as any,
+                    );
+                  }}
+                  showApproveReject
+                  onApprove={handleApprove}
+                  onReject={handleReject}
+                  emptyMessage={t("common.noResults")}
+                />
+              ) : pendingApprovals.length > 0 ? (
                 <RTLHorizontalScrollView
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={styles.carouselContainer}
@@ -891,7 +835,7 @@ export default function OverviewScreen({
                     );
                   })}
                 </RTLHorizontalScrollView>
-              ) : (
+                  ) : (
                 <ThemedView
                   style={[
                     styles.emptyCarousel,
@@ -909,6 +853,8 @@ export default function OverviewScreen({
                     {t("dashboard.noPendingApprovals")}
                   </ThemedText>
                 </ThemedView>
+                  )}
+                </>
               )}
             </View>
 
@@ -990,7 +936,24 @@ export default function OverviewScreen({
 
               <Spacer height={Spacing.lg} />
 
-              {awaitingVisitorAcceptance.length > 0 ? (
+              {awaitingData === undefined ? (
+                renderSectionFeedback(false, awaitingLoading, awaitingFetching, awaitingError, refetchAwaiting)
+              ) : (
+                <>
+                  {renderSectionFeedback(true, awaitingLoading, awaitingFetching, awaitingError, refetchAwaiting)}
+                  {awaitingVisitorAcceptance.length > 0 && dashboardViewMode === 'list' ? (
+                <VisitorMatrixTable
+                  variant="matrix"
+                  visitors={awaitingVisitorTableItems}
+                  onPressRow={(requestId) => {
+                    navigation.navigate(
+                      ROUTES.REQUEST_DETAILS as any,
+                      { requestId } as any,
+                    );
+                  }}
+                  emptyMessage={t("dashboard.noAwaitingVisitors")}
+                />
+              ) : awaitingVisitorAcceptance.length > 0 ? (
                 <RTLHorizontalScrollView
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={styles.carouselContainer}
@@ -1026,7 +989,7 @@ export default function OverviewScreen({
                       />
                     ))}
                 </RTLHorizontalScrollView>
-              ) : (
+                  ) : (
                 <ThemedView
                   style={[
                     styles.emptyCarousel,
@@ -1044,6 +1007,8 @@ export default function OverviewScreen({
                     {t("dashboard.noAwaitingVisitors")}
                   </ThemedText>
                 </ThemedView>
+                  )}
+                </>
               )}
             </View>
 
@@ -1126,7 +1091,25 @@ export default function OverviewScreen({
 
               <Spacer height={Spacing.lg} />
 
-              {walkInVisitors.length > 0 ? (
+              {walkInData === undefined ? (
+                renderSectionFeedback(false, walkInLoading, walkInFetching, walkInError, refetchWalkIn)
+              ) : (
+                <>
+                  {renderSectionFeedback(true, walkInLoading, walkInFetching, walkInError, refetchWalkIn)}
+                  {walkInVisitors.length > 0 && dashboardViewMode === 'list' ? (
+                <VisitorMatrixTable
+                  variant="matrix"
+                  visitors={walkInVisitorTableItems}
+                  showExpiredState={true}
+                  onPressRow={(requestId) => {
+                    navigation.navigate(
+                      ROUTES.REQUEST_DETAILS as any,
+                      { requestId } as any,
+                    );
+                  }}
+                  emptyMessage={t("dashboard.noWalkInVisitors")}
+                />
+              ) : walkInVisitors.length > 0 ? (
                 <RTLHorizontalScrollView
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={styles.carouselContainer}
@@ -1137,30 +1120,41 @@ export default function OverviewScreen({
                   directionalLockEnabled={true}
                   scrollEventThrottle={16}
                 >
-                  {walkInVisitors.slice(0, 5).map((request, index) => (
-                    <VisitorRequestCard
-                      key={request.id}
-                      request={request}
-                      onPress={() => {
-                        navigation.navigate(
-                          ROUTES.REQUEST_DETAILS as any,
-                          { requestId: request.id } as any,
-                        );
-                      }}
-                      width={cardWidth}
-                      accentColor={theme.info}
-                      showRequestedBy={true}
-                      style={
-                        index > 0
-                          ? isRTL
-                            ? { marginEnd: Spacing.md }
-                            : { marginStart: Spacing.md }
-                          : undefined
-                      }
-                    />
-                  ))}
+                  {walkInVisitors.slice(0, 5).map((request, index) => {
+                    const expired = computeIsVisitExpired(
+                      request.visitDate,
+                      request.visitTime,
+                      request.endTime,
+                      request.duration,
+                      { isWalkIn: request.isWalkIn },
+                    );
+                    return (
+                      <VisitorRequestCard
+                        key={request.id}
+                        request={request}
+                        onPress={() => {
+                          navigation.navigate(
+                            ROUTES.REQUEST_DETAILS as any,
+                            { requestId: request.id } as any,
+                          );
+                        }}
+                        width={cardWidth}
+                        accentColor={theme.info}
+                        showRequestedBy={true}
+                        showExpiredState={true}
+                        isExpired={expired}
+                        style={
+                          index > 0
+                            ? isRTL
+                              ? { marginEnd: Spacing.md }
+                              : { marginStart: Spacing.md }
+                            : undefined
+                        }
+                      />
+                    );
+                  })}
                 </RTLHorizontalScrollView>
-              ) : (
+                  ) : (
                 <ThemedView
                   style={[
                     styles.emptyCarousel,
@@ -1182,6 +1176,8 @@ export default function OverviewScreen({
                     {t("dashboard.noWalkInVisitors")}
                   </ThemedText>
                 </ThemedView>
+                  )}
+                </>
               )}
             </View>
 
@@ -1396,7 +1392,7 @@ export default function OverviewScreen({
             },
           ]}
           onPress={() =>
-            navigation.navigate(ROUTES.VISIT_TYPE_SELECTION as any)
+            navigation.navigate(ROUTES.VISITOR_REQUEST_FORM as any)
           }
         >
           <DDIcon name="user-plus" size={24} color={theme.buttonText} />
@@ -1413,7 +1409,8 @@ export default function OverviewScreen({
       >
         <Pressable 
           style={styles.modalOverlay} 
-          onPress={!rejectMutation.isPending ? handleRejectCancel : undefined}
+          onPress={Keyboard.dismiss}
+          accessible={false}
         >
           <BlurView
             intensity={isDark ? 40 : 60}
@@ -1423,6 +1420,7 @@ export default function OverviewScreen({
           <KeyboardAvoidingView 
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             style={styles.keyboardAvoidingView}
+            accessibilityViewIsModal
           >
             <Pressable 
               style={[
@@ -1432,7 +1430,11 @@ export default function OverviewScreen({
                   marginBottom: insets.bottom,
                 }
               ]}
-              onPress={(e) => e.stopPropagation()}
+              onPress={(e) => {
+                e.stopPropagation();
+                Keyboard.dismiss();
+              }}
+              accessible={false}
             >
               <ThemedView style={styles.rejectModalContent}>
                 <Pressable 
@@ -1505,6 +1507,13 @@ export default function OverviewScreen({
 }
 
 const styles = StyleSheet.create({
+  upcomingFilterRow: {
+    alignItems: "center",
+    gap: Spacing.md,
+  },
+  upcomingFilterScroller: {
+    flex: 1,
+  },
   container: {
     padding: Spacing.lg,
   },
@@ -1641,17 +1650,30 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   viewToggle: {
-    flexDirection: "row",
-    gap: Spacing.xs,
     borderRadius: BorderRadius.sm,
     overflow: "hidden",
+    flexDirection: "row",
   },
-  viewToggleButton: {
+  viewToggleBtn: {
     padding: Spacing.sm,
-    borderRadius: BorderRadius.sm,
-    minWidth: 40,
+    minWidth: 36,
+    height: 36,
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 1,
+  },
+  viewToggleBtnLeft: {
+    borderTopStartRadius: BorderRadius.sm,
+    borderBottomStartRadius: BorderRadius.sm,
+    borderTopEndRadius: 0,
+    borderBottomEndRadius: 0,
+    borderEndWidth: 0,
+  },
+  viewToggleBtnRight: {
+    borderTopEndRadius: BorderRadius.sm,
+    borderBottomEndRadius: BorderRadius.sm,
+    borderTopStartRadius: 0,
+    borderBottomStartRadius: 0,
   },
   visitorCard: {
     borderRadius: BorderRadius.md,
@@ -1679,11 +1701,6 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.full,
     justifyContent: "center",
     alignItems: "center",
-  },
-  statusBadge: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
-    borderRadius: BorderRadius.full,
   },
   detailsRow: {
     flexDirection: "row",
@@ -1732,11 +1749,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  statusBadgeSmall: {
-    paddingHorizontal: Spacing.xs,
-    paddingVertical: 2,
-    borderRadius: BorderRadius.sm,
-  },
   viewDetailsButton: {
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.xs,
@@ -1745,6 +1757,37 @@ const styles = StyleSheet.create({
   viewAllButton: {
     alignItems: "center",
     alignSelf: "flex-end",
+  },
+  sectionFeedback: {
+    minHeight: 44,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+  },
+  dateGroupHeader: {
+    alignItems: "center",
+    borderWidth: 1,
+    borderRadius: BorderRadius.md,
+    minHeight: 42,
+    overflow: "hidden",
+    paddingEnd: Spacing.md,
+  },
+  dateGroupAccent: {
+    alignSelf: "stretch",
+    width: 4,
+    marginEnd: Spacing.sm,
+  },
+  dateGroupLabel: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  dateGroupCount: {
+    fontSize: 13,
+    fontWeight: "600",
   },
   fab: {
     position: "absolute",

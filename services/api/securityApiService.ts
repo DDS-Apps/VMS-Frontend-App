@@ -1,5 +1,6 @@
 import { get, post } from '@/api/httpClient';
 import { apiConfig } from '@/api/config';
+import { getBusinessDateKey } from '@/utils/dateTimeUtils';
 import type {
   PaginatedResponse,
   SecurityVisitorDto,
@@ -59,6 +60,7 @@ function mapVisitToSecurityVisitor(visit: VisitListItemDto): SecurityVisitorDto 
     carColor: visit.carColor,
     isBuffet: visit.isBuffet,
     isMeetingRoom: visit.isMeetingRoom,
+    isWalkIn: visit.isWalkIn,
   };
 }
 
@@ -93,6 +95,11 @@ function mapVisitDetailsToSecurityVisitor(visit: VisitDetailsDto): SecurityVisit
     meetingRoom: visit.meetingRoom,
     buffet: visit.buffet,
     qrCode: visit.qrCode,
+    isWalkIn: visit.isWalkIn,
+    checkedInAt: visit.checkedInAt,
+    checkedOutAt: visit.checkedOutAt,
+    completedAt: visit.completedAt,
+    timeline: visit.timeline,
   };
 }
 
@@ -131,7 +138,7 @@ export const securityApiService = {
   },
 
   getTodayVisitors: async (params?: ListSecurityTodayParams): Promise<SecurityVisitorDto[]> => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getBusinessDateKey(new Date(), 'Asia/Riyadh');
     const queryParams: Record<string, unknown> = {
       startDate: today,
       endDate: today,
@@ -146,7 +153,7 @@ export const securityApiService = {
   },
 
   getTodaySummary: async (): Promise<SecuritySummary> => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getBusinessDateKey(new Date(), 'Asia/Riyadh');
     const queryString = buildQueryString({
       startDate: today,
       endDate: today,
@@ -161,12 +168,15 @@ export const securityApiService = {
     const checkedIn = statuses.filter(s => s === 'checked_in').length;
     const checkedOut = statuses.filter(s => s === 'checked_out').length;
     
+    const walkIns = response.data.filter(v => v.isWalkIn).length;
+
     return {
       expectedToday,
       checkedIn,
       checkedOut,
       currentlyOnSite: checkedIn,
       blockedEntries: 0,
+      walkIns,
     };
   },
 
@@ -210,7 +220,7 @@ export const securityApiService = {
   },
 
   getOnSiteVisitors: async (): Promise<SecurityVisitorDto[]> => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getBusinessDateKey(new Date(), 'Asia/Riyadh');
     const queryParams: Record<string, unknown> = {
       startDate: today,
       endDate: today,

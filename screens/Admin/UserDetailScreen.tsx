@@ -13,11 +13,12 @@ import { Spacing, BorderRadius, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useToast } from '@/contexts/ToastContext';
-import { useUserQuery, useDeleteUserMutation } from '@/hooks/queries/useUserQueries';
+import { useAdminUserQuery, useDeleteUserMutation } from '@/hooks/queries/useUserQueries';
 import { useFormatters } from '@/hooks/useFormatters';
 import { UserRole } from '@/types/vms.types';
 import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
-import { formatPhoneNumber, formatPhoneForDisplay } from '@/utils/formatters';
+import { formatPhoneNumber, formatPhoneForDisplay, getInitials } from '@/utils/formatters';
+import { StatusIcon } from '@/components/shared';
 
 type RootStackParamList = {
   UserDetail: { userId: string };
@@ -37,7 +38,7 @@ export default function UserDetailScreen() {
 
   const { userId } = route.params;
 
-  const { data: user, isLoading, isFetching, isError, error, refetch } = useUserQuery(userId);
+  const { data: user, isLoading, isFetching, isError, error, refetch } = useAdminUserQuery(userId);
   const deleteMutation = useDeleteUserMutation();
   
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
@@ -86,7 +87,7 @@ export default function UserDetailScreen() {
     }
   };
 
-  if (isLoading || isFetching) {
+  if ((isLoading || isFetching) && !user) {
     return (
       <ThemedView style={[styles.container, styles.centered]}>
         <ActivityIndicator size="large" color={theme.primary} />
@@ -96,7 +97,7 @@ export default function UserDetailScreen() {
     );
   }
 
-  if (isError || !user) {
+  if (isError && !user) {
     return (
       <ThemedView style={[styles.container, styles.centered]}>
         <DDIcon name="alert-circle" size={48} variant="danger" />
@@ -118,25 +119,71 @@ export default function UserDetailScreen() {
     );
   }
 
-  const userName = (user as any).name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email;
-  const userFirstName = (user as any).name?.split(' ')[0] || user.firstName || '';
-  const userLastName = (user as any).name?.split(' ').slice(1).join(' ') || user.lastName || '';
-  const userPhone = (user as any).phoneNumber || user.phone || '';
-  const userBusinessPhone = (user as any).businessPhone || '';
-  const userLandline = (user as any).landline || '';
-  const apiSource = (user as any).source;
-  const source = apiSource === 'azure_ad' ? 'microsoft_ad' : (apiSource || (user.azureAdId ? 'microsoft_ad' : 'app_created'));
+  if (!user) {
+    return (
+      <ThemedView style={[styles.container, styles.centered]}>
+        <ActivityIndicator size="large" color={theme.primary} />
+        <Spacer height={Spacing.md} />
+        <ThemedText style={{ color: theme.textSecondary }}>{t('common.loading')}</ThemedText>
+      </ThemedView>
+    );
+  }
+
+  const userAny = user as any;
+  const userName = userAny.name || `${userAny.firstName || ''} ${userAny.lastName || ''}`.trim() || user.email;
+  const userPhone = userAny.phoneNumber || userAny.phone || '';
+  const userBusinessPhone = userAny.businessPhone || '';
+  const userLandline = userAny.landline || '';
+  const apiSource = userAny.source;
+  const source = apiSource === 'azure_ad' ? 'microsoft_ad' : (apiSource || (userAny.azureAdId ? 'microsoft_ad' : 'app_created'));
   
   // Check user active status from both isActive boolean and status string
-  const isUserActive = user.isActive === true || user.status === 'active';
+  const isUserActive = userAny.isActive === true || user.status === 'active';
 
   return (
     <ScreenScrollView>
       <View style={styles.content}>
+        {isFetching || isError ? (
+          <DirectionalRow
+            style={[
+              styles.inlineFeedback,
+              {
+                backgroundColor: (isFetching ? theme.primary : theme.error) + '15',
+                borderColor: isFetching ? theme.primary : theme.error,
+              },
+            ]}
+          >
+            {isFetching ? (
+              <ActivityIndicator size="small" color={theme.primary} />
+            ) : (
+              <DDIcon name="alert-circle" size={16} color={theme.error} />
+            )}
+            <ThemedText
+              style={[
+                Typography.caption,
+                { color: isFetching ? theme.textSecondary : theme.error, flex: 1 },
+              ]}
+            >
+              {isFetching ? t('common.loading') : error?.message || t('common.loadError')}
+            </ThemedText>
+            {isError && !isFetching ? (
+              <Pressable onPress={() => refetch()} hitSlop={8}>
+                <ThemedText style={[Typography.caption, { color: theme.primary, fontWeight: '600' }]}>
+                  {t('common.retry')}
+                </ThemedText>
+              </Pressable>
+            ) : null}
+          </DirectionalRow>
+        ) : null}
         <View style={[styles.header, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
           <View style={[styles.avatarContainer, { backgroundColor: theme.primary + '20' }]}>
-            <ThemedText style={[styles.avatarText, { color: theme.primary, lineHeight: 80 }]}>
-              {userFirstName.charAt(0).toUpperCase()}{userLastName.charAt(0).toUpperCase() || userFirstName.charAt(1)?.toUpperCase() || ''}
+            <ThemedText
+              style={[styles.avatarText, { color: theme.primary, lineHeight: 80 }]}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.5}
+            >
+              {getInitials(userName)}
             </ThemedText>
           </View>
           <Spacer height={Spacing.md} />
@@ -162,16 +209,7 @@ export default function UserDetailScreen() {
                 {getRoleLabel(user.role)}
               </ThemedText>
             </View>
-            <DirectionalRow style={[styles.statusBadge, { backgroundColor: isUserActive ? theme.success + '20' : theme.error + '20' }]}>
-              <DDIcon 
-                name={isUserActive ? 'check-circle' : 'x-circle'} 
-                size={12} 
-                color={isUserActive ? theme.success : theme.error} 
-              />
-              <ThemedText style={[Typography.caption, { color: isUserActive ? theme.success : theme.error, fontWeight: '600', marginStart: 4 }]}>
-                {isUserActive ? t('common.active') : t('common.inactive')}
-              </ThemedText>
-            </DirectionalRow>
+            <StatusIcon icon={isUserActive ? 'check-circle' : 'x-circle'} color={isUserActive ? theme.success : theme.error} />
           </DirectionalRow>
         </View>
 
@@ -291,7 +329,7 @@ export default function UserDetailScreen() {
                 {t('common.autoApproval')}
               </ThemedText>
               <View style={styles.autoApprovalValue}>
-                {(user.canBypassApproval || user.autoApproval) ? (
+                {(userAny.canBypassApproval || user.autoApproval) ? (
                   <DirectionalRow style={[styles.enabledBadge, { backgroundColor: theme.success + '20' }]}>
                     <DDIcon name="check" size={12} color={theme.success} />
                     <ThemedText style={[Typography.caption, { color: theme.success, fontWeight: '600', marginStart: 4 }]}>
@@ -488,6 +526,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
     borderRadius: BorderRadius.md,
+  },
+  inlineFeedback: {
+    alignItems: 'center',
+    gap: Spacing.sm,
+    padding: Spacing.sm,
+    marginBottom: Spacing.md,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
   },
   deleteButton: {
     alignItems: 'center',

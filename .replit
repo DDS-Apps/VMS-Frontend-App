@@ -18,6 +18,10 @@ localPort = 5002
 externalPort = 3002
 
 [[ports]]
+localPort = 5055
+externalPort = 3000
+
+[[ports]]
 localPort = 8081
 externalPort = 8081
 
@@ -26,8 +30,8 @@ PORT = "5000"
 
 [deployment]
 deploymentTarget = "autoscale"
-run = ["sh", "-c", "node server.js"]
-build = ["sh", "-c", "bash scripts/build-and-verify.sh"]
+run = ["node", "server.js"]
+build = ["bash", "-c", "bash scripts/build-and-verify.sh"]
 
 [workflows]
 runButton = "Project"
@@ -54,7 +58,7 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "EXPO_NO_PROMPT=1 npx expo start --port 5000 --host tunnel --go"
+args = "EXPO_NO_PROMPT=1 npx expo start --port 5000 --host lan --go"
 waitForPort = 5000
 
 [[workflows.workflow]]
@@ -71,9 +75,9 @@ isValidation = true
 [userenv]
 
 [userenv.shared]
-EXPO_PUBLIC_API_BASE_URL = "https://vms-backend-folio3.replit.app"
-EXPO_PUBLIC_VMS_API_BASE_URL = "https://vms-backend-folio3.replit.app"
-EXPO_PUBLIC_MICROSOFT_AUTH_URL = "https://vms-backend-folio3.replit.app"
+EXPO_PUBLIC_API_BASE_URL = "https://vms-backend-app-qa.replit.app"
+EXPO_PUBLIC_VMS_API_BASE_URL = "https://vms-backend-app-qa.replit.app"
+EXPO_PUBLIC_MICROSOFT_AUTH_URL = "https://vms-backend-app-qa.replit.app"
 EXPO_PUBLIC_FIREBASE_API_KEY = "AIzaSyAY6g-50Gu5zlB3sbkKHuuG5DpBOLZd_xo"
 EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN = "dallah-albaraka-vms.firebaseapp.com"
 EXPO_PUBLIC_FIREBASE_PROJECT_ID = "dallah-albaraka-vms"

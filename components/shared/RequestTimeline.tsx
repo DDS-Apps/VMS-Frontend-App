@@ -16,6 +16,8 @@ import {
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { formatTimestamp, DEFAULT_SERVER_TIMEZONE } from "@/utils/dateTimeUtils";
+import { withCanonicalTimelineTimestamps } from "@/utils/timelineTimestamps";
 
 export type TimelineStepStatus = 'completed' | 'current' | 'pending' | 'error';
 
@@ -58,12 +60,15 @@ interface RequestTimelineProps {
   steps: TimelineStep[];
   title?: string;
   showTitle?: boolean;
+  /** IANA timezone for formatting absolute timestamps. Defaults to Asia/Riyadh. */
+  timezone?: string;
 }
 
 export function RequestTimeline({ 
   steps, 
   title,
-  showTitle = true 
+  showTitle = true,
+  timezone,
 }: RequestTimelineProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
@@ -263,6 +268,18 @@ export function RequestTimeline({
           ? step.actions!.map((action, actionIndex) => renderActionButton(action, actionIndex))
           : null;
 
+        const formattedTimestamp = step.timestamp
+          ? (() => {
+              try {
+                const ts = formatTimestamp(step.timestamp, isRTL, timezone ?? DEFAULT_SERVER_TIMEZONE);
+                if (!ts.time) return null;
+                return ts.isToday ? ts.time : `${ts.time} · ${ts.date}`;
+              } catch {
+                return null;
+              }
+            })()
+          : null;
+
         const contentColumnEl = (
           <View style={[styles.contentColumn]}>
             <ThemedText
@@ -271,13 +288,27 @@ export function RequestTimeline({
                 {
                   fontWeight: isCompleted || isCurrent ? '600' : '400',
                   color: isCompleted || isCurrent || isError ? theme.text : theme.textSecondary,
-                  
                   width: '100%',
                 },
               ]}
             >
               {step.label}
             </ThemedText>
+
+            {formattedTimestamp ? (
+              <ThemedText
+                style={[
+                  Typography.caption,
+                  {
+                    color: isCompleted ? theme.success : isError ? theme.error : theme.textSecondary,
+                    marginTop: 2,
+                    opacity: 0.85,
+                  },
+                ]}
+              >
+                {formattedTimestamp}
+              </ThemedText>
+            ) : null}
 
             {hasActions ? (
               <View style={[styles.actionsContainer, { justifyContent: isRTL ? 'flex-end' : 'flex-start', gap: Spacing.sm }]}>
@@ -336,6 +367,15 @@ export interface TimelineData {
   completedAt?: string;
   cancelledAt?: string;
   isWalkIn?: boolean;
+  /** Canonical ISO-8601 timestamps from the backend timeline object. These take precedence over the legacy flat fields above. */
+  timeline?: {
+    requestedAt?: string;
+    approvedAt?: string;
+    visitorAcceptedAt?: string;
+    checkedInAt?: string;
+    checkedOutAt?: string;
+    completedAt?: string;
+  };
 }
 
 export interface TimelineActionCallbacks {
@@ -369,22 +409,21 @@ export function useTimelineSteps({
   showActions = false,
 }: UseTimelineStepsOptions): TimelineStep[] {
   const { t } = useTranslation();
-  
-  const steps: TimelineStep[] = [];
+  const normalizedData = withCanonicalTimelineTimestamps(data);
 
   if (flowType === 'receptionist_checkin') {
-    return buildReceptionistTimeline(data, t, actions, showActions);
+    return buildReceptionistTimeline(normalizedData, t, actions, showActions);
   }
 
   if (flowType === 'manager_approval') {
-    return buildManagerApprovalTimeline(data, t, actions, showActions);
+    return buildManagerApprovalTimeline(normalizedData, t, actions, showActions);
   }
 
   if (flowType === 'security_gate') {
-    return buildSecurityTimeline(data, t, actions, showActions);
+    return buildSecurityTimeline(normalizedData, t, actions, showActions);
   }
 
-  return buildStandardTimeline(data, t, actions, showActions, role);
+  return buildStandardTimeline(normalizedData, t, actions, showActions, role);
 }
 
 function buildStandardTimeline(
@@ -417,7 +456,7 @@ function buildStandardTimeline(
   steps.push({
     id: 'submitted',
     label: t('timeline.requestSubmitted'),
-    timestamp: data.createdAt,
+    timestamp: data.timeline?.requestedAt || data.createdAt,
     status: 'completed',
     icon: 'check-circle',
   });
@@ -437,13 +476,17 @@ function buildStandardTimeline(
       });
       reachedTerminalOrCurrent = true;
     } else if (isApproved) {
+      // Auto-approved only when the flag is explicitly true AND approval was not required
+      // (requiresApproval: true means a manager acted — never treat that as auto-approved)
+      const wasAutoApproved = data.approval?.autoApproved === true
+        && data.approval?.requiresApproval !== true;
       // Approved
       steps.push({
         id: 'approval',
-        label: data.approval?.autoApproved
+        label: wasAutoApproved
           ? t('timeline.autoApproved')
           : t('timeline.managerApproved'),
-        timestamp: data.approval?.approvedAt,
+        timestamp: data.timeline?.approvedAt || data.approval?.approvedAt,
         status: 'completed',
         icon: 'thumbs-up',
       });
@@ -570,7 +613,7 @@ function buildStandardTimeline(
     steps.push({
       id: 'visitor_response',
       label: t('timeline.visitorDeclined'),
-      timestamp: data.acceptedAt,
+      timestamp: data.timeline?.visitorAcceptedAt || data.acceptedAt,
       status: 'error',
       icon: 'x-circle',
     });
@@ -589,7 +632,7 @@ function buildStandardTimeline(
     steps.push({
       id: 'visitor_response',
       label: t('timeline.visitorAccepted'),
-      timestamp: data.acceptedAt,
+      timestamp: data.timeline?.visitorAcceptedAt || data.acceptedAt,
       status: 'completed',
       icon: 'user-check',
     });
@@ -623,7 +666,7 @@ function buildStandardTimeline(
     steps.push({
       id: 'checked_in',
       label: t('timeline.visitorCheckedIn'),
-      timestamp: data.checkedInAt,
+      timestamp: data.timeline?.checkedInAt || data.checkedInAt,
       status: 'completed',
       icon: 'log-in',
     });
@@ -674,7 +717,7 @@ function buildStandardTimeline(
     steps.push({
       id: 'completed',
       label: t('timeline.visitCompleted'),
-      timestamp: data.completedAt || data.checkedOutAt,
+      timestamp: data.timeline?.completedAt || data.timeline?.checkedOutAt || data.completedAt || data.checkedOutAt,
       status: 'completed',
       icon: 'check-circle',
     });

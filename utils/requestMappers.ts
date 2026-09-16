@@ -13,8 +13,55 @@ import {
   DEFAULT_BUFFET,
   DEFAULT_VALET,
 } from '@/constants/requestConstants';
+import { resolveParkingDisplayDecision } from '@/utils/parkingDecision';
 
 export { API_STATUS_MAP, resolveStatus, normalizeParkingLocation };
+
+/**
+ * Derive a human-readable duration string from visitTime + endTime on the same date.
+ * Falls back to `fallback` when either value is missing or unparseable.
+ */
+const deriveDuration = (
+  visitDate: string | undefined,
+  visitTime: string | undefined,
+  endTime: string | null | undefined,
+  fallback: string = DEFAULT_DURATION,
+): string => {
+  if (!endTime || !visitDate || !visitTime) return fallback;
+  try {
+    const parseTimeOnDate = (timeStr: string, dateStr: string): Date | null => {
+      const [year, month, day] = dateStr.split('-').map(Number);
+      const ampm = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+      if (ampm) {
+        let h = parseInt(ampm[1], 10);
+        const m = parseInt(ampm[2], 10);
+        const period = ampm[3].toUpperCase();
+        if (period === 'PM' && h !== 12) h += 12;
+        if (period === 'AM' && h === 12) h = 0;
+        return new Date(year, month - 1, day, h, m);
+      }
+      const hm = timeStr.match(/^(\d+):(\d+)/);
+      if (hm) {
+        return new Date(year, month - 1, day, parseInt(hm[1], 10), parseInt(hm[2], 10));
+      }
+      return null;
+    };
+    const start = parseTimeOnDate(visitTime, visitDate);
+    let end = parseTimeOnDate(endTime, visitDate);
+    if (!start || !end) return fallback;
+    if (end <= start) end = new Date(end.getTime() + 24 * 60 * 60 * 1000);
+    const diffMinutes = Math.max(0, Math.round((end.getTime() - start.getTime()) / 60000));
+    if (diffMinutes <= 0) return fallback;
+    const hours = Math.floor(diffMinutes / 60);
+    const mins = diffMinutes % 60;
+    const parts: string[] = [];
+    if (hours > 0) parts.push(`${hours} ${hours === 1 ? 'hour' : 'hours'}`);
+    if (mins > 0) parts.push(`${mins} ${mins === 1 ? 'minute' : 'minutes'}`);
+    return parts.length > 0 ? parts.join(' ') : fallback;
+  } catch {
+    return fallback;
+  }
+};
 
 export const isEmptyObject = (obj: any): boolean => {
   return obj && typeof obj === 'object' && Object.keys(obj).length === 0;
@@ -47,19 +94,18 @@ export type VisitorRequestWithPending = VisitorRequest & {
   parkingPending?: boolean;
   meetingRoomPending?: boolean;
   buffetPending?: boolean;
+  canApprove?: boolean;
 };
 
 export const mapVisitDetailsToVisitorRequest = (visit: VisitDetailsDto): VisitorRequestWithPending => {
-  // DEBUG: Trace parking data from API
-  console.log('[DEBUG mapVisitDetailsToVisitorRequest] Parking data from API:', {
+  const parkingDecision = resolveParkingDisplayDecision({
+    parkingDecision: (visit as any).parkingDecision,
     visitorNeedsParking: visit.visitorNeedsParking,
     isVisitorNeedsParking: visit.isVisitorNeedsParking,
-    licensePlate: visit.licensePlate,
-    carModel: visit.carModel,
-    carColor: visit.carColor,
-    parkingType: (visit as any).parkingType,
+    hasParking: (visit as any).hasParking,
+    hasParkingAllocation: hasValidData(visit.parkingAllocation) || hasValidData(visit.parkingSlot),
   });
-  
+
   return {
     id: visit.id,
     employeeId: visit.employeeId,
@@ -74,16 +120,17 @@ export const mapVisitDetailsToVisitorRequest = (visit: VisitDetailsDto): Visitor
       phone: visit.visitor?.phone || '',
       company: visit.visitor?.company,
     },
+    visitStartAt: visit.visitStartAt,
     visitDate: visit.visitDate || new Date().toISOString().split('T')[0],
     visitTime: visit.visitTime 
       || (visit.meetingBooking?.startTime ? formatIsoTimeAsDisplayed(visit.meetingBooking.startTime) : '')
       || '09:00',
-    duration: visit.duration || DEFAULT_DURATION,
+    duration: visit.duration || deriveDuration(visit.visitDate, visit.visitTime, visit.endTime),
     endTime: visit.endTime,
     purpose: visit.purpose || '',
     status: resolveStatus(visit.status),
     communicationChannels: (visit.communicationChannels || DEFAULT_COMMUNICATION_CHANNELS) as ('email' | 'sms' | 'whatsapp' | 'qr_code')[],
-    parkingType: (visit.parkingType || (hasValidData(visit.parkingAllocation) || hasValidData(visit.parkingSlot) ? 'auto' : 'none')) as ParkingType,
+    parkingType: (visit.parkingType || (parkingDecision === 'required' ? 'auto' : 'none')) as ParkingType,
     parkingSlot: (hasValidData(visit.parkingAllocation) || hasValidData(visit.parkingSlot)) ? {
       id: visit.parkingAllocation?.id || visit.parkingSlot?.id || '',
       location: normalizeParkingLocation(visit.parkingAllocation?.location || visit.parkingSlot?.location),
@@ -120,6 +167,7 @@ export const mapVisitDetailsToVisitorRequest = (visit: VisitDetailsDto): Visitor
     qrCode: visit.qrCode,
     visitorNeedsParking: visit.visitorNeedsParking ?? false,
     isVisitorNeedsParking: visit.isVisitorNeedsParking ?? visit.visitorNeedsParking ?? false,
+    parkingDecision: (visit as any).parkingDecision,
     licensePlate: visit.licensePlate ?? undefined,
     carModel: visit.carModel ?? undefined,
     carColor: visit.carColor ?? undefined,
@@ -144,6 +192,7 @@ export const mapVisitDetailsToVisitorRequest = (visit: VisitDetailsDto): Visitor
     updatedAt: visit.updatedAt,
     timezone: visit.timezone,
     isWalkIn: visit.isWalkIn ?? false,
+    canApprove: visit.canApprove ?? false,
     notes: visit.notes,
     visitorDecision: visit.visitorDecision ? {
       accepted: visit.visitorDecision.accepted,
@@ -154,10 +203,17 @@ export const mapVisitDetailsToVisitorRequest = (visit: VisitDetailsDto): Visitor
     checkedInAt: (visit as any).checkedInAt,
     completedAt: (visit as any).completedAt,
     cancelledAt: (visit as any).cancelledAt,
+    timeline: (visit as any).timeline,
   };
 };
 
 export const mapVisitListItemToVisitorRequest = (visit: VisitListItemDto): VisitorRequest => {
+  const parkingDecision = resolveParkingDisplayDecision({
+    parkingDecision: (visit as any).parkingDecision,
+    visitorNeedsParking: visit.visitorNeedsParking,
+    isVisitorNeedsParking: visit.isVisitorNeedsParking,
+    hasParking: visit.hasParking,
+  });
   return {
     id: visit.id,
     employeeId: '',
@@ -170,13 +226,20 @@ export const mapVisitListItemToVisitorRequest = (visit: VisitListItemDto): Visit
       phone: visit.visitor?.phone || '',
       company: visit.visitor?.company,
     },
+    visitStartAt: visit.visitStartAt,
+    timezone: visit.timezone ?? 'Asia/Riyadh',
     visitDate: visit.visitDate,
     visitTime: visit.visitTime || '',
-    duration: DEFAULT_DURATION,
+    endTime: visit.endTime ?? undefined,
+    checkedInAt: visit.checkedInAt,
+    checkedOutAt: visit.checkedOutAt,
+    duration:
+      visit.duration ||
+      deriveDuration(visit.visitDate, visit.visitTime, visit.endTime),
     purpose: visit.purpose || '',
     status: resolveStatus(visit.status),
     communicationChannels: DEFAULT_COMMUNICATION_CHANNELS,
-    parkingType: visit.hasParking ? 'auto' : 'none',
+    parkingType: parkingDecision === 'required' ? 'auto' : 'none',
     parkingSlot: visit.hasParking ? { ...DEFAULT_PARKING_SLOT } : undefined,
     meetingRoom: visit.hasMeetingRoom ? { ...DEFAULT_MEETING_ROOM, timeSlot: visit.visitTime || '' } : undefined,
     buffet: visit.hasBuffet ? { ...DEFAULT_BUFFET } : undefined,
@@ -198,10 +261,17 @@ export const mapVisitListItemToVisitorRequest = (visit: VisitListItemDto): Visit
     licensePlate: visit.licensePlate ?? undefined,
     carModel: visit.carModel ?? undefined,
     carColor: visit.carColor ?? undefined,
+    parkingDecision: (visit as any).parkingDecision,
   };
 };
 
 export const mapAwaitingVisitorToVisitorRequest = (awaiting: AwaitingVisitorDto): VisitorRequest => {
+  const parkingDecision = resolveParkingDisplayDecision({
+    parkingDecision: (awaiting as any).parkingDecision,
+    visitorNeedsParking: awaiting.visitorNeedsParking,
+    isVisitorNeedsParking: awaiting.isVisitorNeedsParking,
+    hasParking: awaiting.hasParking,
+  });
   return {
     id: awaiting.id,
     employeeId: '',
@@ -220,7 +290,7 @@ export const mapAwaitingVisitorToVisitorRequest = (awaiting: AwaitingVisitorDto)
     purpose: '',
     status: resolveStatus(awaiting.status),
     communicationChannels: DEFAULT_COMMUNICATION_CHANNELS,
-    parkingType: awaiting.isVisitorNeedsParking === true || awaiting.visitorNeedsParking === true || awaiting.hasParking ? 'auto' : 'none',
+    parkingType: parkingDecision === 'required' ? 'auto' : 'none',
     approval: {
       requiresApproval: true,
       approvedAt: awaiting.approvedAt,
@@ -233,10 +303,17 @@ export const mapAwaitingVisitorToVisitorRequest = (awaiting: AwaitingVisitorDto)
     isMeetingRoom: awaiting.isMeetingRoom === true || awaiting.hasMeetingRoom === true,
     isVisitorNeedsParking: awaiting.isVisitorNeedsParking === true || awaiting.visitorNeedsParking === true || awaiting.hasParking === true,
     visitorNeedsParking: awaiting.visitorNeedsParking === true || awaiting.hasParking === true,
+    parkingDecision: (awaiting as any).parkingDecision,
   };
 };
 
 export const mapPendingApprovalToVisitorRequest = (item: PendingApprovalDto): VisitorRequest => {
+  const parkingDecision = resolveParkingDisplayDecision({
+    parkingDecision: (item as any).parkingDecision,
+    visitorNeedsParking: item.visitorNeedsParking,
+    isVisitorNeedsParking: item.isVisitorNeedsParking,
+    hasParking: item.hasParking,
+  });
   return {
     id: item.id,
     employeeId: '',
@@ -249,13 +326,18 @@ export const mapPendingApprovalToVisitorRequest = (item: PendingApprovalDto): Vi
       phone: item.visitor?.phone || '',
       company: item.visitor?.company,
     },
+    visitStartAt: item.visitStartAt,
+    timezone: item.timezone ?? 'Asia/Riyadh',
     visitDate: item.visitDate,
     visitTime: item.visitTime || '',
+    endTime: item.endTime,
+    checkedInAt: item.checkedInAt,
+    checkedOutAt: item.checkedOutAt,
     duration: item.duration || DEFAULT_DURATION,
     purpose: item.purpose || '',
     status: API_STATUS_MAP.pending_approval,
     communicationChannels: DEFAULT_COMMUNICATION_CHANNELS,
-    parkingType: item.hasParking ? 'auto' : 'none',
+    parkingType: parkingDecision === 'required' ? 'auto' : 'none',
     meetingRoom: item.hasMeetingRoom ? { ...DEFAULT_MEETING_ROOM, timeSlot: item.visitTime || '' } : undefined,
     buffet: item.hasBuffet ? { ...DEFAULT_BUFFET } : undefined,
     valet: item.hasValet ? { ...DEFAULT_VALET, pickupTime: item.visitTime || '' } : undefined,
@@ -271,6 +353,7 @@ export const mapPendingApprovalToVisitorRequest = (item: PendingApprovalDto): Vi
     isMeetingRoom: item.isMeetingRoom === true || item.hasMeetingRoom,
     isVisitorNeedsParking: item.isVisitorNeedsParking === true || item.visitorNeedsParking === true || item.hasParking,
     visitorNeedsParking: item.visitorNeedsParking === true || item.hasParking,
+    parkingDecision: (item as any).parkingDecision,
   };
 };
 
@@ -289,6 +372,8 @@ export const mapPendingHostWalkInToVisitorRequest = (item: PendingHostWalkInDto)
     },
     visitDate: item.visitDate,
     visitTime: item.visitTime || '',
+    visitStartAt: (item as any).visitStartAt,
+    timezone: (item as any).timezone ?? 'Asia/Riyadh',
     duration: item.duration || DEFAULT_DURATION,
     purpose: item.purpose || '',
     status: API_STATUS_MAP.pending_host_approval,

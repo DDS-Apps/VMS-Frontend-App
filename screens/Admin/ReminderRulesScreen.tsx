@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { View, StyleSheet, Pressable, ScrollView, Switch, ActivityIndicator, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ThemedText } from "@/components/ThemedText";
@@ -71,16 +71,17 @@ export default function ReminderRulesScreen() {
   const [notification, setNotification] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [showStartTimePicker, setShowStartTimePicker] = useState(false);
   const [showEndTimePicker, setShowEndTimePicker] = useState(false);
+  const editRevisionRef = useRef(0);
 
-  const { data: rules, isLoading, isError, error, refetch } = useReminderRulesQuery();
+  const { data: rules, isLoading, isFetching, isError, error, refetch } = useReminderRulesQuery();
   const updateMutation = useUpdateReminderRulesMutation();
 
   useEffect(() => {
-    if (rules) {
+    if (rules && !hasChanges && !updateMutation.isPending) {
       setLocalRules(rules);
       setHasChanges(false);
     }
-  }, [rules]);
+  }, [rules, hasChanges, updateMutation.isPending]);
 
   useEffect(() => {
     if (notification) {
@@ -90,13 +91,16 @@ export default function ReminderRulesScreen() {
   }, [notification]);
 
   const handleUpdate = (updates: Partial<ReminderRules>) => {
-    if (!localRules) return;
-    setLocalRules({ ...localRules, ...updates });
+    editRevisionRef.current += 1;
+    setLocalRules((currentRules) =>
+      currentRules ? { ...currentRules, ...updates } : currentRules,
+    );
     setHasChanges(true);
   };
 
   const handleSave = async () => {
     if (!localRules) return;
+    const submittedRevision = editRevisionRef.current;
 
     try {
       await updateMutation.mutateAsync({
@@ -108,7 +112,9 @@ export default function ReminderRulesScreen() {
         workingDays: localRules.workingDays,
         isActive: localRules.isActive,
       });
-      setHasChanges(false);
+      if (editRevisionRef.current === submittedRevision) {
+        setHasChanges(false);
+      }
       setNotification({ type: "success", message: t("common.savedSuccessfully") });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : t("common.errorOccurred");
@@ -136,16 +142,7 @@ export default function ReminderRulesScreen() {
     return t(`days.${name}` as any);
   };
 
-  const formatMinutesToDisplay = (minutes: number) => {
-    if (minutes >= 60) {
-      const hours = Math.floor(minutes / 60);
-      const mins = minutes % 60;
-      return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
-    }
-    return `${minutes}m`;
-  };
-
-  if (isLoading) {
+  if ((isLoading || isFetching) && !localRules) {
     return (
       <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
         <View style={styles.loadingContainer}>
@@ -158,7 +155,7 @@ export default function ReminderRulesScreen() {
     );
   }
 
-  if (isError) {
+  if (isError && !localRules) {
     return (
       <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
         <View style={styles.loadingContainer}>
@@ -191,6 +188,46 @@ export default function ReminderRulesScreen() {
 
   return (
     <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
+      {localRules && (isFetching || isError) ? (
+        <DirectionalRow
+          style={[
+            styles.inlineFeedback,
+            {
+              backgroundColor: (isFetching ? theme.primary : theme.error) + "15",
+              borderColor: isFetching ? theme.primary : theme.error,
+            },
+          ]}
+        >
+          {isFetching ? (
+            <ActivityIndicator size="small" color={theme.primary} />
+          ) : (
+            <DDIcon name="alert-circle" size={16} color={theme.error} />
+          )}
+          <ThemedText
+            style={[
+              Typography.caption,
+              {
+                color: isFetching ? theme.textSecondary : theme.error,
+                flex: 1,
+              },
+            ]}
+          >
+            {isFetching ? t("common.loading") : error?.message || t("common.errorOccurred")}
+          </ThemedText>
+          {isError && !isFetching ? (
+            <Pressable onPress={() => refetch()} hitSlop={8}>
+              <ThemedText
+                style={[
+                  Typography.caption,
+                  { color: theme.primary, fontWeight: "600" },
+                ]}
+              >
+                {t("common.retry")}
+              </ThemedText>
+            </Pressable>
+          ) : null}
+        </DirectionalRow>
+      ) : null}
       {notification ? (
         <DirectionalRow
           style={[
@@ -269,7 +306,7 @@ export default function ReminderRulesScreen() {
                 <ThemedText style={[{ fontSize: 11, lineHeight: 28, color: theme.info, fontWeight: "600", textAlign: 'center' }]}>1st</ThemedText>
               </View>
               <ThemedText style={[Typography.body, { flex: 1 }]}>
-                {t("admin.firstReminderDelay")}
+                {t("admin.firstReminderDelay")} ({t("admin.minutes")})
               </ThemedText>
             </DirectionalRow>
             <View style={styles.ruleInput}>
@@ -279,9 +316,6 @@ export default function ReminderRulesScreen() {
                 keyboardType="number-pad"
                 placeholder="120"
               />
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 4 }]}>
-                {formatMinutesToDisplay(localRules.firstReminderDelayMinutes)} {t("admin.afterOfficeHoursStart")}
-              </ThemedText>
             </View>
           </View>
 
@@ -291,7 +325,7 @@ export default function ReminderRulesScreen() {
                 <ThemedText style={[{ fontSize: 11, lineHeight: 28, color: theme.warning, fontWeight: "600", textAlign: 'center' }]}>2nd</ThemedText>
               </View>
               <ThemedText style={[Typography.body, { flex: 1 }]}>
-                {t("admin.secondReminderDelay")}
+                {t("admin.secondReminderDelay")} ({t("admin.minutes")})
               </ThemedText>
             </DirectionalRow>
             <View style={styles.ruleInput}>
@@ -301,9 +335,6 @@ export default function ReminderRulesScreen() {
                 keyboardType="number-pad"
                 placeholder="240"
               />
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 4 }]}>
-                {formatMinutesToDisplay(localRules.secondReminderDelayMinutes)} {t("admin.afterFirstReminder")}
-              </ThemedText>
             </View>
           </View>
 
@@ -313,7 +344,7 @@ export default function ReminderRulesScreen() {
                 <DDIcon name="x-circle" size={14} color={theme.error} />
               </View>
               <ThemedText style={[Typography.body, { flex: 1 }]}>
-                {t("admin.autoCancelDelay")}
+                {t("admin.autoCancelDelay")} ({t("admin.minutes")})
               </ThemedText>
             </DirectionalRow>
             <View style={styles.ruleInput}>
@@ -323,9 +354,6 @@ export default function ReminderRulesScreen() {
                 keyboardType="number-pad"
                 placeholder="60"
               />
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 4 }]}>
-                {formatMinutesToDisplay(localRules.autoCancelDelayMinutes)} {t("admin.afterSecondReminder")}
-              </ThemedText>
             </View>
           </View>
         </View>
@@ -473,6 +501,16 @@ const styles = StyleSheet.create({
     marginHorizontal: HORIZONTAL_PADDING,
     marginTop: Spacing.sm,
     padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+  },
+  inlineFeedback: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+    marginHorizontal: HORIZONTAL_PADDING,
+    marginTop: Spacing.sm,
+    padding: Spacing.sm,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
   },

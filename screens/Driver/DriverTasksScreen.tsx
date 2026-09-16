@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Pressable, ScrollView, Modal } from 'react-native';
+import { View, StyleSheet, Pressable } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScreenScrollView } from '@/components/ScreenScrollView';
@@ -14,7 +14,7 @@ import { Spacing, BorderRadius, Typography, FontFamily } from '@/constants/theme
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { RTLHorizontalScrollView } from '@/components/shared';
+import { RTLHorizontalScrollView, RequestStatusBadge, FilterChip } from '@/components/shared';
 import { applyOpacity } from '@/utils/statusStyles';
 import { useUpcomingIndicator } from '@/hooks/useUpcomingVisitTimer';
 import { UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES, isUpcomingIndicatorEligibleStatus } from '@/constants/requestConstants';
@@ -23,12 +23,11 @@ import {
   getCurrentDriver,
   driverRejectRequest,
   driverCompleteRequest,
-  driverParkVehicle,
+  driverParkVehicleAutomatically,
   driverMarkReadyForPickup,
-  getAvailableParkingSlots,
   ValetRequest,
-  ValetParkingSlot,
 } from '@/services/state/valetAdminState';
+import { resolveParkingDisplayDecision } from '@/utils/parkingDecision';
 
 type StatusFilter = 'all' | 'assigned' | 'parked' | 'ready_for_pickup' | 'completed' | 'cancelled';
 
@@ -37,19 +36,38 @@ type DriverTaskStatus = ValetRequest['status'];
 const normalizeDriverStatusForEligibility = (status: DriverTaskStatus): string =>
   status === 'assigned' ? 'pending' : status;
 
-const DriverUpcomingAlertIcon = React.memo(({ visitDate, pickupTime, status }: { visitDate: string; pickupTime: string; status: DriverTaskStatus }) => {
+const DriverUpcomingAlertIcon = React.memo(({ visitDate, pickupTime, status, visitStartAt }: { visitDate: string; pickupTime: string; status: DriverTaskStatus; visitStartAt?: string }) => {
   const { theme } = useTheme();
   const eligible = isUpcomingIndicatorEligibleStatus(normalizeDriverStatusForEligibility(status));
   const isUpcoming = useUpcomingIndicator({
     visitDate,
     visitTime: pickupTime,
+    visitStartAt,
     eligible,
     thresholdMinutes: UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES,
   });
   if (!isUpcoming) return null;
   return (
-    <View accessibilityLabel="Visit starts soon" accessibilityRole="image" style={{ marginEnd: 4 }}>
-      <DDIcon name="alert-circle" size={14} color={theme.error} />
+    <View
+      accessibilityLabel="Visit starts soon"
+      accessibilityRole="image"
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        backgroundColor: applyOpacity(theme.error, '15'),
+        borderWidth: 1,
+        borderColor: theme.error,
+        borderRadius: 100,
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+        marginEnd: 6,
+      }}
+    >
+      <DDIcon name="alert-circle" size={12} color={theme.error} />
+      <ThemedText style={{ color: theme.error, fontSize: 11, fontWeight: '700', lineHeight: 16 }}>
+        Upcoming
+      </ThemedText>
     </View>
   );
 });
@@ -75,9 +93,6 @@ export default function DriverTasksScreen({ onNavigateToDetail }: DriverTasksScr
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [updatingTaskId, setUpdatingTaskId] = useState<string | null>(null);
   const [currentDriverInfo, setCurrentDriverInfo] = useState<{ id: string | null; name: string | null }>({ id: null, name: null });
-  const [showParkingModal, setShowParkingModal] = useState(false);
-  const [selectedTaskForParking, setSelectedTaskForParking] = useState<string | null>(null);
-  const [availableSlots, setAvailableSlots] = useState<ValetParkingSlot[]>([]);
 
   const FILTER_OPTIONS: { key: StatusFilter; label: string }[] = [
     { key: 'all', label: t('common.all') },
@@ -149,9 +164,7 @@ export default function DriverTasksScreen({ onNavigateToDetail }: DriverTasksScr
   const filteredTasks = dateFilteredTasks
     .filter(task =>
       task.visitorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      task.hostName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (task.vehicleInfo?.model?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
-      (task.vehicleInfo?.plateNumber?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false)
+      task.hostName.toLowerCase().includes(searchQuery.toLowerCase())
     )
     .filter(task => {
       if (statusFilter === 'all') return true;
@@ -264,23 +277,12 @@ export default function DriverTasksScreen({ onNavigateToDetail }: DriverTasksScr
   };
 
   const handleOpenParkingModal = (taskId: string) => {
-    const slots = getAvailableParkingSlots();
-    setAvailableSlots(slots);
-    setSelectedTaskForParking(taskId);
-    setShowParkingModal(true);
-  };
-
-  const handleSelectSlot = (slot: ValetParkingSlot) => {
-    if (selectedTaskForParking) {
-      setUpdatingTaskId(selectedTaskForParking);
-      setTimeout(() => {
-        driverParkVehicle(selectedTaskForParking, slot.slotNumber);
-        loadTasks();
-        setUpdatingTaskId(null);
-        setShowParkingModal(false);
-        setSelectedTaskForParking(null);
-      }, 300);
-    }
+    setUpdatingTaskId(taskId);
+    setTimeout(() => {
+      driverParkVehicleAutomatically(taskId);
+      loadTasks();
+      setUpdatingTaskId(null);
+    }, 300);
   };
 
   const handleReadyForPickup = (taskId: string) => {
@@ -461,42 +463,18 @@ export default function DriverTasksScreen({ onNavigateToDetail }: DriverTasksScr
                   visitDate={task.visitDate}
                   pickupTime={task.pickupTime}
                   status={task.status}
+                  visitStartAt={task.visitStartAt}
                 />
-                <View style={[styles.statusBadge, { backgroundColor: statusConfig.bgColor }]}>
-                  <ThemedText style={[styles.statusText, { color: statusConfig.color }]}>
-                    {statusConfig.label}
-                  </ThemedText>
-                </View>
+                <RequestStatusBadge status={task.status} />
               </DirectionalRow>
             </DirectionalRow>
 
             <Spacer height={Spacing.md} />
 
             <View style={styles.infoGrid}>
-              {task.vehicleInfo ? (
-                <DirectionalRow style={styles.infoRow}>
-                  <DDIcon name="truck" size={14} variant="muted" />
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6 }]}>
-                    {task.vehicleInfo.make} {task.vehicleInfo.model} - {task.vehicleInfo.color}
-                  </ThemedText>
-                </DirectionalRow>
-              ) : null}
-
-              {task.vehicleInfo?.plateNumber ? (
-                <DirectionalRow style={styles.infoRow}>
-                  <DDIcon name="hash" size={14} variant="muted" />
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: 6 }]}>
-                    {t('valet.plateNumber')}: {task.vehicleInfo.plateNumber}
-                  </ThemedText>
-                </DirectionalRow>
-              ) : null}
-
-              {task.parkingSlot ? (
+              {resolveParkingDisplayDecision({ hasParkingAllocation: Boolean(task.parkingSlot || task.vehicleInfo) }) === 'required' ? (
                 <DirectionalRow style={styles.infoRow}>
                   <DDIcon name="map-pin" size={14} variant="primary" />
-                  <ThemedText style={[Typography.caption, { color: theme.primary, marginStart: 6, fontWeight: '500' }]}>
-                    {t('parking.slot')}: {task.parkingSlot}
-                  </ThemedText>
                 </DirectionalRow>
               ) : null}
 
@@ -554,63 +532,6 @@ export default function DriverTasksScreen({ onNavigateToDetail }: DriverTasksScr
       </Pressable>
     );
   };
-
-  const renderParkingModal = () => (
-    <Modal
-      visible={showParkingModal}
-      animationType="slide"
-      transparent={true}
-      onRequestClose={() => setShowParkingModal(false)}
-    >
-      <View style={styles.modalOverlay} pointerEvents="box-none">
-        <ThemedView style={[styles.modalContent, { backgroundColor: theme.background }]}>
-          <DirectionalRow style={styles.modalHeader}>
-            <ThemedText style={[Typography.subtitle, { fontWeight: '600' }]}>
-              {t('parking.assignSlot')}
-            </ThemedText>
-            <Pressable onPress={() => setShowParkingModal(false)} hitSlop={8}>
-              <DDIcon name="x" size={24} variant="muted" />
-            </Pressable>
-          </DirectionalRow>
-
-          <Spacer height={Spacing.lg} />
-
-          {availableSlots.length > 0 ? (
-            <ScrollView style={styles.slotsList}>
-              {availableSlots.map((slot) => (
-                <Pressable
-                  key={slot.id}
-                  style={[styles.slotCard, { backgroundColor: theme.surface, borderColor: theme.border, flexDirection: getFlexDirection(isRTL) }]}
-                  onPress={() => handleSelectSlot(slot)}
-                >
-                  <View style={[styles.slotIcon, { backgroundColor: applyOpacity(theme.success, '15') }]}>
-                    <DDIcon name="check-circle" size={20} color={theme.success} />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <ThemedText style={[Typography.body, { fontWeight: '600' }]}>
-                      {slot.slotNumber}
-                    </ThemedText>
-                    <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
-                      {slot.zone}
-                    </ThemedText>
-                  </View>
-                  <DDIcon name="chevron-right" size={20} variant="muted" directionAware />
-                </Pressable>
-              ))}
-            </ScrollView>
-          ) : (
-            <View style={styles.emptySlots}>
-              <DDIcon name="alert-circle" size={48} variant="muted" />
-              <Spacer height={Spacing.md} />
-              <ThemedText style={[Typography.body, { color: theme.textSecondary, textAlign: 'center' }]}>
-                {t('valet.noDriversAvailable')}
-              </ThemedText>
-            </View>
-          )}
-        </ThemedView>
-      </View>
-    </Modal>
-  );
 
   if (!currentDriverInfo.id) {
     return (
@@ -680,31 +601,15 @@ export default function DriverTasksScreen({ onNavigateToDetail }: DriverTasksScr
           contentContainerStyle={styles.filtersContainer}
           nestedScrollEnabled={true}
         >
-          {FILTER_OPTIONS.map((option) => {
-            const isActive = statusFilter === option.key;
-            const count = statusCounts[option.key];
-            const colors = getFilterPillColors(option.key, isActive);
-            
-            return (
-              <Pressable
-                key={option.key}
-                style={[
-                  styles.filterPill,
-                  { backgroundColor: colors.bg }
-                ]}
-                onPress={() => setStatusFilter(option.key)}
-              >
-                <ThemedText style={[styles.filterPillText, { color: colors.text }]}>
-                  {option.label}
-                </ThemedText>
-                <View style={[styles.filterCount, { backgroundColor: colors.countBg }]}>
-                  <ThemedText style={[styles.filterCountText, { color: colors.countText }]}>
-                    {count}
-                  </ThemedText>
-                </View>
-              </Pressable>
-            );
-          })}
+          {FILTER_OPTIONS.map((option) => (
+            <FilterChip
+              key={option.key}
+              label={option.label}
+              isSelected={statusFilter === option.key}
+              count={statusCounts[option.key]}
+              onPress={() => setStatusFilter(option.key)}
+            />
+          ))}
         </RTLHorizontalScrollView>
 
         <Spacer height={Spacing.xl} />
@@ -740,7 +645,6 @@ export default function DriverTasksScreen({ onNavigateToDetail }: DriverTasksScr
         onRangeSelect={handleRangeSelect}
       />
 
-      {renderParkingModal()}
     </>
   );
 }
@@ -819,16 +723,6 @@ const styles = StyleSheet.create({
   nameSection: {
     flex: 1,
     marginEnd: Spacing.md,
-  },
-  statusBadge: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    borderRadius: BorderRadius.full,
-  },
-  statusText: {
-    fontSize: 11,
-    fontWeight: '600',
-    fontFamily: FontFamily.latinSemiBold,
   },
   infoGrid: {
     gap: Spacing.xs,

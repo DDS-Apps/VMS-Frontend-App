@@ -96,17 +96,7 @@ export default function DashboardLayout({
   
   const [profileMenuVisible, setProfileMenuVisible] = useState(false);
   const [isLanguageChanging, setIsLanguageChanging] = useState(false);
-  
-  const getInitials = (name: string | undefined | null): string => {
-    if (!name) return '??';
-    const trimmedName = name.trim();
-    if (!trimmedName) return '??';
-    const words = trimmedName.split(' ').filter(w => w.length > 0);
-    if (words.length >= 2 && words[0] && words[1]) {
-      return (words[0][0] + words[1][0]).toUpperCase();
-    }
-    return trimmedName.slice(0, 2).toUpperCase();
-  };
+  const [avatarError, setAvatarError] = useState(false);
   
   const handleLanguageToggle = async () => {
     if (isLanguageChanging) return;
@@ -398,17 +388,16 @@ export default function DashboardLayout({
                   { opacity: pressed ? 0.7 : 1 }
                 ]}
               >
-                {userPhotoUrl ? (
+                {userPhotoUrl && !avatarError ? (
                   <Image
                     source={{ uri: userPhotoUrl }}
                     style={styles.avatar}
                     contentFit="cover"
+                    onError={() => setAvatarError(true)}
                   />
                 ) : (
                   <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
-                    <ThemedText style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 13, lineHeight: 30, textAlign: 'center' }}>
-                      {getInitials(userName)}
-                    </ThemedText>
+                    <DDIcon name="user" size={18} color="#FFFFFF" />
                   </View>
                 )}
               </Pressable>
@@ -436,17 +425,16 @@ export default function DashboardLayout({
               }
             ]}>
               <View style={[styles.dropdownHeader, { borderBottomColor: theme.border }]}>
-                {userPhotoUrl ? (
+                {userPhotoUrl && !avatarError ? (
                   <Image
                     source={{ uri: userPhotoUrl }}
                     style={styles.avatarLarge}
                     contentFit="cover"
+                    onError={() => setAvatarError(true)}
                   />
                 ) : (
                   <View style={[styles.avatarLarge, { backgroundColor: theme.primary }]}>
-                    <ThemedText style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 18, lineHeight: 56, textAlign: 'center' }}>
-                      {getInitials(userName)}
-                    </ThemedText>
+                    <DDIcon name="user" size={30} color="#FFFFFF" />
                   </View>
                 )}
                 <ThemedText style={[Typography.body, { fontWeight: '600', marginTop: Spacing.sm }]}>
@@ -709,17 +697,16 @@ export default function DashboardLayout({
                     ]}
                   >
                     <DirectionalRow style={{ alignItems: 'center' }} gap={Spacing.sm}>
-                      {userPhotoUrl ? (
+                      {userPhotoUrl && !avatarError ? (
                         <Image
                           source={{ uri: userPhotoUrl }}
                           style={styles.avatar}
                           contentFit="cover"
+                          onError={() => setAvatarError(true)}
                         />
                       ) : (
                         <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
-                          <ThemedText style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 13, lineHeight: 30, textAlign: 'center' }}>
-                            {getInitials(userName)}
-                          </ThemedText>
+                          <DDIcon name="user" size={18} color="#FFFFFF" />
                         </View>
                       )}
                       <ThemedText style={[Typography.body, { fontWeight: '500' }]}>

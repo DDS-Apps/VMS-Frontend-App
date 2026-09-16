@@ -75,14 +75,26 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
   
   const initialLocale = getInitialLocale();
   const initialIsRTL = isRTLLocale(initialLocale);
+  // When the initial locale came from an authoritative source (sync localStorage
+  // on web, the bootstrap cache on mobile) there is nothing left to verify, so the
+  // provider starts ready instead of gating the first frame on a second storage read.
+  const [initialLocaleIsAuthoritative] = useState(
+    () => Platform.OS === 'web' || getCachedLocale() !== null,
+  );
   
   const [locale, setLocaleState] = useState<SupportedLocale>(initialLocale);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!initialLocaleIsAuthoritative);
   const [isChangingLanguage, setIsChangingLanguage] = useState(false);
   const [layoutKey, setLayoutKey] = useState<string>(`${initialLocale}-${initialIsRTL ? 'rtl' : 'ltr'}-0`);
 
-  // Verify locale matches stored preference on mount
+  // Verify locale matches stored preference on mount (only needed when the
+  // initial locale had to fall back to I18nManager because bootstrap had not
+  // populated the cache yet).
   useEffect(() => {
+    if (initialLocaleIsAuthoritative) {
+      return;
+    }
+
     let mounted = true;
 
     async function verifyLocale() {
@@ -124,7 +136,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
 
     verifyLocale();
     return () => { mounted = false; };
-  }, []);
+  }, [initialLocaleIsAuthoritative]);
 
   // Derived values - isRTL is DERIVED from locale
   const isRTL = isRTLLocale(locale);

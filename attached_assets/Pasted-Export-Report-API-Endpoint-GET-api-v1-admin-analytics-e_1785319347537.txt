@@ -1,0 +1,57 @@
+Export Report API
+Endpoint
+GET /api/v1/admin/analytics/export
+
+Query Parameters
+Parameter	Type	Required	Description
+format	csv | xlsx	No	File format. Default: csv
+startDate	YYYY-MM-DD	No	Start of date range. Default: 30 days ago
+endDate	YYYY-MM-DD	No	End of date range. Default: today
+Response
+The server responds with a direct file download — no JSON, no polling.
+
+Header	Value
+Content-Type	text/csv; charset=utf-8 or application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+Content-Disposition	attachment; filename="visit-report-2025-01-01_2025-07-29.csv"
+X-Row-Count	Number of data rows in the file
+Authentication
+Must include the user's JWT (same as all other API calls). The backend scopes results automatically by role:
+
+Employee → their own visits only
+Manager → their own + all direct reports
+Building Admin / Receptionist → all visits
+Example URLs
+/api/v1/admin/analytics/export?format=csv&startDate=2025-07-01&endDate=2025-07-29
+/api/v1/admin/analytics/export?format=xlsx&startDate=2025-01-01&endDate=2025-07-29
+
+Frontend Implementation
+function downloadReport(startDate, endDate, format) {
+  const params = new URLSearchParams({ format, startDate, endDate });
+  const url = `/api/v1/admin/analytics/export?${params}`;
+  
+  const link = document.createElement('a');
+  link.href = url;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+Report Contents (16 columns)
+Column	Description
+Visit Date	Scheduled date
+Planned Start Time	visitTime from the request
+Planned End Time	endTime from the request
+Duration	e.g. "1 hour", "30 minutes"
+Purpose	Reason for visit
+Visitor Name	Full name
+Visitor Company	Company / organisation
+Visitor Phone	Contact number
+Host Name	Employee who requested the visit
+Host Department	Host's department
+Status	approved, checked_in, completed, cancelled, etc.
+Walk-in	Yes / No
+Actual Check-in	Timestamp when visitor scanned in
+Actual Check-out	Timestamp when visitor checked out
+Auto Approved	Yes / No
+QR Active Until 9 PM	Yes — if visitor was still inside at the 9 pm cutoff
+The Excel file includes a summary block at the top showing total visitors for the selected period and total visitors all time.

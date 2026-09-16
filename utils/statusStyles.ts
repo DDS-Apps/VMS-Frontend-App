@@ -96,6 +96,42 @@ export const getStatusTranslationKey = (status: string): string => {
  * @param status - The status code
  * @param t - Optional translation function. If provided, label will be translated.
  */
+export const getStatusIcon = (status: string): string => {
+  switch (status.toLowerCase()) {
+    case 'approved':
+    case 'visitor_accepted':
+    case 'completed':
+      return 'check-circle';
+    case 'checked_in':
+      return 'log-in';
+    case 'checked_out':
+      return 'log-out';
+    case 'rejected':
+    case 'visitor_rejected':
+    case 'cancelled':
+    case 'auto_cancelled':
+      return 'x-circle';
+    case 'pending_approval':
+    case 'pending_host_approval':
+    case 'pending':
+    case 'visitor_pending':
+    case 'waiting_on_visitor':
+      return 'clock';
+    case 'in_progress':
+    case 'preparing':
+      return 'loader';
+    case 'ready':
+      return 'check';
+    case 'expired':
+    case 'no_show':
+      return 'alert-circle';
+    case 'expected':
+      return 'user';
+    default:
+      return 'clock';
+  }
+};
+
 export const getStatusConfig = (theme: Theme, status: string, t?: (key: string) => string): StatusConfig => {
   const safeStatus = status || 'pending';
   const translationKey = getStatusTranslationKey(safeStatus);

@@ -1,8 +1,11 @@
-import React, { useState, useMemo, useEffect, useRef } from "react";
-import { View, StyleSheet, Pressable, GestureResponderEvent, Alert } from "react-native";
+import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import { View, StyleSheet, Pressable, Alert, useWindowDimensions, ActivityIndicator, RefreshControl } from "react-native";
 import type { WalkInVisitorsScreenProps } from "@/types/receptionistNavigation.types";
 import { ROUTES } from "@/constants";
 import { SkeletonList } from "@/components/shared/Skeleton";
+import { RTLHorizontalScrollView, FilterChip, VisitorMatrixTable } from "@/components/shared";
+import type { VisitorMatrixItem } from "@/components/shared";
+import { RequestStatusBadge } from "@/components/shared/RequestStatusBadge";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { SearchInput } from "@/components/SearchInput";
@@ -15,12 +18,20 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
-import { VisitorActionButton } from "@/components/VisitorActionButton";
 import { applyOpacity } from "@/utils/statusStyles";
-import { useTodayVisitorsQuery, useReceptionCheckInMutation, useReceptionCheckOutMutation } from "@/hooks/queries/useReceptionQueries";
+import { useTodayVisitorsQuery } from "@/hooks/queries/useReceptionQueries";
 import type { TodayVisitorDto } from "@/types";
 import { DirectionalRow } from '@/components/DirectionalRow';
 import { PURPOSE_VALUE_TO_KEY, normalizePurposeValue } from "@/constants/requestConstants";
+import { resolveParkingDisplayDecision } from "@/utils/parkingDecision";
+import { useRiyadhBusinessDateKey } from "@/hooks/useRiyadhBusinessDateKey";
+import {
+  computeIsPendingApprovalWalkInExpired,
+  computeIsPendingHostWalkInExpired,
+  getPendingApprovalWalkInScheduledEndMs,
+} from "@/utils/visitExpiredGuard";
+import { useTimeBoundaryTick } from "@/hooks/useTimeBoundaryTick";
+import { getInitials } from "@/utils/formatters";
 
 type StatusFilter = 'all' | 'pending' | 'checked_in' | 'completed';
 
@@ -28,7 +39,14 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { formatTime, formatTimeFromString } = useFormatters();
-  const { isRTL } = useLanguage();  const insets = useSafeAreaInsets();
+  const { isRTL } = useLanguage();
+  const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
+  const riyadhBusinessDateKey = useRiyadhBusinessDateKey();
+  const numColumns = screenWidth >= 900 ? 3 : screenWidth >= 600 ? 2 : 1;
+  const cardWidth = numColumns === 1
+    ? undefined
+    : (screenWidth - Spacing.lg * 2 - Spacing.md * (numColumns - 1)) / numColumns;
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
@@ -45,11 +63,66 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
     });
   };
 
-  const { data: todayResponse, isLoading, isFetching, isError, error } = useTodayVisitorsQuery();
-  const checkInMutation = useReceptionCheckInMutation();
-  const checkOutMutation = useReceptionCheckOutMutation();
+
+  const { data: todayResponse, isLoading, isFetching, isError, error, refetch } = useTodayVisitorsQuery();
 
   const todaysVisitors = todayResponse?.data ?? [];
+  const expirationBoundaries = useMemo(
+    () =>
+      todaysVisitors.map((visitor) =>
+        getPendingApprovalWalkInScheduledEndMs({
+          isWalkIn: visitor.isWalkIn,
+          status: visitor.status,
+          visitDate: visitor.visitDate,
+          visitTime: visitor.visitTime,
+          endTime: visitor.endTime ?? visitor.scheduledEndTime,
+          duration: (visitor as any).duration,
+        }),
+      ),
+    [todaysVisitors],
+  );
+  const expirationTick = useTimeBoundaryTick(expirationBoundaries);
+
+  const toMatrixItem = useCallback((v: TodayVisitorDto): VisitorMatrixItem => {
+    const isExpired = computeIsPendingHostWalkInExpired({
+      isWalkIn: v.isWalkIn,
+      status: v.status,
+      visitDate: v.visitDate,
+    }) || computeIsPendingApprovalWalkInExpired({
+      isWalkIn: v.isWalkIn,
+      status: v.status,
+      visitDate: v.visitDate,
+      visitTime: v.visitTime,
+      endTime: v.endTime ?? v.scheduledEndTime,
+      duration: (v as any).duration,
+    });
+
+    return {
+      id: v.id,
+      visitorName: v.visitor.fullName,
+      company: v.visitor.company ?? undefined,
+      visitDate: v.visitDate ?? undefined,
+      plannedInTime: v.visitTime,
+      plannedOutTime: v.endTime ?? v.scheduledEndTime ?? undefined,
+      // Keep the raw status and show expiration as a separate notice.
+      status: v.status,
+      actualInTime: v.checkedInAt ?? undefined,
+      actualOutTime: v.checkedOutAt ?? undefined,
+      hasParking: resolveParkingDisplayDecision({
+        parkingDecision: (v as any).parkingDecision,
+        visitorNeedsParking: v.visitorNeedsParking,
+        isVisitorNeedsParking: v.isVisitorNeedsParking,
+        hasParking: v.hasParking,
+      }) === 'required',
+      hasBuffet: !!(v.isBuffet || v.hasBuffet),
+      hasValet: !!v.hasValet,
+      hasMeetingRoom: !!(v.isMeetingRoom || v.hasMeetingRoom || v.meetingRoom),
+      hostName: v.hostName ?? undefined,
+      hostDepartment: v.hostDepartment ?? undefined,
+      purpose: v.purpose ?? undefined,
+      isExpired,
+    };
+  }, [expirationTick, riyadhBusinessDateKey]);
 
   const hasShownError = useRef(false);
 
@@ -96,7 +169,7 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
       });
   }, [walkInVisitors, searchQuery, statusFilter]);
 
-  if (isLoading || isFetching) {
+  if (isLoading && !todayResponse) {
     return (
       <View style={[styles.loadingContainer, { paddingTop: insets.top + Spacing.lg, paddingHorizontal: Spacing.lg }]}>
         <SkeletonList count={5} />
@@ -104,7 +177,7 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
     );
   }
 
-  if (isError) {
+  if (isError && !todayResponse) {
     return (
       <View style={[styles.loadingContainer, { paddingTop: insets.top + Spacing.lg, paddingHorizontal: Spacing.lg, justifyContent: 'center', alignItems: 'center' }]}>
         <DDIcon name="alert-triangle" size={48} variant="muted" />
@@ -112,51 +185,14 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
         <ThemedText style={[Typography.body, { color: theme.textSecondary, textAlign: 'center' }]}>
           {t('common.loadError')}
         </ThemedText>
+        <Spacer height={Spacing.md} />
+        <Pressable onPress={() => refetch()}>
+          <ThemedText style={{ color: theme.primary, fontWeight: '600' }}>{t('common.retry')}</ThemedText>
+        </Pressable>
       </View>
     );
   }
 
-  const handleCheckIn = (visitorId: string, visitorName: string, event: GestureResponderEvent) => {
-    event.stopPropagation();
-    
-    checkInMutation.mutate(
-      { visitId: visitorId },
-      {
-        onSuccess: () => {
-          const currentTime = formatTime(new Date());
-          navigation.navigate(ROUTES.CHECK_IN_OUT_CONFIRMATION as any, {
-            action: 'check_in',
-            visitorName,
-            time: currentTime
-          });
-        },
-        onError: (error) => {
-          Alert.alert(t('common.error'), error.message || t('errors.checkInFailed'));
-        }
-      }
-    );
-  };
-
-  const handleCheckOut = (visitorId: string, visitorName: string, event: GestureResponderEvent) => {
-    event.stopPropagation();
-    
-    checkOutMutation.mutate(
-      { visitId: visitorId },
-      {
-        onSuccess: () => {
-          const currentTime = formatTime(new Date());
-          navigation.navigate(ROUTES.CHECK_IN_OUT_CONFIRMATION as any, {
-            action: 'check_out',
-            visitorName,
-            time: currentTime
-          });
-        },
-        onError: (error) => {
-          Alert.alert(t('common.error'), error.message || t('errors.checkOutFailed'));
-        }
-      }
-    );
-  };
 
   const getStatusConfig = (status: string) => {
     switch (status) {
@@ -180,7 +216,6 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
       status: (visitor.status === 'expected' ? 'pending' : visitor.status) as 'pending' | 'checked_in' | 'completed',
       isWalkIn: true,
       phone: visitor.visitor.phone ?? '',
-      parking: visitor.parkingSlot?.slotNumber,
       origin: 'walk_in' as const,
       scheduledFor: today,
       createdAt: today,
@@ -190,10 +225,20 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
 
   const renderVisitorCard = (item: TodayVisitorDto) => {
     const statusConfig = getStatusConfig(item.status);
+    const isExpired = computeIsPendingHostWalkInExpired({
+      isWalkIn: item.isWalkIn,
+      status: item.status,
+      visitDate: item.visitDate,
+    }) || computeIsPendingApprovalWalkInExpired({
+      isWalkIn: item.isWalkIn,
+      status: item.status,
+      visitDate: item.visitDate,
+      visitTime: item.visitTime,
+      endTime: item.endTime ?? item.scheduledEndTime,
+      duration: (item as any).duration,
+    });
     const visitorName = item.visitor.fullName;
-    const initials = visitorName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-    const showCheckIn = item.status === 'pending' || item.status === 'expected';
-    const showCheckOut = item.status === 'checked_in';
+    const initials = getInitials(visitorName);
     const isExpanded = expandedCards.has(item.id);
     const hasDetails = (item as any).purpose || item.visitor.email || item.visitor.phone;
     
@@ -209,15 +254,23 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
           <View style={styles.cardContent}>
             <DirectionalRow style={styles.cardHeader}>
               <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
-                <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
+                <ThemedText
+                  style={[styles.avatarText, { color: theme.primary }]}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.5}
+                >
                   {initials}
                 </ThemedText>
               </View>
               
-              <View style={styles.nameSection}>
-                <ThemedText style={[styles.visitorName, { color: theme.text }]} numberOfLines={1}>
-                  {visitorName}
-                </ThemedText>
+              <View style={[styles.nameSection, { flex: 1 }]}>
+                <DirectionalRow style={{ justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                  <ThemedText style={[styles.visitorName, { color: theme.text, flex: 1 }]} numberOfLines={1}>
+                    {visitorName}
+                  </ThemedText>
+                  <RequestStatusBadge status={item.status} />
+                </DirectionalRow>
                 <ThemedText style={[styles.companyText, { color: theme.textSecondary }]} numberOfLines={1}>
                   {item.visitor.company ?? ''}
                 </ThemedText>
@@ -230,27 +283,72 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
                 <ThemedText style={[styles.detailText, { color: theme.textSecondary, marginEnd: 4 }]}>
                   {formatTimeFromString(item.visitTime)}
                 </ThemedText>
+                {(item.endTime || item.scheduledEndTime) ? (
+                  <>
+                    <DDIcon name="arrow-right" size={11} color={theme.textSecondary} />
+                    <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
+                      {formatTimeFromString(item.endTime ?? item.scheduledEndTime ?? '')}
+                    </ThemedText>
+                  </>
+                ) : null}
               </DirectionalRow>
             </DirectionalRow>
 
-            <DirectionalRow style={styles.servicesStatusRow} justifyContent="space-between">
+            {item.hostName ? (
+              <DirectionalRow style={[styles.detailsRow, { marginBottom: Spacing.sm }]}>
+                <DirectionalRow style={[styles.detailItem, { flexShrink: 1 }]}>
+                  <DDIcon name="user" size={12} color={theme.textSecondary} />
+                  <ThemedText style={[styles.detailText, { color: theme.textSecondary, flexShrink: 1 }]} numberOfLines={1}>
+                    {item.hostName}
+                  </ThemedText>
+                  {item.hostDepartment ? (
+                    <>
+                      <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
+                        {' - '}
+                      </ThemedText>
+                      <ThemedText style={[styles.detailText, { color: theme.textSecondary, flexShrink: 1 }]} numberOfLines={1}>
+                        {item.hostDepartment}
+                      </ThemedText>
+                    </>
+                  ) : null}
+                </DirectionalRow>
+              </DirectionalRow>
+            ) : null}
+
+            <DirectionalRow style={styles.servicesStatusRow}>
               <DirectionalRow style={styles.servicesRowContainer}>
                 <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.secondary, '15') }]}>
                   <DDIcon name="user-plus" size={12} color={theme.secondary} />
                 </View>
-                {item.parkingSlot ? (
+                {resolveParkingDisplayDecision({
+                  parkingDecision: (item as any).parkingDecision,
+                  visitorNeedsParking: item.visitorNeedsParking,
+                  isVisitorNeedsParking: item.isVisitorNeedsParking,
+                  hasParking: item.hasParking,
+                }) === 'required' ? (
                   <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '20') }]}>
                     <DDIcon name="map-pin" size={12} color={theme.info} />
                   </View>
                 ) : null}
-              </DirectionalRow>
-
-              <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: 1 }]}>
-                <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
-                  {statusConfig.label}
+                <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>
+                  {resolveParkingDisplayDecision({
+                    parkingDecision: (item as any).parkingDecision,
+                    visitorNeedsParking: item.visitorNeedsParking,
+                    isVisitorNeedsParking: item.isVisitorNeedsParking,
+                    hasParking: item.hasParking,
+                  }) === 'required' ? t('parking.needsParking') : t('parking.noParking')}
                 </ThemedText>
-              </View>
+              </DirectionalRow>
             </DirectionalRow>
+
+            {isExpired ? (
+              <DirectionalRow style={[styles.expiredNotice, { backgroundColor: applyOpacity(theme.error, '10'), borderColor: theme.border }]}>
+                <DDIcon name="clock" size={14} color={theme.textSecondary} />
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
+                  {t('visitor.visitExpired')}
+                </ThemedText>
+              </DirectionalRow>
+            ) : null}
 
             {isExpanded && hasDetails ? (
               <View style={styles.expandedSection}>
@@ -281,21 +379,6 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
               </View>
             ) : null}
 
-            <DirectionalRow style={styles.cardFooter} justifyContent="flex-end">
-              <DirectionalRow style={styles.actionButtons}>
-                {showCheckIn ? (
-                  <VisitorActionButton 
-                    type="check_in" 
-                    onPress={(e) => handleCheckIn(item.id, visitorName, e)} 
-                  />
-                ) : showCheckOut ? (
-                  <VisitorActionButton 
-                    type="check_out" 
-                    onPress={(e) => handleCheckOut(item.id, visitorName, e)} 
-                  />
-                ) : null}
-              </DirectionalRow>
-            </DirectionalRow>
           </View>
         </ThemedView>
       </Pressable>
@@ -304,18 +387,35 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
 
   return (
     <>
-    <ScreenScrollView contentContainerStyle={scrollContentStyle}>
+    <ScreenScrollView
+      contentContainerStyle={scrollContentStyle}
+      refreshControl={<RefreshControl refreshing={isFetching && !!todayResponse} onRefresh={refetch} tintColor={theme.primary} />}
+    >
       <ThemedText style={[Typography.title, { fontSize: 22, fontWeight: '700' }]}>
         {t('navigation.walkInVisitors')}
       </ThemedText>
       
-      <Spacer height={4} />
-      
-      <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
-        {filteredVisitors.length} {filteredVisitors.length === 1 ? t('reception.visitorsFound') : t('reception.visitorsFoundPlural')}
-      </ThemedText>
-
       <Spacer height={Spacing.lg} />
+
+      <DirectionalRow style={{ justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.md }}>
+        <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
+          {filteredVisitors.length} {filteredVisitors.length === 1 ? t('reception.visitorsFound') : t('reception.visitorsFoundPlural')}
+        </ThemedText>
+      </DirectionalRow>
+
+      {isError ? (
+        <DirectionalRow style={[styles.inlineFeedback, { backgroundColor: applyOpacity(theme.error, '10') }]}>
+          <DDIcon name="alert-circle" size={16} color={theme.error} />
+          <ThemedText style={[Typography.caption, { color: theme.error, flex: 1 }]}>{t('common.loadError')}</ThemedText>
+          <Pressable onPress={() => refetch()} hitSlop={8}>
+            <ThemedText style={[Typography.caption, { color: theme.primary, fontWeight: '600' }]}>{t('common.retry')}</ThemedText>
+          </Pressable>
+        </DirectionalRow>
+      ) : isFetching && todayResponse ? (
+        <ActivityIndicator size="small" color={theme.primary} />
+      ) : null}
+
+      {(isError || (isFetching && todayResponse)) ? <Spacer height={Spacing.md} /> : null}
 
       <SearchInput
         placeholder={t('reception.searchVisitor')}
@@ -325,40 +425,33 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
 
       <Spacer height={Spacing.md} />
 
-      <View style={[styles.segmentedControl, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-        {FILTER_OPTIONS.map((option, index) => {
-          const isActive = statusFilter === option.key;
-          const isFirst = index === 0;
-          const isLast = index === FILTER_OPTIONS.length - 1;
-          
-          return (
-            <Pressable
-              key={option.key}
-              style={[
-                styles.segmentButton,
-                isActive && { backgroundColor: theme.primary },
-                isFirst && styles.segmentFirst,
-                isLast && styles.segmentLast,
-              ]}
-              onPress={() => setStatusFilter(option.key)}
-            >
-              <ThemedText style={[
-                styles.segmentText,
-                { color: isActive ? '#FFFFFF' : theme.text }
-              ]}>
-                {option.label}
-              </ThemedText>
-            </Pressable>
-          );
-        })}
-      </View>
+      <RTLHorizontalScrollView
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.filterScrollContent}
+        nestedScrollEnabled={true}
+      >
+        {FILTER_OPTIONS.map((option) => (
+          <FilterChip
+            key={option.key}
+            label={option.label}
+            isSelected={statusFilter === option.key}
+            onPress={() => setStatusFilter(option.key)}
+          />
+        ))}
+      </RTLHorizontalScrollView>
 
       <Spacer height={Spacing.lg} />
 
       {filteredVisitors.length > 0 ? (
-        <View style={styles.cardList}>
-          {filteredVisitors.map((visitor) => renderVisitorCard(visitor))}
-        </View>
+        <VisitorMatrixTable
+          variant="matrix"
+          visitors={filteredVisitors.map(toMatrixItem)}
+          showExpiredState={true}
+          onPressRow={(id) => {
+            const v = filteredVisitors.find(x => x.id === id);
+            if (v) handleVisitorPress(v);
+          }}
+        />
       ) : (
         <View style={styles.emptyState}>
           <DDIcon name="user-plus" size={40} variant="muted" />
@@ -383,32 +476,15 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
 }
 
 const styles = StyleSheet.create({
-  segmentedControl: {
-    borderRadius: BorderRadius.lg,
-    borderWidth: 1,
-    overflow: 'hidden',
-    height: 36,
-  },
-  segmentButton: {
-    flex: 1,
-    justifyContent: 'center',
+  filterScrollContent: {
+    flexDirection: 'row',
+    gap: 8,
     alignItems: 'center',
-    paddingHorizontal: Spacing.xs,
-  },
-  segmentFirst: {
-    borderTopStartRadius: BorderRadius.lg - 1,
-    borderBottomStartRadius: BorderRadius.lg - 1,
-  },
-  segmentLast: {
-    borderTopEndRadius: BorderRadius.lg - 1,
-    borderBottomEndRadius: BorderRadius.lg - 1,
-  },
-  segmentText: {
-    fontSize: 12,
-    fontWeight: '600',
   },
   cardList: {
-    gap: Spacing.sm,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.md,
   },
   visitorCard: {
     borderRadius: BorderRadius.lg,
@@ -494,15 +570,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: BorderRadius.sm,
-  },
-  statusText: {
-    fontSize: 10,
-    fontWeight: '600',
-  },
   expandedSection: {
     marginTop: Spacing.sm,
     gap: Spacing.sm,
@@ -542,6 +609,21 @@ const styles = StyleSheet.create({
   loadingContainer: {
     flex: 1,
   },
+  inlineFeedback: {
+    alignItems: 'center',
+    gap: Spacing.sm,
+    padding: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+  },
+  expiredNotice: {
+    alignItems: 'center',
+    gap: Spacing.xs,
+    paddingVertical: Spacing.xs,
+    paddingHorizontal: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+    marginTop: Spacing.sm,
+  },
   fab: {
     position: 'absolute',
     bottom: Spacing.xl,
@@ -556,5 +638,31 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
+  },
+  viewToggle: {
+    borderRadius: BorderRadius.sm,
+    overflow: 'hidden',
+    flexDirection: 'row',
+  },
+  viewToggleBtn: {
+    padding: Spacing.sm,
+    minWidth: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+  },
+  viewToggleBtnLeft: {
+    borderTopStartRadius: BorderRadius.sm,
+    borderBottomStartRadius: BorderRadius.sm,
+    borderTopEndRadius: 0,
+    borderBottomEndRadius: 0,
+    borderEndWidth: 0,
+  },
+  viewToggleBtnRight: {
+    borderTopEndRadius: BorderRadius.sm,
+    borderBottomEndRadius: BorderRadius.sm,
+    borderTopStartRadius: 0,
+    borderBottomStartRadius: 0,
   },
 });

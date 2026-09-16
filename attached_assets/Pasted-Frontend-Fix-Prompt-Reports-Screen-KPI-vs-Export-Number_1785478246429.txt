@@ -1,0 +1,52 @@
+Frontend Fix Prompt — Reports Screen: KPI vs Export Number Discrepancy
+Background
+The backend returns two different number sets by design — they measure different things:
+
+Source	What it counts	Example (Jul 1–31)
+KPI cards (GET /api/v1/admin/analytics/summary)	Non-cancelled visits only	82 / 368
+Export file header (GET /api/v1/admin/analytics/export)	All visit records, all statuses	120 / 501
+This is intentional. The KPI cards are a quality metric (how many visitors actually engaged). The export is a full audit trail (every record regardless of outcome).
+
+The backend export file header labels have already been updated to:
+
+Total visit records (selected period, all statuses): 120
+Total visit records (all time, all statuses): 501
+
+Changes needed on the frontend
+1 — KPI card subtitles (Reports screen)
+Add a clarifying subtitle under each KPI value so users understand what the number represents:
+
+┌─────────────────────────────┐    ┌─────────────────────────────┐
+│           368               │    │            82               │
+│  Total Visitors (All Time)  │    │  Visitors in Selected Period │
+│  Excl. cancelled visits     │    │  Excl. cancelled visits      │
+└─────────────────────────────┘    └─────────────────────────────┘
+
+The subtitle text should be:
+
+"Active visits only (cancelled excluded)" — or a shorter version like "Excludes cancelled"
+Style: muted/secondary text, small font, same as other helper text in the app
+2 — Export Settings section — add a note
+Directly below (or near) the Date Range / File Format controls, add a small info note:
+
+ℹ️  The exported report includes all visit statuses (including cancelled and 
+    auto-cancelled) for a complete audit record. The KPI cards above show 
+    active visits only.
+
+This can be a subtle info banner, a tooltip on the Download button, or a caption — whatever fits the existing design system.
+
+3 — No changes to API calls or params
+GET /api/v1/admin/analytics/summary?startDate=...&endDate=... — no change, keep calling as-is
+GET /api/v1/admin/analytics/export?format=csv&startDate=...&endDate=... — no change
+The backend already handles both correctly. This is purely a labelling/UX change.
+
+What the numbers mean — for reference
+KPI: "82 Visitors in Selected Period (excl. cancelled)"
+     └─ WHERE visitDate BETWEEN x AND y
+          AND status NOT IN ('cancelled', 'auto_cancelled')
+Export rows: 120 records
+     └─ WHERE visitDate BETWEEN x AND y   ← all statuses included
+Export summary line in file:
+     "Total visit records (selected period, all statuses): 120"
+
+The gap (82 vs 120) is always the number of cancelled/auto-cancelled visits in the period — which is exactly what you'd want to audit in a report.

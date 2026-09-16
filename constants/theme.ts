@@ -256,83 +256,39 @@ export const BorderRadius = {
 // ============================================
 
 // Font families for locale-aware rendering
-// Using Albert Sans (Latin) and FS Albert Arabic (Arabic)
-// Falls back to Inter/system fonts if Google Fonts are not available
-export const FontFamily = {
-  // Latin UI (English, numbers) - Albert Sans with fallbacks
-  latinLight: Platform.select({
-    web: "'Albert Sans', Inter, system-ui, -apple-system, sans-serif",
-    default: "AlbertSans_300Light",
-  }) as string,
-  latinRegular: Platform.select({
-    web: "'Albert Sans', Inter, system-ui, -apple-system, sans-serif",
-    default: "AlbertSans_400Regular",
-  }) as string,
-  latinMedium: Platform.select({
-    web: "'Albert Sans', Inter, system-ui, -apple-system, sans-serif",
-    default: "AlbertSans_500Medium",
-  }) as string,
-  latinSemiBold: Platform.select({
-    web: "'Albert Sans', Inter, system-ui, -apple-system, sans-serif",
-    default: "AlbertSans_600SemiBold",
-  }) as string,
-  latinBold: Platform.select({
-    web: "'Albert Sans', Inter, system-ui, -apple-system, sans-serif",
-    default: "AlbertSans_700Bold",
-  }) as string,
-  latinExtraBold: Platform.select({
-    web: "'Albert Sans', Inter, system-ui, -apple-system, sans-serif",
-    default: "AlbertSans_800ExtraBold",
-  }) as string,
+// Albert Sans (Latin) and FS Albert Arabic (Arabic). Each entry names one
+// specific face; the same names are registered on native (expo-font) and on
+// web (@font-face rules from utils/webFonts.ts), so a style resolves to the
+// same file everywhere. Web appends system fallbacks for the moment before a
+// face has downloaded.
+const LATIN_WEB_FALLBACK = 'system-ui, -apple-system, sans-serif';
+const ARABIC_WEB_FALLBACK = "'Noto Sans Arabic', system-ui, sans-serif";
 
-  // Arabic UI - FS Albert Arabic with fallbacks
-  // Web uses the CSS @font-face name which properly maps font-weight to the right file
-  arabicLight: Platform.select({
-    web: "'FS Albert Arabic', 'Noto Sans Arabic', sans-serif",
-    default: "FSAlbertArabic_300Light",
-  }) as string,
-  arabicRegular: Platform.select({
-    web: "'FS Albert Arabic', 'Noto Sans Arabic', sans-serif",
-    default: "FSAlbertArabic_400Regular",
-  }) as string,
-  arabicMedium: Platform.select({
-    web: "'FS Albert Arabic', 'Noto Sans Arabic', sans-serif",
-    default: "FSAlbertArabic_400Regular",
-  }) as string,
-  arabicSemiBold: Platform.select({
-    web: "'FS Albert Arabic', 'Noto Sans Arabic', sans-serif",
-    default: "FSAlbertArabic_700Bold",
-  }) as string,
-  arabicBold: Platform.select({
-    web: "'FS Albert Arabic', 'Noto Sans Arabic', sans-serif",
-    default: "FSAlbertArabic_700Bold",
-  }) as string,
-  arabicExtraBold: Platform.select({
-    web: "'FS Albert Arabic', 'Noto Sans Arabic', sans-serif",
-    default: "FSAlbertArabic_800ExtraBold",
-  }) as string,
+const latinFace = (name: string) =>
+  Platform.select({ web: `${name}, ${LATIN_WEB_FALLBACK}`, default: name }) as string;
+const arabicFace = (name: string) =>
+  Platform.select({ web: `${name}, ${ARABIC_WEB_FALLBACK}`, default: name }) as string;
+
+export const FontFamily = {
+  // Latin UI (English, numbers)
+  latinLight: latinFace('AlbertSans_300Light'),
+  latinRegular: latinFace('AlbertSans_400Regular'),
+  latinMedium: latinFace('AlbertSans_500Medium'),
+  latinSemiBold: latinFace('AlbertSans_600SemiBold'),
+  latinBold: latinFace('AlbertSans_700Bold'),
+  latinExtraBold: latinFace('AlbertSans_800ExtraBold'),
+
+  // Arabic UI (FS Albert Arabic ships Light/Regular/Bold/ExtraBold only)
+  arabicLight: arabicFace('FSAlbertArabic_300Light'),
+  arabicRegular: arabicFace('FSAlbertArabic_400Regular'),
+  arabicMedium: arabicFace('FSAlbertArabic_400Regular'),
+  arabicSemiBold: arabicFace('FSAlbertArabic_700Bold'),
+  arabicBold: arabicFace('FSAlbertArabic_700Bold'),
+  arabicExtraBold: arabicFace('FSAlbertArabic_800ExtraBold'),
 
   // Display fonts (for marketing/hero sections)
-  latinDisplay: Platform.select({
-    web: "'Albert Sans', Inter, system-ui, sans-serif",
-    default: "AlbertSans_800ExtraBold",
-  }) as string,
-  arabicDisplay: Platform.select({
-    web: "'FS Albert Arabic', 'Noto Sans Arabic', sans-serif",
-    default: "FSAlbertArabic_400Regular",
-  }) as string,
-};
-
-// Fallback font family tokens (used when Google Fonts are not loaded)
-export const FontFamilyFallback = {
-  latinRegular: "Inter_400Regular",
-  latinMedium: "Inter_500Medium",
-  latinSemiBold: "Inter_600SemiBold",
-  latinBold: "Inter_700Bold",
-  arabicRegular: "FSAlbertArabic_400Regular",
-  arabicMedium: "FSAlbertArabic_400Regular",
-  arabicSemiBold: "FSAlbertArabic_700Bold",
-  arabicBold: "FSAlbertArabic_700Bold",
+  latinDisplay: latinFace('AlbertSans_800ExtraBold'),
+  arabicDisplay: arabicFace('FSAlbertArabic_400Regular'),
 };
 
 const latinToArabicMap: Record<string, string> = {

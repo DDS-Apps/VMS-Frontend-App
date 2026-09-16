@@ -1,0 +1,144 @@
+2026-08-28 13:22:13.59
+bbf7c897
+User
+[Nest] 41 - 08/28/2026, 10:22:13 AM DEBUG [PushService] [Push Debug] Message payload: Title="Visit Request Updated" | Body="Visit request for Test notification has been updat..." | Data={"requestId":"54D56835-C9A2-F111-90A2-00155DB21469","type":"request_updated","action":"view_request"}
+
+2026-08-28 13:22:13.59
+bbf7c897
+User
+[Nest] 41 - 08/28/2026, 10:22:13 AM DEBUG [PushService] [Push Debug] Token 1/3: Platform=WEB | Device=Chrome Browser | Model=Unknown | AppVersion=1.0.45 | Token=cF7jPlD7dixaMi6-h9Avza:APA91bE...
+
+2026-08-28 13:22:13.59
+bbf7c897
+User
+[Nest] 41 - 08/28/2026, 10:22:13 AM DEBUG [PushService] [Push Debug] Token 2/3: Platform=WEB | Device=Firefox Browser | Model=Unknown | AppVersion=1.0.44 | Token=eD6r2f4G-EeXHQ-hUs1BWY:APA91bE...
+
+2026-08-28 13:22:13.59
+bbf7c897
+User
+[Nest] 41 - 08/28/2026, 10:22:13 AM DEBUG [PushService] [Push Debug] Token 3/3: Platform=ANDROID | Device=Ahsan's A33 | Model=SM-A336E | AppVersion=1.0.43 | Token=cIm0bdSKTHORgQCyY79d5w:APA91bE...
+
+2026-08-28 13:22:13.59
+bbf7c897
+User
+[Nest] 41 - 08/28/2026, 10:22:13 AM DEBUG [PushService] [Push Debug] Preparing to send to user 2316D10D-2BE3-F011-A58B-00155D07A12B | Total tokens: 3 | Platforms: {"web":2,"android":1}
+
+2026-08-28 13:22:13.59
+bbf7c897
+User
+[Nest] 41 - 08/28/2026, 10:22:13 AM DEBUG [PushService] [Push Debug] Calling Firebase sendEachForMulticast...
+
+2026-08-28 13:22:13.64
+bbf7c897
+User
+[Nest] 41 - 08/28/2026, 10:22:13 AM DEBUG [VisitsService] findAll query params: myRequestsOnly=true, isWalkIn=undefined, pendingApproval=undefined, awaitingVisitor=undefined
+
+2026-08-28 13:22:13.80
+bbf7c897
+User
+[Nest] 41 - 08/28/2026, 10:22:13 AM DEBUG [PushService] [Push Debug] FCM response received in 647ms | Success: 2 | Failure: 1
+
+2026-08-28 13:22:13.80
+bbf7c897
+User
+[Nest] 41 - 08/28/2026, 10:22:13 AM WARN [PushService] [Token Kept Active] Platform: ANDROID - Not deactivating for error: messaging/mismatched-credential (may be transient)
+
+2026-08-28 13:22:13.80
+bbf7c897
+User
+[Nest] 41 - 08/28/2026, 10:22:13 AM DEBUG [PushService] [Push Success] Platform: WEB | Device: Chrome Browser | MessageId: projects/dallah-albaraka-vms/messages/d17f4830-984f-4198-9393-5d15860af68d
+
+2026-08-28 13:22:13.80
+bbf7c897
+User
+[Nest] 41 - 08/28/2026, 10:22:13 AM DEBUG [PushService] [Push Failed Detail] Full error: {"code":"messaging/mismatched-credential","message":"SenderId mismatch","stack":"Error: SenderId mismatch\n at FirebaseMessagingError.fromServerError (/home/runner/workspace/node_modules/firebase-admin/lib/utils/error.js:269:16)\n at createFirebaseError (/home/runner/workspace"}
+
+2026-08-28 13:22:13.80
+bbf7c897
+User
+[Nest] 41 - 08/28/2026, 10:22:13 AM WARN [PushService] [Push Failed] Platform: ANDROID | Device: Ahsan's A33 | Error Code: messaging/mismatched-credential | Message: SenderId mismatch | Token: cIm0bdSKTHORgQCyY79d...
+
+2026-08-28 13:22:13.80
+bbf7c897
+User
+[Nest] 41 - 08/28/2026, 10:22:13 AM LOG [PushService] [Push Complete] User: 2316D10D-2BE3-F011-A58B-00155D07A12B | Success: 2 | Failed: 1 | Duration: 647ms
+
+2026-08-28 13:22:13.80
+bbf7c897
+User
+[Nest] 41 - 08/28/2026, 10:22:13 AM DEBUG [PushService] [Push Success] Platform: WEB | Device: Firefox Browser | MessageId: projects/dallah-albaraka-vms/messages/551ecfc8-fcbc-4712-841a-eab8c8717215
+
+2026-08-28 13:22:13.80
+bbf7c897
+User
+[Nest] 41 - 08/28/2026, 10:22:13 AM DEBUG [NotificationDispatcherService] Notification dispatched to user 2316D10D-2BE3-F011-A58B-00155D07A12B: Visit Request Updated
+
+2026-08-28 13:22:13.83
+bbf7c897
+User
+[Nest] 41 - 08/28/2026, 10:22:13 AM DEBUG [VisitsService] findAll query params: myRequestsOnly=true, isWalkIn=undefined, pendingApproval=undefined, awaitingVisitor=undefined
+
+2026-08-28 13:22:14.02
+bbf7c897
+User
+[Nest] 41 - 08/28/2026, 10:22:14 AM DEBUG [VisitsService] findAll query params: myRequestsOnly=true, isWalkIn=undefined, pendingApproval=undefined, awaitingVisitor=undefined
+
+2026-08-28 13:22:14.42
+bbf7c897
+User
+[Nest] 41 - 08/28/2026, 10:22:14 AM LOG [EmailService] Email sent to ahsanshafiq+nr1@folio3.com: <9944e852-8734-41ea-f55a-2139d022033b@dallahdev.onmicrosoft.com>
+
+2026-08-28 13:22:16.05
+bbf7c897
+User
+[Nest] 41 - 08/28/2026, 10:22:16 AM LOG [HTTP] GET /api/v1/notifications/unread-count 200 - 1595ms - 127.0.0.1 - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36
+
+2026-08-28 13:22:16.33
+bbf7c897
+User
+[Nest] 41 - 08/28/2026, 10:22:16 AM LOG [HTTP] GET /api/v1/visits?startDate=2026-08-01&endDate=2026-08-31&myRequestsOnly=true&limit=100&page=1 200 - 3162ms - 127.0.0.1 - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36
+
+2026-08-28 13:22:16.43
+bbf7c897
+User
+[Nest] 41 - 08/28/2026, 10:22:16 AM LOG [HTTP] GET /api/v1/approvals/pending?limit=10 200 - 3267ms - 127.0.0.1 - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36
+
+2026-08-28 13:22:16.47
+bbf7c897
+User
+[Nest] 41 - 08/28/2026, 10:22:16 AM LOG [HTTP] GET /api/v1/visits?myRequestsOnly=true&limit=50 200 - 3309ms - 127.0.0.1 - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36
+
+2026-08-28 13:22:16.74
+bbf7c897
+User
+[Nest] 41 - 08/28/2026, 10:22:16 AM LOG [HTTP] GET /api/v1/visits/54D56835-C9A2-F111-90A2-00155DB21469 200 - 3587ms - 127.0.0.1 - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36
+
+2026-08-28 13:22:16.87
+bbf7c897
+User
+[Nest] 41 - 08/28/2026, 10:22:16 AM LOG [HTTP] GET /api/v1/visits?myRequestsOnly=true&page=1&limit=10 200 - 3718ms - 127.0.0.1 - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36
+
+2026-08-28 13:22:17.53
+bbf7c897
+User
+[Nest] 41 - 08/28/2026, 10:22:17 AM LOG [HTTP] GET /api/v1/notifications/unread-count 200 - 1097ms - 127.0.0.1 - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36
+
+2026-08-28 13:22:18.76
+bbf7c897
+User
+[Nest] 41 - 08/28/2026, 10:22:18 AM LOG [HTTP] GET /api/v1/notifications/unread-count 200 - 884ms - 127.0.0.1 - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36
+
+2026-08-28 13:22:20.05
+bbf7c897
+User
+[Nest] 41 - 08/28/2026, 10:22:20 AM LOG [HTTP] GET /api/v1/visits/54D56835-C9A2-F111-90A2-00155DB21469 200 - 2958ms - 127.0.0.1 - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36
+
+2026-08-28 13:22:20.51
+bbf7c897
+User
+[Nest] 41 - 08/28/2026, 10:22:20 AM LOG [HTTP] GET /api/v1/notifications/unread-count 200 - 875ms - 127.0.0.1 - Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:153.0) Gecko/20100101 Firefox/153.0
+
+2026-08-28 13:22:40.75
+bbf7c897
+User
+[Nest] 41 - 08/28/2026, 10:22:40 AM LOG [HTTP] GET /api/v1/notifications/unread-count 200 - 874ms - 127.0.0.1 - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36

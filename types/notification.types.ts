@@ -159,6 +159,7 @@ export interface NotificationPayload {
   data?: {
     type?: string;
     requestId?: string;
+    taskId?: string;
     visitorName?: string;
     notificationId?: string;
     timestamp?: string;

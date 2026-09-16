@@ -9,6 +9,10 @@ interface InAppNotificationData {
   data?: Record<string, unknown>;
 }
 
+export function isNotificationNavigationReady(): boolean {
+  return isReady();
+}
+
 export function navigateFromInAppNotification(notification: InAppNotificationData) {
   const { type, data = {} } = notification;
   
@@ -107,8 +111,8 @@ export function navigateFromInAppNotification(notification: InAppNotificationDat
     case 'valet_scheduled':
     case 'valet_completed':
     case 'valet_cancelled':
-      if (data.taskId) {
-        navigate(ROUTES.VALET_TASK_DETAILS, { taskId: data.taskId });
+      if (data.taskId || data.requestId) {
+        navigate(ROUTES.VALET_TASK_DETAILS, { taskId: data.taskId || data.requestId });
       } else {
         navigate(ROUTES.VALET_TASKS);
       }
@@ -184,8 +188,9 @@ export function handleNotificationTap(response: NotificationResponse) {
 
     case NOTIFICATION_TYPES.VALET_TASK:
     case NOTIFICATION_TYPES.VALET_ASSIGNMENT:
-      if (data.taskId) {
-        navigate(ROUTES.VALET_TASK_DETAILS, { taskId: data.taskId });
+    case NOTIFICATION_TYPES.VALET_NEW_REQUEST:
+      if (data.taskId || data.requestId) {
+        navigate(ROUTES.VALET_TASK_DETAILS, { taskId: data.taskId || data.requestId });
       } else {
         navigate(ROUTES.VALET_TASKS);
       }

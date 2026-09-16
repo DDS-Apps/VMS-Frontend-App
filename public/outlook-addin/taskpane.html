@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VMS - Create Visit Request</title>
+  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+  <!--
+    %%APP_ORIGIN%% is replaced at build time (scripts/build-web.js) with the
+    environment's web origin, e.g. https://vms.dallah.com, so this file works
+    when served as plain static content by IIS or the Replit server.
+    taskpane.js falls back to window.location.origin if the placeholder is
+    still present (e.g. when served straight from public/ during development).
+  -->
+  <script>window.__VMS_APP_URL__ = '%%APP_ORIGIN%%';</script>
+  <script src="taskpane.js" defer></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      padding: 20px 16px;
+      background: #ffffff;
+      color: #1a1a1a;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .logo-dot {
+      width: 10px; height: 10px;
+      background: #F58423;
+      border-radius: 50%;
+    }
+    .logo-text {
+      font-size: 12px;
+      font-weight: 600;
+      color: #F58423;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    h2 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #1a1a1a;
+    }
+    p {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+    #senderInfo {
+      background: #f5f5f5;
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-bottom: 16px;
+      font-size: 12px;
+      color: #444;
+      display: none;
+    }
+    #senderInfo strong { color: #1a1a1a; display: block; margin-bottom: 2px; }
+    button {
+      width: 100%;
+      padding: 11px;
+      background: #F58423;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    button:hover { background: #e07318; }
+    button:active { background: #c9660f; }
+    #status {
+      font-size: 11px;
+      color: #888;
+      margin-top: 10px;
+      text-align: center;
+      min-height: 16px;
+    }
+    #status.error { color: #d13438; }
+  </style>
+</head>
+<body>
+  <div class="logo">
+    <div class="logo-dot"></div>
+    <span class="logo-text">Dallah Albaraka VMS</span>
+  </div>
+  <h2>Create Visit Request</h2>
+  <p>Opens the VMS portal with this sender's details pre-filled in the new request form.</p>
+  <div id="senderInfo">
+    <strong id="senderName"></strong>
+    <span id="senderEmail"></span>
+  </div>
+  <button id="openBtn">Open Visit Request Form</button>
+  <div id="status"></div>
+</body>
+</html>

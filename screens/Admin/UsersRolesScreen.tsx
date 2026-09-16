@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import {
   View,
   StyleSheet,
@@ -23,7 +23,7 @@ import { SearchInput } from "@/components/SearchInput";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { LoadingButton } from "@/components/shared/LoadingButton";
-import { RTLHorizontalScrollView } from "@/components/shared";
+import { RTLHorizontalScrollView, FilterChip } from "@/components/shared";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
@@ -33,13 +33,13 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useToast } from "@/contexts/ToastContext";
 import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
 import {
-  useUsersQuery,
+  useAdminUsersQuery,
   useCreateUserMutation,
   useUpdateUserMutation,
   useDeleteUserMutation,
 } from "@/hooks/queries/useUserQueries";
 import type {
-  UserDto,
+  AdminUserDto,
   CreateUserDto,
   UpdateUserDto,
   UserRole as ApiUserRole,
@@ -50,9 +50,11 @@ import {
   formatPhoneNumber,
   formatPhoneForDisplay,
   normalizePhoneNumber,
+  getInitials,
 } from "@/utils/formatters";
 import { applyOpacity } from "@/utils/statusStyles";
 import { PhoneInputWithCountry } from "@/components/PhoneInputWithCountry";
+import { useRetainedDatedData } from "@/hooks/useRetainedDatedData";
 
 type UserSource = "microsoft_ad" | "app_created";
 
@@ -72,27 +74,19 @@ interface DisplayUser {
   managerId?: string;
 }
 
-function mapUserDtoToDisplayUser(dto: UserDto): DisplayUser {
+function mapUserDtoToDisplayUser(dto: AdminUserDto): DisplayUser {
   const dtoAny = dto as unknown as Record<string, unknown>;
-  const firstName = (dto.firstName || dtoAny["first_name"] || "") as string;
-  const lastName = (dto.lastName || dtoAny["last_name"] || "") as string;
-  const nameFromDto = (dtoAny["name"] || "") as string;
   const email = dto.email || "";
   const fullName =
-    nameFromDto ||
-    `${firstName} ${lastName}`.trim() ||
+    dto.name ||
     (email ? email.split("@")[0] : "Unknown User");
-  const phoneNumber = (dtoAny["phoneNumber"] || dto.phone || "") as string;
-  const businessPhone = (dtoAny["businessPhone"] || "") as string;
-  const landline = (dtoAny["landline"] || "") as string;
-  const status =
-    (dtoAny["status"] as "active" | "inactive") ||
-    (dto.isActive ? "active" : "inactive");
-  const autoApproval =
-    (dtoAny["autoApproval"] as boolean) ?? dto.canBypassApproval ?? false;
-  const source =
-    (dtoAny["source"] as string) ||
-    (dto.azureAdId ? "microsoft_ad" : "app_created");
+  const phoneNumber = dto.phoneNumber || (dtoAny["phone"] as string | undefined) || "";
+  const businessPhone = (dtoAny["businessPhone"] as string | undefined) || "";
+  const landline = (dtoAny["landline"] as string | undefined) || "";
+  const status: "active" | "inactive" = dto.status || "inactive";
+  const autoApproval = dto.autoApproval ?? false;
+  const rawSource = dto.source || (dtoAny["source"] as string | undefined) || "app_created";
+  const source: UserSource = rawSource === "azure_ad" ? "microsoft_ad" : (rawSource as UserSource);
 
   return {
     id: dto.id,
@@ -105,9 +99,9 @@ function mapUserDtoToDisplayUser(dto: UserDto): DisplayUser {
     landline: landline || undefined,
     status: status,
     createdAt: dto.createdAt,
-    source: source === "azure_ad" ? "microsoft_ad" : (source as UserSource),
+    source: source,
     autoApproval: autoApproval,
-    managerId: dto.managerId,
+    managerId: dto.managerId ?? undefined,
   };
 }
 
@@ -143,18 +137,27 @@ const HORIZONTAL_PADDING = Spacing.lg;
 const ITEMS_PER_PAGE = 20;
 
 const SearchBarComponent = React.memo(({ onSearch, placeholder }: { onSearch: (text: string) => void; placeholder: string }) => {
-  const localRef = useRef('');
+  const [localValue, setLocalValue] = useState('');
+  const debouncedValue = useDebounce(localValue, 400);
+
+  useEffect(() => {
+    onSearch(debouncedValue);
+  }, [debouncedValue, onSearch]);
+
   const handleChange = useCallback((text: string) => {
-    localRef.current = text;
+    setLocalValue(text);
   }, []);
-  const handleSubmit = useCallback(() => {
-    onSearch(localRef.current);
-  }, [onSearch]);
+
+  const handleClear = useCallback(() => {
+    setLocalValue('');
+  }, []);
+
   return (
     <SearchInput
-      defaultValue=""
+      value={localValue}
       onChangeText={handleChange}
-      onSubmitEditing={handleSubmit}
+      onClear={handleClear}
+      onSubmitSearch={() => onSearch(localValue)}
       returnKeyType="search"
       placeholder={placeholder}
       containerStyle={{ marginHorizontal: HORIZONTAL_PADDING }}
@@ -187,20 +190,21 @@ export default function UsersRolesScreen() {
   const { width: screenWidth } = useWindowDimensions();
 
   // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
-  const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
+  const numColumns = screenWidth >= 900 ? 3 : screenWidth >= 600 ? 2 : 1;
 
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState<DisplayUser | null>(null);
   const [filterRole, setFilterRole] = useState<UserRole | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
   const stableSetSearchQuery = useCallback((text: string) => {
+    setCurrentPage(1);
     setSearchQuery(text);
   }, []);
   const [sortBy, setSortBy] = useState<SortOption>("createdAt");
-  const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [viewMode, setViewMode] = useState<ViewMode>("table");
   const [groupBy, setGroupBy] = useState<GroupMode>("none");
   const [showSortMenu, setShowSortMenu] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
 
   const [bulkMode, setBulkMode] = useState(false);
   const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(
@@ -235,7 +239,7 @@ export default function UsersRolesScreen() {
     () => ({
       page: currentPage,
       limit: ITEMS_PER_PAGE,
-      role: filterRole !== "all" ? (filterRole as ApiUserRole) : undefined,
+      role: filterRole !== "all" ? filterRole : undefined,
       search: searchQuery || undefined,
       sortBy: "createdAt" as const,
       sortOrder: "desc" as const,
@@ -250,35 +254,80 @@ export default function UsersRolesScreen() {
     error,
     refetch,
     isFetching,
-  } = useUsersQuery(queryParams);
+    isPlaceholderData,
+  } = useAdminUsersQuery(queryParams);
+  const usersSourceKey = JSON.stringify(queryParams);
+  const retainedInput = useMemo(
+    () =>
+      !isPlaceholderData && usersResponse
+        ? { response: usersResponse, params: queryParams }
+        : undefined,
+    [isPlaceholderData, queryParams, usersResponse],
+  );
+  const retainedUsers = useRetainedDatedData(usersSourceKey, retainedInput);
+  const displayedResponse = retainedUsers.data?.response;
+  const displayedQueryParams = retainedUsers.data?.params ?? queryParams;
+  const getRoleLabel = useCallback((role: UserRole) => {
+    const roleLabels: Record<UserRole, string> = {
+      employee: t("roles.employee"),
+      manager: t("roles.manager"),
+      receptionist: t("roles.receptionist"),
+      security: t("roles.security"),
+      building_admin: t("roles.buildingAdmin"),
+      buffet_admin: t("roles.buffetAdmin"),
+      buffet_staff: t("roles.buffetStaff"),
+      valet_admin: t("roles.valetAdmin"),
+      valet_driver: t("roles.valetDriver"),
+      visitor: t("roles.visitor"),
+    };
+    return roleLabels[role] || role;
+  }, [t]);
+  const displayedSourceLabel = useMemo(() => {
+    const sourceParts = [
+      `${t("common.page")} ${displayedQueryParams.page ?? 1}`,
+      displayedQueryParams.role
+        ? getRoleLabel(displayedQueryParams.role)
+        : t("common.all"),
+    ];
+    if (displayedQueryParams.search) {
+      sourceParts.push(
+        `${t("common.search")}: “${displayedQueryParams.search}”`,
+      );
+    }
+    return sourceParts.join(" · ");
+  }, [displayedQueryParams, getRoleLabel, t]);
 
   const createMutation = useCreateUserMutation();
   const updateMutation = useUpdateUserMutation();
   const deleteMutation = useDeleteUserMutation();
 
   const users: DisplayUser[] = useMemo(() => {
-    if (!usersResponse?.data) return [];
-    return usersResponse.data.map(mapUserDtoToDisplayUser);
-  }, [usersResponse?.data]);
+    if (!displayedResponse?.data) return [];
+    return displayedResponse.data.map(mapUserDtoToDisplayUser);
+  }, [displayedResponse?.data]);
 
   // Filter managers from existing users list instead of separate API call
-  const managers: UserDto[] = useMemo(() => {
-    if (!usersResponse?.data) return [];
-    return usersResponse.data.filter(
+  const managers: AdminUserDto[] = useMemo(() => {
+    if (!displayedResponse?.data) return [];
+    return displayedResponse.data.filter(
       (user) => user.role.toLowerCase() === "manager",
     );
-  }, [usersResponse?.data]);
+  }, [displayedResponse?.data]);
 
   const totalPages = useMemo(() => {
-    if (!usersResponse || !usersResponse.total) return 1;
-    return Math.ceil(usersResponse.total / ITEMS_PER_PAGE) || 1;
-  }, [usersResponse]);
+    const pg = displayedResponse?.pagination;
+    if (!pg?.total) return 1;
+    return pg.totalPages || Math.ceil(pg.total / ITEMS_PER_PAGE) || 1;
+  }, [displayedResponse]);
 
-  const totalUsers = usersResponse?.total ?? 0;
+  const totalUsers = displayedResponse?.pagination?.total ?? 0;
+  const displayedPage =
+    displayedResponse?.pagination?.page ?? displayedQueryParams.page ?? 1;
 
-  useEffect(() => {
+  const handleRoleFilter = useCallback((role: UserRole | "all") => {
     setCurrentPage(1);
-  }, [filterRole, searchQuery]);
+    setFilterRole(role);
+  }, []);
 
   useEffect(() => {
     if (isError && error) {
@@ -548,22 +597,6 @@ export default function UsersRolesScreen() {
     setSelectedUserIds(new Set());
   };
 
-  const getRoleLabel = (role: UserRole) => {
-    const roleLabels: Record<UserRole, string> = {
-      employee: t("roles.employee"),
-      manager: t("roles.manager"),
-      receptionist: t("roles.receptionist"),
-      security: t("roles.security"),
-      building_admin: t("roles.buildingAdmin"),
-      buffet_admin: t("roles.buffetAdmin"),
-      buffet_staff: t("roles.buffetStaff"),
-      valet_admin: t("roles.valetAdmin"),
-      valet_driver: t("roles.valetDriver"),
-      visitor: t("roles.visitor"),
-    };
-    return roleLabels[role] || role;
-  };
-
   const getSortLabel = (sort: SortOption) => {
     const labels: Record<SortOption, string> = {
       createdAt: t("common.newest"),
@@ -596,7 +629,7 @@ export default function UsersRolesScreen() {
   }, [users, sortBy]);
 
   const groupedUsers = useMemo(() => {
-    if (groupBy === "none") return null;
+    if (groupBy === "none") return [];
 
     const groups: { [key: string]: DisplayUser[] } = {};
     filteredAndSortedUsers.forEach((user) => {
@@ -610,7 +643,7 @@ export default function UsersRolesScreen() {
       role: role as UserRole,
       data,
     }));
-  }, [filteredAndSortedUsers, groupBy]);
+  }, [filteredAndSortedUsers, getRoleLabel, groupBy]);
 
   const renderCheckbox = (userId: string) => {
     const isSelected = selectedUserIds.has(userId);
@@ -653,15 +686,6 @@ export default function UsersRolesScreen() {
       default:
         return theme.primary;
     }
-  };
-
-  const getInitials = (name: string): string => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .substring(0, 2)
-      .toUpperCase();
   };
 
   const renderUserCard = ({ item }: { item: DisplayUser }) => {
@@ -717,6 +741,9 @@ export default function UsersRolesScreen() {
                       lineHeight: 44,
                     },
                   ]}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.5}
                 >
                   {initials}
                 </ThemedText>
@@ -1296,36 +1323,38 @@ export default function UsersRolesScreen() {
         <Pressable
           style={[
             styles.paginationButton,
-            { opacity: currentPage === 1 ? 0.5 : 1 },
+            { opacity: displayedPage === 1 ? 0.5 : 1 },
           ]}
-          onPress={() => setCurrentPage((p) => Math.max(1, p - 1))}
-          disabled={currentPage === 1}
+          onPress={() => setCurrentPage(Math.max(1, displayedPage - 1))}
+          disabled={displayedPage === 1}
         >
           <DDIcon
             name="chevron-left"
             size={20}
-            variant={currentPage === 1 ? "muted" : "primary"}
+            variant={displayedPage === 1 ? "muted" : "primary"}
           />
         </Pressable>
 
         <ThemedText
           style={[Typography.bodySmall, { color: theme.textSecondary }]}
         >
-          {t("common.page")} {currentPage} / {totalPages}
+          {t("common.page")} {displayedPage} / {totalPages}
         </ThemedText>
 
         <Pressable
           style={[
             styles.paginationButton,
-            { opacity: currentPage === totalPages ? 0.5 : 1 },
+            { opacity: displayedPage === totalPages ? 0.5 : 1 },
           ]}
-          onPress={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-          disabled={currentPage === totalPages}
+          onPress={() =>
+            setCurrentPage(Math.min(totalPages, displayedPage + 1))
+          }
+          disabled={displayedPage === totalPages}
         >
           <DDIcon
             name="chevron-right"
             size={20}
-            variant={currentPage === totalPages ? "muted" : "primary"}
+            variant={displayedPage === totalPages ? "muted" : "primary"}
           />
         </Pressable>
       </DirectionalRow>
@@ -1424,69 +1453,26 @@ export default function UsersRolesScreen() {
         />
       </View>
 
-      <ScrollView
-        horizontal
+      <RTLHorizontalScrollView
         showsHorizontalScrollIndicator={false}
         style={[styles.filterContainer, { borderBottomColor: theme.border }]}
         contentContainerStyle={styles.filterContent}
         nestedScrollEnabled={true}
-        keyboardShouldPersistTaps="always"
-        {...({ delaysContentTouches: false, canCancelContentTouches: true } as any)}
       >
-        <GHTouchableOpacity
-          activeOpacity={0.7}
-          style={[
-            styles.filterButton,
-            {
-              backgroundColor:
-                filterRole === "all" ? theme.primary : theme.surface,
-              borderColor: filterRole === "all" ? theme.primary : theme.border,
-            },
-          ]}
-          onPress={() => { console.log('[FILTER TAP] All pressed'); setFilterRole("all"); }}
-        >
-          <ThemedText
-            style={[
-              Typography.bodySmall,
-              {
-                color: filterRole === "all" ? theme.buttonText : theme.text,
-                fontWeight: filterRole === "all" ? "600" : "400",
-                lineHeight: isRTL ? 25 : undefined,
-              },
-            ]}
-          >
-            {t("common.all")}
-          </ThemedText>
-        </GHTouchableOpacity>
+        <FilterChip
+          label={t("common.all")}
+          isSelected={filterRole === "all"}
+          onPress={() => handleRoleFilter("all")}
+        />
         {ALL_ROLES.map((role) => (
-          <GHTouchableOpacity
-            activeOpacity={0.7}
+          <FilterChip
             key={role}
-            style={[
-              styles.filterButton,
-              {
-                backgroundColor:
-                  filterRole === role ? theme.primary : theme.surface,
-                borderColor: filterRole === role ? theme.primary : theme.border,
-              },
-            ]}
-            onPress={() => { console.log('[FILTER TAP] Role pressed:', role); setFilterRole(role); }}
-          >
-            <ThemedText
-              style={[
-                Typography.bodySmall,
-                {
-                  color: filterRole === role ? theme.buttonText : theme.text,
-                  fontWeight: filterRole === role ? "600" : "400",
-                  lineHeight: isRTL ? 25 : undefined,
-                },
-              ]}
-            >
-              {getRoleLabel(role)}
-            </ThemedText>
-          </GHTouchableOpacity>
+            label={getRoleLabel(role)}
+            isSelected={filterRole === role}
+            onPress={() => handleRoleFilter(role)}
+          />
         ))}
-      </ScrollView>
+      </RTLHorizontalScrollView>
 
       <ScrollView
         horizontal
@@ -1571,7 +1557,62 @@ export default function UsersRolesScreen() {
         </GHTouchableOpacity>
       </ScrollView>
 
-      {isFetching && !isLoading ? (
+      {retainedUsers.isRetained ? (
+        <DirectionalRow
+          style={[
+            styles.inlineQueryFeedback,
+            { backgroundColor: applyOpacity(theme.primary, "10") },
+          ]}
+        >
+          {isFetching ? (
+            <ActivityIndicator size="small" color={theme.primary} />
+          ) : (
+            <DDIcon name="info" size={16} color={theme.primary} />
+          )}
+          <ThemedText
+            style={[Typography.caption, { color: theme.textSecondary, flex: 1 }]}
+          >
+            {t("requests.showingPreviousDataFrom").replace(
+              "{{source}}",
+              displayedSourceLabel,
+            )}
+          </ThemedText>
+          {isError && !isFetching ? (
+            <Pressable onPress={() => refetch()} hitSlop={8}>
+              <ThemedText
+                style={[
+                  Typography.caption,
+                  { color: theme.primary, fontWeight: "600" },
+                ]}
+              >
+                {t("common.retry")}
+              </ThemedText>
+            </Pressable>
+          ) : null}
+        </DirectionalRow>
+      ) : isError && displayedResponse && !isFetching ? (
+        <DirectionalRow
+          style={[
+            styles.inlineQueryFeedback,
+            { backgroundColor: applyOpacity(theme.error, "10") },
+          ]}
+        >
+          <DDIcon name="alert-circle" size={16} color={theme.error} />
+          <ThemedText style={[Typography.caption, { color: theme.error, flex: 1 }]}>
+            {error?.message || t("common.loadError")}
+          </ThemedText>
+          <Pressable onPress={() => refetch()} hitSlop={8}>
+            <ThemedText
+              style={[
+                Typography.caption,
+                { color: theme.primary, fontWeight: "600" },
+              ]}
+            >
+              {t("common.retry")}
+            </ThemedText>
+          </Pressable>
+        </DirectionalRow>
+      ) : isFetching && displayedResponse ? (
         <View style={styles.fetchingIndicator}>
           <ActivityIndicator size="small" color={theme.primary} />
         </View>
@@ -1605,11 +1646,42 @@ export default function UsersRolesScreen() {
   );
 
   const renderContent = () => {
-    if (isLoading || isFetching) {
+    // Only show full-screen loading on the very first fetch (no cached data yet).
+    // isFetching alone (search/page refetch) must NOT replace the component tree —
+    // doing so unmounts the FlatList and its ListHeaderComponent, which destroys
+    // SearchBarComponent's local state (typed text, debounce timer, focus).
+    // The small spinner already inside renderListHeader handles the isFetching case.
+    if ((isLoading || isFetching) && !displayedResponse) {
       return (
         <View style={{ flex: 1 }}>
           {renderListHeader()}
           {renderLoadingComponent()}
+        </View>
+      );
+    }
+
+    if (isError && !displayedResponse) {
+      return (
+        <View style={{ flex: 1 }}>
+          {renderListHeader()}
+          <View style={styles.loadingContainer}>
+            <DDIcon name="alert-circle" size={48} color={theme.error} />
+            <Spacer height={Spacing.md} />
+            <ThemedText
+              style={[Typography.body, { color: theme.error, textAlign: "center" }]}
+            >
+              {error?.message || t("common.loadError")}
+            </ThemedText>
+            <Spacer height={Spacing.lg} />
+            <Pressable
+              style={[styles.retryButton, { backgroundColor: theme.primary }]}
+              onPress={() => refetch()}
+            >
+              <ThemedText style={{ color: theme.buttonText, fontWeight: "600" }}>
+                {t("common.retry")}
+              </ThemedText>
+            </Pressable>
+          </View>
         </View>
       );
     }
@@ -1714,14 +1786,14 @@ export default function UsersRolesScreen() {
         </View>
       );
 
-      if (groupBy === "role" && groupedUsers && groupedUsers.length > 0) {
+      if (groupBy === "role") {
         return (
           <SectionList
             sections={groupedUsers}
             renderItem={tableListItem}
             renderSectionHeader={renderTableSectionHeader}
             keyExtractor={(item) => item.id}
-            ListHeaderComponent={combinedTableHeader}
+            ListHeaderComponent={combinedTableHeader()}
             ListFooterComponent={listFooter}
             ListEmptyComponent={renderEmptyComponent}
             stickySectionHeadersEnabled={false}
@@ -1737,7 +1809,7 @@ export default function UsersRolesScreen() {
           data={filteredAndSortedUsers}
           renderItem={tableListItem}
           keyExtractor={(item) => item.id}
-          ListHeaderComponent={combinedTableHeader}
+          ListHeaderComponent={combinedTableHeader()}
           ListFooterComponent={listFooter}
           ListEmptyComponent={renderEmptyComponent}
           keyboardShouldPersistTaps="handled"
@@ -1751,14 +1823,14 @@ export default function UsersRolesScreen() {
       );
     }
 
-    if (groupBy === "role" && groupedUsers && groupedUsers.length > 0) {
+    if (groupBy === "role") {
       return (
         <SectionList
           sections={groupedUsers}
           renderItem={renderUserCard}
           renderSectionHeader={renderSectionHeader}
           keyExtractor={(item) => item.id}
-          ListHeaderComponent={renderListHeader}
+          ListHeaderComponent={renderListHeader()}
           ListFooterComponent={listFooter}
           ListEmptyComponent={renderEmptyComponent}
           stickySectionHeadersEnabled={false}
@@ -1805,7 +1877,7 @@ export default function UsersRolesScreen() {
           renderItem={({ item }) => (
             <View style={getItemStyle()}>{renderUserCard({ item })}</View>
           )}
-          ListHeaderComponent={renderListHeader}
+          ListHeaderComponent={renderListHeader()}
           ListFooterComponent={listFooter}
           ListEmptyComponent={renderEmptyComponent}
           keyboardShouldPersistTaps="handled"
@@ -1819,7 +1891,7 @@ export default function UsersRolesScreen() {
         data={filteredAndSortedUsers}
         renderItem={renderUserCard}
         keyExtractor={(item) => item.id}
-        ListHeaderComponent={renderListHeader}
+        ListHeaderComponent={renderListHeader()}
         ListFooterComponent={listFooter}
         ListEmptyComponent={renderEmptyComponent}
         keyboardShouldPersistTaps="handled"
@@ -2119,9 +2191,7 @@ export default function UsersRolesScreen() {
                       </ThemedText>
                     </Pressable>
                     {managers.map((manager) => {
-                      const managerName =
-                        `${manager.firstName || ""} ${manager.lastName || ""}`.trim() ||
-                        manager.email;
+                      const managerName = manager.name || manager.email;
                       return (
                         <Pressable
                           key={manager.id}
@@ -2278,14 +2348,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingStart: HORIZONTAL_PADDING,
     paddingEnd: Spacing.lg,
-    gap: Spacing.sm,
-  },
-  filterButton: {
-    paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.full,
-    borderWidth: 1,
-    marginVertical: Spacing.sm,
+    gap: Spacing.sm,
   },
   toolbar: {
     flexGrow: 0,
@@ -2493,6 +2557,19 @@ const styles = StyleSheet.create({
   fetchingIndicator: {
     alignItems: "center",
     paddingVertical: Spacing.sm,
+  },
+  inlineQueryFeedback: {
+    alignItems: "center",
+    gap: Spacing.sm,
+    marginHorizontal: HORIZONTAL_PADDING,
+    marginVertical: Spacing.sm,
+    padding: Spacing.sm,
+    borderRadius: BorderRadius.md,
+  },
+  retryButton: {
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
   },
   fab: {
     position: "absolute",

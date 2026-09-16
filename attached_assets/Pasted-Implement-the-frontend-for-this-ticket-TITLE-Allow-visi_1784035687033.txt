@@ -1,0 +1,85 @@
+Implement the frontend for this ticket:
+
+TITLE: Allow visibility and selection of available meeting rooms when booking
+
+Goal:
+When a user books a visit and enables "needs meeting room", the UI must show available rooms for the selected date/time and require the user to choose one before submitting. The system should no longer feel like it books a hidden/random room.
+
+Backend API contract:
+
+1. Fetch available rooms:
+GET /api/v1/visits/rooms/availability?date=YYYY-MM-DD&startTime=HH:mm&endTime=HH:mm&minCapacity=number
+
+Example:
+GET /api/v1/visits/rooms/availability?date=2026-07-15&startTime=09:00&endTime=10:00
+
+Response:
+{
+  "available": true,
+  "totalRooms": 3,
+  "availableRooms": 2,
+  "rooms": [
+    {
+      "id": "0a540da7-e8c2-4d97-9a8f-cf4865485f23",
+      "roomEmail": "baylisaan@dallah.com",
+      "name": "Baylisaan",
+      "floor": "2nd Floor",
+      "building": "Main Building",
+      "capacity": 10,
+      "features": ["projector", "video_conferencing"],
+      "status": "active"
+    }
+  ]
+}
+
+2. Submit selected room with visit creation:
+POST /api/v1/visits
+
+Include:
+{
+  ...
+  "needsMeetingRoom": true,
+  "meetingRoomId": "0a540da7-e8c2-4d97-9a8f-cf4865485f23"
+}
+
+Requirements:
+- When needsMeetingRoom is off, do not fetch rooms and do not submit meetingRoomId.
+- When needsMeetingRoom is on:
+  - wait until visitDate, start time, and end time/duration are known
+  - call availability API
+  - show loading state while fetching
+  - show empty state if no rooms are available
+  - display room options with name, floor, building, capacity, and features if present
+  - allow user to select exactly one room
+  - disable submit until a room is selected
+- If date/time changes, clear the previous room selection and refetch availability.
+- If the submit API returns a conflict/unavailable error, show a clear message and refetch availability:
+  "That room is no longer available. Please choose another room."
+
+UI behavior:
+- Use the app’s existing design system and form patterns.
+- Do not make a landing page or explanatory page.
+- Add the room selector directly in the booking flow near the meeting room toggle/time fields.
+- Keep it compact and operational: a selectable list/card/radio group is fine.
+- The user should be able to see:
+  - room name
+  - floor/building
+  - capacity
+  - selected state
+  - unavailable/empty state
+- Avoid showing roomEmail unless this app already exposes technical identifiers; it is mainly for debugging.
+
+Data handling:
+- API expects startTime/endTime in HH:mm 24-hour format.
+- If the form uses AM/PM display, convert before calling availability.
+- Use the returned room.id as meetingRoomId.
+- Do not use roomEmail as the submitted selected-room identifier.
+
+Acceptance criteria:
+- User can toggle meeting room need on.
+- User sees available rooms for selected date/time.
+- User can select a room.
+- Submit includes meetingRoomId.
+- If no rooms are available, user cannot submit with meeting room enabled.
+- Changing date/time resets room selection and loads fresh room options.
+- Existing booking flow still works when meeting room is not requested.

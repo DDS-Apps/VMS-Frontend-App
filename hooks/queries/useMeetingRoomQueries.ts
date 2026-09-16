@@ -68,6 +68,7 @@ export function useRoomAvailabilityQuery(
     queryFn: () => meetingRoomApiService.checkRoomAvailability(params!),
     enabled: enabled && !!params?.date && !!params?.startTime && !!params?.endTime,
     staleTime: 30 * 1000,
+    retry: false,
   });
 }
 

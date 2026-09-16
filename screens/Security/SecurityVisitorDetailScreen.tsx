@@ -1,5 +1,5 @@
 import React from "react";
-import { View, StyleSheet, ActivityIndicator, useWindowDimensions } from "react-native";
+import { View, StyleSheet, ActivityIndicator, Pressable, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
@@ -10,12 +10,16 @@ import { Spacing, BorderRadius, Typography, FontFamily } from "@/constants/theme
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
-import { applyOpacity, getStatusConfig } from "@/utils/statusStyles";
-import { formatPhoneNumber, formatPhoneForDisplay } from "@/utils/formatters";
+import { applyOpacity } from "@/utils/statusStyles";
+import { RequestStatusBadge } from "@/components/shared/RequestStatusBadge";
+import { RequestTimeline, type TimelineStep } from "@/components/shared/RequestTimeline";
+import { formatPhoneNumber, formatPhoneForDisplay, getInitials } from "@/utils/formatters";
 import { useSecurityVisitorQuery } from "@/hooks/queries/useSecurityQueries";
 import type { SecurityVisitorDetailScreenProps } from "@/types/securityNavigation.types";
 import { DirectionalRow } from '@/components/DirectionalRow';
 import { PURPOSE_VALUE_TO_KEY, normalizePurposeValue } from "@/constants/requestConstants";
+import { resolveParkingDisplayDecision } from "@/utils/parkingDecision";
+import { getSecurityTimelineTimestamps } from "@/utils/securityTimeline";
 
 export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDetailScreenProps) {
   const { theme } = useTheme();
@@ -28,7 +32,13 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
   const isWebLayout = screenWidth >= 768;
   const gridItemWidth = screenWidth > 900 ? '32%' : '48%';
 
-  const { data: visitorData, isLoading, isError } = useSecurityVisitorQuery(visitorId);
+  const {
+    data: visitorData,
+    isLoading,
+    isFetching,
+    isError,
+    refetch,
+  } = useSecurityVisitorQuery(visitorId);
 
   const scrollContentStyle = {
     paddingHorizontal: Spacing.lg,
@@ -37,7 +47,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
   };
 
   
-  if (isLoading) {
+  if (isLoading && !visitorData) {
     return (
       <ScreenScrollView contentContainerStyle={[scrollContentStyle, { flex: 1, justifyContent: 'center', alignItems: 'center' }]}>
         <ActivityIndicator size="large" color={theme.primary} />
@@ -49,7 +59,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
     );
   }
 
-  if (isError || !visitorData) {
+  if (!visitorData) {
     return (
       <ScreenScrollView contentContainerStyle={[scrollContentStyle, { flex: 1, justifyContent: 'center', alignItems: 'center' }]}>
         <DDIcon name="alert-circle" size={48} color={theme.error} />
@@ -57,33 +67,55 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
         <ThemedText style={[Typography.body, { color: theme.error, textAlign: 'center' }]}>
           {t('errors.failedToLoadData')}
         </ThemedText>
+        <Spacer height={Spacing.lg} />
+        <Pressable
+          style={[styles.retryButton, { backgroundColor: theme.primary }]}
+          onPress={() => refetch()}
+        >
+          <ThemedText style={[Typography.body, { color: theme.buttonText, fontWeight: '600' }]}>
+            {t('common.retry')}
+          </ThemedText>
+        </Pressable>
       </ScreenScrollView>
     );
   }
 
-  const statusConfig = getStatusConfig(theme, visitorData.status, t);
-  const initials = visitorData.visitorName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  const initials = getInitials(visitorData.visitorName);
+  const parkingDecision = resolveParkingDisplayDecision({
+    parkingDecision: (visitorData as any).parkingDecision,
+    visitorNeedsParking: visitorData.visitorNeedsParking,
+    isVisitorNeedsParking: visitorData.isVisitorNeedsParking,
+    hasParking: (visitorData as any).hasParking,
+    hasParkingAllocation: visitorData.parkingAssigned,
+  });
 
-  const getTimelineSteps = () => {
+  const getTimelineSteps = (): TimelineStep[] => {
     const status = visitorData.status;
     const isCheckedIn = status === 'checked_in';
     const isCheckedOut = status === 'checked_out' || status === 'completed';
+    const timestamps = getSecurityTimelineTimestamps(visitorData);
     
     return [
       {
+        id: 'arrived',
         label: t('timeline.visitorArrived'),
         icon: 'user-check' as IconName,
-        isCompleted: isCheckedIn || isCheckedOut,
+        status: isCheckedIn || isCheckedOut ? 'completed' : 'pending',
+        timestamp: timestamps.arrivedAt,
       },
       {
+        id: 'checked-in',
         label: t('timeline.visitorCheckedIn'),
         icon: 'log-in' as IconName,
-        isCompleted: isCheckedIn || isCheckedOut,
+        status: isCheckedIn || isCheckedOut ? 'completed' : 'pending',
+        timestamp: timestamps.checkedInAt,
       },
       {
+        id: 'checked-out',
         label: t('timeline.visitorCheckedOut'),
         icon: 'log-out' as IconName,
-        isCompleted: isCheckedOut,
+        status: isCheckedOut ? 'completed' : 'pending',
+        timestamp: timestamps.checkedOutAt,
       }
     ];
   };
@@ -92,6 +124,58 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
 
   return (
     <ScreenScrollView contentContainerStyle={scrollContentStyle}>
+      {isFetching || isError ? (
+        <DirectionalRow
+          style={[
+            styles.inlineQueryState,
+            {
+              backgroundColor: applyOpacity(
+                isError && !isFetching ? theme.error : theme.primary,
+                '10',
+              ),
+            },
+          ]}
+        >
+          {isError && !isFetching ? (
+            <DDIcon name="alert-circle" size={16} color={theme.error} />
+          ) : (
+            <ActivityIndicator size="small" color={theme.primary} />
+          )}
+          <ThemedText
+            style={[
+              Typography.caption,
+              {
+                color:
+                  isError && !isFetching
+                    ? theme.error
+                    : theme.textSecondary,
+                flex: 1,
+              },
+            ]}
+          >
+            {t(
+              isError && !isFetching
+                ? 'errors.failedToLoadData'
+                : 'common.loading',
+            )}
+          </ThemedText>
+          {isError && !isFetching ? (
+            <Pressable onPress={() => refetch()} hitSlop={8}>
+              <ThemedText
+                style={[
+                  Typography.caption,
+                  { color: theme.primary, fontWeight: '600' },
+                ]}
+              >
+                {t('common.retry')}
+              </ThemedText>
+            </Pressable>
+          ) : null}
+        </DirectionalRow>
+      ) : null}
+
+      {isFetching || isError ? <Spacer height={Spacing.md} /> : null}
+
       {/* Header Card */}
       <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
         {isWebLayout ? (
@@ -100,7 +184,12 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
             <DirectionalRow style={{ alignItems: 'center', gap: Spacing.md, flex: 1, minWidth: 200 }}>
               {/* Avatar */}
               <View style={[styles.avatarNew, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
-                <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
+                <ThemedText
+                  style={[styles.avatarText, { color: theme.primary }]}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.5}
+                >
                   {initials}
                 </ThemedText>
               </View>
@@ -118,46 +207,34 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
               </View>
 
               {/* Status Badge */}
-              <DirectionalRow
-                style={{
-                  alignItems: 'center',
-                  backgroundColor: statusConfig.bg,
-                  borderColor: statusConfig.border,
-                  borderWidth: StyleSheet.hairlineWidth,
-                  paddingHorizontal: Spacing.md,
-                  paddingVertical: 6,
-                  borderRadius: BorderRadius.sm,
-                  gap: 4,
-                }}
-              >
-                <DDIcon name={(statusConfig.icon || 'clock') as IconName} size={14} color={statusConfig.text} />
-                <ThemedText style={[Typography.caption, { color: statusConfig.text, fontWeight: '600', fontSize: 12 }]}>
-                  {statusConfig.label}
-                </ThemedText>
-              </DirectionalRow>
+              <RequestStatusBadge status={visitorData.status} />
             </DirectionalRow>
 
             {/* Right group: Contact info */}
             <DirectionalRow style={{ alignItems: 'center', gap: Spacing.lg, flexShrink: 0 }}>
               {/* Email */}
-              <DirectionalRow style={{ alignItems: 'center', gap: Spacing.sm }}>
-                <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15'), width: 32, height: 32 }]}>
-                  <DDIcon name="mail" size={16} color={theme.text} />
-                </View>
-                <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14 }]}>
-                  {visitorData.visitorEmail || '-'}
-                </ThemedText>
-              </DirectionalRow>
+              {!!visitorData.visitorEmail && (
+                <DirectionalRow style={{ alignItems: 'center', gap: Spacing.sm }}>
+                  <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15'), width: 32, height: 32 }]}>
+                    <DDIcon name="mail" size={16} color={theme.text} />
+                  </View>
+                  <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14 }]}>
+                    {visitorData.visitorEmail}
+                  </ThemedText>
+                </DirectionalRow>
+              )}
 
               {/* Phone */}
-              <DirectionalRow style={{ alignItems: 'center', gap: Spacing.sm }}>
-                <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15'), width: 32, height: 32 }]}>
-                  <DDIcon name="phone" size={16} color={theme.text} />
-                </View>
-                <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, writingDirection: 'ltr' }]}>
-                  {visitorData.visitorPhone ? formatPhoneNumber(visitorData.visitorPhone) : '-'}
-                </ThemedText>
-              </DirectionalRow>
+              {!!visitorData.visitorPhone && (
+                <DirectionalRow style={{ alignItems: 'center', gap: Spacing.sm }}>
+                  <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15'), width: 32, height: 32 }]}>
+                    <DDIcon name="phone" size={16} color={theme.text} />
+                  </View>
+                  <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, writingDirection: 'ltr' }]}>
+                    {formatPhoneNumber(visitorData.visitorPhone)}
+                  </ThemedText>
+                </DirectionalRow>
+              )}
             </DirectionalRow>
           </DirectionalRow>
         ) : (
@@ -165,7 +242,12 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
             {/* Mobile layout - centered stack */}
             <View style={{ alignItems: 'center' }}>
               <View style={[styles.avatarNew, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
-                <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
+                <ThemedText
+                  style={[styles.avatarText, { color: theme.primary }]}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.5}
+                >
                   {initials}
                 </ThemedText>
               </View>
@@ -181,21 +263,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
 
               <Spacer height={Spacing.sm} />
 
-              <View
-                style={{
-                  alignSelf: 'center',
-                  backgroundColor: statusConfig.bg,
-                  borderColor: statusConfig.border,
-                  borderWidth: StyleSheet.hairlineWidth,
-                  paddingHorizontal: Spacing.md,
-                  paddingVertical: 6,
-                  borderRadius: BorderRadius.sm,
-                }}
-              >
-                <ThemedText style={[Typography.caption, { color: statusConfig.text, fontWeight: '600', fontSize: 12 }]}>
-                  {statusConfig.label}
-                </ThemedText>
-              </View>
+              <RequestStatusBadge status={visitorData.status} />
             </View>
 
             <Spacer height={Spacing.xl} />
@@ -204,25 +272,31 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
 
             <Spacer height={Spacing.lg} />
 
-            <DirectionalRow style={[styles.infoRowNew, { justifyContent: 'flex-start', gap: Spacing.md }]}>
-              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-                <DDIcon name="mail" size={18} color={theme.text} />
-              </View>
-              <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14 }]}>
-                {visitorData.visitorEmail || '-'}
-              </ThemedText>
-            </DirectionalRow>
+            {!!visitorData.visitorEmail && (
+              <>
+                <DirectionalRow style={[styles.infoRowNew, { justifyContent: 'flex-start', gap: Spacing.md }]}>
+                  <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                    <DDIcon name="mail" size={18} color={theme.text} />
+                  </View>
+                  <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14 }]}>
+                    {visitorData.visitorEmail}
+                  </ThemedText>
+                </DirectionalRow>
 
-            <Spacer height={Spacing.md} />
+                <Spacer height={Spacing.md} />
+              </>
+            )}
 
-            <DirectionalRow style={[styles.infoRowNew, { justifyContent: 'flex-start', gap: Spacing.md }]}>
-              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-                <DDIcon name="phone" size={18} color={theme.text} />
-              </View>
-              <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, writingDirection: 'ltr' }]}>
-                {visitorData.visitorPhone ? formatPhoneNumber(visitorData.visitorPhone) : '-'}
-              </ThemedText>
-            </DirectionalRow>
+            {!!visitorData.visitorPhone && (
+              <DirectionalRow style={[styles.infoRowNew, { justifyContent: 'flex-start', gap: Spacing.md }]}>
+                <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                  <DDIcon name="phone" size={18} color={theme.text} />
+                </View>
+                <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, writingDirection: 'ltr' }]}>
+                  {formatPhoneNumber(visitorData.visitorPhone)}
+                </ThemedText>
+              </DirectionalRow>
+            )}
           </>
         )}
       </ThemedView>
@@ -356,8 +430,8 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
 
       <Spacer height={Spacing.lg} />
 
-      {/* Additional Services Section */}
-      <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
+      {/* Additional Services Section — hidden for walk-in visitors */}
+      {!visitorData.isWalkIn && <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
         <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text }]}>
           {t('services.additionalServices')}
         </ThemedText>
@@ -563,7 +637,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                   styles.serviceIcon,
                   {
                     backgroundColor: applyOpacity(
-                      visitorData.visitorNeedsParking || visitorData.isVisitorNeedsParking || visitorData.parkingAssigned
+                      parkingDecision === 'required'
                         ? theme.secondary
                         : theme.textSecondary,
                       '15',
@@ -575,7 +649,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                   name="truck"
                   size={18}
                   color={
-                    visitorData.visitorNeedsParking || visitorData.isVisitorNeedsParking || visitorData.parkingAssigned
+                    parkingDecision === 'required'
                       ? theme.secondary
                       : theme.textSecondary
                   }
@@ -590,122 +664,39 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                 >
                   {t('services.parking')}
                 </ThemedText>
-                {visitorData.visitorNeedsParking || visitorData.isVisitorNeedsParking || visitorData.parkingAssigned ? (
-                  visitorData.status === 'cancelled' || visitorData.status === 'rejected' ? (
-                    <ThemedText
-                      style={[
-                        Typography.caption,
-                        { color: theme.error, fontSize: 12, marginTop: 2 },
-                      ]}
-                    >
-                      {t('status.cancelled')}
-                    </ThemedText>
-                  ) : visitorData.parkingSpot ? (
-                    <ThemedText
-                      style={[
-                        Typography.caption,
-                        { color: theme.textSecondary, fontSize: 12, marginTop: 2 },
-                      ]}
-                    >
-                      {visitorData.parkingSpot}
-                    </ThemedText>
-                  ) : visitorData.licensePlate || visitorData.carModel || visitorData.carColor ? (
-                    <ThemedText
-                      style={[
-                        Typography.caption,
-                        { color: theme.textSecondary, fontSize: 12, marginTop: 2 },
-                      ]}
-                    >
-                      {[visitorData.licensePlate, visitorData.carModel, visitorData.carColor].filter(Boolean).join(' • ')}
-                    </ThemedText>
-                  ) : (
-                    <ThemedText
-                      style={[
-                        Typography.caption,
-                        { color: theme.warning, fontSize: 12, marginTop: 2 },
-                      ]}
-                    >
-                      {t('parking.parkingPending')}
-                    </ThemedText>
-                  )
-                ) : visitorData.status === 'cancelled' ? (
-                  <ThemedText
-                    style={[
-                      Typography.caption,
-                      { color: theme.error, fontSize: 12, marginTop: 2 },
-                    ]}
-                  >
-                    {t('status.cancelled')}
-                  </ThemedText>
-                ) : (
-                  <ThemedText
-                    style={[
-                      Typography.caption,
-                      { color: theme.textSecondary, fontSize: 12, marginTop: 2, fontStyle: 'italic' },
-                    ]}
-                  >
-                    {t('common.notRequested')}
-                  </ThemedText>
-                )}
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12, marginTop: 2 }]}>
+                  {parkingDecision === 'required' ? t('parking.needsParking') : t('parking.noParking')}
+                </ThemedText>
               </View>
             </DirectionalRow>
           </View>
         </View>
-      </ThemedView>
+      </ThemedView>}
 
       <Spacer height={Spacing.lg} />
 
-      {/* Request Timeline Section */}
-      <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
-        <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text }]}>
-          {t('timeline.requestTimeline')}
-        </ThemedText>
-        <Spacer height={Spacing.lg} />
-
-        {timelineSteps.map((step, index) => (
-          <View key={index} style={styles.timelineItemNew}>
-            <View style={styles.timelineIconContainer}>
-              <View style={[
-                styles.timelineDotNew,
-                { 
-                  backgroundColor: step.isCompleted 
-                    ? applyOpacity(theme.success, '15') 
-                    : theme.surface,
-                  borderColor: step.isCompleted ? theme.success : theme.border,
-                }
-              ]}>
-                {step.isCompleted ? (
-                  <DDIcon name="check" size={14} color={theme.success} />
-                ) : (
-                  <DDIcon name={step.icon} size={14} color={theme.textSecondary} />
-                )}
-              </View>
-              {index < timelineSteps.length - 1 && (
-                <View style={[
-                  styles.timelineLineNew, 
-                  { backgroundColor: step.isCompleted ? theme.success : theme.border }
-                ]} />
-              )}
-            </View>
-            <ThemedText style={[
-              Typography.body, 
-              { 
-                fontSize: 14,
-                color: step.isCompleted ? theme.text : theme.textSecondary,
-                marginStart: Spacing.md,
-                marginBottom: index < timelineSteps.length - 1 ? Spacing.xl : 0,
-              }
-            ]}>
-              {step.label}
-            </ThemedText>
-          </View>
-        ))}
-      </ThemedView>
+      <RequestTimeline
+        steps={timelineSteps}
+        title={t('timeline.requestTimeline')}
+        timezone={visitorData.timezone}
+      />
     </ScreenScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  inlineQueryState: {
+    alignItems: 'center',
+    gap: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+  },
+  retryButton: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
+  },
   cardNew: {
     padding: Spacing.lg,
     borderRadius: BorderRadius.md,

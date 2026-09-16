@@ -97,119 +97,24 @@ export default function ParkingValetSettingsScreen() {
     setShowModal(false);
   };
 
-  const getParkingTypeColor = (type: ParkingArea['type']) => {
-    switch (type) {
-      case 'visitor': return theme.primary;
-      case 'vip': return theme.chartPurple;
-      case 'staff': return theme.secondary;
-      case 'general': return theme.textSecondary;
-      default: return theme.textSecondary;
-    }
-  };
-
-  const getParkingTypeLabel = (type: ParkingArea['type']) => {
-    switch (type) {
-      case 'visitor': return t('roles.visitor');
-      case 'vip': return t('visitor.vip');
-      case 'staff': return t('roles.employee');
-      case 'general': return t('common.all');
-      default: return type;
-    }
-  };
-
   const renderParkingArea = ({ item }: { item: ParkingArea }) => (
     <ThemedView style={[styles.card, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
-      <DirectionalRow style={styles.cardHeader}>
-        <View style={{ flex: 1 }}>
-          <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginBottom: Spacing.xs }]}>
-            {item.name}
-          </ThemedText>
-          <View style={[styles.badge, { backgroundColor: getParkingTypeColor(item.type) + '20' }]}>
-            <ThemedText style={[Typography.caption, { color: getParkingTypeColor(item.type), fontWeight: '600', textTransform: 'uppercase' }]}>
-              {getParkingTypeLabel(item.type)}
-            </ThemedText>
-          </View>
-        </View>
-      </DirectionalRow>
-
-      <Spacer height={Spacing.md} />
-
-      <DirectionalRow style={styles.infoRow}>
-        <DDIcon name="map-pin" variant="muted" size={16} />
-        <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginEnd: Spacing.xs }]}>
-          {item.location}
+      <DirectionalRow style={styles.parkingDecision}>
+        <DDIcon name="check-circle" color={theme.primary} size={20} />
+        <ThemedText style={[Typography.subtitle, { color: theme.primary, fontWeight: '600', marginStart: Spacing.sm }]}>
+          {item.availableSpots > 0 ? t('parking.needsParking') : t('parking.noParking')}
         </ThemedText>
-      </DirectionalRow>
-
-      <Spacer height={Spacing.sm} />
-
-      <DirectionalRow style={[styles.statsRow, { borderTopColor: theme.border }]}>
-        <View style={styles.stat}>
-          <ThemedText style={[Typography.title, { fontWeight: '700', color: theme.text }]}>
-            {item.totalSpots}
-          </ThemedText>
-          <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
-            {t('parking.totalSlots')}
-          </ThemedText>
-        </View>
-        <View style={styles.stat}>
-          <ThemedText style={[Typography.title, { fontWeight: '700', color: theme.success }]}>
-            {item.availableSpots}
-          </ThemedText>
-          <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
-            {t('status.available')}
-          </ThemedText>
-        </View>
-        <View style={styles.stat}>
-          <ThemedText style={[Typography.title, { fontWeight: '700', color: theme.primary }]}>
-            {item.totalSpots - item.availableSpots}
-          </ThemedText>
-          <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
-            {t('status.occupied')}
-          </ThemedText>
-        </View>
       </DirectionalRow>
     </ThemedView>
   );
 
-  const renderValetZone = ({ item }: { item: ValetZone }) => (
+  const renderValetZone = () => (
     <ThemedView style={[styles.card, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
-      <DirectionalRow style={styles.cardHeader}>
-        <View style={{ flex: 1 }}>
-          <ThemedText style={[Typography.subtitle, { fontWeight: '600', marginBottom: Spacing.xs }]}>
-            {item.name}
-          </ThemedText>
-        </View>
-      </DirectionalRow>
-
-      <Spacer height={Spacing.md} />
-
-      <DirectionalRow style={styles.infoRow}>
-        <DDIcon name="map-pin" variant="muted" size={16} />
-        <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginEnd: Spacing.xs }]}>
-          {item.location}
+      <DirectionalRow style={styles.parkingDecision}>
+        <DDIcon name="check-circle" color={theme.primary} size={20} />
+        <ThemedText style={[Typography.subtitle, { color: theme.primary, fontWeight: '600', marginStart: Spacing.sm }]}>
+          {t('parking.needsParking')}
         </ThemedText>
-      </DirectionalRow>
-
-      <Spacer height={Spacing.sm} />
-
-      <DirectionalRow style={[styles.statsRow, { borderTopColor: theme.border }]}>
-        <View style={styles.stat}>
-          <ThemedText style={[Typography.title, { fontWeight: '700', color: theme.text }]}>
-            {item.capacity}
-          </ThemedText>
-          <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
-            {t('buffet.numberOfGuests')}
-          </ThemedText>
-        </View>
-        <View style={styles.stat}>
-          <ThemedText style={[Typography.title, { fontWeight: '700', color: theme.success }]}>
-            {item.activeDrivers}
-          </ThemedText>
-          <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
-            {t('dashboard.activeDrivers')}
-          </ThemedText>
-        </View>
       </DirectionalRow>
     </ThemedView>
   );
@@ -250,7 +155,7 @@ export default function ParkingValetSettingsScreen() {
           data={parkingAreas}
           renderItem={renderParkingArea}
           keyExtractor={(item) => item.id}
-          ListHeaderComponent={renderListHeader}
+          ListHeaderComponent={renderListHeader()}
           ListFooterComponent={<View style={{ height: insets.bottom + 100 + Spacing.xl }} />}
           contentContainerStyle={{ paddingHorizontal: Spacing.xl, paddingTop: Spacing.md }}
         />
@@ -259,150 +164,12 @@ export default function ParkingValetSettingsScreen() {
           data={valetZones}
           renderItem={renderValetZone}
           keyExtractor={(item) => item.id}
-          ListHeaderComponent={renderListHeader}
+          ListHeaderComponent={renderListHeader()}
           ListFooterComponent={<View style={{ height: insets.bottom + 100 + Spacing.xl }} />}
           contentContainerStyle={{ paddingHorizontal: Spacing.xl, paddingTop: Spacing.md }}
         />
       )}
 
-      <Pressable
-        style={[styles.fab, { backgroundColor: theme.primary, bottom: insets.bottom + 80 + Spacing.lg }]}
-        onPress={tab === 'parking' ? handleAddParking : handleAddValet}
-      >
-        <DDIcon name="plus" size={24} color={theme.buttonText} />
-      </Pressable>
-
-      <Modal
-        visible={showModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowModal(false)}
-      >
-        <View style={styles.modalOverlay} pointerEvents="box-none">
-          <Pressable style={styles.modalBackdrop} onPress={() => setShowModal(false)} />
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={{ flex: 1, justifyContent: 'flex-end' }}
-          >
-            <View style={[styles.modalContent, { backgroundColor: theme.background, paddingBottom: insets.bottom + Spacing.xl }]}>
-              <DirectionalRow style={styles.modalHeader}>
-                <ThemedText style={[Typography.subtitle, { fontWeight: '600' }]}>
-                  {modalType === 'parking' ? t('navigation.parkingSlots') : t('navigation.valetService')}
-                </ThemedText>
-                <Pressable onPress={() => setShowModal(false)}>
-                  <DDIcon name="x" size={24} variant="muted" />
-                </Pressable>
-              </DirectionalRow>
-
-              <ScrollView style={styles.formContainer} showsVerticalScrollIndicator={false}>
-              {modalType === 'parking' ? (
-                <>
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginBottom: Spacing.xs }]}>
-                    {t('form.fullName')} *
-                  </ThemedText>
-                  <TextInput
-                    style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border, fontFamily: getInputFontFamily(parkingForm.name, isRTL) }]}
-                    value={parkingForm.name}
-                    onChangeText={(text) => setParkingForm({ ...parkingForm, name: text })}
-                    placeholder={t('form.enterFullName')}
-                    placeholderTextColor={theme.textSecondary}
-                  />
-
-                  <Spacer height={Spacing.md} />
-
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginBottom: Spacing.xs }]}>
-                    {t('invitation.location')} *
-                  </ThemedText>
-                  <TextInput
-                    style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border, fontFamily: getInputFontFamily(parkingForm.location, isRTL) }]}
-                    value={parkingForm.location}
-                    onChangeText={(text) => setParkingForm({ ...parkingForm, location: text })}
-                    placeholder={t('invitation.location')}
-                    placeholderTextColor={theme.textSecondary}
-                  />
-
-                  <Spacer height={Spacing.md} />
-
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginBottom: Spacing.xs }]}>
-                    {t('parking.totalSlots')} *
-                  </ThemedText>
-                  <TextInput
-                    style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border, fontFamily: getInputFontFamily(parkingForm.totalSpots, isRTL) }]}
-                    value={parkingForm.totalSpots}
-                    onChangeText={(text) => setParkingForm({ ...parkingForm, totalSpots: text })}
-                    placeholder="50"
-                    placeholderTextColor={theme.textSecondary}
-                    keyboardType="number-pad"
-                  />
-
-                  <Spacer height={Spacing.lg} />
-
-                  <LoadingButton
-                    onPress={handleSaveParking}
-                    variant="primary"
-                    size="medium"
-                    fullWidth
-                  >
-                    {t('common.save')}
-                  </LoadingButton>
-                </>
-              ) : (
-                <>
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginBottom: Spacing.xs }]}>
-                    {t('form.fullName')} *
-                  </ThemedText>
-                  <TextInput
-                    style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border, fontFamily: getInputFontFamily(valetForm.name, isRTL) }]}
-                    value={valetForm.name}
-                    onChangeText={(text) => setValetForm({ ...valetForm, name: text })}
-                    placeholder={t('form.enterFullName')}
-                    placeholderTextColor={theme.textSecondary}
-                  />
-
-                  <Spacer height={Spacing.md} />
-
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginBottom: Spacing.xs }]}>
-                    {t('invitation.location')} *
-                  </ThemedText>
-                  <TextInput
-                    style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border, fontFamily: getInputFontFamily(valetForm.location, isRTL) }]}
-                    value={valetForm.location}
-                    onChangeText={(text) => setValetForm({ ...valetForm, location: text })}
-                    placeholder={t('invitation.location')}
-                    placeholderTextColor={theme.textSecondary}
-                  />
-
-                  <Spacer height={Spacing.md} />
-
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginBottom: Spacing.xs }]}>
-                    {t('buffet.numberOfGuests')} *
-                  </ThemedText>
-                  <TextInput
-                    style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border, fontFamily: getInputFontFamily(valetForm.capacity, isRTL) }]}
-                    value={valetForm.capacity}
-                    onChangeText={(text) => setValetForm({ ...valetForm, capacity: text })}
-                    placeholder="30"
-                    placeholderTextColor={theme.textSecondary}
-                    keyboardType="number-pad"
-                  />
-
-                  <Spacer height={Spacing.lg} />
-
-                  <LoadingButton
-                    onPress={handleSaveValet}
-                    variant="primary"
-                    size="medium"
-                    fullWidth
-                  >
-                    {t('common.save')}
-                  </LoadingButton>
-                </>
-              )}
-            </ScrollView>
-          </View>
-          </KeyboardAvoidingView>
-        </View>
-      </Modal>
     </>
   );
 }
@@ -438,6 +205,9 @@ const styles = StyleSheet.create({
   cardHeader: {
     justifyContent: 'space-between',
     alignItems: 'flex-start',
+  },
+  parkingDecision: {
+    alignItems: 'center',
   },
   badge: {
     paddingHorizontal: Spacing.sm,

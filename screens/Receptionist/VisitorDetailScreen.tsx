@@ -1,8 +1,10 @@
-import React, { useState, useMemo } from "react";
-import { View, StyleSheet, Pressable, Modal, TextInput, Alert, ScrollView, ActivityIndicator, useWindowDimensions } from "react-native";
+import React, { useState, useMemo, useCallback } from "react";
+import { View, StyleSheet, Pressable, Modal, TextInput, Alert, ScrollView, ActivityIndicator, RefreshControl, useWindowDimensions } from "react-native";
+import QRCode from "react-native-qrcode-svg";
 import type { VisitorDetailScreenProps } from "@/types/receptionistNavigation.types";
 import { ROUTES } from "@/constants";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { DDIcon, type IconName } from "@/components/DDIcon";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { ThemedText } from "@/components/ThemedText";
@@ -13,7 +15,6 @@ import {
   RequestTimeline,
   useTimelineSteps,
   type TimelineData,
-  type TimelineActionCallbacks,
 } from "@/components/shared/RequestTimeline";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
@@ -22,12 +23,19 @@ import { useFormatters } from "@/hooks/useFormatters";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { applyOpacity } from "@/utils/statusStyles";
-import { formatPhoneNumber, formatPhoneForDisplay } from "@/utils/formatters";
-import { VisitorActionButton } from "@/components/VisitorActionButton";
-import { StatusBadge } from "@/components/shared/StatusBadge";
+import { formatPhoneNumber, formatPhoneForDisplay, getInitials } from "@/utils/formatters";
+import { RequestStatusBadge } from "@/components/shared/RequestStatusBadge";
 import { LoadingButton } from "@/components/shared/LoadingButton";
-import { useReceptionCheckInMutation, useReceptionCheckOutMutation } from "@/hooks/queries/useReceptionQueries";
+import { ExpiredVisitFooter } from "@/components/shared/ExpiredVisitFooter";
 import { useVisitDetailsQuery } from "@/hooks/queries/useApprovalQueries";
+import { resolveParkingDisplayDecision } from "@/utils/parkingDecision";
+import { useRiyadhBusinessDateKey } from "@/hooks/useRiyadhBusinessDateKey";
+import {
+  computeIsPendingApprovalWalkInExpired,
+  computeIsPendingHostWalkInExpired,
+  getPendingApprovalWalkInScheduledEndMs,
+} from "@/utils/visitExpiredGuard";
+import { useTimeBoundaryTick } from "@/hooks/useTimeBoundaryTick";
 
 interface LegacyVisitor {
   id: string;
@@ -35,6 +43,7 @@ interface LegacyVisitor {
   company: string;
   time: string;
   endTime?: string | null;
+  duration?: string | null;
   visitDate?: string;
   host: string;
   hostDepartment?: string;
@@ -44,16 +53,16 @@ interface LegacyVisitor {
   isWalkIn: boolean;
   email: string;
   phone: string;
-  parking?: string;
-  valet?: string;
   meetingRoom?: { name: string; floor?: string };
   isMeetingRoom?: boolean;
   isBuffet?: boolean;
   buffet?: { status?: string; location?: string };
-  isParking?: boolean;
-  licensePlate?: string | null;
-  carModel?: string | null;
-  carColor?: string | null;
+  parkingDecision?: unknown;
+  visitorNeedsParking?: boolean | null;
+  isVisitorNeedsParking?: boolean | null;
+  hasParking?: boolean | null;
+  hasParkingAllocation?: boolean;
+  qrCode?: string | null;
   origin: 'scheduled' | 'walk_in';
   scheduledFor: string;
   createdAt: string;
@@ -62,6 +71,14 @@ interface LegacyVisitor {
   checkedInAt?: string;
   checkedOutAt?: string;
   completedAt?: string;
+  timeline?: {
+    requestedAt?: string;
+    approvedAt?: string;
+    visitorAcceptedAt?: string;
+    checkedInAt?: string;
+    checkedOutAt?: string;
+    completedAt?: string;
+  };
 }
 
 export default function VisitorDetailScreen({ navigation, route }: VisitorDetailScreenProps) {
@@ -72,15 +89,31 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
+  const riyadhBusinessDateKey = useRiyadhBusinessDateKey();
+  const [expiredFooterHeight, setExpiredFooterHeight] = useState(0);
+  const handleExpiredFooterLayout = useCallback(
+    (event: { nativeEvent: { layout: { height: number } } }) => {
+      const nextHeight = Math.ceil(event.nativeEvent.layout.height);
+      setExpiredFooterHeight((currentHeight) =>
+        currentHeight === nextHeight ? currentHeight : nextHeight,
+      );
+    },
+    [],
+  );
   const { visitor: legacyVisitor, visitId } = route.params as { visitor?: LegacyVisitor; visitId?: string };
   
   // Responsive layout: use grid on web (>768px), single column on mobile
   const isWebLayout = screenWidth >= 768;
-  const gridItemWidth = screenWidth > 1024 ? '32%' : '48%';
+  const gridItemWidth = screenWidth >= 900 ? '32%' : '48%';
   
   // Always fetch from server - use visitor.id from passed object or visitId param
   const effectiveVisitId = visitId ?? legacyVisitor?.id ?? '';
-  const { data: visitDetails, isLoading, isError } = useVisitDetailsQuery(effectiveVisitId, !!effectiveVisitId);
+  const { data: visitDetails, isLoading, isFetching, isError, refetch } = useVisitDetailsQuery(effectiveVisitId, !!effectiveVisitId);
+  useFocusEffect(
+    useCallback(() => {
+      if (effectiveVisitId) void refetch();
+    }, [effectiveVisitId, refetch]),
+  );
   
   const mapVisitStatus = (status: string): string => {
     if (status === 'rejected') return 'rejected';
@@ -105,6 +138,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
     company: visitDetails.visitor.company ?? '',
     time: visitDetails.visitTime,
     endTime: visitDetails.endTime,
+    duration: visitDetails.duration,
     visitDate: visitDetails.visitDate,
     host: visitDetails.employeeName,
     hostDepartment: visitDetails.employeeDepartment,
@@ -114,16 +148,16 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
     isWalkIn: visitDetails.isWalkIn ?? false,
     email: visitDetails.visitor.email ?? '',
     phone: visitDetails.visitor.phone ?? '',
-    parking: visitDetails.parkingSlot?.slotNumber,
-    valet: visitDetails.parkingAllocation?.status,
     meetingRoom: (visitDetails.meetingRoom && visitDetails.meetingRoom.name) ? { name: visitDetails.meetingRoom.name, floor: visitDetails.meetingRoom.floor } : undefined,
     isMeetingRoom: visitDetails.isMeetingRoom ?? !!visitDetails.meetingRoom,
     isBuffet: visitDetails.isBuffet ?? !!visitDetails.buffet,
     buffet: visitDetails.buffet ? { status: 'confirmed', location: visitDetails.buffet.location } : undefined,
-    isParking: visitDetails.visitorNeedsParking ?? !!visitDetails.parkingSlot,
-    licensePlate: visitDetails.licensePlate,
-    carModel: visitDetails.carModel,
-    carColor: visitDetails.carColor,
+    parkingDecision: (visitDetails as any).parkingDecision,
+    visitorNeedsParking: visitDetails.visitorNeedsParking,
+    isVisitorNeedsParking: visitDetails.isVisitorNeedsParking,
+    hasParking: (visitDetails as any).hasParking,
+    hasParkingAllocation: !!visitDetails.parkingAllocation,
+    qrCode: visitDetails.qrCode ?? null,
     origin: visitDetails.isWalkIn ? 'walk_in' : 'scheduled',
     scheduledFor: visitDetails.visitDate,
     createdAt: visitDetails.createdAt,
@@ -132,66 +166,74 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
     checkedInAt: visitDetails.checkedInAt,
     checkedOutAt: visitDetails.checkedOutAt,
     completedAt: visitDetails.completedAt,
-  } : null;
+    timeline: (visitDetails as any).timeline,
+  } : legacyVisitor ?? null;
   
-  const checkInMutation = useReceptionCheckInMutation();
-  const checkOutMutation = useReceptionCheckOutMutation();
   const [showCancelModal, setShowCancelModal] = useState(false);
 
   const isCancelledVisit = visitor && [
     'cancelled', 'auto_cancelled', 'rejected', 'visitor_rejected',
   ].includes(visitor.status);
-
-  const showStickyFooter = visitor && (
-    visitor.status === 'approved' || 
-    visitor.status === 'visitor_accepted' || 
-    visitor.status === 'checked_in'
+  const parkingDecision = resolveParkingDisplayDecision(visitor ?? {});
+  const isPendingHostWalkInExpired = useMemo(
+    () => computeIsPendingHostWalkInExpired({
+      isWalkIn: visitor?.isWalkIn,
+      status: visitor?.status,
+      visitDate: visitor?.visitDate,
+    }),
+    [visitor?.isWalkIn, visitor?.status, visitor?.visitDate, riyadhBusinessDateKey],
   );
+  const pendingApprovalExpirationBoundary = useMemo(
+    () =>
+      getPendingApprovalWalkInScheduledEndMs({
+        isWalkIn: visitor?.isWalkIn,
+        status: visitor?.status,
+        visitDate: visitor?.visitDate,
+        visitTime: visitor?.time,
+        endTime: visitor?.endTime,
+        duration: visitor?.duration,
+      }),
+    [
+      visitor?.duration,
+      visitor?.endTime,
+      visitor?.isWalkIn,
+      visitor?.status,
+      visitor?.time,
+      visitor?.visitDate,
+    ],
+  );
+  const pendingApprovalExpirationTick = useTimeBoundaryTick([
+    pendingApprovalExpirationBoundary,
+  ]);
+  const isPendingApprovalWalkInExpired = useMemo(
+    () =>
+      computeIsPendingApprovalWalkInExpired({
+        isWalkIn: visitor?.isWalkIn,
+        status: visitor?.status,
+        visitDate: visitor?.visitDate,
+        visitTime: visitor?.time,
+        endTime: visitor?.endTime,
+        duration: visitor?.duration,
+      }),
+    [
+      pendingApprovalExpirationTick,
+      visitor?.duration,
+      visitor?.endTime,
+      visitor?.isWalkIn,
+      visitor?.status,
+      visitor?.time,
+      visitor?.visitDate,
+    ],
+  );
+  const showExpiredFooter =
+    isPendingHostWalkInExpired || isPendingApprovalWalkInExpired;
 
   const scrollContentStyle = {
     paddingHorizontal: Spacing.lg,
     paddingTop: insets.top + Spacing.xl,
-    paddingBottom: showStickyFooter ? insets.bottom + 140 : insets.bottom + Spacing.xl
-  };
-
-  const handleCheckIn = () => {
-    if (!visitor) return;
-    checkInMutation.mutate(
-      { visitId: visitor.id },
-      {
-        onSuccess: () => {
-          const currentTime = formatTime(new Date());
-          navigation.navigate(ROUTES.CHECK_IN_OUT_CONFIRMATION as any, {
-            action: 'check_in',
-            visitorName: visitor.name,
-            time: currentTime
-          });
-        },
-        onError: (error) => {
-          Alert.alert(t('common.error'), error.message || t('errors.checkInFailed'));
-        }
-      }
-    );
-  };
-
-  const handleCheckOut = () => {
-    if (!visitor) return;
-    checkOutMutation.mutate(
-      { visitId: visitor.id },
-      {
-        onSuccess: () => {
-          const currentTime = formatTime(new Date());
-          navigation.navigate(ROUTES.CHECK_IN_OUT_CONFIRMATION as any, {
-            action: 'check_out',
-            visitorName: visitor.name,
-            time: currentTime
-          });
-        },
-        onError: (error) => {
-          Alert.alert(t('common.error'), error.message || t('errors.checkOutFailed'));
-        }
-      }
-    );
+    paddingBottom: showExpiredFooter
+      ? Math.max(expiredFooterHeight, insets.bottom + Spacing.xl)
+      : insets.bottom + Spacing.xl,
   };
 
   const timelineData: TimelineData = useMemo(() => ({
@@ -210,34 +252,18 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
       rejectedAt: visitor.rejectedAt,
       rejectionReason: visitor.rejectionReason,
     } : undefined,
+    timeline: (visitor as any)?.timeline,
   }), [visitor]);
-
-  const timelineActions: TimelineActionCallbacks | undefined = useMemo(() => {
-    if (!visitor) return undefined;
-    if (visitor.status === 'approved' || visitor.status === 'visitor_accepted') {
-      return {
-        onCheckIn: handleCheckIn,
-        isCheckInLoading: checkInMutation.isPending,
-      };
-    }
-    if (visitor.status === 'checked_in') {
-      return {
-        onCheckOut: handleCheckOut,
-        isCheckOutLoading: checkOutMutation.isPending,
-      };
-    }
-    return undefined;
-  }, [visitor?.status, checkInMutation.isPending, checkOutMutation.isPending]);
 
   const timelineSteps = useTimelineSteps({
     data: timelineData,
     role: 'receptionist',
     flowType: 'receptionist_checkin',
-    actions: timelineActions,
+    actions: undefined,
     showActions: false,
   });
 
-  if (isLoading) {
+  if (isLoading && !visitor) {
     return (
       <View style={[styles.loadingContainer, { paddingTop: insets.top + Spacing.xl }]}>
         <ActivityIndicator size="large" color={theme.primary} />
@@ -249,7 +275,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
     );
   }
 
-  if (isError || !visitor) {
+  if (!visitor) {
     return (
       <View style={[styles.loadingContainer, { paddingTop: insets.top + Spacing.xl }]}>
         <DDIcon name="alert-triangle" size={48} variant="muted" />
@@ -257,40 +283,17 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
         <ThemedText style={[Typography.body, { color: theme.textSecondary, textAlign: 'center' }]}>
           {t('common.loadError')}
         </ThemedText>
+        {isError ? (
+          <>
+            <Spacer height={Spacing.md} />
+            <Pressable onPress={() => refetch()}>
+              <ThemedText style={{ color: theme.primary, fontWeight: '600' }}>{t('common.retry')}</ThemedText>
+            </Pressable>
+          </>
+        ) : null}
       </View>
     );
   }
-
-  const getStatusConfig = (status: string): { label: string; variant: 'success' | 'warning' | 'error' | 'info' | 'muted' | 'primary'; icon: IconName } => {
-    switch (status) {
-      case 'checked_in':
-        return { label: t('status.checkedIn'), variant: 'success', icon: 'check-circle' };
-      case 'checked_out':
-        return { label: t('status.checkedOut'), variant: 'success', icon: 'check-circle' };
-      case 'completed':
-        return { label: t('timeline.visitCompleted'), variant: 'success', icon: 'check-circle' };
-      case 'rejected':
-        return { label: t('status.rejected'), variant: 'error', icon: 'x-circle' };
-      case 'visitor_rejected':
-        return { label: t('status.visitorRejected'), variant: 'error', icon: 'x-circle' };
-      case 'cancelled':
-        return { label: t('status.cancelled'), variant: 'error', icon: 'x-circle' };
-      case 'auto_cancelled':
-        return { label: t('status.autoCancelled'), variant: 'error', icon: 'x-circle' };
-      case 'pending_approval':
-        return { label: t('status.pendingApproval'), variant: 'warning', icon: 'clock' };
-      case 'pending_host_approval':
-        return { label: t('status.pendingHostApproval'), variant: 'warning', icon: 'clock' };
-      case 'visitor_pending':
-        return { label: t('status.visitorPending'), variant: 'warning', icon: 'clock' };
-      case 'approved':
-        return { label: t('status.approved'), variant: 'info', icon: 'check-circle' };
-      case 'visitor_accepted':
-        return { label: t('status.visitorAccepted'), variant: 'info', icon: 'check-circle' };
-      default:
-        return { label: t('status.pending'), variant: 'warning', icon: 'clock' };
-    }
-  };
 
   const handleCancel = () => {
     Alert.alert(
@@ -300,11 +303,29 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
     );
   };
 
-  const statusConfig = getStatusConfig(visitor.status);
-
   return (
-    <>
-    <ScreenScrollView contentContainerStyle={scrollContentStyle}>
+    <View style={styles.screenContainer}>
+    <ScreenScrollView
+      contentContainerStyle={scrollContentStyle}
+      refreshControl={<RefreshControl refreshing={isFetching && !!visitor} onRefresh={refetch} tintColor={theme.primary} />}
+    >
+      {isError ? (
+        <>
+          <DirectionalRow style={[styles.inlineFeedback, { backgroundColor: applyOpacity(theme.error, '10') }]}>
+            <DDIcon name="alert-circle" size={16} color={theme.error} />
+            <ThemedText style={[Typography.caption, { color: theme.error, flex: 1 }]}>{t('common.loadError')}</ThemedText>
+            <Pressable onPress={() => refetch()} hitSlop={8}>
+              <ThemedText style={[Typography.caption, { color: theme.primary, fontWeight: '600' }]}>{t('common.retry')}</ThemedText>
+            </Pressable>
+          </DirectionalRow>
+          <Spacer height={Spacing.md} />
+        </>
+      ) : isFetching && visitor ? (
+        <>
+          <ActivityIndicator size="small" color={theme.primary} />
+          <Spacer height={Spacing.md} />
+        </>
+      ) : null}
       <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
         {/* Responsive visitor header - compact row on web, centered stack on mobile */}
         {isWebLayout ? (
@@ -313,8 +334,13 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
             <DirectionalRow style={{ alignItems: 'center', gap: Spacing.lg, flexShrink: 1 }}>
               {/* Avatar */}
               <View style={[styles.avatarNew, { backgroundColor: applyOpacity(theme.primary, '15'), width: 56, height: 56 }]}>
-                <ThemedText style={[styles.avatarText, { color: theme.primary, fontSize: 20 }]}>
-                  {visitor.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
+                <ThemedText
+                  style={[styles.avatarText, { color: theme.primary, fontSize: 20 }]}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.5}
+                >
+                  {getInitials(visitor.name)}
                 </ThemedText>
               </View>
 
@@ -331,24 +357,22 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
               </View>
 
               {/* Status Badge */}
-              <StatusBadge
-                label={statusConfig.label}
-                variant={statusConfig.variant}
-                icon={statusConfig.icon}
-              />
+              <RequestStatusBadge status={visitor.status} />
             </DirectionalRow>
 
             {/* Right group: Contact info */}
             <DirectionalRow style={{ alignItems: 'center', gap: Spacing.lg, flexShrink: 0 }}>
-              {/* Email */}
-              <DirectionalRow style={{ alignItems: 'center', gap: Spacing.sm }}>
-                <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15'), width: 32, height: 32 }]}>
-                  <DDIcon name="mail" size={16} color={theme.text} />
-                </View>
-                <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14 }]}>
-                  {visitor.email || '-'}
-                </ThemedText>
-              </DirectionalRow>
+              {/* Email — only render when a value exists */}
+              {visitor.email ? (
+                <DirectionalRow style={{ alignItems: 'center', gap: Spacing.sm }}>
+                  <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15'), width: 32, height: 32 }]}>
+                    <DDIcon name="mail" size={16} color={theme.text} />
+                  </View>
+                  <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14 }]}>
+                    {visitor.email}
+                  </ThemedText>
+                </DirectionalRow>
+              ) : null}
 
               {/* Phone */}
               <DirectionalRow style={{ alignItems: 'center', gap: Spacing.sm }}>
@@ -366,8 +390,13 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
             {/* Mobile layout - centered stack */}
             <View style={{ alignItems: 'center' }}>
               <View style={[styles.avatarNew, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
-                <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
-                  {visitor.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
+                <ThemedText
+                  style={[styles.avatarText, { color: theme.primary }]}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.5}
+                >
+                  {getInitials(visitor.name)}
                 </ThemedText>
               </View>
 
@@ -382,11 +411,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
 
               <Spacer height={Spacing.sm} />
 
-              <StatusBadge
-                label={statusConfig.label}
-                variant={statusConfig.variant}
-                icon={statusConfig.icon}
-              />
+              <RequestStatusBadge status={visitor.status} />
             </View>
 
             <Spacer height={Spacing.xl} />
@@ -395,16 +420,20 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
 
             <Spacer height={Spacing.lg} />
 
-            <DirectionalRow style={styles.infoRowNew} gap={Spacing.md}>
-              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-                <DDIcon name="mail" size={16} color={theme.text} />
-              </View>
-              <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14 }]}>
-                {visitor.email || '-'}
-              </ThemedText>
-            </DirectionalRow>
-
-            <Spacer height={Spacing.md} />
+            {/* Email — only render when a value exists */}
+            {visitor.email ? (
+              <>
+                <DirectionalRow style={styles.infoRowNew} gap={Spacing.md}>
+                  <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                    <DDIcon name="mail" size={16} color={theme.text} />
+                  </View>
+                  <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14 }]}>
+                    {visitor.email}
+                  </ThemedText>
+                </DirectionalRow>
+                <Spacer height={Spacing.md} />
+              </>
+            ) : null}
 
             <DirectionalRow style={styles.infoRowNew} gap={Spacing.md}>
               <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
@@ -492,25 +521,30 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
             {!isWebLayout && <Spacer height={Spacing.lg} />}
           </View>
 
-          <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
-            <DirectionalRow style={styles.serviceRowNew} alignItems="center">
-              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
-                <DDIcon name="home" size={18} color={theme.text} />
-              </View>
-              <View>
-                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
-                  {t('visitor.meetingRoom')}
-                </ThemedText>
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
-                  {visitor.meetingRoom ? `${visitor.meetingRoom.name}${visitor.meetingRoom.floor ? ` (${visitor.meetingRoom.floor})` : ''}` : '-'}
-                </ThemedText>
-              </View>
-            </DirectionalRow>
-          </View>
+          {/* Meeting Room — only render when a room is assigned */}
+          {(visitor.meetingRoom || visitor.isMeetingRoom) ? (
+            <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
+              <DirectionalRow style={styles.serviceRowNew} alignItems="center">
+                <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
+                  <DDIcon name="home" size={18} color={theme.text} />
+                </View>
+                <View>
+                  <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+                    {t('visitor.meetingRoom')}
+                  </ThemedText>
+                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+                    {visitor.meetingRoom ? `${visitor.meetingRoom.name}${visitor.meetingRoom.floor ? ` (${visitor.meetingRoom.floor})` : ''}` : t('common.requested')}
+                  </ThemedText>
+                </View>
+              </DirectionalRow>
+            </View>
+          ) : null}
         </View>
       </ThemedView>
 
-      {/* Additional Services Section */}
+      {/* Additional Services Section — hidden for walk-in visitors (they never book services) */}
+      {!visitor.isWalkIn ? (
+      <>
       <Spacer height={Spacing.lg} />
 
       <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
@@ -587,45 +621,23 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
           {/* Parking */}
           <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
             <DirectionalRow style={[styles.serviceItemNew, { backgroundColor: theme.surfaceSecondary }]} alignItems="center">
-              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(isCancelledVisit ? theme.textSecondary : (visitor.isParking || visitor.parking) ? theme.secondary : theme.textSecondary, '15') }]}>
-                <DDIcon name="truck" size={18} color={isCancelledVisit ? theme.textSecondary : (visitor.isParking || visitor.parking) ? theme.secondary : theme.textSecondary} />
+              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(parkingDecision === 'required' ? theme.secondary : theme.textSecondary, '15') }]}>
+                <DDIcon name="truck" size={18} color={parkingDecision === 'required' ? theme.secondary : theme.textSecondary} />
               </View>
               <View style={{ flex: 1 }}>
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 14, color: theme.text }]}>
                   {t('parking.parking')}
                 </ThemedText>
-                {isCancelledVisit && (visitor.isParking || visitor.parking) ? (
-                  <ThemedText style={[Typography.caption, { color: theme.error, fontSize: 12, marginTop: 2 }]}>
-                    {t('status.cancelled')}
-                  </ThemedText>
-                ) : isCancelledVisit ? (
-                  <ThemedText style={[Typography.caption, { color: theme.error, fontSize: 12, marginTop: 2 }]}>
-                    {t('status.cancelled')}
-                  </ThemedText>
-                ) : visitor.parking ? (
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12, marginTop: 2 }]}>
-                    {visitor.parking}
-                  </ThemedText>
-                ) : visitor.isParking ? (
-                  visitor.licensePlate || visitor.carModel || visitor.carColor ? (
-                    <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12, marginTop: 2 }]}>
-                      {[visitor.licensePlate, visitor.carModel, visitor.carColor].filter(Boolean).join(' • ')}
-                    </ThemedText>
-                  ) : (
-                    <ThemedText style={[Typography.caption, { color: theme.secondary, fontSize: 12, marginTop: 2 }]}>
-                      {t('common.requested')}
-                    </ThemedText>
-                  )
-                ) : (
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12, marginTop: 2, fontStyle: 'italic' }]}>
-                    {t('common.notRequested')}
-                  </ThemedText>
-                )}
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12, marginTop: 2 }]}>
+                  {parkingDecision === 'required' ? t('parking.needsParking') : t('parking.noParking')}
+                </ThemedText>
               </View>
             </DirectionalRow>
           </View>
         </View>
       </ThemedView>
+      </>
+      ) : null}
 
       {/* Host Details Section - only show if we have host phone info */}
       {(visitor.hostPhone || visitor.hostLandline) && (
@@ -705,11 +717,41 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
 
       <Spacer height={Spacing.lg} />
 
-      <RequestTimeline steps={timelineSteps} />
+      {/* Responsive 2-column layout: Timeline left, QR Code right (web) / stacked (mobile) */}
+      <View style={isWebLayout ? { flexDirection: 'row', gap: Spacing.lg } : undefined}>
+        <View style={isWebLayout ? { width: '48%' } : undefined}>
+          <RequestTimeline steps={timelineSteps} timezone={visitDetails?.timezone} />
+        </View>
+
+        {!isWebLayout && <Spacer height={Spacing.lg} />}
+
+        <View style={isWebLayout ? { width: '48%' } : undefined}>
+          <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface, alignItems: 'center', flex: isWebLayout ? 1 : undefined }]}>
+            <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text }]}>
+              {t('invitation.qrCode')}
+            </ThemedText>
+            <Spacer height={Spacing.xl} />
+            <View style={[styles.qrContainerNew, { backgroundColor: theme.surfaceSecondary, borderColor: theme.border }]}>
+              {visitor.qrCode && !isCancelledVisit ? (
+                <QRCode
+                  value={visitor.qrCode}
+                  size={150}
+                  backgroundColor={theme.surfaceSecondary}
+                  color={theme.text}
+                />
+              ) : (
+                <View style={[styles.qrPlaceholder, { borderColor: theme.border }]}>
+                  <DDIcon name="maximize" size={80} color={theme.border} />
+                </View>
+              )}
+            </View>
+          </ThemedView>
+        </View>
+      </View>
 
       <Spacer height={Spacing.lg} />
 
-      {visitor.status === 'pending_approval' && (
+      {visitor.status === 'pending_approval' && !isPendingApprovalWalkInExpired && (
         <ThemedView style={[styles.pendingApprovalBanner, { backgroundColor: applyOpacity(theme.warning, '10'), borderColor: theme.warning }]}>
           <DirectionalRow gap={Spacing.sm}>
             <DDIcon name="clock" size={20} color={theme.warning} />
@@ -718,13 +760,6 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
             </ThemedText>
           </DirectionalRow>
         </ThemedView>
-      )}
-
-      {visitor.status === 'completed' && (
-        <VisitorActionButton 
-          type="completed" 
-          fullWidth 
-        />
       )}
 
       <Modal
@@ -790,61 +825,31 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
       </Modal>
     </ScreenScrollView>
 
-    {/* Sticky Footer for Actions */}
-    {(visitor.status === 'approved' || visitor.status === 'visitor_accepted') && (
-      <View style={[styles.stickyFooter, { backgroundColor: theme.background, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.lg }]}>
-        <DirectionalRow style={styles.buttonRow}>
-          {/* Only show Cancel button if current user is the host of this visit */}
-          {visitDetails?.employeeId === user?.id && (
-            <>
-              <LoadingButton
-                onPress={() => setShowCancelModal(true)}
-                variant="danger-outline"
-                size="large"
-                icon="x-circle"
-                iconPosition="left"
-                style={{ flex: 1 }}
-              >
-                {t('actions.cancelRequest')}
-              </LoadingButton>
-              <View style={{ width: Spacing.md }} />
-            </>
-          )}
-          <LoadingButton
-            onPress={handleCheckIn}
-            variant="success"
-            size="large"
-            icon="log-in"
-            iconPosition="left"
-            loading={checkInMutation.isPending}
-            style={{ flex: 1 }}
-          >
-            {t('visitor.checkIn')}
-          </LoadingButton>
-        </DirectionalRow>
+    {showExpiredFooter ? (
+      <View
+        testID="expired-visit-footer"
+        onLayout={handleExpiredFooterLayout}
+        style={[
+          styles.stickyFooter,
+          {
+            backgroundColor: theme.background,
+            borderTopColor: theme.border,
+            paddingBottom: insets.bottom + Spacing.lg,
+          },
+        ]}
+      >
+        <ExpiredVisitFooter theme={theme} t={t} />
       </View>
-    )}
+    ) : null}
 
-    {visitor.status === 'checked_in' && (
-      <View style={[styles.stickyFooter, { backgroundColor: theme.background, borderTopColor: theme.border, paddingBottom: insets.bottom + Spacing.lg }]}>
-        <LoadingButton
-          onPress={handleCheckOut}
-          variant="primary"
-          size="large"
-          icon="log-out"
-          iconPosition="left"
-          loading={checkOutMutation.isPending}
-          fullWidth
-        >
-          {t('visitor.checkOut')}
-        </LoadingButton>
-      </View>
-    )}
-    </>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  screenContainer: {
+    flex: 1,
+  },
   stickyFooter: {
     position: 'absolute',
     bottom: 0,
@@ -859,6 +864,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: Spacing.xl,
+  },
+  inlineFeedback: {
+    alignItems: 'center',
+    gap: Spacing.sm,
+    padding: Spacing.sm,
+    borderRadius: BorderRadius.sm,
   },
   cardNew: {
     padding: 20,
@@ -972,5 +983,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: Spacing.md,
     borderRadius: BorderRadius.md,
+  },
+  qrContainerNew: {
+    padding: Spacing.xl,
+    borderRadius: 12,
+    alignItems: 'center',
+    borderWidth: 1,
+  },
+  qrPlaceholder: {
+    width: 180,
+    height: 180,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderRadius: 10,
+    borderStyle: 'dashed',
   },
 });

@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from "react";
-import { View, StyleSheet, Pressable, GestureResponderEvent, ActivityIndicator, Alert, Modal, ScrollView, useWindowDimensions } from "react-native";
+import React, { useMemo } from "react";
+import { View, StyleSheet, Pressable, GestureResponderEvent, ActivityIndicator, Alert, RefreshControl, useWindowDimensions } from "react-native";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { ROUTES } from "@/constants";
 import { ThemedText } from "@/components/ThemedText";
@@ -9,24 +9,22 @@ import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
+import { formatDateForApi } from "@/utils/dateTimeUtils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
 import { applyOpacity, getStatusConfig } from "@/utils/statusStyles";
 import type { StatusConfig } from "@/types/theme.types";
 import { useUpcomingIndicator } from "@/hooks/useUpcomingVisitTimer";
-import { UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES } from "@/constants/requestConstants";
+import { UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES, isUpcomingIndicatorEligibleStatus } from "@/constants/requestConstants";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
-import { useToast } from "@/contexts/ToastContext";
+import { SkeletonCard } from "@/components/shared/Skeleton";
 import {
-  useBuffetLoadSummaryQuery,
   useBuffetAdminTasksQuery,
-  useBuffetAdminStaffQuery,
   useUpdateBuffetAdminTaskStatusMutation,
-  useAssignBuffetTaskMutation,
 } from "@/hooks/queries/useBuffetQueries";
-import type { BuffetAdminTaskDto, BuffetAdminStaffDto } from "@/types/api.types";
+import type { BuffetAdminTaskDto } from "@/types/api.types";
 import type { BuffetAdminDashboardScreenProps } from "@/types/buffetAdminNavigation.types";
 
 type BuffetRequest = BuffetAdminTaskDto & {
@@ -34,15 +32,6 @@ type BuffetRequest = BuffetAdminTaskDto & {
   assignedStaff?: string;
   assignedStaffId?: string;
   meetingRoom?: string;
-};
-
-type BuffetStaff = {
-  id: string;
-  name: string;
-  role: string;
-  shift: string;
-  status: string;
-  currentTasks?: number;
 };
 
 const mapTaskToRequest = (task: BuffetAdminTaskDto): BuffetRequest => ({
@@ -53,28 +42,16 @@ const mapTaskToRequest = (task: BuffetAdminTaskDto): BuffetRequest => ({
   meetingRoom: task.location,
 });
 
-const mapAdminStaffDto = (staff: BuffetAdminStaffDto): BuffetStaff => {
-  return {
-    id: staff.id,
-    name: staff.name,
-    role: staff.role,
-    shift: staff.dutyStatus === 'on_duty' ? 'On Duty' : 'Off Duty',
-    status: staff.dutyStatus,
-    currentTasks: staff.currentTasks,
-  };
-};
-
 import { KPICard, KPICardRow } from '@/components/shared/KPICard';
 
-const BUFFET_ADMIN_ELIGIBLE_STATUSES = ['pending', 'assigned', 'in_progress'];
-
-const UpcomingVisitAlertIcon = React.memo(({ visitDate, visitTime, status }: { visitDate: string; visitTime: string; status: string }) => {
+const UpcomingVisitAlertIcon = React.memo(({ visitDate, visitTime, status, visitStartAt }: { visitDate: string; visitTime: string; status: string; visitStartAt?: string }) => {
   const { theme } = useTheme();
   const { isRTL } = useLanguage();
-  const eligible = BUFFET_ADMIN_ELIGIBLE_STATUSES.includes(status);
+  const eligible = isUpcomingIndicatorEligibleStatus(status);
   const isUpcoming = useUpcomingIndicator({
     visitDate,
     visitTime,
+    visitStartAt,
     eligible,
     thresholdMinutes: UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES,
   });
@@ -83,9 +60,23 @@ const UpcomingVisitAlertIcon = React.memo(({ visitDate, visitTime, status }: { v
     <View
       accessibilityLabel={isRTL ? 'الزيارة تبدأ قريباً' : 'Visit starts soon'}
       accessibilityRole="image"
-      style={{ marginEnd: 4 }}
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        backgroundColor: applyOpacity(theme.error, '15'),
+        borderWidth: 1,
+        borderColor: theme.error,
+        borderRadius: 100,
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+        marginEnd: 6,
+      }}
     >
-      <DDIcon name="alert-circle" size={14} color={theme.error} />
+      <DDIcon name="alert-circle" size={12} color={theme.error} />
+      <ThemedText style={{ color: theme.error, fontSize: 11, fontWeight: '700', lineHeight: 16 }}>
+        {isRTL ? 'قريباً' : 'Upcoming'}
+      </ThemedText>
     </View>
   );
 });
@@ -97,10 +88,9 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
   const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
-  const { showSuccess, showError } = useToast();
   
   // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
-  const numColumns = screenWidth > 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
+  const numColumns = screenWidth >= 900 ? 3 : screenWidth >= 600 ? 2 : 1;
   
   // Get card style based on numColumns - use percentage widths for reliable layout
   const getCardStyle = useMemo(() => {
@@ -115,47 +105,45 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
     }
   }, [numColumns]);
 
-  const [showAssignModal, setShowAssignModal] = useState(false);
-  const [selectedRequest, setSelectedRequest] = useState<BuffetRequest | null>(null);
-  const [assigningStaffId, setAssigningStaffId] = useState<string | null>(null);
-
-  const { data: loadSummaryData, isLoading: isLoadingSummary, isFetching: isFetchingSummary } = useBuffetLoadSummaryQuery();
-  const { data: tasksResponse, isLoading: isLoadingTasks, isFetching: isFetchingTasks, refetch: refetchTasks } = useBuffetAdminTasksQuery();
-  const { data: staffData } = useBuffetAdminStaffQuery();
+  const todayParam = formatDateForApi(new Date());
+  const {
+    data: tasksResponse,
+    isLoading: isLoadingTasks,
+    isFetching: isFetchingTasks,
+    isError: isTasksError,
+    refetch: refetchTasks,
+  } = useBuffetAdminTasksQuery({ date: todayParam });
   const updateStatusMutation = useUpdateBuffetAdminTaskStatusMutation();
-  const assignTaskMutation = useAssignBuffetTaskMutation();
 
-  const stats = useMemo(() => {
-    if (loadSummaryData?.locations) {
-      const locations = loadSummaryData.locations;
-      const pending = locations.reduce((sum, loc) => sum + loc.pendingTasks, 0);
-      const inProgress = locations.reduce((sum, loc) => sum + loc.activeTasks, 0);
-      const completed = locations.reduce((sum, loc) => sum + loc.completedTasks, 0);
-      const total = locations.reduce((sum, loc) => sum + loc.tasksToday, 0);
-      return { pending, inProgress, completed, total };
-    }
-    return { pending: 0, inProgress: 0, completed: 0, total: 0 };
-  }, [loadSummaryData]);
-
+  // Unlike the buffet admin's own request list (which only shows confirmed,
+  // actionable visits), the oversight view for admins shows every status so
+  // they have full visibility into buffet requests regardless of state.
   const requests = useMemo(() => {
     const responseData = tasksResponse?.data as { data?: BuffetAdminTaskDto[] } | BuffetAdminTaskDto[] | undefined;
     const tasks = Array.isArray(responseData) ? responseData : (Array.isArray((responseData as { data?: BuffetAdminTaskDto[] })?.data) ? (responseData as { data: BuffetAdminTaskDto[] }).data : []);
     return [...tasks].sort((a, b) => {
       const statusOrder: Record<string, number> = { 
-        pending: 0, 
-        preparing: 1, 
-        ready: 2, 
-        served: 3, 
-        completed: 4, 
-        cancelled: 5 
+        pending_approval: 0,
+        pending_host_approval: 1,
+        visitor_pending: 2,
+        approved: 3,
+        visitor_accepted: 4,
+        checked_in: 5,
+        checked_out: 6,
+        completed: 7,
+        rejected: 8,
+        visitor_rejected: 9,
+        cancelled: 10,
+        auto_cancelled: 11,
       };
       const statusA = statusOrder[a.status] ?? 99;
       const statusB = statusOrder[b.status] ?? 99;
       if (statusA !== statusB) return statusA - statusB;
       const parseVisitTime = (visitDate: string, visitTime?: string): number => {
         if (!visitTime) return Number.MIN_SAFE_INTEGER;
+        // Append Riyadh offset so sorting uses a consistent timezone, not device-local
         const cleaned = visitTime.replace(/\s*(AM|PM)/i, '').trim();
-        const ts = new Date(visitDate + 'T' + cleaned).getTime();
+        const ts = new Date(`${visitDate}T${cleaned}+03:00`).getTime();
         return isNaN(ts) ? Number.MIN_SAFE_INTEGER : ts;
       };
       const dateA = parseVisitTime(a.visitDate, a.visitTime);
@@ -164,13 +152,12 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
     });
   }, [tasksResponse]);
 
-  const availableStaff = useMemo(() => {
-    const responseData = staffData?.data as { data?: BuffetAdminStaffDto[] } | BuffetAdminStaffDto[] | undefined;
-    const staffList = Array.isArray(responseData) ? responseData : (Array.isArray((responseData as { data?: BuffetAdminStaffDto[] })?.data) ? (responseData as { data: BuffetAdminStaffDto[] }).data : []);
-    return staffList
-      .filter(s => s.dutyStatus === 'on_duty')
-      .map(mapAdminStaffDto);
-  }, [staffData]);
+  // Derive stats from today's tasks — load-summary endpoint aggregates
+  // differently and returns 0 even when tasks exist for the day.
+  const stats = useMemo(() => ({
+    total:      requests.length,
+    completed:  requests.filter(r => r.status === 'completed').length,
+  }), [requests]);
 
   const scrollContentStyle = {
     paddingHorizontal: Spacing.lg,
@@ -199,148 +186,6 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
     navigation.navigate(ROUTES.BUFFET_REQUEST_DETAILS as any, { request: mappedRequest as any } as any);
   };
 
-  const handleOpenAssignModal = (item: BuffetAdminTaskDto, event: GestureResponderEvent) => {
-    event.stopPropagation();
-    const mappedRequest = mapTaskToRequest(item);
-    setSelectedRequest(mappedRequest);
-    setShowAssignModal(true);
-  };
-
-  const handleStaffAssignment = (staff: BuffetStaff) => {
-    if (selectedRequest) {
-      setAssigningStaffId(staff.id);
-      assignTaskMutation.mutate(
-        { id: selectedRequest.id, data: { staffId: staff.id } },
-        {
-          onSuccess: () => {
-            refetchTasks();
-            setShowAssignModal(false);
-            setSelectedRequest(null);
-            setAssigningStaffId(null);
-            showSuccess(`${staff.name} ${t('buffet.hasBeenAssigned')}`, t('buffet.staffAssigned'));
-          },
-          onError: (error: any) => {
-            setAssigningStaffId(null);
-            const errorMessage = error?.response?.data?.message || t('common.errorOccurred');
-            showError(errorMessage, t('common.error'));
-          },
-        }
-      );
-    }
-  };
-
-  const renderStaffAssignModal = () => (
-    <Modal
-      visible={showAssignModal}
-      transparent
-      animationType="fade"
-      onRequestClose={() => setShowAssignModal(false)}
-    >
-      <Pressable
-        style={styles.modalOverlay}
-        onPress={() => setShowAssignModal(false)}
-      >
-        <Pressable style={[styles.modalContent, { backgroundColor: theme.surface }]}>
-          <View style={styles.modalHeader}>
-            <ThemedText style={[Typography.subtitle, { fontWeight: '600' }]}>
-              {t('buffet.assignStaff')}
-            </ThemedText>
-            <Pressable
-              onPress={() => setShowAssignModal(false)}
-              hitSlop={8}
-            >
-              <DDIcon name="x" size={20} variant="muted" />
-            </Pressable>
-          </View>
-
-          {selectedRequest ? (
-            <View style={styles.modalRequestInfo}>
-              <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
-                {t('buffet.assigningStaffFor')}:
-              </ThemedText>
-              <ThemedText style={[Typography.body, { fontWeight: '600', marginTop: 4 }]}>
-                {selectedRequest.visitorName}
-              </ThemedText>
-              {selectedRequest.assignedStaff ? (
-                <ThemedText style={[Typography.caption, { color: theme.warning, marginTop: 4 }]}>
-                  {t('buffet.currentlyAssigned')}: {selectedRequest.assignedStaff}
-                </ThemedText>
-              ) : null}
-            </View>
-          ) : null}
-
-          <View style={[styles.modalDivider, { backgroundColor: theme.border }]} />
-
-          <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginBottom: Spacing.md }]}>
-            {t('buffet.selectFromAvailableStaff')} ({availableStaff.length} {t('buffet.onDuty')})
-          </ThemedText>
-
-          <ScrollView style={styles.staffList} showsVerticalScrollIndicator={false}>
-            {availableStaff.length > 0 ? (
-              availableStaff.map((staff) => (
-                <Pressable
-                  key={staff.id}
-                  style={[
-                    styles.staffItem,
-                    { 
-                      backgroundColor: theme.surfaceSecondary,
-                      borderColor: selectedRequest?.assignedStaffId === staff.id ? theme.success : 'transparent',
-                      borderWidth: selectedRequest?.assignedStaffId === staff.id ? 2 : 0,
-                      opacity: assigningStaffId && assigningStaffId !== staff.id ? 0.5 : 1,
-                    }
-                  ]}
-                  onPress={() => handleStaffAssignment(staff)}
-                  disabled={assignTaskMutation.isPending}
-                >
-                  {assigningStaffId === staff.id ? (
-                    <View style={[styles.staffAvatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
-                      <LoadingSpinner size="small" color={theme.primary} inline />
-                    </View>
-                  ) : (
-                    <View style={[styles.staffAvatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
-                      <ThemedText style={[styles.staffAvatarText, { color: theme.primary }]}>
-                        {staff.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
-                      </ThemedText>
-                    </View>
-                  )}
-                  <View style={styles.staffInfo}>
-                    <ThemedText style={[Typography.body, { fontWeight: '500' }]}>
-                      {staff.name}
-                    </ThemedText>
-                    <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
-                      {staff.role} - {staff.shift}
-                    </ThemedText>
-                  </View>
-                  <View style={[
-                    styles.staffStatusDot,
-                    { backgroundColor: staff.status === 'on_duty' ? theme.success : theme.textSecondary }
-                  ]} />
-                </Pressable>
-              ))
-            ) : (
-              <View style={styles.noStaffState}>
-                <DDIcon name="users" size={32} variant="muted" />
-                <Spacer height={Spacing.sm} />
-                <ThemedText style={[Typography.body, { color: theme.textSecondary, textAlign: 'center' }]}>
-                  {t('buffet.noStaffOnDuty')}
-                </ThemedText>
-              </View>
-            )}
-          </ScrollView>
-
-          <Pressable
-            style={[styles.modalCancelButton, { borderColor: theme.border }]}
-            onPress={() => setShowAssignModal(false)}
-          >
-            <ThemedText style={[Typography.body, { color: theme.textSecondary }]}>
-              {t('common.cancel')}
-            </ThemedText>
-          </Pressable>
-        </Pressable>
-      </Pressable>
-    </Modal>
-  );
-
   const renderRequestCard = (item: BuffetAdminTaskDto) => {
     const statusConfig = getStatusConfig(theme, item.status, t);
     const showActions = item.status !== 'completed' && item.status !== 'cancelled';
@@ -366,10 +211,10 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
           <View style={styles.headerInfo}>
             <DirectionalRow style={styles.nameWithBadgeRow}>
               <ThemedText style={[styles.visitorName, { color: theme.text, flex: 1 }]} numberOfLines={1}>
-                {t('reception.hostName')}: {item.hostName}
+                {item.hostName}
               </ThemedText>
               <DirectionalRow style={{ alignItems: 'center' }}>
-                <UpcomingVisitAlertIcon visitDate={item.visitDate} visitTime={item.visitTime} status={item.status} />
+                <UpcomingVisitAlertIcon visitDate={item.visitDate} visitTime={item.visitTime} status={item.status} visitStartAt={item.visitStartAt} />
                 <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: StyleSheet.hairlineWidth }]}>
                   <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
                     {statusConfig.label}
@@ -377,7 +222,12 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
                 </View>
               </DirectionalRow>
             </DirectionalRow>
-            <DirectionalRow style={{ alignItems: 'center', gap: Spacing.xs }}>
+            {item.hostDepartment ? (
+              <ThemedText style={[styles.hostName, { color: theme.textSecondary }]} numberOfLines={1}>
+                {item.hostDepartment}
+              </ThemedText>
+            ) : null}
+            <DirectionalRow style={{ alignItems: 'center', gap: Spacing.xs, marginTop: 2 }}>
               <DDIcon name="clock" size={12} color={theme.textSecondary} />
               <ThemedText style={[styles.hostName, { color: theme.textSecondary }]} numberOfLines={1}>
                 {formatTimeFromString(item.visitTime)}
@@ -400,19 +250,8 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
           </ThemedText>
         </View>
 
-        {item.assignedTo ? (
-          <>
-            <Spacer height={Spacing.xs} />
-            <View style={styles.metaRow}>
-              <DDIcon name="user-check" size={14} color={theme.success} />
-              <ThemedText style={[styles.metaText, { color: theme.success }]}>
-                {item.assignedTo}
-              </ThemedText>
-            </View>
-          </>
-        ) : null}
 
-        {!showActions ? (
+        {item.status === 'completed' ? (
           <>
             <Spacer height={Spacing.md} />
             <View style={[styles.completedBadge, { backgroundColor: applyOpacity(theme.success, '15') }]}>
@@ -427,31 +266,65 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
     );
   };
 
-  const isLoading = isLoadingSummary || isLoadingTasks;
-  const isFetching = isFetchingSummary || isFetchingTasks;
+  if ((isLoadingTasks || isFetchingTasks) && !tasksResponse) {
+    return (
+      <View style={[styles.loadingContainer, { backgroundColor: theme.background, padding: Spacing.lg }]}>
+        <SkeletonCard showImage={false} lines={3} />
+        <SkeletonCard showImage={false} lines={3} />
+      </View>
+    );
+  }
 
-  if (isLoading || isFetching) {
+  if (isTasksError && !tasksResponse) {
     return (
       <View style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
-        <ActivityIndicator size="large" color={theme.primary} />
+        <DDIcon name="alert-circle" size={40} color={theme.error} />
+        <Spacer height={Spacing.md} />
+        <ThemedText style={[Typography.body, { color: theme.error }]}>
+          {t('common.errorLoadingData')}
+        </ThemedText>
+        <Spacer height={Spacing.md} />
+        <Pressable style={[styles.retryButton, { backgroundColor: theme.primary }]} onPress={() => refetchTasks()}>
+          <ThemedText style={{ color: theme.buttonText, fontWeight: '600' }}>{t('common.retry')}</ThemedText>
+        </Pressable>
       </View>
     );
   }
 
   return (
-    <ScreenScrollView skipTopPadding contentContainerStyle={scrollContentStyle}>
+    <ScreenScrollView
+      skipTopPadding
+      contentContainerStyle={scrollContentStyle}
+      refreshControl={
+        <RefreshControl refreshing={isFetchingTasks} onRefresh={refetchTasks} tintColor={theme.primary} />
+      }
+    >
+      {isFetchingTasks || (isTasksError && tasksResponse) ? (
+        <>
+          <DirectionalRow style={[styles.inlineQueryState, { backgroundColor: applyOpacity(isTasksError && !isFetchingTasks ? theme.error : theme.primary, '10') }]}>
+            {isTasksError && !isFetchingTasks ? (
+              <DDIcon name="alert-circle" size={16} color={theme.error} />
+            ) : (
+              <ActivityIndicator size="small" color={theme.primary} />
+            )}
+            <ThemedText style={[Typography.caption, { color: isTasksError && !isFetchingTasks ? theme.error : theme.textSecondary, flex: 1 }]}>
+              {t(isTasksError && !isFetchingTasks ? 'common.errorLoadingData' : 'common.loading')}
+            </ThemedText>
+            {isTasksError && !isFetchingTasks ? (
+              <Pressable onPress={() => refetchTasks()} hitSlop={8}>
+                <ThemedText style={[Typography.caption, { color: theme.primary, fontWeight: '600' }]}>{t('common.retry')}</ThemedText>
+              </Pressable>
+            ) : null}
+          </DirectionalRow>
+          <Spacer height={Spacing.md} />
+        </>
+      ) : null}
       <KPICardRow>
         <KPICard 
           title={t('time.today')} 
           value={String(stats.total)} 
           icon="disc" 
           color={theme.primary}
-        />
-        <KPICard 
-          title={t('status.pending')} 
-          value={String(stats.pending)} 
-          icon="clock" 
-          color={theme.warning}
         />
         <KPICard 
           title={t('status.completed')} 
@@ -487,7 +360,7 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
 
       {requests.length > 0 ? (
         <View style={styles.requestsList}>
-          {requests.slice(0, 6).map((request) => (
+          {requests.map((request) => (
             <View 
               key={request.id}
               style={getCardStyle}
@@ -507,7 +380,6 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
       )}
 
       <Spacer height={Spacing.xl} />
-      {renderStaffAssignModal()}
     </ScreenScrollView>
   );
 }
@@ -517,6 +389,18 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  retryButton: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+  },
+  inlineQueryState: {
+    alignItems: 'center',
+    gap: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.sm,
   },
   kpiRow: {
     flexDirection: 'row',
@@ -621,12 +505,12 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   statusBadge: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
     borderRadius: BorderRadius.sm,
   },
   statusText: {
-    fontSize: 11,
+    fontSize: 9,
     fontWeight: '600',
   },
   metaRow: {

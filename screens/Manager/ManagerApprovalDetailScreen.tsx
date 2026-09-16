@@ -8,7 +8,10 @@ import {
   Animated,
   Alert,
   Platform,
+  Keyboard,
+  KeyboardAvoidingView,
   useWindowDimensions,
+  ActivityIndicator,
 } from "react-native";
 import DateTimePicker, {
   DateTimePickerEvent,
@@ -21,6 +24,8 @@ import { SkeletonCard } from "@/components/shared/Skeleton";
 import { LoadingButton } from "@/components/shared/LoadingButton";
 import { ApprovalActionGroup } from "@/components/shared/ApprovalActionGroup";
 import { StatusBadge } from "@/components/shared/StatusBadge";
+import { RequestStatusBadge } from "@/components/shared/RequestStatusBadge";
+import { ExpiredVisitFooter } from "@/components/shared/ExpiredVisitFooter";
 import {
   RequestTimeline,
   useTimelineSteps,
@@ -52,11 +57,21 @@ import {
 import { ManagerApprovalDetailScreenProps } from "@/types/managerNavigation.types";
 import { Theme } from "@/types/theme.types";
 import { mapVisitDetailsToVisitorRequest } from "@/utils/requestMappers";
-import { calculateServerDuration } from "@/utils/dateTimeUtils";
+import { calculateServerDuration, getServerDateParts } from "@/utils/dateTimeUtils";
 import { useServerDateTime } from "@/hooks/useServerDateTime";
 import { applyOpacity, getStatusConfig as getSharedStatusConfig } from "@/utils/statusStyles";
-import { formatPhoneNumber, formatPhoneForDisplay, capitalizeFirst } from "@/utils/formatters";
+import { formatPhoneNumber, formatPhoneForDisplay, capitalizeFirst, getInitials } from "@/utils/formatters";
 import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
+import { resolveParkingDisplayDecision } from "@/utils/parkingDecision";
+import {
+  computeIsPendingApprovalWalkInExpired,
+  computeIsPendingHostWalkInExpired,
+  computeIsVisitExpired,
+  getPendingApprovalWalkInScheduledEndMs,
+  isPendingManagerApprovalStatus,
+} from "@/utils/visitExpiredGuard";
+import { useRiyadhBusinessDateKey } from "@/hooks/useRiyadhBusinessDateKey";
+import { useTimeBoundaryTick } from "@/hooks/useTimeBoundaryTick";
 
 
 const LAYOUT = {
@@ -159,10 +174,20 @@ export default function ManagerApprovalDetailScreen({
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
   const { requestId } = route.params;
+  const [expiredFooterHeight, setExpiredFooterHeight] = useState(0);
+  const handleExpiredFooterLayout = useCallback(
+    (event: { nativeEvent: { layout: { height: number } } }) => {
+      const nextHeight = Math.ceil(event.nativeEvent.layout.height);
+      setExpiredFooterHeight((currentHeight) =>
+        currentHeight === nextHeight ? currentHeight : nextHeight,
+      );
+    },
+    [],
+  );
   
   // Responsive layout: use grid on web (>768px), single column on mobile
   const isWebLayout = screenWidth >= 768;
-  const gridItemWidth = screenWidth > 1024 ? '32%' : '48%';
+  const gridItemWidth = screenWidth >= 900 ? '32%' : '48%';
   const { user } = useAuth();
   const isReadOnlyRole = user?.role === "building_admin";
   const {
@@ -223,6 +248,15 @@ export default function ManagerApprovalDetailScreen({
   const [showInlineEndTimePicker, setShowInlineEndTimePicker] = useState(false);
   const [inlineEndTime, setInlineEndTime] = useState<Date | null>(null);
 
+  const riyadhBusinessDateKey = useRiyadhBusinessDateKey();
+
+  // Tick every minute so hasVisitStarted re-evaluates while the screen is open.
+  const [minuteTick, setMinuteTick] = useState(0);
+  useEffect(() => {
+    const timer = setInterval(() => setMinuteTick((t) => t + 1), 60_000);
+    return () => clearInterval(timer);
+  }, []);
+
   // Walk-in approval services state
   const [walkInRequiresMeetingRoom, setWalkInRequiresMeetingRoom] =
     useState(false);
@@ -246,6 +280,12 @@ export default function ManagerApprovalDetailScreen({
     error,
     refetch,
   } = useVisitDetailsQuery(requestId);
+
+  const initializeWalkInServices = (data: typeof visitData) => {
+    const requiresBuffet = !!data?.buffet;
+    setWalkInRequiresMeetingRoom(!!data?.meetingRoom || requiresBuffet);
+    setWalkInRequiresBuffet(requiresBuffet);
+  };
   const approveMutation = useApproveVisitMutation();
   const rejectMutation = useRejectVisitMutation();
   const cancelMutation = useCancelVisitMutation();
@@ -261,22 +301,79 @@ export default function ManagerApprovalDetailScreen({
   const request = useMemo(() => {
     if (!visitData) return null;
     const mapped = mapVisitDetailsToVisitorRequest(visitData);
-    // DEBUG: Trace parking data in screen
-    console.log('[DEBUG ManagerApprovalDetailScreen] Mapped request parking data:', {
-      visitorNeedsParking: mapped.visitorNeedsParking,
-      isVisitorNeedsParking: mapped.isVisitorNeedsParking,
-      licensePlate: mapped.licensePlate,
-      carModel: mapped.carModel,
-      carColor: mapped.carColor,
-    });
     return mapped;
   }, [visitData]);
+
+  // Precise boundary: fire exactly when the visit start time arrives so the guard
+  // updates immediately rather than waiting up to 60 s for the next interval tick.
+  useEffect(() => {
+    if (!visitData?.visitStartAt) return;
+    const startMs = new Date(visitData.visitStartAt).getTime();
+    if (isNaN(startMs)) return;
+    const msUntilStart = startMs - Date.now();
+    if (msUntilStart <= 0) return; // already started
+    const boundary = setTimeout(() => setMinuteTick((t) => t + 1), msUntilStart);
+    return () => clearTimeout(boundary);
+  }, [visitData?.visitStartAt]);
+
+  // Check if the visit START time has passed — once started, walk-in edits are no longer allowed.
+  const hasVisitStarted = useMemo(() => {
+    const now = new Date();
+
+    // Primary path: use visitStartAt ISO timestamp — absolute time, no format ambiguity.
+    // Validate explicitly: new Date(invalid) returns NaN rather than throwing.
+    if (request?.visitStartAt) {
+      const startMs = new Date(request.visitStartAt).getTime();
+      if (!isNaN(startMs)) {
+        return startMs <= now.getTime();
+      }
+      // invalid ISO string — fall through to the string-comparison fallback
+    }
+
+    // Fallback: reconstruct from visitDate (YYYY-MM-DD) + visitTime.
+    if (!request?.visitDate || !request?.visitTime) return false;
+    try {
+      const { year, month, day, hours: rh, minutes: rm } = getServerDateParts(now, 'Asia/Riyadh');
+      const nowKey = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(rh).padStart(2, '0')}:${String(rm).padStart(2, '0')}`;
+
+      let h24 = -1;
+      let mm = -1;
+      const ampmMatch = request.visitTime.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+      if (ampmMatch) {
+        let hh = parseInt(ampmMatch[1], 10);
+        mm = parseInt(ampmMatch[2], 10);
+        const period = ampmMatch[3].toUpperCase();
+        if (period === 'AM') h24 = hh === 12 ? 0 : hh;
+        else h24 = hh === 12 ? 12 : hh + 12;
+      } else {
+        const hhmm = request.visitTime.match(/^(\d{2}):(\d{2})/);
+        if (hhmm) {
+          h24 = parseInt(hhmm[1], 10);
+          mm  = parseInt(hhmm[2], 10);
+        }
+      }
+      if (h24 < 0 || mm < 0) return false;
+
+      const visitKey = `${request.visitDate}T${String(h24).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
+      return visitKey <= nowKey;
+    } catch {
+      return false;
+    }
+  }, [request?.visitStartAt, request?.visitDate, request?.visitTime, minuteTick]);
 
   const timelineData: TimelineData = useMemo(
     () => ({
       createdAt: visitData?.createdAt ?? "",
       status: visitData?.status ?? "pending",
       isWalkIn: visitData?.isWalkIn ?? false,
+      timeline: (visitData as any)?.timeline,
+      approval: visitData?.approval ? {
+        requiresApproval: visitData.approval.requiresApproval,
+        autoApproved: visitData.approval.autoApproved,
+        approvedAt: visitData.approval.approvedAt,
+        rejectedAt: visitData.approval.rejectedAt,
+        rejectionReason: visitData.approval.rejectionReason,
+      } : undefined,
     }),
     [visitData],
   );
@@ -299,122 +396,101 @@ export default function ManagerApprovalDetailScreen({
     cancelMutation.isPending ||
     updateMutation.isPending;
 
-  // Helper to parse duration string to milliseconds (supports various formats)
-  const parseDurationToMs = (duration: string): number => {
-    if (!duration) return 60 * 60 * 1000; // default 1 hour
-
-    const durationStr = String(duration).trim();
-
-    // Handle "Full Day" or similar
-    if (/full\s*day/i.test(durationStr)) {
-      return 24 * 60 * 60 * 1000;
+  const expirationStatus = request?.status ?? visitData?.status;
+  const isExpiredPendingHostWalkIn = useMemo(
+    () =>
+      computeIsPendingHostWalkInExpired({
+        isWalkIn: visitData?.isWalkIn,
+        status: expirationStatus,
+        visitDate: visitData?.visitDate,
+      }),
+    [
+      expirationStatus,
+      riyadhBusinessDateKey,
+      visitData?.isWalkIn,
+      visitData?.visitDate,
+    ],
+  );
+  const expirationBoundary = useMemo(
+    () =>
+      getPendingApprovalWalkInScheduledEndMs({
+        isWalkIn: visitData?.isWalkIn,
+        status: expirationStatus,
+        visitDate: visitData?.visitDate,
+        visitTime: visitData?.visitTime,
+        endTime: visitData?.endTime,
+        duration: visitData?.duration,
+      }),
+    [
+      expirationStatus,
+      visitData?.duration,
+      visitData?.endTime,
+      visitData?.isWalkIn,
+      visitData?.visitDate,
+      visitData?.visitTime,
+    ],
+  );
+  const expirationBoundaryTick = useTimeBoundaryTick([expirationBoundary]);
+  const computeCurrentVisitExpiration = useCallback(() => {
+    if (
+      visitData?.isWalkIn &&
+      expirationStatus?.toLowerCase() === "pending_host_approval"
+    ) {
+      return isExpiredPendingHostWalkIn;
     }
 
-    // Parse ISO 8601 duration (e.g., "PT1H30M", "PT24H", "P1D")
-    if (durationStr.startsWith("P")) {
-      let totalMs = 0;
-      const daysMatch = durationStr.match(/(\d+)D/i);
-      const hoursMatch = durationStr.match(/(\d+)H/i);
-      const minutesMatch = durationStr.match(/(\d+)M(?!O)/i); // M but not MO (month)
-      if (daysMatch) totalMs += parseInt(daysMatch[1]) * 24 * 60 * 60 * 1000;
-      if (hoursMatch) totalMs += parseInt(hoursMatch[1]) * 60 * 60 * 1000;
-      if (minutesMatch) totalMs += parseInt(minutesMatch[1]) * 60 * 1000;
-      return totalMs > 0 ? totalMs : 60 * 60 * 1000;
-    }
-
-    // Parse human-readable format (e.g., "2 hours 10 minutes", "1.5 hours", "1 day", "30 minutes")
-    let totalMs = 0;
-    const daysMatch = durationStr.match(/(\d+(?:\.\d+)?)\s*days?/i);
-    const hoursMatch = durationStr.match(/(\d+(?:\.\d+)?)\s*(?:hours?|h\b)/i);
-    const minutesMatch = durationStr.match(/(\d+)\s*(?:minutes?|mins?|m\b)/i);
-
-    if (daysMatch) totalMs += parseFloat(daysMatch[1]) * 24 * 60 * 60 * 1000;
-    if (hoursMatch) totalMs += parseFloat(hoursMatch[1]) * 60 * 60 * 1000;
-    if (minutesMatch) totalMs += parseInt(minutesMatch[1]) * 60 * 1000;
-
-    return totalMs > 0 ? totalMs : 60 * 60 * 1000; // Default 1 hour if parsing fails
-  };
-
-  // Check if the visit date/time has passed - disable approval actions for expired visits
-  // A visit is only expired when the END time has passed, not the start time
-  const isVisitExpired = useMemo(() => {
-    if (!visitData?.visitDate) return false;
-
-    try {
-      const now = new Date();
-
-      console.log("[isVisitExpired] Checking expiration:", {
+    if (
+      visitData?.isWalkIn &&
+      isPendingManagerApprovalStatus(expirationStatus)
+    ) {
+      return computeIsPendingApprovalWalkInExpired({
+        isWalkIn: visitData.isWalkIn,
+        status: expirationStatus,
         visitDate: visitData.visitDate,
         visitTime: visitData.visitTime,
         endTime: visitData.endTime,
         duration: visitData.duration,
-        now: now.toISOString(),
       });
-
-      // Priority 1: Check end time if available (endTime field)
-      const endTimeStr = visitData.endTime;
-      if (endTimeStr && visitData.visitDate) {
-        const visitEndDateTime = parseDateTime(visitData.visitDate, endTimeStr);
-        console.log("[isVisitExpired] Priority 1 - endTime parsed:", {
-          endTimeStr,
-          visitEndDateTime: visitEndDateTime.toISOString(),
-          isValid: !isNaN(visitEndDateTime.getTime()),
-          isExpired: visitEndDateTime < now,
-        });
-        if (!isNaN(visitEndDateTime.getTime())) {
-          return visitEndDateTime < now;
-        }
-      }
-
-      // Priority 2: Calculate end time from start time + duration
-      if (visitData.visitTime && visitData.duration) {
-        const startDateTime = parseDateTime(
-          visitData.visitDate,
-          visitData.visitTime,
-        );
-        if (!isNaN(startDateTime.getTime())) {
-          const durationMs = parseDurationToMs(visitData.duration);
-          const calculatedEndTime = new Date(
-            startDateTime.getTime() + durationMs,
-          );
-          console.log("[isVisitExpired] Priority 2 - calculated end time:", {
-            startDateTime: startDateTime.toISOString(),
-            durationMs,
-            calculatedEndTime: calculatedEndTime.toISOString(),
-            isExpired: calculatedEndTime < now,
-          });
-          return calculatedEndTime < now;
-        }
-      }
-
-      // Fallback: check if the visit date (end of day) has passed
-      const [year, month, day] = visitData.visitDate.split("-").map(Number);
-      if (year && month && day) {
-        // End of visit day (23:59:59)
-        const visitDateEndOfDay = new Date(year, month - 1, day, 23, 59, 59);
-        console.log("[isVisitExpired] Fallback - end of day:", {
-          visitDateEndOfDay: visitDateEndOfDay.toISOString(),
-          isExpired: visitDateEndOfDay < now,
-        });
-        if (visitDateEndOfDay < now) {
-          return true;
-        }
-      }
-
-      return false;
-    } catch (err) {
-      console.log("[isVisitExpired] Error:", err);
-      return false;
     }
+
+    return computeIsVisitExpired(
+      visitData?.visitDate,
+      visitData?.visitTime,
+      visitData?.endTime,
+      visitData?.duration,
+      { isWalkIn: visitData?.isWalkIn },
+    );
   }, [
+    expirationStatus,
+    isExpiredPendingHostWalkIn,
+    minuteTick,
+    riyadhBusinessDateKey,
+    visitData?.duration,
+    visitData?.endTime,
+    visitData?.isWalkIn,
     visitData?.visitDate,
     visitData?.visitTime,
-    visitData?.endTime,
-    visitData?.duration,
-    parseDateTime,
   ]);
+  const isVisitExpired = useMemo(
+    computeCurrentVisitExpiration,
+    [
+      computeCurrentVisitExpiration,
+      expirationBoundaryTick,
+      visitData?.status,
+      riyadhBusinessDateKey,
+      minuteTick,
+    ],
+  );
+  const showExpiredWalkInStatus =
+    !!visitData?.isWalkIn &&
+    isPendingManagerApprovalStatus(expirationStatus) &&
+    isVisitExpired;
+  const showPendingHostExpiredFooter =
+    !isReadOnlyRole && isExpiredPendingHostWalkIn;
+  const showExpiredWalkInFooter =
+    !isReadOnlyRole && showExpiredWalkInStatus;
 
-  if (isLoading || isFetching) {
+  if ((isLoading || isFetching) && !request) {
     return (
       <ScreenScrollView
         contentContainerStyle={{ paddingHorizontal: Spacing.xl }}
@@ -427,18 +503,37 @@ export default function ManagerApprovalDetailScreen({
     );
   }
 
-  if (error || !request) {
+  if (!request) {
     return (
       <ScreenScrollView
         contentContainerStyle={{ paddingHorizontal: Spacing.xl }}
       >
         <Spacer height={Spacing.xl} />
         <ThemedText style={[Typography.title]}>
-          {t("errors.notFound")}
+          {error ? t("common.loadError") : t("errors.notFound")}
         </ThemedText>
+        {error ? (
+          <>
+            <Spacer height={Spacing.lg} />
+            <Pressable
+              style={[styles.retryButton, { backgroundColor: theme.primary }]}
+              onPress={() => refetch()}
+            >
+              <ThemedText style={{ color: theme.buttonText, fontWeight: "600" }}>
+                {t("common.retry")}
+              </ThemedText>
+            </Pressable>
+          </>
+        ) : null}
       </ScreenScrollView>
     );
   }
+  const parkingDisplayDecision = resolveParkingDisplayDecision({
+    parkingDecision: request.parkingDecision,
+    visitorNeedsParking: request.visitorNeedsParking,
+    isVisitorNeedsParking: request.isVisitorNeedsParking,
+    hasParkingAllocation: !!request.parkingSlot,
+  });
 
   const formatDateTime = (isoString: string, timezone?: string) => {
     return fmtDateTime(new Date(isoString), timezone);
@@ -465,7 +560,7 @@ export default function ManagerApprovalDetailScreen({
   };
 
   const handleApprove = () => {
-    if (isReadOnlyRole || isVisitExpired) return;
+    if (isReadOnlyRole || computeCurrentVisitExpiration()) return;
 
     // For walk-in requests where manager IS the host, show the end time modal with service selection
     // If manager is NOT the host, the employee already configured end time/services, so just approve directly
@@ -477,9 +572,8 @@ export default function ManagerApprovalDetailScreen({
 
       // Initialize services from existing visit data
       // For walk-ins, parking is always disabled (same as Employee flow)
-      setWalkInRequiresMeetingRoom(!!visitData.meetingRoom);
+      initializeWalkInServices(visitData);
       setWalkInRequiresParking(false); // Parking disabled for walk-ins
-      setWalkInRequiresBuffet(!!visitData.buffet);
 
       setIsWalkInEditMode(false);
       setShowWalkInApprovalModal(true);
@@ -506,6 +600,8 @@ export default function ManagerApprovalDetailScreen({
   // Handler to open the walk-in services modal in edit mode (for already approved walk-ins)
   const handleEditWalkInServices = () => {
     if (isReadOnlyRole || !visitData?.isWalkIn) return;
+    if (computeCurrentVisitExpiration()) return;
+    if (hasVisitStarted) return;
 
     // Initialize with existing data from the visit - preserve original start time
     const now = new Date();
@@ -544,9 +640,8 @@ export default function ManagerApprovalDetailScreen({
     }
 
     // Initialize services from existing visit data
-    setWalkInRequiresMeetingRoom(!!visitData.meetingRoom);
+    initializeWalkInServices(visitData);
     setWalkInRequiresParking(false); // Parking disabled for walk-ins
-    setWalkInRequiresBuffet(!!visitData.buffet);
 
     setIsWalkInEditMode(true);
     setShowWalkInApprovalModal(true);
@@ -554,6 +649,8 @@ export default function ManagerApprovalDetailScreen({
 
   const handleWalkInApprovalSubmit = () => {
     if (isReadOnlyRole) return;
+    if (isWalkInEditMode && hasVisitStarted) return;
+    if (computeCurrentVisitExpiration()) return;
 
     const now = new Date();
     const startTime = approvalStartTime || now;
@@ -578,6 +675,8 @@ export default function ManagerApprovalDetailScreen({
     const endNormalized = new Date(startTime);
     endNormalized.setHours(walkInEndTime.getHours(), walkInEndTime.getMinutes(), 0, 0);
     const isoDuration = calculateServerDuration(startTime, endNormalized);
+    const requiresMeetingRoom =
+      walkInRequiresMeetingRoom || walkInRequiresBuffet;
 
     // Build payload based on whether manager is the host
     // If manager IS the host: can edit services
@@ -591,7 +690,7 @@ export default function ManagerApprovalDetailScreen({
 
     if (isManagerTheHost) {
       // Manager is the host - can modify services
-      payload.needsMeetingRoom = walkInRequiresMeetingRoom;
+      payload.needsMeetingRoom = requiresMeetingRoom;
       payload.needsParking = walkInRequiresParking;
       payload.needsBuffet = walkInRequiresBuffet;
     }
@@ -667,11 +766,14 @@ export default function ManagerApprovalDetailScreen({
     }
     if (selectedTime) {
       const now = new Date();
+      // Use Riyadh wall-clock "now" so clamp is correct for users outside Saudi Arabia
+      const { hours: riyadhH, minutes: riyadhM } = getServerDateParts(now, 'Asia/Riyadh');
       const clampedTime = new Date(selectedTime);
       clampedTime.setFullYear(now.getFullYear(), now.getMonth(), now.getDate());
       clampedTime.setSeconds(0, 0);
-      if (clampedTime.getTime() < now.getTime()) {
-        clampedTime.setHours(now.getHours(), now.getMinutes(), 0, 0);
+      const pickedMins = clampedTime.getHours() * 60 + clampedTime.getMinutes();
+      if (pickedMins < riyadhH * 60 + riyadhM) {
+        clampedTime.setHours(riyadhH, riyadhM, 0, 0);
       }
       setApprovalStartTime(clampedTime);
       if (walkInEndTime.getTime() <= clampedTime.getTime()) {
@@ -708,6 +810,7 @@ export default function ManagerApprovalDetailScreen({
   // Save inline end time to API
   const handleSaveInlineEndTime = () => {
     if (!inlineEndTime || !visitData) return;
+    if (hasVisitStarted) return;
 
     const payload = {
       endTime: formatTimeForApi(inlineEndTime),
@@ -738,6 +841,7 @@ export default function ManagerApprovalDetailScreen({
 
   // Initialize inline end time from visit data for editing
   const handleStartInlineEndTimeEdit = () => {
+    if (hasVisitStarted) return;
     if (visitData?.visitDate && visitData?.endTime) {
       const parsedEndTime = parseDateTime(
         visitData.visitDate,
@@ -757,7 +861,7 @@ export default function ManagerApprovalDetailScreen({
   };
 
   const handleReject = () => {
-    if (isReadOnlyRole || isVisitExpired) return;
+    if (isReadOnlyRole || computeCurrentVisitExpiration()) return;
     const reason = rejectionReason.trim() || "No reason provided";
 
     // Close modal immediately to prevent re-opening during loading
@@ -804,19 +908,72 @@ export default function ManagerApprovalDetailScreen({
   };
 
   const statusConfig = getSharedStatusConfig(theme, request.status, t);
-  const initials = request.visitor.fullName
-    .split(" ")
-    .map((n) => n[0])
-    .join("");
+  const initials = getInitials(request.visitor.fullName);
+  const expiredVisitNotice = (
+    <ExpiredVisitFooter theme={theme} t={t} />
+  );
 
   return (
-    <>
+    <View style={styles.screenContainer}>
       <ScreenScrollView
         contentContainerStyle={{
           paddingHorizontal: Spacing.lg,
           paddingTop: Spacing.lg,
+          ...(showPendingHostExpiredFooter || showExpiredWalkInFooter
+            ? {
+                paddingBottom: Math.max(
+                  expiredFooterHeight,
+                  insets.bottom + Spacing.xl,
+                ),
+              }
+            : {}),
         }}
       >
+        {error ? (
+          <>
+            <DirectionalRow
+              style={[
+                styles.inlineQueryFeedback,
+                { backgroundColor: applyOpacity(theme.error, "10") },
+              ]}
+            >
+              <DDIcon name="alert-circle" size={16} color={theme.error} />
+              <ThemedText
+                style={[Typography.caption, { color: theme.error, flex: 1 }]}
+              >
+                {t("common.loadError")}
+              </ThemedText>
+              <Pressable onPress={() => refetch()} hitSlop={8}>
+                <ThemedText
+                  style={[
+                    Typography.caption,
+                    { color: theme.primary, fontWeight: "600" },
+                  ]}
+                >
+                  {t("common.retry")}
+                </ThemedText>
+              </Pressable>
+            </DirectionalRow>
+            <Spacer height={Spacing.md} />
+          </>
+        ) : isFetching ? (
+          <>
+            <DirectionalRow
+              style={[
+                styles.inlineQueryFeedback,
+                { backgroundColor: applyOpacity(theme.primary, "10") },
+              ]}
+            >
+              <ActivityIndicator size="small" color={theme.primary} />
+              <ThemedText
+                style={[Typography.caption, { color: theme.textSecondary }]}
+              >
+                {t("common.loading")}
+              </ThemedText>
+            </DirectionalRow>
+            <Spacer height={Spacing.md} />
+          </>
+        ) : null}
         {/* Rejection Reason - Moved to top */}
         {request.status === REQUEST_STATUS.REJECTED &&
         request.approval.rejectionReason ? (
@@ -933,6 +1090,9 @@ export default function ManagerApprovalDetailScreen({
                 >
                   <ThemedText
                     style={[styles.avatarTextNew, { color: theme.primary, fontSize: 20 }]}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.5}
                   >
                     {initials}
                   </ThemedText>
@@ -976,22 +1136,7 @@ export default function ManagerApprovalDetailScreen({
                       </ThemedText>
                     </View>
                   ) : null}
-                  <View
-                    style={{
-                      backgroundColor: statusConfig.bg,
-                      borderColor: statusConfig.border,
-                      borderWidth: StyleSheet.hairlineWidth,
-                      paddingHorizontal: Spacing.md,
-                      paddingVertical: 6,
-                      borderRadius: BorderRadius.full,
-                    }}
-                  >
-                    <ThemedText
-                      style={[Typography.caption, { color: statusConfig.text, fontWeight: "600", fontSize: 12 }]}
-                    >
-                      {statusConfig.label}
-                    </ThemedText>
-                  </View>
+                  <RequestStatusBadge status={request.status} />
                 </DirectionalRow>
               </DirectionalRow>
 
@@ -1040,6 +1185,9 @@ export default function ManagerApprovalDetailScreen({
                 >
                   <ThemedText
                     style={[styles.avatarTextNew, { color: theme.primary }]}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.5}
                   >
                     {initials}
                   </ThemedText>
@@ -1081,22 +1229,7 @@ export default function ManagerApprovalDetailScreen({
                       </ThemedText>
                     </View>
                   ) : null}
-                  <View
-                    style={{
-                      backgroundColor: statusConfig.bg,
-                      borderColor: statusConfig.border,
-                      borderWidth: StyleSheet.hairlineWidth,
-                      paddingHorizontal: Spacing.md,
-                      paddingVertical: 6,
-                      borderRadius: BorderRadius.full,
-                    }}
-                  >
-                    <ThemedText
-                      style={[Typography.caption, { color: statusConfig.text, fontWeight: "600", fontSize: 12 }]}
-                    >
-                      {statusConfig.label}
-                    </ThemedText>
-                  </View>
+                  <RequestStatusBadge status={request.status} />
                 </DirectionalRow>
               </View>
 
@@ -1373,6 +1506,7 @@ export default function ManagerApprovalDetailScreen({
                           : t("common.notRequested")}
                       </ThemedText>
                       {!isReadOnlyRole &&
+                      !hasVisitStarted &&
                       isManagerTheHost &&
                       (request.status === REQUEST_STATUS.APPROVED ||
                         request.status === REQUEST_STATUS.VISITOR_ACCEPTED) ? (
@@ -1861,7 +1995,7 @@ export default function ManagerApprovalDetailScreen({
                 styles.serviceIcon,
                 {
                   backgroundColor: applyOpacity(
-                    request.visitorNeedsParking
+                    parkingDisplayDecision === 'required'
                       ? theme.secondary
                       : theme.textSecondary,
                     "20",
@@ -1873,7 +2007,7 @@ export default function ManagerApprovalDetailScreen({
                 name="truck"
                 size={18}
                 color={
-                  request.visitorNeedsParking
+                  parkingDisplayDecision === 'required'
                     ? theme.secondary
                     : theme.textSecondary
                 }
@@ -1899,72 +2033,9 @@ export default function ManagerApprovalDetailScreen({
                   {t("services.parking")}
                 </ThemedText>
               </DirectionalRow>
-              {request.visitorNeedsParking ? (
-                request.licensePlate || request.carModel || request.carColor ? (
-                  <ThemedText
-                    style={[
-                      Typography.caption,
-                      {
-                        color: theme.textSecondary,
-                        marginTop: 2,
-                        fontSize: 13,
-                        
-                      },
-                    ]}
-                  >
-                    {[
-                      request.licensePlate,
-                      request.carModel,
-                      request.carColor,
-                    ]
-                      .filter(Boolean)
-                      .join(" • ")}
-                  </ThemedText>
-                ) : (
-                  <ThemedText
-                    style={[
-                      Typography.caption,
-                      {
-                        color: theme.warning,
-                        marginTop: 2,
-                        fontSize: 13,
-                        
-                      },
-                    ]}
-                  >
-                    {t("parking.parkingPending")}
-                  </ThemedText>
-                )
-              ) : request.status === REQUEST_STATUS.CANCELLED || request.status === REQUEST_STATUS.AUTO_CANCELLED || request.status === REQUEST_STATUS.VISITOR_REJECTED ? (
-                <ThemedText
-                  style={[
-                    Typography.caption,
-                    {
-                      color: theme.error,
-                      marginTop: 2,
-                      fontSize: 13,
-                      
-                    },
-                  ]}
-                >
-                  {t("status.cancelled")}
-                </ThemedText>
-              ) : (
-                <ThemedText
-                  style={[
-                    Typography.caption,
-                    {
-                      color: theme.textSecondary,
-                      marginTop: 2,
-                      fontSize: 13,
-                      fontStyle: "italic",
-                      
-                    },
-                  ]}
-                >
-                  {t("common.notRequested")}
-                </ThemedText>
-              )}
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+                {parkingDisplayDecision === 'required' ? t("parking.needsParking") : t("parking.noParking")}
+              </ThemedText>
             </View>
           </DirectionalRow>
           </View>
@@ -1973,13 +2044,32 @@ export default function ManagerApprovalDetailScreen({
 
         <Spacer height={LAYOUT.sectionSpacing} />
 
-        <RequestTimeline steps={timelineSteps} />
+        <RequestTimeline steps={timelineSteps} timezone={visitData?.timezone} />
 
-        <Spacer height={100} />
+        <Spacer height={showPendingHostExpiredFooter || showExpiredWalkInFooter ? 0 : 100} />
       </ScreenScrollView>
 
+      {showPendingHostExpiredFooter || showExpiredWalkInFooter ? (
+        <View
+          testID="expired-visit-footer"
+          onLayout={handleExpiredFooterLayout}
+          style={[
+            styles.actionBar,
+            {
+              backgroundColor: theme.background,
+              borderTopColor: theme.border,
+              paddingBottom: insets.bottom + Spacing.lg,
+            },
+          ]}
+        >
+          {expiredVisitNotice}
+        </View>
+      ) : null}
+
       {!isReadOnlyRole &&
-        request.status === REQUEST_STATUS.PENDING_APPROVAL && (
+        request.status === REQUEST_STATUS.PENDING_APPROVAL &&
+        !showExpiredWalkInFooter &&
+        visitData?.canApprove !== false && (
           <View
             style={[
               styles.actionBar,
@@ -2048,6 +2138,7 @@ export default function ManagerApprovalDetailScreen({
         )}
 
       {!isReadOnlyRole &&
+        !hasVisitStarted &&
         request.isWalkIn && isManagerTheHost &&
         (request.status === REQUEST_STATUS.APPROVED ||
           request.status === REQUEST_STATUS.VISITOR_ACCEPTED) && (
@@ -2192,11 +2283,19 @@ export default function ManagerApprovalDetailScreen({
               styles.modalBackdrop,
               { backgroundColor: "rgba(0, 0, 0, 0.5)" },
             ]}
-            onPress={() => !isProcessing && setShowRejectModal(false)}
+            onPress={Keyboard.dismiss}
+            accessible={false}
           />
-          <View style={styles.modalContainer}>
-            <ThemedView
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={styles.modalKeyboardAvoidingView}
+            pointerEvents="box-none"
+            accessibilityViewIsModal
+          >
+            <Pressable
               style={[styles.modalContent, { backgroundColor: theme.surface }]}
+              onPress={Keyboard.dismiss}
+              accessible={false}
             >
               <Pressable
                 onPress={() => !isProcessing && setShowRejectModal(false)}
@@ -2297,8 +2396,8 @@ export default function ManagerApprovalDetailScreen({
                   {t("common.confirm")}
                 </LoadingButton>
               </DirectionalRow>
-            </ThemedView>
-          </View>
+            </Pressable>
+          </KeyboardAvoidingView>
         </View>
       </Modal>
 
@@ -2630,12 +2729,28 @@ export default function ManagerApprovalDetailScreen({
         type={toast.type}
         visible={toast.visible}
       />
-    </>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  screenContainer: {
+    flex: 1,
+  },
   sectionHeader: {},
+  inlineQueryFeedback: {
+    alignItems: "center",
+    gap: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+  },
+  retryButton: {
+    alignSelf: "flex-start",
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
+  },
   cardNew: {
     padding: 20,
     borderRadius: 10,
@@ -2823,6 +2938,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
     maxWidth: 440,
     alignItems: "center",
+  },
+  modalKeyboardAvoidingView: {
+    flex: 1,
+    width: "100%",
+    maxWidth: 440,
+    paddingHorizontal: Spacing.xl,
+    alignItems: "center",
+    justifyContent: "center",
   },
   modalContent: {
     borderRadius: BorderRadius.lg,

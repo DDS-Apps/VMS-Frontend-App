@@ -19,6 +19,7 @@ import { UserRole } from "@/types/vms.types";
 import { applyOpacity } from "@/utils/statusStyles";
 import { SupportedLocale } from "@/constants/i18n";
 import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
+import { getInitials } from "@/utils/formatters";
 import { LanguageChangeOverlay } from '@/components/LanguageChangeOverlay';
 import {
   useNotificationPreferencesQuery,
@@ -148,8 +149,13 @@ export default function SettingsScreen({
             />
           ) : (
             <View style={[styles.avatar, { backgroundColor: theme.primary + '20' }]}>
-              <ThemedText style={[Typography.subtitle, { color: theme.primary, fontWeight: '700' }]}>
-                {userName.split(' ').map(n => n[0]).join('')}
+              <ThemedText
+                style={[Typography.subtitle, { color: theme.primary, fontWeight: '700' }]}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.5}
+              >
+                {getInitials(userName)}
               </ThemedText>
             </View>
           )}

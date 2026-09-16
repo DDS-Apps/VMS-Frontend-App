@@ -13,7 +13,6 @@ import VisitorRequestFormScreen from "@/screens/Employee/VisitorRequestFormScree
 import RequestDetailsScreen from "@/screens/Employee/RequestDetailsScreen";
 import SecurityCheckInScreen from "@/screens/Security/SecurityCheckInScreen";
 import ReceptionistDashboardScreen from "@/screens/Receptionist/ReceptionistDashboardScreen";
-import VisitTypeSelectionScreen from "@/screens/Employee/VisitTypeSelectionScreen";
 import AllVisitorsScreen from "@/screens/Receptionist/AllVisitorsScreen";
 import WalkInVisitorsScreen from "@/screens/Receptionist/WalkInVisitorsScreen";
 import UpcomingVisitorsListScreen from "@/screens/Receptionist/UpcomingVisitorsListScreen";
@@ -26,7 +25,6 @@ import type {
   VisitorRequestsScreenProps,
   VisitorRequestFormScreenProps,
   RequestDetailsScreenProps,
-  VisitTypeSelectionScreenProps,
 } from "@/types/employeeNavigation.types";
 import type { SecurityCheckInScreenProps } from "@/types/securityNavigation.types";
 import type {
@@ -104,12 +102,6 @@ function DashboardStack({ userRole }: { userRole: UserRole }) {
           options={{ headerShown: false }}
         >
           {(props) => <ReceptionistDashboardScreen {...(props as unknown as ReceptionistDashboardScreenProps)} />}
-        </Stack.Screen>
-        <Stack.Screen
-          name="VisitTypeSelection"
-          options={{ headerTitle: "Type of Visit" }}
-        >
-          {(props) => <VisitTypeSelectionScreen {...(props as unknown as VisitTypeSelectionScreenProps)} />}
         </Stack.Screen>
         <Stack.Screen
           name="VisitorRequestForm"

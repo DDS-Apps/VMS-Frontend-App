@@ -7,7 +7,6 @@ export type BuffetStatus = 'pending' | 'preparing' | 'ready' | 'served' | 'compl
 
 export interface BuffetRequest {
   id: string;
-  visitorName: string;
   hostName: string;
   location: string;
   meetingRoom?: string;
@@ -73,7 +72,6 @@ const today = getLocalDateString(new Date());
 let mockBuffetRequests: BuffetRequest[] = [
   {
     id: 'br_001',
-    visitorName: 'James Anderson',
     hostName: 'Ahmed Al-Rashid',
     location: 'Executive Dining Room',
     meetingRoom: 'Executive Suite A',
@@ -88,7 +86,6 @@ let mockBuffetRequests: BuffetRequest[] = [
   },
   {
     id: 'br_002',
-    visitorName: 'Maria Rodriguez',
     hostName: 'Fatima Al-Zahrani',
     location: 'Meeting Room A Catering',
     meetingRoom: 'Meeting Room A',
@@ -103,7 +100,6 @@ let mockBuffetRequests: BuffetRequest[] = [
   },
   {
     id: 'br_003',
-    visitorName: 'Liu Wei',
     hostName: 'Sarah Johnson',
     location: 'Conference Hall Buffet',
     meetingRoom: 'Conference Hall B',
@@ -120,7 +116,6 @@ let mockBuffetRequests: BuffetRequest[] = [
   },
   {
     id: 'br_004',
-    visitorName: 'Sophie Martin',
     hostName: 'Khalid Ibrahim',
     location: 'Boardroom Dining',
     meetingRoom: 'Boardroom',
@@ -135,7 +130,6 @@ let mockBuffetRequests: BuffetRequest[] = [
   },
   {
     id: 'br_005',
-    visitorName: 'David Kim',
     hostName: 'Omar Hassan',
     location: 'Executive Dining Room',
     meetingRoom: 'Executive Suite B',
@@ -150,7 +144,6 @@ let mockBuffetRequests: BuffetRequest[] = [
   },
   {
     id: 'br_006',
-    visitorName: 'Emily Chen',
     hostName: 'Nora Ahmed',
     location: 'VIP Lounge Catering',
     meetingRoom: 'VIP Lounge',
@@ -166,7 +159,6 @@ let mockBuffetRequests: BuffetRequest[] = [
   },
   {
     id: 'br_007',
-    visitorName: 'Robert Taylor',
     hostName: 'Layla Ibrahim',
     location: 'Garden Terrace Dining',
     meetingRoom: 'Garden Terrace',

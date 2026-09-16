@@ -41,12 +41,11 @@ export function useAcceptInviteMutation(token: string) {
               accepted: true,
               decidedAt: new Date().toISOString(),
             },
+            // Only the parking requirement is collected from visitors; vehicle
+            // details are never part of the invite flow (see AcceptInviteDto).
             parkingInfo: variables?.needsParking ? {
               ...oldData.parkingInfo,
               needsParking: true,
-              licensePlate: variables.licensePlate || null,
-              carModel: variables.carModel || null,
-              carColor: variables.carColor || null,
             } : {
               ...oldData.parkingInfo,
               needsParking: false,

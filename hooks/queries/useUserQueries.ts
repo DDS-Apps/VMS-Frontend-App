@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { userApiService, type ListUsersParams } from '@/services/api/userApiService';
 import type { 
   UserDto, 
@@ -32,6 +32,11 @@ export function useAdminUsersQuery(params?: AdminUserListParams, enabled = true)
     queryKey: userKeys.adminList(params),
     queryFn: () => userApiService.listAdmin(params),
     enabled,
+    // Keep previous page's data visible while a new search/page fetch is in
+    // flight. Without this, every keystroke triggers isLoading=true which
+    // replaces the FlatList with a loading view, unmounting SearchBarComponent
+    // and losing the typed text.
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -49,6 +54,9 @@ export function useUsersQuery(params?: ListUsersParams, enabled = true) {
   return useQuery<PaginatedResponse<UserDto>>({
     queryKey: userKeys.list(params),
     queryFn: () => userApiService.list(params),
+    // The walk-in host picker re-opens often; keep the list fresh for the same
+    // window as the other list hooks instead of re-downloading it each time.
+    staleTime: 30 * 1000,
     enabled,
   });
 }

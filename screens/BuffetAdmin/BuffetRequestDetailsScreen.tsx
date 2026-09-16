@@ -17,16 +17,15 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LoadingButton } from "@/components/shared/LoadingButton";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { useToast } from "@/contexts/ToastContext";
-import { RequestTimeline, type TimelineStep } from "@/components/shared/RequestTimeline";
 import {
   useBuffetAdminTaskQuery,
   useBuffetAdminStaffQuery,
-  useUpdateBuffetAdminTaskStatusMutation,
   useAssignBuffetTaskMutation,
 } from "@/hooks/queries/useBuffetQueries";
 import type { BuffetAdminTaskDto, BuffetAdminStaffDto, BuffetAdminTaskStatus } from "@/types/api.types";
 import type { BuffetRequestDetailsScreenProps } from "@/types/buffetAdminNavigation.types";
 import { useAuth } from "@/contexts/AuthContext";
+import { getInitials } from "@/utils/formatters";
 
 type BuffetRequest = BuffetAdminTaskDto & {
   timeSlot: string;
@@ -60,73 +59,6 @@ const mapStaffDto = (staff: BuffetAdminStaffDto): StaffDisplayItem => ({
   currentTasks: staff.currentTasks,
 });
 
-const BUFFET_STATUS_ORDER = ['expected', 'pending', 'preparing', 'ready', 'served', 'completed'] as const;
-
-const getStepStatus = (stepIndex: number, currentStatusIndex: number, isCancelled: boolean): 'completed' | 'current' | 'pending' => {
-  if (isCancelled) return 'pending';
-  if (stepIndex < currentStatusIndex) return 'completed';
-  if (stepIndex === currentStatusIndex) return 'current';
-  return 'pending';
-};
-
-const buildBuffetTimelineSteps = (
-  request: BuffetRequest,
-  t: (key: string) => string
-): TimelineStep[] => {
-  const currentStatusIndex = BUFFET_STATUS_ORDER.indexOf(request.status as typeof BUFFET_STATUS_ORDER[number]);
-  const isCancelled = request.status === 'cancelled';
-
-  // Define all possible steps
-  const allSteps: Array<{ id: string; label: string; icon: string; statusIndex: number }> = [
-    { id: 'expected', label: t('status.expected'), icon: 'clock', statusIndex: 0 },
-    { id: 'pending', label: t('buffet.pending'), icon: 'clock', statusIndex: 1 },
-    { id: 'preparing', label: t('buffet.preparing'), icon: 'loader', statusIndex: 2 },
-    { id: 'ready', label: t('buffet.ready'), icon: 'check-circle', statusIndex: 3 },
-    { id: 'served', label: t('buffet.served'), icon: 'coffee', statusIndex: 4 },
-    { id: 'completed', label: t('buffet.completed'), icon: 'check', statusIndex: 5 },
-  ];
-
-  // Always start with Request Created
-  const steps: TimelineStep[] = [
-    {
-      id: 'created',
-      label: t('timeline.requestCreated'),
-      timestamp: request.createdAt,
-      status: 'completed',
-      icon: 'file-plus',
-    },
-  ];
-
-  if (isCancelled) {
-    // When cancelled, show Pending as completed (the step before cancellation), then Cancelled
-    steps.push({
-      id: 'pending',
-      label: t('buffet.pending'),
-      status: 'completed',
-      icon: 'clock',
-    });
-    steps.push({
-      id: 'cancelled',
-      label: t('status.cancelled'),
-      status: 'error',
-      icon: 'x-circle',
-    });
-    // Don't show any subsequent steps (preparing, ready, served, completed)
-    return steps;
-  }
-
-  // Normal flow - add all steps with their appropriate status
-  for (const step of allSteps) {
-    steps.push({
-      id: step.id,
-      label: step.label,
-      status: getStepStatus(step.statusIndex, currentStatusIndex, isCancelled),
-      icon: step.icon,
-    });
-  }
-
-  return steps;
-};
 
 export default function BuffetRequestDetailsScreen({ route, navigation }: BuffetRequestDetailsScreenProps) {
   const { theme } = useTheme();
@@ -143,26 +75,24 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
 
   const { data: taskData, isLoading, isFetching, refetch: refetchTask } = useBuffetAdminTaskQuery(initialRequest.id);
   const { data: staffResponse } = useBuffetAdminStaffQuery();
-  const updateStatusMutation = useUpdateBuffetAdminTaskStatusMutation();
   const assignTaskMutation = useAssignBuffetTaskMutation();
 
   const request: BuffetRequest = useMemo(() => {
     if (taskData) {
       const actualTask = (taskData as { data?: BuffetAdminTaskDto })?.data || taskData;
-      if (actualTask && 'visitorName' in actualTask) {
+      if (actualTask && 'visitTime' in actualTask) {
         return mapTaskToRequest(actualTask as BuffetAdminTaskDto);
       }
     }
-    if (initialRequest && 'visitorName' in initialRequest && 'visitTime' in initialRequest) {
+    if (initialRequest && 'visitTime' in initialRequest) {
       return mapTaskToRequest(initialRequest as unknown as BuffetAdminTaskDto);
     }
     const id = (initialRequest as { id?: string })?.id || '';
     return {
       id,
       requestId: '',
-      visitorName: 'Unknown',
-      company: '',
       hostName: '',
+      hostDepartment: '',
       visitDate: '',
       visitTime: '',
       mealType: 'lunch' as const,
@@ -188,8 +118,6 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
       .filter(s => s.dutyStatus === 'on_duty')
       .map(mapStaffDto);
   }, [staffResponse]);
-
-  const timelineSteps = useMemo(() => buildBuffetTimelineSteps(request, t), [request, t]);
 
   const handleOpenAssignModal = () => {
     setShowAssignModal(true);
@@ -293,58 +221,6 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
     }
   };
 
-  const getNextStatus = (currentStatus: string): string | null => {
-    switch (currentStatus) {
-      case 'pending':
-        return 'preparing';
-      case 'preparing':
-        return 'ready';
-      case 'ready':
-        return 'served';
-      case 'served':
-        return 'completed';
-      default:
-        return null;
-    }
-  };
-
-  const handleAdvanceStatus = () => {
-    if (isReadOnlyRole) return;
-    const nextStatus = getNextStatus(request.status);
-    if (!nextStatus) return;
-    
-    updateStatusMutation.mutate(
-      { id: request.id, data: { status: nextStatus as BuffetAdminTaskStatus } },
-      {
-        onSuccess: () => {
-          refetchTask();
-          if (nextStatus === 'completed') {
-            showSuccess(t('status.completed'), t('common.success'));
-            navigation.goBack();
-          } else {
-            showSuccess(getStatusLabel(nextStatus), t('common.success'));
-          }
-        },
-        // Error toast is handled globally by QueryProvider with actual API error message
-      }
-    );
-  };
-
-  const getNextStatusAction = () => {
-    switch (request.status) {
-      case 'pending':
-        return { label: t('buffet.startPreparing'), icon: 'play', color: theme.warning };
-      case 'preparing':
-        return { label: t('buffet.markReady'), icon: 'check', color: '#10B981' };
-      case 'ready':
-        return { label: t('buffet.markServed'), icon: 'coffee', color: theme.success };
-      case 'served':
-        return { label: t('actions.markAsComplete'), icon: 'check-circle', color: theme.success };
-      default:
-        return null;
-    }
-  };
-
   if (isLoading || isFetching) {
     return (
       <ThemedView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -353,8 +229,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
     );
   }
 
-  const initials = request.visitorName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-  const showActions = !isReadOnlyRole && request.status !== 'completed' && request.status !== 'cancelled';
+  const initials = getInitials(request.hostName);
   const statusColor = getStatusColor(request.status);
 
   return (
@@ -363,7 +238,12 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
       <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
         <View style={{ alignItems: 'center' }}>
           <View style={[styles.avatarNew, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
-            <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
+            <ThemedText
+              style={[styles.avatarText, { color: theme.primary }]}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.5}
+            >
               {initials}
             </ThemedText>
           </View>
@@ -371,10 +251,10 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
           <Spacer height={Spacing.lg} />
 
           <ThemedText style={[Typography.title, { fontWeight: '600', fontSize: 22, color: theme.text }]}>
-            {request.visitorName}
+            {request.hostName}
           </ThemedText>
           <ThemedText style={[Typography.body, { color: theme.textSecondary, fontSize: 14, marginTop: 4 }]}>
-            {request.company || ''}
+            {request.hostDepartment || ''}
           </ThemedText>
 
           <Spacer height={Spacing.sm} />
@@ -496,30 +376,6 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
 
       <Spacer height={Spacing.lg} />
 
-      <RequestTimeline steps={timelineSteps} />
-
-      {showActions ? (
-        <>
-          <Spacer height={Spacing.xl} />
-
-          <View style={styles.actionsRow}>
-            {getNextStatusAction() ? (
-              <LoadingButton
-                variant="success"
-                size="medium"
-                icon={getNextStatusAction()!.icon as any}
-                loading={updateStatusMutation.isPending}
-                loadingText={t('common.loading')}
-                onPress={handleAdvanceStatus}
-                fullWidth
-              >
-                {getNextStatusAction()!.label}
-              </LoadingButton>
-            ) : null}
-          </View>
-        </>
-      ) : null}
-
       <Spacer height={Spacing.xl} />
     </ScreenScrollView>
 
@@ -551,8 +407,13 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
               {t('buffet.assigningStaffFor')}
             </ThemedText>
             <ThemedText style={[Typography.body, { fontWeight: '600', marginTop: 4 }]}>
-              {request.visitorName}
+              {request.hostName}
             </ThemedText>
+            {request.hostDepartment ? (
+              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2 }]}>
+                {request.hostDepartment}
+              </ThemedText>
+            ) : null}
             {request.assignedStaff ? (
               <ThemedText style={[Typography.caption, { color: theme.warning, marginTop: 4 }]}>
                 {t('buffet.currentlyAssigned')} {request.assignedStaff}
@@ -589,8 +450,13 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
                     </View>
                   ) : (
                     <View style={[styles.modalStaffAvatar, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
-                      <ThemedText style={[styles.modalStaffAvatarText, { color: theme.primary }]}>
-                        {staff.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
+                      <ThemedText
+                        style={[styles.modalStaffAvatarText, { color: theme.primary }]}
+                        numberOfLines={1}
+                        adjustsFontSizeToFit
+                        minimumFontScale={0.5}
+                      >
+                        {getInitials(staff.name)}
                       </ThemedText>
                     </View>
                   )}

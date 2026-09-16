@@ -4,35 +4,17 @@ import { AppState, Platform } from 'react-native';
 const MAX_TIMEOUT_MS = 60 * 1000;
 
 /**
- * Parses "YYYY-MM-DD" + "HH:MM" (or "H:MM AM/PM") into a Date in device-local time.
- * Returns null for invalid or missing input.
+ * Parses a backend-provided ISO 8601 UTC timestamp (e.g. "2025-01-15T09:00:00Z")
+ * into a Date. Returns null for missing, empty, or unparseable input.
+ *
+ * Always prefer this function when the backend supplies visitStartAt —
+ * it avoids manual date/time string concatenation and handles UTC correctly.
  */
-export function parseVisitDateTime(visitDate: string, visitTime: string): Date | null {
-  if (!visitDate || !visitTime) return null;
+export function parseVisitStartAt(iso: string): Date | null {
+  if (!iso || typeof iso !== 'string') return null;
   try {
-    const cleanTime = visitTime.trim().toUpperCase();
-    let hours: number;
-    let minutes: number;
-
-    const ampmMatch = cleanTime.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/);
-    if (ampmMatch) {
-      hours = parseInt(ampmMatch[1], 10);
-      minutes = parseInt(ampmMatch[2], 10);
-      if (ampmMatch[3] === 'PM' && hours !== 12) hours += 12;
-      if (ampmMatch[3] === 'AM' && hours === 12) hours = 0;
-    } else {
-      const timePart = cleanTime.replace(/\s*(AM|PM)\s*/i, '').trim();
-      const parts = timePart.split(':');
-      hours = parseInt(parts[0], 10);
-      minutes = parseInt(parts[1] ?? '0', 10);
-    }
-
-    const dateParts = visitDate.split('-').map(Number);
-    if (dateParts.length < 3) return null;
-    const [year, month, day] = dateParts;
-    if (isNaN(year) || isNaN(month) || isNaN(day) || isNaN(hours) || isNaN(minutes)) return null;
-
-    return new Date(year, month - 1, day, hours, minutes, 0, 0);
+    const d = new Date(iso);
+    return isNaN(d.getTime()) ? null : d;
   } catch {
     return null;
   }
@@ -40,16 +22,16 @@ export function parseVisitDateTime(visitDate: string, visitTime: string): Date |
 
 /**
  * Pure function: returns true when 0 < remainingMs <= thresholdMs.
- * The window opens `thresholdMinutes` before start and closes at the moment of start.
+ * Accepts an ISO UTC timestamp.
+ * Returns false when the timestamp is missing or invalid.
  * Injectable `nowFn` supports test fake-timer usage.
  */
-export function isUpcomingVisit(
-  visitDate: string,
-  visitTime: string,
+export function isUpcomingVisitFromISO(
+  visitStartAt: string,
   thresholdMinutes = 15,
   nowFn: () => number = Date.now
 ): boolean {
-  const startDate = parseVisitDateTime(visitDate, visitTime);
+  const startDate = parseVisitStartAt(visitStartAt);
   if (!startDate) return false;
   const remainingMs = startDate.getTime() - nowFn();
   const thresholdMs = thresholdMinutes * 60 * 1000;
@@ -62,6 +44,23 @@ interface UseUpcomingIndicatorParams {
   /** Pre-computed eligibility from status check — avoids coupling to RequestStatus type */
   eligible: boolean;
   thresholdMinutes?: number;
+  /**
+   * ISO 8601 UTC timestamp from the backend (e.g. "2025-01-15T09:00:00Z").
+   * When present and parseable, this is preferred over visitDate + visitTime.
+   * Falls back silently to the date/time string pair when absent or invalid.
+   */
+  visitStartAt?: string;
+  /**
+   * Optional clock override for testing (fake timers). When provided, replaces
+   * Date.now() inside the hook so tests can control time precisely.
+   */
+  nowFn?: () => number;
+  /**
+   * Optional server–device clock offset in milliseconds. When the API returns
+   * a server timestamp, callers can pass (serverTime - Date.now()) here so the
+   * indicator accounts for any device clock drift.
+   */
+  serverTimeDeltaMs?: number;
 }
 
 /**
@@ -70,6 +69,10 @@ interface UseUpcomingIndicatorParams {
  * Uses smart boundary timeouts (not polling): schedules the next recalculation
  * at exactly the moment the window opens or closes, capped at 60 s.
  * Also recalculates on app foreground (AppState) and tab focus (web).
+ *
+ * ## Time source priority
+ * 1. `visitStartAt` ISO UTC string (preferred — parses UTC correctly)
+ * 2. `visitDate` + `visitTime` string pair (legacy fallback)
  *
  * ## Stale-state protection (regression notes)
  *
@@ -81,9 +84,10 @@ interface UseUpcomingIndicatorParams {
  *
  * **Layer 2 — effect re-run on prop changes:**
  * `calculate` is a `useCallback` that depends on `eligible`, `visitDate`,
- * `visitTime`, and `thresholdMinutes`. Any prop change rebuilds `calculate`,
- * which causes the main `useEffect` to fire and call `setIsUpcoming(calculate())`
- * synchronously after the render, keeping the internal state in sync.
+ * `visitTime`, `visitStartAt`, `nowFn`, and `thresholdMinutes`. Any prop
+ * change rebuilds `calculate`, which causes the main `useEffect` to fire and
+ * call `setIsUpcoming(calculate())` synchronously after the render, keeping
+ * the internal state in sync.
  *
  * **Key-by-visit-ID requirement:**
  * Parent lists MUST supply the visit's unique ID as the React key (via
@@ -104,11 +108,30 @@ export function useUpcomingIndicator({
   visitTime,
   eligible,
   thresholdMinutes = 15,
+  visitStartAt,
+  nowFn: nowFnProp,
+  serverTimeDeltaMs = 0,
 }: UseUpcomingIndicatorParams): boolean {
+  const effectiveNowFn = useCallback(
+    (): number => (nowFnProp ? nowFnProp() : Date.now()) + serverTimeDeltaMs,
+    [nowFnProp, serverTimeDeltaMs]
+  );
+
+  // ISO-only: use visitStartAt exclusively. If absent or invalid, return null so
+  // the upcoming indicator is hidden. Never fall back to device-local date parsing.
+  const resolveStartDate = useCallback((): Date | null => {
+    if (!visitStartAt) return null;
+    return parseVisitStartAt(visitStartAt);
+  }, [visitStartAt]);
+
   const calculate = useCallback((): boolean => {
     if (!eligible) return false;
-    return isUpcomingVisit(visitDate, visitTime, thresholdMinutes);
-  }, [eligible, visitDate, visitTime, thresholdMinutes]);
+    const startDate = resolveStartDate();
+    if (!startDate) return false;
+    const remainingMs = startDate.getTime() - effectiveNowFn();
+    const thresholdMs = thresholdMinutes * 60 * 1000;
+    return remainingMs > 0 && remainingMs <= thresholdMs;
+  }, [eligible, resolveStartDate, thresholdMinutes, effectiveNowFn]);
 
   const [isUpcoming, setIsUpcoming] = useState<boolean>(() => calculate());
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -121,10 +144,10 @@ export function useUpcomingIndicator({
     }
     if (!eligible) return;
 
-    const startDate = parseVisitDateTime(visitDate, visitTime);
+    const startDate = resolveStartDate();
     if (!startDate) return;
 
-    const now = Date.now();
+    const now = effectiveNowFn();
     const startMs = startDate.getTime();
     const thresholdMs = thresholdMinutes * 60 * 1000;
     const windowOpenMs = startMs - thresholdMs;
@@ -147,7 +170,7 @@ export function useUpcomingIndicator({
       setIsUpcoming(calculate());
       scheduleNextCheck();
     }, cappedMs);
-  }, [eligible, visitDate, visitTime, thresholdMinutes, calculate]);
+  }, [eligible, resolveStartDate, thresholdMinutes, effectiveNowFn, calculate]);
 
   useEffect(() => {
     mountedRef.current = true;

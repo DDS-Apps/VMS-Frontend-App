@@ -23,6 +23,8 @@ import {
 import type { ValetService, ValetDriver } from '@/types/vms.types';
 import { useAuth } from '@/contexts/AuthContext';
 import { applyOpacity } from '@/utils/statusStyles';
+import { resolveParkingDisplayDecision } from '@/utils/parkingDecision';
+import { getInitials } from '@/utils/formatters';
 
 interface ValetTaskDetailScreenProps {
   taskId: string;
@@ -94,7 +96,7 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
   );
 
   const statusColor = currentStatusOption?.color || theme.textSecondary;
-  const initials = task.visitorName.split(' ').map(n => n[0]).join('');
+  const initials = getInitials(task.visitorName);
 
   return (
     <ScreenScrollView contentContainerStyle={{ 
@@ -105,7 +107,12 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
       <ThemedView style={[styles.cardNew, { backgroundColor: theme.surface }]}>
         <View style={{ alignItems: 'center' }}>
           <View style={[styles.avatarNew, { backgroundColor: applyOpacity(theme.primary, '15') }]}>
-            <ThemedText style={[styles.avatarText, { color: theme.primary }]}>
+            <ThemedText
+              style={[styles.avatarText, { color: theme.primary }]}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.5}
+            >
               {initials}
             </ThemedText>
           </View>
@@ -209,27 +216,22 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
           </View>
         </DirectionalRow>
 
-        {task.vehicleInfo ? (
-          <>
-            <Spacer height={Spacing.lg} />
-            <DirectionalRow style={styles.serviceRowNew}>
-              <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.info, '15') }]}>
-                <DDIcon name="truck" size={18} color={theme.info} />
-              </View>
-              <View style={{ flex: 1, marginStart: Spacing.md }}>
-                <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
-                  {t('valet.vehiclePlate')}
-                </ThemedText>
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
-                  {task.vehicleInfo.color} {task.vehicleInfo.make} {task.vehicleInfo.model}
-                </ThemedText>
-                <ThemedText style={[Typography.caption, { color: theme.info, marginTop: 2, fontSize: 12, fontWeight: '500' }]}>
-                  {task.vehicleInfo.plateNumber}
-                </ThemedText>
-              </View>
-            </DirectionalRow>
-          </>
-        ) : null}
+        <Spacer height={Spacing.lg} />
+        <DirectionalRow style={styles.serviceRowNew}>
+          <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.info, '15') }]}>
+            <DDIcon name="map-pin" size={18} color={theme.info} />
+          </View>
+          <View style={{ flex: 1, marginStart: Spacing.md }}>
+            <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
+              {t('parking.todaysParkingStatus')}
+            </ThemedText>
+            <ThemedText style={[Typography.caption, { color: theme.info, marginTop: 2, fontSize: 13 }]}>
+              {resolveParkingDisplayDecision({
+                hasParkingAllocation: Boolean(task.vehicleInfo),
+              }) === 'required' ? t('parking.needsParking') : t('parking.noParking')}
+            </ThemedText>
+          </View>
+        </DirectionalRow>
       </ThemedView>
 
       {task.notes ? (
@@ -344,42 +346,14 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
           ) : null}
         </DirectionalRow>
 
-        {task.valet.driver ? (
-          <DirectionalRow style={styles.serviceRowNew}>
-            <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.success, '15') }]}>
-              <DDIcon name="truck" size={18} color={theme.success} />
-            </View>
-            <View style={{ flex: 1, marginStart: Spacing.md }}>
-              <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
-                {task.valet.driver.name}
-              </ThemedText>
-              <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
-                {task.valet.driver.phone}
-              </ThemedText>
-              <DirectionalRow style={{ alignItems: 'center', marginTop: 4 }}>
-                <View
-                  style={[
-                    styles.statusDot,
-                    {
-                      backgroundColor:
-                        task.valet.driver.status === 'available' ? theme.success : theme.warning,
-                    },
-                  ]}
-                />
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, fontSize: 12 }]}>
-                  {task.valet.driver.status === 'available' ? t('status.available') : t('status.occupied')} - {task.valet.driver.currentTasks} {t('valet.assignedTasks').toLowerCase()}
-                </ThemedText>
-              </DirectionalRow>
-            </View>
-          </DirectionalRow>
-        ) : isReadOnlyRole ? (
+        {!task.valet.driver && isReadOnlyRole ? (
           <View style={styles.noDriverState}>
             <DDIcon name="user-x" size={24} variant="muted" />
             <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: Spacing.sm }]}>
               {t('common.noData')}
             </ThemedText>
           </View>
-        ) : (
+        ) : !task.valet.driver ? (
           <Pressable
             onPress={() => setShowDriverPicker(true)}
             style={({ pressed }) => [
@@ -397,7 +371,7 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
               {t('actions.assignDriver')}
             </ThemedText>
           </Pressable>
-        )}
+        ) : null}
       </ThemedView>
 
       <Modal
@@ -433,16 +407,6 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
                       <ThemedText style={[Typography.body, { fontWeight: '600' }]}>
                         {driver.name}
                       </ThemedText>
-                      <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
-                        {driver.phone}
-                      </ThemedText>
-                      <Spacer height={Spacing.xs} />
-                      <DirectionalRow style={{ alignItems: 'center' }}>
-                        <View style={[styles.statusDot, { backgroundColor: theme.success }]} />
-                        <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
-                          {t('status.available')} - {driver.currentTasks} {t('valet.assignedTasks').toLowerCase()}
-                        </ThemedText>
-                      </DirectionalRow>
                     </View>
                     <DDIcon name="chevron-right" size={20} variant="muted" directionAware />
                   </Pressable>

@@ -1,0 +1,25 @@
+- [Replit lock file internal URLs](replit-lockfile-urls.md) — lock files generated inside Replit contain package-firewall.replit.local URLs that break external CI (EAS Build, GitHub Actions, etc.)
+- [Date-only visit dates](date-only-visit-dates.md) — treat API YYYY-MM-DD values as calendar dates; never render them through an unfixed device timezone.
+- [Grouped responsive visitor grids](grouped-responsive-visitor-grids.md) — group card grids with a FlatList of date sections; this project’s SectionList lacks responsive column support.
+- [Dashboard visitor KPI scope](dashboard-visitor-kpi-scope.md) — Employee/Manager totals use the current user’s visits; Receptionist totals use building-wide visits.
+- [Receptionist Today scope](receptionist-today-scope.md) — Today KPIs and sections include every active request scheduled for the Riyadh business date, even before host approval.
+- [Approval-history date filters](approval-history-date-filters.md) — send inclusive calendar-date ranges to the API and keep retained results scoped to the active date range.
+- [Visitor matrix table variant](visitor-matrix-table-variant.md) — VisitorMatrixTable has an opt-in `variant="matrix"` prop for a single-header spreadsheet look; roll out per screen by passing the prop.
+- [Vehicle and parking display privacy](vehicle-parking-display-privacy.md) — never expose vehicle or allocation details; user-facing parking state is only Required or Not Required.
+- [Expo notification response lifecycle](expo-notification-response-lifecycle.md) — cold-launch responses must wait for navigation readiness and be cleared only after successful routing.
+- [React Query parameter transitions](react-query-parameter-transitions.md) — placeholder data bridges pending states only; explicitly retain data when new-key failures must not blank a screen.
+- [Infinite-query error boundaries](infinite-query-error-boundaries.md) — page failures stay at the footer and pause automatic loading; primary refreshes must not race next-page fetches.
+- [Async form save revisions](async-form-save-revisions.md) — a completed save must not mark newer in-flight edits clean; clear dirty state only when the submitted revision is still current.
+- [React Query overlapping mutations](react-query-overlapping-mutations.md) — use per-invocation promises or variable-keyed settled callbacks; repeated mutate callbacks can skip earlier cleanup.
+- [Derived expiration scope](derived-expiration-scope.md) — keep expiration eligibility, display overrides, boundary refresh, and mutation guards aligned without changing non-target workflows.
+- [Request ordering scope](request-ordering-scope.md) — My Requests and Manager All Requests use backend-default newest-created-first ordering without sort parameters.
+- [Metro source duplication](metro-source-duplication.md) — duplicate declaration errors can be repeated whole modules; restore one canonical copy and export web.
+- [Apple build authentication](apple-build-auth.md) — missing iTunes service keys can be public configuration failures; verify upstream before changing account credentials.
+- [Startup session restore](startup-session-restore.md) — cached profile renders first; only a definitive 4xx refresh rejection signs out; logout/login epoch invalidates in-flight refreshes.
+- [Web fonts runtime injection](web-fonts-runtime-injection.md) — web uses injected @font-face under expo-font key names with swap; keep per-weight families, no useFonts on web.
+- [Static server precompression](static-server-precompression.md) — build-time .br/.gz variants, immutable only for hashed paths, q-value aware Accept-Encoding.
+- [Dashboard focus refetch](dashboard-focus-refetch.md) — shared refocus hook skips the first focus and joins in-flight fetches; Upcoming Visits queries start at today.
+- [React Query fake-timer tests](react-query-fake-timer-tests.md) — advance timers in one act, flush with a second `advanceTimersByTimeAsync(0)` act; fresh QueryClient per test.
+- [Debounced pre-submit checks](debounced-presubmit-checks.md) — debounce gap counts as in-flight for the submit guard; gates must be no stricter than form validators.
+- [Expo .env.production auto-load](expo-env-file-autoload.md) — resolve variants explicitly in app.config.js; production ignores QA process env; runtime prefers Constants.extra; never grep -v minified bundles.
+- [.well-known and add-in static serving](static-server-dotfiles-wellknown.md) — express.static hides dot-dirs by default; AASA must be JSON; no X-Frame-Options under /outlook-addin/.

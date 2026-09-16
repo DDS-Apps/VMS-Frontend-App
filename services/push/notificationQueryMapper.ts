@@ -121,6 +121,13 @@ const NOTIFICATION_QUERY_MAP: Record<NotificationType, QueryKeyFactory[]> = {
     () => valetSelfServiceKeys.all,
     () => allRequestsKeys.all,
   ],
+
+  [NOTIFICATION_TYPES.VALET_NEW_REQUEST]: [
+    () => valetKeys.all,
+    () => valetAdminKeys.all,
+    () => valetSelfServiceKeys.all,
+    () => allRequestsKeys.all,
+  ],
   
   [NOTIFICATION_TYPES.SECURITY_ALERT]: [
     () => securityKeys.all,
@@ -159,6 +166,8 @@ const NOTIFICATION_QUERY_MAP: Record<NotificationType, QueryKeyFactory[]> = {
     () => requestKeys.all,
     () => receptionKeys.all,
     () => buffetKeys.all,
+    () => valetKeys.all,
+    () => valetAdminKeys.all,
     () => allRequestsKeys.all,
   ],
 };

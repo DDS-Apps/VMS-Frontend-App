@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScreenScrollView } from '@/components/ScreenScrollView';
 import { DDIcon } from '@/components/DDIcon';
 import { LoadingButton } from '@/components/shared/LoadingButton';
-import { RTLHorizontalScrollView } from '@/components/shared';
+import { RTLHorizontalScrollView, StatusIcon } from '@/components/shared';
 import { ThemedText } from '@/components/ThemedText';
 import Spacer from '@/components/Spacer';
 import { Spacing, BorderRadius, Typography, getInputFontFamily } from '@/constants/theme';
@@ -151,27 +151,7 @@ export default function BuffetSettingsScreen() {
                     {location.building} • {location.floor}
                   </ThemedText>
                 </View>
-                <View
-                  style={[
-                    styles.statusBadge,
-                    {
-                      backgroundColor: location.status === 'active' ? theme.success + '20' : theme.textSecondary + '20',
-                    },
-                  ]}
-                >
-                  <ThemedText
-                    style={[
-                      Typography.caption,
-                      {
-                        color: location.status === 'active' ? theme.success : theme.textSecondary,
-                        fontWeight: '600',
-                        textTransform: 'uppercase',
-                      },
-                    ]}
-                  >
-                    {location.status === 'active' ? t('status.active') : t('status.inactive')}
-                  </ThemedText>
-                </View>
+                <StatusIcon icon={location.status === 'active' ? 'check-circle' : 'x-circle'} color={location.status === 'active' ? theme.success : theme.textSecondary} />
               </DirectionalRow>
 
               <View style={styles.cardContent}>

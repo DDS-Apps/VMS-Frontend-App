@@ -11,6 +11,7 @@ import {
   Animated,
   ScrollView,
   KeyboardAvoidingView,
+  ActivityIndicator,
 } from "react-native";
 import { CommonActions } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -33,13 +34,22 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { useCreateVisitMutation } from "@/hooks/queries/useApprovalQueries";
+import { useCreateVisitMutation, useDuplicateCheckQuery } from "@/hooks/queries/useApprovalQueries";
+import { useToast } from "@/contexts/ToastContext";
 import { useRoomAvailabilityQuery } from "@/hooks/queries/useMeetingRoomQueries";
 import { useRegisterWalkInMutation } from "@/hooks/queries/useReceptionQueries";
 import { useUsersQuery } from "@/hooks/queries/useUserQueries";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import {
+  DUPLICATE_CHECK_DEBOUNCE_MS,
+  buildDuplicateCheckParams,
+  isDuplicateCheckPending,
+} from "@/utils/duplicateCheckParams";
 import type {
+  ParkingDecision,
   CreateVisitPayload,
   RoomAvailabilityParams,
+  RoomAvailabilityRoomDto,
   UserDto,
 } from "@/types/api.types";
 import type {
@@ -49,12 +59,18 @@ import type {
 import { applyOpacity, createModalOverlayStyle } from "@/utils/statusStyles";
 import { CalendarDatePicker } from "@/components/CalendarDatePicker";
 import { TimePicker } from "@/components/TimePicker";
-import { normalizePhoneNumber } from "@/utils/formatters";
+import { normalizePhoneNumber, getInitials } from "@/utils/formatters";
 import { PhoneInputWithCountry } from "@/components/PhoneInputWithCountry";
 import type { VisitorRequestFormScreenProps } from "@/types/employeeNavigation.types";
-import { calculateServerDuration } from "@/utils/dateTimeUtils";
+import { calculateServerDuration, getBusinessDateKey, getServerDateParts } from "@/utils/dateTimeUtils";
 import { useServerDateTime } from "@/hooks/useServerDateTime";
 import { PURPOSE_OPTIONS, PURPOSE_VALUE_TO_KEY, normalizePurposeValue } from "@/constants/requestConstants";
+import {
+  computeHasCheckedAvailability,
+  isSubmitDisabledByLoading,
+  isEmployeeListStillLoading,
+  isRoomAvailabilityStillLoading,
+} from "@/utils/formLoadingGuards";
 
 const MONTHS = [
   "January",
@@ -106,15 +122,25 @@ export default function VisitorRequestFormScreen({
     formatTimeForDisplay,
     getNowForPicker,
   } = useServerDateTime();
+  const { showError } = useToast();
   const createVisitMutation = useCreateVisitMutation();
   const walkInMutation = useRegisterWalkInMutation();
+  const [debouncedEmployeeSearch, setDebouncedEmployeeSearch] = useState("");
   const { data: usersData, isLoading: isLoadingUsers } = useUsersQuery(
-    { page: 1, limit: 100 },
+    debouncedEmployeeSearch.trim().length > 0
+      ? { page: 1, limit: 100, search: debouncedEmployeeSearch.trim() }
+      : { page: 1, limit: 100 },
     isWalkIn === true,
   );
-  const visitType = route?.params?.visitType || t("visitor.generalVisit");
-  const visitTypeId = (route?.params as any)?.visitTypeId as string | undefined;
-  const initialPurposeValue = visitTypeId ? (normalizePurposeValue(visitTypeId) || visitTypeId) : 'general';
+  const visitTypeId =
+    ((route?.params as any)?.visitTypeId as string | undefined) ||
+    ((route?.params as any)?.visitType as string | undefined);
+  const initialPurposeValue = visitTypeId ? (normalizePurposeValue(visitTypeId) || visitTypeId) : '';
+
+  // Pre-fill from deep link / Outlook add-in URL params (mobile nav params)
+  const prefill = (route?.params as any)?.prefill as {
+    name?: string; email?: string; company?: string; phone?: string;
+  } | undefined;
 
   const FOOTER_HEIGHT = 100;
   const scrollContentStyle = {
@@ -122,10 +148,10 @@ export default function VisitorRequestFormScreen({
     paddingBottom: FOOTER_HEIGHT + Spacing.xl,
   };
 
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [company, setCompany] = useState("");
+  const [fullName, setFullName] = useState(prefill?.name ?? "");
+  const [email, setEmail] = useState(prefill?.email ?? "");
+  const [phone, setPhone] = useState(prefill?.phone ?? "");
+  const [company, setCompany] = useState(prefill?.company ?? "");
   const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
   const [selectedTime, setSelectedTime] = useState<Date>(() => new Date());
   const [selectedEndTime, setSelectedEndTime] = useState<Date>(() => {
@@ -136,13 +162,15 @@ export default function VisitorRequestFormScreen({
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [showEndTimePicker, setShowEndTimePicker] = useState(false);
   const [purposeValue, setPurposeValue] = useState(initialPurposeValue);
-  const [purposeLabel, setPurposeLabel] = useState(visitType);
 
   const [needsMeetingRoom, setNeedsMeetingRoom] = useState(false);
   const [needsBuffet, setNeedsBuffet] = useState(false);
+  const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
+  const [parkingDecision, setParkingDecision] = useState<ParkingDecision>('not_required');
 
-  const [sendWhatsApp, setSendWhatsApp] = useState(false);
-  const [sendSMS, setSendSMS] = useState(false);
+  const [sendWhatsApp, setSendWhatsApp] = useState(true);
+  const [sendSMS, setSendSMS] = useState(true);
+  const [sendEmail, setSendEmail] = useState(true);
 
   const [hostEmployee, setHostEmployee] = useState("");
   const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
@@ -162,6 +190,30 @@ export default function VisitorRequestFormScreen({
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
 
+  // Web: read pre-fill params directly from the URL on first mount
+  // (covers the case where the user lands on /requests/new?name=… before auth)
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const n = params.get('name');
+      const e = params.get('email');
+      const c = params.get('company');
+      const ph = params.get('phone');
+      if (n || e || c || ph) {
+        if (n) setFullName(n);
+        if (e) setEmail(e);
+        if (c) setCompany(c);
+        if (ph) setPhone(ph);
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+    } catch {
+      // non-critical
+    }
+  // Run once on mount only
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const formatDateForApiLocal = (date: Date): string => {
     return formatDateForApi(date);
   };
@@ -179,12 +231,70 @@ export default function VisitorRequestFormScreen({
         }
       : null;
 
-  const { data: roomAvailability, isLoading: isLoadingRooms } =
-    useRoomAvailabilityQuery(roomAvailabilityParams);
+  const {
+    data: roomAvailability,
+    isLoading: isLoadingRooms,
+    isFetching: isFetchingRooms,
+    isError: isRoomsError,
+  } = useRoomAvailabilityQuery(roomAvailabilityParams);
 
+  // The duplicate check waits for the guest's email/phone to settle and to look
+  // complete, so typing an address fires one request instead of one per key.
+  const debouncedEmail = useDebouncedValue(email, DUPLICATE_CHECK_DEBOUNCE_MS);
+  const debouncedPhone = useDebouncedValue(phone, DUPLICATE_CHECK_DEBOUNCE_MS);
+  const duplicateCheckDate = selectedDate ? formatDateForApiLocal(selectedDate) : undefined;
+  const duplicateCheckParams = buildDuplicateCheckParams({
+    isWalkIn: isWalkIn === true,
+    date: duplicateCheckDate,
+    email: debouncedEmail,
+    phone: debouncedPhone,
+  });
+  // While the latest keystrokes have not reached the query yet, a check is
+  // still owed: treat it as in flight so Submit keeps waiting for it.
+  const isDuplicateCheckDebouncing = isDuplicateCheckPending(
+    buildDuplicateCheckParams({
+      isWalkIn: isWalkIn === true,
+      date: duplicateCheckDate,
+      email,
+      phone,
+    }),
+    duplicateCheckParams,
+  );
+
+  const {
+    data: duplicateCheckData,
+    isLoading: isDuplicateCheckLoading,
+    isFetching: isDuplicateCheckFetching,
+  } = useDuplicateCheckQuery(duplicateCheckParams, !isWalkIn);
+  const isCheckingDuplicate =
+    isDuplicateCheckDebouncing || isDuplicateCheckLoading || isDuplicateCheckFetching;
+
+  const availableRooms: RoomAvailabilityRoomDto[] = roomAvailability?.rooms ?? [];
   const isRoomAvailable = roomAvailability?.available === true;
-  const hasCheckedAvailability =
-    roomAvailability !== undefined && !isLoadingRooms;
+  const hasCheckedAvailability = computeHasCheckedAvailability(
+    roomAvailability,
+    isRoomsError,
+    isLoadingRooms,
+    isFetchingRooms,
+  );
+
+  useEffect(() => {
+    setSelectedRoomId(null);
+  }, [roomAvailabilityParams?.date, roomAvailabilityParams?.startTime, roomAvailabilityParams?.endTime]);
+
+  useEffect(() => {
+    if (idNumber) {
+      let filtered = idNumber;
+      if (idType === 'national_id' || idType === 'iqama' || idType === 'driver_license') {
+        filtered = idNumber.replace(/\D/g, '').slice(0, 10);
+      } else if (idType === 'passport') {
+        filtered = idNumber.replace(/[^a-zA-Z0-9]/g, '').slice(0, 12);
+      }
+      if (filtered !== idNumber) {
+        setIdNumber(filtered);
+      }
+    }
+  }, [idType]);
 
   useEffect(() => {
     if (showSuccessModal) {
@@ -234,6 +344,13 @@ export default function VisitorRequestFormScreen({
     });
   };
 
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      setDebouncedEmployeeSearch(employeeSearchQuery);
+    }, 350);
+    return () => clearTimeout(handle);
+  }, [employeeSearchQuery]);
+
   const employees = usersData?.data || [];
   const filteredEmployees = employees.filter((employee) => {
     const searchLower = employeeSearchQuery.toLowerCase();
@@ -250,6 +367,7 @@ export default function VisitorRequestFormScreen({
     setSelectedEmployeeId(employee.id);
     setShowEmployeePicker(false);
     setEmployeeSearchQuery("");
+    setDebouncedEmployeeSearch("");
     if (errors.hostEmployee) {
       setErrors({ ...errors, hostEmployee: "" });
     }
@@ -258,6 +376,7 @@ export default function VisitorRequestFormScreen({
   const handleCloseEmployeePicker = () => {
     setShowEmployeePicker(false);
     setEmployeeSearchQuery("");
+    setDebouncedEmployeeSearch("");
   };
 
   const validateEmail = (email: string) => {
@@ -376,11 +495,12 @@ export default function VisitorRequestFormScreen({
     }
   };
 
-  const isTimeInPast = (date: Date, time: Date): boolean => {
-    const now = new Date();
-    const selectedDateTime = new Date(date);
-    selectedDateTime.setHours(time.getHours(), time.getMinutes(), 0, 0);
-    return selectedDateTime < now;
+  const isTimeInPast = (_date: Date, time: Date): boolean => {
+    // Treat the picked h:mm as a Riyadh wall-clock time and compare it
+    // against the current Riyadh hour:minute — never device-local clock.
+    const pickedMins = time.getHours() * 60 + time.getMinutes();
+    const { hours: rh, minutes: rm } = getServerDateParts(new Date(), 'Asia/Riyadh');
+    return pickedMins < rh * 60 + rm;
   };
 
   const isEndTimeBeforeStartTime = (): boolean => {
@@ -401,9 +521,7 @@ export default function VisitorRequestFormScreen({
       newErrors.fullName = t("errors.fullNameRequired");
     }
 
-    if (!email.trim()) {
-      newErrors.email = t("form.fieldRequired");
-    } else if (!validateEmail(email)) {
+    if (email.trim() && !validateEmail(email)) {
       newErrors.email = t("errors.invalidEmail");
     }
 
@@ -413,28 +531,63 @@ export default function VisitorRequestFormScreen({
       newErrors.phone = t("errors.invalidPhone");
     }
 
-    if ((asReceptionist || isWalkIn) && !hostEmployee.trim()) {
+    if (!isWalkIn && isCheckingDuplicate) {
+      // Duplicate check still in flight — button is disabled but guard here too
+      // so a programmatic submit cannot bypass the loading state.
+      newErrors.duplicateCheck = t("errors.duplicateCheckLoading");
+    }
+
+    if (isEmployeeListStillLoading(isWalkIn === true, isLoadingUsers)) {
+      // Employee list is still loading — button is disabled but guard here too
+      // so a programmatic submit cannot bypass the loading state.
+      newErrors.hostEmployee = t("errors.hostEmployeeLoading");
+    } else if ((asReceptionist || isWalkIn) && !hostEmployee.trim()) {
       newErrors.hostEmployee = t("form.fieldRequired");
     }
 
-    // Walk-in requires ID number
-    if (isWalkIn && !idNumber.trim()) {
-      newErrors.idNumber = t("form.fieldRequired");
+    if (!purposeValue) {
+      newErrors.purpose = t("form.fieldRequired");
+    }
+
+    // Walk-in requires ID number with type-specific validation
+    if (isWalkIn) {
+      const trimmedId = idNumber.trim();
+      if (!trimmedId) {
+        newErrors.idNumber = t("form.fieldRequired");
+      } else {
+        switch (idType) {
+          case 'national_id':
+          case 'driver_license':
+            if (!/^\d{10}$/.test(trimmedId)) {
+              newErrors.idNumber = t("errors.invalidNationalId");
+            }
+            break;
+          case 'iqama':
+            if (!/^\d{1,10}$/.test(trimmedId)) {
+              newErrors.idNumber = t("errors.invalidIqama");
+            }
+            break;
+          case 'passport':
+            if (!/^[a-zA-Z0-9]{6,12}$/.test(trimmedId)) {
+              newErrors.idNumber = t("errors.invalidPassport");
+            }
+            break;
+        }
+      }
     }
 
     // Skip date/time validation for walk-in registrations
     if (!isWalkIn) {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const selectedDateOnly = new Date(selectedDate);
-      selectedDateOnly.setHours(0, 0, 0, 0);
+      // Compare against the Riyadh business date — not the device-local clock.
+      const todayRiyadh = getBusinessDateKey(new Date(), 'Asia/Riyadh');
+      const selectedRiyadh = getBusinessDateKey(selectedDate, 'Asia/Riyadh');
 
-      if (selectedDateOnly < today) {
+      if (selectedRiyadh < todayRiyadh) {
         newErrors.visitDate = t("errors.pastDateNotAllowed");
       }
 
       if (
-        selectedDateOnly.getTime() === today.getTime() &&
+        selectedRiyadh === todayRiyadh &&
         isTimeInPast(selectedDate, selectedTime)
       ) {
         newErrors.visitTime = t("errors.pastTimeNotAllowed");
@@ -444,8 +597,21 @@ export default function VisitorRequestFormScreen({
         newErrors.endTime = t("errors.endTimeBeforeStartTime");
       }
 
-      if (needsMeetingRoom && hasCheckedAvailability && !isRoomAvailable) {
-        newErrors.roomAvailability = t("errors.noRoomsAvailable");
+      if (isRoomAvailabilityStillLoading({
+        isWalkIn: false, // already inside if (!isWalkIn)
+        needsMeetingRoom,
+        roomAvailabilityParamsFired: roomAvailabilityParams !== null,
+        hasCheckedAvailability,
+      })) {
+        // Rooms are still loading — button is disabled but guard here too so
+        // a programmatic submit cannot bypass the loading state.
+        newErrors.roomAvailability = t("errors.meetingRoomLoading");
+      } else if (needsMeetingRoom && hasCheckedAvailability) {
+        if (!isRoomAvailable || availableRooms.length === 0) {
+          newErrors.roomAvailability = t("errors.noRoomsAvailable");
+        } else if (!selectedRoomId) {
+          newErrors.roomAvailability = t("errors.meetingRoomRequired");
+        }
       }
     }
 
@@ -472,17 +638,80 @@ export default function VisitorRequestFormScreen({
     setIsSubmitting(true);
 
     try {
+      // Duplicate invitation prevention (skip for walk-ins)
+      if (!isWalkIn && duplicateCheckData) {
+        const activeStatuses = ['pending', 'pending_approval', 'approved', 'visitor_accepted', 'expected', 'checked_in'];
+
+        // Convert "HH:MM" or "HH:MM:SS" to minutes since midnight
+        const toMinutes = (t: string): number => {
+          const parts = t.split(':').map(Number);
+          return (parts[0] ?? 0) * 60 + (parts[1] ?? 0);
+        };
+
+        const newStart = toMinutes(formatTimeForQuery(selectedTime));
+        const newEnd = toMinutes(formatTimeForQuery(selectedEndTime));
+
+        const timesOverlap = (existingStart: string, existingEnd?: string | null): boolean => {
+          const eStart = toMinutes(existingStart);
+          // If backend doesn't return endTime yet, fall back to eStart + 60 min
+          const eEnd = existingEnd ? toMinutes(existingEnd) : eStart + 60;
+          return eStart < newEnd && newStart < eEnd;
+        };
+
+        const matchingVisits = duplicateCheckData.data.filter((visit) =>
+          activeStatuses.includes(visit.status) &&
+          timesOverlap(visit.visitTime, visit.endTime)
+        );
+
+        if (matchingVisits.length > 0) {
+          const sameEmployeeVisits = matchingVisits.filter(
+            (v) => Boolean(user?.name) && v.employeeName === user?.name
+          );
+
+          if (sameEmployeeVisits.length > 0) {
+            // Rule 1: Same employee + same guest + same day
+            setIsSubmitting(false);
+            Alert.alert(
+              t("errors.duplicateInviteTitle"),
+              t("errors.duplicateInviteSameEmployee"),
+              [
+                { text: t("common.cancel"), style: "cancel" },
+                {
+                  text: t("common.edit"),
+                  onPress: () => {
+                    const existingVisit = sameEmployeeVisits[0];
+                    navigation.navigate("RequestDetails", {
+                      requestId: existingVisit.id,
+                    });
+                  },
+                },
+              ]
+            );
+            return;
+          }
+
+          // Rule 2: Different employee + same guest + same day
+          setIsSubmitting(false);
+          Alert.alert(
+            t("errors.duplicateInviteTitle"),
+            t("errors.duplicateInviteDifferentEmployee"),
+            [{ text: t("common.ok") }]
+          );
+          return;
+        }
+      }
+
       // Handle walk-in registration
       if (isWalkIn) {
         const walkInPayload: WalkInRegistrationDto = {
           visitorName: fullName.trim(),
-          visitorEmail: email.trim(),
+          visitorEmail: email.trim() || undefined,
           visitorCompany: company.trim() || undefined,
           visitorPhone: phone.trim() || undefined,
           hostId: selectedEmployeeId,
           hostName: hostEmployee,
-          visitType: purposeValue || 'general',
-          purpose: purposeValue || 'general',
+          visitType: purposeValue,
+          purpose: purposeValue,
           idType: idType,
           idNumber: idNumber.trim(),
         };
@@ -508,13 +737,14 @@ export default function VisitorRequestFormScreen({
         return;
       }
 
-      // Handle regular visit request - always include email and qr_code
+      // Handle regular visit request - include email channel only when an address is provided
       const communicationChannels: (
         | "email"
         | "sms"
         | "whatsapp"
         | "qr_code"
-      )[] = ["email", "qr_code"];
+      )[] = ["qr_code"];
+      if (sendEmail && email.trim()) communicationChannels.push("email");
       if (sendSMS) communicationChannels.push("sms");
       if (sendWhatsApp) communicationChannels.push("whatsapp");
 
@@ -531,7 +761,7 @@ export default function VisitorRequestFormScreen({
       const payload: CreateVisitPayload = {
         visitor: {
           fullName: fullName.trim(),
-          email: email.trim(),
+          email: email.trim() || undefined,
           phone: normalizePhoneNumber(phone),
           company: company.trim() || undefined,
         },
@@ -539,10 +769,12 @@ export default function VisitorRequestFormScreen({
         visitTime: formatTimeForApi(selectedTime),
         endTime: formatTimeForApi(selectedEndTime),
         duration: duration,
-        purpose: purposeValue || 'general',
+        purpose: purposeValue,
         communicationChannels,
         needsMeetingRoom: asReceptionist ? false : needsMeetingRoom,
+        meetingRoomId: (!asReceptionist && needsMeetingRoom && selectedRoomId) ? selectedRoomId : undefined,
         needsBuffet: asReceptionist ? false : needsBuffet,
+        parkingDecision: asReceptionist ? undefined : parkingDecision,
       };
 
       console.log(
@@ -557,7 +789,12 @@ export default function VisitorRequestFormScreen({
         result,
       );
 
-      const message = asManager
+      // Use the API response to decide the message — the backend is the
+      // source of truth for whether the visit was actually auto-approved.
+      // Do NOT use `asManager` here: a manager-role user can still have
+      // requests that require approval from a senior manager.
+      const isAutoApproved = result.approval?.autoApproved === true;
+      const message = isAutoApproved
         ? t("notifications.requestAutoApproved").replace("{name}", fullName)
         : t("notifications.requestSubmitted").replace("{name}", fullName);
 
@@ -588,7 +825,49 @@ export default function VisitorRequestFormScreen({
         errorMessage =
           t("errors.serverError") || "Server error. Please try again later.";
       } else if (error?.code === "VALIDATION_ERROR") {
+        // Map API field-level errors (errors array) to inline form state
+        const apiFieldErrors: Array<{ field: string; message: string }> | undefined =
+          (error as any)?.details?.errors;
+
+        if (Array.isArray(apiFieldErrors) && apiFieldErrors.length > 0) {
+          const API_TO_STATE: Record<string, string> = {
+            'visitor.fullName': 'fullName',
+            'visitor.email': 'email',
+            'visitor.phone': 'phone',
+            'visitor.company': 'company',
+            'visitDate': 'visitDate',
+            'visitTime': 'visitTime',
+            'endTime': 'endTime',
+            'purpose': 'purpose',
+            'communicationChannels': 'communicationChannels',
+            'parkingDecision': 'parkingDecision',
+            'meetingRoomId': 'roomAvailability',
+            'buffetPreferences.mealType': 'mealType',
+            'buffetPreferences.guestCount': 'guestCount',
+          };
+
+          const stateErrors: { [key: string]: string } = {};
+          for (const { field, message } of apiFieldErrors) {
+            const stateKey = API_TO_STATE[field] ?? field;
+            stateErrors[stateKey] = message;
+          }
+          setErrors((prev) => ({ ...prev, ...stateErrors }));
+          showError(t("errors.fixHighlightedFields") || "Please fix the highlighted fields");
+          setIsSubmitting(false);
+          return;
+        }
+
+        // No field errors array — business-logic rejection; show the top-level message
         errorMessage = error?.message || t("errors.validationError");
+      } else if (
+        error?.status === 409 ||
+        error?.status === 422 ||
+        (error?.message &&
+          (error.message.toLowerCase().includes("room") ||
+            error.message.toLowerCase().includes("no longer available")))
+      ) {
+        errorMessage = t("errors.meetingRoomConflict");
+        setSelectedRoomId(null);
       } else if (error?.message) {
         errorMessage = error.message;
       }
@@ -605,33 +884,6 @@ export default function VisitorRequestFormScreen({
   return (
     <>
       <ScreenKeyboardAwareScrollView contentContainerStyle={scrollContentStyle}>
-        {visitType && visitType !== t("visitor.generalVisit") && (
-          <>
-            <ThemedView
-              style={[
-                styles.visitTypeBanner,
-                {
-                  backgroundColor: applyOpacity(theme.primary, "15"),
-                  borderStartColor: theme.primary,
-                  borderStartWidth: 4,
-                },
-              ]}
-            >
-              <DirectionalRow style={{ alignItems: "center", gap: Spacing.sm }}>
-                <DDIcon name="info" size={18} variant="primary" />
-                <ThemedText
-                  style={[
-                    Typography.body,
-                    { fontWeight: "600", color: theme.primary },
-                  ]}
-                >
-                  {t("visitor.typeOfVisit")}: {visitType}
-                </ThemedText>
-              </DirectionalRow>
-            </ThemedView>
-            <Spacer height={Spacing.lg} />
-          </>
-        )}
 
         <ThemedView
           style={[styles.section, { backgroundColor: theme.surface }]}
@@ -704,7 +956,7 @@ export default function VisitorRequestFormScreen({
               },
             ]}
           >
-            {t("form.email").toUpperCase()} *
+            {t("form.email").toUpperCase()}
           </ThemedText>
           <Spacer height={Spacing.xs} />
           <TextInput
@@ -790,8 +1042,19 @@ export default function VisitorRequestFormScreen({
             placeholderTextColor={theme.textSecondary}
             value={company}
             scrollEnabled={false}
-            onChangeText={setCompany}
+            onChangeText={(text) => {
+              setCompany(text);
+              if (errors.company) setErrors({ ...errors, company: "" });
+            }}
           />
+          {errors.company ? (
+            <>
+              <Spacer height={Spacing.xs} />
+              <ThemedText style={[Typography.caption, { color: theme.error }]}>
+                {errors.company}
+              </ThemedText>
+            </>
+          ) : null}
 
           {asReceptionist || isWalkIn ? (
             <>
@@ -934,12 +1197,19 @@ export default function VisitorRequestFormScreen({
                 value={idNumber}
                 scrollEnabled={false}
                 onChangeText={(text) => {
-                  setIdNumber(text);
+                  let filtered = text;
+                  if (idType === 'national_id' || idType === 'iqama' || idType === 'driver_license') {
+                    filtered = text.replace(/\D/g, '').slice(0, 10);
+                  } else if (idType === 'passport') {
+                    filtered = text.replace(/[^a-zA-Z0-9]/g, '').slice(0, 12);
+                  }
+                  setIdNumber(filtered);
                   if (errors.idNumber) {
                     setErrors({ ...errors, idNumber: "" });
                   }
                 }}
-                keyboardType="default"
+                keyboardType={idType === 'passport' ? 'default' : 'number-pad'}
+                maxLength={idType === 'passport' ? 12 : 10}
                 autoCapitalize="characters"
               />
               {errors.idNumber ? (
@@ -958,50 +1228,48 @@ export default function VisitorRequestFormScreen({
                   </ThemedText>
                 </>
               ) : null}
+            </>
+          ) : null}
 
-              <Spacer height={Spacing.lg} />
+          {/* Type of Visit / Purpose — shown for all roles */}
+          <Spacer height={Spacing.lg} />
+          <ThemedText style={[Typography.label, { color: theme.textSecondary }]}>
+            {t("form.purpose").toUpperCase()} *
+          </ThemedText>
+          <Spacer height={Spacing.xs} />
+          <Pressable
+            style={[
+              styles.iconInputButton,
+              {
+                backgroundColor: theme.background,
+                borderColor: errors.purpose ? theme.error : theme.border,
+              },
+            ]}
+            onPress={() => {
+              setShowPurposePicker(true);
+              if (errors.purpose) setErrors({ ...errors, purpose: '' });
+            }}
+          >
+            <DirectionalRow style={{ flex: 1, alignItems: "center", gap: Spacing.md }}>
+              <DDIcon name="clipboard" size={20} variant="muted" />
               <ThemedText
                 style={[
-                  Typography.label,
+                  Typography.body,
                   {
-                    color: theme.textSecondary,
-                    //  
+                    color: purposeValue ? theme.text : theme.textSecondary,
+                    flex: 1,
                   },
                 ]}
               >
-                {t("form.purpose").toUpperCase()}
+                {purposeValue && PURPOSE_VALUE_TO_KEY[purposeValue] ? t(PURPOSE_VALUE_TO_KEY[purposeValue] as any) : t("visitor.selectPurpose")}
               </ThemedText>
-              <Spacer height={Spacing.xs} />
-              <Pressable
-                style={[
-                  styles.iconInputButton,
-                  {
-                    backgroundColor: theme.background,
-                    borderColor: theme.border,
-                  },
-                ]}
-                onPress={() => setShowPurposePicker(true)}
-              >
-                <DirectionalRow
-                  style={{ flex: 1, alignItems: "center", gap: Spacing.md }}
-                >
-                  <DDIcon name="clipboard" size={20} variant="muted" />
-                  <ThemedText
-                    style={[
-                      Typography.body,
-                      {
-                        color: theme.text,
-                        flex: 1,
-                        //   
-                      },
-                    ]}
-                  >
-                    {purposeValue && PURPOSE_VALUE_TO_KEY[purposeValue] ? t(PURPOSE_VALUE_TO_KEY[purposeValue] as any) : t("form.selectPurpose")}
-                  </ThemedText>
-                  <DDIcon name="chevron-down" size={20} variant="muted" />
-                </DirectionalRow>
-              </Pressable>
-            </>
+              <DDIcon name="chevron-down" size={20} variant="muted" />
+            </DirectionalRow>
+          </Pressable>
+          {errors.purpose ? (
+            <ThemedText style={[Typography.caption, { color: theme.error, marginTop: Spacing.xs }]}>
+              {errors.purpose}
+            </ThemedText>
           ) : null}
         </ThemedView>
 
@@ -1281,17 +1549,20 @@ export default function VisitorRequestFormScreen({
               {t("services.optionalServices")}
             </ThemedText>
 
-            <View style={getGridStyle(isRTL)}>
-              <View style={getCardWrapper2ColStyle()}>
+            <View style={{ maxWidth: 224, alignSelf: Platform.OS === 'web' ? 'flex-start' : 'center', width: "100%" }}>
+              <DirectionalRow style={{ gap: Spacing.sm }}>
                 <SelectableCard
                   onPress={() => {
                     const newValue = !needsMeetingRoom;
                     setNeedsMeetingRoom(newValue);
                     if (!newValue) {
                       setNeedsBuffet(false);
+                      setSelectedRoomId(null);
                     }
                   }}
                   selected={needsMeetingRoom}
+                  showCheckbox
+                  style={{ flex: 1, padding: Spacing.sm }}
                 >
                   <View
                     style={[
@@ -1299,7 +1570,7 @@ export default function VisitorRequestFormScreen({
                       { backgroundColor: applyOpacity(theme.cardIcon, "15") },
                     ]}
                   >
-                    <DDIcon name="users" size={20} color={theme.cardIcon} />
+                    <DDIcon name="users" size={16} color={theme.cardIcon} />
                   </View>
                   <ThemedText
                     style={[
@@ -1309,16 +1580,14 @@ export default function VisitorRequestFormScreen({
                         marginTop: Spacing.xs,
                         textAlign: "center",
                         color: theme.text,
-                        fontSize: 11,
+                        fontSize: 9,
                       },
                     ]}
                   >
                     {t("services.meetingRoom")}
                   </ThemedText>
                 </SelectableCard>
-              </View>
 
-              <View style={getCardWrapper2ColStyle()}>
                 <SelectableCard
                   onPress={() => {
                     const newValue = !needsBuffet;
@@ -1328,6 +1597,8 @@ export default function VisitorRequestFormScreen({
                     }
                   }}
                   selected={needsBuffet}
+                  showCheckbox
+                  style={{ flex: 1, padding: Spacing.sm }}
                 >
                   <View
                     style={[
@@ -1335,7 +1606,7 @@ export default function VisitorRequestFormScreen({
                       { backgroundColor: applyOpacity(theme.cardIcon, "15") },
                     ]}
                   >
-                    <DDIcon name="cloche" size={20} color={theme.cardIcon} />
+                    <DDIcon name="cloche" size={16} color={theme.cardIcon} />
                   </View>
                   <ThemedText
                     style={[
@@ -1345,56 +1616,19 @@ export default function VisitorRequestFormScreen({
                         marginTop: Spacing.xs,
                         textAlign: "center",
                         color: theme.text,
-                        fontSize: 11,
+                        fontSize: 9,
                       },
                     ]}
                   >
                     {t("buffet.buffet")}
                   </ThemedText>
                 </SelectableCard>
-              </View>
+              </DirectionalRow>
             </View>
 
             {needsMeetingRoom ? (
               <View style={{ marginTop: Spacing.md }}>
-                {hasCheckedAvailability ? (
-                  <DirectionalRow
-                    style={[
-                      styles.availabilityBadge,
-                      {
-                        backgroundColor: isRoomAvailable
-                          ? applyOpacity(theme.success, "15")
-                          : applyOpacity(theme.error, "15"),
-                        borderColor: isRoomAvailable
-                          ? theme.success
-                          : theme.error,
-                        justifyContent: "flex-start",
-                      },
-                    ]}
-                    gap={Spacing.xs}
-                  >
-                    <DDIcon
-                      name={isRoomAvailable ? "check-circle" : "alert-circle"}
-                      size={16}
-                      color={isRoomAvailable ? theme.success : theme.error}
-                    />
-                    <ThemedText
-                      style={[
-                        Typography.bodySmall,
-                        {
-                          color: isRoomAvailable ? theme.success : theme.error,
-                          fontWeight: "500",
-                          flex: 1,
-                          flexWrap: "wrap",
-                        },
-                      ]}
-                    >
-                      {isRoomAvailable
-                        ? t("form.meetingRoomAvailable")
-                        : t("errors.noRoomsAvailableForTime")}
-                    </ThemedText>
-                  </DirectionalRow>
-                ) : isLoadingRooms ? (
+                {isLoadingRooms || isFetchingRooms ? (
                   <DirectionalRow
                     style={[
                       styles.availabilityBadge,
@@ -1406,19 +1640,237 @@ export default function VisitorRequestFormScreen({
                     ]}
                   >
                     <ThemedText
-                      style={[
-                        Typography.bodySmall,
-                        {
-                          color: theme.textSecondary,
-                          //   
-                        },
-                      ]}
+                      style={[Typography.bodySmall, { color: theme.textSecondary }]}
                     >
                       {t("common.checkingAvailability")}...
                     </ThemedText>
                   </DirectionalRow>
+                ) : hasCheckedAvailability && availableRooms.length === 0 ? (
+                  <DirectionalRow
+                    style={[
+                      styles.availabilityBadge,
+                      {
+                        backgroundColor: applyOpacity(theme.error, "15"),
+                        borderColor: theme.error,
+                        justifyContent: "flex-start",
+                      },
+                    ]}
+                    gap={Spacing.xs}
+                  >
+                    <DDIcon name="alert-circle" size={16} color={theme.error} />
+                    <ThemedText
+                      style={[
+                        Typography.bodySmall,
+                        { color: theme.error, fontWeight: "500", flex: 1, flexWrap: "wrap" },
+                      ]}
+                    >
+                      {t("errors.noRoomsAvailableForTime")}
+                    </ThemedText>
+                  </DirectionalRow>
+                ) : hasCheckedAvailability && availableRooms.length > 0 ? (
+                  <View style={{ gap: Spacing.sm }}>
+                    <ThemedText
+                      style={[
+                        Typography.label,
+                        { color: theme.textSecondary },
+                      ]}
+                    >
+                      {t("form.selectMeetingRoom").toUpperCase()}
+                    </ThemedText>
+                    {availableRooms.map((room) => {
+                      const isSelected = selectedRoomId === room.id;
+                      return (
+                        <Pressable
+                          key={room.id}
+                          onPress={() => {
+                            setSelectedRoomId(room.id);
+                            if (errors.roomAvailability) {
+                              setErrors({ ...errors, roomAvailability: "" });
+                            }
+                          }}
+                          style={[
+                            styles.roomCard,
+                            {
+                              backgroundColor: isSelected
+                                ? applyOpacity(theme.primary, "10")
+                                : theme.background,
+                              borderColor: isSelected ? theme.primary : theme.border,
+                              borderWidth: isSelected ? 2 : 1,
+                            },
+                          ]}
+                        >
+                          <DirectionalRow alignItems="stretch" style={{ gap: Spacing.sm }}>
+                            <View
+                              style={[
+                                styles.roomCardIcon,
+                                {
+                                  backgroundColor: isSelected
+                                    ? applyOpacity(theme.primary, "15")
+                                    : applyOpacity(theme.cardIcon, "10"),
+                                },
+                              ]}
+                            >
+                              <DDIcon
+                                name="users"
+                                size={20}
+                                color={isSelected ? theme.primary : theme.cardIcon}
+                              />
+                            </View>
+                            <View style={{ flex: 1, gap: 3 }}>
+                              <ThemedText
+                                style={[
+                                  Typography.bodySmall,
+                                  {
+                                    fontWeight: "700",
+                                    color: isSelected ? theme.primary : theme.text,
+                                  },
+                                ]}
+                              >
+                                {room.name}
+                              </ThemedText>
+                              {(room.floor || room.building) ? (
+                                <ThemedText
+                                  style={[Typography.caption, { color: theme.textSecondary }]}
+                                >
+                                  {[room.floor, room.building].filter(Boolean).join(" · ")}
+                                </ThemedText>
+                              ) : null}
+                              <DirectionalRow gap={Spacing.xs} style={{ flexWrap: "wrap" }}>
+                                <DirectionalRow gap={4} alignItems="center">
+                                  <DDIcon name="users" size={12} color={theme.textSecondary} />
+                                  <ThemedText
+                                    style={[Typography.caption, { color: theme.textSecondary }]}
+                                  >
+                                    {room.capacity}
+                                  </ThemedText>
+                                </DirectionalRow>
+                                {room.features && room.features.length > 0 &&
+                                  room.features.slice(0, 3).map((f) => (
+                                    <View
+                                      key={f}
+                                      style={[
+                                        styles.featureTag,
+                                        { backgroundColor: applyOpacity(theme.primary, "10") },
+                                      ]}
+                                    >
+                                      <ThemedText
+                                        style={[
+                                          Typography.caption,
+                                          { color: theme.primary, fontSize: 10 },
+                                        ]}
+                                      >
+                                        {f.replace(/_/g, " ")}
+                                      </ThemedText>
+                                    </View>
+                                  ))}
+                              </DirectionalRow>
+                            </View>
+                            <View
+                              style={[
+                                styles.squareCheckbox,
+                                {
+                                  borderColor: isSelected ? theme.primary : theme.border,
+                                  backgroundColor: isSelected ? theme.primary : 'transparent',
+                                },
+                              ]}
+                            >
+                              {isSelected ? (
+                                <DDIcon name="check" size={10} color={theme.buttonText} />
+                              ) : null}
+                            </View>
+                          </DirectionalRow>
+                        </Pressable>
+                      );
+                    })}
+                    {errors.roomAvailability ? (
+                      <ThemedText
+                        style={[Typography.caption, { color: theme.error, marginTop: 2 }]}
+                      >
+                        {errors.roomAvailability}
+                      </ThemedText>
+                    ) : null}
+                  </View>
                 ) : null}
               </View>
+            ) : null}
+
+            <Spacer height={Spacing.lg} />
+          </>
+        ) : null}
+
+        {/* Parking Section — hidden for walk-in registration (visitor already on-site) */}
+        {!isWalkIn ? (
+          <>
+            <ThemedText
+              style={[Typography.subtitle, { marginBottom: Spacing.sm }]}
+            >
+              {t("invitation.parkingDecision")}
+            </ThemedText>
+
+            {(
+              [
+                { value: 'required' as ParkingDecision, icon: 'map-pin', label: t('invitation.requiredParking'), desc: t('invitation.requiredParkingDesc') },
+                { value: 'not_required' as ParkingDecision, icon: 'slash', label: t('invitation.notRequiredParking'), desc: t('invitation.notRequiredParkingDesc') },
+                { value: 'visitor_decides' as ParkingDecision, icon: 'help-circle', label: t('invitation.visitorDecides'), desc: t('invitation.visitorDecidesDesc') },
+              ] as const
+            ).map(({ value, icon, label, desc }) => {
+              const isSelected = parkingDecision === value;
+              return (
+                <Pressable
+                  key={value}
+                  onPress={() => {
+                    setParkingDecision(value);
+                    if (errors.parkingDecision) setErrors({ ...errors, parkingDecision: "" });
+                  }}
+                  style={[
+                    styles.parkingOptionRow,
+                    {
+                      backgroundColor: theme.surface,
+                      borderColor: isSelected ? theme.primary : theme.border,
+                      borderWidth: isSelected ? 2 : 1,
+                    },
+                  ]}
+                >
+                  <DirectionalRow style={{ alignItems: 'center', gap: Spacing.sm }}>
+                    <View
+                      style={[
+                        styles.parkingOptionIcon,
+                        { backgroundColor: isSelected ? applyOpacity(theme.primary, '15') : applyOpacity(theme.cardIcon, '10') },
+                      ]}
+                    >
+                      <DDIcon name={icon} size={18} color={isSelected ? theme.primary : theme.cardIcon} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <ThemedText style={[Typography.bodySmall, { fontWeight: '600', color: isSelected ? theme.primary : theme.text }]}>
+                        {label}
+                      </ThemedText>
+                      <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2 }]}>
+                        {desc}
+                      </ThemedText>
+                    </View>
+                    <View
+                      style={[
+                        styles.squareCheckbox,
+                        {
+                          borderColor: isSelected ? theme.primary : theme.border,
+                          backgroundColor: isSelected ? theme.primary : 'transparent',
+                        },
+                      ]}
+                    >
+                      {isSelected ? <DDIcon name="check" size={10} color={theme.buttonText} /> : null}
+                    </View>
+                  </DirectionalRow>
+                </Pressable>
+              );
+            })}
+
+            {errors.parkingDecision ? (
+              <>
+                <Spacer height={Spacing.xs} />
+                <ThemedText style={[Typography.caption, { color: theme.error }]}>
+                  {errors.parkingDecision}
+                </ThemedText>
+              </>
             ) : null}
 
             <Spacer height={Spacing.lg} />
@@ -1430,7 +1882,6 @@ export default function VisitorRequestFormScreen({
             Typography.subtitle,
             {
               marginBottom: Spacing.sm,
-              //  textAlign: isRTL ? "right" : "left"
             },
           ]}
         >
@@ -1460,16 +1911,19 @@ export default function VisitorRequestFormScreen({
               <ThemedText style={[Typography.bodySmall, { fontWeight: "500", lineHeight: 24 }]}>
                 {t("services.whatsapp")}
               </ThemedText>
-              {sendWhatsApp ? (
-                <View
-                  style={[
-                    styles.chipCheckmark,
-                    { backgroundColor: theme.primary },
-                  ]}
-                >
+              <View
+                style={[
+                  styles.squareCheckbox,
+                  {
+                    borderColor: sendWhatsApp ? theme.primary : theme.border,
+                    backgroundColor: sendWhatsApp ? theme.primary : 'transparent',
+                  },
+                ]}
+              >
+                {sendWhatsApp ? (
                   <DDIcon name="check" size={10} color={theme.buttonText} />
-                </View>
-              ) : null}
+                ) : null}
+              </View>
             </DirectionalRow>
           </Pressable>
 
@@ -1495,28 +1949,31 @@ export default function VisitorRequestFormScreen({
               <ThemedText style={[Typography.bodySmall, { fontWeight: "500", lineHeight: 24 }]}>
                 {t("services.sms")}
               </ThemedText>
-              {sendSMS ? (
-                <View
-                  style={[
-                    styles.chipCheckmark,
-                    { backgroundColor: theme.primary },
-                  ]}
-                >
+              <View
+                style={[
+                  styles.squareCheckbox,
+                  {
+                    borderColor: sendSMS ? theme.primary : theme.border,
+                    backgroundColor: sendSMS ? theme.primary : 'transparent',
+                  },
+                ]}
+              >
+                {sendSMS ? (
                   <DDIcon name="check" size={10} color={theme.buttonText} />
-                </View>
-              ) : null}
+                ) : null}
+              </View>
             </DirectionalRow>
           </Pressable>
 
-          <View
+          <Pressable
             style={[
               styles.channelChip,
               {
                 backgroundColor: theme.surface,
-                borderColor: theme.primary,
-                opacity: 0.8,
+                borderColor: sendEmail ? theme.primary : theme.border,
               },
             ]}
+            onPress={() => setSendEmail(!sendEmail)}
           >
             <DirectionalRow style={{ alignItems: "center", gap: Spacing.xs }}>
               <View
@@ -1532,15 +1989,29 @@ export default function VisitorRequestFormScreen({
               </ThemedText>
               <View
                 style={[
-                  styles.chipCheckmark,
-                  { backgroundColor: theme.primary },
+                  styles.squareCheckbox,
+                  {
+                    borderColor: sendEmail ? theme.primary : theme.border,
+                    backgroundColor: sendEmail ? theme.primary : 'transparent',
+                  },
                 ]}
               >
-                <DDIcon name="check" size={10} color={theme.buttonText} />
+                {sendEmail ? (
+                  <DDIcon name="check" size={10} color={theme.buttonText} />
+                ) : null}
               </View>
             </DirectionalRow>
-          </View>
+          </Pressable>
         </DirectionalRow>
+
+        {errors.communicationChannels ? (
+          <>
+            <Spacer height={Spacing.xs} />
+            <ThemedText style={[Typography.caption, { color: theme.error }]}>
+              {errors.communicationChannels}
+            </ThemedText>
+          </>
+        ) : null}
 
         <CalendarDatePicker
           visible={showDatePicker}
@@ -1638,7 +2109,20 @@ export default function VisitorRequestFormScreen({
                 style={{ maxHeight: 300 }}
                 keyboardShouldPersistTaps="handled"
               >
-                {filteredEmployees.length > 0 ? (
+                {isLoadingUsers ? (
+                  <View style={styles.noResultsContainer}>
+                    <ActivityIndicator color={theme.primary} />
+                    <Spacer height={Spacing.md} />
+                    <ThemedText
+                      style={[
+                        Typography.body,
+                        { color: theme.textSecondary, textAlign: "center" },
+                      ]}
+                    >
+                      {t("common.loading")}
+                    </ThemedText>
+                  </View>
+                ) : filteredEmployees.length > 0 ? (
                   filteredEmployees.map((employee) => (
                     <Pressable
                       key={employee.id}
@@ -1670,13 +2154,11 @@ export default function VisitorRequestFormScreen({
                             color: theme.primary,
                             fontWeight: "600",
                           }}
+                          numberOfLines={1}
+                          adjustsFontSizeToFit
+                          minimumFontScale={0.5}
                         >
-                          {employee.name
-                            ?.split(" ")
-                            .map((n: string) => n[0])
-                            .join("")
-                            .slice(0, 2)
-                            .toUpperCase() || "?"}
+                          {getInitials(employee.name)}
                         </ThemedText>
                       </View>
                       <View
@@ -1872,7 +2354,6 @@ export default function VisitorRequestFormScreen({
                     ]}
                     onPress={() => {
                       setPurposeValue(option.value);
-                      setPurposeLabel(t(option.labelKey as any));
                       setShowPurposePicker(false);
                     }}
                   >
@@ -2019,7 +2500,21 @@ export default function VisitorRequestFormScreen({
           <LoadingButton
             onPress={handleSubmit}
             loading={isSubmitting}
-            disabled={isSubmitting}
+            disabled={
+              isSubmitting ||
+              // Employee list or rooms still loading — wait before submitting
+              isSubmitDisabledByLoading({
+                isWalkIn: isWalkIn === true,
+                isLoadingUsers,
+                needsMeetingRoom,
+                isLoadingRooms,
+                isFetchingRooms,
+              }) ||
+              // Duplicate check still in flight — wait before submitting
+              (!isWalkIn && isCheckingDuplicate) ||
+              // Rooms loaded and available but none selected yet
+              (needsMeetingRoom && hasCheckedAvailability && isRoomAvailable && !selectedRoomId)
+            }
             variant="primary"
             size="large"
             style={styles.actionButton}
@@ -2099,8 +2594,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   compactServiceIcon: {
-    width: 40,
-    height: 40,
+    width: 32,
+    height: 32,
     borderRadius: BorderRadius.sm,
     justifyContent: "center",
     alignItems: "center",
@@ -2225,6 +2720,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginStart: Spacing.xs,
   },
+  squareCheckbox: {
+    width: 18,
+    height: 18,
+    borderRadius: 4,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+    marginStart: 4,
+  },
   channelRow: {
     alignItems: "center",
     justifyContent: "space-between",
@@ -2250,10 +2755,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     justifyContent: "center",
     alignItems: "center",
-  },
-  visitTypeBanner: {
-    padding: Spacing.md,
-    borderRadius: BorderRadius.md,
   },
   successModalOverlay: {
     flex: 1,
@@ -2298,6 +2799,38 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     borderRadius: BorderRadius.sm,
     borderWidth: 1,
+  },
+  parkingOptionRow: {
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    marginBottom: Spacing.sm,
+  },
+  parkingOptionIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: BorderRadius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  roomCard: {
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+  },
+  roomCardIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: BorderRadius.sm,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  roomCardCheck: {
+    alignSelf: "center",
+    display: "none",
+  },
+  featureTag: {
+    borderRadius: BorderRadius.xs,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
   },
   employeePickerModal: {
     borderTopStartRadius: BorderRadius.xl,

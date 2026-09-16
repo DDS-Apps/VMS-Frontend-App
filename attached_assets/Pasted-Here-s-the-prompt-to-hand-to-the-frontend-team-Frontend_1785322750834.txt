@@ -1,0 +1,73 @@
+Here's the prompt to hand to the frontend team:
+
+Frontend Task: Show Field-Level Validation Errors on Visit Creation Form
+Background
+The backend now returns structured field-level validation errors on POST /api/v1/visits (and all other endpoints that accept a request body). The old generic toast "Validation failed" should be replaced with specific, actionable feedback.
+
+New API Response Shape (HTTP 400)
+{
+  "success": false,
+  "message": "fullName must be longer than or equal to 2 characters",
+  "error": "Validation Error",
+  "statusCode": 400,
+  "errors": [
+    { "field": "visitor.fullName", "message": "fullName must be longer than or equal to 2 characters" },
+    { "field": "visitor.phone",    "message": "phone must be longer than or equal to 7 characters" },
+    { "field": "visitDate",        "message": "visitDate must be in YYYY-MM-DD format" },
+    { "field": "communicationChannels", "message": "communicationChannels must contain at least 1 elements" }
+  ]
+}
+
+message — always a single human-readable string (the first failing field). Safe to show in a toast as-is.
+errors — array of all failing fields. May or may not be present (other 400 errors like business logic rejections won't have it). Always check before using.
+field — dot-notation path matching the form field. Nested fields use visitor.fullName, visitor.email, etc.
+What to Build
+1. Field-level inline errors (primary)
+
+When errors is present in the 400 response, map each entry to the corresponding form field and show the message directly below that input:
+
+API field	Form field
+visitor.fullName	Visitor name input
+visitor.email	Visitor email input
+visitor.phone	Visitor phone input
+visitor.company	Visitor company input
+visitDate	Date picker
+visitTime	Time picker
+duration	Duration input
+endTime	End time input
+purpose	Purpose input
+communicationChannels	Communication channel selector
+parkingDecision	Parking decision selector
+meetingRoomId	Meeting room selector
+buffetPreferences.mealType	Meal type selector
+buffetPreferences.guestCount	Guest count input
+2. Toast fallback
+
+If errors is present → show a short toast: "Please fix the highlighted fields" (or similar)
+If errors is absent but message is present → show message in the toast (existing behaviour, covers business-logic rejections like "Visit date cannot be in the past")
+3. Clear errors on re-submit
+
+Clear all inline field errors when the user submits again, before the new response arrives.
+
+Suggested Implementation Pattern
+try {
+  await api.createVisit(payload);
+} catch (err) {
+  const data = err.response?.data;
+  if (data?.errors?.length) {
+    // Map field errors to form state
+    const fieldErrors: Record<string, string> = {};
+    for (const { field, message } of data.errors) {
+      fieldErrors[field] = message;
+    }
+    setFormErrors(fieldErrors);          // e.g. { "visitor.fullName": "..." }
+    showToast("Please fix the highlighted fields", "error");
+  } else {
+    // Fallback: generic or business-logic message
+    showToast(data?.message || "Something went wrong", "error");
+  }
+}
+
+Notes
+This applies to all forms that POST/PUT to the API, not just visit creation. The same errors array pattern will appear on any 400 from a DTO validation failure.
+No backend changes are needed — the structured errors are already live.

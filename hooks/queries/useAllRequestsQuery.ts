@@ -1,4 +1,5 @@
-import { useQueries } from '@tanstack/react-query';
+import { useEffect } from 'react';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { requestApiService } from '@/services/api/requestApiService';
 import { buffetApiService } from '@/services/api/buffetApiService';
 import { valetApiService } from '@/services/api/valetApiService';
@@ -12,6 +13,14 @@ import type {
   ListValetTasksParams,
 } from '@/types/api.types';
 import type { UserRole } from '@/types/vms.types';
+import { compareRequestsNewestFirst } from '@/utils/allRequestsPresentation';
+import {
+  extractAllRequestsArray,
+  fetchValetTasksForDateRange,
+  getBuffetSingleDateParams,
+  getNextVisitPageParam,
+  shouldAutoFetchAllVisitorPages,
+} from '@/utils/allRequestsQueryHelpers';
 
 const ROLES_WITH_BUFFET_ACCESS: UserRole[] = ['buffet_admin', 'building_admin'];
 const ROLES_WITH_VALET_ACCESS: UserRole[] = ['valet_admin', 'building_admin'];
@@ -38,6 +47,10 @@ export interface UnifiedRequest {
   mealType?: string;
   guestCount?: number;
   vehicleInfo?: ValetTaskDto['vehicleInfo'];
+  endTime?: string;
+  duration?: string;
+  checkedInAt?: string;
+  checkedOutAt?: string;
 }
 
 function normalizeVisitStatus(status: string): UnifiedStatus {
@@ -67,34 +80,6 @@ function normalizeVisitStatus(status: string): UnifiedStatus {
     case 'visitor_rejected':
     case 'expired':
       return 'rejected';
-    default:
-      return 'pending';
-  }
-}
-
-function normalizeBuffetStatus(status: string): UnifiedStatus {
-  const statusLower = status.toLowerCase();
-  switch (statusLower) {
-    case 'expected':
-      return 'pending';
-    case 'pending':
-    case 'pending_assignment':
-      return 'pending';
-    case 'assigned':
-    case 'confirmed':
-      return 'approved';
-    case 'preparing':
-    case 'ready':
-    case 'in_progress':
-      return 'in_progress';
-    case 'delivered':
-    case 'completed':
-    case 'served':
-      return 'completed';
-    case 'cancelled':
-      return 'cancelled';
-    case 'auto_cancelled':
-      return 'auto_cancelled';
     default:
       return 'pending';
   }
@@ -146,14 +131,23 @@ function mapVisitToUnified(visit: VisitListItemDto): UnifiedRequest {
     createdAt: visit.createdAt,
     purpose: visit.purpose,
     company: visit.visitor?.company,
+    endTime: visit.endTime ?? undefined,
+    duration: visit.duration ?? undefined,
+    checkedInAt: visit.checkedInAt ?? undefined,
+    checkedOutAt: visit.checkedOutAt ?? undefined,
   };
 }
 
 function mapBuffetToUnified(buffet: BuffetAdminTaskDto): UnifiedRequest {
-  const normalizedStatus = normalizeBuffetStatus(buffet.status);
+  // Buffet tasks carry the same visit-lifecycle status values as regular visits
+  // (visitor_accepted, checked_in, checked_out, completed, cancelled, etc.),
+  // not the old food-prep enum, so reuse the same normalization.
+  const normalizedStatus = normalizeVisitStatus(buffet.status);
   return {
     id: buffet.id,
     type: 'buffet',
+    // The server omits visitorName/company only when the requester is buffet_admin;
+    // admin/building_admin oversight views receive the real values.
     visitorName: buffet.visitorName || 'Unknown',
     hostName: buffet.hostName || 'Unknown Host',
     date: buffet.visitDate,
@@ -201,7 +195,16 @@ export interface AllRequestsFilters {
   endDate?: string;
 }
 
-export function useAllRequestsQuery(filters: AllRequestsFilters = {}) {
+export interface AllRequestsQueryOptions {
+  includeValet?: boolean;
+}
+
+const VISIT_PAGE_SIZE = 20;
+
+export function useAllRequestsQuery(
+  filters: AllRequestsFilters = {},
+  options: AllRequestsQueryOptions = {},
+) {
   const { user } = useAuth();
   const { type = 'all', status = 'all', startDate, endDate } = filters;
   const userRole = user?.role;
@@ -210,13 +213,9 @@ export function useAllRequestsQuery(filters: AllRequestsFilters = {}) {
   const hasValetAccess = userRole ? ROLES_WITH_VALET_ACCESS.includes(userRole) : false;
 
   const visitParams: VisitListParams = {
-    limit: 100,
+    limit: VISIT_PAGE_SIZE,
     startDate,
     endDate,
-  };
-
-  const buffetParams: ListBuffetAdminTasksParams = {
-    date: startDate,
   };
 
   const valetParams: ListValetTasksParams = {
@@ -225,80 +224,109 @@ export function useAllRequestsQuery(filters: AllRequestsFilters = {}) {
 
   const shouldFetchVisits = type === 'all' || type === 'visitor';
   const shouldFetchBuffet = (type === 'all' || type === 'buffet') && hasBuffetAccess;
-  const shouldFetchValet = (type === 'all' || type === 'valet') && hasValetAccess;
+  const shouldFetchValet =
+    (type === 'all' || type === 'valet') &&
+    hasValetAccess &&
+    options.includeValet !== false;
 
-  console.log('[useAllRequestsQuery] Filter type:', type, 'shouldFetchBuffet:', shouldFetchBuffet, 'shouldFetchValet:', shouldFetchValet);
-
-  const results = useQueries({
-    queries: [
-      {
-        queryKey: ['all-requests', 'visits', type, visitParams],
-        queryFn: () => {
-          console.log('[useAllRequestsQuery] Fetching visits...');
-          return requestApiService.listVisits(visitParams);
-        },
-        enabled: shouldFetchVisits,
-        staleTime: 30 * 1000,
-        retry: 2,
-      },
-      {
-        queryKey: ['all-requests', 'buffet-admin-tasks', type, buffetParams],
-        queryFn: () => {
-          console.log('[useAllRequestsQuery] Fetching buffet tasks...');
-          return buffetApiService.getBuffetAdminTasks(buffetParams);
-        },
-        enabled: shouldFetchBuffet,
-        staleTime: 30 * 1000,
-        retry: 2,
-      },
-      {
-        queryKey: ['all-requests', 'valet-admin-tasks', type, valetParams],
-        queryFn: () => {
-          console.log('[useAllRequestsQuery] Fetching valet tasks...');
-          return valetApiService.listTasks(valetParams);
-        },
-        enabled: shouldFetchValet,
-        staleTime: 30 * 1000,
-        retry: 2,
-      },
-    ],
+  const visitsResult = useInfiniteQuery({
+    queryKey: ['all-requests', 'visits', type, visitParams],
+    queryFn: ({ pageParam }) => requestApiService.listVisits({
+      ...visitParams,
+      page: pageParam,
+    }),
+    initialPageParam: 1,
+    getNextPageParam: getNextVisitPageParam,
+    enabled: shouldFetchVisits,
+    staleTime: 30 * 1000,
+    retry: 2,
   });
 
-  const [visitsResult, buffetResult, valetResult] = results;
+  useEffect(() => {
+    if (shouldAutoFetchAllVisitorPages({
+      requestType: type,
+      status,
+      searchQuery: filters.searchQuery,
+      hasNextPage: Boolean(visitsResult.hasNextPage),
+      isFetchingNextPage: visitsResult.isFetchingNextPage,
+      hasNextPageError: visitsResult.isFetchNextPageError,
+    })) {
+      void visitsResult.fetchNextPage();
+    }
+  }, [
+    filters.searchQuery,
+    status,
+    type,
+    visitsResult.fetchNextPage,
+    visitsResult.hasNextPage,
+    visitsResult.isFetchNextPageError,
+    visitsResult.isFetchingNextPage,
+  ]);
 
-  const isLoading = results.some(r => r.isLoading);
-  const isFetching = results.some(r => r.isFetching);
-  const isError = results.some(r => r.isError);
-  const error = results.find(r => r.error)?.error;
+  const buffetResult = useQuery({
+    queryKey: ['all-requests', 'buffet-admin-tasks', type, startDate],
+    queryFn: () => buffetApiService.getBuffetAdminTasks(
+      getBuffetSingleDateParams(startDate),
+    ),
+    enabled: shouldFetchBuffet,
+    staleTime: 30 * 1000,
+    retry: 2,
+  });
+
+  const valetResult = useQuery({
+    queryKey: ['all-requests', 'valet-admin-tasks', type, startDate, endDate],
+    queryFn: async () => type === 'all'
+      ? {
+          data: await fetchValetTasksForDateRange<ValetTaskDto>(
+            startDate,
+            endDate,
+            date => valetApiService.listTasks(date ? { date } : undefined),
+          ),
+        }
+      : valetApiService.listTasks(valetParams),
+    enabled: shouldFetchValet,
+    staleTime: 30 * 1000,
+    retry: 2,
+  });
+
+  const results = [visitsResult, buffetResult, valetResult];
+  const enabledResults = [
+    shouldFetchVisits ? visitsResult : null,
+    shouldFetchBuffet ? buffetResult : null,
+    shouldFetchValet ? valetResult : null,
+  ].filter(Boolean);
+
+  const isLoading = enabledResults.some(r => r?.isLoading);
+  const isFetching = enabledResults.some(r => r?.isFetching);
+  const isError = enabledResults.some(r => r?.isError);
+  const error = enabledResults.find(r => r?.error)?.error;
+  const hasResolvedData =
+    enabledResults.length > 0 &&
+    enabledResults.every(result => result?.data !== undefined);
+  const dataUpdatedAt = Math.max(
+    0,
+    ...enabledResults.map(result => result?.dataUpdatedAt ?? 0),
+  );
 
   const allRequests: UnifiedRequest[] = [];
-
-  // Helper to extract array from nested API response structures
-  const extractArray = <T>(data: unknown): T[] => {
-    if (Array.isArray(data)) return data;
-    if (data && typeof data === 'object' && 'data' in data) {
-      const nested = (data as { data: unknown }).data;
-      if (Array.isArray(nested)) return nested;
-      if (nested && typeof nested === 'object' && 'data' in nested) {
-        const deepNested = (nested as { data: unknown }).data;
-        if (Array.isArray(deepNested)) return deepNested;
-      }
-    }
-    return [];
-  };
+  let visitTotal = 0;
 
   if (shouldFetchVisits && visitsResult.data) {
-    const rawVisits = extractArray<VisitListItemDto>(visitsResult.data);
-    allRequests.push(...rawVisits.map(mapVisitToUnified));
+    const rawVisits = visitsResult.data.pages.flatMap(page => extractAllRequestsArray<VisitListItemDto>(page));
+    const uniqueVisits = Array.from(new Map(rawVisits.map(visit => [visit.id, visit])).values());
+    allRequests.push(...uniqueVisits.map(mapVisitToUnified));
+    visitTotal = Number(
+      visitsResult.data.pages[0]?.pagination?.total ?? uniqueVisits.length,
+    );
   }
 
   if (shouldFetchBuffet && buffetResult.data) {
-    const rawBuffetTasks = extractArray<BuffetAdminTaskDto>(buffetResult.data);
+    const rawBuffetTasks = extractAllRequestsArray<BuffetAdminTaskDto>(buffetResult.data);
     allRequests.push(...rawBuffetTasks.map(mapBuffetToUnified));
   }
 
   if (shouldFetchValet && valetResult.data) {
-    const rawValetTasks = extractArray<ValetTaskDto>(valetResult.data);
+    const rawValetTasks = extractAllRequestsArray<ValetTaskDto>(valetResult.data);
     allRequests.push(...rawValetTasks.map(mapValetToUnified));
   }
 
@@ -328,27 +356,35 @@ export function useAllRequestsQuery(filters: AllRequestsFilters = {}) {
     );
   }
 
-  filteredRequests.sort((a, b) => 
-    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
+  filteredRequests.sort(compareRequestsNewestFirst);
+
+  const areStatusCountsComplete = !shouldFetchVisits || !visitsResult.hasNextPage;
+  const statusCount = (statusToCount: UnifiedStatus): number | null =>
+    areStatusCountsComplete
+      ? allRequests.filter(r => r.status === statusToCount).length
+      : null;
+  const nonVisitorCount = allRequests.filter(r => r.type !== 'visitor').length;
 
   const stats = {
-    total: allRequests.length,
-    pending: allRequests.filter(r => r.status === 'pending').length,
-    approved: allRequests.filter(r => r.status === 'approved').length,
-    inProgress: allRequests.filter(r => r.status === 'in_progress').length,
-    completed: allRequests.filter(r => r.status === 'completed').length,
-    cancelled: allRequests.filter(r => r.status === 'cancelled').length,
-    rejected: allRequests.filter(r => r.status === 'rejected').length,
+    total: shouldFetchVisits ? visitTotal + nonVisitorCount : allRequests.length,
+    pending: statusCount('pending'),
+    approved: statusCount('approved'),
+    inProgress: statusCount('in_progress'),
+    completed: statusCount('completed'),
+    cancelled: statusCount('cancelled'),
+    rejected: statusCount('rejected'),
+    areStatusCountsComplete,
     byType: {
-      visitor: allRequests.filter(r => r.type === 'visitor').length,
+      visitor: shouldFetchVisits
+        ? visitTotal
+        : allRequests.filter(r => r.type === 'visitor').length,
       buffet: allRequests.filter(r => r.type === 'buffet').length,
       valet: allRequests.filter(r => r.type === 'valet').length,
     },
   };
 
   const refetch = async () => {
-    await Promise.all(results.map(r => r.refetch()));
+    await Promise.all(enabledResults.map(r => r!.refetch()));
   };
 
   return {
@@ -359,7 +395,13 @@ export function useAllRequestsQuery(filters: AllRequestsFilters = {}) {
     isFetching,
     isError,
     error,
+    hasResolvedData,
+    dataUpdatedAt,
     refetch,
+    hasNextPage: shouldFetchVisits ? visitsResult.hasNextPage : false,
+    isFetchingNextPage: shouldFetchVisits ? visitsResult.isFetchingNextPage : false,
+    hasNextPageError: shouldFetchVisits ? visitsResult.isFetchNextPageError : false,
+    fetchNextPage: visitsResult.fetchNextPage,
   };
 }
 

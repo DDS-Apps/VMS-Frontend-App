@@ -1,0 +1,872 @@
+Implement a minimal, production-safe timezone fix in the frontend.
+
+The relevant backend API contracts and time semantics are included below.
+
+Do not make broad UI changes, redesign screens, or introduce a new date library unless the repository already uses one. Preserve existing navigation, API base URL configuration, and user-selected calendar behavior.
+
+Production business timezone:
+Asia/Riyadh
+
+Core rule:
+- Use visitStartAt for comparisons, countdowns, and “upcoming visit” logic.
+- Use timezone for displaying business-local dates and times.
+- Never use the device timezone for business logic.
+- Keep date-only and wall-clock fields as strings.
+
+==================================================
+API ROUTES
+==================================================
+
+All routes below are relative to the configured API base URL.
+
+If the existing frontend base URL already contains `/api`, append `/v1/...`.
+Do not hardcode `/api` again or change the existing base URL configuration.
+
+Visits:
+- POST /v1/visits
+- GET /v1/visits
+- GET /v1/visits/:id
+
+Reception:
+- GET /v1/reception/today
+
+Valet:
+- GET /v1/valet-admin/parking-dashboard
+
+Buffet admin:
+- GET /v1/buffet-admin/tasks
+- GET /v1/buffet-admin/tasks/:id
+
+Buffet staff:
+- GET /v1/buffet-staff/my-tasks
+
+Persistent notifications:
+- GET /v1/notifications
+- GET /v1/notifications/unread-count
+- POST /v1/notifications/mark-all-read
+
+The new fields are additive. Preserve all other existing response fields.
+
+==================================================
+TIME FIELD SEMANTICS
+==================================================
+
+Use these semantics consistently:
+
+1. visitDate
+   - Format: YYYY-MM-DD
+   - Represents a business calendar date.
+   - It is not an absolute timestamp.
+   - Never parse it with `new Date(visitDate)` for comparisons.
+
+2. visitTime
+   - Usually HH:mm or HH:mm:ss.
+   - Represents a wall-clock label in the visit timezone.
+   - It is not an absolute timestamp.
+
+3. visitStartAt
+   - Canonical absolute instant.
+   - ISO-8601 timestamp, normally UTC with a trailing Z.
+   - Use this for countdowns, sorting, expiry, and upcoming-visit comparisons.
+
+4. timezone
+   - IANA timezone, for example `Asia/Riyadh`.
+   - Use it when formatting visit dates and timeline timestamps.
+   - If missing or invalid, fall back to `Asia/Riyadh`, never device local time.
+
+5. Timeline, lifecycle, notification, check-in, and check-out timestamps
+   - Absolute ISO-8601 timestamps.
+   - Format these using the visit/business timezone.
+
+6. scheduledEndTime
+   - Wall-clock HH:mm value.
+   - Do not convert it as an absolute instant.
+
+Example:
+
+A visit scheduled for:
+
+    2026-07-30 10:00 Asia/Riyadh
+
+is returned as:
+
+    visitDate: "2026-07-30"
+    visitTime: "10:00"
+    timezone: "Asia/Riyadh"
+    visitStartAt: "2026-07-30T07:00:00.000Z"
+
+A device in Pakistan and a device in Saudi Arabia must compare the same
+visitStartAt instant. Both should display the scheduled Saudi business time as
+10:00 when the visit timezone is Asia/Riyadh.
+
+==================================================
+SHARED TYPES
+==================================================
+
+type IanaTimezone = string;
+type AbsoluteIsoTimestamp = string;
+
+==================================================
+VISIT CREATION CONTRACT
+==================================================
+
+POST /v1/visits
+
+The existing request contract is unchanged. Continue sending the selected
+visitDate and visitTime as wall-clock fields.
+
+Relevant response:
+
+interface VisitCreateResponse {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  employeeDepartment: string;
+
+  visitor: {
+    id: string;
+    fullName: string;
+    email?: string;
+    phone: string;
+    company?: string;
+  };
+
+  visitDate: string;
+  visitTime: string;
+  visitStartAt?: AbsoluteIsoTimestamp;
+  timezone: IanaTimezone;
+
+  endTime?: string;
+  duration: string;
+  purpose: string;
+  status: string;
+  communicationChannels: string[];
+
+  createdAt: AbsoluteIsoTimestamp;
+  updatedAt: AbsoluteIsoTimestamp;
+
+  // Other existing approval/resource fields remain unchanged.
+}
+
+visitStartAt can be absent for legacy or invalid records. The UI must fail
+safely and hide time-sensitive indicators when it is absent or invalid.
+
+==================================================
+VISIT LIST CONTRACT
+==================================================
+
+GET /v1/visits
+
+Existing supported query parameters include:
+
+- page
+- limit
+- status
+- startDate
+- endDate
+- search
+- myRequestsOnly
+- pendingApproval
+- awaitingVisitor
+- isWalkIn
+
+Relevant response:
+
+interface VisitListItem {
+  id: string;
+  employeeName: string;
+
+  visitor: {
+    fullName: string;
+    company?: string;
+    email?: string;
+    phone?: string;
+  };
+
+  visitDate: string;
+  visitTime: string;
+  visitStartAt?: AbsoluteIsoTimestamp;
+  timezone: IanaTimezone;
+
+  status: string;
+  purpose: string;
+  isWalkIn: boolean;
+  createdAt: AbsoluteIsoTimestamp;
+
+  // Existing resource/service flags remain unchanged.
+}
+
+interface VisitListResponse {
+  data: VisitListItem[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages?: number;
+  };
+}
+
+==================================================
+VISIT DETAIL CONTRACT
+==================================================
+
+GET /v1/visits/:id
+
+interface VisitTimeline {
+  requestedAt: AbsoluteIsoTimestamp | null;
+  approvedAt: AbsoluteIsoTimestamp | null;
+  visitorAcceptedAt: AbsoluteIsoTimestamp | null;
+  checkedInAt: AbsoluteIsoTimestamp | null;
+  checkedOutAt: AbsoluteIsoTimestamp | null;
+  completedAt: AbsoluteIsoTimestamp | null;
+}
+
+interface VisitDetail {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  employeeDepartment: string;
+
+  visitor: {
+    id: string;
+    fullName: string;
+    email?: string;
+    phone: string;
+    company?: string;
+  };
+
+  visitDate: string;
+  visitTime: string;
+  visitStartAt?: AbsoluteIsoTimestamp;
+  timezone: IanaTimezone;
+
+  duration: string;
+  endTime?: string;
+  purpose: string;
+  status: string;
+
+  timeline: VisitTimeline;
+
+  createdAt: AbsoluteIsoTimestamp;
+  updatedAt: AbsoluteIsoTimestamp;
+  checkedInAt?: AbsoluteIsoTimestamp | null;
+  checkedOutAt?: AbsoluteIsoTimestamp | null;
+  completedAt?: AbsoluteIsoTimestamp | null;
+
+  // Other existing fields remain unchanged.
+}
+
+For compatibility, the frontend may type timeline fields as:
+
+    string | null | undefined
+
+==================================================
+RECEPTION CONTRACT
+==================================================
+
+GET /v1/reception/today
+
+interface ReceptionTodayItem {
+  id: string;
+
+  visitor: {
+    id: string;
+    fullName: string;
+    company?: string;
+    phone?: string;
+  };
+
+  hostName: string;
+  hostDepartment: string;
+
+  visitTime: string;
+  visitStartAt?: AbsoluteIsoTimestamp;
+  timezone: IanaTimezone;
+
+  status: string;
+
+  meetingRoom?: {
+    name: string;
+    floor: string;
+  };
+
+  parkingSlot?: {
+    slotNumber: string;
+  };
+
+  visitorNeedsParking?: boolean | null;
+  qrCode?: string;
+
+  scheduledEndTime?: string;
+
+  checkedInAt?: AbsoluteIsoTimestamp | null;
+  checkedOutAt?: AbsoluteIsoTimestamp | null;
+}
+
+interface ReceptionTodayResponse {
+  summary: {
+    expected: number;
+    checkedIn: number;
+    completed: number;
+    pending: number;
+  };
+
+  data: ReceptionTodayItem[];
+}
+
+Important:
+- visitStartAt is an absolute instant.
+- scheduledEndTime is an HH:mm wall-clock value and must not be timezone-converted.
+- checkedInAt and checkedOutAt are absolute timestamps and must be formatted
+  using `timezone`, falling back to `Asia/Riyadh`.
+
+==================================================
+VALET CONTRACT
+==================================================
+
+GET /v1/valet-admin/parking-dashboard
+    ?startDate=YYYY-MM-DD
+    &endDate=YYYY-MM-DD
+
+interface ParkingDashboardItem {
+  requestId: string;
+  visitorName: string;
+  visitorCompany?: string;
+  visitorPhone?: string;
+
+  hostName: string;
+  hostDepartment?: string;
+
+  visitDate: string;
+  visitTime: string;
+  visitStartAt?: AbsoluteIsoTimestamp;
+
+  status: string;
+  visitorNeedsParking: boolean;
+  isWalkIn: boolean;
+}
+
+interface ParkingDashboardResponse {
+  summary: {
+    totalVisitors: number;
+    withParking: number;
+    withoutParking: number;
+  };
+
+  data: ParkingDashboardItem[];
+}
+
+The valet response may not contain a timezone. Use `Asia/Riyadh` as the
+business timezone when formatting its visitStartAt value.
+
+==================================================
+BUFFET CONTRACTS
+==================================================
+
+GET /v1/buffet-admin/tasks
+
+interface BuffetTask {
+  id: string;
+  requestId?: string;
+
+  visitorName?: string;
+  company?: string;
+  hostName?: string;
+  hostDepartment?: string | null;
+
+  visitDate: string;
+  visitTime?: string;
+  visitStartAt?: AbsoluteIsoTimestamp;
+
+  mealType: string;
+  guestCount: number;
+  status: string;
+
+  // Other existing task fields remain unchanged.
+}
+
+interface BuffetTaskListResponse {
+  data: BuffetTask[];
+}
+
+GET /v1/buffet-admin/tasks/:id
+
+Returns the same relevant task fields, plus existing detail fields such as:
+
+- createdAt
+- updatedAt
+
+GET /v1/buffet-staff/my-tasks
+
+interface StaffBuffetTask {
+  id: string;
+
+  visitorName?: string;
+  company?: string;
+  hostName?: string;
+  hostDepartment?: string | null;
+
+  visitDate: string;
+  visitTime?: string;
+  visitStartAt?: AbsoluteIsoTimestamp;
+
+  mealType: string;
+  guestCount: number;
+  status: string;
+
+  // Other existing task fields remain unchanged.
+}
+
+interface StaffBuffetTaskListResponse {
+  data: StaffBuffetTask[];
+}
+
+These responses may not contain timezone. Use `Asia/Riyadh` as the default
+business timezone.
+
+==================================================
+PERSISTENT NOTIFICATION CONTRACT
+==================================================
+
+GET /v1/notifications
+
+interface NotificationItem {
+  id: string;
+  type: string;
+  title: string;
+  message: string;
+
+  params?: {
+    visitStartAt?: AbsoluteIsoTimestamp;
+    visitTime?: string;
+    visitorName?: string;
+    hostName?: string;
+    hostDepartment?: string;
+    upcomingVisitReminderMinutes?: string;
+    action?: "view_request";
+    [key: string]: string | undefined;
+  };
+
+  timestamp: AbsoluteIsoTimestamp;
+  read: boolean;
+
+  requestId?: string;
+  actionRequired: boolean;
+  priority: string;
+}
+
+interface NotificationListResponse {
+  data: NotificationItem[];
+  unreadCount: number;
+
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+Notification `timestamp` is an absolute timestamp. Display it in
+`Asia/Riyadh`, or in a supplied visit timezone when one is available.
+
+==================================================
+PUSH NOTIFICATION CONTRACT
+==================================================
+
+The backend sends upcoming-visit push notifications with this data payload:
+
+interface UpcomingVisitPushData {
+  type: "upcoming_visit";
+  requestId: string;
+
+  // Same visit/request identifier, provided for compatibility with existing
+  // navigation and deduplication code.
+  visitId: string;
+
+  action: "view_request";
+  visitStartAt: AbsoluteIsoTimestamp;
+
+  // A numeric string, for example "15".
+  upcomingVisitReminderMinutes: string;
+}
+
+The push notification also contains a system title and body.
+
+For general recipients, the body may contain visitor information.
+For buffet recipients, it intentionally contains host information without
+visitor identity.
+
+The frontend must not construct a second reminder message from locally-polled
+visit data. The backend push/persistent notification is authoritative.
+
+==================================================
+REQUIRED FRONTEND CHANGES
+==================================================
+
+1. Update API types
+
+Update the existing frontend types without removing current fields:
+
+- VisitListItemDto:
+  - add `timezone: string`
+  - retain `visitStartAt?: string`
+
+- VisitDetailsDto:
+  - ensure it has both `visitStartAt?: string` and `timezone: string`
+
+- TodayVisitorDto:
+  - add `visitStartAt?: string`
+  - add `timezone: string`
+
+- SecurityVisitorDto:
+  - add `visitStartAt?: string`
+  - add `timezone?: string`
+
+- Notification push data:
+  - add `requestId`
+  - add `visitId`
+  - add `visitStartAt`
+  - add `upcomingVisitReminderMinutes`
+  - support `type: "upcoming_visit"` and `action: "view_request"`
+
+Make new fields optional where legacy records or older deployed backend
+versions require compatibility.
+
+2. Fix API response mappings
+
+Ensure API mappers do not discard the new fields.
+
+In particular, security visit mappings must preserve:
+
+    visitStartAt: source.visitStartAt
+    timezone: source.timezone ?? "Asia/Riyadh"
+
+Reception detail/legacy visitor mappings must preserve the visit timezone from
+visit details rather than silently dropping it.
+
+Also check valet and buffet mappings and preserve visitStartAt when returned.
+
+3. Make upcoming indicators ISO-only
+
+Update the upcoming-visit timer/indicator logic.
+
+Current incorrect behavior:
+- It can reconstruct a Date from visitDate + visitTime.
+- That parsing uses the device timezone.
+
+Required behavior:
+
+    const start = Date.parse(visitStartAt);
+
+- If visitStartAt is missing or Date.parse returns NaN, return false.
+- Do not fall back to parsing visitDate + visitTime.
+- Compare `Date.now()` with visitStartAt.
+- Keep the current visual threshold behavior unless explicitly required
+  otherwise.
+
+The visual upcoming icon currently uses a fixed 15-minute threshold. Keep that
+for this minimum change because the runtime reminder-rule endpoint is restricted
+to building administrators. Do not add a failing admin API call for normal
+users.
+
+The backend notification itself uses the configured threshold.
+
+4. Remove duplicate client-side reminder generation
+
+Delete or disable the local polling/toast hook that independently scans visits
+and generates “upcoming visit” reminders.
+
+Remove its usage from screens including:
+
+- Employee/VisitorRequestsScreen
+- Receptionist/AllVisitorsToday
+- Security/SecurityCheckIn
+
+Keep the existing push notification listener and persistent notification flow.
+There should be one authoritative notification source: the backend.
+
+Do not remove unrelated visit refreshing or list polling.
+
+5. Fix push deduplication
+
+When calculating the push notification deduplication key, prefer:
+
+    messageId
+    notification_id
+    visitId
+    requestId
+
+Only use a generated fallback if none of these identifiers exists.
+
+Do not use Date.now() before checking requestId, because it prevents duplicate
+push events for the same visit from being recognized.
+
+Parse upcomingVisitReminderMinutes defensively:
+
+    const minutes = Number(data.upcomingVisitReminderMinutes);
+
+Only use it when Number.isFinite(minutes).
+
+6. Introduce central business-time helpers
+
+In the existing date/time utility module, introduce or update helpers such as:
+
+    const DEFAULT_BUSINESS_TIMEZONE = "Asia/Riyadh";
+
+    formatAbsoluteTimestamp(
+      isoTimestamp,
+      options?,
+      timezone = DEFAULT_BUSINESS_TIMEZONE
+    )
+
+    getBusinessDateKey(
+      value = new Date(),
+      timezone = DEFAULT_BUSINESS_TIMEZONE
+    ): string
+
+    isTodayInTimezone(
+      isoTimestamp,
+      timezone = DEFAULT_BUSINESS_TIMEZONE
+    ): boolean
+
+    isYesterdayInTimezone(
+      isoTimestamp,
+      timezone = DEFAULT_BUSINESS_TIMEZONE
+    ): boolean
+
+Requirements:
+- Validate timezone identifiers.
+- Invalid/missing timezone falls back to Asia/Riyadh.
+- Do not fall back to the device timezone.
+- Return date keys in YYYY-MM-DD format.
+- Gracefully handle invalid timestamps.
+
+Do not implement isToday/isYesterday using `Date.prototype.toDateString()`,
+because that uses the device timezone.
+
+7. Fix timeline rendering
+
+Update RequestTimeline to accept:
+
+    timezone?: string
+
+Default it to:
+
+    Asia/Riyadh
+
+Format every absolute timeline timestamp using that timezone.
+
+Pass the visit timezone into RequestTimeline from:
+
+- Employee Request Details
+- Manager Approval Detail
+- Reception Visitor Detail
+- Any other timeline caller found during implementation
+
+Do not apply timezone conversion to visitDate, visitTime, duration, or other
+wall-clock labels.
+
+8. Fix reception actual-time rendering
+
+Replace device-local formatting such as:
+
+    new Date(value).toLocaleTimeString(...)
+
+with the shared absolute timestamp formatter using:
+
+    visitor.timezone ?? "Asia/Riyadh"
+
+Apply this to checkedInAt, checkedOutAt, createdAt, or other absolute
+timestamps shown on reception screens.
+
+Do not convert scheduledEndTime because it is already an HH:mm wall-clock
+value.
+
+9. Replace device-local “today” calculations
+
+Replace production usages of:
+
+    new Date().toISOString().split("T")[0]
+
+when the result means “today in the business” with:
+
+    getBusinessDateKey(new Date(), "Asia/Riyadh")
+
+Review at least:
+
+- securityApiService
+- requestMappers fallback date logic
+- ReceptionistDashboard
+- WalkInVisitors
+- AllVisitorsToday
+- receptionistVisitorState
+- visitorRequestState
+- valetAdminState
+- buildingAdminState
+
+Do not blindly replace code used to serialize a date explicitly selected by
+the user. User-selected calendar dates should remain date-only YYYY-MM-DD
+values.
+
+10. Harden visit forms
+
+Date/time pickers represent Saudi business wall-clock values.
+
+For validation such as:
+- selected date is today
+- selected same-day time is in the past
+- minimum selectable time
+
+compare against the current Asia/Riyadh wall-clock time, not the device-local
+wall clock.
+
+Do not send ISO timestamps instead of visitDate/visitTime unless the existing
+API request contract explicitly requires it.
+
+The backend remains responsible for converting visitDate + visitTime in the
+building timezone into visitStartAt.
+
+==================================================
+LIKELY FILES TO REVIEW
+==================================================
+
+Use repository search to confirm exact paths, but likely impact areas include:
+
+- hooks/useUpcomingVisitTimer.ts
+- hooks/useUpcomingVisitReminders.ts
+- hooks/useServerDateTime.ts
+- utils/dateTimeUtils.ts
+- utils/requestMappers.ts
+- services/api/securityApiService.ts
+- services/notifications or push-notification service
+- constants/requestConstants.ts
+- types/api.types.ts
+- types/reception.types.ts
+- types/security.types.ts
+- types/notification.types.ts
+- RequestTimeline component
+- Employee/VisitorRequestsScreen
+- Employee/RequestDetails
+- Manager/ManagerApprovalDetail
+- Receptionist/AllVisitorsToday
+- Receptionist/VisitorDetail
+- Receptionist/ReceptionistDashboard
+- Receptionist/WalkInVisitors
+- Security/SecurityCheckIn
+- relevant receptionist, visitor-request, valet-admin, and building-admin state modules
+
+Do not assume these paths are exact. Search by component/function name before
+editing.
+
+==================================================
+TESTING REQUIREMENTS
+==================================================
+
+Add focused unit tests for the shared timezone utilities and upcoming indicator.
+
+At minimum test:
+
+1. Canonical visit instant
+
+    visitStartAt = "2026-07-30T07:00:00.000Z"
+    timezone = "Asia/Riyadh"
+
+Expected displayed visit time:
+    10:00
+
+2. Device-timezone independence
+
+Run timezone-related tests with environments equivalent to:
+
+    TZ=Asia/Karachi
+    TZ=Asia/Riyadh
+    TZ=UTC
+    TZ=America/Los_Angeles
+
+Business date keys, visit display time, and upcoming calculations must remain
+consistent.
+
+3. Saudi midnight boundaries
+
+Test timestamps just before and after midnight in Asia/Riyadh.
+
+4. Today/yesterday boundaries
+
+isTodayInTimezone and isYesterdayInTimezone must use Asia/Riyadh calendar
+dates, not device-local dates.
+
+5. Invalid data
+
+- missing visitStartAt
+- malformed visitStartAt
+- missing timezone
+- invalid timezone
+
+Expected:
+- no crash
+- invalid timezone falls back to Asia/Riyadh
+- upcoming indicator is hidden when visitStartAt is unavailable or invalid
+
+6. Upcoming indicator
+
+Test:
+- before the configured visual window
+- inside the 15-minute visual window
+- exactly at visit start
+- after visit start
+- invalid visitStartAt
+
+7. Push deduplication
+
+Two push events with the same requestId or visitId should produce one handled
+notification/navigation event.
+
+8. Reception fields
+
+- checkedInAt is timezone-formatted
+- checkedOutAt is timezone-formatted
+- scheduledEndTime remains unchanged
+
+==================================================
+MANUAL QA CHECKLIST
+==================================================
+
+QA should test on devices configured to:
+
+- Asia/Riyadh
+- Asia/Karachi
+- UTC
+- A negative UTC offset such as America/Los_Angeles
+
+Verify:
+
+- The same visit displays at the intended Saudi business time.
+- Upcoming icons appear at the same absolute instant on all devices.
+- Only one reminder is shown for a visit.
+- Push notification navigation opens the correct request.
+- Employee, manager, reception, security, valet, and buffet screens agree on
+  visit timing.
+- Timeline events display consistently in the visit/business timezone.
+- Reception check-in and check-out times are correct.
+- scheduledEndTime is not shifted.
+- “Today” lists change at Saudi midnight.
+- Creating a visit while the phone is outside Saudi Arabia still sends the
+  intended Saudi date and wall-clock time.
+- Legacy records without visitStartAt do not crash and do not show a misleading
+  upcoming indicator.
+
+==================================================
+DELIVERABLE
+==================================================
+
+Implement the minimum safe frontend change, then provide:
+
+1. A list of modified files.
+2. A concise description of each change.
+3. Tests added and commands used to run them.
+4. Any remaining device-local date parsing found but intentionally left
+   unchanged, with the reason.
+5. Any API mapping where visitStartAt or timezone was unavailable.
+6. Confirmation that no endpoint base URL or request payload contract was
+   changed.

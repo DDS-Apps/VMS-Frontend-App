@@ -1,22 +1,30 @@
 import Constants from "expo-constants";
 
-const API_BASE_URL = 
-  process.env.EXPO_PUBLIC_API_BASE_URL || 
+// app.config.js resolves the environment (QA vs production, incl. any
+// EXPO_PUBLIC_* overrides) into Constants.expoConfig.extra, so that is the
+// authoritative value. process.env is only a fallback for tooling that
+// evaluates this module without an Expo config (e.g. plain Jest).
+const API_BASE_URL =
   Constants.expoConfig?.extra?.apiBaseUrl ||
+  process.env.EXPO_PUBLIC_API_BASE_URL ||
   'https://vms.dallah.com';
 
-const MICROSOFT_AUTH_BASE_URL = 
-  process.env.EXPO_PUBLIC_MICROSOFT_AUTH_URL || 
+const MICROSOFT_AUTH_BASE_URL =
   Constants.expoConfig?.extra?.microsoftAuthUrl ||
-  'https://vms.dallah.com';
+  process.env.EXPO_PUBLIC_MICROSOFT_AUTH_URL ||
+  API_BASE_URL;
 
 console.log('[API Config] Using API Base URL:', API_BASE_URL);
-console.log('[API Config] Source: process.env =', process.env.EXPO_PUBLIC_API_BASE_URL, ', Constants.extra =', Constants.expoConfig?.extra?.apiBaseUrl);
+console.log('[API Config] Source: Constants.extra =', Constants.expoConfig?.extra?.apiBaseUrl, ', process.env =', process.env.EXPO_PUBLIC_API_BASE_URL);
 
 export const apiConfig = {
   baseUrl: API_BASE_URL,
   microsoftAuthUrl: MICROSOFT_AUTH_BASE_URL,
-  timeout: 180000,
+  // Hard cap for ordinary requests. A backend that has not answered in 30 s is
+  // treated as unreachable so screens surface an error instead of hanging.
+  timeout: 30000,
+  // Multipart uploads (profile photos) get longer to finish on slow links.
+  uploadTimeout: 120000,
   endpoints: {
     health: "/api/health",
     healthDb: "/api/health/db",
@@ -46,6 +54,9 @@ export const apiConfig = {
         settings: "/api/v1/auth/biometric/settings",
         challenge: "/api/v1/auth/biometric/challenge",
       },
+    },
+    dashboard: {
+      kpis: "/api/v1/dashboard/kpis",
     },
     users: {
       base: "/api/v1/users",
