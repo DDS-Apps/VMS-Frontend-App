@@ -61,8 +61,8 @@ export const ENV_VAR_KEYS = {
     'EXPO_PUBLIC_API_BASE_URL',
     'EXPO_PUBLIC_VMS_API_BASE_URL',
     'EXPO_PUBLIC_MICROSOFT_AUTH_URL',
-    // Web app public domain — used for iOS Universal Links, Android App Links,
-    // and must be substituted into outlook-addin/manifest.xml at deploy time.
+    // Web app public domain — used for iOS Universal Links, Android App Links
+    // and the Outlook add-in manifest (rendered by scripts/build-web.js).
     'EXPO_PUBLIC_APP_DOMAIN',
   ],
   firebase: [

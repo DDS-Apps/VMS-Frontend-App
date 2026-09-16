@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
   },
   welcomeText: {
     ...Typography.display,
-    color: BrandColors.text,
+    color: BrandColors.brandGrey,
     marginTop: Spacing.lg,
     textAlign: 'center',
     fontSize: 22,

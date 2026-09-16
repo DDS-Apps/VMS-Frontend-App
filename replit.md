@@ -1,25 +1,27 @@
 # Dallah Albaraka - Visitor Management System (VMS) Mobile App
 
-## Current Environment: QA
-This Replit project is configured for the **QA/Testing environment**.
+## Environments: QA (this Replit project) and production (vms.dallah.com)
+This Replit project runs and deploys the **QA** frontend. The `main` branch is
+also the source of the **production** web bundle for IIS at `https://vms.dallah.com`.
 
-| Setting | Value |
-|---------|-------|
-| **Backend API** | `https://vms-backend-app-qa.replit.app` |
-| **Firebase Project** | `dallah-albaraka-vms` |
-| **Branch** | `qa` |
-| **Purpose** | QA/Testing - Not for production use |
+| Setting | QA | Production |
+|---------|----|------------|
+| **Web / app domain** | `vms-frontend-folio3.replit.app` | `vms.dallah.com` (IIS) |
+| **Backend API** | `https://vms-backend-app-qa.replit.app` | `https://vms.dallah.com` (`/api/*` proxied by IIS) |
+| **Microsoft SSO** | `https://vms-backend-app-qa.replit.app` | `https://vms.dallah.com` |
+| **Firebase Project** | `dallah-albaraka-vms` | `dallah-albaraka-vms` (shared) |
+| **APP_VARIANT** | `staging` (default) | `production` |
 
-All environment variables are stored in Replit Secrets (not hardcoded in code).
-
-### Multi-Environment Configuration (Added Feb 2026)
-- **dotenv integration**: `app.config.js` uses `dotenv` to load `.env.staging` or `.env.production` based on `APP_VARIANT` env var
-- **EAS build profiles**: `eas.json` sets `APP_VARIANT=staging` for dev/preview profiles and `APP_VARIANT=production` for production profiles
-- **Priority**: `EXPO_PUBLIC_*` env vars take precedence over `.env` file values (backward compat with Replit secrets)
-- **Note**: `.env.production` must be created manually (Replit security blocks creating files with "production" in name containing sensitive data). Copy `.env.staging` and update `API_BASE_URL`/`MICROSOFT_AUTH_URL` to production values.
-- **iOS Permissions**: `NSPhotoLibraryUsageDescription` and `expo-image-picker` plugin added to `app.json` for App Store compliance
-- **Legal Section**: Privacy Policy and Terms of Service links added to Settings screen, opening `{apiConfig.baseUrl}/privacy-policy` and `/terms-conditions`
-- **Store Checklist**: See `docs/store-publishing-checklist.md` for full submission requirements
+### Environment configuration
+- **Source of truth**: `config/app-environments.js` (plain CommonJS, public values only). `app.config.js` derives `extra.apiBaseUrl` / `microsoftAuthUrl` / `appDomain` / `legalPagesUrl`, iOS `associatedDomains` and Android `intentFilters` from it. `app.json` contains no environment-specific hosts.
+- **Precedence**: `EXPO_PUBLIC_<KEY>` process env (Replit shared env; `*.replit.dev` values ignored) → git-ignored variant file (`.env.production` / `.env.staging`, keys `API_BASE_URL`, `MICROSOFT_AUTH_URL`, `APP_DOMAIN`, `LEGAL_PAGES_URL`, **no `EXPO_PUBLIC_` prefix**) → committed defaults. The Expo CLI auto-loads `.env.production` for every `expo export`, which is why variant files must never contain `EXPO_PUBLIC_*` keys.
+- **Guard rails**: with `APP_VARIANT=production`, `app.config.js` ignores inherited `EXPO_PUBLIC_*` URLs (warns) and throws if the result still points at a QA/Replit host. The app reads `Constants.expoConfig.extra.*` before `process.env.EXPO_PUBLIC_*`. Web builds scan `dist/` and fail on foreign hostnames, a mismatched inlined `apiBaseUrl`, or leftover `%%PLACEHOLDER%%` tokens.
+- **Web builds**: `npm run build:web` (QA, used by the Replit deployment via `scripts/build-and-verify.sh`) and `VMS_BACKEND_ORIGIN=http://localhost:3000 npm run build:web:production` (IIS; ignores inherited `EXPO_PUBLIC_*`, renders `web/web.config` into `dist/`, skips pre-compression). Logic lives in `scripts/build-web.js` + `scripts/lib/web-dist.js`.
+- **Static web files** (`public/`): `firebase-messaging-sw.js`, legal pages, `.well-known/*`, Outlook add-in. `expo export` copies them into `dist/`; the add-in manifest/task pane use `%%APP_DOMAIN%%` / `%%APP_ORIGIN%%` / `%%ADDIN_*%%` placeholders filled per environment (distinct add-in ids for QA and production).
+- **EAS build profiles**: `eas.json` sets `APP_VARIANT=staging` for dev/preview profiles and `APP_VARIANT=production` for production profiles.
+- **Docs**: `DEPLOY_WEB_IIS.md` (IIS deployment), `docs/production-readiness-checklist.md` (what is done vs. still outside this repo), `docs/store-publishing-checklist.md`.
+- **iOS Permissions**: `NSPhotoLibraryUsageDescription` and `expo-image-picker` plugin in `app.json` for App Store compliance.
+- **Legal Section**: Privacy Policy and Terms of Service links in Settings open `{legalPagesUrl}/privacy-policy.html` and `/terms-conditions.html`.
 
 ## Overview
 The Dallah Albaraka Visitor Management System (VMS) is a comprehensive React Native and Expo mobile application. Its primary purpose is to streamline visitor management for organizations, supporting nine distinct user roles with specialized interfaces for various functions including visitor requests, check-ins, parking, valet services, and buffet bookings. Visitors interact through unique external invitation links via a lightweight web view. The system is branded with Dallah Albaraka's color scheme, defaults to light mode, and emphasizes UI/UX design and visual analytics.
@@ -126,11 +128,9 @@ The VMS app employs a Clean Architecture pattern, segmenting the application int
 - **Build Configuration:** Requires EAS Build with `@react-native-firebase/crashlytics` plugin in app.json. Uses same `buildReactNativeFromSource: true` fix as Firebase Messaging.
 
 **Multi-Environment Setup:**
-- **Environments:** Production (`dallahdigital-vms`) and QA (`dallah-albaraka-vms`) with separate Firebase projects and backends.
-- **Deployment Strategy:** Separate Replit projects for each environment (Replit limitation of one deployment per project).
-- **Branch Mapping:** `main` branch → Production, `qa` branch → QA.
-- **Configuration:** All environment variables stored in Replit Secrets, not in code. See `config/environments.ts` for utilities and `config/README.md` for setup instructions.
-- **Environment Detection:** Uses Firebase project ID to detect current environment at runtime.
+- **Environments:** QA (Replit) and production (`vms.dallah.com`, IIS) share one Firebase project (`dallah-albaraka-vms`) but have separate backends. See the environment table at the top of this file.
+- **Deployment:** the Replit deployment of this project serves QA (`server.js` + `dist/`); production is a static IIS site built with `npm run build:web:production` (see `DEPLOY_WEB_IIS.md`).
+- **Configuration:** committed defaults in `config/app-environments.js`, optional git-ignored `.env.production` / `.env.staging` overrides, `EXPO_PUBLIC_*` env for QA only. `config/environments.ts` holds the runtime helpers.
 
 ## External Dependencies
 - **React Native:** Core framework.

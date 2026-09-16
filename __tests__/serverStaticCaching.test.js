@@ -44,6 +44,9 @@ beforeAll(async () => {
   distDir = fs.mkdtempSync(path.join(os.tmpdir(), "vms-dist-"));
   writeFile("index.html", "<!doctype html><html><body><div id='root'></div></body></html>");
   writeFile("firebase-messaging-sw.js", "self.addEventListener('push', () => {});");
+  writeFile(".well-known/apple-app-site-association", '{"applinks":{"details":[]}}');
+  writeFile(".well-known/assetlinks.json", '[{"relation":["delegate_permission/common.handle_all_urls"]}]');
+  writeFile("outlook-addin/taskpane.html", "<!doctype html><html><body>task pane</body></html>");
   writeFile(JS_PATH, JS_SOURCE);
   writeFile(`${JS_PATH}.br`, zlib.brotliCompressSync(Buffer.from(JS_SOURCE)));
   writeFile(`${JS_PATH}.gz`, zlib.gzipSync(Buffer.from(JS_SOURCE)));
@@ -158,6 +161,32 @@ describe("static serving", () => {
 
     expect(res.headers["content-type"]).toMatch(/text\/html/);
     expect(res.body.toString()).not.toContain('"dependencies"');
+  });
+
+  it("serves the Universal Links / App Links files instead of the SPA shell", async () => {
+    const aasa = await request("/.well-known/apple-app-site-association");
+    expect(aasa.status).toBe(200);
+    expect(aasa.headers["content-type"]).toMatch(/^application\/json/);
+    expect(aasa.headers["cache-control"]).toBe("no-cache");
+    expect(JSON.parse(aasa.body.toString())).toEqual({ applinks: { details: [] } });
+
+    const assetlinks = await request("/.well-known/assetlinks.json");
+    expect(assetlinks.status).toBe(200);
+    expect(assetlinks.headers["content-type"]).toMatch(/^application\/json/);
+    expect(JSON.parse(assetlinks.body.toString())[0].relation[0]).toBe(
+      "delegate_permission/common.handle_all_urls",
+    );
+  });
+
+  it("lets Outlook frame the add-in task pane but nothing else", async () => {
+    const taskpane = await request("/outlook-addin/taskpane.html");
+    expect(taskpane.status).toBe(200);
+    expect(taskpane.body.toString()).toContain("task pane");
+    expect(taskpane.headers["x-frame-options"]).toBeUndefined();
+    expect(taskpane.headers["x-content-type-options"]).toBe("nosniff");
+
+    const shell = await request("/");
+    expect(shell.headers["x-frame-options"]).toBe("SAMEORIGIN");
   });
 
   it("keeps the health endpoint uncached", async () => {

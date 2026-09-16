@@ -1,6 +1,13 @@
-import { createNavigationContainerRef, StackActions, CommonActions } from '@react-navigation/native';
+import {
+  createNavigationContainerRef,
+  StackActions,
+  CommonActions,
+  type ParamListBase,
+} from '@react-navigation/native';
 
-export const navigationRef = createNavigationContainerRef();
+// Routes are addressed by name (see constants/routes) from deep-link and
+// notification handlers, so the ref is typed against the open param list.
+export const navigationRef = createNavigationContainerRef<ParamListBase>();
 
 export function navigate(name: string, params?: Record<string, unknown>) {
   if (navigationRef.isReady()) {

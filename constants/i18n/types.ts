@@ -282,6 +282,7 @@ export interface TranslationKeys {
     expectedVisitors: string;
     upcomingVisitors: string;
     recentRequests: string;
+    visitorRequests: string;
     selectVisitType: string;
     selectHost: string;
     selectPurpose: string;
@@ -858,6 +859,7 @@ export interface TranslationKeys {
     thisWeek: string;
     last7Days: string;
     walkIns: string;
+    allVisitorsList: string;
     registeredToday: string;
     pending: string;
     pendingAwaiting: string;
@@ -1060,8 +1062,6 @@ export interface TranslationKeys {
     noExceptionsReported: string;
     walkInOnlyNote: string;
     walkInRegistered: string;
-    visitorsFound: string;
-    visitorsFoundPlural: string;
   };
   security: {
     gateControl: string;
@@ -1466,6 +1466,7 @@ export interface TranslationKeys {
     eventCheckedin: string;
     eventCheckedout: string;
     upcoming: string;
+    upcomingAccessibility: string;
     firstReminder: string;
     secondReminder: string;
     autoCancel: string;
@@ -1504,7 +1505,28 @@ export interface TranslationKeys {
     noParking: string;
     needsParking: string;
   };
+  reports: {
+    title: string;
+    totalAllTime: string;
+    totalPeriod: string;
+    exportSettings: string;
+    dateRange: string;
+    format: string;
+    downloadReport: string;
+    preparing: string;
+    success: string;
+    successWithCount: string;
+    error: string;
+    summaryUnavailable: string;
+    excludesCancelled: string;
+    totalRecordsPeriod: string;
+    totalRecordsAllTime: string;
+    allStatuses: string;
+    exportAuditNote: string;
+  };
   calendar: {
+    syncedToOutlook: string;
+    eventCancelled: string;
     chooseDate: string;
     selectTime: string;
     today: string;

@@ -1,269 +1,186 @@
-# Deploying Dallah VMS Web to IIS
+# Deploying the VMS web app to IIS (https://vms.dallah.com)
 
-**Frontend URL:** `https://vms.dallah.com`  
-**API URL:** `https://vms.dallah.com/api/`
+The production web frontend is a static bundle served by IIS at
+`https://vms.dallah.com`. The backend runs on the same host behind IIS and is
+reached through the same domain: IIS forwards `/api/*` and `/auth/microsoft/*`
+to it, so the browser only ever talks to `vms.dallah.com`.
 
----
-
-## Prerequisites
-
-Make sure these are installed before you begin:
-
-| Tool | Where to get it |
-|---|---|
-| Node.js 18+ | https://nodejs.org |
-| IIS with URL Rewrite module | https://www.iis.net/downloads/microsoft/url-rewrite |
-| IIS ARR module (if `/api/` is reverse-proxied) | https://www.iis.net/downloads/microsoft/application-request-routing |
+Both frontend and backend must use that single origin. The frontend bundle is
+built with `https://vms.dallah.com` as its API and Microsoft SSO base URL; the
+mobile apps built with the `production` EAS profile use the same URL.
 
 ---
 
-## Part 1 — Build (on your local machine)
+## 1. Build the production bundle
 
-### 1. Navigate to the repo
+On any machine with Node.js 20+ and the repository checked out:
 
-```cmd
-cd C:\path\to\your\repo
+```bash
+npm ci
+VMS_BACKEND_ORIGIN=http://localhost:3000 npm run build:web:production
 ```
 
-### 2. Install dependencies
+PowerShell:
 
-```cmd
-npm install
-```
-
-### 3. Set environment variables
-
-> ⚠️ These values are **baked into the JS bundle at build time**. If they are wrong, you must rebuild.
-
-**Command Prompt:**
-```cmd
-set EXPO_PUBLIC_API_BASE_URL=https://vms.dallah.com
-set EXPO_PUBLIC_MICROSOFT_AUTH_URL=https://vms.dallah.com
-set EXPO_PUBLIC_VMS_API_BASE_URL=https://vms.dallah.com
-```
-
-**PowerShell:**
 ```powershell
-$env:EXPO_PUBLIC_API_BASE_URL = "https://vms.dallah.com"
-$env:EXPO_PUBLIC_MICROSOFT_AUTH_URL = "https://vms.dallah.com"
-$env:EXPO_PUBLIC_VMS_API_BASE_URL = "https://vms.dallah.com"
+npm ci
+$env:VMS_BACKEND_ORIGIN = "http://localhost:3000"
+npm run build:web:production
 ```
 
-### 4. Build the web bundle
+`VMS_BACKEND_ORIGIN` is the address IIS should forward API traffic to, as seen
+from the IIS server (the port the backend listens on). It is written into
+`dist/web.config`. If the IT team maintains their own `web.config` on the
+server, build with `npm run build:web:production -- --no-web-config` and keep
+theirs; sections 3 and 4 list what it must contain.
 
-```cmd
-npx expo export --platform web
+The build:
+
+1. Ignores any `EXPO_PUBLIC_*` variables in the shell so a QA setup can never
+   leak into production. Production values live in
+   `config/app-environments.js`; a git-ignored `.env.production` can override
+   them (see `docs/production-readiness-checklist.md`).
+2. Runs `expo export --platform web` with `APP_VARIANT=production`.
+3. Fills in the Outlook add-in manifest and task pane for `vms.dallah.com` and
+   writes `dist/web.config`.
+4. Scans every text file in `dist/` and **fails** if it finds a QA or
+   development hostname, a leftover placeholder, or no reference to
+   `vms.dallah.com` in the JS bundle.
+
+The output is `dist/`:
+
+```
+dist/
+├── index.html                      SPA shell (never cached)
+├── web.config                      IIS rules (section 3)
+├── favicon.ico
+├── firebase-messaging-sw.js        web push service worker (must stay at the site root)
+├── privacy-policy.html             legal pages opened by the mobile apps
+├── terms-conditions.html
+├── .well-known/
+│   ├── apple-app-site-association  iOS Universal Links
+│   └── assetlinks.json             Android App Links
+├── outlook-addin/                  Outlook add-in (manifest, task pane, icons)
+├── _expo/static/js/web/*.js        content-hashed JS bundle
+└── assets/                         content-hashed fonts and images
 ```
 
-Output goes to the `dist/` folder in the repo root. Takes 1–3 minutes.
+## 2. IIS prerequisites (one-off)
 
-### 5. Create `dist\web.config`
+Install on the server:
 
-Create a new file at `dist\web.config` with this exact content:
+- **IIS** with Static Content, Default Document, HTTP Compression (static + dynamic)
+- **URL Rewrite 2.1** (https://www.iis.net/downloads/microsoft/url-rewrite)
+- **Application Request Routing 3.0** (https://www.iis.net/downloads/microsoft/application-request-routing)
+  - IIS Manager → server node → *Application Request Routing Cache* →
+    *Server Proxy Settings* → tick **Enable proxy** → Apply.
+- A TLS certificate for `vms.dallah.com` bound to the site on 443, with an
+  HTTP → HTTPS redirect on 80.
 
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<configuration>
-  <system.webServer>
+`web.config` uses `<rewrite>`; if URL Rewrite is not installed IIS answers
+every request with **500.19**.
 
-    <rewrite>
-      <rules>
-        <rule name="SPA Fallback" stopProcessing="true">
-          <match url=".*" />
-          <conditions logicalGrouping="MatchAll">
-            <!-- Don't rewrite real files (JS, CSS, images) -->
-            <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="true" />
-            <!-- Don't rewrite real directories -->
-            <add input="{REQUEST_FILENAME}" matchType="IsDirectory" negate="true" />
-            <!-- Don't rewrite API calls — let them pass to the backend -->
-            <add input="{REQUEST_URI}" pattern="^/api/" negate="true" />
-          </conditions>
-          <action type="Rewrite" url="/index.html" />
-        </rule>
-      </rules>
-    </rewrite>
+## 3. What the shipped web.config does
 
-    <staticContent>
-      <remove fileExtension=".js" />
-      <mimeMap fileExtension=".js" mimeType="application/javascript" />
-      <remove fileExtension=".mjs" />
-      <mimeMap fileExtension=".mjs" mimeType="application/javascript" />
-      <remove fileExtension=".woff2" />
-      <mimeMap fileExtension=".woff2" mimeType="font/woff2" />
-    </staticContent>
+`web/web.config` (template) → `dist/web.config` (rendered). Rules, in order:
 
-  </system.webServer>
-</configuration>
+| Rule | Match | Result |
+|------|-------|--------|
+| API Reverse Proxy | `/api/*` | forwarded to `VMS_BACKEND_ORIGIN/api/*` |
+| Microsoft SSO Reverse Proxy | `/auth/microsoft/*` | forwarded to `VMS_BACKEND_ORIGIN/auth/microsoft/*` |
+| SPA Fallback | anything that is not an existing file or folder | `/index.html` |
+
+Microsoft sign-in on web is a full-page redirect to
+`https://vms.dallah.com/auth/microsoft/login` followed by Azure AD calling
+`https://vms.dallah.com/auth/microsoft/callback`; both paths are outside `/api`
+and would otherwise be swallowed by the SPA fallback.
+
+Static behaviour:
+
+- `Cache-Control: no-cache` for everything by default (HTML shell, service
+  worker, legal pages, `.well-known`, add-in files), so a new deployment is
+  picked up on the next load.
+- `Cache-Control: public, max-age=31536000, immutable` for `_expo/static/*`
+  and `assets/*` (content-hashed file names).
+- MIME types for `.js`, `.mjs`, `.json`, `.woff2`, `.webmanifest`, and
+  `application/json` for the extension-less
+  `.well-known/apple-app-site-association`.
+- Security headers `X-Content-Type-Options: nosniff`,
+  `X-Frame-Options: SAMEORIGIN`, `Referrer-Policy`, with `X-Frame-Options`
+  removed under `/outlook-addin/` because Outlook loads the task pane in a
+  frame.
+- Static and dynamic compression enabled; the build does not ship
+  pre-compressed files for IIS.
+
+## 4. Deploy
+
+1. Stop the site (or use an app-offline file) and clear the previous contents
+   of the site root - stale hashed bundles are harmless, but stale
+   `index.html`, `firebase-messaging-sw.js` or `web.config` are not.
+2. Copy **everything** in `dist/` to the site root, including the hidden
+   `.well-known` folder and `web.config`.
+3. Give the application pool identity read access to the folder.
+4. Start the site.
+
+Deploying the backend is a separate step (its own site or a Windows service on
+the port named in `VMS_BACKEND_ORIGIN`). Until it is running, the SPA loads but
+every API call returns 502 from IIS.
+
+## 5. Verify
+
+From any machine:
+
+```bash
+curl -sI https://vms.dallah.com/                                  # 200 text/html, Cache-Control: no-cache
+curl -sI https://vms.dallah.com/requests/new                      # 200 text/html (SPA fallback)
+curl -sI https://vms.dallah.com/firebase-messaging-sw.js          # 200 application/javascript, no-cache
+curl -s  https://vms.dallah.com/.well-known/apple-app-site-association | head -c 80   # JSON, not HTML
+curl -s  https://vms.dallah.com/.well-known/assetlinks.json | head -c 80              # JSON
+curl -sI https://vms.dallah.com/outlook-addin/taskpane.html       # 200, no X-Frame-Options header
+curl -sI https://vms.dallah.com/privacy-policy.html               # 200 text/html
+curl -sI "https://vms.dallah.com/_expo/static/js/web/$(curl -s https://vms.dallah.com/ | grep -o 'index-[a-f0-9]*\.js' | head -1)"  # immutable
+curl -si https://vms.dallah.com/api/health | head -5             # answered by the backend (once deployed)
 ```
 
-> The `^/api/` exclusion is critical — without it, IIS would intercept all API calls and return `index.html` instead.
+In a browser: open the site, sign in with Microsoft, create a request, and
+confirm that the Network panel shows only `vms.dallah.com` requests.
 
-### 6. Copy `dist\` to the server
+Then submit `https://vms.dallah.com/outlook-addin/manifest.xml` in the
+Microsoft 365 admin centre (Integrated apps → Upload custom apps → provide a
+link). The production add-in id differs from the QA one, so both can be
+installed side by side.
 
-**If you are working directly on the server:**
-```cmd
-xcopy /E /I /Y "dist" "C:\inetpub\wwwroot\vms"
-```
-
-**If you are copying from your machine to a remote server:**
-```cmd
-xcopy /E /I /Y "dist" "\\SERVER-NAME\c$\inetpub\wwwroot\vms"
-```
-
-After copying, the server folder should look like:
-```
-C:\inetpub\wwwroot\vms\
-  index.html
-  web.config
-  _expo\
-    static\
-      js\
-      css\
-  assets\
-```
-
----
-
-## Part 2 — IIS Setup (run all commands as Administrator on the server)
-
-### 7. Create the site
-
-```cmd
-md C:\inetpub\wwwroot\vms
-
-%systemroot%\system32\inetsrv\appcmd add site ^
-  /name:"DallahVMS" ^
-  /physicalPath:"C:\inetpub\wwwroot\vms" ^
-  /bindings:"https/*:443:vms.dallah.com"
-```
-
-> If you don't have an SSL certificate bound yet, use `http/*:80:vms.dallah.com` first and add HTTPS later.
-
-### 8. Set the app pool to No Managed Code
-
-```cmd
-%systemroot%\system32\inetsrv\appcmd set apppool ^
-  /apppool.name:"DallahVMS" ^
-  /managedRuntimeVersion:""
-```
-
-### 9. Verify URL Rewrite module is installed
-
-```cmd
-%systemroot%\system32\inetsrv\appcmd list module /name:RewriteModule
-```
-
-- If it prints a line containing `RewriteModule` → ✅ installed
-- If nothing prints → download and install from https://www.iis.net/downloads/microsoft/url-rewrite, then run `iisreset`
-
-### 10. Start the site
-
-```cmd
-%systemroot%\system32\inetsrv\appcmd start site /site.name:"DallahVMS"
-```
-
----
-
-## Part 3 — `/api/` Reverse Proxy (skip if already configured)
-
-Because the frontend (`https://vms.dallah.com`) and API (`https://vms.dallah.com/api/`) share the same domain, IIS must forward `/api/` requests to wherever the backend actually runs (e.g. `localhost:3000`).
-
-### 11. Install ARR module
-
-Download from https://www.iis.net/downloads/microsoft/application-request-routing and install. Then run:
-
-```cmd
-iisreset
-```
-
-### 12. Enable proxy in ARR
-
-```cmd
-%systemroot%\system32\inetsrv\appcmd set config ^
-  -section:system.webServer/proxy ^
-  /enabled:"True"
-```
-
-### 13. Add reverse proxy rule to `web.config`
-
-Add this `<rule>` **before** the SPA Fallback rule inside the `<rules>` block in `C:\inetpub\wwwroot\vms\web.config`:
-
-```xml
-<rule name="API Reverse Proxy" stopProcessing="true">
-  <match url="^api/(.*)" />
-  <action type="Rewrite" url="http://localhost:YOUR_BACKEND_PORT/api/{R:1}" />
-</rule>
-```
-
-Replace `YOUR_BACKEND_PORT` with the port your backend runs on (e.g. `3000`, `5000`, `8000`).
-
-The final `<rules>` block should look like this:
-
-```xml
-<rules>
-  <!-- 1. Forward /api/* to the backend -->
-  <rule name="API Reverse Proxy" stopProcessing="true">
-    <match url="^api/(.*)" />
-    <action type="Rewrite" url="http://localhost:YOUR_BACKEND_PORT/api/{R:1}" />
-  </rule>
-
-  <!-- 2. All other paths → index.html (SPA) -->
-  <rule name="SPA Fallback" stopProcessing="true">
-    <match url=".*" />
-    <conditions logicalGrouping="MatchAll">
-      <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="true" />
-      <add input="{REQUEST_FILENAME}" matchType="IsDirectory" negate="true" />
-      <add input="{REQUEST_URI}" pattern="^/api/" negate="true" />
-    </conditions>
-    <action type="Rewrite" url="/index.html" />
-  </rule>
-</rules>
-```
-
----
-
-## Part 4 — Verification
-
-Open a browser and run through this checklist:
-
-| Test | Expected |
-|---|---|
-| `https://vms.dallah.com/` | App loads |
-| `https://vms.dallah.com/login` | App loads (not a 404) |
-| `https://vms.dallah.com/api/docs` | Swagger docs load |
-| Browser DevTools → Network tab | API calls go to `vms.dallah.com/api/...` with status 200 |
-
----
-
-## Redeploying after a code change
-
-Every time you push a new version, repeat only these steps:
-
-```cmd
-cd C:\path\to\your\repo
-git pull origin main
-
-set EXPO_PUBLIC_API_BASE_URL=https://vms.dallah.com
-set EXPO_PUBLIC_MICROSOFT_AUTH_URL=https://vms.dallah.com
-set EXPO_PUBLIC_VMS_API_BASE_URL=https://vms.dallah.com
-
-npx expo export --platform web
-
-REM web.config already exists in dist\ from before — keep it
-
-xcopy /E /I /Y "dist" "C:\inetpub\wwwroot\vms"
-```
-
-No IIS restart needed — IIS picks up the new files immediately.
-
----
-
-## Common errors
+## 6. Common errors
 
 | Symptom | Cause | Fix |
-|---|---|---|
-| Every route returns 404 | URL Rewrite module missing or `web.config` not in the right folder | Install URL Rewrite; confirm `web.config` is at `C:\inetpub\wwwroot\vms\web.config` |
-| Blank white screen | Wrong `EXPO_PUBLIC_API_BASE_URL` baked in | Rebuild with correct env vars |
-| API calls return `index.html` | SPA fallback is catching `/api/` | Confirm the `^/api/` exclusion condition is in `web.config` |
-| `.js` files return 404 | Missing MIME type | The `web.config` above adds `.js` — confirm it was saved |
-| `https://vms.dallah.com/api/docs` returns 404 after deploy | ARR not configured or backend not running | Check backend process is running; complete Part 3 above |
+|---------|-------|-----|
+| 500.19 on every request | URL Rewrite module missing | install URL Rewrite, restart IIS |
+| `/api/*` returns 404 with an IIS page | ARR proxy not enabled | enable proxy in ARR Server Proxy Settings |
+| `/api/*` returns 502.3 | backend not running / wrong `VMS_BACKEND_ORIGIN` | start the backend, rebuild or edit `web.config` |
+| Sign in with Microsoft shows the app instead of the Microsoft page | `/auth/microsoft` rule missing (custom `web.config`) | add the rule from section 3 |
+| Deep link `/requests/123` 404s | SPA fallback missing | restore `web.config` |
+| `.well-known/*` returns HTML | SPA fallback matched before static file / hidden folder not copied | copy `.well-known`, check `IsFile` condition |
+| `apple-app-site-association` downloads as octet-stream | mimeMap for `.` missing | keep the `<location>` block from `web.config` |
+| Fonts return 404 | `.woff2`/`.ttf` MIME missing | keep the `staticContent` block |
+| Old UI after deployment | `index.html` cached | check `Cache-Control: no-cache` on `/`; hard refresh |
+| Web push registration fails | service worker not at site root or served as HTML | check `curl -sI /firebase-messaging-sw.js` |
+| Outlook shows a blank task pane | `X-Frame-Options` applied under `/outlook-addin/` | keep the `<location path="outlook-addin">` block |
+
+## 7. Backend expectations
+
+For the single-origin setup the backend must:
+
+- accept `https://vms.dallah.com` as a CORS origin (same-origin in practice,
+  but the mobile apps and Outlook add-in also call it),
+- register `https://vms.dallah.com/auth/microsoft/callback` as the Azure AD
+  redirect URI,
+- be configured with `https://vms.dallah.com` as its **explicit** public base
+  URL for OAuth redirects, invitation links, e-mails and push payloads. Behind
+  ARR the backend sees `http://localhost:3000` as its own address; ARR adds
+  `X-Forwarded-For` but does not reliably provide `X-Forwarded-Proto` or the
+  original `Host`, so the backend must not derive its public URL from the
+  incoming request. If a forwarded-proto header is required, add a
+  `<serverVariables>` entry (`HTTP_X_FORWARDED_PROTO` = `https`) to the two
+  proxy rules and allow that variable in ARR.
+
+Backend deployment itself is outside this repository.

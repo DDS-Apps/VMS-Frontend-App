@@ -1,25 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  CONFIGURE BEFORE DEPLOYING:
-  Replace every occurrence of "YOUR_APP_DOMAIN" below with the actual domain
-  stored in EXPO_PUBLIC_APP_DOMAIN (e.g. vms.dallahdigital.com).
-  QA value:  vms-backend-app-qa.replit.app
-  Prod value: set in EXPO_PUBLIC_APP_DOMAIN secret
+  TEMPLATE - do not upload this file as-is.
+
+  `npm run build:web` / `npm run build:web:production` write the deployable
+  manifest to dist/outlook-addin/manifest.xml, replacing:
+    %%APP_DOMAIN%%          public web domain (QA: Replit host, production: vms.dallah.com)
+    %%ADDIN_ID%%            per-environment add-in id so QA and production can coexist
+    %%ADDIN_VERSION%%       add-in version
+    %%ADDIN_DISPLAY_NAME%%  name shown in Outlook
+  The values live in config/app-environments.js. After deployment the finished
+  manifest is served from https://<domain>/outlook-addin/manifest.xml.
 -->
 <OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xsi:type="MailApp">
-  <Id>a3f7c2d1-84b6-4e9a-bc12-5f3d8e6a1c7b</Id>
-  <Version>1.0.0</Version>
+  <Id>%%ADDIN_ID%%</Id>
+  <Version>%%ADDIN_VERSION%%</Version>
   <ProviderName>Dallah Albaraka VMS</ProviderName>
   <DefaultLocale>en-US</DefaultLocale>
-  <DisplayName DefaultValue="VMS - Create Visit Request"/>
+  <DisplayName DefaultValue="%%ADDIN_DISPLAY_NAME%%"/>
   <Description DefaultValue="Create a visitor request directly from Outlook"/>
-  <IconUrl DefaultValue="https://YOUR_APP_DOMAIN/outlook-addin/icon-80.png"/>
-  <HighResolutionIconUrl DefaultValue="https://YOUR_APP_DOMAIN/outlook-addin/icon-80.png"/>
-  <SupportUrl DefaultValue="https://YOUR_APP_DOMAIN"/>
+  <IconUrl DefaultValue="https://%%APP_DOMAIN%%/outlook-addin/icon-80.png"/>
+  <HighResolutionIconUrl DefaultValue="https://%%APP_DOMAIN%%/outlook-addin/icon-80.png"/>
+  <SupportUrl DefaultValue="https://%%APP_DOMAIN%%"/>
   <AppDomains>
-    <AppDomain>YOUR_APP_DOMAIN</AppDomain>
+    <AppDomain>https://%%APP_DOMAIN%%</AppDomain>
   </AppDomains>
   <Hosts>
     <Host Name="Mailbox"/>
@@ -30,7 +35,7 @@
   <FormSettings>
     <Form xsi:type="ItemRead">
       <DesktopSettings>
-        <SourceLocation DefaultValue="https://YOUR_APP_DOMAIN/outlook-addin/taskpane.html"/>
+        <SourceLocation DefaultValue="https://%%APP_DOMAIN%%/outlook-addin/taskpane.html"/>
         <RequestedHeight>250</RequestedHeight>
       </DesktopSettings>
     </Form>

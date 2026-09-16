@@ -651,7 +651,7 @@ export default function VisitorRequestFormScreen({
         const newStart = toMinutes(formatTimeForQuery(selectedTime));
         const newEnd = toMinutes(formatTimeForQuery(selectedEndTime));
 
-        const timesOverlap = (existingStart: string, existingEnd?: string): boolean => {
+        const timesOverlap = (existingStart: string, existingEnd?: string | null): boolean => {
           const eStart = toMinutes(existingStart);
           // If backend doesn't return endTime yet, fall back to eStart + 60 min
           const eEnd = existingEnd ? toMinutes(existingEnd) : eStart + 60;
@@ -665,7 +665,7 @@ export default function VisitorRequestFormScreen({
 
         if (matchingVisits.length > 0) {
           const sameEmployeeVisits = matchingVisits.filter(
-            (v) => v.employeeName === user?.fullName || v.employeeName === user?.name
+            (v) => Boolean(user?.name) && v.employeeName === user?.name
           );
 
           if (sameEmployeeVisits.length > 0) {
@@ -680,9 +680,9 @@ export default function VisitorRequestFormScreen({
                   text: t("common.edit"),
                   onPress: () => {
                     const existingVisit = sameEmployeeVisits[0];
-                    navigation.navigate(ROUTES.REQUEST_DETAILS as never, {
+                    navigation.navigate("RequestDetails", {
                       requestId: existingVisit.id,
-                    } as never);
+                    });
                   },
                 },
               ]

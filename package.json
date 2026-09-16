@@ -1,7 +1,7 @@
 {
   "name": "dallah-vms",
   "main": "index.js",
-  "version": "1.0.51",
+  "version": "3.0.0",
   "scripts": {
     "dev": "npm run dev:mobile",
     "dev:mobile": "EXPO_PACKAGER_PROXY_URL=https://$REPLIT_DEV_DOMAIN REACT_NATIVE_PACKAGER_HOSTNAME=$REPLIT_DEV_DOMAIN npx expo start --port 5000 --host tunnel",
@@ -11,7 +11,8 @@
     "android": "npx expo start --android",
     "ios": "npx expo start --ios",
     "web": "npx expo start --web",
-    "build:web": "npx expo export --platform web",
+    "build:web": "node scripts/build-web.js --variant qa",
+    "build:web:production": "node scripts/build-web.js --variant production",
     "build:ios": "node scripts/build-ios-with-apple-key.js",
     "build:android": "npx eas build --platform android --profile production",
     "build:preview:ios": "node scripts/build-ios-with-apple-key.js --eas-profile preview",

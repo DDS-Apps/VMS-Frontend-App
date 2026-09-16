@@ -34,6 +34,8 @@ import {
   getPendingApprovalWalkInScheduledEndMs,
 } from "@/utils/visitExpiredGuard";
 import { useTimeBoundaryTick } from "@/hooks/useTimeBoundaryTick";
+import { useUpcomingIndicator } from "@/hooks/useUpcomingVisitTimer";
+import { UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES, isUpcomingIndicatorEligibleStatus } from "@/constants/requestConstants";
 
 const ReceptionistUpcomingAlertIcon = React.memo(({ visitDate, visitTime, status }: { visitDate: string; visitTime: string; status: string }) => {
   const { theme } = useTheme();

@@ -17,6 +17,11 @@ const REVALIDATE_CACHE = "no-cache";
 const COMPRESSIBLE =
   /\.(js|mjs|css|html|json|map|svg|txt|xml|webmanifest|ttf|otf)$/i;
 
+const OUTLOOK_ADDIN_PREFIX = "/outlook-addin/";
+
+// Apple's extension-less Universal Links file must be served as JSON.
+const APPLE_APP_SITE_ASSOCIATION = "/.well-known/apple-app-site-association";
+
 function cacheControlFor(urlPath) {
   return IMMUTABLE_PREFIXES.some((prefix) => urlPath.startsWith(prefix))
     ? IMMUTABLE_CACHE
@@ -78,7 +83,11 @@ function createApp(distDir) {
 
   app.use(function (req, res, next) {
     res.setHeader("X-Content-Type-Options", "nosniff");
-    res.setHeader("X-Frame-Options", "SAMEORIGIN");
+    // Outlook renders the add-in task pane inside its own frame, so those
+    // files must stay frameable by the Office hosts.
+    if (!req.path.startsWith(OUTLOOK_ADDIN_PREFIX)) {
+      res.setHeader("X-Frame-Options", "SAMEORIGIN");
+    }
     res.setHeader("X-XSS-Protection", "1; mode=block");
     next();
   });
@@ -138,10 +147,17 @@ function createApp(distDir) {
       lastModified: true,
       index: "index.html",
       cacheControl: false,
+      // The default ("ignore") hides anything under a dot-directory, which
+      // would turn /.well-known/* (Universal Links / App Links) into the SPA
+      // shell. dist/ is generated, so there are no private dotfiles to hide.
+      dotfiles: "allow",
       setHeaders: function (res, filePath) {
         const relative =
           "/" + path.relative(DIST_DIR, filePath).split(path.sep).join("/");
         res.setHeader("Cache-Control", cacheControlFor(relative));
+        if (relative === APPLE_APP_SITE_ASSOCIATION) {
+          res.setHeader("Content-Type", "application/json; charset=utf-8");
+        }
       },
     }),
   );

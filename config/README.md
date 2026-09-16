@@ -1,130 +1,84 @@
-# Environment Configuration
+# Environment configuration
 
-This folder contains environment configuration utilities and documentation.
+The app has two environments. Their public values are committed in
+`config/app-environments.js`, the single source of truth read by
+`app.config.js`, `scripts/build-web.js` and the tests.
 
-## Overview
+| | QA | Production |
+|---|---|---|
+| Web app / app domain | `vms-frontend-folio3.replit.app` (Replit deployment of this project) | `vms.dallah.com` (IIS) |
+| API base URL | `https://vms-backend-app-qa.replit.app` | `https://vms.dallah.com` (`/api/*` proxied by IIS) |
+| Microsoft SSO base URL | `https://vms-backend-app-qa.replit.app` | `https://vms.dallah.com` |
+| Legal pages | `https://vms-frontend-folio3.replit.app` | `https://vms.dallah.com` |
+| Outlook add-in | `a3f7c2d1-…` "VMS QA - Create Visit Request" | `c98d21ef-…` "VMS - Create Visit Request" |
+| Firebase project | `dallah-albaraka-vms` | `dallah-albaraka-vms` (shared) |
+| `APP_VARIANT` | `staging` (default) | `production` |
 
-The VMS app supports two environments:
-
-| Environment | Git Branch | Firebase Project | Description |
-|-------------|-----------|------------------|-------------|
-| **Production** | `main` | `dallah-albaraka-vms` | Live production environment |
-| **QA** | `qa` | `dallah-albaraka-vms` | Testing/QA environment |
-
-Production and QA use the same Firebase project and native client files. Their
-backend URLs and data environments remain separate.
-
-## Setup Instructions
-
-### For Production (Current Replit Project)
-
-The production environment is already configured in this Replit project.
-
-### For QA (New Replit Project Required)
-
-Since Replit only supports one deployment per project, you need to create a separate Replit project for QA:
-
-1. **Create new Replit project** (e.g., `dallah-vms-qa`)
-2. **Connect to `qa` git branch**
-3. **Add all environment variables** from the QA configuration below
-
-## Environment Variable Reference
-
-### Production Environment
-| Variable | Value |
-|----------|-------|
-| `EXPO_PUBLIC_API_BASE_URL` | `https://vms-backend-app-qa.replit.app` |
-| `EXPO_PUBLIC_VMS_API_BASE_URL` | `https://vms-backend-app-qa.replit.app/api` |
-| `EXPO_PUBLIC_MICROSOFT_AUTH_URL` | `https://vms-backend-app-qa.replit.app` |
-| `EXPO_PUBLIC_FIREBASE_PROJECT_ID` | `dallah-albaraka-vms` |
-
-### QA Environment
-| Variable | Value |
-|----------|-------|
-| `EXPO_PUBLIC_API_BASE_URL` | `https://vms-backend-app-qa.replit.app` |
-| `EXPO_PUBLIC_VMS_API_BASE_URL` | `https://vms-backend-app-qa.replit.app` |
-| `EXPO_PUBLIC_MICROSOFT_AUTH_URL` | `https://vms-backend-app-qa.replit.app` |
-| `EXPO_PUBLIC_FIREBASE_PROJECT_ID` | `dallah-albaraka-vms` |
-
-## Required Environment Variables
-
-Add these in Replit Secrets for each environment:
-
-### Backend Configuration
-```
-EXPO_PUBLIC_API_BASE_URL          # Base API URL
-EXPO_PUBLIC_VMS_API_BASE_URL      # VMS API endpoint  
-EXPO_PUBLIC_MICROSOFT_AUTH_URL    # Microsoft OAuth URL
-```
-
-### Firebase Configuration
-```
-EXPO_PUBLIC_FIREBASE_API_KEY
-EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN
-EXPO_PUBLIC_FIREBASE_PROJECT_ID
-EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET
-EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
-EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID
-```
-
-### Firebase App IDs (Platform-specific)
-```
-EXPO_PUBLIC_FIREBASE_APP_ID_WEB
-EXPO_PUBLIC_FIREBASE_APP_ID_ANDROID
-EXPO_PUBLIC_FIREBASE_APP_ID_IOS
-```
-
-### Push Notifications
-```
-EXPO_PUBLIC_FIREBASE_VAPID_KEY
-```
-
-### Native Push Credential Alignment
-
-- The backend Firebase Admin service account must belong to
-  `dallah-albaraka-vms` (sender/project number `913604772710`).
-- Firebase Cloud Messaging must have a valid Apple APNs authentication key for
-  bundle ID `com.dallah.vms` and Apple Team ID `SNJM77V43A`.
-- After changing native Firebase configuration, create a new Android/iOS build,
-  uninstall the previous app, and install the new build so each device
-  registers a fresh token from the shared Firebase project.
-- Never reuse tokens issued by the obsolete `dallahdigital-vms` Firebase
-  project.
-
-For the complete frontend/backend contract, secure Firebase Admin setup, APNs
-requirements, rollout checklist, and troubleshooting guide, see
-[`docs/FIREBASE_BACKEND_ALIGNMENT.md`](../docs/FIREBASE_BACKEND_ALIGNMENT.md).
+Both environments use the same Firebase project and the native Firebase files
+in `config/qa/`.
 
 ## Files
 
-- `environments.ts` - TypeScript utilities for environment detection and validation
-- `README.md` - This documentation file
+| File | Purpose |
+|------|---------|
+| `app-environments.js` | Committed QA/production values, resolution rules, production guard (`assertProductionConfig`) |
+| `environments.ts` | Runtime helpers used by the app (environment detection, env var validation) |
+| `qa/google-services.json`, `qa/GoogleService-Info.plist` | Native Firebase configuration (shared by both environments) |
 
-## Usage in Code
+## How values are resolved
 
-```typescript
-import { 
-  getCurrentEnvironment, 
-  getEnvironmentConfig,
-  validateEnvironmentConfig 
-} from '@/config/environments';
+For `apiBaseUrl`, `microsoftAuthUrl`, `appDomain` and `legalPagesUrl`, highest
+priority first:
 
-// Detect current environment
-const env = getCurrentEnvironment(); // 'production' | 'qa' | 'unknown'
+1. `EXPO_PUBLIC_API_BASE_URL`, `EXPO_PUBLIC_MICROSOFT_AUTH_URL`,
+   `EXPO_PUBLIC_APP_DOMAIN`, `EXPO_PUBLIC_LEGAL_PAGES_URL` from the process
+   environment (Replit shared env, CI). Values pointing at a `*.replit.dev`
+   workspace are ignored. When `APP_VARIANT=production` this level is ignored
+   entirely (with a warning), so production web and EAS builds can be started
+   from this workspace despite its QA shared env.
+2. `API_BASE_URL`, `MICROSOFT_AUTH_URL`, `APP_DOMAIN`, `LEGAL_PAGES_URL` from
+   the git-ignored variant file: `.env.production` when
+   `APP_VARIANT=production`, otherwise `.env.staging`. Do **not** use
+   `EXPO_PUBLIC_` names in these files - the Expo CLI loads `.env.production`
+   for every `expo export` and would inline them into QA builds.
+3. The committed defaults.
 
-// Get full config from env vars
-const config = getEnvironmentConfig();
+`microsoftAuthUrl` follows `apiBaseUrl` unless set explicitly.
 
-// Validate all required vars are set
-const missing = validateEnvironmentConfig();
-if (missing.length > 0) {
-  console.warn('Missing environment variables:', missing);
-}
+If `APP_VARIANT=production` ends up pointing at a QA or Replit host (e.g. a
+stale `.env.production`), `app.config.js` throws and the build stops. The app
+reads `Constants.expoConfig.extra.*` before `process.env.EXPO_PUBLIC_*`, so the
+resolved values are what the app uses at runtime.
+
+## What is derived from the environment
+
+- `extra.apiBaseUrl`, `extra.microsoftAuthUrl`, `extra.appDomain`,
+  `extra.legalPagesUrl`, `extra.environment`
+- iOS `associatedDomains` (`applinks:<appDomain>`) and Android `intentFilters`
+  for `/requests/new`, `/invite/*`, `/requests/*`
+- Outlook add-in manifest and task pane (`public/outlook-addin/`), rendered
+  into `dist/` by the web build
+- `dist/web.config` for IIS (production web build only)
+
+## Firebase
+
+Public Firebase values default to the `dallah-albaraka-vms` project in
+`app.config.js` and can be overridden with `EXPO_PUBLIC_FIREBASE_*` variables
+or the same keys (without the prefix) in the variant file:
+
+```
+FIREBASE_API_KEY, FIREBASE_AUTH_DOMAIN, FIREBASE_PROJECT_ID,
+FIREBASE_STORAGE_BUCKET, FIREBASE_MESSAGING_SENDER_ID, FIREBASE_MEASUREMENT_ID,
+FIREBASE_APP_ID_WEB, FIREBASE_APP_ID_ANDROID, FIREBASE_APP_ID_IOS, FIREBASE_VAPID_KEY
 ```
 
-## Security Notes
+## Building
 
-- **NEVER** commit actual API keys or secrets to the repository
-- All sensitive values should be stored in Replit Secrets
-- The `environments.ts` file only contains structure definitions, not actual values
-- Firebase project IDs are public identifiers and safe to include
+| Target | Command |
+|--------|---------|
+| QA web (Replit deployment) | `npm run build:web` |
+| Production web (IIS) | `VMS_BACKEND_ORIGIN=http://localhost:3000 npm run build:web:production` |
+| Production iOS / Android | `npm run build:ios` / `npm run build:android` (EAS `production` profile) |
+| QA iOS / Android | `npm run build:preview:ios` / `npm run build:preview:android` |
+
+See `DEPLOY_WEB_IIS.md` and `docs/production-readiness-checklist.md`.

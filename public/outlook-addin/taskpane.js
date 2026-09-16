@@ -1,10 +1,11 @@
 // VMS Outlook Add-in — Task Pane
 // Opens the VMS web app with sender details pre-filled via URL query params.
 //
-// APP_URL comes from window.__VMS_APP_URL__, which the backend injects into
-// taskpane.html at serve time using the EXPO_PUBLIC_APP_DOMAIN environment variable.
-// Falls back to window.location.origin if the placeholder was never substituted
-// (e.g. during local development when the file is served as plain static).
+// APP_URL comes from window.__VMS_APP_URL__, which scripts/build-web.js injects
+// into taskpane.html at build time (the environment's web origin, e.g.
+// https://vms.dallah.com). Falls back to window.location.origin if the
+// placeholder was never substituted (e.g. when served straight from public/
+// during local development).
 const APP_URL = (
   typeof window.__VMS_APP_URL__ === 'string' &&
   window.__VMS_APP_URL__ &&
