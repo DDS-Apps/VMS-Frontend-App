@@ -33,7 +33,7 @@ jest.mock("@/hooks/queries/useDashboardKpiQuery", () => ({
 
 // The real auth service and the real axios interceptor chain are used here; only
 // the network is scripted through an adapter.
-import { AuthProvider, useAuth, type AuthUser } from "@/contexts/AuthContext";
+import { AuthProvider, SESSION_EXPIRED_ERROR, useAuth, type AuthUser } from "@/contexts/AuthContext";
 import { getAccessToken, getRefreshToken, httpClient } from "@/api/httpClient";
 
 const TOKEN_STORAGE_KEY = "@vms_tokens";
@@ -113,10 +113,66 @@ function installNetwork(): Script {
   return { releaseRefresh, calls };
 }
 
+function installRuntimeFailureNetwork(): { calls: string[] } {
+  const calls: string[] = [];
+  let startupProfile = true;
+  const ok = (config: AxiosRequestConfig, data: unknown): AxiosResponse => ({
+    status: 200,
+    statusText: "OK",
+    data,
+    headers: {},
+    config: config as never,
+  });
+
+  const adapter = async (config: AxiosRequestConfig): Promise<AxiosResponse> => {
+    const url = config.url ?? "";
+    calls.push(`${(config.method ?? "get").toUpperCase()} ${url}`);
+
+    if (url.includes("/auth/login")) {
+      return ok(config, {
+        success: true,
+        data: {
+          accessToken: "new-login-access",
+          refreshToken: "refresh-1",
+          user: { id: "user-2", email: "new@example.com", name: "New Login", role: "employee" },
+        },
+      });
+    }
+    if (url.includes("/auth/refresh")) {
+      throw new AxiosError("Network Error", AxiosError.ERR_NETWORK, config as never, {});
+    }
+    if (url.includes("/users/me") && startupProfile) {
+      startupProfile = false;
+      return ok(config, {
+        success: true,
+        data: { id: "user-1", email: cachedUser.email, name: cachedUser.name, role: cachedUser.role },
+      });
+    }
+    if (url.includes("/users/me")) {
+      throw new AxiosError(
+        "Request failed with status code 401",
+        AxiosError.ERR_BAD_REQUEST,
+        config as never,
+        {},
+        { status: 401, statusText: "Unauthorized", data: { message: "expired" }, headers: {}, config: config as never },
+      );
+    }
+    throw new Error(`unexpected request ${url}`);
+  };
+
+  axios.defaults.adapter = adapter;
+  httpClient.defaults.adapter = adapter;
+  return { calls };
+}
+
 describe("logout while a token refresh is in flight", () => {
   beforeEach(async () => {
     await AsyncStorage.clear();
     latestAuth = null;
+    mockPushInitialize.mockReset();
+    mockPushInitialize.mockResolvedValue(undefined);
+    mockPushUnregister.mockReset();
+    mockPushUnregister.mockResolvedValue(undefined);
     jest.spyOn(console, "log").mockImplementation(() => {});
     jest.spyOn(console, "warn").mockImplementation(() => {});
   });
@@ -146,6 +202,9 @@ describe("logout while a token refresh is in flight", () => {
     // Cached session restored; the background profile request hit a 401 and a
     // refresh is now pending behind the gate.
     expect(latestAuth?.isAuthenticated).toBe(true);
+    // The hardened transport has an async request interceptor, so allow its
+    // refresh dispatch to reach the scripted adapter before asserting.
+    await flush();
     expect(network.calls).toEqual(
       expect.arrayContaining(["GET /api/v1/users/me", expect.stringMatching(/^POST .*\/auth\/refresh$/)]),
     );
@@ -167,6 +226,61 @@ describe("logout while a token refresh is in flight", () => {
     expect(getRefreshToken()).toBeNull();
     expect(await AsyncStorage.getItem(TOKEN_STORAGE_KEY)).toBeNull();
     expect(await AsyncStorage.getItem(AUTH_STORAGE_KEY)).toBeNull();
+
+    act(() => {
+      renderer.unmount();
+    });
+  });
+
+  it("signs out immediately for simultaneous runtime failures and keeps a new login alive during cleanup", async () => {
+    await AsyncStorage.setItem(
+      TOKEN_STORAGE_KEY,
+      JSON.stringify({ accessToken: "stale-access", refreshToken: "refresh-1", expiresAt: Date.now() + 3600_000 }),
+    );
+    await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(cachedUser));
+    const network = installRuntimeFailureNetwork();
+    let releasePush!: () => void;
+    mockPushUnregister.mockImplementation(
+      () => new Promise<void>((resolve) => {
+        releasePush = resolve;
+      }),
+    );
+
+    let renderer!: ReturnType<typeof create>;
+    await act(async () => {
+      renderer = create(
+        <AuthProvider>
+          <Probe />
+        </AuthProvider>,
+      );
+    });
+    await flush();
+    expect(latestAuth?.isAuthenticated).toBe(true);
+
+    // Both callers share the same protected read and refresh operation. The
+    // callback must clear local state before the deferred cleanup resolves.
+    await act(async () => {
+      await Promise.all([latestAuth!.refreshUser(), latestAuth!.refreshUser()]);
+    });
+    expect(network.calls.filter((call) => call === "GET /api/v1/users/me")).toHaveLength(2);
+    expect(latestAuth?.isAuthenticated).toBe(false);
+    expect(latestAuth?.user).toBeNull();
+    expect(latestAuth?.error).toBe(SESSION_EXPIRED_ERROR);
+    expect(getAccessToken()).toBeNull();
+    expect(getRefreshToken()).toBeNull();
+    expect(mockPushUnregister).toHaveBeenCalledTimes(1);
+
+    // A new login must not be blocked by the old session's cleanup.
+    await act(async () => {
+      await latestAuth!.login("new@example.com", "password");
+    });
+    expect(latestAuth?.isAuthenticated).toBe(true);
+    expect(latestAuth?.user?.id).toBe("user-2");
+
+    releasePush();
+    await flush();
+    expect(latestAuth?.isAuthenticated).toBe(true);
+    expect(getAccessToken()).toBe("new-login-access");
 
     act(() => {
       renderer.unmount();

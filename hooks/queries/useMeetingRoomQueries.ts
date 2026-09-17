@@ -34,15 +34,17 @@ export const meetingRoomKeys = {
 export function useMeetingRoomsQuery(params?: ListMeetingRoomsParams) {
   return useQuery<PaginatedResponse<MeetingRoomDto>>({
     queryKey: meetingRoomKeys.roomsList(params),
-    queryFn: () => meetingRoomApiService.list(params),
+    queryFn: ({ signal }) => meetingRoomApiService.list(params, { signal }),
+    retry: false,
   });
 }
 
 export function useMeetingRoomQuery(id: string, enabled = true) {
   return useQuery<MeetingRoomDto>({
     queryKey: meetingRoomKeys.roomDetail(id),
-    queryFn: () => meetingRoomApiService.getById(id),
+    queryFn: ({ signal }) => meetingRoomApiService.getById(id, { signal }),
     enabled: enabled && !!id,
+    retry: false,
   });
 }
 
@@ -54,8 +56,9 @@ export function useAvailableMeetingRoomsQuery(
 ) {
   return useQuery<MeetingRoomDto[]>({
     queryKey: meetingRoomKeys.availableRooms(startTime, endTime, capacity),
-    queryFn: () => meetingRoomApiService.getAvailable(startTime, endTime, capacity),
+    queryFn: ({ signal }) => meetingRoomApiService.getAvailable(startTime, endTime, capacity, { signal }),
     enabled: enabled && !!startTime && !!endTime,
+    retry: false,
   });
 }
 
@@ -65,7 +68,7 @@ export function useRoomAvailabilityQuery(
 ) {
   return useQuery<RoomAvailabilityResponse>({
     queryKey: params ? meetingRoomKeys.roomAvailability(params) : ['meeting-rooms', 'availability', 'empty'],
-    queryFn: () => meetingRoomApiService.checkRoomAvailability(params!),
+    queryFn: ({ signal }) => meetingRoomApiService.checkRoomAvailability(params!, { signal }),
     enabled: enabled && !!params?.date && !!params?.startTime && !!params?.endTime,
     staleTime: 30 * 1000,
     retry: false,
@@ -75,23 +78,26 @@ export function useRoomAvailabilityQuery(
 export function useMeetingBookingsQuery(params?: ListMeetingBookingsParams) {
   return useQuery<PaginatedResponse<MeetingBookingDto>>({
     queryKey: meetingRoomKeys.bookingsList(params),
-    queryFn: () => meetingRoomApiService.listBookings(params),
+    queryFn: ({ signal }) => meetingRoomApiService.listBookings(params, { signal }),
+    retry: false,
   });
 }
 
 export function useMeetingBookingQuery(id: string, enabled = true) {
   return useQuery<MeetingBookingDto>({
     queryKey: meetingRoomKeys.bookingDetail(id),
-    queryFn: () => meetingRoomApiService.getBooking(id),
+    queryFn: ({ signal }) => meetingRoomApiService.getBooking(id, { signal }),
     enabled: enabled && !!id,
+    retry: false,
   });
 }
 
 export function useTodaysMeetingBookingsQuery() {
   return useQuery<MeetingBookingDto[]>({
     queryKey: meetingRoomKeys.todaysBookings(),
-    queryFn: () => meetingRoomApiService.getTodaysBookings(),
+    queryFn: ({ signal }) => meetingRoomApiService.getTodaysBookings({ signal }),
     staleTime: 60 * 1000,
+    retry: false,
   });
 }
 

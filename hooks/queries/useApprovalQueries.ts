@@ -89,31 +89,35 @@ export const requestKeys = {
 export function useRequestsQuery(params?: ListRequestsParams) {
   return useQuery<PaginatedResponse<RequestDto>>({
     queryKey: requestKeys.list(params),
-    queryFn: () => requestApiService.list(params),
+    queryFn: ({ signal }) => requestApiService.list(params, { signal }),
+    retry: false,
   });
 }
 
 export function useRequestQuery(id: string, enabled = true) {
   return useQuery<RequestDto>({
     queryKey: requestKeys.detail(id),
-    queryFn: () => requestApiService.getById(id),
+    queryFn: ({ signal }) => requestApiService.getById(id, { signal }),
     enabled: enabled && !!id,
+    retry: false,
   });
 }
 
 export function useMyRequestsQuery() {
   return useQuery<RequestDto[]>({
     queryKey: requestKeys.myRequests(),
-    queryFn: () => requestApiService.getMyRequests(),
+    queryFn: ({ signal }) => requestApiService.getMyRequests({ signal }),
+    retry: false,
   });
 }
 
 export function usePendingApprovalsQuery(params?: PendingApprovalListParams, enabled = true) {
   return useQuery<PendingApprovalListResponse>({
     queryKey: requestKeys.pendingApprovals(params),
-    queryFn: () => requestApiService.getPendingApprovals(params),
+    queryFn: ({ signal }) => requestApiService.getPendingApprovals(params, { signal }),
     staleTime: 30 * 1000,
     enabled,
+    retry: false,
   });
 }
 
@@ -245,37 +249,41 @@ export function useRejectVisitMutation() {
 export function useAwaitingVisitorQuery(params?: AwaitingVisitorListParams, enabled = true) {
   return useQuery<AwaitingVisitorListResponse>({
     queryKey: requestKeys.awaitingVisitor(params),
-    queryFn: () => requestApiService.getAwaitingVisitor(params),
+    queryFn: ({ signal }) => requestApiService.getAwaitingVisitor(params, { signal }),
     staleTime: 30 * 1000,
     enabled,
+    retry: false,
   });
 }
 
 export function usePendingHostWalkInsQuery(params?: PendingHostWalkInListParams, enabled = true) {
   return useQuery<PendingHostWalkInListResponse>({
     queryKey: requestKeys.pendingHostWalkIns(params),
-    queryFn: () => requestApiService.getPendingHostWalkIns(params),
+    queryFn: ({ signal }) => requestApiService.getPendingHostWalkIns(params, { signal }),
     staleTime: 30 * 1000,
     enabled,
+    retry: false,
   });
 }
 
 export function useVisitsQuery(params?: VisitListParams, enabled = true) {
   return useQuery<VisitListResponse>({
     queryKey: requestKeys.visits(params),
-    queryFn: () => requestApiService.listVisits(params),
+    queryFn: ({ signal }) => requestApiService.listVisits(params, { signal }),
     staleTime: 30 * 1000,
     enabled,
+    retry: false,
   });
 }
 
 export function useDuplicateCheckQuery(params?: { date: string; phone?: string; email?: string }, enabled = true) {
   return useQuery<VisitListResponse>({
     queryKey: [...requestKeys.all, 'duplicate-check', params] as const,
-    queryFn: () => requestApiService.checkDuplicateVisit(params || { date: '' }),
+    queryFn: ({ signal }) => requestApiService.checkDuplicateVisit(params || { date: '' }, { signal }),
     // Re-typing the same value (or a retry within the window) reuses the answer.
     staleTime: 30 * 1000,
     enabled: enabled && !!params?.date && !!(params?.phone || params?.email),
+    retry: false,
   });
 }
 
@@ -284,8 +292,11 @@ const DEFAULT_PAGE_SIZE = 20;
 export function useInfiniteVisitsQuery(params?: Omit<VisitListParams, 'page'>, enabled = true) {
   return useInfiniteQuery({
     queryKey: [...requestKeys.visits(params), 'infinite'] as const,
-    queryFn: async ({ pageParam = 1 }) => {
-      return requestApiService.listVisits({ ...params, page: pageParam, limit: params?.limit || DEFAULT_PAGE_SIZE });
+    queryFn: async ({ pageParam = 1, signal }) => {
+      return requestApiService.listVisits(
+        { ...params, page: pageParam, limit: params?.limit || DEFAULT_PAGE_SIZE },
+        { signal },
+      );
     },
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
@@ -294,14 +305,18 @@ export function useInfiniteVisitsQuery(params?: Omit<VisitListParams, 'page'>, e
     },
     staleTime: 30 * 1000,
     enabled,
+    retry: false,
   });
 }
 
 export function useInfiniteReceptionRequestsQuery(params?: Omit<VisitListParams, 'page'>, enabled = true) {
   return useInfiniteQuery({
     queryKey: [...requestKeys.receptionRequests(params), 'infinite'] as const,
-    queryFn: async ({ pageParam = 1 }) => {
-      return requestApiService.listReceptionRequests({ ...params, page: pageParam, limit: params?.limit || DEFAULT_PAGE_SIZE });
+    queryFn: async ({ pageParam = 1, signal }) => {
+      return requestApiService.listReceptionRequests(
+        { ...params, page: pageParam, limit: params?.limit || DEFAULT_PAGE_SIZE },
+        { signal },
+      );
     },
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
@@ -310,14 +325,18 @@ export function useInfiniteReceptionRequestsQuery(params?: Omit<VisitListParams,
     },
     staleTime: 30 * 1000,
     enabled,
+    retry: false,
   });
 }
 
 export function useInfinitePendingApprovalsQuery(params?: Omit<PendingApprovalListParams, 'page'>, enabled = true) {
   return useInfiniteQuery({
     queryKey: [...requestKeys.pendingApprovals(params), 'infinite'] as const,
-    queryFn: async ({ pageParam = 1 }) => {
-      return requestApiService.getPendingApprovals({ ...params, page: pageParam, limit: params?.limit || DEFAULT_PAGE_SIZE });
+    queryFn: async ({ pageParam = 1, signal }) => {
+      return requestApiService.getPendingApprovals(
+        { ...params, page: pageParam, limit: params?.limit || DEFAULT_PAGE_SIZE },
+        { signal },
+      );
     },
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
@@ -326,6 +345,7 @@ export function useInfinitePendingApprovalsQuery(params?: Omit<PendingApprovalLi
     },
     staleTime: 30 * 1000,
     enabled,
+    retry: false,
   });
 }
 
@@ -333,26 +353,12 @@ export function useCreateVisitMutation() {
   const queryClient = useQueryClient();
 
   return useMutation<CreateVisitResponse, Error, CreateVisitPayload>({
-    mutationFn: async (data) => {
-      console.log('[useCreateVisitMutation] Starting mutation with data:', JSON.stringify(data, null, 2));
-      try {
-        const result = await requestApiService.createVisit(data);
-        console.log('[useCreateVisitMutation] Mutation successful:', result);
-        return result;
-      } catch (error) {
-        console.error('[useCreateVisitMutation] Mutation failed:', error);
-        throw error;
-      }
-    },
-    onSuccess: (data) => {
-      console.log('[useCreateVisitMutation] onSuccess callback - invalidating queries');
+    mutationFn: (data) => requestApiService.createVisit(data),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: requestKeys.all });
       queryClient.invalidateQueries({ queryKey: requestKeys.visits() });
       queryClient.invalidateQueries({ queryKey: invitationKeys.all });
       invalidateDashboardKpis(queryClient);
-    },
-    onError: (error) => {
-      console.error('[useCreateVisitMutation] onError callback:', error);
     },
   });
 }
@@ -360,8 +366,9 @@ export function useCreateVisitMutation() {
 export function useVisitDetailsQuery(id: string, enabled = true) {
   return useQuery<VisitDetailsDto>({
     queryKey: requestKeys.visitDetail(id),
-    queryFn: () => requestApiService.getVisitById(id),
+    queryFn: ({ signal }) => requestApiService.getVisitById(id, { signal }),
     enabled: enabled && !!id,
+    retry: false,
   });
 }
 
@@ -436,9 +443,10 @@ export const approvalHistoryKeys = {
 export function useApprovalHistoryQuery(params?: ApprovalHistoryListParams, enabled = true) {
   return useQuery<ApprovalHistoryResponse>({
     queryKey: approvalHistoryKeys.list(params),
-    queryFn: () => requestApiService.getApprovalHistory(params),
+    queryFn: ({ signal }) => requestApiService.getApprovalHistory(params, { signal }),
     enabled,
     staleTime: 30 * 1000,
+    retry: false,
   });
 }
 
@@ -447,12 +455,12 @@ const APPROVAL_HISTORY_PAGE_SIZE = 20;
 export function useInfiniteApprovalHistoryQuery(params?: Omit<ApprovalHistoryListParams, 'page'>) {
   return useInfiniteQuery<ApprovalHistoryResponse>({
     queryKey: [...approvalHistoryKeys.list(params), 'infinite'] as const,
-    queryFn: async ({ pageParam = 1 }) => {
+    queryFn: async ({ pageParam = 1, signal }) => {
       return requestApiService.getApprovalHistory({ 
         ...params, 
         page: pageParam as number, 
         limit: params?.limit || APPROVAL_HISTORY_PAGE_SIZE 
-      });
+      }, { signal });
     },
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
@@ -460,5 +468,6 @@ export function useInfiniteApprovalHistoryQuery(params?: Omit<ApprovalHistoryLis
       const { page, totalPages } = lastPage.pagination;
       return page < totalPages ? page + 1 : undefined;
     },
+    retry: false,
   });
 }

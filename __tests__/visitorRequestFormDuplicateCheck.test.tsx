@@ -11,6 +11,7 @@ import { act, create } from 'react-test-renderer';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const mockCheckDuplicateVisit = jest.fn();
+const mockCheckRoomAvailability = jest.fn();
 const mockListUsers = jest.fn();
 
 jest.mock('@/services/api/requestApiService', () => ({
@@ -25,12 +26,19 @@ jest.mock('@/services/api/userApiService', () => ({
   },
 }));
 
+jest.mock('@/services/api/meetingRoomApiService', () => ({
+  meetingRoomApiService: {
+    checkRoomAvailability: (...args: unknown[]) => mockCheckRoomAvailability(...args),
+  },
+}));
+
 jest.mock('@/hooks/queries/useDashboardKpiQuery', () => ({
   dashboardKpiKeys: { all: ['dashboard-kpis'] },
   invalidateDashboardKpis: jest.fn(),
 }));
 
 import { useDuplicateCheckQuery } from '@/hooks/queries/useApprovalQueries';
+import { useRoomAvailabilityQuery } from '@/hooks/queries/useMeetingRoomQueries';
 import { useUsersQuery } from '@/hooks/queries/useUserQueries';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import {
@@ -42,7 +50,13 @@ import {
 const DATE = '2026-09-15';
 const EMPTY_VISITS = { success: true, data: [], pagination: { page: 1, limit: 100, total: 0, totalPages: 0 } };
 
-type Snapshot = { isCheckingDuplicate: boolean; hasData: boolean };
+type Snapshot = {
+  isCheckingDuplicate: boolean;
+  hasData: boolean;
+  hasError: boolean;
+  canSubmit: boolean;
+  retry: () => unknown;
+};
 let latest: Snapshot | null = null;
 
 /** Mirrors the wiring in VisitorRequestFormScreen for the duplicate check. */
@@ -54,8 +68,52 @@ function DuplicateCheckHarness({ email, phone }: { email: string; phone: string 
     buildDuplicateCheckParams({ isWalkIn: false, date: DATE, email, phone }),
     params,
   );
-  const { data, isLoading, isFetching } = useDuplicateCheckQuery(params, true);
-  latest = { isCheckingDuplicate: debouncing || isLoading || isFetching, hasData: data !== undefined };
+  const { data, isLoading, isFetching, isError, refetch } = useDuplicateCheckQuery(params, true);
+  const isCheckingDuplicate = debouncing || isLoading || isFetching || isError;
+  latest = {
+    isCheckingDuplicate,
+    hasData: data !== undefined,
+    hasError: isError,
+    // This is the form's safety gate for a required duplicate check.
+    canSubmit: !isCheckingDuplicate && data !== undefined,
+    retry: refetch,
+  };
+  return null;
+}
+
+type RoomSnapshot = {
+  isChecking: boolean;
+  hasError: boolean;
+  hasData: boolean;
+  canSubmit: boolean;
+  retry: () => unknown;
+};
+let roomLatest: RoomSnapshot | null = null;
+
+function EditRoomAvailabilityHarness() {
+  const params = {
+    date: DATE,
+    startTime: '10:00',
+    endTime: '11:00',
+  };
+  const {
+    data,
+    isLoading,
+    isFetching,
+    isError,
+    refetch,
+  } = useRoomAvailabilityQuery(params);
+  const rooms = data?.rooms ?? [];
+  const hasChecked = (data !== undefined || isError) && !isLoading && !isFetching;
+  roomLatest = {
+    isChecking: isLoading || isFetching,
+    hasError: isError,
+    hasData: data !== undefined,
+    // Mirrors RequestDetailsScreen: an edit cannot save until a successful
+    // availability result proves that at least one room exists.
+    canSubmit: hasChecked && !isError && data?.available === true && rooms.length > 0,
+    retry: refetch,
+  };
   return null;
 }
 
@@ -83,10 +141,16 @@ const settle = async (ms: number) => {
 beforeEach(() => {
   jest.useFakeTimers();
   latest = null;
+  roomLatest = null;
   mockCheckDuplicateVisit.mockReset();
   mockCheckDuplicateVisit.mockResolvedValue(EMPTY_VISITS);
   mockListUsers.mockReset();
   mockListUsers.mockResolvedValue({ success: true, data: [], pagination: { page: 1, limit: 100, total: 0, totalPages: 0 } });
+  mockCheckRoomAvailability.mockReset();
+  mockCheckRoomAvailability.mockResolvedValue({
+    available: true,
+    rooms: [{ id: 'room-1', name: 'Room 1' }],
+  });
 });
 
 afterEach(() => {
@@ -126,8 +190,9 @@ describe('duplicate check while typing', () => {
     await settle(DUPLICATE_CHECK_DEBOUNCE_MS);
 
     expect(mockCheckDuplicateVisit).toHaveBeenCalledTimes(1);
-    expect(mockCheckDuplicateVisit).toHaveBeenCalledWith({ date: DATE, email: typed });
-    expect(latest).toEqual({ isCheckingDuplicate: false, hasData: true });
+    expect(mockCheckDuplicateVisit.mock.calls[0][0]).toEqual({ date: DATE, email: typed });
+    expect(mockCheckDuplicateVisit.mock.calls[0][1]).toEqual({ signal: expect.any(AbortSignal) });
+    expect(latest).toMatchObject({ isCheckingDuplicate: false, hasData: true, canSubmit: true });
 
     await act(async () => {
       renderer.unmount();
@@ -148,7 +213,7 @@ describe('duplicate check while typing', () => {
     await settle(DUPLICATE_CHECK_DEBOUNCE_MS * 2);
 
     expect(mockCheckDuplicateVisit).not.toHaveBeenCalled();
-    expect(latest).toEqual({ isCheckingDuplicate: false, hasData: false });
+    expect(latest).toMatchObject({ isCheckingDuplicate: false, hasData: false, canSubmit: false });
 
     await act(async () => {
       renderer.unmount();
@@ -181,12 +246,96 @@ describe('duplicate check while typing', () => {
     await settle(DUPLICATE_CHECK_DEBOUNCE_MS);
 
     expect(mockCheckDuplicateVisit).toHaveBeenCalledTimes(2);
-    expect(mockCheckDuplicateVisit).toHaveBeenLastCalledWith({ date: DATE, email: 'john@example.co' });
-    expect(latest).toEqual({ isCheckingDuplicate: false, hasData: true });
+    expect(mockCheckDuplicateVisit.mock.calls[1][0]).toEqual({ date: DATE, email: 'john@example.co' });
+    expect(mockCheckDuplicateVisit.mock.calls[1][1]).toEqual({ signal: expect.any(AbortSignal) });
+    expect(latest).toMatchObject({ isCheckingDuplicate: false, hasData: true, canSubmit: true });
 
     await act(async () => {
       renderer.unmount();
     });
+  });
+});
+
+describe('duplicate and room checks fail closed', () => {
+  it('keeps Submit blocked after a failed duplicate check and recovers through Retry', async () => {
+    const client = newClient();
+    mockCheckDuplicateVisit.mockRejectedValueOnce(new Error('transport failure'));
+    mockCheckDuplicateVisit.mockResolvedValueOnce(EMPTY_VISITS);
+    let renderer!: ReturnType<typeof create>;
+
+    await act(async () => {
+      renderer = create(
+        <QueryClientProvider client={client}>
+          <DuplicateCheckHarness email="john@example.com" phone="" />
+        </QueryClientProvider>,
+      );
+    });
+    await settle(DUPLICATE_CHECK_DEBOUNCE_MS);
+    expect(latest).toMatchObject({ hasError: true, isCheckingDuplicate: true, canSubmit: false });
+
+    await act(async () => {
+      await latest!.retry();
+    });
+    await flush();
+    expect(latest).toMatchObject({ hasError: false, hasData: true, isCheckingDuplicate: false, canSubmit: true });
+    expect(mockCheckDuplicateVisit).toHaveBeenCalledTimes(2);
+    await act(async () => { renderer.unmount(); });
+  });
+
+  it('keeps the latest duplicate params blocked while a stale response is pending', async () => {
+    const client = newClient();
+    let resolveOld!: (value: unknown) => void;
+    let resolveNew!: (value: unknown) => void;
+    mockCheckDuplicateVisit
+      .mockImplementationOnce(() => new Promise((resolve) => { resolveOld = resolve; }))
+      .mockImplementationOnce(() => new Promise((resolve) => { resolveNew = resolve; }));
+    let renderer!: ReturnType<typeof create>;
+    const render = (email: string) => (
+      <QueryClientProvider client={client}>
+        <DuplicateCheckHarness email={email} phone="" />
+      </QueryClientProvider>
+    );
+
+    await act(async () => { renderer = create(render('old@example.com')); });
+    await settle(DUPLICATE_CHECK_DEBOUNCE_MS);
+    await act(async () => { renderer.update(render('new@example.com')); });
+    await settle(DUPLICATE_CHECK_DEBOUNCE_MS);
+    expect(latest?.isCheckingDuplicate).toBe(true);
+    expect(latest?.canSubmit).toBe(false);
+
+    await act(async () => { resolveOld(EMPTY_VISITS); });
+    await flush();
+    expect(latest?.isCheckingDuplicate).toBe(true);
+    expect(latest?.canSubmit).toBe(false);
+    await act(async () => { resolveNew(EMPTY_VISITS); });
+    await flush();
+    expect(latest?.canSubmit).toBe(true);
+    await act(async () => { renderer.unmount(); });
+  });
+
+  it('blocks the EDIT room save on failure and enables it only after Retry succeeds', async () => {
+    const client = newClient();
+    mockCheckRoomAvailability.mockRejectedValueOnce(new Error('availability failed'));
+    mockCheckRoomAvailability.mockResolvedValueOnce({
+      available: true,
+      rooms: [{ id: 'room-1', name: 'Room 1' }],
+    });
+    let renderer!: ReturnType<typeof create>;
+    await act(async () => {
+      renderer = create(
+        <QueryClientProvider client={client}>
+          <EditRoomAvailabilityHarness />
+        </QueryClientProvider>,
+      );
+    });
+    await flush();
+    expect(roomLatest).toMatchObject({ hasError: true, canSubmit: false });
+
+    await act(async () => { await roomLatest!.retry(); });
+    await flush();
+    expect(roomLatest).toMatchObject({ hasError: false, hasData: true, canSubmit: true });
+    expect(mockCheckRoomAvailability).toHaveBeenCalledTimes(2);
+    await act(async () => { renderer.unmount(); });
   });
 });
 

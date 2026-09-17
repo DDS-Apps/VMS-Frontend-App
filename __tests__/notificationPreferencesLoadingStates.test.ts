@@ -157,7 +157,7 @@ describe("notification preference loading states", () => {
       "queryKey: notificationKeys.preferences()",
     );
     expect(queriesSource).toContain(
-      "queryFn: () => notificationApiService.getPreferences()",
+      "queryFn: ({ signal }) => notificationApiService.getPreferences({ signal })",
     );
     expect(queriesSource).toContain(
       "mutationFn: (preferences) => notificationApiService.updatePreferences(preferences)",

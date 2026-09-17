@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useEffect, useMemo } from "react";
-import { View, StyleSheet, Pressable, ActivityIndicator, I18nManager } from "react-native";
+import React, { useState, useCallback, useMemo } from "react";
+import { View, StyleSheet, Pressable, ActivityIndicator } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { DirectionalRow } from "@/components/DirectionalRow";
@@ -20,6 +20,7 @@ import type { PaginatedResponse } from "@/types";
 import { applyOpacity } from "@/utils/statusStyles";
 import { navigateFromInAppNotification } from "@/utils/notificationNavigator";
 import { localizeNotification } from "@/utils/notificationLocalization";
+import { getLocalizedApiErrorMessage } from "@/utils/apiErrorMessage";
 import { 
   useNotificationsQuery, 
   useMarkNotificationAsReadMutation, 
@@ -40,14 +41,6 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
   const insets = useSafeAreaInsets();
   const [selectedTab, setSelectedTab] = useState<'all' | 'unread'>('all');
 
-  // RTL DIAGNOSTIC - Log I18nManager state on this screen
-  useEffect(() => {
-    console.log('🔄 [RTL_DEBUG] NotificationsScreen render:', {
-      locale,
-      'I18nManager.isRTL': I18nManager.isRTL,
-    });
-  }, [locale]);
-
   const scrollContentStyle = {
     paddingHorizontal: Spacing.xl,
     paddingTop: insets.top + Spacing.xl,
@@ -64,6 +57,7 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
     isLoading,
     isFetching,
     isError,
+    error,
     refetch,
   } = useNotificationsQuery(queryParams);
   const markAsReadMutation = useMarkNotificationAsReadMutation();
@@ -91,6 +85,7 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
   const notifications = displayedResponse?.data ?? [];
   const totalCount = displayedResponse?.total ?? 0;
   const unreadCount = notifications.filter(n => !n.isRead).length;
+  const localizedError = isError ? getLocalizedApiErrorMessage(error, t) : '';
 
   const handleMarkAllAsRead = useCallback(() => {
     markAllAsReadMutation.mutate();
@@ -274,7 +269,7 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
           <DDIcon name="alert-circle" size={48} color={theme.error} />
           <Spacer height={Spacing.md} />
           <ThemedText style={[Typography.body, { color: theme.error }]}>
-            {t('errors.somethingWentWrong')}
+            {localizedError || t('errors.somethingWentWrong')}
           </ThemedText>
           <Spacer height={Spacing.md} />
           <Pressable
@@ -315,16 +310,16 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
                   style={[
                     Typography.caption,
                     {
-                      color: isError && !retainedNotifications.isRetained
-                        ? theme.error
-                        : theme.textSecondary,
+                      color: isError ? theme.error : theme.textSecondary,
                       flex: 1,
                     },
                   ]}
                 >
-                  {retainedNotifications.isRetained
-                    ? t('requests.showingPreviousDataFrom').replace('{{source}}', displayedSourceLabel)
-                    : isFetching
+                  {isError
+                    ? (localizedError || t('errors.somethingWentWrong'))
+                    : retainedNotifications.isRetained
+                      ? t('requests.showingPreviousDataFrom').replace('{{source}}', displayedSourceLabel)
+                      : isFetching
                       ? t('common.loading')
                       : t('errors.somethingWentWrong')}
                 </ThemedText>

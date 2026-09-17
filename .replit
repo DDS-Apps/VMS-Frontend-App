@@ -58,7 +58,7 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "EXPO_NO_PROMPT=1 npx expo start --port 5000 --host lan --go"
+args = "bash scripts/build-and-verify.sh && node server.js"
 waitForPort = 5000
 
 [[workflows.workflow]]

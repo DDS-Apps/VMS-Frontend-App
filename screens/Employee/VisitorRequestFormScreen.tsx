@@ -236,6 +236,7 @@ export default function VisitorRequestFormScreen({
     isLoading: isLoadingRooms,
     isFetching: isFetchingRooms,
     isError: isRoomsError,
+    refetch: refetchRooms,
   } = useRoomAvailabilityQuery(roomAvailabilityParams);
 
   // The duplicate check waits for the guest's email/phone to settle and to look
@@ -265,9 +266,12 @@ export default function VisitorRequestFormScreen({
     data: duplicateCheckData,
     isLoading: isDuplicateCheckLoading,
     isFetching: isDuplicateCheckFetching,
+    isError: isDuplicateCheckError,
+    refetch: refetchDuplicateCheck,
   } = useDuplicateCheckQuery(duplicateCheckParams, !isWalkIn);
   const isCheckingDuplicate =
-    isDuplicateCheckDebouncing || isDuplicateCheckLoading || isDuplicateCheckFetching;
+    isDuplicateCheckDebouncing || isDuplicateCheckLoading || isDuplicateCheckFetching ||
+    isDuplicateCheckError;
 
   const availableRooms: RoomAvailabilityRoomDto[] = roomAvailability?.rooms ?? [];
   const isRoomAvailable = roomAvailability?.available === true;
@@ -531,7 +535,9 @@ export default function VisitorRequestFormScreen({
       newErrors.phone = t("errors.invalidPhone");
     }
 
-    if (!isWalkIn && isCheckingDuplicate) {
+    if (!isWalkIn && isDuplicateCheckError) {
+      newErrors.duplicateCheck = t("errors.duplicateCheckFailed");
+    } else if (!isWalkIn && isCheckingDuplicate) {
       // Duplicate check still in flight — button is disabled but guard here too
       // so a programmatic submit cannot bypass the loading state.
       newErrors.duplicateCheck = t("errors.duplicateCheckLoading");
@@ -606,6 +612,8 @@ export default function VisitorRequestFormScreen({
         // Rooms are still loading — button is disabled but guard here too so
         // a programmatic submit cannot bypass the loading state.
         newErrors.roomAvailability = t("errors.meetingRoomLoading");
+      } else if (needsMeetingRoom && isRoomsError) {
+        newErrors.roomAvailability = t("errors.meetingRoomCheckFailed");
       } else if (needsMeetingRoom && hasCheckedAvailability) {
         if (!isRoomAvailable || availableRooms.length === 0) {
           newErrors.roomAvailability = t("errors.noRoomsAvailable");
@@ -716,17 +724,7 @@ export default function VisitorRequestFormScreen({
           idNumber: idNumber.trim(),
         };
 
-        console.log(
-          "[VisitorRequestForm] Submitting walk-in registration:",
-          JSON.stringify(walkInPayload, null, 2),
-        );
-
         const result = await walkInMutation.mutateAsync(walkInPayload);
-
-        console.log(
-          "[VisitorRequestForm] Walk-in registered successfully:",
-          result,
-        );
 
         const message = t("reception.walkInRegistered").replace(
           "{name}",
@@ -777,17 +775,7 @@ export default function VisitorRequestFormScreen({
         parkingDecision: asReceptionist ? undefined : parkingDecision,
       };
 
-      console.log(
-        "[VisitorRequestForm] Submitting request with payload:",
-        JSON.stringify(payload, null, 2),
-      );
-
       const result = await createVisitMutation.mutateAsync(payload);
-
-      console.log(
-        "[VisitorRequestForm] Request submitted successfully:",
-        result,
-      );
 
       // Use the API response to decide the message — the backend is the
       // source of truth for whether the visit was actually auto-approved.
@@ -801,14 +789,6 @@ export default function VisitorRequestFormScreen({
       setSuccessMessage(message);
       setShowSuccessModal(true);
     } catch (error: any) {
-      console.error("[VisitorRequestForm] Submit error:", error);
-      console.error(
-        "[VisitorRequestForm] Error type:",
-        error?.constructor?.name,
-      );
-      console.error("[VisitorRequestForm] Error code:", error?.code);
-      console.error("[VisitorRequestForm] Error message:", error?.message);
-
       let errorMessage = t("errors.submitFailed");
 
       if (error?.code === "NETWORK_ERROR") {
@@ -847,9 +827,11 @@ export default function VisitorRequestFormScreen({
           };
 
           const stateErrors: { [key: string]: string } = {};
-          for (const { field, message } of apiFieldErrors) {
+          for (const { field } of apiFieldErrors) {
             const stateKey = API_TO_STATE[field] ?? field;
-            stateErrors[stateKey] = message;
+            // Do not surface backend text: it may contain identifiers or
+            // implementation details. Keep the field-level feedback local.
+            stateErrors[stateKey] = t("errors.validationError");
           }
           setErrors((prev) => ({ ...prev, ...stateErrors }));
           showError(t("errors.fixHighlightedFields") || "Please fix the highlighted fields");
@@ -858,7 +840,7 @@ export default function VisitorRequestFormScreen({
         }
 
         // No field errors array — business-logic rejection; show the top-level message
-        errorMessage = error?.message || t("errors.validationError");
+        errorMessage = t("errors.validationError");
       } else if (
         error?.status === 409 ||
         error?.status === 422 ||
@@ -868,15 +850,10 @@ export default function VisitorRequestFormScreen({
       ) {
         errorMessage = t("errors.meetingRoomConflict");
         setSelectedRoomId(null);
-      } else if (error?.message) {
-        errorMessage = error.message;
       }
 
       Alert.alert(t("errors.error"), errorMessage, [{ text: t("common.ok") }]);
     } finally {
-      console.log(
-        "[VisitorRequestForm] Submit complete, resetting isSubmitting",
-      );
       setIsSubmitting(false);
     }
   };
@@ -1011,6 +988,26 @@ export default function VisitorRequestFormScreen({
             error={errors.phone}
             testID="input-phone"
           />
+          {errors.duplicateCheck || isDuplicateCheckError ? (
+            <DirectionalRow style={{ marginTop: Spacing.xs, alignItems: 'center' }} gap={Spacing.sm}>
+              <ThemedText style={[Typography.caption, { color: theme.error, flex: 1 }]}>
+                {errors.duplicateCheck || t("errors.duplicateCheckFailed")}
+              </ThemedText>
+              {isDuplicateCheckError ? (
+                <Pressable
+                  onPress={() => {
+                    setErrors((previous) => ({ ...previous, duplicateCheck: "" }));
+                    void refetchDuplicateCheck();
+                  }}
+                  hitSlop={8}
+                >
+                  <ThemedText style={[Typography.caption, { color: theme.primary, fontWeight: '600' }]}>
+                    {t("common.retry")}
+                  </ThemedText>
+                </Pressable>
+              ) : null}
+            </DirectionalRow>
+          ) : null}
 
           <Spacer height={Spacing.lg} />
 
@@ -1782,12 +1779,25 @@ export default function VisitorRequestFormScreen({
                         </Pressable>
                       );
                     })}
-                    {errors.roomAvailability ? (
-                      <ThemedText
-                        style={[Typography.caption, { color: theme.error, marginTop: 2 }]}
-                      >
-                        {errors.roomAvailability}
-                      </ThemedText>
+                    {errors.roomAvailability || isRoomsError ? (
+                      <DirectionalRow style={{ marginTop: 2, alignItems: 'center' }} gap={Spacing.sm}>
+                        <ThemedText style={[Typography.caption, { color: theme.error, flex: 1 }]}>
+                          {errors.roomAvailability || t("errors.meetingRoomCheckFailed")}
+                        </ThemedText>
+                        {isRoomsError ? (
+                          <Pressable
+                            onPress={() => {
+                              setErrors((previous) => ({ ...previous, roomAvailability: "" }));
+                              void refetchRooms();
+                            }}
+                            hitSlop={8}
+                          >
+                            <ThemedText style={[Typography.caption, { color: theme.primary, fontWeight: '600' }]}>
+                              {t("common.retry")}
+                            </ThemedText>
+                          </Pressable>
+                        ) : null}
+                      </DirectionalRow>
                     ) : null}
                   </View>
                 ) : null}
@@ -2510,6 +2520,10 @@ export default function VisitorRequestFormScreen({
                 isLoadingRooms,
                 isFetchingRooms,
               }) ||
+              // A failed room check is not proof that a room is available.
+              (needsMeetingRoom && isRoomsError) ||
+              // An empty or unavailable result is also not safe to submit.
+              (needsMeetingRoom && hasCheckedAvailability && (!isRoomAvailable || availableRooms.length === 0)) ||
               // Duplicate check still in flight — wait before submitting
               (!isWalkIn && isCheckingDuplicate) ||
               // Rooms loaded and available but none selected yet

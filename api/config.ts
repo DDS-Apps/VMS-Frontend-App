@@ -14,8 +14,12 @@ const MICROSOFT_AUTH_BASE_URL =
   process.env.EXPO_PUBLIC_MICROSOFT_AUTH_URL ||
   API_BASE_URL;
 
-console.log('[API Config] Using API Base URL:', API_BASE_URL);
-console.log('[API Config] Source: Constants.extra =', Constants.expoConfig?.extra?.apiBaseUrl, ', process.env =', process.env.EXPO_PUBLIC_API_BASE_URL);
+// Do not log resolved URLs: local overrides can contain credentials.
+console.log(
+  `[API Config] Base URL configured from ${
+    Constants.expoConfig?.extra?.apiBaseUrl ? 'Expo config' : process.env.EXPO_PUBLIC_API_BASE_URL ? 'environment' : 'default'
+  }`,
+);
 
 export const apiConfig = {
   baseUrl: API_BASE_URL,

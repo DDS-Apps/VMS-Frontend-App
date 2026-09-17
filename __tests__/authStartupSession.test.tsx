@@ -43,7 +43,7 @@ jest.mock("@/hooks/queries/useDashboardKpiQuery", () => ({
   },
 }));
 
-import { AuthProvider, useAuth, type AuthUser } from "@/contexts/AuthContext";
+import { AuthProvider, SESSION_EXPIRED_ERROR, useAuth, type AuthUser } from "@/contexts/AuthContext";
 import { ApiException } from "@/api/errors";
 import { getAccessToken, getRefreshToken } from "@/api/httpClient";
 
@@ -168,6 +168,9 @@ describe("startup session restore", () => {
     const renderer = await mountProvider();
 
     expect(mockGetCurrentUser).toHaveBeenCalledTimes(1);
+    expect(mockGetCurrentUser).toHaveBeenCalledWith({
+      preserveSessionOnRefreshFailure: true,
+    });
     expect(latest()).toEqual({
       isLoading: false,
       isAuthenticated: true,
@@ -238,7 +241,6 @@ describe("startup session restore", () => {
     expect(mockPushUnregister).not.toHaveBeenCalled();
     expect(warnSpy).toHaveBeenCalledWith(
       expect.stringContaining("Startup profile refresh failed"),
-      expect.anything(),
     );
 
     unmount(renderer);
@@ -337,6 +339,40 @@ describe("startup session restore", () => {
     expect(await AsyncStorage.getItem(TOKEN_STORAGE_KEY)).not.toBeNull();
     expect(getAccessToken()).toBeNull();
 
+    unmount(renderer);
+  });
+
+  it("signs out immediately on a runtime refresh failure without waiting for cleanup", async () => {
+    await seedSession();
+    mockGetCurrentUser.mockResolvedValue({ ...freshUserDto, name: cachedUser.name });
+
+    const renderer = await mountProvider();
+    let releasePush!: () => void;
+    mockPushUnregister.mockImplementation(
+      () => new Promise<void>((resolve) => {
+        releasePush = resolve;
+      }),
+    );
+    mockGetCurrentUser.mockRejectedValue(new ApiException({ code: "NETWORK_ERROR", message: "offline" }));
+
+    await act(async () => {
+      await latestAuth!.refreshUser();
+    });
+
+    expect(latestAuth).toEqual(expect.objectContaining({
+      isAuthenticated: false,
+      user: null,
+      error: SESSION_EXPIRED_ERROR,
+    }));
+    expect(getAccessToken()).toBeNull();
+    expect(getRefreshToken()).toBeNull();
+    expect(await AsyncStorage.getItem(TOKEN_STORAGE_KEY)).toBeNull();
+    expect(await AsyncStorage.getItem(AUTH_STORAGE_KEY)).toBeNull();
+    expect(mockPushUnregister).toHaveBeenCalledTimes(1);
+
+    releasePush();
+    mockPushUnregister.mockImplementation(() => Promise.resolve());
+    await flush();
     unmount(renderer);
   });
 

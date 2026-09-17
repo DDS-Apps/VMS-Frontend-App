@@ -10,8 +10,9 @@ import { pushNotificationService } from '@/services/push';
 import { InAppNotificationToast } from '@/components/InAppNotificationToast';
 import { navigateFromInAppNotification } from '@/utils/notificationNavigator';
 import { removeValetVehicleInfo, sanitizeParkingNotificationMessage } from '@/utils/notificationLocalization';
-import type { UserRole } from '@/types/vms.types';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useUnreadNotificationCountQuery } from '@/hooks/queries/useNotificationQueries';
+import type { ApiError } from '@/api/errors';
 
 // Check if notifications are supported in this environment
 // Note: The main notification handler is set in pushNotificationService.ts
@@ -24,8 +25,7 @@ try {
   if (typeof Notifications.getPermissionsAsync !== 'function') {
     notificationsSupported = false;
   }
-} catch (error) {
-  console.log('[NotificationContext] expo-notifications not supported in this environment');
+} catch {
   notificationsSupported = false;
 }
 
@@ -39,6 +39,7 @@ interface NotificationContextType {
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
   clearNotification: (id: string) => Promise<void>;
+  unreadError: ApiError | null;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
@@ -47,19 +48,12 @@ interface NotificationProviderProps {
   children: ReactNode;
 }
 
-const NOTIFICATION_POLLING_INTERVAL_MS = 2 * 60 * 1000;
-
-const getPollingIntervalForRole = (_role: UserRole | undefined): number => {
-  return NOTIFICATION_POLLING_INTERVAL_MS;
-};
-
 export function NotificationProvider({ children }: NotificationProviderProps) {
   const { user, isAuthenticated } = useAuth();
   const { locale } = useTranslation();
   const queryClient = useQueryClient();
   
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
+  const [manualRefreshLoading, setManualRefreshLoading] = useState(false);
   const [permissionStatus, setPermissionStatus] = useState<'granted' | 'denied' | 'undetermined' | 'unsupported' | null>(null);
   const [pushToken, setPushToken] = useState<string | null>(null);
   const [toast, setToast] = useState<{
@@ -74,31 +68,44 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
     body: '',
   });
   
-  const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const notificationListenerRef = useRef<Notifications.EventSubscription | null>(null);
   const responseListenerRef = useRef<Notifications.EventSubscription | null>(null);
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
+  const accountId = isAuthenticated ? user?.id : undefined;
+  const unreadQuery = useUnreadNotificationCountQuery(accountId, {
+    enabled: Boolean(accountId),
+  });
+  const [retainedUnread, setRetainedUnread] = useState<{ accountId?: string; count: number }>({
+    count: 0,
+  });
+
+  useEffect(() => {
+    if (!accountId) {
+      setRetainedUnread({ count: 0 });
+    } else if (unreadQuery.data !== undefined) {
+      setRetainedUnread({ accountId, count: unreadQuery.data.count });
+    }
+  }, [accountId, unreadQuery.data]);
 
   // Fetch unread count from backend
   const fetchUnreadCount = useCallback(async () => {
-    if (!isAuthenticated) return;
-    
-    try {
-      const response = await notificationApiService.getUnreadCount();
-      setUnreadCount(response.count);
-      
-      // Update badge count on mobile
-      if (Platform.OS !== 'web' && notificationsSupported) {
-        try {
-          await Notifications.setBadgeCountAsync(response.count);
-        } catch (e) {
-          // Badge not supported
-        }
-      }
-    } catch (error) {
-      // Silently fail - unread count is not critical
+    if (!accountId) return;
+    // A foreground/push/manual refresh must join the account-scoped poll
+    // already in flight instead of cancelling it and issuing a duplicate.
+    await unreadQuery.refetch({ cancelRefetch: false });
+  }, [accountId, unreadQuery.refetch]);
+
+  const unreadCount = accountId && retainedUnread.accountId === accountId
+    ? retainedUnread.count
+    : 0;
+
+  // Do not update the badge on a failed request: a failure is not zero.
+  useEffect(() => {
+    if (!accountId || unreadQuery.data === undefined) return;
+    if (Platform.OS !== 'web' && notificationsSupported) {
+      Notifications.setBadgeCountAsync(unreadQuery.data.count).catch(() => undefined);
     }
-  }, [isAuthenticated]);
+  }, [accountId, unreadQuery.data]);
 
   // Check and update permission status from pushNotificationService
   const updatePermissionStatus = useCallback(async () => {
@@ -109,15 +116,13 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
       // Also get the current token if available
       const token = pushNotificationService.getToken();
       setPushToken(token);
-    } catch (error) {
-      console.log('[NotificationContext] Error getting permission status:', error);
+    } catch {
+      setPermissionStatus('unsupported');
     }
   }, []);
 
   // Request permission - delegates to pushNotificationService which handles token registration
   const requestPermission = useCallback(async (): Promise<boolean> => {
-    console.log('[NotificationContext] requestPermission called');
-    
     if (Platform.OS === 'web') {
       // For web, pushNotificationService handles everything
       const success = await pushNotificationService.initialize();
@@ -126,7 +131,6 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
     }
 
     if (!notificationsSupported || !Device.isDevice) {
-      console.log('[NotificationContext] Push notifications not supported');
       setPermissionStatus('unsupported');
       return false;
     }
@@ -137,10 +141,8 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
       let finalStatus = existingStatus;
 
       if (existingStatus !== 'granted') {
-        console.log('[NotificationContext] Requesting notification permission...');
         const { status } = await Notifications.requestPermissionsAsync();
         finalStatus = status;
-        console.log('[NotificationContext] Permission result:', finalStatus);
       }
 
       if (finalStatus === 'granted') {
@@ -153,27 +155,32 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
         setPermissionStatus('denied');
         return false;
       }
-    } catch (error) {
-      console.error('[NotificationContext] Error requesting permission:', error);
+    } catch {
       return false;
     }
   }, [updatePermissionStatus]);
 
   const refreshUnreadCount = useCallback(async () => {
-    setIsLoading(true);
+    setManualRefreshLoading(true);
     try {
       await fetchUnreadCount();
     } finally {
-      setIsLoading(false);
+      setManualRefreshLoading(false);
     }
   }, [fetchUnreadCount]);
 
   const markAsRead = useCallback(async (id: string) => {
     try {
       await notificationApiService.markAsRead(id);
-      setUnreadCount((prev) => Math.max(0, prev - 1));
+      queryClient.setQueryData(notificationKeys.unreadCount(accountId), (previous: { count: number } | undefined) =>
+        previous ? { ...previous, count: Math.max(0, previous.count - 1) } : previous,
+      );
+      setRetainedUnread((previous) => ({
+        accountId,
+        count: Math.max(0, previous.accountId === accountId ? previous.count - 1 : 0),
+      }));
       queryClient.invalidateQueries({ queryKey: notificationKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCount() });
+      queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCounts() });
       
       if (Platform.OS !== 'web' && notificationsSupported) {
         try {
@@ -186,12 +193,15 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
     } catch (error) {
       throw error;
     }
-  }, [queryClient, unreadCount]);
+  }, [accountId, queryClient, unreadCount]);
 
   const markAllAsRead = useCallback(async () => {
     try {
       await notificationApiService.markAllAsRead();
-      setUnreadCount(0);
+      queryClient.setQueryData(notificationKeys.unreadCount(accountId), (previous: { count: number } | undefined) =>
+        previous ? { ...previous, count: 0 } : previous,
+      );
+      setRetainedUnread({ accountId, count: 0 });
       queryClient.invalidateQueries({ queryKey: notificationKeys.all });
       
       if (Platform.OS !== 'web' && notificationsSupported) {
@@ -204,28 +214,23 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
     } catch (error) {
       throw error;
     }
-  }, [queryClient]);
+  }, [accountId, queryClient]);
 
   const clearNotification = useCallback(async (id: string) => {
     try {
       await notificationApiService.delete(id);
       queryClient.invalidateQueries({ queryKey: notificationKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCount() });
+      queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCounts() });
       await fetchUnreadCount();
     } catch (error) {
       throw error;
     }
-  }, [queryClient, fetchUnreadCount]);
+  }, [accountId, queryClient, fetchUnreadCount]);
 
   // Initialize on authentication change
   useEffect(() => {
-    if (pollingIntervalRef.current) {
-      clearInterval(pollingIntervalRef.current);
-      pollingIntervalRef.current = null;
-    }
-
     if (!isAuthenticated) {
-      setUnreadCount(0);
+      setRetainedUnread({ count: 0 });
       setPushToken(null);
       setPermissionStatus(null);
       if (Platform.OS !== 'web' && notificationsSupported) {
@@ -238,33 +243,8 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
       return;
     }
 
-    let isMounted = true;
-
-    const initNotifications = async () => {
-      if (!isMounted) return;
-      await fetchUnreadCount();
-      if (!isMounted) return;
-      await updatePermissionStatus();
-    };
-
-    initNotifications();
-
-    // Set up polling based on role
-    const pollingInterval = getPollingIntervalForRole(user?.role);
-    pollingIntervalRef.current = setInterval(() => {
-      if (isMounted && isAuthenticated) {
-        fetchUnreadCount();
-      }
-    }, pollingInterval);
-
-    return () => {
-      isMounted = false;
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current);
-        pollingIntervalRef.current = null;
-      }
-    };
-  }, [isAuthenticated, user?.role, fetchUnreadCount, updatePermissionStatus]);
+    void updatePermissionStatus();
+  }, [isAuthenticated, updatePermissionStatus]);
 
   // Set up notification listeners for badge/count updates (not for navigation - that's in pushNotificationService)
   useEffect(() => {
@@ -297,8 +277,8 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
           }
         }
       );
-    } catch (e) {
-      console.log('[NotificationContext] Failed to set up notification listeners');
+    } catch {
+      // Notification listeners are optional in unsupported environments.
     }
 
     return () => {
@@ -357,7 +337,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
         markAsRead(notificationId as string);
       }
     }).catch(() => {
-      console.log('[NotificationContext] Failed to process launch notification');
+      // A dismissed or unavailable launch notification is non-fatal.
     });
 
     const subscription = AppState.addEventListener('change', (nextAppState) => {
@@ -373,7 +353,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
           queryClient.invalidateQueries({ queryKey: valetKeys.all });
         }
         pushNotificationService.processLastNotificationResponse().catch(() => {
-          console.log('[NotificationContext] Failed to process resumed notification');
+          // A dismissed or unavailable resumed notification is non-fatal.
         });
       }
       appStateRef.current = nextAppState;
@@ -393,7 +373,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
 
   const value: NotificationContextType = {
     unreadCount,
-    isLoading,
+    isLoading: manualRefreshLoading || unreadQuery.isLoading,
     permissionStatus,
     pushToken,
     requestPermission,
@@ -401,6 +381,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
     markAsRead,
     markAllAsRead,
     clearNotification,
+    unreadError: unreadQuery.error ?? null,
   };
 
   return (

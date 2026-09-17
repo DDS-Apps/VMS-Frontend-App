@@ -62,6 +62,7 @@ import {
 import { resolveParkingDisplayDecision } from "@/utils/parkingDecision";
 import { useRiyadhBusinessDateKey } from "@/hooks/useRiyadhBusinessDateKey";
 import { DashboardKpiSection } from "@/components/shared/DashboardKpiSection";
+import { getLocalizedApiErrorMessage } from "@/utils/apiErrorMessage";
 
 const { width: screenWidth } = Dimensions.get("window");
 
@@ -139,7 +140,10 @@ export default function OverviewScreen({
         },
         onError: (error) => {
           setApprovingRequestId(null);
-          Alert.alert(t('errors.somethingWentWrong'), error.message);
+          Alert.alert(
+            t('errors.somethingWentWrong'),
+            getLocalizedApiErrorMessage(error, t) || t('errors.submitFailed'),
+          );
         },
       }
     );
@@ -167,7 +171,10 @@ export default function OverviewScreen({
         },
         onError: (error) => {
           setRejectingRequestId(null);
-          Alert.alert(t('errors.somethingWentWrong'), error.message);
+          Alert.alert(
+            t('errors.somethingWentWrong'),
+            getLocalizedApiErrorMessage(error, t) || t('errors.submitFailed'),
+          );
         },
       }
     );
@@ -387,6 +394,12 @@ export default function OverviewScreen({
     error: unknown,
     retry: () => unknown,
   ) => {
+    const localizedError = error ? getLocalizedApiErrorMessage(error, t) : "";
+    // React Query normally ignores an aborted query. Keep this defensive
+    // guard so an intentional navigation cancellation never becomes an error
+    // banner or a misleading empty-state success.
+    if (error && !localizedError) return null;
+
     if (!hasUsableData) {
       if (loading || fetching) {
         return <SkeletonCard showImage={false} lines={2} />;
@@ -395,7 +408,7 @@ export default function OverviewScreen({
         <View style={[styles.sectionFeedback, { backgroundColor: theme.surface }]}>
           <DDIcon name="alert-triangle" size={20} color={theme.error} />
           <ThemedText style={[Typography.caption, { color: theme.error, flex: 1 }]}>
-            {t("common.loadError")}
+            {localizedError || t("common.loadError")}
           </ThemedText>
           <Pressable onPress={retry} hitSlop={8}>
             <ThemedText style={[Typography.caption, { color: theme.primary, fontWeight: "600" }]}>
@@ -415,7 +428,7 @@ export default function OverviewScreen({
           <DDIcon name="alert-circle" size={16} color={theme.error} />
         )}
         <ThemedText style={[Typography.caption, { color: error && !fetching ? theme.error : theme.textSecondary, flex: 1 }]}>
-          {fetching ? t("common.loading") : t("errors.generic")}
+          {fetching ? t("common.loading") : localizedError || t("common.loadError")}
         </ThemedText>
         {error && !fetching ? (
           <Pressable onPress={retry} hitSlop={8}>

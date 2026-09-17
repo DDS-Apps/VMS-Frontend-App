@@ -8,14 +8,26 @@
  * needs when a screen feels slow.
  */
 export type RequestOutcome = 'ok' | 'http_error' | 'timeout' | 'network' | 'cancelled' | 'unknown';
+export type RequestEndReason =
+  | 'axios_timeout'
+  | 'transport_timeout'
+  | 'navigation'
+  | 'last_subscriber_cancelled'
+  | 'session_changed'
+  | 'cancelled'
+  | 'unknown';
 
 export interface RequestTimingSample {
   method: string;
-  /** Path with query string removed and ids collapsed to `:id`. */
+  /** Query-free path with non-allowlisted segments redacted to `:id`. */
   path: string;
   status: number | null;
   durationMs: number;
   outcome: RequestOutcome;
+  /** Safe, normalized reason for a timeout or cancellation, if applicable. */
+  reason?: RequestEndReason;
+  /** Zero for an initial request; one for the coordinated auth replay. */
+  retryAttempt?: number;
   /** Epoch ms when the request finished. */
   finishedAt: number;
 }
@@ -34,19 +46,62 @@ export const MAX_TIMING_SAMPLES = 300;
 /** Responses at or above this take long enough to be worth a warning in the log. */
 export const SLOW_REQUEST_THRESHOLD_MS = 2000;
 
-const UUID_SEGMENT = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
-const NUMERIC_SEGMENT = /\/\d+(?=\/|$)/g;
-const LONG_HEX_SEGMENT = /\/[0-9a-f]{16,}(?=\/|$)/gi;
+/**
+ * Only known route literals are retained. Every other path segment is treated
+ * as an identifier, rather than trying to guess whether a short opaque value,
+ * percent-encoded email, phone number, or future token is safe to log.
+ */
+const SAFE_ROUTE_SEGMENTS = new Set([
+  'api', 'v1', 'health', 'db', 'auth', 'config', 'login', 'azure', 'callback',
+  'microsoft', 'refresh', 'logout', 'password', 'forgot-password',
+  'reset-password', 'reset-password-with-otp', 'send-otp', 'verify-otp',
+  'resend-otp', 'notification-preferences', 'biometric', 'register', 'devices',
+  'challenge', 'settings', 'dashboard', 'kpis', 'users', 'me', 'photo',
+  'on-vacation', 'by-role', 'team', 'visitors', 'check', 'blacklisted',
+  'blacklist', 'invitations', 'today', 'my-upcoming', 'respond', 'check-in',
+  'check-out', 'invites', 'accept', 'reject', 'visits', 'rooms', 'availability',
+  'approve', 'host-approve', 'host-reject', 'requests', 'my-requests',
+  'pending-approvals', 'approvals', 'pending', 'pending-host',
+  'awaiting-visitor', 'bulk', 'history', 'notifications', 'unread-count',
+  'meeting-rooms', 'available', 'bookings', 'all', 'parking', 'spaces',
+  'allocate', 'allocations', 'stats', 'employees', 'release', 'spots',
+  'buffet', 'locations', 'staff', 'on-duty', 'buffet-staff', 'tasks', 'status',
+  'buffet-admin', 'load-summary', 'valet', 'drivers', 'assignments',
+  'valet-admin', 'zones', 'parking-dashboard', 'assign', 'valet-driver',
+  'self-service', 'security', 'summary', 'alerts', 'gate', 'scan',
+  'gate-logs', 'reception', 'search', 'walk-in', 'communication-override',
+  'admin', 'analytics', 'export', 'schedules', 'schedule', 'reminder-rules',
+  'send', 'token', 'unregister', 'test',
+]);
 
 const samples: RequestTimingSample[] = [];
 
 export function normalizeRequestPath(url: string | undefined): string {
   if (!url) return '(unknown)';
   const withoutQuery = url.split('?')[0].split('#')[0];
-  return withoutQuery
-    .replace(UUID_SEGMENT, ':id')
-    .replace(LONG_HEX_SEGMENT, '/:id')
-    .replace(NUMERIC_SEGMENT, '/:id');
+  // Configured base URLs are not diagnostic data. Keep only their route so a
+  // credential-bearing override can never appear in logs or timing samples.
+  let path = withoutQuery;
+  if (/^[a-z][a-z\d+.-]*:\/\//i.test(withoutQuery)) {
+    try {
+      path = new URL(withoutQuery).pathname || '/';
+    } catch {
+      path = '(unknown)';
+    }
+  }
+  return path
+    .split('/')
+    .map((segment) => {
+      if (!segment) return segment;
+      try {
+        const decoded = decodeURIComponent(segment).toLowerCase();
+        return SAFE_ROUTE_SEGMENTS.has(decoded) ? decoded : ':id';
+      } catch {
+        // Malformed percent encodings should never make it to a diagnostic log.
+        return ':id';
+      }
+    })
+    .join('/') || '/';
 }
 
 export function recordRequestTiming(sample: RequestTimingSample): void {

@@ -14,3 +14,45 @@ mtime_ms = 1788515234674
 storage_uri = "gcs://replit-rams-assets-pike/rams/assets/repl:d02f58f1-0735-43a7-a13a-9cffc6e5f093/460e28d1-8c49-4c4b-8330-a35be14d6d7a/69aa23c3-bf5d-4f01-9c7f-8e55db91fe99"
 storage_version_token = "1788515253488664"
 content_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+[[outputs]]
+id = "hKs_nVqqBz2WBMhEfUIey"
+uri = "file://docs/production-readiness-checklist.md"
+type = "text"
+title = "VMS Production Readiness Checklist"
+description = "Client handover checklist with ownership, release gates and sign-off requirements."
+logical_id = "323564e0-17a0-48bd-b274-bbb255bd9c85"
+content_hash = "sha256:a431893e0d68ff6105dac305b9b179cd1d1bc304c8b583e0a5b82f90ff5f47db"
+size = 12091
+mtime_ms = 1789554383108
+storage_uri = "gcs://replit-rams-assets-pike/rams/assets/repl:d02f58f1-0735-43a7-a13a-9cffc6e5f093/323564e0-17a0-48bd-b274-bbb255bd9c85/76230e8f-f7aa-437c-a81c-ddd9e35e925c"
+storage_version_token = "1789554398067581"
+content_type = "text/markdown"
+
+[[outputs]]
+id = "gpF-bSQPqtSdrMvKRDESU"
+uri = "file://docs/outlook-addin-production-guide.md"
+type = "text"
+title = "Outlook Add-in Setup and Update Guide"
+description = "Production manifest generation, validation, Microsoft 365 deployment, updates and troubleshooting."
+logical_id = "0181e0b5-9c7c-43f5-a49c-3efa844a383f"
+content_hash = "sha256:8097faac1a1fe9861b3f11f0b2163efb40bd7e308e561242fee21a32dbe44eca"
+size = 10084
+mtime_ms = 1789554384036
+storage_uri = "gcs://replit-rams-assets-pike/rams/assets/repl:d02f58f1-0735-43a7-a13a-9cffc6e5f093/0181e0b5-9c7c-43f5-a49c-3efa844a383f/48d1689d-12d9-4eea-abad-b0eb804cd92d"
+storage_version_token = "1789554399314533"
+content_type = "text/markdown"
+
+[[outputs]]
+id = "qLnA8ERSMhkPDNI2y-2mQ"
+uri = "file://docs/production-client-handover.md"
+type = "text"
+title = "VMS — Production Setup and Deployment Guide"
+description = "Updated single document with production setup, deployment, Outlook manifest updates and calendar integration instructions. Responsibilities, QA/testing and sign-off sections removed."
+logical_id = "2e7e5b44-aa0a-456e-81dd-a6df4fc32fcf"
+content_hash = "sha256:e4c952d1953dd24169dc6be6e08a4286612f557ec0d7d2abdfb7a582814d3c82"
+size = 27475
+mtime_ms = 1789554662732
+storage_uri = "gcs://replit-rams-assets-pike/rams/assets/repl:d02f58f1-0735-43a7-a13a-9cffc6e5f093/2e7e5b44-aa0a-456e-81dd-a6df4fc32fcf/ecb03c61-a2cd-4eaf-b991-a83c41cd5c8e"
+storage_version_token = "1789554673238927"
+content_type = "text/markdown"

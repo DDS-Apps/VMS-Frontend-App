@@ -143,15 +143,19 @@ function mapApiResponse(response: ApiPaginatedNotifications): PaginatedResponse<
   };
 }
 
+export interface NotificationReadOptions {
+  signal?: AbortSignal;
+}
+
 export const notificationApiService = {
-  list: async (params?: ListNotificationsParams): Promise<PaginatedResponse<NotificationItemDto>> => {
+  list: async (params?: ListNotificationsParams, options?: NotificationReadOptions): Promise<PaginatedResponse<NotificationItemDto>> => {
     const queryString = params ? buildQueryString(params as unknown as Record<string, unknown>) : '';
-    const response = await get<ApiPaginatedNotifications>(`${notifications}${queryString}`);
+    const response = await get<ApiPaginatedNotifications>(`${notifications}${queryString}`, undefined, options);
     return mapApiResponse(response);
   },
 
-  getById: async (id: string): Promise<NotificationItemDto> => {
-    const response = await get<ApiNotificationItem>(`${notifications}/${id}`);
+  getById: async (id: string, options?: NotificationReadOptions): Promise<NotificationItemDto> => {
+    const response = await get<ApiNotificationItem>(`${notifications}/${id}`, undefined, options);
     return mapApiNotificationToDto(response);
   },
 
@@ -168,12 +172,12 @@ export const notificationApiService = {
     return del<void>(`${notifications}/${id}`);
   },
 
-  getUnreadCount: (): Promise<UnreadCountResponse> => {
-    return get<UnreadCountResponse>(`${notifications}/unread-count`);
+  getUnreadCount: (options?: NotificationReadOptions): Promise<UnreadCountResponse> => {
+    return get<UnreadCountResponse>(`${notifications}/unread-count`, undefined, options);
   },
 
-  getPreferences: (): Promise<NotificationPreferences> => {
-    return get<NotificationPreferences>(auth.notificationPreferences);
+  getPreferences: (options?: NotificationReadOptions): Promise<NotificationPreferences> => {
+    return get<NotificationPreferences>(auth.notificationPreferences, undefined, options);
   },
 
   updatePreferences: (preferences: UpdateNotificationPreferencesDto): Promise<NotificationPreferences> => {

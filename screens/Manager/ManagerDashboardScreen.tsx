@@ -42,6 +42,7 @@ import {
   getPendingApprovalWalkInScheduledEndMs,
 } from "@/utils/visitExpiredGuard";
 import { useTimeBoundaryTick } from "@/hooks/useTimeBoundaryTick";
+import { getLocalizedApiErrorMessage } from "@/utils/apiErrorMessage";
 
 const LAYOUT = {
   cardPadding: Spacing.lg,
@@ -457,6 +458,9 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
     pendingRetention.current.data !== undefined;
   const hasUsablePendingData = displayedPendingApprovalsData !== undefined;
   const isBackgroundFetchingPending = isFetchingPending && !isFetchingNextPage;
+  const localizedPendingError = pendingError
+    ? getLocalizedApiErrorMessage(pendingError, t)
+    : "";
 
   // Refresh approvals when returning to the dashboard; the mount fetch covers
   // the first focus.
@@ -584,7 +588,10 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
         },
         onError: (error) => {
           setApprovingRequestId(null);
-          Alert.alert(t('errors.somethingWentWrong'), error.message);
+          Alert.alert(
+            t('errors.somethingWentWrong'),
+            getLocalizedApiErrorMessage(error, t) || t('errors.submitFailed'),
+          );
         },
       }
     );
@@ -618,7 +625,10 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
           setSelectedIds(new Set());
         },
         onError: (error) => {
-          Alert.alert(t('errors.somethingWentWrong'), error.message);
+          Alert.alert(
+            t('errors.somethingWentWrong'),
+            getLocalizedApiErrorMessage(error, t) || t('errors.submitFailed'),
+          );
         },
       }
     );
@@ -664,7 +674,10 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
             setIsBulkReject(false);
           },
           onError: (error) => {
-            Alert.alert(t('errors.somethingWentWrong'), error.message);
+            Alert.alert(
+              t('errors.somethingWentWrong'),
+              getLocalizedApiErrorMessage(error, t) || t('errors.submitFailed'),
+            );
           },
         }
       );
@@ -689,7 +702,10 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
           },
           onError: (error) => {
             setRejectingRequestId(null);
-            Alert.alert(t('errors.somethingWentWrong'), error.message);
+            Alert.alert(
+              t('errors.somethingWentWrong'),
+              getLocalizedApiErrorMessage(error, t) || t('errors.submitFailed'),
+            );
           },
         }
       );
@@ -802,7 +818,9 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
                 },
               ]}
             >
-              {isBackgroundFetchingPending ? t('common.loading') : t('errors.generic')}
+              {isBackgroundFetchingPending
+                ? t('common.loading')
+                : localizedPendingError || t('common.loadError')}
             </ThemedText>
             {pendingError && !isFetchNextPageError && !isBackgroundFetchingPending ? (
               <Pressable onPress={() => refetchPending()} hitSlop={8}>
@@ -865,7 +883,7 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
         <DDIcon name="alert-triangle" size={48} variant="muted" />
         <Spacer height={Spacing.md} />
         <ThemedText style={[Typography.body, { color: theme.textSecondary, textAlign: 'center' }]}>
-          {t('common.loadError')}
+          {localizedPendingError || t('common.loadError')}
         </ThemedText>
         <Spacer height={Spacing.md} />
         <Pressable onPress={() => refetchPending()}>

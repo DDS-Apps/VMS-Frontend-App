@@ -93,6 +93,7 @@ import { formatPhoneNumber, formatPhoneForDisplay, capitalizeFirst, getInitials 
 import { useServerDateTime } from "@/hooks/useServerDateTime";
 import { useAuth } from "@/contexts/AuthContext";
 import { resolveParkingDisplayDecision } from "@/utils/parkingDecision";
+import { getLocalizedApiErrorMessage } from "@/utils/apiErrorMessage";
 
 
 export default function RequestDetailsScreen({
@@ -227,12 +228,15 @@ export default function RequestDetailsScreen({
     data: editRoomAvailability,
     isLoading: isLoadingEditRooms,
     isFetching: isFetchingEditRooms,
+    isError: isEditRoomsError,
   } = useRoomAvailabilityQuery(editRoomAvailabilityParams);
 
   const isEditRoomAvailable = editRoomAvailability?.available === true;
   const availableEditRooms: RoomAvailabilityRoomDto[] = editRoomAvailability?.rooms ?? [];
   const hasCheckedEditAvailability =
-    editRoomAvailability !== undefined && !isLoadingEditRooms && !isFetchingEditRooms;
+    (editRoomAvailability !== undefined || isEditRoomsError) &&
+    !isLoadingEditRooms &&
+    !isFetchingEditRooms;
 
   // Reset room selection whenever the time slot changes so the user must re-pick
   useEffect(() => {
@@ -478,7 +482,10 @@ export default function RequestDetailsScreen({
           refetch();
         },
         onError: (error: any) => {
-          Alert.alert(t("errors.somethingWentWrong"), error.message);
+          Alert.alert(
+            t("errors.somethingWentWrong"),
+            getLocalizedApiErrorMessage(error, t) || t("errors.submitFailed"),
+          );
         },
       },
     );
@@ -526,12 +533,6 @@ export default function RequestDetailsScreen({
       scaleAnim.setValue(0.8);
     }
   }, [showSuccessModal, fadeAnim, scaleAnim]);
-
-  // DEBUG: Track Edit Modal visibility changes
-  useEffect(() => {
-    console.log("[DEBUG Modal] showEditModal state changed to:", showEditModal);
-    console.log("[DEBUG Modal] Platform:", Platform.OS, "editModalMode:", editModalMode);
-  }, [showEditModal, editModalMode]);
 
   const handleCloseSuccessModal = () => {
     setShowSuccessModal(false);
@@ -587,21 +588,16 @@ export default function RequestDetailsScreen({
   };
 
   const handleCancelRequest = () => {
-    console.log('[CancelRequest] Called, requestId:', requestId, 'isTerminalStatus:', isTerminalStatus);
     if (isTerminalStatus) {
-      console.log('[CancelRequest] Blocked - request is in terminal status');
       return;
     }
-    console.log('[CancelRequest] Calling cancelMutation.mutate...');
     cancelMutation.mutate(requestId, {
       onSuccess: () => {
-        console.log('[CancelRequest] SUCCESS - request cancelled');
         setShowCancelModal(false);
         navigation.goBack();
       },
-      onError: (error) => {
-        console.error('[CancelRequest] ERROR:', error);
-        Alert.alert(t("errors.somethingWentWrong"), error.message);
+      onError: () => {
+        Alert.alert(t("errors.somethingWentWrong"), t("errors.submitFailed"));
       },
     });
   };
@@ -648,7 +644,10 @@ export default function RequestDetailsScreen({
           setShowEditModal(true);
         },
         onError: (error) => {
-          Alert.alert(t("errors.somethingWentWrong"), error.message);
+          Alert.alert(
+            t("errors.somethingWentWrong"),
+            getLocalizedApiErrorMessage(error, t) || t("errors.submitFailed"),
+          );
         },
       },
     );
@@ -671,7 +670,10 @@ export default function RequestDetailsScreen({
           setShowSuccessModal(true);
         },
         onError: (error) => {
-          Alert.alert(t("errors.somethingWentWrong"), error.message);
+          Alert.alert(
+            t("errors.somethingWentWrong"),
+            getLocalizedApiErrorMessage(error, t) || t("errors.submitFailed"),
+          );
         },
       },
     );
@@ -687,7 +689,10 @@ export default function RequestDetailsScreen({
           setShowSuccessModal(true);
         },
         onError: (error) => {
-          Alert.alert(t("errors.somethingWentWrong"), error.message);
+          Alert.alert(
+            t("errors.somethingWentWrong"),
+            getLocalizedApiErrorMessage(error, t) || t("errors.submitFailed"),
+          );
         },
       },
     );
@@ -713,7 +718,10 @@ export default function RequestDetailsScreen({
           setShowSuccessModal(true);
         },
         onError: (error) => {
-          Alert.alert(t("errors.somethingWentWrong"), error.message);
+          Alert.alert(
+            t("errors.somethingWentWrong"),
+            getLocalizedApiErrorMessage(error, t) || t("errors.submitFailed"),
+          );
         },
       },
     );
@@ -757,17 +765,13 @@ export default function RequestDetailsScreen({
   };
 
   const openEditModal = (mode: "full" | "services-only" = "full") => {
-    console.log("[DEBUG Modal] openEditModal called with mode:", mode);
-    console.log("[DEBUG Modal] visitData exists:", !!visitData, "isTerminalStatus:", isTerminalStatus, "hasVisitStarted:", hasVisitStarted);
     if (!visitData || isTerminalStatus) {
-      console.log("[DEBUG Modal] openEditModal - early return (no visitData or terminal status)");
       return;
     }
 
     // Block full edits once the visit has started. The services-only path (post-approval
     // walk-in service selection) is intentionally exempt — it does not touch date/time.
     if (mode === "full" && hasVisitStarted) {
-      console.log("[DEBUG Modal] openEditModal - early return (visit has already started)");
       return;
     }
 
@@ -818,26 +822,14 @@ export default function RequestDetailsScreen({
     const channels = (visitData.communicationChannels || []).map((c) =>
       c.toLowerCase(),
     );
-    console.log(
-      "[openEditModal] visitData.communicationChannels:",
-      visitData.communicationChannels,
-    );
-    console.log("[openEditModal] Normalized channels:", channels);
-    console.log(
-      "[openEditModal] includes whatsapp:",
-      channels.includes("whatsapp"),
-    );
-    console.log("[openEditModal] includes sms:", channels.includes("sms"));
     setEditSendWhatsApp(channels.includes("whatsapp"));
     setEditSendSMS(channels.includes("sms"));
 
     setEditNotes("");
-    console.log("[DEBUG Modal] Setting showEditModal to TRUE");
     setShowEditModal(true);
   };
 
   const closeEditModal = () => {
-    console.log("[DEBUG Modal] closeEditModal called - setting showEditModal to FALSE");
     setShowEditModal(false);
     setIsApprovalFlow(false);
     setSelectedEditRoomId(null);
@@ -991,6 +983,21 @@ export default function RequestDetailsScreen({
       Alert.alert(t("errors.validation"), t("errors.meetingRoomLoading"));
       return;
     }
+    // An availability error is not evidence that a room is available. Keep
+    // this guard here as well as on the button so programmatic submits cannot
+    // bypass a failed check.
+    if (requiresMeetingRoom && isEditRoomsError) {
+      Alert.alert(t("errors.validation"), t("errors.meetingRoomCheckFailed"));
+      return;
+    }
+    if (
+      requiresMeetingRoom &&
+      hasCheckedEditAvailability &&
+      (!isEditRoomAvailable || availableEditRooms.length === 0)
+    ) {
+      Alert.alert(t("errors.validation"), t("errors.noRoomsAvailable"));
+      return;
+    }
     if (requiresMeetingRoom && hasCheckedEditAvailability && isEditRoomAvailable && availableEditRooms.length > 0 && !selectedEditRoomId) {
       Alert.alert(t("errors.validation"), t("errors.meetingRoomRequired"));
       return;
@@ -1092,18 +1099,10 @@ export default function RequestDetailsScreen({
       }
     }
 
-    console.log(
-      "[RequestDetails] Submitting edit with payload (mode: " +
-        editModalMode +
-        "):",
-      JSON.stringify(payload, null, 2),
-    );
-
     updateMutation.mutate(
       { id: requestId, data: payload },
       {
         onSuccess: () => {
-          console.log("[RequestDetails] Edit successful");
           setShowEditModal(false);
           let message = t("notifications.visitUpdated");
           if (isApprovalFlow) {
@@ -1116,9 +1115,8 @@ export default function RequestDetailsScreen({
           setShowSuccessModal(true);
           setIsApprovalFlow(false);
         },
-        onError: (error) => {
-          console.log("[RequestDetails] Edit failed:", error.message);
-          Alert.alert(t("errors.somethingWentWrong"), error.message);
+        onError: () => {
+          Alert.alert(t("errors.somethingWentWrong"), t("errors.submitFailed"));
         },
       },
     );
@@ -2441,7 +2439,6 @@ export default function RequestDetailsScreen({
 
                 <LoadingButton
                   onPress={() => {
-                    console.log('[CancelRequest] BUTTON TAPPED - calling handleCancelRequest');
                     handleCancelRequest();
                   }}
                   loading={cancelMutation.isPending}
@@ -2677,8 +2674,6 @@ export default function RequestDetailsScreen({
           transparent
           animationType="fade"
           onRequestClose={closeEditModal}
-          onShow={() => console.log("[DEBUG Modal] Edit Modal SHOWN - visible:", showEditModal)}
-          onDismiss={() => console.log("[DEBUG Modal] Edit Modal DISMISSED")}
         >
           {/* Container for backdrop + content as siblings (not nested) */}
           {/* This prevents touch propagation issues on iOS */}
@@ -2686,10 +2681,7 @@ export default function RequestDetailsScreen({
             {/* Backdrop - positioned absolutely, closes modal on tap */}
             <Pressable
               style={StyleSheet.absoluteFill}
-              onPress={() => {
-                console.log("[DEBUG Modal] Backdrop PRESSED - closing modal");
-                closeEditModal();
-              }}
+                onPress={closeEditModal}
             />
             {/* Content - positioned on top of backdrop, touches don't affect backdrop */}
             <View
@@ -2718,12 +2710,7 @@ export default function RequestDetailsScreen({
                       : t("actions.editRequest")}
                 </ThemedText>
                 <Pressable 
-                  onPress={() => {
-                    console.log("[DEBUG Modal] Close X button PRESSED");
-                    closeEditModal();
-                  }}
-                  onPressIn={() => console.log("[DEBUG Modal] Close X button onPressIn")}
-                  onPressOut={() => console.log("[DEBUG Modal] Close X button onPressOut")}
+                    onPress={closeEditModal}
                 >
                   <DDIcon name="x" size={22} variant="muted" />
                 </Pressable>
@@ -2736,9 +2723,6 @@ export default function RequestDetailsScreen({
                 showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled"
                 nestedScrollEnabled={true}
-                onTouchStart={() => console.log("[DEBUG Modal] ScrollView onTouchStart")}
-                onTouchEnd={() => console.log("[DEBUG Modal] ScrollView onTouchEnd")}
-                onScrollBeginDrag={() => console.log("[DEBUG Modal] ScrollView onScrollBeginDrag")}
               >
                 <ThemedText
                   style={[
@@ -2763,7 +2747,6 @@ export default function RequestDetailsScreen({
                     },
                   ]}
                   onPress={() => {
-                    console.log("[DEBUG Modal] Purpose picker button PRESSED");
                     // iOS can't stack Modals, use inline overlay instead
                     if (Platform.OS === 'ios') {
                       setInlinePickerMode('purpose');
@@ -2771,8 +2754,6 @@ export default function RequestDetailsScreen({
                       setShowPurposePicker(true);
                     }
                   }}
-                  onPressIn={() => console.log("[DEBUG Modal] Purpose picker onPressIn")}
-                  onPressOut={() => console.log("[DEBUG Modal] Purpose picker onPressOut")}
                 >
                   <DDIcon name="clipboard" size={16} variant="muted" />
                   <ThemedText
@@ -2870,7 +2851,6 @@ export default function RequestDetailsScreen({
                         },
                       ]}
                       onPress={() => {
-                        console.log("[DEBUG Modal] Walk-in End time picker button PRESSED");
                         // iOS can't stack Modals, use inline overlay instead
                         if (Platform.OS === 'ios') {
                           setInlinePickerMode('endTime');
@@ -2878,8 +2858,6 @@ export default function RequestDetailsScreen({
                           setShowEditEndTimePicker(true);
                         }
                       }}
-                      onPressIn={() => console.log("[DEBUG Modal] Walk-in End time picker onPressIn")}
-                      onPressOut={() => console.log("[DEBUG Modal] Walk-in End time picker onPressOut")}
                     >
                       <DDIcon
                         name="clock"
@@ -2967,15 +2945,12 @@ export default function RequestDetailsScreen({
                         },
                       ]}
                       onPress={() => {
-                        console.log("[DEBUG Modal] Date picker button PRESSED");
                         if (Platform.OS === 'ios') {
                           setInlinePickerMode('date');
                         } else {
                           setShowEditDatePicker(true);
                         }
                       }}
-                      onPressIn={() => console.log("[DEBUG Modal] Date picker onPressIn")}
-                      onPressOut={() => console.log("[DEBUG Modal] Date picker onPressOut")}
                       android_ripple={{ color: theme.border }}
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
@@ -3021,15 +2996,12 @@ export default function RequestDetailsScreen({
                         },
                       ]}
                       onPress={() => {
-                        console.log("[DEBUG Modal] Time picker button PRESSED");
                         if (Platform.OS === 'ios') {
                           setInlinePickerMode('startTime');
                         } else {
                           setShowEditTimePicker(true);
                         }
                       }}
-                      onPressIn={() => console.log("[DEBUG Modal] Time picker onPressIn")}
-                      onPressOut={() => console.log("[DEBUG Modal] Time picker onPressOut")}
                       android_ripple={{ color: theme.border }}
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
@@ -3075,7 +3047,6 @@ export default function RequestDetailsScreen({
                         },
                       ]}
                       onPress={() => {
-                        console.log("[DEBUG Modal] End time picker button PRESSED");
                         // iOS can't stack Modals, use inline overlay instead
                         if (Platform.OS === 'ios') {
                           setInlinePickerMode('endTime');
@@ -3083,8 +3054,6 @@ export default function RequestDetailsScreen({
                           setShowEditEndTimePicker(true);
                         }
                       }}
-                      onPressIn={() => console.log("[DEBUG Modal] End time picker onPressIn")}
-                      onPressOut={() => console.log("[DEBUG Modal] End time picker onPressOut")}
                       android_ripple={{ color: theme.border }}
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
@@ -3189,7 +3158,6 @@ export default function RequestDetailsScreen({
                         <SelectableCard
                           onPress={() => {
                             const newRoomValue = !editRequiresMeetingRoom;
-                            console.log("[DEBUG Modal] Meeting Room card PRESSED, toggling to:", newRoomValue);
                             setEditRequiresMeetingRoom(newRoomValue);
                             if (!newRoomValue) {
                               setEditRequiresBuffet(false);
@@ -3228,7 +3196,6 @@ export default function RequestDetailsScreen({
                       <View style={getCardWrapper3ColStyle()}>
                         <SelectableCard
                           onPress={() => {
-                            console.log("[DEBUG Modal] Buffet card PRESSED, toggling to:", !editRequiresBuffet);
                             const newBuffetValue = !editRequiresBuffet;
                             setEditRequiresBuffet(newBuffetValue);
                             if (newBuffetValue) {
@@ -3272,13 +3239,23 @@ export default function RequestDetailsScreen({
                     {/* Meeting Room Picker */}
                     {editRequiresMeetingRoom ? (
                       <View style={{ marginTop: Spacing.md }}>
-                        {isLoadingEditRooms || isFetchingEditRooms ? (
+                    {isLoadingEditRooms || isFetchingEditRooms ? (
                           <DirectionalRow
                             style={[styles.availabilityBadge, { backgroundColor: theme.surface, borderColor: theme.border, justifyContent: "flex-start" }]}
                           >
                             <ActivityIndicator size="small" color={theme.primary} style={{ marginEnd: Spacing.xs }} />
                             <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary }]}>
                               {t("common.checkingAvailability")}...
+                            </ThemedText>
+                          </DirectionalRow>
+                        ) : isEditRoomsError ? (
+                          <DirectionalRow
+                            style={[styles.availabilityBadge, { backgroundColor: applyOpacity(theme.error, "15"), borderColor: theme.error, justifyContent: "flex-start" }]}
+                            gap={Spacing.xs}
+                          >
+                            <DDIcon name="alert-circle" size={16} color={theme.error} />
+                            <ThemedText style={[Typography.bodySmall, { color: theme.error, fontWeight: "500", flex: 1, flexWrap: "wrap" }]}>
+                              {t("errors.meetingRoomCheckFailed")}
                             </ThemedText>
                           </DirectionalRow>
                         ) : hasCheckedEditAvailability && availableEditRooms.length === 0 ? (
@@ -3396,11 +3373,8 @@ export default function RequestDetailsScreen({
                           },
                         ]}
                         onPress={() => {
-                          console.log("[DEBUG Modal] WhatsApp channel PRESSED, toggling to:", !editSendWhatsApp);
                           setEditSendWhatsApp(!editSendWhatsApp);
                         }}
-                        onPressIn={() => console.log("[DEBUG Modal] WhatsApp channel onPressIn")}
-                        onPressOut={() => console.log("[DEBUG Modal] WhatsApp channel onPressOut")}
                       >
                         <View
                           style={[
@@ -3454,11 +3428,8 @@ export default function RequestDetailsScreen({
                           },
                         ]}
                         onPress={() => {
-                          console.log("[DEBUG Modal] SMS channel PRESSED, toggling to:", !editSendSMS);
                           setEditSendSMS(!editSendSMS);
                         }}
-                        onPressIn={() => console.log("[DEBUG Modal] SMS channel onPressIn")}
-                        onPressOut={() => console.log("[DEBUG Modal] SMS channel onPressOut")}
                       >
                         <View
                           style={[
@@ -3552,7 +3523,6 @@ export default function RequestDetailsScreen({
               <View style={styles.modalActions}>
                 <LoadingButton
                   onPress={() => {
-                    console.log("[DEBUG Modal] Cancel button PRESSED");
                     closeEditModal();
                   }}
                   variant="secondary"
@@ -3566,7 +3536,6 @@ export default function RequestDetailsScreen({
 
                 <LoadingButton
                   onPress={() => {
-                    console.log("[DEBUG Modal] Save/Submit button PRESSED");
                     handleEditConfirm();
                   }}
                   loading={updateMutation.isPending}
@@ -3574,6 +3543,9 @@ export default function RequestDetailsScreen({
                     updateMutation.isPending ||
                     // Rooms still loading — wait before saving
                     (editRequiresMeetingRoom && (isLoadingEditRooms || isFetchingEditRooms)) ||
+                    // A failed or unavailable check is never safe to submit.
+                    (editRequiresMeetingRoom && isEditRoomsError) ||
+                    (editRequiresMeetingRoom && hasCheckedEditAvailability && (!isEditRoomAvailable || availableEditRooms.length === 0)) ||
                     // Meeting room toggled on, rooms are available, but none selected yet
                     (editRequiresMeetingRoom && hasCheckedEditAvailability && isEditRoomAvailable && availableEditRooms.length > 0 && !selectedEditRoomId)
                   }

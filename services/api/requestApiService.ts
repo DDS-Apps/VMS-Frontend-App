@@ -48,6 +48,10 @@ export interface ListRequestsParams {
   requestType?: string;
 }
 
+export interface RequestReadOptions {
+  signal?: AbortSignal;
+}
+
 function buildQueryString(params: Record<string, unknown>): string {
   const query = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => {
@@ -73,26 +77,29 @@ function normalizeUpdateVisitServices(
 }
 
 export const requestApiService = {
-  list: (params?: ListRequestsParams): Promise<PaginatedResponse<RequestDto>> => {
+  list: (params?: ListRequestsParams, options?: RequestReadOptions): Promise<PaginatedResponse<RequestDto>> => {
     const queryString = params ? buildQueryString(params as unknown as Record<string, unknown>) : '';
-    return get<PaginatedResponse<RequestDto>>(`${requests.base}${queryString}`);
+    return get<PaginatedResponse<RequestDto>>(`${requests.base}${queryString}`, undefined, options);
   },
 
-  getById: (id: string): Promise<RequestDto> => {
-    return get<RequestDto>(requests.byId(id));
+  getById: (id: string, options?: RequestReadOptions): Promise<RequestDto> => {
+    return get<RequestDto>(requests.byId(id), undefined, options);
   },
 
   create: (data: CreateRequestDto): Promise<RequestDto> => {
     return post<RequestDto, CreateRequestDto>(requests.base, data);
   },
 
-  getMyRequests: (): Promise<RequestDto[]> => {
-    return get<RequestDto[]>(requests.myRequests);
+  getMyRequests: (options?: RequestReadOptions): Promise<RequestDto[]> => {
+    return get<RequestDto[]>(requests.myRequests, undefined, options);
   },
 
-  getPendingApprovals: (params?: PendingApprovalListParams): Promise<PendingApprovalListResponse> => {
+  getPendingApprovals: (
+    params?: PendingApprovalListParams,
+    options?: RequestReadOptions,
+  ): Promise<PendingApprovalListResponse> => {
     const queryString = params ? buildQueryString(params as unknown as Record<string, unknown>) : '';
-    return get<PendingApprovalListResponse>(`${approvals.pending}${queryString}`);
+    return get<PendingApprovalListResponse>(`${approvals.pending}${queryString}`, undefined, options);
   },
 
   approve: (id: string, data?: ApproveRequestDto): Promise<RequestDto> => {
@@ -123,41 +130,38 @@ export const requestApiService = {
     return post<BulkApprovalResponse, BulkRejectPayload>(approvals.bulkReject, payload);
   },
 
-  getAwaitingVisitor: (params?: AwaitingVisitorListParams): Promise<AwaitingVisitorListResponse> => {
+  getAwaitingVisitor: (
+    params?: AwaitingVisitorListParams,
+    options?: RequestReadOptions,
+  ): Promise<AwaitingVisitorListResponse> => {
     const queryString = params ? buildQueryString(params as unknown as Record<string, unknown>) : '';
-    return get<AwaitingVisitorListResponse>(`${approvals.awaitingVisitor}${queryString}`);
+    return get<AwaitingVisitorListResponse>(`${approvals.awaitingVisitor}${queryString}`, undefined, options);
   },
 
-  getPendingHostWalkIns: (params?: PendingHostWalkInListParams): Promise<PendingHostWalkInListResponse> => {
+  getPendingHostWalkIns: (
+    params?: PendingHostWalkInListParams,
+    options?: RequestReadOptions,
+  ): Promise<PendingHostWalkInListResponse> => {
     const queryString = params ? buildQueryString(params as unknown as Record<string, unknown>) : '';
-    return get<PendingHostWalkInListResponse>(`${approvals.pendingHost}${queryString}`);
+    return get<PendingHostWalkInListResponse>(`${approvals.pendingHost}${queryString}`, undefined, options);
   },
 
-  listVisits: (params?: VisitListParams): Promise<VisitListResponse> => {
+  listVisits: (params?: VisitListParams, options?: RequestReadOptions): Promise<VisitListResponse> => {
     const queryString = params ? buildQueryString(params as unknown as Record<string, unknown>) : '';
-    return get<VisitListResponse>(`${visits.base}${queryString}`);
+    return get<VisitListResponse>(`${visits.base}${queryString}`, undefined, options);
   },
 
-  listReceptionRequests: (params?: VisitListParams): Promise<VisitListResponse> => {
+  listReceptionRequests: (params?: VisitListParams, options?: RequestReadOptions): Promise<VisitListResponse> => {
     const queryString = params ? buildQueryString(params as unknown as Record<string, unknown>) : '';
-    return get<VisitListResponse>(`${reception.requests}${queryString}`);
+    return get<VisitListResponse>(`${reception.requests}${queryString}`, undefined, options);
   },
 
   createVisit: async (data: CreateVisitPayload): Promise<CreateVisitResponse> => {
-    console.log('[requestApiService.createVisit] Sending POST to:', visits.base);
-    console.log('[requestApiService.createVisit] Payload:', JSON.stringify(data, null, 2));
-    try {
-      const result = await post<CreateVisitResponse, CreateVisitPayload>(visits.base, data);
-      console.log('[requestApiService.createVisit] Response received:', result);
-      return result;
-    } catch (error) {
-      console.error('[requestApiService.createVisit] Error:', error);
-      throw error;
-    }
+    return post<CreateVisitResponse, CreateVisitPayload>(visits.base, data);
   },
 
-  getVisitById: (id: string): Promise<VisitDetailsDto> => {
-    return get<VisitDetailsDto>(visits.byId(id));
+  getVisitById: (id: string, options?: RequestReadOptions): Promise<VisitDetailsDto> => {
+    return get<VisitDetailsDto>(visits.byId(id), undefined, options);
   },
 
   updateVisit: (id: string, data: UpdateVisitPayload): Promise<UpdateVisitResponse> => {
@@ -179,14 +183,20 @@ export const requestApiService = {
     return post<HostRejectResponse, HostRejectPayload>(visits.hostReject(id), payload);
   },
 
-  getApprovalHistory: (params?: ApprovalHistoryListParams): Promise<ApprovalHistoryResponse> => {
+  getApprovalHistory: (
+    params?: ApprovalHistoryListParams,
+    options?: RequestReadOptions,
+  ): Promise<ApprovalHistoryResponse> => {
     const queryString = params ? buildQueryString(params as unknown as Record<string, unknown>) : '';
-    return get<ApprovalHistoryResponse>(`${approvals.history}${queryString}`);
+    return get<ApprovalHistoryResponse>(`${approvals.history}${queryString}`, undefined, options);
   },
 
-  checkDuplicateVisit: async (params: { date: string; phone?: string; email?: string }): Promise<VisitListResponse> => {
+  checkDuplicateVisit: async (
+    params: { date: string; phone?: string; email?: string },
+    options?: RequestReadOptions,
+  ): Promise<VisitListResponse> => {
     const queryString = buildQueryString(params as unknown as Record<string, unknown>);
-    return get<VisitListResponse>(`${visits.base}${queryString}`);
+    return get<VisitListResponse>(`${visits.base}${queryString}`, undefined, options);
   },
 };
 
