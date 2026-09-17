@@ -1,0 +1,127 @@
+Please investigate the frontend API request failures shown in the browser Network panel.
+
+Context
+-------
+Production frontend is calling this backend:
+
+https://vms-backend-app-qa.replit.app
+
+Affected requests include:
+
+- GET /api/v1/approvals/awaiting-visitor?limit=10
+- GET /api/v1/approvals/pending?limit=10
+- GET /api/v1/approvals/pending-host?limit=10
+- GET /api/v1/visits?startDate=2026-09-17&endDate=2026-09-30&myRequestsOnly=true&limit=100&page=1
+- GET /api/v1/visits?date=2026-09-17&email=<email>&phone=<phone>
+- GET /api/v1/notifications/unread-count
+- GET /api/v1/visits/rooms/availability?date=2026-09-17&startTime=17%3A33&endTime=18%3A33
+
+The browser marks many of these requests in red or as cancelled/failed.
+
+Backend production-log findings
+-------------------------------
+The backend is generally not returning immediate HTTP 500 errors. Most affected calls eventually return HTTP 200, but they take too long:
+
+- Visit list requests: approximately 41–42 seconds
+- Awaiting-visitor request: approximately 31–40 seconds
+- Notification unread count: approximately 16–21.5 seconds
+- Pending-host request: approximately 9.4 seconds
+- Room availability request: approximately 10.8 seconds
+
+One separate request returned:
+
+401 - Token has expired
+
+The backend slowdown is being investigated separately. It appears related to heavy QR lifecycle scheduler activity and database contention.
+
+Frontend investigation required
+-------------------------------
+Please determine exactly why the frontend marks these requests as failed or cancelled.
+
+Check the following:
+
+1. HTTP client timeout
+   - Find the timeout configured in Axios, Fetch wrappers, React Query, RTK Query, or any shared API client.
+   - Determine whether requests are aborted after 10, 15, 20, or 30 seconds.
+   - Identify whether Axios reports ECONNABORTED, Fetch reports AbortError, or the browser reports cancelled.
+
+2. Request cancellation
+   - Check AbortController, Axios cancellation tokens, component cleanup functions, and route-change behavior.
+   - Verify whether rerenders or changing query parameters cancel active requests.
+   - Check whether duplicate-query handling cancels the previous request when polling or refetching starts.
+
+3. Polling and duplicate requests
+   - Identify how often unread-count, approvals, visits, and room availability are requested.
+   - Ensure polling does not launch another request while the previous request is still pending.
+   - Prevent request storms caused by rerenders, unstable query keys, or effects with changing dependencies.
+   - Deduplicate identical concurrent requests.
+
+4. Authentication and token refresh
+   - Inspect the handling of “401 Token has expired.”
+   - Verify that only one token-refresh request runs at a time.
+   - Queue pending API calls while refreshing the token.
+   - Retry each failed request only once after a successful refresh.
+   - Prevent refresh loops, repeated redirects, or cancellation of unrelated requests.
+   - If refresh fails, clear the session and send the user to login with a clear message.
+
+5. Loading and error states
+   - Do not silently display empty lists when a request times out.
+   - Distinguish these states:
+     - Loading
+     - Empty result
+     - Request timed out
+     - Authentication expired
+     - Server error
+     - Request cancelled because the page changed
+   - Preserve existing data during background refetches where appropriate.
+   - Add a Retry action for timeout and recoverable server errors.
+
+6. Request timeout policy
+   - Do not solve the issue only by setting an unlimited timeout.
+   - Use a documented, reasonable timeout for normal API reads.
+   - If a temporary timeout increase is required while the backend is fixed, keep it centralized and configurable.
+   - Ensure slow requests do not cause overlapping polling calls.
+
+7. Logging and diagnostics
+   - Add development diagnostics that record:
+     - HTTP method and path
+     - Response status
+     - Request duration
+     - Timeout versus cancellation reason
+     - Whether a retry occurred
+   - Never log access tokens, refresh tokens, email addresses, phone numbers, or other sensitive data.
+   - Confirm whether the current red requests are timeout failures, AbortController cancellations, authentication failures, or another frontend exception.
+
+Required deliverables
+---------------------
+Please provide:
+
+1. The exact root cause of the red/cancelled requests.
+2. The configured timeout and the file where it is defined.
+3. Any polling intervals for the affected endpoints.
+4. The token-refresh flow and any issue found in it.
+5. A list of changed files.
+6. Automated tests covering:
+   - A slow successful response
+   - A request timeout
+   - Request cancellation during navigation
+   - Duplicate-request prevention
+   - Expired-token refresh and one-time retry
+   - Refresh failure
+7. Before-and-after Network panel evidence or request-duration logs.
+
+Acceptance criteria
+-------------------
+- A slow request produces a clear timeout state rather than appearing as an empty result.
+- Polling never starts another identical call while one is already pending.
+- Duplicate concurrent requests are deduplicated where appropriate.
+- Navigation cancellation does not display an error notification.
+- An expired access token triggers one coordinated refresh and one retry.
+- A failed refresh cleanly signs the user out without an infinite loop.
+- Error messages distinguish timeout, authentication, server, and connectivity failures.
+- No sensitive information is written to browser logs.
+- Existing successful API behavior remains unchanged.
+
+Important
+---------
+Do not hide the backend performance problem by treating timed-out requests as successful empty responses. The frontend should handle slow and failed requests correctly, while the backend team separately fixes the production latency.
