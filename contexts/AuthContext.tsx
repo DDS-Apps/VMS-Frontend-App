@@ -22,6 +22,7 @@ import { dashboardKpiKeys } from '@/hooks/queries/useDashboardKpiQuery';
 
 const AUTH_STORAGE_KEY = '@vms_auth';
 const TOKEN_STORAGE_KEY = '@vms_tokens';
+export const SESSION_EXPIRED_ERROR = 'SESSION_EXPIRED';
 
 /**
  * Fields compared when deciding whether a freshly fetched profile differs from
@@ -131,6 +132,9 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
   // Incremented whenever the signed-in identity changes (login, SSO, logout) so a
   // startup profile refresh that resolves late cannot overwrite a newer session.
   const sessionGenerationRef = useRef(0);
+  // A refresh can fail for several requests at once. Only the first failure
+  // may end the current session; later callbacks belong to the same epoch.
+  const runtimeLogoutGenerationRef = useRef<number | null>(null);
 
   useEffect(() => {
     const currentIdentity = state.user
@@ -146,41 +150,59 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
     previousKpiIdentityRef.current = currentIdentity;
   }, [state.user?.id, state.user?.role]);
 
-  const handleLogout = useCallback(async () => {
+  const clearSessionLocally = useCallback((error: string | null) => {
     sessionGenerationRef.current += 1;
+    runtimeLogoutGenerationRef.current = sessionGenerationRef.current;
 
-    try {
-      await pushNotificationService.unregister();
-    } catch (pushError) {
-      console.warn('[AuthContext] Failed to unregister push notifications:', pushError);
+    // These operations deliberately happen before any best-effort network
+    // cleanup. A refresh failure must not leave a usable local session while
+    // push registration or the logout request is still in flight.
+    if (typeof (queryClient as { clear?: () => void }).clear === 'function') {
+      queryClient.clear();
+    } else {
+      queryClient.removeQueries();
     }
-
-    try {
-      await crashlyticsService.clearUserAttributes();
-    } catch (crashlyticsError) {
-      console.warn('[AuthContext] Failed to clear crashlytics user attributes:', crashlyticsError);
-    }
-
-    try {
-      const currentRefreshToken = getRefreshToken();
-      if (currentRefreshToken) {
-        await authService.logout(currentRefreshToken);
-      }
-    } catch (error) {
-    } finally {
-      queryClient.removeQueries({ queryKey: dashboardKpiKeys.all });
-      clearTokens();
-      await AsyncStorage.multiRemove([AUTH_STORAGE_KEY, TOKEN_STORAGE_KEY]);
-      setState((prev) => ({
-        user: null,
-        isLoading: false,
-        isAuthenticated: false,
-        error: null,
-        userDataVersion: prev.userDataVersion,
-      }));
-      onLogout?.();
-    }
+    clearTokens();
+    void AsyncStorage.multiRemove([AUTH_STORAGE_KEY, TOKEN_STORAGE_KEY]).catch(() => {
+      // Local state and in-memory tokens are already cleared. A later launch
+      // will retry the storage cleanup rather than exposing the old session.
+    });
+    setState((prev) => ({
+      user: null,
+      isLoading: false,
+      isAuthenticated: false,
+      error,
+      userDataVersion: prev.userDataVersion,
+    }));
+    onLogout?.();
   }, [onLogout]);
+
+  const runLogoutCleanup = useCallback(async (refreshToken: string | null) => {
+    await Promise.allSettled([
+      pushNotificationService.unregister(),
+      crashlyticsService.clearUserAttributes(),
+      ...(refreshToken ? [authService.logout(refreshToken)] : []),
+    ]);
+  }, []);
+
+  const handleLogout = useCallback(async () => {
+    const currentRefreshToken = getRefreshToken();
+    clearSessionLocally(null);
+    await runLogoutCleanup(currentRefreshToken);
+  }, [clearSessionLocally, runLogoutCleanup]);
+
+  const handleRuntimeTokenRefreshFailed = useCallback(() => {
+    const generation = sessionGenerationRef.current;
+    if (runtimeLogoutGenerationRef.current === generation) {
+      return;
+    }
+
+    // Do not await push unregister, Crashlytics, or the server logout here.
+    // The transport invokes this callback from an interceptor and another
+    // login may begin before those operations complete.
+    clearSessionLocally(SESSION_EXPIRED_ERROR);
+    void runLogoutCleanup(null);
+  }, [clearSessionLocally, runLogoutCleanup]);
 
   const persistTokens = useCallback(async (newAccessToken: string, newRefreshToken: string, expiresIn?: number) => {
     const expiresAt = expiresIn ? Date.now() + expiresIn * 1000 : Date.now() + 86400 * 1000;
@@ -201,7 +223,7 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
 
   useEffect(() => {
     setOnTokenRefreshFailed(() => {
-      handleLogout();
+      handleRuntimeTokenRefreshFailed();
     });
 
     setOnTokenRefreshed((newAccessToken, newRefreshToken) => {
@@ -212,7 +234,7 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
       setOnTokenRefreshFailed(null);
       setOnTokenRefreshed(null);
     };
-  }, [handleLogout, persistTokens]);
+  }, [handleRuntimeTokenRefreshFailed, persistTokens]);
 
   const mapRoleToUserRole = (role: string): UserRole => {
     if (isValidRole(role)) {
@@ -270,8 +292,8 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
         name: typeof parsed.name === 'string' && parsed.name ? parsed.name : parsed.email.split('@')[0],
         role: mapRoleToUserRole(typeof parsed.role === 'string' ? parsed.role : 'employee'),
       };
-    } catch (error) {
-      console.warn('[AuthContext] Ignoring unreadable cached user profile:', error);
+    } catch {
+      console.warn('[AuthContext] Ignoring unreadable cached user profile');
       return null;
     }
   };
@@ -283,7 +305,7 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
     }
     
     if (!loginUser.id || !loginUser.email) {
-      console.warn('[AuthContext] User data missing required fields (id or email):', JSON.stringify(loginUser));
+      console.warn('[AuthContext] User data missing required fields (id or email)');
       return null;
     }
     
@@ -338,7 +360,7 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
       const parsed = parseAuthHashFragment(hash);
 
       if (parsed.error) {
-        console.error('[AuthContext] Error in hash:', parsed.error);
+        console.error('[AuthContext] Error in hash response');
         clearUrlHash();
         return false;
       }
@@ -374,8 +396,8 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
         clearUrlHash();
         console.log('[AuthContext] SSO login successful');
 
-        pushNotificationService.initialize().catch((pushError) => {
-          console.warn('[AuthContext] Failed to initialize push notifications:', pushError);
+        pushNotificationService.initialize().catch(() => {
+          console.warn('[AuthContext] Failed to initialize push notifications');
         });
 
         crashlyticsService.setUserAttributes({
@@ -383,13 +405,13 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
           email: user.email,
           name: user.name,
           role: user.role,
-        }).catch((crashlyticsError) => {
-          console.warn('[AuthContext] Failed to set crashlytics user attributes:', crashlyticsError);
+        }).catch(() => {
+          console.warn('[AuthContext] Failed to set crashlytics user attributes');
         });
 
         return true;
       } catch (error) {
-        console.error('[AuthContext] Error processing hash tokens:', error);
+        console.error('[AuthContext] Error processing hash tokens');
         clearTokens();
         await AsyncStorage.multiRemove([AUTH_STORAGE_KEY, TOKEN_STORAGE_KEY]);
         clearUrlHash();
@@ -418,8 +440,8 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
     };
 
     const startSessionServices = (user: AuthUser) => {
-      pushNotificationService.initialize().catch((pushError) => {
-        console.warn('[AuthContext] Failed to initialize push notifications:', pushError);
+      pushNotificationService.initialize().catch(() => {
+        console.warn('[AuthContext] Failed to initialize push notifications');
       });
 
       crashlyticsService.setUserAttributes({
@@ -427,8 +449,8 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
         email: user.email,
         name: user.name,
         role: user.role,
-      }).catch((crashlyticsError) => {
-        console.warn('[AuthContext] Failed to set crashlytics user attributes:', crashlyticsError);
+      }).catch(() => {
+        console.warn('[AuthContext] Failed to set crashlytics user attributes');
       });
     };
 
@@ -441,7 +463,9 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
      */
     const refreshStartupProfile = async (cachedUser: AuthUser, generation: number) => {
       try {
-        const userDto = await authService.getCurrentUser();
+        const userDto = await authService.getCurrentUser({
+          preserveSessionOnRefreshFailure: true,
+        });
         if (!isCurrentSession(generation)) {
           return;
         }
@@ -455,16 +479,22 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
           return;
         }
 
+        if (!isCurrentSession(generation)) {
+          return;
+        }
         setState((prev) => ({ ...prev, user: freshUser, userDataVersion: prev.userDataVersion + 1 }));
         await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(freshUser));
+        if (!isCurrentSession(generation)) {
+          return;
+        }
 
         crashlyticsService.setUserAttributes({
           id: freshUser.id,
           email: freshUser.email,
           name: freshUser.name,
           role: freshUser.role,
-        }).catch((crashlyticsError) => {
-          console.warn('[AuthContext] Failed to set crashlytics user attributes:', crashlyticsError);
+        }).catch(() => {
+          console.warn('[AuthContext] Failed to set crashlytics user attributes');
         });
       } catch (error) {
         if (!isCurrentSession(generation)) {
@@ -478,7 +508,7 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
           return;
         }
 
-        console.warn('[AuthContext] Startup profile refresh failed, keeping cached session:', error);
+          console.warn('[AuthContext] Startup profile refresh failed, keeping cached session');
       }
     };
 
@@ -514,7 +544,9 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
         // Tokens without a usable cached profile: the first render has to wait
         // for the server, exactly as before.
         try {
-          const userDto = await authService.getCurrentUser();
+          const userDto = await authService.getCurrentUser({
+            preserveSessionOnRefreshFailure: true,
+          });
           const user = mapUserDtoToAuthUser(userDto);
 
           setSignedInState(user);
@@ -526,7 +558,7 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
           } else {
             // Nothing to render from, so Login is shown, but the tokens stay
             // stored: a transient failure must not cost the user their session.
-            console.warn('[AuthContext] Could not load the profile for the stored session:', error);
+            console.warn('[AuthContext] Could not load the profile for the stored session');
           }
           clearTokens();
           setSignedOutState();
@@ -546,14 +578,12 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
   }, [persistTokens]);
 
   const handleTokenResponse = useCallback(async (response: AuthTokenResponse) => {
-    console.log('[AuthContext] Processing token response, has user:', !!response?.user);
-    
     // Handle case where user might be at root level of response (API format variation)
     const userData = response.user || (response as unknown as { id?: string; email?: string });
     const user = mapLoginUserToAuthUser(userData as AuthTokenResponse['user']);
     
     if (!user) {
-      console.error('[AuthContext] Invalid user data received from server. Response keys:', Object.keys(response || {}));
+      console.error('[AuthContext] Invalid user data received from server');
       setState((prev) => ({
         user: null,
         isLoading: false,
@@ -579,8 +609,8 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
       userDataVersion: prev.userDataVersion,
     }));
 
-    pushNotificationService.initialize().catch((error) => {
-      console.warn('[AuthContext] Failed to initialize push notifications:', error);
+    pushNotificationService.initialize().catch(() => {
+      console.warn('[AuthContext] Failed to initialize push notifications');
     });
 
     crashlyticsService.setUserAttributes({
@@ -588,17 +618,16 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
       email: user.email,
       name: user.name,
       role: user.role,
-    }).catch((error) => {
-      console.warn('[AuthContext] Failed to set crashlytics user attributes:', error);
+    }).catch(() => {
+      console.warn('[AuthContext] Failed to set crashlytics user attributes');
     });
 
     // Sync language preference from server
     if (user.language && onUserLanguageChanged) {
       try {
-        console.log('[AuthContext] User language from server:', user.language);
         onUserLanguageChanged(user.language);
       } catch (langError) {
-        console.warn('[AuthContext] Failed to sync user language preference:', langError);
+        console.warn('[AuthContext] Failed to sync user language preference');
       }
     }
 
@@ -641,8 +670,6 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
     setState((prev) => ({ ...prev, error: null }));
 
     try {
-      console.log('[AuthContext] ssoLogin called, token length:', tokens.accessToken?.length || 0);
-      
       if (!tokens.accessToken) {
         throw new Error('No access token provided');
       }
@@ -653,24 +680,12 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
       const refreshTokenValue = tokens.refreshToken || tokens.accessToken;
       setRefreshToken(refreshTokenValue);
 
-      console.log('[AuthContext] Tokens set, persisting...');
       await persistTokens(tokens.accessToken, refreshTokenValue, tokens.expiresIn);
 
-      console.log('[AuthContext] Fetching current user from API...');
-      console.log('[AuthContext] Using access token (first 20 chars):', tokens.accessToken?.substring(0, 20));
       let userDto;
       try {
         userDto = await authService.getCurrentUser();
-        console.log('[AuthContext] User fetched successfully:', userDto?.email);
       } catch (userFetchError) {
-        console.error('[AuthContext] Failed to fetch current user:', userFetchError);
-        console.error('[AuthContext] User fetch error details:', {
-          name: userFetchError instanceof Error ? userFetchError.name : 'Unknown',
-          message: userFetchError instanceof Error ? userFetchError.message : String(userFetchError),
-          code: (userFetchError as any)?.code,
-          status: (userFetchError as any)?.status,
-          response: (userFetchError as any)?.response,
-        });
         throw userFetchError;
       }
       
@@ -686,10 +701,8 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
         userDataVersion: prev.userDataVersion,
       }));
 
-      console.log('[AuthContext] SSO login complete, user:', user.email, 'role:', user.role);
-
-      pushNotificationService.initialize().catch((pushError) => {
-        console.warn('[AuthContext] Failed to initialize push notifications:', pushError);
+      pushNotificationService.initialize().catch(() => {
+        console.warn('[AuthContext] Failed to initialize push notifications');
       });
 
       crashlyticsService.setUserAttributes({
@@ -697,23 +710,21 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
         email: user.email,
         name: user.name,
         role: user.role,
-      }).catch((crashlyticsError) => {
-        console.warn('[AuthContext] Failed to set crashlytics user attributes:', crashlyticsError);
+      }).catch(() => {
+        console.warn('[AuthContext] Failed to set crashlytics user attributes');
       });
 
       // Sync language preference from server
       if (user.language && onUserLanguageChanged) {
         try {
-          console.log('[AuthContext] SSO User language from server:', user.language);
           onUserLanguageChanged(user.language);
         } catch (langError) {
-          console.warn('[AuthContext] Failed to sync SSO user language preference:', langError);
+          console.warn('[AuthContext] Failed to sync SSO user language preference');
         }
       }
 
       return user;
     } catch (error) {
-      console.error('[AuthContext] ssoLogin error:', error);
       clearTokens();
       await AsyncStorage.multiRemove([AUTH_STORAGE_KEY, TOKEN_STORAGE_KEY]);
       const errorMessage = error instanceof Error ? error.message : 'SSO login failed';
@@ -744,10 +755,13 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
       await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
       return user;
     } catch (error) {
-      console.error('[AuthContext] Failed to refresh user:', error);
+      // App focus refreshes are runtime auth checks. Any failure must end the
+      // local session; the interceptor callback is guarded so this remains a
+      // single sign-out when it already ran for the same request.
+      handleRuntimeTokenRefreshFailed();
       return null;
     }
-  }, [state.isAuthenticated, state.user?.isSSOUser]);
+  }, [handleRuntimeTokenRefreshFailed, state.isAuthenticated, state.user?.isSSOUser]);
 
   const clearError = useCallback(() => {
     setState((prev) => ({ ...prev, error: null }));

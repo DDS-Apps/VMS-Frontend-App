@@ -37,7 +37,7 @@ export class ApiException extends Error implements ApiError {
 }
 
 export function mapAxiosErrorToApiError(error: AxiosError<{ message?: string; error?: string; details?: unknown }>): ApiError {
-  if (error.code === 'ECONNABORTED') {
+  if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
     return {
       code: 'TIMEOUT',
       message: 'Request timed out. Please try again.',

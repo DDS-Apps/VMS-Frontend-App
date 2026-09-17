@@ -16,6 +16,7 @@ export function useVisitorsQuery(params?: ListVisitorsParams) {
   return useQuery<PaginatedResponse<VisitorDto>>({
     queryKey: visitorKeys.list(params),
     queryFn: () => visitorApiService.list(params),
+    retry: false,
   });
 }
 
@@ -24,6 +25,7 @@ export function useVisitorQuery(id: string, enabled = true) {
     queryKey: visitorKeys.detail(id),
     queryFn: () => visitorApiService.getById(id),
     enabled: enabled && !!id,
+    retry: false,
   });
 }
 
@@ -31,6 +33,7 @@ export function useBlacklistedVisitorsQuery() {
   return useQuery<VisitorDto[]>({
     queryKey: visitorKeys.blacklisted(),
     queryFn: () => visitorApiService.getBlacklisted(),
+    retry: false,
   });
 }
 

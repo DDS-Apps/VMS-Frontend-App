@@ -986,8 +986,10 @@ export interface TranslationKeys {
     invalidPassport: string;
     invalidDriverLicense: string;
     meetingRoomLoading: string;
+    meetingRoomCheckFailed: string;
     hostEmployeeLoading: string;
     duplicateCheckLoading: string;
+    duplicateCheckFailed: string;
   };
   splash: {
     checkingConnection: string;

@@ -8,6 +8,14 @@
  * needs when a screen feels slow.
  */
 export type RequestOutcome = 'ok' | 'http_error' | 'timeout' | 'network' | 'cancelled' | 'unknown';
+export type RequestEndReason =
+  | 'axios_timeout'
+  | 'transport_timeout'
+  | 'navigation'
+  | 'last_subscriber_cancelled'
+  | 'session_changed'
+  | 'cancelled'
+  | 'unknown';
 
 export interface RequestTimingSample {
   method: string;
@@ -16,6 +24,10 @@ export interface RequestTimingSample {
   status: number | null;
   durationMs: number;
   outcome: RequestOutcome;
+  /** Safe, normalized reason for a timeout or cancellation, if applicable. */
+  reason?: RequestEndReason;
+  /** Zero for an initial request; one for the coordinated auth replay. */
+  retryAttempt?: number;
   /** Epoch ms when the request finished. */
   finishedAt: number;
 }
@@ -37,15 +49,27 @@ export const SLOW_REQUEST_THRESHOLD_MS = 2000;
 const UUID_SEGMENT = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
 const NUMERIC_SEGMENT = /\/\d+(?=\/|$)/g;
 const LONG_HEX_SEGMENT = /\/[0-9a-f]{16,}(?=\/|$)/gi;
+const OPAQUE_OR_SENSITIVE_SEGMENT = /\/(?:[A-Za-z0-9_-]{24,}|[^/]*@[^/]*)(?=\/|$)/g;
 
 const samples: RequestTimingSample[] = [];
 
 export function normalizeRequestPath(url: string | undefined): string {
   if (!url) return '(unknown)';
   const withoutQuery = url.split('?')[0].split('#')[0];
-  return withoutQuery
+  // Configured base URLs are not diagnostic data. Keep only their route so a
+  // credential-bearing override can never appear in logs or timing samples.
+  let path = withoutQuery;
+  if (/^[a-z][a-z\d+.-]*:\/\//i.test(withoutQuery)) {
+    try {
+      path = new URL(withoutQuery).pathname || '/';
+    } catch {
+      path = '(unknown)';
+    }
+  }
+  return path
     .replace(UUID_SEGMENT, ':id')
     .replace(LONG_HEX_SEGMENT, '/:id')
+    .replace(OPAQUE_OR_SENSITIVE_SEGMENT, '/:id')
     .replace(NUMERIC_SEGMENT, '/:id');
 }
 

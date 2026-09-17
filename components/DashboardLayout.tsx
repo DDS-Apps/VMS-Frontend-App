@@ -24,6 +24,8 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useRTLStyles } from "@/hooks/useRTLStyles";
 import { UserRole } from "@/types/vms.types";
 import { authService } from "@/services/api/authService";
+import { getLocalizedApiErrorMessage } from "@/utils/apiErrorMessage";
+import { applyOpacity } from "@/utils/statusStyles";
 
 const SIDEBAR_WIDTH_DESKTOP = 280;
 // Android needs a narrower edge area to avoid conflicts with horizontal ScrollViews
@@ -61,6 +63,8 @@ interface DashboardLayoutProps {
   canGoBack?: boolean;
   onGoBack?: () => void;
   unreadNotificationCount?: number;
+  unreadNotificationError?: unknown;
+  onRetryUnreadNotifications?: () => Promise<void>;
   isSSOUser?: boolean;
 }
 
@@ -78,6 +82,8 @@ export default function DashboardLayout({
   canGoBack = false,
   onGoBack,
   unreadNotificationCount = 0,
+  unreadNotificationError,
+  onRetryUnreadNotifications,
   isSSOUser = false,
 }: DashboardLayoutProps) {
   const { theme, isDark, toggleTheme } = useTheme();
@@ -90,6 +96,9 @@ export default function DashboardLayout({
     : I18nManager.isRTL;
   
   const { t } = useTranslation();
+  const unreadErrorMessage = unreadNotificationError
+    ? getLocalizedApiErrorMessage(unreadNotificationError, t)
+    : null;
   const rtlStyles = useRTLStyles();
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -106,8 +115,8 @@ export default function DashboardLayout({
       await authService.updateProfile({ language: newLocale });
       await setLocale(newLocale);
       setProfileMenuVisible(false);
-    } catch (error) {
-      console.warn('[DashboardLayout] Failed to save language to server:', error);
+    } catch {
+      console.warn('[DashboardLayout] Failed to save language preference');
     } finally {
       setIsLanguageChanging(false);
     }
@@ -721,6 +730,24 @@ export default function DashboardLayout({
             
             <View style={styles.contentInner}>
               {Platform.OS === 'web' && <EnableNotificationsPrompt />}
+              {unreadErrorMessage ? (
+                <DirectionalRow
+                  style={[styles.notificationError, { backgroundColor: applyOpacity(theme.error, '10') }]}
+                  gap={Spacing.sm}
+                >
+                  <DDIcon name="alert-circle" size={16} color={theme.error} />
+                  <ThemedText style={[Typography.caption, { color: theme.error, flex: 1 }]}>
+                    {unreadErrorMessage}
+                  </ThemedText>
+                  {onRetryUnreadNotifications ? (
+                    <Pressable onPress={() => void onRetryUnreadNotifications()} hitSlop={8}>
+                      <ThemedText style={[Typography.caption, { color: theme.primary, fontWeight: '600' }]}>
+                        {t('common.retry')}
+                      </ThemedText>
+                    </Pressable>
+                  ) : null}
+                </DirectionalRow>
+              ) : null}
               {children}
             </View>
           </View>
@@ -841,6 +868,13 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
+  },
+  notificationError: {
+    alignItems: 'center',
+    marginHorizontal: Spacing.lg,
+    marginTop: Spacing.sm,
+    padding: Spacing.sm,
+    borderRadius: BorderRadius.sm,
   },
   headerLogo: {
     width: 32,

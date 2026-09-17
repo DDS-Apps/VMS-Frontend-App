@@ -146,6 +146,9 @@ describe("logout while a token refresh is in flight", () => {
     // Cached session restored; the background profile request hit a 401 and a
     // refresh is now pending behind the gate.
     expect(latestAuth?.isAuthenticated).toBe(true);
+    // The hardened transport has an async request interceptor, so allow its
+    // refresh dispatch to reach the scripted adapter before asserting.
+    await flush();
     expect(network.calls).toEqual(
       expect.arrayContaining(["GET /api/v1/users/me", expect.stringMatching(/^POST .*\/auth\/refresh$/)]),
     );

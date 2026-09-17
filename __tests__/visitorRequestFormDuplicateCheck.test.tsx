@@ -126,7 +126,8 @@ describe('duplicate check while typing', () => {
     await settle(DUPLICATE_CHECK_DEBOUNCE_MS);
 
     expect(mockCheckDuplicateVisit).toHaveBeenCalledTimes(1);
-    expect(mockCheckDuplicateVisit).toHaveBeenCalledWith({ date: DATE, email: typed });
+    expect(mockCheckDuplicateVisit.mock.calls[0][0]).toEqual({ date: DATE, email: typed });
+    expect(mockCheckDuplicateVisit.mock.calls[0][1]).toEqual({ signal: expect.any(AbortSignal) });
     expect(latest).toEqual({ isCheckingDuplicate: false, hasData: true });
 
     await act(async () => {
@@ -181,7 +182,8 @@ describe('duplicate check while typing', () => {
     await settle(DUPLICATE_CHECK_DEBOUNCE_MS);
 
     expect(mockCheckDuplicateVisit).toHaveBeenCalledTimes(2);
-    expect(mockCheckDuplicateVisit).toHaveBeenLastCalledWith({ date: DATE, email: 'john@example.co' });
+    expect(mockCheckDuplicateVisit.mock.calls[1][0]).toEqual({ date: DATE, email: 'john@example.co' });
+    expect(mockCheckDuplicateVisit.mock.calls[1][1]).toEqual({ signal: expect.any(AbortSignal) });
     expect(latest).toEqual({ isCheckingDuplicate: false, hasData: true });
 
     await act(async () => {

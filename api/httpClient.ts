@@ -1,7 +1,13 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import { apiConfig } from './config';
 import { ApiException, mapAxiosErrorToApiError } from './errors';
-import { normalizeRequestPath, recordRequestTiming, type RequestOutcome } from './requestTiming';
+import { InFlightGetRegistry, stableRequestValue, type GetRequestOptions } from './inFlightGet';
+import {
+  normalizeRequestPath,
+  recordRequestTiming,
+  type RequestEndReason,
+  type RequestOutcome,
+} from './requestTiming';
 
 interface WrappedApiResponse<T> {
   success: boolean;
@@ -30,7 +36,6 @@ let accessToken: string | null = null;
 let refreshToken: string | null = null;
 let onTokenRefreshFailed: (() => void) | null = null;
 let onTokenRefreshed: ((accessToken: string, refreshToken: string) => void) | null = null;
-let isRefreshing = false;
 
 // Bumped whenever the session identity changes (tokens cleared by logout, or a
 // different refresh token installed by a login). A token refresh that started
@@ -38,35 +43,19 @@ let isRefreshing = false;
 // the user just ended, or overwrite a newer one.
 let sessionEpoch = 0;
 
-interface RefreshWaiter {
-  onRefreshed: (token: string) => void;
-  onFailed: (error: unknown) => void;
+interface RefreshOperation {
+  token: string;
+  promise: Promise<string>;
 }
 
-let refreshWaiters: RefreshWaiter[] = [];
-
-function subscribeToTokenRefresh(waiter: RefreshWaiter): void {
-  refreshWaiters.push(waiter);
-}
-
-function notifyWaiters(token: string): void {
-  const waiters = refreshWaiters;
-  refreshWaiters = [];
-  waiters.forEach((waiter) => waiter.onRefreshed(token));
-}
-
-function failWaiters(error: unknown): void {
-  const waiters = refreshWaiters;
-  refreshWaiters = [];
-  waiters.forEach((waiter) => waiter.onFailed(error));
-}
+// An operation is scoped to a session epoch. An old refresh can therefore
+// finish harmlessly after logout/new-login without blocking the new session.
+const refreshOperations = new Map<number, RefreshOperation>();
 
 /**
- * A refresh attempt only proves the session is dead when the server actually
- * evaluated the refresh token and rejected it (a 4xx other than the transient
- * 408/429). Network failures, timeouts and 5xx responses say nothing about the
- * session, so the stored tokens are kept and the request fails with the
- * transient error instead of UNAUTHORIZED; the next request simply tries again.
+ * Startup restore code may use this narrower predicate when deciding whether a
+ * cached session can remain visible. Runtime refresh follows the product
+ * policy below and clears its affected session after every refresh failure.
  */
 export function isDefinitiveRefreshFailure(refreshError: unknown): boolean {
   if (!axios.isAxiosError(refreshError)) return false;
@@ -124,6 +113,14 @@ const httpClient: AxiosInstance = axios.create({
 // Start times keyed by the request config object, which axios hands back
 // unchanged on both the response and the error path.
 const requestStartTimes = new WeakMap<object, number>();
+const inFlightGets = new InFlightGetRegistry();
+
+type TransportRequestConfig = InternalAxiosRequestConfig & {
+  _retry?: boolean;
+  _retryAttempt?: number;
+  __sessionEpoch?: number;
+  __accessTokenAtDispatch?: string | null;
+};
 
 function now(): number {
   return typeof performance !== 'undefined' && typeof performance.now === 'function'
@@ -134,15 +131,30 @@ function now(): number {
 function outcomeForError(error: AxiosError): RequestOutcome {
   if (error.response) return 'http_error';
   if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') return 'timeout';
-  if (error.code === 'ERR_CANCELED') return 'cancelled';
+  if (error.code === 'ERR_CANCELED' || error.code === 'ABORT_ERR') return 'cancelled';
   if (error.request) return 'network';
   return 'unknown';
 }
 
+function safeCancellationReason(reason: unknown): RequestEndReason {
+  if (reason === 'navigation') return 'navigation';
+  if (reason === 'last_subscriber_cancelled') return 'last_subscriber_cancelled';
+  if (reason === 'session_changed') return 'session_changed';
+  return 'cancelled';
+}
+
+function reasonForError(error: AxiosError, config?: TransportRequestConfig): RequestEndReason | undefined {
+  if (error.code === 'ECONNABORTED') return 'axios_timeout';
+  if (error.code === 'ETIMEDOUT') return 'transport_timeout';
+  if (outcomeForError(error) === 'cancelled') return safeCancellationReason(config?.signal?.reason);
+  return undefined;
+}
+
 function finishTiming(
-  config: InternalAxiosRequestConfig | undefined,
+  config: TransportRequestConfig | undefined,
   status: number | null,
   outcome: RequestOutcome,
+  reason?: RequestEndReason,
 ): number | null {
   if (!config) return null;
   const startedAt = requestStartTimes.get(config);
@@ -156,163 +168,254 @@ function finishTiming(
     status,
     durationMs,
     outcome,
+    reason,
+    retryAttempt: config._retryAttempt || 0,
     finishedAt: Date.now(),
   });
   return durationMs;
 }
 
+function logTransport(
+  event: 'Request' | 'Response' | 'Failure',
+  config: TransportRequestConfig | undefined,
+  details: { status?: number | null; durationMs?: number | null; outcome?: RequestOutcome; reason?: RequestEndReason } = {},
+): void {
+  const method = config?.method?.toUpperCase() || 'UNKNOWN';
+  const path = normalizeRequestPath(config?.url);
+  const fields = [
+    `${event}`,
+    method,
+    path,
+    `retry=${config?._retryAttempt || 0}`,
+    details.status !== undefined && details.status !== null ? `status=${details.status}` : null,
+    details.outcome ? `outcome=${details.outcome}` : null,
+    details.reason ? `reason=${details.reason}` : null,
+    details.durationMs !== undefined && details.durationMs !== null ? `durationMs=${details.durationMs}` : null,
+  ].filter(Boolean);
+  console.log(`[HTTP] ${fields.join(' ')}`);
+}
+
+function sessionChangedError(): ApiException {
+  return new ApiException({
+    code: 'CANCELLED',
+    message: 'Request was cancelled because the session changed.',
+  });
+}
+
+function hasSessionChanged(config: TransportRequestConfig | undefined): boolean {
+  return config?.__sessionEpoch !== undefined && config.__sessionEpoch !== sessionEpoch;
+}
+
+function recordRefreshTiming(
+  startedAt: number,
+  status: number | null,
+  outcome: RequestOutcome,
+  reason?: RequestEndReason,
+): void {
+  const durationMs = Math.round(now() - startedAt);
+  recordRequestTiming({
+    method: 'POST',
+    path: normalizeRequestPath(apiConfig.endpoints.auth.refresh),
+    status,
+    durationMs,
+    outcome,
+    reason,
+    retryAttempt: 0,
+    finishedAt: Date.now(),
+  });
+  console.log(
+    `[HTTP] Refresh POST ${normalizeRequestPath(apiConfig.endpoints.auth.refresh)} ` +
+      `retry=0${status === null ? '' : ` status=${status}`} outcome=${outcome}` +
+      `${reason ? ` reason=${reason}` : ''} durationMs=${durationMs}`,
+  );
+}
+
+function refreshFailureFor(error: unknown): ApiException {
+  if (error instanceof ApiException) return error;
+  return new ApiException(
+    mapAxiosErrorToApiError(error as AxiosError<{ message?: string; error?: string; details?: unknown }>),
+  );
+}
+
+function failSessionAfterRefresh(epoch: number): void {
+  // A refresh from a session that has since ended must never sign out the
+  // current session. clearTokens changes the epoch before the callback runs.
+  if (sessionEpoch !== epoch) return;
+  clearTokens();
+  try {
+    onTokenRefreshFailed?.();
+  } catch {
+    // The transport failure remains the authoritative caller error. Never log
+    // callback errors because they can contain application data.
+  }
+}
+
+async function refreshAccessToken(epoch: number, token: string): Promise<string> {
+  const startedAt = now();
+  let refreshResponse;
+  try {
+    refreshResponse = await axios.post(
+      `${apiConfig.baseUrl}${apiConfig.endpoints.auth.refresh}`,
+      { refreshToken: token },
+      { headers: { 'Content-Type': 'application/json' }, timeout: apiConfig.timeout },
+    );
+  } catch (error) {
+    const axiosError = error as AxiosError;
+    recordRefreshTiming(
+      startedAt,
+      axiosError.response?.status ?? null,
+      outcomeForError(axiosError),
+      reasonForError(axiosError),
+    );
+    if (sessionEpoch !== epoch) throw sessionChangedError();
+
+    const refreshFailure = refreshFailureFor(error);
+    failSessionAfterRefresh(epoch);
+    throw refreshFailure;
+  }
+
+  if (sessionEpoch !== epoch) {
+    recordRefreshTiming(startedAt, refreshResponse.status, 'cancelled', 'session_changed');
+    throw sessionChangedError();
+  }
+
+  const data = unwrapResponse<{ accessToken?: string; refreshToken?: string }>(refreshResponse.data);
+  if (!data?.accessToken || !data?.refreshToken) {
+    recordRefreshTiming(startedAt, refreshResponse.status, 'http_error');
+    const refreshFailure = new ApiException({
+      code: 'SERVER_ERROR',
+      status: refreshResponse.status,
+      message: 'The session could not be refreshed. Please sign in again.',
+    });
+    failSessionAfterRefresh(epoch);
+    throw refreshFailure;
+  }
+
+  recordRefreshTiming(startedAt, refreshResponse.status, 'ok');
+  // Do not call setRefreshToken here. A rotation is still the same session and
+  // must not invalidate GET ownership or requests waiting in this epoch.
+  accessToken = data.accessToken;
+  refreshToken = data.refreshToken;
+  try {
+    onTokenRefreshed?.(data.accessToken, data.refreshToken);
+  } catch {
+    // Persistence callbacks are best effort; successful auth must still replay
+    // the protected callers.
+  }
+  return data.accessToken;
+}
+
+function getOrStartRefresh(epoch: number, token: string): Promise<string> {
+  const active = refreshOperations.get(epoch);
+  if (active && active.token === token) return active.promise;
+
+  const promise = refreshAccessToken(epoch, token);
+  const operation: RefreshOperation = { token, promise };
+  refreshOperations.set(epoch, operation);
+  void promise.finally(() => {
+    if (refreshOperations.get(epoch) === operation) {
+      refreshOperations.delete(epoch);
+    }
+  }).catch(() => {
+    // Callers observe the refresh rejection through their original request.
+  });
+  return promise;
+}
+
+function retryWithToken(originalRequest: TransportRequestConfig, token: string) {
+  if (hasSessionChanged(originalRequest)) {
+    return Promise.reject(sessionChangedError());
+  }
+  originalRequest._retry = true;
+  originalRequest._retryAttempt = (originalRequest._retryAttempt || 0) + 1;
+  originalRequest.__accessTokenAtDispatch = token;
+  if (originalRequest.headers) {
+    originalRequest.headers.Authorization = `Bearer ${token}`;
+  }
+  return httpClient(originalRequest);
+}
+
 httpClient.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
-    const method = config.method?.toUpperCase() || 'UNKNOWN';
-    const url = `${config.baseURL || ''}${config.url || ''}`;
-    const hasAuth = !!accessToken;
-    console.log(`[HTTP Request] ${method} ${url} | Auth: ${hasAuth ? 'yes' : 'no'}`);
-    
+  async (requestConfig: InternalAxiosRequestConfig) => {
+    const config = requestConfig as TransportRequestConfig;
+    if (config.__sessionEpoch === undefined) {
+      config.__sessionEpoch = sessionEpoch;
+    }
+    if (hasSessionChanged(config)) {
+      return Promise.reject(sessionChangedError());
+    }
+
+    // A protected read that starts while another request refreshes must wait
+    // instead of sending the stale token and causing another 401.
+    const refreshOperation = refreshOperations.get(sessionEpoch);
+    if (refreshOperation) {
+      const token = await refreshOperation.promise;
+      if (hasSessionChanged(config)) {
+        return Promise.reject(sessionChangedError());
+      }
+      if (config.headers) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
+
     if (accessToken && config.headers) {
       config.headers.Authorization = `Bearer ${accessToken}`;
     }
+    config.__accessTokenAtDispatch = accessToken;
     requestStartTimes.set(config, now());
+    logTransport('Request', config);
     return config;
   },
   (error) => {
-    console.error('[HTTP Request Error]', error);
+    console.log('[HTTP] Request rejected before transport');
     return Promise.reject(error);
   }
 );
 
 httpClient.interceptors.response.use(
   (response) => {
-    const method = response.config.method?.toUpperCase() || 'UNKNOWN';
-    const url = response.config.url || '';
-    const durationMs = finishTiming(response.config, response.status, 'ok');
-    console.log(
-      `[HTTP Response] ${method} ${url} | Status: ${response.status}` +
-        (durationMs !== null ? ` | ${durationMs}ms` : ''),
-    );
+    const config = response.config as TransportRequestConfig;
+    if (hasSessionChanged(config)) {
+      const durationMs = finishTiming(config, response.status, 'cancelled', 'session_changed');
+      logTransport('Response', config, {
+        status: response.status,
+        durationMs,
+        outcome: 'cancelled',
+        reason: 'session_changed',
+      });
+      throw sessionChangedError();
+    }
+    const durationMs = finishTiming(config, response.status, 'ok');
+    logTransport('Response', config, { status: response.status, durationMs, outcome: 'ok' });
     return response;
   },
   async (error: AxiosError) => {
-    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+    const originalRequest = error.config as TransportRequestConfig | undefined;
     const failedStatus = error.response?.status ?? null;
-    const failedDurationMs = finishTiming(originalRequest, failedStatus, outcomeForError(error));
-    console.log(
-      `[HTTP Failure] ${originalRequest?.method?.toUpperCase() || 'UNKNOWN'} ${originalRequest?.url || ''}` +
-        ` | ${failedStatus !== null ? `Status: ${failedStatus}` : `Code: ${error.code || 'unknown'}`}` +
-        (failedDurationMs !== null ? ` | ${failedDurationMs}ms` : ''),
-    );
+    const outcome = outcomeForError(error);
+    const reason = reasonForError(error, originalRequest);
+    const failedDurationMs = finishTiming(originalRequest, failedStatus, outcome, reason);
+    logTransport('Failure', originalRequest, {
+      status: failedStatus,
+      durationMs: failedDurationMs,
+      outcome,
+      reason,
+    });
 
-    if (error.response?.status === 401 && !originalRequest._retry && refreshToken) {
-      if (isRefreshing) {
-        // Another request is already refreshing: wait for its outcome instead
-        // of racing it. A failed refresh settles every waiter so nothing hangs.
-        return new Promise((resolve, reject) => {
-          subscribeToTokenRefresh({
-            onRefreshed: (newToken: string) => {
-              originalRequest._retry = true;
-              if (originalRequest.headers) {
-                originalRequest.headers.Authorization = `Bearer ${newToken}`;
-              }
-              resolve(httpClient(originalRequest));
-            },
-            onFailed: reject,
-          });
-        });
-      }
+    if (hasSessionChanged(originalRequest)) {
+      throw sessionChangedError();
+    }
 
-      originalRequest._retry = true;
-      isRefreshing = true;
-      const epochAtStart = sessionEpoch;
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry && refreshToken) {
+      const epochAtFailure = originalRequest.__sessionEpoch ?? sessionEpoch;
 
-      const failRefresh = (refreshFailure: ApiException): never => {
-        isRefreshing = false;
-        failWaiters(refreshFailure);
-        throw refreshFailure;
-      };
-
-      // Logged out (or logged in again) while the refresh was in flight: the
-      // outcome belongs to a session that no longer exists. Never apply it to
-      // the tokens of whatever session exists now, and never sign that out.
-      const failIfSessionChanged = () => {
-        if (sessionEpoch !== epochAtStart) {
-          failRefresh(
-            new ApiException({
-              code: 'CANCELLED',
-              message: 'The session changed while its token was being refreshed.',
-            }),
-          );
-        }
-      };
-
-      let refreshResponse;
-      try {
-        refreshResponse = await axios.post(
-          `${apiConfig.baseUrl}${apiConfig.endpoints.auth.refresh}`,
-          { refreshToken },
-          { headers: { 'Content-Type': 'application/json' }, timeout: apiConfig.timeout }
-        );
-      } catch (refreshError) {
-        failIfSessionChanged();
-
-        if (isDefinitiveRefreshFailure(refreshError)) {
-          // The server rejected the refresh token: the session is over.
-          clearTokens();
-          onTokenRefreshFailed?.();
-          return failRefresh(
-            new ApiException(
-              mapAxiosErrorToApiError(error as AxiosError<{ message?: string; error?: string; details?: unknown }>),
-            ),
-          );
-        }
-
-        // Transient refresh failure: keep the tokens and surface the real
-        // cause (network, timeout, server error) rather than UNAUTHORIZED.
-        const refreshCause = axios.isAxiosError(refreshError)
-          ? refreshError.response?.status ?? refreshError.code ?? 'unknown'
-          : 'unknown';
-        console.warn(`[HTTP] Token refresh failed transiently (${refreshCause}); keeping session`);
-        return failRefresh(
-          new ApiException(
-            mapAxiosErrorToApiError(refreshError as AxiosError<{ message?: string; error?: string; details?: unknown }>),
-          ),
-        );
-      }
-
-      failIfSessionChanged();
-
-      let newAccessToken: string | undefined;
-      let newRefreshToken: string | undefined;
-      try {
-        const unwrappedData = unwrapResponse<{ accessToken: string; refreshToken: string }>(refreshResponse.data);
-        newAccessToken = unwrappedData?.accessToken;
-        newRefreshToken = unwrappedData?.refreshToken;
-      } catch (_unwrapError) {
-        // fall through to the malformed-response handling below
-      }
-      if (!newAccessToken || !newRefreshToken) {
-        // The refresh endpoint answered 2xx without tokens. Treat it like a
-        // server fault: keep the session and let the caller retry later.
-        console.warn('[HTTP] Token refresh returned no tokens; keeping session');
-        return failRefresh(
-          new ApiException({
-            code: 'SERVER_ERROR',
-            status: refreshResponse.status,
-            message: 'The session could not be refreshed. Please try again.',
-          }),
-        );
-      }
-
-      setAccessToken(newAccessToken);
-      setRefreshToken(newRefreshToken);
-
-      onTokenRefreshed?.(newAccessToken, newRefreshToken);
-
-      isRefreshing = false;
-      notifyWaiters(newAccessToken);
-
-      if (originalRequest.headers) {
-        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-      }
-      return httpClient(originalRequest);
+      // A request sent before an already-completed refresh may report its old
+      // token late. Replay it once with the current token; do not refresh twice.
+      const tokenWasRotated = originalRequest.__accessTokenAtDispatch !== accessToken && !!accessToken;
+      const newToken = tokenWasRotated
+        ? accessToken!
+        : await getOrStartRefresh(epochAtFailure, refreshToken);
+      return retryWithToken(originalRequest, newToken);
     }
 
     const apiError = mapAxiosErrorToApiError(error as AxiosError<{ message?: string; error?: string; details?: unknown }>);
@@ -322,21 +425,27 @@ httpClient.interceptors.response.use(
 
 export { httpClient };
 
-export async function get<T>(url: string, params?: Record<string, unknown>): Promise<T> {
-  const response = await httpClient.get(url, { params });
-  return unwrapResponse<T>(response.data);
+export function get<T>(
+  url: string,
+  params?: Record<string, unknown>,
+  options: GetRequestOptions = {},
+): Promise<T> {
+  // The epoch makes reads from different accounts distinct even when their URL
+  // and parameters are identical. Values are only used in memory, never logs.
+  const key = `${sessionEpoch}|${url}|${stableRequestValue(params)}`;
+  return inFlightGets.subscribe(
+    key,
+    async (signal) => {
+      const response = await httpClient.get(url, { params, signal });
+      return unwrapResponse<T>(response.data);
+    },
+    options,
+  );
 }
 
 export async function post<T, D = unknown>(url: string, data?: D): Promise<T> {
-  console.log('[httpClient.post] Making POST request to:', url);
-  try {
-    const response = await httpClient.post(url, data);
-    console.log('[httpClient.post] Response status:', response.status);
-    return unwrapResponse<T>(response.data);
-  } catch (error) {
-    console.error('[httpClient.post] Request failed:', error);
-    throw error;
-  }
+  const response = await httpClient.post(url, data);
+  return unwrapResponse<T>(response.data);
 }
 
 export async function patch<T, D = unknown>(url: string, data?: D): Promise<T> {
@@ -350,18 +459,11 @@ export async function put<T, D = unknown>(url: string, data?: D): Promise<T> {
 }
 
 export async function del<T, D = unknown>(url: string, data?: D): Promise<T | undefined> {
-  console.log('[httpClient.del] Making DELETE request to:', url);
-  try {
-    const response = await httpClient.delete(url, { data });
-    console.log('[httpClient.del] Response status:', response.status);
-    if (response.status === 204) {
-      return undefined as T;
-    }
-    return unwrapResponse<T>(response.data);
-  } catch (error) {
-    console.error('[httpClient.del] Request failed:', error);
-    throw error;
+  const response = await httpClient.delete(url, { data });
+  if (response.status === 204) {
+    return undefined as T;
   }
+  return unwrapResponse<T>(response.data);
 }
 
 export default httpClient;

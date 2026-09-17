@@ -65,7 +65,7 @@ function settleWithin<T>(promise: Promise<T>, ms = 1000): Promise<PromiseSettled
 }
 
 describe('httpClient token refresh on 401', () => {
-  it('keeps the session and reports the transient cause when the refresh call cannot reach the server', async () => {
+  it('clears the affected runtime session and reports the network cause when refresh cannot reach the server', async () => {
     const calls: string[] = [];
     let helpers!: ReturnType<typeof loadClient>;
     helpers = loadClient(async (config) => {
@@ -89,14 +89,14 @@ describe('httpClient token refresh on 401', () => {
     expect(errors.isApiError(error)).toBe(true);
     expect((error as { code: string }).code).toBe('NETWORK_ERROR');
     expect(errors.isUnauthorizedError(error)).toBe(false);
-    expect(onFailed).not.toHaveBeenCalled();
+    expect(onFailed).toHaveBeenCalledTimes(1);
     expect(onRefreshed).not.toHaveBeenCalled();
-    expect(client.getAccessToken()).toBe('stale-access');
-    expect(client.getRefreshToken()).toBe('refresh-1');
+    expect(client.getAccessToken()).toBeNull();
+    expect(client.getRefreshToken()).toBeNull();
     expect(calls.filter(isRefreshCallLabel)).toHaveLength(1);
   });
 
-  it('treats a refresh timeout as transient too', async () => {
+  it('clears the affected runtime session when refresh times out', async () => {
     let helpers!: ReturnType<typeof loadClient>;
     helpers = loadClient(async (config) => {
       if (isRefreshCall(config)) {
@@ -115,8 +115,8 @@ describe('httpClient token refresh on 401', () => {
 
     expect(result.status).toBe('rejected');
     expect(((result as PromiseRejectedResult).reason as { code: string }).code).toBe('TIMEOUT');
-    expect(onFailed).not.toHaveBeenCalled();
-    expect(client.getRefreshToken()).toBe('refresh-1');
+    expect(onFailed).toHaveBeenCalledTimes(1);
+    expect(client.getRefreshToken()).toBeNull();
   });
 
   it('signs out only when the server rejects the refresh token', async () => {
@@ -170,8 +170,8 @@ describe('httpClient token refresh on 401', () => {
     expect(secondResult.status).toBe('rejected');
     expect(((firstResult as PromiseRejectedResult).reason as { code: string }).code).toBe('SERVER_ERROR');
     expect(((secondResult as PromiseRejectedResult).reason as { code: string }).code).toBe('SERVER_ERROR');
-    expect(onFailed).not.toHaveBeenCalled();
-    expect(client.getRefreshToken()).toBe('refresh-1');
+    expect(onFailed).toHaveBeenCalledTimes(1);
+    expect(client.getRefreshToken()).toBeNull();
   });
 
   it('retries the original and the waiting requests with the new token after a successful refresh', async () => {
@@ -214,6 +214,106 @@ describe('httpClient token refresh on 401', () => {
     expect(client.getAccessToken()).toBe('fresh-access');
     expect(client.getRefreshToken()).toBe('refresh-2');
     expect(seenAuthHeaders.filter((header) => header === 'Bearer fresh-access')).toHaveLength(2);
+  });
+
+  it('holds a newly initiated protected request until the active refresh succeeds', async () => {
+    let releaseRefresh!: () => void;
+    const refreshGate = new Promise<void>((resolve) => {
+      releaseRefresh = resolve;
+    });
+    let newReadWasSent = false;
+    let helpers!: ReturnType<typeof loadClient>;
+    helpers = loadClient(async (config) => {
+      if (isRefreshCall(config)) {
+        await refreshGate;
+        return helpers.ok(config, {
+          success: true,
+          data: { accessToken: 'fresh-access', refreshToken: 'refresh-2' },
+        });
+      }
+      if (config.url === '/api/v1/first') {
+        if (authHeader(config) === 'Bearer fresh-access') {
+          return helpers.ok(config, { success: true, data: { fresh: true } });
+        }
+        throw helpers.httpError(config, 401);
+      }
+      if (config.url === '/api/v1/new-read') {
+        newReadWasSent = true;
+        expect(authHeader(config)).toBe('Bearer fresh-access');
+        return helpers.ok(config, { success: true, data: { fresh: true } });
+      }
+      throw new Error('unexpected request');
+    });
+    const { client } = helpers;
+    client.setAccessToken('stale-access');
+    client.setRefreshToken('refresh-1');
+
+    const first = client.get('/api/v1/first');
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const newRead = client.get('/api/v1/new-read');
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(newReadWasSent).toBe(false);
+
+    releaseRefresh();
+    await expect(first).resolves.toEqual({ fresh: true });
+    await expect(newRead).resolves.toEqual({ fresh: true });
+  });
+
+  it('reuses a completed refresh for a late 401 sent with the old token', async () => {
+    let releaseRefresh!: () => void;
+    const refreshGate = new Promise<void>((resolve) => {
+      releaseRefresh = resolve;
+    });
+    let releaseLate401!: () => void;
+    const late401Gate = new Promise<void>((resolve) => {
+      releaseLate401 = resolve;
+    });
+    let releaseFirst401!: () => void;
+    const first401Gate = new Promise<void>((resolve) => {
+      releaseFirst401 = resolve;
+    });
+    let refreshCalls = 0;
+    let helpers!: ReturnType<typeof loadClient>;
+    helpers = loadClient(async (config) => {
+      if (isRefreshCall(config)) {
+        refreshCalls += 1;
+        await refreshGate;
+        return helpers.ok(config, {
+          success: true,
+          data: { accessToken: 'fresh-access', refreshToken: 'refresh-2' },
+        });
+      }
+      if (config.url === '/api/v1/first') {
+        if (authHeader(config) === 'Bearer fresh-access') {
+          return helpers.ok(config, { success: true, data: { replayed: true } });
+        }
+        await first401Gate;
+        throw helpers.httpError(config, 401);
+      }
+      if (config.url === '/api/v1/late') {
+        if (authHeader(config) === 'Bearer fresh-access') {
+          return helpers.ok(config, { success: true, data: { replayed: true } });
+        }
+        await late401Gate;
+        throw helpers.httpError(config, 401);
+      }
+      throw new Error('unexpected request');
+    });
+    const { client } = helpers;
+    client.setAccessToken('stale-access');
+    client.setRefreshToken('refresh-1');
+
+    const first = client.get('/api/v1/first');
+    const late = client.get('/api/v1/late');
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    releaseFirst401();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    releaseRefresh();
+    await expect(first).resolves.toEqual({ replayed: true });
+    releaseLate401();
+
+    await expect(late).resolves.toEqual({ replayed: true });
+    expect(refreshCalls).toBe(1);
   });
 
   it('discards a refresh that completes after logout instead of re-arming the ended session', async () => {
@@ -332,7 +432,7 @@ describe('httpClient token refresh on 401', () => {
     expect(client.getRefreshToken()).toBe('new-login-refresh');
   });
 
-  it('keeps the session when the refresh endpoint answers without tokens', async () => {
+  it('clears the affected runtime session when refresh answers without tokens', async () => {
     let helpers!: ReturnType<typeof loadClient>;
     helpers = loadClient(async (config) => {
       if (isRefreshCall(config)) return helpers.ok(config, { success: true, data: {} });
@@ -347,13 +447,13 @@ describe('httpClient token refresh on 401', () => {
     const result = await settleWithin(client.get('/api/v1/users/me'));
     expect(result.status).toBe('rejected');
     expect((result as PromiseRejectedResult).reason.code).toBe('SERVER_ERROR');
-    expect(onFailed).not.toHaveBeenCalled();
-    expect(client.getRefreshToken()).toBe('refresh-1');
+    expect(onFailed).toHaveBeenCalledTimes(1);
+    expect(client.getRefreshToken()).toBeNull();
 
-    // The next 401 must be able to start a fresh refresh (flag was released).
+    // With tokens cleared, a later 401 is surfaced without a refresh loop.
     const again = await settleWithin(client.get('/api/v1/users/me'));
     expect(again.status).toBe('rejected');
-    expect((again as PromiseRejectedResult).reason.code).toBe('SERVER_ERROR');
+    expect((again as PromiseRejectedResult).reason.code).toBe('UNAUTHORIZED');
   });
 });
 

@@ -22,10 +22,8 @@ const mutationCache = new MutationCache({
     
     showLocalizedError(error);
     
-    console.error('[MutationCache] Error:', {
-      mutationKey: mutation.options.mutationKey,
-      error,
-    });
+    // The transport records sanitized diagnostics. Raw Axios errors and query
+    // keys can contain authorization headers, visitor details and form values.
   },
 });
 

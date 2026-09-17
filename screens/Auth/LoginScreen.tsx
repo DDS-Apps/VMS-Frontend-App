@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   StyleSheet,
@@ -21,7 +21,7 @@ import { DDIcon } from "@/components/DDIcon";
 import { LoadingButton } from "@/components/shared/LoadingButton";
 import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
 import { UserRole } from "@/types/vms.types";
-import { useAuth } from "@/contexts/AuthContext";
+import { SESSION_EXPIRED_ERROR, useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
 import { ApiException } from "@/api/errors";
 import { useAzureAuth, AzureErrorType } from "@/hooks/useAzureAuth";
@@ -66,6 +66,14 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isMicrosoftSubmitting, setIsMicrosoftSubmitting] = useState(false);
+  const sessionExpired = authError === SESSION_EXPIRED_ERROR;
+  const sessionExpiredMessage = sessionExpired ? t("toast.sessionExpired") : null;
+
+  useEffect(() => {
+    if (sessionExpiredMessage) {
+      showError(sessionExpiredMessage, t("toast.loginErrorTitle"));
+    }
+  }, [sessionExpiredMessage, showError, t]);
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
@@ -195,24 +203,14 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
     setErrors({});
 
     try {
-      console.log("[LoginScreen] Starting Microsoft login...");
       const result = await promptAzureAsync();
 
-      console.log("[LoginScreen] Azure auth result:", {
-        hasResult: !!result,
-        errorType: result?.errorType,
-        hasAccessToken: !!result?.accessToken,
-        accessTokenLength: result?.accessToken?.length || 0,
-      });
-
       if (!result) {
-        console.log("[LoginScreen] No result from Azure auth (web redirect?)");
         setIsMicrosoftSubmitting(false);
         return;
       }
 
       if (result.errorType) {
-        console.log("[LoginScreen] Azure auth error type:", result.errorType);
         if (result.errorType === "cancelled") {
           setIsMicrosoftSubmitting(false);
           return;
@@ -225,7 +223,6 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       }
 
       if (!result.accessToken) {
-        console.log("[LoginScreen] No access token in result");
         const errorMessage = t("auth.azureLoginFailed");
         setErrors({ general: errorMessage });
         showError(errorMessage, t("toast.loginErrorTitle"));
@@ -233,28 +230,14 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         return;
       }
 
-      console.log(
-        "[LoginScreen] Calling ssoLogin with token length:",
-        result.accessToken.length,
-      );
       const user = await ssoLogin({
         accessToken: result.accessToken,
         refreshToken: result.refreshToken,
         expiresIn: result.expiresIn,
       });
-      console.log("[LoginScreen] ssoLogin successful, user role:", user.role);
       const userRole = (user.role as UserRole) || "employee";
       onLoginSuccess?.(userRole);
     } catch (error) {
-      console.error("[LoginScreen] Microsoft login error:", error);
-      console.error("[LoginScreen] Error details:", {
-        name: error instanceof Error ? error.name : "Unknown",
-        message: error instanceof Error ? error.message : String(error),
-        code: (error as any)?.code,
-        status: (error as any)?.status,
-        response: (error as any)?.response,
-        stack: error instanceof Error ? error.stack : undefined,
-      });
       const errorMessage = getErrorMessage(error, true);
       setErrors({ general: errorMessage });
       showError(errorMessage, t("toast.loginErrorTitle"));
@@ -494,7 +477,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
 
             <Spacer height={Spacing.xl} />
 
-            {errors.general ? (
+            {errors.general || sessionExpiredMessage ? (
               <DirectionalRow
                 style={[
                   styles.errorContainer,
@@ -511,7 +494,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                     { color: theme.error, marginStart: Spacing.sm, flex: 1 },
                   ]}
                 >
-                  {errors.general}
+                  {errors.general || sessionExpiredMessage}
                 </ThemedText>
               </DirectionalRow>
             ) : null}

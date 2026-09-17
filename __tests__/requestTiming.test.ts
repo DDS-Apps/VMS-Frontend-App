@@ -28,6 +28,10 @@ describe('normalizeRequestPath', () => {
     );
     expect(normalizeRequestPath('/api/v1/users/12345')).toBe('/api/v1/users/:id');
     expect(normalizeRequestPath('/api/v1/invites/0123456789abcdef0123')).toBe('/api/v1/invites/:id');
+    expect(normalizeRequestPath('https://user:password@example.test/api/v1/invites/secret-token-value?email=a@b.test')).toBe(
+      '/api/v1/invites/secret-token-value',
+    );
+    expect(normalizeRequestPath('/api/v1/users/person@example.test')).toBe('/api/v1/users/:id');
     expect(normalizeRequestPath(undefined)).toBe('(unknown)');
   });
 });
@@ -59,6 +63,16 @@ describe('recordRequestTiming', () => {
 
     recordRequestTiming(sample({ durationMs: 2000, path: '/api/v1/dashboard' }));
     expect(console.warn).toHaveBeenCalledWith(expect.stringContaining('/api/v1/dashboard took 2000ms'));
+  });
+
+  it('retains only normalized timeout and cancellation diagnostics', () => {
+    recordRequestTiming(sample({ outcome: 'timeout', reason: 'transport_timeout', retryAttempt: 1 }));
+    recordRequestTiming(sample({ outcome: 'cancelled', reason: 'navigation' }));
+
+    expect(getRequestTimings()).toEqual([
+      expect.objectContaining({ outcome: 'timeout', reason: 'transport_timeout', retryAttempt: 1 }),
+      expect.objectContaining({ outcome: 'cancelled', reason: 'navigation' }),
+    ]);
   });
 });
 

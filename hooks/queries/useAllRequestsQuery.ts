@@ -231,15 +231,15 @@ export function useAllRequestsQuery(
 
   const visitsResult = useInfiniteQuery({
     queryKey: ['all-requests', 'visits', type, visitParams],
-    queryFn: ({ pageParam }) => requestApiService.listVisits({
+    queryFn: ({ pageParam, signal }) => requestApiService.listVisits({
       ...visitParams,
       page: pageParam,
-    }),
+    }, { signal }),
     initialPageParam: 1,
     getNextPageParam: getNextVisitPageParam,
     enabled: shouldFetchVisits,
     staleTime: 30 * 1000,
-    retry: 2,
+    retry: false,
   });
 
   useEffect(() => {
@@ -270,7 +270,7 @@ export function useAllRequestsQuery(
     ),
     enabled: shouldFetchBuffet,
     staleTime: 30 * 1000,
-    retry: 2,
+    retry: false,
   });
 
   const valetResult = useQuery({
@@ -286,7 +286,7 @@ export function useAllRequestsQuery(
       : valetApiService.listTasks(valetParams),
     enabled: shouldFetchValet,
     staleTime: 30 * 1000,
-    retry: 2,
+    retry: false,
   });
 
   const results = [visitsResult, buffetResult, valetResult];

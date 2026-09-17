@@ -21,7 +21,10 @@ export const notificationKeys = {
   lists: () => [...notificationKeys.all, 'list'] as const,
   list: (params?: ListNotificationsParams) => [...notificationKeys.lists(), params] as const,
   detail: (id: string) => [...notificationKeys.all, 'detail', id] as const,
-  unreadCount: () => [...notificationKeys.all, 'unread-count'] as const,
+  // The account identity is part of this key. React Query otherwise retains
+  // the previous user's unread count while a new session is being restored.
+  unreadCounts: () => [...notificationKeys.all, 'unread-count'] as const,
+  unreadCount: (accountId?: string) => [...notificationKeys.unreadCounts(), accountId ?? 'anonymous'] as const,
   preferences: () => [...notificationKeys.all, 'preferences'] as const,
   deviceTokens: () => [...notificationKeys.all, 'device-tokens'] as const,
 };
@@ -32,7 +35,7 @@ export function useNotificationsQuery(
 ) {
   return useQuery<PaginatedResponse<NotificationDto>, ApiError>({
     queryKey: notificationKeys.list(params),
-    queryFn: () => notificationApiService.list(params),
+    queryFn: ({ signal }) => notificationApiService.list(params, { signal }),
     staleTime: 30 * 1000,
     ...options,
   });
@@ -44,7 +47,7 @@ export function useNotificationQuery(
 ) {
   return useQuery<NotificationDto, ApiError>({
     queryKey: notificationKeys.detail(id),
-    queryFn: () => notificationApiService.getById(id),
+    queryFn: ({ signal }) => notificationApiService.getById(id, { signal }),
     enabled: !!id,
     ...options,
   });
@@ -54,11 +57,14 @@ const TWO_MINUTES = 2 * 60 * 1000;
 const ONE_MINUTE = 60 * 1000;
 
 export function useUnreadNotificationCountQuery(
-  options?: Omit<UseQueryOptions<UnreadCountResponse, ApiError>, 'queryKey' | 'queryFn'>
+  accountIdOrOptions?: string | Omit<UseQueryOptions<UnreadCountResponse, ApiError>, 'queryKey' | 'queryFn'>,
+  maybeOptions?: Omit<UseQueryOptions<UnreadCountResponse, ApiError>, 'queryKey' | 'queryFn'>
 ) {
+  const accountId = typeof accountIdOrOptions === 'string' ? accountIdOrOptions : undefined;
+  const options = typeof accountIdOrOptions === 'string' ? maybeOptions : accountIdOrOptions;
   return useQuery<UnreadCountResponse, ApiError>({
-    queryKey: notificationKeys.unreadCount(),
-    queryFn: () => notificationApiService.getUnreadCount(),
+    queryKey: notificationKeys.unreadCount(accountId),
+    queryFn: ({ signal }) => notificationApiService.getUnreadCount({ signal }),
     staleTime: ONE_MINUTE,
     refetchInterval: TWO_MINUTES,
     ...options,
@@ -70,7 +76,7 @@ export function useNotificationPreferencesQuery(
 ) {
   return useQuery<NotificationPreferences, ApiError>({
     queryKey: notificationKeys.preferences(),
-    queryFn: () => notificationApiService.getPreferences(),
+    queryFn: ({ signal }) => notificationApiService.getPreferences({ signal }),
     staleTime: 5 * 60 * 1000,
     ...options,
   });
@@ -84,7 +90,7 @@ export function useMarkNotificationAsReadMutation() {
     onSuccess: (data, id) => {
       queryClient.setQueryData(notificationKeys.detail(id), data);
       queryClient.invalidateQueries({ queryKey: notificationKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCount() });
+      queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCounts() });
     },
   });
 }
@@ -96,7 +102,7 @@ export function useMarkAllNotificationsAsReadMutation() {
     mutationFn: () => notificationApiService.markAllAsRead(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: notificationKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCount() });
+      queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCounts() });
     },
   });
 }
@@ -109,7 +115,7 @@ export function useDeleteNotificationMutation() {
     onSuccess: (_, id) => {
       queryClient.removeQueries({ queryKey: notificationKeys.detail(id) });
       queryClient.invalidateQueries({ queryKey: notificationKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCount() });
+      queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCounts() });
     },
   });
 }

@@ -22,6 +22,7 @@ import {
   HealthCheckResponse,
 } from '@/types';
 import { httpClient } from '@/api/httpClient';
+import type { GetRequestOptions } from '@/api/inFlightGet';
 
 const { auth, users, health } = apiConfig.endpoints;
 
@@ -59,8 +60,10 @@ export const authService = {
     return post<void, LogoutPayload>(auth.logout, { refreshToken });
   },
 
-  getCurrentUser: (): Promise<AuthUserDto> => {
-    return get<AuthUserDto>(users.me);
+  getCurrentUser: (options?: GetRequestOptions & {
+    preserveSessionOnRefreshFailure?: boolean;
+  }): Promise<AuthUserDto> => {
+    return get<AuthUserDto>(users.me, undefined, options);
   },
 
   updateProfile: (payload: UpdateProfilePayload): Promise<AuthUserDto> => {

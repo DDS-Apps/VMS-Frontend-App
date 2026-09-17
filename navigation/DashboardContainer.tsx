@@ -55,7 +55,7 @@ import EditProfileScreen from "@/screens/Profile/EditProfileScreen";
 import PrivacyPolicyScreen from "@/screens/Legal/PrivacyPolicyScreen";
 import TermsConditionsScreen from "@/screens/Legal/TermsConditionsScreen";
 import { UserRole } from "@/types/vms.types";
-import { useUnreadNotificationCountQuery } from "@/hooks/queries/useNotificationQueries";
+import { useNotifications } from "@/contexts/NotificationContext";
 import type { NativeStackScreenProps, NativeStackNavigationOptions } from "@react-navigation/native-stack";
 import type { ParamListBase, RouteProp } from "@react-navigation/native";
 
@@ -191,8 +191,7 @@ function ScreenWrapperInner({ children, userRole, userName, userPhotoUrl, onLogo
   };
 
   const effectiveRoleForWrapper = asManager ? 'manager' : userRole;
-  const { data: unreadCountData } = useUnreadNotificationCountQuery();
-  const unreadCount = unreadCountData?.count ?? 0;
+  const { unreadCount, unreadError, refreshUnreadCount } = useNotifications();
 
   return (
     <DashboardLayout
@@ -206,6 +205,8 @@ function ScreenWrapperInner({ children, userRole, userName, userPhotoUrl, onLogo
       canGoBack={canGoBack}
       onGoBack={handleGoBack}
       unreadNotificationCount={unreadCount}
+      unreadNotificationError={unreadError}
+      onRetryUnreadNotifications={refreshUnreadCount}
       isSSOUser={isSSOUser}
     >
       {children}

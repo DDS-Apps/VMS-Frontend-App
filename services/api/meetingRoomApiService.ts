@@ -30,6 +30,10 @@ export interface ListMeetingBookingsParams {
   endDate?: string;
 }
 
+export interface MeetingRoomReadOptions {
+  signal?: AbortSignal;
+}
+
 function buildQueryString(params: Record<string, unknown>): string {
   const query = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => {
@@ -46,36 +50,47 @@ export const meetingRoomApiService = {
     return post<MeetingRoomDto, CreateMeetingRoomDto>(meetingRooms.base, data);
   },
 
-  list: (params?: ListMeetingRoomsParams): Promise<PaginatedResponse<MeetingRoomDto>> => {
+  list: (
+    params?: ListMeetingRoomsParams,
+    options?: MeetingRoomReadOptions,
+  ): Promise<PaginatedResponse<MeetingRoomDto>> => {
     const queryString = params ? buildQueryString(params as unknown as Record<string, unknown>) : '';
-    return get<PaginatedResponse<MeetingRoomDto>>(`${meetingRooms.base}${queryString}`);
+    return get<PaginatedResponse<MeetingRoomDto>>(`${meetingRooms.base}${queryString}`, undefined, options);
   },
 
-  getById: (id: string): Promise<MeetingRoomDto> => {
-    return get<MeetingRoomDto>(meetingRooms.byId(id));
+  getById: (id: string, options?: MeetingRoomReadOptions): Promise<MeetingRoomDto> => {
+    return get<MeetingRoomDto>(meetingRooms.byId(id), undefined, options);
   },
 
   update: (id: string, data: UpdateMeetingRoomDto): Promise<MeetingRoomDto> => {
     return patch<MeetingRoomDto, UpdateMeetingRoomDto>(meetingRooms.byId(id), data);
   },
 
-  getAvailable: (startTime: string, endTime: string, capacity?: number): Promise<MeetingRoomDto[]> => {
+  getAvailable: (
+    startTime: string,
+    endTime: string,
+    capacity?: number,
+    options?: MeetingRoomReadOptions,
+  ): Promise<MeetingRoomDto[]> => {
     const query = new URLSearchParams({ startTime, endTime });
     if (capacity) query.set('capacity', String(capacity));
-    return get<MeetingRoomDto[]>(`${meetingRooms.available}?${query.toString()}`);
+    return get<MeetingRoomDto[]>(`${meetingRooms.available}?${query.toString()}`, undefined, options);
   },
 
   createBooking: (data: CreateMeetingBookingDto): Promise<MeetingBookingDto> => {
     return post<MeetingBookingDto, CreateMeetingBookingDto>(meetingRooms.bookings, data);
   },
 
-  listBookings: (params?: ListMeetingBookingsParams): Promise<PaginatedResponse<MeetingBookingDto>> => {
+  listBookings: (
+    params?: ListMeetingBookingsParams,
+    options?: MeetingRoomReadOptions,
+  ): Promise<PaginatedResponse<MeetingBookingDto>> => {
     const queryString = params ? buildQueryString(params as unknown as Record<string, unknown>) : '';
-    return get<PaginatedResponse<MeetingBookingDto>>(`${meetingRooms.bookingsAll}${queryString}`);
+    return get<PaginatedResponse<MeetingBookingDto>>(`${meetingRooms.bookingsAll}${queryString}`, undefined, options);
   },
 
-  getBooking: (id: string): Promise<MeetingBookingDto> => {
-    return get<MeetingBookingDto>(meetingRooms.bookingById(id));
+  getBooking: (id: string, options?: MeetingRoomReadOptions): Promise<MeetingBookingDto> => {
+    return get<MeetingBookingDto>(meetingRooms.bookingById(id), undefined, options);
   },
 
   updateBooking: (id: string, data: UpdateMeetingBookingDto): Promise<MeetingBookingDto> => {
@@ -86,11 +101,14 @@ export const meetingRoomApiService = {
     return del<void>(meetingRooms.bookingById(id));
   },
 
-  getTodaysBookings: (): Promise<MeetingBookingDto[]> => {
-    return get<MeetingBookingDto[]>(meetingRooms.bookingsToday);
+  getTodaysBookings: (options?: MeetingRoomReadOptions): Promise<MeetingBookingDto[]> => {
+    return get<MeetingBookingDto[]>(meetingRooms.bookingsToday, undefined, options);
   },
 
-  checkRoomAvailability: (params: RoomAvailabilityParams): Promise<RoomAvailabilityResponse> => {
+  checkRoomAvailability: (
+    params: RoomAvailabilityParams,
+    options?: MeetingRoomReadOptions,
+  ): Promise<RoomAvailabilityResponse> => {
     const query = new URLSearchParams({
       date: params.date,
       startTime: params.startTime,
@@ -99,7 +117,7 @@ export const meetingRoomApiService = {
     if (params.minCapacity) {
       query.set('minCapacity', String(params.minCapacity));
     }
-    return get<RoomAvailabilityResponse>(`${visits.roomsAvailability}?${query.toString()}`);
+    return get<RoomAvailabilityResponse>(`${visits.roomsAvailability}?${query.toString()}`, undefined, options);
   },
 };
 
