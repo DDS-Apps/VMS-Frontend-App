@@ -26,7 +26,6 @@ try {
     notificationsSupported = false;
   }
 } catch {
-  console.log('[NotificationContext] expo-notifications not supported in this environment');
   notificationsSupported = false;
 }
 
@@ -116,14 +115,12 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
       const token = pushNotificationService.getToken();
       setPushToken(token);
     } catch {
-      console.warn('[NotificationContext] Unable to read notification permission status');
+      setPermissionStatus('unsupported');
     }
   }, []);
 
   // Request permission - delegates to pushNotificationService which handles token registration
   const requestPermission = useCallback(async (): Promise<boolean> => {
-    console.log('[NotificationContext] requestPermission called');
-    
     if (Platform.OS === 'web') {
       // For web, pushNotificationService handles everything
       const success = await pushNotificationService.initialize();
@@ -132,7 +129,6 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
     }
 
     if (!notificationsSupported || !Device.isDevice) {
-      console.log('[NotificationContext] Push notifications not supported');
       setPermissionStatus('unsupported');
       return false;
     }
@@ -143,10 +139,8 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
       let finalStatus = existingStatus;
 
       if (existingStatus !== 'granted') {
-        console.log('[NotificationContext] Requesting notification permission...');
         const { status } = await Notifications.requestPermissionsAsync();
         finalStatus = status;
-        console.log('[NotificationContext] Permission result:', finalStatus);
       }
 
       if (finalStatus === 'granted') {
@@ -160,7 +154,6 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
         return false;
       }
     } catch {
-      console.warn('[NotificationContext] Notification permission request failed');
       return false;
     }
   }, [updatePermissionStatus]);
@@ -283,7 +276,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
         }
       );
     } catch {
-      console.warn('[NotificationContext] Notification listeners unavailable');
+      // Notification listeners are optional in unsupported environments.
     }
 
     return () => {
@@ -342,7 +335,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
         markAsRead(notificationId as string);
       }
     }).catch(() => {
-      console.log('[NotificationContext] Failed to process launch notification');
+      // A dismissed or unavailable launch notification is non-fatal.
     });
 
     const subscription = AppState.addEventListener('change', (nextAppState) => {
@@ -358,7 +351,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
           queryClient.invalidateQueries({ queryKey: valetKeys.all });
         }
         pushNotificationService.processLastNotificationResponse().catch(() => {
-          console.log('[NotificationContext] Failed to process resumed notification');
+          // A dismissed or unavailable resumed notification is non-fatal.
         });
       }
       appStateRef.current = nextAppState;

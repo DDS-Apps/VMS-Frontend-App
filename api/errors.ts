@@ -45,7 +45,7 @@ export function mapAxiosErrorToApiError(error: AxiosError<{ message?: string; er
     };
   }
 
-  if (error.code === 'ERR_CANCELED') {
+  if (error.code === 'ERR_CANCELED' || error.code === 'ABORT_ERR') {
     return {
       code: 'CANCELLED',
       message: 'Request was cancelled.',

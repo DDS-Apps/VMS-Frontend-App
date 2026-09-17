@@ -2423,7 +2423,6 @@ export default function RequestDetailsScreen({
 
                 <LoadingButton
                   onPress={() => {
-                    console.log('[CancelRequest] BUTTON TAPPED - calling handleCancelRequest');
                     handleCancelRequest();
                   }}
                   loading={cancelMutation.isPending}
@@ -2659,8 +2658,6 @@ export default function RequestDetailsScreen({
           transparent
           animationType="fade"
           onRequestClose={closeEditModal}
-          onShow={() => console.log("[DEBUG Modal] Edit Modal SHOWN - visible:", showEditModal)}
-          onDismiss={() => console.log("[DEBUG Modal] Edit Modal DISMISSED")}
         >
           {/* Container for backdrop + content as siblings (not nested) */}
           {/* This prevents touch propagation issues on iOS */}
@@ -2668,10 +2665,7 @@ export default function RequestDetailsScreen({
             {/* Backdrop - positioned absolutely, closes modal on tap */}
             <Pressable
               style={StyleSheet.absoluteFill}
-              onPress={() => {
-                console.log("[DEBUG Modal] Backdrop PRESSED - closing modal");
-                closeEditModal();
-              }}
+                onPress={closeEditModal}
             />
             {/* Content - positioned on top of backdrop, touches don't affect backdrop */}
             <View
@@ -2700,12 +2694,7 @@ export default function RequestDetailsScreen({
                       : t("actions.editRequest")}
                 </ThemedText>
                 <Pressable 
-                  onPress={() => {
-                    console.log("[DEBUG Modal] Close X button PRESSED");
-                    closeEditModal();
-                  }}
-                  onPressIn={() => console.log("[DEBUG Modal] Close X button onPressIn")}
-                  onPressOut={() => console.log("[DEBUG Modal] Close X button onPressOut")}
+                    onPress={closeEditModal}
                 >
                   <DDIcon name="x" size={22} variant="muted" />
                 </Pressable>
@@ -2718,9 +2707,6 @@ export default function RequestDetailsScreen({
                 showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled"
                 nestedScrollEnabled={true}
-                onTouchStart={() => console.log("[DEBUG Modal] ScrollView onTouchStart")}
-                onTouchEnd={() => console.log("[DEBUG Modal] ScrollView onTouchEnd")}
-                onScrollBeginDrag={() => console.log("[DEBUG Modal] ScrollView onScrollBeginDrag")}
               >
                 <ThemedText
                   style={[
@@ -2745,7 +2731,6 @@ export default function RequestDetailsScreen({
                     },
                   ]}
                   onPress={() => {
-                    console.log("[DEBUG Modal] Purpose picker button PRESSED");
                     // iOS can't stack Modals, use inline overlay instead
                     if (Platform.OS === 'ios') {
                       setInlinePickerMode('purpose');
@@ -2753,8 +2738,6 @@ export default function RequestDetailsScreen({
                       setShowPurposePicker(true);
                     }
                   }}
-                  onPressIn={() => console.log("[DEBUG Modal] Purpose picker onPressIn")}
-                  onPressOut={() => console.log("[DEBUG Modal] Purpose picker onPressOut")}
                 >
                   <DDIcon name="clipboard" size={16} variant="muted" />
                   <ThemedText
@@ -2852,7 +2835,6 @@ export default function RequestDetailsScreen({
                         },
                       ]}
                       onPress={() => {
-                        console.log("[DEBUG Modal] Walk-in End time picker button PRESSED");
                         // iOS can't stack Modals, use inline overlay instead
                         if (Platform.OS === 'ios') {
                           setInlinePickerMode('endTime');
@@ -2860,8 +2842,6 @@ export default function RequestDetailsScreen({
                           setShowEditEndTimePicker(true);
                         }
                       }}
-                      onPressIn={() => console.log("[DEBUG Modal] Walk-in End time picker onPressIn")}
-                      onPressOut={() => console.log("[DEBUG Modal] Walk-in End time picker onPressOut")}
                     >
                       <DDIcon
                         name="clock"
@@ -2949,15 +2929,12 @@ export default function RequestDetailsScreen({
                         },
                       ]}
                       onPress={() => {
-                        console.log("[DEBUG Modal] Date picker button PRESSED");
                         if (Platform.OS === 'ios') {
                           setInlinePickerMode('date');
                         } else {
                           setShowEditDatePicker(true);
                         }
                       }}
-                      onPressIn={() => console.log("[DEBUG Modal] Date picker onPressIn")}
-                      onPressOut={() => console.log("[DEBUG Modal] Date picker onPressOut")}
                       android_ripple={{ color: theme.border }}
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
@@ -3003,15 +2980,12 @@ export default function RequestDetailsScreen({
                         },
                       ]}
                       onPress={() => {
-                        console.log("[DEBUG Modal] Time picker button PRESSED");
                         if (Platform.OS === 'ios') {
                           setInlinePickerMode('startTime');
                         } else {
                           setShowEditTimePicker(true);
                         }
                       }}
-                      onPressIn={() => console.log("[DEBUG Modal] Time picker onPressIn")}
-                      onPressOut={() => console.log("[DEBUG Modal] Time picker onPressOut")}
                       android_ripple={{ color: theme.border }}
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
@@ -3057,7 +3031,6 @@ export default function RequestDetailsScreen({
                         },
                       ]}
                       onPress={() => {
-                        console.log("[DEBUG Modal] End time picker button PRESSED");
                         // iOS can't stack Modals, use inline overlay instead
                         if (Platform.OS === 'ios') {
                           setInlinePickerMode('endTime');
@@ -3065,8 +3038,6 @@ export default function RequestDetailsScreen({
                           setShowEditEndTimePicker(true);
                         }
                       }}
-                      onPressIn={() => console.log("[DEBUG Modal] End time picker onPressIn")}
-                      onPressOut={() => console.log("[DEBUG Modal] End time picker onPressOut")}
                       android_ripple={{ color: theme.border }}
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
@@ -3171,7 +3142,6 @@ export default function RequestDetailsScreen({
                         <SelectableCard
                           onPress={() => {
                             const newRoomValue = !editRequiresMeetingRoom;
-                            console.log("[DEBUG Modal] Meeting Room card PRESSED, toggling to:", newRoomValue);
                             setEditRequiresMeetingRoom(newRoomValue);
                             if (!newRoomValue) {
                               setEditRequiresBuffet(false);
@@ -3210,7 +3180,6 @@ export default function RequestDetailsScreen({
                       <View style={getCardWrapper3ColStyle()}>
                         <SelectableCard
                           onPress={() => {
-                            console.log("[DEBUG Modal] Buffet card PRESSED, toggling to:", !editRequiresBuffet);
                             const newBuffetValue = !editRequiresBuffet;
                             setEditRequiresBuffet(newBuffetValue);
                             if (newBuffetValue) {
@@ -3388,11 +3357,8 @@ export default function RequestDetailsScreen({
                           },
                         ]}
                         onPress={() => {
-                          console.log("[DEBUG Modal] WhatsApp channel PRESSED, toggling to:", !editSendWhatsApp);
                           setEditSendWhatsApp(!editSendWhatsApp);
                         }}
-                        onPressIn={() => console.log("[DEBUG Modal] WhatsApp channel onPressIn")}
-                        onPressOut={() => console.log("[DEBUG Modal] WhatsApp channel onPressOut")}
                       >
                         <View
                           style={[
@@ -3446,11 +3412,8 @@ export default function RequestDetailsScreen({
                           },
                         ]}
                         onPress={() => {
-                          console.log("[DEBUG Modal] SMS channel PRESSED, toggling to:", !editSendSMS);
                           setEditSendSMS(!editSendSMS);
                         }}
-                        onPressIn={() => console.log("[DEBUG Modal] SMS channel onPressIn")}
-                        onPressOut={() => console.log("[DEBUG Modal] SMS channel onPressOut")}
                       >
                         <View
                           style={[
@@ -3544,7 +3507,6 @@ export default function RequestDetailsScreen({
               <View style={styles.modalActions}>
                 <LoadingButton
                   onPress={() => {
-                    console.log("[DEBUG Modal] Cancel button PRESSED");
                     closeEditModal();
                   }}
                   variant="secondary"
@@ -3558,7 +3520,6 @@ export default function RequestDetailsScreen({
 
                 <LoadingButton
                   onPress={() => {
-                    console.log("[DEBUG Modal] Save/Submit button PRESSED");
                     handleEditConfirm();
                   }}
                   loading={updateMutation.isPending}

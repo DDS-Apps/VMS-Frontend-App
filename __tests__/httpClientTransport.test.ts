@@ -57,6 +57,15 @@ describe('shared GET transport', () => {
     await expect(helpers.client.get('/api/v1/visits')).rejects.toMatchObject({ code: 'TIMEOUT' });
   });
 
+  it('does not turn a DOM-style abort into a network failure', async () => {
+    let helpers!: ReturnType<typeof loadClient>;
+    helpers = loadClient(async (config) => {
+      throw helpers.axiosError(config, 'ABORT_ERR');
+    });
+
+    await expect(helpers.client.get('/api/v1/visits')).rejects.toMatchObject({ code: 'CANCELLED' });
+  });
+
   it('deduplicates identical reads and only cancels the navigation subscriber', async () => {
     let calls = 0;
     let release!: () => void;
