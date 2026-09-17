@@ -30,12 +30,12 @@ const QA_SHARED_ENV = {
 };
 
 describe("Replit publishing build", () => {
-  it("builds the QA variant without the IIS-only web.config", () => {
+  it("builds the production variant without the IIS-only web.config", () => {
     const script = fs.readFileSync(path.join(ROOT, "scripts", "build-and-verify.sh"), "utf8");
 
-    expect(script).toContain("--variant qa");
+    expect(script).toContain("--variant production");
     expect(script).toContain("--no-web-config");
-    expect(script).not.toContain("--variant production");
+    expect(script).not.toContain("--variant qa");
   });
 });
 
