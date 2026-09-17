@@ -17,6 +17,12 @@ let latest: {
   refetch: (options?: { cancelRefetch?: boolean }) => Promise<unknown>;
 } | null = null;
 
+const flushQueryNotifications = async () => {
+  await act(async () => {
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+  });
+};
+
 function CountHarness({ accountId }: { accountId: string }) {
   const query = useUnreadNotificationCountQuery(accountId, { enabled: true });
   latest = {
@@ -64,6 +70,7 @@ describe("account-scoped unread polling", () => {
     expect(mockGetUnreadCount).toHaveBeenCalledTimes(1);
 
     await act(async () => { resolve({ count: 4 }); });
+    await flushQueryNotifications();
     expect(latest?.count).toBe(4);
     await act(async () => { renderer.unmount(); });
   });
@@ -90,12 +97,14 @@ describe("account-scoped unread polling", () => {
       await Promise.resolve();
       await Promise.resolve();
     });
+    await flushQueryNotifications();
     expect(latest?.count).toBe(7);
     await act(async () => {
       pending[0]({ count: 99 });
       await Promise.resolve();
       await Promise.resolve();
     });
+    await flushQueryNotifications();
     expect(latest?.count).toBe(7);
     expect(client.getQueryData(notificationKeys.unreadCount("account-b"))).toEqual({ count: 7 });
     await act(async () => { renderer.unmount(); });
