@@ -2,6 +2,12 @@ import { ApiException } from './errors';
 
 export interface GetRequestOptions {
   signal?: AbortSignal;
+  /**
+   * Startup profile restoration may keep a cached session when its refresh
+   * fails transiently. This is transport metadata, not part of the URL or
+   * request params.
+   */
+  preserveSessionOnRefreshFailure?: boolean;
 }
 
 interface InFlightRequest<T> {

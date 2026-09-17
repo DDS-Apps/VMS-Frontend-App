@@ -724,17 +724,7 @@ export default function VisitorRequestFormScreen({
           idNumber: idNumber.trim(),
         };
 
-        console.log(
-          "[VisitorRequestForm] Submitting walk-in registration:",
-          JSON.stringify(walkInPayload, null, 2),
-        );
-
         const result = await walkInMutation.mutateAsync(walkInPayload);
-
-        console.log(
-          "[VisitorRequestForm] Walk-in registered successfully:",
-          result,
-        );
 
         const message = t("reception.walkInRegistered").replace(
           "{name}",
@@ -785,17 +775,7 @@ export default function VisitorRequestFormScreen({
         parkingDecision: asReceptionist ? undefined : parkingDecision,
       };
 
-      console.log(
-        "[VisitorRequestForm] Submitting request with payload:",
-        JSON.stringify(payload, null, 2),
-      );
-
       const result = await createVisitMutation.mutateAsync(payload);
-
-      console.log(
-        "[VisitorRequestForm] Request submitted successfully:",
-        result,
-      );
 
       // Use the API response to decide the message — the backend is the
       // source of truth for whether the visit was actually auto-approved.
@@ -809,14 +789,6 @@ export default function VisitorRequestFormScreen({
       setSuccessMessage(message);
       setShowSuccessModal(true);
     } catch (error: any) {
-      console.error("[VisitorRequestForm] Submit error:", error);
-      console.error(
-        "[VisitorRequestForm] Error type:",
-        error?.constructor?.name,
-      );
-      console.error("[VisitorRequestForm] Error code:", error?.code);
-      console.error("[VisitorRequestForm] Error message:", error?.message);
-
       let errorMessage = t("errors.submitFailed");
 
       if (error?.code === "NETWORK_ERROR") {
@@ -855,9 +827,11 @@ export default function VisitorRequestFormScreen({
           };
 
           const stateErrors: { [key: string]: string } = {};
-          for (const { field, message } of apiFieldErrors) {
+          for (const { field } of apiFieldErrors) {
             const stateKey = API_TO_STATE[field] ?? field;
-            stateErrors[stateKey] = message;
+            // Do not surface backend text: it may contain identifiers or
+            // implementation details. Keep the field-level feedback local.
+            stateErrors[stateKey] = t("errors.validationError");
           }
           setErrors((prev) => ({ ...prev, ...stateErrors }));
           showError(t("errors.fixHighlightedFields") || "Please fix the highlighted fields");
@@ -866,7 +840,7 @@ export default function VisitorRequestFormScreen({
         }
 
         // No field errors array — business-logic rejection; show the top-level message
-        errorMessage = error?.message || t("errors.validationError");
+        errorMessage = t("errors.validationError");
       } else if (
         error?.status === 409 ||
         error?.status === 422 ||
@@ -876,15 +850,10 @@ export default function VisitorRequestFormScreen({
       ) {
         errorMessage = t("errors.meetingRoomConflict");
         setSelectedRoomId(null);
-      } else if (error?.message) {
-        errorMessage = error.message;
       }
 
       Alert.alert(t("errors.error"), errorMessage, [{ text: t("common.ok") }]);
     } finally {
-      console.log(
-        "[VisitorRequestForm] Submit complete, resetting isSubmitting",
-      );
       setIsSubmitting(false);
     }
   };
@@ -2553,6 +2522,8 @@ export default function VisitorRequestFormScreen({
               }) ||
               // A failed room check is not proof that a room is available.
               (needsMeetingRoom && isRoomsError) ||
+              // An empty or unavailable result is also not safe to submit.
+              (needsMeetingRoom && hasCheckedAvailability && (!isRoomAvailable || availableRooms.length === 0)) ||
               // Duplicate check still in flight — wait before submitting
               (!isWalkIn && isCheckingDuplicate) ||
               // Rooms loaded and available but none selected yet

@@ -67,6 +67,10 @@ export function useUnreadNotificationCountQuery(
     queryFn: ({ signal }) => notificationApiService.getUnreadCount({ signal }),
     staleTime: ONE_MINUTE,
     refetchInterval: TWO_MINUTES,
+    // Polling is deliberately owned by this account-scoped query. Recoverable
+    // failures are surfaced with the retained count and the explicit Retry
+    // action rather than multiplying background retries.
+    retry: false,
     ...options,
   });
 }

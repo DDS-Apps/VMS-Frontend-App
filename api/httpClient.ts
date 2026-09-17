@@ -120,6 +120,7 @@ type TransportRequestConfig = InternalAxiosRequestConfig & {
   _retryAttempt?: number;
   __sessionEpoch?: number;
   __accessTokenAtDispatch?: string | null;
+  __preserveSessionOnRefreshFailure?: boolean;
 };
 
 function now(): number {
@@ -146,7 +147,10 @@ function safeCancellationReason(reason: unknown): RequestEndReason {
 function reasonForError(error: AxiosError, config?: TransportRequestConfig): RequestEndReason | undefined {
   if (error.code === 'ECONNABORTED') return 'axios_timeout';
   if (error.code === 'ETIMEDOUT') return 'transport_timeout';
-  if (outcomeForError(error) === 'cancelled') return safeCancellationReason(config?.signal?.reason);
+  if (outcomeForError(error) === 'cancelled') {
+    const reason = (config?.signal as (AbortSignal & { reason?: unknown }) | undefined)?.reason;
+    return safeCancellationReason(reason);
+  }
   return undefined;
 }
 
@@ -204,6 +208,10 @@ function sessionChangedError(): ApiException {
 
 function hasSessionChanged(config: TransportRequestConfig | undefined): boolean {
   return config?.__sessionEpoch !== undefined && config.__sessionEpoch !== sessionEpoch;
+}
+
+function preservesSessionOnRefreshFailure(config: TransportRequestConfig | undefined): boolean {
+  return config?.__preserveSessionOnRefreshFailure === true;
 }
 
 function recordRefreshTiming(
@@ -270,7 +278,6 @@ async function refreshAccessToken(epoch: number, token: string): Promise<string>
     if (sessionEpoch !== epoch) throw sessionChangedError();
 
     const refreshFailure = refreshFailureFor(error);
-    failSessionAfterRefresh(epoch);
     throw refreshFailure;
   }
 
@@ -287,7 +294,6 @@ async function refreshAccessToken(epoch: number, token: string): Promise<string>
       status: refreshResponse.status,
       message: 'The session could not be refreshed. Please sign in again.',
     });
-    failSessionAfterRefresh(epoch);
     throw refreshFailure;
   }
 
@@ -349,7 +355,15 @@ httpClient.interceptors.request.use(
     // instead of sending the stale token and causing another 401.
     const refreshOperation = refreshOperations.get(sessionEpoch);
     if (refreshOperation) {
-      const token = await refreshOperation.promise;
+      let token: string;
+      try {
+        token = await refreshOperation.promise;
+      } catch (error) {
+        if (!preservesSessionOnRefreshFailure(config)) {
+          failSessionAfterRefresh(config.__sessionEpoch ?? sessionEpoch);
+        }
+        throw error;
+      }
       if (hasSessionChanged(config)) {
         return Promise.reject(sessionChangedError());
       }
@@ -390,6 +404,12 @@ httpClient.interceptors.response.use(
     return response;
   },
   async (error: AxiosError) => {
+    // A request interceptor uses ApiException to intentionally stop work from
+    // a stale session. Preserve that classification instead of turning it into
+    // a generic network error in this Axios error interceptor.
+    if (error instanceof ApiException) {
+      throw error;
+    }
     const originalRequest = error.config as TransportRequestConfig | undefined;
     const failedStatus = error.response?.status ?? null;
     const outcome = outcomeForError(error);
@@ -412,9 +432,17 @@ httpClient.interceptors.response.use(
       // A request sent before an already-completed refresh may report its old
       // token late. Replay it once with the current token; do not refresh twice.
       const tokenWasRotated = originalRequest.__accessTokenAtDispatch !== accessToken && !!accessToken;
-      const newToken = tokenWasRotated
-        ? accessToken!
-        : await getOrStartRefresh(epochAtFailure, refreshToken);
+      let newToken: string;
+      try {
+        newToken = tokenWasRotated
+          ? accessToken!
+          : await getOrStartRefresh(epochAtFailure, refreshToken);
+      } catch (refreshError) {
+        if (!preservesSessionOnRefreshFailure(originalRequest)) {
+          failSessionAfterRefresh(epochAtFailure);
+        }
+        throw refreshError;
+      }
       return retryWithToken(originalRequest, newToken);
     }
 
@@ -432,11 +460,17 @@ export function get<T>(
 ): Promise<T> {
   // The epoch makes reads from different accounts distinct even when their URL
   // and parameters are identical. Values are only used in memory, never logs.
-  const key = `${sessionEpoch}|${url}|${stableRequestValue(params)}`;
+  // The refresh-failure policy is part of the request's auth semantics, so a
+  // startup-preserving read must not share a promise with a runtime read.
+  const key = `${sessionEpoch}|${url}|${stableRequestValue(params)}|preserve=${options.preserveSessionOnRefreshFailure === true}`;
   return inFlightGets.subscribe(
     key,
     async (signal) => {
-      const response = await httpClient.get(url, { params, signal });
+      const response = await httpClient.get(url, {
+        params,
+        signal,
+        __preserveSessionOnRefreshFailure: options.preserveSessionOnRefreshFailure === true,
+      } as unknown as TransportRequestConfig);
       return unwrapResponse<T>(response.data);
     },
     options,

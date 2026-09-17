@@ -145,7 +145,7 @@ describe("NotificationsScreen retained loading states", () => {
     expect(listHook).toBeDefined();
     expect(listHook).toContain("queryKey: notificationKeys.list(params)");
     expect(listHook).toContain(
-      "queryFn: () => notificationApiService.list(params)",
+      "queryFn: ({ signal }) => notificationApiService.list(params, { signal })",
     );
     expect(listHook).toContain("staleTime: 30 * 1000");
     expect(listHook).not.toContain("placeholderData");

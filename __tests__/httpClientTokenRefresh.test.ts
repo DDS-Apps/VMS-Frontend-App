@@ -96,6 +96,30 @@ describe('httpClient token refresh on 401', () => {
     expect(calls.filter(isRefreshCallLabel)).toHaveLength(1);
   });
 
+  it('preserves a startup session when the refresh fails transiently through the interceptor', async () => {
+    let helpers!: ReturnType<typeof loadClient>;
+    helpers = loadClient(async (config) => {
+      if (isRefreshCall(config)) throw helpers.networkError(config);
+      throw helpers.httpError(config, 401, { message: 'expired' });
+    });
+    const { client } = helpers;
+
+    client.setAccessToken('stale-access');
+    client.setRefreshToken('refresh-1');
+    const onFailed = jest.fn();
+    client.setOnTokenRefreshFailed(onFailed);
+
+    const result = await settleWithin(
+      client.get('/api/v1/users/me', undefined, { preserveSessionOnRefreshFailure: true }),
+    );
+
+    expect(result.status).toBe('rejected');
+    expect(((result as PromiseRejectedResult).reason as { code: string }).code).toBe('NETWORK_ERROR');
+    expect(onFailed).not.toHaveBeenCalled();
+    expect(client.getAccessToken()).toBe('stale-access');
+    expect(client.getRefreshToken()).toBe('refresh-1');
+  });
+
   it('clears the affected runtime session when refresh times out', async () => {
     let helpers!: ReturnType<typeof loadClient>;
     helpers = loadClient(async (config) => {

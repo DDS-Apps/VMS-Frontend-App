@@ -100,6 +100,10 @@ describe('shared GET transport', () => {
     const one = helpers.client.get('/api/v1/visits', undefined, { signal: first.signal });
     const two = helpers.client.get('/api/v1/visits', undefined, { signal: second.signal });
 
+    // Let Axios dispatch the shared request before asserting cancellation of
+    // its live transport. Cancelling before its request interceptor runs is
+    // correctly short-circuited without opening a connection.
+    await delay(0);
     first.abort('navigation');
     second.abort('navigation');
 
@@ -136,5 +140,108 @@ describe('shared GET transport', () => {
     await expect(oldSession).rejects.toMatchObject({ code: 'CANCELLED' });
     await expect(newSession).resolves.toEqual({ call: 2 });
     expect(calls).toBe(2);
+  });
+});
+
+describe('real Axios HTTP adapter timing', () => {
+  let server: ReturnType<typeof require>;
+  let baseUrl = '';
+
+  beforeAll(async () => {
+    const http = require('node:http') as {
+      createServer: (handler: (request: { url?: string }, response: {
+        writeHead: (status: number, headers: Record<string, string>) => void;
+        end: (body: string) => void;
+      }) => void) => {
+        listen: (port: number, host: string, callback: () => void) => void;
+        address: () => { port: number } | string | null;
+        close: (callback: (error?: Error) => void) => void;
+      };
+    };
+
+    server = http.createServer((request, response) => {
+      const respond = (delayMs: number, body: string) => {
+        setTimeout(() => {
+          response.writeHead(200, { 'Content-Type': 'application/json' });
+          response.end(body);
+        }, delayMs);
+      };
+
+      if (request.url === '/slow-success') {
+        respond(35, '{"success":true,"data":{"slow":true}}');
+        return;
+      }
+      if (request.url === '/slow-timeout') {
+        respond(150, '{"success":true,"data":{"tooLate":true}}');
+        return;
+      }
+      response.writeHead(404, { 'Content-Type': 'application/json' });
+      response.end('{"message":"not found"}');
+    });
+
+    await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+    const address = server.address();
+    if (!address || typeof address === 'string') {
+      throw new Error('Controlled HTTP server did not expose a TCP port.');
+    }
+    baseUrl = `http://127.0.0.1:${address.port}`;
+  });
+
+  afterAll(async () => {
+    await new Promise<void>((resolve, reject) => server.close((error?: Error) => (error ? reject(error) : resolve())));
+  });
+
+  function loadNetworkClient(timeout: number) {
+    jest.resetModules();
+    const axios = require('axios') as typeof import('axios');
+    const client = require('@/api/httpClient') as typeof import('@/api/httpClient');
+    const timing = require('@/api/requestTiming') as typeof import('@/api/requestTiming');
+
+    client.httpClient.defaults.baseURL = baseUrl;
+    client.httpClient.defaults.timeout = timeout;
+    // Explicitly select Axios's Node adapter. This prevents this test from
+    // accidentally exercising the deterministic adapter used elsewhere here.
+    client.httpClient.defaults.adapter = axios.getAdapter('http');
+    timing.clearRequestTimings();
+    return { client, timing };
+  }
+
+  it('records actual elapsed time for a delayed HTTP success below a bounded test-only timeout', async () => {
+    const { client, timing } = loadNetworkClient(120);
+    const startedAt = Date.now();
+
+    await expect(client.get('/slow-success')).resolves.toEqual({ slow: true });
+
+    const elapsedMs = Date.now() - startedAt;
+    const sample = timing.getRequestTimings().at(-1);
+    expect(elapsedMs).toBeGreaterThanOrEqual(25);
+    expect(sample).toEqual(expect.objectContaining({
+      method: 'GET',
+      path: '/slow-success',
+      outcome: 'ok',
+      status: 200,
+    }));
+    expect(sample.durationMs).toBeGreaterThanOrEqual(25);
+  });
+
+  it('proves Axios aborts a real delayed HTTP request at the bounded timeout', async () => {
+    const { client, timing } = loadNetworkClient(45);
+    const startedAt = Date.now();
+
+    await expect(client.get('/slow-timeout')).rejects.toMatchObject({ code: 'TIMEOUT' });
+
+    const elapsedMs = Date.now() - startedAt;
+    const sample = timing.getRequestTimings().at(-1);
+    expect(elapsedMs).toBeGreaterThanOrEqual(30);
+    expect(elapsedMs).toBeLessThan(140);
+    expect(sample).toEqual(expect.objectContaining({
+      method: 'GET',
+      path: '/slow-timeout',
+      outcome: 'timeout',
+      reason: 'axios_timeout',
+      status: null,
+    }));
+    expect(sample.durationMs).toBeGreaterThanOrEqual(30);
+    expect(sample.durationMs).toBeLessThan(140);
   });
 });

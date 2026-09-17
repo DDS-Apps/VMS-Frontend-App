@@ -31,7 +31,15 @@ when the platform adapter honors the configured finite cap. The supplied
 report alone cannot prove the cause of an individual browser `cancelled`
 entry; it could also be a navigation AbortSignal or a stale session response.
 
-## After: controlled simulations
+These baseline durations are **supplied observations**, not a local
+reproduction. No historical browser Network export or credentials were used,
+and this document does not relabel those production observations as measured
+test results. The pre-change source also emitted the resolved request URL in
+its HTTP console message; it was inspected from the prior revision but not
+executed against a service because doing so would not reproduce the historical
+backend timing safely.
+
+## After: controlled simulations and a real local transport
 
 The following are intentionally **simulated**, privacy-safe assertions. They
 are not represented as live Network-panel captures.
@@ -44,6 +52,37 @@ are not represented as live Network-panel captures.
 | Final subscriber cancellation | All signal subscribers abort | Shared controller aborts with normalized `last_subscriber_cancelled` |
 | Refresh overlap | A 401 opens one refresh gate; a new protected read is not sent until it resolves | One refresh, both reads use retry attempt `1` or the refreshed token |
 | Late old-token 401 | A pre-refresh response returns 401 after a successful rotation | One refresh; late read replays once with the fresh token |
+
+`__tests__/httpClientTransport.test.ts` additionally starts a local Node HTTP
+server and explicitly selects Axios's `http` adapter. This is a real socket,
+real delayed response, and real Axios timeout rather than an injected Axios
+error. It changes only `httpClient.defaults.timeout` inside the test; the
+application default remains `30000` ms and is separately asserted by the
+slow-success adapter test.
+
+### Measured local run (after)
+
+Command executed: `npx jest __tests__/httpClientTransport.test.ts --runInBand`
+
+The following sanitized raw duration log lines were captured on that controlled
+run. The exact milliseconds are host-scheduling dependent; the test asserts
+bounded ranges instead of these literal values.
+
+```text
+[HTTP] Request GET /slow-success retry=0
+[HTTP] Response GET /slow-success retry=0 status=200 outcome=ok durationMs=80
+[HTTP] Request GET /slow-timeout retry=0
+[HTTP] Failure GET /slow-timeout retry=0 outcome=timeout reason=axios_timeout durationMs=50
+```
+
+The `/slow-success` server handler waited 35 ms with a 120 ms test-only cap and
+the timing store recorded `outcome=ok`, `status=200`. The `/slow-timeout`
+handler waited 150 ms with a 45 ms test-only cap; Axios ended it after 50 ms,
+and the timing store recorded `outcome=timeout`, `reason=axios_timeout`, and
+`status=null`. This proves the installed Axios Node adapter honors a finite
+timeout and that the client records the real transport outcome. It does not
+claim to reproduce every historical browser cancellation or production
+latency incident.
 
 `api/requestTiming.ts` retains only method, normalized route, status, duration,
 outcome, normalized timeout/cancellation reason, and retry attempt. Routes
