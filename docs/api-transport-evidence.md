@@ -14,7 +14,7 @@ does not make any conclusion about backend scheduler or database latency.
 
 ## Baseline
 
-The shared normal request cap is `30000` ms in `api/config.ts`; uploads retain
+The shared normal request cap is `180000` ms in `api/config.ts`; uploads retain
 their separate `120000` ms cap. The supplied observation reported eventual
 200 responses of approximately:
 
@@ -46,7 +46,7 @@ are not represented as live Network-panel captures.
 
 | Scenario | Controlled transport evidence | Expected sanitized timing result |
 | --- | --- | --- |
-| Slow success below cap | Adapter delays 15 ms and verifies `timeout === 30000` | `GET /api/v1/visits`, `outcome=ok` |
+| Slow success below cap | Adapter delays 15 ms and verifies `timeout === 180000` | `GET /api/v1/visits`, `outcome=ok` |
 | Adapter timeout | Adapter emits `ETIMEDOUT` after a controlled delay | `outcome=timeout`, `reason=transport_timeout`, API error `TIMEOUT` |
 | Navigation cancellation with another consumer | Two equal reads share one adapter call; the navigation subscriber aborts while an unsignalled subscriber remains | Cancelled subscriber receives `CANCELLED`; remaining subscriber receives the response; one request timing sample |
 | Final subscriber cancellation | All signal subscribers abort | Shared controller aborts with normalized `last_subscriber_cancelled` |
@@ -59,7 +59,7 @@ are not represented as live Network-panel captures.
 server and explicitly selects Axios's `http` adapter. This is a real socket,
 real delayed response, and real Axios timeout rather than an injected Axios
 error. It changes only `httpClient.defaults.timeout` inside the test; the
-application default remains `30000` ms and is separately asserted by the
+application default is `180000` ms and is separately asserted by the
 slow-success adapter test.
 
 ### Measured local run (after)

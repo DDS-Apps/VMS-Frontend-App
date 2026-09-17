@@ -24,9 +24,9 @@ console.log(
 export const apiConfig = {
   baseUrl: API_BASE_URL,
   microsoftAuthUrl: MICROSOFT_AUTH_BASE_URL,
-  // Hard cap for ordinary requests. A backend that has not answered in 30 s is
-  // treated as unreachable so screens surface an error instead of hanging.
-  timeout: 30000,
+  // Hard cap for ordinary requests and token refresh. Some dashboard requests
+  // can legitimately exceed 30 seconds, so allow up to three minutes.
+  timeout: 180000,
   // Multipart uploads (profile photos) get longer to finish on slow links.
   uploadTimeout: 120000,
   endpoints: {

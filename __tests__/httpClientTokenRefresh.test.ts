@@ -70,7 +70,10 @@ describe('httpClient token refresh on 401', () => {
     let helpers!: ReturnType<typeof loadClient>;
     helpers = loadClient(async (config) => {
       calls.push(`${config.method} ${config.url}`);
-      if (isRefreshCall(config)) throw helpers.networkError(config);
+      if (isRefreshCall(config)) {
+        expect(config.timeout).toBe(180_000);
+        throw helpers.networkError(config);
+      }
       throw helpers.httpError(config, 401, { message: 'expired' });
     });
     const { client, errors } = helpers;

@@ -70,9 +70,11 @@ Relevant source: `hooks/queries/useApprovalQueries.ts`,
 
 ## Policy
 
-The default finite timeout stays at **30 seconds**. There is no timeout increase,
-unlimited wait, or conversion of failed reads to empty successes. Backend
-performance still needs its separate fix.
+The user-selected finite timeout is **3 minutes (180 seconds)** for ordinary
+requests and token refresh. This replaces the previous 30-second cap so the
+observed 31–42-second backend responses can complete, while preserving a finite
+failure boundary. There is no unlimited wait or conversion of failed reads to
+empty successes. Backend performance still needs its separate fix.
 
 Runtime refresh failures must end only the session that initiated that refresh,
 settle waiting calls, and show a session-expired login message. Startup cached

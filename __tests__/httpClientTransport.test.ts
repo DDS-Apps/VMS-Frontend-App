@@ -36,10 +36,10 @@ describe('shared GET transport', () => {
     jest.restoreAllMocks();
   });
 
-  it('allows a slow response that finishes inside the centralized 30 second timeout', async () => {
+  it('uses the centralized three-minute timeout for ordinary requests', async () => {
     let helpers!: ReturnType<typeof loadClient>;
     helpers = loadClient(async (config) => {
-      expect(config.timeout).toBe(30_000);
+      expect(config.timeout).toBe(180_000);
       await delay(15);
       return helpers.ok(config, { success: true, data: { slow: true } });
     });
