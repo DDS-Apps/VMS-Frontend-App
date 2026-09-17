@@ -90,7 +90,9 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
   // Fetch unread count from backend
   const fetchUnreadCount = useCallback(async () => {
     if (!accountId) return;
-    await unreadQuery.refetch();
+    // A foreground/push/manual refresh must join the account-scoped poll
+    // already in flight instead of cancelling it and issuing a duplicate.
+    await unreadQuery.refetch({ cancelRefetch: false });
   }, [accountId, unreadQuery.refetch]);
 
   const unreadCount = accountId && retainedUnread.accountId === accountId

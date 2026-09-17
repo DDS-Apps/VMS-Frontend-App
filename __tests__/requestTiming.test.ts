@@ -29,9 +29,12 @@ describe('normalizeRequestPath', () => {
     expect(normalizeRequestPath('/api/v1/users/12345')).toBe('/api/v1/users/:id');
     expect(normalizeRequestPath('/api/v1/invites/0123456789abcdef0123')).toBe('/api/v1/invites/:id');
     expect(normalizeRequestPath('https://user:password@example.test/api/v1/invites/secret-token-value?email=a@b.test')).toBe(
-      '/api/v1/invites/secret-token-value',
+      '/api/v1/invites/:id',
     );
     expect(normalizeRequestPath('/api/v1/users/person@example.test')).toBe('/api/v1/users/:id');
+    expect(normalizeRequestPath('/api/v1/users/person%40example.test')).toBe('/api/v1/users/:id');
+    expect(normalizeRequestPath('/api/v1/users/%2B966501234567')).toBe('/api/v1/users/:id');
+    expect(normalizeRequestPath('/api/v1/not-a-known-route/value')).toBe('/api/v1/:id/:id');
     expect(normalizeRequestPath(undefined)).toBe('(unknown)');
   });
 });

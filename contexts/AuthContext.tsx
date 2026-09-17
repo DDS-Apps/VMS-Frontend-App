@@ -2,6 +2,7 @@ import React, { createContext, useContext, useCallback, useState, useEffect, Rea
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { 
+  beginSession,
   setAccessToken, 
   setRefreshToken, 
   clearTokens, 
@@ -374,6 +375,8 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
       try {
         console.log('[AuthContext] Processing SSO tokens from URL hash');
         
+        beginSession();
+        sessionGenerationRef.current += 1;
         setAccessToken(parsed.accessToken);
         const refreshTokenValue = parsed.refreshToken || parsed.accessToken;
         setRefreshToken(refreshTokenValue);
@@ -526,6 +529,7 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
         }
 
         const tokens: StoredTokens = JSON.parse(tokensJson);
+        beginSession();
         setAccessToken(tokens.accessToken);
         setRefreshToken(tokens.refreshToken);
 
@@ -595,6 +599,7 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
     }
     
     sessionGenerationRef.current += 1;
+    beginSession();
     setAccessToken(response.accessToken);
     setRefreshToken(response.refreshToken);
 
@@ -675,6 +680,7 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
       }
 
       sessionGenerationRef.current += 1;
+      beginSession();
       setAccessToken(tokens.accessToken);
       
       const refreshTokenValue = tokens.refreshToken || tokens.accessToken;

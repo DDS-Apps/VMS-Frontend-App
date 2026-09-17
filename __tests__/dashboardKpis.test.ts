@@ -36,7 +36,8 @@ describe('backend dashboard KPIs', () => {
     );
     expect(componentSource).toContain('`${user.id}:${user.role}`');
     expect(authSource).toContain('dashboardKpiKeys.byIdentity(previousIdentity)');
-    expect(authSource).toContain('queryClient.removeQueries({ queryKey: dashboardKpiKeys.all })');
+    // Logout clears every account's cached query, including dashboard KPIs.
+    expect(authSource).toContain('queryClient.clear()');
   });
 
   it('renders backend order with localized known labels and safe unknown-key fallbacks', () => {

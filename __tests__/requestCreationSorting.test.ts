@@ -82,7 +82,7 @@ describe("backend-default request creation ordering", () => {
     const text = source("hooks/queries/useApprovalQueries.ts");
     expect(text).toContain("requestKeys.visits(params)");
     expect(text).toContain("approvalHistoryKeys.list(params)");
-    expect(text).toMatch(/listVisits\(\{ \.\.\.params, page: pageParam/);
+    expect(text).toMatch(/listVisits\(\s*\{ \.\.\.params, page: pageParam/);
     expect(text).toMatch(/getApprovalHistory\(\{\s*\.\.\.params,/);
     expect(text).not.toContain("sortBy:");
     expect(text).not.toContain("sortOrder:");

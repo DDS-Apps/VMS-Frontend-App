@@ -421,6 +421,43 @@ describe('httpClient token refresh on 401', () => {
     expect(client.getRefreshToken()).toBe('new-login-refresh');
   });
 
+  it('invalidates old refresh work when a new session reuses its refresh token', async () => {
+    let releaseRefresh!: () => void;
+    const refreshGate = new Promise<void>((resolve) => {
+      releaseRefresh = resolve;
+    });
+    let helpers!: ReturnType<typeof loadClient>;
+    helpers = loadClient(async (config) => {
+      if (isRefreshCall(config)) {
+        await refreshGate;
+        return helpers.ok(config, {
+          success: true,
+          data: { accessToken: 'old-session-access', refreshToken: 'refresh-1' },
+        });
+      }
+      throw helpers.httpError(config, 401);
+    });
+    const { client } = helpers;
+    client.setAccessToken('stale-access');
+    client.setRefreshToken('refresh-1');
+
+    const request = client.get('/api/v1/users/me');
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    // A new login can receive the same refresh-token string. The explicit
+    // session boundary must still cancel the old refresh operation.
+    client.beginSession();
+    client.setAccessToken('new-login-access');
+    client.setRefreshToken('refresh-1');
+    releaseRefresh();
+
+    const result = await settleWithin(request);
+    expect(result.status).toBe('rejected');
+    expect((result as PromiseRejectedResult).reason.code).toBe('CANCELLED');
+    expect(client.getAccessToken()).toBe('new-login-access');
+    expect(client.getRefreshToken()).toBe('refresh-1');
+  });
+
   it('does not sign out a newer session when an old refresh is rejected late', async () => {
     let releaseRefresh!: () => void;
     const refreshGate = new Promise<void>((resolve) => {

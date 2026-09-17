@@ -123,6 +123,90 @@ describe('shared GET transport', () => {
     expect(sawAbort).toBe(true);
   });
 
+  it('starts a replacement read when a rapid remount follows final cancellation', async () => {
+    let calls = 0;
+    const complete: Array<() => void> = [];
+    let helpers!: ReturnType<typeof loadClient>;
+    helpers = loadClient(
+      (config) =>
+        new Promise<AxiosResponse>((resolve) => {
+          calls += 1;
+          const call = calls;
+          complete.push(() => resolve(helpers.ok(config, { success: true, data: { call } })));
+        }),
+    );
+    const navigation = new AbortController();
+
+    const abandoned = helpers.client.get('/api/v1/visits', undefined, { signal: navigation.signal });
+    await delay(0);
+    navigation.abort('navigation');
+    await expect(abandoned).rejects.toMatchObject({ code: 'CANCELLED' });
+
+    // The aborted adapter promise has intentionally not settled yet. A remount
+    // of the same query must not subscribe to it and inherit its cancellation.
+    const remounted = helpers.client.get('/api/v1/visits');
+    await delay(0);
+    expect(calls).toBe(2);
+
+    // Complete the old request first to prove its cleanup cannot erase the
+    // replacement entry, then complete the replacement.
+    complete[0]();
+    complete[1]();
+    await expect(remounted).resolves.toEqual({ call: 2 });
+  });
+
+  it('never logs or times PII, credentials, bodies, error details, or short path tokens', async () => {
+    const email = 'person%40example.test';
+    const phone = '%2B966501234567';
+    const bodySecret = 'body-password-should-not-log';
+    const errorSecret = 'error-detail-should-not-log';
+    const shortToken = 'short-token-7';
+    let helpers!: ReturnType<typeof loadClient>;
+    helpers = loadClient(async (config) => {
+      const error = helpers.axiosError(config, 'ERR_BAD_RESPONSE');
+      Object.assign(error, {
+        message: `request failed with ${errorSecret}`,
+        response: {
+          status: 500,
+          statusText: 'Internal Server Error',
+          data: { message: errorSecret, details: { email, phone, bodySecret } },
+          headers: {},
+          config,
+        },
+      });
+      throw error;
+    });
+    const timing = require('@/api/requestTiming') as typeof import('@/api/requestTiming');
+    timing.clearRequestTimings();
+
+    await expect(
+      helpers.client.post(
+        `https://raw-user:raw-password@example.test/api/v1/invites/${shortToken}?email=${email}&phone=${phone}`,
+        { password: bodySecret, refreshToken: bodySecret },
+      ),
+    ).rejects.toMatchObject({ code: 'SERVER_ERROR' });
+
+    const output = (console.log as jest.Mock).mock.calls.flat().join(' ');
+    for (const secret of [
+      email,
+      'person@example.test',
+      phone,
+      '+966501234567',
+      bodySecret,
+      errorSecret,
+      shortToken,
+      'raw-user',
+      'raw-password',
+    ]) {
+      expect(output).not.toContain(secret);
+    }
+    expect(output).toContain('[HTTP] Request POST /api/v1/invites/:id retry=0');
+    expect(output).toContain('[HTTP] Failure POST /api/v1/invites/:id retry=0 status=500 outcome=http_error');
+    expect(timing.getRequestTimings()).toEqual([
+      expect.objectContaining({ method: 'POST', path: '/api/v1/invites/:id', status: 500 }),
+    ]);
+  });
+
   it('isolates an in-flight read across session changes', async () => {
     let calls = 0;
     let release!: () => void;
@@ -176,11 +260,11 @@ describe('real Axios HTTP adapter timing', () => {
         }, delayMs);
       };
 
-      if (request.url === '/slow-success') {
+      if (request.url === '/api/v1/visits') {
         respond(35, '{"success":true,"data":{"slow":true}}');
         return;
       }
-      if (request.url === '/slow-timeout') {
+      if (request.url === '/api/v1/approvals/awaiting-visitor') {
         respond(150, '{"success":true,"data":{"tooLate":true}}');
         return;
       }
@@ -219,14 +303,14 @@ describe('real Axios HTTP adapter timing', () => {
     const { client, timing } = loadNetworkClient(120);
     const startedAt = Date.now();
 
-    await expect(client.get('/slow-success')).resolves.toEqual({ slow: true });
+    await expect(client.get('/api/v1/visits')).resolves.toEqual({ slow: true });
 
     const elapsedMs = Date.now() - startedAt;
     const sample = timing.getRequestTimings().at(-1);
     expect(elapsedMs).toBeGreaterThanOrEqual(25);
     expect(sample).toEqual(expect.objectContaining({
       method: 'GET',
-      path: '/slow-success',
+      path: '/api/v1/visits',
       outcome: 'ok',
       status: 200,
     }));
@@ -237,7 +321,7 @@ describe('real Axios HTTP adapter timing', () => {
     const { client, timing } = loadNetworkClient(45);
     const startedAt = Date.now();
 
-    await expect(client.get('/slow-timeout')).rejects.toMatchObject({ code: 'TIMEOUT' });
+    await expect(client.get('/api/v1/approvals/awaiting-visitor')).rejects.toMatchObject({ code: 'TIMEOUT' });
 
     const elapsedMs = Date.now() - startedAt;
     const sample = timing.getRequestTimings().at(-1);
@@ -245,7 +329,7 @@ describe('real Axios HTTP adapter timing', () => {
     expect(elapsedMs).toBeLessThan(140);
     expect(sample).toEqual(expect.objectContaining({
       method: 'GET',
-      path: '/slow-timeout',
+      path: '/api/v1/approvals/awaiting-visitor',
       outcome: 'timeout',
       reason: 'axios_timeout',
       status: null,

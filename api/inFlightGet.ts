@@ -30,6 +30,16 @@ export class InFlightGetRegistry {
     options: GetRequestOptions = {},
   ): Promise<T> {
     let request = this.requests.get(key) as InFlightRequest<T> | undefined;
+    // The final subscriber can abort a live transport before its adapter has
+    // settled. Do not let a rapid remount attach to that doomed promise: it
+    // needs a fresh controller and transport. The old promise's identity guard
+    // below prevents its eventual settlement from deleting this replacement.
+    if (request?.controller.signal.aborted) {
+      if (this.requests.get(key) === request) {
+        this.requests.delete(key);
+      }
+      request = undefined;
+    }
     if (!request) {
       const controller = new AbortController();
       const promise = start(controller.signal);

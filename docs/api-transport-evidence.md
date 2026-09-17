@@ -50,6 +50,8 @@ are not represented as live Network-panel captures.
 | Adapter timeout | Adapter emits `ETIMEDOUT` after a controlled delay | `outcome=timeout`, `reason=transport_timeout`, API error `TIMEOUT` |
 | Navigation cancellation with another consumer | Two equal reads share one adapter call; the navigation subscriber aborts while an unsignalled subscriber remains | Cancelled subscriber receives `CANCELLED`; remaining subscriber receives the response; one request timing sample |
 | Final subscriber cancellation | All signal subscribers abort | Shared controller aborts with normalized `last_subscriber_cancelled` |
+| Rapid remount after final cancellation | The aborted adapter promise is intentionally left unresolved, then the same GET starts again | A second transport starts; old identity-guarded cleanup cannot remove the replacement |
+| Privacy-safe diagnostics | Mock Axios failure uses a credential-bearing URL, PII query, short token path, request body, and error details | Captured logs/timing retain only `POST /api/v1/invites/:id`, status, outcome, and retry metadata |
 | Refresh overlap | A 401 opens one refresh gate; a new protected read is not sent until it resolves | One refresh, both reads use retry attempt `1` or the refreshed token |
 | Late old-token 401 | A pre-refresh response returns 401 after a successful rotation | One refresh; late read replays once with the fresh token |
 
@@ -69,26 +71,31 @@ run. The exact milliseconds are host-scheduling dependent; the test asserts
 bounded ranges instead of these literal values.
 
 ```text
-[HTTP] Request GET /slow-success retry=0
-[HTTP] Response GET /slow-success retry=0 status=200 outcome=ok durationMs=79
-[HTTP] Request GET /slow-timeout retry=0
-[HTTP] Failure GET /slow-timeout retry=0 outcome=timeout reason=axios_timeout durationMs=50
+[HTTP] Request GET /api/v1/visits retry=0
+[HTTP] Response GET /api/v1/visits retry=0 status=200 outcome=ok durationMs=68
+[HTTP] Request GET /api/v1/approvals/awaiting-visitor retry=0
+[HTTP] Failure GET /api/v1/approvals/awaiting-visitor retry=0 outcome=timeout reason=axios_timeout durationMs=48
 ```
 
-The `/slow-success` server handler waited 35 ms with a 120 ms test-only cap and
-the timing store recorded `outcome=ok`, `status=200`. The `/slow-timeout`
-handler waited 150 ms with a 45 ms test-only cap; Axios ended it after 50 ms,
-and the timing store recorded `outcome=timeout`, `reason=axios_timeout`, and
-`status=null`. This proves the installed Axios Node adapter honors a finite
-timeout and that the client records the real transport outcome. It does not
-claim to reproduce every historical browser cancellation or production
-latency incident.
+The controlled `/api/v1/visits` handler waited 35 ms with a 120 ms test-only
+cap and the timing store recorded `outcome=ok`, `status=200`. The controlled
+`/api/v1/approvals/awaiting-visitor` handler waited 150 ms with a 45 ms
+test-only cap; Axios ended it after 48 ms, and the timing store recorded
+`outcome=timeout`, `reason=axios_timeout`, and `status=null`. This proves the
+installed Axios Node adapter honors a finite timeout and that the client
+records the real transport outcome. It does not claim to reproduce every
+historical browser cancellation or production latency incident.
 
 `api/requestTiming.ts` retains only method, normalized route, status, duration,
 outcome, normalized timeout/cancellation reason, and retry attempt. Routes
-drop query strings and collapse common identifier segments; no request bodies,
-tokens, credential-bearing URLs, raw error objects, email addresses, phone
-numbers, or query values are logged.
+drop query strings and use an allowlist of known static route segments; every
+other segment is redacted to `:id` after safe decoding. This deliberately
+redacts short opaque tokens, percent-encoded emails and phone numbers, and
+unknown future route segments. No request bodies, tokens, credential-bearing
+URLs, raw error objects, email addresses, phone numbers, or query values are
+logged. Transport tests capture console output from a credential-bearing URL,
+PII query values, a request body, server error details, and a short invite
+token to verify none reaches logs or timing samples.
 
 ## Transport changes
 
@@ -97,6 +104,10 @@ numbers, or query values are logged.
 * `get(url, params?, { signal? })` gives each caller a subscription. Aborting
   one subscriber does not cancel an unsignalled or still-active subscriber;
   the underlying transport aborts after the final subscriber leaves.
+* If final-subscriber cancellation occurs before its adapter settles, a rapid
+  remount receives a new in-flight entry rather than subscribing to the
+  aborted promise. Identity-guarded cleanup prevents the old settlement from
+  deleting the replacement.
 * New protected requests wait behind the epoch-scoped refresh operation.
   Concurrent 401s share it, and every original request can replay at most
   once. A late 401 sent under the old access token reuses the completed token

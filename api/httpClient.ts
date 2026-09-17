@@ -68,6 +68,15 @@ export function setAccessToken(token: string | null): void {
   accessToken = token;
 }
 
+/**
+ * Marks the beginning of a new logical session without changing token values.
+ * Login and session restoration use this boundary; refresh-token rotation must
+ * not, because requests waiting on a normal refresh belong to the same session.
+ */
+export function beginSession(): void {
+  sessionEpoch += 1;
+}
+
 export function getAccessToken(): string | null {
   return accessToken;
 }
