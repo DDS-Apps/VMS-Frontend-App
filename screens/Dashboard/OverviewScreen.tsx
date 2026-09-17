@@ -140,7 +140,10 @@ export default function OverviewScreen({
         },
         onError: (error) => {
           setApprovingRequestId(null);
-          Alert.alert(t('errors.somethingWentWrong'), error.message);
+          Alert.alert(
+            t('errors.somethingWentWrong'),
+            getLocalizedApiErrorMessage(error, t) || t('errors.submitFailed'),
+          );
         },
       }
     );
@@ -168,7 +171,10 @@ export default function OverviewScreen({
         },
         onError: (error) => {
           setRejectingRequestId(null);
-          Alert.alert(t('errors.somethingWentWrong'), error.message);
+          Alert.alert(
+            t('errors.somethingWentWrong'),
+            getLocalizedApiErrorMessage(error, t) || t('errors.submitFailed'),
+          );
         },
       }
     );

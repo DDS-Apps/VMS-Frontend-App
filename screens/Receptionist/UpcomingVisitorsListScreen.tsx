@@ -29,6 +29,7 @@ import {
 import { useTimeBoundaryTick } from "@/hooks/useTimeBoundaryTick";
 import { useRiyadhBusinessDateKey } from "@/hooks/useRiyadhBusinessDateKey";
 import { getInitials } from "@/utils/formatters";
+import { getLocalizedApiErrorMessage } from "@/utils/apiErrorMessage";
 
 // ─── constants ────────────────────────────────────────────────────────────────
 
@@ -146,7 +147,10 @@ export default function UpcomingVisitorsListScreen() {
   useEffect(() => {
     if (isError && !isFetchNextPageError && error && !hasShownError.current) {
       hasShownError.current = true;
-      Alert.alert(t('common.error'), (error as Error)?.message || t('common.loadError'));
+      Alert.alert(
+        t('common.error'),
+        getLocalizedApiErrorMessage(error, t) || t('common.loadError'),
+      );
     }
     if (!isError || isFetchNextPageError) hasShownError.current = false;
   }, [isError, isFetchNextPageError, error, t]);

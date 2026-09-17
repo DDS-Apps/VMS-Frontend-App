@@ -57,6 +57,7 @@ import {
   buildManagerApprovalHistoryParams,
   hasSameApprovalHistoryDateRange,
 } from "@/utils/managerApprovalHistoryFilters";
+import { getLocalizedApiErrorMessage } from "@/utils/apiErrorMessage";
 
 const LAYOUT = {
   contentGap: Spacing.md,
@@ -478,7 +479,10 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
           },
           onError: (error) => {
             setApprovingRequestId(null);
-            Alert.alert(t("common.error"), error.message || t("approval.approveFailed"));
+            Alert.alert(
+              t("common.error"),
+              getLocalizedApiErrorMessage(error, t) || t("approval.approveFailed"),
+            );
           },
         }
       );
@@ -514,7 +518,10 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
                   },
                   onError: (error) => {
                     setRejectingRequestId(null);
-                    Alert.alert(t("common.error"), error.message || t("approval.rejectFailed"));
+                    Alert.alert(
+                      t("common.error"),
+                      getLocalizedApiErrorMessage(error, t) || t("approval.rejectFailed"),
+                    );
                   },
                 }
               );

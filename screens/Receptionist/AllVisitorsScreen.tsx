@@ -40,6 +40,7 @@ import {
   getPendingApprovalWalkInScheduledEndMs,
 } from "@/utils/visitExpiredGuard";
 import { useTimeBoundaryTick } from "@/hooks/useTimeBoundaryTick";
+import { getLocalizedApiErrorMessage } from "@/utils/apiErrorMessage";
 
 type DateFilter = ReceptionistDateFilter;
 type StatusFilter = 
@@ -313,7 +314,10 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
   useEffect(() => {
     if (isError && !isFetchNextPageError && error && !hasShownError.current) {
       hasShownError.current = true;
-      Alert.alert(t('common.error'), (error as Error)?.message || t('common.loadError'));
+      Alert.alert(
+        t('common.error'),
+        getLocalizedApiErrorMessage(error, t) || t('common.loadError'),
+      );
     }
     if (!isError || isFetchNextPageError) {
       hasShownError.current = false;

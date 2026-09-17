@@ -93,6 +93,7 @@ import { formatPhoneNumber, formatPhoneForDisplay, capitalizeFirst, getInitials 
 import { useServerDateTime } from "@/hooks/useServerDateTime";
 import { useAuth } from "@/contexts/AuthContext";
 import { resolveParkingDisplayDecision } from "@/utils/parkingDecision";
+import { getLocalizedApiErrorMessage } from "@/utils/apiErrorMessage";
 
 
 export default function RequestDetailsScreen({
@@ -481,7 +482,10 @@ export default function RequestDetailsScreen({
           refetch();
         },
         onError: (error: any) => {
-          Alert.alert(t("errors.somethingWentWrong"), error.message);
+          Alert.alert(
+            t("errors.somethingWentWrong"),
+            getLocalizedApiErrorMessage(error, t) || t("errors.submitFailed"),
+          );
         },
       },
     );
@@ -640,7 +644,10 @@ export default function RequestDetailsScreen({
           setShowEditModal(true);
         },
         onError: (error) => {
-          Alert.alert(t("errors.somethingWentWrong"), error.message);
+          Alert.alert(
+            t("errors.somethingWentWrong"),
+            getLocalizedApiErrorMessage(error, t) || t("errors.submitFailed"),
+          );
         },
       },
     );
@@ -663,7 +670,10 @@ export default function RequestDetailsScreen({
           setShowSuccessModal(true);
         },
         onError: (error) => {
-          Alert.alert(t("errors.somethingWentWrong"), error.message);
+          Alert.alert(
+            t("errors.somethingWentWrong"),
+            getLocalizedApiErrorMessage(error, t) || t("errors.submitFailed"),
+          );
         },
       },
     );
@@ -679,7 +689,10 @@ export default function RequestDetailsScreen({
           setShowSuccessModal(true);
         },
         onError: (error) => {
-          Alert.alert(t("errors.somethingWentWrong"), error.message);
+          Alert.alert(
+            t("errors.somethingWentWrong"),
+            getLocalizedApiErrorMessage(error, t) || t("errors.submitFailed"),
+          );
         },
       },
     );
@@ -705,7 +718,10 @@ export default function RequestDetailsScreen({
           setShowSuccessModal(true);
         },
         onError: (error) => {
-          Alert.alert(t("errors.somethingWentWrong"), error.message);
+          Alert.alert(
+            t("errors.somethingWentWrong"),
+            getLocalizedApiErrorMessage(error, t) || t("errors.submitFailed"),
+          );
         },
       },
     );

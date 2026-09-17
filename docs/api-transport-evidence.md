@@ -70,7 +70,7 @@ bounded ranges instead of these literal values.
 
 ```text
 [HTTP] Request GET /slow-success retry=0
-[HTTP] Response GET /slow-success retry=0 status=200 outcome=ok durationMs=80
+[HTTP] Response GET /slow-success retry=0 status=200 outcome=ok durationMs=79
 [HTTP] Request GET /slow-timeout retry=0
 [HTTP] Failure GET /slow-timeout retry=0 outcome=timeout reason=axios_timeout durationMs=50
 ```

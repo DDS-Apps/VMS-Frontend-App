@@ -55,6 +55,7 @@ import {
 } from "@/utils/visitExpiredGuard";
 import { useRiyadhBusinessDateKey } from "@/hooks/useRiyadhBusinessDateKey";
 import { useRetainedDatedData } from "@/hooks/useRetainedDatedData";
+import { getLocalizedApiErrorMessage } from "@/utils/apiErrorMessage";
 import { canAutomaticallyFetchNextPage } from "@/utils/queryPaginationState";
 import { useTimeBoundaryTick } from "@/hooks/useTimeBoundaryTick";
 
@@ -589,6 +590,9 @@ export default function VisitorRequestsScreen({
   const isFetching = isVisitsFetching;
   const error = visitsError;
   const refetch = refetchVisits;
+  const localizedQueryError = error
+    ? getLocalizedApiErrorMessage(error, t)
+    : "";
 
   // Track if this is the initial mount to avoid double-fetching
   const isInitialMount = useRef(true);
@@ -738,7 +742,7 @@ export default function VisitorRequestsScreen({
             { color: theme.textSecondary, textAlign: "center" },
           ]}
         >
-          {t("common.loadError")}
+          {localizedQueryError || t("common.loadError")}
         </ThemedText>
         <Spacer height={Spacing.lg} />
         <Pressable
@@ -829,7 +833,7 @@ export default function VisitorRequestsScreen({
       <ThemedText
         style={[Typography.caption, { color: theme.error, flex: 1 }]}
       >
-        {t("common.loadError")}
+        {localizedQueryError || t("common.loadError")}
       </ThemedText>
       <Pressable onPress={() => refetch()} hitSlop={8}>
         <ThemedText

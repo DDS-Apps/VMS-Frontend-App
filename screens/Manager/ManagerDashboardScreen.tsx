@@ -42,6 +42,7 @@ import {
   getPendingApprovalWalkInScheduledEndMs,
 } from "@/utils/visitExpiredGuard";
 import { useTimeBoundaryTick } from "@/hooks/useTimeBoundaryTick";
+import { getLocalizedApiErrorMessage } from "@/utils/apiErrorMessage";
 
 const LAYOUT = {
   cardPadding: Spacing.lg,
@@ -584,7 +585,10 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
         },
         onError: (error) => {
           setApprovingRequestId(null);
-          Alert.alert(t('errors.somethingWentWrong'), error.message);
+          Alert.alert(
+            t('errors.somethingWentWrong'),
+            getLocalizedApiErrorMessage(error, t) || t('errors.submitFailed'),
+          );
         },
       }
     );
@@ -618,7 +622,10 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
           setSelectedIds(new Set());
         },
         onError: (error) => {
-          Alert.alert(t('errors.somethingWentWrong'), error.message);
+          Alert.alert(
+            t('errors.somethingWentWrong'),
+            getLocalizedApiErrorMessage(error, t) || t('errors.submitFailed'),
+          );
         },
       }
     );
@@ -664,7 +671,10 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
             setIsBulkReject(false);
           },
           onError: (error) => {
-            Alert.alert(t('errors.somethingWentWrong'), error.message);
+            Alert.alert(
+              t('errors.somethingWentWrong'),
+              getLocalizedApiErrorMessage(error, t) || t('errors.submitFailed'),
+            );
           },
         }
       );
@@ -689,7 +699,10 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
           },
           onError: (error) => {
             setRejectingRequestId(null);
-            Alert.alert(t('errors.somethingWentWrong'), error.message);
+            Alert.alert(
+              t('errors.somethingWentWrong'),
+              getLocalizedApiErrorMessage(error, t) || t('errors.submitFailed'),
+            );
           },
         }
       );

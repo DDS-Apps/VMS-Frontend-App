@@ -45,6 +45,7 @@ import {
 } from "@/utils/visitExpiredGuard";
 import { useTimeBoundaryTick } from "@/hooks/useTimeBoundaryTick";
 import { getInitials } from "@/utils/formatters";
+import { getLocalizedApiErrorMessage } from "@/utils/apiErrorMessage";
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -242,7 +243,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
     });
   }, [todayResponse?.data]);
 
-  const errorMessage = visitorError?.message || t('common.loadError');
+  const errorMessage = getLocalizedApiErrorMessage(visitorError, t) || t('common.loadError');
 
   const TO_BE_CHECKED_STATUSES = ['expected', 'pending', 'approved', 'visitor_accepted'];
 

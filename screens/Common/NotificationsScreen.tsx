@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useEffect, useMemo } from "react";
-import { View, StyleSheet, Pressable, ActivityIndicator, I18nManager } from "react-native";
+import React, { useState, useCallback, useMemo } from "react";
+import { View, StyleSheet, Pressable, ActivityIndicator } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { DirectionalRow } from "@/components/DirectionalRow";
@@ -40,14 +40,6 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
   const { locale, isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   const [selectedTab, setSelectedTab] = useState<'all' | 'unread'>('all');
-
-  // RTL DIAGNOSTIC - Log I18nManager state on this screen
-  useEffect(() => {
-    console.log('🔄 [RTL_DEBUG] NotificationsScreen render:', {
-      locale,
-      'I18nManager.isRTL': I18nManager.isRTL,
-    });
-  }, [locale]);
 
   const scrollContentStyle = {
     paddingHorizontal: Spacing.xl,
