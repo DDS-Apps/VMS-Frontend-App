@@ -88,3 +88,75 @@ errors rather than interpreting them as no duplicate or available room.
 Replit/local web remains QA. IIS and EAS production continue targeting
 `https://vms.dallah.com`. No backend, version, deployment or store configuration
 is changed by this investigation.
+
+## Implemented result
+
+- Protected reads wait during refresh, concurrent expired-token requests share refresh, and each original call replays at most once. Explicit session boundaries invalidate old calls even when a new login reuses a token string.
+- Pending identical GETs share a subscriber-aware transport; last-subscriber cancellation aborts it, while rapid remounts start fresh rather than joining an aborted request.
+- Affected queries forward cancellation signals and disable automatic retries to avoid multiplying slow requests. Notifications now have a single account-scoped 120-second polling owner; foreground, push and manual refresh join an existing request.
+- Localized timeout/network/auth/server messages and Retry preserve existing data where appropriate. Duplicate checks and room availability, including the edit flow, block unsafe submission on failed checks.
+- Runtime refresh failure clears the local session immediately with a session-expired login message. Startup transient restoration failures retain the cached session.
+- Safe route-only timing diagnostics include duration, status, outcome, normalized cancellation reason and retry attempt. Query values, opaque path segments, raw Axios errors and form payloads are removed from the affected logging paths.
+
+## Verification (17 September 2026)
+
+- TypeScript: npx tsc --noEmit passed.
+- QA web export, hostname validation and precompression passed; server listens on port 5000.
+- Browser preview renders the login screen. Console includes the existing web notification support and password-form warnings, plus one unattributed 401 resource entry; this is not proof of an authenticated live flow passing. No authenticated live backend session was used.
+- Full Jest run: 85 suites passed, 10 failed; 769 tests passed, 101 failed. A separately extracted pre-change baseline has the same 10 failing suites and 101 failed tests (739 passed). New/updated API, auth, concurrency, form guard, notification and diagnostic tests pass.
+- Existing failures concern legacy upcoming-visit timer/indicator tests, BuffetBoard rendering, expired-footer/overview fixtures, and a Node-native test script collected by Jest. These are tracked separately rather than hidden or disabled.
+- Real local HTTP adapter evidence and test-only bounded timeout measurements are in docs/api-transport-evidence.md. Historical baseline durations are supplied backend evidence, not invented before-change browser captures.
+- No publishing, external backend changes, or store submissions were performed.
+
+## Changed files
+
+- `.agents/memory/startup-session-restore.md`
+- `__tests__/authLogoutDuringRefresh.test.tsx`
+- `__tests__/authStartupSession.test.tsx`
+- `__tests__/dashboardKpis.test.ts`
+- `__tests__/httpClientTokenRefresh.test.ts`
+- `__tests__/httpClientTransport.test.ts`
+- `__tests__/notificationListLoadingStates.test.ts`
+- `__tests__/notificationPreferencesLoadingStates.test.ts`
+- `__tests__/notificationScreens.rendered.test.tsx`
+- `__tests__/notificationUnreadQueryConcurrency.test.tsx`
+- `__tests__/queryCancellationPolicy.test.ts`
+- `__tests__/requestCreationSorting.test.ts`
+- `__tests__/requestTiming.test.ts`
+- `__tests__/visitorRequestFormDuplicateCheck.test.tsx`
+- `api/config.ts`
+- `api/errors.ts`
+- `api/httpClient.ts`
+- `api/inFlightGet.ts`
+- `api/requestTiming.ts`
+- `components/DashboardLayout.tsx`
+- `constants/i18n/ar.ts`
+- `constants/i18n/en.ts`
+- `constants/i18n/types.ts`
+- `contexts/AuthContext.tsx`
+- `contexts/NotificationContext.tsx`
+- `docs/api-transport-evidence.md`
+- `docs/frontend-api-failure-investigation.md`
+- `hooks/queries/useAllRequestsQuery.ts`
+- `hooks/queries/useApprovalQueries.ts`
+- `hooks/queries/useMeetingRoomQueries.ts`
+- `hooks/queries/useNotificationQueries.ts`
+- `hooks/queries/useVisitorQueries.ts`
+- `navigation/DashboardContainer.tsx`
+- `providers/QueryProvider.tsx`
+- `screens/Auth/LoginScreen.tsx`
+- `screens/Common/NotificationsScreen.tsx`
+- `screens/Dashboard/OverviewScreen.tsx`
+- `screens/Employee/RequestDetailsScreen.tsx`
+- `screens/Employee/VisitorRequestFormScreen.tsx`
+- `screens/Employee/VisitorRequestsScreen.tsx`
+- `screens/Manager/ManagerAllRequestsScreen.tsx`
+- `screens/Manager/ManagerDashboardScreen.tsx`
+- `screens/Receptionist/AllVisitorsScreen.tsx`
+- `screens/Receptionist/ReceptionistDashboardScreen.tsx`
+- `screens/Receptionist/UpcomingVisitorsListScreen.tsx`
+- `services/api/authService.ts`
+- `services/api/meetingRoomApiService.ts`
+- `services/api/notificationApiService.ts`
+- `services/api/requestApiService.ts`
+- `utils/apiErrorMessage.ts`
