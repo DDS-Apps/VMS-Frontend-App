@@ -32,8 +32,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   useInfiniteVisitsQuery,
 } from "@/hooks/queries/useApprovalQueries";
-import { ListLoadingFooter, VisitorRequestCard, RTLHorizontalScrollView, FilterChip, RequestStatusBadge, VisitorMatrixTable } from "@/components/shared";
+import { ListLoadingFooter, VisitorRequestCard, RTLHorizontalScrollView, FilterChip, RequestStatusBadge, RequestStatusDropdown, VisitorMatrixTable } from "@/components/shared";
 import type { VisitorMatrixItem } from "@/components/shared";
+import type { RequestStatusDropdownValue } from "@/components/shared";
 import type { VisitListItemDto, VisitListParams } from "@/types/api.types";
 import {
   getStatusConfig as getStatusStyle,
@@ -499,6 +500,8 @@ export default function VisitorRequestsScreen({
   const [selectedTab, setSelectedTab] = useState<TabType>(
     initialTabFromParams || defaultTab,
   );
+  const [selectedStatus, setSelectedStatus] =
+    useState<RequestStatusDropdownValue>(undefined);
   const [viewMode, setViewMode] = useState<"card" | "list">("list");
   const [searchQuery, setSearchQuery] = useState("");
   const [submittedSearch, setSubmittedSearch] = useState("");
@@ -509,10 +512,26 @@ export default function VisitorRequestsScreen({
     setSubmittedSearch(searchQuery);
   }, [searchQuery]);
 
+  const handleTabChange = useCallback((tab: TabType) => {
+    setSelectedStatus(undefined);
+    setSelectedTab(tab);
+  }, []);
+
+  const handleStatusChange = useCallback(
+    (status: RequestStatusDropdownValue) => {
+      setSelectedStatus(status);
+      if (status) {
+        setSelectedTab("all");
+      }
+    },
+    [],
+  );
+
   useEffect(() => {
     const paramTab = routeParams?.initialTab;
     if (!paramTab || paramTab === appliedInitialTabRef.current) return;
     if (isValidTab(paramTab)) {
+      setSelectedStatus(undefined);
       setSelectedTab(paramTab);
       appliedInitialTabRef.current = paramTab;
     }
@@ -531,6 +550,9 @@ export default function VisitorRequestsScreen({
     const params: Omit<VisitListParams, "page"> = {
       myRequestsOnly: true,
     };
+    if (selectedStatus) {
+      params.status = selectedStatus;
+    }
     if (submittedSearch.trim()) {
       params.search = submittedSearch.trim();
     }
@@ -541,7 +563,7 @@ export default function VisitorRequestsScreen({
       params.endDate = toLocalDateString(dateRange.endDate);
     }
     return params;
-  }, [submittedSearch, dateRange]);
+  }, [selectedStatus, submittedSearch, dateRange]);
 
   const {
     data: visitsData,
@@ -565,6 +587,7 @@ export default function VisitorRequestsScreen({
       search?: string;
       startDate?: string;
       endDate?: string;
+      status?: string;
     },
     [displayedVisitsSourceKey],
   );
@@ -581,6 +604,30 @@ export default function VisitorRequestsScreen({
     if (displayedVisitsParams.search) {
       sourceParts.push(
         `${t("common.search")}: “${displayedVisitsParams.search}”`,
+      );
+    }
+    if (displayedVisitsParams.status) {
+      const statusLabelKeys: Record<string, string> = {
+        draft: "status.draft",
+        pending_approval: "status.pendingApproval",
+        pending_host_approval: "status.pendingHostApproval",
+        approved: "status.approved",
+        rejected: "status.rejected",
+        visitor_pending: "status.visitorPending",
+        visitor_accepted: "status.visitorAccepted",
+        visitor_rejected: "status.visitorRejected",
+        checked_in: "status.checkedIn",
+        completed: "status.completed",
+        cancelled: "status.cancelled",
+        auto_cancelled: "status.autoCancelled",
+      };
+      const labelKey = statusLabelKeys[displayedVisitsParams.status];
+      sourceParts.push(
+        `${t("common.status")}: ${
+          labelKey
+            ? t(labelKey)
+            : displayedVisitsParams.status.replace(/_/g, " ")
+        }`,
       );
     }
     return sourceParts.join(" · ") || t("common.all");
@@ -777,6 +824,10 @@ export default function VisitorRequestsScreen({
         filtered = requests;
     }
 
+    if (selectedStatus) {
+      filtered = filtered.filter((request) => request.status === selectedStatus);
+    }
+
     if (
       hasDateFilter &&
       dateRange.startDate &&
@@ -906,7 +957,7 @@ export default function VisitorRequestsScreen({
               {/* Header Controls - SectionHeader handles its own padding */}
               <SectionHeader
                 selectedTab={selectedTab}
-                onTabChange={setSelectedTab}
+                onTabChange={handleTabChange}
                 viewMode={viewMode}
                 onViewModeChange={setViewMode}
                 isDateFilterActive={hasDateFilter}
@@ -933,6 +984,15 @@ export default function VisitorRequestsScreen({
                     />
                   </View>
                 </View>
+              </View>
+
+              <Spacer height={Spacing.md} />
+
+              <View style={styles.paddedContent}>
+                <RequestStatusDropdown
+                  value={selectedStatus}
+                  onChange={handleStatusChange}
+                />
               </View>
 
               <Spacer height={Spacing.md} />
@@ -1044,7 +1104,7 @@ export default function VisitorRequestsScreen({
             {/* Section Header - handles its own padding for horizontal scrolls */}
             <SectionHeader
               selectedTab={selectedTab}
-              onTabChange={setSelectedTab}
+              onTabChange={handleTabChange}
               viewMode={viewMode}
               onViewModeChange={setViewMode}
               isDateFilterActive={hasDateFilter}
@@ -1071,6 +1131,14 @@ export default function VisitorRequestsScreen({
                   />
                 </View>
               </View>
+            </View>
+
+            <Spacer height={Spacing.md} />
+            <View style={styles.paddedContent}>
+              <RequestStatusDropdown
+                value={selectedStatus}
+                onChange={handleStatusChange}
+              />
             </View>
 
             <Spacer height={Spacing.md} />

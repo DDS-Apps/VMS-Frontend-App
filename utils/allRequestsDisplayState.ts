@@ -11,12 +11,14 @@ export function resolveRetainedDisplay<T>(
 export function getAllRequestsSourceKey({
   type,
   status,
+  exactStatus,
   searchQuery,
   startDate,
   endDate,
 }: {
   type: string;
   status: string;
+  exactStatus?: boolean;
   searchQuery: string;
   startDate?: string;
   endDate?: string;
@@ -24,6 +26,7 @@ export function getAllRequestsSourceKey({
   return JSON.stringify({
     type,
     status,
+    exactStatus: Boolean(exactStatus),
     searchQuery: searchQuery.toLowerCase(),
     startDate,
     endDate,

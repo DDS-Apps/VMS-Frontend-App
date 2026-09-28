@@ -12,13 +12,14 @@ import type {
   ValetTaskDto,
   ListValetTasksParams,
 } from '@/types/api.types';
-import type { UserRole } from '@/types/vms.types';
+import type { RequestStatus, UserRole } from '@/types/vms.types';
 import { compareRequestsNewestFirst } from '@/utils/allRequestsPresentation';
 import {
   extractAllRequestsArray,
   fetchValetTasksForDateRange,
   getBuffetSingleDateParams,
   getNextVisitPageParam,
+  matchesAllRequestsStatus,
   shouldAutoFetchAllVisitorPages,
 } from '@/utils/allRequestsQueryHelpers';
 
@@ -189,7 +190,8 @@ function mapValetToUnified(valet: ValetTaskDto): UnifiedRequest {
 
 export interface AllRequestsFilters {
   type?: UnifiedRequestType | 'all';
-  status?: UnifiedStatus | 'all' | 'visitor_accepted' | 'visitor_rejected';
+  status?: UnifiedStatus | RequestStatus | 'all';
+  exactStatus?: boolean;
   searchQuery?: string;
   startDate?: string;
   endDate?: string;
@@ -206,7 +208,7 @@ export function useAllRequestsQuery(
   options: AllRequestsQueryOptions = {},
 ) {
   const { user } = useAuth();
-  const { type = 'all', status = 'all', startDate, endDate } = filters;
+  const { type = 'all', status = 'all', exactStatus = false, startDate, endDate } = filters;
   const userRole = user?.role;
 
   const hasBuffetAccess = userRole ? ROLES_WITH_BUFFET_ACCESS.includes(userRole) : false;
@@ -339,11 +341,9 @@ export function useAllRequestsQuery(
   let filteredRequests = processedRequests;
 
   if (status !== 'all') {
-    if (status === 'visitor_accepted' || status === 'visitor_rejected') {
-      filteredRequests = filteredRequests.filter(r => r.originalStatus === status);
-    } else {
-      filteredRequests = filteredRequests.filter(r => r.status === status);
-    }
+    filteredRequests = filteredRequests.filter(r =>
+      matchesAllRequestsStatus(r, status, exactStatus),
+    );
   }
 
   if (filters.searchQuery) {

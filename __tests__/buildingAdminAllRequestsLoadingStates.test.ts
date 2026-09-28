@@ -11,6 +11,10 @@ const screenSource = fs.readFileSync(
   path.resolve(__dirname, "../screens/BuildingAdmin/AllRequestsScreen.tsx"),
   "utf8",
 );
+const querySource = fs.readFileSync(
+  path.resolve(__dirname, "../hooks/queries/useAllRequestsQuery.ts"),
+  "utf8",
+);
 
 describe("Building Admin All Requests loading states", () => {
   it("retains each source snapshot while its replacement is unavailable", () => {
@@ -127,5 +131,14 @@ describe("Building Admin All Requests loading states", () => {
     expect(screenSource).toContain("typeFilter === 'valet',");
     expect(screenSource).toContain("return refetchValet()");
     expect(screenSource).toContain("return refetch()");
+  });
+
+  it("offers canonical precise statuses only for the visitor module", () => {
+    expect(screenSource).toContain("typeFilter === 'visitor' ? (");
+    expect(screenSource).toContain("statuses={REQUEST_STATUS_VALUES}");
+    expect(screenSource).toContain("exactStatus: preciseStatusFilter !== null");
+    expect(querySource).toContain(
+      "matchesAllRequestsStatus(r, status, exactStatus)",
+    );
   });
 });

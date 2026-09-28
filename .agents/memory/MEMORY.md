@@ -27,3 +27,4 @@
 - [Issue verification cadence](issue-verification-cadence.md) — avoid screenshots for each fix unless requested; defer the full unit-test suite until all reported issues are fixed.
 - [RTL table column order](rtl-table-column-order.md) — use the same View-based physical order for web headers and data; keep native RTL as a normal row.
 - [Dashboard toggle borders](dashboard-toggle-borders.md) — give grid/list buttons separate full borders; an outer clipped group loses visible edges in Arabic.
+- [Visitor status filter aliases](visitor-status-filter-aliases.md) — canonical picker values must include legacy backend equivalents without conflating distinct terminal outcomes.

@@ -20,6 +20,7 @@ import {
   SkeletonList,
   RTLHorizontalScrollView,
   FilterChip,
+  StatusDropdown,
   VisitorMatrixTable,
 } from "@/components/shared";
 import type { VisitorMatrixItem } from "@/components/shared";
@@ -58,6 +59,7 @@ import {
   hasSameApprovalHistoryDateRange,
 } from "@/utils/managerApprovalHistoryFilters";
 import { getLocalizedApiErrorMessage } from "@/utils/apiErrorMessage";
+import { REQUEST_STATUS_VALUES } from "@/constants/requestConstants";
 
 const LAYOUT = {
   contentGap: Spacing.md,
@@ -65,13 +67,16 @@ const LAYOUT = {
 };
 
 type TabType = "all" | "pending" | "approved" | "rejected";
+const MANAGER_REQUEST_STATUSES = [...REQUEST_STATUS_VALUES, "expired"];
 
 type ScreenProps = NativeStackScreenProps<ManagerStackParamList, "AllRequests">;
 
-const mapStatusToVisitorRequestStatus = (status: string): VisitorRequest["status"] => {
-  switch (status) {
+const mapStatusToVisitorRequestStatus = (status: string): string => {
+  switch (status.toLowerCase()) {
     case "pending":
       return "pending_approval";
+    case "draft":
+      return "draft";
     case "pending_host_approval":
       return "pending_host_approval";
     case "approved":
@@ -82,18 +87,27 @@ const mapStatusToVisitorRequestStatus = (status: string): VisitorRequest["status
       return "visitor_pending";
     case "visitor_accepted":
       return "visitor_accepted";
+    case "accepted":
+      return "visitor_accepted";
     case "visitor_rejected":
       return "visitor_rejected";
+    case "awaiting_visitor":
+    case "pending_visitor":
+      return "visitor_pending";
     case "checked_in":
       return "checked_in";
+    case "checked_out":
+      // The API status map defines checked_out as the completed lifecycle state.
     case "completed":
       return "completed";
     case "cancelled":
       return "cancelled";
     case "auto_cancelled":
       return "auto_cancelled";
+    case "expired":
+      return "expired";
     default:
-      return "pending_approval";
+      return status;
   }
 };
 
@@ -116,7 +130,9 @@ const mapHistoryToVisitorRequest = (item: ApprovalHistoryItemDto): VisitorReques
   endTime: item.endTime,
   duration: item.duration || "1 hour",
   purpose: item.purpose,
-  status: mapStatusToVisitorRequestStatus(item.status),
+  // Keep unrecognized backend lifecycle values visible instead of disguising
+  // them as pending; the card's status styling handles raw values safely.
+  status: mapStatusToVisitorRequestStatus(item.status) as VisitorRequest["status"],
   communicationChannels: ["email"],
   parkingType: "none",
   isMeetingRoom: item.hasMeetingRoom,
@@ -269,6 +285,28 @@ const EmptyState = ({
   </ThemedView>
 );
 
+const StatusScanState = ({
+  theme,
+  t,
+  isError,
+}: {
+  theme: ReturnType<typeof useTheme>["theme"];
+  t: (key: string) => string;
+  isError: boolean;
+}) => (
+  <ThemedView style={[styles.emptyState, { backgroundColor: theme.surface }]}>
+    {isError ? (
+      <DDIcon name="alert-circle" size={32} color={theme.error} />
+    ) : (
+      <ActivityIndicator size="small" color={theme.primary} />
+    )}
+    <Spacer height={Spacing.md} />
+    <ThemedText style={[Typography.body, { color: theme.textSecondary }]}>
+      {isError ? t("common.loadError") : t("common.loading")}
+    </ThemedText>
+  </ThemedView>
+);
+
 export default function ManagerAllRequestsScreen({ navigation, route }: ScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
@@ -289,6 +327,9 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
   };
 
   const [selectedTab, setSelectedTab] = useState<TabType>(getInitialTab());
+  const [selectedStatus, setSelectedStatus] = useState<string | undefined>(
+    undefined,
+  );
   const [viewMode, setViewMode] = useState<"card" | "list">("list");
   const [lastInitialTab, setLastInitialTab] = useState<string | undefined>(routeParams?.initialTab);
   const [approvingRequestId, setApprovingRequestId] = useState<string | null>(null);
@@ -303,6 +344,7 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
     const paramTab = routeParams?.initialTab;
     if (!paramTab || paramTab === lastInitialTab) return;
     if (isValidTab(paramTab)) {
+      setSelectedStatus(undefined);
       setSelectedTab(paramTab);
       setLastInitialTab(paramTab);
     }
@@ -319,7 +361,7 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
         return "rejected";
       case "all":
       default:
-        return undefined; // No filter for "all" tab
+        return undefined;
     }
   }, [selectedTab]);
 
@@ -441,8 +483,37 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
     [items],
   );
   const expirationTick = useTimeBoundaryTick(expirationBoundaries);
-  const filteredItems = items;
+  const filteredItems = selectedStatus
+    ? items.filter(
+        (item) => mapStatusToVisitorRequestStatus(item.status) === selectedStatus,
+      )
+    : items;
   const hasUsablePages = !!displayedApprovalData?.pages?.length;
+  const isStatusScanIncomplete = !!selectedStatus && (
+    isLoading || hasNextPage || isFetchingNextPage
+  );
+
+  // A precise status is a client filter over approval-history. Drain every
+  // source page while it is active so matches never appear partial.
+  useEffect(() => {
+    if (
+      selectedStatus &&
+      canAutomaticallyFetchNextPage({
+        hasNextPage,
+        isFetching: isFetching || isFetchingNextPage,
+        isFetchNextPageError,
+      })
+    ) {
+      void fetchNextPage();
+    }
+  }, [
+    fetchNextPage,
+    hasNextPage,
+    isFetchNextPageError,
+    isFetching,
+    isFetchingNextPage,
+    selectedStatus,
+  ]);
 
   useFocusEffect(
     useCallback(() => {
@@ -458,8 +529,19 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
   );
 
   const handleTabChange = useCallback((tab: TabType) => {
+    setSelectedStatus(undefined);
     setSelectedTab(tab);
   }, []);
+
+  const handleStatusChange = useCallback(
+    (status: string | null) => {
+      setSelectedStatus(status ?? undefined);
+      if (status) {
+        setSelectedTab("all");
+      }
+    },
+    [],
+  );
 
   // Approve handler
   const handleApprove = useCallback(
@@ -633,6 +715,13 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
         theme={theme}
         t={t}
       />
+      <View style={styles.paddedContent}>
+        <StatusDropdown
+          value={selectedStatus ?? null}
+          onChange={handleStatusChange}
+          statuses={MANAGER_REQUEST_STATUSES}
+        />
+      </View>
       <Spacer height={Spacing.md} />
     </View>
   );
@@ -780,7 +869,7 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
       ) : null}
       {viewMode === "list" ? (
         <FlatList
-          key={`list-${selectedTab}-${dateRange.startDate?.getTime() ?? "all"}-${dateRange.endDate?.getTime() ?? "all"}`}
+          key={`list-${selectedTab}-${selectedStatus ?? "all"}-${dateRange.startDate?.getTime() ?? "all"}-${dateRange.endDate?.getTime() ?? "all"}`}
           data={[]}
           extraData={riyadhBusinessDateKey}
           renderItem={() => null}
@@ -803,6 +892,12 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
                   approveLoadingId={approvingRequestId ?? undefined}
                   rejectLoadingId={rejectingRequestId ?? undefined}
                   emptyMessage={t("common.noResults")}
+                />
+              ) : isStatusScanIncomplete ? (
+                <StatusScanState
+                  theme={theme}
+                  t={t}
+                  isError={isFetchNextPageError}
                 />
               ) : (
                 <EmptyState theme={theme} t={t} />
@@ -827,7 +922,7 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
         />
       ) : (
         <FlatList
-          key={`${viewMode}-${numColumns}-${selectedTab}-${dateRange.startDate?.getTime() ?? "all"}-${dateRange.endDate?.getTime() ?? "all"}`}
+          key={`${viewMode}-${numColumns}-${selectedTab}-${selectedStatus ?? "all"}-${dateRange.startDate?.getTime() ?? "all"}-${dateRange.endDate?.getTime() ?? "all"}`}
           data={filteredItems}
           extraData={riyadhBusinessDateKey}
           renderItem={renderItem}
@@ -851,7 +946,15 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
           onEndReachedThreshold={0.5}
           ListFooterComponent={paginationFooter}
           ListEmptyComponent={
-            <EmptyState theme={theme} t={t} />
+            isStatusScanIncomplete ? (
+              <StatusScanState
+                theme={theme}
+                t={t}
+                isError={isFetchNextPageError}
+              />
+            ) : (
+              <EmptyState theme={theme} t={t} />
+            )
           }
           refreshing={isFetching && !isFetchingNextPage}
           onRefresh={refetch}

@@ -32,14 +32,30 @@ import {
 } from "@/utils/visitExpiredGuard";
 import { useTimeBoundaryTick } from "@/hooks/useTimeBoundaryTick";
 import { getInitials } from "@/utils/formatters";
+import { StatusDropdown } from "@/components/shared/RequestStatusDropdown";
 
 type StatusFilter = 'all' | 'pending' | 'checked_in' | 'completed';
+
+const PRECISE_STATUS_OPTIONS = [
+  'pending',
+  'pending_approval',
+  'pending_host_approval',
+  'expected',
+  'approved',
+  'visitor_pending',
+  'waiting_acceptance',
+  'accepted',
+  'visitor_accepted',
+  'checked_in',
+  'checked_out',
+  'completed',
+];
 
 export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { formatTime, formatTimeFromString } = useFormatters();
-  const { isRTL } = useLanguage();
+  const { localeCode } = useLanguage();
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
   const riyadhBusinessDateKey = useRiyadhBusinessDateKey();
@@ -49,6 +65,7 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
     : (screenWidth - Spacing.lg * 2 - Spacing.md * (numColumns - 1)) / numColumns;
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [preciseStatus, setPreciseStatus] = useState<string | null>(null);
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
 
   const toggleCardExpanded = (id: string) => {
@@ -163,11 +180,12 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
         return name.includes(query) || phone.includes(searchQuery) || company.includes(query);
       })
       .filter(visitor => {
+        if (preciseStatus) return visitor.status === preciseStatus;
         if (statusFilter === 'all') return true;
         if (statusFilter === 'pending') return visitor.status === 'pending' || visitor.status === 'expected';
         return visitor.status === statusFilter;
       });
-  }, [walkInVisitors, searchQuery, statusFilter]);
+  }, [walkInVisitors, searchQuery, statusFilter, preciseStatus]);
 
   if (isLoading && !todayResponse) {
     return (
@@ -425,6 +443,17 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
 
       <Spacer height={Spacing.md} />
 
+      <StatusDropdown
+        value={preciseStatus}
+        onChange={(status) => {
+          setPreciseStatus(status);
+          setStatusFilter('all');
+        }}
+        statuses={PRECISE_STATUS_OPTIONS}
+        language={localeCode}
+      />
+      <Spacer height={Spacing.sm} />
+
       <RTLHorizontalScrollView
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.filterScrollContent}
@@ -434,8 +463,11 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
           <FilterChip
             key={option.key}
             label={option.label}
-            isSelected={statusFilter === option.key}
-            onPress={() => setStatusFilter(option.key)}
+            isSelected={statusFilter === option.key && !preciseStatus}
+            onPress={() => {
+              setStatusFilter(option.key);
+              setPreciseStatus(null);
+            }}
           />
         ))}
       </RTLHorizontalScrollView>

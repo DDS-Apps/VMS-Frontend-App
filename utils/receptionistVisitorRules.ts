@@ -36,7 +36,11 @@ export const keepReceptionistAllVisitorsRecord = (
 export const isReceptionistAllVisitorsRecordVisible = (
   visitor: ReceptionistVisitorLike,
   now = new Date(),
+  preciseStatus?: string | null,
 ): boolean => {
+  if (preciseStatus) {
+    return visitor.status.toLowerCase() === preciseStatus.toLowerCase();
+  }
   const todayKey = getBusinessDateKey(now, 'Asia/Riyadh');
   return visitor.visitDate === todayKey
     ? isReceptionistDashboardVisitorVisible(visitor)

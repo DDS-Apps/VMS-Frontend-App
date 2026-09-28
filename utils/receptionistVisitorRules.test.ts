@@ -63,6 +63,27 @@ describe('Receptionist visitor rules', () => {
     }, now)).toBe(false);
   });
 
+  it('allows an exact precise status filter to reveal matching hidden history records only', () => {
+    const cancelledVisit = {
+      isWalkIn: false,
+      status: 'cancelled',
+      visitDate: '2026-09-03',
+    };
+    const retainedSourceStatus = 'cancelled';
+    const newlySelectedStatus = 'approved';
+    expect(isReceptionistAllVisitorsRecordVisible(cancelledVisit, new Date('2026-09-04T12:00:00.000Z'))).toBe(false);
+    expect(isReceptionistAllVisitorsRecordVisible(
+      cancelledVisit,
+      new Date('2026-09-04T12:00:00.000Z'),
+      retainedSourceStatus,
+    )).toBe(true);
+    expect(isReceptionistAllVisitorsRecordVisible(
+      cancelledVisit,
+      new Date('2026-09-04T12:00:00.000Z'),
+      newlySelectedStatus,
+    )).toBe(false);
+  });
+
   it('uses the Riyadh business date for Today near the UTC boundary', () => {
     expect(
       getReceptionistDateRange('today', new Date('2026-09-03T21:30:00.000Z')),

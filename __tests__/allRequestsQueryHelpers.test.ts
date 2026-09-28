@@ -3,6 +3,7 @@ import {
   getBuffetSingleDateParams,
   fetchValetTasksForDateRange,
   getNextVisitPageParam,
+  matchesAllRequestsStatus,
   shouldAutoFetchAllVisitorPages,
   shouldFetchNextVisitPage,
 } from "@/utils/allRequestsQueryHelpers";
@@ -78,7 +79,7 @@ describe("Admin All Requests query helpers", () => {
     expect(
       shouldAutoFetchAllVisitorPages({
         requestType: "visitor",
-        status: "approved",
+        status: "pending_host_approval",
         searchQuery: "",
         hasNextPage: true,
         isFetchingNextPage: false,
@@ -121,6 +122,49 @@ describe("Admin All Requests query helpers", () => {
         hasNextPageError: true,
       }),
     ).toBe(false);
+  });
+
+  it("matches precise visitor statuses against raw status while quick chips use normalized status", () => {
+    const pendingHostApproval = {
+      status: "pending",
+      originalStatus: "pending_host_approval",
+    };
+    const checkedIn = {
+      status: "in_progress",
+      originalStatus: "checked_in",
+    };
+
+    expect(
+      matchesAllRequestsStatus(pendingHostApproval, "pending_host_approval", true),
+    ).toBe(true);
+    expect(
+      matchesAllRequestsStatus(pendingHostApproval, "pending_approval", true),
+    ).toBe(false);
+    expect(
+      matchesAllRequestsStatus(pendingHostApproval, "pending", false),
+    ).toBe(true);
+    expect(
+      matchesAllRequestsStatus(
+        { status: "approved", originalStatus: "visitor_accepted" },
+        "visitor_accepted",
+      ),
+    ).toBe(true);
+    expect(matchesAllRequestsStatus(checkedIn, "checked_in", true)).toBe(true);
+    expect(matchesAllRequestsStatus(checkedIn, "in_progress", false)).toBe(true);
+  });
+
+  it("finds legacy backend states under their canonical dropdown labels without merging cancellation types", () => {
+    const pending = { status: "pending", originalStatus: "pending" };
+    const checkedOut = { status: "completed", originalStatus: "checked_out" };
+    const cancelled = { status: "cancelled", originalStatus: "cancelled" };
+    const autoCancelled = { status: "auto_cancelled", originalStatus: "auto_cancelled" };
+
+    expect(matchesAllRequestsStatus(pending, "pending_approval", true)).toBe(true);
+    expect(matchesAllRequestsStatus(checkedOut, "completed", true)).toBe(true);
+    expect(matchesAllRequestsStatus(checkedOut, "checked_in", true)).toBe(false);
+    expect(matchesAllRequestsStatus(cancelled, "auto_cancelled", true)).toBe(false);
+    expect(matchesAllRequestsStatus(autoCancelled, "cancelled", true)).toBe(false);
+    expect(matchesAllRequestsStatus(autoCancelled, "auto_cancelled", true)).toBe(true);
   });
 
   it("loads and deduplicates every Valet date for the all-module query", async () => {

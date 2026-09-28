@@ -27,6 +27,7 @@ export const ar: TranslationKeys = {
     search: 'بحث',
     filter: 'تصفية',
     all: 'الكل',
+    allStatuses: 'كل الحالات',
     none: 'لا شيء',
     other: 'أخرى',
     manager: 'مدير',
@@ -410,6 +411,7 @@ export const ar: TranslationKeys = {
     email: 'البريد الإلكتروني',
   },
   status: {
+    draft: 'مسودة',
     expected: 'متوقع',
     pending: 'قيد الانتظار',
     pendingApproval: 'بانتظار الموافقة',

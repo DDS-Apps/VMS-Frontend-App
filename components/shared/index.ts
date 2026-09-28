@@ -16,6 +16,9 @@ export {
   SkeletonDashboard,
 } from './Skeleton';
 export { RequestStatusBadge } from './RequestStatusBadge';
+export { RequestStatusDropdown } from './RequestStatusDropdown';
+export { StatusDropdown } from './RequestStatusDropdown';
+export type { RequestStatusDropdownValue } from './RequestStatusDropdown';
 export { VisitorRequestCard } from './VisitorRequestCard';
 export { ListLoadingFooter } from './ListLoadingFooter';
 export { EnableNotificationsPrompt } from './EnableNotificationsPrompt';

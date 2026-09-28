@@ -119,3 +119,26 @@ export function shouldAutoFetchAllVisitorPages({
     !hasNextPageError
   );
 }
+
+export function matchesAllRequestsStatus(
+  request: { status: string; originalStatus: string },
+  status: string,
+  exactStatus = false,
+): boolean {
+  if (exactStatus) {
+    // The visit API also returns legacy lifecycle names. The picker uses the
+    // canonical label, but it must still find those records without merging
+    // unrelated terminal states (notably cancelled and auto_cancelled).
+    const aliases: Record<string, readonly string[]> = {
+      pending_approval: ["pending"],
+      visitor_pending: ["awaiting_visitor"],
+      visitor_accepted: ["accepted"],
+      completed: ["checked_out"],
+    };
+    return request.originalStatus === status ||
+      (aliases[status]?.includes(request.originalStatus) ?? false);
+  }
+  return status === "visitor_accepted" || status === "visitor_rejected"
+    ? request.originalStatus === status
+    : request.status === status;
+}

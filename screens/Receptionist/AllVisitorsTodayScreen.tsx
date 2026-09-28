@@ -36,6 +36,7 @@ import {
 import { useTimeBoundaryTick } from "@/hooks/useTimeBoundaryTick";
 import { useUpcomingIndicator } from "@/hooks/useUpcomingVisitTimer";
 import { UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES, isUpcomingIndicatorEligibleStatus } from "@/constants/requestConstants";
+import { StatusDropdown } from "@/components/shared/RequestStatusDropdown";
 
 const ReceptionistUpcomingAlertIcon = React.memo(({ visitDate, visitTime, status }: { visitDate: string; visitTime: string; status: string }) => {
   const { theme } = useTheme();
@@ -59,6 +60,23 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 }
 
 type StatusFilter = 'all' | 'walk_in' | 'expected' | 'checked_in' | 'completed';
+
+const PRECISE_STATUS_OPTIONS = [
+  'pending',
+  'pending_approval',
+  'pending_host_approval',
+  'expected',
+  'approved',
+  'visitor_pending',
+  'waiting_acceptance',
+  'accepted',
+  'visitor_accepted',
+  'checked_in',
+  'checked_out',
+  'completed',
+  'no_show',
+  'expired',
+];
 
 // ─── Module-level status config helper ───────────────────────────────────────
 const getReceptionStatusConfig = (
@@ -266,7 +284,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { formatTimeFromString } = useFormatters();
-  const { isRTL } = useLanguage();
+  const { isRTL, localeCode } = useLanguage();
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
   const riyadhBusinessDateKey = useRiyadhBusinessDateKey();
@@ -285,14 +303,21 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [preciseStatus, setPreciseStatus] = useState<string | null>(null);
 
-  // walk_in filtering is client-side (API does not accept walk_in as a status)
+  // Keep the quick chips on their existing endpoint filters. Precise statuses
+  // unsupported by this endpoint are applied to the returned today's visitors.
   const queryParams = useMemo<ListReceptionTodayParams | undefined>(
-    () =>
-      statusFilter !== 'all' && statusFilter !== 'walk_in'
-        ? { status: statusFilter }
-        : undefined,
-    [statusFilter],
+    () => {
+      if (preciseStatus === 'checked_in' || preciseStatus === 'completed') {
+        return { status: preciseStatus };
+      }
+      if (!preciseStatus && statusFilter !== 'all' && statusFilter !== 'walk_in') {
+        return { status: statusFilter };
+      }
+      return undefined;
+    },
+    [preciseStatus, statusFilter],
   );
 
   const { data: todayResponse, isLoading, isFetching, isError, error, refetch, isPlaceholderData } = useTodayVisitorsQuery(queryParams);
@@ -369,9 +394,13 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
   const filteredVisitors = useMemo(() => {
     let result = todaysVisitors;
 
-    // Walk-in is filtered client-side since the API does not support that status value
+    // Preserve the original Walk-In quick chip behavior.
     if (statusFilter === 'walk_in') {
       result = result.filter(v => v.isWalkIn === true);
+    }
+
+    if (preciseStatus) {
+      result = result.filter(visitor => visitor.status === preciseStatus);
     }
 
     if (!searchQuery.trim()) return result;
@@ -383,7 +412,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
       const query = searchQuery.toLowerCase();
       return name.includes(query) || phone.includes(searchQuery) || company.includes(query);
     });
-  }, [todaysVisitors, searchQuery, statusFilter]);
+  }, [todaysVisitors, searchQuery, statusFilter, preciseStatus]);
 
   if (isLoading && !displayedResponse) {
     return (
@@ -596,6 +625,17 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
 
       <Spacer height={Spacing.md} />
 
+      <StatusDropdown
+        value={preciseStatus}
+        onChange={(status) => {
+          setPreciseStatus(status);
+          setStatusFilter('all');
+        }}
+        statuses={PRECISE_STATUS_OPTIONS}
+        language={localeCode}
+      />
+      <Spacer height={Spacing.sm} />
+
       <RTLHorizontalScrollView
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.filterScrollContent}
@@ -605,8 +645,11 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
           <FilterChip
             key={option.key}
             label={option.label}
-            isSelected={statusFilter === option.key}
-            onPress={() => setStatusFilter(option.key)}
+            isSelected={statusFilter === option.key && !preciseStatus}
+            onPress={() => {
+              setStatusFilter(option.key);
+              setPreciseStatus(null);
+            }}
           />
         ))}
       </RTLHorizontalScrollView>

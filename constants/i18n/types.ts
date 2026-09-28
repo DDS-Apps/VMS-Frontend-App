@@ -27,6 +27,7 @@ export interface TranslationKeys {
     search: string;
     filter: string;
     all: string;
+    allStatuses: string;
     none: string;
     manager: string;
     yes: string;
@@ -410,6 +411,7 @@ export interface TranslationKeys {
     email: string;
   };
   status: {
+    draft: string;
     expected: string;
     pending: string;
     pendingApproval: string;

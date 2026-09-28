@@ -27,6 +27,7 @@ export const en: TranslationKeys = {
     search: 'Search',
     filter: 'Filter',
     all: 'All',
+    allStatuses: 'All Statuses',
     none: 'None',
     other: 'Other',
     manager: 'Manager',
@@ -410,6 +411,7 @@ export const en: TranslationKeys = {
     email: 'Email',
   },
   status: {
+    draft: 'Draft',
     expected: 'Expected',
     pending: 'Pending',
     pendingApproval: 'Pending Approval',

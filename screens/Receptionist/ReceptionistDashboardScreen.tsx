@@ -46,6 +46,7 @@ import {
 import { useTimeBoundaryTick } from "@/hooks/useTimeBoundaryTick";
 import { getInitials } from "@/utils/formatters";
 import { getLocalizedApiErrorMessage } from "@/utils/apiErrorMessage";
+import { StatusDropdown } from "@/components/shared/RequestStatusDropdown";
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -219,7 +220,9 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
 
   const [expandedVisitors, setExpandedVisitors] = useState<Set<string>>(new Set());
   const [viewMode, setViewMode] = useState<'card' | 'table'>('table');
-  const [visitorFilter, setVisitorFilter] = useState<'all' | 'to_be_checked' | 'checked_in' | 'checked_out'>('all');
+  const [visitorFilter, setVisitorFilter] =
+    useState<'all' | 'to_be_checked' | 'checked_in' | 'checked_out'>('all');
+  const [preciseVisitorStatus, setPreciseVisitorStatus] = useState<string | null>(null);
 
   // Today's visitors power the dashboard preview.
   const {
@@ -245,21 +248,39 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
 
   const errorMessage = getLocalizedApiErrorMessage(visitorError, t) || t('common.loadError');
 
-  const TO_BE_CHECKED_STATUSES = ['expected', 'pending', 'approved', 'visitor_accepted'];
-
   const filteredTodaysVisitors = useMemo(() => {
     let result = todaysVisitors;
 
-    if (visitorFilter === 'to_be_checked') {
-      result = result.filter((v) => TO_BE_CHECKED_STATUSES.includes(v.status));
+    if (preciseVisitorStatus) {
+      result = result.filter((visitor) => visitor.status === preciseVisitorStatus);
+    } else if (visitorFilter === 'to_be_checked') {
+      result = result.filter((visitor) =>
+        ['expected', 'pending', 'approved', 'visitor_accepted'].includes(visitor.status),
+      );
     } else if (visitorFilter === 'checked_in') {
-      result = result.filter((v) => v.status === 'checked_in');
+      result = result.filter((visitor) => visitor.status === 'checked_in');
     } else if (visitorFilter === 'checked_out') {
-      // Accept both 'checked_out' (general visits API) and 'completed' (today endpoint legacy)
-      result = result.filter((v) => v.status === 'checked_out' || v.status === 'completed');
+      result = result.filter((visitor) => {
+        return visitor.status === 'checked_out' || visitor.status === 'completed';
+      });
     }
     return result;
-  }, [todaysVisitors, visitorFilter]);
+  }, [todaysVisitors, visitorFilter, preciseVisitorStatus]);
+
+  const RECEPTIONIST_STATUS_OPTIONS = [
+    'pending',
+    'pending_approval',
+    'pending_host_approval',
+    'expected',
+    'approved',
+    'visitor_pending',
+    'waiting_acceptance',
+    'accepted',
+    'visitor_accepted',
+    'checked_in',
+    'checked_out',
+    'completed',
+  ];
 
   // All Visitors dashboard preview: include today and the previous
   // 3 Riyadh calendar dates so recent history can be grouped by visit date.
@@ -669,27 +690,15 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
 
         <DirectionalRow style={{ justifyContent: 'space-between', alignItems: 'center' }}>
           <View style={{ flex: 1 }}>
-            <RTLHorizontalScrollView
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ gap: Spacing.sm, paddingBottom: 2 }}
-              nestedScrollEnabled={true}
-            >
-              {(
-                [
-                  { key: 'all', label: t('common.all') },
-                  { key: 'to_be_checked', label: t('status.toBeChecked') },
-                  { key: 'checked_in', label: t('status.checkedIn') },
-                  { key: 'checked_out', label: t('status.checkedOut') },
-                ] as const
-              ).map((opt) => (
-                <FilterChip
-                  key={opt.key}
-                  label={opt.label}
-                  isSelected={visitorFilter === opt.key}
-                  onPress={() => setVisitorFilter(opt.key)}
-                />
-              ))}
-            </RTLHorizontalScrollView>
+            <StatusDropdown
+              value={preciseVisitorStatus}
+              onChange={(status) => {
+                setPreciseVisitorStatus(status);
+                setVisitorFilter('all');
+              }}
+              statuses={RECEPTIONIST_STATUS_OPTIONS}
+              language={localeCode}
+            />
           </View>
           {todaysVisitors.length > 0 ? (
             <Pressable
@@ -706,6 +715,33 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
             </Pressable>
           ) : null}
         </DirectionalRow>
+
+        <Spacer height={Spacing.sm} />
+
+        <RTLHorizontalScrollView
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ gap: Spacing.sm, paddingBottom: 2 }}
+          nestedScrollEnabled={true}
+        >
+          {(
+            [
+              { key: 'all', label: t('common.all') },
+              { key: 'to_be_checked', label: t('status.toBeChecked') },
+              { key: 'checked_in', label: t('status.checkedIn') },
+              { key: 'checked_out', label: t('status.checkedOut') },
+            ] as const
+          ).map((option) => (
+            <FilterChip
+              key={option.key}
+              label={option.label}
+              isSelected={visitorFilter === option.key && !preciseVisitorStatus}
+              onPress={() => {
+                setVisitorFilter(option.key);
+                setPreciseVisitorStatus(null);
+              }}
+            />
+          ))}
+        </RTLHorizontalScrollView>
 
         <Spacer height={Spacing.md} />
 

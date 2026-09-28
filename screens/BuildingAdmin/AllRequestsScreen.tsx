@@ -69,6 +69,9 @@ import {
   resolvePrimaryListState,
   resolveRetainedDisplay,
 } from '@/utils/allRequestsDisplayState';
+import { StatusDropdown } from '@/components/shared/RequestStatusDropdown';
+import { REQUEST_STATUS_VALUES } from '@/constants/requestConstants';
+import type { RequestStatus } from '@/types/vms.types';
 
 const LAYOUT = {
   cardPadding: Spacing.lg,
@@ -77,7 +80,7 @@ const LAYOUT = {
 };
 
 type RequestFilter = UnifiedRequestType;
-type StatusFilter = UnifiedStatus | 'all' | 'visitor_accepted' | 'visitor_rejected';
+type StatusFilter = UnifiedStatus | RequestStatus | 'all';
 
 const VISIT_PURPOSE_I18N_MAP: Record<string, string> = {
   business_meeting: 'visitor.businessMeeting',
@@ -520,6 +523,7 @@ export default function AllRequestsScreen() {
   const queryClient = useQueryClient();  
   const [typeFilter, setTypeFilter] = useState<RequestFilter>('visitor');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [preciseStatusFilter, setPreciseStatusFilter] = useState<RequestStatus | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [dateRange, setDateRange] = useState<{ startDate: Date | null; endDate: Date | null }>(() => {
@@ -561,14 +565,16 @@ export default function AllRequestsScreen() {
     [buffetDate, dateRange, typeFilter],
   );
   const hasDateFilter = activeDateRange.startDate !== null;
+  const effectiveStatusFilter = preciseStatusFilter ?? statusFilter;
 
   const filters = useMemo(() => ({
     type: typeFilter,
-    status: statusFilter,
+    status: effectiveStatusFilter,
+    exactStatus: preciseStatusFilter !== null,
     searchQuery,
     startDate: activeDateRange.startDate ? localCalendarDateToKey(activeDateRange.startDate) : undefined,
     endDate: activeDateRange.endDate ? localCalendarDateToKey(activeDateRange.endDate) : (activeDateRange.startDate ? localCalendarDateToKey(activeDateRange.startDate) : undefined),
-  }), [typeFilter, statusFilter, searchQuery, activeDateRange]);
+  }), [typeFilter, effectiveStatusFilter, preciseStatusFilter, searchQuery, activeDateRange]);
 
   const {
     data: requests,
@@ -650,8 +656,8 @@ export default function AllRequestsScreen() {
   const valetRequests = useMemo(() => {
     let mapped = allValetRequests;
     
-    if (statusFilter !== 'all') {
-      mapped = mapped.filter(r => r.status === statusFilter);
+    if (effectiveStatusFilter !== 'all') {
+      mapped = mapped.filter(r => r.status === effectiveStatusFilter);
     }
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
@@ -661,7 +667,7 @@ export default function AllRequestsScreen() {
       );
     }
     return mapped;
-  }, [allValetRequests, statusFilter, searchQuery]);
+  }, [allValetRequests, effectiveStatusFilter, searchQuery]);
 
   const valetStats = useMemo(() => {
     if (!displayedValetDashboardData?.summary) return null;
@@ -702,7 +708,8 @@ export default function AllRequestsScreen() {
 
   const nonValetSourceKey = getAllRequestsSourceKey({
     type: typeFilter,
-    status: statusFilter,
+    status: effectiveStatusFilter,
+    exactStatus: filters.exactStatus,
     searchQuery,
     startDate: filters.startDate,
     endDate: filters.endDate,
@@ -716,7 +723,7 @@ export default function AllRequestsScreen() {
           stats,
           total:
             typeFilter === 'visitor' &&
-            (statusFilter !== 'all' || searchQuery.trim())
+            (effectiveStatusFilter !== 'all' || searchQuery.trim())
               ? requests.length
               : stats.total,
           startDate: filters.startDate,
@@ -777,6 +784,9 @@ export default function AllRequestsScreen() {
   const displayIsRefreshing = primaryListState.isRefreshing;
   const displayIsError = primaryListState.showError;
   const displayHasRefreshError = primaryListState.showRefreshError;
+  const isVisitorClientFiltered =
+    typeFilter === 'visitor' &&
+    (effectiveStatusFilter !== 'all' || Boolean(searchQuery.trim()));
   const isShowingRetainedData =
     typeFilter === 'valet'
       ? retainedValetDashboard.isRetained
@@ -892,13 +902,24 @@ export default function AllRequestsScreen() {
 
   const handleTypeFilterPress = useCallback((nextType: UnifiedRequestType) => {
     setTypeFilter(nextType);
+    setPreciseStatusFilter(null);
     setStatusFilter(current => getStatusFilterForRequestType(nextType, current) as StatusFilter);
   }, []);
 
   const handleStatPress = (filter: StatusFilter) => {
-    console.log('[AllRequests] handleStatPress called:', filter, 'current:', statusFilter);
+    setPreciseStatusFilter(null);
     setStatusFilter(statusFilter === filter ? 'all' : filter);
   };
+
+  const handleStatusChipPress = useCallback((filter: StatusFilter) => {
+    setPreciseStatusFilter(null);
+    setStatusFilter(filter);
+  }, []);
+
+  const handlePreciseStatusChange = useCallback((status: string | null) => {
+    setPreciseStatusFilter(status as RequestStatus | null);
+    setStatusFilter('all');
+  }, []);
 
   const handleApprove = useCallback(async (request: UnifiedRequest) => {
     const confirmApprove = () => {
@@ -1179,7 +1200,7 @@ export default function AllRequestsScreen() {
             value={card.value}
             label={card.label}
             color={card.color}
-            isActive={statusFilter === card.key}
+            isActive={effectiveStatusFilter === card.key}
             onPress={() => handleStatPress(card.key)}
             theme={theme}
             isLargeScreen={isLargeScreen}
@@ -1303,16 +1324,24 @@ export default function AllRequestsScreen() {
                 style={[
                   styles.statusChip,
                   {
-                    backgroundColor: statusFilter === filter.id ? applyOpacity(theme.info, '12') : 'transparent',
-                    borderColor: statusFilter === filter.id ? theme.info : theme.border,
+                    backgroundColor: statusFilter === filter.id && !preciseStatusFilter
+                      ? applyOpacity(theme.info, '12')
+                      : 'transparent',
+                    borderColor: statusFilter === filter.id && !preciseStatusFilter
+                      ? theme.info
+                      : theme.border,
                   }
                 ]}
-                onPress={() => setStatusFilter(filter.id)}
+                onPress={() => handleStatusChipPress(filter.id)}
               >
                 <ThemedText
                   style={[
                     styles.statusChipText,
-                    { color: statusFilter === filter.id ? theme.info : theme.textSecondary }
+                    {
+                      color: statusFilter === filter.id && !preciseStatusFilter
+                        ? theme.info
+                        : theme.textSecondary,
+                    }
                   ]}
                 >
                   {filter.label}
@@ -1320,6 +1349,18 @@ export default function AllRequestsScreen() {
               </TouchableOpacity>
             ))}
           </RTLHorizontalScrollView>
+          {typeFilter === 'visitor' ? (
+            <>
+              <Spacer height={Spacing.sm} />
+              <View style={styles.paddedContent}>
+                <StatusDropdown
+                  value={preciseStatusFilter}
+                  onChange={handlePreciseStatusChange}
+                  statuses={REQUEST_STATUS_VALUES}
+                />
+              </View>
+            </>
+          ) : null}
         </>
       ) : null}
 
@@ -1481,11 +1522,24 @@ export default function AllRequestsScreen() {
               })}
             </View>
           ) : (
-            <EmptyState
-              icon="inbox"
-              title={t('common.noResults')}
-              message={t('requests.tryDifferentFilters')}
-            />
+            isVisitorClientFiltered &&
+            (hasNextPage || isFetchingNextPage || hasNextPageError) ? (
+              hasNextPageError ? (
+                <ThemedText style={[Typography.bodySmall, { color: theme.error }]}>
+                  {t('errors.tryAgain')}
+                </ThemedText>
+              ) : (
+                <View style={styles.nextPageLoader}>
+                  <ActivityIndicator size="small" color={theme.primary} />
+                </View>
+              )
+            ) : (
+              <EmptyState
+                icon="inbox"
+                title={t('common.noResults')}
+                message={t('requests.tryDifferentFilters')}
+              />
+            )
           )}
           {typeFilter === 'visitor' && isFetchingNextPage ? (
             <View style={styles.nextPageLoader}>

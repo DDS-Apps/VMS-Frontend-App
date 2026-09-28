@@ -26,7 +26,6 @@ import {
 import { mapVisitListItemToVisitorRequest } from "@/utils/requestMappers";
 import { resolveParkingDisplayDecision } from "@/utils/parkingDecision";
 import {
-  getReceptionistStatusSources,
   getReceptionistDateRange,
   isReceptionistAllVisitorsRecordVisible,
   type ReceptionistDateFilter,
@@ -41,18 +40,29 @@ import {
 } from "@/utils/visitExpiredGuard";
 import { useTimeBoundaryTick } from "@/hooks/useTimeBoundaryTick";
 import { getLocalizedApiErrorMessage } from "@/utils/apiErrorMessage";
+import { StatusDropdown } from "@/components/shared/RequestStatusDropdown";
 
 type DateFilter = ReceptionistDateFilter;
-type StatusFilter = 
-  | 'all'
-  | 'waiting_acceptance'
-  | 'accepted';
+type StatusFilter = 'all' | 'waiting_acceptance' | 'accepted';
 
 const RECEPTIONIST_ALLOWED_STATUSES = [
+  'pending',
+  'pending_approval',
+  'pending_host_approval',
+  'approved',
+  'visitor_pending',
   'waiting_acceptance',
   'accepted',
   'visitor_accepted',
-  'pending_host_approval',
+  'checked_in',
+  'checked_out',
+  'completed',
+  'rejected',
+  'visitor_rejected',
+  'cancelled',
+  'auto_cancelled',
+  'expired',
+  'no_show',
 ];
 
 function getDateRange(filter: DateFilter): { startDate?: string; endDate?: string } {
@@ -67,17 +77,12 @@ function toDateKey(date: Date): string {
 }
 
 function mapStatusesToApi(statuses: Set<StatusFilter>): string | undefined {
-  if (statuses.has('all') || statuses.size === 0) {
-    return undefined;
-  }
+  if (statuses.has('all') || statuses.size === 0) return undefined;
   const apiStatuses: string[] = [];
-  for (const s of statuses) {
-    if (s === 'all') continue;
-    if (s === 'accepted') {
-      apiStatuses.push('accepted', 'visitor_accepted');
-    } else {
-      apiStatuses.push(s);
-    }
+  for (const status of statuses) {
+    if (status === 'all') continue;
+    if (status === 'accepted') apiStatuses.push('accepted', 'visitor_accepted');
+    else apiStatuses.push(status);
   }
   return apiStatuses.length > 0 ? apiStatuses.join(',') : undefined;
 }
@@ -105,7 +110,7 @@ const parseTimeToMinutes = (timeStr: string | undefined | null): number => {
 export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { isRTL, localeCode } = useLanguage();
+  const { localeCode } = useLanguage();
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
   const riyadhBusinessDateKey = useRiyadhBusinessDateKey();
@@ -119,6 +124,7 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [dateFilter, setDateFilter] = useState<DateFilter>('this_week');
   const [selectedStatuses, setSelectedStatuses] = useState<Set<StatusFilter>>(new Set(['all']));
+  const [preciseStatus, setPreciseStatus] = useState<string | null>(null);
   const [isWalkInFilter, setIsWalkInFilter] = useState(initialFilter === 'walk_in');
   const [customDateRange, setCustomDateRange] = useState<{ startDate: Date | null; endDate: Date | null }>({
     startDate: null,
@@ -151,12 +157,12 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
   );
   const queryParams: Omit<VisitListParams, 'page'> = useMemo(() => ({
     ...selectedDateRange,
-    status: mapStatusesToApi(selectedStatuses),
+    status: preciseStatus ?? mapStatusesToApi(selectedStatuses),
     search: debouncedSearch || undefined,
     isWalkIn: isWalkInFilter || undefined,
     myRequestsOnly: false,
     limit: PAGE_SIZE,
-  }), [selectedDateRange, selectedStatuses, debouncedSearch, isWalkInFilter]);
+  }), [selectedDateRange, selectedStatuses, preciseStatus, debouncedSearch, isWalkInFilter]);
 
   const { 
     data, 
@@ -171,12 +177,13 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
     refetch,
   } = useInfiniteVisitsQuery(queryParams);
   const retainedInput = useMemo(
-    () => (data ? { data, queryParams } : undefined),
-    [data, queryParams],
+    () => (data ? { data, queryParams, preciseStatus } : undefined),
+    [data, queryParams, preciseStatus],
   );
   const retainedQuery = useRetainedDatedData(JSON.stringify(queryParams), retainedInput);
   const displayedData = retainedQuery.data?.data;
   const displayedQueryParams = retainedQuery.data?.queryParams ?? queryParams;
+  const displayedPreciseStatus = retainedQuery.data?.preciseStatus ?? null;
   const displayedQuerySourceLabel = useMemo(() => {
     const sourceParts: string[] = [];
     if (displayedQueryParams.startDate) {
@@ -190,12 +197,38 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
     if (displayedQueryParams.isWalkIn) {
       sourceParts.push(t('visitor.walkIn'));
     } else {
-      for (const statusSource of getReceptionistStatusSources(displayedQueryParams.status)) {
-        sourceParts.push(
-          statusSource === 'waiting_acceptance'
-            ? t('status.waitingAcceptance')
-            : t('status.accepted'),
-        );
+      const statusTokens = new Set(
+        displayedQueryParams.status
+          ?.split(',')
+          .map((status) => status.trim().toLowerCase())
+          .filter(Boolean) ?? [],
+      );
+      const statusLabels: Record<string, string> = {
+        waiting_acceptance: t('status.waitingAcceptance'),
+        pending_host_approval: t('status.pendingHostApproval'),
+        pending_approval: t('status.pendingApproval'),
+        pending: t('status.pending'),
+        expected: t('visitor.expectedVisitors'),
+        visitor_pending: t('status.visitorPending'),
+        visitor_accepted: t('status.visitorAccepted'),
+        approved: t('status.approved'),
+        checked_in: t('status.checkedIn'),
+        checked_out: t('status.checkedOut'),
+        completed: t('timeline.visitCompleted'),
+        rejected: t('status.rejected'),
+        visitor_rejected: t('status.visitorRejected'),
+        cancelled: t('status.cancelled'),
+        auto_cancelled: t('status.autoCancelled'),
+        no_show: t('status.noShow'),
+        expired: t('status.expired'),
+      };
+      if (statusTokens.has('accepted') || statusTokens.has('visitor_accepted')) {
+        sourceParts.push(t('status.accepted'));
+      }
+      for (const statusToken of statusTokens) {
+        if (statusToken === 'accepted' || statusToken === 'visitor_accepted') continue;
+        const label = statusLabels[statusToken];
+        if (label) sourceParts.push(label);
       }
     }
     if (displayedQueryParams.search) {
@@ -221,7 +254,9 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
     if (!displayedData?.pages) return [];
     const allItems = displayedData.pages
       .flatMap(page => page.data)
-      .filter((visitor) => isReceptionistAllVisitorsRecordVisible(visitor));
+      .filter((visitor) =>
+        isReceptionistAllVisitorsRecordVisible(visitor, undefined, displayedPreciseStatus),
+      );
     return [...allItems].sort((a, b) => {
       const dateA = a.visitDate || '';
       const dateB = b.visitDate || '';
@@ -232,7 +267,7 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
       const timeB = parseTimeToMinutes(b.visitTime);
       return timeA - timeB;
     });
-  }, [displayedData]);
+  }, [displayedData, displayedPreciseStatus]);
   const expirationBoundaries = useMemo(
     () =>
       visitors.map((visitor) =>
@@ -352,34 +387,35 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
   const handleWalkInToggle = useCallback(() => {
     const newWalkInState = !isWalkInFilter;
     setIsWalkInFilter(newWalkInState);
-    if (newWalkInState) {
-      setSelectedStatuses(new Set());
-    } else {
-      setSelectedStatuses(new Set(['all']));
-    }
+    setPreciseStatus(null);
+    if (newWalkInState) setSelectedStatuses(new Set());
+    else setSelectedStatuses(new Set(['all']));
   }, [isWalkInFilter]);
 
   const handleStatusChipPress = useCallback((status: StatusFilter) => {
+    setPreciseStatus(null);
     if (status === 'all') {
       setSelectedStatuses(new Set(['all']));
       setIsWalkInFilter(false);
-    } else {
-      setSelectedStatuses(prev => {
-        const newSet = new Set(prev);
-        newSet.delete('all');
-        
-        if (newSet.has(status)) {
-          newSet.delete(status);
-          if (newSet.size === 0) {
-            return new Set(['all']);
-          }
-        } else {
-          newSet.add(status);
-        }
-        return newSet;
-      });
-      setIsWalkInFilter(false);
+      return;
     }
+    setSelectedStatuses((previous) => {
+      const next = new Set(previous);
+      next.delete('all');
+      if (next.has(status)) {
+        next.delete(status);
+        return next.size === 0 ? new Set(['all']) : next;
+      }
+      next.add(status);
+      return next;
+    });
+    setIsWalkInFilter(false);
+  }, []);
+
+  const handlePreciseStatusChange = useCallback((status: string | null) => {
+    setPreciseStatus(status);
+    setSelectedStatuses(new Set(['all']));
+    setIsWalkInFilter(false);
   }, []);
 
   const renderVisitorCard = useCallback(({ item }: { item: VisitListItemDto }) => {
@@ -492,19 +528,6 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
     </Modal>
   );
 
-  const getStatusChipColor = useCallback((status: StatusFilter) => {
-    switch (status) {
-      case 'all':
-        return theme.primary;
-      case 'waiting_acceptance':
-        return theme.warning;
-      case 'accepted':
-        return theme.info;
-      default:
-        return theme.textSecondary;
-    }
-  }, [theme]);
-
   const renderDateGroupHeader = useCallback((date: string, count: number) => (
     <DirectionalRow
       style={[
@@ -584,13 +607,20 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
 
       <Spacer height={Spacing.md} />
 
-      {/* Horizontal scrollable status chips: All → Walk-In → other statuses */}
+      <StatusDropdown
+        value={preciseStatus}
+        onChange={handlePreciseStatusChange}
+        statuses={RECEPTIONIST_ALLOWED_STATUSES}
+        language={localeCode}
+      />
+      <Spacer height={Spacing.sm} />
+
+      {/* Existing quick status chips remain available alongside the precise selector. */}
       <RTLHorizontalScrollView
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.statusChipsContainer}
       >
-        {/* All chip — always first */}
-        {STATUS_FILTER_OPTIONS.filter(o => o.key === 'all').map((option) => (
+        {STATUS_FILTER_OPTIONS.filter(option => option.key === 'all').map((option) => (
           <FilterChip
             key={option.key}
             label={option.label}
@@ -598,8 +628,6 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
             onPress={() => handleStatusChipPress(option.key)}
           />
         ))}
-
-        {/* Walk-In chip — always second */}
         <FilterChip
           label={t('common.walkIn')}
           isSelected={isWalkInFilter}
@@ -607,18 +635,14 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
           icon="user-plus"
           onPress={handleWalkInToggle}
         />
-
-        {/* Remaining status chips (hidden when Walk-In is active) */}
-        {!isWalkInFilter ? STATUS_FILTER_OPTIONS.filter(o => o.key !== 'all').map((option) => (
+        {!isWalkInFilter ? STATUS_FILTER_OPTIONS.filter(option => option.key !== 'all').map((option) => (
           <FilterChip
             key={option.key}
             label={option.label}
             isSelected={selectedStatuses.has(option.key)}
-            color={getStatusChipColor(option.key)}
             onPress={() => handleStatusChipPress(option.key)}
           />
         )) : null}
-
         <FilterChip
           label={t('time.today')}
           icon="calendar"
@@ -645,7 +669,7 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
 
       <Spacer height={Spacing.md} />
     </View>
-  ), [t, theme, totalCount, isFetching, isFetchingNextPage, searchQuery, isWalkInFilter, selectedStatuses, dateFilter, getSelectedDateLabel, getStatusChipColor, STATUS_FILTER_OPTIONS, isRTL, handleWalkInToggle, handleStatusChipPress, viewMode, setViewMode]);
+  ), [t, theme, totalCount, isFetching, isFetchingNextPage, searchQuery, isWalkInFilter, selectedStatuses, preciseStatus, dateFilter, getSelectedDateLabel, localeCode, handleWalkInToggle, handleStatusChipPress, handlePreciseStatusChange, viewMode, setViewMode]);
 
   if (isLoading && !displayedData) {
     return (
