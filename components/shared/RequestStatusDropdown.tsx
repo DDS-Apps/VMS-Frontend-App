@@ -7,8 +7,8 @@ import {
   View,
 } from "react-native";
 import { DDIcon } from "@/components/DDIcon";
-import { DirectionalRow } from "@/components/DirectionalRow";
 import { ThemedText } from "@/components/ThemedText";
+import { FilterChip } from "@/components/shared/FilterChip";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { applyOpacity } from "@/utils/statusStyles";
 import { useTheme } from "@/hooks/useTheme";
@@ -69,6 +69,8 @@ export function StatusDropdown({
   const selectedLabel = value
     ? getStatusLabel(value, t)
     : t("common.allStatuses");
+  // Drafts are unfinished requests, not a useful filter for submitted visits.
+  const visibleStatuses = statuses.filter((status) => status !== "draft");
 
   const selectValue = (nextValue: string | null) => {
     setIsOpen(false);
@@ -77,30 +79,15 @@ export function StatusDropdown({
 
   return (
     <>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={accessibilityLabel || t("common.status")}
+      <FilterChip
+        label={`${t("common.status")}: ${selectedLabel}`}
+        isSelected={!!value}
+        trailingIcon="chevron-down"
+        accessibilityLabel={accessibilityLabel || `${t("common.status")}: ${selectedLabel}`}
         accessibilityHint={t("status.selectStatus")}
-        accessibilityState={{ expanded: isOpen }}
+        expanded={isOpen}
         onPress={() => setIsOpen(true)}
-        style={[
-          styles.trigger,
-          { backgroundColor: theme.surface, borderColor: theme.border },
-        ]}
-      >
-        <DirectionalRow style={styles.triggerContent}>
-          <ThemedText style={[Typography.body, { color: theme.textSecondary }]}>
-            {t("common.status")}:
-          </ThemedText>
-          <ThemedText
-            numberOfLines={1}
-            style={[Typography.body, { color: theme.text, fontWeight: "600" }]}
-          >
-            {selectedLabel}
-          </ThemedText>
-          <DDIcon name="chevron-down" size={16} color={theme.textSecondary} />
-        </DirectionalRow>
-      </Pressable>
+      />
 
       <Modal
         visible={isOpen}
@@ -155,7 +142,7 @@ export function StatusDropdown({
                   <DDIcon name="check" size={17} color={theme.primary} />
                 ) : null}
               </Pressable>
-              {statuses.map((status) => (
+              {visibleStatuses.map((status) => (
                 <Pressable
                   key={status}
                   accessibilityRole="button"
@@ -221,19 +208,6 @@ export function RequestStatusDropdown({
 }
 
 const styles = StyleSheet.create({
-  trigger: {
-    minHeight: 40,
-    alignSelf: "flex-start",
-    justifyContent: "center",
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-  },
-  triggerContent: {
-    alignItems: "center",
-    gap: Spacing.xs,
-  },
   modalRoot: {
     flex: 1,
     alignItems: "center",

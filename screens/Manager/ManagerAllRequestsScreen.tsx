@@ -158,6 +158,8 @@ const SectionHeaderWithTabs = ({
   isDateFilterActive,
   onDatePress,
   onClearDatePress,
+  selectedStatus,
+  onStatusChange,
   theme,
   t,
 }: {
@@ -169,6 +171,8 @@ const SectionHeaderWithTabs = ({
   isDateFilterActive: boolean;
   onDatePress: () => void;
   onClearDatePress: () => void;
+  selectedStatus: string | null;
+  onStatusChange: (status: string | null) => void;
   theme: ReturnType<typeof useTheme>["theme"];
   t: (key: string) => string;
 }) => {
@@ -262,6 +266,11 @@ const SectionHeaderWithTabs = ({
           onPress={onDatePress}
           onClear={onClearDatePress}
           clearAccessibilityLabel={t("common.clear")}
+        />
+        <StatusDropdown
+          value={selectedStatus}
+          onChange={onStatusChange}
+          statuses={MANAGER_REQUEST_STATUSES}
         />
       </RTLHorizontalScrollView>
     </>
@@ -712,16 +721,11 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
         isDateFilterActive={dateRange.startDate !== null}
         onDatePress={() => setShowDatePicker(true)}
         onClearDatePress={() => setDateRange({ startDate: null, endDate: null })}
+        selectedStatus={selectedStatus ?? null}
+        onStatusChange={handleStatusChange}
         theme={theme}
         t={t}
       />
-      <View style={styles.paddedContent}>
-        <StatusDropdown
-          value={selectedStatus ?? null}
-          onChange={handleStatusChange}
-          statuses={MANAGER_REQUEST_STATUSES}
-        />
-      </View>
       <Spacer height={Spacing.md} />
     </View>
   );

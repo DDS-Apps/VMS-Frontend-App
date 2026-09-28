@@ -327,6 +327,8 @@ const SectionHeader = ({
   isDateFilterActive,
   onDatePress,
   onClearDatePress,
+  selectedStatus,
+  onStatusChange,
   theme,
   t,
 }: {
@@ -337,6 +339,8 @@ const SectionHeader = ({
   isDateFilterActive: boolean;
   onDatePress: () => void;
   onClearDatePress: () => void;
+  selectedStatus: RequestStatusDropdownValue;
+  onStatusChange: (status: RequestStatusDropdownValue) => void;
   theme: Theme;
   t: (key: string) => string;
 }) => {
@@ -435,6 +439,10 @@ const SectionHeader = ({
           onPress={onDatePress}
           onClear={onClearDatePress}
           clearAccessibilityLabel={t("common.clear")}
+        />
+        <RequestStatusDropdown
+          value={selectedStatus}
+          onChange={onStatusChange}
         />
       </RTLHorizontalScrollView>
     </>
@@ -963,6 +971,8 @@ export default function VisitorRequestsScreen({
                 isDateFilterActive={hasDateFilter}
                 onDatePress={() => setShowDatePicker(true)}
                 onClearDatePress={() => setDateRange({ startDate: null, endDate: null })}
+                selectedStatus={selectedStatus}
+                onStatusChange={handleStatusChange}
                 theme={theme}
                 t={t}
               />
@@ -984,15 +994,6 @@ export default function VisitorRequestsScreen({
                     />
                   </View>
                 </View>
-              </View>
-
-              <Spacer height={Spacing.md} />
-
-              <View style={styles.paddedContent}>
-                <RequestStatusDropdown
-                  value={selectedStatus}
-                  onChange={handleStatusChange}
-                />
               </View>
 
               <Spacer height={Spacing.md} />
@@ -1110,6 +1111,8 @@ export default function VisitorRequestsScreen({
               isDateFilterActive={hasDateFilter}
               onDatePress={() => setShowDatePicker(true)}
               onClearDatePress={() => setDateRange({ startDate: null, endDate: null })}
+              selectedStatus={selectedStatus}
+              onStatusChange={handleStatusChange}
               theme={theme}
               t={t}
             />
@@ -1131,14 +1134,6 @@ export default function VisitorRequestsScreen({
                   />
                 </View>
               </View>
-            </View>
-
-            <Spacer height={Spacing.md} />
-            <View style={styles.paddedContent}>
-              <RequestStatusDropdown
-                value={selectedStatus}
-                onChange={handleStatusChange}
-              />
             </View>
 
             <Spacer height={Spacing.md} />

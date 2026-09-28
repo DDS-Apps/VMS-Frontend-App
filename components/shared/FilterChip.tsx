@@ -13,10 +13,14 @@ export interface FilterChipProps {
   isSelected: boolean;
   color?: string;
   icon?: IconName;
+  trailingIcon?: IconName;
   count?: number;
   onPress: () => void;
   onClear?: () => void;
   clearAccessibilityLabel?: string;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
+  expanded?: boolean;
 }
 
 export function FilterChip({
@@ -24,10 +28,14 @@ export function FilterChip({
   isSelected,
   color,
   icon,
+  trailingIcon,
   count,
   onPress,
   onClear,
   clearAccessibilityLabel,
+  accessibilityLabel,
+  accessibilityHint,
+  expanded,
 }: FilterChipProps) {
   const { theme } = useTheme();
   const { isRTL } = useLanguage();
@@ -52,6 +60,7 @@ export function FilterChip({
           {count}
         </ThemedText>
       ) : null}
+      {trailingIcon ? <DDIcon name={trailingIcon} size={14} color={contentColor} /> : null}
     </>
   );
 
@@ -62,8 +71,9 @@ export function FilterChip({
           style={[styles.mainAction, { flexDirection: getFlexDirection(isRTL) }]}
           onPress={onPress}
           accessibilityRole="button"
-          accessibilityLabel={label}
-          accessibilityState={{ selected: true }}
+          accessibilityLabel={accessibilityLabel || label}
+          accessibilityHint={accessibilityHint}
+          accessibilityState={{ selected: true, expanded }}
         >
           {chipContent}
         </Pressable>
@@ -84,8 +94,9 @@ export function FilterChip({
       style={chipStyle}
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={label}
-      accessibilityState={{ selected: isSelected }}
+      accessibilityLabel={accessibilityLabel || label}
+      accessibilityHint={accessibilityHint}
+      accessibilityState={{ selected: isSelected, expanded }}
     >
       {chipContent}
     </Pressable>
