@@ -111,7 +111,10 @@ const SectionHeader = ({
       onPress={() => onViewModeChange('card')}
       style={[
         styles.toggleButton,
-        { backgroundColor: viewMode === 'card' ? theme.primary : 'transparent' }
+        {
+          backgroundColor: viewMode === 'card' ? theme.primary : theme.surface,
+          borderColor: viewMode === 'card' ? theme.primary : theme.border,
+        }
       ]}
     >
       <DDIcon 
@@ -127,7 +130,10 @@ const SectionHeader = ({
       onPress={() => onViewModeChange('list')}
       style={[
         styles.toggleButton,
-        { backgroundColor: viewMode === 'list' ? theme.primary : 'transparent' }
+        {
+          backgroundColor: viewMode === 'list' ? theme.primary : theme.surface,
+          borderColor: viewMode === 'list' ? theme.primary : theme.border,
+        }
       ]}
     >
       <DDIcon 
@@ -1106,6 +1112,7 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: BorderRadius.sm,
+    borderWidth: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },

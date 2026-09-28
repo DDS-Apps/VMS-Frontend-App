@@ -646,13 +646,16 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
               {t('dashboard.checkInsToday')}
             </ThemedText>
           </View>
-          <View style={[styles.viewToggle, { borderColor: theme.border }, getPhysicalToggleStyle(isRTL)]}>
+          <View style={[styles.viewToggle, getPhysicalToggleStyle(isRTL)]}>
             {(['card', 'table'] as const).map((mode) => (
               <Pressable
                 key={mode}
                 style={[
                   styles.viewToggleBtn,
-                  { backgroundColor: viewMode === mode ? theme.primary : theme.surface },
+                  {
+                    backgroundColor: viewMode === mode ? theme.primary : theme.surface,
+                    borderColor: viewMode === mode ? theme.primary : theme.border,
+                  },
                 ]}
                 onPress={() => setViewMode(mode)}
               >
@@ -1231,11 +1234,8 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   viewToggle: {
-    borderRadius: BorderRadius.sm,
-    overflow: 'hidden',
     flexDirection: 'row',
-    borderWidth: 1,
-    gap: 1,
+    gap: Spacing.xs,
   },
   viewToggleBtn: {
     padding: Spacing.sm,
@@ -1243,6 +1243,7 @@ const styles = StyleSheet.create({
     height: 36,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 0,
+    borderWidth: 1,
+    borderRadius: BorderRadius.sm,
   },
 });

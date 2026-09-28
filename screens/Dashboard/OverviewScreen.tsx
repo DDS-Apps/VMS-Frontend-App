@@ -495,13 +495,14 @@ export default function OverviewScreen({
                     {t("time.thisMonth")}
                   </ThemedText>
                 </View>
-                <View style={[styles.viewToggle, { borderColor: theme.border }, getPhysicalToggleStyle(isRTL)]}>
+                <View style={[styles.viewToggle, getPhysicalToggleStyle(isRTL)]}>
                   <Pressable
                     onPress={() => setDashboardViewMode('card')}
                     style={[
                       styles.viewToggleBtn,
                       {
                         backgroundColor: dashboardViewMode === 'card' ? theme.primary : theme.surface,
+                        borderColor: dashboardViewMode === 'card' ? theme.primary : theme.border,
                       },
                     ]}
                   >
@@ -517,6 +518,7 @@ export default function OverviewScreen({
                       styles.viewToggleBtn,
                       {
                         backgroundColor: dashboardViewMode === 'list' ? theme.primary : theme.surface,
+                        borderColor: dashboardViewMode === 'list' ? theme.primary : theme.border,
                       },
                     ]}
                   >
@@ -1659,11 +1661,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   viewToggle: {
-    borderRadius: BorderRadius.sm,
-    overflow: "hidden",
     flexDirection: "row",
-    borderWidth: 1,
-    gap: 1,
+    gap: Spacing.xs,
   },
   viewToggleBtn: {
     padding: Spacing.sm,
@@ -1671,7 +1670,8 @@ const styles = StyleSheet.create({
     height: 36,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 0,
+    borderWidth: 1,
+    borderRadius: BorderRadius.sm,
   },
   visitorCard: {
     borderRadius: BorderRadius.md,

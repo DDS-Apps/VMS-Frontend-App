@@ -1,5 +1,6 @@
 import React from "react";
 import { act, create } from "react-test-renderer";
+import { StyleSheet } from "react-native";
 
 import { en, ar, getTranslation } from "@/constants/i18n";
 import { PURPOSE_VALUE_TO_KEY } from "@/constants/requestConstants";
@@ -81,6 +82,10 @@ jest.mock("@/components/DirectionalRow", () => {
     DirectionalRow: (props: Record<string, unknown>) =>
       React.createElement("DirectionalRow", props, props.children),
     getFlexDirection: (isRTL: boolean) => (isRTL ? "row-reverse" : "row"),
+    getTableColumnStyle: (isRTL: boolean) => ({
+      flexDirection: "row",
+      direction: isRTL ? "rtl" : "ltr",
+    }),
   };
 });
 
@@ -194,6 +199,10 @@ function themedTexts(renderer: ReturnType<typeof create>): string[] {
     .map((node) => textContent(node.props.children));
 }
 
+function themedTextsIn(node: ReturnType<typeof create>["root"]): string[] {
+  return node.findAllByType("ThemedText").map((text) => textContent(text.props.children));
+}
+
 const mappedPurposeEntries = Object.entries(PURPOSE_VALUE_TO_KEY);
 const allMappedVisitors = mappedPurposeEntries.map(([purpose, key], index) => ({
   ...baseVisitor,
@@ -203,6 +212,38 @@ const allMappedVisitors = mappedPurposeEntries.map(([purpose, key], index) => ({
 }));
 
 describe("VisitorMatrixTable purpose labels", () => {
+  it.each(["en", "ar"] as const)(
+    "keeps Receptionist matrix headers and row values under the same columns in %s",
+    (locale) => {
+      const renderer = renderTable("matrix", [{
+        ...baseVisitor,
+        purpose: "business_meeting",
+        email: "visitor@example.com",
+      }], locale);
+      const rows = renderer.root.findAll((node) => {
+        const style = StyleSheet.flatten(node.props.style);
+        return style?.direction === (locale === "ar" ? "rtl" : "ltr") &&
+          style?.flexDirection === "row";
+      });
+      const header = rows.find((node) =>
+        StyleSheet.flatten(node.props.style)?.backgroundColor === mockTheme.surfaceSecondary &&
+        themedTextsIn(node).includes(getTranslation(locale, "visitor.date").toUpperCase()));
+      const data = rows.find((node) =>
+        !!StyleSheet.flatten(node.props.style)?.minHeight &&
+        themedTextsIn(node).includes("Acme"));
+      expect(header).toBeDefined();
+      expect(data).toBeDefined();
+      const headerLabels = themedTextsIn(header!);
+      const rowValues = themedTextsIn(data!);
+      expect(headerLabels.indexOf(getTranslation(locale, "visitor.date").toUpperCase())).toBe(0);
+      expect(rowValues[0]).toMatch(/2026|٢٠٢٦/);
+      expect(headerLabels.indexOf(getTranslation(locale, "form.company").toUpperCase())).toBe(4);
+      expect(rowValues[4]).toBe("Acme");
+      // A host name may contain an additional nested department text node.
+      // Compare column containers rather than the number of text descendants.
+      expect(header!.children.length).toBe(data!.children.length);
+    },
+  );
   it.each(["matrix", "card"] as const)(
     "renders every mapped purpose in the actual %s variant with real English labels",
     (variant) => {
