@@ -37,6 +37,7 @@ import type { Theme } from "@/types/theme.types";
 import { formatDateForApi, formatDate } from "@/utils/dateTimeUtils";
 import { useRetainedDatedData } from "@/hooks/useRetainedDatedData";
 import { getInitials } from "@/utils/formatters";
+import { RequestStatusBadge } from "@/components/shared/RequestStatusBadge";
 
 type BuffetRequest = BuffetAdminTaskDto & {
   timeSlot: string;
@@ -129,22 +130,6 @@ const VisitorAvatar = ({ name, theme, size = 44 }: { name: string; theme: Theme;
   );
 };
 
-const StatusBadge = ({ statusConfig, compact = false }: { statusConfig: { bg: string; border: string; text: string; label: string }; compact?: boolean }) => (
-  <View style={[
-    styles.statusBadge, 
-    { 
-      backgroundColor: statusConfig.bg, 
-      borderColor: statusConfig.border,
-      paddingHorizontal: 6,
-      paddingVertical: 2,
-    }
-  ]}>
-    <ThemedText style={[styles.statusText, { color: statusConfig.text, fontSize: 9 }]}>
-      {statusConfig.label}
-    </ThemedText>
-  </View>
-);
-
 const SectionHeader = ({ 
   viewMode, 
   onViewModeChange, 
@@ -231,7 +216,7 @@ const BuffetRequestCard = React.memo(({
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 16, flex: 1 }]} numberOfLines={1}>
                   {request.hostName}
                 </ThemedText>
-                <StatusBadge statusConfig={statusConfig} />
+                <RequestStatusBadge status={request.status} />
               </DirectionalRow>
               {request.hostDepartment ? (
                 <ThemedText style={[Typography.bodySmall, { color: theme.textSecondary, marginTop: 2 }]} numberOfLines={1}>
@@ -923,14 +908,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     textAlignVertical: 'center',
     includeFontPadding: false,
-  },
-  statusBadge: {
-    borderRadius: BorderRadius.sm,
-    borderWidth: 1,
-    alignSelf: 'flex-start',
-  },
-  statusText: {
-    fontWeight: '600',
   },
   dateTimeRow: {
     flexDirection: 'row',

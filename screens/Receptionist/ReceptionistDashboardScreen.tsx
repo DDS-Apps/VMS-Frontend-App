@@ -47,6 +47,7 @@ import { useTimeBoundaryTick } from "@/hooks/useTimeBoundaryTick";
 import { getInitials } from "@/utils/formatters";
 import { getLocalizedApiErrorMessage } from "@/utils/apiErrorMessage";
 import { StatusDropdown } from "@/components/shared/RequestStatusDropdown";
+import { ExpiredVisitBadge } from "@/components/shared/ExpiredVisitBadge";
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -603,12 +604,9 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
         ) : null}
 
         {isExpired ? (
-          <DirectionalRow style={[styles.expiredNotice, { backgroundColor: applyOpacity(theme.textSecondary, '10'), borderColor: theme.border }]}>
-            <DDIcon name="clock" size={14} color={theme.textSecondary} />
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
-              {t('visitor.visitExpired')}
-            </ThemedText>
-          </DirectionalRow>
+          <View style={{ marginTop: Spacing.sm }}>
+            <ExpiredVisitBadge />
+          </View>
         ) : null}
 
       </GHTouchableOpacity>
@@ -1206,15 +1204,6 @@ const styles = StyleSheet.create({
   detailText: {
     fontSize: 13,
     flex: 1,
-  },
-  expiredNotice: {
-    alignItems: 'center',
-    gap: Spacing.xs,
-    marginTop: Spacing.sm,
-    paddingVertical: Spacing.xs,
-    paddingHorizontal: Spacing.sm,
-    borderRadius: BorderRadius.sm,
-    borderWidth: 1,
   },
   toggleContainer: {
     alignItems: 'center',

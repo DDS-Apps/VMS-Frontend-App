@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useBuffetAdminStaffQuery, useUpdateStaffDutyMutation } from "@/hooks/queries/useBuffetQueries";
 import type { BuffetAdminStaffDto } from "@/types/api.types";
 import { getInitials } from "@/utils/formatters";
+import { StatusLabelBadge } from "@/components/shared/StatusLabelBadge";
 
 import { KPICard, KPICardRow } from '@/components/shared/KPICard';
 
@@ -145,17 +146,12 @@ export default function BuffetAdminStaffScreen() {
         <Spacer height={Spacing.md} />
 
         <DirectionalRow style={styles.cardFooter}>
-          <DirectionalRow style={styles.statusContainer}>
-            <View 
-              style={[
-                styles.statusIndicator, 
-                { backgroundColor: isOnDuty ? theme.success : theme.textSecondary }
-              ]} 
-            />
-            <ThemedText style={[styles.statusLabel, { color: isOnDuty ? theme.success : theme.textSecondary }]}>
-              {isOnDuty ? t('dashboard.onDuty') : t('status.inactive')}
-            </ThemedText>
-          </DirectionalRow>
+          <StatusLabelBadge
+            label={isOnDuty ? t('dashboard.onDuty') : t('status.inactive')}
+            color={isOnDuty ? theme.success : theme.textSecondary}
+            backgroundColor={applyOpacity(isOnDuty ? theme.success : theme.textSecondary, '12')}
+            borderColor={isOnDuty ? theme.success : theme.textSecondary}
+          />
 
           <Pressable
             style={[
@@ -363,20 +359,6 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.sm,
     borderTopWidth: 1,
     borderTopColor: 'rgba(0,0,0,0.06)',
-  },
-  statusContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  statusIndicator: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginEnd: 6,
-  },
-  statusLabel: {
-    fontSize: 13,
-    fontWeight: '600',
   },
   toggleButton: {
     flexDirection: 'row',

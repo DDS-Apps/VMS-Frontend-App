@@ -3,6 +3,7 @@ import { View, StyleSheet } from "react-native";
 import { DDIcon } from "@/components/DDIcon";
 import { ThemedText } from "@/components/ThemedText";
 import { DirectionalRow } from "@/components/DirectionalRow";
+import { STATUS_BADGE_TEXT } from "@/components/shared/StatusLabelBadge";
 import { Spacing, Typography } from "@/constants/theme";
 import type { Theme } from "@/types/theme.types";
 
@@ -21,12 +22,13 @@ export function ExpiredVisitFooter({ theme, t }: ExpiredVisitFooterProps) {
   return (
     <View style={styles.notice}>
       <DirectionalRow style={styles.titleRow}>
-        <DDIcon name="alert-circle" size={16} color={theme.warning} />
+        <DDIcon name="alert-circle" size={16} color={theme.error} />
         <ThemedText
           style={[
             Typography.caption,
+            STATUS_BADGE_TEXT,
             {
-              color: theme.warning,
+              color: theme.error,
               fontWeight: "600",
               textAlign: "center",
             },

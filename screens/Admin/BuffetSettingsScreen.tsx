@@ -353,11 +353,6 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     padding: Spacing.lg,
   },
-  statusBadge: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    borderRadius: BorderRadius.sm,
-  },
   cardContent: {
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.md,

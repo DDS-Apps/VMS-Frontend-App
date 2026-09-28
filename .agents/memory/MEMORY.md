@@ -30,3 +30,4 @@
 - [Visitor status filter aliases](visitor-status-filter-aliases.md) — canonical picker values must include legacy backend equivalents without conflating distinct terminal outcomes.
 - [Status dropdown source scope](status-dropdown-source-scope.md) — a status option must match its screen's source and filtering path, not just the global request lifecycle.
 - [Visit purpose choices](visit-purpose-choices.md) — restrict new/edit picker choices without discarding translations for historical purpose values.
+- [Compact status badge preference](compact-status-badges.md) — keep read-only status and Visit Expired badges at the original compact size; standardize without enlarging.

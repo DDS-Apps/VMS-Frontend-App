@@ -26,6 +26,8 @@ import {
 } from "@/hooks/queries/useBuffetQueries";
 import type { BuffetAdminTaskDto } from "@/types/api.types";
 import type { BuffetAdminDashboardScreenProps } from "@/types/buffetAdminNavigation.types";
+import { RequestStatusBadge } from "@/components/shared/RequestStatusBadge";
+import { StatusLabelBadge } from "@/components/shared/StatusLabelBadge";
 
 type BuffetRequest = BuffetAdminTaskDto & {
   timeSlot: string;
@@ -215,11 +217,7 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
               </ThemedText>
               <DirectionalRow style={{ alignItems: 'center' }}>
                 <UpcomingVisitAlertIcon visitDate={item.visitDate} visitTime={item.visitTime} status={item.status} visitStartAt={item.visitStartAt} />
-                <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border, borderWidth: StyleSheet.hairlineWidth }]}>
-                  <ThemedText style={[styles.statusText, { color: statusConfig.text }]}>
-                    {statusConfig.label}
-                  </ThemedText>
-                </View>
+                <RequestStatusBadge status={item.status} />
               </DirectionalRow>
             </DirectionalRow>
             {item.hostDepartment ? (
@@ -254,12 +252,7 @@ export default function BuffetAdminDashboardScreen({ navigation }: BuffetAdminDa
         {item.status === 'completed' ? (
           <>
             <Spacer height={Spacing.md} />
-            <View style={[styles.completedBadge, { backgroundColor: applyOpacity(theme.success, '15') }]}>
-              <DDIcon name="check-circle" size={14} color={theme.success} />
-              <ThemedText style={[styles.completedText, { color: theme.success }]}>
-                {t('common.done')}
-              </ThemedText>
-            </View>
+            <RequestStatusBadge status="completed" />
           </>
         ) : null}
       </Pressable>
@@ -504,15 +497,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.sm,
   },
-  statusBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: BorderRadius.sm,
-  },
-  statusText: {
-    fontSize: 9,
-    fontWeight: '600',
-  },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -570,18 +554,6 @@ const styles = StyleSheet.create({
   assignButtonText: {
     fontSize: 13,
     fontWeight: '500',
-  },
-  completedBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    gap: 4,
-  },
-  completedText: {
-    fontSize: 13,
-    fontWeight: '600',
   },
   emptyState: {
     padding: Spacing.xl,

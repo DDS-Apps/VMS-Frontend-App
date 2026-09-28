@@ -14,8 +14,8 @@ import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useFormatters } from '@/hooks/useFormatters';
-import { applyOpacity, getStatusIcon } from '@/utils/statusStyles';
-import { StatusIcon } from '@/components/shared';
+import { applyOpacity } from '@/utils/statusStyles';
+import { RequestStatusBadge } from '@/components/shared/RequestStatusBadge';
 import {
   getValetRequestById,
   driverRejectRequest,
@@ -109,26 +109,6 @@ export default function DriverTaskDetailScreen({
     }, 300);
   };
 
-  const getStatusConfig = (status: ValetRequest['status']) => {
-    switch (status) {
-      case 'pending':
-        return { color: theme.primary, bgColor: applyOpacity(theme.primary, '12'), label: t('status.pending') };
-      case 'assigned':
-        return { color: theme.warning, bgColor: applyOpacity(theme.warning, '12'), label: t('status.assigned') };
-      case 'parked':
-        return { color: theme.info, bgColor: applyOpacity(theme.info, '12'), label: t('parking.parked') };
-      case 'ready_for_pickup':
-        return { color: theme.success, bgColor: applyOpacity(theme.success, '12'), label: t('valet.readyForPickup') };
-      case 'completed':
-        return { color: theme.secondary, bgColor: applyOpacity(theme.secondary, '12'), label: t('status.completed') };
-      case 'cancelled':
-        return { color: theme.textSecondary, bgColor: applyOpacity(theme.textSecondary, '12'), label: t('status.cancelled') };
-      default:
-        return { color: theme.textSecondary, bgColor: applyOpacity(theme.textSecondary, '12'), label: status };
-    }
-  };
-
-  const statusConfig = getStatusConfig(task.status);
   const showAssignedActions = task.status === 'assigned';
   const showParkedActions = task.status === 'parked';
   const showReadyActions = task.status === 'ready_for_pickup';
@@ -173,7 +153,7 @@ export default function DriverTaskDetailScreen({
               {task.visitorCompany}
             </ThemedText>
           </View>
-          <StatusIcon icon={getStatusIcon(task.status)} color={statusConfig.color} />
+          <RequestStatusBadge status={task.status} />
         </DirectionalRow>
 
         <Spacer height={Spacing.xl} />

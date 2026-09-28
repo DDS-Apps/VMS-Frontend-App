@@ -18,7 +18,7 @@ import { useFormatters } from '@/hooks/useFormatters';
 import { UserRole } from '@/types/vms.types';
 import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 import { formatPhoneNumber, formatPhoneForDisplay, getInitials } from '@/utils/formatters';
-import { StatusIcon } from '@/components/shared';
+import { StatusLabelBadge } from '@/components/shared/StatusLabelBadge';
 
 type RootStackParamList = {
   UserDetail: { userId: string };
@@ -209,7 +209,12 @@ export default function UserDetailScreen() {
                 {getRoleLabel(user.role)}
               </ThemedText>
             </View>
-            <StatusIcon icon={isUserActive ? 'check-circle' : 'x-circle'} color={isUserActive ? theme.success : theme.error} />
+            <StatusLabelBadge
+              label={isUserActive ? t('status.active') : t('status.inactive')}
+              color={isUserActive ? theme.success : theme.error}
+              backgroundColor={isUserActive ? theme.success + '20' : theme.error + '20'}
+              icon={isUserActive ? 'check-circle' : 'x-circle'}
+            />
           </DirectionalRow>
         </View>
 

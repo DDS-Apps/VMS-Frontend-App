@@ -4,6 +4,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DDIcon, IconName } from '@/components/DDIcon';
 import { LoadingButton } from '@/components/shared/LoadingButton';
+import { RequestStatusBadge } from '@/components/shared/RequestStatusBadge';
 import { ScreenScrollView } from '@/components/ScreenScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -39,7 +40,7 @@ interface StatusOption {
 
 const getStatusOptions = (theme: ReturnType<typeof useTheme>['theme'], t: (key: string) => string): StatusOption[] => [
   { value: 'pending', label: t('status.pending'), icon: 'clock', color: theme.warning },
-  { value: 'assigned', label: t('status.scheduled'), icon: 'user-check', color: theme.info },
+  { value: 'assigned', label: t('status.assigned'), icon: 'user-check', color: theme.info },
   { value: 'in_progress', label: t('status.inProgress'), icon: 'activity', color: theme.primary },
   { value: 'completed', label: t('status.completed'), icon: 'check-circle', color: theme.success },
 ];
@@ -128,21 +129,7 @@ export default function ValetTaskDetailScreen({ taskId }: ValetTaskDetailScreenP
 
           <Spacer height={Spacing.sm} />
 
-          <View
-            style={{
-              alignSelf: 'center',
-              backgroundColor: applyOpacity(statusColor, '15'),
-              borderColor: applyOpacity(statusColor, '30'),
-              borderWidth: StyleSheet.hairlineWidth,
-              paddingHorizontal: Spacing.md,
-              paddingVertical: 6,
-              borderRadius: BorderRadius.full,
-            }}
-          >
-            <ThemedText style={[Typography.caption, { color: statusColor, fontWeight: '600', fontSize: 12 }]}>
-              {currentStatusOption?.label || task.valet.status}
-            </ThemedText>
-          </View>
+          <RequestStatusBadge status={task.valet.status} alignSelf="center" />
         </View>
       </ThemedView>
 

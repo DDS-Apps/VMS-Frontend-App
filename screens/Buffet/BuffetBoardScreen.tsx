@@ -22,6 +22,8 @@ import { applyOpacity } from '@/utils/statusStyles';
 import { useMyBuffetTasksQuery, useUpdateBuffetTaskStatusMutation } from '@/hooks/queries/useBuffetQueries';
 import { useRetainedDatedData } from '@/hooks/useRetainedDatedData';
 import { ActiveDateRangeLabel } from '@/components/shared/ActiveDateRangeLabel';
+import { RequestStatusBadge } from '@/components/shared/RequestStatusBadge';
+import { getStatusConfig as getSharedStatusConfig } from '@/utils/statusStyles';
 import type { BuffetStaffTaskDto, BuffetStaffTaskStatus } from '@/types/api.types';
 
 type StatusFilter = 'all' | BuffetStaffTaskStatus;
@@ -215,60 +217,6 @@ export default function BuffetBoardScreen() {
       return dateB - dateA;
     });
 
-  const getStatusConfig = (status: BuffetStaffTaskStatus) => {
-    switch (status) {
-      case 'pending':
-        return { 
-          color: theme.primary, 
-          bgColor: applyOpacity(theme.primary, '12'), 
-          label: t('status.pending'),
-          borderColor: theme.primary 
-        };
-      case 'preparing':
-        return { 
-          color: theme.warning, 
-          bgColor: applyOpacity(theme.warning, '12'), 
-          label: t('buffet.preparing'),
-          borderColor: theme.warning 
-        };
-      case 'ready':
-        return { 
-          color: '#10B981',
-          bgColor: applyOpacity('#10B981', '12'), 
-          label: t('buffet.ready'),
-          borderColor: '#10B981'
-        };
-      case 'served':
-        return { 
-          color: theme.success, 
-          bgColor: applyOpacity(theme.success, '12'), 
-          label: t('buffet.served'),
-          borderColor: theme.success 
-        };
-      case 'completed':
-        return { 
-          color: theme.success, 
-          bgColor: applyOpacity(theme.success, '12'), 
-          label: t('status.completed'),
-          borderColor: theme.success 
-        };
-      case 'cancelled':
-        return { 
-          color: theme.textSecondary, 
-          bgColor: applyOpacity(theme.textSecondary, '12'), 
-          label: t('status.cancelled'),
-          borderColor: theme.textSecondary 
-        };
-      default:
-        return { 
-          color: theme.textSecondary, 
-          bgColor: applyOpacity(theme.textSecondary, '12'), 
-          label: status,
-          borderColor: theme.textSecondary 
-        };
-    }
-  };
-
   const getNextStatus = (currentStatus: BuffetStaffTaskStatus): BuffetStaffTaskStatus | null => {
     switch (currentStatus) {
       case 'pending':
@@ -458,7 +406,7 @@ export default function BuffetBoardScreen() {
   };
 
   const renderTaskCard = (task: BuffetStaffTaskDto) => {
-    const statusConfig = getStatusConfig(task.status);
+    const statusConfig = getSharedStatusConfig(theme, task.status, t);
     const actionConfig = getActionButtonConfig(task.status);
     const nextStatus = getNextStatus(task.status);
     const isUpdating = updatingTaskIds.has(task.id);
@@ -496,11 +444,7 @@ export default function BuffetBoardScreen() {
               </View>
               <DirectionalRow style={{ alignItems: 'center' }}>
                 <BuffetUpcomingAlertIcon visitDate={task.visitDate} visitTime={task.visitTime} status={task.status} visitStartAt={task.visitStartAt} />
-                <View style={[styles.statusBadge, { backgroundColor: statusConfig.bgColor }]}>
-                  <ThemedText style={[styles.statusText, { color: statusConfig.color }]}>
-                    {statusConfig.label}
-                  </ThemedText>
-                </View>
+                <RequestStatusBadge status={task.status} />
               </DirectionalRow>
             </DirectionalRow>
 
@@ -878,16 +822,6 @@ const styles = StyleSheet.create({
   nameSection: {
     flex: 1,
     marginEnd: Spacing.md,
-  },
-  statusBadge: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    borderRadius: BorderRadius.full,
-  },
-  statusText: {
-    fontSize: 11,
-    fontWeight: '600',
-    fontFamily: FontFamily.latinSemiBold,
   },
   infoGrid: {
     gap: Spacing.xs,

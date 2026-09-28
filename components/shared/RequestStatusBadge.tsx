@@ -1,14 +1,13 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
-import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { getStatusConfig } from "@/utils/statusStyles";
-import { BorderRadius } from "@/constants/theme";
+import { StatusLabelBadge } from "@/components/shared/StatusLabelBadge";
 
 interface RequestStatusBadgeProps {
   /** Raw status string from the API (e.g. 'pending_approval', 'checked_in'). */
   status: string;
+  alignSelf?: "flex-start" | "center";
   /**
    * Optional translation function. When omitted the component calls
    * useTranslation() internally, so you never need to thread `t` down just
@@ -18,11 +17,10 @@ interface RequestStatusBadgeProps {
 }
 
 /**
- * Single-source status badge used on every request/visitor card and detail
- * screen. Style spec: BorderRadius.sm · borderWidth 1 · padding 10/4 ·
- * fontSize 10 · fontWeight 600 · colours from getStatusConfig.
+ * Single-source status badge used on request/visitor cards and detail screens.
+ * Geometry and typography come from StatusLabelBadge.
  */
-export const RequestStatusBadge = ({ status, t: tProp }: RequestStatusBadgeProps) => {
+export const RequestStatusBadge = ({ status, t: tProp, alignSelf }: RequestStatusBadgeProps) => {
   const { theme } = useTheme();
   const { t: tHook } = useTranslation();
   const t = tProp ?? tHook;
@@ -30,31 +28,12 @@ export const RequestStatusBadge = ({ status, t: tProp }: RequestStatusBadgeProps
   const config = getStatusConfig(theme, status || 'pending', t);
 
   return (
-    <View
-      style={[
-        styles.badge,
-        {
-          backgroundColor: config.bg,
-          borderColor: config.border,
-        },
-      ]}
-    >
-      <ThemedText style={[styles.text, { color: config.text }]}>
-        {config.label}
-      </ThemedText>
-    </View>
+    <StatusLabelBadge
+      label={config.label}
+      color={config.text}
+      backgroundColor={config.bg}
+      borderColor={config.border}
+      alignSelf={alignSelf}
+    />
   );
 };
-
-const styles = StyleSheet.create({
-  badge: {
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    borderRadius: BorderRadius.sm,
-    borderWidth: 1,
-  },
-  text: {
-    fontSize: 9,
-    fontWeight: '600',
-  },
-});

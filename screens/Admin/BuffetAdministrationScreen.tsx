@@ -767,13 +767,6 @@ const styles = StyleSheet.create({
   tableCellText: {
     ...Typography.bodySmall,
   },
-  statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    borderRadius: BorderRadius.sm,
-  },
   editButton: {
     width: 40,
     alignItems: 'center',

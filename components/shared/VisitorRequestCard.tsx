@@ -18,6 +18,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { VisitorRequest } from "@/types/vms.types";
 import { getStatusConfig as getStatusStyle, applyOpacity } from "@/utils/statusStyles";
 import { RequestStatusBadge } from "@/components/shared/RequestStatusBadge";
+import { ExpiredVisitBadge } from "@/components/shared/ExpiredVisitBadge";
 import { useUpcomingIndicator } from "@/hooks/useUpcomingVisitTimer";
 import {
   isUpcomingIndicatorEligibleStatus,
@@ -426,12 +427,7 @@ export function VisitorRequestCard({
       return (
         <View style={styles.actionsContainer}>
           <Spacer height={Spacing.md} />
-          <View style={[styles.expiredBanner, { backgroundColor: applyOpacity(theme.textSecondary, '10'), borderColor: theme.border }]}>
-            <DDIcon name="clock" size={14} color={theme.textSecondary} />
-            <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginStart: Spacing.xs }]}>
-              {t('visitor.visitExpired')}
-            </ThemedText>
-          </View>
+          <ExpiredVisitBadge alignSelf="center" />
         </View>
       );
     }
@@ -676,14 +672,5 @@ const styles = StyleSheet.create({
   timingValue: {
     fontSize: 12,
     fontWeight: '600',
-  },
-  expiredBanner: {
-    flexDirection: 'row', // Static - doesn't need RTL flip (centered icon + text)
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    borderRadius: BorderRadius.sm,
-    borderWidth: 1,
   },
 });

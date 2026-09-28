@@ -11,6 +11,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
 import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
 import { applyOpacity } from "@/utils/statusStyles";
+import { RequestStatusBadge } from "@/components/shared/RequestStatusBadge";
 import { formatDate } from "@/utils/dateTimeUtils";
 import { useFormatters } from "@/hooks/useFormatters";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -149,48 +150,6 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
     paddingBottom: insets.bottom + Spacing.xl + 80
   };
 
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'expected':
-        return t('status.expected');
-      case 'pending':
-        return t('status.pending');
-      case 'preparing':
-        return t('buffet.preparing');
-      case 'ready':
-        return t('buffet.ready');
-      case 'served':
-        return t('buffet.served');
-      case 'completed':
-        return t('status.completed');
-      case 'cancelled':
-        return t('status.cancelled');
-      default:
-        return status;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'expected':
-        return theme.warning;
-      case 'pending':
-        return theme.primary;
-      case 'preparing':
-        return theme.warning;
-      case 'ready':
-        return '#10B981';
-      case 'served':
-        return theme.success;
-      case 'completed':
-        return theme.success;
-      case 'cancelled':
-        return theme.error;
-      default:
-        return theme.textSecondary;
-    }
-  };
-
   const getMealTypeIcon = (mealType: string) => {
     switch (mealType) {
       case 'breakfast':
@@ -230,7 +189,6 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
   }
 
   const initials = getInitials(request.hostName);
-  const statusColor = getStatusColor(request.status);
 
   return (
     <>
@@ -259,21 +217,7 @@ export default function BuffetRequestDetailsScreen({ route, navigation }: Buffet
 
           <Spacer height={Spacing.sm} />
 
-          <View
-            style={{
-              alignSelf: 'center',
-              backgroundColor: applyOpacity(statusColor, '15'),
-              borderColor: applyOpacity(statusColor, '30'),
-              borderWidth: StyleSheet.hairlineWidth,
-              paddingHorizontal: Spacing.md,
-              paddingVertical: 6,
-              borderRadius: BorderRadius.full,
-            }}
-          >
-            <ThemedText style={[Typography.caption, { color: statusColor, fontWeight: '600', fontSize: 12 }]}>
-              {getStatusLabel(request.status)}
-            </ThemedText>
-          </View>
+          <RequestStatusBadge status={request.status} alignSelf="center" />
         </View>
       </ThemedView>
 

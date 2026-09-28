@@ -13,48 +13,14 @@ import { useFormatters } from "@/hooks/useFormatters";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
 import { DirectionalRow } from "@/components/DirectionalRow";
-import { applyOpacity, getStatusIcon } from "@/utils/statusStyles";
-import { StatusIcon } from "@/components/shared";
+import { applyOpacity } from "@/utils/statusStyles";
+import { RequestStatusBadge } from "@/components/shared/RequestStatusBadge";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useMyValetRequestDetailQuery } from "@/hooks/queries/useValetSelfServiceQueries";
 import type { ValetRequestDetailsScreenProps } from "@/types/employeeNavigation.types";
 import type { Theme } from "@/types/theme.types";
 import type { SelfValetRequestDto } from "@/types/api.types";
 import { resolveParkingDisplayDecision } from "@/utils/parkingDecision";
-
-function getStatusColor(status: string, theme: Theme) {
-  switch (status) {
-    case 'pending':
-      return theme.primary;
-    case 'assigned':
-      return theme.warning;
-    case 'in_progress':
-      return theme.info;
-    case 'completed':
-      return theme.success;
-    case 'cancelled':
-      return theme.error;
-    default:
-      return theme.textSecondary;
-  }
-}
-
-function getStatusLabel(status: string): string {
-  switch (status) {
-    case 'pending':
-      return 'Pending';
-    case 'assigned':
-      return 'Assigned';
-    case 'in_progress':
-      return 'In Progress';
-    case 'completed':
-      return 'Completed';
-    case 'cancelled':
-      return 'Cancelled';
-    default:
-      return status;
-  }
-}
 
 const InfoRow = ({ icon, label, value, theme, isRTL }: { icon: string; label: string; value: string; theme: Theme; isRTL: boolean }) => {
   return (
@@ -159,8 +125,6 @@ export default function ValetRequestDetailsScreen({ route }: ValetRequestDetails
     hasParkingAllocation: true,
   });
   const status = request.valet?.status || 'pending';
-  const statusColor = getStatusColor(status, theme);
-  const statusLabel = getStatusLabel(status);
 
   const formatDate = (dateString: string) => fmtDateLong(new Date(dateString), 'long');
   const formatTime = (dateString: string) => formatTimeUtil(new Date(dateString));
@@ -207,11 +171,8 @@ export default function ValetRequestDetailsScreen({ route }: ValetRequestDetails
 
         <Card style={styles.headerCard}>
             <DirectionalRow style={styles.statusContainer}>
-              <StatusIcon icon={getStatusIcon(status)} color={statusColor} />
-              <ThemedText style={[Typography.bodySmall, { color: statusColor, fontWeight: '600', marginStart: Spacing.sm }]}>
-                {statusLabel}
-              </ThemedText>
-          </DirectionalRow>
+              <RequestStatusBadge status={status} />
+            </DirectionalRow>
             <Spacer height={Spacing.lg} />
             <DirectionalRow style={styles.vehicleInfo}>
               <DDIcon name={parkingDecision === 'required' ? "map-pin" : "slash"} size={24} color={theme.primary} />

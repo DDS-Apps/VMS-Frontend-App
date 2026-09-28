@@ -1,11 +1,11 @@
 import React from "react";
 import { View, StyleSheet, Platform } from "react-native";
-import { ThemedText } from "@/components/ThemedText";
 import { DDIcon, IconName } from "@/components/DDIcon";
-import { DirectionalRow, getIsRTL } from "@/components/DirectionalRow";
+import { getIsRTL } from "@/components/DirectionalRow";
 import { useTheme } from "@/hooks/useTheme";
 import { applyOpacity } from "@/utils/statusStyles";
-import { Spacing, BorderRadius } from "@/constants/theme";
+import { BorderRadius } from "@/constants/theme";
+import { StatusLabelBadge } from "@/components/shared/StatusLabelBadge";
 
 interface StatusBadgeProps {
   label: string;
@@ -18,7 +18,8 @@ export const StatusBadge = ({
   label, 
   variant = 'muted', 
   icon,
-  size = 'md' 
+  // Kept for call-site compatibility; textual statuses have one size.
+  size: _size,
 }: StatusBadgeProps) => {
   const { theme } = useTheme();
   
@@ -34,41 +35,7 @@ export const StatusBadge = ({
   };
   
   const color = getColor();
-  const isSmall = size === 'sm';
-  
-  const iconEl = icon ? (
-    <DDIcon 
-      name={icon} 
-      size={isSmall ? 12 : 14} 
-      color={color} 
-    />
-  ) : null;
-  
-  const textEl = (
-    <ThemedText style={[
-      styles.text, 
-      { 
-        color,
-        fontSize: isSmall ? 11 : 12,
-      }
-    ]}>
-      {label}
-    </ThemedText>
-  );
-
-  return (
-    <DirectionalRow style={[
-      styles.badge,
-      { 
-        backgroundColor: applyOpacity(color, '15'),
-        paddingHorizontal: isSmall ? Spacing.sm : Spacing.md,
-        paddingVertical: isSmall ? Spacing.xs / 2 : Spacing.xs,
-      }
-    ]} gap={icon ? Spacing.xs : 0}>
-      {iconEl}
-      {textEl}
-    </DirectionalRow>
-  );
+  return <StatusLabelBadge label={label} color={color} icon={icon} />;
 };
 
 interface WalkInBadgeProps {
@@ -134,14 +101,6 @@ export const StatusAccent = ({ color, width = 4 }: StatusAccentProps) => {
 };
 
 const styles = StyleSheet.create({
-  badge: {
-    // flexDirection handled by DirectionalRow
-    alignItems: 'center',
-    borderRadius: BorderRadius.full,
-  },
-  text: {
-    fontWeight: '600' as const,
-  },
   walkInBadge: {
     borderRadius: BorderRadius.sm,
     alignSelf: 'flex-start',

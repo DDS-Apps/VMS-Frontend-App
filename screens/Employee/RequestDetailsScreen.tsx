@@ -41,6 +41,7 @@ import { SkeletonCard } from "@/components/shared/Skeleton";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { RequestStatusBadge } from "@/components/shared/RequestStatusBadge";
 import { ExpiredVisitFooter } from "@/components/shared/ExpiredVisitFooter";
+import { STATUS_BADGE_TEXT } from "@/components/shared/StatusLabelBadge";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import {
@@ -1203,12 +1204,13 @@ export default function RequestDetailsScreen({
           gap: Spacing.xs,
         }}
       >
-        <DDIcon name="alert-circle" size={16} color={theme.warning} />
+        <DDIcon name="alert-circle" size={16} color={theme.error} />
         <ThemedText
           style={[
             Typography.caption,
+            STATUS_BADGE_TEXT,
             {
-              color: theme.warning,
+              color: theme.error,
               fontWeight: "600",
               textAlign: "center",
             },

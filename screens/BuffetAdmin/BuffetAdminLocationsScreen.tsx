@@ -535,15 +535,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginTop: 2,
   },
-  statusBadge: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    borderRadius: BorderRadius.sm,
-  },
-  statusText: {
-    fontSize: 11,
-    fontWeight: '600',
-  },
   statsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',

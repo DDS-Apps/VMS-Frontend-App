@@ -20,6 +20,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { DDIcon } from "@/components/DDIcon";
 import { DirectionalRow, getFlexDirection, getTableColumnStyle } from "@/components/DirectionalRow";
 import { StatusAccent, RequestStatusBadge } from "@/components/shared";
+import { ExpiredVisitBadge } from "@/components/shared/ExpiredVisitBadge";
 import { ApprovalActionGroup } from "@/components/shared/ApprovalActionGroup";
 import { SelectionCheckbox } from "@/components/shared/SelectionCheckbox";
 import Spacer from "@/components/Spacer";
@@ -595,7 +596,7 @@ function MatrixTable({
                       item.visitorName,
                       item.visitDate,
                       showExpiredState && item.isExpired
-                        ? t("visitor.visitExpired")
+                        ? t("status.visitExpired")
                         : undefined,
                     ]
                       .filter(Boolean)
@@ -789,7 +790,7 @@ function MatrixDataRowCells({
               item.visitorName,
               item.visitDate,
               showApprovalExpiredBanner || showReadOnlyExpiredBanner
-                ? t("visitor.visitExpired")
+                ? t("status.visitExpired")
                 : undefined,
             ]
               .filter(Boolean)
@@ -936,12 +937,7 @@ function MatrixDataRowCells({
         ) : showApprovalExpiredBanner ? (
           <View style={{ gap: Spacing.xs }}>
             <RequestStatusBadge status={item.status} />
-            <View style={[styles.matrixExpiredBanner, { backgroundColor: applyOpacity(theme.error, "10") }]}>
-              <DDIcon name="alert-circle" size={14} color={theme.error} />
-              <ThemedText style={[styles.matrixExpiredText, { color: theme.error }]}>
-                {t("visitor.visitExpired")}
-              </ThemedText>
-            </View>
+            <ExpiredVisitBadge />
           </View>
         ) : canApproveReject ? (
           <ApprovalActionGroup
@@ -956,12 +952,7 @@ function MatrixDataRowCells({
         ) : showReadOnlyExpiredBanner ? (
           <View style={{ gap: Spacing.xs }}>
             <RequestStatusBadge status={item.status} />
-            <View style={[styles.matrixExpiredBanner, { backgroundColor: applyOpacity(theme.error, "10") }]}>
-              <DDIcon name="alert-circle" size={14} color={theme.error} />
-              <ThemedText style={[styles.matrixExpiredText, { color: theme.error }]}>
-                {t("visitor.visitExpired")}
-              </ThemedText>
-            </View>
+            <ExpiredVisitBadge />
           </View>
         ) : (
           <RequestStatusBadge status={item.status} />
@@ -1182,18 +1173,6 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   matrixCellValueBold: {
-    fontWeight: "600",
-  },
-  matrixExpiredBanner: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
-    borderRadius: BorderRadius.sm,
-    gap: Spacing.xs,
-  },
-  matrixExpiredText: {
-    ...Typography.caption,
     fontWeight: "600",
   },
 });

@@ -33,6 +33,7 @@ import {
 import { useTimeBoundaryTick } from "@/hooks/useTimeBoundaryTick";
 import { getInitials } from "@/utils/formatters";
 import { StatusDropdown } from "@/components/shared/RequestStatusDropdown";
+import { ExpiredVisitBadge } from "@/components/shared/ExpiredVisitBadge";
 
 type StatusFilter = 'all' | 'pending' | 'checked_in' | 'completed';
 
@@ -352,12 +353,9 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
             </DirectionalRow>
 
             {isExpired ? (
-              <DirectionalRow style={[styles.expiredNotice, { backgroundColor: applyOpacity(theme.error, '10'), borderColor: theme.border }]}>
-                <DDIcon name="clock" size={14} color={theme.textSecondary} />
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary }]}>
-                  {t('visitor.visitExpired')}
-                </ThemedText>
-              </DirectionalRow>
+              <View style={{ marginTop: Spacing.sm }}>
+                <ExpiredVisitBadge />
+              </View>
             ) : null}
 
             {isExpanded && hasDetails ? (
@@ -638,15 +636,6 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
     padding: Spacing.sm,
     borderRadius: BorderRadius.sm,
-  },
-  expiredNotice: {
-    alignItems: 'center',
-    gap: Spacing.xs,
-    paddingVertical: Spacing.xs,
-    paddingHorizontal: Spacing.sm,
-    borderRadius: BorderRadius.sm,
-    borderWidth: 1,
-    marginTop: Spacing.sm,
   },
   fab: {
     position: 'absolute',
