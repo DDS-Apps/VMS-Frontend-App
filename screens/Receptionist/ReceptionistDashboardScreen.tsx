@@ -793,7 +793,10 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
                   <View
                     style={[
                       styles.dateGroupAccent,
-                      { backgroundColor: theme.primary },
+                      {
+                        backgroundColor: theme.primary,
+                        ...(isRTL ? { right: 0 } : { left: 0 }),
+                      },
                     ]}
                   />
                   <ThemedText style={[styles.dateGroupLabel, { color: theme.text }]}>
@@ -1066,12 +1069,15 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
     minHeight: 42,
     overflow: 'hidden',
+    position: 'relative',
+    paddingStart: Spacing.lg,
     paddingEnd: Spacing.md,
   },
   dateGroupAccent: {
-    alignSelf: 'stretch',
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
     width: 4,
-    marginEnd: Spacing.sm,
   },
   dateGroupLabel: {
     flex: 1,

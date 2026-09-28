@@ -643,7 +643,6 @@ function MatrixTable({
           persistentScrollbar
           nestedScrollEnabled
           style={{ flex: 1 }}
-          contentContainerStyle={styles.scrollContent}
         >
           <View>
             <View style={[styles.matrixHeaderRow, { backgroundColor: theme.surfaceSecondary, borderBottomColor: theme.border }, getTableColumnStyle(isRTL)]}>
