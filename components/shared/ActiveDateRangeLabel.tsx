@@ -26,7 +26,7 @@ export function ActiveDateRangeLabel({
 
   return (
     <ThemedText
-      style={[Typography.caption, { color: theme.textSecondary, marginStart: Spacing.sm, flexShrink: 1 }]}
+      style={[Typography.caption, { color: theme.textSecondary, marginStart: Spacing.sm, flexShrink: 1, alignSelf: "center" }]}
       accessibilityLabel={`${t("common.from")} ${from} – ${t("common.to")} ${to}`}
     >
       {t("common.from")} {from} – {t("common.to")} {to}
