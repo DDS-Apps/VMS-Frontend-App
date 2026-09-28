@@ -1824,7 +1824,7 @@ export default function VisitorRequestFormScreen({
               [
                 { value: 'required' as ParkingDecision, icon: 'parking', label: t('invitation.requiredParking'), desc: t('invitation.requiredParkingDesc') },
                 { value: 'not_required' as ParkingDecision, icon: 'slash', label: t('invitation.notRequiredParking'), desc: t('invitation.notRequiredParkingDesc') },
-                { value: 'visitor_decides' as ParkingDecision, icon: 'help-circle', label: t('invitation.visitorDecides'), desc: t('invitation.visitorDecidesDesc') },
+                { value: 'visitor_decides' as ParkingDecision, icon: 'parking', label: t('invitation.visitorDecides'), desc: t('invitation.visitorDecidesDesc') },
               ] as const
             ).map(({ value, icon, label, desc }) => {
               const isSelected = parkingDecision === value;
