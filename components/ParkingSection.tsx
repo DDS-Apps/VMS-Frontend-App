@@ -47,7 +47,7 @@ export function ParkingSection({
   return (
     <ThemedView style={[styles.parkingCard, { backgroundColor: theme.surface, borderColor: isRequired ? theme.info : theme.border }]}>
       <DirectionalRow style={styles.parkingHeader}>
-        {renderIconBadge(isRequired ? 'map-pin' : 'slash', isRequired ? 'info' : 'muted', isRequired ? theme.info : undefined)}
+        {renderIconBadge(isRequired ? 'parking' : 'slash', isRequired ? 'info' : 'muted', isRequired ? theme.info : undefined)}
         <ThemedText style={[Typography.body, { flex: 1, marginStart: Spacing.md, fontWeight: '600', fontSize: 15, color: theme.text }]}>
           {isRequired ? t('parking.needsParking') : t('parking.noParking')}
         </ThemedText>

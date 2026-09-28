@@ -599,7 +599,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
               <DirectionalRow style={styles.servicesContainer}>
                 {hasParking ? (
                   <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '20') }]}>
-                    <DDIcon name="map-pin" size={14} color={theme.info} />
+                    <DDIcon name="parking" size={14} color={theme.info} />
                   </View>
                 ) : null}
                 {visitor.isBuffet && (
@@ -609,7 +609,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
                 )}
                 {visitor.isMeetingRoom && (
                   <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.secondary, '20') }]}>
-                    <DDIcon name="briefcase" size={14} color={theme.secondary} />
+                    <DDIcon name="meeting-room" size={14} color={theme.secondary} />
                   </View>
                 )}
                 {!visitor.isBuffet && !visitor.isMeetingRoom && (

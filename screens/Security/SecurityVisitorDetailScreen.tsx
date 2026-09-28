@@ -460,7 +460,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                 ]}
               >
                 <DDIcon
-                  name="briefcase"
+                  name="meeting-room"
                   size={18}
                   color={
                     visitorData.isMeetingRoom || visitorData.meetingRoom
@@ -646,7 +646,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
                 ]}
               >
                 <DDIcon
-                  name="truck"
+                  name="parking"
                   size={18}
                   color={
                     parkingDecision === 'required'

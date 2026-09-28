@@ -554,7 +554,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
           <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
             <DirectionalRow style={[styles.serviceItemNew, { backgroundColor: theme.surfaceSecondary }]} alignItems="center">
               <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(isCancelledVisit ? theme.textSecondary : (visitor.isMeetingRoom || visitor.meetingRoom) ? theme.secondary : theme.textSecondary, '15') }]}>
-                <DDIcon name="briefcase" size={18} color={isCancelledVisit ? theme.textSecondary : (visitor.isMeetingRoom || visitor.meetingRoom) ? theme.secondary : theme.textSecondary} />
+                <DDIcon name="meeting-room" size={18} color={isCancelledVisit ? theme.textSecondary : (visitor.isMeetingRoom || visitor.meetingRoom) ? theme.secondary : theme.textSecondary} />
               </View>
               <View style={{ flex: 1 }}>
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 14, color: theme.text }]}>
@@ -618,7 +618,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
           <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
             <DirectionalRow style={[styles.serviceItemNew, { backgroundColor: theme.surfaceSecondary }]} alignItems="center">
               <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(parkingDecision === 'required' ? theme.secondary : theme.textSecondary, '15') }]}>
-                <DDIcon name="truck" size={18} color={parkingDecision === 'required' ? theme.secondary : theme.textSecondary} />
+                <DDIcon name="parking" size={18} color={parkingDecision === 'required' ? theme.secondary : theme.textSecondary} />
               </View>
               <View style={{ flex: 1 }}>
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 14, color: theme.text }]}>

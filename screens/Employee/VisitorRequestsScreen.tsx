@@ -135,7 +135,7 @@ const ServiceIcons = ({
             },
           ]}
         >
-          <DDIcon name="map-pin" size={size} color={theme.info} />
+          <DDIcon name="parking" size={size} color={theme.info} />
         </View>
       ) : null}
       {request.meetingRoom ? (
@@ -150,7 +150,7 @@ const ServiceIcons = ({
             },
           ]}
         >
-          <DDIcon name="briefcase" size={size} color={theme.secondary} />
+          <DDIcon name="meeting-room" size={size} color={theme.secondary} />
         </View>
       ) : null}
       {request.buffet ? (

@@ -2031,7 +2031,7 @@ export default function RequestDetailsScreen({
                   ]}
                 >
                   <DDIcon
-                    name="briefcase"
+                    name="meeting-room"
                     size={18}
                     color={
                       isCancelledVisit
@@ -2250,7 +2250,7 @@ export default function RequestDetailsScreen({
                   ]}
                 >
                   <DDIcon
-                    name="truck"
+                    name="parking"
                     size={18}
                     color={
                       isCancelledVisit
@@ -3131,7 +3131,7 @@ export default function RequestDetailsScreen({
                               },
                             ]}
                           >
-                            <DDIcon name="users" size={20} color={theme.cardIcon} />
+                            <DDIcon name="meeting-room" size={20} color={theme.cardIcon} />
                           </View>
                           <ThemedText
                             style={[
@@ -3252,7 +3252,7 @@ export default function RequestDetailsScreen({
                                         { backgroundColor: isSelected ? applyOpacity(theme.primary, "15") : applyOpacity(theme.cardIcon, "10") },
                                       ]}
                                     >
-                                      <DDIcon name="users" size={20} color={isSelected ? theme.primary : theme.cardIcon} />
+                                      <DDIcon name="meeting-room" size={20} color={isSelected ? theme.primary : theme.cardIcon} />
                                     </View>
                                     <View style={{ flex: 1, gap: 3 }}>
                                       <ThemedText style={[Typography.bodySmall, { fontWeight: "700", color: isSelected ? theme.primary : theme.text }]}>

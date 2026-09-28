@@ -667,7 +667,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
               <>
                 <View style={styles.infoDivider} />
                 <InfoRow 
-                  icon="map-pin" 
+                  icon="meeting-room"
                   label={t('visitorInvite.meetingRoom')} 
                   value={displayInvite.meetingRoom.name || ''}
                   subValue={displayInvite.meetingRoom.floor || undefined}
@@ -694,7 +694,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
               return PageColors.success;
             };
             const getParkingIcon = () => {
-              if (parkingType === 'required') return 'map-pin';
+              if (parkingType === 'required') return 'parking';
               return 'slash';
             };
             const parkingColor = getParkingColor();
@@ -962,7 +962,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
                 <>
                   <View style={styles.infoDivider} />
                   <InfoRow 
-                    icon="map-pin" 
+                    icon="meeting-room"
                     label={t('visitorInvite.meetingRoom')} 
                     value={invite.meetingRoom.name || ''}
                     subValue={invite.meetingRoom.floor || undefined}
@@ -990,7 +990,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
                 return PageColors.success;
               };
               const getParkingIcon = () => {
-                if (parkingType === 'required') return 'map-pin';
+                if (parkingType === 'required') return 'parking';
                 return 'slash';
               };
               const parkingColor = getParkingColor();
@@ -1074,7 +1074,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
         {invite.meetingRoom ? (
           <>
             <InfoRow 
-              icon="map-pin" 
+              icon="meeting-room"
               label={t('visitorInvite.meetingRoom')} 
               value={invite.meetingRoom.name || ''}
               subValue={invite.meetingRoom.floor || undefined}
@@ -1144,7 +1144,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
               styles.parkingOptionIcon,
               selectedParkingOption === 'needs_parking' && { backgroundColor: PageColors.accent + '30' }
             ]}>
-              <DDIcon name="map-pin" size={20} color={selectedParkingOption === 'needs_parking' ? PageColors.accent : PageColors.textSecondary} />
+              <DDIcon name="parking" size={20} color={selectedParkingOption === 'needs_parking' ? PageColors.accent : PageColors.textSecondary} />
             </View>
             <ThemedText style={[
               styles.parkingOptionLabel,

@@ -50,7 +50,7 @@ export const ServiceIcons = ({
           borderRadius: size 
         }
       ]}>
-        <DDIcon name="map-pin" size={size} color={theme.info} />
+        <DDIcon name="parking" size={size} color={theme.info} />
       </View>
     );
   }
@@ -65,7 +65,7 @@ export const ServiceIcons = ({
           borderRadius: size 
         }
       ]}>
-        <DDIcon name="briefcase" size={size} color={theme.secondary} />
+        <DDIcon name="meeting-room" size={size} color={theme.secondary} />
       </View>
     );
   }

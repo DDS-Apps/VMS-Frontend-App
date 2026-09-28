@@ -92,14 +92,14 @@ const ServiceIconsRow = ({ request, size = 14, showWalkIn = false }: { request: 
   if (showParking) {
     serviceItems.push(
       <View key="parking" style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '20') }]}>
-        <DDIcon name="map-pin" size={size} color={theme.info} />
+        <DDIcon name="parking" size={size} color={theme.info} />
       </View>
     );
   }
   if (showMeetingRoom) {
     serviceItems.push(
       <View key="meeting" style={[styles.servicePill, { backgroundColor: applyOpacity(theme.secondary, '20') }]}>
-        <DDIcon name="briefcase" size={size} color={theme.secondary} />
+        <DDIcon name="meeting-room" size={size} color={theme.secondary} />
       </View>
     );
   }

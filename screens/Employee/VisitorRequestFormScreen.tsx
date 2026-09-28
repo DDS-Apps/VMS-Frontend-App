@@ -1570,7 +1570,7 @@ export default function VisitorRequestFormScreen({
                       { backgroundColor: applyOpacity(theme.cardIcon, "15") },
                     ]}
                   >
-                    <DDIcon name="users" size={16} color={theme.cardIcon} />
+                    <DDIcon name="meeting-room" size={16} color={theme.cardIcon} />
                   </View>
                   <ThemedText
                     style={[
@@ -1711,7 +1711,7 @@ export default function VisitorRequestFormScreen({
                               ]}
                             >
                               <DDIcon
-                                name="users"
+                                name="meeting-room"
                                 size={20}
                                 color={isSelected ? theme.primary : theme.cardIcon}
                               />
@@ -1822,7 +1822,7 @@ export default function VisitorRequestFormScreen({
 
             {(
               [
-                { value: 'required' as ParkingDecision, icon: 'map-pin', label: t('invitation.requiredParking'), desc: t('invitation.requiredParkingDesc') },
+                { value: 'required' as ParkingDecision, icon: 'parking', label: t('invitation.requiredParking'), desc: t('invitation.requiredParkingDesc') },
                 { value: 'not_required' as ParkingDecision, icon: 'slash', label: t('invitation.notRequiredParking'), desc: t('invitation.notRequiredParkingDesc') },
                 { value: 'visitor_decides' as ParkingDecision, icon: 'help-circle', label: t('invitation.visitorDecides'), desc: t('invitation.visitorDecidesDesc') },
               ] as const

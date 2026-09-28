@@ -1695,7 +1695,7 @@ export default function ManagerApprovalDetailScreen({
               ]}
             >
               <DDIcon
-                name="briefcase"
+                name="meeting-room"
                 size={18}
                 color={
                   request.meetingRoom || request.isMeetingRoom
@@ -1976,7 +1976,7 @@ export default function ManagerApprovalDetailScreen({
               ]}
             >
               <DDIcon
-                name="truck"
+                name="parking"
                 size={18}
                 color={
                   parkingDisplayDecision === 'required'

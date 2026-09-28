@@ -310,12 +310,12 @@ function MatrixRow({
             <DirectionalRow style={{ gap: Spacing.xs }}>
               {item.hasParking ? (
                 <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, "20") }]}>
-                  <DDIcon name="map-pin" size={14} color={theme.info} />
+                  <DDIcon name="parking" size={14} color={theme.info} />
                 </View>
               ) : null}
               {item.hasMeetingRoom ? (
                 <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.secondary, "20") }]}>
-                  <DDIcon name="briefcase" size={14} color={theme.secondary} />
+                  <DDIcon name="meeting-room" size={14} color={theme.secondary} />
                 </View>
               ) : null}
               {item.hasBuffet ? (
@@ -453,7 +453,7 @@ function MatrixServiceIcons({ item }: { item: VisitorMatrixItem }) {
           accessibilityLabel={t("services.parking")}
           style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, "20") }]}
         >
-          <DDIcon name="map-pin" size={14} color={theme.info} />
+          <DDIcon name="parking" size={14} color={theme.info} />
         </View>
       ) : null}
       {item.hasMeetingRoom ? (
@@ -462,7 +462,7 @@ function MatrixServiceIcons({ item }: { item: VisitorMatrixItem }) {
           accessibilityLabel={t("services.meetingRoom")}
           style={[styles.servicePill, { backgroundColor: applyOpacity(theme.secondary, "20") }]}
         >
-          <DDIcon name="briefcase" size={14} color={theme.secondary} />
+          <DDIcon name="meeting-room" size={14} color={theme.secondary} />
         </View>
       ) : null}
       {item.hasBuffet ? (

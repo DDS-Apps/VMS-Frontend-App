@@ -190,12 +190,12 @@ const ServiceIconsRow = ({ visitor, size = 14 }: { visitor: TodayVisitorDto; siz
       ) : null}
       {showMeetingRoom ? (
         <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.secondary, '20') }]}>
-          <DDIcon name="briefcase" size={size} color={theme.secondary} />
+          <DDIcon name="meeting-room" size={size} color={theme.secondary} />
         </View>
       ) : null}
       {showParking ? (
         <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '20') }]}>
-          <DDIcon name="map-pin" size={size} color={theme.info} />
+          <DDIcon name="parking" size={size} color={theme.info} />
         </View>
       ) : null}
     </DirectionalRow>

@@ -125,7 +125,7 @@ export default function NotificationsScreen({ userRole }: NotificationsScreenPro
       case 'visitor_accepted': return { icon: 'user-check', variant: 'success' };
       case 'check_in': return { icon: 'log-in', variant: 'success' };
       case 'check_out': return { icon: 'log-out', variant: 'success' };
-      case 'parking_assigned': return { icon: 'map-pin', variant: 'success' };
+      case 'parking_assigned': return { icon: 'parking', variant: 'success' };
       case 'buffet_completed': return { icon: 'check-circle', variant: 'success' };
       case 'valet_completed': return { icon: 'check-circle', variant: 'success' };
       

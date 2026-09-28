@@ -173,7 +173,7 @@ export default function AdminDashboardScreen({
     },
     {
       id: "4",
-      icon: "map-pin",
+      icon: "parking",
       title: t('services.parking'),
       subtitle: t('parking.needsParking'),
       time: "35m",

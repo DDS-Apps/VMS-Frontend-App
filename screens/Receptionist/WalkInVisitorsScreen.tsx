@@ -338,7 +338,7 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
                   hasParking: item.hasParking,
                 }) === 'required' ? (
                   <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '20') }]}>
-                    <DDIcon name="map-pin" size={12} color={theme.info} />
+                    <DDIcon name="parking" size={12} color={theme.info} />
                   </View>
                 ) : null}
                 <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>

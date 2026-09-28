@@ -354,7 +354,7 @@ export default function UpcomingVisitorsListScreen() {
           {parkingDecision === 'required' ? (
             <DirectionalRow style={styles.servicesRow}>
               <View style={[styles.servicePillRounded, { backgroundColor: applyOpacity(theme.info, '20') }]}>
-                <DDIcon name="map-pin" size={14} color={theme.info} />
+                <DDIcon name="parking" size={14} color={theme.info} />
               </View>
             </DirectionalRow>
           ) : null}
