@@ -24,3 +24,4 @@
 - [Expo .env.production auto-load](expo-env-file-autoload.md) — resolve variants explicitly in app.config.js; production ignores QA process env; runtime prefers Constants.extra; never grep -v minified bundles.
 - [.well-known and add-in static serving](static-server-dotfiles-wellknown.md) — express.static hides dot-dirs by default; AASA must be JSON; no X-Frame-Options under /outlook-addin/.
 - [Web language changes](web-language-changes.md) — apply language in context without reloading; persist the authenticated profile so startup cannot restore an old preference.
+- [Issue verification cadence](issue-verification-cadence.md) — avoid screenshots for each fix unless requested; defer the full unit-test suite until all reported issues are fixed.

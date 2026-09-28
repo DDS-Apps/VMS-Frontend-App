@@ -219,6 +219,9 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
 
   const [expandedVisitors, setExpandedVisitors] = useState<Set<string>>(new Set());
   const [viewMode, setViewMode] = useState<'card' | 'table'>('table');
+  // DirectionalRow reverses child placement in Arabic. Reverse the children
+  // there so the visible toggle remains grid-left / list-right.
+  const viewToggleModes: Array<'card' | 'table'> = isRTL ? ['table', 'card'] : ['card', 'table'];
   const [visitorFilter, setVisitorFilter] = useState<'all' | 'to_be_checked' | 'checked_in' | 'checked_out'>('all');
 
   // Today's visitors power the dashboard preview.
@@ -647,18 +650,19 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
             </ThemedText>
           </View>
           <DirectionalRow style={styles.viewToggle}>
-            <Pressable
-              style={[styles.viewToggleBtn, styles.viewToggleBtnLeft, { backgroundColor: viewMode === 'card' ? theme.primary : theme.surface, borderColor: theme.border }]}
-              onPress={() => setViewMode('card')}
-            >
-              <DDIcon name="grid" size={16} color={viewMode === 'card' ? theme.buttonText : theme.textSecondary} />
-            </Pressable>
-            <Pressable
-              style={[styles.viewToggleBtn, styles.viewToggleBtnRight, { backgroundColor: viewMode === 'table' ? theme.primary : theme.surface, borderColor: theme.border }]}
-              onPress={() => setViewMode('table')}
-            >
-              <DDIcon name="menu" size={16} color={viewMode === 'table' ? theme.buttonText : theme.textSecondary} />
-            </Pressable>
+            {viewToggleModes.map((mode, index) => (
+              <Pressable
+                key={mode}
+                style={[
+                  styles.viewToggleBtn,
+                  index === 0 ? styles.viewToggleBtnLeft : styles.viewToggleBtnRight,
+                  { backgroundColor: viewMode === mode ? theme.primary : theme.surface, borderColor: theme.border },
+                ]}
+                onPress={() => setViewMode(mode)}
+              >
+                <DDIcon name={mode === 'card' ? 'grid' : 'menu'} size={16} color={viewMode === mode ? theme.buttonText : theme.textSecondary} />
+              </Pressable>
+            ))}
           </DirectionalRow>
         </DirectionalRow>
 
