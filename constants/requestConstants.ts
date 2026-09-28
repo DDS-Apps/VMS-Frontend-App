@@ -7,11 +7,8 @@ export const PURPOSE_OPTIONS = [
   { value: 'interview', labelKey: 'visitor.interview' },
   { value: 'delivery', labelKey: 'visitor.delivery' },
   { value: 'maintenance', labelKey: 'visitor.maintenance' },
-  { value: 'partners', labelKey: 'visitor.partners' },
-  { value: 'government', labelKey: 'visitor.government' },
-  { value: 'vip', labelKey: 'visitor.vip' },
-  { value: 'contractor', labelKey: 'visitor.contractor' },
   { value: 'vendors', labelKey: 'visitor.vendors' },
+  { value: 'other', labelKey: 'visitor.others' },
 ] as const;
 
 export const PURPOSE_VALUE_TO_KEY: Record<string, string> = {
@@ -25,6 +22,7 @@ export const PURPOSE_VALUE_TO_KEY: Record<string, string> = {
   vip: 'visitor.vip',
   contractor: 'visitor.contractor',
   vendors: 'visitor.vendors',
+  other: 'visitor.others',
   meeting: 'visitor.meeting',
 };
 
@@ -39,6 +37,7 @@ const ARABIC_PURPOSE_TO_VALUE: Record<string, string> = {
   'شخصية مهمة': 'vip',
   'مقاول': 'contractor',
   'موردون': 'vendors',
+  'أخرى': 'other',
   'اجتماع': 'meeting',
 };
 
@@ -53,6 +52,8 @@ const ENGLISH_PURPOSE_TO_VALUE: Record<string, string> = {
   'VIP': 'vip',
   'Contractor': 'contractor',
   'Vendors': 'vendors',
+  'Other': 'other',
+  'Others': 'other',
   'Meeting': 'meeting',
 };
 

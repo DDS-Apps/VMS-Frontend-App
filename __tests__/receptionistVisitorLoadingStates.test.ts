@@ -16,11 +16,13 @@ const detailSource = readScreen("VisitorDetailScreen");
 const confirmationSource = readScreen("CheckInOutConfirmationScreen");
 
 describe("Receptionist visitor loading states", () => {
-  it("uses primary list states only before usable data exists", () => {
-    expect(allVisitorsSource).toContain("if (isLoading && !displayedData)");
+  it("uses the existing skeleton while a new filter loads instead of showing old results", () => {
+    expect(allVisitorsSource).toContain("if ((isLoading && !displayedData) || (retainedQuery.isRetained && (isFetching || !isError)))");
     expect(allVisitorsSource).toContain("if (isError && !displayedData)");
-    expect(todaySource).toContain("if (isLoading && !displayedResponse)");
+    expect(todaySource).toContain("if ((isLoading && !displayedResponse) || (retainedQuery.isRetained && (isFetching || !isError)))");
     expect(todaySource).toContain("if (isError && !displayedResponse)");
+    expect(allVisitorsSource).toContain("{t('common.loadError')} · {t('requests.showingPreviousDataFrom')");
+    expect(todaySource).toContain("{t('common.loadError')} · {t('requests.showingPreviousDataFrom')");
     expect(walkInSource).toContain("if (isLoading && !todayResponse)");
     expect(walkInSource).toContain("if (isError && !todayResponse)");
     expect(upcomingSource).toContain("if (isLoading && !displayedInfiniteData)");
@@ -66,7 +68,7 @@ describe("Receptionist visitor loading states", () => {
   });
 
   it("treats successful empty responses as usable data", () => {
-    expect(allVisitorsSource).toContain("data ? { data, queryParams } : undefined");
+    expect(allVisitorsSource).toContain("data ? { data, queryParams, preciseStatus } : undefined");
     expect(todaySource).toContain("{ response: todayResponse, params: queryParams }");
     expect(upcomingSource).toContain("infiniteData ? { response: infiniteData, todayKey, limit: PAGE_SIZE } : undefined");
   });

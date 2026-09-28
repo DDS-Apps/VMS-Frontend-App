@@ -6,7 +6,7 @@ const source = fs.readFileSync(
   'utf8',
 );
 
-describe('My Requests page KPI removal', () => {
+describe('My Visits page KPI removal', () => {
   it('does not render local KPI cards in either view mode', () => {
     expect(source).not.toContain('KPICard');
     expect(source).not.toContain('StatsCards');
@@ -15,7 +15,7 @@ describe('My Requests page KPI removal', () => {
   });
 
   it('keeps the sidebar page controls and both request layouts', () => {
-    expect(source).toContain('t("navigation.myRequests")');
+    expect(source).toContain('t("sidebar.myVisits")');
     expect(source).toContain('if (viewMode === "list")');
     expect(source).toContain('<SectionHeader');
     expect(source).toContain('<ScreenFlatList');

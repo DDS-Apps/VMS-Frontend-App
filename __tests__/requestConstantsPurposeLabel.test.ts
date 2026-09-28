@@ -1,6 +1,7 @@
 import { getTranslation } from "@/constants/i18n";
 import {
   getPurposeLabel,
+  PURPOSE_OPTIONS,
   PURPOSE_VALUE_TO_KEY,
 } from "@/constants/requestConstants";
 
@@ -8,6 +9,17 @@ const translate = (locale: "en" | "ar") => (key: string) =>
   getTranslation(locale, key);
 
 describe("getPurposeLabel", () => {
+  it("offers exactly the six approved purpose choices", () => {
+    expect(PURPOSE_OPTIONS.map(option => option.value)).toEqual([
+      "business_meeting", "interview", "delivery", "maintenance", "vendors", "other",
+    ]);
+    expect(PURPOSE_OPTIONS.map(option => getTranslation("en", option.labelKey))).toEqual([
+      "Business Meeting", "Interview", "Delivery", "Maintenance", "Vendors", "Others",
+    ]);
+    expect(getPurposeLabel("Other", translate("en"))).toBe("Others");
+    expect(getPurposeLabel("أخرى", translate("ar"))).toBe("أخرى");
+  });
+
   it("uses the real English and Arabic translations for business_meeting and interview", () => {
     expect(getPurposeLabel("business_meeting", translate("en"))).toBe(
       "Business Meeting",

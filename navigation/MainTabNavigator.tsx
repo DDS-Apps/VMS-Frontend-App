@@ -57,7 +57,7 @@ function DashboardStack({ userRole }: { userRole: UserRole }) {
       >
         <Stack.Screen
           name="EmployeeDashboard"
-          options={{ headerTitle: "My Requests" }}
+          options={{ headerTitle: "My Visits" }}
         >
           {(props) => <VisitorRequestsScreen {...(props as unknown as VisitorRequestsScreenProps)} />}
         </Stack.Screen>

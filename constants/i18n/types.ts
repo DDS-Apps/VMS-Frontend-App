@@ -26,6 +26,8 @@ export interface TranslationKeys {
     submit: string;
     search: string;
     filter: string;
+    from: string;
+    to: string;
     all: string;
     allStatuses: string;
     none: string;
@@ -299,6 +301,7 @@ export interface TranslationKeys {
     training: string;
     personalVisit: string;
     other: string;
+    others: string;
     managerComment: string;
     requestId: string;
     timeline: string;

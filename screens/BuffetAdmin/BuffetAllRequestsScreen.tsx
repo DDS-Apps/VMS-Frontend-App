@@ -15,6 +15,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon } from "@/components/DDIcon";
 import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
 import { DashboardKpiSection, VisitorMatrixTable, type VisitorMatrixItem } from "@/components/shared";
+import { ActiveDateRangeLabel } from "@/components/shared/ActiveDateRangeLabel";
 import { useRefreshDashboardKpis } from "@/hooks/queries/useDashboardKpiQuery";
 import { applyOpacity, getStatusConfig as getStatusStyle } from "@/utils/statusStyles";
 import { BUFFET_GRID_PADDING_SIDE } from "@/utils/gridLayout";
@@ -662,6 +663,7 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
                     {getDisplayDate()}
                   </ThemedText>
                 </Pressable>
+                <ActiveDateRangeLabel startDate={selectedDate} endDate={selectedDate} />
                 
                 <Pressable
                   style={[styles.dateNavButton, { backgroundColor: theme.surfaceSecondary }]}
@@ -749,6 +751,7 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
               {getDisplayDate()}
             </ThemedText>
           </Pressable>
+          <ActiveDateRangeLabel startDate={selectedDate} endDate={selectedDate} />
           
           <Pressable
             style={[styles.dateNavButton, { backgroundColor: theme.surfaceSecondary }]}

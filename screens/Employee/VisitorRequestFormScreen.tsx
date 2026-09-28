@@ -135,7 +135,10 @@ export default function VisitorRequestFormScreen({
   const visitTypeId =
     ((route?.params as any)?.visitTypeId as string | undefined) ||
     ((route?.params as any)?.visitType as string | undefined);
-  const initialPurposeValue = visitTypeId ? (normalizePurposeValue(visitTypeId) || visitTypeId) : '';
+  const normalizedInitialPurpose = visitTypeId ? normalizePurposeValue(visitTypeId) : '';
+  const initialPurposeValue = PURPOSE_OPTIONS.some(option => option.value === normalizedInitialPurpose)
+    ? normalizedInitialPurpose
+    : '';
 
   // Pre-fill from deep link / Outlook add-in URL params (mobile nav params)
   const prefill = (route?.params as any)?.prefill as {

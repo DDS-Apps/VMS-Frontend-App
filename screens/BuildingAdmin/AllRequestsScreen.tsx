@@ -72,6 +72,7 @@ import {
 import { StatusDropdown } from '@/components/shared/RequestStatusDropdown';
 import { REQUEST_STATUS_VALUES } from '@/constants/requestConstants';
 import type { RequestStatus } from '@/types/vms.types';
+import { ActiveDateRangeLabel } from '@/components/shared/ActiveDateRangeLabel';
 
 const LAYOUT = {
   cardPadding: Spacing.lg,
@@ -1252,8 +1253,7 @@ export default function AllRequestsScreen() {
         </DirectionalRow>
 
         {hasDateFilter ? (
-          <>
-            <Spacer height={Spacing.sm} />
+          <DirectionalRow style={{ marginTop: Spacing.sm, gap: Spacing.sm }}>
             <Pressable 
               style={[styles.dateChip, { backgroundColor: applyOpacity(theme.primary, '12') }]}
               onPress={clearDateFilter}
@@ -1266,7 +1266,11 @@ export default function AllRequestsScreen() {
               </ThemedText>
               <DDIcon name="x" size={14} color={theme.primary} />
             </Pressable>
-          </>
+            <ActiveDateRangeLabel
+              startDate={activeDateRange.startDate}
+              endDate={activeDateRange.endDate ?? activeDateRange.startDate}
+            />
+          </DirectionalRow>
         ) : null}
       </View>
 

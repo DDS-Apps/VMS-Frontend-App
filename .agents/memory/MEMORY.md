@@ -28,3 +28,5 @@
 - [RTL table column order](rtl-table-column-order.md) — use the same View-based physical order for web headers and data; keep native RTL as a normal row.
 - [Dashboard toggle borders](dashboard-toggle-borders.md) — give grid/list buttons separate full borders; an outer clipped group loses visible edges in Arabic.
 - [Visitor status filter aliases](visitor-status-filter-aliases.md) — canonical picker values must include legacy backend equivalents without conflating distinct terminal outcomes.
+- [Status dropdown source scope](status-dropdown-source-scope.md) — a status option must match its screen's source and filtering path, not just the global request lifecycle.
+- [Visit purpose choices](visit-purpose-choices.md) — restrict new/edit picker choices without discarding translations for historical purpose values.

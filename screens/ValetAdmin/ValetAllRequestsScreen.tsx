@@ -19,6 +19,7 @@ import type { ValetParkingVisitorDto } from "@/types/api.types";
 import type { Theme } from "@/types/theme.types";
 import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 import { RequestStatusBadge } from '@/components/shared/RequestStatusBadge';
+import { ActiveDateRangeLabel } from '@/components/shared/ActiveDateRangeLabel';
 import { DashboardKpiSection, VisitorMatrixTable, WalkInBadge } from '@/components/shared';
 import { KPICard, KPICardRow } from '@/components/shared/KPICard';
 import { useRefreshDashboardKpis } from '@/hooks/queries/useDashboardKpiQuery';
@@ -439,6 +440,7 @@ export default function ValetAllRequestsScreen() {
             >
               <DDIcon name="calendar" size={20} color={theme.primary} />
             </Pressable>
+            <ActiveDateRangeLabel startDate={selectedDate} endDate={selectedDate} />
             <DirectionalRow
               style={[
                 styles.viewToggle,

@@ -14,6 +14,7 @@ import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
 import { DDIcon } from "@/components/DDIcon";
 import { LoadingButton } from "@/components/shared/LoadingButton";
+import { ActiveDateRangeLabel } from "@/components/shared/ActiveDateRangeLabel";
 import { DirectionalRow } from "@/components/DirectionalRow";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
@@ -42,14 +43,6 @@ function defaultEnd(): Date {
   const d = new Date();
   d.setHours(23, 59, 59, 999);
   return d;
-}
-
-function displayDate(date: Date): string {
-  return date.toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
 }
 
 // ─── types ────────────────────────────────────────────────────────────────────
@@ -204,9 +197,7 @@ export default function ReportsScreen() {
             onPress={() => setShowCalendar(true)}
           >
             <DDIcon name="calendar" size={15} color={theme.primary} />
-            <ThemedText style={[Typography.body, { color: theme.primary, flex: 1, marginHorizontal: Spacing.xs }]}>
-              {displayDate(startDate)} → {displayDate(endDate)}
-            </ThemedText>
+            <ActiveDateRangeLabel startDate={startDate} endDate={endDate} />
             <DDIcon name="chevron-down" size={13} color={theme.primary} />
           </Pressable>
 

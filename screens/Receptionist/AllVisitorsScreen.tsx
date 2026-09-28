@@ -4,6 +4,7 @@ import { View, StyleSheet, Pressable, Alert, Switch, FlatList, ActivityIndicator
 import type { AllVisitorsScreenProps } from "@/types/receptionistNavigation.types";
 import { ROUTES } from "@/constants";
 import { SkeletonList, RTLHorizontalScrollView, VisitorMatrixTable, FilterChip, VisitorRequestCard } from "@/components/shared";
+import { ActiveDateRangeLabel } from "@/components/shared/ActiveDateRangeLabel";
 import type { VisitorMatrixItem } from "@/components/shared";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SearchInput } from "@/components/SearchInput";
@@ -51,8 +52,6 @@ const RECEPTIONIST_ALLOWED_STATUSES = [
   'pending_host_approval',
   'approved',
   'visitor_pending',
-  'waiting_acceptance',
-  'accepted',
   'visitor_accepted',
   'checked_in',
   'checked_out',
@@ -61,8 +60,6 @@ const RECEPTIONIST_ALLOWED_STATUSES = [
   'visitor_rejected',
   'cancelled',
   'auto_cancelled',
-  'expired',
-  'no_show',
 ];
 
 function getDateRange(filter: DateFilter): { startDate?: string; endDate?: string } {
@@ -665,13 +662,17 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
           }}
           clearAccessibilityLabel={t('common.clear')}
         />
+        <ActiveDateRangeLabel
+          startDate={selectedDateRange.startDate}
+          endDate={selectedDateRange.endDate}
+        />
       </RTLHorizontalScrollView>
 
       <Spacer height={Spacing.md} />
     </View>
-  ), [t, theme, totalCount, isFetching, isFetchingNextPage, searchQuery, isWalkInFilter, selectedStatuses, preciseStatus, dateFilter, getSelectedDateLabel, localeCode, handleWalkInToggle, handleStatusChipPress, handlePreciseStatusChange, viewMode, setViewMode]);
+  ), [t, theme, totalCount, isFetching, isFetchingNextPage, searchQuery, isWalkInFilter, selectedStatuses, preciseStatus, dateFilter, selectedDateRange, getSelectedDateLabel, localeCode, handleWalkInToggle, handleStatusChipPress, handlePreciseStatusChange, viewMode, setViewMode]);
 
-  if (isLoading && !displayedData) {
+  if ((isLoading && !displayedData) || (retainedQuery.isRetained && (isFetching || !isError))) {
     return (
       <View style={[styles.loadingContainer, { paddingTop: insets.top + Spacing.lg, paddingHorizontal: Spacing.lg, backgroundColor: theme.background }]}>
         <SkeletonList count={5} />
@@ -715,18 +716,16 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
             <View>
               {ListHeader}
               {retainedQuery.isRetained ? (
-                <DirectionalRow style={[styles.inlineFeedback, { backgroundColor: applyOpacity(theme.primary, '10') }]}>
-                  <DDIcon name="info" size={16} color={theme.primary} />
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, flex: 1 }]}>
-                  {t('requests.showingPreviousDataFrom').replace('{{source}}', displayedQuerySourceLabel)}
+                <DirectionalRow style={[styles.inlineFeedback, { backgroundColor: applyOpacity(theme.error, '10') }]}>
+                  <DDIcon name="alert-circle" size={16} color={theme.error} />
+                  <ThemedText style={[Typography.caption, { color: theme.error, flex: 1 }]}>
+                    {t('common.loadError')} · {t('requests.showingPreviousDataFrom').replace('{{source}}', displayedQuerySourceLabel)}
                   </ThemedText>
-                  {isError ? (
-                    <Pressable onPress={() => refetch()} hitSlop={8}>
-                      <ThemedText style={[Typography.caption, { color: theme.primary, fontWeight: '600' }]}>
-                        {t('common.retry')}
-                      </ThemedText>
-                    </Pressable>
-                  ) : null}
+                  <Pressable onPress={() => refetch()} hitSlop={8}>
+                    <ThemedText style={[Typography.caption, { color: theme.primary, fontWeight: '600' }]}>
+                      {t('common.retry')}
+                    </ThemedText>
+                  </Pressable>
                 </DirectionalRow>
               ) : isError && !isFetchNextPageError ? (
                 <DirectionalRow style={[styles.inlineFeedback, { backgroundColor: applyOpacity(theme.error, '10') }]}>
@@ -801,18 +800,16 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
             <View>
               {ListHeader}
               {retainedQuery.isRetained ? (
-                <DirectionalRow style={[styles.inlineFeedback, { backgroundColor: applyOpacity(theme.primary, '10') }]}>
-                  <DDIcon name="info" size={16} color={theme.primary} />
-                  <ThemedText style={[Typography.caption, { color: theme.textSecondary, flex: 1 }]}>
-                    {t('requests.showingPreviousDataFrom').replace('{{source}}', displayedQuerySourceLabel)}
+                <DirectionalRow style={[styles.inlineFeedback, { backgroundColor: applyOpacity(theme.error, '10') }]}>
+                  <DDIcon name="alert-circle" size={16} color={theme.error} />
+                  <ThemedText style={[Typography.caption, { color: theme.error, flex: 1 }]}>
+                    {t('common.loadError')} · {t('requests.showingPreviousDataFrom').replace('{{source}}', displayedQuerySourceLabel)}
                   </ThemedText>
-                  {isError ? (
-                    <Pressable onPress={() => refetch()} hitSlop={8}>
-                      <ThemedText style={[Typography.caption, { color: theme.primary, fontWeight: '600' }]}>
-                        {t('common.retry')}
-                      </ThemedText>
-                    </Pressable>
-                  ) : null}
+                  <Pressable onPress={() => refetch()} hitSlop={8}>
+                    <ThemedText style={[Typography.caption, { color: theme.primary, fontWeight: '600' }]}>
+                      {t('common.retry')}
+                    </ThemedText>
+                  </Pressable>
                 </DirectionalRow>
               ) : isError && !isFetchNextPageError ? (
                 <DirectionalRow style={[styles.inlineFeedback, { backgroundColor: applyOpacity(theme.error, '10') }]}>

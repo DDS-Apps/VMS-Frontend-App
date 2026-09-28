@@ -62,20 +62,9 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 type StatusFilter = 'all' | 'walk_in' | 'expected' | 'checked_in' | 'completed';
 
 const PRECISE_STATUS_OPTIONS = [
-  'pending',
-  'pending_approval',
-  'pending_host_approval',
   'expected',
-  'approved',
-  'visitor_pending',
-  'waiting_acceptance',
-  'accepted',
-  'visitor_accepted',
   'checked_in',
-  'checked_out',
   'completed',
-  'no_show',
-  'expired',
 ];
 
 // ─── Module-level status config helper ───────────────────────────────────────
@@ -414,7 +403,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
     });
   }, [todaysVisitors, searchQuery, statusFilter, preciseStatus]);
 
-  if (isLoading && !displayedResponse) {
+  if ((isLoading && !displayedResponse) || (retainedQuery.isRetained && (isFetching || !isError))) {
     return (
       <View style={[styles.loadingContainer, { paddingTop: insets.top + Spacing.lg, paddingHorizontal: Spacing.lg }]}>
         <SkeletonList count={5} />
@@ -567,18 +556,16 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
       <Spacer height={Spacing.md} />
 
       {retainedQuery.isRetained ? (
-        <DirectionalRow style={[styles.inlineFeedback, { backgroundColor: applyOpacity(theme.primary, '10') }]}>
-          <DDIcon name="info" size={16} color={theme.primary} />
-          <ThemedText style={[Typography.caption, { color: theme.textSecondary, flex: 1 }]}>
-            {t('requests.showingPreviousDataFrom').replace('{{source}}', displayedQuerySourceLabel)}
+        <DirectionalRow style={[styles.inlineFeedback, { backgroundColor: applyOpacity(theme.error, '10') }]}>
+          <DDIcon name="alert-circle" size={16} color={theme.error} />
+          <ThemedText style={[Typography.caption, { color: theme.error, flex: 1 }]}>
+            {t('common.loadError')} · {t('requests.showingPreviousDataFrom').replace('{{source}}', displayedQuerySourceLabel)}
           </ThemedText>
-          {isError ? (
-            <Pressable onPress={() => refetch()} hitSlop={8}>
-              <ThemedText style={[Typography.caption, { color: theme.primary, fontWeight: '600' }]}>
-                {t('common.retry')}
-              </ThemedText>
-            </Pressable>
-          ) : null}
+          <Pressable onPress={() => refetch()} hitSlop={8}>
+            <ThemedText style={[Typography.caption, { color: theme.primary, fontWeight: '600' }]}>
+              {t('common.retry')}
+            </ThemedText>
+          </Pressable>
         </DirectionalRow>
       ) : isError ? (
         <DirectionalRow style={[styles.inlineFeedback, { backgroundColor: applyOpacity(theme.error, '10') }]}>

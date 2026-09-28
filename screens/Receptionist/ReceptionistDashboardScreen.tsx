@@ -252,7 +252,11 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
     let result = todaysVisitors;
 
     if (preciseVisitorStatus) {
-      result = result.filter((visitor) => visitor.status === preciseVisitorStatus);
+      result = result.filter((visitor) =>
+        preciseVisitorStatus === 'completed'
+          ? visitor.status === 'completed' || visitor.status === 'checked_out'
+          : visitor.status === preciseVisitorStatus,
+      );
     } else if (visitorFilter === 'to_be_checked') {
       result = result.filter((visitor) =>
         ['expected', 'pending', 'approved', 'visitor_accepted'].includes(visitor.status),
@@ -269,16 +273,10 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
 
   const RECEPTIONIST_STATUS_OPTIONS = [
     'pending',
-    'pending_approval',
-    'pending_host_approval',
     'expected',
     'approved',
-    'visitor_pending',
-    'waiting_acceptance',
-    'accepted',
     'visitor_accepted',
     'checked_in',
-    'checked_out',
     'completed',
   ];
 

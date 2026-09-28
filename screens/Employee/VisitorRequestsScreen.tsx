@@ -59,6 +59,7 @@ import { useRetainedDatedData } from "@/hooks/useRetainedDatedData";
 import { getLocalizedApiErrorMessage } from "@/utils/apiErrorMessage";
 import { canAutomaticallyFetchNextPage } from "@/utils/queryPaginationState";
 import { useTimeBoundaryTick } from "@/hooks/useTimeBoundaryTick";
+import { ActiveDateRangeLabel } from "@/components/shared/ActiveDateRangeLabel";
 
 // Unified Layout Tokens
 const LAYOUT = {
@@ -329,6 +330,7 @@ const SectionHeader = ({
   onClearDatePress,
   selectedStatus,
   onStatusChange,
+  dateRange,
   theme,
   t,
 }: {
@@ -341,6 +343,7 @@ const SectionHeader = ({
   onClearDatePress: () => void;
   selectedStatus: RequestStatusDropdownValue;
   onStatusChange: (status: RequestStatusDropdownValue) => void;
+  dateRange: { startDate: Date | null; endDate: Date | null };
   theme: Theme;
   t: (key: string) => string;
 }) => {
@@ -361,7 +364,7 @@ const SectionHeader = ({
     <ThemedText
       style={[Typography.subtitle, {}]}
     >
-      {t("navigation.myRequests")}
+      {t("sidebar.myVisits")}
     </ThemedText>
   );
 
@@ -439,6 +442,10 @@ const SectionHeader = ({
           onPress={onDatePress}
           onClear={onClearDatePress}
           clearAccessibilityLabel={t("common.clear")}
+        />
+        <ActiveDateRangeLabel
+          startDate={dateRange.startDate}
+          endDate={dateRange.endDate ?? dateRange.startDate}
         />
         <RequestStatusDropdown
           value={selectedStatus}
@@ -973,6 +980,7 @@ export default function VisitorRequestsScreen({
                 onClearDatePress={() => setDateRange({ startDate: null, endDate: null })}
                 selectedStatus={selectedStatus}
                 onStatusChange={handleStatusChange}
+                dateRange={dateRange}
                 theme={theme}
                 t={t}
               />
@@ -1113,6 +1121,7 @@ export default function VisitorRequestsScreen({
               onClearDatePress={() => setDateRange({ startDate: null, endDate: null })}
               selectedStatus={selectedStatus}
               onStatusChange={handleStatusChange}
+              dateRange={dateRange}
               theme={theme}
               t={t}
             />

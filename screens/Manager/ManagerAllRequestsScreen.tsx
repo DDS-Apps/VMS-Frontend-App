@@ -60,6 +60,7 @@ import {
 } from "@/utils/managerApprovalHistoryFilters";
 import { getLocalizedApiErrorMessage } from "@/utils/apiErrorMessage";
 import { REQUEST_STATUS_VALUES } from "@/constants/requestConstants";
+import { ActiveDateRangeLabel } from "@/components/shared/ActiveDateRangeLabel";
 
 const LAYOUT = {
   contentGap: Spacing.md,
@@ -160,6 +161,7 @@ const SectionHeaderWithTabs = ({
   onClearDatePress,
   selectedStatus,
   onStatusChange,
+  dateRange,
   theme,
   t,
 }: {
@@ -173,6 +175,7 @@ const SectionHeaderWithTabs = ({
   onClearDatePress: () => void;
   selectedStatus: string | null;
   onStatusChange: (status: string | null) => void;
+  dateRange: { startDate: Date | null; endDate: Date | null };
   theme: ReturnType<typeof useTheme>["theme"];
   t: (key: string) => string;
 }) => {
@@ -266,6 +269,10 @@ const SectionHeaderWithTabs = ({
           onPress={onDatePress}
           onClear={onClearDatePress}
           clearAccessibilityLabel={t("common.clear")}
+        />
+        <ActiveDateRangeLabel
+          startDate={dateRange.startDate}
+          endDate={dateRange.endDate ?? dateRange.startDate}
         />
         <StatusDropdown
           value={selectedStatus}
@@ -723,6 +730,7 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
         onClearDatePress={() => setDateRange({ startDate: null, endDate: null })}
         selectedStatus={selectedStatus ?? null}
         onStatusChange={handleStatusChange}
+        dateRange={dateRange}
         theme={theme}
         t={t}
       />

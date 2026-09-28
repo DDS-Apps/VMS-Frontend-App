@@ -149,8 +149,13 @@ jest.mock("@/components/DirectionalRow", () => {
     DirectionalRow: ({ children }: { children: React.ReactNode }) =>
       React.createElement(React.Fragment, null, children),
     getFlexDirection: () => "row",
+    getPhysicalToggleStyle: () => ({ flexDirection: "row" }),
   };
 });
+
+jest.mock("@/components/shared/RequestStatusDropdown", () => ({
+  StatusDropdown: () => null,
+}));
 
 jest.mock("react-native", () => {
   const React = require("react");

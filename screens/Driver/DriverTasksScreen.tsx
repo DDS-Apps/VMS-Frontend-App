@@ -15,6 +15,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { RTLHorizontalScrollView, RequestStatusBadge, FilterChip } from '@/components/shared';
+import { ActiveDateRangeLabel } from '@/components/shared/ActiveDateRangeLabel';
 import { applyOpacity } from '@/utils/statusStyles';
 import { useUpcomingIndicator } from '@/hooks/useUpcomingVisitTimer';
 import { UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES, isUpcomingIndicatorEligibleStatus } from '@/constants/requestConstants';
@@ -585,13 +586,21 @@ export default function DriverTasksScreen({ onNavigateToDetail }: DriverTasksScr
             showClearButton={false}
             containerStyle={styles.searchInputFlex}
           />
-          <Pressable 
-            style={[styles.calendarIconButton, { backgroundColor: theme.surface, borderColor: theme.border }]}
-            onPress={() => setShowDatePicker(true)}
-            hitSlop={8}
-          >
-            <DDIcon name="calendar" size={20} color={theme.primary} />
-          </Pressable>
+          <View style={styles.dateControlGroup}>
+            <Pressable
+              style={[styles.calendarIconButton, { backgroundColor: theme.surface, borderColor: theme.border }]}
+              onPress={() => setShowDatePicker(true)}
+              hitSlop={8}
+            >
+              <DDIcon name="calendar" size={20} color={theme.primary} />
+            </Pressable>
+            <View style={styles.dateRangeLabelContainer}>
+              <ActiveDateRangeLabel
+                startDate={dateRange.startDate && dateRange.endDate ? dateRange.startDate : selectedDate}
+                endDate={dateRange.startDate && dateRange.endDate ? dateRange.endDate : selectedDate}
+              />
+            </View>
+          </View>
         </DirectionalRow>
 
         <Spacer height={Spacing.lg} />
@@ -657,6 +666,16 @@ const styles = StyleSheet.create({
   searchBarWrapper: {
     alignItems: 'center',
     gap: Spacing.sm,
+  },
+  dateControlGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexShrink: 1,
+    maxWidth: '65%',
+  },
+  dateRangeLabelContainer: {
+    flexShrink: 1,
+    minWidth: 0,
   },
   searchInputFlex: {
     flex: 1,

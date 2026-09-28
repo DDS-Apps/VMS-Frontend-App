@@ -38,16 +38,7 @@ type StatusFilter = 'all' | 'pending' | 'checked_in' | 'completed';
 
 const PRECISE_STATUS_OPTIONS = [
   'pending',
-  'pending_approval',
-  'pending_host_approval',
-  'expected',
-  'approved',
-  'visitor_pending',
-  'waiting_acceptance',
-  'accepted',
-  'visitor_accepted',
   'checked_in',
-  'checked_out',
   'completed',
 ];
 
@@ -180,6 +171,7 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
         return name.includes(query) || phone.includes(searchQuery) || company.includes(query);
       })
       .filter(visitor => {
+        if (preciseStatus === 'pending') return visitor.status === 'pending' || visitor.status === 'expected';
         if (preciseStatus) return visitor.status === preciseStatus;
         if (statusFilter === 'all') return true;
         if (statusFilter === 'pending') return visitor.status === 'pending' || visitor.status === 'expected';
