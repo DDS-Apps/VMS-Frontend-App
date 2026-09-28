@@ -693,10 +693,6 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
               if (parkingType === 'required') return PageColors.warning;
               return PageColors.success;
             };
-            const getParkingIcon = () => {
-              if (parkingType === 'required') return 'parking';
-              return 'slash';
-            };
             const parkingColor = getParkingColor();
             return (
               <GlassCard style={[
@@ -709,7 +705,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
                     { backgroundColor: parkingColor + '20' }
                   ]}>
                     <DDIcon 
-                      name={getParkingIcon()} 
+                      name="parking"
                       size={24} 
                       color={parkingColor}
                     />
@@ -989,10 +985,6 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
                 if (parkingType === 'required') return PageColors.warning;
                 return PageColors.success;
               };
-              const getParkingIcon = () => {
-                if (parkingType === 'required') return 'parking';
-                return 'slash';
-              };
               const parkingColor = getParkingColor();
               return (
                 <GlassCard style={[
@@ -1005,7 +997,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
                       { backgroundColor: parkingColor + '20' }
                     ]}>
                       <DDIcon 
-                        name={getParkingIcon()} 
+                        name="parking"
                         size={24} 
                         color={parkingColor}
                       />
