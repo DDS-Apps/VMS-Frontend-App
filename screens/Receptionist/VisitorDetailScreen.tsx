@@ -25,6 +25,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { applyOpacity } from "@/utils/statusStyles";
 import { formatPhoneNumber, formatPhoneForDisplay, getInitials } from "@/utils/formatters";
 import { RequestStatusBadge } from "@/components/shared/RequestStatusBadge";
+import { WalkInVisitorBadge } from "@/components/shared/WalkInVisitorBadge";
 import { LoadingButton } from "@/components/shared/LoadingButton";
 import { ExpiredVisitFooter } from "@/components/shared/ExpiredVisitFooter";
 import { useVisitDetailsQuery } from "@/hooks/queries/useApprovalQueries";
@@ -476,12 +477,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
             {t('visitor.visitorDetails')}
           </ThemedText>
           {visitor.isWalkIn ? (
-            <DirectionalRow style={{ backgroundColor: applyOpacity(theme.warning, '15'), paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: BorderRadius.sm }} gap={Spacing.xs}>
-              <DDIcon name="user-check" size={14} color={theme.warning} />
-              <ThemedText style={[Typography.caption, { color: theme.warning, fontWeight: '600', fontSize: 11 }]}>
-                {t('reception.walkInVisitor')}
-              </ThemedText>
-            </DirectionalRow>
+            <WalkInVisitorBadge icon="user-check" />
           ) : null}
         </DirectionalRow>
         <Spacer height={Spacing.xl} />

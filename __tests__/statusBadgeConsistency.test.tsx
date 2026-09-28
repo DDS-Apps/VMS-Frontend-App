@@ -21,7 +21,7 @@ jest.mock("@/components/DDIcon", () => ({
   DDIcon: (props: any) => require("react").createElement("DDIcon", props),
 }));
 jest.mock("@/hooks/useTheme", () => ({
-  useTheme: () => ({ theme: { textSecondary: "#555555", border: "#CCCCCC", surfaceSecondary: "#EEEEEE", error: "#AA0000" } }),
+  useTheme: () => ({ theme: { textSecondary: "#555555", border: "#CCCCCC", surfaceSecondary: "#EEEEEE", error: "#AA0000", warning: "#AA6600" } }),
 }));
 jest.mock("@/hooks/useTranslation", () => ({
   useTranslation: () => ({ t: (key: string) => `translated:${key}` }),
@@ -29,6 +29,7 @@ jest.mock("@/hooks/useTranslation", () => ({
 
 import { RequestStatusBadge } from "@/components/shared/RequestStatusBadge";
 import { ExpiredVisitBadge } from "@/components/shared/ExpiredVisitBadge";
+import { WalkInVisitorBadge } from "@/components/shared/WalkInVisitorBadge";
 import { StatusLabelBadge, STATUS_BADGE_CONTAINER, STATUS_BADGE_TEXT } from "@/components/shared/StatusLabelBadge";
 
 describe("shared status label styling", () => {
@@ -87,6 +88,40 @@ describe("shared status label styling", () => {
     expect(text.props.style[0].fontSize).toBe(STATUS_BADGE_TEXT.fontSize);
     expect(text.props.style[1].color).toBe("#AA0000");
     act(() => renderer!.unmount());
+  });
+
+  it("gives the walk-in and request statuses the same compact detail-header typography and shape", () => {
+    let renderer: ReturnType<typeof create>;
+    act(() => {
+      renderer = create(
+        <>
+          <WalkInVisitorBadge />
+          <RequestStatusBadge status="pending_approval" />
+        </>,
+      );
+    });
+    const rows = renderer!.root.findAllByType("DirectionalRow");
+    const labels = renderer!.root.findAllByType("ThemedText");
+    expect(rows).toHaveLength(2);
+    expect(rows[0].props.style[0]).toBe(STATUS_BADGE_CONTAINER);
+    expect(rows[1].props.style[0]).toBe(STATUS_BADGE_CONTAINER);
+    expect(labels.map(label => label.props.children)).toEqual([
+      "translated:reception.walkInVisitor",
+      "translated:status.pendingApproval",
+    ]);
+    expect(labels[0].props.style[0]).toEqual(labels[1].props.style[0]);
+    act(() => renderer!.unmount());
+  });
+
+  it("uses the compact walk-in badge in request and visitor details", () => {
+    for (const file of [
+      "screens/Manager/ManagerApprovalDetailScreen.tsx",
+      "screens/Employee/RequestDetailsScreen.tsx",
+      "screens/Receptionist/VisitorDetailScreen.tsx",
+    ]) {
+      const source = fs.readFileSync(path.resolve(__dirname, "..", file), "utf8");
+      expect(source).toContain("<WalkInVisitorBadge");
+    }
   });
 
   it("uses that shared component on representative request, task, and admin screens", () => {

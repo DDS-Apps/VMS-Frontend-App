@@ -42,6 +42,7 @@ import { StatusBadge } from "@/components/shared/StatusBadge";
 import { RequestStatusBadge } from "@/components/shared/RequestStatusBadge";
 import { ExpiredVisitFooter } from "@/components/shared/ExpiredVisitFooter";
 import { STATUS_BADGE_TEXT } from "@/components/shared/StatusLabelBadge";
+import { WalkInVisitorBadge } from "@/components/shared/WalkInVisitorBadge";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import {
@@ -1684,30 +1685,7 @@ export default function RequestDetailsScreen({
             {isRTL ? (
               <>
                 {request.isWalkIn ? (
-                  <DirectionalRow
-                    style={{
-                      alignItems: "center",
-                      gap: Spacing.xs,
-                      backgroundColor: applyOpacity(theme.warning, "15"),
-                      paddingHorizontal: Spacing.sm,
-                      paddingVertical: Spacing.xs,
-                      borderRadius: BorderRadius.sm,
-                    }}
-                  >
-                    <ThemedText
-                      style={[
-                        Typography.caption,
-                        {
-                          color: theme.warning,
-                          fontWeight: "600",
-                          fontSize: 11,
-                        },
-                      ]}
-                    >
-                      {t("reception.walkInVisitor")}
-                    </ThemedText>
-                    <DDIcon name="user-check" size={14} color={theme.warning} />
-                  </DirectionalRow>
+                  <WalkInVisitorBadge icon="user-check" />
                 ) : null}
                 <ThemedText
                   style={[
@@ -1741,30 +1719,7 @@ export default function RequestDetailsScreen({
                   {t("visitor.visitDetails")}
                 </ThemedText>
                 {request.isWalkIn ? (
-                  <DirectionalRow
-                    style={{
-                      alignItems: "center",
-                      gap: Spacing.xs,
-                      backgroundColor: applyOpacity(theme.warning, "15"),
-                      paddingHorizontal: Spacing.sm,
-                      paddingVertical: Spacing.xs,
-                      borderRadius: BorderRadius.sm,
-                    }}
-                  >
-                    <DDIcon name="user-check" size={14} color={theme.warning} />
-                    <ThemedText
-                      style={[
-                        Typography.caption,
-                        {
-                          color: theme.warning,
-                          fontWeight: "600",
-                          fontSize: 11,
-                        },
-                      ]}
-                    >
-                      {t("reception.walkInVisitor")}
-                    </ThemedText>
-                  </DirectionalRow>
+                  <WalkInVisitorBadge icon="user-check" />
                 ) : null}
               </>
             )}

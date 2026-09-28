@@ -27,6 +27,7 @@ import { StatusBadge } from "@/components/shared/StatusBadge";
 import { RequestStatusBadge } from "@/components/shared/RequestStatusBadge";
 import { ExpiredVisitFooter } from "@/components/shared/ExpiredVisitFooter";
 import { STATUS_BADGE_TEXT } from "@/components/shared/StatusLabelBadge";
+import { WalkInVisitorBadge } from "@/components/shared/WalkInVisitorBadge";
 import {
   RequestTimeline,
   useTimelineSteps,
@@ -1120,22 +1121,7 @@ export default function ManagerApprovalDetailScreen({
                 {/* Status Badges */}
                 <DirectionalRow style={{ alignItems: "center", gap: Spacing.sm }}>
                   {request.isWalkIn ? (
-                    <View
-                      style={{
-                        backgroundColor: applyOpacity(theme.warning, "15"),
-                        borderColor: applyOpacity(theme.warning, "30"),
-                        borderWidth: StyleSheet.hairlineWidth,
-                        paddingHorizontal: Spacing.md,
-                        paddingVertical: 6,
-                        borderRadius: BorderRadius.full,
-                      }}
-                    >
-                      <ThemedText
-                        style={[Typography.caption, { color: theme.warning, fontWeight: "600", fontSize: 12 }]}
-                      >
-                        {t("reception.walkInVisitor")}
-                      </ThemedText>
-                    </View>
+                    <WalkInVisitorBadge />
                   ) : null}
                   <RequestStatusBadge status={request.status} />
                 </DirectionalRow>
@@ -1213,22 +1199,7 @@ export default function ManagerApprovalDetailScreen({
 
                 <DirectionalRow style={{ alignItems: "center", gap: Spacing.sm }}>
                   {request.isWalkIn ? (
-                    <View
-                      style={{
-                        backgroundColor: applyOpacity(theme.warning, "15"),
-                        borderColor: applyOpacity(theme.warning, "30"),
-                        borderWidth: StyleSheet.hairlineWidth,
-                        paddingHorizontal: Spacing.md,
-                        paddingVertical: 6,
-                        borderRadius: BorderRadius.full,
-                      }}
-                    >
-                      <ThemedText
-                        style={[Typography.caption, { color: theme.warning, fontWeight: "600", fontSize: 12 }]}
-                      >
-                        {t("reception.walkInVisitor")}
-                      </ThemedText>
-                    </View>
+                    <WalkInVisitorBadge />
                   ) : null}
                   <RequestStatusBadge status={request.status} />
                 </DirectionalRow>
