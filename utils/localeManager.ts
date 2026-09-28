@@ -343,7 +343,7 @@ export interface ChangeLanguageResult {
  * 
  * Returns { locale, isRTL, needsRestart }
  * - If needsRestart is true on mobile, app must restart
- * - If needsRestart is true on web, page must reload
+ * - Web changes are applied through context and document settings without a reload
  */
 export async function changeLanguage(newLocale: SupportedLocale): Promise<ChangeLanguageResult> {
   const newIsRTL = isRTLLocale(newLocale);
@@ -361,12 +361,12 @@ export async function changeLanguage(newLocale: SupportedLocale): Promise<Change
   setCachedLocale(newLocale);
   
   if (Platform.OS === 'web') {
-    // Web: Apply immediately
+    // Web: React context and document settings can apply this immediately.
+    // Reloading remounts the app while its cached profile may still contain the
+    // old language, causing the first selection to be overwritten at startup.
     I18nManager.forceRTL(newIsRTL);
     applyWebDocumentDirection(newLocale);
-    
-    // Return needsRestart=true if direction changed (caller should reload page)
-    return { locale: newLocale, isRTL: newIsRTL, needsRestart: directionChanged };
+    return { locale: newLocale, isRTL: newIsRTL, needsRestart: false };
   }
   
   // Mobile: Apply forceRTL if direction changed

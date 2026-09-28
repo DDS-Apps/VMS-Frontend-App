@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { View, StyleSheet, Pressable, I18nManager, useWindowDimensions, Modal, Switch, Platform, ActivityIndicator } from "react-native";
+import { View, StyleSheet, Pressable, useWindowDimensions, Modal, Switch, Platform, ActivityIndicator } from "react-native";
 import { Image } from "expo-image";
 import { GestureDetector, Gesture } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -20,10 +20,10 @@ import { LanguageChangeOverlay } from "@/components/LanguageChangeOverlay";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useLanguagePreference } from "@/hooks/useLanguagePreference";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useRTLStyles } from "@/hooks/useRTLStyles";
 import { UserRole } from "@/types/vms.types";
-import { authService } from "@/services/api/authService";
 import { getLocalizedApiErrorMessage } from "@/utils/apiErrorMessage";
 import { applyOpacity } from "@/utils/statusStyles";
 
@@ -35,19 +35,6 @@ const SWIPE_VELOCITY_THRESHOLD = 500;
 // Android needs higher thresholds to avoid conflicts with horizontal ScrollViews
 const ANDROID_ACTIVE_OFFSET = 60;
 const IOS_ACTIVE_OFFSET = 30;
-
-// Synchronously determine RTL state for first render on web
-function getInitialRTLState(): boolean {
-  if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
-    try {
-      const stored = localStorage.getItem('@vms_language');
-      return stored === 'ar';
-    } catch {
-      return false;
-    }
-  }
-  return I18nManager.isRTL;
-}
 
 interface DashboardLayoutProps {
   userRole: UserRole;
@@ -87,13 +74,8 @@ export default function DashboardLayout({
   isSSOUser = false,
 }: DashboardLayoutProps) {
   const { theme, isDark, toggleTheme } = useTheme();
-  const { locale, setLocale, isRTL: contextIsRTL, layoutKey, isChangingLanguage } = useLanguage();
-  
-  // Use I18nManager.isRTL directly on mobile (authoritative source after app restart)
-  // On web, use localStorage check for first render, then context value
-  const isRTL = Platform.OS === 'web' 
-    ? getInitialRTLState() || contextIsRTL 
-    : I18nManager.isRTL;
+  const { locale, isRTL, layoutKey, isChangingLanguage } = useLanguage();
+  const changeLanguagePreference = useLanguagePreference();
   
   const { t } = useTranslation();
   const unreadErrorMessage = unreadNotificationError
@@ -112,8 +94,7 @@ export default function DashboardLayout({
     const newLocale = locale === 'en' ? 'ar' : 'en';
     setIsLanguageChanging(true);
     try {
-      await authService.updateProfile({ language: newLocale });
-      await setLocale(newLocale);
+      await changeLanguagePreference(newLocale);
       setProfileMenuVisible(false);
     } catch {
       console.warn('[DashboardLayout] Failed to save language preference');

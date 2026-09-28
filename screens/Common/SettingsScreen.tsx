@@ -6,7 +6,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { DDIcon } from "@/components/DDIcon";
 import { ROUTES } from "@/constants";
 import Constants from "expo-constants";
-import { authService } from "@/services/api/authService";
+import { useLanguagePreference } from "@/hooks/useLanguagePreference";
 import { InAppNotificationToast } from "@/components/InAppNotificationToast";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { ThemedText } from "@/components/ThemedText";
@@ -44,7 +44,8 @@ export default function SettingsScreen({
   onLogout 
 }: SettingsScreenProps) {
   const { theme, isDark, toggleTheme } = useTheme();
-  const { t, locale, setLocale, locales, isRTL, isChangingLanguage } = useTranslation();
+  const { t, locale, locales, isRTL, isChangingLanguage } = useTranslation();
+  const changeLanguagePreference = useLanguagePreference();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NativeStackNavigationProp<{ EditProfile: undefined; PrivacyPolicy: undefined; TermsConditions: undefined }>>();
   
@@ -81,10 +82,8 @@ export default function SettingsScreen({
   const handleLanguageChange = async (langCode: SupportedLocale) => {
     // Persist language preference to server first
     try {
-      await authService.updateProfile({ language: langCode });
+      await changeLanguagePreference(langCode);
       console.log('[Settings] Language preference saved to server:', langCode);
-      // Only apply locally if server update succeeded
-      await setLocale(langCode);
     } catch (error) {
       console.warn('[Settings] Failed to save language to server:', error);
       // Show error to user

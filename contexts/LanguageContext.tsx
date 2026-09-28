@@ -15,11 +15,11 @@
  * RTL HANDLING:
  * - isRTL reflects the current RTL state based on locale
  * - When locale changes between LTR/RTL, app restart is required (mobile)
- * - On web, page reload is required
+ * - On web, context and document direction update without a page reload
  * - layoutKey changes when locale changes - use as key prop to force re-render
  */
 
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
 import { Platform, I18nManager } from 'react-native';
 import {
   SupportedLocale,
@@ -83,6 +83,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
   );
   
   const [locale, setLocaleState] = useState<SupportedLocale>(initialLocale);
+  const currentLocaleRef = useRef(initialLocale);
   const [isLoading, setIsLoading] = useState(!initialLocaleIsAuthoritative);
   const [isChangingLanguage, setIsChangingLanguage] = useState(false);
   const [layoutKey, setLayoutKey] = useState<string>(`${initialLocale}-${initialIsRTL ? 'rtl' : 'ltr'}-0`);
@@ -115,6 +116,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
             to: storedLocale 
           });
           setLocaleState(storedLocale);
+          currentLocaleRef.current = storedLocale;
           const storedIsRTL = isRTLLocale(storedLocale);
           setLayoutKey(`${storedLocale}-${storedIsRTL ? 'rtl' : 'ltr'}-${++layoutKeyCounter}`);
           
@@ -143,9 +145,10 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
   const localeCode: LocaleCode = isRTL ? 'ar-SA' : 'en-US';
 
   const handleSetLocale = useCallback(async (newLocale: SupportedLocale) => {
-    if (newLocale === locale) return;
+    const currentLocale = currentLocaleRef.current;
+    if (newLocale === currentLocale) return;
 
-    console.log('[LanguageContext] Changing locale:', { from: locale, to: newLocale });
+    console.log('[LanguageContext] Changing locale:', { from: currentLocale, to: newLocale });
     
     // Show loading overlay
     setIsChangingLanguage(true);
@@ -156,6 +159,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
       console.log('[LanguageContext] Change result:', result);
 
       // Update local state
+      currentLocaleRef.current = newLocale;
       setLocaleState(newLocale);
       setLayoutKey(`${newLocale}-${result.isRTL ? 'rtl' : 'ltr'}-${++layoutKeyCounter}`);
 
@@ -172,7 +176,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
       console.error('[LanguageContext] Error changing locale:', error);
       setIsChangingLanguage(false);
     }
-  }, [locale]);
+  }, []);
 
   const value: LanguageContextType = {
     locale,

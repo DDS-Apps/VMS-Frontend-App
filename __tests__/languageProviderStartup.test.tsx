@@ -98,4 +98,60 @@ describe("LanguageProvider startup", () => {
 
     unmount();
   });
+
+  it("applies the first web language change without a page restart and persists it for reload", async () => {
+    const { Platform } = require("react-native");
+    const previousPlatform = Platform.OS;
+    const previousLocalStorage = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
+    const storage = new Map<string, string>();
+    Object.defineProperty(Platform, "OS", { configurable: true, value: "web" });
+    Object.defineProperty(globalThis, "localStorage", {
+      configurable: true,
+      value: {
+        getItem: (key: string) => storage.get(key) ?? null,
+        setItem: (key: string, value: string) => { storage.set(key, value); },
+      },
+    });
+    try {
+      const modules = loadFreshModules();
+      // resetModules gives localeManager a new react-native module instance.
+      const freshPlatform = require("react-native").Platform;
+      const freshPreviousPlatform = freshPlatform.OS;
+      Object.defineProperty(freshPlatform, "OS", { configurable: true, value: "web" });
+      let change!: (locale: "en" | "ar") => Promise<void>;
+      const observed: string[] = [];
+      const Probe = () => {
+        const context = modules.languageContext.useLanguage();
+        change = context.setLocale;
+        observed.push(context.locale);
+        return null;
+      };
+      let renderer!: import("react-test-renderer").ReactTestRenderer;
+      await modules.TestRenderer.act(async () => {
+        renderer = modules.TestRenderer.create(
+          modules.React.createElement(modules.languageContext.LanguageProvider, null, modules.React.createElement(Probe)),
+        );
+      });
+      // Keep the callback captured before the first change, as a pending save
+      // would do when it needs to restore the prior selection on failure.
+      const firstChange = change;
+      await modules.TestRenderer.act(async () => { await firstChange("ar"); });
+      expect(observed.at(-1)).toBe("ar");
+      expect(storage.get(modules.localeManager.LANGUAGE_STORAGE_KEY)).toBe("ar");
+      expect(mockRestartApp).not.toHaveBeenCalled();
+      await modules.TestRenderer.act(async () => { await firstChange("en"); });
+      expect(observed.at(-1)).toBe("en");
+      expect(storage.get(modules.localeManager.LANGUAGE_STORAGE_KEY)).toBe("en");
+      expect(mockRestartApp).not.toHaveBeenCalled();
+      modules.TestRenderer.act(() => renderer.unmount());
+      Object.defineProperty(freshPlatform, "OS", { configurable: true, value: freshPreviousPlatform });
+    } finally {
+      Object.defineProperty(Platform, "OS", { configurable: true, value: previousPlatform });
+      if (previousLocalStorage) {
+        Object.defineProperty(globalThis, "localStorage", previousLocalStorage);
+      } else {
+        Reflect.deleteProperty(globalThis, "localStorage");
+      }
+    }
+  });
 });

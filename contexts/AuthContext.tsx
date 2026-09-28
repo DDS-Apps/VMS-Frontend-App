@@ -107,6 +107,7 @@ interface AuthContextType extends AuthState {
   ssoLogin: (tokens: SSOTokens) => Promise<AuthUser>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<AuthUser | null>;
+  updateLanguagePreference: (language: 'en' | 'ar') => Promise<void>;
   clearError: () => void;
   checkHealth: () => Promise<boolean>;
   isTokenValid: () => Promise<boolean>;
@@ -345,6 +346,23 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
       return false;
     }
   }, []);
+
+  const updateLanguagePreference = useCallback(async (language: 'en' | 'ar'): Promise<void> => {
+    const generation = sessionGenerationRef.current;
+    const userId = state.user?.id;
+    if (!userId) throw new Error('No authenticated user');
+    await authService.updateProfile({ language });
+    if (generation !== sessionGenerationRef.current) return;
+    const updatedUser = state.user && state.user.id === userId
+      ? { ...state.user, language }
+      : null;
+    if (!updatedUser) return;
+    await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(updatedUser));
+    if (generation !== sessionGenerationRef.current) return;
+    setState((previous) => previous.user?.id === userId
+      ? { ...previous, user: { ...previous.user, language } }
+      : previous);
+  }, [state.user]);
 
   useEffect(() => {
     const handleWebHashTokens = async (): Promise<boolean> => {
@@ -780,6 +798,7 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
     ssoLogin,
     logout,
     refreshUser,
+    updateLanguagePreference,
     clearError,
     checkHealth,
     isTokenValid,
