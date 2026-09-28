@@ -18,7 +18,7 @@ import {
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { DDIcon } from "@/components/DDIcon";
-import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
+import { DirectionalRow, getFlexDirection, getTableColumnStyle } from "@/components/DirectionalRow";
 import { StatusAccent, RequestStatusBadge } from "@/components/shared";
 import { ApprovalActionGroup } from "@/components/shared/ApprovalActionGroup";
 import { SelectionCheckbox } from "@/components/shared/SelectionCheckbox";
@@ -571,7 +571,7 @@ function MatrixTable({
 
   return (
     <View style={[styles.matrixWrapper, { borderColor: theme.border, backgroundColor: theme.surface }]}>
-      <View style={{ flexDirection: getFlexDirection(isRTL) }}>
+      <View style={getTableColumnStyle(isRTL)}>
         {/* Frozen visitor-name column — header cell + one cell per row, stays put while the rest scrolls */}
         <View style={[styles.matrixFrozenColStack, { borderEndColor: theme.border, backgroundColor: theme.surface }]}>
           <View
@@ -646,7 +646,7 @@ function MatrixTable({
           contentContainerStyle={styles.scrollContent}
         >
           <View>
-            <DirectionalRow style={[styles.matrixHeaderRow, { backgroundColor: theme.surfaceSecondary, borderBottomColor: theme.border }]}>
+            <View style={[styles.matrixHeaderRow, { backgroundColor: theme.surfaceSecondary, borderBottomColor: theme.border }, getTableColumnStyle(isRTL)]}>
               {isSimple ? (
                 <>
                   <MatrixHeaderCell label={t("visitor.date").toUpperCase()} width={LAYOUT.matrixColWidth} />
@@ -670,7 +670,7 @@ function MatrixTable({
                 <MatrixHeaderCell label={t("security.manualEntry").toUpperCase().split(" ")[0]} width={LAYOUT.matrixColWidth} />
               ) : null}
               <MatrixHeaderCell label={statusHeaderLabel} width={LAYOUT.matrixColWidth} />
-            </DirectionalRow>
+            </View>
 
             {visitors.map((item, idx) => (
               <MatrixDataRowCells
@@ -801,7 +801,7 @@ function MatrixDataRowCells({
       onPress={() => onPressRow?.(item.id)}
       onLongPress={onLongPressRow ? () => onLongPressRow(item.id) : undefined}
       android_ripple={{ color: applyOpacity(theme.primary, "10") }}
-      style={{ flexDirection: getFlexDirection(isRTL), minHeight: LAYOUT.matrixRowMinHeight }}
+      style={[{ minHeight: LAYOUT.matrixRowMinHeight }, getTableColumnStyle(isRTL)]}
     >
       {isSimple ? (
         <>

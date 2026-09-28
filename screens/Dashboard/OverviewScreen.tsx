@@ -48,7 +48,7 @@ import {
   mapPendingApprovalToVisitorRequest,
   mapPendingHostWalkInToVisitorRequest,
 } from "@/utils/requestMappers";
-import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
+import { DirectionalRow, getFlexDirection, getPhysicalToggleStyle } from "@/components/DirectionalRow";
 import { isVisitExpired, getServerDateParts, getBusinessDateKey } from "@/utils/dateTimeUtils";
 import {
   computeIsPendingApprovalWalkInExpired,
@@ -495,15 +495,13 @@ export default function OverviewScreen({
                     {t("time.thisMonth")}
                   </ThemedText>
                 </View>
-                <DirectionalRow style={styles.viewToggle}>
+                <View style={[styles.viewToggle, { borderColor: theme.border }, getPhysicalToggleStyle(isRTL)]}>
                   <Pressable
                     onPress={() => setDashboardViewMode('card')}
                     style={[
                       styles.viewToggleBtn,
-                      styles.viewToggleBtnLeft,
                       {
                         backgroundColor: dashboardViewMode === 'card' ? theme.primary : theme.surface,
-                        borderColor: theme.border,
                       },
                     ]}
                   >
@@ -517,10 +515,8 @@ export default function OverviewScreen({
                     onPress={() => setDashboardViewMode('list')}
                     style={[
                       styles.viewToggleBtn,
-                      styles.viewToggleBtnRight,
                       {
                         backgroundColor: dashboardViewMode === 'list' ? theme.primary : theme.surface,
-                        borderColor: theme.border,
                       },
                     ]}
                   >
@@ -530,7 +526,7 @@ export default function OverviewScreen({
                       color={dashboardViewMode === 'list' ? theme.buttonText : theme.textSecondary}
                     />
                   </Pressable>
-                </DirectionalRow>
+                </View>
               </DirectionalRow>
 
               <Spacer height={Spacing.md} />
@@ -1666,6 +1662,8 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.sm,
     overflow: "hidden",
     flexDirection: "row",
+    borderWidth: 1,
+    gap: 1,
   },
   viewToggleBtn: {
     padding: Spacing.sm,
@@ -1673,20 +1671,7 @@ const styles = StyleSheet.create({
     height: 36,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1,
-  },
-  viewToggleBtnLeft: {
-    borderTopStartRadius: BorderRadius.sm,
-    borderBottomStartRadius: BorderRadius.sm,
-    borderTopEndRadius: 0,
-    borderBottomEndRadius: 0,
-    borderEndWidth: 0,
-  },
-  viewToggleBtnRight: {
-    borderTopEndRadius: BorderRadius.sm,
-    borderBottomEndRadius: BorderRadius.sm,
-    borderTopStartRadius: 0,
-    borderBottomStartRadius: 0,
+    borderWidth: 0,
   },
   visitorCard: {
     borderRadius: BorderRadius.md,

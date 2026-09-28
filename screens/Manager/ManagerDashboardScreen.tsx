@@ -9,7 +9,7 @@ import { DDIcon } from "@/components/DDIcon";
 import { useScreenInsets } from "@/hooks/useScreenInsets";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
+import { DirectionalRow, getFlexDirection, getPhysicalToggleStyle } from "@/components/DirectionalRow";
 import Spacer from "@/components/Spacer";
 import { ServiceIcons, SelectionCheckbox, StatusAccent, WalkInBadge, SkeletonDashboard, LoadingSpinner, ApprovalActionGroup, LoadingButton, VisitorRequestCard, RTLHorizontalScrollView, ListLoadingFooter, VisitorMatrixTable } from "@/components/shared";
 import type { VisitorMatrixItem } from "@/components/shared";
@@ -142,10 +142,10 @@ const SectionHeader = ({
     <DirectionalRow style={styles.headerActions}>
       {selectButton}
       <Spacer width={Spacing.sm} />
-      <DirectionalRow style={styles.viewModeToggle}>
+      <View style={[styles.viewModeToggle, getPhysicalToggleStyle(isRTL)]}>
         {gridButton}
         {listButton}
-      </DirectionalRow>
+      </View>
     </DirectionalRow>
   );
   

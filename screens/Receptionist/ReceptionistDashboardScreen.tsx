@@ -15,7 +15,7 @@ import { useFormatters } from "@/hooks/useFormatters";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { applyOpacity, getStatusConfig as getSharedStatusConfig } from "@/utils/statusStyles";
-import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
+import { DirectionalRow, getFlexDirection, getPhysicalToggleStyle } from '@/components/DirectionalRow';
 
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTodayVisitorsQuery } from "@/hooks/queries/useReceptionQueries";
@@ -219,9 +219,6 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
 
   const [expandedVisitors, setExpandedVisitors] = useState<Set<string>>(new Set());
   const [viewMode, setViewMode] = useState<'card' | 'table'>('table');
-  // DirectionalRow reverses child placement in Arabic. Reverse the children
-  // there so the visible toggle remains grid-left / list-right.
-  const viewToggleModes: Array<'card' | 'table'> = isRTL ? ['table', 'card'] : ['card', 'table'];
   const [visitorFilter, setVisitorFilter] = useState<'all' | 'to_be_checked' | 'checked_in' | 'checked_out'>('all');
 
   // Today's visitors power the dashboard preview.
@@ -649,21 +646,20 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
               {t('dashboard.checkInsToday')}
             </ThemedText>
           </View>
-          <DirectionalRow style={styles.viewToggle}>
-            {viewToggleModes.map((mode, index) => (
+          <View style={[styles.viewToggle, { borderColor: theme.border }, getPhysicalToggleStyle(isRTL)]}>
+            {(['card', 'table'] as const).map((mode) => (
               <Pressable
                 key={mode}
                 style={[
                   styles.viewToggleBtn,
-                  index === 0 ? styles.viewToggleBtnLeft : styles.viewToggleBtnRight,
-                  { backgroundColor: viewMode === mode ? theme.primary : theme.surface, borderColor: theme.border },
+                  { backgroundColor: viewMode === mode ? theme.primary : theme.surface },
                 ]}
                 onPress={() => setViewMode(mode)}
               >
                 <DDIcon name={mode === 'card' ? 'grid' : 'menu'} size={16} color={viewMode === mode ? theme.buttonText : theme.textSecondary} />
               </Pressable>
             ))}
-          </DirectionalRow>
+          </View>
         </DirectionalRow>
 
         <Spacer height={Spacing.md} />
@@ -1238,6 +1234,8 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.sm,
     overflow: 'hidden',
     flexDirection: 'row',
+    borderWidth: 1,
+    gap: 1,
   },
   viewToggleBtn: {
     padding: Spacing.sm,
@@ -1245,19 +1243,6 @@ const styles = StyleSheet.create({
     height: 36,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-  },
-  viewToggleBtnLeft: {
-    borderTopStartRadius: BorderRadius.sm,
-    borderBottomStartRadius: BorderRadius.sm,
-    borderTopEndRadius: 0,
-    borderBottomEndRadius: 0,
-    borderEndWidth: 0,
-  },
-  viewToggleBtnRight: {
-    borderTopEndRadius: BorderRadius.sm,
-    borderBottomEndRadius: BorderRadius.sm,
-    borderTopStartRadius: 0,
-    borderBottomStartRadius: 0,
+    borderWidth: 0,
   },
 });

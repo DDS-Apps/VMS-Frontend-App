@@ -277,6 +277,24 @@ export function getFlexDirection(isRTL: boolean): 'row' | 'row-reverse' {
   return calculateFlexDirection(isRTL, false);
 }
 
+/**
+ * Table headers and cells must use exactly the same layout rule. On web,
+ * direction:rtl + row-reverse cancels itself; use direction:rtl + row instead.
+ * Native RTL already mirrors a normal row.
+ */
+export function getTableColumnStyle(isRTL: boolean): ViewStyle {
+  return Platform.OS === 'web'
+    ? { flexDirection: 'row', direction: isRTL ? 'rtl' : 'ltr' }
+    : { flexDirection: 'row' };
+}
+
+/** A physical left-to-right control strip, even when the surrounding UI is RTL. */
+export function getPhysicalToggleStyle(isRTL: boolean): ViewStyle {
+  return Platform.OS === 'web'
+    ? { flexDirection: 'row', direction: 'ltr' }
+    : { flexDirection: isRTL ? 'row-reverse' : 'row' };
+}
+
 // =============================================================================
 // RTL WRAPPER FOR THIRD-PARTY COMPONENTS
 // =============================================================================

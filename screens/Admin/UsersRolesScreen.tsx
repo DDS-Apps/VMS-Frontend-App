@@ -31,7 +31,7 @@ import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useToast } from "@/contexts/ToastContext";
-import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
+import { DirectionalRow, getFlexDirection, getTableColumnStyle } from "@/components/DirectionalRow";
 import {
   useAdminUsersQuery,
   useCreateUserMutation,
@@ -903,6 +903,7 @@ export default function UsersRolesScreen() {
         }
         style={[
           styles.tableRow,
+          getTableColumnStyle(isRTL),
           {
             backgroundColor: isEven
               ? theme.backgroundSecondary
@@ -995,10 +996,11 @@ export default function UsersRolesScreen() {
   };
 
   const renderTableHeader = () => (
-    <DirectionalRow
+    <View
       style={[
         styles.tableHeaderRow,
         { backgroundColor: theme.surface, borderBottomColor: theme.border },
+        getTableColumnStyle(isRTL),
       ]}
     >
       {bulkMode ? (
@@ -1082,7 +1084,7 @@ export default function UsersRolesScreen() {
           </ThemedText>
         </View>
       ) : null}
-    </DirectionalRow>
+    </View>
   );
 
   const renderSectionHeader = ({
