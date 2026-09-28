@@ -14,9 +14,11 @@ describe("table columns and dashboard view controls", () => {
       const header = getTableColumnStyle(rtl);
       const row = getTableColumnStyle(rtl);
       expect(header).toEqual(row);
-      expect(header.flexDirection).toBe("row");
       if (os === "web") {
-        expect(header.direction).toBe(rtl ? "rtl" : "ltr");
+        expect(header.direction).toBe("ltr");
+        expect(header.flexDirection).toBe(rtl ? "row-reverse" : "row");
+      } else {
+        expect(header.flexDirection).toBe("row");
       }
     }
   });

@@ -25,5 +25,5 @@
 - [.well-known and add-in static serving](static-server-dotfiles-wellknown.md) — express.static hides dot-dirs by default; AASA must be JSON; no X-Frame-Options under /outlook-addin/.
 - [Web language changes](web-language-changes.md) — apply language in context without reloading; persist the authenticated profile so startup cannot restore an old preference.
 - [Issue verification cadence](issue-verification-cadence.md) — avoid screenshots for each fix unless requested; defer the full unit-test suite until all reported issues are fixed.
-- [RTL table column order](rtl-table-column-order.md) — match header and data row direction; CSS RTL plus row-reverse double-flips columns on web.
+- [RTL table column order](rtl-table-column-order.md) — use the same View-based physical order for web headers and data; keep native RTL as a normal row.
 - [Dashboard toggle borders](dashboard-toggle-borders.md) — give grid/list buttons separate full borders; an outer clipped group loses visible edges in Arabic.

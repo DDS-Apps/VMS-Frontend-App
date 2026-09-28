@@ -83,8 +83,8 @@ jest.mock("@/components/DirectionalRow", () => {
       React.createElement("DirectionalRow", props, props.children),
     getFlexDirection: (isRTL: boolean) => (isRTL ? "row-reverse" : "row"),
     getTableColumnStyle: (isRTL: boolean) => ({
-      flexDirection: "row",
-      direction: isRTL ? "rtl" : "ltr",
+      flexDirection: isRTL ? "row-reverse" : "row",
+      direction: "ltr",
     }),
   };
 });
@@ -222,8 +222,8 @@ describe("VisitorMatrixTable purpose labels", () => {
       }], locale);
       const rows = renderer.root.findAll((node) => {
         const style = StyleSheet.flatten(node.props.style);
-        return style?.direction === (locale === "ar" ? "rtl" : "ltr") &&
-          style?.flexDirection === "row";
+        return style?.direction === "ltr" &&
+          style?.flexDirection === (locale === "ar" ? "row-reverse" : "row");
       });
       const header = rows.find((node) =>
         StyleSheet.flatten(node.props.style)?.backgroundColor === mockTheme.surfaceSecondary &&
@@ -233,6 +233,7 @@ describe("VisitorMatrixTable purpose labels", () => {
         themedTextsIn(node).includes("Acme"));
       expect(header).toBeDefined();
       expect(data).toBeDefined();
+      expect(data!.type).toBe(header!.type);
       const headerLabels = themedTextsIn(header!);
       const rowValues = themedTextsIn(data!);
       expect(headerLabels.indexOf(getTranslation(locale, "visitor.date").toUpperCase())).toBe(0);

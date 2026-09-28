@@ -801,8 +801,11 @@ function MatrixDataRowCells({
       onPress={() => onPressRow?.(item.id)}
       onLongPress={onLongPressRow ? () => onLongPressRow(item.id) : undefined}
       android_ripple={{ color: applyOpacity(theme.primary, "10") }}
-      style={[{ minHeight: LAYOUT.matrixRowMinHeight }, getTableColumnStyle(isRTL)]}
+      style={{ minHeight: LAYOUT.matrixRowMinHeight }}
     >
+      {/* Use the same View-based column layout as the header. Pressable's web
+          direction inheritance is not guaranteed to match a plain View. */}
+      <View style={[{ minHeight: LAYOUT.matrixRowMinHeight }, getTableColumnStyle(isRTL)]}>
       {isSimple ? (
         <>
           <View style={[styles.matrixDataCell, { width: LAYOUT.matrixColWidth }, rowBorderStyle]}>
@@ -964,6 +967,7 @@ function MatrixDataRowCells({
         ) : (
           <RequestStatusBadge status={item.status} />
         )}
+      </View>
       </View>
     </Pressable>
   );

@@ -278,13 +278,14 @@ export function getFlexDirection(isRTL: boolean): 'row' | 'row-reverse' {
 }
 
 /**
- * Table headers and cells must use exactly the same layout rule. On web,
- * direction:rtl + row-reverse cancels itself; use direction:rtl + row instead.
+ * Table headers and cells must use the same explicit physical order. Avoid
+ * relying on CSS direction:rtl here: View headers and Pressable rows can
+ * otherwise end up with different inherited direction on web.
  * Native RTL already mirrors a normal row.
  */
 export function getTableColumnStyle(isRTL: boolean): ViewStyle {
   return Platform.OS === 'web'
-    ? { flexDirection: 'row', direction: isRTL ? 'rtl' : 'ltr' }
+    ? { flexDirection: isRTL ? 'row-reverse' : 'row', direction: 'ltr' }
     : { flexDirection: 'row' };
 }
 
