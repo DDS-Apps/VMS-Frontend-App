@@ -9,9 +9,11 @@ import {
   VisitorMatrixTable,
   type VisitorMatrixItem,
 } from "@/components/shared/VisitorMatrixTable";
-import type { PendingApprovalDto } from "@/types/api.types";
+import type { PendingApprovalDto, VisitListItemDto } from "@/types/api.types";
 import { mapPendingApprovalToVisitorRequest } from "@/utils/requestMappers";
 import { mapManagerRequestToMatrixItem } from "@/utils/managerDashboardTable";
+import { mapVisitListItemToVisitorRequest } from "@/utils/requestMappers";
+import { mapOverviewRequestToMatrixItem } from "@/utils/overviewVisitorTable";
 
 const mockTheme = {
   background: "#ffffff",
@@ -393,4 +395,39 @@ describe("Manager dashboard table services", () => {
       act(() => renderer.unmount());
     },
   );
+});
+
+describe("Overview Upcoming Visits table services", () => {
+  it("renders selected icons and omits unselected icons in the screenshot's matrix layout", () => {
+    const base: VisitListItemDto = {
+      id: "visit-1",
+      employeeName: "Host",
+      visitor: { fullName: "Visitor" },
+      visitDate: "2026-09-30",
+      visitTime: "09:00",
+      status: "approved",
+      purpose: "Interview",
+      isWalkIn: false,
+      createdAt: "2026-09-28T09:00:00Z",
+    };
+    const selected = mapOverviewRequestToMatrixItem(
+      mapVisitListItemToVisitorRequest({
+        ...base,
+        isMeetingRoom: true,
+        isBuffet: true,
+        visitorNeedsParking: true,
+      }),
+      false,
+    );
+    const unselected = mapOverviewRequestToMatrixItem(
+      mapVisitListItemToVisitorRequest({ ...base, id: "visit-2" }),
+      false,
+    );
+    const renderer = renderTable("matrix", [selected, unselected]);
+    const iconNames = renderer.root.findAllByType("DDIcon").map((icon) => icon.props.name);
+    expect(iconNames.filter((name) => name === "meeting-room")).toHaveLength(1);
+    expect(iconNames.filter((name) => name === "cloche")).toHaveLength(1);
+    expect(iconNames.filter((name) => name === "parking")).toHaveLength(1);
+    act(() => renderer.unmount());
+  });
 });

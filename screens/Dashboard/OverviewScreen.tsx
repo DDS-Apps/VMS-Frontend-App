@@ -59,7 +59,7 @@ import {
   formatVisitDateLabel,
   groupVisitsByDate,
 } from "@/utils/groupVisitsByDate";
-import { resolveParkingDisplayDecision } from "@/utils/parkingDecision";
+import { mapOverviewRequestToMatrixItem } from "@/utils/overviewVisitorTable";
 import { useRiyadhBusinessDateKey } from "@/hooks/useRiyadhBusinessDateKey";
 import { DashboardKpiSection } from "@/components/shared/DashboardKpiSection";
 import { getLocalizedApiErrorMessage } from "@/utils/apiErrorMessage";
@@ -207,22 +207,10 @@ export default function OverviewScreen({
   }, [pendingData]);
 
   const pendingApprovalTableItems = useMemo<VisitorMatrixItem[]>(
-    () => pendingApprovals.slice(0, 5).map((request) => ({
-      id: request.id,
-      visitorName: request.visitor.fullName,
-      company: request.visitor.company || undefined,
-      visitDate: request.visitDate,
-      plannedInTime: request.visitTime,
-      plannedOutTime: request.endTime,
-      status: request.status,
-      hostName: request.employeeName || undefined,
-      hasParking: resolveParkingDisplayDecision(request) === 'required',
-      hasBuffet: !!request.buffet,
-      hasValet: !!request.valet,
-      hasMeetingRoom: !!request.meetingRoom,
-      purpose: request.purpose || undefined,
-      isExpired: isVisitExpired(request.visitDate, request.visitTime, request.endTime, request.duration),
-    })),
+    () => pendingApprovals.slice(0, 5).map((request) => mapOverviewRequestToMatrixItem(
+      request,
+      isVisitExpired(request.visitDate, request.visitTime, request.endTime, request.duration),
+    )),
     [pendingApprovals],
   );
 
@@ -235,48 +223,24 @@ export default function OverviewScreen({
   }, [walkInData]);
 
   const awaitingVisitorTableItems = useMemo<VisitorMatrixItem[]>(
-    () => awaitingVisitorAcceptance.slice(0, 5).map((request) => ({
-      id: request.id,
-      visitorName: request.visitor.fullName,
-      company: request.visitor.company || undefined,
-      visitDate: request.visitDate,
-      plannedInTime: request.visitTime,
-      plannedOutTime: request.endTime,
-      status: request.status,
-      hostName: request.employeeName || undefined,
-      hasParking: resolveParkingDisplayDecision(request) === 'required',
-      hasBuffet: !!request.buffet,
-      hasValet: !!request.valet,
-      hasMeetingRoom: !!request.meetingRoom,
-      purpose: request.purpose || undefined,
-      isExpired: isVisitExpired(request.visitDate, request.visitTime, request.endTime, request.duration),
-    })),
+    () => awaitingVisitorAcceptance.slice(0, 5).map((request) => mapOverviewRequestToMatrixItem(
+      request,
+      isVisitExpired(request.visitDate, request.visitTime, request.endTime, request.duration),
+    )),
     [awaitingVisitorAcceptance],
   );
 
   const walkInVisitorTableItems = useMemo<VisitorMatrixItem[]>(
-    () => walkInVisitors.slice(0, 5).map((request) => ({
-      id: request.id,
-      visitorName: request.visitor.fullName,
-      company: request.visitor.company || undefined,
-      visitDate: request.visitDate,
-      plannedInTime: request.visitTime,
-      plannedOutTime: request.endTime,
-      status: request.status,
-      hostName: request.employeeName || undefined,
-      hasParking: resolveParkingDisplayDecision(request) === 'required',
-      hasBuffet: !!request.buffet,
-      hasValet: !!request.valet,
-      hasMeetingRoom: !!request.meetingRoom,
-      purpose: request.purpose || undefined,
-      isExpired: computeIsVisitExpired(
+    () => walkInVisitors.slice(0, 5).map((request) => mapOverviewRequestToMatrixItem(
+      request,
+      computeIsVisitExpired(
         request.visitDate,
         request.visitTime,
         request.endTime,
         request.duration,
         { isWalkIn: request.isWalkIn },
       ),
-    })),
+    )),
     [walkInVisitors, riyadhBusinessDateKey],
   );
 
@@ -364,24 +328,12 @@ export default function OverviewScreen({
   );
 
   const upcomingVisitTableItems = useMemo<VisitorMatrixItem[]>(
-    () => upcomingDashboardRequests.slice(0, 10).map((request) => ({
-      id: request.id,
-      visitorName: request.visitor.fullName,
-      company: request.visitor.company || undefined,
-      visitDate: request.visitDate,
-      plannedInTime: request.visitTime,
-      plannedOutTime: request.endTime,
-      status: request.status,
-      hostName: request.employeeName || undefined,
-      hasParking: resolveParkingDisplayDecision(request) === 'required',
-      hasBuffet: !!request.buffet,
-      hasValet: !!request.valet,
-      hasMeetingRoom: !!request.meetingRoom,
-      purpose: request.purpose || undefined,
-      isExpired: request.isWalkIn && request.status === "pending_host_approval"
+    () => upcomingDashboardRequests.slice(0, 10).map((request) => mapOverviewRequestToMatrixItem(
+      request,
+      request.isWalkIn && request.status === "pending_host_approval"
         ? computeIsPendingHostWalkInExpired(request)
         : isVisitExpired(request.visitDate, request.visitTime, request.endTime, request.duration),
-    })),
+    )),
     [upcomingDashboardRequests],
   );
 
